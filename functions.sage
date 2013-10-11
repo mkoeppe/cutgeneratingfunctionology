@@ -1,0 +1,1139 @@
+def fractional(num):
+    """
+    Reduce a number modulo 1.
+    """
+    while num > 1:
+        num = num - 1
+    while num < 0:
+        num = num + 1
+    return num
+
+def delta_pi(fn,x,y):
+    """
+    Compute the slack in subaddivity.
+    """
+    return fn(fractional(x))+fn(fractional(y))-fn(fractional(x+y))
+
+def two_d_complex(bkpt):
+    """
+    Return a plot of the horizonal lines, vertical lines, and diagonal lines of the complex.
+    """
+    p1 = plot([(bkpt[i]-x).plot((x, 0, bkpt[i])) for i in range(1,len(bkpt))])
+    p2 = plot([(1+bkpt[i]-x).plot((x, bkpt[i], 1)) for i in range(1,len(bkpt)-1)])
+    p3 = plot([(bkpt[i]+x-x).plot((x, 0, 1)) for i in range(len(bkpt))])
+    y=var('y')
+    for i in range(len(bkpt)):
+        p3 += parametric_plot((bkpt[i],y),(y,0,1))
+    return p1+p2+p3
+
+def interval_sum(int1, int2):
+    """
+    Return the sum of two intervals.
+    """
+    if len(int1) == 1 and len(int2) == 1:
+        return [int1[0]+int2[0]]
+    elif len(int1) == 2 and len(int2) == 1:
+        return [int1[0]+int2[0],int1[1]+int2[0]]
+    elif len(int1) == 1 and len(int2) == 2:
+        return [int1[0]+int2[0],int1[0]+int2[1]]
+    else:    
+        return [int1[0]+int2[0],int1[1]+int2[1]]
+
+def interval_intersection(int1, int2):
+    """
+    Return the intersection of two intervals.
+    """
+    if len(int1) == 0 or len(int2) == 0:
+        return []
+    if len(int1) == 1 and len(int2) == 1:
+        if int1[0] == int2[0]:
+            return [int1[0]]
+        else:
+            return []
+    elif len(int1) == 2 and len(int2) == 1:
+        if int2[0] >= int1[0]  and int2[0] <= int1[1]:
+            return [int2[0]]
+        else:
+            return []
+    elif len(int1) == 1 and len(int2) == 2:
+        if int1[0] >= int2[0]  and int1[0] <= int2[1]:
+            return [int1[0]]
+        else:
+            return []    
+    else:        
+        if max(int1[0],int2[0]) > min(int1[1],int2[1]):
+            return []
+        if max(int1[0],int2[0]) == min(int1[1],int2[1]):
+            return [max(int1[0],int2[0])]
+        else:
+            return [max(int1[0],int2[0]),min(int1[1],int2[1])]
+
+def interval_empty(interval):
+    """
+    Determine whether an interval is empty.            
+    """
+    if len(interval) == 0:
+        return True
+    else:
+        return False
+
+def element_of_int(x,int):
+    """
+    Determine whether a value x is inside an interval called int.
+    """
+    if len(int) == 0:
+        return False
+    elif len(int) == 1:
+        if x == int[0]:
+            return True
+        else:
+            return False
+    elif x >= int[0] and x <= int[1]:
+        return True
+    else:
+        return False
+
+def projection(vertices,linear_form):
+    """
+    Compute the projection of vertices based on the linear form.
+    vertices is a list of vertices (2-tuples)
+    linear_form is a 2-element list.
+    Projection on x: [1,0]
+    Projection on y: [0,1]
+    Projection on x + y: [1,1]
+    """
+    temp = []
+    for i in vertices:
+        temp.append(i[0]*linear_form[0]+i[1]*linear_form[1])
+    if max(temp) == min(temp):
+        return [min(temp)]
+    else:
+        return [min(temp), max(temp)]
+
+def projections(vertices):
+    """
+    Compute F(I,J,K)            
+    """
+    return [projection(vertices, [1,0]),projection(vertices, [0,1]),projection(vertices, [1,1])]    
+
+def verts(I1, J1, K1):
+    """
+    Compute the vertices based on I, J, and K.        
+    """
+    temp = []
+    for i in I1:
+        for j in J1:
+            if element_of_int(i+j,K1):
+                temp.append((i,j))
+    for i in I1:
+        for k in K1:
+            if element_of_int(k-i,J1) and (i,k-i) not in temp:
+                temp.append((i,k-i))             
+    for j in J1:
+        for k in K1:
+            if element_of_int(k-j,I1) and (k-j,j) not in temp:
+                temp.append((k-j,j))
+    
+    if len(temp) > 0:
+        return temp
+
+# Remove duplicates in a list.
+# FIXME: use some builtin instead.--Matthias
+def remove_duplicate(myList):
+    if myList:
+        myList.sort()
+        last = myList[-1]
+        for i in range(len(myList)-2, -1, -1):
+            if last == myList[i]:
+                del myList[i]
+            else:
+                last = myList[i]
+                        
+def face_0D(face):
+    if len(face[0]) == 1 and len(face[1]) == 1:
+        return True
+    else:
+        return False
+        
+def face_2D(face):
+    if len(face[0]) == 2 and len(face[1]) == 2 and len(face[2]) == 2:
+        return True
+    else:
+        return False
+
+def face_horizontal(face):
+    if len(face[0]) == 2 and len(face[1]) == 1:
+        return True
+    else:
+        return False
+
+def face_vertical(face):
+    if len(face[0]) == 1 and len(face[1]) == 2:
+        return True
+    else:
+        return False                
+
+def face_diagonal(face):
+    if len(face[0]) == 2 and len(face[1]) == 2 and len(face[2]) == 1:
+        return True
+    else:
+        return False 
+
+        
+def generate_vert_face_additive(function,bkpt):
+    bkpt2 = []
+    for i in range(len(bkpt)-1):
+        bkpt2.append(bkpt[i])
+    for i in range(len(bkpt)):
+        bkpt2.append(bkpt[i]+1)      
+   
+    I_list = []
+    J_list = []
+    K_list = []
+    
+    intervals = []
+    intervalsK = []
+    
+    for i in range(len(bkpt)-1):
+        intervals.append([bkpt[i],bkpt[i+1]])
+        
+    for i in range(len(bkpt2)-1):
+        intervalsK.append([bkpt2[i],bkpt2[i+1]])
+        
+    I_list = intervals
+    J_list = intervals
+    K_list = intervalsK
+    
+    additive_face = {}
+    additive_vertices = {}
+    vert_face_additive = []
+    for i in range(len(I_list)):
+        for j in range(i, len(J_list)):
+            for k in range(len(K_list)):
+                # Check if int(I+J) intersects int(K) is non-empty.
+                if len(interval_intersection(interval_sum(I_list[i],J_list[j]),K_list[k])) == 2:
+                    temp_verts = verts(I_list[i],J_list[j],K_list[k])
+                    temp = []
+                    keep = False
+                    if temp_verts != []:
+                        for vertex in temp_verts:
+                            if delta_pi(function, vertex[0],vertex[1]) == 0:
+                                temp.append(vertex)
+                                keep = True
+                    if len(temp) == 2:
+                        if temp[0][0] == temp[1][0]:
+                            if temp[1][0] == I_list[i][0]:
+                                if (i-1,j,k) in additive_face:
+                                   keep = False
+                            else:
+                                keep = False
+                        elif temp[0][1] == temp[1][1]: 
+                            if temp[1][1] == J_list[j][0]:
+                                if (i,j-1,k) in additive_face:
+                                    keep = False
+                            else:
+                                keep = False
+                        elif temp[0][0] + temp[0][1] == temp[1][0] + temp[1][1]: 
+                            if temp[1][0] + temp[1][1] == K_list[k][0]:
+                                if (i,j,k-1) in additive_face:
+                                    keep = False
+                            else:
+                                keep = False
+                    elif len(temp) == 1:
+                        if temp[0][0] == I_list[i][0] and temp[0][1] == J_list[j][0] \
+                            and temp[0][0] + temp[0][1] != K_list[k][1]:
+                            keep = True
+                        elif temp[0][0] == I_list[i][0] and temp[0][0] + temp[0][1] == K_list[k][0] \
+                            and temp[0][1] != J_list[j][1]:
+                            keep = True
+                        elif temp[0][1] == J_list[j][0] and temp[0][0] + temp[0][1] == K_list[k][0] \
+                            and temp[0][0] != I_list[i][1]:     
+                            keep = True
+                        else:
+                            keep = False
+                        if keep:
+                            if (temp[0][0],temp[0][1]) in additive_vertices:
+                                keep = False  
+                            if keep:
+                                print I_list[i], J_list[j], K_list[k]      
+                    if keep:
+                        
+                        additive_face[(i,j,k)] = temp
+                        
+                        for vert in temp:
+                            additive_vertices[vert] = True
+                        
+                        vert_face_additive.append(temp)
+                        if i != j:
+                            temp_swap = []
+                            for vert in temp:
+                                vert_new = [vert[1],vert[0]]
+                                temp_swap.append(vert_new)
+                            vert_face_additive.append(temp_swap)
+                        
+
+    return vert_face_additive  
+
+def generate_minimal_triples(vert_face_additive):
+    minimal_triples = []
+    for i in vert_face_additive:
+        minimal_triples.append(projections(i))
+    return minimal_triples    
+
+def plot_2d_diagram(function,bkpt, x_range = [0,1], y_range = [0,1]):
+    """
+    Plot the 2d complex with shaded faces where delta_pi is 0.        
+    """
+    vert_face_additive = generate_vert_face_additive(function,bkpt)
+    minimal_triples = generate_minimal_triples(vert_face_additive)
+        
+    y = var('y')
+    plot_minimal_triples = point([])
+    for i in range(len(minimal_triples)):
+        if face_0D(minimal_triples[i]):
+            plot_minimal_triples = plot_minimal_triples + point((minimal_triples[i][0][0], \
+                minimal_triples[i][1][0]), color = "cyan", size = 30)
+        elif face_horizontal(minimal_triples[i]):
+            plot_minimal_triples = plot_minimal_triples + parametric_plot((y,minimal_triples[i][1][0]),\
+                (y,minimal_triples[i][0][0], minimal_triples[i][0][1]), rgbcolor=(0, 1, 0))
+        elif face_vertical(minimal_triples[i]):
+            plot_minimal_triples = plot_minimal_triples + parametric_plot((minimal_triples[i][0][0],y),\
+                (y,minimal_triples[i][1][0], minimal_triples[i][1][1]), rgbcolor=(0, 1, 0))
+        elif face_diagonal(minimal_triples[i]):
+            plot_minimal_triples = plot_minimal_triples + parametric_plot((y,minimal_triples[i][2][0]-y),\
+                (y,minimal_triples[i][0][0],minimal_triples[i][0][1]), rgbcolor=(0, 1, 0))
+        elif face_2D(minimal_triples[i]):
+            plot_minimal_triples = plot_minimal_triples + polygon(vert_face_additive[i], rgbcolor=(1, 0, 0)) 
+    
+    show(two_d_complex(bkpt) + plot_minimal_triples, xmin = x_range[0], xmax = x_range[1],\
+        ymin = y_range[0], ymax = y_range[1])
+    return minimal_triples
+
+# Assume component is sorted.
+def merge_within_comp(component):   
+    for i in range(len(component)-1):
+        if component[i][1] > component[i+1][0]:
+            component[i+1] = [component[i][0],max(component[i][1],component[i+1][1])]
+            component[i] = []
+    component_new = []
+    for int in component:
+        if len(int) == 2 and max(int) <= 1:
+            component_new.append(int)
+    return component_new
+
+
+# Assume comp1 and comp2 are sorted.    
+def merge_two_comp(comp1,comp2):
+    temp = []
+    i = 0
+    j = 0
+    while i < len(comp1) and j < len(comp2):
+        if comp1[i][0] < comp2[j][0]:
+            temp.append(comp1[i])
+            i = i+1
+        else:
+            temp.append(comp2[j])
+            j = j+1
+    if i == len(comp1):
+        temp = temp + comp2[j:len(comp2)]
+    else:
+        temp = temp + comp1[i:len(comp1)]
+    temp = merge_within_comp(temp)
+    return temp
+            
+
+def partial_overlap(interval,component):
+    overlap = []
+    for int1 in component:
+        overlapped_int = interval_intersection(interval,int1)
+        if len(overlapped_int) == 2:
+            overlap.append(overlapped_int)
+    return overlap
+
+
+def remove_empty_comp(comps):
+    temp = []
+    for int in comps:
+        if len(int) > 0:
+            temp.append(int)
+    return temp
+    
+
+def partial_edge_merge(partial_overlap_intervals, ijk, ijk2, intervals, comps, i, IJK):
+    for int1 in partial_overlap_intervals:
+        front = int1[0] - intervals[ijk][0]
+        back = intervals[ijk][1] - int1[1]
+        
+        # If it is not the pair I and J, then the action is a translation.
+        if IJK != [0,1]:
+            other = [intervals[ijk2][0]+front, intervals[ijk2][1]-back]
+        # I and J implies a reflection
+        else:
+            other = [intervals[ijk2][0]+back, intervals[ijk2][1]-front]
+            
+        overlapped_component_indices = []
+        i_included = False
+        for k in range(len(comps)):
+            if len(partial_overlap(other,comps[k])) == 2:
+                if k < i:
+                    overlapped_component_indices.append(k)
+                elif k > i and i_included == False:
+                    overlapped_component_indices.append(i)
+                    overlapped_component_indices.append(k)
+                    i_included = True
+                else:
+                    overlapped_component_indices.append(k)
+        
+        if len(overlapped_component_indices) > 0:
+            comps[overlapped_component_indices[-1]] = merge_two_comp(comps[overlapped_component_indices[-1]], [other])
+               
+            for j in range(len(overlapped_component_indices)-1):
+                comps[overlapped_component_indices[j+1]] =  merge_two_comp(comps[overlapped_component_indices[j]],\
+                     comps[overlapped_component_indices[j+1]])
+                comps[overlapped_component_indices[j]] = []
+            
+        comps = remove_empty_comp(comps)
+                  
+
+def edge_merge(comps,intervals,IJK):
+    for i in range(len(comps)): 
+        partial_overlap_intervals = partial_overlap(intervals[0],comps[i])
+        # If there is overlapping...
+        if len(partial_overlap_intervals) > 0:
+            partial_edge_merge(partial_overlap_intervals, 0, 1, intervals, comps, i, IJK)
+        # Otherwise, repeat the same procedure for the other interval.
+        else:
+            partial_overlap_interval = partial_overlap(intervals[1],comps[i])
+            if len(partial_overlap_intervals) > 0:
+                partial_edge_merge(partial_overlap_intervals, 1, 0, intervals, comps, i, IJK) 
+    
+# Assume the lists of intervals are sorted.                
+def find_interior_intersection(list1, list2):
+    i=0
+    j=0
+    while i < len(list1) and j < len(list2):
+        if len(interval_intersection(list1[i], list2[j])) == 2:
+            return True
+        else:
+            if list1[i][0] < list2[j][0]:
+                i = i + 1
+            else:
+                j = j + 1
+    return False
+
+def interval_mod_1(interval):
+    assert interval[0] < interval[1]
+    while interval[0] >= 1:
+        interval[0] = interval[0] - 1
+        interval[1] = interval[1] - 1
+    while interval[1] <= 0:
+        interval[0] = interval[0] + 1
+        interval[1] = interval[1] + 1
+    assert not(interval[0] < 1 and interval[1] > 1) 
+    return interval
+    
+assert interval_mod_1([1,6/5]) == [0,1/5]
+assert interval_mod_1([1,2]) == [0,1]
+assert interval_mod_1([-3/10,-1/10]) == [7/10,9/10]
+assert interval_mod_1([-1/5,0]) == [4/5,1]        
+
+def generate_covered_intervals(function, bkpt = None, minimal_rep = []):
+    # If the minimal triples are not available...
+    if minimal_rep == []:   
+        vert_face_additive = generate_vert_face_additive(function,bkpt)
+        minimal_triples = generate_minimal_triples(vert_face_additive)
+    # If the minimal triples are available...
+    else:
+        minimal_triples = minimal_rep
+    
+            
+    covered_intervals = []	
+    # face = (I,J,K)
+    for face in minimal_triples:
+        if face_2D(face):
+            component = []
+            for int1 in face:
+                component.append(interval_mod_1(int1))
+            component.sort()
+            component = merge_within_comp(component)
+            covered_intervals.append(component)
+            
+    remove_duplicate(covered_intervals)
+    
+    for i in range(len(covered_intervals)):
+        for j in range(i+1, len(covered_intervals)):
+            if find_interior_intersection(covered_intervals[i], covered_intervals[j]):
+                covered_intervals[j] = merge_two_comp(covered_intervals[i],covered_intervals[j])
+                covered_intervals[i] = []
+                    
+    covered_intervals = remove_empty_comp(covered_intervals)
+
+    
+    for face in minimal_triples:
+        if face_horizontal(face) or face_vertical(face) or face_diagonal(face):
+            intervals = []
+            # 0 stands for I; 1 stands for J; 2 stands for K
+            IJK = []
+            for i in range(len(face)):
+                if len(face[i]) == 2:
+                    intervals.append(face[i])
+                    IJK.append(i)
+            edge_merge(covered_intervals,intervals,IJK)
+
+    # Plot the function with different colors.
+    # Each component has a unique color.
+    # The uncovered intervals is by default plotted in black.
+    show(plot(lambda x: function(x), [0,1], color = "black") + sum(sum([plot(lambda x: function(x), covered_intervals[i][j], color=rainbow(len(covered_intervals))[i]) \
+        for j in range(len(covered_intervals[i]))]) for i in range(len(covered_intervals))))
+                       
+    return covered_intervals
+
+def minimal_triple_from_scratch(function,bkpt):
+    vert_face_additive = generate_vert_face_additive(function,bkpt)
+    minimal_triples = generate_minimal_triples(vert_face_additive)
+
+    return minimal_triples
+
+# Fix x and y.
+def type1check(fn,bkpt):
+    k=1
+    for i in bkpt:
+        for j in bkpt:
+            if delta_pi(fn,i,j)<0:
+                print "x = ", i, ", y = ", j, ", x+y = ", i+j
+                print fn(fractional(i)), "+", fn(fractional(j)), "-", fn(fractional(i+j)), " = ", \
+                    delta_pi(fn,i,j), " < 0"
+                k=0
+    if k==1:
+        return True
+    return False
+
+# Fix x and x+y.
+# By symmetry, the case in which y and x+y are fixed is also done. 
+def type2check(fn,bkpt):
+    bkpt2 = []
+    for i in range(len(bkpt)-1):
+        bkpt2.append(bkpt[i])
+    for i in range(len(bkpt)):
+        bkpt2.append(bkpt[i]+1)     
+
+    k=1
+    
+    for i in bkpt:
+        for j in bkpt2:
+            if j - i > 0 and delta_pi(fn,i,j-i)<0:
+                print "x = ", i, ", y = ", j-i, ", x+y = ",j
+                print fn(fractional(i)), "+", fn(fractional(j-i)), "-", fn(fractional(j)), " = ", \
+                    delta_pi(fn,i,j-i), " < 0"
+                k=0
+    if k==1:
+        return True
+    return False     
+
+
+def subadditivity_check(fn,bkpt):
+    """
+    Check if a function is subadditive.
+    Could take quite a while. (O(n^2))
+    """
+    if type1check(fn,bkpt) and type2check(fn,bkpt):
+        print "pi is subadditive!"
+        return True
+    else:
+        print "pi is not subadditive!"
+        return False
+
+def symmetric_test(fn, bkpt, f):
+    k = 1
+    if fn(f) != 1:
+        print 'pi(f) is not equal to 1. pi is not symmetric.'
+        return False
+    else:
+        for i in bkpt:
+            for j in bkpt:
+                if i + j == f or i + j == 1 + f:
+                    if delta_pi(fn, i, j) != 0:
+                        print 'x = ',i,'; ','y = ',j
+                        print 'delta_pi is equal to ',delta_pi(fn, i, j),',not equal to 1'
+                        k = 0
+    if k == 1:
+        print 'pi is symmetric.'
+        return True
+    return False
+
+def minimality_test(fn, bkpt, f):
+    if fn(0) != 0:
+        print 'pi is not minimal because pi(0) is not equal to 0.'
+    else:
+        print 'pi(0) = 0'
+        if subadditivity_check(fn, bkpt) and symmetric_test(fn, bkpt, f):
+            print 'pi is minimal.'
+        else:
+            print 'pi is not minimal.'
+
+def directed_moves_from_moves(moves):
+    directed_moves = []
+    for move in moves:
+        move_sign = move[0]
+        if move_sign == 1:
+            directed_moves.append(move)
+            directed_moves.append([1,-move[1]])
+        elif move_sign == -1:
+            directed_moves.append(move)
+        else:
+            raise ValueError, "Move not valid: %s" % move
+    return directed_moves
+
+def is_directed_move_possible(x, move, fn=None, intervals=None):
+    if fn:
+        move_sign = move[0]
+        if move_sign == 1:
+            if move[1] >= 0:
+                return fn(x) + fn(move[1]) == fn(fractional(x + move[1]))
+            else:
+                return fn(fractional(x + move[1])) + fn(-move[1]) == fn(x)
+        else:
+            return fn(x) + fn(fractional(move[1]-x)) == fn(move[1])
+    elif intervals:
+        next_x = apply_directed_move(x, move)
+        for interval in intervals:
+            if (interval[0] <= next_x and next_x <= interval[1]):
+                return True
+        return False
+    else:
+        raise ValueError, "Need either fn or intervals to check if move is possible"
+
+def find_possible_directed_moves(x,moves,fn=None, intervals=None):
+    """Find the directed moves applicable at x.
+    In a second list, return the non-applicable directed moves."""
+    directed_moves = directed_moves_from_moves(moves)
+    possible_directed_moves = []
+    impossible_directed_moves = []
+    for directed_move in directed_moves:
+        if is_directed_move_possible(x, directed_move, fn, intervals):
+            possible_directed_moves.append(directed_move)
+        else:
+            impossible_directed_moves.append(directed_move)
+    return possible_directed_moves, impossible_directed_moves
+
+def random_walk(seed, moves, fn, num_it):
+    """
+    Find the orbit of a seed through a random walk.  It may not find
+    all the possible elements in the orbit (if unlucky).  It may not
+    be very efficient if the size of orbit is small because it will
+    continue to run until the predetermined number of iterations is
+    reached.
+
+    deterministic_walk is preferable in most cases.
+    """
+    import random
+    x = seed
+    xlist = {x:[1,None,None]}
+    walk_sign = 1
+    # points_plot = point((x,0))
+    for i in range(num_it):
+        possible_directed_moves,impossible_directed_moves = find_possible_directed_moves(x,moves,fn)
+        move = possible_directed_moves[random.randint(0,len(possible_directed_moves)-1)]
+        move_sign = move[0]
+        directed_move = move
+        
+        if move_sign == 1:
+            next_x = fractional(x + move[1])
+        elif move_sign == -1:
+            next_x = fractional(move[1]-x)
+            
+        next_walk_sign = move_sign * walk_sign
+        if next_x not in xlist:
+            pass
+            # points_plot += point((next_x,0))
+        else:
+            if xlist[next_x][2] != None:
+                x = xlist[next_x][1]
+                directed_move = xlist[next_x][2]
+            if xlist[next_x][0] != next_walk_sign:
+                next_walk_sign = 0
+                print next_x, ","
+                previous = xlist[next_x][1]
+                while previous != next_x and previous != None:
+                    print previous, ","
+                    previous = xlist[previous][1]
+                print next_x, "."
+        # Prep for next
+        xlist[next_x] = [next_walk_sign, x, directed_move] 
+        walk_sign = next_walk_sign
+        x = next_x
+    # show(points_plot + plot(-0.1+x-x, [A,A0]) + plot(-0.1+x-x, [f-A0,f-A])\
+    #     + plot(-0.2+x-x, [A,A+a0], color = "green") + plot(-0.3+x-x, [A,A+a1], color = "green") + \
+    #     plot(-0.4+x-x, [A,A+a2], color = "green"), ymin = -1, ymax = 0)
+    return xlist
+
+global default_field 
+default_field = QQ
+
+## Lambda functions are the fastest to evaluate, but we cannot add them,
+## which may be inconvenient.
+def fast_linear_function(slope, intercept, field=default_field):
+    """
+    Return a linear function.
+    """
+    # Ignore field in this implementation.
+    return lambda x: slope * x + intercept
+
+# Linear univariate polynomials are 10 times slower than lambda functions to evaluate,
+# but still 10 times faster to evaluate than symbolic expressions.
+# def fast_linear_function(slope, intercept, field=default_field):
+#     RK = PolynomialRing(field, 'x')
+#     x = RK.0
+#     return slope * x + intercept
+
+from sage.functions.piecewise import PiecewisePolynomial
+from bisect import bisect_left
+
+class FastPiecewise (PiecewisePolynomial):
+    """
+    Returns a piecewise function from a list of (interval, function)
+    pairs.
+
+    Uses binary search to allow for faster function evaluations
+    than the standard class PiecewisePolynomial.
+    """
+    def __init__(self, list_of_pairs, var=None):
+        PiecewisePolynomial.__init__(self, list_of_pairs, var)
+        self.update_cache()
+
+    def update_cache(self):
+        # Ensure sorted
+        self._intervals.sort(key=lambda (a,b): a)
+        intervals = self._intervals
+        functions = self._functions
+        end_points = [ intervals[0][0] ] + [b for a,b in intervals]
+        self._end_points = end_points
+        values_at_end_points = [ functions[0](end_points[0]) ]
+        for i in range(len(functions)):
+            value = functions[i](intervals[i][1])
+            values_at_end_points.append(value)
+        self._values_at_end_points = values_at_end_points
+
+    def end_points(self):
+        """
+        Returns a list of all interval endpoints for this function.
+        
+        EXAMPLES::
+        
+            sage: f1(x) = 1
+            sage: f2(x) = 1-x
+            sage: f3(x) = x^2-5
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3]])
+            sage: f.end_points()
+            [0, 1, 2, 3]
+        """
+        return self._end_points
+
+        #@cached_function
+    def __call__(self,x0):
+        """
+        Evaluates self at x0. Returns the average value of the jump if x0
+        is an interior endpoint of one of the intervals of self and the
+        usual value otherwise.
+        
+        EXAMPLES::
+        
+            sage: f1(x) = 1
+            sage: f2(x) = 1-x
+            sage: f3(x) = exp(x)
+            sage: f4(x) = sin(2*x)
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: f(0.5)
+            1
+            sage: f(5/2)
+            e^(5/2)
+            sage: f(5/2).n()
+            12.1824939607035
+            sage: f(1)
+            1/2
+        """
+        endpts = self.end_points()
+        i = bisect_left(endpts, x0)
+        if i >= len(endpts):
+            raise ValueError,"Value not defined at point %s, outside of domain." % x0
+        if x0 == endpts[i]:
+            return self._values_at_end_points[i]
+        if i == 0:
+            raise ValueError,"Value not defined at point %s, outside of domain." % x0
+        if endpts[i-1] < x0 < endpts[i]:
+            return self.functions()[i-1](x0)
+        raise ValueError,"Value not defined at point %s, outside of domain." % x0
+
+def piecewise_function_from_breakpoints_and_values(bkpt, values, field=default_field):
+    """
+    bkpt and values are two parallel lists; assuming bpkt is sorted (increasing).
+    Return a function.
+    """
+    assert len(bkpt)==len(values)
+    slopes = [ (values[i+1]-values[i])/(bkpt[i+1]-bkpt[i]) for i in range(len(bkpt)-1) ]
+    return FastPiecewise([ [(bkpt[i],bkpt[i+1]), 
+                        # lambda x,i=i: values[i] + slopes[i] * (x - bkpt[i])
+                        fast_linear_function(slopes[i], values[i] - slopes[i]*bkpt[i])] for i in range(len(bkpt)-1) ])
+
+def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=default_field):
+    """
+    bkpt and slopes are two parallel lists (except that bkpt is one element longer).
+    The function always has value 0 on bkpt[0].
+    Return a function.
+    """
+    assert len(bkpt)==len(slopes)+1
+    function_values = [0]
+    for i in range(1,len(bkpt)-1):
+        function_values.append(function_values[i-1] + slopes[i - 1] * (bkpt[i] - bkpt[i-1]))
+    pieces = [[(bkpt[i],bkpt[i+1]),
+               #lambda x,i=i: function_values[i]+slopes[i]*(x - bkpt[i])
+               fast_linear_function(slopes[i], function_values[i] - slopes[i]*bkpt[i])] for i in range(len(bkpt)-1)] 
+    return FastPiecewise(pieces)        
+
+def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=default_field):
+    """
+    interval_lengths and slopes are two parallel lists.
+    The function always has value 0 on 0.
+    Return a function.
+    """
+    assert len(interval_lengths)==len(slopes)
+    bkpt = []
+    bkpt.append(0)
+    for i in range(len(interval_lengths)):
+        bkpt.append(bkpt[i]+interval_lengths[i])
+    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
+
+def approx_discts_function(perturbation_list, stability_interval, field=default_field):
+    """
+    Construct a function that has peaks of +/- 1 around the points of the orbit.
+    perturbation_list actually is a dictionary.
+    """
+    perturb_points = sorted(perturbation_list.keys())
+    fn_values = [0]
+    fn_bkpt = [0]
+    # This width is chosen so that the peaks are disjoint, and
+    # so a nice continuous piecewise linear function is constructed.
+    width = min(abs(stability_interval.a),stability_interval.b)
+    assert width > 0
+    for pt in perturb_points:
+        assert (pt-width >= fn_bkpt[len(fn_bkpt)-1])
+        if (pt-width > fn_bkpt[len(fn_bkpt)-1]):
+            fn_bkpt.append(pt-width)
+            fn_values.append(0)
+        fn_bkpt.append(pt)
+        fn_values.append(perturbation_list[pt][0]) # the "walk_sign" (character) at the point
+        fn_bkpt.append(pt+width)
+        fn_values.append(0)
+    assert (1 >= fn_bkpt[len(fn_bkpt)-1])
+    if (1 >= fn_bkpt[len(fn_bkpt)-1]):
+        fn_bkpt.append(1)
+        fn_values.append(0)
+    return piecewise_function_from_breakpoints_and_values(fn_bkpt, fn_values, field)
+
+def merge_bkpt(bkpt1, bkpt2):
+    i = 0
+    j = 0
+    bkpt_new = []
+    while i < len(bkpt1) and j < len(bkpt2):
+        if bkpt1[i] > bkpt2[j]:
+            bkpt_new.append(bkpt2[j])
+            j = j + 1
+        elif bkpt1[i] < bkpt2[j]:
+            bkpt_new.append(bkpt1[i])
+            i = i + 1
+        else:
+            bkpt_new.append(bkpt1[i])
+            i = i + 1
+            j = j + 1
+    if i == len(bkpt1) and j != len(bkpt2):
+        bkpt_new = bkpt_new + bkpt2[j:len(bkpt2)]
+    elif i != len(bkpt1) and j == len(bkpt2):
+        bkpt_new = bkpt_new + bkpt1[i:len(bkpt1)]
+    return bkpt_new
+
+def modified_delta_pi(fn, fn_values, pts, i, j):
+    return fn_values[i] + fn_values[j] - fn(fractional(pts[i]+pts[j])) 
+
+def modified_delta_pi2(fn, fn_values2, pts, i, j):
+    return fn_values2[i] + fn(fractional(pts[j] - pts[i])) - fn_values2[j]  
+
+
+# Compute the proper rescaling of a given perturbation function.
+# If the largest epsilon is zero, we should try a different perturbation instead.
+def find_largest_epsilon(fn, perturb):
+    fn_bkpt = fn.end_points()
+    perturb_bkpt = perturb.end_points()
+    bkpt_refinement = merge_bkpt(fn_bkpt,perturb_bkpt)
+    bkpt_refinement2 = []
+    length1 = len(bkpt_refinement)
+    for i in range(length1 - 1):
+        bkpt_refinement2.append(bkpt_refinement[i])
+    for i in range(length1):
+        bkpt_refinement2.append(bkpt_refinement[i]+1)
+    length2 = length1 + length1 - 1  
+
+    fn_values = []
+    perturb_values = []
+    for pt in bkpt_refinement2:
+        fn_values.append(fn(fractional(pt)))
+        perturb_values.append(perturb(fractional(pt)))
+    
+    best_epsilon_upper_bound = 100
+    for i in range(length1):
+        for j in range(i,length1):
+            a = modified_delta_pi(perturb, perturb_values, bkpt_refinement, i, j)
+            if a != 0:
+                b = modified_delta_pi(fn, fn_values, bkpt_refinement, i, j) 
+                if b == 0:
+                    return 0
+                epsilon_upper_bound = b/(abs(a))
+                if epsilon_upper_bound < best_epsilon_upper_bound:
+                    best_epsilon_upper_bound = epsilon_upper_bound
+
+    for i in range(length1):
+        for j in range(length2):
+            if bkpt_refinement2[j] - bkpt_refinement[i] > 0:
+                a = modified_delta_pi2(perturb, perturb_values, bkpt_refinement2, i, j)
+                if a != 0:
+                    b = modified_delta_pi2(fn, fn_values, bkpt_refinement2, i, j) 
+                    if b == 0:
+                        return 0
+                    epsilon_upper_bound = b/(abs(a)) 
+                    if epsilon_upper_bound < best_epsilon_upper_bound:
+                        best_epsilon_upper_bound = epsilon_upper_bound 
+    return best_epsilon_upper_bound
+
+def canonicalize_number(number):
+    """Make sure that if `number` is a rational number, then it is
+    represented as an element of `Rational` (rather than an element of
+    `QQbar`, for example).  This will make sure that we do not have
+    two mathematically equal numbers with different `hash` values."""
+    try:
+        return QQ(number)
+    except ValueError:
+        return number
+    except TypeError:
+	return number
+
+def apply_directed_move(x, directed_move):
+    move_sign = directed_move[0]
+    if move_sign == 1:
+        next_x = fractional(x + directed_move[1])
+    elif move_sign == -1:
+        next_x = fractional(directed_move[1]-x)
+    next_x = canonicalize_number(next_x)
+    return next_x
+
+def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, intervals=None):
+
+    """
+    Compute the orbit of a given seed. (Done by a breadth-first search.)
+    To avoid infinite computations in the case of a dense orbit,
+    there is a maximum number of iterations (by default, it is 1000).
+
+    Returns a dictionary:
+    - keys are elements of the orbit
+    - values are tuples of the form [walk_sign, predecessor, directed_move_from_predecessor].
+    """
+    seed = canonicalize_number(seed)
+    to_do = [seed]
+    # xlist is actually a dictionary.
+    xlist = {seed:[1,None,None]}
+    walk_sign = 1
+    # points_plot = point((seed,0))
+    contradiction_reached = False
+    num_it = 0
+    while to_do and num_it < max_num_it:
+        if (num_it > 0 and num_it % 100 == 0):
+            print "(Iteration %d, to do list has %d items)" % (num_it, len(to_do))
+        x = to_do.pop(0)
+        possible_directed_moves,impossible_directed_moves = find_possible_directed_moves(x, moves, fn, intervals)
+        for directed_move in possible_directed_moves:
+            walk_sign = xlist[x][0]
+            move_sign = directed_move[0]
+            move_for_next_x = directed_move
+            next_x = apply_directed_move(x, directed_move)
+            
+            next_walk_sign = move_sign * walk_sign
+            
+            if next_x not in xlist:
+                # points_plot += point((next_x,0))
+                xlist[next_x] = [next_walk_sign, x, move_for_next_x]
+                #if next_x not in to_do:
+                to_do.append(next_x)
+                
+            else:
+                # If next_x is already in xlist, we do not need to modify anything, except probably the sign.
+                if xlist[next_x][0] != next_walk_sign:
+                    xlist[next_x][0] = 0
+                    if contradiction_reached == False:
+                        contradiction_reached = True
+                        for pt in xlist.keys():
+                            xlist[pt][0] = 0
+        num_it = num_it + 1
+        
+    if contradiction_reached:
+        print 'A contradiction of signs was reached. All the elements in the reachable orbit take the value 0.'    
+    if num_it == max_num_it:
+        print 'The maximum number of iterations has been reached.'  
+ 
+    # show(points_plot + plot(-0.1+x-x, [A,A0]) + plot(-0.1+x-x, [f-A0,f-A])\
+    #     + plot(-0.2+x-x, [A,A+a0], color = "green") + plot(-0.3+x-x, [A,A+a1], color = "green") + \
+    #     plot(-0.4+x-x, [A,A+a2], color = "green"), ymin = -1, ymax = 0)
+    return xlist
+
+def plot_walk(walk_dict, **options):
+    #return point([ (x,0) for x in walk_dict.keys()])
+    g = Graphics()
+    for x in walk_dict.keys():
+        g += line([(x,0), (x,1)], color="black", **options)
+    return g
+
+def plot_intervals(intervals):
+    g = Graphics()
+    for interval in intervals:
+        g += polygon([(interval[0], 0), (interval[1], 0), \
+                      (interval[1], 1.0), (interval[0], 1.0)], 
+                     color="yellow")
+    return g
+
+import itertools
+
+def plot_moves(seed, moves, colors=None):
+    if colors == None:
+	colors = rainbow(len(moves))
+    g = Graphics()
+    g += line([(seed,0), (seed,1)], color="magenta")
+    y = 0
+    covered_interval = [0,1]
+    for move, color in itertools.izip(moves, colors):
+        next_x = move[0] * seed + move[1]
+        arrow_interval = [min(seed, next_x), max(seed, next_x)]
+        if (len(interval_intersection(covered_interval, arrow_interval)) == 2):
+            y += 0.04
+            covered_interval = arrow_interval
+        else:
+            y += 0.002
+            covered_interval[0] = min(covered_interval[0], arrow_interval[0])
+            covered_interval[1] = max(covered_interval[1], arrow_interval[1])
+        midpoint_x = (seed + next_x) / 2
+        if move[0] == -1:
+            # Reflection
+            bezier_y = y + min(0.03, 0.3 * abs(move[1]/2 - seed))
+            g += arrow(path = [[(seed, y), (midpoint_x, bezier_y), \
+                                (next_x, y)]], \
+                       head = 2, \
+                       # legend_label = "xyzz"
+                       color = color
+            )
+            ## Plot the invariant point somehow?
+            #g += point((move[1]/2, y + 0.03), color=color)
+        elif move[0] == 1:
+            # Translation
+            g += arrow((seed, y), (next_x, y), color=color)
+        else:
+            raise ValueError, "Bad move: %s" % move
+        g += text("%s" % move, (midpoint_x, y), \
+                  vertical_alignment="bottom", \
+                  horizontal_alignment="center", \
+                  color=color)
+    return g
+
+def plot_possible_and_impossible_directed_moves(seed, moves, fn):
+    # possible, impossible = find_possible_directed_moves(seed, moves, fn)
+    # directed_moves = possible + impossible
+    # colors = [ "blue" for move in possible ] \
+    #          + [ "red" for move in impossible ] 
+    directed_moves = directed_moves_from_moves(moves)
+    colors = [ "blue" if is_directed_move_possible(seed, directed_move, fn) \
+               else "red" for directed_move in directed_moves ]
+    return plot_moves(seed, directed_moves, colors)
+
+import collections
+closed_or_open_or_halfopen_interval = collections.namedtuple('Interval', ['a', 'b', 'left_closed', 'right_closed'])
+
+def find_stability_interval_with_deterministic_walk_list(seed, intervals, moves, fn, max_num_it = 1000):
+    """
+    Returns the stability interval (an open, half-open, or closed interval)
+    and the deterministic_walk_list.
+    """
+    a = -10
+    b = 10
+    left_closed = True
+    right_closed = True
+    deterministic_walk_list = deterministic_walk(seed,moves,fn, max_num_it)
+    if deterministic_walk_list[seed][0] == 0:
+        return (closed_or_open_or_halfopen_interval(0, 0, True, True), deterministic_walk_list)
+    for pt in deterministic_walk_list.keys():
+        for interval in intervals:
+            if element_of_int(pt, interval):
+                if deterministic_walk_list[pt][0] == 1:
+                    if (interval[0] - pt) > a:
+                        a = interval[0] - pt
+                        left_closed = True
+                    if (interval[1] - pt) < b:
+                        b = interval[1] - pt
+                        right_closed = True
+                elif deterministic_walk_list[pt][0] == -1:
+                    if (pt - interval[0]) < b:
+                        b = pt - interval[0]
+                        right_closed = True
+                    if (interval[1] - pt) < -1 * a:
+                        a = pt - interval[1]
+                        left_closed = True      
+        possible_directed_moves,impossible_directed_moves = find_possible_directed_moves(pt, moves, fn)
+        
+        ### We now take the set difference of
+        ### the __directed__ moves with the possible directed moves.
+        ### This was not done in the old code: --Matthias
+        # impossible_directed_moves = []
+        # for move in moves:
+        #     if move not in possible_directed_moves:
+        #         impossible_directed_moves.append(move)
+        
+        for move in impossible_directed_moves:
+            if move[0] == 1:
+                impossible_next_x = fractional(pt + move[1])
+                for interval in intervals:
+                    temp = interval[0] - impossible_next_x
+                    if temp > 0 and temp <= b:
+                        b = temp
+                        right_closed = False
+                    temp2 = interval[1] - impossible_next_x
+                    if temp2 < 0 and temp2 >= a:
+                        a = temp
+                        left_closed = False
+            elif move[0] == -1:
+                impossible_next_x = fractional(move[1] - pt)
+                for interval in intervals:
+                    temp = interval[0] - impossible_next_x
+                    if temp > 0 and -1 * temp >= a:
+                        a = -1 * temp
+                        left_closed = False
+                    temp2 = impossible_next_x - interval[1]
+                    if temp2 > 0 and temp2 <= b:
+                        b = temp2
+                        right_closed = False
+    orbit = sorted(deterministic_walk_list.keys())
+    min_midpt_dist = 1
+    for i in range(len(orbit)-1):
+        temp3 = (orbit[i+1]-orbit[i])/2  
+        if temp3 < min_midpt_dist:
+            min_midpt_dist = temp3
+    if a < -1 * min_midpt_dist:
+        a = -1 * min_midpt_dist
+        left_closed = False
+    if b > min_midpt_dist:
+        b = min_midpt_dist
+        right_closed = False  
+    return (closed_or_open_or_halfopen_interval(a, b, left_closed, right_closed), deterministic_walk_list)
+
+# size has to be a positive integer
+def lattice_plot(A, A0, t1, t2, size):
+    size = size + 1
+    x0 = A + (A0-A)/2
+    p1 = points((x,y) for x in range(size) for y in range(size)) + points((-x,y) for x in range(size) for y in range(size))
+    p2 = points((-x,-y) for x in range(size) for y in range(size)) + points((x,-y) for x in range(size) for y in range(size))
+    p3 = plot((A-x0-x*t1)/t2, (x,-size + 1, size - 1), color = "red")
+    p4 = plot((A0-x0-x*t1)/t2, (x,-size + 1,size - 1), color = "red")
+    show(p1+p2+p3+p4)
