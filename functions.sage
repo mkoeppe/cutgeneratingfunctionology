@@ -14,7 +14,7 @@ def delta_pi(fn,x,y):
     """
     return fn(fractional(x))+fn(fractional(y))-fn(fractional(x+y))
 
-def two_d_complex(bkpt):
+def plot_two_d_complex(bkpt):
     """
     Return a plot of the horizonal lines, vertical lines, and diagonal lines of the complex.
     """
@@ -179,8 +179,11 @@ def face_diagonal(face):
     else:
         return False 
 
-        
-def generate_vert_face_additive(function,bkpt):
+def face_1D(face):
+    return face_horizontal(face) or face_vertical(face) or face_diagonal(face)
+
+def generate_vert_face_additive(function):
+    bkpt = function.end_points()
     bkpt2 = []
     for i in range(len(bkpt)-1):
         bkpt2.append(bkpt[i])
@@ -275,16 +278,24 @@ def generate_vert_face_additive(function,bkpt):
     return vert_face_additive  
 
 def generate_minimal_triples(vert_face_additive):
+    """
+    Compute the minimal triples (projections) of the 
+    given (maximal) additive faces.
+    """
     minimal_triples = []
     for i in vert_face_additive:
         minimal_triples.append(projections(i))
     return minimal_triples    
 
-def plot_2d_diagram(function,bkpt, x_range = [0,1], y_range = [0,1]):
+def plot_2d_diagram(function, x_range = [0,1], y_range = [0,1]):
     """
     Plot the 2d complex with shaded faces where delta_pi is 0.        
+    Return the list of minimal additive triples.
     """
-    vert_face_additive = generate_vert_face_additive(function,bkpt)
+    ### FIXME: For non-subaddititive functions, the points where delta_pi
+    ### is negative should be indicated somehow!!
+    bkpt = function.end_points()
+    vert_face_additive = generate_vert_face_additive(function)
     minimal_triples = generate_minimal_triples(vert_face_additive)
         
     y = var('y')
@@ -305,7 +316,7 @@ def plot_2d_diagram(function,bkpt, x_range = [0,1], y_range = [0,1]):
         elif face_2D(minimal_triples[i]):
             plot_minimal_triples = plot_minimal_triples + polygon(vert_face_additive[i], rgbcolor=(1, 0, 0)) 
     
-    show(two_d_complex(bkpt) + plot_minimal_triples, xmin = x_range[0], xmax = x_range[1],\
+    show(plot_two_d_complex(bkpt) + plot_minimal_triples, xmin = x_range[0], xmax = x_range[1],\
         ymin = y_range[0], ymax = y_range[1])
     return minimal_triples
 
@@ -437,17 +448,13 @@ assert interval_mod_1([1,2]) == [0,1]
 assert interval_mod_1([-3/10,-1/10]) == [7/10,9/10]
 assert interval_mod_1([-1/5,0]) == [4/5,1]        
 
-def generate_covered_intervals(function, bkpt = None, minimal_rep = []):
-    # If the minimal triples are not available...
-    if minimal_rep == []:   
-        vert_face_additive = generate_vert_face_additive(function,bkpt)
+def generate_covered_intervals(function, minimal_triples = None):
+    # If the minimal triples are not available, compute them
+    if minimal_triples == None:   
+        vert_face_additive = generate_vert_face_additive(function)
         minimal_triples = generate_minimal_triples(vert_face_additive)
-    # If the minimal triples are available...
-    else:
-        minimal_triples = minimal_rep
-    
             
-    covered_intervals = []	
+    covered_intervals = []      
     # face = (I,J,K)
     for face in minimal_triples:
         if face_2D(face):
@@ -468,7 +475,6 @@ def generate_covered_intervals(function, bkpt = None, minimal_rep = []):
                     
     covered_intervals = remove_empty_comp(covered_intervals)
 
-    
     for face in minimal_triples:
         if face_horizontal(face) or face_vertical(face) or face_diagonal(face):
             intervals = []
@@ -480,28 +486,45 @@ def generate_covered_intervals(function, bkpt = None, minimal_rep = []):
                     IJK.append(i)
             edge_merge(covered_intervals,intervals,IJK)
 
+    return covered_intervals
+
+def plot_covered_intervals(function, covered_intervals = None, minimal_triples = None):
+    if covered_intervals == None:
+        covered_intervals = generate_covered_intervals(function, minimal_triples)
     # Plot the function with different colors.
     # Each component has a unique color.
     # The uncovered intervals is by default plotted in black.
-    show(plot(lambda x: function(x), [0,1], color = "black") + sum(sum([plot(lambda x: function(x), covered_intervals[i][j], color=rainbow(len(covered_intervals))[i]) \
+    return (plot(lambda x: function(x), [0,1], color = "black") + sum(sum([plot(lambda x: function(x), covered_intervals[i][j], color=rainbow(len(covered_intervals))[i]) \
         for j in range(len(covered_intervals[i]))]) for i in range(len(covered_intervals))))
-                       
-    return covered_intervals
 
-def minimal_triple_from_scratch(function,bkpt):
-    vert_face_additive = generate_vert_face_additive(function,bkpt)
+def generate_uncovered_intervals(function, covered_intervals = None, minimal_triples = None):
+    """
+    Compute a list of uncovered intervals.
+    """
+    if covered_intervals == None:
+        covered_intervals = generate_covered_intervals(function, minimal_triples)
+    covered = reduce(merge_two_comp, covered_intervals) + [[1,1]]
+    uncovered = []
+    for i in range(len(covered) - 1):
+        if (covered[i][1] < covered[i+1][0]): 
+            uncovered.append([covered[i][1], covered[i+1][0]])
+    return uncovered
+
+def minimal_triple_from_scratch(function):
+    vert_face_additive = generate_vert_face_additive(function)
     minimal_triples = generate_minimal_triples(vert_face_additive)
 
     return minimal_triples
 
 # Fix x and y.
-def type1check(fn,bkpt):
+def type1check(fn):
     k=1
+    bkpt = fn.end_points()
     for i in bkpt:
         for j in bkpt:
             if delta_pi(fn,i,j)<0:
-                print "x = ", i, ", y = ", j, ", x+y = ", i+j
-                print fn(fractional(i)), "+", fn(fractional(j)), "-", fn(fractional(i+j)), " = ", \
+                print "For x = ", i, ", y = ", j, ", x+y = ", i+j
+                print "    Delta pi(x,y) = ", fn(fractional(i)), "+", fn(fractional(j)), "-", fn(fractional(i+j)), " = ", \
                     delta_pi(fn,i,j), " < 0"
                 k=0
     if k==1:
@@ -510,7 +533,8 @@ def type1check(fn,bkpt):
 
 # Fix x and x+y.
 # By symmetry, the case in which y and x+y are fixed is also done. 
-def type2check(fn,bkpt):
+def type2check(fn):
+    bkpt = fn.end_points()
     bkpt2 = []
     for i in range(len(bkpt)-1):
         bkpt2.append(bkpt[i])
@@ -522,8 +546,8 @@ def type2check(fn,bkpt):
     for i in bkpt:
         for j in bkpt2:
             if j - i > 0 and delta_pi(fn,i,j-i)<0:
-                print "x = ", i, ", y = ", j-i, ", x+y = ",j
-                print fn(fractional(i)), "+", fn(fractional(j-i)), "-", fn(fractional(j)), " = ", \
+                print "For x = ", i, ", y = ", j-i, ", x+y = ",j
+                print "    Delta pi(x,y) = ", fn(fractional(i)), "+", fn(fractional(j-i)), "-", fn(fractional(j)), " = ", \
                     delta_pi(fn,i,j-i), " < 0"
                 k=0
     if k==1:
@@ -531,45 +555,49 @@ def type2check(fn,bkpt):
     return False     
 
 
-def subadditivity_check(fn,bkpt):
+def subadditivity_check(fn):
     """
     Check if a function is subadditive.
     Could take quite a while. (O(n^2))
     """
-    if type1check(fn,bkpt) and type2check(fn,bkpt):
+    if type1check(fn) and type2check(fn):
         print "pi is subadditive!"
         return True
     else:
         print "pi is not subadditive!"
         return False
 
-def symmetric_test(fn, bkpt, f):
+def symmetric_test(fn, f):
     k = 1
     if fn(f) != 1:
         print 'pi(f) is not equal to 1. pi is not symmetric.'
         return False
     else:
+        bkpt = fn.end_points()
         for i in bkpt:
             for j in bkpt:
                 if i + j == f or i + j == 1 + f:
                     if delta_pi(fn, i, j) != 0:
-                        print 'x = ',i,'; ','y = ',j
-                        print 'delta_pi is equal to ',delta_pi(fn, i, j),',not equal to 1'
+                        print 'For x = ',i,'; ','y = ',j
+                        print '    Delta pi is equal to ',delta_pi(fn, i, j),',not equal to 1'
                         k = 0
     if k == 1:
         print 'pi is symmetric.'
         return True
     return False
 
-def minimality_test(fn, bkpt, f):
+def minimality_test(fn, f):
+    """
+    Check if function `fn' is minimal with respect to the given `f'.
+    """
     if fn(0) != 0:
         print 'pi is not minimal because pi(0) is not equal to 0.'
     else:
         print 'pi(0) = 0'
-        if subadditivity_check(fn, bkpt) and symmetric_test(fn, bkpt, f):
-            print 'pi is minimal.'
+        if subadditivity_check(fn) and symmetric_test(fn, f):
+            print 'Thus pi is minimal.'
         else:
-            print 'pi is not minimal.'
+            print 'Thus pi is not minimal.'
 
 def directed_moves_from_moves(moves):
     directed_moves = []
@@ -605,16 +633,24 @@ def is_directed_move_possible(x, move, fn=None, intervals=None):
 
 def find_possible_directed_moves(x,moves,fn=None, intervals=None):
     """Find the directed moves applicable at x.
-    In a second list, return the non-applicable directed moves."""
+    """
     directed_moves = directed_moves_from_moves(moves)
     possible_directed_moves = []
-    impossible_directed_moves = []
     for directed_move in directed_moves:
         if is_directed_move_possible(x, directed_move, fn, intervals):
             possible_directed_moves.append(directed_move)
-        else:
+    return possible_directed_moves
+
+def find_impossible_directed_moves(x,moves,fn=None, intervals=None):
+    """
+    Find the directed moves NOT applicable at x.
+    """
+    directed_moves = directed_moves_from_moves(moves)
+    impossible_directed_moves = []
+    for directed_move in directed_moves:
+        if not is_directed_move_possible(x, directed_move, fn, intervals):
             impossible_directed_moves.append(directed_move)
-    return possible_directed_moves, impossible_directed_moves
+    return impossible_directed_moves
 
 def random_walk(seed, moves, fn, num_it):
     """
@@ -632,7 +668,7 @@ def random_walk(seed, moves, fn, num_it):
     walk_sign = 1
     # points_plot = point((x,0))
     for i in range(num_it):
-        possible_directed_moves,impossible_directed_moves = find_possible_directed_moves(x,moves,fn)
+        possible_directed_moves = find_possible_directed_moves(x,moves,fn)
         move = possible_directed_moves[random.randint(0,len(possible_directed_moves)-1)]
         move_sign = move[0]
         directed_move = move
@@ -681,10 +717,10 @@ def fast_linear_function(slope, intercept, field=default_field):
 
 # Linear univariate polynomials are 10 times slower than lambda functions to evaluate,
 # but still 10 times faster to evaluate than symbolic expressions.
-# def fast_linear_function(slope, intercept, field=default_field):
-#     RK = PolynomialRing(field, 'x')
-#     x = RK.0
-#     return slope * x + intercept
+def fast_addable_linear_function(slope, intercept, field=default_field):
+     RK = PolynomialRing(field, 'x')
+     x = RK.0
+     return slope * x + intercept
 
 from sage.functions.piecewise import PiecewisePolynomial
 from bisect import bisect_left
@@ -729,7 +765,7 @@ class FastPiecewise (PiecewisePolynomial):
         """
         return self._end_points
 
-        #@cached_function
+    @cached_method
     def __call__(self,x0):
         """
         Evaluates self at x0. Returns the average value of the jump if x0
@@ -913,7 +949,7 @@ def canonicalize_number(number):
     except ValueError:
         return number
     except TypeError:
-	return number
+        return number
 
 def apply_directed_move(x, directed_move):
     move_sign = directed_move[0]
@@ -923,6 +959,9 @@ def apply_directed_move(x, directed_move):
         next_x = fractional(directed_move[1]-x)
     next_x = canonicalize_number(next_x)
     return next_x
+
+class MaximumNumberOfIterationsReached(Exception):
+    pass
 
 def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, intervals=None):
 
@@ -947,7 +986,7 @@ def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, intervals=None):
         if (num_it > 0 and num_it % 100 == 0):
             print "(Iteration %d, to do list has %d items)" % (num_it, len(to_do))
         x = to_do.pop(0)
-        possible_directed_moves,impossible_directed_moves = find_possible_directed_moves(x, moves, fn, intervals)
+        possible_directed_moves = find_possible_directed_moves(x, moves, fn, intervals)
         for directed_move in possible_directed_moves:
             walk_sign = xlist[x][0]
             move_sign = directed_move[0]
@@ -975,7 +1014,7 @@ def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, intervals=None):
     if contradiction_reached:
         print 'A contradiction of signs was reached. All the elements in the reachable orbit take the value 0.'    
     if num_it == max_num_it:
-        print 'The maximum number of iterations has been reached.'  
+        raise MaximumNumberOfIterationsReached
  
     # show(points_plot + plot(-0.1+x-x, [A,A0]) + plot(-0.1+x-x, [f-A0,f-A])\
     #     + plot(-0.2+x-x, [A,A+a0], color = "green") + plot(-0.3+x-x, [A,A+a1], color = "green") + \
@@ -986,7 +1025,7 @@ def plot_walk(walk_dict, **options):
     #return point([ (x,0) for x in walk_dict.keys()])
     g = Graphics()
     for x in walk_dict.keys():
-        g += line([(x,0), (x,1)], color="black", **options)
+        g += line([(x,0), (x,1)], color="black", zorder = -4, **options)
     return g
 
 def plot_intervals(intervals):
@@ -994,14 +1033,14 @@ def plot_intervals(intervals):
     for interval in intervals:
         g += polygon([(interval[0], 0), (interval[1], 0), \
                       (interval[1], 1.0), (interval[0], 1.0)], 
-                     color="yellow")
+                     color="yellow", zorder = -8)
     return g
 
 import itertools
 
 def plot_moves(seed, moves, colors=None):
     if colors == None:
-	colors = rainbow(len(moves))
+        colors = rainbow(len(moves))
     g = Graphics()
     g += line([(seed,0), (seed,1)], color="magenta")
     y = 0
@@ -1024,26 +1063,23 @@ def plot_moves(seed, moves, colors=None):
                                 (next_x, y)]], \
                        head = 2, \
                        # legend_label = "xyzz"
-                       color = color
+                       color = color, \
+                       zorder = 7
             )
             ## Plot the invariant point somehow?
             #g += point((move[1]/2, y + 0.03), color=color)
         elif move[0] == 1:
             # Translation
-            g += arrow((seed, y), (next_x, y), color=color)
+            g += arrow((seed, y), (next_x, y), color=color, zorder = 7)
         else:
             raise ValueError, "Bad move: %s" % move
         g += text("%s" % move, (midpoint_x, y), \
                   vertical_alignment="bottom", \
                   horizontal_alignment="center", \
-                  color=color)
+                  color=color, zorder = 7)
     return g
 
 def plot_possible_and_impossible_directed_moves(seed, moves, fn):
-    # possible, impossible = find_possible_directed_moves(seed, moves, fn)
-    # directed_moves = possible + impossible
-    # colors = [ "blue" for move in possible ] \
-    #          + [ "red" for move in impossible ] 
     directed_moves = directed_moves_from_moves(moves)
     colors = [ "blue" if is_directed_move_possible(seed, directed_move, fn) \
                else "red" for directed_move in directed_moves ]
@@ -1081,8 +1117,7 @@ def find_stability_interval_with_deterministic_walk_list(seed, intervals, moves,
                     if (interval[1] - pt) < -1 * a:
                         a = pt - interval[1]
                         left_closed = True      
-        possible_directed_moves,impossible_directed_moves = find_possible_directed_moves(pt, moves, fn)
-        
+        impossible_directed_moves = find_impossible_directed_moves(pt, moves, fn)
         ### We now take the set difference of
         ### the __directed__ moves with the possible directed moves.
         ### This was not done in the old code: --Matthias
