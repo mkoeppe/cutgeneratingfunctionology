@@ -1,3 +1,7 @@
+import logging
+
+logging.basicConfig(format='%(levelname)s: %(asctime)s %(message)s', level=logging.INFO)
+
 def fractional(num):
     """
     Reduce a number modulo 1.
@@ -18,6 +22,7 @@ def plot_two_d_complex(bkpt):
     """
     Return a plot of the horizonal lines, vertical lines, and diagonal lines of the complex.
     """
+    x = var('x')
     p1 = plot([(bkpt[i]-x).plot((x, 0, bkpt[i])) for i in range(1,len(bkpt))])
     p2 = plot([(1+bkpt[i]-x).plot((x, bkpt[i], 1)) for i in range(1,len(bkpt)-1)])
     p3 = plot([(bkpt[i]+x-x).plot((x, 0, 1)) for i in range(len(bkpt))])
@@ -182,7 +187,9 @@ def face_diagonal(face):
 def face_1D(face):
     return face_horizontal(face) or face_vertical(face) or face_diagonal(face)
 
+@cached_function
 def generate_vert_face_additive(function):
+    logging.info("Computing maximal additive faces...")
     bkpt = function.end_points()
     bkpt2 = []
     for i in range(len(bkpt)-1):
@@ -274,29 +281,32 @@ def generate_vert_face_additive(function):
                                 temp_swap.append(vert_new)
                             vert_face_additive.append(temp_swap)
                         
-
+    logging.info("Computing maximal additive faces... done")
     return vert_face_additive  
 
-def generate_minimal_triples(vert_face_additive):
+@cached_function
+def generate_minimal_triples(function):
     """
     Compute the minimal triples (projections) of the 
-    given (maximal) additive faces.
+    (maximal) additive faces of the given function.
     """
+    logging.info("Computing minimal triples representing maximal additive faces...")
+    vert_face_additive = generate_vert_face_additive(function)
     minimal_triples = []
     for i in vert_face_additive:
         minimal_triples.append(projections(i))
+    logging.info("Computing minimal triples representing maximal additive faces... done")
     return minimal_triples    
 
 def plot_2d_diagram(function, x_range = [0,1], y_range = [0,1]):
     """
     Plot the 2d complex with shaded faces where delta_pi is 0.        
-    Return the list of minimal additive triples.
     """
     ### FIXME: For non-subaddititive functions, the points where delta_pi
     ### is negative should be indicated somehow!!
     bkpt = function.end_points()
     vert_face_additive = generate_vert_face_additive(function)
-    minimal_triples = generate_minimal_triples(vert_face_additive)
+    minimal_triples = generate_minimal_triples(function)
         
     y = var('y')
     plot_minimal_triples = point([])
@@ -318,7 +328,6 @@ def plot_2d_diagram(function, x_range = [0,1], y_range = [0,1]):
     
     show(plot_two_d_complex(bkpt) + plot_minimal_triples, xmin = x_range[0], xmax = x_range[1],\
         ymin = y_range[0], ymax = y_range[1])
-    return minimal_triples
 
 # Assume component is sorted.
 def merge_within_comp(component):   
@@ -448,11 +457,10 @@ assert interval_mod_1([1,2]) == [0,1]
 assert interval_mod_1([-3/10,-1/10]) == [7/10,9/10]
 assert interval_mod_1([-1/5,0]) == [4/5,1]        
 
-def generate_covered_intervals(function, minimal_triples = None):
-    # If the minimal triples are not available, compute them
-    if minimal_triples == None:   
-        vert_face_additive = generate_vert_face_additive(function)
-        minimal_triples = generate_minimal_triples(vert_face_additive)
+@cached_function
+def generate_covered_intervals(function):
+    logging.info("Computing covered intervals...")
+    minimal_triples = generate_minimal_triples(function)
             
     covered_intervals = []      
     # face = (I,J,K)
@@ -485,24 +493,23 @@ def generate_covered_intervals(function, minimal_triples = None):
                     intervals.append(face[i])
                     IJK.append(i)
             edge_merge(covered_intervals,intervals,IJK)
-
+    logging.info("Computing covered intervals... done")
     return covered_intervals
 
-def plot_covered_intervals(function, covered_intervals = None, minimal_triples = None):
-    if covered_intervals == None:
-        covered_intervals = generate_covered_intervals(function, minimal_triples)
+def plot_covered_intervals(function):
+    covered_intervals = generate_covered_intervals(function)
     # Plot the function with different colors.
     # Each component has a unique color.
     # The uncovered intervals is by default plotted in black.
     return (plot(lambda x: function(x), [0,1], color = "black") + sum(sum([plot(lambda x: function(x), covered_intervals[i][j], color=rainbow(len(covered_intervals))[i]) \
         for j in range(len(covered_intervals[i]))]) for i in range(len(covered_intervals))))
 
-def generate_uncovered_intervals(function, covered_intervals = None, minimal_triples = None):
+@cached_function
+def generate_uncovered_intervals(function):
     """
-    Compute a list of uncovered intervals.
+    Compute a sorted list of uncovered intervals.
     """
-    if covered_intervals == None:
-        covered_intervals = generate_covered_intervals(function, minimal_triples)
+    covered_intervals = generate_covered_intervals(function)
     covered = reduce(merge_two_comp, covered_intervals) + [[1,1]]
     uncovered = []
     for i in range(len(covered) - 1):
@@ -586,18 +593,34 @@ def symmetric_test(fn, f):
         return True
     return False
 
-def minimality_test(fn, f):
+@cached_function
+def find_f(fn):
+    """
+    Find the value of `f' for the given function `fn'.
+    """
+    for x in fn.end_points():
+        if fn(x) == 1:
+            return x
+    raise ValueError, "The given function has no breakpoint where the function takes value 1."
+
+def minimality_test(fn, f=None):
     """
     Check if function `fn' is minimal with respect to the given `f'.
+    Print diagnostics and return a boolean.
     """
+    if f==None:
+        f = find_f(fn)
     if fn(0) != 0:
         print 'pi is not minimal because pi(0) is not equal to 0.'
+        return False
     else:
         print 'pi(0) = 0'
         if subadditivity_check(fn) and symmetric_test(fn, f):
             print 'Thus pi is minimal.'
+            return True
         else:
             print 'Thus pi is not minimal.'
+            return False
 
 def directed_moves_from_moves(moves):
     directed_moves = []
@@ -609,7 +632,7 @@ def directed_moves_from_moves(moves):
         elif move_sign == -1:
             directed_moves.append(move)
         else:
-            raise ValueError, "Move not valid: %s" % move
+            raise ValueError, "Move not valid: %s" % list(move)
     return directed_moves
 
 def is_directed_move_possible(x, move, fn=None, intervals=None):
@@ -734,12 +757,18 @@ class FastPiecewise (PiecewisePolynomial):
     than the standard class PiecewisePolynomial.
     """
     def __init__(self, list_of_pairs, var=None):
+        # Ensure sorted
+        list_of_pairs = sorted(list_of_pairs, key = lambda ((a,b), f): a)
         PiecewisePolynomial.__init__(self, list_of_pairs, var)
         self.update_cache()
 
+    # The following makes this class hashable and thus enables caching
+    # of the above functions; but we must promise not to modify the
+    # contents of the instance.
+    def __hash__(self):
+        return id(self)
+
     def update_cache(self):
-        # Ensure sorted
-        self._intervals.sort(key=lambda (a,b): a)
         intervals = self._intervals
         functions = self._functions
         end_points = [ intervals[0][0] ] + [b for a,b in intervals]
@@ -788,6 +817,7 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f(1)
             1/2
         """
+        #print "EVAL at ", x0
         endpts = self.end_points()
         i = bisect_left(endpts, x0)
         if i >= len(endpts):
@@ -893,10 +923,12 @@ def modified_delta_pi(fn, fn_values, pts, i, j):
 def modified_delta_pi2(fn, fn_values2, pts, i, j):
     return fn_values2[i] + fn(fractional(pts[j] - pts[i])) - fn_values2[j]  
 
-
-# Compute the proper rescaling of a given perturbation function.
-# If the largest epsilon is zero, we should try a different perturbation instead.
 def find_largest_epsilon(fn, perturb):
+    """
+    Compute the proper rescaling of a given perturbation function.
+    If the largest epsilon is zero, we should try a different perturbation instead.
+    """
+    logging.info("Finding largest perturbation epsilon value...")
     fn_bkpt = fn.end_points()
     perturb_bkpt = perturb.end_points()
     bkpt_refinement = merge_bkpt(fn_bkpt,perturb_bkpt)
@@ -937,6 +969,7 @@ def find_largest_epsilon(fn, perturb):
                     epsilon_upper_bound = b/(abs(a)) 
                     if epsilon_upper_bound < best_epsilon_upper_bound:
                         best_epsilon_upper_bound = epsilon_upper_bound 
+    logging.info("Finding largest perturbation epsilon value... done")
     return best_epsilon_upper_bound
 
 def canonicalize_number(number):
@@ -963,17 +996,22 @@ def apply_directed_move(x, directed_move):
 class MaximumNumberOfIterationsReached(Exception):
     pass
 
-def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, intervals=None):
+class SignContradiction(Exception):
+    pass
 
+def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, intervals=None, error_if_sign_contradiction=False):
     """
     Compute the orbit of a given seed. (Done by a breadth-first search.)
     To avoid infinite computations in the case of a dense orbit,
     there is a maximum number of iterations (by default, it is 1000).
+    Which moves are allowed is decided by testing the Delta of `fn',
+    or, if that is not provided, by testing whether we stay in `intervals'.    
 
     Returns a dictionary:
     - keys are elements of the orbit
-    - values are tuples of the form [walk_sign, predecessor, directed_move_from_predecessor].
+    - values are lists of the form [walk_sign, predecessor, directed_move_from_predecessor].
     """
+    logging.info("Breadth-first search to discover the reachable orbit...")
     seed = canonicalize_number(seed)
     to_do = [seed]
     # xlist is actually a dictionary.
@@ -984,7 +1022,7 @@ def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, intervals=None):
     num_it = 0
     while to_do and num_it < max_num_it:
         if (num_it > 0 and num_it % 100 == 0):
-            print "(Iteration %d, to do list has %d items)" % (num_it, len(to_do))
+            logging.info("(Iteration %d, to do list has %d items)" % (num_it, len(to_do)))
         x = to_do.pop(0)
         possible_directed_moves = find_possible_directed_moves(x, moves, fn, intervals)
         for directed_move in possible_directed_moves:
@@ -1006,19 +1044,19 @@ def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, intervals=None):
                 if xlist[next_x][0] != next_walk_sign:
                     xlist[next_x][0] = 0
                     if contradiction_reached == False:
-                        contradiction_reached = True
-                        for pt in xlist.keys():
-                            xlist[pt][0] = 0
+                        logging.info('A contradiction of signs was reached. All the elements in the reachable orbit take the value 0.')
+                        if error_if_sign_contradiction:
+                            raise SignContradiction
+                        else:
+                            contradiction_reached = True
+                            for pt in xlist.keys():
+                                xlist[pt][0] = 0
         num_it = num_it + 1
         
-    if contradiction_reached:
-        print 'A contradiction of signs was reached. All the elements in the reachable orbit take the value 0.'    
     if num_it == max_num_it:
-        raise MaximumNumberOfIterationsReached
+        raise MaximumNumberOfIterationsReached, "Reached %d iterations, to do list has still %d items" % (num_it, len(to_do))
  
-    # show(points_plot + plot(-0.1+x-x, [A,A0]) + plot(-0.1+x-x, [f-A0,f-A])\
-    #     + plot(-0.2+x-x, [A,A+a0], color = "green") + plot(-0.3+x-x, [A,A+a1], color = "green") + \
-    #     plot(-0.4+x-x, [A,A+a2], color = "green"), ymin = -1, ymax = 0)
+    logging.info("Breadth-first search to discover the reachable orbit... done")
     return xlist
 
 def plot_walk(walk_dict, **options):
@@ -1072,8 +1110,8 @@ def plot_moves(seed, moves, colors=None):
             # Translation
             g += arrow((seed, y), (next_x, y), color=color, zorder = 7)
         else:
-            raise ValueError, "Bad move: %s" % move
-        g += text("%s" % move, (midpoint_x, y), \
+            raise ValueError, "Bad move: %s" % list(move)
+        g += text("%s" % list(move), (midpoint_x, y), \
                   vertical_alignment="bottom", \
                   horizontal_alignment="center", \
                   color=color, zorder = 7)
@@ -1088,7 +1126,7 @@ def plot_possible_and_impossible_directed_moves(seed, moves, fn):
 import collections
 closed_or_open_or_halfopen_interval = collections.namedtuple('Interval', ['a', 'b', 'left_closed', 'right_closed'])
 
-def find_stability_interval_with_deterministic_walk_list(seed, intervals, moves, fn, max_num_it = 1000):
+def find_stability_interval_with_deterministic_walk_list(seed, intervals, moves, fn, max_num_it = 1000, error_if_sign_contradiction=False):
     """
     Returns the stability interval (an open, half-open, or closed interval)
     and the deterministic_walk_list.
@@ -1097,7 +1135,8 @@ def find_stability_interval_with_deterministic_walk_list(seed, intervals, moves,
     b = 10
     left_closed = True
     right_closed = True
-    deterministic_walk_list = deterministic_walk(seed,moves,fn, max_num_it)
+    deterministic_walk_list = deterministic_walk(seed,moves,fn, max_num_it, \
+                                                 error_if_sign_contradiction=error_if_sign_contradiction)
     if deterministic_walk_list[seed][0] == 0:
         return (closed_or_open_or_halfopen_interval(0, 0, True, True), deterministic_walk_list)
     for pt in deterministic_walk_list.keys():
@@ -1172,3 +1211,90 @@ def lattice_plot(A, A0, t1, t2, size):
     p3 = plot((A-x0-x*t1)/t2, (x,-size + 1, size - 1), color = "red")
     p4 = plot((A0-x0-x*t1)/t2, (x,-size + 1,size - 1), color = "red")
     show(p1+p2+p3+p4)
+
+# 
+
+@cached_function
+def generate_moves(fn, intervals=None):
+    """
+    Compute the moves (translations and reflections) relevant for the given intervals
+    (default: all uncovered intervals).
+    """
+    if intervals==None:
+        # Default is to generate moves for ALL uncovered intervals
+        intervals = generate_uncovered_intervals(fn)
+    moves = set()
+    for trip in generate_minimal_triples(fn):
+        intersects = [find_interior_intersection([trip[i]], intervals) for i in range(3)]
+        if face_horizontal(trip):
+            if intersects[0] or intersects[2]:
+                assert intersects[0] and intersects[2]
+                moves.add((1, trip[1][0]))               # Translation
+        elif face_diagonal(trip):
+            if intersects[0] or intersects[1]:
+                assert intersects[0] and intersects[1]
+                moves.add((-1, trip[2][0]))              # Reflection
+    moves.remove((1,0))                                  # Remove the trivial translation
+    return list(moves)
+
+def find_generic_seed(fn, max_num_it = 1000):
+    intervals = generate_uncovered_intervals(fn)
+    if not intervals:
+        raise ValueError, "Need an uncovered interval"
+    moves = generate_moves(fn)
+    seed = intervals[0][1]
+    while True:
+        seed = 2/3 * intervals[0][0] + 1/3 * seed
+        logging.info("Trying seed %s" % seed)
+        try:
+            stab_int, walk_list = find_stability_interval_with_deterministic_walk_list \
+                                  (seed, intervals, moves, fn, max_num_it = max_num_it, \
+                                   error_if_sign_contradiction = True)
+            if stab_int[1] == stab_int[0]:
+                logging.info("Stability interval is not proper, continuing search.")
+                continue
+            logging.info("Seed %s has a proper stability interval, reachable orbit has %s elements" % (seed, len(walk_list)))
+            return (seed, stab_int, walk_list)
+        except SignContradiction:
+            continue
+
+class UnimplementedError (Exception):
+    pass
+
+def extremality_test(fn, show_plots = False, max_num_it = 1000):
+    if not minimality_test(fn):
+        print "Not minimal, thus not extreme."
+        return False
+    if show_plots:
+        plot_2d_diagram(fn)
+        show(plot_covered_intervals(fn))
+    uncovered_intervals = generate_uncovered_intervals(fn)
+    if not uncovered_intervals:
+        print "All intervals are covered (or connected-to-covered)."
+        raise UnimplementedError, "The next step should be a finite-dimensional test for extremality (unimplemented)."
+    else:
+        print "Uncovered intervals: ", uncovered_intervals
+        moves = generate_moves(fn)
+        print "Moves relevant for these intervals: ", moves
+        seed, stab_int, walk_list = find_generic_seed(fn, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
+        if show_plots:
+            # FIXME: Visualize stability intervals?
+            (plot_walk(walk_list,thickness=0.7) + \
+             plot_possible_and_impossible_directed_moves(seed, moves, h) + \
+             plot_intervals(uncovered_intervals) + plot(h)).show(figsize=50)
+        perturb = approx_discts_function(walk_list, stab_int)
+        epsilon = find_largest_epsilon(fn, perturb)
+        print "Epsilon for constructed perturbation: ", epsilon
+        assert epsilon > 0, "Epsilon should be positive, something is wrong"
+        print "Thus the function is not extreme."
+        # FIXME: Make sure we can add FastPiecewiseLinear functions;
+        # so that the special plot method of those can be used.
+        if show_plots:
+            (plot(lambda x: fn(x) + epsilon * perturb(x), [0,1], color='blue') \
+             + plot(lambda x: fn(x) - epsilon * perturb(x), [0,1], color='red') \
+             + plot(lambda x: 1/10 * perturb(x), [0,1], color='magenta')) \
+                .show(figsize=50)
+        return False
+
+        
+
