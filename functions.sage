@@ -47,6 +47,22 @@ def interval_sum(int1, int2):
 def interval_intersection(int1, int2):
     """
     Return the intersection of two intervals.
+
+    EXAMPLES::
+        sage: interval_intersection([1], [2])
+        []
+        sage: interval_intersection([1,3], [2,4])
+        [2, 3]
+        sage: interval_intersection([1,3], [2])
+        [2]
+        sage: interval_intersection([2], [2,3])
+        [2]
+        sage: interval_intersection([1,3], [3, 4])
+        [3]
+        sage: interval_intersection([1,3], [4, 5])
+        []
+        sage: interval_intersection([], [4, 5])
+        []
     """
     if len(int1) == 0 or len(int2) == 0:
         return []
@@ -56,22 +72,24 @@ def interval_intersection(int1, int2):
         else:
             return []
     elif len(int1) == 2 and len(int2) == 1:
-        if int2[0] >= int1[0]  and int2[0] <= int1[1]:
+        if int1[0] <= int2[0] <= int1[1]:
             return [int2[0]]
         else:
             return []
     elif len(int1) == 1 and len(int2) == 2:
-        if int1[0] >= int2[0]  and int1[0] <= int2[1]:
+        if int2[0] <= int1[0] <= int2[1]:
             return [int1[0]]
         else:
             return []    
     else:        
-        if max(int1[0],int2[0]) > min(int1[1],int2[1]):
+        max0 = max(int1[0],int2[0])
+        min1 = min(int1[1],int2[1])
+        if max0 > min1:
             return []
-        if max(int1[0],int2[0]) == min(int1[1],int2[1]):
-            return [max(int1[0],int2[0])]
+        elif max0 == min1:
+            return [max0]
         else:
-            return [max(int1[0],int2[0]),min(int1[1],int2[1])]
+            return [max0,min1]
 
 def interval_empty(interval):
     """
@@ -84,7 +102,21 @@ def interval_empty(interval):
 
 def element_of_int(x,int):
     """
-    Determine whether a value x is inside an interval called int.
+    Determine whether value `x` is inside the interval `int`.
+
+    EXAMPLES::
+    sage: element_of_int(1, [])
+    False
+    sage: element_of_int(1, [1])
+    True
+    sage: element_of_int(1, [2])
+    False
+    sage: element_of_int(1, [0,2])
+    True
+    sage: element_of_int(1, [1,2])
+    True
+    sage: element_of_int(2, [3,4])
+    False
     """
     if len(int) == 0:
         return False
@@ -93,7 +125,7 @@ def element_of_int(x,int):
             return True
         else:
             return False
-    elif x >= int[0] and x <= int[1]:
+    elif int[0] <= x <= int[1]:
         return True
     else:
         return False
@@ -442,6 +474,20 @@ def find_interior_intersection(list1, list2):
     return False
 
 def interval_mod_1(interval):
+    """
+    Represent the given proper interval modulo 1
+    as a subinterval of [0,1].
+
+    EXAMPLES::
+    sage: interval_mod_1([1,6/5])
+    [0, 1/5]
+    sage: interval_mod_1([1,2])
+    [0, 1]
+    sage: interval_mod_1([-3/10,-1/10])
+    [7/10, 9/10]
+    sage: interval_mod_1([-1/5,0])
+    [4/5, 1]        
+    """
     assert interval[0] < interval[1]
     while interval[0] >= 1:
         interval[0] = interval[0] - 1
@@ -452,11 +498,6 @@ def interval_mod_1(interval):
     assert not(interval[0] < 1 and interval[1] > 1) 
     return interval
     
-assert interval_mod_1([1,6/5]) == [0,1/5]
-assert interval_mod_1([1,2]) == [0,1]
-assert interval_mod_1([-3/10,-1/10]) == [7/10,9/10]
-assert interval_mod_1([-1/5,0]) == [4/5,1]        
-
 @cached_function
 def generate_covered_intervals(function):
     logging.info("Computing covered intervals...")
@@ -648,7 +689,7 @@ def is_directed_move_possible(x, move, fn=None, intervals=None):
     elif intervals:
         next_x = apply_directed_move(x, move)
         for interval in intervals:
-            if (interval[0] <= next_x and next_x <= interval[1]):
+            if (interval[0] <= next_x <= interval[1]):
                 return True
         return False
     else:
@@ -1146,7 +1187,7 @@ def one_step_stability_interval(x, intervals, moves):
     for move in directed_moves_from_moves(moves):
         next_x = apply_directed_move(x, move)
         for interval in intervals:
-            if (interval[0] <= next_x and next_x <= interval[1]):
+            if (interval[0] <= next_x <= interval[1]):
                 # Move was possible, so:
                 if move[0] == 1:
                     if (interval[0] - next_x) > a:
@@ -1168,21 +1209,21 @@ def one_step_stability_interval(x, intervals, moves):
         if move[0] == 1:
             for interval in intervals:
                 temp = interval[0] - next_x
-                if temp > 0 and temp <= b:
+                if 0 < temp <= b:
                     b = temp
                     right_closed = False
                 temp2 = interval[1] - next_x
-                if temp2 < 0 and temp2 >= a:
+                if a <= temp2 < 0:
                     a = temp
                     left_closed = False
         elif move[0] == -1:
             for interval in intervals:
                 temp = interval[0] - next_x
-                if temp > 0 and -1 * temp >= a:
+                if 0 < temp <= -1 * a:
                     a = -1 * temp
                     left_closed = False
                 temp2 = next_x - interval[1]
-                if temp2 > 0 and temp2 <= b:
+                if 0 < temp2 <= b:
                     b = temp2
                     right_closed = False
         else:
@@ -1306,22 +1347,22 @@ def find_stability_interval_with_deterministic_walk_list(seed, intervals, moves,
                 impossible_next_x = fractional(pt + move[1])
                 for interval in intervals:
                     temp = interval[0] - impossible_next_x
-                    if temp > 0 and temp <= b:
+                    if 0 < temp <= b:
                         b = temp
                         right_closed = False
                     temp2 = interval[1] - impossible_next_x
-                    if temp2 < 0 and temp2 >= a:
+                    if a <= temp2 < 0:
                         a = temp
                         left_closed = False
             elif move[0] == -1:
                 impossible_next_x = fractional(move[1] - pt)
                 for interval in intervals:
                     temp = interval[0] - impossible_next_x
-                    if temp > 0 and -1 * temp >= a:
+                    if 0 < temp <= -1 * a:
                         a = -1 * temp
                         left_closed = False
                     temp2 = impossible_next_x - interval[1]
-                    if temp2 > 0 and temp2 <= b:
+                    if 0 < temp2 <= b:
                         b = temp2
                         right_closed = False
     ### I don't understand the following code.
