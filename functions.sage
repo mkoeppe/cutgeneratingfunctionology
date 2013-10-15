@@ -880,7 +880,7 @@ def approx_discts_function(perturbation_list, stability_interval, field=default_
     # This width is chosen so that the peaks are disjoint, and
     # so a nice continuous piecewise linear function is constructed.
     width = min(abs(stability_interval.a),stability_interval.b)
-    assert width > 0
+    assert width > 0, "Width of stability interval should be positive"
     for pt in perturb_points:
         assert (pt-width >= fn_bkpt[len(fn_bkpt)-1])
         if (pt-width > fn_bkpt[len(fn_bkpt)-1]):
@@ -1124,13 +1124,149 @@ def plot_possible_and_impossible_directed_moves(seed, moves, fn):
     return plot_moves(seed, directed_moves, colors)
 
 import collections
-closed_or_open_or_halfopen_interval = collections.namedtuple('Interval', ['a', 'b', 'left_closed', 'right_closed'])
+_closed_or_open_or_halfopen_interval = collections.namedtuple('Interval', ['a', 'b', 'left_closed', 'right_closed'])
+
+class closed_or_open_or_halfopen_interval (_closed_or_open_or_halfopen_interval):
+    def __repr__(self):
+        return "<Int" \
+            + ("[" if self.left_closed else "(") \
+            + repr(self.a) + ", " + repr(self.b) \
+            + ("]" if self.right_closed else ")") \
+            + ">"
+
+def one_step_stability_interval(x, intervals, moves):
+    """Returns the stability interval, i.e., an open, half-open, or closed
+    interval I), such that for all moves, `move`(`x`) lies in
+    `intervals` if and only if `move`(`x` + t) lies in `intervals` for
+    t in I."""
+    a = -10
+    b = 10
+    left_closed = True
+    right_closed = True
+    for move in directed_moves_from_moves(moves):
+        next_x = apply_directed_move(x, move)
+        for interval in intervals:
+            if (interval[0] <= next_x and next_x <= interval[1]):
+                # Move was possible, so:
+                if move[0] == 1:
+                    if (interval[0] - next_x) > a:
+                        a = interval[0] - next_x
+                        left_closed = True
+                    if (interval[1] - next_x) < b:
+                        b = interval[1] - next_x
+                        right_closed = True
+                elif move[0] == -1:
+                    if (next_x - interval[0]) < b:
+                        b = next_x - interval[0]
+                        right_closed = True
+                    if (interval[1] - next_x) < -1 * a:
+                        a = next_x - interval[1]
+                        left_closed = True      
+                else:
+                    raise ValueError, "Move not valid: %s" % list(move)
+        # Move was not possible.
+        if move[0] == 1:
+            for interval in intervals:
+                temp = interval[0] - next_x
+                if temp > 0 and temp <= b:
+                    b = temp
+                    right_closed = False
+                temp2 = interval[1] - next_x
+                if temp2 < 0 and temp2 >= a:
+                    a = temp
+                    left_closed = False
+        elif move[0] == -1:
+            for interval in intervals:
+                temp = interval[0] - next_x
+                if temp > 0 and -1 * temp >= a:
+                    a = -1 * temp
+                    left_closed = False
+                temp2 = next_x - interval[1]
+                if temp2 > 0 and temp2 <= b:
+                    b = temp2
+                    right_closed = False
+        else:
+            raise ValueError, "Move not valid: %s" % list(move)
+    return closed_or_open_or_halfopen_interval(a, b, left_closed, right_closed)
+
+# def closed_or_open_or_halfopen_interval_intersection(int1,int2):
+#     if max(int1[0],int2[0]) > min(int1[1],int2[1]):
+#         return []
+#     if max(int1[0],int2[0]) == min(int1[1],int2[1]):
+#         return [max(int1[0],int2[0])]
+#     else:
+#         return [max(int1[0],int2[0]),min(int1[1],int2[1])]
+
+def one_step_stability_refinement(interval, intervals, moves):
+    if len(interval) == 2:
+        interval = closed_or_open_or_halfopen_interval(interval[0], interval[1], True, True)
+    seed = (interval[0] + interval[1]) / 2
+    (stab_a, stab_b, stab_left_closed, stab_right_closed) = one_step_stability_interval(seed, intervals, moves)
+    stab_a += seed
+    stab_b += seed
+    left = None
+    right = None
+    #print "  Shifted stability interval: ", stab_a, stab_b, stab_left_closed, stab_right_closed
+    #print interval.a < stab_a, interval.left_closed
+    if interval.a < stab_a \
+       or (interval.a == stab_a and interval.left_closed and not stab_left_closed):
+        left = closed_or_open_or_halfopen_interval(interval.a, stab_a, interval.left_closed, not stab_left_closed)
+        #print "  Left: ", left
+    else:
+        stab_a = interval.a
+        stab_left_closed = interval.left_closed
+    if stab_b < interval.b \
+       or (stab_b == interval.b and interval.right_closed and not stab_right_closed):
+        right = closed_or_open_or_halfopen_interval(stab_b, interval.b, not stab_right_closed, interval.right_closed)
+        #print "  Right: ", right
+    else:
+        stab_b = interval.b
+        stab_right_closed = interval.right_closed
+    #print "  Modified stability interval: ", stab_a, stab_b, stab_left_closed, stab_right_closed
+    refinement = []
+    if left != None:
+        refinement.append(left)
+    refinement.append(closed_or_open_or_halfopen_interval(stab_a, stab_b, stab_left_closed, stab_right_closed))
+    if right != None:
+        refinement.append(right)
+    return refinement
+
+def interval_length(interval):
+    if interval[1] >= interval[0]:
+        return interval[1] - interval[0]
+    return 0
+
+from heapq import *
+
+def iterative_stability_refinement(intervals, moves):
+    interval_pq = [ (-interval_length(interval), interval) \
+                    for interval in intervals ]
+    heapify(interval_pq)
+    while (True):
+        priority, int = heappop(interval_pq)
+        length = -priority
+        logging.info("%s of length %s " % (int, RR(length)))
+        refinement = one_step_stability_refinement(int, intervals, moves)
+        logging.debug("  Refinement: %s" % refinement)
+        for new_int in refinement:
+            heappush(interval_pq, (-interval_length(new_int), new_int))
+        if len(refinement) == 1:
+            logging.info("Longest interval does not refine, stopping.")
+            break
+    return sorted([ interval for (priority, interval) in interval_pq ])
+
+def find_decomposition_into_stability_intervals(fn):
+    ## experimental.
+    intervals = generate_uncovered_intervals(fn)
+    moves = generate_moves(fn)
+    return iterative_stability_refinement(intervals, moves)
 
 def find_stability_interval_with_deterministic_walk_list(seed, intervals, moves, fn, max_num_it = 1000, error_if_sign_contradiction=False):
     """
     Returns the stability interval (an open, half-open, or closed interval)
     and the deterministic_walk_list.
     """
+    ## FIXME: Refactor using above.
     a = -10
     b = 10
     left_closed = True
@@ -1188,6 +1324,8 @@ def find_stability_interval_with_deterministic_walk_list(seed, intervals, moves,
                     if temp2 > 0 and temp2 <= b:
                         b = temp2
                         right_closed = False
+    ### I don't understand the following code.
+    ### It seems necessary to make the stability orbit disjoint --Matthias
     orbit = sorted(deterministic_walk_list.keys())
     min_midpt_dist = 1
     for i in range(len(orbit)-1):
@@ -1201,6 +1339,8 @@ def find_stability_interval_with_deterministic_walk_list(seed, intervals, moves,
         b = min_midpt_dist
         right_closed = False  
     return (closed_or_open_or_halfopen_interval(a, b, left_closed, right_closed), deterministic_walk_list)
+
+
 
 # size has to be a positive integer
 def lattice_plot(A, A0, t1, t2, size):
@@ -1253,7 +1393,7 @@ def find_generic_seed(fn, max_num_it = 1000):
             if stab_int[1] == stab_int[0]:
                 logging.info("Stability interval is not proper, continuing search.")
                 continue
-            logging.info("Seed %s has a proper stability interval, reachable orbit has %s elements" % (seed, len(walk_list)))
+            logging.info("Seed %s has a proper stability interval %s, reachable orbit has %s elements" % (seed, stab_int, len(walk_list)))
             return (seed, stab_int, walk_list)
         except SignContradiction:
             continue
