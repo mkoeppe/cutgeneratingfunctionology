@@ -46,28 +46,9 @@ a2 = a0 + t2
 A = a0+d21+d23
 A0 = A + d12
 
-slope = [c1,c3,c1,c3,c1,c3,c1,c3,c2,c1,c2,c3,c1,c3,c1,c3,c1,c3,c1,c3]
+slopes = [c1,c3,c1,c3,c1,c3,c1,c3,c2,c1,c2,c3,c1,c3,c1,c3,c1,c3,c1,c3]
 
-interval_length = [d11,d13,del11,del13,del21,del23,d21new,d23new,d12,d31,d22,d33new,d41new,del23,del21,del13,del11,d43,d51,1-f]
+interval_lengths = [d11,d13,del11,del13,del21,del23,d21new,d23new,d12,d31,d22,d33new,d41new,del23,del21,del13,del11,d43,d51,1-f]
 
-# bkpt = []
-# bkpt.append(0)
-# for i in range(len(interval_length)):
-#     bkpt.append(bkpt[i]+interval_length[i])
-    
-# bkpt2 = []
-# for i in range(len(bkpt)-1):
-#     bkpt2.append(bkpt[i])
-# for i in range(len(bkpt)):
-#     bkpt2.append(bkpt[i]+1)      
-
-# function_values = [0]
-  
-# for i in range(1,len(bkpt)-1):
-#     function_values.append(function_values[i-1] + slope[i - 1] * (bkpt[i] - bkpt[i-1]))
-
-# pieces = [[(bkpt[i],bkpt[i+1]),lambda x,i=i: function_values[i]+slope[i]*(x - bkpt[i])] for i in range(len(bkpt)-1)] 
-# h = Piecewise(pieces)
-
-h = piecewise_function_from_interval_lengths_and_slopes(interval_length, slope)
+h = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
         

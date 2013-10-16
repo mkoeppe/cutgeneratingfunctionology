@@ -59,12 +59,12 @@ slopes = [c1,c3,c1,c3,c1,c3,c1,c3,c1,c3,c2,c1,c2,c3,c1,c3,c1,c3,c1,c3,c1,c3,c1,c
 interval_lengths = [d11,d13,del11,del13,del21,del23,del31, del33, d21new,d23new,d12,d31,d22,d33new,d41new,del33,del31,del23,del21,del13,del11,d43,d51,1-f]
 
 h = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes) 
-bkpt = h.end_points()
+#bkpt = h.end_points()
 
 
 ### following for experiments
-moves = [[1,a0],[1,a1], [1,a2], [1,a3], [-1,f], [-1,f-a0], [-1,f-a1], [-1,f-a2], [-1,f-a3]]
-x0 = A+(A0-A)/7
+#moves = [[1,a0],[1,a1], [1,a2], [1,a3], [-1,f], [-1,f-a0], [-1,f-a1], [-1,f-a2], [-1,f-a3]]
+#x0 = A+(A0-A)/7
 
 # stab_int, walk_list = find_stability_interval_with_deterministic_walk_list(x0, [[A,A0],[f-A0,f-A]], moves, h)
 # perturb = approx_discts_function(walk_list, stab_int)

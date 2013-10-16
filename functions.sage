@@ -781,24 +781,43 @@ def very_fast_linear_function(slope, intercept, field=default_field):
 
 # Linear univariate polynomials are 10 times slower than lambda functions to evaluate,
 # but still 10 times faster to evaluate than symbolic expressions.
+# Note that this implementation is NOT compatible with symbolic expressions.
+# For example slope=0, intercept=sqrt(2) leads to the result
+# being just a symbolic expression, which is not callable.
 def fast_addable_linear_function(slope, intercept, field=default_field):
      RK = PolynomialRing(field, 'x')
      x = RK.0
      return slope * x + intercept
 
-fast_linear_function = fast_addable_linear_function
-
 from sage.functions.piecewise import PiecewisePolynomial
 from bisect import bisect_left
 
+## FIXME: Its __name__ is "Fast..." but nobody so far has timed
+## its performance against the other options. --Matthias
 class FastLinearFunction :
-    def __init__(self, slope, intercept):
+    def __init__(self, slope, intercept, field=default_field):
         self._slope = slope
         self._intercept = intercept
 
-    def __call__(x):
+    def __call__(self, x):
         return self._slope * x + self._intercept
+
+    def __float__(self):
+        return self
+
+    def __add__(self, other):
+        return FastLinearFunction(self.slope + other.slope,
+                                  self.intercept + other.intercept)
+
+    def __mul__(self, other):
+        return FastLinearFunction(self.slope * other,
+                                  self.intercept * other)
+
+    __rmul__ = __mul__
+
     ## FIXME: To be continued.
+
+fast_linear_function = FastLinearFunction
 
 class FastPiecewise (PiecewisePolynomial):
     """
