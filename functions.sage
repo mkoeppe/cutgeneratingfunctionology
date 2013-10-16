@@ -772,7 +772,7 @@ default_field = QQ
 
 ## Lambda functions are the fastest to evaluate, but we cannot add them,
 ## which may be inconvenient.
-def fast_linear_function(slope, intercept, field=default_field):
+def very_fast_linear_function(slope, intercept, field=default_field):
     """
     Return a linear function.
     """
@@ -786,8 +786,19 @@ def fast_addable_linear_function(slope, intercept, field=default_field):
      x = RK.0
      return slope * x + intercept
 
+fast_linear_function = fast_addable_linear_function
+
 from sage.functions.piecewise import PiecewisePolynomial
 from bisect import bisect_left
+
+class FastLinearFunction :
+    def __init__(self, slope, intercept):
+        self._slope = slope
+        self._intercept = intercept
+
+    def __call__(x):
+        return self._slope * x + self._intercept
+    ## FIXME: To be continued.
 
 class FastPiecewise (PiecewisePolynomial):
     """
@@ -870,6 +881,133 @@ class FastPiecewise (PiecewisePolynomial):
         if endpts[i-1] < x0 < endpts[i]:
             return self.functions()[i-1](x0)
         raise ValueError,"Value not defined at point %s, outside of domain." % x0
+
+    def __add__(self,other):
+        F, G, intervals = self._make_compatible(other)
+        fcn = []
+        for a,b in intervals:
+            fcn.append([(a,b), F.which_function(b)+G.which_function(b)])        
+        return FastPiecewise(fcn)
+        
+    def __mul__(self,other):
+        if not isinstance(other, FastPiecewise):
+            # assume scalar multiplication
+            return FastPiecewise([[(a,b), other*f] for (a,b),f in self.list()])
+        else:
+            F, G, intervals = self._make_compatible(other)
+            fcn = []
+            for a,b in intervals:
+                fcn.append([(a,b),F.which_function(b)*G.which_function(b)])     
+            return FastPiecewise(fcn)
+
+    __rmul__ = __mul__
+
+    ## Following just fixes a bug in the plot method in piecewise.py
+    ## (see doctests below).
+    def plot(self, *args, **kwds):
+        """
+        Returns the plot of self.
+        
+        Keyword arguments are passed onto the plot command for each piece
+        of the function. E.g., the plot_points keyword affects each
+        segment of the plot.
+        
+        EXAMPLES::
+        
+            sage: f1(x) = 1
+            sage: f2(x) = 1-x
+            sage: f3(x) = exp(x)
+            sage: f4(x) = sin(2*x)
+            sage: f = FastPiecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: P = f.plot(rgbcolor=(0.7,0.1,0), plot_points=40)
+            sage: P
+        
+        Remember: to view this, type show(P) or P.save("path/myplot.png")
+        and then open it in a graphics viewer such as GIMP.
+
+        TESTS:
+
+        We should not add each piece to the legend individually, since
+        this creates duplicates (:trac:`12651`). This tests that only
+        one of the graphics objects in the plot has a non-``None``
+        ``legend_label``::
+
+            sage: f1(x) = sin(x)
+            sage: f2(x) = cos(x)
+            sage: f = FastPiecewise([[(-1,0), f1],[(0,1), f2]])
+            sage: p = f.plot(legend_label='$f(x)$')
+            sage: lines = [
+            ...     line
+            ...     for line in p._objects
+            ...     if line.options()['legend_label'] is not None ]
+            sage: len(lines)
+            1
+
+        The implementation of the plot method in Sage 5.11 piecewise.py
+        is incompatible with the use of the xmin and xmax arguments.  Test that
+        this has been fixed:
+
+            sage: q = f.plot(xmin=0, xmax=3)
+            sage: q = plot(f, xmin=0, xmax=3)
+            sage: q = plot(f, 0, 3)
+            sage: q = plot(f, 0, 3, color='red')
+        
+        The implementation should crop according to the given xmin, xmax.
+
+            sage: q = plot(f, 1/2, 3)
+            sage: q = plot(f, 1, 2)
+            sage: q = plot(f, 2, 3)
+        
+        Also the following plot syntax should be accepted.
+
+            sage: q = plot(f, [2, 3])
+
+        """
+        from sage.plot.all import plot, Graphics
+
+        g = Graphics()
+
+        ### Code duplication with xmin/xmax code in plot.py.
+        n = len(args)
+        xmin = None
+        xmax = None
+        if n == 0:
+            # if there are no extra args, try to get xmin,xmax from
+            # keyword arguments
+            xmin = kwds.pop('xmin', None)
+            xmax = kwds.pop('xmax', None)
+        elif n == 1:
+            # if there is one extra arg, then it had better be a tuple
+            xmin, xmax = args[0]
+            args = []
+            ## The case where the tuple is longer than 2 elements is for the 
+            ## case of symbolic expressions; it does not apply here.
+            ## FIXME: We should probably signal an error.
+        elif n == 2:
+            # if there are two extra args, they should be xmin and xmax
+            xmin = args[0]
+            xmax = args[1]
+            args = []
+        ## The case with three extra args is for the case of symbolic
+        ## expressions; it does not apply here.  FIXME: We should
+        ## probably signal an error.
+        for ((a,b), f) in self.list():
+            if xmin is not None:
+                a = max(a, xmin)
+            if xmax is not None:
+                b = min(b, xmax)
+            if a < b:
+                # We do not plot anything if a==b because
+                # otherwise plot complains that
+                # "start point and end point must be different"
+                g += plot(f, *args, xmin=a, xmax=b, **kwds)
+                # If it's the first piece, pass all arguments. Otherwise,
+                # filter out 'legend_label' so that we don't add each
+                # piece to the legend separately (trac #12651).
+                if 'legend_label' in kwds:
+                    del kwds['legend_label']
+        return g
+
 
 def piecewise_function_from_breakpoints_and_values(bkpt, values, field=default_field):
     """
@@ -1051,11 +1189,17 @@ def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, intervals=None, 
     Returns a dictionary:
     - keys are elements of the orbit
     - values are lists of the form [walk_sign, predecessor, directed_move_from_predecessor].
+
     """
+    ## FIXME: If `fn` is provided, store the dictionary in `fn.walk_dict`
+    ## and the to_do list in `fn.walk_to_do`, to allow us to resume
+    ## an interrupted BFS.  OR: Turn it into an iterator/generator (yield).
+
     logging.info("Breadth-first search to discover the reachable orbit...")
     seed = canonicalize_number(seed)
     to_do = [seed]
     # xlist is actually a dictionary.
+    
     xlist = {seed:[1,None,None]}
     walk_sign = 1
     # points_plot = point((seed,0))
@@ -1283,18 +1427,20 @@ def iterative_stability_refinement(intervals, moves):
     interval_pq = [ (-interval_length(interval), interval) \
                     for interval in intervals ]
     heapify(interval_pq)
-    while (True):
+    finished_list = []
+    while (interval_pq):
         priority, int = heappop(interval_pq)
         length = -priority
         logging.info("%s of length %s " % (int, RR(length)))
         refinement = one_step_stability_refinement(int, intervals, moves)
         logging.debug("  Refinement: %s" % refinement)
-        for new_int in refinement:
-            heappush(interval_pq, (-interval_length(new_int), new_int))
         if len(refinement) == 1:
-            logging.info("Longest interval does not refine, stopping.")
-            break
-    return sorted([ interval for (priority, interval) in interval_pq ])
+            finished_list.append(refinement[0])
+        else:
+            for new_int in refinement:
+                heappush(interval_pq, (-interval_length(new_int), new_int))
+    return sorted(finished_list + \
+                  [ interval for (priority, interval) in interval_pq ])
 
 def find_decomposition_into_stability_intervals(fn):
     ## experimental.
@@ -1468,13 +1614,11 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000):
         print "Epsilon for constructed perturbation: ", epsilon
         assert epsilon > 0, "Epsilon should be positive, something is wrong"
         print "Thus the function is not extreme."
-        # FIXME: Make sure we can add FastPiecewiseLinear functions;
-        # so that the special plot method of those can be used.
         if show_plots:
-            (plot(lambda x: fn(x) + epsilon * perturb(x), [0,1], color='blue') \
-             + plot(lambda x: fn(x) - epsilon * perturb(x), [0,1], color='red') \
-             + plot(lambda x: 1/10 * perturb(x), [0,1], color='magenta')) \
-                .show(figsize=50)
+            (plot(fn + epsilon * perturb, xmin=0, xmax=1, color='blue') \
+             + plot(fn + (-epsilon) * perturb, xmin=0, xmax=1, color='red') \
+             + plot(1/10 * perturb, xmin=0, xmax=1, color='magenta')) \
+            .show(figsize=50)
         return False
 
         
