@@ -806,12 +806,13 @@ class FastLinearFunction :
         return self
 
     def __add__(self, other):
-        return FastLinearFunction(self.slope + other.slope,
-                                  self.intercept + other.intercept)
+        return FastLinearFunction(self._slope + other._slope,
+                                  self._intercept + other._intercept)
 
     def __mul__(self, other):
-        return FastLinearFunction(self.slope * other,
-                                  self.intercept * other)
+        # scalar multiplication
+        return FastLinearFunction(self._slope * other,
+                                  self._intercept * other)
 
     __rmul__ = __mul__
 
@@ -1027,6 +1028,52 @@ class FastPiecewise (PiecewisePolynomial):
                     del kwds['legend_label']
         return g
 
+from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
+
+def can_coerce(coercer, values):
+    try:
+        coerced_values = [ coercer(value) for value in values ]
+        return True
+    except ValueError:
+        return False
+    except TypeError:
+        return False
+
+def fast_field(values):
+    "Return a field and a coercing function."
+    ## If everything is rational, we are happy.
+    field, coercer = QQ, QQ
+    if can_coerce(coercer, values):
+        return field, coercer
+    ## ## See if we can make do with a quadratic number field
+    ## radicant_wildcard = SR.wild(0)
+    ## radicals = set()
+    ## for value in values:
+    ##     if parent(value) == SR:
+    ##         radicals |= set(value.find(sqrt(radicant_wildcard)))
+    ## logging.info("Set of radicals: %s" % (radicals,))
+    ## if len(radicals) == 1:
+    ##     ## 
+    ##     radicant = radicals[0].op[0]
+    ##     field.<root> = QuadraticField(radicant, name='sqrt%s' % radicant)
+    ##     def coercer(x, field=field, root=root, radicant=radicant):
+    ##         if parent(x) == SR:
+    ##             return x.subs(sqrt(radicant)==root) 
+    ##             ## Does not work because we get immediate
+    ##             ## back-substitution, when sqrt2 is inserted in the
+    ##             ## symbolic ring.
+    ##         else
+    ##     if can_coerce(coercer, values):
+    ##         return field.values
+    try:
+        field, field_values, morphism = number_field_elements_from_algebraics(values)
+    except ValueError:
+        pass
+    except TypeError:
+        pass
+    
+        
+        
 
 def piecewise_function_from_breakpoints_and_values(bkpt, values, field=default_field):
     """
@@ -1089,7 +1136,7 @@ def approx_discts_function(perturbation_list, stability_interval, field=default_
         fn_bkpt.append(pt+width)
         fn_values.append(0)
     assert (1 >= fn_bkpt[len(fn_bkpt)-1])
-    if (1 >= fn_bkpt[len(fn_bkpt)-1]):
+    if (1 > fn_bkpt[len(fn_bkpt)-1]):
         fn_bkpt.append(1)
         fn_values.append(0)
     return piecewise_function_from_breakpoints_and_values(fn_bkpt, fn_values, field)
@@ -1556,7 +1603,7 @@ def lattice_plot(A, A0, t1, t2, size):
     p2 = points((-x,-y) for x in range(size) for y in range(size)) + points((x,-y) for x in range(size) for y in range(size))
     p3 = plot((A-x0-x*t1)/t2, (x,-size + 1, size - 1), color = "red")
     p4 = plot((A0-x0-x*t1)/t2, (x,-size + 1,size - 1), color = "red")
-    show(p1+p2+p3+p4)
+    return p1+p2+p3+p4
 
 # 
 
