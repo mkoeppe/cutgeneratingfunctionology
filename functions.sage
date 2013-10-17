@@ -2,6 +2,8 @@ import logging
 
 logging.basicConfig(format='%(levelname)s: %(asctime)s %(message)s', level=logging.INFO)
 
+import itertools
+
 def fractional(num):
     """
     Reduce a number modulo 1.
@@ -18,7 +20,7 @@ def delta_pi(fn,x,y):
     """
     return fn(fractional(x))+fn(fractional(y))-fn(fractional(x+y))
 
-def plot_two_d_complex(bkpt):
+def plot_2d_complex(bkpt):
     """
     Return a plot of the horizonal lines, vertical lines, and diagonal lines of the complex.
     """
@@ -330,9 +332,11 @@ def generate_minimal_triples(function):
     logging.info("Computing minimal triples representing maximal additive faces... done")
     return minimal_triples    
 
-def plot_2d_diagram(function, x_range = [0,1], y_range = [0,1]):
+def plot_2d_diagram(function):
     """
-    Plot the 2d complex with shaded faces where delta_pi is 0.        
+    Return a plot of the 2d complex with shaded faces where delta_pi is 0.        
+    To show only a part of it, use 
+    `show(plot_2d_diagram(h), xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)`
     """
     ### FIXME: For non-subaddititive functions, the points where delta_pi
     ### is negative should be indicated somehow!!
@@ -341,25 +345,24 @@ def plot_2d_diagram(function, x_range = [0,1], y_range = [0,1]):
     minimal_triples = generate_minimal_triples(function)
         
     y = var('y')
-    plot_minimal_triples = point([])
-    for i in range(len(minimal_triples)):
-        if face_0D(minimal_triples[i]):
-            plot_minimal_triples = plot_minimal_triples + point((minimal_triples[i][0][0], \
-                minimal_triples[i][1][0]), color = "cyan", size = 30)
-        elif face_horizontal(minimal_triples[i]):
-            plot_minimal_triples = plot_minimal_triples + parametric_plot((y,minimal_triples[i][1][0]),\
-                (y,minimal_triples[i][0][0], minimal_triples[i][0][1]), rgbcolor=(0, 1, 0))
-        elif face_vertical(minimal_triples[i]):
-            plot_minimal_triples = plot_minimal_triples + parametric_plot((minimal_triples[i][0][0],y),\
-                (y,minimal_triples[i][1][0], minimal_triples[i][1][1]), rgbcolor=(0, 1, 0))
-        elif face_diagonal(minimal_triples[i]):
-            plot_minimal_triples = plot_minimal_triples + parametric_plot((y,minimal_triples[i][2][0]-y),\
-                (y,minimal_triples[i][0][0],minimal_triples[i][0][1]), rgbcolor=(0, 1, 0))
-        elif face_2D(minimal_triples[i]):
-            plot_minimal_triples = plot_minimal_triples + polygon(vert_face_additive[i], rgbcolor=(1, 0, 0)) 
-    
-    show(plot_two_d_complex(bkpt) + plot_minimal_triples, xmin = x_range[0], xmax = x_range[1],\
-        ymin = y_range[0], ymax = y_range[1])
+
+    plot_minimal_triples = plot_2d_complex(bkpt)
+    for trip, vert in itertools.izip(minimal_triples, vert_face_additive):
+        if face_0D(trip):
+            plot_minimal_triples += point((trip[0][0], \
+                trip[1][0]), color = "cyan", size = 30)
+        elif face_horizontal(trip):
+            plot_minimal_triples += parametric_plot((y,trip[1][0]),\
+                (y,trip[0][0], trip[0][1]), rgbcolor=(0, 1, 0))
+        elif face_vertical(trip):
+            plot_minimal_triples += parametric_plot((trip[0][0],y),\
+                (y,trip[1][0], trip[1][1]), rgbcolor=(0, 1, 0))
+        elif face_diagonal(trip):
+            plot_minimal_triples += parametric_plot((y,trip[2][0]-y),\
+                (y,trip[0][0],trip[0][1]), rgbcolor=(0, 1, 0))
+        elif face_2D(trip):
+            plot_minimal_triples += polygon(vert, rgbcolor=(1, 0, 0)) 
+    return plot_minimal_triples
 
 # Assume component is sorted.
 def merge_within_comp(component):   
@@ -537,14 +540,6 @@ def generate_covered_intervals(function):
     logging.info("Computing covered intervals... done")
     return covered_intervals
 
-def plot_covered_intervals(function):
-    covered_intervals = generate_covered_intervals(function)
-    # Plot the function with different colors.
-    # Each component has a unique color.
-    # The uncovered intervals is by default plotted in black.
-    return (plot(lambda x: function(x), [0,1], color = "black") + sum(sum([plot(lambda x: function(x), covered_intervals[i][j], color=rainbow(len(covered_intervals))[i]) \
-        for j in range(len(covered_intervals[i]))]) for i in range(len(covered_intervals))))
-
 @cached_function
 def generate_uncovered_intervals(function):
     """
@@ -558,11 +553,28 @@ def generate_uncovered_intervals(function):
             uncovered.append([covered[i][1], covered[i+1][0]])
     return uncovered
 
-def minimal_triple_from_scratch(function):
-    vert_face_additive = generate_vert_face_additive(function)
-    minimal_triples = generate_minimal_triples(vert_face_additive)
+def plot_covered_intervals(function):
+    """
+    Return a plot of the covered and uncovered intervals of `function`.
+    """
+    covered_intervals = generate_covered_intervals(function)
+    uncovered_intervals = generate_uncovered_intervals(function)
+    # Plot the function with different colors.
+    # Each component has a unique color.
+    # The uncovered intervals is by default plotted in black.
+    colors = rainbow(len(covered_intervals))
+    graph = Graphics()
+    if uncovered_intervals:
+        graph += plot(lambda x: function(x), [0,1], color = "black", legend_label="not covered")
+    for i, component in enumerate(covered_intervals):
+        kwds = {'legend_label': "covered component %s" % i}
+        for interval in component:
+            graph += plot(lambda x: function(x), interval, color=colors[i], **kwds)
+            if 'legend_label' in kwds:
+                del kwds['legend_label']
+    return graph
 
-    return minimal_triples
+### Minimality check.
 
 # Fix x and y.
 def type1check(fn):
@@ -1324,8 +1336,6 @@ def plot_intervals(intervals):
                       (interval[1], 1.0), (interval[0], 1.0)], 
                      color="yellow", zorder = -8)
     return g
-
-import itertools
 
 def plot_moves(seed, moves, colors=None):
     if colors == None:
