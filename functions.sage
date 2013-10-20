@@ -1351,12 +1351,14 @@ def modified_delta_pi(fn, fn_values, pts, i, j):
 def modified_delta_pi2(fn, fn_values2, pts, i, j):
     return fn_values2[i] + fn(fractional(pts[j] - pts[i])) - fn_values2[j]  
 
-def find_largest_epsilon(fn, perturb):
+def find_epsilon_interval(fn, perturb):
+    """Compute the interval [minus_epsilon, plus_epsilon] such that 
+    (fn + epsilon * perturb) is subadditive for epsilon in this interval.
+    Assumes that fn is subadditive.
+
+    If one of the epsilons is 0, the function bails out early and returns 0, 0.
     """
-    Compute the proper rescaling of a given perturbation function.
-    If the largest epsilon is zero, we should try a different perturbation instead.
-    """
-    logging.info("Finding largest perturbation epsilon value...")
+    logging.info("Finding epsilon interval for perturbation...")
     fn_bkpt = fn.end_points()
     perturb_bkpt = perturb.end_points()
     bkpt_refinement = merge_bkpt(fn_bkpt,perturb_bkpt)
@@ -1374,17 +1376,23 @@ def find_largest_epsilon(fn, perturb):
         fn_values.append(fn(fractional(pt)))
         perturb_values.append(perturb(fractional(pt)))
     
-    best_epsilon_upper_bound = 100
+    best_minus_epsilon_lower_bound = -10000
+    best_plus_epsilon_upper_bound = +10000
+    # FIXME: We want to say infinity instead; but bool(SR(2) < infinity) ==> False
     for i in range(length1):
         for j in range(i,length1):
             a = modified_delta_pi(perturb, perturb_values, bkpt_refinement, i, j)
             if a != 0:
                 b = modified_delta_pi(fn, fn_values, bkpt_refinement, i, j) 
                 if b == 0:
-                    return 0
+                    return 0, 0 # See docstring
                 epsilon_upper_bound = b/(abs(a))
-                if epsilon_upper_bound < best_epsilon_upper_bound:
-                    best_epsilon_upper_bound = epsilon_upper_bound
+                if a > 0:
+                    if -epsilon_upper_bound > best_minus_epsilon_lower_bound:
+                        best_minus_epsilon_lower_bound = -epsilon_upper_bound
+                else:
+                    if epsilon_upper_bound < best_plus_epsilon_upper_bound:
+                        best_plus_epsilon_upper_bound = epsilon_upper_bound
 
     for i in range(length1):
         for j in range(length2):
@@ -1393,12 +1401,24 @@ def find_largest_epsilon(fn, perturb):
                 if a != 0:
                     b = modified_delta_pi2(fn, fn_values, bkpt_refinement2, i, j) 
                     if b == 0:
-                        return 0
+                        return 0, 0 # See docstring
                     epsilon_upper_bound = b/(abs(a)) 
-                    if epsilon_upper_bound < best_epsilon_upper_bound:
-                        best_epsilon_upper_bound = epsilon_upper_bound 
-    logging.info("Finding largest perturbation epsilon value... done")
-    return best_epsilon_upper_bound
+                    if a > 0:
+                        if -epsilon_upper_bound > best_minus_epsilon_lower_bound:
+                            best_minus_epsilon_lower_bound = -epsilon_upper_bound
+                    else:
+                        if epsilon_upper_bound < best_plus_epsilon_upper_bound:
+                            best_plus_epsilon_upper_bound = epsilon_upper_bound
+    logging.info("Finding epsilon interval for perturbation... done.  Interval is %s", [best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound])
+    return best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound
+
+def find_largest_epsilon(fn, perturb):
+    """
+    Compute the proper rescaling of a given perturbation function.
+    If the largest epsilon is zero, we should try a different perturbation instead.
+    """
+    minus_epsilon, plus_epsilon = find_epsilon_interval(fn, perturb)
+    return min(abs(minus_epsilon), plus_epsilon)
 
 def canonicalize_number(number):
     """Make sure that if `number` is a rational number, then it is
@@ -1889,18 +1909,19 @@ def rescale_to_amplitude(perturb, amplitude):
         return perturb
 
 def check_perturbation(fn, perturb, show_plots=False, **show_kwds):
-    epsilon = fn._epsilon = find_largest_epsilon(fn, perturb)
+    epsilon_interval = fn._epsilon_interval = find_epsilon_interval(fn, perturb)
+    epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
     print "Epsilon for constructed perturbation: ", epsilon
     assert epsilon > 0, "Epsilon should be positive, something is wrong"
     print "Thus the function is not extreme."
     if show_plots:
-        logging.info("Plotting...")
+        logging.info("Plotting perturbation...")
         (plot(fn, xmin=0, xmax=1, color='black', thickness=2, legend_label="original function") \
          + plot(fn + epsilon * perturb, xmin=0, xmax=1, color='blue', legend_label="+perturbed") \
          + plot(fn + (-epsilon) * perturb, xmin=0, xmax=1, color='red', legend_label="-perturbed") \
          + plot(rescale_to_amplitude(perturb, 1/10), xmin=0, xmax=1, color='magenta', legend_label="perturbation")) \
         .show(figsize=50, **show_kwds)
-        logging.info("Plotting... done")
+        logging.info("Plotting perturbation... done")
 
 def finite_dimensional_extremality_test(function, show_plots=False):
     symbolic, slope_vars, components = symbolic_piecewise(function)
@@ -1941,15 +1962,15 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000):
         return False
     generate_minimal_triples(fn)
     if show_plots:
-        logging.info("Plotting...")
+        logging.info("Plotting 2d diagram...")
         show(plot_2d_diagram(fn))
-        logging.info("Plotting... done")
+        logging.info("Plotting 2d diagram... done")
     covered_intervals = generate_covered_intervals(fn)
     uncovered_intervals = generate_uncovered_intervals(fn)
     if show_plots:
-        logging.info("Plotting...")
+        logging.info("Plotting covered intervals...")
         show(plot_covered_intervals(fn))
-        logging.info("Plotting... done")
+        logging.info("Plotting covered intervals... done")
     if not uncovered_intervals:
         print "All intervals are covered (or connected-to-covered).", len(covered_intervals), "components."
         return finite_dimensional_extremality_test(fn, show_plots)
@@ -1959,15 +1980,29 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000):
         print "Moves relevant for these intervals: ", moves
         seed, stab_int, walk_list = find_generic_seed(fn, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
         if show_plots:
-            logging.info("Plotting...")
+            logging.info("Plotting moves and reachable orbit...")
             # FIXME: Visualize stability intervals?
             (plot_walk(walk_list,thickness=0.7) + \
              plot_possible_and_impossible_directed_moves(seed, moves, h) + \
              plot_intervals(uncovered_intervals) + plot(h)).show(figsize=50)
-            logging.info("Plotting... done")
+            logging.info("Plotting moves and reachable orbit... done")
         perturb = fn._perturbation = approx_discts_function(walk_list, stab_int)
         check_perturbation(fn, perturb, show_plots=show_plots)
         return False
+
+def lift(fn, show_plots = False):
+    if extremality_test(fn, show_plots=show_plots):
+        return fn
+    else:
+        perturbed = fn + fn._epsilon_interval[1] * fn._perturbation
+        return perturbed
+
+def lift_until_extreme(fn, show_plots = False):
+    next, fn = fn, None
+    while next != fn:
+        fn = next
+        next = lift(fn, show_plots=show_plots)
+    return next
 
 def piecewise_function_from_robert_txt_file(filename):
     """The .txt files have 4 rows.  
