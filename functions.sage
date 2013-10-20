@@ -1210,47 +1210,47 @@ class FastPiecewise (PiecewisePolynomial):
 
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 
-def can_coerce(coercer, values):
-    try:
-        coerced_values = [ coercer(value) for value in values ]
-        return True
-    except ValueError:
-        return False
-    except TypeError:
-        return False
+### def can_coerce(coercer, values):
+###     try:
+###         coerced_values = [ coercer(value) for value in values ]
+###         return True
+###     except ValueError:
+###         return False
+###     except TypeError:
+###         return False
 
-def fast_field(values):
-    "Return a field and a coercing function."
-    ## If everything is rational, we are happy.
-    field, coercer = QQ, QQ
-    if can_coerce(coercer, values):
-        return field, coercer
-    ## ## See if we can make do with a quadratic number field
-    ## radicant_wildcard = SR.wild(0)
-    ## radicals = set()
-    ## for value in values:
-    ##     if parent(value) == SR:
-    ##         radicals |= set(value.find(sqrt(radicant_wildcard)))
-    ## logging.info("Set of radicals: %s" % (radicals,))
-    ## if len(radicals) == 1:
-    ##     ## 
-    ##     radicant = radicals[0].op[0]
-    ##     field.<root> = QuadraticField(radicant, name='sqrt%s' % radicant)
-    ##     def coercer(x, field=field, root=root, radicant=radicant):
-    ##         if parent(x) == SR:
-    ##             return x.subs(sqrt(radicant)==root) 
-    ##             ## Does not work because we get immediate
-    ##             ## back-substitution, when sqrt2 is inserted in the
-    ##             ## symbolic ring.
-    ##         else
-    ##     if can_coerce(coercer, values):
-    ##         return field.values
-    try:
-        field, field_values, morphism = number_field_elements_from_algebraics(values)
-    except ValueError:
-        pass
-    except TypeError:
-        pass
+### def fast_field(values):
+###     "Return a field and a coercing function."
+###     ## If everything is rational, we are happy.
+###     field, coercer = QQ, QQ
+###     if can_coerce(coercer, values):
+###         return field, coercer
+###     ## ## See if we can make do with a quadratic number field
+###     ## radicant_wildcard = SR.wild(0)
+###     ## radicals = set()
+###     ## for value in values:
+###     ##     if parent(value) == SR:
+###     ##         radicals |= set(value.find(sqrt(radicant_wildcard)))
+###     ## logging.info("Set of radicals: %s" % (radicals,))
+###     ## if len(radicals) == 1:
+###     ##     ## 
+###     ##     radicant = radicals[0].op[0]
+###     ##     field.<root> = QuadraticField(radicant, name='sqrt%s' % radicant)
+###     ##     def coercer(x, field=field, root=root, radicant=radicant):
+###     ##         if parent(x) == SR:
+###     ##             return x.subs(sqrt(radicant)==root) 
+###     ##             ## Does not work because we get immediate
+###     ##             ## back-substitution, when sqrt2 is inserted in the
+###     ##             ## symbolic ring.
+###     ##         else
+###     ##     if can_coerce(coercer, values):
+###     ##         return field.values
+###     try:
+###         field, field_values, morphism = number_field_elements_from_algebraics(values)
+###     except ValueError:
+###         pass
+###     except TypeError:
+###         pass
     
         
         
@@ -1260,7 +1260,8 @@ def piecewise_function_from_breakpoints_and_values(bkpt, values, field=default_f
     bkpt and values are two parallel lists; assuming bpkt is sorted (increasing).
     Return a function.
     """
-    assert len(bkpt)==len(values)
+    if len(bkpt)!=len(values):
+        raise DataError, "Need to have the same number of breakpoints and values."
     slopes = [ (values[i+1]-values[i])/(bkpt[i+1]-bkpt[i]) for i in range(len(bkpt)-1) ]
     return FastPiecewise([ [(bkpt[i],bkpt[i+1]), 
                         # lambda x,i=i: values[i] + slopes[i] * (x - bkpt[i])
@@ -1272,7 +1273,8 @@ def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=default_f
     The function always has value 0 on bkpt[0].
     Return a function.
     """
-    assert len(bkpt)==len(slopes)+1
+    if len(bkpt)!=len(slopes)+1:
+        raise DataError, "Need to have one breakpoint more than slopes."
     function_values = [0]
     for i in range(1,len(bkpt)-1):
         function_values.append(function_values[i-1] + slopes[i - 1] * (bkpt[i] - bkpt[i-1]))
@@ -1287,7 +1289,8 @@ def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes
     The function always has value 0 on 0.
     Return a function.
     """
-    assert len(interval_lengths)==len(slopes)
+    if len(interval_lengths)!=len(slopes):
+        raise DataError, "Number of given interval_lengths and slopes needs to be equal."
     bkpt = []
     bkpt.append(0)
     for i in range(len(interval_lengths)):
@@ -1836,6 +1839,102 @@ def find_generic_seed(fn, max_num_it = 1000):
 class UnimplementedError (Exception):
     pass
 
+def generate_compatible_piecewise_function(components, component_slopes):
+    intervals_and_slopes = []
+    for component, slope in itertools.izip(components, component_slopes):
+        intervals_and_slopes.extend([ (interval, slope) for interval in component ])
+    intervals_and_slopes.sort()
+    bkpt = [ int[0] for int, slope in intervals_and_slopes ] + [1]
+    slopes = [ slope for int, slope in intervals_and_slopes ]
+    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes)
+
+def symbolic_piecewise(function):
+    """Return a piecewise function compatible with the given `function`, 
+    using symbolic slope coefficients, one for each component.
+    As a second result, return a list of the symbolic slope coefficients."""
+    covered_intervals = generate_covered_intervals(function)
+    uncovered_intervals = generate_uncovered_intervals(function)
+    if uncovered_intervals:
+        logging.warn(\
+                     """There are non-covered intervals, so (1) the symbolic piecewise is
+                     not suitable for proving extremality; and (2) in the current
+                     implementation, there may be too many slope variables, since the 
+                     relations between non-covered intervals are not taken into account.""")
+        components = copy(covered_intervals)
+        components.extend([int] for int in uncovered_intervals)
+    else:
+        components = covered_intervals
+    slope_vars = list(var([ "slope%s" % (i+1) for i in range(len(components))]))
+    symbolic = generate_compatible_piecewise_function(components, slope_vars)
+    return symbolic, slope_vars, components
+
+def additivity_equation(symbolic, x, y):
+    return delta_pi(symbolic, x, y) == 0
+
+def generate_additivity_equations(function, symbolic):
+    f = find_f(function)
+    return uniq([additivity_equation(symbolic, x, y) \
+                 for (x, y) in generate_additive_vertices(function) ] \
+                + [symbolic(f) == 0] \
+                + [symbolic(1) == 0])
+
+def rescale_to_amplitude(perturb, amplitude):
+    """For plotting purposes, rescale the function `perturb` so that its
+    maximum absolute function value is 1.
+    """
+    current_amplitude = max([ abs(perturb(x)) for x in perturb.end_points() ])
+    if current_amplitude != 0:
+        return perturb * (amplitude/current_amplitude)
+    else:
+        return perturb
+
+def check_perturbation(fn, perturb, show_plots=False, **show_kwds):
+    epsilon = fn._epsilon = find_largest_epsilon(fn, perturb)
+    print "Epsilon for constructed perturbation: ", epsilon
+    assert epsilon > 0, "Epsilon should be positive, something is wrong"
+    print "Thus the function is not extreme."
+    if show_plots:
+        logging.info("Plotting...")
+        (plot(fn, xmin=0, xmax=1, color='black', thickness=2, legend_label="original function") \
+         + plot(fn + epsilon * perturb, xmin=0, xmax=1, color='blue', legend_label="+perturbed") \
+         + plot(fn + (-epsilon) * perturb, xmin=0, xmax=1, color='red', legend_label="-perturbed") \
+         + plot(rescale_to_amplitude(perturb, 1/10), xmin=0, xmax=1, color='magenta', legend_label="perturbation")) \
+        .show(figsize=50, **show_kwds)
+        logging.info("Plotting... done")
+
+def finite_dimensional_extremality_test(function, show_plots=False):
+    symbolic, slope_vars, components = symbolic_piecewise(function)
+    equations = generate_additivity_equations(function, symbolic)
+    logging.info("Equations: %s" % equations)
+    solutions = solve(equations, slope_vars, solution_dict=True)
+    logging.info("Solutions: %s" % solutions)
+    assert len(solutions) == 1, "We need to see exactly one general solution."
+    solution = solutions[0]
+    rhs_variables = []
+    for sol in solution.values():
+        rhs_variables.extend(sol.variables())
+    rhs_variables = uniq(rhs_variables)
+    logging.info("Solution space has dimension %s" % len(rhs_variables))
+    if len(rhs_variables) == 0:
+        logging.info("Thus the function is extreme.")
+        return True
+    else:
+        for basis_index in range(len(rhs_variables)):
+            substitutions = {var: 1 if i == basis_index else 0 for i, var in enumerate(rhs_variables)}
+            slopes = [ solution[slope_var].subs(substitutions) for slope_var in slope_vars ]
+            perturbation = function._perturbation = generate_compatible_piecewise_function(components, slopes)
+            check_perturbation(function, perturbation, show_plots=show_plots, legend_title="Basic perturbation %s" % (basis_index + 1))
+    return False
+
+@cached_function
+def generate_additive_vertices(fn):
+    bkpt = fn.end_points()
+    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
+    type1 = [ (x,y) for x in bkpt for y in bkpt if x <= y and delta_pi(fn,x,y) == 0 ]
+    type2 = [ (x,z-x) for x in bkpt for z in bkpt2 if x < z < 1+x and delta_pi(fn, x, z-x) == 0]
+    return uniq(type1 + type2)
+
+
 def extremality_test(fn, show_plots = False, max_num_it = 1000):
     if not minimality_test(fn):
         print "Not minimal, thus not extreme."
@@ -1845,14 +1944,15 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000):
         logging.info("Plotting...")
         show(plot_2d_diagram(fn))
         logging.info("Plotting... done")
+    covered_intervals = generate_covered_intervals(fn)
     uncovered_intervals = generate_uncovered_intervals(fn)
     if show_plots:
         logging.info("Plotting...")
         show(plot_covered_intervals(fn))
         logging.info("Plotting... done")
     if not uncovered_intervals:
-        print "All intervals are covered (or connected-to-covered)."
-        raise UnimplementedError, "The next step should be a finite-dimensional test for extremality (unimplemented)."
+        print "All intervals are covered (or connected-to-covered).", len(covered_intervals), "components."
+        return finite_dimensional_extremality_test(fn, show_plots)
     else:
         print "Uncovered intervals: ", uncovered_intervals
         moves = generate_moves(fn)
@@ -1866,17 +1966,7 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000):
              plot_intervals(uncovered_intervals) + plot(h)).show(figsize=50)
             logging.info("Plotting... done")
         perturb = fn._perturbation = approx_discts_function(walk_list, stab_int)
-        epsilon = find_largest_epsilon(fn, perturb)
-        print "Epsilon for constructed perturbation: ", epsilon
-        assert epsilon > 0, "Epsilon should be positive, something is wrong"
-        print "Thus the function is not extreme."
-        if show_plots:
-            logging.info("Plotting...")
-            (plot(fn + epsilon * perturb, xmin=0, xmax=1, color='blue') \
-             + plot(fn + (-epsilon) * perturb, xmin=0, xmax=1, color='red') \
-             + plot(1/10 * perturb, xmin=0, xmax=1, color='magenta')) \
-            .show(figsize=50)
-            logging.info("Plotting... done")
+        check_perturbation(fn, perturb, show_plots=show_plots)
         return False
 
 def piecewise_function_from_robert_txt_file(filename):
