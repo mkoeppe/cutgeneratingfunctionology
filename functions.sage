@@ -20,12 +20,14 @@ def delta_pi(fn,x,y):
     """
     return fn(fractional(x))+fn(fractional(y))-fn(fractional(x+y))
 
-def plot_2d_complex(bkpt):
+def plot_2d_complex(function):
     """
     Return a plot of the horizonal lines, vertical lines, and diagonal lines of the complex.
     """
+    bkpt = function.end_points()
     x = var('x')
-    p1 = plot([(bkpt[i]-x).plot((x, 0, bkpt[i])) for i in range(1,len(bkpt))])
+    p1 = plot([(bkpt[i]-x).plot((x, 0, bkpt[i])) for i in range(1,len(bkpt))], \
+              **ticks_keywords(function, True))
     p2 = plot([(1+bkpt[i]-x).plot((x, bkpt[i], 1)) for i in range(1,len(bkpt)-1)])
     p3 = plot([(bkpt[i]+x-x).plot((x, 0, 1)) for i in range(len(bkpt))])
     y=var('y')
@@ -298,8 +300,8 @@ def generate_vert_face_additive(function):
                         if keep:
                             if (temp[0][0],temp[0][1]) in additive_vertices:
                                 keep = False  
-                            if keep:
-                                print I_list[i], J_list[j], K_list[k]      
+                            # if keep:
+                            #     print I_list[i], J_list[j], K_list[k]      
                     if keep:
                         
                         additive_face[(i,j,k)] = temp
@@ -332,7 +334,22 @@ def generate_minimal_triples(function):
     logging.info("Computing minimal triples representing maximal additive faces... done")
     return minimal_triples    
 
-def plot_2d_diagram(function):
+def plot_trivial_2d_diagram_with_grid(function, xgrid=None, ygrid=None): 
+    """
+    Return a plot of the 2d complex with vertices marked that 
+    have delta_pi == 0.  Does not use any complicated code.
+    Mainly used for visually double-checking the computation of 
+    maximal additive faces.
+    """
+    if xgrid is None:
+        xgrid = function.end_points()
+    if ygrid is None:
+        ygrid = function.end_points()
+    return point([(x,y) for x in xgrid for y in ygrid \
+                  if delta_pi(function, x, y) == 0],
+                 color="cyan", size = 80)
+
+def plot_2d_diagram(function, show_function = False):
     """
     Return a plot of the 2d complex with shaded faces where delta_pi is 0.        
     To show only a part of it, use 
@@ -346,11 +363,11 @@ def plot_2d_diagram(function):
         
     y = var('y')
 
-    plot_minimal_triples = plot_2d_complex(bkpt)
+    plot_minimal_triples = plot_2d_complex(function)
     for trip, vert in itertools.izip(minimal_triples, vert_face_additive):
         if face_0D(trip):
             plot_minimal_triples += point((trip[0][0], \
-                trip[1][0]), color = "cyan", size = 30)
+                trip[1][0]), color = "magenta", size = 30)
         elif face_horizontal(trip):
             plot_minimal_triples += parametric_plot((y,trip[1][0]),\
                 (y,trip[0][0], trip[0][1]), rgbcolor=(0, 1, 0))
@@ -362,6 +379,13 @@ def plot_2d_diagram(function):
                 (y,trip[0][0],trip[0][1]), rgbcolor=(0, 1, 0))
         elif face_2D(trip):
             plot_minimal_triples += polygon(vert, rgbcolor=(1, 0, 0)) 
+
+    if show_function:
+        x = var('x')
+        plot_minimal_triples += parametric_plot((lambda x: x, lambda x: 0.3 * function(x) + 1), \
+                                                (x, 0, 1), color='black')
+        plot_minimal_triples += parametric_plot((lambda x: - 0.3 * function(x), lambda x: x), \
+                                                (x, 0, 1), color='black')
     return plot_minimal_triples
 
 # Assume component is sorted.
@@ -398,6 +422,16 @@ def merge_two_comp(comp1,comp2):
             
 
 def partial_overlap(interval,component):
+    """
+    Return a list of the intersections of the interiors 
+    of `interval` and the intervals in `component`.
+
+    EXAMPLES::
+    sage: partial_overlap([2,3], [[1,2], [3,5]])
+    []
+    sage: partial_overlap([2,6], [[1,3], [5,7], [7,9]])
+    [[2, 3], [5, 6]]
+    """
     overlap = []
     for int1 in component:
         overlapped_int = interval_intersection(interval,int1)
@@ -407,6 +441,13 @@ def partial_overlap(interval,component):
 
 
 def remove_empty_comp(comps):
+    """
+    Return a new list that includes all non-empty lists of `comps`.
+
+    EXAMPLES::
+    sage: remove_empty_comp([[[1,2]], [], [[3,4],[5,6]]])
+    [[[1, 2]], [[3, 4], [5, 6]]]
+    """
     temp = []
     for int in comps:
         if len(int) > 0:
@@ -414,7 +455,12 @@ def remove_empty_comp(comps):
     return temp
     
 
-def partial_edge_merge(partial_overlap_intervals, ijk, ijk2, intervals, comps, i, IJK):
+def partial_edge_merge(comps, partial_overlap_intervals, ijk, ijk2, intervals, i, IJK):
+    """
+    Modifies the list `comps`.
+    Returns whether any change occurred.
+    """
+    any_change = False
     for int1 in partial_overlap_intervals:
         front = int1[0] - intervals[ijk][0]
         back = intervals[ijk][1] - int1[1]
@@ -425,11 +471,18 @@ def partial_edge_merge(partial_overlap_intervals, ijk, ijk2, intervals, comps, i
         # I and J implies a reflection
         else:
             other = [intervals[ijk2][0]+back, intervals[ijk2][1]-front]
+        other = interval_mod_1(other)
+        #print "other: ", other
             
         overlapped_component_indices = []
         i_included = False
+        all_other_overlaps = []
         for k in range(len(comps)):
-            if len(partial_overlap(other,comps[k])) == 2:
+            other_overlap = partial_overlap(other,comps[k])
+            #print "other_overlap:", other_overlap
+            if other_overlap:
+                #print "overlap with component", k, "is: ", other_overlap
+                all_other_overlaps = merge_two_comp(all_other_overlaps, other_overlap)
                 if k < i:
                     overlapped_component_indices.append(k)
                 elif k > i and i_included == False:
@@ -438,32 +491,66 @@ def partial_edge_merge(partial_overlap_intervals, ijk, ijk2, intervals, comps, i
                     i_included = True
                 else:
                     overlapped_component_indices.append(k)
-        
-        if len(overlapped_component_indices) > 0:
+        if overlapped_component_indices == [i] :
+            ## Only overlap within component i.
+            # print "Self-overlap only"
+            if (partial_overlap(other, comps[i]) == [other]):
+                pass
+            else:
+                comps[overlapped_component_indices[-1]] = merge_two_comp(comps[overlapped_component_indices[-1]], [other])
+                any_change = True
+        elif len(overlapped_component_indices) > 0:
+            ## Overlap with some other components; this will cause some merging.
+            #print "Have overlapped components: ", overlapped_component_indices, "with ", i
             comps[overlapped_component_indices[-1]] = merge_two_comp(comps[overlapped_component_indices[-1]], [other])
-               
             for j in range(len(overlapped_component_indices)-1):
                 comps[overlapped_component_indices[j+1]] =  merge_two_comp(comps[overlapped_component_indices[j]],\
                      comps[overlapped_component_indices[j+1]])
                 comps[overlapped_component_indices[j]] = []
-            
-        comps = remove_empty_comp(comps)
+            any_change = True
+
+        # previous non-covered:
+        #print "other: ", other, "all_other_overlaps: ", all_other_overlaps
+        noncovered_overlap = interval_minus_union_of_intervals(other, all_other_overlaps)
+        if noncovered_overlap:
+            # print "Previously non-covered: ", uncovered_intervals_from_covered_intervals(comps)
+            # print "Newly covered: ", noncovered_overlap
+            any_change = True
+            comps[i] = merge_two_comp(comps[i], noncovered_overlap)
+            # print "Now non-covered: ", uncovered_intervals_from_covered_intervals(comps)
+    return any_change
                   
 
 def edge_merge(comps,intervals,IJK):
+    #print "edge_merge(%s,%s,%s)" % (comps, intervals, IJK)
+    any_change = False
     for i in range(len(comps)): 
         partial_overlap_intervals = partial_overlap(intervals[0],comps[i])
         # If there is overlapping...
         if len(partial_overlap_intervals) > 0:
-            partial_edge_merge(partial_overlap_intervals, 0, 1, intervals, comps, i, IJK)
-        # Otherwise, repeat the same procedure for the other interval.
-        else:
-            partial_overlap_interval = partial_overlap(intervals[1],comps[i])
-            if len(partial_overlap_intervals) > 0:
-                partial_edge_merge(partial_overlap_intervals, 1, 0, intervals, comps, i, IJK) 
+            if partial_edge_merge(comps, partial_overlap_intervals, 0, 1, intervals, i, IJK):
+                any_change = True
+        # Repeat the same procedure for the other interval.
+        partial_overlap_intervals = partial_overlap(intervals[1],comps[i])
+        if len(partial_overlap_intervals) > 0:
+            if partial_edge_merge(comps, partial_overlap_intervals, 1, 0, intervals, i, IJK):
+                any_change = True
+    return any_change
     
 # Assume the lists of intervals are sorted.                
 def find_interior_intersection(list1, list2):
+    """
+    Tests whether `list1` and `list2` contain a pair of intervals
+    whose interiors intersect.
+
+    Assumes both lists are sorted.
+    
+    EXAMPLES:
+    sage: find_interior_intersection([[1, 2], [3, 4]], [[2, 3], [4, 5]])
+    False
+    sage: find_interior_intersection([[1, 2], [3, 5]], [[2, 4]])
+    True
+    """
     i=0
     j=0
     while i < len(list1) and j < len(list2):
@@ -500,7 +587,7 @@ def interval_mod_1(interval):
         interval[1] = interval[1] + 1
     assert not(interval[0] < 1 and interval[1] > 1) 
     return interval
-    
+
 @cached_function
 def generate_covered_intervals(function):
     logging.info("Computing covered intervals...")
@@ -519,6 +606,8 @@ def generate_covered_intervals(function):
             
     remove_duplicate(covered_intervals)
     
+    #show(plot_covered_intervals(function, covered_intervals), xmax=1.5)
+
     for i in range(len(covered_intervals)):
         for j in range(i+1, len(covered_intervals)):
             if find_interior_intersection(covered_intervals[i], covered_intervals[j]):
@@ -526,19 +615,69 @@ def generate_covered_intervals(function):
                 covered_intervals[i] = []
                     
     covered_intervals = remove_empty_comp(covered_intervals)
+    # debugging plot:
+    # show(plot_covered_intervals(function, covered_intervals), \
+    #      legend_fancybox=True, \
+    #      legend_title="Directly covered, merged", \
+    #      legend_loc=2) # legend in upper left
 
-    for face in minimal_triples:
-        if face_horizontal(face) or face_vertical(face) or face_diagonal(face):
+    edges = [ face for face in minimal_triples if face_1D(face) ]
+
+    any_change = True
+    ## FIXME: Here we saturate the covered interval components
+    ## with the edge relations.  There should be a smarter way
+    ## to avoid this while loop.  Probably by keeping track 
+    ## of a set of non-covered components (connected by edges).
+    ## --Matthias
+    while any_change:
+        any_change = False
+        for edge in edges:
             intervals = []
             # 0 stands for I; 1 stands for J; 2 stands for K
             IJK = []
-            for i in range(len(face)):
-                if len(face[i]) == 2:
-                    intervals.append(face[i])
+            for i in range(len(edge)):
+                if len(edge[i]) == 2:
+                    intervals.append(edge[i])
                     IJK.append(i)
-            edge_merge(covered_intervals,intervals,IJK)
+            if edge_merge(covered_intervals,intervals,IJK):
+                any_change = True
+
+    covered_intervals = remove_empty_comp(covered_intervals)
     logging.info("Computing covered intervals... done")
     return covered_intervals
+
+def interval_minus_union_of_intervals(interval, remove_list):
+    """Compute a list of intervals that represent the
+    set difference of `interval` and the union of the 
+    intervals in `remove_list`.
+
+    Assumes `remove_list` is sorted (and pairwise essentially
+    disjoint), and returns a sorted list.
+
+    EXAMPLES::
+    sage: interval_minus_union_of_intervals([0, 10], [[-1, 0], [2, 3], [9,11]]) 
+    [[0, 2], [3, 9]]
+    sage: interval_minus_union_of_intervals([0, 10], [[-1, 0], [2, 3]]) 
+    [[0, 2], [3, 10]]
+    """
+    bracketed_list = [[interval[0],interval[0]]] + remove_list + [[interval[1],interval[1]]]
+    difference = []
+    for i in range(len(bracketed_list) - 1):
+        if (bracketed_list[i][1] < bracketed_list[i+1][0]): 
+            difference.append([bracketed_list[i][1], bracketed_list[i+1][0]])
+    return difference
+
+def uncovered_intervals_from_covered_intervals(covered_intervals):
+    """Compute a list of uncovered intervals, given the list of components
+    of covered intervals.
+
+    EXAMPLES::
+    sage: uncovered_intervals_from_covered_intervals([[[10/17, 11/17]], [[5/17, 6/17], [7/17, 8/17]]])
+    [[0, 5/17], [6/17, 7/17], [8/17, 10/17], [11/17, 1]]
+    """
+
+    covered = reduce(merge_two_comp, covered_intervals)
+    return interval_minus_union_of_intervals([0,1], covered)
 
 @cached_function
 def generate_uncovered_intervals(function):
@@ -546,32 +685,61 @@ def generate_uncovered_intervals(function):
     Compute a sorted list of uncovered intervals.
     """
     covered_intervals = generate_covered_intervals(function)
-    covered = reduce(merge_two_comp, covered_intervals) + [[1,1]]
-    uncovered = []
-    for i in range(len(covered) - 1):
-        if (covered[i][1] < covered[i+1][0]): 
-            uncovered.append([covered[i][1], covered[i+1][0]])
-    return uncovered
+    return uncovered_intervals_from_covered_intervals(covered_intervals)
 
-def plot_covered_intervals(function):
+def ticks_keywords(function, y_ticks_for_breakpoints=False):
+    """
+    Compute `plot` keywords for displaying the ticks.
+    """
+    xticks = function.end_points()
+    xtick_formatter = [ "$%s$" % latex(x) for x in xticks ]
+    #xtick_formatter = 'latex'  # would not show rationals as fractions
+    ytick_formatter = None
+    if y_ticks_for_breakpoints:
+        yticks = xticks
+        ytick_formatter = xtick_formatter
+    else:
+        #yticks = 1/5
+        yticks = uniq([ function(x) for x in function.end_points() ])
+        ytick_formatter = [ "$%s$" % latex(y) for y in yticks ]
+    ## FIXME: Can we influence ticks placement as well so that labels don't overlap?
+    ## or maybe rotate labels 90 degrees?
+    return {'ticks': [xticks, yticks], \
+            'gridlines': True, \
+            'tick_formatter': [xtick_formatter, ytick_formatter]}
+
+def plot_covered_intervals(function, covered_intervals=None, **plot_kwds):
     """
     Return a plot of the covered and uncovered intervals of `function`.
     """
-    covered_intervals = generate_covered_intervals(function)
-    uncovered_intervals = generate_uncovered_intervals(function)
+    if covered_intervals is None:
+        covered_intervals = generate_covered_intervals(function)
+        uncovered_intervals = generate_uncovered_intervals(function)
+    else:
+        uncovered_intervals = uncovered_intervals_from_covered_intervals(covered_intervals)
     # Plot the function with different colors.
     # Each component has a unique color.
     # The uncovered intervals is by default plotted in black.
     colors = rainbow(len(covered_intervals))
     graph = Graphics()
+    kwds = copy(plot_kwds)
+    kwds.update(ticks_keywords(function))
     if uncovered_intervals:
-        graph += plot(lambda x: function(x), [0,1], color = "black", legend_label="not covered")
+        graph += plot(lambda x: function(x), \
+                      [0,1], \
+                      color = "black", legend_label="not covered", \
+                      **kwds)
+        kwds = {}
     for i, component in enumerate(covered_intervals):
-        kwds = {'legend_label': "covered component %s" % i}
+        kwds.update({'legend_label': "covered component %s" % (i+1)})
         for interval in component:
             graph += plot(lambda x: function(x), interval, color=colors[i], **kwds)
             if 'legend_label' in kwds:
                 del kwds['legend_label']
+            if 'ticks' in kwds:
+                del kwds['ticks']
+            if 'tick_formatter' in kwds:
+                del kwds['tick_formatter']
     return graph
 
 ### Minimality check.
@@ -1345,7 +1513,7 @@ def plot_moves(seed, moves, colors=None):
     y = 0
     covered_interval = [0,1]
     for move, color in itertools.izip(moves, colors):
-        next_x = move[0] * seed + move[1]
+        next_x = apply_directed_move(seed, move)
         arrow_interval = [min(seed, next_x), max(seed, next_x)]
         if (len(interval_intersection(covered_interval, arrow_interval)) == 2):
             y += 0.04
@@ -1631,12 +1799,16 @@ def generate_moves(fn, intervals=None):
         intersects = [find_interior_intersection([trip[i]], intervals) for i in range(3)]
         if face_horizontal(trip):
             if intersects[0] or intersects[2]:
-                assert intersects[0] and intersects[2]
+                #assert intersects[0] and intersects[2]
+                if not (intersects[0] and intersects[2]):
+                    logging.warn("generate_moves: Tricky case hit, think harder!")
                 moves.add((1, trip[1][0]))               # Translation
         elif face_diagonal(trip):
             if intersects[0] or intersects[1]:
-                assert intersects[0] and intersects[1]
-                moves.add((-1, trip[2][0]))              # Reflection
+                #assert intersects[0] and intersects[1]
+                if not (intersects[0] and intersects[1]):
+                    logging.warn("generate_moves: Tricky case hit, think harder!")
+                moves.add((-1, fractional(trip[2][0])))  # Reflection
     moves.remove((1,0))                                  # Remove the trivial translation
     return list(moves)
 
@@ -1668,10 +1840,16 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000):
     if not minimality_test(fn):
         print "Not minimal, thus not extreme."
         return False
+    generate_minimal_triples(fn)
     if show_plots:
-        plot_2d_diagram(fn)
-        show(plot_covered_intervals(fn))
+        logging.info("Plotting...")
+        show(plot_2d_diagram(fn))
+        logging.info("Plotting... done")
     uncovered_intervals = generate_uncovered_intervals(fn)
+    if show_plots:
+        logging.info("Plotting...")
+        show(plot_covered_intervals(fn))
+        logging.info("Plotting... done")
     if not uncovered_intervals:
         print "All intervals are covered (or connected-to-covered)."
         raise UnimplementedError, "The next step should be a finite-dimensional test for extremality (unimplemented)."
@@ -1681,21 +1859,47 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000):
         print "Moves relevant for these intervals: ", moves
         seed, stab_int, walk_list = find_generic_seed(fn, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
         if show_plots:
+            logging.info("Plotting...")
             # FIXME: Visualize stability intervals?
             (plot_walk(walk_list,thickness=0.7) + \
              plot_possible_and_impossible_directed_moves(seed, moves, h) + \
              plot_intervals(uncovered_intervals) + plot(h)).show(figsize=50)
-        perturb = approx_discts_function(walk_list, stab_int)
+            logging.info("Plotting... done")
+        perturb = fn._perturbation = approx_discts_function(walk_list, stab_int)
         epsilon = find_largest_epsilon(fn, perturb)
         print "Epsilon for constructed perturbation: ", epsilon
         assert epsilon > 0, "Epsilon should be positive, something is wrong"
         print "Thus the function is not extreme."
         if show_plots:
+            logging.info("Plotting...")
             (plot(fn + epsilon * perturb, xmin=0, xmax=1, color='blue') \
              + plot(fn + (-epsilon) * perturb, xmin=0, xmax=1, color='red') \
              + plot(1/10 * perturb, xmin=0, xmax=1, color='magenta')) \
             .show(figsize=50)
+            logging.info("Plotting... done")
         return False
 
-        
+def piecewise_function_from_robert_txt_file(filename):
+    """The .txt files have 4 rows.  
+    1st row = Y values
+    2nd row = X values (I don't use these, but I included them in case you want them)
+    3rd row = f   (the x coordinate for which I use as f)
+    4th row = value at f  (I don't normalize this to 1.  This allows the Y values to range from 0 to this values)
+
+    Also, I don't include the last value (pi(1)) ever because this is
+    the same as pi(0) due to periodicity.  So, if you need this last
+    value, please attach a 0 to the end of the Y values and an extra x
+    value.
+    """
+    with open(filename) as f:
+        yvalues = [QQ(x) for x in f.readline().split()]
+        xvalues = [QQ(x) for x in f.readline().split()]
+        if xvalues != range(len(yvalues)):
+            raise ValueError, "Line 2 (xvalues) need to be consecutive integers"
+        xscale = len(xvalues)
+        xf = QQ(f.readline())
+        yf = QQ(f.readline())
+    if yvalues[xf] != yf:
+        raise ValueError, "Lines 3/4 on f and value at f are not consistent with line 1."
+    return piecewise_function_from_breakpoints_and_values([ x / xscale for x in xvalues ] + [1], [y / yf for y in yvalues] + [0])
 
