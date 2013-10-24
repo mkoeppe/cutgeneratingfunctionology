@@ -349,6 +349,32 @@ def plot_trivial_2d_diagram_with_grid(function, xgrid=None, ygrid=None):
                   if delta_pi(function, x, y) == 0],
                  color="cyan", size = 80)
 
+def angle_cmp(a, b, center):
+    # from http://stackoverflow.com/questions/6989100/sort-points-in-clockwise-order
+    if a[0] >= 0 and b[0] < 0:
+        return int(1)
+    elif a[0] == 0 and b[0] == 0:
+        return cmp(a[1], b[1])
+
+    det = (a[0] - center[0]) * (b[1] - center[1]) - (b[0] - center[0]) * (a[1] - center[1])
+    if det < 0:
+        return int(1)
+    elif det > 0:
+        return int(-1)
+
+    d1 = (a[0] - center[0]) * (a[0] - center[0]) + (a[1] - center[1]) * (a[1] - center[1])
+    d2 = (b[0] - center[0]) * (b[0] - center[0]) + (b[1] - center[1]) * (b[1] - center[1])
+    return cmp(d1, d2)
+
+import operator
+
+def convex_vert_list(vertices):
+    if len(vertices) <= 3:
+        return vertices
+    else:
+        center = reduce(operator.add, map(vector, vertices)) / len(vertices)
+        return sorted(vertices, cmp = lambda a,b: angle_cmp(a, b, center))
+
 def plot_2d_diagram(function, show_function = False):
     """
     Return a plot of the 2d complex with shaded faces where delta_pi is 0.        
@@ -378,8 +404,9 @@ def plot_2d_diagram(function, show_function = False):
             plot_minimal_triples += parametric_plot((y,trip[2][0]-y),\
                 (y,trip[0][0],trip[0][1]), rgbcolor=(0, 1, 0))
         elif face_2D(trip):
-            plot_minimal_triples += polygon(vert, rgbcolor=(1, 0, 0)) 
-
+            ## Sorting is necessary for this example:
+            ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/reu-2013/Sage_Function/dey-richard-not-extreme.txt"))
+            plot_minimal_triples += polygon(convex_vert_list(vert), rgbcolor=(1, 0, 0)) 
     if show_function:
         x = var('x')
         plot_minimal_triples += parametric_plot((lambda x: x, lambda x: 0.3 * function(x) + 1), \
