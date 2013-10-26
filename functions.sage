@@ -350,10 +350,13 @@ def plot_trivial_2d_diagram_with_grid(function, xgrid=None, ygrid=None):
                  color="cyan", size = 80)
 
 def angle_cmp(a, b, center):
+    # Adapted 
     # from http://stackoverflow.com/questions/6989100/sort-points-in-clockwise-order
-    if a[0] >= 0 and b[0] < 0:
+    if a[0] - center[0] >= 0 and b[0] - center[0] < 0:
         return int(1)
-    elif a[0] == 0 and b[0] == 0:
+    elif a[0] - center[0] < 0 and b[0] - center[0] >= 0:
+        return int(-1)
+    elif a[0] - center[0] == 0 and b[0] - center[0] == 0:
         return cmp(a[1], b[1])
 
     det = (a[0] - center[0]) * (b[1] - center[1]) - (b[0] - center[0]) * (a[1] - center[1])
@@ -362,9 +365,7 @@ def angle_cmp(a, b, center):
     elif det > 0:
         return int(-1)
 
-    d1 = (a[0] - center[0]) * (a[0] - center[0]) + (a[1] - center[1]) * (a[1] - center[1])
-    d2 = (b[0] - center[0]) * (b[0] - center[0]) + (b[1] - center[1]) * (b[1] - center[1])
-    return cmp(d1, d2)
+    return int(0)
 
 import operator
 
@@ -1021,6 +1022,14 @@ class FastLinearFunction :
         return FastLinearFunction(self._slope * other,
                                   self._intercept * other)
 
+    def __eq__(self, other):
+        if not isinstance(other, FastLinearFunction):
+            return False
+        return self._slope == other._slope and self._intercept == other._intercept
+
+    def __ne__(self, other):
+        return not (self == other)
+
     __rmul__ = __mul__
 
     ## FIXME: To be continued.
@@ -1038,7 +1047,25 @@ class FastPiecewise (PiecewisePolynomial):
     def __init__(self, list_of_pairs, var=None):
         # Ensure sorted
         list_of_pairs = sorted(list_of_pairs, key = lambda ((a,b), f): a)
-        PiecewisePolynomial.__init__(self, list_of_pairs, var)
+        # If adjacent functions are the same, just merge the pieces
+        merged_list_of_pairs = []
+        merged_interval_a = None
+        merged_interval_b = None
+        last_f = None
+        for (a,b), f in list_of_pairs:
+            #print f, last_f, f != last_f
+            if f != last_f or (last_f != None and merged_interval_b < a):
+                # Different function or a gap in the domain,
+                # so push out the accumulated merged interval
+                if last_f != None:
+                    merged_list_of_pairs.append(((merged_interval_a, merged_interval_b), last_f))
+                last_f = f
+                merged_interval_a = a
+            merged_interval_b = b
+        if last_f != None:
+            merged_list_of_pairs.append(((merged_interval_a, merged_interval_b), last_f))
+            
+        PiecewisePolynomial.__init__(self, merged_list_of_pairs, var)
         self.update_cache()
 
     # The following makes this class hashable and thus enables caching
@@ -1324,7 +1351,8 @@ def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes
         bkpt.append(bkpt[i]+interval_lengths[i])
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
 
-def approx_discts_function(perturbation_list, stability_interval, field=default_field):
+def approx_discts_function(perturbation_list, stability_interval, field=default_field, \
+                           symmetric=False):
     """
     Construct a function that has peaks of +/- 1 around the points of the orbit.
     perturbation_list actually is a dictionary.
@@ -1336,14 +1364,26 @@ def approx_discts_function(perturbation_list, stability_interval, field=default_
     # so a nice continuous piecewise linear function is constructed.
     width = min(abs(stability_interval.a),stability_interval.b)
     assert width > 0, "Width of stability interval should be positive"
+    assert stability_interval.a < 0 < stability_interval.b, \
+        "Stability interval should contain 0 in it s interior"
     for pt in perturb_points:
-        assert (pt-width >= fn_bkpt[len(fn_bkpt)-1])
-        if (pt-width > fn_bkpt[len(fn_bkpt)-1]):
-            fn_bkpt.append(pt-width)
+        if symmetric:
+            left = pt - width
+            right = pt + width
+        else:
+            if perturbation_list[pt][0] == 1:
+                left = pt + stability_interval.a
+                right = pt + stability_interval.b
+            else:
+                left = pt - stability_interval.b
+                right = pt - stability_interval.a
+        assert (left >= fn_bkpt[len(fn_bkpt)-1])
+        if (left > fn_bkpt[len(fn_bkpt)-1]):
+            fn_bkpt.append(left)
             fn_values.append(0)
         fn_bkpt.append(pt)
         fn_values.append(perturbation_list[pt][0]) # the "walk_sign" (character) at the point
-        fn_bkpt.append(pt+width)
+        fn_bkpt.append(right)
         fn_values.append(0)
     assert (1 >= fn_bkpt[len(fn_bkpt)-1])
     if (1 > fn_bkpt[len(fn_bkpt)-1]):
@@ -1805,20 +1845,27 @@ def find_stability_interval_with_deterministic_walk_list(seed, intervals, moves,
                     if 0 < temp2 <= b:
                         b = temp2
                         right_closed = False
-    ### I don't understand the following code.
-    ### It seems necessary to make the stability orbit disjoint --Matthias
+    ### Now we make the stability orbit disjoint by looking at adjacent intervals
+    ### and shrinking if necessary.
     orbit = sorted(deterministic_walk_list.keys())
     min_midpt_dist = 1
     for i in range(len(orbit)-1):
-        temp3 = (orbit[i+1]-orbit[i])/2  
-        if temp3 < min_midpt_dist:
-            min_midpt_dist = temp3
-    if a < -1 * min_midpt_dist:
-        a = -1 * min_midpt_dist
-        left_closed = False
-    if b > min_midpt_dist:
-        b = min_midpt_dist
-        right_closed = False  
+        sign_1 = deterministic_walk_list[orbit[i]][0]
+        sign_2 = deterministic_walk_list[orbit[i+1]][0]
+        half_distance = (orbit[i+1]-orbit[i])/2
+        ## Two intervals of different signs might overlap.
+        if sign_1 == 1 and sign_2 == -1:
+            if b > half_distance:
+                #print "half_distance wins:", half_distance 
+                b = half_distance
+                right_closed = False
+        elif sign_1 == -1 and sign_2 == 1:
+            if -a > half_distance:
+                #print "half_distance wins:", half_distance 
+                a = -half_distance
+                left_closed = False
+        else:
+            assert(-a + b <= 2 * half_distance)
     return (closed_or_open_or_halfopen_interval(a, b, left_closed, right_closed), deterministic_walk_list)
 
 
@@ -2010,8 +2057,8 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000):
             logging.info("Plotting moves and reachable orbit...")
             # FIXME: Visualize stability intervals?
             (plot_walk(walk_list,thickness=0.7) + \
-             plot_possible_and_impossible_directed_moves(seed, moves, h) + \
-             plot_intervals(uncovered_intervals) + plot(h)).show(figsize=50)
+             plot_possible_and_impossible_directed_moves(seed, moves, fn) + \
+             plot_intervals(uncovered_intervals) + plot_covered_intervals(fn)).show(figsize=50)
             logging.info("Plotting moves and reachable orbit... done")
         perturb = fn._perturbation = approx_discts_function(walk_list, stab_int)
         check_perturbation(fn, perturb, show_plots=show_plots)
@@ -2021,7 +2068,7 @@ def lift(fn, show_plots = False):
     if extremality_test(fn, show_plots=show_plots):
         return fn
     else:
-        perturbed = fn + fn._epsilon_interval[1] * fn._perturbation
+        perturbed = fn._lifted = fn + fn._epsilon_interval[1] * fn._perturbation
         return perturbed
 
 def lift_until_extreme(fn, show_plots = False):
