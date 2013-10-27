@@ -2020,7 +2020,7 @@ def generate_additivity_equations(function, symbolic):
 
 def rescale_to_amplitude(perturb, amplitude):
     """For plotting purposes, rescale the function `perturb` so that its
-    maximum absolute function value is 1.
+    maximum absolute function value is `amplitude`.
     """
     current_amplitude = max([ abs(perturb(x)) for x in perturb.end_points() ])
     if current_amplitude != 0:
