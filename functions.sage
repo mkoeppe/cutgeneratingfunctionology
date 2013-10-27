@@ -1022,6 +1022,8 @@ class FastLinearFunction :
         return FastLinearFunction(self._slope * other,
                                   self._intercept * other)
 
+    __rmul__ = __mul__
+
     def __eq__(self, other):
         if not isinstance(other, FastLinearFunction):
             return False
@@ -1030,7 +1032,8 @@ class FastLinearFunction :
     def __ne__(self, other):
         return not (self == other)
 
-    __rmul__ = __mul__
+    def __repr__(self):
+        return '<FastLinearFunction (%s)*x + (%s)>' % (self._slope, self._intercept)
 
     ## FIXME: To be continued.
 
@@ -1262,6 +1265,13 @@ class FastPiecewise (PiecewisePolynomial):
                     del kwds['legend_label']
         return g
 
+    def __repr__(self):
+        rep = "<FastPiecewise with %s parts, " % len(self._functions)
+        for interval, function in itertools.izip(self._intervals, self._functions):
+            rep += "\n " + repr(interval) + "\t" + repr(function)
+        rep += ">"
+        return rep
+
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 
 ### def can_coerce(coercer, values):
@@ -1315,7 +1325,7 @@ def piecewise_function_from_breakpoints_and_values(bkpt, values, field=default_f
     Return a function.
     """
     if len(bkpt)!=len(values):
-        raise DataError, "Need to have the same number of breakpoints and values."
+        raise ValueError, "Need to have the same number of breakpoints and values."
     slopes = [ (values[i+1]-values[i])/(bkpt[i+1]-bkpt[i]) for i in range(len(bkpt)-1) ]
     return FastPiecewise([ [(bkpt[i],bkpt[i+1]), 
                         # lambda x,i=i: values[i] + slopes[i] * (x - bkpt[i])
@@ -1328,7 +1338,7 @@ def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=default_f
     Return a function.
     """
     if len(bkpt)!=len(slopes)+1:
-        raise DataError, "Need to have one breakpoint more than slopes."
+        raise ValueError, "Need to have one breakpoint more than slopes."
     function_values = [0]
     for i in range(1,len(bkpt)-1):
         function_values.append(function_values[i-1] + slopes[i - 1] * (bkpt[i] - bkpt[i-1]))
@@ -1344,15 +1354,26 @@ def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes
     Return a function.
     """
     if len(interval_lengths)!=len(slopes):
-        raise DataError, "Number of given interval_lengths and slopes needs to be equal."
+        raise ValueError, "Number of given interval_lengths and slopes needs to be equal."
     bkpt = []
     bkpt.append(0)
     for i in range(len(interval_lengths)):
         bkpt.append(bkpt[i]+interval_lengths[i])
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
 
+def limiting_slopes(fn):
+    functions = fn.functions()
+    return functions[0]._slope, functions[-1]._slope
+
+maximal_asymmetric_peaks_around_orbit = 'maximal_asymmetric_peaks_around_orbit'
+maximal_symmetric_peaks_around_orbit = 'maximal_symmetric_peaks_around_orbit'
+recentered_symmetric_peaks = 'recentered_symmetric_peaks'
+recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_positive_epsilon = 'recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_positive_epsilon'
+
+default_perturbation_style = maximal_asymmetric_peaks_around_orbit
+
 def approx_discts_function(perturbation_list, stability_interval, field=default_field, \
-                           symmetric=False):
+                           perturbation_style=default_perturbation_style, function=None):
     """
     Construct a function that has peaks of +/- 1 around the points of the orbit.
     perturbation_list actually is a dictionary.
@@ -1367,22 +1388,47 @@ def approx_discts_function(perturbation_list, stability_interval, field=default_
     assert stability_interval.a < 0 < stability_interval.b, \
         "Stability interval should contain 0 in it s interior"
     for pt in perturb_points:
-        if symmetric:
-            left = pt - width
-            right = pt + width
-        else:
-            if perturbation_list[pt][0] == 1:
+        sign = perturbation_list[pt][0] # the "walk_sign" (character) at the point
+        if perturbation_style==maximal_asymmetric_peaks_around_orbit:
+            if sign == 1:
                 left = pt + stability_interval.a
                 right = pt + stability_interval.b
             else:
                 left = pt - stability_interval.b
                 right = pt - stability_interval.a
+        elif perturbation_style==maximal_symmetric_peaks_around_orbit:
+            left = pt - width
+            right = pt + width
+        elif perturbation_style==recentered_symmetric_peaks:
+            if sign == 1:
+                left = pt + stability_interval.a
+                right = pt + stability_interval.b
+            else:
+                left = pt - stability_interval.b
+                right = pt - stability_interval.a
+            pt = (left + right) /2
+        elif perturbation_style==recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_positive_epsilon:
+            if function is None:
+                raise ValueError, "This perturbation_style needs to know function"
+            slope_plus, slope_minus = limiting_slopes(function)
+            current_slope = function.which_function(pt)._slope 
+            x = (stability_interval.b - stability_interval.a) * (slope_minus - current_slope)/(slope_minus-slope_plus)
+            if sign == 1:
+                left = pt + stability_interval.a
+                right = pt + stability_interval.b
+                pt = left + x
+            else:
+                left = pt - stability_interval.b
+                right = pt - stability_interval.a
+                pt = right - x
+        else:
+            raise ValueError, "Unknown perturbation_style: %s" % perturbation_style
         assert (left >= fn_bkpt[len(fn_bkpt)-1])
         if (left > fn_bkpt[len(fn_bkpt)-1]):
             fn_bkpt.append(left)
             fn_values.append(0)
         fn_bkpt.append(pt)
-        fn_values.append(perturbation_list[pt][0]) # the "walk_sign" (character) at the point
+        fn_values.append(sign)
         fn_bkpt.append(right)
         fn_values.append(0)
     assert (1 >= fn_bkpt[len(fn_bkpt)-1])
@@ -2030,7 +2076,7 @@ def generate_additive_vertices(fn):
     return uniq(type1 + type2)
 
 
-def extremality_test(fn, show_plots = False, max_num_it = 1000):
+def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_style=default_perturbation_style):
     if not minimality_test(fn):
         print "Not minimal, thus not extreme."
         return False
@@ -2060,22 +2106,22 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000):
              plot_possible_and_impossible_directed_moves(seed, moves, fn) + \
              plot_intervals(uncovered_intervals) + plot_covered_intervals(fn)).show(figsize=50)
             logging.info("Plotting moves and reachable orbit... done")
-        perturb = fn._perturbation = approx_discts_function(walk_list, stab_int)
+        perturb = fn._perturbation = approx_discts_function(walk_list, stab_int, perturbation_style=perturbation_style, function=fn)
         check_perturbation(fn, perturb, show_plots=show_plots)
         return False
 
-def lift(fn, show_plots = False):
-    if extremality_test(fn, show_plots=show_plots):
+def lift(fn, show_plots = False, perturbation_style = default_perturbation_style):
+    if extremality_test(fn, show_plots=show_plots, perturbation_style=perturbation_style):
         return fn
     else:
         perturbed = fn._lifted = fn + fn._epsilon_interval[1] * fn._perturbation
         return perturbed
 
-def lift_until_extreme(fn, show_plots = False):
+def lift_until_extreme(fn, show_plots = False, perturbation_style = default_perturbation_style):
     next, fn = fn, None
     while next != fn:
         fn = next
-        next = lift(fn, show_plots=show_plots)
+        next = lift(fn, show_plots=show_plots, perturbation_style=perturbation_style)
     return next
 
 def piecewise_function_from_robert_txt_file(filename):
