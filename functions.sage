@@ -26,13 +26,13 @@ def plot_2d_complex(function):
     """
     bkpt = function.end_points()
     x = var('x')
-    p1 = plot([(bkpt[i]-x).plot((x, 0, bkpt[i])) for i in range(1,len(bkpt))], \
+    p1 = plot([(bkpt[i]-x).plot((x, 0, bkpt[i]), color='grey') for i in range(1,len(bkpt))], \
               **ticks_keywords(function, True))
-    p2 = plot([(1+bkpt[i]-x).plot((x, bkpt[i], 1)) for i in range(1,len(bkpt)-1)])
-    p3 = plot([(bkpt[i]+x-x).plot((x, 0, 1)) for i in range(len(bkpt))])
+    p2 = plot([(1+bkpt[i]-x).plot((x, bkpt[i], 1), color='grey') for i in range(1,len(bkpt)-1)])
+    p3 = plot([(bkpt[i]+x-x).plot((x, 0, 1), color='grey') for i in range(len(bkpt))])
     y=var('y')
     for i in range(len(bkpt)):
-        p3 += parametric_plot((bkpt[i],y),(y,0,1))
+        p3 += parametric_plot((bkpt[i],y),(y,0,1), color='grey')
     return p1+p2+p3
 
 def interval_sum(int1, int2):
@@ -382,39 +382,42 @@ def plot_2d_diagram(function, show_function = False):
     To show only a part of it, use 
     `show(plot_2d_diagram(h), xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)`
     """
-    ### FIXME: For non-subaddititive functions, the points where delta_pi
-    ### is negative should be indicated somehow!!
     bkpt = function.end_points()
     vert_face_additive = generate_vert_face_additive(function)
     minimal_triples = generate_minimal_triples(function)
         
     y = var('y')
 
-    plot_minimal_triples = plot_2d_complex(function)
+    p = plot_2d_complex(function)
     for trip, vert in itertools.izip(minimal_triples, vert_face_additive):
         if face_0D(trip):
-            plot_minimal_triples += point((trip[0][0], \
-                trip[1][0]), color = "magenta", size = 30)
+            p += point((trip[0][0], \
+                trip[1][0]), color = "green", size = 30)
         elif face_horizontal(trip):
-            plot_minimal_triples += parametric_plot((y,trip[1][0]),\
-                (y,trip[0][0], trip[0][1]), rgbcolor=(0, 1, 0))
+            p += parametric_plot((y,trip[1][0]),\
+                                 (y,trip[0][0], trip[0][1]), rgbcolor=(0, 1, 0), thickness=2)
         elif face_vertical(trip):
-            plot_minimal_triples += parametric_plot((trip[0][0],y),\
-                (y,trip[1][0], trip[1][1]), rgbcolor=(0, 1, 0))
+            p += parametric_plot((trip[0][0],y),\
+                                 (y,trip[1][0], trip[1][1]), rgbcolor=(0, 1, 0), thickness=2)
         elif face_diagonal(trip):
-            plot_minimal_triples += parametric_plot((y,trip[2][0]-y),\
-                (y,trip[0][0],trip[0][1]), rgbcolor=(0, 1, 0))
+            p += parametric_plot((y,trip[2][0]-y),\
+                                 (y,trip[0][0],trip[0][1]), rgbcolor=(0, 1, 0), thickness=2)
         elif face_2D(trip):
             ## Sorting is necessary for this example:
             ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/reu-2013/Sage_Function/dey-richard-not-extreme.txt"))
-            plot_minimal_triples += polygon(convex_vert_list(vert), rgbcolor=(1, 0, 0)) 
+            p += polygon(convex_vert_list(vert), color='mediumspringgreen') 
+    ### For non-subadditive functions, show the points where delta_pi
+    ### is negative.
+    nonsubadditive_vertices = generate_nonsubadditive_vertices(function)
+    p += point(nonsubadditive_vertices, \
+                                  color = "red", size = 50)
     if show_function:
         x = var('x')
-        plot_minimal_triples += parametric_plot((lambda x: x, lambda x: 0.3 * function(x) + 1), \
+        p += parametric_plot((lambda x: x, lambda x: 0.3 * function(x) + 1), \
                                                 (x, 0, 1), color='black')
-        plot_minimal_triples += parametric_plot((lambda x: - 0.3 * function(x), lambda x: x), \
+        p += parametric_plot((lambda x: - 0.3 * function(x), lambda x: x), \
                                                 (x, 0, 1), color='black')
-    return plot_minimal_triples
+    return p
 
 # Assume component is sorted.
 def merge_within_comp(component):   
@@ -772,6 +775,8 @@ def plot_covered_intervals(function, covered_intervals=None, **plot_kwds):
 
 ### Minimality check.
 
+
+
 # Fix x and y.
 def type1check(fn):
     k=1
@@ -847,6 +852,9 @@ def find_f(fn):
     """
     Find the value of `f' for the given function `fn'.
     """
+    for x in fn.end_points():
+        if fn(x) > 1 or fn(x) < 0: 
+            raise ValueError, "The given function does not stay in the range of [0, 1]"
     for x in fn.end_points():
         if fn(x) == 1:
             return x
@@ -1268,7 +1276,8 @@ class FastPiecewise (PiecewisePolynomial):
     def __repr__(self):
         rep = "<FastPiecewise with %s parts, " % len(self._functions)
         for interval, function in itertools.izip(self._intervals, self._functions):
-            rep += "\n " + repr(interval) + "\t" + repr(function)
+            rep += "\n " + repr(interval) + "\t" + repr(function) \
+                   + "\t values: " + repr([function(interval[0]), function(interval[1])])
         rep += ">"
         return rep
 
@@ -1383,10 +1392,11 @@ def approx_discts_function(perturbation_list, stability_interval, field=default_
     fn_bkpt = [0]
     # This width is chosen so that the peaks are disjoint, and
     # so a nice continuous piecewise linear function is constructed.
-    width = min(abs(stability_interval.a),stability_interval.b)
-    assert width > 0, "Width of stability interval should be positive"
-    assert stability_interval.a < 0 < stability_interval.b, \
-        "Stability interval should contain 0 in it s interior"
+    if perturbation_style==maximal_asymmetric_peaks_around_orbit or perturbation_style==maximal_symmetric_peaks_around_orbit:
+        width = min(abs(stability_interval.a),stability_interval.b)
+        assert width > 0, "Width of stability interval should be positive"
+        assert stability_interval.a < 0 < stability_interval.b, \
+            "Stability interval should contain 0 in it s interior"
     for pt in perturb_points:
         sign = perturbation_list[pt][0] # the "walk_sign" (character) at the point
         if perturbation_style==maximal_asymmetric_peaks_around_orbit:
@@ -1411,7 +1421,7 @@ def approx_discts_function(perturbation_list, stability_interval, field=default_
             if function is None:
                 raise ValueError, "This perturbation_style needs to know function"
             slope_plus, slope_minus = limiting_slopes(function)
-            current_slope = function.which_function(pt)._slope 
+            current_slope = function.which_function(pt + (stability_interval.b + stability_interval.a)/2)._slope 
             x = (stability_interval.b - stability_interval.a) * (slope_minus - current_slope)/(slope_minus-slope_plus)
             if sign == 1:
                 left = pt + stability_interval.a
@@ -1968,8 +1978,8 @@ def find_generic_seed(fn, max_num_it = 1000):
             stab_int, walk_list = find_stability_interval_with_deterministic_walk_list \
                                   (seed, intervals, moves, fn, max_num_it = max_num_it, \
                                    error_if_sign_contradiction = True)
-            if stab_int[1] == stab_int[0]:
-                logging.info("Stability interval is not proper, continuing search.")
+            if not stab_int[0] < 0 < stab_int[1]:
+                logging.info("Stability interval does not contain 0 in its interior, continuing search.")
                 continue
             logging.info("Seed %s has a proper stability interval %s, reachable orbit has %s elements" % (seed, stab_int, len(walk_list)))
             return (seed, stab_int, walk_list)
@@ -2075,11 +2085,21 @@ def generate_additive_vertices(fn):
     type2 = [ (x,z-x) for x in bkpt for z in bkpt2 if x < z < 1+x and delta_pi(fn, x, z-x) == 0]
     return uniq(type1 + type2)
 
+def generate_nonsubadditive_vertices(fn):
+    bkpt = fn.end_points()
+    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
+    type1 = [ (x,y) for x in bkpt for y in bkpt if x <= y and delta_pi(fn,x,y) < 0 ]
+    type2 = [ (x,z-x) for x in bkpt for z in bkpt2 if x < z < 1+x and delta_pi(fn, x, z-x) < 0]
+    return uniq(type1 + type2)
 
-def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_style=default_perturbation_style):
+def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False):
+    do_phase_1_lifting = False
     if not minimality_test(fn):
         print "Not minimal, thus not extreme."
-        return False
+        if not phase_1:
+            return False
+        else:
+            do_phase_1_lifting = True
     generate_minimal_triples(fn)
     if show_plots:
         logging.info("Plotting 2d diagram...")
@@ -2096,6 +2116,10 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_sty
         return finite_dimensional_extremality_test(fn, show_plots)
     else:
         print "Uncovered intervals: ", uncovered_intervals
+        # First try the finite dimensional one.
+        if not finite_dimensional_extremality_test(fn, show_plots):
+            return False
+        # Now do the magic.
         moves = generate_moves(fn)
         print "Moves relevant for these intervals: ", moves
         seed, stab_int, walk_list = find_generic_seed(fn, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
@@ -2110,18 +2134,23 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_sty
         check_perturbation(fn, perturb, show_plots=show_plots)
         return False
 
-def lift(fn, show_plots = False, perturbation_style = default_perturbation_style):
-    if extremality_test(fn, show_plots=show_plots, perturbation_style=perturbation_style):
+def lift(fn, show_plots = False, **kwds):
+    if extremality_test(fn, show_plots, **kwds):
         return fn
     else:
         perturbed = fn._lifted = fn + fn._epsilon_interval[1] * fn._perturbation
+        ## Following is strictly experimental: It may change what "f" is.
+        if 'phase_1' in kwds and kwds['phase_1']:
+            perturbed = rescale_to_amplitude(perturbed, 1)
         return perturbed
 
-def lift_until_extreme(fn, show_plots = False, perturbation_style = default_perturbation_style):
+def lift_until_extreme(fn, show_plots = False, pause = False, **kwds):
     next, fn = fn, None
     while next != fn:
         fn = next
-        next = lift(fn, show_plots=show_plots, perturbation_style=perturbation_style)
+        next = lift(fn, show_plots, **kwds)
+        if pause and next != fn:
+            raw_input("Press enter to continue")
     return next
 
 def piecewise_function_from_robert_txt_file(filename):
@@ -2147,4 +2176,11 @@ def piecewise_function_from_robert_txt_file(filename):
     if yvalues[xf] != yf:
         raise ValueError, "Lines 3/4 on f and value at f are not consistent with line 1."
     return piecewise_function_from_breakpoints_and_values([ x / xscale for x in xvalues ] + [1], [y / yf for y in yvalues] + [0])
+
+def random_piecewise_function(xgrid, ygrid):
+    xvalues = [0] + [ x/xgrid for x in range(1, xgrid) ] + [1]
+    f = randint(1, xgrid - 1)
+    yvalues = [0] + [ randint(0, ygrid) / ygrid for i in range(1, f) ] + [1] + [ randint(0, ygrid) / ygrid for i in range(f+1, xgrid) ]+ [0]
+    return piecewise_function_from_breakpoints_and_values(xvalues, yvalues)
+
 
