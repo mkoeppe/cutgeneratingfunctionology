@@ -1326,7 +1326,9 @@ from sage.rings.number_field.number_field_element_quadratic import NumberFieldEl
 ###         pass
     
         
-        
+def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field=default_field):
+    return FastPiecewise([ [(bkpt[i],bkpt[i+1]), 
+                        fast_linear_function(slopes[i], values[i] - slopes[i]*bkpt[i])] for i in range(len(bkpt)-1) ])
 
 def piecewise_function_from_breakpoints_and_values(bkpt, values, field=default_field):
     """
@@ -1336,9 +1338,7 @@ def piecewise_function_from_breakpoints_and_values(bkpt, values, field=default_f
     if len(bkpt)!=len(values):
         raise ValueError, "Need to have the same number of breakpoints and values."
     slopes = [ (values[i+1]-values[i])/(bkpt[i+1]-bkpt[i]) for i in range(len(bkpt)-1) ]
-    return FastPiecewise([ [(bkpt[i],bkpt[i+1]), 
-                        # lambda x,i=i: values[i] + slopes[i] * (x - bkpt[i])
-                        fast_linear_function(slopes[i], values[i] - slopes[i]*bkpt[i])] for i in range(len(bkpt)-1) ])
+    return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field)
 
 def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=default_field):
     """
@@ -1348,13 +1348,10 @@ def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=default_f
     """
     if len(bkpt)!=len(slopes)+1:
         raise ValueError, "Need to have one breakpoint more than slopes."
-    function_values = [0]
+    values = [0]
     for i in range(1,len(bkpt)-1):
-        function_values.append(function_values[i-1] + slopes[i - 1] * (bkpt[i] - bkpt[i-1]))
-    pieces = [[(bkpt[i],bkpt[i+1]),
-               #lambda x,i=i: function_values[i]+slopes[i]*(x - bkpt[i])
-               fast_linear_function(slopes[i], function_values[i] - slopes[i]*bkpt[i])] for i in range(len(bkpt)-1)] 
-    return FastPiecewise(pieces)        
+        values.append(values[i-1] + slopes[i - 1] * (bkpt[i] - bkpt[i-1]))
+    return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field)
 
 def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=default_field):
     """
