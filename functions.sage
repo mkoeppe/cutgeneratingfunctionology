@@ -1362,6 +1362,15 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
     ##     self._embedding = parent.coerce_embedding()
 
     #@logger
+
+    def embedded(self):
+        e = getattr(self, '_embedded', None)
+        if e is None:
+            parent = self.parent()
+            embedding = parent.coerce_embedding()
+            self._embedded = e = embedding(self)
+        return e
+
     def __cmp__(left, right):
     #     return (left)._cmp(right)
     # def _cmp(left, right):
@@ -1370,9 +1379,7 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
 
         if NumberFieldElement_absolute.__cmp__(left, right) == 0:
             return 0
-        parent = left.parent()
-        embedding = parent.coerce_embedding()
-        result = cmp(embedding(left), embedding(right))
+        result = cmp(left.embedded(), right.embedded())
         if result == 0:
             raise UnimplementedError, "Precision of real interval field not sufficient to continue"
         return result
