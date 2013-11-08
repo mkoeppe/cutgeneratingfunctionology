@@ -1395,11 +1395,10 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
         return cmp(self, parent._zero_element)
 
     def __float__(self):
-        parent = self.parent()
-        embedding = parent.coerce_embedding()
+        embedded = self.embedded()
         #print "__float..."
         #try:
-        result = float((embedding(self).lower() + embedding(self).upper()) / 2)
+        result = (float(embedded.lower()) + float(embedded.upper())) / 2
         # except Exception:
         #     print "ERROR:", self
         # print "... end, result = %s" %result
@@ -1413,13 +1412,12 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
     ##     return sign(left - right)
 
     def __repr__(self):
-        parent = self.parent()
-        embedding = parent.coerce_embedding()
+        embedded = self.embedded()
         symbolic = getattr(self, '_symbolic', None)
         if symbolic is None:
-            return 'RNF%s' % embedding(self)
+            return 'RNF%s' % embedded
         else:
-            return '<RNF%s=%s>' % (symbolic, embedding(self))
+            return '<RNF%s=%s>' % (symbolic, embedded)
 
     def _latex_(self):
         symbolic = getattr(self, '_symbolic', None)
