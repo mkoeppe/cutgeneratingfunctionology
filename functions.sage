@@ -18,10 +18,13 @@ def fractional(num):
     """
     Reduce a number modulo 1.
     """
-    while num > 1:
-        num = num - 1
-    while num < 0:
-        num = num + 1
+    parent = num.parent()
+    one = parent._one_element
+    zero = parent._zero_element
+    while num > one:
+        num = num - one
+    while num < zero:
+        num = num + one
     return num
 
 def delta_pi(fn,x,y):
@@ -1435,6 +1438,38 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
         else:
             return symbolic._maxima_()
 
+    def _add_(self, other):
+        result = NumberFieldElement_absolute._add_(self, other)
+        # self_e = getattr(self, '_embedded', None)
+        # if self_e is not None:
+        #     other_e = getattr(other, '_embedded', None)
+        #     if other_e is not None:
+        #         result._embedded = self_e + other_e
+        self_e = self.embedded()
+        other_e = other.embedded()
+        result._embedded = self_e + other_e
+        return result
+
+    def _sub_(self, other):
+        result = NumberFieldElement_absolute._sub_(self, other)
+        # self_e = getattr(self, '_embedded', None)
+        # if self_e is not None:
+        #     other_e = getattr(other, '_embedded', None)
+        #     if other_e is not None:
+        #         result._embedded = self_e - other_e
+        self_e = self.embedded()
+        other_e = other.embedded()
+        result._embedded = self_e - other_e
+        return result
+
+    def __neg__(self):
+        result = NumberFieldElement_absolute._neg_(self)
+        # self_e = getattr(self, '_embedded', None)
+        # if self_e is not None:
+        #     result._embedded = -self_e
+        self_e = self.embedded()
+        result._embedded = -self_e
+        return result
 
 class RealNumberField(NumberField_absolute):
     """
@@ -1474,6 +1509,11 @@ class RealNumberField(NumberField_absolute):
         self._zero_element = self(0)
         self._one_element =  self(1)
         self._exact_embedding = self.hom([exact_embedding])
+
+    ## def specified_complex_embedding(self):
+    ##     ## This is so that _symbolic_ works.
+    ##     return self._exact_embedding
+    ### FIXME: _symbolic_ leads to infinite recursion of LazyWrappers etc.
 
 default_precision = 53
 
@@ -1753,14 +1793,15 @@ def canonicalize_number(number):
     represented as an element of `Rational` (rather than an element of
     `QQbar`, for example).  This will make sure that we do not have
     two mathematically equal numbers with different `hash` values."""
-    if number is AA:
-        number.exactify()
-    try:
-        return QQ(number)
-    except ValueError:
-        return number
-    except TypeError:
-        return number
+    ## if number is AA:
+    ##     number.exactify()
+    ## try:
+    ##     return QQ(number)
+    ## except ValueError:
+    ##     return number
+    ## except TypeError:
+    ##     return number
+    return number
 
 def apply_directed_move(x, directed_move):
     move_sign = directed_move[0]
@@ -1941,7 +1982,7 @@ def one_step_stability_interval(x, intervals, moves):
                     if (next_x - interval[0]) < b:
                         b = next_x - interval[0]
                         right_closed = True
-                    if (interval[1] - next_x) < -1 * a:
+                    if (interval[1] - next_x) < -a:
                         a = next_x - interval[1]
                         left_closed = True      
                 else:
@@ -1960,8 +2001,8 @@ def one_step_stability_interval(x, intervals, moves):
         elif move[0] == -1:
             for interval in intervals:
                 temp = interval[0] - next_x
-                if 0 < temp <= -1 * a:
-                    a = -1 * temp
+                if 0 < temp <= -a:
+                    a = -temp
                     left_closed = False
                 temp2 = next_x - interval[1]
                 if 0 < temp2 <= b:
@@ -2073,7 +2114,7 @@ def find_stability_interval_with_deterministic_walk_list(seed, intervals, moves,
                     if (pt - interval[0]) < b:
                         b = pt - interval[0]
                         right_closed = True
-                    if (interval[1] - pt) < -1 * a:
+                    if (interval[1] - pt) < -a:
                         a = pt - interval[1]
                         left_closed = True      
         impossible_directed_moves = find_impossible_directed_moves(pt, moves, fn)
@@ -2101,8 +2142,8 @@ def find_stability_interval_with_deterministic_walk_list(seed, intervals, moves,
                 impossible_next_x = fractional(move[1] - pt)
                 for interval in intervals:
                     temp = interval[0] - impossible_next_x
-                    if 0 < temp <= -1 * a:
-                        a = -1 * temp
+                    if 0 < temp <= -a:
+                        a = -temp
                         left_closed = False
                     temp2 = impossible_next_x - interval[1]
                     if 0 < temp2 <= b:
