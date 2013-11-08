@@ -2,6 +2,16 @@ import logging
 
 logging.basicConfig(format='%(levelname)s: %(asctime)s %(message)s', level=logging.INFO)
 
+def logger(func):
+    def inner(*args, **kwargs): #1
+        print "Arguments to %s were: %s, %s" % (func, args, kwargs)
+        result = func(*args, **kwargs) #2
+        print "Result is: %s" % (result)
+        return result
+        
+    return inner
+
+
 import itertools
 
 def fractional(num):
@@ -26,14 +36,20 @@ def plot_2d_complex(function):
     """
     bkpt = function.end_points()
     x = var('x')
-    p1 = plot([(bkpt[i]-x).plot((x, 0, bkpt[i]), color='grey') for i in range(1,len(bkpt))], \
-              **ticks_keywords(function, True))
-    p2 = plot([(1+bkpt[i]-x).plot((x, bkpt[i], 1), color='grey') for i in range(1,len(bkpt)-1)])
-    p3 = plot([(bkpt[i]+x-x).plot((x, 0, 1), color='grey') for i in range(len(bkpt))])
+    p = Graphics()
+    ## We now use lambda functions instead of Sage symbolics for plotting, 
+    ## as those give strange errors when combined with our RealNumberFieldElement.
+    for i in range(1,len(bkpt)):
+        p += plot(lambda x: bkpt[i]-x, (x, 0, bkpt[i]), color='grey', \
+                  **ticks_keywords(function, True))
+    for i in range(1,len(bkpt)-1):
+        p += plot(lambda x: (1+bkpt[i]-x), (x, bkpt[i], 1), color='grey')
+    for i in range(len(bkpt)):
+        p += plot(bkpt[i], (0, 1), color='grey')
     y=var('y')
     for i in range(len(bkpt)):
-        p3 += parametric_plot((bkpt[i],y),(y,0,1), color='grey')
-    return p1+p2+p3
+        p += parametric_plot((bkpt[i],y),(y,0,1), color='grey')
+    return p
 
 def interval_sum(int1, int2):
     """
@@ -400,7 +416,7 @@ def plot_2d_diagram(function, show_function = False):
             p += parametric_plot((trip[0][0],y),\
                                  (y,trip[1][0], trip[1][1]), rgbcolor=(0, 1, 0), thickness=2)
         elif face_diagonal(trip):
-            p += parametric_plot((y,trip[2][0]-y),\
+            p += parametric_plot((lambda y: y, lambda y: trip[2][0]-y),\
                                  (y,trip[0][0],trip[0][1]), rgbcolor=(0, 1, 0), thickness=2)
         elif face_2D(trip):
             ## Sorting is necessary for this example:
@@ -413,9 +429,9 @@ def plot_2d_diagram(function, show_function = False):
                                   color = "red", size = 50)
     if show_function:
         x = var('x')
-        p += parametric_plot((lambda x: x, lambda x: 0.3 * function(x) + 1), \
+        p += parametric_plot((lambda x: x, lambda x: 0.3 * float(function(x)) + 1), \
                                                 (x, 0, 1), color='black')
-        p += parametric_plot((lambda x: - 0.3 * function(x), lambda x: x), \
+        p += parametric_plot((lambda x: - 0.3 * float(function(x)), lambda x: x), \
                                                 (x, 0, 1), color='black')
     return p
 
@@ -1011,12 +1027,17 @@ from bisect import bisect_left
 ## FIXME: Its __name__ is "Fast..." but nobody so far has timed
 ## its performance against the other options. --Matthias
 class FastLinearFunction :
+
     def __init__(self, slope, intercept, field=default_field):
         self._slope = slope
         self._intercept = intercept
 
     def __call__(self, x):
-        return self._slope * x + self._intercept
+        if type(x) == float:
+            # FIXME: There must be a better way.
+            return float(self._slope) * x + float(self._intercept)
+        else:
+            return self._slope * x + self._intercept
 
     def __float__(self):
         return self
@@ -1041,7 +1062,10 @@ class FastLinearFunction :
         return not (self == other)
 
     def __repr__(self):
-        return '<FastLinearFunction (%s)*x + (%s)>' % (self._slope, self._intercept)
+        try:
+            return '<FastLinearFunction ' + sage.misc.misc.repr_lincomb([('x', self._slope), (1, self._intercept)], strip_one = True) + '>'
+        except TypeError:
+            return '<FastLinearFunction (%s)*x + (%s)>' % (self._slope, self._intercept)
 
     ## FIXME: To be continued.
 
@@ -1325,12 +1349,190 @@ from sage.rings.number_field.number_field_element_quadratic import NumberFieldEl
 ###     except TypeError:
 ###         pass
     
-        
-def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field=default_field):
-    return FastPiecewise([ [(bkpt[i],bkpt[i+1]), 
-                        fast_linear_function(slopes[i], values[i] - slopes[i]*bkpt[i])] for i in range(len(bkpt)-1) ])
+import sage.rings.number_field.number_field
+from sage.rings.number_field.number_field import NumberField_absolute
 
-def piecewise_function_from_breakpoints_and_values(bkpt, values, field=default_field):
+import sage.rings.number_field.number_field_element
+from sage.rings.number_field.number_field_element import NumberFieldElement_absolute
+
+class RealNumberFieldElement(NumberFieldElement_absolute):
+
+    ## def __init__(self, parent, f):
+    ##     NumberFieldElement_absolute.__init__(self, parent, f)
+    ##     self._embedding = parent.coerce_embedding()
+
+    #@logger
+    def __cmp__(left, right):
+    #     return (left)._cmp(right)
+    # def _cmp(left, right):
+        # print "cmp", left, "and", right
+        #return sign(left - right) ## Whoa, sign is defined in "generalized.py"
+
+        if NumberFieldElement_absolute.__cmp__(left, right) == 0:
+            return 0
+        parent = left.parent()
+        embedding = parent.coerce_embedding()
+        result = cmp(embedding(left), embedding(right))
+        if result == 0:
+            raise UnimplementedError, "Precision of real interval field not sufficient to continue"
+        return result
+
+    def __abs__(self):
+        if self.sign() >= 0:
+            return self
+        else:
+            return -self
+
+    def sign(self):
+        parent = self.parent()
+        return cmp(self, parent._zero_element)
+
+    def __float__(self):
+        parent = self.parent()
+        embedding = parent.coerce_embedding()
+        #print "__float..."
+        #try:
+        result = float((embedding(self).lower() + embedding(self).upper()) / 2)
+        # except Exception:
+        #     print "ERROR:", self
+        # print "... end, result = %s" %result
+        return result
+
+    ## def __richcmp__(left, right, op):
+    ##     print "rich"
+    ##     return left._richcmp(right, op)
+
+    ## def _richcmp(left, right, op):
+    ##     return sign(left - right)
+
+    def __repr__(self):
+        parent = self.parent()
+        embedding = parent.coerce_embedding()
+        symbolic = getattr(self, '_symbolic', None)
+        if symbolic is None:
+            return 'RNF%s' % embedding(self)
+        else:
+            return '<RNF%s=%s>' % (symbolic, embedding(self))
+
+    def _latex_(self):
+        symbolic = getattr(self, '_symbolic', None)
+        if symbolic is None:
+            parent = self.parent()
+            embedding = parent._exact_embedding
+            symbolic = embedding(self)
+        #print embedding(self), "%s" % (latex(embedding(self)))
+        return "%s" % (latex(symbolic))
+
+    def _maxima_(self, session=None):
+        symbolic = getattr(self, '_symbolic', None)
+        if symbolic is None:
+            raise UnimplementedError, "Cannot make %s a Maxima number" % self
+        else:
+            return symbolic._maxima_()
+
+
+class RealNumberField(NumberField_absolute):
+    """
+    A RealNumberField knows its embedding into a RealIntervalField
+    and use that for <, > comparisons.
+    == comparison is exact, using the underlying numberfield.
+    
+    A RealIntervalField also knows an embedding into an exact field (SR)
+    for the purpose of latexing.
+
+    EXAMPLES::
+    sage: field, field_values, morphism = number_field_elements_from_algebraics((sqrt(2), sqrt(3)))
+    sage: emb_field = RealNumberField(field.polynomial(), 'a', embedding=morphism(field.gen(0)))
+    sage: hom = field.hom([emb_field.gen(0)])
+    sage: Integer(7)/5 < hom(field_values[0])
+    True
+    sage: hom(field_values[0]) < Integer(3)/2
+    True
+    sage: hom(field_values[0]) < hom(field_values[1])
+    True
+    sage: Integer(3)/2 < hom(field_values[1])
+    True
+    sage: hom(field_values[1]) < 2
+    True
+    """
+
+    def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None,
+                 assume_disc_small=False, maximize_at_primes=None, exact_embedding=None):
+        """
+        Create a real number field.
+        """
+        NumberField_absolute.__init__(self, polynomial, name=name, check=check,
+                                      embedding=embedding, latex_name=latex_name,
+                                      assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
+        self._standard_embedding = True
+        self._element_class = RealNumberFieldElement
+        self._zero_element = self(0)
+        self._one_element =  self(1)
+        self._exact_embedding = self.hom([exact_embedding])
+
+default_precision = 53
+
+default_field = RealNumberField   # can set to SR instead to keep fully symbolic
+
+#@logger
+def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field=None):
+    if field is None:
+        field = default_field
+    symb_values = bkpt + slopes + values
+    is_rational = False
+    try:
+        all_values = [ QQ(x) for x in symb_values ]
+        is_rational = True
+        logging.info("Rational case.")
+    except ValueError:
+        pass
+    except TypeError:
+        pass
+    is_realnumberfield = True
+    for x in symb_values:
+        if type(x) != RealNumberFieldElement:
+            is_realnumberfield = False
+            break
+    if field == RealNumberField and not is_rational and not is_realnumberfield:
+        # Try to make it a RealNumberField:
+        try:
+            all_values = [ AA(x) for x in symb_values ]
+            #global morphism ## just a hack
+            field, field_values, morphism = number_field_elements_from_algebraics(all_values)
+            # print "Field: ", field
+            # print "Coerced into number field"
+            # Now upgrade to a RealNumberField
+            global emb_field
+            exact_generator = morphism(field.gen(0))
+            symbolic_generator = SR(exact_generator)  # does not quite work --> we won't recover our nice symbolic expressions that way
+            emb_generator = RealIntervalField(default_precision)(exact_generator)
+            emb_field = RealNumberField(field.polynomial(), field.variable_name(), \
+                                        embedding=emb_generator, exact_embedding=symbolic_generator)
+            hom = field.hom([emb_field.gen(0)])
+            emb_field_values = map(hom, field_values)
+            # Store symbolic expression
+            for emb, symb in itertools.izip(emb_field_values, symb_values):
+                if symb in SR:
+                    emb._symbolic = symb
+            bkpt, slopes, values = emb_field_values[0:len(bkpt)], emb_field_values[len(bkpt):len(bkpt)+len(slopes)], emb_field_values[-len(values):]
+            logging.info("Coerced into real number field: %s" % emb_field)
+        # except UnimplementedError:
+        #     pass
+        except ValueError:
+            logging.info("Coercion to a real number field failed, keeping it symbolic")
+            pass
+        except TypeError:
+            logging.info("Coercion to a real number field failed, keeping it symbolic")
+            pass
+    intercepts = [ values[i] - slopes[i]*bkpt[i] for i in range(len(slopes)) ]
+    # Make numbers nice
+    ## slopes = [ canonicalize_number(slope) for slope in slopes ]
+    ## intercepts = [ canonicalize_number(intercept) for intercept in intercepts ]
+    #print slopes
+    return FastPiecewise([ [(bkpt[i],bkpt[i+1]), 
+                            fast_linear_function(slopes[i], intercepts[i])] for i in range(len(bkpt)-1) ])
+
+def piecewise_function_from_breakpoints_and_values(bkpt, values, field=None):
     """
     bkpt and values are two parallel lists; assuming bpkt is sorted (increasing).
     Return a function.
@@ -1340,7 +1542,7 @@ def piecewise_function_from_breakpoints_and_values(bkpt, values, field=default_f
     slopes = [ (values[i+1]-values[i])/(bkpt[i+1]-bkpt[i]) for i in range(len(bkpt)-1) ]
     return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field)
 
-def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=default_field):
+def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None):
     """
     bkpt and slopes are two parallel lists (except that bkpt is one element longer).
     The function always has value 0 on bkpt[0].
@@ -1353,7 +1555,7 @@ def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=default_f
         values.append(values[i-1] + slopes[i - 1] * (bkpt[i] - bkpt[i-1]))
     return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field)
 
-def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=default_field):
+def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=None):
     """
     interval_lengths and slopes are two parallel lists.
     The function always has value 0 on 0.
@@ -1541,10 +1743,13 @@ def find_largest_epsilon(fn, perturb):
     return min(abs(minus_epsilon), plus_epsilon)
 
 def canonicalize_number(number):
+    # FIXME: Check if we still need this with our RealNumberField.
     """Make sure that if `number` is a rational number, then it is
     represented as an element of `Rational` (rather than an element of
     `QQbar`, for example).  This will make sure that we do not have
     two mathematically equal numbers with different `hash` values."""
+    if number is AA:
+        number.exactify()
     try:
         return QQ(number)
     except ValueError:
@@ -1668,7 +1873,7 @@ def plot_moves(seed, moves, colors=None):
         midpoint_x = (seed + next_x) / 2
         if move[0] == -1:
             # Reflection
-            bezier_y = y + min(0.03, 0.3 * abs(move[1]/2 - seed))
+            bezier_y = y + min(0.03, 0.3 * float(abs(move[1]/2 - seed)))
             g += arrow(path = [[(seed, y), (midpoint_x, bezier_y), \
                                 (next_x, y)]], \
                        head = 2, \
@@ -1952,13 +2157,13 @@ def generate_moves(fn, intervals=None):
                 #assert intersects[0] and intersects[2]
                 if not (intersects[0] and intersects[2]):
                     logging.warn("generate_moves: Tricky case hit, think harder!")
-                moves.add((1, trip[1][0]))               # Translation
+                moves.add((1, canonicalize_number(trip[1][0])))               # Translation
         elif face_diagonal(trip):
             if intersects[0] or intersects[1]:
                 #assert intersects[0] and intersects[1]
                 if not (intersects[0] and intersects[1]):
                     logging.warn("generate_moves: Tricky case hit, think harder!")
-                moves.add((-1, fractional(trip[2][0])))  # Reflection
+                moves.add((-1, canonicalize_number(fractional(trip[2][0]))))  # Reflection
     moves.remove((1,0))                                  # Remove the trivial translation
     return list(moves)
 
@@ -2089,7 +2294,7 @@ def generate_nonsubadditive_vertices(fn):
     type2 = [ (x,z-x) for x in bkpt for z in bkpt2 if x < z < 1+x and delta_pi(fn, x, z-x) < 0]
     return uniq(type1 + type2)
 
-def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False):
+def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False):
     do_phase_1_lifting = False
     if not minimality_test(fn):
         print "Not minimal, thus not extreme."
@@ -2113,9 +2318,10 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_sty
         return finite_dimensional_extremality_test(fn, show_plots)
     else:
         print "Uncovered intervals: ", uncovered_intervals
-        # First try the finite dimensional one.
-        if not finite_dimensional_extremality_test(fn, show_plots):
-            return False
+        if do_phase_1_lifting or finite_dimensional_test_first:
+            # First try the finite dimensional one.
+            if not finite_dimensional_extremality_test(fn, show_plots):
+                return False
         # Now do the magic.
         moves = generate_moves(fn)
         print "Moves relevant for these intervals: ", moves

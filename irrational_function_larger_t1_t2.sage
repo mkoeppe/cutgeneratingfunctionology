@@ -1,12 +1,12 @@
-from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
-K.<sqrt2> = QuadraticField(2,name='sqrt2')
+#from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
+#K.<sqrt2> = QuadraticField(2,name='sqrt2')
 
 d1 = 3/5
 d3 = 1/10
 f = 4/5
 p = 15/100
 del1 = 4/200
-del2 = 4*sqrt2/200
+del2 = 4*sqrt(2)/200
 
 d2 = f - d1 - d3
 
