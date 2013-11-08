@@ -1,9 +1,5 @@
-#from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
-#K.<sqrt2> = QuadraticField(2,name='sqrt2')
-
-#K = NumberField([x^2 - 2, x^2 - 3]) #### does not work.
-
-### We do calculations in AA (field of algebraic reals)
+### This is an example with possibly infinite reachable orbit...
+### MaximumNumberOfIterationsReached: Reached 1500000 iterations, to do list has still 26 items
 
 d1 = 3/5
 d3 = 1/10
