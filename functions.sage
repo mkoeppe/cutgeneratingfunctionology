@@ -1353,23 +1353,10 @@ from sage.rings.number_field.number_field_element_quadratic import NumberFieldEl
 ###         pass
     
 import sage.rings.number_field.number_field
-from sage.rings.number_field.number_field import NumberField_absolute
+from sage.rings.number_field.number_field import NumberField_absolute, NumberField_quadratic
 
 import sage.rings.number_field.number_field_element
 from sage.rings.number_field.number_field_element import NumberFieldElement_absolute
-
-class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
-    
-    def embedded(self):
-        parent = self.parent()
-        embedding = parent.coerce_embedding()
-        e = embedding(self)
-        return e
-    
-    def __repr__(self):
-        embedded = self.embedded()
-        return 'RNF%s' % embedded
-
 
 class RealNumberFieldElement(NumberFieldElement_absolute):
 
@@ -1498,8 +1485,7 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
         result._embedded = self_e / other_e
         return result
 
-
-class RealNumberField(NumberField_absolute):
+class RealNumberField_absolute(NumberField_absolute):
     """
     A RealNumberField knows its embedding into a RealIntervalField
     and use that for <, > comparisons.
@@ -1533,10 +1519,7 @@ class RealNumberField(NumberField_absolute):
                                       embedding=embedding, latex_name=latex_name,
                                       assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
         self._standard_embedding = True
-        if self.degree() == 2:
-            self._element_class = RealNumberField_quadratic
-        else:
-            self._element_class = RealNumberFieldElement
+        self._element_class = RealNumberFieldElement
         self._zero_element = self(0)
         self._one_element =  self(1)
         self._exact_embedding = self.hom([exact_embedding])
@@ -1545,6 +1528,82 @@ class RealNumberField(NumberField_absolute):
     ##     ## This is so that _symbolic_ works.
     ##     return self._exact_embedding
     ### FIXME: _symbolic_ leads to infinite recursion of LazyWrappers etc.
+
+
+#### Repeat the whole exercise for quadratics... 
+
+from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
+
+class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
+    
+    def embedded(self):
+        parent = self.parent()
+        embedding = parent.coerce_embedding()
+        e = embedding(self)
+        return e
+    
+    def __repr__(self):
+        embedded = self.embedded()
+        return 'RNF%s' % embedded
+
+class RealNumberField_quadratic(NumberField_quadratic):
+    def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None,
+                 assume_disc_small=False, maximize_at_primes=None, exact_embedding=None):
+        """
+        Create a real number field.
+        """
+        #### This is copy/paste from number_field.py, Sage 5.11,
+        #### modified to change the element type.
+        NumberField_absolute.__init__(self, polynomial, name=name, check=check,
+                                      embedding=embedding, latex_name=latex_name,
+                                      assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
+        self._standard_embedding = True
+        self._element_class = RealNumberFieldElement_quadratic
+        c, b, a = [Rational(t) for t in self.defining_polynomial().list()]
+        # set the generator
+        Dpoly = b*b - 4*a*c
+        D = (Dpoly.numer() * Dpoly.denom()).squarefree_part(bound=10000)
+        self._D = D
+        parts = -b/(2*a), (Dpoly/D).sqrt()/(2*a)
+        self._NumberField_generic__gen = self._element_class(self, parts)
+
+        # we must set the flag _standard_embedding *before* any element creation
+        # Note that in the following code, no element is built.
+        emb = self.coerce_embedding()
+        if emb is not None:
+            rootD = RealNumberFieldElement_quadratic(self, (QQ(0),QQ(1)))
+            if D > 0:
+                from sage.rings.real_double import RDF
+                self._standard_embedding = RDF.has_coerce_map_from(self) and RDF(rootD) > 0
+            else:
+                raise DataError, "RealNumberField_quadratic needs a positive discriminant"
+
+        # we reset _NumberField_generic__gen has the flag standard_embedding
+        # might be modified
+        self._NumberField_generic__gen = self._element_class(self, parts)
+
+        # NumberField_absolute.__init__(...) set _zero_element and
+        # _one_element to NumberFieldElement_absolute values, which is
+        # wrong (and dangerous; such elements can actually be used to
+        # crash Sage: see #5316).  Overwrite them with correct values.
+        self._zero_element = self(0)
+        self._one_element =  self(1)
+    
+# The factory.
+
+def RealNumberField(polynomial, name=None, latex_name=None, check=True, embedding=None,
+                    assume_disc_small=False, maximize_at_primes=None, exact_embedding=None):
+    if polynomial.degree() == 2:
+        K = RealNumberField_quadratic(polynomial, name, latex_name, check, embedding,
+                                      assume_disc_small=assume_disc_small, 
+                                      maximize_at_primes=maximize_at_primes, 
+                                      exact_embedding=exact_embedding)
+    else:
+        K = RealNumberField_absolute(polynomial, name, latex_name, check, embedding,
+                                     assume_disc_small=assume_disc_small, 
+                                     maximize_at_primes=maximize_at_primes, 
+                                     exact_embedding=exact_embedding)
+    return K
 
 default_precision = 53
 
@@ -1573,38 +1632,28 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
         # Try to make it a RealNumberField:
         try:
             all_values = [ AA(x) for x in symb_values ]
-            #global morphism ## just a hack
-            #global field_values
-            field, field_values, morphism = number_field_elements_from_algebraics(all_values)
-            #print "Field: ", field
-            # print "Coerced into number field"
+            global number_field, number_field_values, morphism, exact_generator, embedded_field, embedding_field, hom, embedded_field_values
+            number_field, number_field_values, morphism = number_field_elements_from_algebraics(all_values)
             # Now upgrade to a RealNumberField
-            global emb_field
-            exact_generator = morphism(field.gen(0))
-            if field.degree() == 2: 
-                # Special case of quadratic extensions, where 
-                # the standard Sage implementation actually gives a proper real number field. 
-                emb_generator = RR(exact_generator)
-                emb_field = NumberField(field.polynomial(), field.variable_name(), \
-                                        embedding=emb_generator)
-                logging.info("Coerced into real quadratic number field: %s" % emb_field)
+            exact_generator = morphism(number_field.gen(0))
+            # Use our own RealNumberField.
+            symbolic_generator = SR(exact_generator)  # does not quite work --> we won't recover our nice symbolic expressions that way
+            if number_field.polynomial().degree() == 2:
+                embedding_field = RR  # using a RIF leads to strange infinite recursion
             else:
-                # Use our own RealNumberField.
-                symbolic_generator = SR(exact_generator)  # does not quite work --> we won't recover our nice symbolic expressions that way
-                emb_generator = RealIntervalField(default_precision)(exact_generator)
-                emb_field = RealNumberField(field.polynomial(), field.variable_name(), \
-                                            embedding=emb_generator, exact_embedding=symbolic_generator)
-                logging.info("Coerced into real number field: %s" % emb_field)
-            hom = field.hom([emb_field.gen(0)])
-            emb_field_values = map(hom, field_values)
+                embedding_field = RealIntervalField(default_precision)
+            embedded_generator = embedding_field(exact_generator)
+            embedded_field = RealNumberField(number_field.polynomial(), number_field.variable_name(), \
+                                             embedding=embedded_generator, exact_embedding=symbolic_generator)
+            hom = number_field.hom([embedded_field.gen(0)])
+            embedded_field_values = map(hom, number_field_values)
             # Store symbolic expression
-            for emb, symb in itertools.izip(emb_field_values, symb_values):
+            for emb, symb in itertools.izip(embedded_field_values, symb_values):
                 if symb in SR and type(emb) == RealNumberFieldElement:
                     emb._symbolic = symb
             # Transform given data
-            bkpt, slopes, values = emb_field_values[0:len(bkpt)], emb_field_values[len(bkpt):len(bkpt)+len(slopes)], emb_field_values[-len(values):]
-        # except UnimplementedError:
-        #     pass
+            bkpt, slopes, values = embedded_field_values[0:len(bkpt)], embedded_field_values[len(bkpt):len(bkpt)+len(slopes)], embedded_field_values[-len(values):]
+            logging.info("Coerced into real number field: %s" % embedded_field)
         except ValueError:
             logging.info("Coercion to a real number field failed, keeping it symbolic")
             pass
