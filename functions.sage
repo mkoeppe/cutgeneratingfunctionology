@@ -1358,6 +1358,19 @@ from sage.rings.number_field.number_field import NumberField_absolute
 import sage.rings.number_field.number_field_element
 from sage.rings.number_field.number_field_element import NumberFieldElement_absolute
 
+class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
+    
+    def embedded(self):
+        parent = self.parent()
+        embedding = parent.coerce_embedding()
+        e = embedding(self)
+        return e
+    
+    def __repr__(self):
+        embedded = self.embedded()
+        return 'RNF%s' % embedded
+
+
 class RealNumberFieldElement(NumberFieldElement_absolute):
 
     ## def __init__(self, parent, f):
@@ -1471,6 +1484,21 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
         result._embedded = -self_e
         return result
 
+    def _mul_(self, other):
+        result = NumberFieldElement_absolute._mul_(self, other)
+        self_e = self.embedded()
+        other_e = other.embedded()
+        result._embedded = self_e * other_e
+        return result
+        
+    def _div_(self, other):
+        result = NumberFieldElement_absolute._div_(self, other)
+        self_e = self.embedded()
+        other_e = other.embedded()
+        result._embedded = self_e / other_e
+        return result
+
+
 class RealNumberField(NumberField_absolute):
     """
     A RealNumberField knows its embedding into a RealIntervalField
@@ -1505,7 +1533,10 @@ class RealNumberField(NumberField_absolute):
                                       embedding=embedding, latex_name=latex_name,
                                       assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
         self._standard_embedding = True
-        self._element_class = RealNumberFieldElement
+        if self.degree() == 2:
+            self._element_class = RealNumberField_quadratic
+        else:
+            self._element_class = RealNumberFieldElement
         self._zero_element = self(0)
         self._one_element =  self(1)
         self._exact_embedding = self.hom([exact_embedding])
@@ -1543,24 +1574,35 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
         try:
             all_values = [ AA(x) for x in symb_values ]
             #global morphism ## just a hack
+            #global field_values
             field, field_values, morphism = number_field_elements_from_algebraics(all_values)
-            # print "Field: ", field
+            #print "Field: ", field
             # print "Coerced into number field"
             # Now upgrade to a RealNumberField
             global emb_field
             exact_generator = morphism(field.gen(0))
-            symbolic_generator = SR(exact_generator)  # does not quite work --> we won't recover our nice symbolic expressions that way
-            emb_generator = RealIntervalField(default_precision)(exact_generator)
-            emb_field = RealNumberField(field.polynomial(), field.variable_name(), \
-                                        embedding=emb_generator, exact_embedding=symbolic_generator)
+            if field.degree() == 2: 
+                # Special case of quadratic extensions, where 
+                # the standard Sage implementation actually gives a proper real number field. 
+                emb_generator = RR(exact_generator)
+                emb_field = NumberField(field.polynomial(), field.variable_name(), \
+                                        embedding=emb_generator)
+                logging.info("Coerced into real quadratic number field: %s" % emb_field)
+            else:
+                # Use our own RealNumberField.
+                symbolic_generator = SR(exact_generator)  # does not quite work --> we won't recover our nice symbolic expressions that way
+                emb_generator = RealIntervalField(default_precision)(exact_generator)
+                emb_field = RealNumberField(field.polynomial(), field.variable_name(), \
+                                            embedding=emb_generator, exact_embedding=symbolic_generator)
+                logging.info("Coerced into real number field: %s" % emb_field)
             hom = field.hom([emb_field.gen(0)])
             emb_field_values = map(hom, field_values)
             # Store symbolic expression
             for emb, symb in itertools.izip(emb_field_values, symb_values):
-                if symb in SR:
+                if symb in SR and type(emb) == RealNumberFieldElement:
                     emb._symbolic = symb
+            # Transform given data
             bkpt, slopes, values = emb_field_values[0:len(bkpt)], emb_field_values[len(bkpt):len(bkpt)+len(slopes)], emb_field_values[-len(values):]
-            logging.info("Coerced into real number field: %s" % emb_field)
         # except UnimplementedError:
         #     pass
         except ValueError:
@@ -2237,14 +2279,14 @@ def find_generic_seed(fn, max_num_it = 1000):
 class UnimplementedError (Exception):
     pass
 
-def generate_compatible_piecewise_function(components, component_slopes):
+def generate_compatible_piecewise_function(components, component_slopes, field=None):
     intervals_and_slopes = []
     for component, slope in itertools.izip(components, component_slopes):
         intervals_and_slopes.extend([ (interval, slope) for interval in component ])
     intervals_and_slopes.sort()
     bkpt = [ int[0] for int, slope in intervals_and_slopes ] + [1]
     slopes = [ slope for int, slope in intervals_and_slopes ]
-    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes)
+    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
 
 def symbolic_piecewise(function):
     """Return a piecewise function compatible with the given `function`, 
@@ -2263,7 +2305,7 @@ def symbolic_piecewise(function):
     else:
         components = covered_intervals
     slope_vars = list(var([ "slope%s" % (i+1) for i in range(len(components))]))
-    symbolic = generate_compatible_piecewise_function(components, slope_vars)
+    symbolic = generate_compatible_piecewise_function(components, slope_vars, field=SR)
     return symbolic, slope_vars, components
 
 def additivity_equation(symbolic, x, y):
