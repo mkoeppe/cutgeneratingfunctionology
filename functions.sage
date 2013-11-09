@@ -2303,6 +2303,7 @@ def check_perturbation(fn, perturb, show_plots=False, **show_kwds):
 
 def finite_dimensional_extremality_test(function, show_plots=False):
     symbolic, slope_vars, components = symbolic_piecewise(function)
+    ## FIXME: Get rid of maxima-based "solve" in favor of linear algebra code.
     equations = generate_additivity_equations(function, symbolic)
     logging.info("Equations: %s" % equations)
     solutions = solve(equations, slope_vars, solution_dict=True)
