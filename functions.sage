@@ -430,6 +430,8 @@ def plot_2d_diagram(function, show_function = False):
     nonsubadditive_vertices = generate_nonsubadditive_vertices(function)
     p += point(nonsubadditive_vertices, \
                                   color = "red", size = 50)
+    p += point([ (y,x) for (x,y) in nonsubadditive_vertices ], \
+                                  color = "red", size = 50)
     if show_function:
         x = var('x')
         p += parametric_plot((lambda x: x, lambda x: 0.3 * float(function(x)) + 1), \
@@ -1609,10 +1611,28 @@ default_precision = 53
 
 default_field = RealNumberField   # can set to SR instead to keep fully symbolic
 
+def can_coerce_to_QQ(x):
+    try:
+        QQ(x)
+        return True
+    except ValueError:
+        pass
+    except TypeError:
+        pass
+    return False
+
+def is_real_number_field_element(x):
+    try:
+        x.embedded() # FIXME: this is a hack
+        return True
+    except AttributeError:
+        return False
+
 #@logger
 def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field=None):
     if field is None:
         field = default_field
+    global symb_values
     symb_values = bkpt + slopes + values
     is_rational = False
     try:
@@ -1625,7 +1645,7 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
         pass
     is_realnumberfield = True
     for x in symb_values:
-        if type(x) != RealNumberFieldElement:
+        if not is_real_number_field_element(x) and not can_coerce_to_QQ(x):
             is_realnumberfield = False
             break
     if field == RealNumberField and not is_rational and not is_realnumberfield:
@@ -1871,7 +1891,7 @@ class IntervalNode:
     
     def min_max_on_interval(self, c, d):
         ## later we want to bail out earlier based on a given range as well.
-        print "Enter node ", self
+        #print "Enter node ", self
         c = max(self.a, c)
         d = min(self.b, d)
 
@@ -1883,12 +1903,12 @@ class IntervalNode:
         minmax = [None, None]
 
         def update_minmax(small, big):
-            print "update: from ", minmax, "with ", small, big,  
+            #print "update: from ", minmax, "with ", small, big,  
             if small is not None and (minmax[0] is None or small < minmax[0]):
                 minmax[0] = small
             if big is not None and (minmax[1] is None or big > minmax[1]):
                 minmax[1] = big
-            print "to ", minmax 
+            #print "to ", minmax 
 
         fn = self.fn
         if self.end_node:
@@ -1919,7 +1939,7 @@ class IntervalNode:
                 if c < d < self.w:
                     fnd = fn(d)
                     update_minmax(fnd, fnd)
-        print "min_max: ", minmax
+        #print "min_max: ", minmax
         return minmax[0], minmax[1]
 
 def generate_min_max_tree(fn):
@@ -1928,10 +1948,14 @@ def generate_min_max_tree(fn):
 # Branching tree: In two variables.
 
 
+## class BranchNode:
+    
+##     def variable_intervals(self):
+##         return self._variable_intervals
 
+    
 
-
-
+## def branch
 
 
 
@@ -1996,6 +2020,7 @@ def find_epsilon_interval(fn, perturb):
             if a != 0:
                 b = modified_delta_pi(fn, fn_values, bkpt_refinement, i, j) 
                 if b == 0:
+                    logging.info("Zero epsilon encountered for x = %s, y = %s" % (bkpt_refinement[i], bkpt_refinement[j]))
                     return 0, 0 # See docstring
                 epsilon_upper_bound = b/(abs(a))
                 if a > 0:
@@ -2012,6 +2037,7 @@ def find_epsilon_interval(fn, perturb):
                 if a != 0:
                     b = modified_delta_pi2(fn, fn_values, bkpt_refinement2, i, j) 
                     if b == 0:
+                        logging.info("Zero epsilon encountered for x = %s, y = %s" % (bkpt_refinement2[i], bkpt_refinement2[j] - bkpt_refinement2[i]))
                         return 0, 0 # See docstring
                     epsilon_upper_bound = b/(abs(a)) 
                     if a > 0:
@@ -2128,12 +2154,24 @@ def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, intervals=None, 
     logging.info("Breadth-first search to discover the reachable orbit... done")
     return xlist
 
-def plot_walk(walk_dict, **options):
+def plot_walk(walk_dict, color="black", ymin=0, ymax=1, **options):
     #return point([ (x,0) for x in walk_dict.keys()])
     g = Graphics()
     for x in walk_dict.keys():
-        g += line([(x,0), (x,1)], color="black", zorder = -4, **options)
+        g += line([(x,ymin), (x,ymax)], color=color, zorder = -4, **options)
     return g
+
+def plot_shifted_stability_intervals(shifted_stability_intervals, color="cyan", ymin=0, ymax=1, **options):
+    g = Graphics()
+    for i in shifted_stability_intervals:
+        g += polygon2d([(i.a, ymin), (i.b, ymin), (i.b, ymax), (i.a, ymax)], \
+                       color=color, zorder = -5, **options)
+    return g
+
+def plot_walk_with_shifted_stability_intervals(stab_int, walk_dict, color="black", stab_color="cyan", **options):
+    shifted_stability_intervals = generate_shifted_stability_intervals(stab_int, walk_dict)
+    return plot_shifted_stability_intervals(shifted_stability_intervals, color=stab_color, **options) \
+        + plot_walk(walk_dict, color=color, **options)
 
 def plot_intervals(intervals):
     g = Graphics()
@@ -2141,6 +2179,18 @@ def plot_intervals(intervals):
         g += polygon([(interval[0], 0), (interval[1], 0), \
                       (interval[1], 1.0), (interval[0], 1.0)], 
                      color="yellow", zorder = -8)
+    return g
+
+def plot_orbit_comparison(fn, seeds):
+    g = plot_intervals(generate_uncovered_intervals(fn))
+    ymin = 0.5
+    ymax = 1
+    for seed, color in itertools.izip(seeds, rainbow(len(seeds), 'rgbtuple')):
+        ymax -= 0.2
+        ymin -= 0.2
+        stab_color = Color(color).lighter() 
+        stab_int, walk_dict = find_stability_interval_with_deterministic_walk_list(seed, generate_uncovered_intervals(fn), generate_moves(fn), fn)
+        g += plot_walk_with_shifted_stability_intervals(stab_int, walk_dict, stab_color=stab_color, color=color, ymin=ymin, ymax=ymax)
     return g
 
 def plot_moves(seed, moves, colors=None):
@@ -2231,29 +2281,31 @@ def one_step_stability_interval(x, intervals, moves):
                         left_closed = True      
                 else:
                     raise ValueError, "Move not valid: %s" % list(move)
-        # Move was not possible.
-        if move[0] == 1:
-            for interval in intervals:
-                temp = interval[0] - next_x
-                if 0 < temp <= b:
-                    b = temp
-                    right_closed = False
-                temp2 = interval[1] - next_x
-                if a <= temp2 < 0:
-                    a = temp
-                    left_closed = False
-        elif move[0] == -1:
-            for interval in intervals:
-                temp = interval[0] - next_x
-                if 0 < temp <= -a:
-                    a = -temp
-                    left_closed = False
-                temp2 = next_x - interval[1]
-                if 0 < temp2 <= b:
-                    b = temp2
-                    right_closed = False
+                break # next_x can only lie in one interval 
         else:
-            raise ValueError, "Move not valid: %s" % list(move)
+            # Move was not possible.
+            if move[0] == 1:
+                for interval in intervals:
+                    temp = interval[0] - next_x
+                    if 0 < temp <= b:
+                        b = temp
+                        right_closed = False
+                    temp2 = interval[1] - next_x
+                    if a <= temp2 < 0:
+                        a = temp2
+                        left_closed = False
+            elif move[0] == -1:
+                for interval in intervals:
+                    temp = interval[0] - next_x
+                    if 0 < temp <= -a:
+                        a = -temp
+                        left_closed = False
+                    temp2 = next_x - interval[1]
+                    if 0 < temp2 <= b:
+                        b = temp2
+                        right_closed = False
+            else:
+                raise ValueError, "Move not valid: %s" % list(move)
     return closed_or_open_or_halfopen_interval(a, b, left_closed, right_closed)
 
 # def closed_or_open_or_halfopen_interval_intersection(int1,int2):
@@ -2380,7 +2432,7 @@ def find_stability_interval_with_deterministic_walk_list(seed, intervals, moves,
                         right_closed = False
                     temp2 = interval[1] - impossible_next_x
                     if a <= temp2 < 0:
-                        a = temp
+                        a = temp2
                         left_closed = False
             elif move[0] == -1:
                 impossible_next_x = fractional(move[1] - pt)
@@ -2404,19 +2456,28 @@ def find_stability_interval_with_deterministic_walk_list(seed, intervals, moves,
         ## Two intervals of different signs might overlap.
         if sign_1 == 1 and sign_2 == -1:
             if b > half_distance:
-                #print "half_distance wins:", half_distance 
                 b = half_distance
+                logging.info("Making stability intervals disjoint: Reducing right to %s to separate %s and %s" % (b, orbit[i], orbit[i+1]))
                 right_closed = False
         elif sign_1 == -1 and sign_2 == 1:
             if -a > half_distance:
-                #print "half_distance wins:", half_distance 
                 a = -half_distance
+                logging.info("Making stability intervals disjoint: Reducing left to %s to separate %s and %s" % (a, orbit[i], orbit[i+1]))
                 left_closed = False
         else:
             assert(-a + b <= 2 * half_distance)
     return (closed_or_open_or_halfopen_interval(a, b, left_closed, right_closed), deterministic_walk_list)
 
-
+def generate_shifted_stability_intervals(stab_int, walk_list):
+    orbit = sorted(walk_list.keys())
+    intervals = []
+    for i in orbit:
+        sign = walk_list[i][0]
+        if sign == 1:
+            intervals.append(closed_or_open_or_halfopen_interval(stab_int.a + i, stab_int.b + i, stab_int.left_closed, stab_int.right_closed))
+        elif sign == -1:
+            intervals.append(closed_or_open_or_halfopen_interval(i - stab_int.b, i - stab_int.a, stab_int.right_closed, stab_int.left_closed))
+    return intervals
 
 # size has to be a positive integer
 def lattice_plot(A, A0, t1, t2, size):
@@ -2617,6 +2678,9 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_sty
         moves = generate_moves(fn)
         print "Moves relevant for these intervals: ", moves
         seed, stab_int, walk_list = find_generic_seed(fn, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
+        fn._seed = seed
+        fn._stab_int = stab_int
+        fn._walk_list = walk_list
         if show_plots:
             logging.info("Plotting moves and reachable orbit...")
             # FIXME: Visualize stability intervals?
@@ -2677,4 +2741,58 @@ def random_piecewise_function(xgrid, ygrid):
     yvalues = [0] + [ randint(0, ygrid) / ygrid for i in range(1, f) ] + [1] + [ randint(0, ygrid) / ygrid for i in range(f+1, xgrid) ]+ [0]
     return piecewise_function_from_breakpoints_and_values(xvalues, yvalues)
 
+
+def the_irrational_function_t1_t2_t3(d1 = 3/5, d3 = 1/10, f = 4/5, p = 15/100, \
+                                     del1 = 1/200, del2 = 6*sqrt(2)/200, del3 = 1/500):
+
+    d2 = f - d1 - d3
+
+    c2 = 0
+    c3 = -1/(1-f)
+    c1 = (1-d2*c2-d3*c3)/d1
+
+    d12 = d2 / 2
+    d22 = d2 / 2
+
+    d13 = c1 / (c1 - c3) * d12
+    d43 = d13
+    d11 = p - d13
+    d31 = p - d12
+    d51 = d11
+    d41 = (d1 - d11 - d31 - d51)/2
+    d21 = d41
+    d23 = (d3 - d13 - d43)/2
+    d33 = d23
+
+    del13 = c1 * del1 / (c1 - c3)
+    del11 = del1 - del13
+
+    del23 = c1 * del2 / (c1 - c3)
+    del21 = del2 - del23
+
+    del33 = c1 * del3 / (c1 - c3)
+    del31 = del3 - del33
+
+    d21new = d21 - del11 - del21 - del31
+    d41new = d41 - del11 - del21 - del31
+    d23new = d23 - del13 - del23 - del33
+    d33new = d33 - del13 - del23 - del33
+
+    t1 = del1
+    t2 = del1 + del2
+    t3 = del1 + del2 + del3
+
+    a0 = d11+d13
+    a1 = a0 + t1
+    a2 = a0 + t2
+    a3 = a0 + t3
+
+    A = a0+d21+d23
+    A0 = A + d12
+
+    slopes = [c1,c3,c1,c3,c1,c3,c1,c3,c1,c3,c2,c1,c2,c3,c1,c3,c1,c3,c1,c3,c1,c3,c1,c3]
+
+    interval_lengths = [d11,d13,del11,del13,del21,del23,del31, del33, d21new,d23new,d12,d31,d22,d33new,d41new,del33,del31,del23,del21,del13,del11,d43,d51,1-f]
+
+    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes) 
 
