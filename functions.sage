@@ -711,7 +711,10 @@ def interval_minus_union_of_intervals(interval, remove_list):
     [[0, 2], [3, 9]]
     sage: interval_minus_union_of_intervals([0, 10], [[-1, 0], [2, 3]]) 
     [[0, 2], [3, 10]]
+    sage: interval_minus_union_of_intervals([0, 10], [[-1, 0], [2, 3], [9,11], [13, 17]])
+    [[0, 2], [3, 9]]
     """
+    # the last test currently fails!
     bracketed_list = [[interval[0],interval[0]]] + remove_list + [[interval[1],interval[1]]]
     difference = []
     for i in range(len(bracketed_list) - 1):
@@ -2088,7 +2091,7 @@ class MaximumNumberOfIterationsReached(Exception):
 class SignContradiction(Exception):
     pass
 
-def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, intervals=None, error_if_sign_contradiction=False):
+def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, intervals=None, error_if_sign_contradiction=False, error_if_max_num_it_exceeded=True):
     """
     Compute the orbit of a given seed. (Done by a breadth-first search.)
     To avoid infinite computations in the case of a dense orbit,
@@ -2100,6 +2103,8 @@ def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, intervals=None, 
     - keys are elements of the orbit
     - values are lists of the form [walk_sign, predecessor, directed_move_from_predecessor].
 
+    If `error_if_max_num_it_exceeded` is `False`, then 
+    a secondary result is the to_do list.
     """
     ## FIXME: If `fn` is provided, store the dictionary in `fn.walk_dict`
     ## and the to_do list in `fn.walk_to_do`, to allow us to resume
@@ -2147,12 +2152,16 @@ def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, intervals=None, 
                             for pt in xlist.keys():
                                 xlist[pt][0] = 0
         num_it = num_it + 1
-        
-    if num_it == max_num_it:
-        raise MaximumNumberOfIterationsReached, "Reached %d iterations, to do list has still %d items" % (num_it, len(to_do))
- 
-    logging.info("Breadth-first search to discover the reachable orbit... done")
-    return xlist
+
+    if error_if_max_num_it_exceeded:
+        if num_it == max_num_it:
+            raise MaximumNumberOfIterationsReached, "Reached %d iterations, to do list has still %d items" % (num_it, len(to_do))
+        logging.info("Breadth-first search to discover the reachable orbit... done")
+        return xlist
+    else:
+        if num_it == max_num_it:
+            logging.info("Breadth-first search to discover the reachable orbit reached %d iterations, to do list has still %d items" % (num_it, len(to_do)))
+        return xlist, to_do
 
 def plot_walk(walk_dict, color="black", ymin=0, ymax=1, **options):
     #return point([ (x,0) for x in walk_dict.keys()])
@@ -2181,15 +2190,24 @@ def plot_intervals(intervals):
                      color="yellow", zorder = -8)
     return g
 
-def plot_orbit_comparison(fn, seeds):
+def plot_orbit_comparison(fn, orbits):
+    """
+    `orbits` can be a list of:
+    tuples (stab_int, walk_dict)
+    or numbers (seeds)
+    """
     g = plot_intervals(generate_uncovered_intervals(fn))
     ymin = 0.5
     ymax = 1
-    for seed, color in itertools.izip(seeds, rainbow(len(seeds), 'rgbtuple')):
+    for orbit, color in itertools.izip(orbits, rainbow(len(orbits), 'rgbtuple')):
         ymax -= 0.2
         ymin -= 0.2
         stab_color = Color(color).lighter() 
-        stab_int, walk_dict = find_stability_interval_with_deterministic_walk_list(seed, generate_uncovered_intervals(fn), generate_moves(fn), fn)
+        try:
+            stab_int, walk_dict = orbit
+        except TypeError:
+            seed = orbit
+            stab_int, walk_dict = find_stability_interval_with_deterministic_walk_list(seed, generate_uncovered_intervals(fn), generate_moves(fn), fn)
         g += plot_walk_with_shifted_stability_intervals(stab_int, walk_dict, stab_color=stab_color, color=color, ymin=ymin, ymax=ymax)
     return g
 
@@ -2245,11 +2263,13 @@ _closed_or_open_or_halfopen_interval = collections.namedtuple('Interval', ['a', 
 
 class closed_or_open_or_halfopen_interval (_closed_or_open_or_halfopen_interval):
     def __repr__(self):
-        return "<Int" \
-            + ("[" if self.left_closed else "(") \
-            + repr(self.a) + ", " + repr(self.b) \
-            + ("]" if self.right_closed else ")") \
-            + ">"
+        if self.a == self.b and self.left_closed and self.right_closed:
+            r = "{" + repr(self.a) + "}"
+        else:
+            r = ("[" if self.left_closed else "(") \
+                + repr(self.a) + ", " + repr(self.b) \
+                + ("]" if self.right_closed else ")")
+        return "<Int" + r + ">"
 
 def one_step_stability_interval(x, intervals, moves):
     """Returns the stability interval, i.e., an open, half-open, or closed
@@ -2365,7 +2385,7 @@ def iterative_stability_refinement(intervals, moves):
     while (interval_pq):
         priority, int = heappop(interval_pq)
         length = -priority
-        logging.info("%s of length %s " % (int, RR(length)))
+        logging.info("%s of length %s " % (int, float(length)))
         refinement = one_step_stability_refinement(int, intervals, moves)
         logging.debug("  Refinement: %s" % refinement)
         if len(refinement) == 1:
@@ -2382,21 +2402,125 @@ def find_decomposition_into_stability_intervals(fn):
     moves = generate_moves(fn)
     return iterative_stability_refinement(intervals, moves)
 
-def find_stability_interval_with_deterministic_walk_list(seed, intervals, moves, fn, max_num_it = 1000, error_if_sign_contradiction=False):
+def scan_coho_interval_list(interval_list, tag=None):
+    """Generate events of the form `(x, epsilon), delta, tag.`"""
+    for i in interval_list:
+        if len(i) == 2:
+            # old-fashioned closed interval
+            yield (i[0], 0), +1, tag                             # Turn on at left endpoint
+            yield (i[1], 1), -1, tag                             # Turn off at right endpoint plus epsilon
+        else:
+            # coho interval
+            yield (i.a, 0 if i.left_closed else 1), +1, tag
+            yield (i.b, 1 if i.right_closed else 0), -1, tag
+
+## def scan_set_difference(a, b):
+##     """`a` and `b` should be event generators."""
+
+def scan_union_of_coho_interval_minus_union_of_coho_intervals(interval_list, remove_list):
+    # Following uses the lexicographic comparison of the tuples.
+    scan = merge(scan_coho_interval_list(interval_list, True),
+                 scan_coho_interval_list(remove_list, False))
+    interval_indicator = 0
+    remove_indicator = 0
+    on = False
+    for ((x, epsilon), delta, tag) in scan:
+        was_on = on
+        if tag:                                       # interval event
+            interval_indicator += delta
+            assert(interval_indicator) >= 0
+        else:                                           # remove event
+            remove_indicator += delta
+            assert(remove_indicator) >= 0
+        now_on = interval_indicator > 0 and remove_indicator == 0
+        if not was_on and now_on: # switched on
+            yield (x, epsilon), +1, None
+        elif was_on and not now_on: # switched off
+            yield (x, epsilon), -1, None
+        on = now_on
+    # No unbounded intervals:
+    assert interval_indicator == 0
+    assert remove_indicator == 0
+
+def coho_interval_list_from_scan(scan):
+    """Actually returns a generator."""
+    indicator = 0
+    (on_x, on_epsilon) = (None, None)
+    for ((x, epsilon), delta, tag) in scan:
+        was_on = indicator > 0
+        indicator += delta
+        assert indicator >= 0
+        now_on = indicator > 0
+        if not was_on and now_on:                        # switched on
+            (on_x, on_epsilon) = (x, epsilon)
+        elif was_on and not now_on:                     # switched off
+            assert on_x is not None
+            assert on_epsilon >= 0
+            assert epsilon >= 0
+            if (on_x, on_epsilon) < (x, epsilon):
+                yield closed_or_open_or_halfopen_interval(on_x, x,
+                                                          on_epsilon == 0, epsilon > 0)
+            (on_x, on_epsilon) = (None, None)
+    assert indicator == 0
+
+def union_of_coho_interval_minus_union_of_coho_intervals(interval_list, remove_list):
+    """Compute a list of closed/open/half-open intervals that represent
+    the set difference of `interval` and the union of the intervals in
+    `remove_list`.
+
+    Assumes `interval_list' and `remove_list` are both sorted (and
+    each pairwise disjoint), and returns a sorted list.
+
+    EXAMPLES::
+    sage: union_of_coho_interval_minus_union_of_coho_intervals([[0,10]], [[2,2], [3,4]])
+    [<Int[0, 2)>, <Int(2, 3)>, <Int(4, 10]>]
     """
-    Returns the stability interval (an open, half-open, or closed interval)
-    and the deterministic_walk_list.
-    """
+    gen = coho_interval_list_from_scan(scan_union_of_coho_interval_minus_union_of_coho_intervals(interval_list, remove_list))
+    return [ int for int in gen ]
+
+def find_decomposition_into_stability_intervals(fn, show_plots=False, max_num_it=1000):
+    fn._stability_orbits = []
+    uncovered_intervals = generate_uncovered_intervals(fn)
+    intervals = uncovered_intervals
+    moves = generate_moves(fn)
+    orbits = []
+    while intervals:
+        #print "Intervals: ", intervals
+        seed = intervals[0][0] + (intervals[0][1] - intervals[0][0]) / 3
+        print "Seed: ", seed
+        walk_dict, to_do = deterministic_walk(seed, moves, fn, max_num_it = max_num_it, \
+                                              error_if_sign_contradiction=False, 
+                                              error_if_max_num_it_exceeded=False)
+        # When to_do is nonempty, the BFS did not finish.
+        # We compute the stability interval anyway -- it gives an interval of points that ALL have such a long orbit!
+        # But we don't try to make the stability orbits disjoint in this case (this is not well-defined);
+        # instead we count on our scan functions to deal with the "multiset" case properly.
+        make_disjoint = not to_do
+        stab_int = compute_stability_interval(walk_dict, uncovered_intervals, moves, fn, make_disjoint = make_disjoint)
+        orbits.append((stab_int, walk_dict))
+        if show_plots:
+            plot_orbit_comparison(fn, orbits).show(dpi=500)
+        #print "Stability interval: ", stab_int
+        shifted_stability_intervals = generate_shifted_stability_intervals(stab_int, walk_dict)
+        print "Stability orbit: ", shifted_stability_intervals[0], ", ... (length ", len(walk_dict), ")"
+        fn._stability_orbits.append((shifted_stability_intervals, walk_dict, to_do))
+        remaining = union_of_coho_interval_minus_union_of_coho_intervals(intervals, shifted_stability_intervals)
+        intervals = remaining
+        
+    logging.info("Total: %s stability orbits, lengths: %s" \
+                 % (len(fn._stability_orbits), \
+                    [ ("%s+" if to_do else "%s") % len(shifted_stability_intervals) \
+                      for (shifted_stability_intervals, walk_dict, to_do) in fn._stability_orbits ]))
+
+def compute_stability_interval(deterministic_walk_list, intervals, moves, fn, make_disjoint = True):
     ## FIXME: Refactor using above.
     a = -10
     b = 10
     left_closed = True
     right_closed = True
-    deterministic_walk_list = deterministic_walk(seed,moves,fn, max_num_it, \
-                                                 error_if_sign_contradiction=error_if_sign_contradiction)
-    if deterministic_walk_list[seed][0] == 0:
-        return (closed_or_open_or_halfopen_interval(0, 0, True, True), deterministic_walk_list)
     for pt in deterministic_walk_list.keys():
+        if deterministic_walk_list[pt][0] == 0:
+            return closed_or_open_or_halfopen_interval(0, 0, True, True)
         for interval in intervals:
             if element_of_int(pt, interval):
                 if deterministic_walk_list[pt][0] == 1:
@@ -2445,30 +2569,41 @@ def find_stability_interval_with_deterministic_walk_list(seed, intervals, moves,
                     if 0 < temp2 <= b:
                         b = temp2
                         right_closed = False
-    ### Now we make the stability orbit disjoint by looking at adjacent intervals
-    ### and shrinking if necessary.
-    orbit = sorted(deterministic_walk_list.keys())
-    min_midpt_dist = 1
-    for i in range(len(orbit)-1):
-        sign_1 = deterministic_walk_list[orbit[i]][0]
-        sign_2 = deterministic_walk_list[orbit[i+1]][0]
-        half_distance = (orbit[i+1]-orbit[i])/2
-        ## Two intervals of different signs might overlap.
-        if sign_1 == 1 and sign_2 == -1:
-            if b > half_distance:
-                b = half_distance
-                logging.info("Making stability intervals disjoint: Reducing right to %s to separate %s and %s" % (b, orbit[i], orbit[i+1]))
-                right_closed = False
-        elif sign_1 == -1 and sign_2 == 1:
-            if -a > half_distance:
-                a = -half_distance
-                logging.info("Making stability intervals disjoint: Reducing left to %s to separate %s and %s" % (a, orbit[i], orbit[i+1]))
-                left_closed = False
-        else:
-            assert(-a + b <= 2 * half_distance)
-    return (closed_or_open_or_halfopen_interval(a, b, left_closed, right_closed), deterministic_walk_list)
+    if make_disjoint:
+        ### Now we make the stability orbit disjoint by looking at adjacent intervals
+        ### and shrinking if necessary.
+        orbit = sorted(deterministic_walk_list.keys())
+        min_midpt_dist = 1
+        for i in range(len(orbit)-1):
+            sign_1 = deterministic_walk_list[orbit[i]][0]
+            sign_2 = deterministic_walk_list[orbit[i+1]][0]
+            half_distance = (orbit[i+1]-orbit[i])/2
+            ## Two intervals of different signs might overlap.
+            if sign_1 == 1 and sign_2 == -1:
+                if b > half_distance:
+                    b = half_distance
+                    logging.info("Making stability intervals disjoint: Reducing right to %s to separate %s and %s" % (b, orbit[i], orbit[i+1]))
+                    right_closed = False
+            elif sign_1 == -1 and sign_2 == 1:
+                if -a > half_distance:
+                    a = -half_distance
+                    logging.info("Making stability intervals disjoint: Reducing left to %s to separate %s and %s" % (a, orbit[i], orbit[i+1]))
+                    left_closed = False
+            else:
+                assert(-a + b <= 2 * half_distance)
+    return closed_or_open_or_halfopen_interval(a, b, left_closed, right_closed)
+
+def find_stability_interval_with_deterministic_walk_list(seed, intervals, moves, fn, max_num_it = 1000, error_if_sign_contradiction=False):
+    """
+    Returns the stability interval (an open, half-open, or closed interval)
+    and the deterministic_walk_list.
+    """
+    walk_dict = deterministic_walk(seed, moves, fn, max_num_it, \
+                                   error_if_sign_contradiction=error_if_sign_contradiction)
+    return (compute_stability_interval(walk_dict, intervals, moves, fn), walk_dict)
 
 def generate_shifted_stability_intervals(stab_int, walk_list):
+    """The result is sorted."""
     orbit = sorted(walk_list.keys())
     intervals = []
     for i in orbit:
@@ -2477,6 +2612,10 @@ def generate_shifted_stability_intervals(stab_int, walk_list):
             intervals.append(closed_or_open_or_halfopen_interval(stab_int.a + i, stab_int.b + i, stab_int.left_closed, stab_int.right_closed))
         elif sign == -1:
             intervals.append(closed_or_open_or_halfopen_interval(i - stab_int.b, i - stab_int.a, stab_int.right_closed, stab_int.left_closed))
+        elif sign == 0:
+            assert(stab_int.a == -stab_int.b)
+            assert(stab_int.left_closed == stab_int.right_closed)
+            intervals.append(closed_or_open_or_halfopen_interval(stab_int.a + i, stab_int.b + i, stab_int.left_closed, stab_int.right_closed))
     return intervals
 
 # size has to be a positive integer
