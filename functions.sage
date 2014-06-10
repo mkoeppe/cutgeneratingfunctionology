@@ -1631,12 +1631,10 @@ def is_real_number_field_element(x):
     except AttributeError:
         return False
 
-#@logger
-def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field=None):
+def nice_field_values(symb_values, field=None):
     if field is None:
         field = default_field
-    global symb_values
-    symb_values = bkpt + slopes + values
+    field_values = symb_values
     is_rational = False
     try:
         all_values = [ QQ(x) for x in symb_values ]
@@ -1675,7 +1673,7 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
                 if symb in SR and type(emb) == RealNumberFieldElement:
                     emb._symbolic = symb
             # Transform given data
-            bkpt, slopes, values = embedded_field_values[0:len(bkpt)], embedded_field_values[len(bkpt):len(bkpt)+len(slopes)], embedded_field_values[-len(values):]
+            field_values = embedded_field_values
             logging.info("Coerced into real number field: %s" % embedded_field)
         except ValueError:
             logging.info("Coercion to a real number field failed, keeping it symbolic")
@@ -1683,6 +1681,16 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
         except TypeError:
             logging.info("Coercion to a real number field failed, keeping it symbolic")
             pass
+    return field_values
+
+#@logger
+def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field=None):
+    if field is None:
+        field = default_field
+    global symb_values
+    symb_values = bkpt + slopes + values
+    field_values = nice_field_values(symb_values)
+    bkpt, slopes, values = field_values[0:len(bkpt)], field_values[len(bkpt):len(bkpt)+len(slopes)], field_values[-len(values):]
     intercepts = [ values[i] - slopes[i]*bkpt[i] for i in range(len(slopes)) ]
     # Make numbers nice
     ## slopes = [ canonicalize_number(slope) for slope in slopes ]
