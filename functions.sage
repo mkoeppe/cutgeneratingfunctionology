@@ -2190,11 +2190,11 @@ def plot_walk_with_shifted_stability_intervals(stab_int, walk_dict, color="black
     return plot_shifted_stability_intervals(shifted_stability_intervals, color=stab_color, **options) \
         + plot_walk(walk_dict, color=color, **options)
 
-def plot_intervals(intervals):
+def plot_intervals(intervals, ymin=0, ymax=1):
     g = Graphics()
     for interval in intervals:
-        g += polygon([(interval[0], 0), (interval[1], 0), \
-                      (interval[1], 1.0), (interval[0], 1.0)], 
+        g += polygon([(interval[0], ymin), (interval[1], ymin), \
+                      (interval[1], ymax), (interval[0], ymax)], 
                      color="yellow", zorder = -8)
     return g
 
@@ -2219,11 +2219,11 @@ def plot_orbit_comparison(fn, orbits):
         g += plot_walk_with_shifted_stability_intervals(stab_int, walk_dict, stab_color=stab_color, color=color, ymin=ymin, ymax=ymax)
     return g
 
-def plot_moves(seed, moves, colors=None):
+def plot_moves(seed, moves, colors=None, ymin=0, ymax=1):
     if colors == None:
         colors = rainbow(len(moves))
     g = Graphics()
-    g += line([(seed,0), (seed,1)], color="magenta")
+    g += line([(seed,ymin), (seed,ymax)], color="magenta")
     y = 0
     covered_interval = [0,1]
     for move, color in itertools.izip(moves, colors):
