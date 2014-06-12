@@ -1631,24 +1631,45 @@ def is_real_number_field_element(x):
     except AttributeError:
         return False
 
-def nice_field_values(symb_values, field=None):
-    if field is None:
-        field = default_field
-    field_values = symb_values
+def is_all_QQ(values):
     is_rational = False
     try:
-        all_values = [ QQ(x) for x in symb_values ]
+        values = [ QQ(x) for x in values ]
         is_rational = True
-        logging.info("Rational case.")
     except ValueError:
         pass
     except TypeError:
         pass
-    is_realnumberfield = True
-    for x in symb_values:
-        if not is_real_number_field_element(x) and not can_coerce_to_QQ(x):
-            is_realnumberfield = False
-            break
+    return is_rational, values
+
+def is_all_the_same_real_number_field(values):
+    real_number_field_seen = None
+    for x in values:
+        if is_real_number_field_element(x):
+            if real_number_field_seen:
+                if real_number_field_seen != x.parent():
+                    return False, values
+            else:
+                real_number_field_seen = x.parent()
+        elif not can_coerce_to_QQ(x):
+            return False, values
+    if real_number_field_seen:
+        # Coerce any rationals to the number field.
+        return True, [ real_number_field_seen(x) for x in values ]
+    else:
+        return False, values
+
+def nice_field_values(symb_values, field=None):
+    ### Add tests!
+    if field is None:
+        field = default_field
+    is_rational, field_values = is_all_QQ(symb_values)
+    if is_rational:
+        logging.info("Rational case.")
+        return field_values
+    is_realnumberfield, field_values = is_all_the_same_real_number_field(symb_values)
+    if is_realnumberfield:
+        return field_values
     if field == RealNumberField and not is_rational and not is_realnumberfield:
         # Try to make it a RealNumberField:
         try:
@@ -2942,4 +2963,38 @@ def the_irrational_function_t1_t2_t3(d1 = 3/5, d3 = 1/10, f = 4/5, p = 15/100, \
     interval_lengths = [d11,d13,del11,del13,del21,del23,del31, del33, d21new,d23new,d12,d31,d22,d33new,d41new,del33,del31,del23,del21,del13,del11,d43,d51,1-f]
 
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes) 
+
+def is_QQ_linearly_independent(*numbers):
+    """
+    Test if `numbers` are linearly independent over `QQ`.
+
+    EXAMPLES::
+        sage: is_QQ_linearly_independent()
+        True
+        sage: is_QQ_linearly_independent(1)
+        True
+        sage: is_QQ_linearly_independent(0)
+        False
+        sage: is_QQ_linearly_independent(1,2)
+        False
+        sage: is_QQ_linearly_independent(1,sqrt(2))
+        True
+        sage: is_QQ_linearly_independent(1+sqrt(2),sqrt(2),1)
+        False
+    """
+    # trivial cases
+    if len(numbers) == 0:
+        return True
+    elif len(numbers) == 1:
+        return numbers[0] != 0
+    # fast path for rationals
+    all_QQ, numbers = is_all_QQ(numbers)
+    if all_QQ:
+        return False
+    # otherwise try to coerce to common number field
+    numbers = nice_field_values(numbers, RealNumberField)
+    if not is_real_number_field_element(numbers[0]):
+        raise ValueError, "Q-linear independence test only implemented for algebraic numbers"
+    coordinate_matrix = matrix(QQ, [x.parent().0.coordinates_in_terms_of_powers()(x) for x in numbers])
+    return rank(coordinate_matrix) == len(numbers)
 
