@@ -363,6 +363,53 @@ def generate_minimal_triples(function):
 def triples_equal(a, b):
     return interval_equal(a[0], b[0]) and interval_equal(a[1], b[1]) and interval_equal(a[2], b[2])
 
+            
+### Create a new class representing a "face" (which knows its
+### vertices, minimal triple, whether it's a translation/reflection,
+### etc.; whether it's solid or dense).
+
+### FIXME: Refactor some old code using it. 
+        
+class Face:
+    def __init__(self, triple, is_known_to_be_minimal=False):
+        self.vertices = vertices = verts(triple[0], triple[1], triple[2])
+        self.minimal_triple = minimal_triple = projections(vertices)
+        if is_known_to_be_minimal and not triples_equal(minimal_triple, triple):
+            raise ValueError, "Provided triple was not minimal: %s reduces to %s" % (triple, minimal_triple)
+
+    def __repr__(self):
+        return '<Face ' + repr(self.minimal_triple) + '>'
+
+    def plot(self, *args, **kwds):
+        return plot_face(self.minimal_triple, self.vertices, **kwds)
+
+    def is_directed_move(self):
+        return face_1D(self.minimal_triple) or face_0D(self.minimal_triple)
+        
+    def directed_move_with_domain_and_codomain(self):
+        """
+        Maps a horizontal edge to a forward translation,
+        a vertical edge to a backward translation, 
+        a diagonal edge to a reflection.
+        """
+        trip = self.minimal_triple
+        if face_horizontal(trip):
+            return (1, trip[1][0]), trip[0], trip[2]
+        elif face_vertical(trip):
+            return (1, -trip[0][0]), trip[2], trip[1]
+        elif face_diagonal(trip):
+            return (-1, trip[2][0]), trip[0], trip[1]
+        else:
+            raise ValueError, "Face does not correspond to a directed move: %s" % self
+
+    def functional_directed_move(self):
+        directed_move, domain, codomain = self.directed_move_with_domain_and_codomain()
+        return FunctionalDirectedMove([domain], directed_move)
+
+@cached_function
+def generate_maximal_additive_faces(function):
+    return [ Face(trip, is_known_to_be_minimal=True) for trip in generate_minimal_triples(function) ]
+
 def plot_trivial_2d_diagram_with_grid(function, xgrid=None, ygrid=None): 
     """
     Return a plot of the 2d complex with vertices marked that 
@@ -454,9 +501,10 @@ def plot_2d_diagram(function, show_function = False):
     return p
 
 # Assume component is sorted.
-def merge_within_comp(component):   
+def merge_within_comp(component, one_point_overlap_suffices=False):   
     for i in range(len(component)-1):
-        if component[i][1] > component[i+1][0]:
+        if component[i][1] > component[i+1][0]  \
+           or (one_point_overlap_suffices and component[i][1] == component[i+1][0]):
             component[i+1] = [component[i][0],max(component[i][1],component[i+1][1])]
             component[i] = []
     component_new = []
@@ -467,7 +515,7 @@ def merge_within_comp(component):
 
 
 # Assume comp1 and comp2 are sorted.    
-def merge_two_comp(comp1,comp2):
+def merge_two_comp(comp1,comp2, one_point_overlap_suffices=False):
     temp = []
     i = 0
     j = 0
@@ -482,7 +530,7 @@ def merge_two_comp(comp1,comp2):
         temp = temp + comp2[j:len(comp2)]
     else:
         temp = temp + comp1[i:len(comp1)]
-    temp = merge_within_comp(temp)
+    temp = merge_within_comp(temp, one_point_overlap_suffices=one_point_overlap_suffices)
     return temp
             
 
@@ -3027,12 +3075,32 @@ def apply_directed_move_to_interval(interval, directed_move, inverse=False):
 
 ##def minimal_triple_of_directed_move(directed_move, ...):
 
+def interval_to_endpoints(int):
+    """
+    Convert a possibly degenerate interval to a pair (a,b)
+    of its endpoints, suitable for specifying pieces of a `FastPiecewise`.
+
+    EXAMPLES::
+        sage: interval_to_endpoints([1])
+        (1, 1)
+        sage: interval_to_endpoints([1,3])
+        (1, 3)
+    """
+    if len(int) == 0:
+        raise ValueError, "An empty interval does not have a pair representation"
+    elif len(int) == 1:
+        return (int[0], int[0])
+    elif len(int) == 2:
+        return (int[0], int[1])
+    else:
+        raise ValueError, "Not an interval: %s" % int
+
 class FunctionalDirectedMove (FastPiecewise):
     # FIXME: At the moment, does not reduce modulo 1, in contrast to apply_directed_move
 
     def __init__(self, domain_intervals, directed_move):
         function = fast_linear_function(directed_move[0], directed_move[1])
-        pieces = [ [interval, function] for interval in domain_intervals ]
+        pieces = [ [interval_to_endpoints(interval), function] for interval in domain_intervals ]
         FastPiecewise.__init__(self, pieces)
         self.directed_move = directed_move       # needed?
 
@@ -3044,8 +3112,14 @@ class FunctionalDirectedMove (FastPiecewise):
     def range_intervals(self):
         return [ self.apply_to_interval(interval) for interval in self.intervals() ] 
 
+    def is_identity(self):
+        return self.directed_move[0] == 1 and self.directed_move[1] == 0
+
     def minimal_triples(self):
-        # does not output symmetric pairs!
+        """
+        Does not output symmetric pairs!  Rather, maps positive translations to horizontal faces
+        and negative translations to vertical faces.
+        """
         if self.directed_move[0] == 1:                      # translation
             t = self.directed_move[1]
             if t >= 0:
@@ -3057,42 +3131,26 @@ class FunctionalDirectedMove (FastPiecewise):
             return [ (interval, (r - interval[0], r - interval[1]), r) for interval in self.intervals() ]
         else:
             raise ValueError, "Move not valid: %s" % list(move)
-            
-### Create a new class representing a "face" (which knows its
-### vertices, minimal triple, whether it's a translation/reflection,
-### etc.; whether it's solid or dense).
-        
-class Face:
-    def __init__(self, triple, is_known_to_be_minimal=False):
-        self.vertices = vertices = verts(triple[0], triple[1], triple[2])
-        self.minimal_triple = minimal_triple = projections(vertices)
-        if is_known_to_be_minimal and not triples_equal(minimal_triple, triple):
-            raise ValueError, "Provided triple was not minimal: %s reduces to %s" % (triple, minimal_triple)
 
-    def __repr__(self):
-        return '<Face ' + repr(self.minimal_triple) + '>'
+@cached_function
+def generate_functional_directed_moves(fn, intervals=None):
+    # FIXME: Refactor older `moves' code using this function.
+    """
+    Compute the moves (translations and reflections) relevant for the given intervals
+    (default: all uncovered intervals).
+    """
+    if intervals==None:
+        # Default is to generate moves for ALL uncovered intervals
+        intervals = generate_uncovered_intervals(fn)
+    moves = set()
+    for face in generate_maximal_additive_faces(fn):
+        if face.is_directed_move():
+            fdm = face.functional_directed_move()
+            if not fdm.is_identity() and find_interior_intersection(fdm.intervals(), intervals): #FIXME: why interior?
+                moves.add(fdm)
+    return list(moves)
 
-    def plot(self, *args, **kwds):
-        return plot_face(self.minimal_triple, self.vertices, **kwds)
-
-    def is_directed_move(self):
-        return face_1D(self.minimal_triple) or face_0D(self.minimal_triple)
-        
-    def directed_move_with_domain_and_codomain(self):
-        trip = self.minimal_triple
-        if face_horizontal(trip):
-            return (1, trip[1][0]), trip[0], trip[2]
-        elif face_vertical(trip):
-            return (1, -trip[0][0]), trip[2], trip[1]
-        elif face_diagonal(trip):
-            return (-1, trip[2][0]), trip[0], trip[1]
-        else:
-            raise ValueError, "Face does not correspond to a directed move: %s" % self
-
-    def functional_directed_move(self):
-        directed_move, domain, codomain = self.directed_move_with_domain_and_codomain()
-        return FunctionalDirectedMove([domain], directed_move)
-
+    
 def plot_faces(faces, **kwds):
     p = Graphics()
     for f in faces:
@@ -3105,47 +3163,88 @@ def compose_directed_moves(A_move, B_move):
     "`A` after `B`."
     return (A_move[0] * B_move[0], A_move[0] * B_move[1] + A_move[1])
 
-def compose_faces(A, B):   #### makes no sense!
+def interval_list_intersection(interval_list_1, interval_list_2):
     """
-    Compute the face that corresponds to the directed move `A` after `B`.
+    Return a list of the intersections of the intervals
+    in `interval_list_1` and the intervals in `interval_list_2`.
+
+    Assumes the input lists are sorted.
+    The output is sorted.
+
+    EXAMPLES::
+    sage: interval_list_intersection([[2,3]], [[1,2], [3,5]])
+    [[2], [3]]
+    sage: interval_list_intersection([[2,6]], [[1,3], [5,7], [7,9]])
+    [[2, 3], [5, 6]]
+    """
+    overlap = []
+    # FIXME: Should be able to speed up by merging algorithm.
+    for int1 in interval_list_1:
+        for int2 in interval_list_2:
+            overlapped_int = interval_intersection(int1,int2)
+            if len(overlapped_int) >= 1:
+                overlap.append(overlapped_int)
+    return sorted(overlap)
+
+def compose_functional_directed_moves(A, B):
+    """
+    Compute the directed move that corresponds to the directed move `A` after `B`.
     
     EXAMPLES::
-        sage: compose_faces(Face([[5/10,7/10],[2/10],[7/10,9/10]]),Face([[2/10,4/10],[2/10],[4/10,6/10]])).minimal_triple
-        [[3/10, 2/5], [2/5], [7/10, 4/5]]
+        sage: compose_functional_directed_moves(FunctionalDirectedMove([(5/10,7/10)],(1, 2/10)),FunctionalDirectedMove([(2/10,4/10)],(1,2/10)))
+        <FastPiecewise with 1 parts, 
+         (3/10, 2/5)\t<FastLinearFunction x + 2/5>\t values: [7/10, 4/5]>
     """
-    
-    A_trip = A.minimal_triple
-    B_trip = B.minimal_triple
+    result_directed_move = compose_directed_moves(A.directed_move, B.directed_move)
+    A_domain_preimages = [ apply_directed_move_to_interval(A_domain_interval, B.directed_move, inverse=True) \
+                           for A_domain_interval in A.intervals() ]
+    result_domain_intervals = interval_list_intersection(A_domain_preimages, B.intervals())
 
-    if A.is_directed_move() and B.is_directed_move():
+    #print result_domain_intervals
+    if len(result_domain_intervals) > 0:
+        return FunctionalDirectedMove(result_domain_intervals, result_directed_move)
+    else:
+        return None
 
-        A_move, A_domain, A_codomain = A.directed_move_with_domain_and_codomain()
-        B_move, B_domain, B_codomain = B.directed_move_with_domain_and_codomain()
+def merge_functional_directed_moves(A, B):
+    if A.directed_move != B.directed_move:
+        raise ValueError, "Cannot merge, moves have different operations"
+    return FunctionalDirectedMove(merge_two_comp(A.intervals(), B.intervals(), one_point_overlap_suffices=True), \
+                                  A.directed_move)
 
-        result_directed_move = compose_directed_moves(A_move, B_move)
-        A_domain_preimage = apply_directed_move_to_interval(A_domain, B_move, inverse=True)
-        print A_domain_preimage
-        result_domain = interval_intersection(A_domain_preimage, B_domain)
-        print result_domain
-        if len(result_domain) > 0:
-            result_functional_directed_move = FunctionalDirectedMove([result_domain], result_directed_move)
-            result_triples = result_functional_directed_move.minimal_triples()
-            assert len(result_triples) == 1
-            return Face(result_triples[0], is_known_to_be_minimal=True)
-        else:
-            return None
-
-def plot_compose_faces(A, B):
-    C = compose_faces(A, B)
-    p = plot_faces([A], color="green", fill_color="green", legend_label="A")
-    p += plot_faces([B], color="blue", fill_color="blue", legend_label="B")
-    p += plot_faces([C], color="red", fill_color="red", legend_label="C")
+def plot_compose_functional_directed_moves(A, B):
+    C = compose_functional_directed_moves(A, B)
+    p = plot(A, color="green", legend_label="A")
+    p += plot(B, color="blue", legend_label="B")
+    p += plot(C, color="red", legend_label="C = A after B")
     return p
 
-def nontrivial_edges(h):
-    return [ face for face in generate_minimal_triples(h) if face_1D(face) and face[0] != [0] and face[1] != [0]]
+def plot_directed_moves(dmoves):
+    return sum(plot(dm) for dm in dmoves)
 
-## def face_composition_completion(faces):
-##     # Only takes care of the functional case.
-##     face_dict = 
+def functional_directed_move_composition_completion(functional_directed_moves, max_num_rounds=None):
+    # Only takes care of the functional case.
+    move_dict = { fdm.directed_move : fdm for fdm in functional_directed_moves }
+    any_change = True
+    num_rounds = 0
+
+    while any_change and (not max_num_rounds or num_rounds < max_num_rounds):
+        any_change = False
+        critical_pairs = [ (a, b) for a in move_dict.values() for b in move_dict.values() ]
+        for (a, b) in critical_pairs:
+            c = compose_functional_directed_moves(a, b)
+            if c:
+                cdm = c.directed_move
+                if cdm in move_dict:
+                    merged = merge_functional_directed_moves(move_dict[cdm], c)
+                    if merged != move_dict[cdm]:
+                        move_dict[cdm] = merged
+                        any_change = True
+                else:
+                    move_dict[cdm] = c
+                    any_change = True
+        num_rounds += 1
+        show(plot_directed_moves(list(move_dict.values())))
+
+    return list(move_dict.values())
 
