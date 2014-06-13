@@ -395,6 +395,24 @@ def convex_vert_list(vertices):
         center = reduce(operator.add, map(vector, vertices)) / len(vertices)
         return sorted(vertices, cmp = lambda a,b: angle_cmp(a, b, center))
 
+def plot_face(trip, vert):
+    if face_0D(trip):
+        return point((trip[0][0], \
+            trip[1][0]), color = "green", size = 30)
+    elif face_horizontal(trip):
+        return parametric_plot((y,trip[1][0]),\
+                             (y,trip[0][0], trip[0][1]), rgbcolor=(0, 1, 0), thickness=2)
+    elif face_vertical(trip):
+        return parametric_plot((trip[0][0],y),\
+                             (y,trip[1][0], trip[1][1]), rgbcolor=(0, 1, 0), thickness=2)
+    elif face_diagonal(trip):
+        return parametric_plot((lambda y: y, lambda y: trip[2][0]-y),\
+                             (y,trip[0][0],trip[0][1]), rgbcolor=(0, 1, 0), thickness=2)
+    elif face_2D(trip):
+        ## Sorting is necessary for this example:
+        ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/reu-2013/Sage_Function/dey-richard-not-extreme.txt"))
+        return polygon(convex_vert_list(vert), color='mediumspringgreen') 
+
 def plot_2d_diagram(function, show_function = False):
     """
     Return a plot of the 2d complex with shaded faces where delta_pi is 0.        
@@ -409,22 +427,7 @@ def plot_2d_diagram(function, show_function = False):
 
     p = plot_2d_complex(function)
     for trip, vert in itertools.izip(minimal_triples, vert_face_additive):
-        if face_0D(trip):
-            p += point((trip[0][0], \
-                trip[1][0]), color = "green", size = 30)
-        elif face_horizontal(trip):
-            p += parametric_plot((y,trip[1][0]),\
-                                 (y,trip[0][0], trip[0][1]), rgbcolor=(0, 1, 0), thickness=2)
-        elif face_vertical(trip):
-            p += parametric_plot((trip[0][0],y),\
-                                 (y,trip[1][0], trip[1][1]), rgbcolor=(0, 1, 0), thickness=2)
-        elif face_diagonal(trip):
-            p += parametric_plot((lambda y: y, lambda y: trip[2][0]-y),\
-                                 (y,trip[0][0],trip[0][1]), rgbcolor=(0, 1, 0), thickness=2)
-        elif face_2D(trip):
-            ## Sorting is necessary for this example:
-            ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/reu-2013/Sage_Function/dey-richard-not-extreme.txt"))
-            p += polygon(convex_vert_list(vert), color='mediumspringgreen') 
+        p += plot_face(trip, vert)
     ### For non-subadditive functions, show the points where delta_pi
     ### is negative.
     nonsubadditive_vertices = generate_nonsubadditive_vertices(function)
@@ -2997,4 +3000,111 @@ def is_QQ_linearly_independent(*numbers):
         raise ValueError, "Q-linear independence test only implemented for algebraic numbers"
     coordinate_matrix = matrix(QQ, [x.parent().0.coordinates_in_terms_of_powers()(x) for x in numbers])
     return rank(coordinate_matrix) == len(numbers)
+
+def apply_directed_move_to_interval(interval, directed_move, inverse=False):
+    # does not reduce mod 1 currently
+    move_sign = directed_move[0]
+    if move_sign == 1:
+        if inverse:
+            result = (interval[0] - directed_move[1], interval[1] - directed_move[1])
+        else:
+            result = (interval[0] + directed_move[1], interval[1] + directed_move[1])
+    elif move_sign == -1:
+        result = (directed_move[1] - interval[0], directed_move[1] - interval[1])
+    else:
+        raise ValueError, "Move not valid: %s" % list(move)
+    return result
+
+##def minimal_triple_of_directed_move(directed_move, ...):
+
+class FunctionalDirectedMove (FastPiecewise):
+    # FIXME: At the moment, does not reduce modulo 1, in contrast to apply_directed_move
+
+    def __init__(self, domain_intervals, directed_move):
+        function = fast_linear_function(directed_move[0], directed_move[1])
+        pieces = [ [interval, function] for interval in domain_intervals ]
+        FastPiecewise.__init__(self, pieces)
+        self.directed_move = directed_move       # needed?
+
+    def apply_to_interval(self, interval):
+        a = self(interval[0])
+        b = self(interval[1])
+        return (min(a,b), max(a,b)) # this takes care of a possible reflection
+
+    def range_intervals(self):
+        return [ self.apply_to_interval(interval) for interval in self.intervals() ] 
+
+    def minimal_triples(self):
+        # does not output symmetric pairs!
+        if self.directed_move[0] == 1:                      # translation
+            t = self.directed_move[1]
+            if t >= 0:
+                return [ (interval, [t], (interval[0] + t, interval[1] + t)) for interval in self.intervals() ]
+            else:
+                return [ ([-t], (interval[0] - t, interval[1] - t), interval) for interval in self.intervals() ]
+        elif self.directed_move[0] == -1: 
+            r = self.directed_move[1]
+            return [ (interval, (r - interval[0], r - interval[1])) for interval in self.intervals() ]
+        else:
+            raise ValueError, "Move not valid: %s" % list(move)
+            
+### Create a new class representing a "face" (which knows its
+### vertices, minimal triple, whether it's a translation/reflection,
+### etc.; whether it's solid or dense).
+        
+class Face:
+    def __init__(self, triple, is_known_to_be_minimal=False):
+        self.vertices = vertices = verts(triple[0], triple[1], triple[2])
+        self.minimal_triple = minimal_triple = projections(vertices)
+        if is_known_to_be_minimal and minimal_triple != triple:
+            raise ValueError, "Provided triple was not minimal: %s reduces to %s" % (triple, minimal_triple)
+
+    def __repr__(self):
+        return '<Face ' + repr(self.minimal_triple) + '>'
+
+    def plot(self, *args, **kwds):
+        return plot_face(self.minimal_triple, self.vertices)
+
+    def is_directed_move(self):
+        return face_1D(self.minimal_triple) or face_0D(self.minimal_triple)
+        
+    def directed_move_with_domain_and_codomain(self):
+        trip = self.minimal_triple
+        if face_horizontal(trip):
+            return (1, trip[1][0]), trip[0], trip[2]
+        elif face_vertical(trip):
+            return (1, -trip[0][0]), trip[2], trip[1]
+        elif face_diagonal(trip):
+            return (-1, trip[2][0]), trip[0], trip[1]
+        else:
+            raise ValueError, "Face does not correspond to a directed move: %s" % self
+
+    def functional_directed_move(self):
+        directed_move, domain, codomain = self.directed_move_with_domain_and_codomain()
+        return FunctionalDirectedMove([domain], directed_move)
+
+def compose_directed_moves(A_move, B_move):
+    "`A` after `B`."
+    return (A_move[0] * B_move[0], A_move[0] * B_move[1] + A_move[1])
+
+def compose_faces(A, B):
+    """Compute the face that corresponds to the directed move `A` after `B`."""
+    
+    A_trip = A.minimal_triple
+    B_trip = B.minimal_triple
+
+    if A.is_directed_move() and B.is_directed_move():
+
+        A_move, A_domain, A_codomain = A.directed_move_with_domain_and_codomain()
+        B_move, B_domain, B_codomain = B.directed_move_with_domain_and_codomain()
+
+        result_directed_move = compose_directed_moves(A_move, B_move)
+        result_domain = interval_intersection(apply_directed_move_to_interval(A_domain, B_move, inverse=True), B_domain)
+        if len(result_domain) > 0:
+            result_functional_directed_move = FunctionalDirectedMove([result_domain], result_directed_move)
+            result_triples = result_functional_directed_move.minimal_triples()
+            assert len(result_triples) == 1
+            return Face(result_triples[0], is_known_to_be_minimal=True)
+        else:
+            return None
 
