@@ -123,6 +123,13 @@ def interval_empty(interval):
     else:
         return False
 
+def interval_equal(int1, int2):
+    """
+    Determine whether two intervals are equal.
+    (This ignores whether the intervals are represented as tuples or lists.)
+    """
+    return tuple(int1) == tuple(int2)
+
 def element_of_int(x,int):
     """
     Determine whether value `x` is inside the interval `int`.
@@ -353,6 +360,9 @@ def generate_minimal_triples(function):
     logging.info("Computing minimal triples representing maximal additive faces... done")
     return minimal_triples    
 
+def triples_equal(a, b):
+    return interval_equal(a[0], b[0]) and interval_equal(a[1], b[1]) and interval_equal(a[2], b[2])
+
 def plot_trivial_2d_diagram_with_grid(function, xgrid=None, ygrid=None): 
     """
     Return a plot of the 2d complex with vertices marked that 
@@ -395,23 +405,23 @@ def convex_vert_list(vertices):
         center = reduce(operator.add, map(vector, vertices)) / len(vertices)
         return sorted(vertices, cmp = lambda a,b: angle_cmp(a, b, center))
 
-def plot_face(trip, vert):
+def plot_face(trip, vert, rgbcolor=(0,1,0), fill_color="mediumspringgreen", **kwds):
     if face_0D(trip):
         return point((trip[0][0], \
-            trip[1][0]), color = "green", size = 30)
+            trip[1][0]), rgbcolor = rgbcolor, size = 30)
     elif face_horizontal(trip):
         return parametric_plot((y,trip[1][0]),\
-                             (y,trip[0][0], trip[0][1]), rgbcolor=(0, 1, 0), thickness=2)
+                             (y,trip[0][0], trip[0][1]), rgbcolor = rgbcolor, thickness=2)
     elif face_vertical(trip):
         return parametric_plot((trip[0][0],y),\
-                             (y,trip[1][0], trip[1][1]), rgbcolor=(0, 1, 0), thickness=2)
+                             (y,trip[1][0], trip[1][1]), rgbcolor = rgbcolor, thickness=2)
     elif face_diagonal(trip):
         return parametric_plot((lambda y: y, lambda y: trip[2][0]-y),\
-                             (y,trip[0][0],trip[0][1]), rgbcolor=(0, 1, 0), thickness=2)
+                             (y,trip[0][0],trip[0][1]), rgbcolor = rgbcolor, thickness=2)
     elif face_2D(trip):
         ## Sorting is necessary for this example:
         ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/reu-2013/Sage_Function/dey-richard-not-extreme.txt"))
-        return polygon(convex_vert_list(vert), color='mediumspringgreen') 
+        return polygon(convex_vert_list(vert), color=fill_color) 
 
 def plot_2d_diagram(function, show_function = False):
     """
@@ -3041,10 +3051,10 @@ class FunctionalDirectedMove (FastPiecewise):
             if t >= 0:
                 return [ (interval, [t], (interval[0] + t, interval[1] + t)) for interval in self.intervals() ]
             else:
-                return [ ([-t], (interval[0] - t, interval[1] - t), interval) for interval in self.intervals() ]
+                return [ ([-t], (interval[0] + t, interval[1] + t), interval) for interval in self.intervals() ]
         elif self.directed_move[0] == -1: 
             r = self.directed_move[1]
-            return [ (interval, (r - interval[0], r - interval[1])) for interval in self.intervals() ]
+            return [ (interval, (r - interval[0], r - interval[1]), r) for interval in self.intervals() ]
         else:
             raise ValueError, "Move not valid: %s" % list(move)
             
@@ -3056,14 +3066,14 @@ class Face:
     def __init__(self, triple, is_known_to_be_minimal=False):
         self.vertices = vertices = verts(triple[0], triple[1], triple[2])
         self.minimal_triple = minimal_triple = projections(vertices)
-        if is_known_to_be_minimal and minimal_triple != triple:
+        if is_known_to_be_minimal and not triples_equal(minimal_triple, triple):
             raise ValueError, "Provided triple was not minimal: %s reduces to %s" % (triple, minimal_triple)
 
     def __repr__(self):
         return '<Face ' + repr(self.minimal_triple) + '>'
 
     def plot(self, *args, **kwds):
-        return plot_face(self.minimal_triple, self.vertices)
+        return plot_face(self.minimal_triple, self.vertices, **kwds)
 
     def is_directed_move(self):
         return face_1D(self.minimal_triple) or face_0D(self.minimal_triple)
@@ -3083,12 +3093,26 @@ class Face:
         directed_move, domain, codomain = self.directed_move_with_domain_and_codomain()
         return FunctionalDirectedMove([domain], directed_move)
 
+def plot_faces(faces, **kwds):
+    p = Graphics()
+    for f in faces:
+        if type(f) == list or type(f) == tuple: #legacy
+            f = Face(f)
+        p += f.plot(**kwds)
+    return p
+
 def compose_directed_moves(A_move, B_move):
     "`A` after `B`."
     return (A_move[0] * B_move[0], A_move[0] * B_move[1] + A_move[1])
 
-def compose_faces(A, B):
-    """Compute the face that corresponds to the directed move `A` after `B`."""
+def compose_faces(A, B):   #### makes no sense!
+    """
+    Compute the face that corresponds to the directed move `A` after `B`.
+    
+    EXAMPLES::
+        sage: compose_faces(Face([[5/10,7/10],[2/10],[7/10,9/10]]),Face([[2/10,4/10],[2/10],[4/10,6/10]])).minimal_triple
+        [[3/10, 2/5], [2/5], [7/10, 4/5]]
+    """
     
     A_trip = A.minimal_triple
     B_trip = B.minimal_triple
@@ -3099,7 +3123,10 @@ def compose_faces(A, B):
         B_move, B_domain, B_codomain = B.directed_move_with_domain_and_codomain()
 
         result_directed_move = compose_directed_moves(A_move, B_move)
-        result_domain = interval_intersection(apply_directed_move_to_interval(A_domain, B_move, inverse=True), B_domain)
+        A_domain_preimage = apply_directed_move_to_interval(A_domain, B_move, inverse=True)
+        print A_domain_preimage
+        result_domain = interval_intersection(A_domain_preimage, B_domain)
+        print result_domain
         if len(result_domain) > 0:
             result_functional_directed_move = FunctionalDirectedMove([result_domain], result_directed_move)
             result_triples = result_functional_directed_move.minimal_triples()
@@ -3107,4 +3134,18 @@ def compose_faces(A, B):
             return Face(result_triples[0], is_known_to_be_minimal=True)
         else:
             return None
+
+def plot_compose_faces(A, B):
+    C = compose_faces(A, B)
+    p = plot_faces([A], color="green", fill_color="green", legend_label="A")
+    p += plot_faces([B], color="blue", fill_color="blue", legend_label="B")
+    p += plot_faces([C], color="red", fill_color="red", legend_label="C")
+    return p
+
+def nontrivial_edges(h):
+    return [ face for face in generate_minimal_triples(h) if face_1D(face) and face[0] != [0] and face[1] != [0]]
+
+## def face_composition_completion(faces):
+##     # Only takes care of the functional case.
+##     face_dict = 
 
