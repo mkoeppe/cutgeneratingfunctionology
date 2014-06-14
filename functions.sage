@@ -3234,14 +3234,14 @@ def plot_compose_functional_directed_moves(A, B):
     p += plot(C, color="red", legend_label="C = A after B")
     return p
 
-def merge_functional_directed_moves(A, B, show_plot=False):
+def merge_functional_directed_moves(A, B, show_plots=False):
     if A.directed_move != B.directed_move:
         raise ValueError, "Cannot merge, moves have different operations"
     #merge_two_comp(A.intervals(), B.intervals(), one_point_overlap_suffices=True), 
     C = FunctionalDirectedMove(\
                                A.intervals() + B.intervals(),  # constructor takes care of merging
                                A.directed_move)
-    if show_plot:
+    if show_plots:
         p = plot(C, color="cyan", legend_label="C = A merge B", thickness=10)
         p += plot(A, color="green", legend_label="A = %s" % A )
         p += plot(B, color="blue", legend_label="B = %s" % B)
@@ -3251,14 +3251,15 @@ def merge_functional_directed_moves(A, B, show_plot=False):
 def plot_directed_moves(dmoves):
     return sum(plot(dm) for dm in dmoves)
 
-def functional_directed_move_composition_completion(functional_directed_moves, max_num_rounds=None):
+def functional_directed_move_composition_completion(functional_directed_moves, max_num_rounds=None, show_plots=False):
     # Only takes care of the functional case.
     move_dict = { fdm.directed_move : fdm for fdm in functional_directed_moves }
     any_change = True
     num_rounds = 0
 
     while any_change and (not max_num_rounds or num_rounds < max_num_rounds):
-        show(plot_directed_moves(list(move_dict.values())))
+        if show_plots:
+            show(plot_directed_moves(list(move_dict.values())))
         any_change = False
         critical_pairs = [ (a, b) for a in move_dict.values() for b in move_dict.values() ]
         for (a, b) in critical_pairs:
@@ -3266,7 +3267,7 @@ def functional_directed_move_composition_completion(functional_directed_moves, m
             if c:
                 cdm = c.directed_move
                 if cdm in move_dict:
-                    merged = merge_functional_directed_moves(move_dict[cdm], c, show_plot=False)
+                    merged = merge_functional_directed_moves(move_dict[cdm], c, show_plots=False)
                     if merged.end_points() != move_dict[cdm].end_points():
                         # Cannot compare the functions themselves because of the "hash" magic of FastPiecewise.
                         #print "merge: changed from %s to %s" % (move_dict[cdm], merged)
