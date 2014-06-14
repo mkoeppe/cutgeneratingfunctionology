@@ -371,9 +371,14 @@ def triples_equal(a, b):
 ### FIXME: Refactor some old code using it. 
         
 class Face:
-    def __init__(self, triple, is_known_to_be_minimal=False):
-        self.vertices = vertices = verts(triple[0], triple[1], triple[2])
-        self.minimal_triple = minimal_triple = projections(vertices)
+    def __init__(self, triple, vertices=None, is_known_to_be_minimal=False):
+        if not vertices:
+            vertices = verts(triple[0], triple[1], triple[2])
+            if not vertices:
+                raise NotImplementedError, "An empty face. This could mean need to shift triple[2] by (1,1). Not implemented."
+        self.vertices = vertices
+        i, j, k = projections(vertices)
+        self.minimal_triple = minimal_triple = (i, j, interval_mod_1(k))
         if is_known_to_be_minimal and not triples_equal(minimal_triple, triple):
             raise ValueError, "Provided triple was not minimal: %s reduces to %s" % (triple, minimal_triple)
 
@@ -394,21 +399,21 @@ class Face:
         """
         trip = self.minimal_triple
         if face_horizontal(trip):
-            return (1, trip[1][0]), trip[0], trip[2]
+            return (1, trip[1][0]), [trip[0]], [trip[2]]
         elif face_vertical(trip):
-            return (1, -trip[0][0]), trip[2], trip[1]
+            return (1, -trip[0][0]), [trip[2]], [trip[1]]
         elif face_diagonal(trip):
-            return (-1, trip[2][0]), trip[0], trip[1]
+            return (-1, trip[2][0]), [trip[0], trip[1]], [trip[1], trip[0]]
         else:
             raise ValueError, "Face does not correspond to a directed move: %s" % self
 
     def functional_directed_move(self):
         directed_move, domain, codomain = self.directed_move_with_domain_and_codomain()
-        return FunctionalDirectedMove([domain], directed_move)
+        return FunctionalDirectedMove(domain, directed_move)
 
 @cached_function
 def generate_maximal_additive_faces(function):
-    return [ Face(trip, is_known_to_be_minimal=True) for trip in generate_minimal_triples(function) ]
+    return [ Face(trip, vertices=vertices, is_known_to_be_minimal=True) for trip, vertices in itertools.izip(generate_minimal_triples(function),generate_vert_face_additive(function)) ]
 
 def plot_trivial_2d_diagram_with_grid(function, xgrid=None, ygrid=None): 
     """
@@ -691,15 +696,26 @@ def interval_mod_1(interval):
     sage: interval_mod_1([-1/5,0])
     [4/5, 1]        
     """
-    assert interval[0] < interval[1]
-    while interval[0] >= 1:
-        interval[0] = interval[0] - 1
-        interval[1] = interval[1] - 1
-    while interval[1] <= 0:
-        interval[0] = interval[0] + 1
-        interval[1] = interval[1] + 1
-    assert not(interval[0] < 1 and interval[1] > 1) 
-    return interval
+    if len(interval) == 0:
+        return interval
+    elif len(interval) == 1:
+        while interval[0] >= 1:
+            interval[0] -= 1
+        while interval[0] < 0:
+            interval[0] += 1
+        return interval
+    elif len(interval) == 2:
+        assert interval[0] < interval[1]
+        while interval[0] >= 1:
+            interval[0] = interval[0] - 1
+            interval[1] = interval[1] - 1
+        while interval[1] <= 0:
+            interval[0] = interval[0] + 1
+            interval[1] = interval[1] + 1
+        assert not(interval[0] < 1 and interval[1] > 1) 
+        return interval
+    else:
+        raise ValueError, "Not an interval: %s" % interval
 
 @cached_function
 def generate_covered_intervals(function):
@@ -1165,7 +1181,12 @@ class FastPiecewise (PiecewisePolynomial):
                     merged_list_of_pairs.append(((merged_interval_a, merged_interval_b), last_f))
                 last_f = f
                 merged_interval_a = a
-            merged_interval_b = b
+                merged_interval_b = b
+            else:
+                if last_f != None:
+                    merged_interval_b = max(b, merged_interval_b)
+                else:
+                    merged_interval_b = b
         if last_f != None:
             merged_list_of_pairs.append(((merged_interval_a, merged_interval_b), last_f))
             
@@ -3206,18 +3227,26 @@ def compose_functional_directed_moves(A, B):
     else:
         return None
 
-def merge_functional_directed_moves(A, B):
-    if A.directed_move != B.directed_move:
-        raise ValueError, "Cannot merge, moves have different operations"
-    return FunctionalDirectedMove(merge_two_comp(A.intervals(), B.intervals(), one_point_overlap_suffices=True), \
-                                  A.directed_move)
-
 def plot_compose_functional_directed_moves(A, B):
     C = compose_functional_directed_moves(A, B)
     p = plot(A, color="green", legend_label="A")
     p += plot(B, color="blue", legend_label="B")
     p += plot(C, color="red", legend_label="C = A after B")
     return p
+
+def merge_functional_directed_moves(A, B, show_plot=False):
+    if A.directed_move != B.directed_move:
+        raise ValueError, "Cannot merge, moves have different operations"
+    #merge_two_comp(A.intervals(), B.intervals(), one_point_overlap_suffices=True), 
+    C = FunctionalDirectedMove(\
+                               A.intervals() + B.intervals(),  # constructor takes care of merging
+                               A.directed_move)
+    if show_plot:
+        p = plot(C, color="cyan", legend_label="C = A merge B", thickness=10)
+        p += plot(A, color="green", legend_label="A = %s" % A )
+        p += plot(B, color="blue", legend_label="B = %s" % B)
+        show(p)
+    return C
 
 def plot_directed_moves(dmoves):
     return sum(plot(dm) for dm in dmoves)
@@ -3229,6 +3258,7 @@ def functional_directed_move_composition_completion(functional_directed_moves, m
     num_rounds = 0
 
     while any_change and (not max_num_rounds or num_rounds < max_num_rounds):
+        show(plot_directed_moves(list(move_dict.values())))
         any_change = False
         critical_pairs = [ (a, b) for a in move_dict.values() for b in move_dict.values() ]
         for (a, b) in critical_pairs:
@@ -3236,15 +3266,19 @@ def functional_directed_move_composition_completion(functional_directed_moves, m
             if c:
                 cdm = c.directed_move
                 if cdm in move_dict:
-                    merged = merge_functional_directed_moves(move_dict[cdm], c)
-                    if merged != move_dict[cdm]:
+                    merged = merge_functional_directed_moves(move_dict[cdm], c, show_plot=False)
+                    if merged.end_points() != move_dict[cdm].end_points():
+                        # Cannot compare the functions themselves because of the "hash" magic of FastPiecewise.
+                        #print "merge: changed from %s to %s" % (move_dict[cdm], merged)
                         move_dict[cdm] = merged
                         any_change = True
+                    else:
+                        #print "merge: same"
+                        pass
                 else:
                     move_dict[cdm] = c
                     any_change = True
         num_rounds += 1
-        show(plot_directed_moves(list(move_dict.values())))
 
     return list(move_dict.values())
 
