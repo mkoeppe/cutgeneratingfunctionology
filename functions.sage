@@ -54,6 +54,10 @@ def plot_2d_complex(function):
         p += parametric_plot((bkpt[i],y),(y,0,1), color='grey')
     return p
 
+## 
+## A lightweight representation of closed bounded intervals, possibly empty or degenerate.
+##
+
 def interval_sum(int1, int2):
     """
     Return the sum of two intervals.
@@ -159,6 +163,30 @@ def element_of_int(x,int):
         return True
     else:
         return False
+
+def interval_to_endpoints(int):
+    """
+    Convert a possibly degenerate interval to a pair (a,b)
+    of its endpoints, suitable for specifying pieces of a `FastPiecewise`.
+
+    EXAMPLES::
+        sage: interval_to_endpoints([1])
+        (1, 1)
+        sage: interval_to_endpoints([1,3])
+        (1, 3)
+    """
+    if len(int) == 0:
+        raise ValueError, "An empty interval does not have a pair representation"
+    elif len(int) == 1:
+        return (int[0], int[0])
+    elif len(int) == 2:
+        return (int[0], int[1])
+    else:
+        raise ValueError, "Not an interval: %s" % int
+
+##
+##
+##
 
 def projection(vertices,linear_form):
     """
@@ -3104,26 +3132,6 @@ def apply_directed_move_to_interval(interval, directed_move, inverse=False):
     return result
 
 ##def minimal_triple_of_directed_move(directed_move, ...):
-
-def interval_to_endpoints(int):
-    """
-    Convert a possibly degenerate interval to a pair (a,b)
-    of its endpoints, suitable for specifying pieces of a `FastPiecewise`.
-
-    EXAMPLES::
-        sage: interval_to_endpoints([1])
-        (1, 1)
-        sage: interval_to_endpoints([1,3])
-        (1, 3)
-    """
-    if len(int) == 0:
-        raise ValueError, "An empty interval does not have a pair representation"
-    elif len(int) == 1:
-        return (int[0], int[0])
-    elif len(int) == 2:
-        return (int[0], int[1])
-    else:
-        raise ValueError, "Not an interval: %s" % int
 
 class FunctionalDirectedMove (FastPiecewise):
     # FIXME: At the moment, does not reduce modulo 1, in contrast to apply_directed_move
