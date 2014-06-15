@@ -411,6 +411,15 @@ class Face:
         directed_move, domain, codomain = self.directed_move_with_domain_and_codomain()
         return FunctionalDirectedMove(domain, directed_move)
 
+    
+def plot_faces(faces, **kwds):
+    p = Graphics()
+    for f in faces:
+        if type(f) == list or type(f) == tuple: #legacy
+            f = Face(f)
+        p += f.plot(**kwds)
+    return p
+
 @cached_function
 def generate_maximal_additive_faces(function):
     return [ Face(trip, vertices=vertices, is_known_to_be_minimal=True) for trip, vertices in itertools.izip(generate_minimal_triples(function),generate_vert_face_additive(function)) ]
@@ -3170,15 +3179,6 @@ def generate_functional_directed_moves(fn, intervals=None):
             if not fdm.is_identity() and find_interior_intersection(fdm.intervals(), intervals): #FIXME: why interior?
                 moves.add(fdm)
     return list(moves)
-
-    
-def plot_faces(faces, **kwds):
-    p = Graphics()
-    for f in faces:
-        if type(f) == list or type(f) == tuple: #legacy
-            f = Face(f)
-        p += f.plot(**kwds)
-    return p
 
 def compose_directed_moves(A_move, B_move):
     "`A` after `B`."
