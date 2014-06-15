@@ -1228,15 +1228,7 @@ class FastPiecewise (PiecewisePolynomial):
             merged_list_of_pairs.append(((merged_interval_a, merged_interval_b), last_f))
             
         PiecewisePolynomial.__init__(self, merged_list_of_pairs, var)
-        self.update_cache()
 
-    # The following makes this class hashable and thus enables caching
-    # of the above functions; but we must promise not to modify the
-    # contents of the instance.
-    def __hash__(self):
-        return id(self)
-
-    def update_cache(self):
         intervals = self._intervals
         functions = self._functions
         end_points = [ intervals[0][0] ] + [b for a,b in intervals]
@@ -1246,6 +1238,13 @@ class FastPiecewise (PiecewisePolynomial):
             value = functions[i](intervals[i][1])
             values_at_end_points.append(value)
         self._values_at_end_points = values_at_end_points
+
+
+    # The following makes this class hashable and thus enables caching
+    # of the above functions; but we must promise not to modify the
+    # contents of the instance.
+    def __hash__(self):
+        return id(self)
 
     def end_points(self):
         """
@@ -1294,7 +1293,7 @@ class FastPiecewise (PiecewisePolynomial):
             return self._values_at_end_points[i]
         if i == 0:
             raise ValueError,"Value not defined at point %s, outside of domain." % x0
-        if endpts[i-1] < x0 < endpts[i]:
+        if self._intervals[i-1][0] <= x0 < self._intervals[i-1][1]:
             return self.functions()[i-1](x0)
         raise ValueError,"Value not defined at point %s, outside of domain." % x0
 
@@ -1319,7 +1318,7 @@ class FastPiecewise (PiecewisePolynomial):
     __rmul__ = __mul__
 
     ## Following just fixes a bug in the plot method in piecewise.py
-    ## (see doctests below).
+    ## (see doctests below).  Also adds plotting of single points.
     def plot(self, *args, **kwds):
         """
         Returns the plot of self.
@@ -1422,6 +1421,8 @@ class FastPiecewise (PiecewisePolynomial):
                 # piece to the legend separately (trac #12651).
                 if 'legend_label' in kwds:
                     del kwds['legend_label']
+            elif a == b:
+                g += point([a, f(a)])
         return g
 
     def __repr__(self):
@@ -3290,4 +3291,28 @@ def functional_directed_move_composition_completion(functional_directed_moves, m
         num_rounds += 1
 
     return list(move_dict.values())
+
+def apply_functional_directed_moves(functional_directed_moves, seed):
+    """
+    If `functional_directed_moves` is complete under compositions,
+    then this computes the reachable orbit of `seed`, just like
+    `deterministic_walk` would.
+    """
+    #orbit = set()
+    orbit = dict()
+    for fdm in functional_directed_moves:
+        try:
+            #orbit.add(fdm(seed))
+            element = fdm(seed)
+            if element in orbit:
+                orbit[element].append(fdm)
+            else:
+                orbit[element] = [fdm]
+        except ValueError:
+            pass
+    #return sorted(orbit)
+    return orbit
+
+
+        
 
