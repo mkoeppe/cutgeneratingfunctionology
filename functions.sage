@@ -1017,110 +1017,6 @@ def minimality_test(fn, f=None):
             print 'Thus pi is not minimal.'
             return False
 
-def directed_moves_from_moves(moves):
-    directed_moves = []
-    for move in moves:
-        move_sign = move[0]
-        if move_sign == 1:
-            directed_moves.append(move)
-            directed_moves.append([1,-move[1]])
-        elif move_sign == -1:
-            directed_moves.append(move)
-        else:
-            raise ValueError, "Move not valid: %s" % list(move)
-    return directed_moves
-
-def is_directed_move_possible(x, move, fn=None, intervals=None):
-    if fn:
-        move_sign = move[0]
-        if move_sign == 1:
-            if move[1] >= 0:
-                return fn(x) + fn(move[1]) == fn(fractional(x + move[1]))
-            else:
-                return fn(fractional(x + move[1])) + fn(-move[1]) == fn(x)
-        else:
-            return fn(x) + fn(fractional(move[1]-x)) == fn(move[1])
-    elif intervals:
-        next_x = apply_directed_move(x, move)
-        for interval in intervals:
-            if (interval[0] <= next_x <= interval[1]):
-                return True
-        return False
-    else:
-        raise ValueError, "Need either fn or intervals to check if move is possible"
-
-def find_possible_directed_moves(x,moves,fn=None, intervals=None):
-    """Find the directed moves applicable at x.
-    """
-    directed_moves = directed_moves_from_moves(moves)
-    possible_directed_moves = []
-    for directed_move in directed_moves:
-        if is_directed_move_possible(x, directed_move, fn, intervals):
-            possible_directed_moves.append(directed_move)
-    return possible_directed_moves
-
-def find_impossible_directed_moves(x,moves,fn=None, intervals=None):
-    """
-    Find the directed moves NOT applicable at x.
-    """
-    directed_moves = directed_moves_from_moves(moves)
-    impossible_directed_moves = []
-    for directed_move in directed_moves:
-        if not is_directed_move_possible(x, directed_move, fn, intervals):
-            impossible_directed_moves.append(directed_move)
-    return impossible_directed_moves
-
-def random_walk(seed, moves, fn, num_it):
-    """
-    Find the orbit of a seed through a random walk.  It may not find
-    all the possible elements in the orbit (if unlucky).  It may not
-    be very efficient if the size of orbit is small because it will
-    continue to run until the predetermined number of iterations is
-    reached.
-
-    deterministic_walk is preferable in most cases.
-    """
-    import random
-    x = seed
-    xlist = {x:[1,None,None]}
-    walk_sign = 1
-    # points_plot = point((x,0))
-    for i in range(num_it):
-        possible_directed_moves = find_possible_directed_moves(x,moves,fn)
-        move = possible_directed_moves[random.randint(0,len(possible_directed_moves)-1)]
-        move_sign = move[0]
-        directed_move = move
-        
-        if move_sign == 1:
-            next_x = fractional(x + move[1])
-        elif move_sign == -1:
-            next_x = fractional(move[1]-x)
-            
-        next_walk_sign = move_sign * walk_sign
-        if next_x not in xlist:
-            pass
-            # points_plot += point((next_x,0))
-        else:
-            if xlist[next_x][2] != None:
-                x = xlist[next_x][1]
-                directed_move = xlist[next_x][2]
-            if xlist[next_x][0] != next_walk_sign:
-                next_walk_sign = 0
-                print next_x, ","
-                previous = xlist[next_x][1]
-                while previous != next_x and previous != None:
-                    print previous, ","
-                    previous = xlist[previous][1]
-                print next_x, "."
-        # Prep for next
-        xlist[next_x] = [next_walk_sign, x, directed_move] 
-        walk_sign = next_walk_sign
-        x = next_x
-    # show(points_plot + plot(-0.1+x-x, [A,A0]) + plot(-0.1+x-x, [f-A0,f-A])\
-    #     + plot(-0.2+x-x, [A,A+a0], color = "green") + plot(-0.3+x-x, [A,A+a1], color = "green") + \
-    #     plot(-0.4+x-x, [A,A+a2], color = "green"), ymin = -1, ymax = 0)
-    return xlist
-
 global default_field 
 default_field = QQ
 
@@ -2209,6 +2105,215 @@ def find_largest_epsilon(fn, perturb):
     minus_epsilon, plus_epsilon = find_epsilon_interval(fn, perturb)
     return min(abs(minus_epsilon), plus_epsilon)
 
+###
+### Moves
+###
+
+class FunctionalDirectedMove (FastPiecewise):
+    # FIXME: At the moment, does not reduce modulo 1, in contrast to old code!
+
+    def __init__(self, domain_intervals, directed_move):
+        function = fast_linear_function(directed_move[0], directed_move[1])
+        pieces = [ [interval_to_endpoints(interval), function] for interval in domain_intervals ]
+        FastPiecewise.__init__(self, pieces)
+        self.directed_move = directed_move       # needed?
+
+    def sign(self):
+        return self.directed_move[0]
+
+    def __getitem__(self, item):
+        return self.directed_move[item]
+
+    def apply_ignoring_domain(self, x):
+        move_sign = self.sign()
+        if move_sign == 1:
+            next_x = fractional(x + self.directed_move[1])
+        elif move_sign == -1:
+            next_x = fractional(self.directed_move[1]-x)
+        return next_x
+
+    def apply_to_interval(self, interval, inverse=False):
+        # This does not do complete error checking.
+        directed_move = self.directed_move
+        move_sign = directed_move[0]
+        if move_sign == 1:
+            if inverse:
+                result = (interval[0] - directed_move[1], interval[1] - directed_move[1])
+            else:
+                result = (interval[0] + directed_move[1], interval[1] + directed_move[1])
+        elif move_sign == -1:
+            result = (directed_move[1] - interval[0], directed_move[1] - interval[1])
+        else:
+            raise ValueError, "Move not valid: %s" % list(move)
+        return result
+
+    def range_intervals(self):
+        return [ self.apply_to_interval(interval) for interval in self.intervals() ] 
+
+    def is_identity(self):
+        return self.directed_move[0] == 1 and self.directed_move[1] == 0
+
+    def minimal_triples(self): # unused
+        """
+        Does not output symmetric pairs!  Rather, maps positive translations to horizontal faces
+        and negative translations to vertical faces.
+        """
+        if self.directed_move[0] == 1:                      # translation
+            t = self.directed_move[1]
+            if t >= 0:
+                return [ (interval, [t], (interval[0] + t, interval[1] + t)) for interval in self.intervals() ]
+            else:
+                return [ ([-t], (interval[0] + t, interval[1] + t), interval) for interval in self.intervals() ]
+        elif self.directed_move[0] == -1: 
+            r = self.directed_move[1]
+            return [ (interval, (r - interval[0], r - interval[1]), r) for interval in self.intervals() ]
+        else:
+            raise ValueError, "Move not valid: %s" % list(move)
+
+@cached_function
+def generate_functional_directed_moves(fn, intervals=None):
+    """
+    Compute the moves (translations and reflections) relevant for the given intervals
+    (default: all uncovered intervals).
+    """
+    ### FIXME: Do we also have to take care of edges of some
+    ### full-dimensional additive faces sometimes?
+    if intervals==None:
+        # Default is to generate moves for ALL uncovered intervals
+        intervals = generate_uncovered_intervals(fn)
+    moves = set()
+    for face in generate_maximal_additive_faces(fn):
+        if face.is_directed_move():
+            fdm = face.functional_directed_move()
+            if not fdm.is_identity() and find_interior_intersection(fdm.intervals(), intervals): #FIXME: why interior?
+                moves.add(fdm)
+    return list(moves)
+
+def is_directed_move_possible(x, move):
+    try:
+        move(x)
+        return True
+    except ValueError:
+        return False
+
+def find_possible_directed_moves(x,directed_moves):
+    """Find the directed moves applicable at x.
+    """
+    possible_directed_moves = []
+    for directed_move in directed_moves:
+        if is_directed_move_possible(x, directed_move):
+            possible_directed_moves.append(directed_move)
+    return possible_directed_moves
+
+def find_impossible_directed_moves(x,directed_moves):
+    """
+    Find the directed moves NOT applicable at x.
+    """
+    impossible_directed_moves = []
+    for directed_move in directed_moves:
+        if not is_directed_move_possible(x, directed_move):
+            impossible_directed_moves.append(directed_move)
+    return impossible_directed_moves
+
+def apply_directed_move(x, directed_move):
+    return directed_move(x)
+
+def plot_moves(seed, moves, colors=None, ymin=0, ymax=1):
+    if colors == None:
+        colors = rainbow(len(moves))
+    g = Graphics()
+    g += line([(seed,ymin), (seed,ymax)], color="magenta")
+    y = 0
+    covered_interval = [0,1]
+    for move, color in itertools.izip(moves, colors):
+        next_x = move.apply_ignoring_domain(seed)
+        arrow_interval = [min(seed, next_x), max(seed, next_x)]
+        if (len(interval_intersection(covered_interval, arrow_interval)) == 2):
+            y += 0.04
+            covered_interval = arrow_interval
+        else:
+            y += 0.002
+            covered_interval[0] = min(covered_interval[0], arrow_interval[0])
+            covered_interval[1] = max(covered_interval[1], arrow_interval[1])
+        midpoint_x = (seed + next_x) / 2
+        if move[0] == -1:
+            # Reflection
+            bezier_y = y + min(0.03, 0.3 * float(abs(move[1]/2 - seed)))
+            g += arrow(path = [[(seed, y), (midpoint_x, bezier_y), \
+                                (next_x, y)]], \
+                       head = 2, \
+                       # legend_label = "xyzz"
+                       color = color, \
+                       zorder = 7
+            )
+            ## Plot the invariant point somehow?
+            #g += point((move[1]/2, y + 0.03), color=color)
+        elif move[0] == 1:
+            # Translation
+            g += arrow((seed, y), (next_x, y), color=color, zorder = 7)
+        else:
+            raise ValueError, "Bad move: %s" % list(move)
+        g += text("%s" % list(move), (midpoint_x, y), \
+                  vertical_alignment="bottom", \
+                  horizontal_alignment="center", \
+                  color=color, zorder = 7)
+    return g
+
+def plot_possible_and_impossible_directed_moves(seed, directed_moves, fn):
+    colors = [ "blue" if is_directed_move_possible(seed, directed_move) \
+               else "red" for directed_move in directed_moves ]
+    return plot_moves(seed, directed_moves, colors)
+
+
+
+def random_walk(seed, moves, fn, num_it):
+    """
+    Find the orbit of a seed through a random walk.  It may not find
+    all the possible elements in the orbit (if unlucky).  It may not
+    be very efficient if the size of orbit is small because it will
+    continue to run until the predetermined number of iterations is
+    reached.
+
+    deterministic_walk is preferable in most cases.
+    """
+    import random
+    x = seed
+    xlist = {x:[1,None,None]}
+    walk_sign = 1
+    # points_plot = point((x,0))
+    for i in range(num_it):
+        possible_directed_moves = find_possible_directed_moves(x,moves)
+        move = possible_directed_moves[random.randint(0,len(possible_directed_moves)-1)]
+        move_sign = move.sign()
+        directed_move = move
+        
+        next_x = move(x)
+
+        next_walk_sign = move_sign * walk_sign
+        if next_x not in xlist:
+            pass
+            # points_plot += point((next_x,0))
+        else:
+            if xlist[next_x][2] != None:
+                x = xlist[next_x][1]
+                directed_move = xlist[next_x][2]
+            if xlist[next_x][0] != next_walk_sign:
+                next_walk_sign = 0
+                print next_x, ","
+                previous = xlist[next_x][1]
+                while previous != next_x and previous != None:
+                    print previous, ","
+                    previous = xlist[previous][1]
+                print next_x, "."
+        # Prep for next
+        xlist[next_x] = [next_walk_sign, x, directed_move] 
+        walk_sign = next_walk_sign
+        x = next_x
+    # show(points_plot + plot(-0.1+x-x, [A,A0]) + plot(-0.1+x-x, [f-A0,f-A])\
+    #     + plot(-0.2+x-x, [A,A+a0], color = "green") + plot(-0.3+x-x, [A,A+a1], color = "green") + \
+    #     plot(-0.4+x-x, [A,A+a2], color = "green"), ymin = -1, ymax = 0)
+    return xlist
+
 def canonicalize_number(number):
     # FIXME: Check if we still need this with our RealNumberField.
     """Make sure that if `number` is a rational number, then it is
@@ -2225,28 +2330,19 @@ def canonicalize_number(number):
     ##     return number
     return number
 
-def apply_directed_move(x, directed_move):
-    move_sign = directed_move[0]
-    if move_sign == 1:
-        next_x = fractional(x + directed_move[1])
-    elif move_sign == -1:
-        next_x = fractional(directed_move[1]-x)
-    next_x = canonicalize_number(next_x)
-    return next_x
-
 class MaximumNumberOfIterationsReached(Exception):
     pass
 
 class SignContradiction(Exception):
     pass
 
-def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, intervals=None, error_if_sign_contradiction=False, error_if_max_num_it_exceeded=True):
+def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, error_if_sign_contradiction=False, error_if_max_num_it_exceeded=True):
     """
     Compute the orbit of a given seed. (Done by a breadth-first search.)
     To avoid infinite computations in the case of a dense orbit,
     there is a maximum number of iterations (by default, it is 1000).
-    Which moves are allowed is decided by testing the Delta of `fn',
-    or, if that is not provided, by testing whether we stay in `intervals'.    
+
+    The moves know the domains on which they are allowed.
 
     Returns a dictionary:
     - keys are elements of the orbit
@@ -2273,12 +2369,12 @@ def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, intervals=None, 
         if (num_it > 0 and num_it % 100 == 0):
             logging.info("(Iteration %d, to do list has %d items)" % (num_it, len(to_do)))
         x = to_do.pop(0)
-        possible_directed_moves = find_possible_directed_moves(x, moves, fn, intervals)
+        possible_directed_moves = find_possible_directed_moves(x, moves)
         for directed_move in possible_directed_moves:
             walk_sign = xlist[x][0]
-            move_sign = directed_move[0]
+            move_sign = directed_move.sign()
             move_for_next_x = directed_move
-            next_x = apply_directed_move(x, directed_move)
+            next_x = directed_move(x)
             
             next_walk_sign = move_sign * walk_sign
             
@@ -2356,56 +2452,9 @@ def plot_orbit_comparison(fn, orbits):
             stab_int, walk_dict = orbit
         except TypeError:
             seed = orbit
-            stab_int, walk_dict = find_stability_interval_with_deterministic_walk_list(seed, generate_uncovered_intervals(fn), generate_moves(fn), fn)
+            stab_int, walk_dict = find_stability_interval_with_deterministic_walk_list(seed, generate_uncovered_intervals(fn), generate_functional_directed_moves(fn), fn)
         g += plot_walk_with_shifted_stability_intervals(stab_int, walk_dict, stab_color=stab_color, color=color, ymin=ymin, ymax=ymax)
     return g
-
-def plot_moves(seed, moves, colors=None, ymin=0, ymax=1):
-    if colors == None:
-        colors = rainbow(len(moves))
-    g = Graphics()
-    g += line([(seed,ymin), (seed,ymax)], color="magenta")
-    y = 0
-    covered_interval = [0,1]
-    for move, color in itertools.izip(moves, colors):
-        next_x = apply_directed_move(seed, move)
-        arrow_interval = [min(seed, next_x), max(seed, next_x)]
-        if (len(interval_intersection(covered_interval, arrow_interval)) == 2):
-            y += 0.04
-            covered_interval = arrow_interval
-        else:
-            y += 0.002
-            covered_interval[0] = min(covered_interval[0], arrow_interval[0])
-            covered_interval[1] = max(covered_interval[1], arrow_interval[1])
-        midpoint_x = (seed + next_x) / 2
-        if move[0] == -1:
-            # Reflection
-            bezier_y = y + min(0.03, 0.3 * float(abs(move[1]/2 - seed)))
-            g += arrow(path = [[(seed, y), (midpoint_x, bezier_y), \
-                                (next_x, y)]], \
-                       head = 2, \
-                       # legend_label = "xyzz"
-                       color = color, \
-                       zorder = 7
-            )
-            ## Plot the invariant point somehow?
-            #g += point((move[1]/2, y + 0.03), color=color)
-        elif move[0] == 1:
-            # Translation
-            g += arrow((seed, y), (next_x, y), color=color, zorder = 7)
-        else:
-            raise ValueError, "Bad move: %s" % list(move)
-        g += text("%s" % list(move), (midpoint_x, y), \
-                  vertical_alignment="bottom", \
-                  horizontal_alignment="center", \
-                  color=color, zorder = 7)
-    return g
-
-def plot_possible_and_impossible_directed_moves(seed, moves, fn):
-    directed_moves = directed_moves_from_moves(moves)
-    colors = [ "blue" if is_directed_move_possible(seed, directed_move, fn) \
-               else "red" for directed_move in directed_moves ]
-    return plot_moves(seed, directed_moves, colors)
 
 import collections
 _closed_or_open_or_halfopen_interval = collections.namedtuple('Interval', ['a', 'b', 'left_closed', 'right_closed'])
@@ -2429,8 +2478,8 @@ def one_step_stability_interval(x, intervals, moves):
     b = 10
     left_closed = True
     right_closed = True
-    for move in directed_moves_from_moves(moves):
-        next_x = apply_directed_move(x, move)
+    for move in moves:
+        next_x = directed_move(x)
         for interval in intervals:
             if (interval[0] <= next_x <= interval[1]):
                 # Move was possible, so:
@@ -2548,7 +2597,7 @@ def iterative_stability_refinement(intervals, moves):
 def find_decomposition_into_stability_intervals(fn):
     ## experimental.
     intervals = generate_uncovered_intervals(fn)
-    moves = generate_moves(fn)
+    moves = generate_functional_directed_moves(fn)
     return iterative_stability_refinement(intervals, moves)
 
 def scan_coho_interval_list(interval_list, tag=None):
@@ -2631,7 +2680,7 @@ def find_decomposition_into_stability_intervals(fn, show_plots=False, max_num_it
     fn._stability_orbits = []
     uncovered_intervals = generate_uncovered_intervals(fn)
     intervals = uncovered_intervals
-    moves = generate_moves(fn)
+    moves = generate_functional_directed_moves(fn)
     orbits = []
     while intervals:
         #print "Intervals: ", intervals
@@ -2686,7 +2735,7 @@ def compute_stability_interval(deterministic_walk_list, intervals, moves, fn, ma
                     if (interval[1] - pt) < -a:
                         a = pt - interval[1]
                         left_closed = True      
-        impossible_directed_moves = find_impossible_directed_moves(pt, moves, fn)
+        impossible_directed_moves = find_impossible_directed_moves(pt, moves)
         ### We now take the set difference of
         ### the __directed__ moves with the possible directed moves.
         ### This was not done in the old code: --Matthias
@@ -2696,7 +2745,7 @@ def compute_stability_interval(deterministic_walk_list, intervals, moves, fn, ma
         #         impossible_directed_moves.append(move)
         
         for move in impossible_directed_moves:
-            if move[0] == 1:
+            if move.sign() == 1:
                 impossible_next_x = fractional(pt + move[1])
                 for interval in intervals:
                     temp = interval[0] - impossible_next_x
@@ -2707,7 +2756,7 @@ def compute_stability_interval(deterministic_walk_list, intervals, moves, fn, ma
                     if a <= temp2 < 0:
                         a = temp2
                         left_closed = False
-            elif move[0] == -1:
+            elif move.sign() == -1:
                 impossible_next_x = fractional(move[1] - pt)
                 for interval in intervals:
                     temp = interval[0] - impossible_next_x
@@ -2779,38 +2828,11 @@ def lattice_plot(A, A0, t1, t2, size):
 
 # 
 
-@cached_function
-def generate_moves(fn, intervals=None):
-    """
-    Compute the moves (translations and reflections) relevant for the given intervals
-    (default: all uncovered intervals).
-    """
-    if intervals==None:
-        # Default is to generate moves for ALL uncovered intervals
-        intervals = generate_uncovered_intervals(fn)
-    moves = set()
-    for trip in generate_minimal_triples(fn):
-        intersects = [find_interior_intersection([trip[i]], intervals) for i in range(3)]
-        if face_horizontal(trip):
-            if intersects[0] or intersects[2]:
-                #assert intersects[0] and intersects[2]
-                if not (intersects[0] and intersects[2]):
-                    logging.warn("generate_moves: Tricky case hit, think harder!")
-                moves.add((1, canonicalize_number(trip[1][0])))               # Translation
-        elif face_diagonal(trip):
-            if intersects[0] or intersects[1]:
-                #assert intersects[0] and intersects[1]
-                if not (intersects[0] and intersects[1]):
-                    logging.warn("generate_moves: Tricky case hit, think harder!")
-                moves.add((-1, canonicalize_number(fractional(trip[2][0]))))  # Reflection
-    moves.remove((1,0))                                  # Remove the trivial translation
-    return list(moves)
-
 def find_generic_seed(fn, max_num_it = 1000):
     intervals = generate_uncovered_intervals(fn)
     if not intervals:
         raise ValueError, "Need an uncovered interval"
-    moves = generate_moves(fn)
+    moves = generate_functional_directed_moves(fn)
     seed = intervals[0][1]
     while True:
         seed = 2/3 * intervals[0][0] + 1/3 * seed
@@ -2963,7 +2985,7 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_sty
             if not finite_dimensional_extremality_test(fn, show_plots):
                 return False
         # Now do the magic.
-        moves = generate_moves(fn)
+        moves = generate_functional_directed_moves(fn)
         print "Moves relevant for these intervals: ", moves
         seed, stab_int, walk_list = find_generic_seed(fn, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
         fn._seed = seed
@@ -3118,77 +3140,6 @@ def is_QQ_linearly_independent(*numbers):
     coordinate_matrix = matrix(QQ, [x.parent().0.coordinates_in_terms_of_powers()(x) for x in numbers])
     return rank(coordinate_matrix) == len(numbers)
 
-def apply_directed_move_to_interval(interval, directed_move, inverse=False):
-    # does not reduce mod 1 currently
-    move_sign = directed_move[0]
-    if move_sign == 1:
-        if inverse:
-            result = (interval[0] - directed_move[1], interval[1] - directed_move[1])
-        else:
-            result = (interval[0] + directed_move[1], interval[1] + directed_move[1])
-    elif move_sign == -1:
-        result = (directed_move[1] - interval[0], directed_move[1] - interval[1])
-    else:
-        raise ValueError, "Move not valid: %s" % list(move)
-    return result
-
-##def minimal_triple_of_directed_move(directed_move, ...):
-
-class FunctionalDirectedMove (FastPiecewise):
-    # FIXME: At the moment, does not reduce modulo 1, in contrast to apply_directed_move
-
-    def __init__(self, domain_intervals, directed_move):
-        function = fast_linear_function(directed_move[0], directed_move[1])
-        pieces = [ [interval_to_endpoints(interval), function] for interval in domain_intervals ]
-        FastPiecewise.__init__(self, pieces)
-        self.directed_move = directed_move       # needed?
-
-    def apply_to_interval(self, interval):
-        a = self(interval[0])
-        b = self(interval[1])
-        return (min(a,b), max(a,b)) # this takes care of a possible reflection
-
-    def range_intervals(self):
-        return [ self.apply_to_interval(interval) for interval in self.intervals() ] 
-
-    def is_identity(self):
-        return self.directed_move[0] == 1 and self.directed_move[1] == 0
-
-    def minimal_triples(self):
-        """
-        Does not output symmetric pairs!  Rather, maps positive translations to horizontal faces
-        and negative translations to vertical faces.
-        """
-        if self.directed_move[0] == 1:                      # translation
-            t = self.directed_move[1]
-            if t >= 0:
-                return [ (interval, [t], (interval[0] + t, interval[1] + t)) for interval in self.intervals() ]
-            else:
-                return [ ([-t], (interval[0] + t, interval[1] + t), interval) for interval in self.intervals() ]
-        elif self.directed_move[0] == -1: 
-            r = self.directed_move[1]
-            return [ (interval, (r - interval[0], r - interval[1]), r) for interval in self.intervals() ]
-        else:
-            raise ValueError, "Move not valid: %s" % list(move)
-
-@cached_function
-def generate_functional_directed_moves(fn, intervals=None):
-    # FIXME: Refactor older `moves' code using this function.
-    """
-    Compute the moves (translations and reflections) relevant for the given intervals
-    (default: all uncovered intervals).
-    """
-    if intervals==None:
-        # Default is to generate moves for ALL uncovered intervals
-        intervals = generate_uncovered_intervals(fn)
-    moves = set()
-    for face in generate_maximal_additive_faces(fn):
-        if face.is_directed_move():
-            fdm = face.functional_directed_move()
-            if not fdm.is_identity() and find_interior_intersection(fdm.intervals(), intervals): #FIXME: why interior?
-                moves.add(fdm)
-    return list(moves)
-
 def compose_directed_moves(A_move, B_move):
     "`A` after `B`."
     return (A_move[0] * B_move[0], A_move[0] * B_move[1] + A_move[1])
@@ -3226,7 +3177,7 @@ def compose_functional_directed_moves(A, B):
          (3/10, 2/5)\t<FastLinearFunction x + 2/5>\t values: [7/10, 4/5]>
     """
     result_directed_move = compose_directed_moves(A.directed_move, B.directed_move)
-    A_domain_preimages = [ apply_directed_move_to_interval(A_domain_interval, B.directed_move, inverse=True) \
+    A_domain_preimages = [ B.apply_to_interval(A_domain_interval, inverse=True) \
                            for A_domain_interval in A.intervals() ]
     result_domain_intervals = interval_list_intersection(A_domain_preimages, B.intervals())
 
