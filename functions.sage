@@ -2314,22 +2314,6 @@ def random_walk(seed, moves, fn, num_it):
     #     plot(-0.4+x-x, [A,A+a2], color = "green"), ymin = -1, ymax = 0)
     return xlist
 
-def canonicalize_number(number):
-    # FIXME: Check if we still need this with our RealNumberField.
-    """Make sure that if `number` is a rational number, then it is
-    represented as an element of `Rational` (rather than an element of
-    `QQbar`, for example).  This will make sure that we do not have
-    two mathematically equal numbers with different `hash` values."""
-    ## if number is AA:
-    ##     number.exactify()
-    ## try:
-    ##     return QQ(number)
-    ## except ValueError:
-    ##     return number
-    ## except TypeError:
-    ##     return number
-    return number
-
 class MaximumNumberOfIterationsReached(Exception):
     pass
 
@@ -2356,7 +2340,6 @@ def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, error_if_sign_co
     ## an interrupted BFS.  OR: Turn it into an iterator/generator (yield).
 
     logging.info("Breadth-first search to discover the reachable orbit...")
-    seed = canonicalize_number(seed)
     to_do = [seed]
     # xlist is actually a dictionary.
     
@@ -3265,6 +3248,8 @@ def apply_functional_directed_moves(functional_directed_moves, seed):
             pass
     #return sorted(orbit)
     return orbit
+
+
 
 # def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=False, max_num_it=None):
 #     fn._stability_orbits = []
