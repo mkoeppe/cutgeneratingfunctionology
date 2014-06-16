@@ -3315,6 +3315,24 @@ def apply_functional_directed_moves(functional_directed_moves, seed):
     #return sorted(orbit)
     return orbit
 
+# def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=False, max_num_it=None):
+#     fn._stability_orbits = []
+#     uncovered_intervals = generate_uncovered_intervals(fn)
+#     intervals = uncovered_intervals
+#     functional_directed_moves = generate_functional_directed_moves(fn)
+#     completion = functional_directed_move_composition_completion(functional_directed_moves)
+
+#     scans = [ scan_coho_interval_list(fdm.intervals(), fdm) for fdm in functional_directed_moves ]
+#     interval_scan = merge(*scans)
+
+    
+
+#     fn._stability_orbits.append((shifted_stability_intervals, walk_dict, to_do))
+        
+#     logging.info("Total: %s stability orbits, lengths: %s" \
+#                  % (len(fn._stability_orbits), \
+#                     [ ("%s+" if to_do else "%s") % len(shifted_stability_intervals) \
+#                       for (shifted_stability_intervals, walk_dict, to_do) in fn._stability_orbits ]))
 
         
 
