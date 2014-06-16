@@ -3294,6 +3294,8 @@ def functional_directed_move_composition_completion(functional_directed_moves, m
 
 def apply_functional_directed_moves(functional_directed_moves, seed):
     """
+    Return a dictionary whose keys are the reachable orbit of `seed`.
+
     If `functional_directed_moves` is complete under compositions,
     then this computes the reachable orbit of `seed`, just like
     `deterministic_walk` would.
