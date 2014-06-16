@@ -1726,7 +1726,7 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
         field = default_field
     global symb_values
     symb_values = bkpt + slopes + values
-    field_values = nice_field_values(symb_values)
+    field_values = nice_field_values(symb_values, field)
     bkpt, slopes, values = field_values[0:len(bkpt)], field_values[len(bkpt):len(bkpt)+len(slopes)], field_values[-len(values):]
     intercepts = [ values[i] - slopes[i]*bkpt[i] for i in range(len(slopes)) ]
     # Make numbers nice
