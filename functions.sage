@@ -2968,7 +2968,7 @@ def generate_nonsubadditive_vertices(fn):
     type2 = [ (x,z-x) for x in bkpt for z in bkpt2 if x < z < 1+x and delta_pi(fn, x, z-x) < 0]
     return uniq(type1 + type2)
 
-def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False):
+def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True):
     do_phase_1_lifting = False
     if not minimality_test(fn):
         print "Not minimal, thus not extreme."
@@ -2999,7 +2999,10 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_sty
         # Now do the magic.
         moves = generate_functional_directed_moves(fn)
         print "Moves relevant for these intervals: ", moves
-        seed, stab_int, walk_list = find_generic_seed(fn, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
+        if use_new_code:
+            seed, stab_int, walk_list = find_generic_seed_with_completion(fn, show_plots=show_plots, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
+        else:
+            seed, stab_int, walk_list = find_generic_seed(fn, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
         fn._seed = seed
         fn._stab_int = stab_int
         fn._walk_list = walk_list
@@ -3223,13 +3226,14 @@ def merge_functional_directed_moves(A, B, show_plots=False):
 def plot_directed_moves(dmoves):
     return sum(plot(dm) for dm in dmoves)
 
-def functional_directed_move_composition_completion(functional_directed_moves, max_num_rounds=None, show_plots=False):
+def functional_directed_move_composition_completion(functional_directed_moves, max_num_rounds=8, error_if_max_num_rounds_exceeded=True, show_plots=False):
     # Only takes care of the functional case.
     move_dict = { fdm.directed_move : fdm for fdm in functional_directed_moves }
     any_change = True
     num_rounds = 0
 
     while any_change and (not max_num_rounds or num_rounds < max_num_rounds):
+        logging.info("Completing %d directed moves..." % len(move_dict))
         if show_plots:
             show(plot_directed_moves(list(move_dict.values())))
         any_change = False
@@ -3252,6 +3256,13 @@ def functional_directed_move_composition_completion(functional_directed_moves, m
                     move_dict[cdm] = c
                     any_change = True
         num_rounds += 1
+    if max_num_rounds and num_rounds == max_num_rounds:
+        if error_if_max_num_rounds_exceeded:
+            raise MaximumNumberOfIterationsReached, "Reached %d rounds of the completion procedure, found %d directed moves, stopping." % (num_rounds, len(move_dict))
+        else:
+            logging.info("Reached %d rounds of the completion procedure, found %d directed moves, stopping." % (num_rounds, len(move_dict)))
+    else:
+        logging.info("Completion finished.  Found %d directed moves." % len(move_dict))
 
     return list(move_dict.values())
 
@@ -3323,7 +3334,7 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
     uncovered_intervals = generate_uncovered_intervals(fn)
     intervals = uncovered_intervals
     functional_directed_moves = generate_functional_directed_moves(fn)
-    completion = functional_directed_move_composition_completion(functional_directed_moves, max_num_rounds=None)
+    completion = functional_directed_move_composition_completion(functional_directed_moves, show_plots=show_plots)
 
     decomposition = find_decomposition_into_intervals_with_same_moves(completion)
      
@@ -3331,7 +3342,7 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
     
     for (interval, moves) in decomposition:
         if interval not in done_intervals:
-            print interval
+            #print interval
             orbit = set()
             walk_dict = dict()
             seed = (interval.a + interval.b) / 2
@@ -3355,6 +3366,17 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
                  % (len(fn._stability_orbits), \
                     [ ("%s+" if to_do else "%s") % len(shifted_stability_intervals) \
                       for (shifted_stability_intervals, walk_dict, to_do) in fn._stability_orbits ]))
+
+def find_generic_seed_with_completion(fn, show_plots=False, max_num_it=None):
+    # Ugly compatibility interface.
+    find_decomposition_into_stability_intervals_with_completion(fn, show_plots=show_plots)
+    for (orbit, walk_dict, _) in fn._stability_orbits:
+        int = orbit[0]
+        if interval_length(int) > 0:
+            seed = (int.a + int.b) / 2
+            stab_int = closed_or_open_or_halfopen_interval(int.a - seed, int.b - seed, int.left_closed, int.right_closed)
+            return (seed, stab_int, walk_dict)
+    raise ValueError, "No generic seed"
 
 
 
