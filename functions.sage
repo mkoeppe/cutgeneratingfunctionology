@@ -2157,7 +2157,7 @@ class FunctionalDirectedMove (FastPiecewise):
             else:
                 result = (interval[0] + directed_move[1], interval[1] + directed_move[1])
         elif move_sign == -1:
-            result = (directed_move[1] - interval[0], directed_move[1] - interval[1])
+            result = (directed_move[1] - interval[1], directed_move[1] - interval[0])
         else:
             raise ValueError, "Move not valid: %s" % list(move)
         return result
@@ -2174,7 +2174,7 @@ class FunctionalDirectedMove (FastPiecewise):
                 result = closed_or_open_or_halfopen_interval(interval[0] + directed_move[1], interval[1] + directed_move[1], \
                                                              interval.left_closed, interval.right_closed)
         elif move_sign == -1:
-            result = closed_or_open_or_halfopen_interval(directed_move[1] - interval[0], directed_move[1] - interval[1], \
+            result = closed_or_open_or_halfopen_interval(directed_move[1] - interval[1], directed_move[1] - interval[0], \
                                                          interval.right_closed, interval.left_closed)
         else:
             raise ValueError, "Move not valid: %s" % list(move)
@@ -3284,6 +3284,7 @@ def scan_sign_contradiction_point(fdm):
         if fdm.can_apply(invariant_point):
             assert fdm(invariant_point) == invariant_point
         yield ((invariant_point, 0), 0, fdm)
+        yield ((invariant_point, 1), 0, fdm)
 
 def scan_sign_contradiction_points(functional_directed_moves):
      scans = [ scan_sign_contradiction_point(fdm) for fdm in functional_directed_moves ]
@@ -3307,12 +3308,12 @@ def find_decomposition_into_intervals_with_same_moves(functional_directed_moves,
                                                           on_epsilon == 0, epsilon > 0)
                 yield (int, list(moves))
         (on_x, on_epsilon) = (x, epsilon)
-        if delta == 1:  # beginning of interval
+        if delta == 1:                         # beginning of interval
             assert move not in moves
             moves.add(move)
-        elif delta == -1:
+        elif delta == -1:                      # end of interval
             moves.remove(move)
-        elif delta == 0:
+        elif delta == 0:                       # an invariant point
             pass
         else:
             raise ValueError, "Bad scan item"
@@ -3337,6 +3338,7 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
             sign_contradiction = False
             for move in moves:
                 moved_interval = move.apply_to_coho_interval(interval)
+                #print "Applying move %s to %s gives %s." % (move, interval, moved_interval)
                 moved_seed = move(seed)
                 walk_sign = move.sign()
                 done_intervals.add(moved_interval)
