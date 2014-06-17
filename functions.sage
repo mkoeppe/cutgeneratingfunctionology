@@ -2127,6 +2127,13 @@ class FunctionalDirectedMove (FastPiecewise):
     def __getitem__(self, item):
         return self.directed_move[item]
 
+    def can_apply(self, x):
+        try:
+            self(x)
+            return True
+        except ValueError:
+            return False
+
     def apply_ignoring_domain(self, x):
         move_sign = self.sign()
         if move_sign == 1:
@@ -2216,11 +2223,7 @@ def generate_functional_directed_moves(fn, intervals=None):
     return list(moves)
 
 def is_directed_move_possible(x, move):
-    try:
-        move(x)
-        return True
-    except ValueError:
-        return False
+    return move.can_apply(x)
 
 def find_possible_directed_moves(x,directed_moves):
     """Find the directed moves applicable at x.
@@ -3275,12 +3278,26 @@ def apply_functional_directed_moves(functional_directed_moves, seed):
     #return sorted(orbit)
     return orbit
 
+def scan_sign_contradiction_point(fdm):
+    if fdm.sign() == -1:
+        invariant_point = fdm[1] / 2
+        if fdm.can_apply(invariant_point):
+            assert fdm(invariant_point) == invariant_point
+        yield ((invariant_point, 0), 0, fdm)
+
+def scan_sign_contradiction_points(functional_directed_moves):
+     scans = [ scan_sign_contradiction_point(fdm) for fdm in functional_directed_moves ]
+     return merge(*scans)
+
 def scan_domains_of_moves(functional_directed_moves):
      scans = [ scan_coho_interval_list(fdm.intervals(), fdm) for fdm in functional_directed_moves ]
      return merge(*scans)
 
-def find_decomposition_into_intervals_with_same_moves(functional_directed_moves):
+def find_decomposition_into_intervals_with_same_moves(functional_directed_moves, separate_by_sign_contradiction=True):
     scan = scan_domains_of_moves(functional_directed_moves)
+    if separate_by_sign_contradiction:
+        scan = merge(scan, \
+                     scan_sign_contradiction_points(functional_directed_moves))
     moves = set()
     (on_x, on_epsilon) = (None, None)
     for ((x, epsilon), delta, move) in scan:
@@ -3295,11 +3312,12 @@ def find_decomposition_into_intervals_with_same_moves(functional_directed_moves)
             moves.add(move)
         elif delta == -1:
             moves.remove(move)
+        elif delta == 0:
+            pass
         else:
             raise ValueError, "Bad scan item"
 
 def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=False, max_num_it=None):
-    # This currently lacks the "make-disjoint" code, so it computes a different result.
     fn._stability_orbits = []
     uncovered_intervals = generate_uncovered_intervals(fn)
     intervals = uncovered_intervals
