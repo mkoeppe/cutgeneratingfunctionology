@@ -2118,6 +2118,9 @@ class FunctionalDirectedMove (FastPiecewise):
         FastPiecewise.__init__(self, pieces)
         self.directed_move = directed_move       # needed?
 
+    def __repr__(self):
+        return "<FunctionalDirectedMove %s with domain %s>" % (self.directed_move, self.intervals())
+
     def sign(self):
         return self.directed_move[0]
 
@@ -2133,7 +2136,12 @@ class FunctionalDirectedMove (FastPiecewise):
         return next_x
 
     def apply_to_interval(self, interval, inverse=False):
-        # This does not do complete error checking.
+        # FIXME: Interval has to be a pair (a, b). This is only
+        # compatible with intervals as used in FastPiecewise, but
+        # nothing else in our code. 
+        #
+        # FIXME: This does not do complete
+        # error checking.
         directed_move = self.directed_move
         move_sign = directed_move[0]
         if move_sign == 1:
@@ -2143,6 +2151,24 @@ class FunctionalDirectedMove (FastPiecewise):
                 result = (interval[0] + directed_move[1], interval[1] + directed_move[1])
         elif move_sign == -1:
             result = (directed_move[1] - interval[0], directed_move[1] - interval[1])
+        else:
+            raise ValueError, "Move not valid: %s" % list(move)
+        return result
+
+    def apply_to_coho_interval(self, interval, inverse=False):
+        # This does not do complete error checking.
+        directed_move = self.directed_move
+        move_sign = directed_move[0]
+        if move_sign == 1:
+            if inverse:
+                result = closed_or_open_or_halfopen_interval(interval[0] - directed_move[1], interval[1] - directed_move[1], \
+                                                             interval.left_closed, interval.right_closed)
+            else:
+                result = closed_or_open_or_halfopen_interval(interval[0] + directed_move[1], interval[1] + directed_move[1], \
+                                                             interval.left_closed, interval.right_closed)
+        elif move_sign == -1:
+            result = closed_or_open_or_halfopen_interval(directed_move[1] - interval[0], directed_move[1] - interval[1], \
+                                                         interval.right_closed, interval.left_closed)
         else:
             raise ValueError, "Move not valid: %s" % list(move)
         return result
@@ -3249,26 +3275,66 @@ def apply_functional_directed_moves(functional_directed_moves, seed):
     #return sorted(orbit)
     return orbit
 
+def scan_domains_of_moves(functional_directed_moves):
+     scans = [ scan_coho_interval_list(fdm.intervals(), fdm) for fdm in functional_directed_moves ]
+     return merge(*scans)
 
+def find_decomposition_into_intervals_with_same_moves(functional_directed_moves):
+    scan = scan_domains_of_moves(functional_directed_moves)
+    moves = set()
+    (on_x, on_epsilon) = (None, None)
+    for ((x, epsilon), delta, move) in scan:
+        if on_x and (on_x, on_epsilon) < (x, epsilon):
+            if moves:
+                int = closed_or_open_or_halfopen_interval(on_x, x,
+                                                          on_epsilon == 0, epsilon > 0)
+                yield (int, list(moves))
+        (on_x, on_epsilon) = (x, epsilon)
+        if delta == 1:  # beginning of interval
+            assert move not in moves
+            moves.add(move)
+        elif delta == -1:
+            moves.remove(move)
+        else:
+            raise ValueError, "Bad scan item"
 
-# def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=False, max_num_it=None):
-#     fn._stability_orbits = []
-#     uncovered_intervals = generate_uncovered_intervals(fn)
-#     intervals = uncovered_intervals
-#     functional_directed_moves = generate_functional_directed_moves(fn)
-#     completion = functional_directed_move_composition_completion(functional_directed_moves)
+def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=False, max_num_it=None):
+    # This currently lacks the "make-disjoint" code, so it computes a different result.
+    fn._stability_orbits = []
+    uncovered_intervals = generate_uncovered_intervals(fn)
+    intervals = uncovered_intervals
+    functional_directed_moves = generate_functional_directed_moves(fn)
+    completion = functional_directed_move_composition_completion(functional_directed_moves, max_num_rounds=None)
 
-#     scans = [ scan_coho_interval_list(fdm.intervals(), fdm) for fdm in functional_directed_moves ]
-#     interval_scan = merge(*scans)
-
+    decomposition = find_decomposition_into_intervals_with_same_moves(completion)
+     
+    done_intervals = set()
     
+    for (interval, moves) in decomposition:
+        if interval not in done_intervals:
+            print interval
+            orbit = set()
+            walk_dict = dict()
+            seed = (interval.a + interval.b) / 2
+            sign_contradiction = False
+            for move in moves:
+                moved_interval = move.apply_to_coho_interval(interval)
+                moved_seed = move(seed)
+                walk_sign = move.sign()
+                done_intervals.add(moved_interval)
+                orbit.add(moved_interval)
+                if moved_seed in walk_dict and walk_dict[moved_seed][0] != walk_sign:
+                    sign_contradiction = True
+                walk_dict[moved_seed] = [walk_sign, None, None] 
+            if sign_contradiction:
+                for y in walk_dict.values():
+                    y[0] = 0
+            stability_orbit = (list(orbit), walk_dict, None)
+            fn._stability_orbits.append(stability_orbit)
+    logging.info("Total: %s stability orbits, lengths: %s" \
+                 % (len(fn._stability_orbits), \
+                    [ ("%s+" if to_do else "%s") % len(shifted_stability_intervals) \
+                      for (shifted_stability_intervals, walk_dict, to_do) in fn._stability_orbits ]))
 
-#     fn._stability_orbits.append((shifted_stability_intervals, walk_dict, to_do))
-        
-#     logging.info("Total: %s stability orbits, lengths: %s" \
-#                  % (len(fn._stability_orbits), \
-#                     [ ("%s+" if to_do else "%s") % len(shifted_stability_intervals) \
-#                       for (shifted_stability_intervals, walk_dict, to_do) in fn._stability_orbits ]))
 
-        
 
