@@ -184,6 +184,9 @@ def interval_to_endpoints(int):
     else:
         raise ValueError, "Not an interval: %s" % int
 
+def interval_contained_in_interval(I, J):
+    return J[0] <= I[0] and I[1] <= J[1]
+
 ##
 ##
 ##
@@ -3229,18 +3232,27 @@ def plot_directed_moves(dmoves):
 def functional_directed_move_composition_completion(functional_directed_moves, max_num_rounds=8, error_if_max_num_rounds_exceeded=True, show_plots=False):
     # Only takes care of the functional case.
     move_dict = { fdm.directed_move : fdm for fdm in functional_directed_moves }
+    dense_moves = set()
     any_change = True
     num_rounds = 0
 
     while any_change and (not max_num_rounds or num_rounds < max_num_rounds):
         if show_plots:
             logging.info("Plotting...")
-            show(plot_directed_moves(list(move_dict.values())))
+            show(plot_directed_moves(list(dense_moves) + list(move_dict.values())))
             logging.info("Plotting... done")
         logging.info("Completing %d directed moves..." % len(move_dict))
         any_change = False
         critical_pairs = [ (a, b) for a in move_dict.values() for b in move_dict.values() ]
         for (a, b) in critical_pairs:
+            ## FIXME: Also need to combine dense moves and functional moves.
+            d = check_for_dense_move(a, b)
+            if d and not is_move_dominated_by_dense_moves(d, dense_moves):
+                logging.info("New dense move: %s" % d)
+                dense_moves.add(d)
+                for key, move in move_dict.items():
+                    if is_move_dominated_by_dense_moves(move, dense_moves):
+                        move_dict.pop(key)                  # actually not allowed in Python
             c = compose_functional_directed_moves(a, b)
             if c:
                 cdm = c.directed_move
@@ -3254,6 +3266,8 @@ def functional_directed_move_composition_completion(functional_directed_moves, m
                     else:
                         #print "merge: same"
                         pass
+                elif is_move_dominated_by_dense_moves(c, dense_moves):
+                    pass
                 else:
                     move_dict[cdm] = c
                     any_change = True
@@ -3380,5 +3394,58 @@ def find_generic_seed_with_completion(fn, show_plots=False, max_num_it=None):
             return (seed, stab_int, walk_dict)
     raise ValueError, "No generic seed"
 
+class DenseDirectedMove ():
 
+    def __init__(self, interval_pairs):
+        self._interval_pairs = interval_pairs
 
+    def __repr__(self):
+        return "<DenseDirectedMove %s>" % self._interval_pairs
+
+    def plot(self, *args, **kwds):
+        return sum([polygon(((domain[0], codomain[0]), (domain[1], codomain[0]), (domain[1], codomain[1]), (domain[0], codomain[1])), color="cyan") for (domain, codomain) in self._interval_pairs])
+
+    def intervals(self):
+        return [ domain_interval for (domain_interval, range_interval) in self._interval_pairs ]
+
+    def range_intervals(self):
+        return [ range_interval for (domain_interval, range_interval) in self._interval_pairs ]
+    
+def check_for_dense_move(m1, m2):
+    # the strip lemma.
+    if m1.sign() == 1 and m2.sign() == 1: 
+        t1 = m1[1]
+        t2 = m2[1]
+        if is_QQ_linearly_independent(t1, t2) and t1 >= 0 and t2 >= 0:
+            dense_intervals = []
+            for (l1, u1) in m1.intervals():
+                for (l2, u2) in m2.intervals():
+                    L = max(l1, l2)
+                    U = min(u1 + t1, u2 + t2)
+                    if t1 + t2 <= U - L:
+                        dense_intervals.append((L, U))
+            if dense_intervals:
+                return DenseDirectedMove([(I, I) for I in dense_intervals])
+    return None
+
+def is_interval_pair_dominated_by_dense_move(domain_interval, range_interval, dense_move):
+    for (dense_domain_interval, dense_range_interval) in itertools.izip(dense_move.intervals(), dense_move.range_intervals()):
+        if interval_contained_in_interval(domain_interval, dense_domain_interval) \
+           and interval_contained_in_interval(range_interval, dense_range_interval):
+            return True
+    return False
+
+def is_interval_pair_dominated_by_dense_moves(domain_interval, range_interval, dense_moves):
+    for dense_move in dense_moves:
+        if is_interval_pair_dominated_by_dense_move(domain_interval, range_interval, dense_move):
+            return True
+    return False
+
+def is_move_dominated_by_dense_moves(move, dense_moves):
+    for (domain_interval, range_interval) in itertools.izip(move.intervals(), move.range_intervals()):
+        if is_interval_pair_dominated_by_dense_moves(domain_interval, range_interval, dense_moves):
+            pass
+        else:
+            return False
+    #print "Dominated: %s" % move
+    return True
