@@ -3243,34 +3243,36 @@ def functional_directed_move_composition_completion(functional_directed_moves, m
             logging.info("Plotting... done")
         logging.info("Completing %d directed moves..." % len(move_dict))
         any_change = False
-        critical_pairs = [ (a, b) for a in move_dict.values() for b in move_dict.values() ]
+        critical_pairs = [ (a, b) for a in itertools.chain(dense_moves, move_dict.values()) for b in itertools.chain(dense_moves, move_dict.values()) ]
         for (a, b) in critical_pairs:
-            ## FIXME: Also need to combine dense moves and functional moves.
-            d = check_for_dense_move(a, b)
-            if d and not is_move_dominated_by_dense_moves(d, dense_moves):
-                logging.info("New dense move: %s" % d)
-                dense_moves.add(d)
-                for key, move in move_dict.items():
-                    if is_move_dominated_by_dense_moves(move, dense_moves):
-                        move_dict.pop(key)                  # actually not allowed in Python
-            c = compose_functional_directed_moves(a, b)
-            if c:
-                cdm = c.directed_move
-                if cdm in move_dict:
-                    merged = merge_functional_directed_moves(move_dict[cdm], c, show_plots=False)
-                    if merged.end_points() != move_dict[cdm].end_points():
-                        # Cannot compare the functions themselves because of the "hash" magic of FastPiecewise.
-                        #print "merge: changed from %s to %s" % (move_dict[cdm], merged)
-                        move_dict[cdm] = merged
-                        any_change = True
-                    else:
-                        #print "merge: same"
+            if isinstance(a, FunctionalDirectedMove) and isinstance(b, FunctionalDirectedMove):
+                ## FIXME: Also need to combine dense moves and functional moves.
+                d = check_for_dense_move(a, b)
+                if d and not is_move_dominated_by_dense_moves(d, dense_moves):
+                    logging.info("New dense move: %s" % d)
+                    dense_moves.add(d)
+                    for key, move in move_dict.items():
+                        if is_move_dominated_by_dense_moves(move, dense_moves):
+                            move_dict.pop(key)                  # actually not allowed in Python
+                c = compose_functional_directed_moves(a, b)
+                if c:
+                    cdm = c.directed_move
+                    if cdm in move_dict:
+                        merged = merge_functional_directed_moves(move_dict[cdm], c, show_plots=False)
+                        if merged.end_points() != move_dict[cdm].end_points():
+                            # Cannot compare the functions themselves because of the "hash" magic of FastPiecewise.
+                            #print "merge: changed from %s to %s" % (move_dict[cdm], merged)
+                            move_dict[cdm] = merged
+                            any_change = True
+                        else:
+                            #print "merge: same"
+                            pass
+                    elif is_move_dominated_by_dense_moves(c, dense_moves):
                         pass
-                elif is_move_dominated_by_dense_moves(c, dense_moves):
-                    pass
-                else:
-                    move_dict[cdm] = c
-                    any_change = True
+                    else:
+                        move_dict[cdm] = c
+                        any_change = True
+            # elif isinstance(a, DenseMove) and isinstance(b, DenseMove):
         num_rounds += 1
     if max_num_rounds and num_rounds == max_num_rounds:
         if error_if_max_num_rounds_exceeded:
