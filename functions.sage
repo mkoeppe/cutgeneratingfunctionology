@@ -3209,10 +3209,6 @@ def is_QQ_linearly_independent(*numbers):
     coordinate_matrix = matrix(QQ, [x.parent().0.coordinates_in_terms_of_powers()(x) for x in numbers])
     return rank(coordinate_matrix) == len(numbers)
 
-def compose_directed_moves(A_move, B_move):
-    "`A` after `B`."
-    return (A_move[0] * B_move[0], A_move[0] * B_move[1] + A_move[1])
-
 def interval_list_intersection(interval_list_1, interval_list_2):
     """
     Return a list of the intersections of the intervals
@@ -3236,28 +3232,31 @@ def interval_list_intersection(interval_list_1, interval_list_2):
                 overlap.append(overlapped_int)
     return sorted(overlap)
 
-def compose_functional_directed_moves(A, B):
+def compose_directed_moves(A, B):
     """
     Compute the directed move that corresponds to the directed move `A` after `B`.
     
     EXAMPLES::
-        sage: compose_functional_directed_moves(FunctionalDirectedMove([(5/10,7/10)],(1, 2/10)),FunctionalDirectedMove([(2/10,4/10)],(1,2/10)))
+        sage: compose_directed_moves(FunctionalDirectedMove([(5/10,7/10)],(1, 2/10)),FunctionalDirectedMove([(2/10,4/10)],(1,2/10)))
         <FastPiecewise with 1 parts, 
          (3/10, 2/5)\t<FastLinearFunction x + 2/5>\t values: [7/10, 4/5]>
     """
-    result_directed_move = compose_directed_moves(A.directed_move, B.directed_move)
     A_domain_preimages = [ B.apply_to_interval(A_domain_interval, inverse=True) \
                            for A_domain_interval in A.intervals() ]
     result_domain_intervals = interval_list_intersection(A_domain_preimages, B.intervals())
 
     #print result_domain_intervals
     if len(result_domain_intervals) > 0:
-        return FunctionalDirectedMove(result_domain_intervals, result_directed_move)
+        if A.is_functional() and B.is_functional():
+            return FunctionalDirectedMove(result_domain_intervals, (A[0] * B[0], A[0] * B[1] + A[1]))
+        ## elif not A.is_functional() and B.is_functional():
+        ##     # FIXME: Do we need to check full-dimensional intersection??
+        ##     return DenseDirectedMove(result_domain_intervals, 
     else:
         return None
 
-def plot_compose_functional_directed_moves(A, B):
-    C = compose_functional_directed_moves(A, B)
+def plot_compose_directed_moves(A, B):
+    C = compose_directed_moves(A, B)
     p = plot(A, color="green", legend_label="A")
     p += plot(B, color="blue", legend_label="B")
     p += plot(C, color="red", legend_label="C = A after B")
@@ -3305,7 +3304,7 @@ def functional_directed_move_composition_completion(functional_directed_moves, m
                     for key, move in move_dict.items():
                         if is_move_dominated_by_dense_moves(move, dense_moves):
                             move_dict.pop(key)                  # actually not allowed in Python
-                c = compose_functional_directed_moves(a, b)
+                c = compose_directed_moves(a, b)
                 if c:
                     cdm = c.directed_move
                     if cdm in move_dict:
@@ -3343,15 +3342,13 @@ def functional_directed_move_composition_completion(functional_directed_moves, m
                     for key, move in move_dict.items():
                         if is_move_dominated_by_dense_moves(move, dense_moves):
                             move_dict.pop(key)                  # actually not allowed in Python
-            # elif not a.is_functional() and b.is_functional():
-            #     new_pairs = []
-            #     for (a_domain, a_codomain) in a.interval_pairs():
-            #         for b_domain in b.interval_pairs():
-                        
+            ## elif not a.is_functional() and b.is_functional():
+            ##     new_pairs = []
+            ##     for (a_domain, a_codomain) in a.interval_pairs():
+            ##         for b_domain in b.interval_pairs():
+            ##             apply_to_interval
 
-            #             new_pairs.append((
-
-
+            ##             new_pairs.append((
         num_rounds += 1
     if max_num_rounds and num_rounds == max_num_rounds:
         if error_if_max_num_rounds_exceeded:
