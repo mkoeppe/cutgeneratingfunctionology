@@ -2127,6 +2127,9 @@ class FunctionalDirectedMove (FastPiecewise):
     def sign(self):
         return self.directed_move[0]
 
+    def is_functional(self):
+        return True
+
     def __getitem__(self, item):
         return self.directed_move[item]
 
@@ -3069,6 +3072,51 @@ def random_piecewise_function(xgrid, ygrid):
     yvalues = [0] + [ randint(0, ygrid) / ygrid for i in range(1, f) ] + [1] + [ randint(0, ygrid) / ygrid for i in range(f+1, xgrid) ]+ [0]
     return piecewise_function_from_breakpoints_and_values(xvalues, yvalues)
 
+def the_irrational_function_t1_t2(d1 = 3/5, d3 = 1/10, f = 4/5, p = 15/100, \
+                                  del1 = 1/200, del2 = sqrt(2)/200):
+    d2 = f - d1 - d3
+
+    c2 = 0
+    c3 = -1/(1-f)
+    c1 = (1-d2*c2-d3*c3)/d1
+
+    d12 = d2 / 2
+    d22 = d2 / 2
+
+    d13 = c1 / (c1 - c3) * d12
+    d43 = d13
+    d11 = p - d13
+    d31 = p - d12
+    d51 = d11
+    d41 = (d1 - d11 - d31 - d51)/2
+    d21 = d41
+    d23 = (d3 - d13 - d43)/2
+    d33 = d23
+
+    del13 = c1 * del1 / (c1 - c3)
+    del11 = del1 - del13
+
+    del23 = c1 * del2 / (c1 - c3)
+    del21 = del2 - del23
+
+    d21new = d21 - del11 - del21
+    d41new = d41 - del11 - del21
+    d23new = d23 - del13 - del23
+    d33new = d33 - del13 - del23
+
+    t1 = del1
+    t2 = del1 + del2
+    a0 = d11+d13
+    a1 = a0 + t1
+    a2 = a0 + t2
+    A = a0+d21+d23
+    A0 = A + d12
+
+    slopes = [c1,c3,c1,c3,c1,c3,c1,c3,c2,c1,c2,c3,c1,c3,c1,c3,c1,c3,c1,c3]
+
+    interval_lengths = [d11,d13,del11,del13,del21,del23,d21new,d23new,d12,d31,d22,d33new,d41new,del23,del21,del13,del11,d43,d51,1-f]
+
+    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes) 
 
 def the_irrational_function_t1_t2_t3(d1 = 3/5, d3 = 1/10, f = 4/5, p = 15/100, \
                                      del1 = 1/200, del2 = 6*sqrt(2)/200, del3 = 1/500):
@@ -3239,17 +3287,17 @@ def functional_directed_move_composition_completion(functional_directed_moves, m
     while any_change and (not max_num_rounds or num_rounds < max_num_rounds):
         if show_plots:
             logging.info("Plotting...")
-            show(plot_directed_moves(list(dense_moves) + list(move_dict.values())))
+            plot_directed_moves(list(dense_moves) + list(move_dict.values())).show(figsize=40)
             logging.info("Plotting... done")
         logging.info("Completing %d directed moves..." % len(move_dict))
         any_change = False
         critical_pairs = [ (a, b) for a in itertools.chain(dense_moves, move_dict.values()) for b in itertools.chain(dense_moves, move_dict.values()) ]
         for (a, b) in critical_pairs:
-            if isinstance(a, FunctionalDirectedMove) and isinstance(b, FunctionalDirectedMove):
+            if a.is_functional() and b.is_functional():
                 ## FIXME: Also need to combine dense moves and functional moves.
                 d = check_for_dense_move(a, b)
                 if d and not is_move_dominated_by_dense_moves(d, dense_moves):
-                    logging.info("New dense move: %s" % d)
+                    logging.info("New dense move from strip lemma: %s" % d)
                     dense_moves.add(d)
                     for key, move in move_dict.items():
                         if is_move_dominated_by_dense_moves(move, dense_moves):
@@ -3272,7 +3320,35 @@ def functional_directed_move_composition_completion(functional_directed_moves, m
                     else:
                         move_dict[cdm] = c
                         any_change = True
-            # elif isinstance(a, DenseMove) and isinstance(b, DenseMove):
+            elif not a.is_functional() and not b.is_functional():
+                new_pairs = []
+                for (a_domain, a_codomain) in a.interval_pairs():
+                    for (b_domain, b_codomain) in b.interval_pairs():
+                        if len(interval_intersection(a_domain, b_domain)) == 2 \
+                           and len(interval_intersection(a_codomain, b_codomain)) == 2:
+                            # full-dimensional intersection, extend to big rectangle.
+                            new_pairs.append(((min(a_domain[0], b_domain[0]), max(a_domain[1], b_domain[1])),
+                                              (min(a_codomain[0], b_codomain[0]), max(a_codomain[1], b_codomain[1]))))
+                        elif len(interval_intersection(a_codomain, b_domain)) == 2:
+                            # composition of dense moves
+                            new_pairs.append((a_domain, b_codomain))
+                if new_pairs:
+                    d = DenseDirectedMove(new_pairs)
+                    if not is_move_dominated_by_dense_moves(d, dense_moves):
+                        logging.info("New dense move from rectangle rule or dense-dense composition: %s" % d)
+                    dense_moves.add(d)
+                    for key, move in move_dict.items():
+                        if is_move_dominated_by_dense_moves(move, dense_moves):
+                            move_dict.pop(key)                  # actually not allowed in Python
+            # elif not a.is_functional() and b.is_functional():
+            #     new_pairs = []
+            #     for (a_domain, a_codomain) in a.interval_pairs():
+            #         for b_domain in b.interval_pairs():
+                        
+
+            #             new_pairs.append((
+
+
         num_rounds += 1
     if max_num_rounds and num_rounds == max_num_rounds:
         if error_if_max_num_rounds_exceeded:
@@ -3407,6 +3483,9 @@ class DenseDirectedMove ():
     def __repr__(self):
         return "<DenseDirectedMove %s>" % self._interval_pairs
 
+    def is_functional(self):
+        return False
+
     def plot(self, *args, **kwds):
         return sum([polygon(((domain[0], codomain[0]), (domain[1], codomain[0]), (domain[1], codomain[1]), (domain[0], codomain[1])), color="cyan") for (domain, codomain) in self._interval_pairs])
 
@@ -3415,6 +3494,9 @@ class DenseDirectedMove ():
 
     def range_intervals(self):
         return [ range_interval for (domain_interval, range_interval) in self._interval_pairs ]
+
+    def interval_pairs(self):
+        return self._interval_pairs
     
 def check_for_dense_move(m1, m2):
     # the strip lemma.
@@ -3434,7 +3516,7 @@ def check_for_dense_move(m1, m2):
     return None
 
 def is_interval_pair_dominated_by_dense_move(domain_interval, range_interval, dense_move):
-    for (dense_domain_interval, dense_range_interval) in itertools.izip(dense_move.intervals(), dense_move.range_intervals()):
+    for (dense_domain_interval, dense_range_interval) in dense_move.interval_pairs():
         if interval_contained_in_interval(domain_interval, dense_domain_interval) \
            and interval_contained_in_interval(range_interval, dense_range_interval):
             return True
@@ -3454,3 +3536,13 @@ def is_move_dominated_by_dense_moves(move, dense_moves):
             return False
     #print "Dominated: %s" % move
     return True
+
+def stuff_with_random_irrational_function():
+    del1 = randint(1, 100) / 1000
+    del2 = randint(1, 60) / 1000
+    print "del1 = %s, del2 = %s" % (del1, del2)
+    h = the_irrational_function_t1_t2(del1=del1, del2=del2)
+    dmoves = generate_functional_directed_moves(h)
+    completion = functional_directed_move_composition_completion(dmoves, max_num_rounds=None)
+    plot_directed_moves(completion).show(figsize=40)
+    
