@@ -3282,6 +3282,9 @@ def functional_directed_move_composition_completion(functional_directed_moves, m
     else:
         logging.info("Completion finished.  Found %d directed moves." % len(move_dict))
 
+    if dense_moves:
+        raise UnimplementedError, "Dense moves found, handling them in the following code is not implemented yet."
+
     return list(move_dict.values())
 
 def apply_functional_directed_moves(functional_directed_moves, seed):
