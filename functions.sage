@@ -1774,6 +1774,8 @@ def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes
     bkpt = []
     bkpt.append(0)
     for i in range(len(interval_lengths)):
+        if interval_lengths[i] < 0:
+            raise ValueError, "Interval lengths must be non-negative."
         bkpt.append(bkpt[i]+interval_lengths[i])
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
 
@@ -3539,10 +3541,15 @@ def is_move_dominated_by_dense_moves(move, dense_moves):
     return True
 
 def stuff_with_random_irrational_function():
-    del1 = randint(1, 100) / 1000
-    del2 = randint(1, 60) / 1000
-    print "del1 = %s, del2 = %s" % (del1, del2)
-    h = the_irrational_function_t1_t2(del1=del1, del2=del2)
+    while True:
+        del1 = randint(1, 100) / 1000
+        del2 = randint(1, 60) / 1000
+        print "del1 = %s, del2 = %s" % (del1, del2)
+        try:
+            h = the_irrational_function_t1_t2(del1=del1, del2=del2)
+            break
+        except ValueError:
+            print "... parameters do not describe a function, retrying."
     dmoves = generate_functional_directed_moves(h)
     completion = functional_directed_move_composition_completion(dmoves, max_num_rounds=None)
     plot_directed_moves(completion).show(figsize=40)
