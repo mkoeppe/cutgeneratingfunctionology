@@ -3233,9 +3233,11 @@ def functional_directed_move_composition_completion(functional_directed_moves, m
     num_rounds = 0
 
     while any_change and (not max_num_rounds or num_rounds < max_num_rounds):
-        logging.info("Completing %d directed moves..." % len(move_dict))
         if show_plots:
+            logging.info("Plotting...")
             show(plot_directed_moves(list(move_dict.values())))
+            logging.info("Plotting... done")
+        logging.info("Completing %d directed moves..." % len(move_dict))
         any_change = False
         critical_pairs = [ (a, b) for a in move_dict.values() for b in move_dict.values() ]
         for (a, b) in critical_pairs:
