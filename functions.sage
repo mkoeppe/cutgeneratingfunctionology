@@ -420,7 +420,8 @@ class Face:
         return plot_face(self.minimal_triple, self.vertices, **kwds)
 
     def is_directed_move(self):
-        return face_1D(self.minimal_triple) or face_0D(self.minimal_triple)
+        return face_1D(self.minimal_triple) #or face_0D(self.minimal_triple)
+        # FIXME: Do we need additive vertices?
         
     def directed_move_with_domain_and_codomain(self):
         """
