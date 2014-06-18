@@ -3279,49 +3279,51 @@ def merge_functional_directed_moves(A, B, show_plots=False):
 def plot_directed_moves(dmoves):
     return sum(plot(dm) for dm in dmoves)
 
-def functional_directed_move_composition_completion(functional_directed_moves, max_num_rounds=8, error_if_max_num_rounds_exceeded=True, show_plots=False):
-    # Only takes care of the functional case.
-    move_dict = { fdm.directed_move : fdm for fdm in functional_directed_moves }
-    dense_moves = set()
-    any_change = True
-    num_rounds = 0
+class DirectedMoveCompositionCompletion:
 
-    while any_change and (not max_num_rounds or num_rounds < max_num_rounds):
-        if show_plots:
+    def __init__(self, functional_directed_moves, show_plots=False):
+
+        self.show_plots = show_plots
+        self.move_dict = { fdm.directed_move : fdm for fdm in functional_directed_moves }
+        self.dense_moves = set()
+        self.any_change = True
+
+    def complete_one_round(self):
+        if self.show_plots:
             logging.info("Plotting...")
-            plot_directed_moves(list(dense_moves) + list(move_dict.values())).show(figsize=40)
+            plot_directed_moves(list(self.dense_moves) + list(self.move_dict.values())).show(figsize=40)
             logging.info("Plotting... done")
-        logging.info("Completing %d directed moves..." % len(move_dict))
-        any_change = False
-        critical_pairs = [ (a, b) for a in itertools.chain(dense_moves, move_dict.values()) for b in itertools.chain(dense_moves, move_dict.values()) ]
+        logging.info("Completing %d directed moves..." % len(self.move_dict))
+        self.any_change = False
+        critical_pairs = [ (a, b) for a in itertools.chain(self.dense_moves, self.move_dict.values()) for b in itertools.chain(self.dense_moves, self.move_dict.values()) ]
         for (a, b) in critical_pairs:
             if a.is_functional() and b.is_functional():
                 ## FIXME: Also need to combine dense moves and functional moves.
                 d = check_for_dense_move(a, b)
-                if d and not is_move_dominated_by_dense_moves(d, dense_moves):
+                if d and not is_move_dominated_by_dense_moves(d, self.dense_moves):
                     logging.info("New dense move from strip lemma: %s" % d)
-                    dense_moves.add(d)
-                    for key, move in move_dict.items():
-                        if is_move_dominated_by_dense_moves(move, dense_moves):
-                            move_dict.pop(key)                  # actually not allowed in Python
+                    self.dense_moves.add(d)
+                    for key, move in self.move_dict.items():
+                        if is_move_dominated_by_dense_moves(move, self.dense_moves):
+                            self.move_dict.pop(key)                  # actually not allowed in Python
                 c = compose_directed_moves(a, b)
                 if c:
                     cdm = c.directed_move
-                    if cdm in move_dict:
-                        merged = merge_functional_directed_moves(move_dict[cdm], c, show_plots=False)
-                        if merged.end_points() != move_dict[cdm].end_points():
+                    if cdm in self.move_dict:
+                        merged = merge_functional_directed_moves(self.move_dict[cdm], c, show_plots=False)
+                        if merged.end_points() != self.move_dict[cdm].end_points():
                             # Cannot compare the functions themselves because of the "hash" magic of FastPiecewise.
-                            #print "merge: changed from %s to %s" % (move_dict[cdm], merged)
-                            move_dict[cdm] = merged
-                            any_change = True
+                            #print "merge: changed from %s to %s" % (self.move_dict[cdm], merged)
+                            self.move_dict[cdm] = merged
+                            self.any_change = True
                         else:
                             #print "merge: same"
                             pass
-                    elif is_move_dominated_by_dense_moves(c, dense_moves):
+                    elif is_move_dominated_by_dense_moves(c, self.dense_moves):
                         pass
                     else:
-                        move_dict[cdm] = c
-                        any_change = True
+                        self.move_dict[cdm] = c
+                        self.any_change = True
             elif not a.is_functional() and not b.is_functional():
                 new_pairs = []
                 for (a_domain, a_codomain) in a.interval_pairs():
@@ -3336,12 +3338,12 @@ def functional_directed_move_composition_completion(functional_directed_moves, m
                             new_pairs.append((a_domain, b_codomain))
                 if new_pairs:
                     d = DenseDirectedMove(new_pairs)
-                    if not is_move_dominated_by_dense_moves(d, dense_moves):
+                    if not is_move_dominated_by_dense_moves(d, self.dense_moves):
                         logging.info("New dense move from rectangle rule or dense-dense composition: %s" % d)
-                    dense_moves.add(d)
-                    for key, move in move_dict.items():
-                        if is_move_dominated_by_dense_moves(move, dense_moves):
-                            move_dict.pop(key)                  # actually not allowed in Python
+                    self.dense_moves.add(d)
+                    for key, move in self.move_dict.items():
+                        if is_move_dominated_by_dense_moves(move, self.dense_moves):
+                            self.move_dict.pop(key)                  # actually not allowed in Python
             ## elif not a.is_functional() and b.is_functional():
             ##     new_pairs = []
             ##     for (a_domain, a_codomain) in a.interval_pairs():
@@ -3349,19 +3351,32 @@ def functional_directed_move_composition_completion(functional_directed_moves, m
             ##             apply_to_interval
 
             ##             new_pairs.append((
-        num_rounds += 1
-    if max_num_rounds and num_rounds == max_num_rounds:
-        if error_if_max_num_rounds_exceeded:
-            raise MaximumNumberOfIterationsReached, "Reached %d rounds of the completion procedure, found %d directed moves, stopping." % (num_rounds, len(move_dict))
+
+    def complete(self, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
+        num_rounds = 0
+        while self.any_change and (not max_num_rounds or self.num_rounds < max_num_rounds):
+            self.complete_one_round()
+            num_rounds += 1
+        if max_num_rounds and num_rounds == max_num_rounds:
+            if error_if_max_num_rounds_exceeded:
+                raise MaximumNumberOfIterationsReached, "Reached %d rounds of the completion procedure, found %d directed moves, stopping." % (num_rounds, len(self.move_dict))
+            else:
+                logging.info("Reached %d rounds of the completion procedure, found %d directed moves, stopping." % (num_rounds, len(self.move_dict)))
         else:
-            logging.info("Reached %d rounds of the completion procedure, found %d directed moves, stopping." % (num_rounds, len(move_dict)))
-    else:
-        logging.info("Completion finished.  Found %d directed moves." % len(move_dict))
+            logging.info("Completion finished.  Found %d directed moves." % len(self.move_dict))
 
-    if dense_moves:
-        raise UnimplementedError, "Dense moves found, handling them in the following code is not implemented yet."
 
-    return list(move_dict.values())
+    def results(self):
+        if self.dense_moves:
+            raise UnimplementedError, "Dense moves found, handling them in the following code is not implemented yet."
+        return list(self.move_dict.values())
+
+
+def directed_move_composition_completion(functional_directed_moves, max_num_rounds=8, error_if_max_num_rounds_exceeded=True, show_plots=False):
+    completion = DirectedMoveCompositionCompletion(functional_directed_moves, show_plots=show_plots)
+    completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
+    return completion.results()
+
 
 def apply_functional_directed_moves(functional_directed_moves, seed):
     """
@@ -3431,7 +3446,7 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
     uncovered_intervals = generate_uncovered_intervals(fn)
     intervals = uncovered_intervals
     functional_directed_moves = generate_functional_directed_moves(fn)
-    completion = functional_directed_move_composition_completion(functional_directed_moves, show_plots=show_plots)
+    completion = directed_move_composition_completion(functional_directed_moves, show_plots=show_plots)
 
     decomposition = find_decomposition_into_intervals_with_same_moves(completion)
      
@@ -3548,6 +3563,6 @@ def stuff_with_random_irrational_function():
         except ValueError:
             print "... parameters do not describe a function, retrying."
     dmoves = generate_functional_directed_moves(h)
-    completion = functional_directed_move_composition_completion(dmoves, max_num_rounds=None)
+    completion = directed_move_composition_completion(dmoves, max_num_rounds=None)
     plot_directed_moves(completion).show(figsize=40)
     
