@@ -185,6 +185,8 @@ def interval_to_endpoints(int):
         raise ValueError, "Not an interval: %s" % int
 
 def interval_contained_in_interval(I, J):
+    I = interval_to_endpoints(I)
+    J = interval_to_endpoints(J)
     return J[0] <= I[0] and I[1] <= J[1]
 
 ##
@@ -2156,8 +2158,8 @@ class FunctionalDirectedMove (FastPiecewise):
         # compatible with intervals as used in FastPiecewise, but
         # nothing else in our code. 
         #
-        # FIXME: This does not do complete
-        # error checking.
+        # This does not do error checking.  Some code depends on this fact!
+        # FIXME: This should be made clear in the name of this function.
         directed_move = self.directed_move
         move_sign = directed_move[0]
         if move_sign == 1:
@@ -3241,19 +3243,26 @@ def compose_directed_moves(A, B):
         <FastPiecewise with 1 parts, 
          (3/10, 2/5)\t<FastLinearFunction x + 2/5>\t values: [7/10, 4/5]>
     """
-    A_domain_preimages = [ B.apply_to_interval(A_domain_interval, inverse=True) \
-                           for A_domain_interval in A.intervals() ]
-    result_domain_intervals = interval_list_intersection(A_domain_preimages, B.intervals())
-
     #print result_domain_intervals
-    if len(result_domain_intervals) > 0:
-        if A.is_functional() and B.is_functional():
-            return FunctionalDirectedMove(result_domain_intervals, (A[0] * B[0], A[0] * B[1] + A[1]))
-        ## elif not A.is_functional() and B.is_functional():
-        ##     # FIXME: Do we need to check full-dimensional intersection??
-        ##     return DenseDirectedMove(result_domain_intervals, 
-    else:
-        return None
+    if A.is_functional() and B.is_functional():
+        A_domain_preimages = [ B.apply_to_interval(A_domain_interval, inverse=True) \
+                               for A_domain_interval in A.intervals() ]
+        result_domain_intervals = interval_list_intersection(A_domain_preimages, B.intervals())
+        if len(result_domain_intervals) > 0:
+            return FunctionalDirectedMove([ interval_to_endpoints(I) for I in result_domain_intervals ], (A[0] * B[0], A[0] * B[1] + A[1]))
+    elif not A.is_functional() and B.is_functional():
+        A_domain_preimages = [ B.apply_to_interval(A_domain_interval, inverse=True) \
+                               for A_domain_interval in A.intervals() ]
+        # FIXME: This is a version of interval_list_intersection.  Should be able to speed up by merging algorithm. 
+        interval_pairs = []
+        for A_domain_preimage, A_range in itertools.izip(A_domain_preimages, A.range_intervals()):
+            for B_domain in B.intervals():
+                overlapped_int = interval_intersection(A_domain_preimage, B_domain)
+                if len(overlapped_int) >= 1:
+                    interval_pairs.append((interval_to_endpoints(overlapped_int), A_range))
+        if interval_pairs:
+            return DenseDirectedMove(interval_pairs)
+    return None
 
 def plot_compose_directed_moves(A, B):
     C = compose_directed_moves(A, B)
@@ -3288,43 +3297,46 @@ class DirectedMoveCompositionCompletion:
         self.dense_moves = set()
         self.any_change = True
 
+    def add_move(self, c):
+        if c.is_functional():
+            cdm = c.directed_move
+            if cdm in self.move_dict:
+                merged = merge_functional_directed_moves(self.move_dict[cdm], c, show_plots=False)
+                if merged.end_points() != self.move_dict[cdm].end_points():
+                    # Cannot compare the functions themselves because of the "hash" magic of FastPiecewise.
+                    #print "merge: changed from %s to %s" % (self.move_dict[cdm], merged)
+                    self.move_dict[cdm] = merged
+                    self.any_change = True
+                else:
+                    #print "merge: same"
+                    pass
+            elif is_move_dominated_by_dense_moves(c, self.dense_moves):
+                pass
+            else:
+                self.move_dict[cdm] = c
+                self.any_change = True
+        elif is_move_dominated_by_dense_moves(c, self.dense_moves):
+            pass
+        else:
+            dominated_dense_list = [ move for move in self.dense_moves if is_move_dominated_by_dense_moves(move, [c]) ]
+            for move in dominated_dense_list:
+                self.dense_moves.remove(move)
+            self.dense_moves.add(c)
+            dominated_functional_key_list = [ key for key, move in self.move_dict.items() if is_move_dominated_by_dense_moves(move, self.dense_moves) ]
+            for key in dominated_functional_key_list:
+                self.move_dict.pop(key)
+            self.any_change = True
+
     def complete_one_round(self):
         if self.show_plots:
             logging.info("Plotting...")
             plot_directed_moves(list(self.dense_moves) + list(self.move_dict.values())).show(figsize=40)
             logging.info("Plotting... done")
-        logging.info("Completing %d directed moves..." % len(self.move_dict))
+        logging.info("Completing %d functional directed moves and %d dense directed moves..." % (len(self.move_dict), len(self.dense_moves)))
         self.any_change = False
         critical_pairs = [ (a, b) for a in itertools.chain(self.dense_moves, self.move_dict.values()) for b in itertools.chain(self.dense_moves, self.move_dict.values()) ]
         for (a, b) in critical_pairs:
-            if a.is_functional() and b.is_functional():
-                ## FIXME: Also need to combine dense moves and functional moves.
-                d = check_for_dense_move(a, b)
-                if d and not is_move_dominated_by_dense_moves(d, self.dense_moves):
-                    logging.info("New dense move from strip lemma: %s" % d)
-                    self.dense_moves.add(d)
-                    for key, move in self.move_dict.items():
-                        if is_move_dominated_by_dense_moves(move, self.dense_moves):
-                            self.move_dict.pop(key)                  # actually not allowed in Python
-                c = compose_directed_moves(a, b)
-                if c:
-                    cdm = c.directed_move
-                    if cdm in self.move_dict:
-                        merged = merge_functional_directed_moves(self.move_dict[cdm], c, show_plots=False)
-                        if merged.end_points() != self.move_dict[cdm].end_points():
-                            # Cannot compare the functions themselves because of the "hash" magic of FastPiecewise.
-                            #print "merge: changed from %s to %s" % (self.move_dict[cdm], merged)
-                            self.move_dict[cdm] = merged
-                            self.any_change = True
-                        else:
-                            #print "merge: same"
-                            pass
-                    elif is_move_dominated_by_dense_moves(c, self.dense_moves):
-                        pass
-                    else:
-                        self.move_dict[cdm] = c
-                        self.any_change = True
-            elif not a.is_functional() and not b.is_functional():
+            if not a.is_functional() and not b.is_functional():
                 new_pairs = []
                 for (a_domain, a_codomain) in a.interval_pairs():
                     for (b_domain, b_codomain) in b.interval_pairs():
@@ -3340,21 +3352,20 @@ class DirectedMoveCompositionCompletion:
                     d = DenseDirectedMove(new_pairs)
                     if not is_move_dominated_by_dense_moves(d, self.dense_moves):
                         logging.info("New dense move from rectangle rule or dense-dense composition: %s" % d)
-                    self.dense_moves.add(d)
-                    for key, move in self.move_dict.items():
-                        if is_move_dominated_by_dense_moves(move, self.dense_moves):
-                            self.move_dict.pop(key)                  # actually not allowed in Python
-            ## elif not a.is_functional() and b.is_functional():
-            ##     new_pairs = []
-            ##     for (a_domain, a_codomain) in a.interval_pairs():
-            ##         for b_domain in b.interval_pairs():
-            ##             apply_to_interval
-
-            ##             new_pairs.append((
+                    self.add_move(d)
+            else:
+                if a.is_functional() and b.is_functional():
+                    d = check_for_dense_move(a, b)
+                    if d and not is_move_dominated_by_dense_moves(d, self.dense_moves):
+                        logging.info("New dense move from strip lemma: %s" % d)
+                        self.add_move(d)
+                c = compose_directed_moves(a, b)
+                if c:
+                    self.add_move(c)
 
     def complete(self, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
         num_rounds = 0
-        while self.any_change and (not max_num_rounds or self.num_rounds < max_num_rounds):
+        while self.any_change and (not max_num_rounds or num_rounds < max_num_rounds):
             self.complete_one_round()
             num_rounds += 1
         if max_num_rounds and num_rounds == max_num_rounds:
@@ -3372,11 +3383,16 @@ class DirectedMoveCompositionCompletion:
         return list(self.move_dict.values())
 
 
-def directed_move_composition_completion(functional_directed_moves, max_num_rounds=8, error_if_max_num_rounds_exceeded=True, show_plots=False):
+def directed_move_composition_completion(functional_directed_moves, show_plots=False, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
     completion = DirectedMoveCompositionCompletion(functional_directed_moves, show_plots=show_plots)
     completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
     return completion.results()
 
+def generate_directed_move_composition_completion(fn, show_plots=False, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
+    functional_directed_moves = generate_functional_directed_moves(fn)
+    completion = fn._completion = DirectedMoveCompositionCompletion(functional_directed_moves, show_plots=show_plots)
+    completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
+    return completion.results()
 
 def apply_functional_directed_moves(functional_directed_moves, seed):
     """
@@ -3443,10 +3459,7 @@ def find_decomposition_into_intervals_with_same_moves(functional_directed_moves,
 
 def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=False, max_num_it=None):
     fn._stability_orbits = []
-    uncovered_intervals = generate_uncovered_intervals(fn)
-    intervals = uncovered_intervals
-    functional_directed_moves = generate_functional_directed_moves(fn)
-    completion = directed_move_composition_completion(functional_directed_moves, show_plots=show_plots)
+    completion = generate_directed_move_composition_completion(fn, show_plots=show_plots)
 
     decomposition = find_decomposition_into_intervals_with_same_moves(completion)
      
@@ -3502,7 +3515,7 @@ class DenseDirectedMove ():
         return False
 
     def plot(self, *args, **kwds):
-        return sum([polygon(((domain[0], codomain[0]), (domain[1], codomain[0]), (domain[1], codomain[1]), (domain[0], codomain[1])), color="cyan") for (domain, codomain) in self._interval_pairs])
+        return sum([polygon(((domain[0], codomain[0]), (domain[1], codomain[0]), (domain[1], codomain[1]), (domain[0], codomain[1])), color="cyan", alpha=0.5) + polygon(((domain[0], codomain[0]), (domain[1], codomain[0]), (domain[1], codomain[1]), (domain[0], codomain[1])), color="red", fill=False) for (domain, codomain) in self._interval_pairs])
 
     def intervals(self):
         return [ domain_interval for (domain_interval, range_interval) in self._interval_pairs ]
