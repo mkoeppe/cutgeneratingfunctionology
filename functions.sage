@@ -405,6 +405,10 @@ def triples_equal(a, b):
         
 class Face:
     def __init__(self, triple, vertices=None, is_known_to_be_minimal=False):
+        """
+        EXAMPLES::
+        sage: f = generate_maximal_additive_faces(the_irrational_function_t1_t2(del1=23/250, del2=1/125))
+        """
         if not vertices:
             vertices = verts(triple[0], triple[1], triple[2])
             if not vertices:
@@ -3182,17 +3186,17 @@ def is_QQ_linearly_independent(*numbers):
     Test if `numbers` are linearly independent over `QQ`.
 
     EXAMPLES::
-        sage: is_QQ_linearly_independent()
+        sage: logging.disable(logging.INFO); is_QQ_linearly_independent()
         True
-        sage: is_QQ_linearly_independent(1)
+        sage: logging.disable(logging.INFO); is_QQ_linearly_independent(1)
         True
-        sage: is_QQ_linearly_independent(0)
+        sage: logging.disable(logging.INFO); is_QQ_linearly_independent(0)
         False
-        sage: is_QQ_linearly_independent(1,2)
+        sage: logging.disable(logging.INFO); is_QQ_linearly_independent(1,2)
         False
-        sage: is_QQ_linearly_independent(1,sqrt(2))
+        sage: logging.disable(logging.INFO); is_QQ_linearly_independent(1,sqrt(2))
         True
-        sage: is_QQ_linearly_independent(1+sqrt(2),sqrt(2),1)
+        sage: logging.disable(logging.INFO); is_QQ_linearly_independent(1+sqrt(2),sqrt(2),1)
         False
     """
     # trivial cases
