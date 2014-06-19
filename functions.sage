@@ -2642,10 +2642,10 @@ def scan_coho_interval_list(interval_list, tag=None):
 ## def scan_set_difference(a, b):
 ##     """`a` and `b` should be event generators."""
 
-def scan_union_of_coho_interval_minus_union_of_coho_intervals(interval_list, remove_list):
+def scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists):
     # Following uses the lexicographic comparison of the tuples.
-    scan = merge(scan_coho_interval_list(interval_list, True),
-                 scan_coho_interval_list(remove_list, False))
+    scan = merge(merge(*[scan_coho_interval_list(interval_list, True) for interval_list in interval_lists]),
+                 merge(*[scan_coho_interval_list(remove_list, False) for remove_list in remove_lists]))
     interval_indicator = 0
     remove_indicator = 0
     on = False
@@ -2688,19 +2688,21 @@ def coho_interval_list_from_scan(scan):
             (on_x, on_epsilon) = (None, None)
     assert indicator == 0
 
-def union_of_coho_interval_minus_union_of_coho_intervals(interval_list, remove_list):
+def union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists):
     """Compute a list of closed/open/half-open intervals that represent
     the set difference of `interval` and the union of the intervals in
     `remove_list`.
 
-    Assumes `interval_list' and `remove_list` are both sorted (and
-    each pairwise disjoint), and returns a sorted list.
+    Assume each of the lists in `interval_lists' and `remove_lists` are sorted (and
+    each pairwise disjoint).  Returns a sorted list.
 
     EXAMPLES::
-    sage: union_of_coho_interval_minus_union_of_coho_intervals([[0,10]], [[2,2], [3,4]])
+    sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0,10]]], [[[2,2], [3,4]]])
     [<Int[0, 2)>, <Int(2, 3)>, <Int(4, 10]>]
+    sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0, 10]]], [[[1, 7]], [[2, 5]]])
+    [<Int[0, 1)>, <Int(7, 10]>]
     """
-    gen = coho_interval_list_from_scan(scan_union_of_coho_interval_minus_union_of_coho_intervals(interval_list, remove_list))
+    gen = coho_interval_list_from_scan(scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists))
     return [ int for int in gen ]
 
 def find_decomposition_into_stability_intervals(fn, show_plots=False, max_num_it=1000):
@@ -2729,7 +2731,7 @@ def find_decomposition_into_stability_intervals(fn, show_plots=False, max_num_it
         shifted_stability_intervals = generate_shifted_stability_intervals(stab_int, walk_dict)
         print "Stability orbit: ", shifted_stability_intervals[0], ", ... (length ", len(walk_dict), ")"
         fn._stability_orbits.append((shifted_stability_intervals, walk_dict, to_do))
-        remaining = union_of_coho_interval_minus_union_of_coho_intervals(intervals, shifted_stability_intervals)
+        remaining = union_of_coho_intervals_minus_union_of_coho_intervals([intervals], [shifted_stability_intervals])
         intervals = remaining
         
     logging.info("Total: %s stability orbits, lengths: %s" \
@@ -3244,8 +3246,7 @@ def compose_directed_moves(A, B, interiors=False):
     
     EXAMPLES::
         sage: compose_directed_moves(FunctionalDirectedMove([(5/10,7/10)],(1, 2/10)),FunctionalDirectedMove([(2/10,4/10)],(1,2/10)))
-        <FastPiecewise with 1 parts, 
-         (3/10, 2/5)\t<FastLinearFunction x + 2/5>\t values: [7/10, 4/5]>
+        <FunctionalDirectedMove (1, 2/5) with domain [(3/10, 2/5)]>
     """
     #print result_domain_intervals
     if A.is_functional() and B.is_functional():
@@ -3292,26 +3293,39 @@ def merge_functional_directed_moves(A, B, show_plots=False):
 def plot_directed_moves(dmoves):
     return sum(plot(dm) for dm in dmoves)
 
-def reduce_with_dense_move(functional_directed_move, dense_move):
+def reduce_with_dense_moves(functional_directed_move, dense_moves, show_plots=False):
     """
     EXAMPLES::
-        sage: reduce_with_dense_move(FunctionalDirectedMove([[3/10,7/10]],(1, 1/10)), DenseDirectedMove([[[2/10,6/10],[2/10,6/10]]]))
+        sage: reduce_with_dense_moves(FunctionalDirectedMove([[3/10,7/10]],(1, 1/10)), [DenseDirectedMove([[[2/10,6/10],[2/10,6/10]]])])
         <FunctionalDirectedMove (1, 1/10) with domain [(1/2, 7/10)]>
+        sage: reduce_with_dense_moves(FunctionalDirectedMove([[1/10,7/10]],(1, 1/10)), [DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]]), DenseDirectedMove([[[6/20,6/10],[4/10,6/10]]])])
+        <FunctionalDirectedMove (1, 1/10) with domain [(1/10, 3/10), (1/2, 7/10)]>
     """
-    remove_list = []
-    for domain, codomain in dense_move.interval_pairs():
+    remove_lists = []
+    for domain, codomain in itertools.chain(*[ dense_move.interval_pairs() for dense_move in dense_moves ]):
+        remove_list = []
         int = interval_intersection(functional_directed_move.apply_to_interval(codomain, inverse=True) , domain)
         if len(int) == 2:
             remove_list.append(closed_or_open_or_halfopen_interval(int[0], int[1], True, True))
-    difference = union_of_coho_interval_minus_union_of_coho_intervals(functional_directed_move.intervals(), remove_list)
+        remove_lists.append(remove_list)  # Each remove_list is sorted because each interval is a subinterval of the domain interval.
+    #print remove_lists
+    difference = union_of_coho_intervals_minus_union_of_coho_intervals([functional_directed_move.intervals()], remove_lists)
+    # FIXME: rather than postprocessing like this, produce this format (a, b) directly from the scan.
     proper_difference = []
     for int in difference:
         if int.a < int.b:
             proper_difference.append((int.a, int.b))
     if proper_difference:
-        return FunctionalDirectedMove(proper_difference, functional_directed_move.directed_move)
+        result = FunctionalDirectedMove(proper_difference, functional_directed_move.directed_move)
     else:
-        return None
+        result = None
+    if show_plots:
+        p = plot(functional_directed_move, color="yellow", thickness=8)
+        p += plot_directed_moves(dense_moves)
+        if result:
+            p += plot(result)
+        p.show(figsize=20)
+    return result
 
 class DirectedMoveCompositionCompletion:
 
@@ -3324,15 +3338,19 @@ class DirectedMoveCompositionCompletion:
     def reduce_move_dict_with_dense_move(self, c):
         new_move_dict = dict()
         for key, move in self.move_dict.items():
-            new_move = reduce_with_dense_move(move, c)
+            new_move = reduce_with_dense_moves(move, [c])
+            if new_move:
+                new_move_dict[key] = new_move
         self.move_dict = new_move_dict
-       
 
     def add_move(self, c):
         if c.is_functional():
+            reduced = reduce_with_dense_moves(c, self.dense_moves)
+            if reduced is None:
+                return
             cdm = c.directed_move
             if cdm in self.move_dict:
-                merged = merge_functional_directed_moves(self.move_dict[cdm], c, show_plots=False)
+                merged = merge_functional_directed_moves(self.move_dict[cdm], reduced, show_plots=False)
                 if merged.end_points() != self.move_dict[cdm].end_points():
                     # Cannot compare the functions themselves because of the "hash" magic of FastPiecewise.
                     #print "merge: changed from %s to %s" % (self.move_dict[cdm], merged)
@@ -3341,10 +3359,10 @@ class DirectedMoveCompositionCompletion:
                 else:
                     #print "merge: same"
                     pass
-            elif is_move_dominated_by_dense_moves(c, self.dense_moves):
-                pass
+            # elif is_move_dominated_by_dense_moves(c, self.dense_moves):
+            #     pass
             else:
-                self.move_dict[cdm] = c
+                self.move_dict[cdm] = reduced
                 self.any_change = True
         elif is_move_dominated_by_dense_moves(c, self.dense_moves):
             pass
@@ -3362,15 +3380,29 @@ class DirectedMoveCompositionCompletion:
     def plot(self, *args, **kwargs):
         return plot_directed_moves(list(self.dense_moves) + list(self.move_dict.values()))
 
-    def complete_one_round(self):
+    def maybe_show_plot(self):
         if self.show_plots:
             logging.info("Plotting...")
             self.plot().show(figsize=40)
             logging.info("Plotting... done")
+
+    def complete_one_round(self):
+        self.maybe_show_plot()
         logging.info("Completing %d functional directed moves and %d dense directed moves..." % (len(self.move_dict), len(self.dense_moves)))
         self.any_change = False
-        critical_pairs = [ (a, b) for a in itertools.chain(self.dense_moves, self.move_dict.values()) for b in itertools.chain(self.dense_moves, self.move_dict.values()) ]
+        critical_pairs = [ (a, b) for a in list(self.dense_moves) for b in list(self.dense_moves) ] + [ (a, b) for a in self.move_dict.keys() for b in list(self.dense_moves) + self.move_dict.keys() ] + [ (a, b) for a in list(self.dense_moves) for b in list(self.dense_moves) ]
         for (a, b) in critical_pairs:
+            # Get the most current versions of the directed moves.
+            # FIXME: We should rather implement a better completion
+            # algorithm.
+            if type(a) == tuple or type(a) == list:
+                a = self.move_dict.get(a, None)
+            if type(b) == tuple or type(b) == list:
+                b = self.move_dict.get(b, None)
+
+            if not a or not b: 
+                continue                                    # critical pair has been killed
+
             if not a.is_functional() and not b.is_functional():
                 new_pairs = []
                 for (a_domain, a_codomain) in a.interval_pairs():
@@ -3387,13 +3419,15 @@ class DirectedMoveCompositionCompletion:
                     d = DenseDirectedMove(new_pairs)
                     if not is_move_dominated_by_dense_moves(d, self.dense_moves):
                         logging.info("New dense move from rectangle rule or dense-dense composition: %s" % d)
-                    self.add_move(d)
+                        self.add_move(d)
+                        self.maybe_show_plot()
             else:
                 if a.is_functional() and b.is_functional():
                     d = check_for_dense_move(a, b)
                     if d and not is_move_dominated_by_dense_moves(d, self.dense_moves):
                         logging.info("New dense move from strip lemma: %s" % d)
                         self.add_move(d)
+                        self.maybe_show_plot()
                 c = compose_directed_moves(a, b, interiors=True)   ## experimental - only interiors
                 if c:
                     self.add_move(c)
