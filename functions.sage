@@ -3240,7 +3240,7 @@ def interval_list_intersection(interval_list_1, interval_list_2, interiors=False
                 overlap.append(overlapped_int)
     return sorted(overlap)
 
-def compose_directed_moves(A, B, interiors=False):
+def compose_directed_moves(A, B, interiors=False, show_plots=False):
     """
     Compute the directed move that corresponds to the directed move `A` after `B`.
     
@@ -3254,7 +3254,9 @@ def compose_directed_moves(A, B, interiors=False):
                                for A_domain_interval in A.intervals() ]
         result_domain_intervals = interval_list_intersection(A_domain_preimages, B.intervals(), interiors=interiors)
         if len(result_domain_intervals) > 0:
-            return FunctionalDirectedMove([ interval_to_endpoints(I) for I in result_domain_intervals ], (A[0] * B[0], A[0] * B[1] + A[1]))
+            result = FunctionalDirectedMove([ interval_to_endpoints(I) for I in result_domain_intervals ], (A[0] * B[0], A[0] * B[1] + A[1]))
+        else:
+            result = None
     elif not A.is_functional() and B.is_functional():
         A_domain_preimages = [ B.apply_to_interval(A_domain_interval, inverse=True) \
                                for A_domain_interval in A.intervals() ]
@@ -3266,15 +3268,18 @@ def compose_directed_moves(A, B, interiors=False):
                 if len(overlapped_int) >= 2 or (not interiors and len(overlapped_int) >= 1):
                     interval_pairs.append((interval_to_endpoints(overlapped_int), A_range))
         if interval_pairs:
-            return DenseDirectedMove(interval_pairs)
-    return None
-
-def plot_compose_directed_moves(A, B):
-    C = compose_directed_moves(A, B)
-    p = plot(A, color="green", legend_label="A")
-    p += plot(B, color="blue", legend_label="B")
-    p += plot(C, color="red", legend_label="C = A after B")
-    return p
+            result = DenseDirectedMove(interval_pairs)
+        else:
+            result = None
+    else:
+        result = None
+    if show_plots:
+        p = plot(A, color="green", legend_label="A")
+        p += plot(B, color="blue", legend_label="B")
+        if result:
+            p += plot(result, color="red", legend_label="C = A after B")
+        p.show(figsize=30)
+    return result
 
 def merge_functional_directed_moves(A, B, show_plots=False):
     if A.directed_move != B.directed_move:
@@ -3352,7 +3357,15 @@ class DirectedMoveCompositionCompletion:
                     and b_codomain[0] <= a_codomain[0] and a_codomain[1] <= b_codomain[1]):
                     # is dominated by existing rectangle, do nothing.
                     return None, None
-                if len(interval_intersection(a_domain, b_domain)) == 2 \
+                elif (a_domain[0] == b_domain[0] and a_domain[1] == b_domain[1]
+                      and len(interval_intersection(a_codomain, b_codomain)) >= 1):
+                      # simple vertical merge
+                    a_codomain = ((min(a_codomain[0], b_codomain[0]), max(a_codomain[1], b_codomain[1])))
+                elif (a_codomain[0] == b_codomain[0] and a_codomain[1] == b_codomain[1]
+                      and len(interval_intersection(a_domain, b_domain)) >= 1):
+                      # simple horizontal merge
+                    a_domain = ((min(a_domain[0], b_domain[0]), max(a_domain[1], b_domain[1])))
+                elif len(interval_intersection(a_domain, b_domain)) == 2 \
                    and len(interval_intersection(a_codomain, b_codomain)) == 2:
                     # full-dimensional intersection, extend to big rectangle.
                     logging.info("Applying rectangle lemma")
@@ -3608,7 +3621,7 @@ class DenseDirectedMove ():
         return False
 
     def plot(self, *args, **kwds):
-        return sum([polygon(((domain[0], codomain[0]), (domain[1], codomain[0]), (domain[1], codomain[1]), (domain[0], codomain[1])), color="cyan", alpha=0.5) + polygon(((domain[0], codomain[0]), (domain[1], codomain[0]), (domain[1], codomain[1]), (domain[0], codomain[1])), color="red", fill=False) for (domain, codomain) in self._interval_pairs])
+        return sum([polygon(((domain[0], codomain[0]), (domain[1], codomain[0]), (domain[1], codomain[1]), (domain[0], codomain[1])), rgbcolor=kwds.get("rgbcolor", "cyan"), alpha=0.5) + polygon(((domain[0], codomain[0]), (domain[1], codomain[0]), (domain[1], codomain[1]), (domain[0], codomain[1])), color="red", fill=False) for (domain, codomain) in self._interval_pairs])
 
     def intervals(self):
         return [ domain_interval for (domain_interval, range_interval) in self._interval_pairs ]
