@@ -3294,11 +3294,10 @@ def plot_directed_moves(dmoves):
 
 class DirectedMoveCompositionCompletion:
 
-    def __init__(self, functional_directed_moves, show_plots=False):
-
+    def __init__(self, directed_moves, show_plots=False):
         self.show_plots = show_plots
-        self.move_dict = { fdm.directed_move : fdm for fdm in functional_directed_moves }
-        self.dense_moves = set()
+        self.move_dict = { fdm.directed_move : fdm for fdm in directed_moves if fdm.is_functional()}
+        self.dense_moves = { fdm for fdm in directed_moves if not fdm.is_functional() }
         self.any_change = True
 
     def add_move(self, c):
@@ -3387,8 +3386,8 @@ class DirectedMoveCompositionCompletion:
         return list(self.move_dict.values())
 
 
-def directed_move_composition_completion(functional_directed_moves, show_plots=False, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
-    completion = DirectedMoveCompositionCompletion(functional_directed_moves, show_plots=show_plots)
+def directed_move_composition_completion(directed_moves, show_plots=False, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
+    completion = DirectedMoveCompositionCompletion(directed_moves, show_plots=show_plots)
     completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
     return completion.results()
 
