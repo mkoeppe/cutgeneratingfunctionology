@@ -3215,7 +3215,7 @@ def is_QQ_linearly_independent(*numbers):
     coordinate_matrix = matrix(QQ, [x.parent().0.coordinates_in_terms_of_powers()(x) for x in numbers])
     return rank(coordinate_matrix) == len(numbers)
 
-def interval_list_intersection(interval_list_1, interval_list_2):
+def interval_list_intersection(interval_list_1, interval_list_2, interiors=False):
     """
     Return a list of the intersections of the intervals
     in `interval_list_1` and the intervals in `interval_list_2`.
@@ -3234,11 +3234,11 @@ def interval_list_intersection(interval_list_1, interval_list_2):
     for int1 in interval_list_1:
         for int2 in interval_list_2:
             overlapped_int = interval_intersection(int1,int2)
-            if len(overlapped_int) >= 1:
+            if len(overlapped_int) >= 2 or (not interiors and len(overlapped_int) >= 1):
                 overlap.append(overlapped_int)
     return sorted(overlap)
 
-def compose_directed_moves(A, B):
+def compose_directed_moves(A, B, interiors=False):
     """
     Compute the directed move that corresponds to the directed move `A` after `B`.
     
@@ -3251,7 +3251,7 @@ def compose_directed_moves(A, B):
     if A.is_functional() and B.is_functional():
         A_domain_preimages = [ B.apply_to_interval(A_domain_interval, inverse=True) \
                                for A_domain_interval in A.intervals() ]
-        result_domain_intervals = interval_list_intersection(A_domain_preimages, B.intervals())
+        result_domain_intervals = interval_list_intersection(A_domain_preimages, B.intervals(), interiors=interiors)
         if len(result_domain_intervals) > 0:
             return FunctionalDirectedMove([ interval_to_endpoints(I) for I in result_domain_intervals ], (A[0] * B[0], A[0] * B[1] + A[1]))
     elif not A.is_functional() and B.is_functional():
@@ -3262,7 +3262,7 @@ def compose_directed_moves(A, B):
         for A_domain_preimage, A_range in itertools.izip(A_domain_preimages, A.range_intervals()):
             for B_domain in B.intervals():
                 overlapped_int = interval_intersection(A_domain_preimage, B_domain)
-                if len(overlapped_int) >= 1:
+                if len(overlapped_int) >= 2 or (not interiors and len(overlapped_int) >= 1):
                     interval_pairs.append((interval_to_endpoints(overlapped_int), A_range))
         if interval_pairs:
             return DenseDirectedMove(interval_pairs)
@@ -3292,6 +3292,27 @@ def merge_functional_directed_moves(A, B, show_plots=False):
 def plot_directed_moves(dmoves):
     return sum(plot(dm) for dm in dmoves)
 
+def reduce_with_dense_move(functional_directed_move, dense_move):
+    """
+    EXAMPLES::
+        sage: reduce_with_dense_move(FunctionalDirectedMove([[3/10,7/10]],(1, 1/10)), DenseDirectedMove([[[2/10,6/10],[2/10,6/10]]]))
+        <FunctionalDirectedMove (1, 1/10) with domain [(1/2, 7/10)]>
+    """
+    remove_list = []
+    for domain, codomain in dense_move.interval_pairs():
+        int = interval_intersection(functional_directed_move.apply_to_interval(codomain, inverse=True) , domain)
+        if len(int) == 2:
+            remove_list.append(closed_or_open_or_halfopen_interval(int[0], int[1], True, True))
+    difference = union_of_coho_interval_minus_union_of_coho_intervals(functional_directed_move.intervals(), remove_list)
+    proper_difference = []
+    for int in difference:
+        if int.a < int.b:
+            proper_difference.append((int.a, int.b))
+    if proper_difference:
+        return FunctionalDirectedMove(proper_difference, functional_directed_move.directed_move)
+    else:
+        return None
+
 class DirectedMoveCompositionCompletion:
 
     def __init__(self, directed_moves, show_plots=False):
@@ -3299,6 +3320,13 @@ class DirectedMoveCompositionCompletion:
         self.move_dict = { fdm.directed_move : fdm for fdm in directed_moves if fdm.is_functional()}
         self.dense_moves = { fdm for fdm in directed_moves if not fdm.is_functional() }
         self.any_change = True
+
+    def reduce_move_dict_with_dense_move(self, c):
+        new_move_dict = dict()
+        for key, move in self.move_dict.items():
+            new_move = reduce_with_dense_move(move, c)
+        self.move_dict = new_move_dict
+       
 
     def add_move(self, c):
         if c.is_functional():
@@ -3325,15 +3353,19 @@ class DirectedMoveCompositionCompletion:
             for move in dominated_dense_list:
                 self.dense_moves.remove(move)
             self.dense_moves.add(c)
-            dominated_functional_key_list = [ key for key, move in self.move_dict.items() if is_move_dominated_by_dense_moves(move, self.dense_moves) ]
-            for key in dominated_functional_key_list:
-                self.move_dict.pop(key)
+            # dominated_functional_key_list = [ key for key, move in self.move_dict.items() if is_move_dominated_by_dense_moves(move, self.dense_moves) ]
+            # for key in dominated_functional_key_list:
+            #     self.move_dict.pop(key)
+            self.reduce_move_dict_with_dense_move(c)
             self.any_change = True
+
+    def plot(self, *args, **kwargs):
+        return plot_directed_moves(list(self.dense_moves) + list(self.move_dict.values()))
 
     def complete_one_round(self):
         if self.show_plots:
             logging.info("Plotting...")
-            plot_directed_moves(list(self.dense_moves) + list(self.move_dict.values())).show(figsize=40)
+            self.plot().show(figsize=40)
             logging.info("Plotting... done")
         logging.info("Completing %d functional directed moves and %d dense directed moves..." % (len(self.move_dict), len(self.dense_moves)))
         self.any_change = False
@@ -3362,7 +3394,7 @@ class DirectedMoveCompositionCompletion:
                     if d and not is_move_dominated_by_dense_moves(d, self.dense_moves):
                         logging.info("New dense move from strip lemma: %s" % d)
                         self.add_move(d)
-                c = compose_directed_moves(a, b)
+                c = compose_directed_moves(a, b, interiors=True)   ## experimental - only interiors
                 if c:
                     self.add_move(c)
 
