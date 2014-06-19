@@ -3331,17 +3331,34 @@ class DirectedMoveCompositionCompletion:
 
     def __init__(self, directed_moves, show_plots=False):
         self.show_plots = show_plots
-        self.move_dict = { fdm.directed_move : fdm for fdm in directed_moves if fdm.is_functional()}
-        self.dense_moves = { fdm for fdm in directed_moves if not fdm.is_functional() }
-        self.any_change = True
+        self.move_dict = dict()
+        self.dense_moves = set()
+        self.any_change = False
+        for move in directed_moves:
+            self.add_move(move)
 
-    def reduce_move_dict_with_dense_move(self, c):
+    def reduce_move_dict_with_dense_moves(self, dense_moves):
         new_move_dict = dict()
         for key, move in self.move_dict.items():
-            new_move = reduce_with_dense_moves(move, [c])
+            new_move = reduce_with_dense_moves(move, dense_moves)
             if new_move:
                 new_move_dict[key] = new_move
         self.move_dict = new_move_dict
+
+    def upgrade_or_reduce_dense_interval_pair(self, a_domain, a_codomain):
+        for b in self.dense_moves:
+            for (b_domain, b_codomain) in b.interval_pairs():
+                if (b_domain[0] <= a_domain[0] and a_domain[1] <= b_domain[1]
+                    and b_codomain[0] <= a_codomain[0] and a_codomain[1] <= b_codomain[1]):
+                    # is dominated by existing rectangle, do nothing.
+                    return None, None
+                if len(interval_intersection(a_domain, b_domain)) == 2 \
+                   and len(interval_intersection(a_codomain, b_codomain)) == 2:
+                    # full-dimensional intersection, extend to big rectangle.
+                    logging.info("Applying rectangle lemma")
+                    a_domain = ((min(a_domain[0], b_domain[0]), max(a_domain[1], b_domain[1])))
+                    a_codomain = ((min(a_codomain[0], b_codomain[0]), max(a_codomain[1], b_codomain[1])))
+        return a_domain, a_codomain
 
     def add_move(self, c):
         if c.is_functional():
@@ -3364,17 +3381,24 @@ class DirectedMoveCompositionCompletion:
             else:
                 self.move_dict[cdm] = reduced
                 self.any_change = True
-        elif is_move_dominated_by_dense_moves(c, self.dense_moves):
-            pass
         else:
-            dominated_dense_list = [ move for move in self.dense_moves if is_move_dominated_by_dense_moves(move, [c]) ]
+            # dense move.
+            new_dense_moves = []
+            for (c_domain, c_codomain) in c.interval_pairs():
+                c_domain, c_codomain = self.upgrade_or_reduce_dense_interval_pair(c_domain, c_codomain)
+                if c_domain:
+                    new_dense_moves.append(DenseDirectedMove([(c_domain, c_codomain)]))
+            if not new_dense_moves:
+                return 
+            dominated_dense_list = [ move for move in self.dense_moves if is_move_dominated_by_dense_moves(move, new_dense_moves) ]
             for move in dominated_dense_list:
                 self.dense_moves.remove(move)
-            self.dense_moves.add(c)
+            for m in new_dense_moves:
+                self.dense_moves.add(m)
             # dominated_functional_key_list = [ key for key, move in self.move_dict.items() if is_move_dominated_by_dense_moves(move, self.dense_moves) ]
             # for key in dominated_functional_key_list:
             #     self.move_dict.pop(key)
-            self.reduce_move_dict_with_dense_move(c)
+            self.reduce_move_dict_with_dense_moves(new_dense_moves)
             self.any_change = True
 
     def plot(self, *args, **kwargs):
@@ -3409,16 +3433,16 @@ class DirectedMoveCompositionCompletion:
                     for (b_domain, b_codomain) in b.interval_pairs():
                         if len(interval_intersection(a_domain, b_domain)) == 2 \
                            and len(interval_intersection(a_codomain, b_codomain)) == 2:
-                            # full-dimensional intersection, extend to big rectangle.
-                            new_pairs.append(((min(a_domain[0], b_domain[0]), max(a_domain[1], b_domain[1])),
-                                              (min(a_codomain[0], b_codomain[0]), max(a_codomain[1], b_codomain[1]))))
+                            # full-dimensional intersection, extend to big rectangle;
+                            # but this is taken care of in add_move.
+                            pass
                         elif len(interval_intersection(a_codomain, b_domain)) == 2:
                             # composition of dense moves
                             new_pairs.append((a_domain, b_codomain))
                 if new_pairs:
                     d = DenseDirectedMove(new_pairs)
                     if not is_move_dominated_by_dense_moves(d, self.dense_moves):
-                        logging.info("New dense move from rectangle rule or dense-dense composition: %s" % d)
+                        logging.info("New dense move from dense-dense composition: %s" % d)
                         self.add_move(d)
                         self.maybe_show_plot()
             else:
