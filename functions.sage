@@ -3018,6 +3018,9 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_sty
         print "Moves relevant for these intervals: ", moves
         if use_new_code:
             seed, stab_int, walk_list = find_generic_seed_with_completion(fn, show_plots=show_plots, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
+            if not seed:
+                logging.info("Dense orbits in all non-covered intervals.  According to conjectures, this means that the function is extreme.")
+                return False
         else:
             seed, stab_int, walk_list = find_generic_seed(fn, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
         fn._seed = seed
@@ -3508,8 +3511,9 @@ class DirectedMoveCompositionCompletion:
 
 
     def results(self):
-        if self.dense_moves:
-            raise UnimplementedError, "Dense moves found, handling them in the following code is not implemented yet."
+        ## FIXME: Should return the dense moves somehow as well.
+        # if self.dense_moves:
+        #     raise UnimplementedError, "Dense moves found, handling them in the following code is not implemented yet."
         return list(self.move_dict.values())
 
 
@@ -3518,9 +3522,12 @@ def directed_move_composition_completion(directed_moves, show_plots=False, max_n
     completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
     return completion.results()
 
+@cached_function
 def generate_directed_move_composition_completion(fn, show_plots=False, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
-    functional_directed_moves = generate_functional_directed_moves(fn)
-    completion = fn._completion = DirectedMoveCompositionCompletion(functional_directed_moves, show_plots=show_plots)
+    completion = getattr(fn, "_completion", None)
+    if not completion:
+        functional_directed_moves = generate_functional_directed_moves(fn)
+        completion = fn._completion = DirectedMoveCompositionCompletion(functional_directed_moves, show_plots=show_plots)
     completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
     return completion.results()
 
@@ -3631,7 +3638,7 @@ def find_generic_seed_with_completion(fn, show_plots=False, max_num_it=None):
             seed = (int.a + int.b) / 2
             stab_int = closed_or_open_or_halfopen_interval(int.a - seed, int.b - seed, int.left_closed, int.right_closed)
             return (seed, stab_int, walk_dict)
-    raise ValueError, "No generic seed"
+    return None, None, None
 
 class DenseDirectedMove ():
 
