@@ -3271,6 +3271,17 @@ def compose_directed_moves(A, B, interiors=False, show_plots=False):
             result = DenseDirectedMove(interval_pairs)
         else:
             result = None
+    elif A.is_functional() and not B.is_functional():
+        interval_pairs = []
+        for A_domain_interval in A.intervals():
+            for B_domain_interval, B_range_interval in B.interval_pairs():
+                overlapped_int = interval_intersection(A_domain_interval, B_range_interval)
+                if len(overlapped_int) >= 2 or (not interiors and len(overlapped_int) >= 1):
+                    interval_pairs.append((B_domain_interval, A.apply_to_interval(interval_to_endpoints(overlapped_int))))
+        if interval_pairs:
+            result = DenseDirectedMove(interval_pairs)
+        else:
+            result = None
     else:
         result = None
     if show_plots:
@@ -3351,26 +3362,36 @@ class DirectedMoveCompositionCompletion:
         self.move_dict = new_move_dict
 
     def upgrade_or_reduce_dense_interval_pair(self, a_domain, a_codomain):
-        for b in self.dense_moves:
-            for (b_domain, b_codomain) in b.interval_pairs():
-                if (b_domain[0] <= a_domain[0] and a_domain[1] <= b_domain[1]
-                    and b_codomain[0] <= a_codomain[0] and a_codomain[1] <= b_codomain[1]):
-                    # is dominated by existing rectangle, do nothing.
-                    return None, None
-                elif (a_domain[0] == b_domain[0] and a_domain[1] == b_domain[1]
-                      and len(interval_intersection(a_codomain, b_codomain)) >= 1):
-                      # simple vertical merge
-                    a_codomain = ((min(a_codomain[0], b_codomain[0]), max(a_codomain[1], b_codomain[1])))
-                elif (a_codomain[0] == b_codomain[0] and a_codomain[1] == b_codomain[1]
-                      and len(interval_intersection(a_domain, b_domain)) >= 1):
-                      # simple horizontal merge
-                    a_domain = ((min(a_domain[0], b_domain[0]), max(a_domain[1], b_domain[1])))
-                elif len(interval_intersection(a_domain, b_domain)) == 2 \
-                   and len(interval_intersection(a_codomain, b_codomain)) == 2:
-                    # full-dimensional intersection, extend to big rectangle.
-                    logging.info("Applying rectangle lemma")
-                    a_domain = ((min(a_domain[0], b_domain[0]), max(a_domain[1], b_domain[1])))
-                    a_codomain = ((min(a_codomain[0], b_codomain[0]), max(a_codomain[1], b_codomain[1])))
+        another_pass = True
+        while another_pass:
+            another_pass = False
+            for b in self.dense_moves:
+                for (b_domain, b_codomain) in b.interval_pairs():
+                    if (b_domain[0] <= a_domain[0] and a_domain[1] <= b_domain[1]
+                        and b_codomain[0] <= a_codomain[0] and a_codomain[1] <= b_codomain[1]):
+                        # is dominated by existing rectangle, exit.
+                        return None, None
+                    elif (a_domain[0] <= b_domain[0] and b_domain[1] <= a_domain[1]
+                        and a_codomain[0] <= b_codomain[0] and b_codomain[1] <= a_codomain[1]):
+                        # dominates existing rectangle, do nothing (we take care of that later).
+                        pass
+                    elif (a_domain[0] == b_domain[0] and a_domain[1] == b_domain[1]
+                          and len(interval_intersection(a_codomain, b_codomain)) >= 1):
+                          # simple vertical merge
+                        a_codomain = ((min(a_codomain[0], b_codomain[0]), max(a_codomain[1], b_codomain[1])))
+                        another_pass = True
+                    elif (a_codomain[0] == b_codomain[0] and a_codomain[1] == b_codomain[1]
+                          and len(interval_intersection(a_domain, b_domain)) >= 1):
+                          # simple horizontal merge
+                        a_domain = ((min(a_domain[0], b_domain[0]), max(a_domain[1], b_domain[1])))
+                        another_pass = True
+                    elif len(interval_intersection(a_domain, b_domain)) == 2 \
+                       and len(interval_intersection(a_codomain, b_codomain)) == 2:
+                        # full-dimensional intersection, extend to big rectangle.
+                        logging.info("Applying rectangle lemma")
+                        a_domain = ((min(a_domain[0], b_domain[0]), max(a_domain[1], b_domain[1])))
+                        a_codomain = ((min(a_codomain[0], b_codomain[0]), max(a_codomain[1], b_codomain[1])))
+                        another_pass = True
         return a_domain, a_codomain
 
     def add_move(self, c):
@@ -3381,7 +3402,8 @@ class DirectedMoveCompositionCompletion:
             cdm = c.directed_move
             if cdm in self.move_dict:
                 merged = merge_functional_directed_moves(self.move_dict[cdm], reduced, show_plots=False)
-                if merged.end_points() != self.move_dict[cdm].end_points():
+
+                if merged.intervals() != self.move_dict[cdm].intervals():
                     # Cannot compare the functions themselves because of the "hash" magic of FastPiecewise.
                     #print "merge: changed from %s to %s" % (self.move_dict[cdm], merged)
                     self.move_dict[cdm] = merged
@@ -3427,7 +3449,9 @@ class DirectedMoveCompositionCompletion:
         self.maybe_show_plot()
         logging.info("Completing %d functional directed moves and %d dense directed moves..." % (len(self.move_dict), len(self.dense_moves)))
         self.any_change = False
-        critical_pairs = [ (a, b) for a in list(self.dense_moves) for b in list(self.dense_moves) ] + [ (a, b) for a in self.move_dict.keys() for b in list(self.dense_moves) + self.move_dict.keys() ] + [ (a, b) for a in list(self.dense_moves) for b in list(self.dense_moves) ]
+        critical_pairs = ([ (a, b) for a in list(self.dense_moves) for b in list(self.dense_moves) ] 
+                          + [ (a, b) for a in self.move_dict.keys() for b in list(self.dense_moves) + self.move_dict.keys() ] 
+                          + [ (a, b) for a in list(self.dense_moves) for b in  self.move_dict.keys() ])
         for (a, b) in critical_pairs:
             # Get the most current versions of the directed moves.
             # FIXME: We should rather implement a better completion
@@ -3457,14 +3481,14 @@ class DirectedMoveCompositionCompletion:
                     if not is_move_dominated_by_dense_moves(d, self.dense_moves):
                         logging.info("New dense move from dense-dense composition: %s" % d)
                         self.add_move(d)
-                        self.maybe_show_plot()
+                        # self.maybe_show_plot()
             else:
                 if a.is_functional() and b.is_functional():
                     d = check_for_dense_move(a, b)
                     if d and not is_move_dominated_by_dense_moves(d, self.dense_moves):
                         logging.info("New dense move from strip lemma: %s" % d)
                         self.add_move(d)
-                        self.maybe_show_plot()
+                        # self.maybe_show_plot()
                 c = compose_directed_moves(a, b, interiors=True)   ## experimental - only interiors
                 if c:
                     self.add_move(c)
