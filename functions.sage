@@ -3020,7 +3020,7 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_sty
             seed, stab_int, walk_list = find_generic_seed_with_completion(fn, show_plots=show_plots, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
             if not seed:
                 logging.info("Dense orbits in all non-covered intervals.  According to conjectures, this means that the function is extreme.")
-                return False
+                return True
         else:
             seed, stab_int, walk_list = find_generic_seed(fn, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
         fn._seed = seed
