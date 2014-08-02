@@ -3086,6 +3086,18 @@ def random_piecewise_function(xgrid, ygrid):
     yvalues = [0] + [ randint(0, ygrid) / ygrid for i in range(1, f) ] + [1] + [ randint(0, ygrid) / ygrid for i in range(f+1, xgrid) ]+ [0]
     return piecewise_function_from_breakpoints_and_values(xvalues, yvalues)
 
+def multiplicative_homomorphism(function, multiplier):
+    """
+    Compress the function by a positive integer `multiplier`.
+    """
+    intervals = function.intervals()
+    functions = function.functions()
+    new_pairs = [ (((interval[0] + i) / multiplier, (interval[1] + i) / multiplier), \
+                   FastLinearFunction(function._slope * multiplier, function._intercept - function._slope * i))
+                  for (interval, function) in itertools.izip(intervals, functions) \
+                  for i in range(multiplier) ]
+    return FastPiecewise(new_pairs)
+
 def the_irrational_function_t1_t2(d1 = 3/5, d3 = 1/10, f = 4/5, p = 15/100, \
                                   del1 = 1/200, del2 = sqrt(2)/200):
     d2 = f - d1 - d3
