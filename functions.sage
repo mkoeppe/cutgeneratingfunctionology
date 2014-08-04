@@ -2953,11 +2953,15 @@ def check_perturbation(fn, perturb, show_plots=False, **show_kwds):
     print "Thus the function is not extreme."
     if show_plots:
         logging.info("Plotting perturbation...")
-        (plot(fn, xmin=0, xmax=1, color='black', thickness=2, legend_label="original function") \
-         + plot(fn + epsilon * perturb, xmin=0, xmax=1, color='blue', legend_label="+perturbed") \
-         + plot(fn + (-epsilon) * perturb, xmin=0, xmax=1, color='red', legend_label="-perturbed") \
-         + plot(rescale_to_amplitude(perturb, 1/10), xmin=0, xmax=1, color='magenta', legend_label="perturbation")) \
-        .show(figsize=50, **show_kwds)
+        p = plot(fn, xmin=0, xmax=1, color='black', thickness=2, legend_label="original function")
+        p += plot(fn + epsilon_interval[0] * perturb, xmin=0, xmax=1, color='red', legend_label="-perturbed (min)")
+        p += plot(fn + epsilon_interval[1] * perturb, xmin=0, xmax=1, color='blue', legend_label="+perturbed (max)")
+        if -epsilon != epsilon_interval[0]:
+            p += plot(fn + (-epsilon) * perturb, xmin=0, xmax=1, color='orange', legend_label="-perturbed (matches max)")
+        elif epsilon != epsilon_interval[1]:
+            p += plot(fn + epsilon * perturb, xmin=0, xmax=1, color='cyan', legend_label="+perturbed (matches min)")
+        p += plot(rescale_to_amplitude(perturb, 1/10), xmin=0, xmax=1, color='magenta', legend_label="perturbation (rescaled)")
+        p.show(figsize=50, **show_kwds)
         logging.info("Plotting perturbation... done")
 
 def finite_dimensional_extremality_test(function, show_plots=False):
