@@ -1793,6 +1793,7 @@ maximal_asymmetric_peaks_around_orbit = 'maximal_asymmetric_peaks_around_orbit'
 maximal_symmetric_peaks_around_orbit = 'maximal_symmetric_peaks_around_orbit'
 recentered_symmetric_peaks = 'recentered_symmetric_peaks'
 recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_positive_epsilon = 'recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_positive_epsilon'
+recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_negative_epsilon = 'recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_negative_epsilon'
 
 default_perturbation_style = maximal_asymmetric_peaks_around_orbit
 
@@ -1838,6 +1839,20 @@ def approx_discts_function(perturbation_list, stability_interval, field=default_
             slope_plus, slope_minus = limiting_slopes(function)
             current_slope = function.which_function(pt + (stability_interval.b + stability_interval.a)/2)._slope 
             x = (stability_interval.b - stability_interval.a) * (slope_minus - current_slope)/(slope_minus-slope_plus)
+            if sign == 1:
+                left = pt + stability_interval.a
+                right = pt + stability_interval.b
+                pt = left + x
+            else:
+                left = pt - stability_interval.b
+                right = pt - stability_interval.a
+                pt = right - x
+        elif perturbation_style==recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_negative_epsilon:
+            if function is None:
+                raise ValueError, "This perturbation_style needs to know function"
+            slope_plus, slope_minus = limiting_slopes(function)
+            current_slope = function.which_function(pt + (stability_interval.b + stability_interval.a)/2)._slope 
+            x = (stability_interval.b - stability_interval.a) * (slope_plus - current_slope)/(slope_plus-slope_minus)
             if sign == 1:
                 left = pt + stability_interval.a
                 right = pt + stability_interval.b
