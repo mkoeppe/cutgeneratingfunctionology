@@ -1797,6 +1797,7 @@ maximal_asymmetric_peaks_around_orbit = 'maximal_asymmetric_peaks_around_orbit'
 maximal_symmetric_peaks_around_orbit = 'maximal_symmetric_peaks_around_orbit'
 recentered_symmetric_peaks = 'recentered_symmetric_peaks'
 recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_positive_epsilon = 'recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_positive_epsilon'
+recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_negative_epsilon = 'recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_negative_epsilon'
 
 default_perturbation_style = maximal_asymmetric_peaks_around_orbit
 
@@ -1842,6 +1843,20 @@ def approx_discts_function(perturbation_list, stability_interval, field=default_
             slope_plus, slope_minus = limiting_slopes(function)
             current_slope = function.which_function(pt + (stability_interval.b + stability_interval.a)/2)._slope 
             x = (stability_interval.b - stability_interval.a) * (slope_minus - current_slope)/(slope_minus-slope_plus)
+            if sign == 1:
+                left = pt + stability_interval.a
+                right = pt + stability_interval.b
+                pt = left + x
+            else:
+                left = pt - stability_interval.b
+                right = pt - stability_interval.a
+                pt = right - x
+        elif perturbation_style==recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_negative_epsilon:
+            if function is None:
+                raise ValueError, "This perturbation_style needs to know function"
+            slope_plus, slope_minus = limiting_slopes(function)
+            current_slope = function.which_function(pt + (stability_interval.b + stability_interval.a)/2)._slope 
+            x = (stability_interval.b - stability_interval.a) * (slope_plus - current_slope)/(slope_plus-slope_minus)
             if sign == 1:
                 left = pt + stability_interval.a
                 right = pt + stability_interval.b
@@ -2942,11 +2957,15 @@ def check_perturbation(fn, perturb, show_plots=False, **show_kwds):
     print "Thus the function is not extreme."
     if show_plots:
         logging.info("Plotting perturbation...")
-        (plot(fn, xmin=0, xmax=1, color='black', thickness=2, legend_label="original function") \
-         + plot(fn + epsilon * perturb, xmin=0, xmax=1, color='blue', legend_label="+perturbed") \
-         + plot(fn + (-epsilon) * perturb, xmin=0, xmax=1, color='red', legend_label="-perturbed") \
-         + plot(rescale_to_amplitude(perturb, 1/10), xmin=0, xmax=1, color='magenta', legend_label="perturbation")) \
-        .show(figsize=50, **show_kwds)
+        p = plot(fn, xmin=0, xmax=1, color='black', thickness=2, legend_label="original function")
+        p += plot(fn + epsilon_interval[0] * perturb, xmin=0, xmax=1, color='red', legend_label="-perturbed (min)")
+        p += plot(fn + epsilon_interval[1] * perturb, xmin=0, xmax=1, color='blue', legend_label="+perturbed (max)")
+        if -epsilon != epsilon_interval[0]:
+            p += plot(fn + (-epsilon) * perturb, xmin=0, xmax=1, color='orange', legend_label="-perturbed (matches max)")
+        elif epsilon != epsilon_interval[1]:
+            p += plot(fn + epsilon * perturb, xmin=0, xmax=1, color='cyan', legend_label="+perturbed (matches min)")
+        p += plot(rescale_to_amplitude(perturb, 1/10), xmin=0, xmax=1, color='magenta', legend_label="perturbation (rescaled)")
+        p.show(figsize=50, **show_kwds)
         logging.info("Plotting perturbation... done")
 
 def finite_dimensional_extremality_test(function, show_plots=False):
