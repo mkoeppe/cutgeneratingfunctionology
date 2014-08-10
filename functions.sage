@@ -1585,9 +1585,10 @@ class RealNumberField_quadratic(NumberField_quadratic):
         """
         #### This is copy/paste from number_field.py, Sage 5.11,
         #### modified to change the element type.
-        NumberField_absolute.__init__(self, polynomial, name=name, check=check,
+        NumberField_quadratic.__init__(self, polynomial, name=name, check=check,
                                       embedding=embedding, latex_name=latex_name,
                                       assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
+        #### Note: Modify "NumberField_absolute.__init__()" to "NumberField_quadratic.__init__()" as the former causes TypeError in Sage 5.12. --Yuan
         self._standard_embedding = True
         self._element_class = RealNumberFieldElement_quadratic
         c, b, a = [Rational(t) for t in self.defining_polynomial().list()]
@@ -1617,8 +1618,11 @@ class RealNumberField_quadratic(NumberField_quadratic):
         # _one_element to NumberFieldElement_absolute values, which is
         # wrong (and dangerous; such elements can actually be used to
         # crash Sage: see #5316).  Overwrite them with correct values.
-        self._zero_element = self(0)
-        self._one_element =  self(1)
+        #### Note: In my Sage 5.12, self(0) and self(1) return NumberFieldElement_quadratic. Should be RNFE_quadratic --Yuan
+        #### self._zero_element = self(0) 
+        #### self._one_element =  self(1)
+        self._zero_element = RealNumberFieldElement_quadratic(self, QQ(0)) 
+        self._one_element =  RealNumberFieldElement_quadratic(self, QQ(1))       
     
 # The factory.
 
