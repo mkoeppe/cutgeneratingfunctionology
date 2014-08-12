@@ -2910,6 +2910,15 @@ def generate_compatible_piecewise_function(components, component_slopes, field=N
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
 
 def symbolic_piecewise(function):
+    """
+    Construct a vector-space-valued piecewise linear function
+    compatible with the given `function`.  Each of the components of
+    the function has a slope that is a basis vector of the vector
+    space.  Returns three values: The constructed function, the list
+    of components (including one component for every non-covered
+    interval), and the field over which the original `function` is
+    defined.
+    """
     covered_intervals = generate_covered_intervals(function)
     uncovered_intervals = generate_uncovered_intervals(function)
     if uncovered_intervals:
@@ -2930,10 +2939,10 @@ def symbolic_piecewise(function):
 
 def generate_additivity_equations(function, symbolic, field):
     f = find_f(function)
-    equations = matrix(field, [delta_pi(symbolic, x, y) \
-                 for (x, y) in generate_additive_vertices(function) ] \
-                + [symbolic(f)] \
-                + [symbolic(1)])
+    equations = matrix(field, ([delta_pi(symbolic, x, y) 
+                                for (x, y) in generate_additive_vertices(function) ]
+                               + [symbolic(f)]
+                               + [symbolic(1)]))
     return equations
 
 def rescale_to_amplitude(perturb, amplitude):
@@ -2967,9 +2976,10 @@ def check_perturbation(fn, perturb, show_plots=False, **show_kwds):
 
 def finite_dimensional_extremality_test(function, show_plots=False):
     """
-    Fixed: Get rid of maxima-based "solve" in favor of linear algebra code. 
-    Use an n-dimensional vector space over RNF (with the slope variables as the n standard unit vectors) as the "field" of the piecewise linear function, 
-    instead of using the SR.
+    Solve a homogeneous linear system of additivity equations with one
+    slope variable for every component (including every non-covered
+    interval).  Return a boolean that indicates whether the system has
+    a nontrivial solution.
     """
     symbolic, components, field = symbolic_piecewise(function)
     equations = generate_additivity_equations(function, symbolic, field)
@@ -2980,10 +2990,10 @@ def finite_dimensional_extremality_test(function, show_plots=False):
         return True
     else:
         for basis_index in range(len(slopes_vects)):
-        slopes = list(slopes_vects[basis_index])
-        perturbation = function._perturbation = generate_compatible_piecewise_function(components, slopes)
+            slopes = list(slopes_vects[basis_index])
+            perturbation = function._perturbation = generate_compatible_piecewise_function(components, slopes)
             check_perturbation(function, perturbation, show_plots=show_plots, legend_title="Basic perturbation %s" % (basis_index + 1))
-    return False
+        return False
 
 @cached_function
 def generate_additive_vertices(fn):
