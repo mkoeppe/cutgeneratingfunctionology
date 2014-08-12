@@ -2910,9 +2910,6 @@ def generate_compatible_piecewise_function(components, component_slopes, field=N
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
 
 def symbolic_piecewise(function):
-    """Return a piecewise function compatible with the given `function`, 
-    using symbolic slope coefficients, one for each component.
-    As a second result, return a list of the symbolic slope coefficients."""
     covered_intervals = generate_covered_intervals(function)
     uncovered_intervals = generate_uncovered_intervals(function)
     if uncovered_intervals:
@@ -2925,19 +2922,19 @@ def symbolic_piecewise(function):
         components.extend([int] for int in uncovered_intervals)
     else:
         components = covered_intervals
-    slope_vars = list(var([ "slope%s" % (i+1) for i in range(len(components))]))
-    symbolic = generate_compatible_piecewise_function(components, slope_vars, field=SR)
-    return symbolic, slope_vars, components
+    field = function(0).parent()
+    vector_space = VectorSpace(field,len(components))
+    slope_vars = vector_space.basis()
+    symbolic = generate_compatible_piecewise_function(components, slope_vars, field)
+    return symbolic, components, field
 
-def additivity_equation(symbolic, x, y):
-    return delta_pi(symbolic, x, y) == 0
-
-def generate_additivity_equations(function, symbolic):
+def generate_additivity_equations(function, symbolic, field):
     f = find_f(function)
-    return uniq([additivity_equation(symbolic, x, y) \
+    equations = matrix(field, [delta_pi(symbolic, x, y) \
                  for (x, y) in generate_additive_vertices(function) ] \
-                + [symbolic(f) == 0] \
-                + [symbolic(1) == 0])
+                + [symbolic(f)] \
+                + [symbolic(1)])
+    return equations
 
 def rescale_to_amplitude(perturb, amplitude):
     """For plotting purposes, rescale the function `perturb` so that its
@@ -2969,27 +2966,22 @@ def check_perturbation(fn, perturb, show_plots=False, **show_kwds):
         logging.info("Plotting perturbation... done")
 
 def finite_dimensional_extremality_test(function, show_plots=False):
-    symbolic, slope_vars, components = symbolic_piecewise(function)
-    ## FIXME: Get rid of maxima-based "solve" in favor of linear algebra code.
-    equations = generate_additivity_equations(function, symbolic)
-    logging.info("Equations: %s" % equations)
-    solutions = solve(equations, slope_vars, solution_dict=True)
-    logging.info("Solutions: %s" % solutions)
-    assert len(solutions) == 1, "We need to see exactly one general solution."
-    solution = solutions[0]
-    rhs_variables = []
-    for sol in solution.values():
-        rhs_variables.extend(sol.variables())
-    rhs_variables = uniq(rhs_variables)
-    logging.info("Solution space has dimension %s" % len(rhs_variables))
-    if len(rhs_variables) == 0:
+    """
+    Fixed: Get rid of maxima-based "solve" in favor of linear algebra code. 
+    Use an n-dimensional vector space over RNF (with the slope variables as the n standard unit vectors) as the "field" of the piecewise linear function, 
+    instead of using the SR.
+    """
+    symbolic, components, field = symbolic_piecewise(function)
+    equations = generate_additivity_equations(function, symbolic, field)
+    slopes_vects = equations.right_kernel().basis()
+    logging.info("Solution space has dimension %s" % len(slopes_vects))
+    if len(slopes_vects) == 0:
         logging.info("Thus the function is extreme.")
         return True
     else:
-        for basis_index in range(len(rhs_variables)):
-            substitutions = {var: 1 if i == basis_index else 0 for i, var in enumerate(rhs_variables)}
-            slopes = [ solution[slope_var].subs(substitutions) for slope_var in slope_vars ]
-            perturbation = function._perturbation = generate_compatible_piecewise_function(components, slopes)
+        for basis_index in range(len(slopes_vects)):
+        slopes = list(slopes_vects[basis_index])
+        perturbation = function._perturbation = generate_compatible_piecewise_function(components, slopes)
             check_perturbation(function, perturbation, show_plots=show_plots, legend_title="Basic perturbation %s" % (basis_index + 1))
     return False
 
