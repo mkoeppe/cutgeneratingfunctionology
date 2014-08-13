@@ -16,12 +16,16 @@ def gmic(f=4/5):
 
     Examples: 
         [61] p.343, Fig. 1, Example 1 ::
+
             sage: h = gmic(4/5)	
 		
     Reference: 
         [55]: R.E. Gomory, An algorithm for the mixed integer problem, Tech. Report RM-2597, RAND Corporation, 1960.
+
         [57]: R.E. Gomory, Some polyhedra related to combinatorial problems, Linear Algebra and its Application 2 (1969) 451-558.
+
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.	
     """
     if not bool(0 < f < 1):
@@ -48,12 +52,14 @@ def gj_2_slope(f=3/5, lambda_1=1/6):
 
     Examples:
         [61] p.354, Fig.6 ::
+
             sage: h = gj_2_slope(f=3/5, lambda_1=1/6)
             sage: h = gj_2_slope(f=3/5, lambda_1=1/2)
             sage: h = gj_2_slope(f=3/5, lambda_1=1)
 
     Reference: 
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.	
     """
     if not (bool(0 < f < 1) & bool(0 < lambda_1 < f/(1 - f))):
@@ -88,10 +94,12 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3):
 
     Examples:
         [61] p.354, Fig.7 ::
+
             sage: h = gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3)
 
     Reference: 
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.	
     """
     if not (bool(0 < f < 1) & (m >= 2) & (n >= 2) & bool (s_positive > 1 / f) & bool(s_negative < 1/(f - 1))):
@@ -127,12 +135,14 @@ def two_step_mir(f=4/5, alpha=3/10):
 
     Examples:
         [33] p.40, Fig.5 ::
+
             sage: h = two_step_mir(f=4/5, alpha=3/10)
 
     Reference: 
         [33]: S. Dash and O. G¨unl¨uk, Valid inequalities based on simple mixed-integer sets., 
-                Proceedings	10th Conference on Integer Programming and Combinatorial Optimization 
+                Proceedings 10th Conference on Integer Programming and Combinatorial Optimization 
                 (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33–45.
+
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.	
     """
     if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha) <= 1 / alpha)):
@@ -191,6 +201,7 @@ def n_step_mir(f=4/5, n=3, a=[1, 3/10, 8/100]):
 
     Reference: 
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.	
+
         [74]: K. Kianfar and Y. Fathi, Generalized mixed integer rounding valid inequalities: 
                 Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313–346.
     """
@@ -271,7 +282,7 @@ def backward_3_slope(f=1/12, bkpt=2/12):
         Proven [40] p.153 thm.6.
 
     Parameters:
-        f , bkpt (rational number? or real) \in (0,1)
+        f, bkpt (rational number? or real) \in (0,1)
 
     Function is known to be extreme under the conditions: 
         f, bkpt are rational numbers(*) such that   
@@ -279,19 +290,22 @@ def backward_3_slope(f=1/12, bkpt=2/12):
 
     Note: 
         In [61] p.374, Appendix C, p.360. Fig.10, they claim that 
-        the function (named pi3(u)) is facet (= exteme? ), without out assuming f,bkpt being rational numbers. 
-        Also, one can add a pertubation (zigzag) on the third slope as shown in Fig.10.
+        the function (named pi3(u)) is facet (= extreme?), without assuming f, bkpt being rational numbers. 
+        Also, one can add a perturbation (zigzag) on the third slope as shown in Fig.10.
         Proofs are not provided, however.
 
     Examples:
         Finite group --> Example 3.8 in [8] p.386, 
         Infinite group --> Interpolation using Equation 5 from [40] p.154 ::
+
         sage: h = backward_3_slope(f=1/12, bkpt=2/12)
+
         sage: h = backward_3_slope(f=1/12, bkpt=3/12)
 
     Reference: 
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, Extreme inequalities for infinite group problems., 
                 Mathematical Programming 121 (2010) 145–170.
+
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.	
     """
     # FIXME: (*) Must f and bkpt be rational numbers?  
