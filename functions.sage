@@ -3013,9 +3013,8 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
     completion = generate_directed_move_composition_completion(fn, show_plots=show_plots)
 
     decomposition = find_decomposition_into_intervals_with_same_moves(completion)
-     
     done_intervals = set()
-    
+
     for (interval, moves) in decomposition:
         if interval not in done_intervals:
             #print interval
@@ -3038,8 +3037,7 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
                     y[0] = 0
             stability_orbit = (list(orbit), walk_dict, None)
             fn._stability_orbits.append(stability_orbit)
-    logging.info("Total: %s stability orbits, lengths: %s" \
-                 % (len(fn._stability_orbits), \
+    logging.info("Total: %s stability orbits, lengths: %s" % (len(fn._stability_orbits), \
                     [ ("%s+" if to_do else "%s") % len(shifted_stability_intervals) \
                       for (shifted_stability_intervals, walk_dict, to_do) in fn._stability_orbits ]))
 
