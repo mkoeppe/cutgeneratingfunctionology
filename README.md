@@ -31,3 +31,10 @@ How to run the code online via cloud.sagemath.com
 
 
 
+To update the code to the latest version:
+
+1. In the project "Group relaxation", open the directory "infinite-group-relaxation-code".
+   
+2. In the line "Terminal command...", enter: git pull 
+
+
