@@ -349,8 +349,6 @@ def gj_2_slope_limit(f=0.6, nb_pieces_left=3, nb_pieces_right=4):
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, Extreme inequalities for infinite group problems., 
                 Mathematical Programming 121 (2010) 145–170.	
     """
-    # FIXME: Need to develop code for discontinuous functions.
-    raise UnimplementedError, "Code for handling discontinuous functions is not implemented yet."
     m = nb_pieces_left
     d = nb_pieces_right	
     if not ((m in ZZ) & (d in ZZ) & (m >= 1) & (d >= 1) & bool(0 < f < 1)):
@@ -366,7 +364,6 @@ def gj_2_slope_limit(f=0.6, nb_pieces_left=3, nb_pieces_right=4):
     else:
         delta_1 = (s*f - 1)/(m - 1)
     def psi(x):
-        # FIXME: How to restrict the domain of psi to [0,1]?
         if (x >= 0) & (x <= 1):
             if (x <= f):
                 if (m * x / f) in ZZ:
@@ -378,4 +375,8 @@ def gj_2_slope_limit(f=0.6, nb_pieces_left=3, nb_pieces_right=4):
                     return (1 - x)/(1 - f)
                 else:
                     return s*x - s*f + 1 - (d - floor(d*(1 - x)/(1 - f)))*delta_2
+        else:
+            raise ValueError, "outside domain"
+    # FIXME: Need to develop code for discontinuous functions.
+    logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
     return psi		
