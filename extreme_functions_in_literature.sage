@@ -310,9 +310,6 @@ def backward_3_slope(f=1/12, bkpt=2/12):
     """
     # FIXME: (*) Must f and bkpt be rational numbers?  
     #       The proof is based on interpolation of finite cyclic group extreme functions(cf. [8]). Need rational number. Can we relax them to irrational numbers?
-    # Example: try: backward_3_slope(f = sqrt(3)-3/2, bkpt = 9/32) return: is NOT extreme. (because not minimal)
-    #       (But I think this is due to numerical approximation of symbolic expressions! Use rational f, bkpt nearby, return is extreme.)
-    #       try: backward_3_slope(f = sqrt(2)-6/5, bkpt = 9/32) return: is extreme.
     if not bool(0 < f < bkpt < 1 + f - bkpt < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
     if not ((f in QQ) & (bkpt in QQ) & bool(0 < f < bkpt < ((1 + f)/4) < 1)):
