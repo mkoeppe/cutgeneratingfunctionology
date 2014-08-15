@@ -839,6 +839,7 @@ def interval_minus_union_of_intervals(interval, remove_list):
     [[0, 2], [3, 9]]
     """
     # the last test currently fails!
+    # FIXME: Rewrite using our more general functions.
     bracketed_list = [[interval[0],interval[0]]] + remove_list + [[interval[1],interval[1]]]
     difference = []
     for i in range(len(bracketed_list) - 1):
@@ -1527,7 +1528,7 @@ class RealNumberField_absolute(NumberField_absolute):
 
     EXAMPLES::
     sage: field, field_values, morphism = number_field_elements_from_algebraics((sqrt(2), sqrt(3)))
-    sage: emb_field = RealNumberField(field.polynomial(), 'a', embedding=morphism(field.gen(0)))
+    sage: emb_field = RealNumberField(field.polynomial(), 'a', embedding=morphism(field.gen(0)), exact_embedding=SR(morphism(field.gen(0))))
     sage: hom = field.hom([emb_field.gen(0)])
     sage: Integer(7)/5 < hom(field_values[0])
     True
@@ -1704,7 +1705,7 @@ def nice_field_values(symb_values, field=None):
         # Try to make it a RealNumberField:
         try:
             all_values = [ AA(x) for x in symb_values ]
-            global number_field, number_field_values, morphism, exact_generator, embedded_field, embedding_field, hom, embedded_field_values
+            #global number_field, number_field_values, morphism, exact_generator, embedded_field, embedding_field, hom, embedded_field_values
             number_field, number_field_values, morphism = number_field_elements_from_algebraics(all_values)
             # Now upgrade to a RealNumberField
             exact_generator = morphism(number_field.gen(0))
