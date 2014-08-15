@@ -2802,12 +2802,8 @@ def reduce_with_dense_moves(functional_directed_move, dense_moves, show_plots=Fa
             remove_list.append(closed_or_open_or_halfopen_interval(int[0], int[1], True, True))
         remove_lists.append(remove_list)  # Each remove_list is sorted because each interval is a subinterval of the domain interval.
     #print remove_lists
-    difference = union_of_coho_intervals_minus_union_of_coho_intervals([functional_directed_move.intervals()], remove_lists)
-    # FIXME: rather than postprocessing like this, produce this format (a, b) directly from the scan.
-    proper_difference = []
-    for int in difference:
-        if int.a < int.b:
-            proper_difference.append((int.a, int.b))
+    scan_difference = scan_union_of_coho_intervals_minus_union_of_coho_intervals([functional_directed_move.intervals()], remove_lists)
+    proper_difference = list(proper_interval_list_from_scan(scan_difference))
     if proper_difference:
         result = FunctionalDirectedMove(proper_difference, functional_directed_move.directed_move)
     else:
