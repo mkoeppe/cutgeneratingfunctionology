@@ -2183,17 +2183,56 @@ def interval_length(interval):
         return interval[1] - interval[0]
     return 0
 
-def scan_coho_interval_list(interval_list, tag=None):
-    """Generate events of the form `(x, epsilon), delta, tag.`"""
+def scan_coho_interval_left_endpoints(interval_list, tag=None, delta=-1):
+    """Generate events of the form `(x, epsilon), delta, tag.`
+
+    This assumes that `interval_list` is sorted from left to right,
+    and that the intervals are pairwise disjoint.
+    """
     for i in interval_list:
         if len(i) == 2:
             # old-fashioned closed interval
-            yield (i[0], 0), +1, tag                             # Turn on at left endpoint
-            yield (i[1], 1), -1, tag                             # Turn off at right endpoint plus epsilon
+            yield (i[0], 0), delta, tag                             # Turn on at left endpoint
         else:
             # coho interval
-            yield (i.a, 0 if i.left_closed else 1), +1, tag
-            yield (i.b, 1 if i.right_closed else 0), -1, tag
+            yield (i.a, 0 if i.left_closed else 1), delta, tag
+
+def scan_coho_interval_right_endpoints(interval_list, tag=None, delta=+1):
+    """Generate events of the form `(x, epsilon), delta, tag.`
+
+    This assumes that `interval_list` is sorted from left to right,
+    and that the intervals are pairwise disjoint.
+    """
+    for i in interval_list:
+        if len(i) == 2:
+            # old-fashioned closed interval
+            yield (i[1], 1), delta, tag                             # Turn off at right endpoint plus epsilon
+        else:
+            # coho interval
+            yield (i.b, 1 if i.right_closed else 0), delta, tag
+
+def scan_coho_interval_list(interval_list, tag=None, on_delta=-1, off_delta=+1):
+    """Generate events of the form `(x, epsilon), delta, tag.`
+
+    This assumes that `interval_list` is sorted, and 
+    that the intervals are pairwise disjoint.
+
+    delta is -1 for the beginning of an interval ('on').
+    delta is +1 for the end of an interval ('off'). 
+
+    This is so that the events sort lexicographically in a way that if
+    we have intervals whose closures intersect in one point, such as
+    [a, b) and [b, c], we see first the 'on' event and then the 'off'
+    event.  In this way consumers of the scan can easily implement merging 
+    of such intervals. 
+
+    If merging is not desired, set on_delta=+1, off_delta=-1. 
+
+    sage: list(scan_coho_interval_list([closed_or_open_or_halfopen_interval(1, 2, True, False), closed_or_open_or_halfopen_interval(2, 3, True, True)]))
+    [((1, 0), -1, None), ((2, 0), -1, None), ((2, 0), 1, None), ((3, 1), 1, None)]
+    """
+    return merge(scan_coho_interval_left_endpoints(interval_list, tag, on_delta), 
+                 scan_coho_interval_right_endpoints(interval_list, tag, off_delta))
 
 ## def scan_set_difference(a, b):
 ##     """`a` and `b` should be event generators."""
@@ -2210,16 +2249,16 @@ def scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, r
     for ((x, epsilon), delta, tag) in scan:
         was_on = on
         if tag:                                       # interval event
-            interval_indicator += delta
+            interval_indicator -= delta
             assert(interval_indicator) >= 0
         else:                                           # remove event
-            remove_indicator += delta
+            remove_indicator -= delta
             assert(remove_indicator) >= 0
         now_on = interval_indicator > 0 and remove_indicator == 0
         if not was_on and now_on: # switched on
-            yield (x, epsilon), +1, None
-        elif was_on and not now_on: # switched off
             yield (x, epsilon), -1, None
+        elif was_on and not now_on: # switched off
+            yield (x, epsilon), +1, None
         on = now_on
     # No unbounded intervals:
     assert interval_indicator == 0
@@ -2231,7 +2270,7 @@ def coho_interval_list_from_scan(scan):
     (on_x, on_epsilon) = (None, None)
     for ((x, epsilon), delta, tag) in scan:
         was_on = indicator > 0
-        indicator += delta
+        indicator -= delta
         assert indicator >= 0
         now_on = indicator > 0
         if not was_on and now_on:                        # switched on
@@ -3001,10 +3040,10 @@ def find_decomposition_into_intervals_with_same_moves(functional_directed_moves,
                                                           on_epsilon == 0, epsilon > 0)
                 yield (int, list(moves))
         (on_x, on_epsilon) = (x, epsilon)
-        if delta == 1:                         # beginning of interval
+        if delta == -1:                         # beginning of interval
             assert move not in moves
             moves.add(move)
-        elif delta == -1:                      # end of interval
+        elif delta == +1:                      # end of interval
             moves.remove(move)
         elif delta == 0:                       # an invariant point
             pass
