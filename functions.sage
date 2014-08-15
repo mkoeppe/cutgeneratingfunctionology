@@ -838,14 +838,8 @@ def interval_minus_union_of_intervals(interval, remove_list):
     sage: interval_minus_union_of_intervals([0, 10], [[-1, 0], [2, 3], [9,11], [13, 17]])
     [[0, 2], [3, 9]]
     """
-    # the last test currently fails!
-    # FIXME: Rewrite using our more general functions.
-    bracketed_list = [[interval[0],interval[0]]] + remove_list + [[interval[1],interval[1]]]
-    difference = []
-    for i in range(len(bracketed_list) - 1):
-        if (bracketed_list[i][1] < bracketed_list[i+1][0]): 
-            difference.append([bracketed_list[i][1], bracketed_list[i+1][0]])
-    return difference
+    scan = scan_union_of_coho_intervals_minus_union_of_coho_intervals([[interval]], [remove_list])
+    return list(proper_interval_list_from_scan(scan))
 
 def uncovered_intervals_from_covered_intervals(covered_intervals):
     """Compute a list of uncovered intervals, given the list of components
@@ -2302,7 +2296,31 @@ def union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove
     [<Int[0, 20]>]
     """
     gen = coho_interval_list_from_scan(scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists))
-    return [ int for int in gen ]
+    return list(gen)
+
+def proper_interval_list_from_scan(scan):
+    """Return a generator of the proper intervals [a, b], a<b, in the `scan`.
+
+    This ignores whether intervals are open/closed/half-open.
+    """
+    indicator = 0
+    (on_x, on_epsilon) = (None, None)
+    for ((x, epsilon), delta, tag) in scan:
+        was_on = indicator > 0
+        indicator -= delta
+        assert indicator >= 0
+        now_on = indicator > 0
+        if not was_on and now_on:                        # switched on
+            (on_x, on_epsilon) = (x, epsilon)
+        elif was_on and not now_on:                     # switched off
+            assert on_x is not None
+            assert on_epsilon >= 0
+            assert epsilon >= 0
+            if on_x < x:
+                yield [on_x, x]
+            (on_x, on_epsilon) = (None, None)
+    assert indicator == 0
+
 
 # size has to be a positive integer
 def lattice_plot(A, A0, t1, t2, size):
