@@ -2259,6 +2259,8 @@ def union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove
     [<Int[0, 2)>, <Int(2, 3)>, <Int(4, 10]>]
     sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0, 10]]], [[[1, 7]], [[2, 5]]])
     [<Int[0, 1)>, <Int(7, 10]>]
+    sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0,10], closed_or_open_or_halfopen_interval(10, 20, False, True)]], [])
+    [<Int[0, 20]>]
     """
     gen = coho_interval_list_from_scan(scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists))
     return [ int for int in gen ]
