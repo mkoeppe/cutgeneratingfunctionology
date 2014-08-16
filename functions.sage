@@ -953,18 +953,16 @@ def plot_covered_intervals(function, covered_intervals=None, **plot_kwds):
 
 # Fix x and y.
 def type1check(fn):
-    k=1
+    result = True
     bkpt = fn.end_points()
     for i in bkpt:
         for j in bkpt:
             if delta_pi(fn,i,j)<0:
-                print "For x = ", i, ", y = ", j, ", x+y = ", i+j
-                print "    Delta pi(x,y) = ", fn(fractional(i)), "+", fn(fractional(j)), "-", fn(fractional(i+j)), " = ", \
-                    delta_pi(fn,i,j), " < 0"
-                k=0
-    if k==1:
-        return True
-    return False
+                logging.info("For x = %s, y = %s, x+y = %s" % (i, j, i+j))
+                logging.info("    Delta pi(x,y) = %s + %s - %s = %s < 0" % 
+                             (fn(fractional(i)), fn(fractional(j)), fn(fractional(i+j)), delta_pi(fn,i,j)))
+                result = False
+    return result
 
 # Fix x and x+y.
 # By symmetry, the case in which y and x+y are fixed is also done. 
@@ -976,18 +974,15 @@ def type2check(fn):
     for i in range(len(bkpt)):
         bkpt2.append(bkpt[i]+1)     
 
-    k=1
-    
+    result = True
     for i in bkpt:
         for j in bkpt2:
             if j - i > 0 and delta_pi(fn,i,j-i)<0:
-                print "For x = ", i, ", y = ", j-i, ", x+y = ",j
-                print "    Delta pi(x,y) = ", fn(fractional(i)), "+", fn(fractional(j-i)), "-", fn(fractional(j)), " = ", \
-                    delta_pi(fn,i,j-i), " < 0"
-                k=0
-    if k==1:
-        return True
-    return False     
+                logging.info("For x = %s, y = %s, x+y = %s" % (i, j-i, j))
+                logging.info("    Delta pi(x,y) = %s + %s - %s = %s < 0" % 
+                             (fn(fractional(i)), fn(fractional(j-i)), fn(fractional(j)), delta_pi(fn,i,j-i)))
+                result = False
+    return result     
 
 
 def subadditivity_check(fn):
@@ -996,30 +991,31 @@ def subadditivity_check(fn):
     Could take quite a while. (O(n^2))
     """
     if type1check(fn) and type2check(fn):
-        print "pi is subadditive!"
+        logging.info("pi is subadditive.")
         return True
     else:
-        print "pi is not subadditive!"
+        logging.info("Thus pi is not subadditive.")
         return False
 
 def symmetric_test(fn, f):
-    k = 1
+    result = True
     if fn(f) != 1:
-        print 'pi(f) is not equal to 1. pi is not symmetric.'
-        return False
+        logging.info('pi(f) is not equal to 1.')
+        result = False
     else:
         bkpt = fn.end_points()
         for i in bkpt:
             for j in bkpt:
                 if i + j == f or i + j == 1 + f:
                     if delta_pi(fn, i, j) != 0:
-                        print 'For x = ',i,'; ','y = ',j
-                        print '    Delta pi is equal to ',delta_pi(fn, i, j),',not equal to 1'
-                        k = 0
-    if k == 1:
-        print 'pi is symmetric.'
-        return True
-    return False
+                        logging.info('For x = %s, y = %s' % (i,j))
+                        logging.info('    Delta pi is equal to %s, not equal to 0' % delta_pi(fn, i, j))
+                        result = False
+    if result:
+        logging.info('pi is symmetric.')
+    else:
+        logging.info('Thus pi is not symmetric.')
+    return result
 
 @cached_function
 def find_f(fn):
@@ -1042,15 +1038,15 @@ def minimality_test(fn, f=None):
     if f==None:
         f = find_f(fn)
     if fn(0) != 0:
-        print 'pi is not minimal because pi(0) is not equal to 0.'
+        logging.info('pi is not minimal because pi(0) is not equal to 0.')
         return False
     else:
-        print 'pi(0) = 0'
+        logging.info('pi(0) = 0')
         if subadditivity_check(fn) and symmetric_test(fn, f):
-            print 'Thus pi is minimal.'
+            logging.info('Thus pi is minimal.')
             return True
         else:
-            print 'Thus pi is not minimal.'
+            logging.info('Thus pi is not minimal.')
             return False
 
 global default_field 
@@ -2470,9 +2466,9 @@ def rescale_to_amplitude(perturb, amplitude):
 def check_perturbation(fn, perturb, show_plots=False, **show_kwds):
     epsilon_interval = fn._epsilon_interval = find_epsilon_interval(fn, perturb)
     epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
-    print "Epsilon for constructed perturbation: ", epsilon
+    logging.info("Epsilon for constructed perturbation: %s" % epsilon)
     assert epsilon > 0, "Epsilon should be positive, something is wrong"
-    print "Thus the function is not extreme."
+    logging.info("Thus the function is not extreme.")
     if show_plots:
         logging.info("Plotting perturbation...")
         p = plot(fn, xmin=0, xmax=1, color='black', thickness=2, legend_label="original function")
@@ -2525,7 +2521,7 @@ def generate_nonsubadditive_vertices(fn):
 def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True):
     do_phase_1_lifting = False
     if not minimality_test(fn):
-        print "Not minimal, thus not extreme."
+        logging.info("Not minimal, thus not extreme.")
         if not phase_1:
             return False
         else:
@@ -2542,17 +2538,17 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_sty
         show(plot_covered_intervals(fn))
         logging.info("Plotting covered intervals... done")
     if not uncovered_intervals:
-        print "All intervals are covered (or connected-to-covered).", len(covered_intervals), "components."
+        logging.info("All intervals are covered (or connected-to-covered). %s components." % len(covered_intervals))
         return finite_dimensional_extremality_test(fn, show_plots)
     else:
-        print "Uncovered intervals: ", uncovered_intervals
+        logging.info("Uncovered intervals: %s", (uncovered_intervals,))
         if do_phase_1_lifting or finite_dimensional_test_first:
             # First try the finite dimensional one.
             if not finite_dimensional_extremality_test(fn, show_plots):
                 return False
         # Now do the magic.
         moves = generate_functional_directed_moves(fn)
-        print "Moves relevant for these intervals: ", moves
+        logging.debug("Moves relevant for these intervals: %s" % (moves,))
         if use_new_code:
             seed, stab_int, walk_list = find_generic_seed_with_completion(fn, show_plots=show_plots, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
             if not seed:
