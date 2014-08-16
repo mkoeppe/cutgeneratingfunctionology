@@ -1108,37 +1108,39 @@ class FastPiecewise (PiecewisePolynomial):
     Uses binary search to allow for faster function evaluations
     than the standard class PiecewisePolynomial.
     """
-    def __init__(self, list_of_pairs, var=None):
+    def __init__(self, list_of_pairs, var=None, merge=True):
         # Ensure sorted
-        list_of_pairs = sorted(list_of_pairs, key = lambda ((a,b), f): a)
-        # If adjacent functions are the same, just merge the pieces
-        merged_list_of_pairs = []
-        merged_interval_a = None
-        merged_interval_b = None
-        last_f = None
-        for (a,b), f in list_of_pairs:
-            #print f, last_f, f != last_f
-            if f != last_f or (last_f != None and merged_interval_b < a):
-                # Different function or a gap in the domain,
-                # so push out the accumulated merged interval
-                if last_f != None:
-                    merged_list_of_pairs.append(((merged_interval_a, merged_interval_b), last_f))
-                last_f = f
-                merged_interval_a = a
-                merged_interval_b = b
-            else:
-                if last_f != None:
-                    merged_interval_b = max(b, merged_interval_b)
-                else:
+        list_of_pairs = sorted(list_of_pairs, key = lambda (i, f): i[0])
+        if merge:
+            # If adjacent functions are the same, just merge the pieces
+            merged_list_of_pairs = []
+            merged_interval_a = None
+            merged_interval_b = None
+            last_f = None
+            for (a,b), f in list_of_pairs:
+                #print f, last_f, f != last_f
+                if f != last_f or (last_f != None and merged_interval_b < a):
+                    # Different function or a gap in the domain,
+                    # so push out the accumulated merged interval
+                    if last_f != None:
+                        merged_list_of_pairs.append(((merged_interval_a, merged_interval_b), last_f))
+                    last_f = f
+                    merged_interval_a = a
                     merged_interval_b = b
-        if last_f != None:
-            merged_list_of_pairs.append(((merged_interval_a, merged_interval_b), last_f))
+                else:
+                    if last_f != None:
+                        merged_interval_b = max(b, merged_interval_b)
+                    else:
+                        merged_interval_b = b
+            if last_f != None:
+                merged_list_of_pairs.append(((merged_interval_a, merged_interval_b), last_f))
+            list_of_pairs = merged_list_of_pairs
             
-        PiecewisePolynomial.__init__(self, merged_list_of_pairs, var)
+        PiecewisePolynomial.__init__(self, list_of_pairs, var)
 
         intervals = self._intervals
         functions = self._functions
-        end_points = [ intervals[0][0] ] + [b for a,b in intervals]
+        end_points = [ intervals[0][0] ] + [i[1] for i in intervals]
         self._end_points = end_points
         values_at_end_points = [ functions[0](end_points[0]) ]
         for i in range(len(functions)):
@@ -1313,7 +1315,16 @@ class FastPiecewise (PiecewisePolynomial):
         ## The case with three extra args is for the case of symbolic
         ## expressions; it does not apply here.  FIXME: We should
         ## probably signal an error.
-        for ((a,b), f) in self.list():
+        for (i, f) in self.list():
+            a = i[0]
+            b = i[1]
+            left_closed = True
+            right_closed = True
+            if len(i) > 2: # coho interval
+                left_closed = i.left_closed
+                right_closed = i.right_closed
+            # FIXME: Handle open/half-open intervals here, 
+            # using the above data.
             if xmin is not None:
                 a = max(a, xmin)
             if xmax is not None:
