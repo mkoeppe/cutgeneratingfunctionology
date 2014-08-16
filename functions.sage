@@ -1351,10 +1351,12 @@ class FastPiecewise (PiecewisePolynomial):
                 left_closed = i.left_closed
                 right_closed = i.right_closed
             # using the above data.
-            if xmin is not None:
-                a = max(a, xmin)
-            if xmax is not None:
-                b = min(b, xmax)
+            if (xmin is not None) and (a < xmin):
+                a = xmin
+                left_closed = True
+            if (xmax is not None) and (b > xmax):
+                b = xmax
+                right_closed = True
             # Handle open/half-open intervals here
             if a <= b:
                 if not (last_closed or last_end_point == [a, f(a)] and left_closed):
