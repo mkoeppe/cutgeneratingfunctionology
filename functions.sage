@@ -839,6 +839,7 @@ def interval_minus_union_of_intervals(interval, remove_list):
     [[0, 2], [3, 9]]
     """
     # the last test currently fails!
+    # FIXME: Rewrite using our more general functions.
     bracketed_list = [[interval[0],interval[0]]] + remove_list + [[interval[1],interval[1]]]
     difference = []
     for i in range(len(bracketed_list) - 1):
@@ -1107,37 +1108,39 @@ class FastPiecewise (PiecewisePolynomial):
     Uses binary search to allow for faster function evaluations
     than the standard class PiecewisePolynomial.
     """
-    def __init__(self, list_of_pairs, var=None):
+    def __init__(self, list_of_pairs, var=None, merge=True):
         # Ensure sorted
-        list_of_pairs = sorted(list_of_pairs, key = lambda ((a,b), f): a)
-        # If adjacent functions are the same, just merge the pieces
-        merged_list_of_pairs = []
-        merged_interval_a = None
-        merged_interval_b = None
-        last_f = None
-        for (a,b), f in list_of_pairs:
-            #print f, last_f, f != last_f
-            if f != last_f or (last_f != None and merged_interval_b < a):
-                # Different function or a gap in the domain,
-                # so push out the accumulated merged interval
-                if last_f != None:
-                    merged_list_of_pairs.append(((merged_interval_a, merged_interval_b), last_f))
-                last_f = f
-                merged_interval_a = a
-                merged_interval_b = b
-            else:
-                if last_f != None:
-                    merged_interval_b = max(b, merged_interval_b)
-                else:
+        list_of_pairs = sorted(list_of_pairs, key = lambda (i, f): i[0])
+        if merge:
+            # If adjacent functions are the same, just merge the pieces
+            merged_list_of_pairs = []
+            merged_interval_a = None
+            merged_interval_b = None
+            last_f = None
+            for (a,b), f in list_of_pairs:
+                #print f, last_f, f != last_f
+                if f != last_f or (last_f != None and merged_interval_b < a):
+                    # Different function or a gap in the domain,
+                    # so push out the accumulated merged interval
+                    if last_f != None:
+                        merged_list_of_pairs.append(((merged_interval_a, merged_interval_b), last_f))
+                    last_f = f
+                    merged_interval_a = a
                     merged_interval_b = b
-        if last_f != None:
-            merged_list_of_pairs.append(((merged_interval_a, merged_interval_b), last_f))
+                else:
+                    if last_f != None:
+                        merged_interval_b = max(b, merged_interval_b)
+                    else:
+                        merged_interval_b = b
+            if last_f != None:
+                merged_list_of_pairs.append(((merged_interval_a, merged_interval_b), last_f))
+            list_of_pairs = merged_list_of_pairs
             
-        PiecewisePolynomial.__init__(self, merged_list_of_pairs, var)
+        PiecewisePolynomial.__init__(self, list_of_pairs, var)
 
         intervals = self._intervals
         functions = self._functions
-        end_points = [ intervals[0][0] ] + [b for a,b in intervals]
+        end_points = [ intervals[0][0] ] + [i[1] for i in intervals]
         self._end_points = end_points
         values_at_end_points = [ functions[0](end_points[0]) ]
         for i in range(len(functions)):
@@ -1312,7 +1315,16 @@ class FastPiecewise (PiecewisePolynomial):
         ## The case with three extra args is for the case of symbolic
         ## expressions; it does not apply here.  FIXME: We should
         ## probably signal an error.
-        for ((a,b), f) in self.list():
+        for (i, f) in self.list():
+            a = i[0]
+            b = i[1]
+            left_closed = True
+            right_closed = True
+            if len(i) > 2: # coho interval
+                left_closed = i.left_closed
+                right_closed = i.right_closed
+            # FIXME: Handle open/half-open intervals here, 
+            # using the above data.
             if xmin is not None:
                 a = max(a, xmin)
             if xmax is not None:
@@ -1527,7 +1539,7 @@ class RealNumberField_absolute(NumberField_absolute):
 
     EXAMPLES::
     sage: field, field_values, morphism = number_field_elements_from_algebraics((sqrt(2), sqrt(3)))
-    sage: emb_field = RealNumberField(field.polynomial(), 'a', embedding=morphism(field.gen(0)))
+    sage: emb_field = RealNumberField(field.polynomial(), 'a', embedding=morphism(field.gen(0)), exact_embedding=SR(morphism(field.gen(0))))
     sage: hom = field.hom([emb_field.gen(0)])
     sage: Integer(7)/5 < hom(field_values[0])
     True
@@ -1704,7 +1716,7 @@ def nice_field_values(symb_values, field=None):
         # Try to make it a RealNumberField:
         try:
             all_values = [ AA(x) for x in symb_values ]
-            global number_field, number_field_values, morphism, exact_generator, embedded_field, embedding_field, hom, embedded_field_values
+            #global number_field, number_field_values, morphism, exact_generator, embedded_field, embedding_field, hom, embedded_field_values
             number_field, number_field_values, morphism = number_field_elements_from_algebraics(all_values)
             # Now upgrade to a RealNumberField
             exact_generator = morphism(number_field.gen(0))
@@ -2258,6 +2270,8 @@ def union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove
     [<Int[0, 2)>, <Int(2, 3)>, <Int(4, 10]>]
     sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0, 10]]], [[[1, 7]], [[2, 5]]])
     [<Int[0, 1)>, <Int(7, 10]>]
+    sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0,10], closed_or_open_or_halfopen_interval(10, 20, False, True)]], [])
+    [<Int[0, 20]>]
     """
     gen = coho_interval_list_from_scan(scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists))
     return [ int for int in gen ]
