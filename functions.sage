@@ -2207,6 +2207,21 @@ class closed_or_open_or_halfopen_interval (_closed_or_open_or_halfopen_interval)
                 + ("]" if self.right_closed else ")")
         return "<Int" + r + ">"
 
+def closed_interval(a, b):
+    return closed_or_open_or_halfopen_interval(a, b, True, True)
+
+def open_interval(a, b):
+    return closed_or_open_or_halfopen_interval(a, b, False, False)
+
+def singleton_interval(a):
+    return closed_or_open_or_halfopen_interval(a, a, True, True)
+
+def left_open_interval(a, b):
+    return closed_or_open_or_halfopen_interval(a, b, False, True)
+
+def right_open_interval(a, b):
+    return closed_or_open_or_halfopen_interval(a, b, True, False)
+
 def interval_length(interval):
     if interval[1] >= interval[0]:
         return interval[1] - interval[0]
