@@ -333,7 +333,7 @@ def backward_3_slope(f=1/12, bkpt=2/12):
     return piecewise_function_from_breakpoints_and_slopes(bkpts, slopes)
 
 
-def gj_2_slope_limit(f=0.6, nb_pieces_left=3, nb_pieces_right=4):
+def gj_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
     """
     Summary: 
         - Name: GJ's 2-Slope Limit;
@@ -351,7 +351,7 @@ def gj_2_slope_limit(f=0.6, nb_pieces_left=3, nb_pieces_right=4):
 
     Examples:
         [40] p.159 Fig.4 ::
-            sage: h = gj_2_slope_limit(f=0.6, nb_pieces_left=3, nb_pieces_right=4)
+            sage: h = gj_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4)
 
     Reference:
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, Extreme inequalities for infinite group problems., 
@@ -374,14 +374,13 @@ def gj_2_slope_limit(f=0.6, nb_pieces_left=3, nb_pieces_right=4):
     pieces = []
     for k in range(m):
         pieces = pieces + \
-                 [[closed_or_open_or_halfopen_interval(f * k / m, f * k / m, True, True), FastLinearFunction(0, k / m)], \
-                  [closed_or_open_or_halfopen_interval(f * k / m, f * (k + 1) / m, False, False), FastLinearFunction(s, -k * delta_1)]]
-    pieces.append([closed_or_open_or_halfopen_interval(f, f, True, True), FastLinearFunction(0, 1)])
+                 [[singleton_interval(f * k / m), FastLinearFunction(0, k / m)], \
+                  [open_interval(f * k / m, f * (k + 1) / m), FastLinearFunction(s, -k * delta_1)]]
+    pieces.append([singleton_interval(f), FastLinearFunction(0, 1)])
     for k in range(d, 0, - 1):
         pieces = pieces + \
-                 [[closed_or_open_or_halfopen_interval(1 - (1 - f)* k / d, 1 - (1 - f)*(k - 1)/d, False, False), \
-                   FastLinearFunction(s, -s*f + 1 - (d - k + 1)*delta_2)], \
-                  [closed_or_open_or_halfopen_interval(1 - (1 - f)*(k - 1)/d, 1 - (1 - f)*(k - 1)/d, True, True), FastLinearFunction(0, (k - 1) / d)]]
+                 [[open_interval(1 - (1 - f)* k / d, 1 - (1 - f)*(k - 1)/d), FastLinearFunction(s, -s*f + 1 - (d - k + 1)*delta_2)], \
+                  [singleton_interval(1 - (1 - f)*(k - 1)/d), FastLinearFunction(0, (k - 1) / d)]]
     psi = FastPiecewise(pieces, merge=False)    
     # FIXME: Need to develop code for discontinuous functions.
     logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
@@ -390,8 +389,9 @@ def gj_2_slope_limit(f=0.6, nb_pieces_left=3, nb_pieces_right=4):
 
 def generate_example_e_for_psi_n(f=2/3, n=7, q=4, eps=1/1000):
     """
-    return e, the first n terms of a geometric series that satisfies the conditions for extremality in psi_n_in_gj_conjecture_counterexample_construction(f, e).
-    i.e. 0 < ... < e[n] <= e[n - 1] <= ... <= e[1] <= e[0] <= 1 - f and \sum_{i = 0}^{\infty} {2^i * e[i]} < f.
+    return the first n terms of a geometric series e that satisfies 
+    0 < ... < e[n] <= e[n - 1] <= ... <= e[1] <= e[0] <= 1 - f and \sum_{i = 0}^{\infty} {2^i * e[i]} <= f.
+    This can be used in psi_n_in_gj_conjecture_counterexample_construction(f, [e[0],...,e[n-1]]), so that the function constructed is extreme.
 
     Parameters:
         f (real) \in (0,1);
@@ -401,8 +401,16 @@ def generate_example_e_for_psi_n(f=2/3, n=7, q=4, eps=1/1000):
 
     Note:
         If (eps == 0) and (f >= 1/2), then \sum_{i = 0}^{\infty} {2^i * e[i]} = f. 
-        In this case, one can show that psi_n still converges uniformly to psi, and the limit funciton psi is a continuous facet (hence extreme).
-        But psi is not piecewise linear. psi is not in W^{1,1}.
+        This case is not mentioned in [IR1], but using a similar (or same) proof to [IR1], one can show that:
+        1) psi_n still converges uniformly to psi;
+        2) The limit funciton psi is a continuous facet (hence extreme);
+        3) psi is not piecewise linear. 
+        Also notice that:
+        4) psi is not in W^{1,1}.
+        
+    Reference: 
+        [IR1]:  A. Basu, M. Conforti, G. Cornuéjols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson, 
+                    Mathematical Programming Ser. A 133 (2012), 25–38. 	
     """
     if n == 0:
         return []
