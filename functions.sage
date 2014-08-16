@@ -1110,7 +1110,10 @@ class FastPiecewise (PiecewisePolynomial):
     """
     def __init__(self, list_of_pairs, var=None, merge=True):
         # Ensure sorted
-        list_of_pairs = sorted(list_of_pairs, key = lambda (i, f): i[0])
+        # list_of_pairs = sorted(list_of_pairs, key = lambda (i, f): i[0])
+        list_of_pairs = sorted(list_of_pairs, key = lambda (i, f): (i[0], not(i[0] == i[1])))   
+        # Sort intervals according to their left endpoints; In case of equality, place single point before interval. 
+        # This setting would be helpful in plotting discontinuous functions  
         if merge:
             # If adjacent functions are the same, just merge the pieces
             merged_list_of_pairs = []
@@ -1315,6 +1318,9 @@ class FastPiecewise (PiecewisePolynomial):
         ## The case with three extra args is for the case of symbolic
         ## expressions; it does not apply here.  FIXME: We should
         ## probably signal an error.
+        # record last right endpoint, then compare with next left endpoint to decide whether it needs to be plotted.
+        last_end_point = []
+        last_closed = True
         for (i, f) in self.list():
             a = i[0]
             b = i[1]
@@ -1323,16 +1329,25 @@ class FastPiecewise (PiecewisePolynomial):
             if len(i) > 2: # coho interval
                 left_closed = i.left_closed
                 right_closed = i.right_closed
-            # FIXME: Handle open/half-open intervals here, 
             # using the above data.
             if xmin is not None:
                 a = max(a, xmin)
             if xmax is not None:
                 b = min(b, xmax)
+            # Handle open/half-open intervals here
+            if a <= b:
+                if not (last_closed or last_end_point == [a, f(a)] and left_closed):
+                    # plot last open right endpoint
+                    g += point(last_end_point, rgbcolor='white', faceted=True, pointsize=23) 
+                if not (left_closed or last_end_point == [a, f(a)] and last_closed):
+                    # plot current open left endpoint   
+                    g += point([a, f(a)], rgbcolor='white', faceted=True, pointsize=23) 
+                last_closed = right_closed
+                last_end_point = [b, f(b)]
             if a < b:
                 # We do not plot anything if a==b because
                 # otherwise plot complains that
-                # "start point and end point must be different"
+                # "start point and endpoint must be different"
                 g += plot(f, *args, xmin=a, xmax=b, **kwds)
                 # If it's the first piece, pass all arguments. Otherwise,
                 # filter out 'legend_label' so that we don't add each
@@ -1340,7 +1355,10 @@ class FastPiecewise (PiecewisePolynomial):
                 if 'legend_label' in kwds:
                     del kwds['legend_label']
             elif a == b:
-                g += point([a, f(a)])
+                g += point([a, f(a)], pointsize=23)
+        # plot open rightmost endpoint. minimal functions don't need this.
+        if not last_closed:
+            g += point(last_end_point, rgbcolor='white', faceted=True, pointsize=23)  
         return g
 
     def __repr__(self):
