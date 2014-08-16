@@ -2465,6 +2465,9 @@ def rescale_to_amplitude(perturb, amplitude):
     else:
         return perturb
 
+# Global figsize for all plots made by show_plots.
+show_plots_figsize = 10
+
 def check_perturbation(fn, perturb, show_plots=False, **show_kwds):
     epsilon_interval = fn._epsilon_interval = find_epsilon_interval(fn, perturb)
     epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
@@ -2481,7 +2484,7 @@ def check_perturbation(fn, perturb, show_plots=False, **show_kwds):
         elif epsilon != epsilon_interval[1]:
             p += plot(fn + epsilon * perturb, xmin=0, xmax=1, color='cyan', legend_label="+perturbed (matches min)")
         p += plot(rescale_to_amplitude(perturb, 1/10), xmin=0, xmax=1, color='magenta', legend_label="perturbation (rescaled)")
-        p.show(figsize=50, **show_kwds)
+        p.show(figsize=show_plots_figsize, **show_kwds)
         logging.info("Plotting perturbation... done")
 
 def finite_dimensional_extremality_test(function, show_plots=False):
@@ -2566,7 +2569,7 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_sty
             # FIXME: Visualize stability intervals?
             (plot_walk(walk_list,thickness=0.7) + \
              plot_possible_and_impossible_directed_moves(seed, moves, fn) + \
-             plot_intervals(uncovered_intervals) + plot_covered_intervals(fn)).show(figsize=50)
+             plot_intervals(uncovered_intervals) + plot_covered_intervals(fn)).show(figsize=show_plots_figsize)
             logging.info("Plotting moves and reachable orbit... done")
         perturb = fn._perturbation = approx_discts_function(walk_list, stab_int, perturbation_style=perturbation_style, function=fn)
         check_perturbation(fn, perturb, show_plots=show_plots)
@@ -2839,7 +2842,7 @@ def compose_directed_moves(A, B, interiors=False, show_plots=False):
         p += plot(B, color="blue", legend_label="B")
         if result:
             p += plot(result, color="red", legend_label="C = A after B")
-        p.show(figsize=30)
+        p.show(figsize=show_plots_figsize)
     return result
 
 def merge_functional_directed_moves(A, B, show_plots=False):
@@ -2886,7 +2889,7 @@ def reduce_with_dense_moves(functional_directed_move, dense_moves, show_plots=Fa
         p += plot_directed_moves(dense_moves)
         if result:
             p += plot(result)
-        p.show(figsize=20)
+        p.show(figsize=show_plots_figsize)
     return result
 
 class DirectedMoveCompositionCompletion:
@@ -2988,7 +2991,7 @@ class DirectedMoveCompositionCompletion:
     def maybe_show_plot(self):
         if self.show_plots:
             logging.info("Plotting...")
-            self.plot().show(figsize=40)
+            self.plot().show(figsize=show_plots_figsize)
             logging.info("Plotting... done")
 
     def complete_one_round(self):
