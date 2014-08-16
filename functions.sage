@@ -28,6 +28,7 @@ class DynamicStdErrStreamHandler(logging.StreamHandler):
 if not logging.getLogger().handlers:
     fmt = logging.Formatter('%(levelname)s: %(asctime)s %(message)s', None)
     hdlr = DynamicStdErrStreamHandler()
+    hdlr.setFormatter(fmt)
     logging.getLogger().addHandler(hdlr)
     logging.getLogger().setLevel(logging.INFO)
 
