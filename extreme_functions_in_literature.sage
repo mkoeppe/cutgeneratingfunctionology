@@ -6,13 +6,13 @@ logging.basicConfig(format='%(levelname)s: %(asctime)s %(message)s', level=loggi
 def gmic(f=4/5):
     """
     Summary: 
-        Name: GMIC
-        Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method; 
-        Discovered [55] p.7-8, Eq.8; 
-        Proven (Infinite) [60] p.377, thm.3.3
-                (Finite)  [57] p.514, Appendix 3.
+        - Name: GMIC;
+        - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method; 
+        - Discovered [55] p.7-8, Eq.8; 
+        - Proven (Infinite) [60] p.377, thm.3.3; (Finite) [57] p.514, Appendix 3.
+        
     Parameters:
-        f (real) \in (0,1)
+        f (real) \in (0,1).
 
     Examples: 
         [61] p.343, Fig. 1, Example 1 ::
@@ -38,17 +38,17 @@ def gmic(f=4/5):
 def gj_2_slope(f=3/5, lambda_1=1/6):
     """
     Summary: 
-        Name: GJ's 2-Slope
-        Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method; 
-        Discovered [61] p.352, Fig.5, construction 1;  
-        Proven (Infinite) [60] p.377, thm.3.3
-                          [61] p.352, thm.4; p.354, thm.5
+        - Name: GJ's 2-Slope;
+        - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method; 
+        - Discovered [61] p.352, Fig.5, construction 1;  
+        - Proven (Infinite) [60] p.377, thm.3.3; [61] p.352, thm.4; p.354, thm.5.
+        
     Parameters:
-        f (real) \in (0,1)
-        lambda_1 (real) in (0,1]
+        f (real) \in (0,1);
+        lambda_1 (real) in (0,1].
 		
     Function is known to be extreme under the conditions: 
-        0 < lambda_1 <=1, lambda_1 < f/(1 - f)
+        0 < lambda_1 <=1, lambda_1 < f/(1 - f).
 
     Examples:
         [61] p.354, Fig.6 ::
@@ -76,21 +76,21 @@ def gj_2_slope(f=3/5, lambda_1=1/6):
 def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3):
     """
     Summary: 
-        Name: GJ's 2-Slope-repeat
-        Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method; 
-        Discovered [61] p.354, Fig.7, construction 2; 
-        Proven (Infinite) [60] p.377, thm.3.3
-                          [61] p.354, thm.5; p.355, thm.6	
+        - Name: GJ's 2-Slope-repeat;
+        - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method; 
+        - Discovered [61] p.354, Fig.7, construction 2; 
+        - Proven (Infinite) [60] p.377, thm.3.3; [61] p.354, thm.5; p.355, thm.6.
+        
     Parameters:
-        f (real) \in (0,1)
-        s_positive, s_negative (real)
-        m, n >= 2 (integer)
+        f (real) \in (0,1);
+        s_positive, s_negative (real);
+        m, n >= 2 (integer).
 
     Function is known to be extreme under the conditions: 
         0 < f < 1; 
         s_positive > 1/f;  s_negative < 1/(f - 1); 
         m >= (s_positive - s_positive*s_negative*f) / (s_positive - s_negative);  
-        n >= (- s_negative + s_positive*s_negative*(f - 1)) / (s_positive - s_negative);
+        n >= (- s_negative + s_positive*s_negative*(f - 1)) / (s_positive - s_negative).
 
     Examples:
         [61] p.354, Fig.7 ::
@@ -120,18 +120,18 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3):
 def two_step_mir(f=4/5, alpha=3/10):
     """
     Summary: 
-        Name: 2-Step MIR
-        Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method; 
-        Discovered [33]  p.39 def.8, Fig.5
-        Proven (Infinite) [60] p.377, thm.3.3
+        - Name: 2-Step MIR;
+        - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method; 
+        - Discovered [33]  p.39 def.8, Fig.5;
+        - Proven (Infinite) [60] p.377, thm.3.3.
 
     Parameters:
-        f (real) \in (0,1)
-        alpha (real) \in (0,f)
+        f (real) \in (0,1);
+        alpha (real) \in (0,f).
 
 	Function is known to be extreme under the conditions: 
         0 < alpha < f < 1; 
-        f / alpha < ceil(f / alpha) <= 1 / alpha
+        f / alpha < ceil(f / alpha) <= 1 / alpha.
 
     Examples:
         [33] p.40, Fig.5 ::
@@ -145,7 +145,9 @@ def two_step_mir(f=4/5, alpha=3/10):
 
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.	
     """
-    if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha) <= 1 / alpha)):
+    if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if not bool(ceil(f / alpha) <= 1 / alpha):
         logging.info("Conditions for extremality are NOT satisfied.")
     else:
         logging.info("Conditions for extremality are satisfied.")
@@ -169,35 +171,39 @@ def interval_length_n_step_mir(n, m, a, b):
         return result
 
 
-def n_step_mir(f=4/5, n=3, a=[1, 3/10, 8/100]):
+def n_step_mir(f=4/5, a=[1, 3/10, 8/100]):
     """
     Summary: 
-        Name: n-Step MIR
-        Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method; 
-        Discovered [74]  p.328, def.3, thm.2
-        Proven (Infinite) [60] p.377, thm.3.3
+        - Name: n-Step MIR;
+        - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method; 
+        - Discovered [74]  p.328, def.3, thm.2;
+        - Proven (Infinite) [60] p.377, thm.3.3.
 
     Parameters:
-        f (real) \in (0,1)
-        n (integer)
-        a (list of reals, with length = n) \in (0,f)
+        f (real) \in (0,1);
+        a (list of reals, with length = n) \in (0,f).
 
 	Function is known to be extreme under the conditions: 
         0 < a[1] < f < 1 == a[0];
-        a[i] > 0, for i = 0, 1, ... , n-1. 
-        b[i - 1] / a[i] < ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i],  for i = 1, 2, ... , n-1.
+        a[i] > 0, for i = 0, 1, ... , n-1;
+        b[i - 1] / a[i] < ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i],  for i = 1, 2, ... , n-1;
         where,
-        b[0] = f,
+        b[0] = f;
         b[i] = b[i - 1] - a[i] * floor(b[i - 1] / a[i]),  for i = 1, 2, ... , n-1.
+
+    Note:
+        if a[i] > b[i-1] for some i, then the n_step_mir function degenerates, i.e.
+        n_step_mir(f, [a[0], .. , a[n - 1]]) = n_step_mir(f, [a[0], .. a[i - 1], a[i + 1], ... , a[n - 1]])
 
     Examples:
         [74] p.333 - p.335, Fig.1 - Fig.6 ::
-            sage: h = n_step_mir(f=4/5, n=1, a=[1])
-            sage: h = n_step_mir(f=4/5, n=2, a=[1, 3/10])
-            sage: h = n_step_mir(f=4/5, n=3, a=[1, 3/10, 8/100])
-            sage: h = n_step_mir(f=4/5, n=4, a=[1, 3/10, 8/100, 3/100])
-            sage: h = n_step_mir(f=4/5, n=5, a=[1, 45/100, 2/10, 558/10000, 11/1000])
-            sage: h = n_step_mir(f=4/5, n=6, a=[1, 48/100, 19/100, 8/100, 32/1000, 12/1000])
+        
+            sage: h = n_step_mir(f=4/5, a=[1])
+            sage: h = n_step_mir(f=4/5, a=[1, 3/10])
+            sage: h = n_step_mir(f=4/5, a=[1, 3/10, 8/100])
+            sage: h = n_step_mir(f=4/5, a=[1, 3/10, 8/100, 3/100])
+            sage: h = n_step_mir(f=4/5, a=[1, 45/100, 2/10, 558/10000, 11/1000])
+            sage: h = n_step_mir(f=4/5, a=[1, 48/100, 19/100, 8/100, 32/1000, 12/1000])
 
     Reference: 
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.	
@@ -205,18 +211,22 @@ def n_step_mir(f=4/5, n=3, a=[1, 3/10, 8/100]):
         [74]: K. Kianfar and Y. Fathi, Generalized mixed integer rounding valid inequalities: 
                 Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313–346.
     """
-    if not bool(0 < f < 1 == a[0]):
+    if (a == []) | (not bool(0 < f < 1 == a[0])):
         raise ValueError, "Bad parameters. Unable to construct the function."
     b = []
     b.append(f)
+    n = len(a)
     t = True
     for i in range(1, n):
         b.append(b[i - 1] - a[i] * floor(b[i - 1] / a[i]))
-        if not (bool(a[i] > 0) & bool(b[i - 1] / a[i] < ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i])):
+        if not (bool(0 < a[i]) & bool(b[i - 1] / a[i] < ceil(b[i - 1] / a[i]))):
+            raise ValueError, "Bad parameters. Unable to construct the function."
+        if not bool(ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i]):
             t = False
-            logging.info("Conditions for extremality are NOT satisfied.")
     if t:
         logging.info("Conditions for extremality are satisfied.") 
+    else:
+        logging.info("Conditions for extremality are NOT satisfied.")
     interval_lengths =  interval_length_n_step_mir(n, 1, a, b)
     nb_interval = len(interval_lengths)
     interval_length_positive = sum(interval_lengths[i] for i in range(0, nb_interval, 2))
@@ -230,21 +240,22 @@ def n_step_mir(f=4/5, n=3, a=[1, 3/10, 8/100]):
 def forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3):
     """
     Summary: 
-        Name: Forward 3-Slope
-        Infinite (or Finite); Dim = 1; Slopes = 3; Continuous; Analysis of subadditive polytope method; 
-        Discovered [61] p.359, Construction.3, Fig.8; 
-        Proven [61] p.359, thm.8.
+        - Name: Forward 3-Slope;
+        - Infinite (or Finite); Dim = 1; Slopes = 3; Continuous; Analysis of subadditive polytope method; 
+        - Discovered [61] p.359, Construction.3, Fig.8; 
+        - Proven [61] p.359, thm.8.
 
     Parameters:
-        f (real) \in (0,1)
-        lambda_1, lambda_2 (real) \in (0,1)
+        f (real) \in (0,1);
+        lambda_1, lambda_2 (real) \in (0,1).
 
 	Function is known to be extreme under the conditions: 
-        0 <= lambda_1 <= 1/2   and   0 <= lambda_2 <= 1  (in literature)
+        0 <= lambda_1 <= 1/2;
+        0 <= lambda_2 <= 1  (in literature).
 
     Note: 
         Since the domain and range are in [0,1]. I think the conditions should be:
-        (0 <= lambda_1 <= 1/2)  &  (0 <= lambda_2 <= 1 - lambda_1) & (0 < lambda_1 * f + lambda_2 * (f - 1) < lambda_1 * f < f / 2)
+        (0 <= lambda_1 <= 1/2)  &  (0 <= lambda_2 <= 1 - lambda_1) & (0 < lambda_1 * f + lambda_2 * (f - 1) < lambda_1 * f < f / 2).
 
     Examples: 
         [61] p.360, Fig.8 ::
@@ -276,21 +287,21 @@ def forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3):
 def backward_3_slope(f=1/12, bkpt=2/12):
     """
     Summary: 
-        Name: Backward 3-Slope
-        Infinite; Dim = 1; Slopes = 3; Continuous; Group relations method; 
-        Discovered [40] p.154 eq.5; 
-        Proven [40] p.153 thm.6.
+        - Name: Backward 3-Slope;
+        - Infinite; Dim = 1; Slopes = 3; Continuous; Group relations method; 
+        - Discovered [40] p.154 eq.5; 
+        - Proven [40] p.153 thm.6.
 
     Parameters:
-        f, bkpt (rational number? or real) \in (0,1)
+        f, bkpt (rational number? or real) \in (0,1).
 
     Function is known to be extreme under the conditions: 
         f, bkpt are rational numbers(*) such that   
-        f < bkpt < (1+f)/4 < 1
+        f < bkpt < (1+f)/4 < 1.
 
     Note: 
         In [61] p.374, Appendix C, p.360. Fig.10, they claim that 
-        the function (named pi3(u)) is facet (= extreme?), without assuming f, bkpt being rational numbers. 
+        the function (named pi3(u)) is facet (thus extreme), without assuming f, bkpt being rational numbers. 
         Also, one can add a perturbation (zigzag) on the third slope as shown in Fig.10.
         Proofs are not provided, however.
 
@@ -309,7 +320,7 @@ def backward_3_slope(f=1/12, bkpt=2/12):
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.	
     """
     # FIXME: (*) Must f and bkpt be rational numbers?  
-    #       The proof is based on interpolation of finite cyclic group extreme functions(cf. [8]). Need rational number. Can we relax them to irrational numbers?
+    # The proof is based on interpolation of finite cyclic group extreme functions(cf. [8]). Need rational number. Can we relax them to irrational numbers?
     if not bool(0 < f < bkpt < 1 + f - bkpt < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
     if not ((f in QQ) & (bkpt in QQ) & bool(0 < f < bkpt < ((1 + f)/4) < 1)):
@@ -325,18 +336,18 @@ def backward_3_slope(f=1/12, bkpt=2/12):
 def gj_2_slope_limit(f=0.6, nb_pieces_left=3, nb_pieces_right=4):
     """
     Summary: 
-        Name: GJ's 2-Slope Limit
-        Infinite; Dim = 1; Slopes = 1; Discontinuous; Group relations method; 
-        Discovered [40] p.158 def.10; 
-        Proven [40] p.159 thm.8.
+        - Name: GJ's 2-Slope Limit;
+        - Infinite; Dim = 1; Slopes = 1; Discontinuous; Group relations method; 
+        - Discovered [40] p.158 def.10; 
+        - Proven [40] p.159 thm.8.
 
     Parameters:
-        f (real) \in (0,1)
+        f (real) \in (0,1);
         nb_pieces_left (positive integer) : number of linear pieces to the left of f; 
-        nb_pieces_right (positive integer) : number of linear pieces to the right of f;
+        nb_pieces_right (positive integer) : number of linear pieces to the right of f.
 
     Function is known to be extreme under the conditions: 
-        nb_pieces_left * (1-f) <= nb_pieces_right * f;
+        nb_pieces_left * (1-f) <= nb_pieces_right * f.
 
     Examples:
         [40] p.159 Fig.4 ::
@@ -360,20 +371,114 @@ def gj_2_slope_limit(f=0.6, nb_pieces_left=3, nb_pieces_right=4):
         delta_1 = 0
     else:
         delta_1 = (s*f - 1)/(m - 1)
-    def psi(x):
-        if (x >= 0) & (x <= 1):
-            if (x <= f):
-                if (m * x / f) in ZZ:
-                    return x / f
-                else:
-                    return s*x - floor(m * x / f)*delta_1
-            else:
-                if (d*(1 - x)/(1 - f)) in ZZ:
-                    return (1 - x)/(1 - f)
-                else:
-                    return s*x - s*f + 1 - (d - floor(d*(1 - x)/(1 - f)))*delta_2
-        else:
-            raise ValueError, "outside domain"
+    pieces = []
+    for k in range(m):
+        pieces = pieces + \
+                 [[closed_or_open_or_halfopen_interval(f * k / m, f * k / m, True, True), FastLinearFunction(0, k / m)], \
+                  [closed_or_open_or_halfopen_interval(f * k / m, f * (k + 1) / m, False, False), FastLinearFunction(s, -k * delta_1)]]
+    pieces.append([closed_or_open_or_halfopen_interval(f, f, True, True), FastLinearFunction(0, 1)])
+    for k in range(d, 0, - 1):
+        pieces = pieces + \
+                 [[closed_or_open_or_halfopen_interval(1 - (1 - f)* k / d, 1 - (1 - f)*(k - 1)/d, False, False), \
+                   FastLinearFunction(s, -s*f + 1 - (d - k + 1)*delta_2)], \
+                  [closed_or_open_or_halfopen_interval(1 - (1 - f)*(k - 1)/d, 1 - (1 - f)*(k - 1)/d, True, True), FastLinearFunction(0, (k - 1) / d)]]
+    psi = FastPiecewise(pieces, merge=False)    
     # FIXME: Need to develop code for discontinuous functions.
     logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
-    return psi		
+    return psi	
+
+
+def generate_example_e_for_psi_n(f=2/3, n=7, q=4, eps=1/1000):
+    """
+    return e, the first n terms of a geometric series that satisfies the conditions for extremality in psi_n_in_gj_conjecture_counterexample_construction(f, e).
+    i.e. 0 < ... < e[n] <= e[n - 1] <= ... <= e[1] <= e[0] <= 1 - f and \sum_{i = 0}^{\infty} {2^i * e[i]} < f.
+
+    Parameters:
+        f (real) \in (0,1);
+        n (integer);
+        q (real), q > 2 : ratio of the geometric series;
+        eps (real), 0 <= eps < 1 : to control the serie sum, \sum_{i = 0}^{\infty} {2^i * e[i]} <= (1 - eps)*f. 
+
+    Note:
+        If (eps == 0) and (f >= 1/2), then \sum_{i = 0}^{\infty} {2^i * e[i]} = f. 
+        In this case, one can show that psi_n still converges uniformly to psi, and the limit funciton psi is a continuous facet (hence extreme).
+        But psi is not piecewise linear. psi is not in W^{1,1}.
+    """
+    if n == 0:
+        return []
+    if not (bool(0 < f < 1) & bool(q > 2)):
+        raise ValueError, "Bad parameters." 
+    x = (1 - eps)*(q - 2) / q * min(f, 1 - f)
+    # or take x = min((1 - eps)*(q - 2)*f / q , 1 - f) 
+    e = [x / q^i for i in range(n)]
+    return e
+
+
+def psi_n_in_gj_conjecture_counterexample_construction(f=2/3, e=[1/12, 1/24]):
+    """
+    Summary: 
+        - Name: psi_n in the construction of the counterexample to GJ's conjecture;
+        - Infinite; Dim = 1; Slopes = 2; Continuous;  Analysis of subadditive polytope method.
+        - Discovered [IR1]  p.30, section.3, fig.1;
+        - Proven [IR1] p.35, thm.4.7.
+        
+    Note:
+        The (uniform) limit \psi = \lim_{n to \infty} \psi_n is well defined if \sum_{i = 0}^{\infty} {2^i * e[i]} < f.
+        The (unifrom) limit \psi is a continuous facet, but is not piecewise linear. A counterexample of GJ's conjecture.
+        Could use the function generate_example_e_for_psi_n(f, n, q) to generate a sequence e that satisfies the conditions for extremality. 
+
+    Parameters:
+        f (real) \in (0,1);
+        e (list of reals, with length = n) \in (0,f).
+
+	Function is known to be extreme under the conditions: 
+        0 < f < 1;
+        0 < e[n - 1] <= e[n - 2] <= ... <= e[1] <= e[0] <= 1 - f;
+        \sum_{i = 0}^{n - 1} 2^i * e[i] < f.
+
+    Examples:
+        [IR1]  p.30, fig.1::
+            sage: h = psi_n_in_gj_conjecture_counterexample_construction(f=2/3, e=[1/12, 1/24])
+            
+            sage: h = psi_n_in_gj_conjecture_counterexample_construction(f=4/5, e=[1/5, 1/20, 1/80, 1/320, 1/1280])
+
+            sage: h = psi_n_in_gj_conjecture_counterexample_construction(f=4/5, e=generate_example_e_for_psi_n(f=4/5, n=7, q=3, eps=0))
+
+            sage: sum([plot(psi_n_in_gj_conjecture_counterexample_construction(e=generate_example_e_for_psi_n(n=n)), color=color, legend_label="psi_%d"%n) for n, color in zip(range(7),rainbow(7))])
+
+    Reference: 
+        [IR1]:  A. Basu, M. Conforti, G. Cornuéjols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson, 
+                    Mathematical Programming Ser. A 133 (2012), 25–38. 	
+    """
+    if not bool(0 < f < 1):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    n = len(e)
+    if n == 0:
+        logging.info("Conditions for extremality are satisfied.") 
+        return piecewise_function_from_breakpoints_and_values([0,f,1], [0,1,0])
+    a = [1]
+    b = [f]
+    sum_e = 0
+    if not bool(0 < e[0]):
+        raise ValueError, "Bad parameters. Unable to construct the function."  
+    t = bool(e[0] <= 1 - f)
+    for i in range(0, n):
+        a.append((b[i] + e[i]) / 2)
+        b.append((b[i] - e[i]) / 2)
+        sum_e = sum_e + (2^i) * e[i]
+        if not (bool(e[i] > 0) & bool(sum_e < f)):
+            raise ValueError, "Bad parameters. Unable to construct the function."
+        if not (i == 0) | bool(e[i] <= e[i-1]):
+            t = False       
+    if t:
+        logging.info("Conditions for extremality are satisfied.") 
+    else:
+        logging.info("Conditions for extremality are NOT satisfied.")
+    interval_lengths =  interval_length_n_step_mir(n + 1, 1, a, b)
+    nb_interval = len(interval_lengths)
+    interval_length_positive = sum(interval_lengths[i] for i in range(0, nb_interval, 2))
+    interval_length_negative = sum(interval_lengths[i] for i in range(1, nb_interval, 2))
+    s_negative = a[0] /(b[0] - a[0])
+    s_positive = - s_negative * interval_length_negative / interval_length_positive 
+    slopes = [s_positive, s_negative] * (nb_interval // 2)
+    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
