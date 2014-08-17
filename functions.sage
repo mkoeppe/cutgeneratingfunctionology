@@ -71,11 +71,13 @@ def plot_2d_complex(function):
     bkpt = function.end_points()
     x = var('x')
     p = Graphics()
+    kwd = ticks_keywords(function, True)
+    kwd['legend_label'] = "Complex Delta pi"
     ## We now use lambda functions instead of Sage symbolics for plotting, 
     ## as those give strange errors when combined with our RealNumberFieldElement.
     for i in range(1,len(bkpt)):
-        p += plot(lambda x: bkpt[i]-x, (x, 0, bkpt[i]), color='grey', \
-                  **ticks_keywords(function, True))
+        p += plot(lambda x: bkpt[i]-x, (x, 0, bkpt[i]), color='grey', **kwd)
+        kwd = {}
     for i in range(1,len(bkpt)-1):
         p += plot(lambda x: (1+bkpt[i]-x), (x, bkpt[i], 1), color='grey')
     for i in range(len(bkpt)):
@@ -535,7 +537,7 @@ def convex_vert_list(vertices):
         center = reduce(operator.add, map(vector, vertices)) / len(vertices)
         return sorted(vertices, cmp = lambda a,b: angle_cmp(a, b, center))
 
-def plot_face(trip, vert, rgbcolor=(0,1,0), fill_color="mediumspringgreen", **kwds):
+def plot_face(trip, vert, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color="mediumspringgreen", **kwds):
     if face_0D(trip):
         return point((trip[0][0], \
                       trip[1][0]), rgbcolor = rgbcolor, size = 30, **kwds)
@@ -581,7 +583,7 @@ def plot_2d_diagram(function, show_function = True):
     if show_function:
         x = var('x')
         p += parametric_plot((lambda x: x, lambda x: 0.3 * float(function(x)) + 1), \
-                                                (x, 0, 1), color='blue', legend_label="Function")
+                                                (x, 0, 1), color='blue', legend_label="Function pi")
         p += parametric_plot((lambda x: - 0.3 * float(function(x)), lambda x: x), \
                                                 (x, 0, 1), color='blue')
     return p
