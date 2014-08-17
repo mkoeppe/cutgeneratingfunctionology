@@ -2534,13 +2534,13 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_sty
     generate_minimal_triples(fn)
     if show_plots:
         logging.info("Plotting 2d diagram...")
-        show(plot_2d_diagram(fn))
+        show(plot_2d_diagram(fn), figsize=show_plots_figsize)
         logging.info("Plotting 2d diagram... done")
     covered_intervals = generate_covered_intervals(fn)
     uncovered_intervals = generate_uncovered_intervals(fn)
     if show_plots:
         logging.info("Plotting covered intervals...")
-        show(plot_covered_intervals(fn))
+        show(plot_covered_intervals(fn), figsize=show_plots_figsize)
         logging.info("Plotting covered intervals... done")
     if not uncovered_intervals:
         logging.info("All intervals are covered (or connected-to-covered). %s components." % len(covered_intervals))
@@ -2856,7 +2856,7 @@ def merge_functional_directed_moves(A, B, show_plots=False):
         p = plot(C, color="cyan", legend_label="C = A merge B", thickness=10)
         p += plot(A, color="green", legend_label="A = %s" % A )
         p += plot(B, color="blue", legend_label="B = %s" % B)
-        show(p)
+        show(p, figsize=show_plots_figsize)
     return C
 
 def plot_directed_moves(dmoves):
