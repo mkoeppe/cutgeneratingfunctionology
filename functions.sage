@@ -553,7 +553,7 @@ def plot_face(trip, vert, rgbcolor=(0,1,0), fill_color="mediumspringgreen", **kw
         ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/reu-2013/Sage_Function/dey-richard-not-extreme.txt"))
         return polygon(convex_vert_list(vert), color=fill_color) 
 
-def plot_2d_diagram(function, show_function = False):
+def plot_2d_diagram(function, show_function = True):
     """
     Return a plot of the 2d complex with shaded faces where delta_pi is 0.        
     To show only a part of it, use 
