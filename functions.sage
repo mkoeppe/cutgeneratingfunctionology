@@ -3054,11 +3054,12 @@ class DirectedMoveCompositionCompletion:
             num_rounds += 1
         if max_num_rounds and num_rounds == max_num_rounds:
             if error_if_max_num_rounds_exceeded:
-                raise MaximumNumberOfIterationsReached, "Reached %d rounds of the completion procedure, found %d directed moves, stopping." % (num_rounds, len(self.move_dict))
+                raise MaximumNumberOfIterationsReached, "Reached %d rounds of the completion procedure, found %d directed moves and %d dense directed moves, stopping." % (num_rounds, len(self.move_dict), len(self.dense_moves))
             else:
-                logging.info("Reached %d rounds of the completion procedure, found %d directed moves, stopping." % (num_rounds, len(self.move_dict)))
+                logging.info("Reached %d rounds of the completion procedure, found %d directed moves and %d dense directed moves, stopping." % (num_rounds, len(self.move_dict), len(self.dense_moves)))
         else:
-            logging.info("Completion finished.  Found %d directed moves." % len(self.move_dict))
+            logging.info("Completion finished.  Found %d directed moves and %d dense directed moves." 
+                         % (len(self.move_dict), len(self.dense_moves)))
 
 
     def results(self):
