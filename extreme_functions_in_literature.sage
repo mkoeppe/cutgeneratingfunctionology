@@ -293,17 +293,20 @@ def backward_3_slope(f=1/12, bkpt=2/12):
         - Proven [40] p.153 thm.6.
 
     Parameters:
-        f, bkpt (rational number? or real) \in (0,1).
+        f, bkpt (real) \in (0,1).
 
     Function is known to be extreme under the conditions: 
-        f, bkpt are rational numbers(*) such that   
         f < bkpt < (1+f)/4 < 1.
 
     Note: 
-        In [61] p.374, Appendix C, p.360. Fig.10, they claim that 
-        the function (named pi3(u)) is facet (thus extreme), without assuming f, bkpt being rational numbers. 
-        Also, one can add a perturbation (zigzag) on the third slope as shown in Fig.10.
-        Proofs are not provided, however.
+        In [40], they require that f, bkpt are rational numbers. 
+        The proof is based on interpolation of finite cyclic group extreme functions(cf. [8]), so it needs rational numbers.
+        But in fact, by analysing covered intervals and using the condition f < bkpt < (1+f)/4 < 1,
+        one can prove that the function is extreme without assuming f, bkpt being rational numbers. 
+        
+        In [61] p.374, Appendix C, p.360. Fig.10, they consider real number f, bkpt, and claim (without proof) that: 
+        1) the function (named pi3(u)) is facet (thus extreme); 
+        2) can add a perturbation (zigzag) on the third slope as shown in Fig.10;
 
     Examples:
         Finite group --> Example 3.8 in [8] p.386, 
@@ -314,13 +317,14 @@ def backward_3_slope(f=1/12, bkpt=2/12):
         sage: h = backward_3_slope(f=1/12, bkpt=3/12)
 
     Reference: 
+        [8]: J. Ar´aoz, L. Evans, R.E. Gomory, and E.L. Johnson, Cyclic groups and knapsack facets,
+                Mathematical Programming 96 (2003) 377–408.
+                
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, Extreme inequalities for infinite group problems., 
                 Mathematical Programming 121 (2010) 145–170.
 
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.	
     """
-    # FIXME: (*) Must f and bkpt be rational numbers?  
-    # The proof is based on interpolation of finite cyclic group extreme functions(cf. [8]). Need rational number. Can we relax them to irrational numbers?
     if not bool(0 < f < bkpt < 1 + f - bkpt < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
     if not ((f in QQ) & (bkpt in QQ) & bool(0 < f < bkpt < ((1 + f)/4) < 1)):
