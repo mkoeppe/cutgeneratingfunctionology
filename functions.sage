@@ -1796,7 +1796,7 @@ def nice_field_values(symb_values, field=None):
 def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field=None):
     if field is None:
         field = default_field
-    global symb_values
+    # global symb_values
     symb_values = bkpt + slopes + values
     field_values = nice_field_values(symb_values, field)
     bkpt, slopes, values = field_values[0:len(bkpt)], field_values[len(bkpt):len(bkpt)+len(slopes)], field_values[-len(values):]
