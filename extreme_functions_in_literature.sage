@@ -375,6 +375,8 @@ def gj_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
         delta_1 = 0
     else:
         delta_1 = (s*f - 1)/(m - 1)
+    # in irrational case, try to coerce to common number field
+    [f, s, delta_1, delta_2, m, d] =  nice_field_values([f, s, delta_1, delta_2, m, d])
     pieces = []
     for k in range(m):
         pieces = pieces + \
