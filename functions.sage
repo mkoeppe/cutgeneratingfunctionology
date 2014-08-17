@@ -2524,6 +2524,11 @@ def generate_nonsubadditive_vertices(fn):
     return uniq(type1 + type2)
 
 def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True):
+    generate_minimal_triples(fn)
+    if show_plots:
+        logging.info("Plotting 2d diagram...")
+        show(plot_2d_diagram(fn), figsize=show_plots_figsize)
+        logging.info("Plotting 2d diagram... done")
     do_phase_1_lifting = False
     if not minimality_test(fn):
         logging.info("Not minimal, thus not extreme.")
@@ -2531,11 +2536,6 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_sty
             return False
         else:
             do_phase_1_lifting = True
-    generate_minimal_triples(fn)
-    if show_plots:
-        logging.info("Plotting 2d diagram...")
-        show(plot_2d_diagram(fn), figsize=show_plots_figsize)
-        logging.info("Plotting 2d diagram... done")
     covered_intervals = generate_covered_intervals(fn)
     uncovered_intervals = generate_uncovered_intervals(fn)
     if show_plots:
