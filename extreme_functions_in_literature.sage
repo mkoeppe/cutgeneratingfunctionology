@@ -420,7 +420,7 @@ def generate_example_e_for_psi_n(f=2/3, n=7, q=4, eps=1/1000):
     """
     if n == 0:
         return []
-    if not (bool(0 < f < 1) & bool(q > 2)):
+    if not (bool(0 < f < 1) & bool(q > 2) & bool(0 <= eps < 1)):
         raise ValueError, "Bad parameters." 
     x = (1 - eps)*(q - 2) / q * min(f, 1 - f)
     # or take x = min((1 - eps)*(q - 2)*f / q , 1 - f) 
