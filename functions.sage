@@ -538,20 +538,20 @@ def convex_vert_list(vertices):
 def plot_face(trip, vert, rgbcolor=(0,1,0), fill_color="mediumspringgreen", **kwds):
     if face_0D(trip):
         return point((trip[0][0], \
-            trip[1][0]), rgbcolor = rgbcolor, size = 30)
+                      trip[1][0]), rgbcolor = rgbcolor, size = 30, **kwds)
     elif face_horizontal(trip):
         return parametric_plot((y,trip[1][0]),\
-                             (y,trip[0][0], trip[0][1]), rgbcolor = rgbcolor, thickness=2)
+                               (y,trip[0][0], trip[0][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
     elif face_vertical(trip):
         return parametric_plot((trip[0][0],y),\
-                             (y,trip[1][0], trip[1][1]), rgbcolor = rgbcolor, thickness=2)
+                               (y,trip[1][0], trip[1][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
     elif face_diagonal(trip):
         return parametric_plot((lambda y: y, lambda y: trip[2][0]-y),\
-                             (y,trip[0][0],trip[0][1]), rgbcolor = rgbcolor, thickness=2)
+                               (y,trip[0][0],trip[0][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
     elif face_2D(trip):
         ## Sorting is necessary for this example:
         ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/reu-2013/Sage_Function/dey-richard-not-extreme.txt"))
-        return polygon(convex_vert_list(vert), color=fill_color) 
+        return polygon(convex_vert_list(vert), color=fill_color, **kwds) 
 
 def plot_2d_diagram(function, show_function = True):
     """
@@ -566,21 +566,24 @@ def plot_2d_diagram(function, show_function = True):
     y = var('y')
 
     p = plot_2d_complex(function)
+    kwds = { 'legend_label': "Additive face" }
     for trip, vert in itertools.izip(minimal_triples, vert_face_additive):
-        p += plot_face(trip, vert)
+        p += plot_face(trip, vert, **kwds)
+        if 'legend_label' in kwds:
+            del kwds['legend_label']
     ### For non-subadditive functions, show the points where delta_pi
     ### is negative.
     nonsubadditive_vertices = generate_nonsubadditive_vertices(function)
     p += point(nonsubadditive_vertices, \
-                                  color = "red", size = 50)
+                                  color = "red", size = 50, legend_label="Subadditivity violated")
     p += point([ (y,x) for (x,y) in nonsubadditive_vertices ], \
                                   color = "red", size = 50)
     if show_function:
         x = var('x')
         p += parametric_plot((lambda x: x, lambda x: 0.3 * float(function(x)) + 1), \
-                                                (x, 0, 1), color='black')
+                                                (x, 0, 1), color='blue', legend_label="Function")
         p += parametric_plot((lambda x: - 0.3 * float(function(x)), lambda x: x), \
-                                                (x, 0, 1), color='black')
+                                                (x, 0, 1), color='blue')
     return p
 
 # Assume component is sorted.
