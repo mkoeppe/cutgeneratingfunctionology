@@ -1242,6 +1242,9 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f = FastPiecewise([[open_interval(0,1),f1],[singleton_interval(1),f2],[open_interval(1,2),f3],[(2,3),f4]], merge=False)
             sage: f.end_points()
             [0, 1, 2, 3]
+            sage: f = FastPiecewise([[open_interval(0,1),f1],[open_interval(2,3),f3]], merge=False)
+            sage: f.end_points()
+            [0, 1, 2, 3]
         """
         return self._end_points
 
@@ -1256,6 +1259,26 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f2(x) = 1-x
             sage: f3(x) = exp(x)
             sage: f4(x) = sin(2*x)
+            sage: f = FastPiecewise([[(0,1),f1],
+            ...                      [(1,2),f2],
+            ...                      [(2,3),f3],
+            ...                      [(3,10),f4]])
+            sage: f(0.5)
+            1
+            sage: f(1)
+            0
+            sage: f(5/2)
+            e^(5/2)
+            sage: f(3)
+            sin(6)
+            sage: f(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value not defined at point -1, outside of domain.
+            sage: f(11)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value not defined at point 11, outside of domain.
             sage: f = FastPiecewise([[right_open_interval(0,1),f1],
             ...                      [right_open_interval(1,2),f2],
             ...                      [right_open_interval(2,3),f3],
@@ -1266,10 +1289,32 @@ class FastPiecewise (PiecewisePolynomial):
             0
             sage: f(5/2)
             e^(5/2)
-            sage: f(5/2).n()
-            12.1824939607035
             sage: f(3)
             sin(6)
+            sage: f = FastPiecewise([[open_interval(0,1),f1],
+            ...                      [right_open_interval(2,3),f3]], merge=False)
+            sage: f(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value not defined at point 0, outside of domain.
+            sage: f(0.5)
+            1
+            sage: f(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value not defined at point 1, outside of domain.
+            sage: f(3/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value not defined at point 3/2, outside of domain.
+            sage: f(2)
+            e^2
+            sage: f(5/2)
+            e^(5/2)
+            sage: f(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value not defined at point 3, outside of domain.
         """
         # Remember that intervals are sorted according to their left endpoints; singleton has priority.
         endpts = self.end_points()
@@ -1290,8 +1335,10 @@ class FastPiecewise (PiecewisePolynomial):
 
     def limit(self, x0, epsilon):
         """
-        return limit (from right if epsilon > 0, from left if epsilon < 0) value at x;
+        return limit (from right if epsilon > 0, from left if epsilon < 0) value at x0;
         if epsilon == 0, return value at x0.
+
+        FIXME: Add testcases.
         """
         endpts = self.end_points()
         ith = self._ith_at_end_points
