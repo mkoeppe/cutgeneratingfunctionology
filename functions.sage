@@ -1162,11 +1162,9 @@ class FastPiecewise (PiecewisePolynomial):
     than the standard class PiecewisePolynomial.
     """
     def __init__(self, list_of_pairs, var=None, merge=True):
-        # Ensure sorted
-        # list_of_pairs = sorted(list_of_pairs, key = lambda (i, f): i[0])
-        list_of_pairs = sorted(list_of_pairs, key = lambda (i, f): (i[0], not(i[0] == i[1])))   
         # Sort intervals according to their left endpoints; In case of equality, place single point before interval. 
-        # This setting would be helpful in plotting discontinuous functions  
+        # This setting would be helpful in plotting discontinuous functions   
+        list_of_pairs = sorted(list_of_pairs, key = lambda (i, f): (i[0], not(i[0] == i[1])))   
         if merge:
             # If adjacent functions are the same, just merge the pieces
             merged_list_of_pairs = []
@@ -1196,14 +1194,34 @@ class FastPiecewise (PiecewisePolynomial):
 
         intervals = self._intervals
         functions = self._functions
-        end_points = [ intervals[0][0] ] + [i[1] for i in intervals]
+        # end_points are distinct.
+        end_points = []
+        # ith_at_end_points records in which interval the end_point first appears as a left_end or right_end.
+        ith_at_end_points = []
+        # record the value at each end_point, value==None if end_point is not in the domain.
+        values_at_end_points = []
+        for i in range(len(intervals)):
+            left_value = None
+            if len(intervals[i]) <= 2 or intervals[i].left_closed:
+                left_value = functions[i](intervals[i][0])
+            if (end_points == []) or (end_points[-1] != intervals[i][0]):
+                end_points.append(intervals[i][0])
+                ith_at_end_points.append(i)
+                values_at_end_points.append(left_value)
+            elif left_value != None:
+                values_at_end_points[-1] = left_value
+            right_value = None
+            if len(intervals[i]) <= 2 or intervals[i].right_closed:
+                right_value = functions[i](intervals[i][1])
+            if end_points[-1] != intervals[i][1]:
+                end_points.append(intervals[i][1])
+                ith_at_end_points.append(i)
+                values_at_end_points.append(right_value)
+            elif right_value != None:
+                values_at_end_points[-1] = right_value
         self._end_points = end_points
-        values_at_end_points = [ functions[0](end_points[0]) ]
-        for i in range(len(functions)):
-            value = functions[i](intervals[i][1])
-            values_at_end_points.append(value)
+        self._ith_at_end_points = ith_at_end_points
         self._values_at_end_points = values_at_end_points
-
 
     # The following makes this class hashable and thus enables caching
     # of the above functions; but we must promise not to modify the
@@ -1218,9 +1236,10 @@ class FastPiecewise (PiecewisePolynomial):
         EXAMPLES::
         
             sage: f1(x) = 1
-            sage: f2(x) = 1-x
-            sage: f3(x) = x^2-5
-            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3]])
+            sage: f2(x) = 2
+            sage: f3(x) = 1-x
+            sage: f4(x) = x^2-5
+            sage: f = FastPiecewise([[open_interval(0,1),f1],[singleton_interval(1),f2],[open_interval(1,2),f3],[(2,3),f4]], merge=False)
             sage: f.end_points()
             [0, 1, 2, 3]
         """
@@ -1229,9 +1248,7 @@ class FastPiecewise (PiecewisePolynomial):
     @cached_method
     def __call__(self,x0):
         """
-        Evaluates self at x0. Returns the average value of the jump if x0
-        is an interior endpoint of one of the intervals of self and the
-        usual value otherwise.
+        Evaluates self at x0. 
         
         EXAMPLES::
         
@@ -1239,29 +1256,100 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f2(x) = 1-x
             sage: f3(x) = exp(x)
             sage: f4(x) = sin(2*x)
-            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: f = FastPiecewise([[right_open_interval(0,1),f1],
+            ...                      [right_open_interval(1,2),f2],
+            ...                      [right_open_interval(2,3),f3],
+            ...                      [closed_interval(3,10),f4]], merge=False)
             sage: f(0.5)
             1
+            sage: f(1)
+            0
             sage: f(5/2)
             e^(5/2)
             sage: f(5/2).n()
             12.1824939607035
-            sage: f(1)
-            1/2
+            sage: f(3)
+            sin(6)
         """
-        #print "EVAL at ", x0
+        # Remember that intervals are sorted according to their left endpoints; singleton has priority.
         endpts = self.end_points()
+        ith = self._ith_at_end_points
         i = bisect_left(endpts, x0)
         if i >= len(endpts):
             raise ValueError,"Value not defined at point %s, outside of domain." % x0
         if x0 == endpts[i]:
-            return self._values_at_end_points[i]
+            if not self._values_at_end_points[i] == None:
+                return self._values_at_end_points[i]
+            else:
+                raise ValueError,"Value not defined at point %s, outside of domain." % x0
         if i == 0:
             raise ValueError,"Value not defined at point %s, outside of domain." % x0
-        if self._intervals[i-1][0] <= x0 < self._intervals[i-1][1]:
-            return self.functions()[i-1](x0)
+        if is_pt_in_interval(self._intervals[ith[i]],x0):
+            return self.functions()[ith[i]](x0)
         raise ValueError,"Value not defined at point %s, outside of domain." % x0
 
+    def limit(self, x0, epsilon):
+        """
+        return limit (from right if epsilon > 0, from left if epsilon < 0) value at x;
+        if epsilon == 0, return value at x0.
+        """
+        endpts = self.end_points()
+        ith = self._ith_at_end_points
+        i = bisect_left(endpts, x0)
+        if i >= len(endpts):
+            raise ValueError,"Value not defined at point %s, outside of domain." % x0
+        if x0 == endpts[i]:
+            if epsilon > 0:
+                if self._intervals[ith[i]][1] > x0:
+                    # x0 is left_end of intervals[ith[i]] (not singleton)
+                    return self.functions()[ith[i]](x0)
+                else:
+                    # x0 is right_end of intervals[ith[i]]
+                    if (ith[i] + 1 < len(self._intervals)) and (self._intervals[ith[i]+1][0] == x0):
+                        if self._intervals[ith[i]+1][1] > x0:
+                        # case intervals[ith[i]+1] is not singleton
+                            return self.functions()[ith[i]+1](x0)
+                        elif (ith[i] + 2 < len(self._intervals)) and (self._intervals[ith[i]+2][0] == x0):
+                        # case intervals[ith[i]+1] is singleton
+                            return self.functions()[ith[i]+2](x0)
+                raise ValueError,"Right limit value not defined at point %s +, outside of domain." % x0 
+            elif epsilon < 0:
+                if self._intervals[ith[i]][0] < x0:
+                    # x0 is right_end of intervals[ith[i]] (not singleton)
+                    return self.functions()[ith[i]](x0)
+                # else: implies x0 is left_end of intervals[ith[i]].
+                # But x0 can't be right_end of intervals[ith[i]-1]. So, just raise Error.
+                raise ValueError,"Left limit value not defined at point %s -, outside of domain." % x0 
+            else:
+                if not self._values_at_end_points[i] == None:
+                    return self._values_at_end_points[i]
+                else:
+                    raise ValueError,"Value not defined at point %s, outside of domain." % x0
+        if i == 0:
+            raise ValueError,"Value not defined at point %s, outside of domain." % x0
+        if is_pt_in_interval(self._intervals[ith[i]],x0):
+            return self.functions()[ith[i]](x0)
+        raise ValueError,"Value not defined at point %s, outside of domain." % x0
+
+    # Copy from piecewise.py
+    #def _make_compatible(self, other):
+    #    """
+    #    Returns self and other extended to be defined on the same domain as
+    #    well as a refinement of their intervals. This is used for adding
+    #    and multiplying piecewise functions.
+    #    """
+    #    a1, b1 = self.domain()
+    #    a2, b2 = other.domain()
+    #    a = min(a1, a2)
+    #    b = max(b1, b2)
+    #    F = self.extend_by_zero_to(a,b)
+    #    G = other.extend_by_zero_to(a,b)
+    #    endpts = list(set(F.end_points()).union(set(G.end_points())))
+    #    endpts.sort()
+    #    return F, G, zip(endpts, endpts[1:])
+
+    # FIXME: fix __add__ and __mul__ so that they can handle
+    # discontinuous functions and functions defined on disconnected domain.
     def __add__(self,other):
         F, G, intervals = self._make_compatible(other)
         fcn = []
@@ -1390,7 +1478,7 @@ class FastPiecewise (PiecewisePolynomial):
                 b = xmax
                 right_closed = True
             # Handle open/half-open intervals here
-            if a <= b:
+            if (a < b) or (a == b) and (left_closed) and (right_closed):
                 if not (last_closed or last_end_point == [a, f(a)] and left_closed):
                     # plot last open right endpoint
                     g += point(last_end_point, rgbcolor='white', faceted=True, pointsize=23) 
@@ -1409,12 +1497,45 @@ class FastPiecewise (PiecewisePolynomial):
                 # piece to the legend separately (trac #12651).
                 if 'legend_label' in kwds:
                     del kwds['legend_label']
-            elif a == b:
+            elif (a == b) and (left_closed) and (right_closed):
                 g += point([a, f(a)], pointsize=23)
         # plot open rightmost endpoint. minimal functions don't need this.
         if not last_closed:
             g += point(last_end_point, rgbcolor='white', faceted=True, pointsize=23)  
         return g
+
+    def is_continuous_defined(self, xmin=0, xmax=1):
+        """
+        return True if self is defined on [xmin,xmax] and is continuous on [xmin,xmax]
+        """
+        last_end_point = []
+        last_closed = True
+        for (i, f) in self.list():
+            a = i[0]
+            b = i[1]
+            left_closed = True
+            right_closed = True
+            if len(i) > 2: # coho interval
+                left_closed = i.left_closed
+                right_closed = i.right_closed
+            if a < xmin:
+                a = xmin
+                left_closed = True
+            if b > xmax:
+                b = xmax
+                right_closed = True
+            if (a < b) or (a == b) and (left_closed) and (right_closed):
+                if last_end_point == [] and not a == xmin:
+                    return False
+                if not (last_closed or last_end_point == [a, f(a)] and left_closed):
+                    return False
+                if not (left_closed or last_end_point == [a, f(a)] and last_closed):
+                    return False
+                last_closed = right_closed
+                last_end_point = [b, f(b)]
+        if not (last_closed and last_end_point[0] == xmax):
+            return False
+        return True
 
     def __repr__(self):
         rep = "<FastPiecewise with %s parts, " % len(self._functions)
@@ -1423,6 +1544,22 @@ class FastPiecewise (PiecewisePolynomial):
                    + "\t values: " + repr([function(interval[0]), function(interval[1])])
         rep += ">"
         return rep
+
+def is_pt_in_interval(i, x0):
+    """
+    retrun whether the point x0 is contained in the (ordinary or coho) interval i.
+    """
+    if len(i) == 2:
+        return bool(i[0] <= x0 <= i[1])
+    else:  
+        if i.left_closed and i.right_closed:
+            return bool(i.a <= x0 <= i.b)
+        if i.left_closed and not i.right_closed:
+            return bool(i.a <= x0 < i.b)
+        if not i.left_closed and i.right_closed:
+            return bool(i.a < x0 <= i.b)
+        if not i.left_closed and not i.right_closed:
+            return bool(i.a < x0 < i.b)
 
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 
