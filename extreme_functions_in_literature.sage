@@ -562,3 +562,200 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24]):
     s_positive = - s_negative * interval_length_negative / interval_length_positive 
     slopes = [s_positive, s_negative] * (nb_interval // 2)
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
+
+### TODO ###
+def bhk_irrational():
+    """
+    Summary:
+        - Name: BHK's irrational function
+        - Infinite; Dim = 1; Slopes = 3; Continuous;  Covered intervals and equivariant perturbation.
+        - Discovered [IR2]  p.33, section.5.2, fig.9-10;
+        - Proven [IR2] p.34, thm.5.3.
+
+    Parameters:
+
+
+    Function is known to be extreme under the conditions:
+
+
+    Examples:
+        [IR2]  p.34, thm.5.3::
+            sage: h = equivariant_perturbation_one_irrational()
+
+    Reference:
+        [IR2] A. Basu, R. Hildebrand, and M. Köppe, Equivariant perturbation in Gomory and Johnson’s infinite group problem.
+                I. The one-dimensional case, eprint arXiv:1206.2079 [math.OC], 2012.
+    """
+
+#####COPY#####
+def the_irrational_function_t1_t2(d1 = 3/5, d3 = 1/10, f = 4/5, p = 15/100, \
+                                  del1 = 1/200, del2 = sqrt(2)/200):
+    d2 = f - d1 - d3
+
+    c2 = 0
+    c3 = -1/(1-f)
+    c1 = (1-d2*c2-d3*c3)/d1
+
+    d12 = d2 / 2
+    d22 = d2 / 2
+
+    d13 = c1 / (c1 - c3) * d12
+    d43 = d13
+    d11 = p - d13
+    d31 = p - d12
+    d51 = d11
+    d41 = (d1 - d11 - d31 - d51)/2
+    d21 = d41
+    d23 = (d3 - d13 - d43)/2
+    d33 = d23
+
+    del13 = c1 * del1 / (c1 - c3)
+    del11 = del1 - del13
+
+    del23 = c1 * del2 / (c1 - c3)
+    del21 = del2 - del23
+
+    d21new = d21 - del11 - del21
+    d41new = d41 - del11 - del21
+    d23new = d23 - del13 - del23
+    d33new = d33 - del13 - del23
+
+    t1 = del1
+    t2 = del1 + del2
+    a0 = d11+d13
+    a1 = a0 + t1
+    a2 = a0 + t2
+    A = a0+d21+d23
+    A0 = A + d12
+
+    slopes = [c1,c3,c1,c3,c1,c3,c1,c3,c2,c1,c2,c3,c1,c3,c1,c3,c1,c3,c1,c3]
+
+    interval_lengths = [d11,d13,del11,del13,del21,del23,d21new,d23new,d12,d31,d22,d33new,d41new,del23,del21,del13,del11,d43,d51,1-f]
+
+    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
+
+#####COPY#####
+def the_irrational_function_t1_t2_t3(d1 = 3/5, d3 = 1/10, f = 4/5, p = 15/100, \
+                                     del1 = 1/200, del2 = 6*sqrt(2)/200, del3 = 1/500):
+
+    d2 = f - d1 - d3
+
+    c2 = 0
+    c3 = -1/(1-f)
+    c1 = (1-d2*c2-d3*c3)/d1
+
+    d12 = d2 / 2
+    d22 = d2 / 2
+
+    d13 = c1 / (c1 - c3) * d12
+    d43 = d13
+    d11 = p - d13
+    d31 = p - d12
+    d51 = d11
+    d41 = (d1 - d11 - d31 - d51)/2
+    d21 = d41
+    d23 = (d3 - d13 - d43)/2
+    d33 = d23
+
+    del13 = c1 * del1 / (c1 - c3)
+    del11 = del1 - del13
+
+    del23 = c1 * del2 / (c1 - c3)
+    del21 = del2 - del23
+
+    del33 = c1 * del3 / (c1 - c3)
+    del31 = del3 - del33
+
+    d21new = d21 - del11 - del21 - del31
+    d41new = d41 - del11 - del21 - del31
+    d23new = d23 - del13 - del23 - del33
+    d33new = d33 - del13 - del23 - del33
+
+    t1 = del1
+    t2 = del1 + del2
+    t3 = del1 + del2 + del3
+
+    a0 = d11+d13
+    a1 = a0 + t1
+    a2 = a0 + t2
+    a3 = a0 + t3
+
+    A = a0+d21+d23
+    A0 = A + d12
+
+    slopes = [c1,c3,c1,c3,c1,c3,c1,c3,c1,c3,c2,c1,c2,c3,c1,c3,c1,c3,c1,c3,c1,c3,c1,c3]
+
+    interval_lengths = [d11,d13,del11,del13,del21,del23,del31, del33, d21new,d23new,d12,d31,d22,d33new,d41new,del33,del31,del23,del21,del13,del11,d43,d51,1-f]
+
+    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
+
+#####COPY#####
+def gmi_irrational():
+    """
+    A version of the irrational function with non-zero second slope,
+    obtained by forming a convex combination of a modified version of the irrational function with the GMI cut.
+    """
+    d1 = 3/5
+    d3 = 1/10
+    f = 4/5
+    p = 15/100
+    del1 = 1/200
+    del2 = sqrt(2)/200
+
+    d2 = f - d1 - d3
+
+    c2 = 0
+    #c3 = -1/(1-f)
+    c3 = (100/95)*(c3 - (5/100)*(5/4))
+    c1 = (1-d2*c2-d3*c3)/d1
+
+    d12 = d2 / 2
+    d22 = d2 / 2
+
+    d13 = c1 / (c1 - c3) * d12
+    d43 = d13
+    d11 = p - d13
+    d31 = p - d12
+    d51 = d11
+    d41 = (d1 - d11 - d31 - d51)/2
+    d21 = d41
+    d23 = (d3 - d13 - d43)/2
+    d33 = d23
+
+    del13 = c1 * del1 / (c1 - c3)
+    del11 = del1 - del13
+
+    del23 = c1 * del2 / (c1 - c3)
+    del21 = del2 - del23
+
+    d21new = d21 - del11 - del21
+    d41new = d41 - del11 - del21
+    d23new = d23 - del13 - del23
+    d33new = d33 - del13 - del23
+
+    t1 = del1
+    t2 = del1 + del2
+    a0 = d11+d13
+    a1 = a0 + t1
+    a2 = a0 + t2
+    A = a0+d21+d23
+    A0 = A + d12
+    # replace last c3 by -1/(1-f)
+    slope = [c1,c3,c1,c3,c1,c3,c1,c3,c2,c1,c2,c3,c1,c3,c1,c3,c1,c3,c1,-1/(1-f)]
+
+    interval_length = [d11,d13,del11,del13,del21,del23,d21new,d23new,d12,d31,d22,d33new,d41new,del23,del21,del13,del11,d43,d51,1-f]
+
+    pre_h = piecewise_function_from_interval_lengths_and_slopes(interval_length, slope)
+
+    ###attach("GMI.sage")
+    f = 4/5
+    gmi_bkpt = [0,f,1]
+    gmi_values = [0,1,0]
+
+    gmi = piecewise_function_from_breakpoints_and_values(gmi_bkpt, gmi_values)
+
+    h = 95/100 * pre_h + 5/100 * gmi
+    return h
+
+ ### TODO ###
+ # Survey page 8-10, table 1-3
