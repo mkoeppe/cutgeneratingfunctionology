@@ -2473,7 +2473,21 @@ def rescale_to_amplitude(perturb, amplitude):
 # Global figsize for all plots made by show_plots.
 show_plots_figsize = 10
 
-def check_perturbation(fn, perturb, show_plots=False, **show_kwds):
+def show_plot(graphics, show_plots, tag, **show_kwds):
+    """
+    Display or save `graphics`.
+
+    `show_plots` should be `False` (do nothing), 
+    `True` (use `show` to display on screen),
+    a string (file name format such as "FILENAME-%s.pdf", 
+    where %s is replaced by `tag`.
+    """
+    if isinstance(show_plots, str):
+        graphics.save(show_plots % tag, figsize=show_plots_figsize, **show_kwds)
+    elif show_plots:
+        graphics.show(figsize=show_plots_figsize, **show_kwds)
+
+def check_perturbation(fn, perturb, show_plots=False, show_plot_tag=None, **show_kwds):
     epsilon_interval = fn._epsilon_interval = find_epsilon_interval(fn, perturb)
     epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
     logging.info("Epsilon for constructed perturbation: %s" % epsilon)
@@ -2489,7 +2503,7 @@ def check_perturbation(fn, perturb, show_plots=False, **show_kwds):
         elif epsilon != epsilon_interval[1]:
             p += plot(fn + epsilon * perturb, xmin=0, xmax=1, color='cyan', legend_label="+perturbed (matches min)")
         p += plot(rescale_to_amplitude(perturb, 1/10), xmin=0, xmax=1, color='magenta', legend_label="perturbation (rescaled)")
-        p.show(figsize=show_plots_figsize, **show_kwds)
+        show_plot(p, show_plots, tag=show_plot_tag, **show_kwds)
         logging.info("Plotting perturbation... done")
 
 def finite_dimensional_extremality_test(function, show_plots=False):
@@ -2510,7 +2524,9 @@ def finite_dimensional_extremality_test(function, show_plots=False):
         for basis_index in range(len(slopes_vects)):
             slopes = list(slopes_vects[basis_index])
             perturbation = function._perturbation = generate_compatible_piecewise_function(components, slopes)
-            check_perturbation(function, perturbation, show_plots=show_plots, legend_title="Basic perturbation %s" % (basis_index + 1))
+            check_perturbation(function, perturbation, 
+                               show_plots=show_plots, show_plot_tag='perturbation-%s' % (basis_index + 1), 
+                               legend_title="Basic perturbation %s" % (basis_index + 1))
         return False
 
 @cached_function
@@ -2532,7 +2548,7 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_sty
     generate_minimal_triples(fn)
     if show_plots:
         logging.info("Plotting 2d diagram...")
-        show(plot_2d_diagram(fn), figsize=show_plots_figsize)
+        show_plot(plot_2d_diagram(fn), show_plots, tag='2d_diagram')
         logging.info("Plotting 2d diagram... done")
     do_phase_1_lifting = False
     if not minimality_test(fn):
@@ -2545,7 +2561,7 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_sty
     uncovered_intervals = generate_uncovered_intervals(fn)
     if show_plots:
         logging.info("Plotting covered intervals...")
-        show(plot_covered_intervals(fn), figsize=show_plots_figsize)
+        show_plot(plot_covered_intervals(fn), show_plots, tag='covered_intervals')
         logging.info("Plotting covered intervals... done")
     if not uncovered_intervals:
         logging.info("All intervals are covered (or connected-to-covered). %s components." % len(covered_intervals))
@@ -2572,9 +2588,10 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_sty
         if show_plots:
             logging.info("Plotting moves and reachable orbit...")
             # FIXME: Visualize stability intervals?
-            (plot_walk(walk_list,thickness=0.7) + \
-             plot_possible_and_impossible_directed_moves(seed, moves, fn) + \
-             plot_intervals(uncovered_intervals) + plot_covered_intervals(fn)).show(figsize=show_plots_figsize)
+            g = (plot_walk(walk_list,thickness=0.7) + 
+                 plot_possible_and_impossible_directed_moves(seed, moves, fn) + 
+                 plot_intervals(uncovered_intervals) + plot_covered_intervals(fn))
+            show_plot(g, show_plots, tag='moves')
             logging.info("Plotting moves and reachable orbit... done")
         perturb = fn._perturbation = approx_discts_function(walk_list, stab_int, perturbation_style=perturbation_style, function=fn)
         check_perturbation(fn, perturb, show_plots=show_plots)
@@ -2847,7 +2864,7 @@ def compose_directed_moves(A, B, interiors=False, show_plots=False):
         p += plot(B, color="blue", legend_label="B")
         if result:
             p += plot(result, color="red", legend_label="C = A after B")
-        p.show(figsize=show_plots_figsize)
+        show_plot(p, show_plots, tag='compose_directed_moves')
     return result
 
 def merge_functional_directed_moves(A, B, show_plots=False):
@@ -2861,7 +2878,7 @@ def merge_functional_directed_moves(A, B, show_plots=False):
         p = plot(C, color="cyan", legend_label="C = A merge B", thickness=10)
         p += plot(A, color="green", legend_label="A = %s" % A )
         p += plot(B, color="blue", legend_label="B = %s" % B)
-        show(p, figsize=show_plots_figsize)
+        show_plot(p, show_plots, tag='merge_functional_directed_moves')
     return C
 
 def plot_directed_moves(dmoves):
@@ -2894,7 +2911,7 @@ def reduce_with_dense_moves(functional_directed_move, dense_moves, show_plots=Fa
         p += plot_directed_moves(dense_moves)
         if result:
             p += plot(result)
-        p.show(figsize=show_plots_figsize)
+        show_plot(p, show_plots, tag='reduce_with_dense_moves')
     return result
 
 class DirectedMoveCompositionCompletion:
@@ -2996,7 +3013,7 @@ class DirectedMoveCompositionCompletion:
     def maybe_show_plot(self):
         if self.show_plots:
             logging.info("Plotting...")
-            self.plot().show(figsize=show_plots_figsize)
+            show_plot(self.plot(), self.show_plots, 'completion')
             logging.info("Plotting... done")
 
     def complete_one_round(self):
