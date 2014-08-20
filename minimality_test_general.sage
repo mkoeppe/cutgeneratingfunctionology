@@ -6,30 +6,14 @@ def print_sign(epsilon):
     else:
         return ""
 
-def nonnegative_check_general(fn):
+def range_zero_one_general(fn):
     """
-    Check if fn is nonnegative. Works for discontinuous functions as well.
+    Check if fn has range in [0,1]. Works for discontinuous functions as well.
     """
-    if fn(0) < 0:
-        logging.info('pi(0) is negative.')
-        return False
-    if fn.limit(0, 1) < 0:
-        logging.info('pi(0+) is negative.')
-        return False
-    if fn(1) < 0:
-        logging.info('pi(1) is negative.')
-        return False
-    if fn.limit(1, -1) < 0:
-        logging.info('pi(1-) is negative.')
-        return False
-    endpts = fn.end_points()
-    for i in range(1, len(endpts) - 1):
-        x = endpts[i]
+    for x in fn.end_points():
         for epsilon in [0,1,-1]:
-            if fn.limit(x, epsilon) < 0:
-                logging.info('pi(x%s) is negative.' % print_sign(epsilon))
+            if not (0 <= limit_periodic_one(fn, x, epsilon) <= 1):
                 return False
-    logging.info('pi is nonnegative.')
     return True
 
 def limit_periodic_one(fn, x, epsilon):
@@ -43,43 +27,52 @@ def limit_periodic_one(fn, x, epsilon):
         return fn.limit(0, epsilon)
     return fn.limit(x, epsilon)
     
-def delta_pi_limit(fn,x,y,epsilon):
+def delta_pi_limit(fn,x,y, epsx=0, epsy=0, epsz=0):
     """
-    Compute the right limit slack (if epsilon > 0) or left limit slack (if epsilon < 0) 
-    or slack (if epsilon == 0) in subaddivity.
+    Compute the limit slack in subaddivity.
     """
-    value_x = limit_periodic_one(fn, fractional(x), epsilon)
-    value_y = limit_periodic_one(fn, fractional(y), epsilon)
-    value_z = limit_periodic_one(fn, fractional(x+y), epsilon)
+    value_x = limit_periodic_one(fn, fractional(x), epsx)
+    value_y = limit_periodic_one(fn, fractional(y), epsy)
+    value_z = limit_periodic_one(fn, fractional(x+y), epsz)
     return value_x + value_y - value_z
   
 def type1check_general(fn):
     endpts = fn.end_points()
     for x in endpts:
         for y in endpts:
-            for epsilon in [0, 1, -1]:
-                if delta_pi_limit(fn, x, y, epsilon) < 0:
-                    logging.info("For x = %s, y = %s, x+y = %s, Delta pi(x%s, y%s) = %s < 0" % (x, y, x + y, \
-                                    print_sign(epsilon), print_sign(epsilon), delta_pi_limit(fn, x, y, epsilon)))
-                    return False        
+            for eps in [0, 1, -1]:
+            # (0 0 0), (+ + +), (- - -)
+                if delta_pi_limit(fn, x, y, eps, eps, eps) < 0:
+                    logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(eps), y, print_sign(eps), x + y, print_sign(eps)))
+                    return False
+            for eps in [1, -1]:
+                for epsz in [0, 1, -1]:
+                # (+ - 0), (+ - +), (+ - -), (- + 0), (- + +), (- + -)
+                    if delta_pi_limit(fn, x, y, eps, -eps, epsz) < 0:
+                        logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(eps), y, print_sign(-eps), x + y, print_sign(epsz)))
+                        return False
+                if delta_pi_limit(fn, x, y, 0, eps, eps) < 0:
+                # (0 + +), (0 - -)
+                        logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(0), y, print_sign(eps), x + y, print_sign(eps)))
+                        return False
+                if delta_pi_limit(fn, x, y, eps, 0, eps) < 0:
+                # (+ 0 +), (- 0 -)
+                        logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(eps), y, print_sign(0), x + y, print_sign(eps)))
+                        return False
     return True
 
 def type2check_general(fn):
     endpts = fn.end_points()
-    endpts2 = []
-    for i in range(len(endpts)-1):
-        endpts2.append(endpts[i])
-    for i in range(len(endpts)):
-        endpts2.append(endpts[i]+1)
+    endpts2 = endpts + [endpts[i] for i in range(1, len(endpts))]
     for x in endpts:
         for z in endpts2:
-            if z - x > 0:
-                y = z - x
-                for epsilon in [0, 1, -1]:
-                    if delta_pi_limit(fn, x, y, epsilon) < 0:
-                        logging.info("For x = %s, y = %s, x+y = %s, Delta pi(x%s, y%s) = %s < 0" % (x, y, x + y, \
-                                        print_sign(epsilon), print_sign(epsilon), delta_pi_limit(fn, x, y, epsilon)))
-                        return False 
+            y = z - x
+            if (0 < y < 1) and not (y in endpts):
+                for epsx in [0, 1, -1]:
+                    for epsz in [0, 1, -1]:
+                        if delta_pi_limit(fn, x, y, epsx, 0, epsz) < 0:
+                            logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(epsx), y, print_sign(0), x + y, print_sign(epsz)))
+                            return False
     return True
     
 def subadditivity_check_general(fn):
@@ -135,13 +128,18 @@ def minimality_test_general(fn, f=None):
     """
     Check if fn is minimal with respect to f. Works for discontinuous functions as well.
     """
+    if not range_zero_one_general(fn):
+        raise ValueError, "The given function does not stay in the range of [0, 1]."
     if f==None:
         f = find_f(fn)
     if fn(0) != 0:
         logging.info('pi is NOT minimal because pi(0) is not equal to 0.')
         return False
     logging.info('pi(0) = 0')
-    if nonnegative_check_general(fn) and subadditivity_check_general(fn) and symmetric_check_general(fn, f):
+    if fn(1) != 0:
+        logging.info('pi is NOT minimal because pi(1) is not equal to 0.')
+        return False
+    if  subadditivity_check_general(fn) and symmetric_check_general(fn, f):
         logging.info('Thus pi is minimal.')
         return True
     logging.info('Thus pi is NOT minimal.')
