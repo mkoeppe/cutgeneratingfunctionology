@@ -1248,6 +1248,36 @@ class FastPiecewise (PiecewisePolynomial):
         """
         return self._end_points
 
+    def which_function(self, x0):
+        """
+        Returns the function piece used to evaluate self at x0.
+        
+        EXAMPLES::
+        
+            sage: f1(z) = z
+            sage: f2(x) = 1-x
+            sage: f3(y) = exp(y)
+            sage: f4(t) = sin(2*t)
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: f.which_function(3/2)
+            x |--> -x + 1
+        """
+        endpts = self.end_points()
+        ith = self._ith_at_end_points
+        i = bisect_left(endpts, x0)
+        if i >= len(endpts):
+            raise ValueError,"Value not defined at point %s, outside of domain." % x0
+        if x0 == endpts[i]:
+            if not self._values_at_end_points[i] == None:
+                return self.functions()[ith[i]]
+            else:
+                raise ValueError,"Value not defined at point %s, outside of domain." % x0
+        if i == 0:
+            raise ValueError,"Value not defined at point %s, outside of domain." % x0
+        if is_pt_in_interval(self._intervals[ith[i]],x0):
+            return self.functions()[ith[i]]
+        raise ValueError,"Value not defined at point %s, outside of domain." % x0
+
     @cached_method
     def __call__(self,x0):
         """
