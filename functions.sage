@@ -1323,7 +1323,10 @@ class FastPiecewise (PiecewisePolynomial):
             raise ValueError,"Value not defined at point %s, outside of domain." % x0
         if x0 == endpts[i]:
             if not self._values_at_end_points[i] == None:
-                return self.functions()[ith[i]]             # FIXME: this line needs fixing
+                if self.functions()[ith[i]](x0) == self._values_at_end_points[i]:
+                    return self.functions()[ith[i]]
+                else:
+                    return self.functions()[ith[i]+1]
             else:
                 raise ValueError,"Value not defined at point %s, outside of domain." % x0
         if i == 0:
