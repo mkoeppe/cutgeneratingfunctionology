@@ -1254,13 +1254,66 @@ class FastPiecewise (PiecewisePolynomial):
         
         EXAMPLES::
         
-            sage: f1(z) = z
+            sage: f1(x) = 1
             sage: f2(x) = 1-x
-            sage: f3(y) = exp(y)
-            sage: f4(t) = sin(2*t)
-            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: f3(x) = exp(x)
+            sage: f4(x) = sin(2*x)
+            sage: f = FastPiecewise([[(0,1),f1],
+            ...                      [(1,2),f2],
+            ...                      [(2,3),f3],
+            ...                      [(3,10),f4]])
+            sage: f.which_function(0.5) is f1
+            True
+            sage: f.which_function(1) in [f1, f2]
+            True
+            sage: f.which_function(5/2) is f3
+            True
+            sage: f.which_function(3) in [f3, f4]
+            True
+            sage: f.which_function(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value not defined at point -1, outside of domain.
+            sage: f.which_function(11)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value not defined at point 11, outside of domain.
+            sage: f = FastPiecewise([[right_open_interval(0,1),f1],
+            ...                      [right_open_interval(1,2),f2],
+            ...                      [right_open_interval(2,3),f3],
+            ...                      [closed_interval(3,10),f4]], merge=False)
+            sage: f.which_function(0.5) is f1
+            True
+            sage: f.which_function(1) is f2
+            True
+            sage: f.which_function(5/2) is f3
+            True
+            sage: f.which_function(3) is f4
+            True
+            sage: f = FastPiecewise([[open_interval(0,1),f1],
+            ...                      [right_open_interval(2,3),f3]], merge=False)
+            sage: f.which_function(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value not defined at point 0, outside of domain.
+            sage: f.which_function(0.5) is f1
+            True
+            sage: f.which_function(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value not defined at point 1, outside of domain.
             sage: f.which_function(3/2)
-            x |--> -x + 1
+            Traceback (most recent call last):
+            ...
+            ValueError: Value not defined at point 3/2, outside of domain.
+            sage: f.which_function(2) is f3
+            True
+            sage: f.which_function(5/2) is f3
+            True
+            sage: f.which_function(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value not defined at point 3, outside of domain.
         """
         endpts = self.end_points()
         ith = self._ith_at_end_points
@@ -1269,7 +1322,7 @@ class FastPiecewise (PiecewisePolynomial):
             raise ValueError,"Value not defined at point %s, outside of domain." % x0
         if x0 == endpts[i]:
             if not self._values_at_end_points[i] == None:
-                return self.functions()[ith[i]]
+                return self.functions()[ith[i]]             # FIXME: this line needs fixing
             else:
                 raise ValueError,"Value not defined at point %s, outside of domain." % x0
         if i == 0:
