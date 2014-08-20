@@ -19,7 +19,7 @@ plot_covered_intervals(h)
 
 
 # Or everything in one go:
-extremality_test(fn, show_plots=True)
+extremality_test(h, show_plots=True)
 
 
 try:
