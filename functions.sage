@@ -935,15 +935,16 @@ def plot_covered_intervals(function, covered_intervals=None, **plot_kwds):
     kwds = copy(plot_kwds)
     kwds.update(ticks_keywords(function))
     if uncovered_intervals:
-        graph += plot(lambda x: function(x), \
-                      [0,1], \
-                      color = "black", legend_label="not covered", \
-                      **kwds)
+        graph += plot(function, [0,1],
+                      color = "black", legend_label="not covered", **kwds)
+        kwds = {}
+    elif not function.is_continuous_defined(): # to plot the discontinuity markers
+        graph += plot(function, [0,1], color = "black", **kwds)
         kwds = {}
     for i, component in enumerate(covered_intervals):
         kwds.update({'legend_label': "covered component %s" % (i+1)})
         for interval in component:
-            graph += plot(lambda x: function(x), interval, color=colors[i], **kwds)
+            graph += plot(function.which_function((interval[0] + interval[1])/2), interval, color=colors[i], **kwds)
             if 'legend_label' in kwds:
                 del kwds['legend_label']
             if 'ticks' in kwds:
