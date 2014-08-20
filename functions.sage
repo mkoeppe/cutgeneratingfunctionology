@@ -1023,30 +1023,57 @@ def symmetric_test(fn, f):
     return result
 
 @cached_function
-def find_f(fn):
+def find_f(fn, no_error_if_not_minimal_anyway=False):
     """
     Find the value of `f' for the given function `fn'.
     """
+    f = None
     for x in fn.end_points():
         if fn(x) > 1 or fn(x) < 0: 
-            raise ValueError, "The given function does not stay in the range of [0, 1]"
+            if no_error_if_not_minimal_anyway:
+                logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
+                return None
+            raise ValueError, "The given function does not stay in the range of [0, 1], so cannot determine f.  Provide parameter f to minimality_test or extremality_test."
     for x in fn.end_points():
         if fn(x) == 1:
-            return x
-    raise ValueError, "The given function has no breakpoint where the function takes value 1."
+            if f:
+                logging.warn("The given function has more than one breakpoint where the function takes the value 1; using f = %s.  Provide parameter f to minimality_test or extremality_test if you want a different f." % f)
+                return f
+            else:
+                f = x
+    if f:
+        return f
+    if no_error_if_not_minimal_anyway:
+        logging.info('pi is not minimal because it has no breakpoint where the function takes value 1.')
+        return None
+    raise ValueError, "The given function has no breakpoint where the function takes value 1, so cannot determine f.  Provide parameter f to minimality_test or extremality_test."
 
-def minimality_test(fn, f=None):
+def minimality_test(fn, show_plots=False, f=None):
     """
-    Check if function `fn' is minimal with respect to the given `f'.
-    Print diagnostics and return a boolean.
+    Check if function `fn` is minimal with respect to the given `f`.
+    If `f` is not provided, uses the one found by `find_f`.
+    Return a boolean.
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)
+        sage: minimality_test(piecewise_function_from_breakpoints_and_values([0,1/5,4/5,1],[0,1/2,1,0]))
+        False
+        sage: minimality_test(piecewise_function_from_breakpoints_and_values([0,1/2,1], [0,2,0]))
+        False
     """
     if f==None:
-        f = find_f(fn)
+        f = find_f(fn, no_error_if_not_minimal_anyway=True)
+        if f==None:
+            return False
     if fn(0) != 0:
         logging.info('pi is not minimal because pi(0) is not equal to 0.')
         return False
     else:
         logging.info('pi(0) = 0')
+        if show_plots:
+            logging.info("Plotting 2d diagram...")
+            show_plot(plot_2d_diagram(fn), show_plots, tag='2d_diagram')
+            logging.info("Plotting 2d diagram... done")
         if subadditivity_check(fn) and symmetric_test(fn, f):
             logging.info('Thus pi is minimal.')
             return True
@@ -2452,8 +2479,9 @@ def symbolic_piecewise(function):
     symbolic = generate_compatible_piecewise_function(components, slope_vars, field)
     return symbolic, components, field
 
-def generate_additivity_equations(function, symbolic, field):
-    f = find_f(function)
+def generate_additivity_equations(function, symbolic, field, f=None):
+    if f==None:
+        f = find_f(function)
     equations = matrix(field, ([delta_pi(symbolic, x, y) 
                                 for (x, y) in generate_additive_vertices(function) ]
                                + [symbolic(f)]
@@ -2506,7 +2534,7 @@ def check_perturbation(fn, perturb, show_plots=False, show_plot_tag=None, **show
         show_plot(p, show_plots, tag=show_plot_tag, **show_kwds)
         logging.info("Plotting perturbation... done")
 
-def finite_dimensional_extremality_test(function, show_plots=False):
+def finite_dimensional_extremality_test(function, show_plots=False, f=None):
     """
     Solve a homogeneous linear system of additivity equations with one
     slope variable for every component (including every non-covered
@@ -2514,7 +2542,7 @@ def finite_dimensional_extremality_test(function, show_plots=False):
     a nontrivial solution.
     """
     symbolic, components, field = symbolic_piecewise(function)
-    equations = generate_additivity_equations(function, symbolic, field)
+    equations = generate_additivity_equations(function, symbolic, field, f=f)
     slopes_vects = equations.right_kernel().basis()
     logging.info("Solution space has dimension %s" % len(slopes_vects))
     if len(slopes_vects) == 0:
@@ -2544,14 +2572,11 @@ def generate_nonsubadditive_vertices(fn):
     type2 = [ (x,z-x) for x in bkpt for z in bkpt2 if x < z < 1+x and delta_pi(fn, x, z-x) < 0]
     return uniq(type1 + type2)
 
-def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True):
-    generate_minimal_triples(fn)
-    if show_plots:
-        logging.info("Plotting 2d diagram...")
-        show_plot(plot_2d_diagram(fn), show_plots, tag='2d_diagram')
-        logging.info("Plotting 2d diagram... done")
+def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True):
     do_phase_1_lifting = False
-    if not minimality_test(fn):
+    if f == None:
+        f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    if f == None or not minimality_test(fn, show_plots=show_plots, f=f):
         logging.info("Not minimal, thus not extreme.")
         if not phase_1:
             return False
@@ -2565,7 +2590,7 @@ def extremality_test(fn, show_plots = False, max_num_it = 1000, perturbation_sty
         logging.info("Plotting covered intervals... done")
     if not uncovered_intervals:
         logging.info("All intervals are covered (or connected-to-covered). %s components." % len(covered_intervals))
-        return finite_dimensional_extremality_test(fn, show_plots)
+        return finite_dimensional_extremality_test(fn, show_plots, f=f)
     else:
         logging.info("Uncovered intervals: %s", (uncovered_intervals,))
         if do_phase_1_lifting or finite_dimensional_test_first:
