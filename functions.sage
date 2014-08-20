@@ -954,8 +954,6 @@ def plot_covered_intervals(function, covered_intervals=None, **plot_kwds):
 
 ### Minimality check.
 
-
-
 # Fix x and y.
 def type1check(fn):
     result = True
@@ -1010,12 +1008,14 @@ def symmetric_test(fn, f):
     else:
         bkpt = fn.end_points()
         for i in bkpt:
-            for j in bkpt:
-                if i + j == f or i + j == 1 + f:
-                    if delta_pi(fn, i, j) != 0:
-                        logging.info('For x = %s, y = %s' % (i,j))
-                        logging.info('    Delta pi is equal to %s, not equal to 0' % delta_pi(fn, i, j))
-                        result = False
+            if i < f:
+                j = f - i
+            else:
+                j = 1 + f - i
+            if delta_pi(fn, i, j) != 0:
+                logging.info('For x = %s, y = %s' % (i,j))
+                logging.info('    Delta pi is equal to %s, not equal to 0' % delta_pi(fn, i, j))
+                result = False
     if result:
         logging.info('pi is symmetric.')
     else:
