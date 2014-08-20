@@ -14,14 +14,21 @@ class DynamicStdErrStreamHandler(logging.StreamHandler):
 
     def __init__(self):
         logging.StreamHandler.__init__(self, sys.stderr)
+        self.parent_class = logging.StreamHandler           # save in object because name logging.StreamHandler is not available at exit
 
     def flush(self):
-        self.stream = sys.stderr
-        logging.StreamHandler.flush(self)
+        try:
+            self.stream = sys.stderr
+        except NameError:                                   # happens at exit in terminal
+            pass
+        self.parent_class.flush(self)
 
     def emit(self, record):
-        self.stream = sys.stderr
-        logging.StreamHandler.emit(self, record)
+        try:
+            self.stream = sys.stderr
+        except NameError:                                   # happens at exit in terminal
+            pass
+        self.parent_class.emit(self, record)
 
 #logging.basicConfig(format='%(levelname)s: %(asctime)s %(message)s', level=logging.INFO)
 
