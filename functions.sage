@@ -1696,10 +1696,16 @@ class FastPiecewise (PiecewisePolynomial):
             if (a < b) or (a == b) and (left_closed) and (right_closed):
                 if not (last_closed or last_end_point == [a, f(a)] and left_closed):
                     # plot last open right endpoint
-                    g += point(last_end_point, rgbcolor='white', faceted=True, pointsize=23) 
+                    g += point(last_end_point, rgbcolor='white', faceted=True, pointsize=23)
+                if last_closed and last_end_point != [] and last_end_point != [a, f(a)] and not left_closed:
+                    # plot last closed right endpoint
+                    g += point(last_end_point, pointsize=23)
                 if not (left_closed or last_end_point == [a, f(a)] and last_closed):
                     # plot current open left endpoint   
-                    g += point([a, f(a)], rgbcolor='white', faceted=True, pointsize=23) 
+                    g += point([a, f(a)], rgbcolor='white', faceted=True, pointsize=23)
+                if left_closed and last_end_point != [] and last_end_point != [a, f(a)] and not last_closed:
+                    # plot current closed left endpoint
+                    g += point([a, f(a)], pointsize=23)
                 last_closed = right_closed
                 last_end_point = [b, f(b)]
             if a < b:
