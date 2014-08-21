@@ -1425,13 +1425,78 @@ class FastPiecewise (PiecewisePolynomial):
         return limit (from right if epsilon > 0, from left if epsilon < 0) value at x0;
         if epsilon == 0, return value at x0.
 
-        FIXME: Add testcases.
+        EXAMPLES::
+
+            sage: f1(x) = 1
+            sage: f2(x) = 1-x
+            sage: f3(x) = exp(x)
+            sage: f4(x) = 4
+            sage: f5(x) = sin(2*x)
+            sage: f6(x) = x-3
+            sage: f7(x) = 7
+            sage: f = FastPiecewise([[right_open_interval(0,1),f1], \
+            ...                      [right_open_interval(1,2),f2],\
+            ...                      [open_interval(2,3),f3],\
+            ...                      [singleton_interval(3),f4],\
+            ...                      [left_open_interval(3,6),f5],\
+            ...                      [open_interval(6,7),f6],\
+            ...                      [(9,10),f7]], merge=False)
+            sage: f.limit(1/2,-1)
+            1
+            sage: f.limit(1/2,0)
+            1
+            sage: f.limit(1/2,1)
+            1
+            sage: f.limit(1,-1)
+            1
+            sage: f.limit(1,0)
+            0
+            sage: f.limit(1,1)
+            0
+            sage: f.limit(2,-1)
+            -1
+            sage: f.limit(2,0)
+            Traceback (click to the left of this block for traceback)
+            ...
+            ValueError: Value not defined at point 2, outside of domain.
+            sage: f.limit(2,1)
+            e^2
+            sage: f.limit(3,-1)
+            e^3
+            sage: f.limit(3,0)
+            4
+            sage: f.limit(3,1)
+            sin(6)
+            sage: f.limit(6,-1)
+            sin(12)
+            sage: f.limit(6,0)
+            sin(12)
+            sage: f.limit(6,1)
+            3
+            sage: f.limit(7,-1)
+            4
+            sage: f.limit(7,0)
+            Traceback (click to the left of this block for traceback)
+            ...
+            ValueError: Value not defined at point 7, outside of domain.
+            sage: f.limit(7,1)
+            Traceback (click to the left of this block for traceback)
+            ...
+            ValueError: Value not defined at point 7+, outside of domain.
+            sage: f.limit(8,-1)
+            Traceback (click to the left of this block for traceback)
+            ...
+            ValueError: Value not defined at point 8-, outside of domain.
+            sage: f.limit(9,-1)
+            Traceback (click to the left of this block for traceback)
+            ...
+            ValueError: Value not defined at point 9-, outside of domain.
         """
         endpts = self.end_points()
         ith = self._ith_at_end_points
         i = bisect_left(endpts, x0)
         if i >= len(endpts):
-            raise ValueError,"Value not defined at point %s, outside of domain." % x0
+            raise ValueError,"Value not defined at point %s%s, outside of domain." % (x0, print_sign(epsilon))
         if x0 == endpts[i]:
             if epsilon > 0:
                 if self._intervals[ith[i]][1] > x0:
@@ -1446,24 +1511,24 @@ class FastPiecewise (PiecewisePolynomial):
                         elif (ith[i] + 2 < len(self._intervals)) and (self._intervals[ith[i]+2][0] == x0):
                         # case intervals[ith[i]+1] is singleton
                             return self.functions()[ith[i]+2](x0)
-                raise ValueError,"Right limit value not defined at point %s +, outside of domain." % x0 
+                raise ValueError,"Value not defined at point %s%s, outside of domain." % (x0, print_sign(epsilon))
             elif epsilon < 0:
                 if self._intervals[ith[i]][0] < x0:
                     # x0 is right_end of intervals[ith[i]] (not singleton)
                     return self.functions()[ith[i]](x0)
                 # else: implies x0 is left_end of intervals[ith[i]].
                 # But x0 can't be right_end of intervals[ith[i]-1]. So, just raise Error.
-                raise ValueError,"Left limit value not defined at point %s -, outside of domain." % x0 
+                raise ValueError,"Value not defined at point %s%s, outside of domain." % (x0, print_sign(epsilon))
             else:
                 if not self._values_at_end_points[i] == None:
                     return self._values_at_end_points[i]
                 else:
-                    raise ValueError,"Value not defined at point %s, outside of domain." % x0
+                    raise ValueError,"Value not defined at point %s%s, outside of domain." % (x0, print_sign(epsilon))
         if i == 0:
-            raise ValueError,"Value not defined at point %s, outside of domain." % x0
+            raise ValueError,"Value not defined at point %s%s, outside of domain." % (x0, print_sign(epsilon))
         if is_pt_in_interval(self._intervals[ith[i]],x0):
             return self.functions()[ith[i]](x0)
-        raise ValueError,"Value not defined at point %s, outside of domain." % x0
+        raise ValueError,"Value not defined at point %s%s, outside of domain." % (x0, print_sign(epsilon))
 
     # Copy from piecewise.py
     #def _make_compatible(self, other):
@@ -1678,6 +1743,14 @@ class FastPiecewise (PiecewisePolynomial):
                    + "\t values: " + repr([function(interval[0]), function(interval[1])])
         rep += ">"
         return rep
+        
+def print_sign(epsilon):
+    if epsilon > 0:
+        return "+"
+    elif epsilon < 0:
+        return "-"
+    else:
+        return ""
 
 def is_pt_in_interval(i, x0):
     """
