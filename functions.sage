@@ -1456,7 +1456,7 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f.limit(2,-1)
             -1
             sage: f.limit(2,0)
-            Traceback (click to the left of this block for traceback)
+            Traceback (most recent call last):
             ...
             ValueError: Value not defined at point 2, outside of domain.
             sage: f.limit(2,1)
@@ -1476,19 +1476,19 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f.limit(7,-1)
             4
             sage: f.limit(7,0)
-            Traceback (click to the left of this block for traceback)
+            Traceback (most recent call last):
             ...
             ValueError: Value not defined at point 7, outside of domain.
             sage: f.limit(7,1)
-            Traceback (click to the left of this block for traceback)
+            Traceback (most recent call last):
             ...
             ValueError: Value not defined at point 7+, outside of domain.
             sage: f.limit(8,-1)
-            Traceback (click to the left of this block for traceback)
+            Traceback (most recent call last):
             ...
             ValueError: Value not defined at point 8-, outside of domain.
             sage: f.limit(9,-1)
-            Traceback (click to the left of this block for traceback)
+            Traceback (most recent call last):
             ...
             ValueError: Value not defined at point 9-, outside of domain.
         """
