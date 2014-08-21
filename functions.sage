@@ -2901,6 +2901,11 @@ def generate_type_1_vertices_general(fn, comparison):
     """
     bkpt = fn.end_points()
     return ( (x,0,y,0,x+y,0) for x in bkpt for y in bkpt if x <= y and comparison(delta_pi(fn,x,y), 0) ) # generator comprehension
+    ## Equivalent to previous line:
+    # for x in bkpt:
+    #     for y in bkpt:
+    #         if x <= y and comparison(delta_pi(fn,x,y), 0):
+    #             yield (x,0,y,0,x+y,0)
 
 def generate_type_2_vertices_general(fn, comparison):
     bkpt = fn.end_points()
