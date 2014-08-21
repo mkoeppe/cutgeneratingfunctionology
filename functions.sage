@@ -576,7 +576,7 @@ def plot_2d_diagram(function, show_function = True):
     ### For non-subadditive functions, show the points where delta_pi
     ### is negative.
     nonsubadditive_vertices = generate_nonsubadditive_vertices(function)
-    p += point(nonsubadditive_vertices, \
+    p += point(list(nonsubadditive_vertices), \
                                   color = "red", size = 50, legend_label="Subadditivity violated")
     p += point([ (y,x) for (x,y) in nonsubadditive_vertices ], \
                                   color = "red", size = 50)
@@ -955,51 +955,22 @@ def plot_covered_intervals(function, covered_intervals=None, **plot_kwds):
 
 ### Minimality check.
 
-# Fix x and y.
-def type1check(fn):
-    result = True
-    bkpt = fn.end_points()
-    for i in bkpt:
-        for j in bkpt:
-            if delta_pi(fn,i,j)<0:
-                logging.info("For x = %s, y = %s, x+y = %s" % (i, j, i+j))
-                logging.info("    Delta pi(x,y) = %s + %s - %s = %s < 0" % 
-                             (fn(fractional(i)), fn(fractional(j)), fn(fractional(i+j)), delta_pi(fn,i,j)))
-                result = False
-    return result
-
-# Fix x and x+y.
-# By symmetry, the case in which y and x+y are fixed is also done. 
-def type2check(fn):
-    bkpt = fn.end_points()
-    bkpt2 = []
-    for i in range(len(bkpt)-1):
-        bkpt2.append(bkpt[i])
-    for i in range(len(bkpt)):
-        bkpt2.append(bkpt[i]+1)     
-
-    result = True
-    for i in bkpt:
-        for j in bkpt2:
-            if j - i > 0 and delta_pi(fn,i,j-i)<0:
-                logging.info("For x = %s, y = %s, x+y = %s" % (i, j-i, j))
-                logging.info("    Delta pi(x,y) = %s + %s - %s = %s < 0" % 
-                             (fn(fractional(i)), fn(fractional(j-i)), fn(fractional(j)), delta_pi(fn,i,j-i)))
-                result = False
-    return result     
-
-
 def subadditivity_check(fn):
     """
     Check if a function is subadditive.
     Could take quite a while. (O(n^2))
     """
-    if type1check(fn) and type2check(fn):
+    result = True
+    for (x, y) in generate_nonsubadditive_vertices(fn):
+        logging.info("For x = %s, y = %s, x+y = %s" % (x, y-x, y))
+        logging.info("    Delta pi(x,y) = %s + %s - %s = %s < 0" % 
+                     (fn(fractional(x)), fn(fractional(y-x)), fn(fractional(y)), delta_pi(fn,x,y-x)))
+        result = False
+    if result:
         logging.info("pi is subadditive.")
-        return True
     else:
         logging.info("Thus pi is not subadditive.")
-        return False
+    return result
 
 def symmetric_test(fn, f):
     result = True
@@ -2923,20 +2894,40 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None):
                                legend_title="Basic perturbation %s" % (basis_index + 1))
         return False
 
+def generate_type_1_vertices_general(fn, comparison):
+    """A generator...
+    "...'general' refers to the fact that it outputs 6-tuples (x,xeps,y,yeps,z,eps).
+    FIXME: it currently does not take care of any discontinuities at all.
+    """
+    bkpt = fn.end_points()
+    return ( (x,0,y,0,x+y,0) for x in bkpt for y in bkpt if x <= y and comparison(delta_pi(fn,x,y), 0) ) # generator comprehension
+
+def generate_type_2_vertices_general(fn, comparison):
+    bkpt = fn.end_points()
+    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
+    return ( (x,0,z-x,0,z,0) for x in bkpt for z in bkpt2 if x < z < 1+x and comparison(delta_pi(fn, x, z-x), 0) ) # generator comprehension
+
 @cached_function
 def generate_additive_vertices(fn):
-    bkpt = fn.end_points()
-    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
-    type1 = [ (x,y) for x in bkpt for y in bkpt if x <= y and delta_pi(fn,x,y) == 0 ]
-    type2 = [ (x,z-x) for x in bkpt for z in bkpt2 if x < z < 1+x and delta_pi(fn, x, z-x) == 0]
-    return uniq(type1 + type2)
+    """
+    This function does not output limit vertices for discontinuous function in any way.
+    We are returning a set, so that duplicates are removed, and so the result can be cached for later use.
+    """
+    return { (x, y) 
+             for (x, xeps, y, yeps, z, zeps) in itertools.chain(generate_type_1_vertices_general(fn, operator.eq), 
+                                                                generate_type_2_vertices_general(fn, operator.eq)) 
+             if xeps==yeps==zeps==0 }
 
+@cached_function
 def generate_nonsubadditive_vertices(fn):
-    bkpt = fn.end_points()
-    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
-    type1 = [ (x,y) for x in bkpt for y in bkpt if x <= y and delta_pi(fn,x,y) < 0 ]
-    type2 = [ (x,z-x) for x in bkpt for z in bkpt2 if x < z < 1+x and delta_pi(fn, x, z-x) < 0]
-    return uniq(type1 + type2)
+    """
+    This function does not output limit vertices for discontinuous function in any way.
+    We are returning a set, so that duplicates are removed, and so the result can be cached for later use.
+    """
+    return { (x, y) 
+             for (x, xeps, y, yeps, z, zeps) in itertools.chain(generate_type_1_vertices_general(fn, operator.lt), 
+                                                                generate_type_2_vertices_general(fn, operator.lt)) 
+             if xeps==yeps==zeps==0 }
 
 def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True):
     do_phase_1_lifting = False
