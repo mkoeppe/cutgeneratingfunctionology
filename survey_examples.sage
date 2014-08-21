@@ -11,3 +11,14 @@ def not_extreme_1(): # was symmetric_rational_function1.sage
     interval_lengths = [1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10]
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
 
+def bhk_irrational_extreme_limit_to_rational_nonextreme(n=Infinity):
+    """
+    A sequence of `bhk_irrational` functions, each extreme, indexed by n = 1, 2, ...
+    whose limit (n = Infinity) is a `bhk_irrational` function with rational parameters, 
+    and hence not extreme. 
+    """
+    del1 = 1/40 
+    if n != Infinity:
+        del1 -= sqrt(2) / (70*n)
+    return the_irrational_function_t1_t2(del1=del1, del2=del2)
+
