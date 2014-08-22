@@ -1172,59 +1172,43 @@ class FastPiecewise (PiecewisePolynomial):
         ith_at_end_points = []
         # record the value at each end_point, value==None if end_point is not in the domain.
         values_at_end_points = []
+        # record function values at [x, x+, x-] for each endpoint x.
+        limits_at_end_points = []
+        left_limit = None
         for i in range(len(intervals)):
             left_value = None
             if len(intervals[i]) <= 2 or intervals[i].left_closed:
                 left_value = functions[i](intervals[i][0])
+            if intervals[i][0] != intervals[i][1]:
+                right_limit = functions[i](intervals[i][0])
+            else:
+                right_limit = None
             if (end_points == []) or (end_points[-1] != intervals[i][0]):
                 end_points.append(intervals[i][0])
                 ith_at_end_points.append(i)
                 values_at_end_points.append(left_value)
-            elif left_value != None:
-                values_at_end_points[-1] = left_value
+                if limits_at_end_points != []:
+                    limits_at_end_points[-1][1]= None
+                limits_at_end_points.append([left_value, right_limit, None])
+            else:
+                if left_value != None:
+                    values_at_end_points[-1] = left_value
+                    limits_at_end_points[-1][0] = left_value
+                limits_at_end_points[-1][1] = right_limit
             right_value = None
             if len(intervals[i]) <= 2 or intervals[i].right_closed:
                 right_value = functions[i](intervals[i][1])
-            if end_points[-1] != intervals[i][1]:
+            if intervals[i][0] != intervals[i][1]:
+                left_limit = functions[i](intervals[i][1])
                 end_points.append(intervals[i][1])
                 ith_at_end_points.append(i)
                 values_at_end_points.append(right_value)
+                limits_at_end_points.append([right_value, None, left_limit])
             elif right_value != None:
                 values_at_end_points[-1] = right_value
         self._end_points = end_points
         self._ith_at_end_points = ith_at_end_points
         self._values_at_end_points = values_at_end_points
-        # record function values at [x, x+, x-] for each endpoint x.
-        limits_at_end_points = []
-        for i in range(len(end_points)):
-            x = end_points[i]
-            # find limit value at x+
-            if intervals[ith_at_end_points[i]][1] > x:
-                # x is left_end of intervals[ith_at_end_points[i]] (not singleton)
-                right_limit = functions[ith_at_end_points[i]](x)
-            else:
-                # x is right_end of intervals[ith_at_end_points[i]]
-                if ith_at_end_points[i] + 1 < len(intervals) and intervals[ith_at_end_points[i] + 1][0] == x:
-                    if intervals[ith_at_end_points[i] + 1][1] > x:
-                        # case intervals[ith_at_end_points[i] + 1] is not singleton
-                        right_limit = functions[ith_at_end_points[i] + 1](x)
-                    elif ith_at_end_points[i] + 2 < len(intervals) and intervals[ith_at_end_points[i] + 2][0] == x:
-                        # case intervals[ith_at_end_points[i] + 1] is singleton but right_limit exists
-                        right_limit = functions[ith_at_end_points[i] + 2](x)
-                    else:
-                        right_limit = None
-                else:
-                    right_limit = None
-            # find limit value at x-
-            if intervals[ith_at_end_points[i]][0] < x:
-                # x is right_end of intervals[ith_at_end_points[i]] (not singleton)
-                left_limit = functions[ith_at_end_points[i]](x)
-            else:
-                # x is left_end of intervals[ith_at_end_points[i]]
-                # But x can't be right_end of intervals[ith_at_end_points[i]-1].
-                # So, left limit doesn't exist.
-                left_limit = None
-            limits_at_end_points.append([values_at_end_points[i], right_limit, left_limit])
         self._limits_at_end_points = limits_at_end_points
 
     # The following makes this class hashable and thus enables caching
