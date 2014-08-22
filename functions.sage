@@ -962,9 +962,9 @@ def subadditivity_check(fn):
     """
     result = True
     for (x, y) in generate_nonsubadditive_vertices(fn):
-        logging.info("For x = %s, y = %s, x+y = %s" % (x, y-x, y))
+        logging.info("For x = %s, y = %s, x+y = %s" % (x, y, x+y))
         logging.info("    Delta pi(x,y) = %s + %s - %s = %s < 0" % 
-                     (fn(fractional(x)), fn(fractional(y-x)), fn(fractional(y)), delta_pi(fn,x,y-x)))
+                     (fn(fractional(x)), fn(fractional(y)), fn(fractional(x+y)), delta_pi(fn,x,y)))
         result = False
     if result:
         logging.info("pi is subadditive.")
