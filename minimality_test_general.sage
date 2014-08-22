@@ -20,29 +20,30 @@ def type1check_general(fn, continuity=True, limits=None):
                 else:
                     limits_z = fn.limits(z)
                 epsz_set = [0, 1, -1]
-                if limits_x[0] == limits_x[1] == limits_x[2] and limits_y[0] == limits_y[1] == limits_y[2]:
+                if limits_x[0] == limits_x[1] == limits_x[-1] and limits_y[0] == limits_y[1] == limits_y[-1]:
                     # continuous at x and y
-                    for epsz in epsz_set:
-                        if limits_x[1] + limits_y[1] - limits_z[eps + 1] < 0:
+                    for epsz in [1, -1]:
+                        # note that (0 0 0) has alreadly been checked.
+                        if limits_x[0] + limits_y[0] - limits_z[eps] < 0:
                             logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(epsz), y, print_sign(epsz), x + y, print_sign(epsz)))
                             return False
                 else:
                     for eps in [1, -1]:
                         # (+ + +), (- - -). note that (0 0 0) has alreadly been checked.
-                        if limits_x[eps + 1] + limits_y[eps + 1] - limits_z[eps + 1] < 0:
+                        if limits_x[eps] + limits_y[eps] - limits_z[eps] < 0:
                             logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(eps), y, print_sign(eps), x + y, print_sign(eps)))
                             return False
                     for eps in [1, -1]:
                         for epsz in epsz_set:
                             # (+ - 0), (+ - +), (+ - -), (- + 0), (- + +), (- + -)
-                            if limits_x[eps + 1] + limits_y[-eps + 1] - limits_z[epsz + 1] < 0:
+                            if limits_x[eps] + limits_y[-eps] - limits_z[epsz] < 0:
                                 logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(eps), y, print_sign(-eps), x + y, print_sign(epsz)))
                                 return False
-                        if limits_x[1] + limits_y[eps + 1] - limits_z[eps + 1] < 0:
+                        if limits_x[0] + limits_y[eps] - limits_z[eps] < 0:
                             # (0 + +), (0 - -)
                             logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(0), y, print_sign(eps), x + y, print_sign(eps)))
                             return False
-                        if limits_x[eps + 1] + limits_y[1] - limits_z[eps + 1] < 0:
+                        if limits_x[eps] + limits_y[0] - limits_z[eps] < 0:
                             # (+ 0 +), (- 0 -)
                             logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(eps), y, print_sign(0), x + y, print_sign(eps)))
                             return False
@@ -53,6 +54,7 @@ def type2check_general(fn, continuity=True, limits=None):
     endpts2 = endpts + [(endpts[i] + 1) for i in range(1, len(endpts))]
     for i in range(len(endpts)):
         for k2 in range(i + 1, i + len(endpts) - 1):
+            # only need to check for 0 < y < 1. and note that endpts2[i + len(endpts) - 1] == endpts[i] + 1.
             x = endpts[i]
             z = endpts2[k2]
             y = z - x
@@ -68,12 +70,12 @@ def type2check_general(fn, continuity=True, limits=None):
                 limits_z = limits[k]
                 limits_y = fn.limits(y)
                 # no trouble at 0- and 1+ since 0 < y < 1.
-                if not (limits_y[0] == limits_y[1] == limits_y[2]):
+                if not (limits_y[0] == limits_y[1] == limits_y[-1]):
                     # then y is a in endpts. this is done in type1check_general.
                     continue
                 for epsx in [0, 1, -1]:
                     for epsz in [0, 1, -1]:
-                        if limits_x[epsx + 1] + limits_y[1] < limits_z[epsz + 1]:
+                        if limits_x[epsx] + limits_y[0] < limits_z[epsz]:
                             logging.info("pi(%s%s) + pi(%s) - pi(%s%s) < 0" % (x, print_sign(epsx), y, z, print_sign(epsz)))
                             return False
     return True
@@ -87,8 +89,8 @@ def subadditivity_check_general(fn, continuity=True, limits=None):
         continuity = fn.is_continuous_defined()
     if not continuity and limits == None:
         limits = [fn.limits(x) for x in endpts]
-        limits[0][0] = limits[-1][0]
-        limits[-1][2] = limits[0][2]
+        limits[0][-1] = limits[-1][-1]
+        limits[-1][1] = limits[0][1]
     if type1check_general(fn, continuity, limits) and type2check_general(fn, continuity, limits):
         logging.info("pi is subadditive.")
         return True
@@ -109,8 +111,8 @@ def symmetric_check_general(fn, f, continuity=True, limits=None):
         continuity = fn.is_continuous_defined()
     if not continuity and limits == None:
         limits = [fn.limits(x) for x in endpts]
-        limits[0][0] = limits[-1][0]
-        limits[-1][2] = limits[0][2]
+        limits[0][-1] = limits[-1][-1]
+        limits[-1][1] = limits[0][1]
     for i in range(len(endpts)):
         x = endpts[i]
         if x == f:
@@ -127,11 +129,11 @@ def symmetric_check_general(fn, f, continuity=True, limits=None):
             limits_x = limits[i]
             limits_y = fn.limits(y)
             # no trouble at 0- and 1+ since 0 < y < 1.
-            if limits_x[0] + limits_y[2] != 1:
+            if limits_x[-1] + limits_y[1] != 1:
                 logging.info('pi(%s-) + pi(%s+) is not equal to 1' % (x, y))
                 logging.info('Thus pi is NOT symmetric.')
                 return False
-            if limits_x[2] + limits_y[0] != 1:
+            if limits_x[1] + limits_y[-1] != 1:
                 logging.info('pi(%s+) + pi(%s-) is not equal to 1' % (x, y))
                 logging.info('Thus pi is NOT symmetric.')
                 return False
@@ -161,8 +163,8 @@ def minimality_test_general(fn, f=None):
     else:
         continuity = False
         limits = [fn.limits(x) for x in endpts]
-        limits[0][0] = limits[-1][0]
-        limits[-1][2] = limits[0][2]
+        limits[0][-1] = limits[-1][-1]
+        limits[-1][1] = limits[0][1]
         for x in limits:
             if not ((0 <= x[0] <=1) and (0 <= x[2] <=1)):
                 logging.info('pi is not minimal because it does not stay in the range of [0, 1].')

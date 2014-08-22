@@ -1393,7 +1393,7 @@ class FastPiecewise (PiecewisePolynomial):
 
     def limits(self, x0):
         """
-        return [function value at x0-, function value at x0, function value at x0+].
+        return [function value at x0, function value at x0+, function value at x0-].
 
         EXAMPLES::
 
@@ -1414,19 +1414,19 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f.limits(1/2)
             [1, 1, 1]
             sage: f.limits(1)
-            [1, 0, 0]
+            [0, 0, 1]
             sage: f.limits(2)
-            [-1, None, e^2]
+            [None, e^2, -1]
             sage: f.limits(3)
-            [e^3, 4, sin(6)]
+            [4, sin(6), e^3]
             sage: f.limits(6)
-            [sin(12), sin(12), 3]
+            [sin(12), 3, sin(12)]
             sage: f.limits(7)
-            [4, None, None]
+            [None, None, 4]
             sage: f.limits(8)
             [None, None, None]
             sage: f.limits(9)
-            [None, 7, 7]
+            [7, 7, None]
         """
         endpts = self.end_points()
         ith = self._ith_at_end_points
@@ -1435,15 +1435,6 @@ class FastPiecewise (PiecewisePolynomial):
             return [None, None, None]
         if x0 == endpts[i]:
             result = []
-            # compute function value at x0-
-            if self._intervals[ith[i]][0] < x0:
-                # x0 is right_end of intervals[ith[i]] (not singleton)
-                result.append(self.functions()[ith[i]](x0))
-            else:
-                # x0 is left_end of intervals[ith[i]].
-                # But x0 can't be right_end of intervals[ith[i]-1]. So, left limit doesn't exist.
-                result.append(None)
-
             # compute function value at x0
             result.append(self._values_at_end_points[i])
 
@@ -1464,6 +1455,14 @@ class FastPiecewise (PiecewisePolynomial):
                         result.append(None)
                 else:
                     result.append(None)
+            # compute function value at x0-
+            if self._intervals[ith[i]][0] < x0:
+                # x0 is right_end of intervals[ith[i]] (not singleton)
+                result.append(self.functions()[ith[i]](x0))
+            else:
+                # x0 is left_end of intervals[ith[i]].
+                # But x0 can't be right_end of intervals[ith[i]-1]. So, left limit doesn't exist.
+                result.append(None)
             return result
         if i == 0:
             return [None, None, None]
@@ -1512,7 +1511,7 @@ class FastPiecewise (PiecewisePolynomial):
             ...
             ValueError: Value not defined at point 8-, outside of domain.
         """
-        result =self.limits(x0)[epsilon+1]
+        result =self.limits(x0)[epsilon]
         if result == None:
             raise ValueError,"Value not defined at point %s%s, outside of domain." % (x0, print_sign(epsilon))
         return result
@@ -2896,7 +2895,7 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None):
 
 def generate_type_1_vertices_general(fn, comparison):
     """A generator...
-    "...'general' refers to the fact that it outputs 6-tuples (x,xeps,y,yeps,z,eps).
+    "...'general' refers to the fact that it outputs 6-tuples (x,xeps,y,yeps,z,zeps).
     FIXME: it currently does not take care of any discontinuities at all.
     """
     bkpt = fn.end_points()
