@@ -1516,36 +1516,7 @@ class FastPiecewise (PiecewisePolynomial):
         if i >= len(endpts):
             return [None, None, None]
         if x0 == endpts[i]:
-            result = []
-            # compute function value at x0
-            result.append(self._values_at_end_points[i])
-
-            # compute function value at x0+
-            if self._intervals[ith[i]][1] > x0:
-                # x0 is left_end of intervals[ith[i]] (not singleton)
-                result.append(self.functions()[ith[i]](x0))
-            else:
-                # x0 is right_end of intervals[ith[i]]
-                if (ith[i] + 1 < len(self._intervals)) and (self._intervals[ith[i]+1][0] == x0):
-                    if self._intervals[ith[i]+1][1] > x0:
-                        # case intervals[ith[i]+1] is not singleton
-                        result.append(self.functions()[ith[i]+1](x0))
-                    elif (ith[i] + 2 < len(self._intervals)) and (self._intervals[ith[i]+2][0] == x0):
-                        # case intervals[ith[i]+1] is singleton
-                        result.append(self.functions()[ith[i]+2](x0))
-                    else:
-                        result.append(None)
-                else:
-                    result.append(None)
-            # compute function value at x0-
-            if self._intervals[ith[i]][0] < x0:
-                # x0 is right_end of intervals[ith[i]] (not singleton)
-                result.append(self.functions()[ith[i]](x0))
-            else:
-                # x0 is left_end of intervals[ith[i]].
-                # But x0 can't be right_end of intervals[ith[i]-1]. So, left limit doesn't exist.
-                result.append(None)
-            return result
+            return self.limits_at_end_points()[i]
         if i == 0:
             return [None, None, None]
         if is_pt_in_interval(self._intervals[ith[i]],x0):
