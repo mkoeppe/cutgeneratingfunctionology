@@ -1194,6 +1194,38 @@ class FastPiecewise (PiecewisePolynomial):
         self._end_points = end_points
         self._ith_at_end_points = ith_at_end_points
         self._values_at_end_points = values_at_end_points
+        # record function values at [x, x+, x-] for each endpoint x.
+        limits_at_end_points = []
+        for i in range(len(end_points)):
+            x = end_points[i]
+            # find limit value at x+
+            if intervals[ith_at_end_points[i]][1] > x:
+                # x is left_end of intervals[ith_at_end_points[i]] (not singleton)
+                right_limit = functions[ith_at_end_points[i]](x)
+            else:
+                # x is right_end of intervals[ith_at_end_points[i]]
+                if ith_at_end_points[i] + 1 < len(intervals) and intervals[ith_at_end_points[i] + 1][0] == x:
+                    if intervals[ith_at_end_points[i] + 1][1] > x:
+                        # case intervals[ith_at_end_points[i] + 1] is not singleton
+                        right_limit = functions[ith_at_end_points[i] + 1](x)
+                    elif ith_at_end_points[i] + 2 < len(intervals) and intervals[ith_at_end_points[i] + 2][0] == x:
+                        # case intervals[ith_at_end_points[i] + 1] is singleton but right_limit exists
+                        right_limit = functions[ith_at_end_points[i] + 2](x)
+                    else:
+                        right_limit = None
+                else:
+                    right_limit = None
+            # find limit value at x-
+            if intervals[ith_at_end_points[i]][0] < x:
+                # x is right_end of intervals[ith_at_end_points[i]] (not singleton)
+                left_limit = functions[ith_at_end_points[i]](x)
+            else:
+                # x is left_end of intervals[ith_at_end_points[i]]
+                # But x can't be right_end of intervals[ith_at_end_points[i]-1].
+                # So, left limit doesn't exist.
+                left_limit = None
+            limits_at_end_points.append([values_at_end_points[i], right_limit, left_limit])
+        self._limits_at_end_points = limits_at_end_points
 
     # The following makes this class hashable and thus enables caching
     # of the above functions; but we must promise not to modify the
@@ -1240,10 +1272,35 @@ class FastPiecewise (PiecewisePolynomial):
             ...                      [left_open_interval(3,6),f5],\
             ...                      [open_interval(6,7),f6],\
             ...                      [(9,10),f7]], merge=False)
-            sage: f._values_at_end_points
-            [1, 0, None, sin(6), sin(12), None, 7, 7]
+            sage: f.values_at_end_points()
+            [1, 0, None, 4, sin(12), None, 7, 7]
         """
         return self._values_at_end_points
+
+    def limits_at_end_points(self):
+        """
+        Returns a list of 3-tuples [function value, right_limit, left_limit] at all endpoints for this function.
+
+        EXAMPLES::
+
+            sage: f1(x) = 1
+            sage: f2(x) = 1-x
+            sage: f3(x) = exp(x)
+            sage: f4(x) = 4
+            sage: f5(x) = sin(2*x)
+            sage: f6(x) = x-3
+            sage: f7(x) = 7
+            sage: f = FastPiecewise([[right_open_interval(0,1),f1], \
+            ...                      [right_open_interval(1,2),f2],\
+            ...                      [open_interval(2,3),f3],\
+            ...                      [singleton_interval(3),f4],\
+            ...                      [left_open_interval(3,6),f5],\
+            ...                      [open_interval(6,7),f6],\
+            ...                      [(9,10),f7]], merge=False)
+            sage: f.limits_at_end_points()
+            [[1, 1, None], [0, 0, 1], [None, e^2, -1], [4, sin(6), e^3], [sin(12), 3, sin(12)], [None, None, 4], [7, 7, None], [7, None, 7]]
+        """
+        return self._limits_at_end_points
 
     def which_function(self, x0):
         """
