@@ -1,6 +1,6 @@
 def generate_type_1_vertices_general(fn, comparison, continuity=True):
     """A generator...
-    "...'general' refers to the fact that it outputs 6-tuples (x,xeps,y,yeps,z,zeps).
+    "...'general' refers to the fact that it outputs 6-tuples (x,y,z,xeps,yeps,zeps).
     """
     bkpt = fn.end_points()
     if not continuity:
@@ -13,7 +13,7 @@ def generate_type_1_vertices_general(fn, comparison, continuity=True):
             y = bkpt[j]
             z = fractional(x + y)
             if comparison(fn.values_at_end_points()[i] + fn.values_at_end_points()[j], fn(z)):
-                yield (x, 0, y, 0, x+y, 0)
+                yield (x, y, x+y, 0, 0, 0)
             if not continuity:
                 limits_x = limits[i]
                 limits_y = limits[j]
@@ -31,23 +31,23 @@ def generate_type_1_vertices_general(fn, comparison, continuity=True):
                     for zeps in [1, -1]:
                         # note that (0 0 0) has alreadly been checked.
                         if comparison(limits_x[0] + limits_y[0] - limits_z[eps], 0):
-                            yield (x, zeps, y, zeps, x+y, zeps)
+                            yield (x, y, x+y, zeps, zeps, zeps)
                 else:
                     for eps in [1, -1]:
                         # (+ + +), (- - -). note that (0 0 0) has alreadly been checked.
                         if comparison(limits_x[eps] + limits_y[eps] - limits_z[eps], 0):
-                            yield (x, eps, y, eps, x+y, eps)
+                            yield (x, y, x+y, eps, eps, eps)
                     for eps in [1, -1]:
                         for zeps in zeps_set:
                             # (+ - 0), (+ - +), (+ - -), (- + 0), (- + +), (- + -)
                             if comparison(limits_x[eps] + limits_y[-eps] - limits_z[zeps], 0):
-                                yield (x, eps, y, -eps, x+y, zeps)
+                                yield (x, y, x+y, eps, -eps, zeps)
                         if comparison(limits_x[0] + limits_y[eps] - limits_z[eps], 0):
                             # (0 + +), (0 - -)
-                            yield (x, 0, y, eps, x+y, eps)
+                            yield (x, y, x+y, 0, eps, eps)
                         if comparison(limits_x[eps] + limits_y[0] - limits_z[eps], 0):
                             # (+ 0 +), (- 0 -)
-                            yield (x, eps, y, 0, x+y, eps)
+                            yield (x, y, x+y, eps, 0, eps)
 
 def generate_type_2_vertices_general(fn, comparison, continuity=True):
     bkpt = fn.end_points()
@@ -67,7 +67,7 @@ def generate_type_2_vertices_general(fn, comparison, continuity=True):
             else:
                 k = k2 - len(bkpt) + 1
             if comparison(fn.values_at_end_points()[i] + fn(y), fn.values_at_end_points()[k]):
-                yield (x, 0, y, 0, z, 0)
+                yield (x, y, z, 0, 0, 0)
             if not continuity:
                 limits_x = limits[i]
                 limits_z = limits[k]
@@ -79,7 +79,7 @@ def generate_type_2_vertices_general(fn, comparison, continuity=True):
                 for xeps in [0, 1, -1]:
                     for zeps in [0, 1, -1]:
                         if comparison(limits_x[xeps] + limits_y[0], limits_z[zeps]):
-                            yield (x, print_sign(xeps), y, 0, z, print_sign(zeps))
+                            yield (x, y, z, xeps, 0, zeps)
 
 @cached_function
 def generate_nonsubadditive_vertices_general(fn, continuity=True):
@@ -88,7 +88,7 @@ def generate_nonsubadditive_vertices_general(fn, continuity=True):
     so that duplicates are removed, and so the result can be cached for later use.
     """
     return { (x, y, z, xeps, yeps, zeps)
-             for (x, xeps, y, yeps, z, zeps) in itertools.chain(generate_type_1_vertices_general(fn, operator.lt, continuity),
+             for (x, y, z, xeps, yeps, zeps) in itertools.chain(generate_type_1_vertices_general(fn, operator.lt, continuity),
                                                                 generate_type_2_vertices_general(fn, operator.lt, continuity))
            }
 
