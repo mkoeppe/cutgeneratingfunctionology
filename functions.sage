@@ -1220,6 +1220,31 @@ class FastPiecewise (PiecewisePolynomial):
         """
         return self._end_points
 
+    def values_at_end_points(self):
+        """
+        Returns a list of function values at all endpoints for this function.
+
+        EXAMPLES::
+
+            sage: f1(x) = 1
+            sage: f2(x) = 1-x
+            sage: f3(x) = exp(x)
+            sage: f4(x) = 4
+            sage: f5(x) = sin(2*x)
+            sage: f6(x) = x-3
+            sage: f7(x) = 7
+            sage: f = FastPiecewise([[right_open_interval(0,1),f1], \
+            ...                      [right_open_interval(1,2),f2],\
+            ...                      [open_interval(2,3),f3],\
+            ...                      [singleton_interval(3),f4],\
+            ...                      [left_open_interval(3,6),f5],\
+            ...                      [open_interval(6,7),f6],\
+            ...                      [(9,10),f7]], merge=False)
+            sage: f._values_at_end_points
+            [1, 0, None, sin(6), sin(12), None, 7, 7]
+        """
+        return self._values_at_end_points
+
     def which_function(self, x0):
         """
         Returns the function piece used to evaluate self at x0.
