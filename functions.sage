@@ -2888,7 +2888,7 @@ def show_plot(graphics, show_plots, tag, **show_kwds):
     elif show_plots:
         graphics.show(figsize=show_plots_figsize, **show_kwds)
 
-def check_perturbation(fn, perturb, show_plots=False, show_plot_tag=None, **show_kwds):
+def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbation', xmin=0, xmax=1, **show_kwds):
     epsilon_interval = fn._epsilon_interval = find_epsilon_interval(fn, perturb)
     epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
     logging.info("Epsilon for constructed perturbation: %s" % epsilon)
@@ -2896,14 +2896,14 @@ def check_perturbation(fn, perturb, show_plots=False, show_plot_tag=None, **show
     logging.info("Thus the function is not extreme.")
     if show_plots:
         logging.info("Plotting perturbation...")
-        p = plot(fn, xmin=0, xmax=1, color='black', thickness=2, legend_label="original function")
-        p += plot(fn + epsilon_interval[0] * perturb, xmin=0, xmax=1, color='red', legend_label="-perturbed (min)")
-        p += plot(fn + epsilon_interval[1] * perturb, xmin=0, xmax=1, color='blue', legend_label="+perturbed (max)")
+        p = plot(fn, xmin=xmin, xmax=xmax, color='black', thickness=2, legend_label="original function")
+        p += plot(fn + epsilon_interval[0] * perturb, xmin=xmin, xmax=xmax, color='red', legend_label="-perturbed (min)")
+        p += plot(fn + epsilon_interval[1] * perturb, xmin=xmin, xmax=xmax, color='blue', legend_label="+perturbed (max)")
         if -epsilon != epsilon_interval[0]:
-            p += plot(fn + (-epsilon) * perturb, xmin=0, xmax=1, color='orange', legend_label="-perturbed (matches max)")
+            p += plot(fn + (-epsilon) * perturb, xmin=xmin, xmax=xmax, color='orange', legend_label="-perturbed (matches max)")
         elif epsilon != epsilon_interval[1]:
-            p += plot(fn + epsilon * perturb, xmin=0, xmax=1, color='cyan', legend_label="+perturbed (matches min)")
-        p += plot(rescale_to_amplitude(perturb, 1/10), xmin=0, xmax=1, color='magenta', legend_label="perturbation (rescaled)")
+            p += plot(fn + epsilon * perturb, xmin=xmin, xmax=xmax, color='cyan', legend_label="+perturbed (matches min)")
+        p += plot(rescale_to_amplitude(perturb, 1/10), xmin=xmin, xmax=xmax, color='magenta', legend_label="perturbation (rescaled)")
         show_plot(p, show_plots, tag=show_plot_tag, **show_kwds)
         logging.info("Plotting perturbation... done")
 
