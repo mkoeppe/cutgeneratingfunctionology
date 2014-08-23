@@ -11,6 +11,10 @@ def not_extreme_1(): # was symmetric_rational_function1.sage
     interval_lengths = [1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10]
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
 
+def not_extreme_dey_richard():
+    """FIXME: Add reference."""
+    return piecewise_function_from_robert_txt_file("dey-richard-not-extreme.txt")
+
 def bhk_irrational_extreme_limit_to_rational_nonextreme(n=Infinity):
     """
     A sequence of `bhk_irrational` functions, each extreme, indexed by n = 1, 2, ...
