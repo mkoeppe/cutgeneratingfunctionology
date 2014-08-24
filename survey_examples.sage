@@ -23,6 +23,27 @@ def drlm_not_extreme_1():
     """
     return piecewise_function_from_robert_txt_file("dey-richard-not-extreme.txt")
 
+def drlm_not_extreme_2():
+    """Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
+    On the extreme inequalities of infinite group problems,
+    Mathematical Programming 121 (2009), no. 1, 145–170,
+    doi:10.1007/s10107-008-0229-6.
+    Figure 3.
+    """
+    f1(x) = 3*x
+    f2(x) = 1/2
+    f3(x) = 3*x - 1/2
+    f4(x) = 3*x - 4/3
+    f6(x) = 3*x - 13/6
+    f7(x) = 0
+    return FastPiecewise([[right_open_interval(0, 1/4), f1], \
+                          [singleton_interval(1/4), f2], \
+                          [left_open_interval(1/4, 1/2), f3], \
+                          [open_interval(1/2, 3/4), f4], \
+                          [singleton_interval(3/4), f2], \
+                          [open_interval(3/4, 1),f6], \
+                          [singleton_interval(1),f7]], merge=False)
+
 def bhk_irrational_extreme_limit_to_rational_nonextreme(n=Infinity):
     """
     A sequence of `bhk_irrational` functions, each extreme, indexed by n = 1, 2, ...
