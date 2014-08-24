@@ -2914,6 +2914,8 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None):
     interval).  Return a boolean that indicates whether the system has
     a nontrivial solution.
     """
+    if not function.is_continuous_defined():
+        logging.warn("This is a discontinuous function; finite dimensional extremality test does not handle it yet.")
     symbolic, components, field = symbolic_piecewise(function)
     equations = generate_additivity_equations(function, symbolic, field, f=f)
     slopes_vects = equations.right_kernel().basis()
