@@ -576,32 +576,35 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
         d1 (real): length of the positive slope;
         d2 (real): length of the zero slopes;
         a0 (real): length of the first zig-zag;
-        delta (2-tuple of reals): length of two extra zig-zags.
+        delta (n-tuple of reals): length of the extra zig-zags.
 
     Function is known to be extreme under the conditions:
         0 < f < 1;
         d1, d2, a0, delta > 0;
         d1 + d2 < f;
-        sum(delta) <  d2 / 4;
-        two components of delta are linearly independent over \Q.
+        len(delta) == 2
+        sum(delta) <  d2 / 4; Weaker condition: 2*delta[0] + delta[1] < d2 / 2;
+        the two components of delta are linearly independent over \Q.
 
     Examples:
         [IR2]  p.34, thm.5.3::
             sage: h = bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200))
+            sage: h = bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, 6* sqrt(2)/200, 1/500))
 
     Reference:
         [IR2] A. Basu, R. Hildebrand, and M. Köppe, Equivariant perturbation in Gomory and Johnson’s infinite group problem.
                 I. The one-dimensional case, eprint arXiv:1206.2079 [math.OC], 2012.
     """
-    if not (bool(0 < f < 1) and bool(d1 > 0) and bool(d2 > 0) and bool(a0 > 0) and    \
-            len(delta)== 2 and bool(delta[0] > 0) and bool(delta[1] > 0) and    \
-            bool(d1 + d2 < f) and (sum(delta) < f/2 - d2/4 - 3*a0/2) ):
+    if not (bool(0 < f < 1) and bool(d1 > 0) and bool(d2 > 0) and bool(a0 > 0) and (len(delta) >= 2) \
+            and bool(min(delta) > 0) and bool(d1 + d2 < f) and (sum(delta) < f/2 - d2/4 - 3*a0/2) ):
         raise ValueError, "Bad parameters. Unable to construct the function."
-    if is_QQ_linearly_independent(delta) and sum(delta) < d2/4:
-        logging.info("Conditions for extremality are satisfied.")
+    if len(delta) == 2:
+        if is_QQ_linearly_independent(delta) and  2*delta[0] + delta[1] < d2 / 2:
+            logging.info("Conditions for extremality are satisfied.")
+        else:
+            logging.info("Conditions for extremality are NOT satisfied.")
     else:
-        logging.info("Conditions for extremality are NOT satisfied.")
-
+        logging.info("len(delta) >= 3, Conditions for extremality are unknown.")
     d3 = f - d1 - d2
 
     c2 = 0
@@ -621,87 +624,29 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
     d32 = (d3 - d31 - d34)/2
     d33 = d32
 
-    del1, del2 = delta
+    zigzag_lengths = []
+    zigzag_slopes = []
+    delta_positive = 0
+    delta_negative = 0
+    for delta_i in delta:
+        delta_i_negative = c1 * delta_i / (c1 - c3)
+        delta_i_positive = delta_i - delta_i_negative
+        delta_positive += delta_i_positive
+        delta_negative += delta_i_negative
+        zigzag_lengths = zigzag_lengths + [delta_i_positive, delta_i_negative]
+        zigzag_slopes = zigzag_slopes + [c1, c3]
 
-    del31 = c1 * del1 / (c1 - c3)
-    del11 = del1 - del31
+    d12new = d12 - delta_positive
+    d14new = d14 - delta_positive
+    d32new = d32 - delta_negative
+    d33new = d33 - delta_negative
 
-    del32 = c1 * del2 / (c1 - c3)
-    del12 = del2 - del32
-
-    d12new = d12 - del11 - del12
-    d14new = d14 - del11 - del12
-    d32new = d32 - del31 - del32
-    d33new = d33 - del31 - del32
-
-    t1 = del1
-    t2 = del1 + del2
-    a1 = a0 + t1
-    a2 = a0 + t2
-    A = a0+d12+d32
-    A0 = A + d21
-
-    slopes = [c1,c3,c1,c3,c1,c3,c1,c3,c2,c1,c2,c3,c1,c3,c1,c3,c1,c3,c1,c3]
-
-    interval_lengths = [d11,d31,del11,del31,del12,del32,d12new,d32new,d21,d13,d22,d33new,d14new,del32,del12,del31,del11,d34,d15,1-f]
-
+    slopes = [c1,c3] + zigzag_slopes + [c1,c3,c2,c1,c2,c3,c1] + zigzag_slopes[::-1] + [c3,c1,c3]
+    interval_lengths = [d11,d31] + zigzag_lengths + [d12new,d32new,d21,d13,d22,d33new,d14new] \
+                                 + zigzag_lengths[::-1] + [d34,d15,1-f]
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
 
 #####COPY#####
-def the_irrational_function_t1_t2_t3(d1 = 3/5, d3 = 1/10, f = 4/5, p = 15/100, \
-                                     del1 = 1/200, del2 = 6*sqrt(2)/200, del3 = 1/500):
-
-    d2 = f - d1 - d3
-
-    c2 = 0
-    c3 = -1/(1-f)
-    c1 = (1-d2*c2-d3*c3)/d1
-
-    d12 = d2 / 2
-    d22 = d2 / 2
-
-    d13 = c1 / (c1 - c3) * d12
-    d43 = d13
-    d11 = p - d13
-    d31 = p - d12
-    d51 = d11
-    d41 = (d1 - d11 - d31 - d51)/2
-    d21 = d41
-    d23 = (d3 - d13 - d43)/2
-    d33 = d23
-
-    del13 = c1 * del1 / (c1 - c3)
-    del11 = del1 - del13
-
-    del23 = c1 * del2 / (c1 - c3)
-    del21 = del2 - del23
-
-    del33 = c1 * del3 / (c1 - c3)
-    del31 = del3 - del33
-
-    d21new = d21 - del11 - del21 - del31
-    d41new = d41 - del11 - del21 - del31
-    d23new = d23 - del13 - del23 - del33
-    d33new = d33 - del13 - del23 - del33
-
-    t1 = del1
-    t2 = del1 + del2
-    t3 = del1 + del2 + del3
-
-    a0 = d11+d13
-    a1 = a0 + t1
-    a2 = a0 + t2
-    a3 = a0 + t3
-
-    A = a0+d21+d23
-    A0 = A + d12
-
-    slopes = [c1,c3,c1,c3,c1,c3,c1,c3,c1,c3,c2,c1,c2,c3,c1,c3,c1,c3,c1,c3,c1,c3,c1,c3]
-
-    interval_lengths = [d11,d13,del11,del13,del21,del23,del31, del33, d21new,d23new,d12,d31,d22,d33new,d41new,del33,del31,del23,del21,del13,del11,d43,d51,1-f]
-
-    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
-
 #####COPY#####
 def gmi_irrational():
     """
