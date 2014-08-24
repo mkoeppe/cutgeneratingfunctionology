@@ -98,10 +98,9 @@ def bhk_irrational_extreme_limit_to_rational_nonextreme(n=Infinity):
 
 def drlm_gj_2_slope_extreme_limit_to_nonextreme(s=Infinity):
     """
-    A sequence of `phi_s_in_drlm_not_extreme_2` functions, each extreme, indexed by s = 1, 2, ...
+    A sequence of `phi_s_in_drlm_not_extreme_2` functions, each extreme,
+    indexed by s, (where s is a real number, s = abs(negative_slope) and s > 2)
     whose limit (s = Infinity) is a `drlm_not_extreme_2` function which is not extreme.
-
-    Note: s > 2
     """
     if s != Infinity:
         return phi_s_in_drlm_not_extreme_2(s=s)
