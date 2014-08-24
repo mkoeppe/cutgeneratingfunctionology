@@ -17,11 +17,17 @@ for name in [ 'the_irrational_function_t1_t2', 'forward_3_slope', 'not_minimal_2
     h = eval(name)()
     plot_2d_diagram(h).save(destdir + "%s-2d_diagram.pdf" % name)
 
-for name in [ 'not_extreme_1', 'bhk_irrational_extreme_limit_to_rational_nonextreme', 'drlm_not_extreme_1' ]:
+for name in [ 'not_extreme_1', 'bhk_irrational_extreme_limit_to_rational_nonextreme', 'drlm_not_extreme_1', 'drlm_gj_2_slope_extreme_limit_to_nonextreme' ]:
     h = eval(name)()
     extremality_test(h, show_plots=destdir + "%s-%%s.pdf" % name)
 
-for name in [ 'bhk_irrational_extreme_limit_to_rational_nonextreme', 'drlm_gj_2_slope_extreme_limit_to_nonextreme' ]:
+for name in [ 'bhk_irrational_extreme_limit_to_rational_nonextreme' ]:
     for n in [1, 2]:
         h = eval(name)(n)
         extremality_test(h, show_plots=destdir + "%s_%s-%%s.pdf" % (name, n))
+
+for name in [ 'drlm_gj_2_slope_extreme_limit_to_nonextreme' ]:
+    for s in [3, 50]:
+        h = eval(name)(s)
+        extremality_test(h, show_plots=destdir + "%s_%s-%%s.pdf" % (name, s))
+
