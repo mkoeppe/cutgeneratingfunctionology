@@ -586,6 +586,12 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
         sum(delta) <  d2 / 4; Weaker condition: 2*delta[0] + delta[1] < d2 / 2;
         the two components of delta are linearly independent over \Q.
 
+    Relation between the code parameters and the paper parameters:
+        t1 = delta[0], t2 = delta[0] + delta[1], ...
+        a1 = a0 + t1, a2 = a0 + t2, ...
+        A = f/2 - a0/2 - d2/4,
+        A0 = f/2 - a0/2 + d2/4.
+
     Examples:
         [IR2]  p.34, thm.5.3::
             sage: h = bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200))
