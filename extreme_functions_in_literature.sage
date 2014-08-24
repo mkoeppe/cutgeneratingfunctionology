@@ -606,24 +606,15 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
     else:
         logging.info("len(delta) >= 3, Conditions for extremality are unknown.")
     d3 = f - d1 - d2
-
     c2 = 0
     c3 = -1/(1-f)
     c1 = (1-d2*c2-d3*c3)/d1
-
     d21 = d2 / 2
-    d22 = d2 / 2
-
     d31 = c1 / (c1 - c3) * d21
-    d34 = d31
     d11 = a0 - d31
     d13 = a0 - d21
-    d15 = d11
-    d14 = (d1 - d11 - d13 - d15)/2
-    d12 = d14
-    d32 = (d3 - d31 - d34)/2
-    d33 = d32
-
+    d12 = (d1 - d13)/2 - d11
+    d32 = d3/2 - d31
     zigzag_lengths = []
     zigzag_slopes = []
     delta_positive = 0
@@ -635,15 +626,13 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
         delta_negative += delta_i_negative
         zigzag_lengths = zigzag_lengths + [delta_i_positive, delta_i_negative]
         zigzag_slopes = zigzag_slopes + [c1, c3]
-
     d12new = d12 - delta_positive
-    d14new = d14 - delta_positive
     d32new = d32 - delta_negative
-    d33new = d33 - delta_negative
 
-    slopes = [c1,c3] + zigzag_slopes + [c1,c3,c2,c1,c2,c3,c1] + zigzag_slopes[::-1] + [c3,c1,c3]
-    interval_lengths = [d11,d31] + zigzag_lengths + [d12new,d32new,d21,d13,d22,d33new,d14new] \
-                                 + zigzag_lengths[::-1] + [d34,d15,1-f]
+    slopes_left = [c1,c3] + zigzag_slopes + [c1,c3,c2]
+    slopes = slopes_left + [c1] + slopes_left[::-1] + [c3]
+    intervals_left = [d11,d31] + zigzag_lengths + [d12new,d32new,d21]
+    interval_lengths = intervals_left + [d13] + intervals_left[::-1] + [1-f]
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
 
 def phi_s_in_drlm_not_extreme_2(s):
