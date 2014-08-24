@@ -677,7 +677,7 @@ def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/
     gmi = gmic(f)
     return alpha * bhk + (1 - alpha) * gmi
 
-def phi_s_in_drlm_not_extreme_2(s):
+def phi_s_in_drlm_not_extreme_2(s=10):
     """Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
     On the extreme inequalities of infinite group problems,
     Mathematical Programming 121 (2009), no. 1, 145–170,
