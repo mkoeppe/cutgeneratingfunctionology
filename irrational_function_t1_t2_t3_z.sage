@@ -3,10 +3,9 @@
 ### Interesting: For this function, the orbit of the "generic" seed 11/36 (length 12)
 ### is much smaller than the orbit of a "contradiction of signs" seed 19/60 (length 90260)
 
-h = the_irrational_function_t1_t2_t3(\
-                                     del1 = 1/60,
-                                     del2 = 1981*(sqrt(2))/100000,    # 3*(sqrt(2))/200
-                                     del3 = (sqrt(2))/1000000)
+h = bhk_irrational(delta = (1/60,
+                            1981*(sqrt(2))/100000,    # 3*(sqrt(2))/200
+                            (sqrt(2))/1000000))
 
 # def try_bfs(seed):
 #     print "####### Seed ", seed, "######"

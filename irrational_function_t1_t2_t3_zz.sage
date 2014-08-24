@@ -5,9 +5,7 @@ del1 = 1/60
 del2 = 2828/100000 #2000*(sqrt(2))/100000
 del3 = (sqrt(3))/1000000
 
-h = the_irrational_function_t1_t2_t3(del1 = del1, \
-                                     del2 = del2, \
-                                     del3 = del3)
+h = bhk_irrational(delta=(del1, del2, del3))
 
 ## def try_bfs(seed):
 ##     print "####### Seed ", seed, "######"
