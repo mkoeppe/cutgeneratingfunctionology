@@ -683,38 +683,5 @@ def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/
     gmi = gmic(f)
     return alpha * bhk + (1 - alpha) * gmi
 
-def phi_s_in_drlm_not_extreme_2(s=10):
-    """Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
-    On the extreme inequalities of infinite group problems,
-    Mathematical Programming 121 (2009), no. 1, 145–170,
-    doi:10.1007/s10107-008-0229-6.
-    Figure 2.
-    s is an interger;
-    phi_s_in_drlm_not_extreme_2(s) is an extreme function.
-    The pointwise limit as s tends to \infty is not extreme. see drlm_not_extreme_2()
-    """
-    f1(x) = 3*x
-    f2(x) = -s * (x - 1/4) + 1/2
-    f3(x) = 3*x - 1/2
-    f4(x) = -s*x + 1 + s/2
-    f5(x) = 3*x - 4/3
-    f6(x) = -s * (x - 3/4) + 1/2
-    f7(x) = 3*x - 13/6
-    f8(x) = -s * (x - 1)
-    a = (s/4 + 1/2)/(s + 3)
-    b = (s/4 + 1)/(s + 3)
-    c = 1/2
-    d = (3*s + 14)/6/(s + 3)
-    e = (9*s + 22)/12/(s + 3)
-    f = (9*s + 32)/12/(s + 3)
-    g = (12*s + 26)/12/(s + 3)
-    return FastPiecewise([[right_open_interval(0, a), f1], \
-                          [closed_interval(a, b), f2], \
-                          [left_open_interval(b, c), f3], \
-                          [left_open_interval(c, d), f4], \
-                          [open_interval(d, e), f5], \
-                          [closed_interval(e, f), f6], \
-                          [open_interval(f, g),f7], \
-                          [closed_interval(g, 1),f8]], merge=False)
  ### TODO ###
  # Survey page 8-10, table 1-3
