@@ -336,6 +336,60 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12):
     slopes = [1/f, (1 + f - bkpt)/(1 + f)/(f - bkpt), 1/(1 + f), (1 + f - bkpt)/(1 + f)/(f - bkpt)]
     return piecewise_function_from_breakpoints_and_slopes(bkpts, slopes)
 
+def dg_2_step_mir_limit(f=3/5, d=3):
+    """
+    Summary:
+        - Name: DG-2-Step MIR Limit;
+        - Infinite; Dim = 1; Slopes = 1; Discontinuous; Simple sets method;
+        - Discovered [33] p.41, def.12;
+        - Proven [33] p.43, lemma 14.
+
+    Parameters:
+        f (real) \in (0,1);
+        d (positive interger): number of slopes on [0,f).
+
+    Function is known to be extreme under the conditions:
+        0 < f < 1;
+        d >= ceil(1 / (1 - f)) - 1.
+
+    Note:
+        This is the limit function as alpha in two_step_mir()
+        tends (from left) to f/d, where d is integer;
+        c.f. [33] p.42, lemma 13.
+
+        It's a special case of drlm_2_slope_limit(),
+        dg_2_step_mir_limit(f, d) =
+        multiplicative_homomorphism(drlm_2_slope_limit(f=1-f, nb_pieces_left=1, nb_pieces_right=d), -1)
+
+    Examples:
+        [33] p.42, Fig.6 ::
+            sage: h = dg_2_step_mir_limit(f=3/5, d=3)
+
+    Reference:
+        [33]: S. Dash and O. G¨unl¨uk, Valid inequalities based on simple mixed-integer sets.,
+                Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
+                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33–45.
+    """
+    if not (bool(0 < f < 1) & (d >= 1)):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if not bool(d >= ceil(1 / (1 - f)) - 1):
+        logging.info("Conditions for extremality are NOT satisfied.")
+    else:
+        logging.info("Conditions for extremality are satisfied.")
+    f = nice_field_values([f])[0]
+    field = f.parent()
+    pieces = []
+    for k in range(d):
+        left_x = f * k / d
+        right_x = f * (k + 1) / d
+        pieces = pieces + \
+                 [[singleton_interval(left_x), FastLinearFunction(field(0), left_x / f)], \
+                  [open_interval(left_x, right_x), FastLinearFunction(1 / (f - 1), (k + 1)/(d + 1)/(1 - f))]]
+    pieces.append([closed_interval(f, field(1)), FastLinearFunction(1 / (f - 1), 1 /(1 - f))])
+    h = FastPiecewise(pieces, merge=False)
+    # FIXME: Need to develop code for discontinuous functions.
+    logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
+    return h
 
 def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
     """
