@@ -34,12 +34,12 @@ def drlm_not_extreme_2():
           drlm_2_slope_limit(f=1/2, nb_pieces_left=2, nb_pieces_right=2),
           the s_positive has to be 4.
     """
-    f1 = FastLinearFunction(3, 0)
-    f2 = FastLinearFunction(0, 1/2)
-    f3 = FastLinearFunction(3, -1/2)
-    f4 = FastLinearFunction(3, -4/3)
-    f6 = FastLinearFunction(3, -13/6)
-    f7 = FastLinearFunction(0, 0)
+    f1 = FastLinearFunction(QQ(3), 0)
+    f2 = FastLinearFunction(QQ(0), 1/2)
+    f3 = FastLinearFunction(QQ(3), -1/2)
+    f4 = FastLinearFunction(QQ(3), -4/3)
+    f6 = FastLinearFunction(QQ(3), -13/6)
+    f7 = FastLinearFunction(QQ(0), 0)
     return FastPiecewise([[right_open_interval(0, 1/4), f1], \
                           [singleton_interval(1/4), f2], \
                           [left_open_interval(1/4, 1/2), f3], \

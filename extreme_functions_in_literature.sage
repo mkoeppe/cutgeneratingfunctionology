@@ -423,9 +423,11 @@ def drlm_3_slope_limit(f=1/5):
         logging.info("Conditions for extremality are NOT satisfied.")
     else:
         logging.info("Conditions for extremality are satisfied.")
-    pieces = [[closed_interval(0, f), FastLinearFunction(1/f, 0)], \
-              [open_interval(f, 1), FastLinearFunction(1/(f + 1), 0)], \
-              [singleton_interval(1), FastLinearFunction(0, 0)]]
+    f = nice_field_values([f])[0]
+    field = f.parent()
+    pieces = [[closed_interval(0, f), FastLinearFunction(1/f, 0, field=field)], \
+              [open_interval(f, 1), FastLinearFunction(1/(f + 1), 0, field=field)], \
+              [singleton_interval(field(1)), FastLinearFunction(field(0), 0, field=field)]]
     kappa = FastPiecewise(pieces, merge=False)
     # FIXME: Need to develop code for discontinuous functions.
     logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
