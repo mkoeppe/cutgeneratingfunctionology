@@ -440,7 +440,8 @@ class Face:
     def __init__(self, triple, vertices=None, is_known_to_be_minimal=False):
         """
         EXAMPLES::
-        sage: f = generate_maximal_additive_faces(the_irrational_function_t1_t2(del1=23/250, del2=1/125))
+        sage: load("extreme_functions_in_literature.sage")
+        sage: f = generate_maximal_additive_faces(bhk_irrational(delta=(23/250,1/125)))
         """
         if not vertices:
             vertices = verts(triple[0], triple[1], triple[2])
