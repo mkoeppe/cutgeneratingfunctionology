@@ -2846,7 +2846,12 @@ def symbolic_piecewise(function):
         components.extend([int] for int in uncovered_intervals)
     else:
         components = covered_intervals
-    field = function(0).parent()
+    # FIXME: fraction_field() required because parent could be Integer
+    # Ring.  This happens, for example, for three_slope_limit().  
+    # We really should have a function to retrieve the field of
+    # a FastPiecewise.  But now even .base_ring() fails because
+    # FastLinearFunction does not have a .base_ring() method.
+    field = function(0).parent().fraction_field()
     vector_space = VectorSpace(field,len(components))
     slope_vars = vector_space.basis()
     symbolic = generate_compatible_piecewise_function(components, slope_vars, field)
