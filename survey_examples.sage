@@ -94,7 +94,8 @@ def bhk_irrational_extreme_limit_to_rational_nonextreme(n=Infinity):
     del1 = 1/40 
     if n != Infinity:
         del1 -= sqrt(2) / (70*n)
-    return the_irrational_function_t1_t2(del1=del1, del2=del2)
+    del2 = 1/40
+    return bhk_irrational(delta=(del1, del2))
 
 def drlm_gj_2_slope_extreme_limit_to_nonextreme(s=Infinity):
     """
@@ -105,4 +106,17 @@ def drlm_gj_2_slope_extreme_limit_to_nonextreme(s=Infinity):
     if s != Infinity:
         return phi_s_in_drlm_not_extreme_2(s=s)
     return drlm_not_extreme_2()
+
+def gj_2_slope_limit_1_1(f=1/2, nb_pieces_left=1, nb_pieces_right=1):
+    "An iconic choice of parameters in gj_2_slope."
+    return gj_2_slope_limit(f=f, nb_pieces_left=nb_pieces_left, nb_pieces_right=nb_pieces_right)
+
+def hildebrand_5_slope_22_1():
+    return piecewise_function_from_robert_txt_file("example5Slope22data.txt")
+
+def hildebrand_5_slope_24_1():
+    return piecewise_function_from_robert_txt_file("example5Slope24data.txt")
+
+def hildebrand_5_slope_28_1():
+    return piecewise_function_from_robert_txt_file("example5Slope28data.txt")
 
