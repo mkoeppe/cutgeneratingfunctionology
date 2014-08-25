@@ -237,10 +237,10 @@ def n_step_mir(f=4/5, a=[1, 3/10, 8/100]):
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
 
 
-def forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3):
+def gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3):
     """
     Summary: 
-        - Name: Forward 3-Slope;
+        - Name: GJ's Forward 3-Slope;
         - Infinite (or Finite); Dim = 1; Slopes = 3; Continuous; Analysis of subadditive polytope method;
         - Discovered [61] p.359, Construction.3, Fig.8;
         - Proven [61] p.359, thm.8.
@@ -259,11 +259,11 @@ def forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3):
 
     Examples:
         [61] p.360, Fig.8 ::
-            sage: h = forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/6)
-            sage: h = forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3)
-            sage: h = forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/2)
+            sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/6)
+            sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3)
+            sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/2)
         Try irrational case ::
-            sage: h = forward_3_slope(f=sqrt(17)/5, lambda_1=sqrt(5)/9, lambda_2=1/sqrt(10))
+            sage: h = gj_forward_3_slope(f=sqrt(17)/5, lambda_1=sqrt(5)/9, lambda_2=1/sqrt(10))
 
     Reference:
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
@@ -284,10 +284,10 @@ def forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3):
     return piecewise_function_from_breakpoints_and_values(bkpts, values)
 
 
-def backward_3_slope(f=1/12, bkpt=2/12):
+def drlm_backward_3_slope(f=1/12, bkpt=2/12):
     """
     Summary:
-        - Name: Backward 3-Slope;
+        - Name: drlm's Backward 3-Slope;
         - Infinite; Dim = 1; Slopes = 3; Continuous; Group relations method;
         - Discovered [40] p.154 eq.5;
         - Proven [40] p.153 thm.6.
@@ -312,9 +312,9 @@ def backward_3_slope(f=1/12, bkpt=2/12):
         Finite group --> Example 3.8 in [8] p.386,
         Infinite group --> Interpolation using Equation 5 from [40] p.154 ::
 
-        sage: h = backward_3_slope(f=1/12, bkpt=2/12)
+        sage: h = drlm_backward_3_slope(f=1/12, bkpt=2/12)
 
-        sage: h = backward_3_slope(f=1/12, bkpt=3/12)
+        sage: h = drlm_backward_3_slope(f=1/12, bkpt=3/12)
 
     Reference:
         [8]: J. Ar´aoz, L. Evans, R.E. Gomory, and E.L. Johnson, Cyclic groups and knapsack facets,
@@ -337,10 +337,10 @@ def backward_3_slope(f=1/12, bkpt=2/12):
     return piecewise_function_from_breakpoints_and_slopes(bkpts, slopes)
 
 
-def gj_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
+def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
     """
     Summary:
-        - Name: GJ's 2-Slope Limit;
+        - Name: drlm's 2-Slope Limit;
         - Infinite; Dim = 1; Slopes = 1; Discontinuous; Group relations method;
         - Discovered [40] p.158 def.10;
         - Proven [40] p.159 thm.8.
@@ -355,7 +355,7 @@ def gj_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
 
     Examples:
         [40] p.159 Fig.4 ::
-            sage: h = gj_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4)
+            sage: h = drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4)
 
     Reference:
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, Extreme inequalities for infinite group problems.,
@@ -392,10 +392,10 @@ def gj_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
     logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
     return psi
 
-def three_slope_limit(f=1/5):
+def drlm_3_slope_limit(f=1/5):
     """
     Summary:
-        - Name: 3-Slope Limit;
+        - Name: drlm-3-Slope Limit;
         - Infinite; Dim = 1; Slopes = 2; Discontinuous; Group relations method;
         - Discovered [40] p.161 def.11;
         - Proven [40] p.161 thm.9.
@@ -407,11 +407,11 @@ def three_slope_limit(f=1/5):
         0 < f < 1/3.
 
     Note:
-        This is the limit function as bkpt tends to f in backward_3_slope(f, bkpt).
+        This is the limit function as bkpt tends to f in drlm_backward_3_slope(f, bkpt).
 
     Examples:
         [40] p.162 Fig.5 ::
-            sage: h = three_slope_limit(f=1/5)
+            sage: h = drlm_3_slope_limit(f=1/5)
 
     Reference:
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, Extreme inequalities for infinite group problems.,

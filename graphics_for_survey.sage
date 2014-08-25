@@ -5,7 +5,7 @@ load("extreme_functions_in_literature.sage")
 load("compendium_procedures.sage")
 load("survey_examples.sage")
 
-for name in [ 'gmic', 'gj_2_slope', 'gj_2_slope_repeat', 'two_step_mir', 'n_step_mir', 'forward_3_slope', 'backward_3_slope', 'gj_2_slope_limit', 'gj_2_slope_limit_1_1', 'bhk_irrational', 'bccz_counterexample', 'three_slope_limit', 'projected_sequential_merge' ]:
+for name in [ 'gmic', 'gj_2_slope', 'gj_2_slope_repeat', 'two_step_mir', 'n_step_mir', 'gj_forward_3_slope', 'drlm_backward_3_slope', 'drlm_2_slope_limit', 'drlm_2_slope_limit_1_1', 'bhk_irrational', 'bccz_counterexample', 'drlm_3_slope_limit', 'projected_sequential_merge' ]:
     h = eval(name)()
     g = None
     try:
@@ -15,7 +15,7 @@ for name in [ 'gmic', 'gj_2_slope', 'gj_2_slope_repeat', 'two_step_mir', 'n_step
     g.save(destdir + "%s.pdf" % name)
 
 #plot_2d_complex(gj_2_slope()).save(destdir + "%s-2d_complex.pdf" % "gj_2_slope")
-for name in [ 'bhk_irrational', 'forward_3_slope', 'not_minimal_2' ]:
+for name in [ 'bhk_irrational', 'gj_forward_3_slope', 'not_minimal_2' ]:
     h = eval(name)()
     plot_2d_diagram(h).save(destdir + "%s-2d_diagram.pdf" % name)
 

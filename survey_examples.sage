@@ -29,9 +29,9 @@ def drlm_not_extreme_2():
     Mathematical Programming 121 (2009), no. 1, 145–170,
     doi:10.1007/s10107-008-0229-6.
     Figure 3.
-    Note: this is not any of gj_2_slope_limit() funcitons,
+    Note: this is not any of drlm_2_slope_limit() funcitons,
           since here s_positive = 3, whereas in
-          gj_2_slope_limit(f=1/2, nb_pieces_left=2, nb_pieces_right=2),
+          drlm_2_slope_limit(f=1/2, nb_pieces_left=2, nb_pieces_right=2),
           the s_positive has to be 4.
     """
     f1 = FastLinearFunction(3, 0)
@@ -107,9 +107,9 @@ def drlm_gj_2_slope_extreme_limit_to_nonextreme(s=Infinity):
         return phi_s_in_drlm_not_extreme_2(s=s)
     return drlm_not_extreme_2()
 
-def gj_2_slope_limit_1_1(f=1/2, nb_pieces_left=1, nb_pieces_right=1):
+def drlm_2_slope_limit_1_1(f=1/2, nb_pieces_left=1, nb_pieces_right=1):
     "An iconic choice of parameters in gj_2_slope."
-    return gj_2_slope_limit(f=f, nb_pieces_left=nb_pieces_left, nb_pieces_right=nb_pieces_right)
+    return drlm_2_slope_limit(f=f, nb_pieces_left=nb_pieces_left, nb_pieces_right=nb_pieces_right)
 
 def hildebrand_5_slope_22_1():
     return piecewise_function_from_robert_txt_file("example5Slope22data.txt")

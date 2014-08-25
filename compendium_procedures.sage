@@ -60,14 +60,14 @@ def projected_sequential_merge(g=piecewise_function_from_breakpoints_and_values(
         (3) [g]_{nr} is nondecreasing, c.f.[39] p.290, def.8 (where m=1).
 
     Note:
-        g = forward_3_slope() does not satisfy condition(3), but
+        g = gj_forward_3_slope() does not satisfy condition(3), but
 
-        g = multiplicative_homomorphism(forward_3_slope(),-1) satisfies (3).
+        g = multiplicative_homomorphism(gj_forward_3_slope(),-1) satisfies (3).
 
     Examples:
         [39]  p.311, fig.5 ::
 
-        sage: g = multiplicative_homomorphism(forward_3_slope(f=2/3, lambda_1=1/4, lambda_2=1/4), -1)
+        sage: g = multiplicative_homomorphism(gj_forward_3_slope(f=2/3, lambda_1=1/4, lambda_2=1/4), -1)
 
         sage: h = projected_sequential_merge(g, n=1)
 
