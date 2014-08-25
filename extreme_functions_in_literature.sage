@@ -392,6 +392,45 @@ def gj_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
     logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
     return psi
 
+def three_slope_limit(f=1/5):
+    """
+    Summary:
+        - Name: 3-Slope Limit;
+        - Infinite; Dim = 1; Slopes = 2; Discontinuous; Group relations method;
+        - Discovered [40] p.161 def.11;
+        - Proven [40] p.161 thm.9.
+
+    Parameters:
+        f (real) \in (0,1);
+
+    Function is known to be extreme under the conditions:
+        0 < f < 1/3.
+
+    Note:
+        This is the limit function as bkpt tends to f in backward_3_slope(f, bkpt).
+
+    Examples:
+        [40] p.162 Fig.5 ::
+            sage: h = three_slope_limit(f=1/5)
+
+    Reference:
+        [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, Extreme inequalities for infinite group problems.,
+                Mathematical Programming 121 (2010) 145–170.
+    """
+    if not bool(0 < f < 1):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if not bool(0 < f < 1/3):
+        logging.info("Conditions for extremality are NOT satisfied.")
+    else:
+        logging.info("Conditions for extremality are satisfied.")
+    pieces = [[closed_interval(0, f), FastLinearFunction(1/f, 0)], \
+              [open_interval(f, 1), FastLinearFunction(1/(f + 1), 0)], \
+              [singleton_interval(1), FastLinearFunction(0, 0)]]
+    kappa = FastPiecewise(pieces, merge=False)
+    # FIXME: Need to develop code for discontinuous functions.
+    logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
+    return kappa
+
 def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
     """
     return function psi, a counterexample to GJ's conjecture;
