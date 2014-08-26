@@ -799,8 +799,8 @@ def chen_3_slope(f=1/2, lam=8):
                             Ph.D. thesis, Georgia Institute of Technology, June 2011.
     """
     # FIXME:
-    # (1) Is this example extreme?? extremality_test(h) returns False
-    # (2) Is f <= 1/2 necessary?
+    # (1) Is this example extreme?? extremality_test(h) returns False.
+    # (2) Is f <= 1/2 necessary?  used in "All intervals are covered" ?
     # (3) generate_maximal_additive_faces() has a bug. try: chen_3_slope(f=2/3, lam=10)
     if not (bool(0 < f < 1) and (lam > 3*max(1/f, 1 /(1-f)))):
         raise ValueError, "Bad parameters. Unable to construct the function."
@@ -811,5 +811,46 @@ def chen_3_slope(f=1/2, lam=8):
     values = [0, 2/3, 2/3, 1/3, 1/3, 1, 2/3, 2/3, 1/3, 1/3, 0]
     return  piecewise_function_from_breakpoints_and_values(bkpts, values)
 
- ### TODO ###
- # Survey page 8-10, table 1-3
+def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4):
+    """
+    This 4-slope function is shown [KChen_thesis] to be extreme.
+    This function can also be shown to be a facet.
+
+    Parameters:
+        f (real) \in (0,1);
+        s_pos, s_neg (real): positive slope and negative slope
+        lam1, lam2 (real).
+
+    Requirement:
+        1/2 <= f <= 1;
+        s_pos > 1/f;
+        s_neg < 1/(f - 1);
+        0 < lam1 < min(1/2, (s_pos - s_neg) / s_pos / (1 - s_neg * f));
+        f - 1 / s_pos < lam2 < min(1/2, (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)).
+
+    Examples:
+        [KChen_thesis]  p.38, fig.8 ::
+            sage: chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4)
+
+    Reference:
+        [KChen_thesis]:  K. Chen, Topics in group methods for integer programming,
+                            Ph.D. thesis, Georgia Institute of Technology, June 2011.
+    """
+    if not (bool(0 < f < 1) and bool(s_pos > 1/f) and bool(s_neg < 1/(f - 1)) \
+                            and bool(0 < lam1 < 1) and bool(0 < lam2 < 1)):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if bool(1/2 <= f) and bool(lam1 < (s_pos - s_neg) / s_pos / (1 - s_neg * f)) and \
+        bool (f - 1 / s_pos < lam2 < (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)):
+        logging.info("Conditions for extremality are satisfied.")
+    else:
+        logging.info("Conditions for extremality are NOT satisfied.")
+    slopes = [s_pos, s_neg, 1/f, s_neg, s_pos, s_neg, s_pos, 1/(f-1), s_pos, s_neg]
+    aa = lam1 * (1 - s_neg * f) / 2 / (s_pos - s_neg)
+    a = lam1 * f / 2
+    b = f - a
+    bb = f - aa
+    c = 1 + lam2 * (f - 1) / 2
+    d = 1 + f - c
+    cc = 1 + (s_pos * lam2 * (f - 1) - lam2) / 2 / (s_pos - s_neg)
+    dd = 1 + f - cc
+    return piecewise_function_from_breakpoints_and_slopes([0, aa, a, b, bb, f, dd, d, c, cc, 1], slopes)
