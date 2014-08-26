@@ -830,7 +830,14 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4):
 
     Examples:
         [KChen_thesis]  p.38, fig.8 ::
-            sage: chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4)
+
+        sage: h = chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4)
+
+        sage: h = chen_4_slope(f=1/2, s_pos=4, s_neg=-4, lam1=1/3, lam2=1/3)
+
+        The following function's parameters do not satisfy the requirement, however it is extreme ::
+
+        sage: h = chen_4_slope(f=1/2, s_pos=5, s_neg=-5, lam1=1/5, lam2=1/5)
 
     Reference:
         [KChen_thesis]:  K. Chen, Topics in group methods for integer programming,
