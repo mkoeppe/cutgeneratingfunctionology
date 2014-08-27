@@ -5,7 +5,7 @@ load("extreme_functions_in_literature.sage")
 load("compendium_procedures.sage")
 load("survey_examples.sage")
 
-for name in [ 'gmic', 'gj_2_slope', 'gj_2_slope_repeat', 'two_step_mir', 'n_step_mir', 'gj_forward_3_slope', 'drlm_backward_3_slope', 'drlm_2_slope_limit', 'drlm_2_slope_limit_1_1', 'bhk_irrational', 'bccz_counterexample', 'drlm_3_slope_limit', 'projected_sequential_merge', 'hildebrand_5_slope_24_1', 'hildebrand_5_slope_28_1' ]:
+for name in [ 'chen_4_slope', 'gmic', 'gj_2_slope', 'gj_2_slope_repeat', 'two_step_mir', 'n_step_mir', 'gj_forward_3_slope', 'drlm_backward_3_slope', 'drlm_2_slope_limit', 'drlm_2_slope_limit_1_1', 'bhk_irrational', 'bccz_counterexample', 'drlm_3_slope_limit', 'dg_2_step_mir_limit', 'projected_sequential_merge', 'hildebrand_5_slope_24_1', 'hildebrand_5_slope_28_1' ]:
     h = eval(name)()
     g = None
     try:
