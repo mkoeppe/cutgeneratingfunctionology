@@ -450,8 +450,8 @@ class Face:
         self.vertices = vertices
         i, j, k = projections(vertices)
         self.minimal_triple = minimal_triple = (i, j, interval_mod_1(k))
-        if is_known_to_be_minimal and not triples_equal(minimal_triple, triple):
-            raise ValueError, "Provided triple was not minimal: %s reduces to %s" % (triple, minimal_triple)
+        #if is_known_to_be_minimal and not triples_equal(minimal_triple, triple):
+        #    raise ValueError, "Provided triple was not minimal: %s reduces to %s" % (triple, minimal_triple)
 
     def __repr__(self):
         return '<Face ' + repr(self.minimal_triple) + '>'
@@ -479,8 +479,10 @@ class Face:
         else:
             raise ValueError, "Face does not correspond to a directed move: %s" % self
 
-    def functional_directed_move(self):
+    def functional_directed_move(self, intervals=None):
         directed_move, domain, codomain = self.directed_move_with_domain_and_codomain()
+        if not intervals == None:
+            domain = interval_intersection(domain, intervals)
         return FunctionalDirectedMove(domain, directed_move)
 
     
@@ -2553,7 +2555,7 @@ def generate_functional_directed_moves(fn, intervals=None):
     moves = set()
     for face in generate_maximal_additive_faces(fn):
         if face.is_directed_move():
-            fdm = face.functional_directed_move()
+            fdm = face.functional_directed_move(intervals)
             if not fdm.is_identity() and find_interior_intersection(fdm.intervals(), intervals): #FIXME: why interior?
                 moves.add(fdm)
     return list(moves)
