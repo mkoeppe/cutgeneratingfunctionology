@@ -601,6 +601,8 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24]):
         The (uniform) limit \psi = \lim_{n to \infty} \psi_n is well defined if \sum_{i = 0}^{\infty} {2^i * e[i]} < f.
         The (unifrom) limit \psi is a continuous facet, but is not piecewise linear. A counterexample of GJ's conjecture.
         Could use the function generate_example_e_for_psi_n(f, n, q) to generate a sequence e that satisfies the conditions for extremality.
+        psi_n_in_bccz_counterexample_construction() is a special case of n_step_mir(),
+        with f=f, a = [1, (f + e[0])/2, (f + e[0] + 2*e[1])/4, ...]
 
     Parameters:
         f (real) \in (0,1);
