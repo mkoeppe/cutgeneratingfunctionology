@@ -2256,6 +2256,7 @@ def limiting_slopes(fn):
 
 maximal_asymmetric_peaks_around_orbit = 'maximal_asymmetric_peaks_around_orbit'
 maximal_symmetric_peaks_around_orbit = 'maximal_symmetric_peaks_around_orbit'
+narrow_symmetric_peaks_around_orbit = 'narrow_symmetric_peaks_around_orbit'
 recentered_symmetric_peaks = 'recentered_symmetric_peaks'
 recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_positive_epsilon = 'recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_positive_epsilon'
 recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_negative_epsilon = 'recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_negative_epsilon'
@@ -2273,7 +2274,7 @@ def approx_discts_function(perturbation_list, stability_interval, field=default_
     fn_bkpt = [0]
     # This width is chosen so that the peaks are disjoint, and
     # so a nice continuous piecewise linear function is constructed.
-    if perturbation_style==maximal_asymmetric_peaks_around_orbit or perturbation_style==maximal_symmetric_peaks_around_orbit:
+    if perturbation_style==maximal_asymmetric_peaks_around_orbit or perturbation_style==maximal_symmetric_peaks_around_orbit or narrow_symmetric_peaks_around_orbit:
         width = min(abs(stability_interval.a),stability_interval.b)
         assert width > 0, "Width of stability interval should be positive"
         assert stability_interval.a < 0 < stability_interval.b, \
@@ -2290,6 +2291,9 @@ def approx_discts_function(perturbation_list, stability_interval, field=default_
         elif perturbation_style==maximal_symmetric_peaks_around_orbit:
             left = pt - width
             right = pt + width
+        elif perturbation_style==narrow_symmetric_peaks_around_orbit:
+            left = pt - width/1000
+            right = pt + width/1000
         elif perturbation_style==recentered_symmetric_peaks:
             if sign == 1:
                 left = pt + stability_interval.a
