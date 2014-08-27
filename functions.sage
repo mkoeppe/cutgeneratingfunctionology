@@ -482,7 +482,7 @@ class Face:
     def functional_directed_move(self, intervals=None):
         directed_move, domain, codomain = self.directed_move_with_domain_and_codomain()
         if not intervals == None:
-            domain = interval_intersection(domain, intervals)
+            domain = interval_list_intersection(domain, intervals)
         return FunctionalDirectedMove(domain, directed_move)
 
     
