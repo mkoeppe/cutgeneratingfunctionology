@@ -2900,8 +2900,6 @@ def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbatio
     epsilon_interval = fn._epsilon_interval = find_epsilon_interval(fn, perturb)
     epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
     logging.info("Epsilon for constructed perturbation: %s" % epsilon)
-    assert epsilon > 0, "Epsilon should be positive, something is wrong"
-    logging.info("Thus the function is not extreme.")
     if show_plots:
         logging.info("Plotting perturbation...")
         p = plot(fn, xmin=xmin, xmax=xmax, color='black', thickness=2, legend_label="original function")
@@ -2914,6 +2912,8 @@ def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbatio
         p += plot(rescale_to_amplitude(perturb, 1/10), xmin=xmin, xmax=xmax, color='magenta', legend_label="perturbation (rescaled)")
         show_plot(p, show_plots, tag=show_plot_tag, **show_kwds)
         logging.info("Plotting perturbation... done")
+    assert epsilon > 0, "Epsilon should be positive, something is wrong"
+    logging.info("Thus the function is not extreme.")
 
 def finite_dimensional_extremality_test(function, show_plots=False, f=None):
     """
