@@ -449,9 +449,12 @@ class Face:
                 raise NotImplementedError, "An empty face. This could mean need to shift triple[2] by (1,1). Not implemented."
         self.vertices = vertices
         i, j, k = projections(vertices)
-        self.minimal_triple = minimal_triple = (i, j, interval_mod_1(k))
-        #if is_known_to_be_minimal and not triples_equal(minimal_triple, triple):
-        #    raise ValueError, "Provided triple was not minimal: %s reduces to %s" % (triple, minimal_triple)
+        self.minimal_triple = minimal_triple = (i, j, k)
+        #self._warned_about_non_minimal_triple = False
+        #if is_known_to_be_minimal and not triples_equal(minimal_triple, triple) and not self._warned_about_non_minimal_triple:
+        #    logging.warn("Provided triple was not minimal: %s reduces to %s" % (triple, minimal_triple))
+        #    self._warned_about_non_minimal_triple = True
+            # FIXME: Check why (i,j,k) != (i,j,k+1) can happen.
 
     def __repr__(self):
         return '<Face ' + repr(self.minimal_triple) + '>'
