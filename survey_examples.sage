@@ -120,3 +120,39 @@ def hildebrand_5_slope_24_1():
 def hildebrand_5_slope_28_1():
     return piecewise_function_from_robert_txt_file("example5Slope28data.txt")
 
+def chen_3_slope_not_extreme(f=1/2, lam=8):
+    """
+    A continuous 3-slope function that has non-degenerate intervals with a zero derivative.
+    The paper claims that the function is extreme under conditions. BUT his proof on page 37
+    made a mistake in setting up the equations:
+    -\pi(C ) + \pi(CC) + \pi(D) - \pi(DD) = 0. This relation should not exist in E(\pi).
+    Returned function can be extreme or NOT. Need to use extemality_test() to check.
+
+    Parameters:
+        f (real) \in (0,1);
+        lam (real): the first slope has length 1/lam.
+
+    Requirement:
+        0 < f <= 1/2;
+        lam > 3*max(1/f, 1 /(1-f))
+
+    Examples:
+        [KChen_thesis]  p.33, fig.7 NOT extreme::
+            sage: h = chen_3_slope_not_extreme(f=1/2, lam=8)
+
+        extreme example ::
+            sage: h = chen_3_slope_not_extreme(f=2/3, lam=20)
+
+    Reference:
+        [KChen_thesis]:  K. Chen, Topics in group methods for integer programming,
+                            Ph.D. thesis, Georgia Institute of Technology, June 2011.
+    """
+    if not (bool(0 < f < 1) and (lam > 3*max(1/f, 1 /(1-f)))):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    alpha = f / 2 - 3 / (2*lam)
+    beta = 1/2 - f/2 - 3 / (2*lam)
+    bkpts = [0, 1/lam, 1/lam + alpha, 2/lam + alpha, 2/lam + 2*alpha, f, \
+                4/lam + 2*alpha, 4/lam + 2*alpha + beta, 5/lam + 2*alpha + beta, 5/lam + 2*alpha + 2*beta, 1]
+    values = [0, 2/3, 2/3, 1/3, 1/3, 1, 2/3, 2/3, 1/3, 1/3, 0]
+    return  piecewise_function_from_breakpoints_and_values(bkpts, values)
+

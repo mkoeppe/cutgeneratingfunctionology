@@ -780,39 +780,6 @@ def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/
     gmi = gmic(f)
     return alpha * bhk + (1 - alpha) * gmi
 
-def chen_3_slope(f=1/2, lam=8):
-    """
-    A continuous 3-slope extreme function that has non-degenerate intervals with a zero derivative.
-
-    Parameters:
-        f (real) \in (0,1);
-        lam (real): the first slope has length 1/lam.
-
-    Requirement:
-        0 < f <= 1/2;
-        lam > 3*max(1/f, 1 /(1-f))
-
-    Examples:
-        [KChen_thesis]  p.33, fig.7 ::
-            sage: h = chen_3_slope(f=1/2, lam=8)
-
-    Reference:
-        [KChen_thesis]:  K. Chen, Topics in group methods for integer programming,
-                            Ph.D. thesis, Georgia Institute of Technology, June 2011.
-    """
-    # FIXME:
-    # (1) Is this example extreme?? extremality_test(h) returns False.
-    # (2) Is f <= 1/2 necessary?  used in "All intervals are covered" ?
-    # (3) generate_maximal_additive_faces() has a bug. try: chen_3_slope(f=2/3, lam=10)
-    if not (bool(0 < f < 1) and (lam > 3*max(1/f, 1 /(1-f)))):
-        raise ValueError, "Bad parameters. Unable to construct the function."
-    alpha = f / 2 - 3 / (2*lam)
-    beta = 1/2 - f/2 - 3 / (2*lam)
-    bkpts = [0, 1/lam, 1/lam + alpha, 2/lam + alpha, 2/lam + 2*alpha, f, \
-                4/lam + 2*alpha, 4/lam + 2*alpha + beta, 5/lam + 2*alpha + beta, 5/lam + 2*alpha + 2*beta, 1]
-    values = [0, 2/3, 2/3, 1/3, 1/3, 1, 2/3, 2/3, 1/3, 1/3, 0]
-    return  piecewise_function_from_breakpoints_and_values(bkpts, values)
-
 def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4):
     """
     This 4-slope function is shown [KChen_thesis] to be extreme.
