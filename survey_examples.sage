@@ -201,3 +201,17 @@ def rlm_dpl1_fig3_lowerleft_not_extreme(f=1/4):
     # FIXME: Need to develop code for discontinuous functions.
     logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
     return h
+
+
+def dr_projected_sequential_merge_3_slope(f=2/3, lambda_1=1/4, lambda_2=1/4, n=1):
+    """
+    construct the one-dimensional projected sequential merge inequality: h = g @_n^1 xi, where
+    g = multiplicative_homomorphism(gj_forward_3_slope(f=f, lambda_1=lambda_1, lambda_2=lambda_2),-1);
+    xi = gmic(f/n).
+    see projected_sequential_merge()
+    Reference:  p.311, fig.5,[39] SS Dey, JPP Richard, Relations between facets of low-and high-dimensional group problems,
+                Mathematical programming 123 (2), 285-313.
+    """
+    g = multiplicative_homomorphism(gj_forward_3_slope(f=f, lambda_1=lambda_1, lambda_2=lambda_2),-1)
+    h = projected_sequential_merge(g, n=n)
+    return h
