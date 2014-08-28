@@ -283,6 +283,7 @@ def remove_duplicate(myList):
                 last = myList[i]
                         
 def face_0D(face):
+
     if len(face[0]) == 1 and len(face[1]) == 1:
         return True
     else:
@@ -2958,7 +2959,7 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None):
                                legend_title="Basic perturbation %s" % (basis_index + 1))
         return False
 
-def generate_type_1_vertices_general(fn, comparison):
+def generate_type_1_vertices(fn, comparison):
     """A generator...
     "...'general' refers to the fact that it outputs 6-tuples (x,xeps,y,yeps,z,zeps).
     FIXME: it currently does not take care of any discontinuities at all.
@@ -2971,7 +2972,7 @@ def generate_type_1_vertices_general(fn, comparison):
     #         if x <= y and comparison(delta_pi(fn,x,y), 0):
     #             yield (x,0,y,0,x+y,0)
 
-def generate_type_2_vertices_general(fn, comparison):
+def generate_type_2_vertices(fn, comparison):
     bkpt = fn.end_points()
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     return ( (x,0,z-x,0,z,0) for x in bkpt for z in bkpt2 if x < z < 1+x and comparison(delta_pi(fn, x, z-x), 0) ) # generator comprehension
@@ -2983,8 +2984,8 @@ def generate_additive_vertices(fn):
     We are returning a set, so that duplicates are removed, and so the result can be cached for later use.
     """
     return { (x, y) 
-             for (x, xeps, y, yeps, z, zeps) in itertools.chain(generate_type_1_vertices_general(fn, operator.eq), 
-                                                                generate_type_2_vertices_general(fn, operator.eq)) 
+             for (x, xeps, y, yeps, z, zeps) in itertools.chain(generate_type_1_vertices(fn, operator.eq),
+                                                                generate_type_2_vertices(fn, operator.eq))
              if xeps==yeps==zeps==0 }
 
 @cached_function
@@ -2994,8 +2995,8 @@ def generate_nonsubadditive_vertices(fn):
     We are returning a set, so that duplicates are removed, and so the result can be cached for later use.
     """
     return { (x, y) 
-             for (x, xeps, y, yeps, z, zeps) in itertools.chain(generate_type_1_vertices_general(fn, operator.lt), 
-                                                                generate_type_2_vertices_general(fn, operator.lt)) 
+             for (x, xeps, y, yeps, z, zeps) in itertools.chain(generate_type_1_vertices(fn, operator.lt),
+                                                                generate_type_2_vertices(fn, operator.lt))
              if xeps==yeps==zeps==0 }
 
 def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True):
