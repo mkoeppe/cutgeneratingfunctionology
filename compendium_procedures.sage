@@ -44,8 +44,7 @@ def multiplicative_homomorphism(function, multiplier):
                   for i in i_range ]
     return FastPiecewise(new_pairs, merge=False)
 
-def projected_sequential_merge(g=piecewise_function_from_breakpoints_and_values([0, 1/3, 5/12, 1/2, 5/6, 11/12, 1], \
-                                                                                [0, 1, 1/2, 3/4, 1/4, 1/2, 0]), n=1):
+def projected_sequential_merge(g, n=1):
     """
     construct the one-dimensional projected sequential merge inequality: h = g(with f = nr) @_n^1 gmic(f = r).
 
