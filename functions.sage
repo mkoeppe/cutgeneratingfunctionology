@@ -2253,6 +2253,17 @@ def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes
         bkpt.append(bkpt[i]+interval_lengths[i])
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
 
+def discrete_function_from_points_and_values(points, values, field=None):
+    if field is None:
+        field = default_field
+    # global symb_values
+    symb_values = points + values
+    field_values = nice_field_values(symb_values, field)
+    points, values = field_values[0:len(points)], field_values[-len(values):]
+    pieces = [ (singleton_interval(point), FastLinearFunction(0, value))
+               for point, value in itertools.izip(points, values) ]
+    return FastPiecewise(pieces, merge=False)
+
 def limiting_slopes(fn):
     functions = fn.functions()
     return functions[0]._slope, functions[-1]._slope
