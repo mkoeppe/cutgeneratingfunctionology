@@ -320,7 +320,7 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12):
         [8]: J. Ar´aoz, L. Evans, R.E. Gomory, and E.L. Johnson, Cyclic groups and knapsack facets,
                 Mathematical Programming 96 (2003) 377–408.
                 
-        [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, Extreme inequalities for infinite group problems.,
+        [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
                 Mathematical Programming 121 (2010) 145–170.
 
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
@@ -412,7 +412,7 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
             sage: h = drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4)
 
     Reference:
-        [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, Extreme inequalities for infinite group problems.,
+        [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
                 Mathematical Programming 121 (2010) 145–170.
     """
     m = nb_pieces_left
@@ -468,7 +468,7 @@ def drlm_3_slope_limit(f=1/5):
             sage: h = drlm_3_slope_limit(f=1/5)
 
     Reference:
-        [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, Extreme inequalities for infinite group problems.,
+        [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
                 Mathematical Programming 121 (2010) 145–170.
     """
     if not bool(0 < f < 1):
