@@ -281,41 +281,6 @@ def remove_duplicate(myList):
                 del myList[i]
             else:
                 last = myList[i]
-                        
-def face_0D(face):
-
-
-    if len(face[0]) == 1 and len(face[1]) == 1:
-        return True
-    else:
-        return False
-        
-def face_2D(face):
-    if len(face[0]) == 2 and len(face[1]) == 2 and len(face[2]) == 2:
-        return True
-    else:
-        return False
-
-def face_horizontal(face):
-    if len(face[0]) == 2 and len(face[1]) == 1:
-        return True
-    else:
-        return False
-
-def face_vertical(face):
-    if len(face[0]) == 1 and len(face[1]) == 2:
-        return True
-    else:
-        return False                
-
-def face_diagonal(face):
-    if len(face[0]) == 2 and len(face[1]) == 2 and len(face[2]) == 1:
-        return True
-    else:
-        return False 
-
-def face_1D(face):
-    return face_horizontal(face) or face_vertical(face) or face_diagonal(face)
 
 def triples_equal(a, b):
     return interval_equal(a[0], b[0]) and interval_equal(a[1], b[1]) and interval_equal(a[2], b[2])
@@ -451,10 +416,10 @@ class Face:
         return '<Face ' + repr(self.minimal_triple) + '>'
 
     def plot(self, *args, **kwds):
-        return plot_face(self.minimal_triple, self.vertices, **kwds)
+        return plot_face(self, **kwds)
 
     def is_directed_move(self):
-        return face_1D(self.minimal_triple) #or face_0D(self.minimal_triple)
+        return self.is_1D() #or self.is_0D()
         # FIXME: Do we need additive vertices?
         
     def directed_move_with_domain_and_codomain(self):
@@ -464,11 +429,11 @@ class Face:
         a diagonal edge to a reflection.
         """
         trip = self.minimal_triple
-        if face_horizontal(trip):
+        if self.is_horizontal():
             return (1, trip[1][0]), [trip[0]], [trip[2]]
-        elif face_vertical(trip):
+        elif self.is_vertical():
             return (1, -trip[0][0]), [trip[2]], [trip[1]]
-        elif face_diagonal(trip):
+        elif self.is_diagonal():
             return (-1, trip[2][0]), [trip[0], trip[1]], [trip[1], trip[0]]
         else:
             raise ValueError, "Face does not correspond to a directed move: %s" % self
@@ -479,6 +444,24 @@ class Face:
             domain = interval_list_intersection(domain, intervals)
         return FunctionalDirectedMove(domain, directed_move)
 
+    def is_0D(self):
+        return len(self.vertices) == 1
+
+    def is_1D(self):
+        return len(self.vertices) == 2
+
+    def is_2D(self):
+        return len(self.vertices) > 2
+
+    def is_horizontal(self):
+        return self.is_1D() and self.vertices[0][1] == self.vertices[1][1]
+
+    def is_vertical(self):
+        return self.is_1D() and self.vertices[0][0] == self.vertices[1][0]
+
+    def is_diagonal(self):
+        return self.is_1D() and \
+               self.vertices[0][0] + self.vertices[0][1] == self.vertices[1][0] + self.vertices[1][1]
     
 def plot_faces(faces, **kwds):
     p = Graphics()
@@ -530,20 +513,22 @@ def convex_vert_list(vertices):
         center = reduce(operator.add, map(vector, vertices)) / len(vertices)
         return sorted(vertices, cmp = lambda a,b: angle_cmp(a, b, center))
 
-def plot_face(trip, vert, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color="mediumspringgreen", **kwds):
-    if face_0D(trip):
+def plot_face(face, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color="mediumspringgreen", **kwds):
+    trip = face.minimal_triple
+    vert = face.vertices
+    if face.is_0D():
         return point((trip[0][0], \
                       trip[1][0]), rgbcolor = rgbcolor, size = 30, **kwds)
-    elif face_horizontal(trip):
+    elif face.is_horizontal():
         return parametric_plot((y,trip[1][0]),\
                                (y,trip[0][0], trip[0][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
-    elif face_vertical(trip):
+    elif face.is_vertical():
         return parametric_plot((trip[0][0],y),\
                                (y,trip[1][0], trip[1][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
-    elif face_diagonal(trip):
+    elif face.is_diagonal():
         return parametric_plot((lambda y: y, lambda y: trip[2][0]-y),\
                                (y,trip[0][0],trip[0][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
-    elif face_2D(trip):
+    elif face.is_2D():
         ## Sorting is necessary for this example:
         ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/reu-2013/Sage_Function/dey-richard-not-extreme.txt"))
         return polygon(convex_vert_list(vert), color=fill_color, **kwds) 
@@ -799,7 +784,7 @@ def generate_covered_intervals(function):
 
     covered_intervals = []      
     for face in faces:
-        if face_2D(face.minimal_triple):
+        if face.is_2D():
             component = []
             for int1 in face.minimal_triple:
                 component.append(interval_mod_1(int1))
@@ -824,7 +809,7 @@ def generate_covered_intervals(function):
     #      legend_title="Directly covered, merged", \
     #      legend_loc=2) # legend in upper left
 
-    edges = [ face.minimal_triple for face in faces if face_1D(face.minimal_triple) ]
+    edges = [ face.minimal_triple for face in faces if face.is_1D()]
 
     any_change = True
     ## FIXME: Here we saturate the covered interval components
