@@ -389,9 +389,6 @@ def generate_maximal_additive_faces(function):
 ### Create a new class representing a "face" (which knows its
 ### vertices, minimal triple, whether it's a translation/reflection,
 ### etc.; whether it's solid or dense).
-
-### FIXME: Refactor some old code using it. 
-        
 class Face:
     def __init__(self, triple, vertices=None, is_known_to_be_minimal=False):
         """
@@ -415,8 +412,25 @@ class Face:
     def __repr__(self):
         return '<Face ' + repr(self.minimal_triple) + '>'
 
-    def plot(self, *args, **kwds):
-        return plot_face(self, **kwds)
+    def plot(self, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color="mediumspringgreen", *args, **kwds):
+        trip = self.minimal_triple
+        vert = self.vertices
+        if self.is_0D():
+            return point((trip[0][0], \
+                          trip[1][0]), rgbcolor = rgbcolor, size = 30, **kwds)
+        elif self.is_horizontal():
+            return parametric_plot((y,trip[1][0]),\
+                                   (y,trip[0][0], trip[0][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
+        elif self.is_vertical():
+            return parametric_plot((trip[0][0],y),\
+                                   (y,trip[1][0], trip[1][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
+        elif self.is_diagonal():
+            return parametric_plot((lambda y: y, lambda y: trip[2][0]-y),\
+                                   (y,trip[0][0],trip[0][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
+        elif self.is_2D():
+            ## Sorting is necessary for this example:
+            ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/reu-2013/Sage_Function/dey-richard-not-extreme.txt"))
+            return polygon(convex_vert_list(vert), color=fill_color, **kwds)
 
     def is_directed_move(self):
         return self.is_1D() #or self.is_0D()
@@ -512,26 +526,6 @@ def convex_vert_list(vertices):
     else:
         center = reduce(operator.add, map(vector, vertices)) / len(vertices)
         return sorted(vertices, cmp = lambda a,b: angle_cmp(a, b, center))
-
-def plot_face(face, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color="mediumspringgreen", **kwds):
-    trip = face.minimal_triple
-    vert = face.vertices
-    if face.is_0D():
-        return point((trip[0][0], \
-                      trip[1][0]), rgbcolor = rgbcolor, size = 30, **kwds)
-    elif face.is_horizontal():
-        return parametric_plot((y,trip[1][0]),\
-                               (y,trip[0][0], trip[0][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
-    elif face.is_vertical():
-        return parametric_plot((trip[0][0],y),\
-                               (y,trip[1][0], trip[1][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
-    elif face.is_diagonal():
-        return parametric_plot((lambda y: y, lambda y: trip[2][0]-y),\
-                               (y,trip[0][0],trip[0][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
-    elif face.is_2D():
-        ## Sorting is necessary for this example:
-        ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/reu-2013/Sage_Function/dey-richard-not-extreme.txt"))
-        return polygon(convex_vert_list(vert), color=fill_color, **kwds) 
 
 def plot_2d_diagram(function, show_function = True):
     """
