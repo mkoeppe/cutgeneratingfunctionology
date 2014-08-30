@@ -284,6 +284,7 @@ def remove_duplicate(myList):
                         
 def face_0D(face):
 
+
     if len(face[0]) == 1 and len(face[1]) == 1:
         return True
     else:
@@ -316,8 +317,11 @@ def face_diagonal(face):
 def face_1D(face):
     return face_horizontal(face) or face_vertical(face) or face_diagonal(face)
 
+def triples_equal(a, b):
+    return interval_equal(a[0], b[0]) and interval_equal(a[1], b[1]) and interval_equal(a[2], b[2])
+
 @cached_function
-def generate_vert_face_additive(function):
+def generate_maximal_additive_faces(function):
     logging.info("Computing maximal additive faces...")
     bkpt = function.end_points()
     bkpt2 = []
@@ -345,7 +349,7 @@ def generate_vert_face_additive(function):
     
     additive_face = {}
     additive_vertices = {}
-    vert_face_additive = []
+    faces = []
     for i in range(len(I_list)):
         for j in range(i, len(J_list)):
             for k in range(len(K_list)):
@@ -402,33 +406,19 @@ def generate_vert_face_additive(function):
                         for vert in temp:
                             additive_vertices[vert] = True
                         
-                        vert_face_additive.append(temp)
+                        trip = projections(temp)
+                        faces.append(Face(trip, vertices=temp, is_known_to_be_minimal=True))
+
                         if i != j:
                             temp_swap = []
                             for vert in temp:
                                 vert_new = [vert[1],vert[0]]
                                 temp_swap.append(vert_new)
-                            vert_face_additive.append(temp_swap)
+                            trip_swap = [trip[1], trip[0], trip[2]] #same as: trip_swap = projections(temp_swap)
+                            faces.append(Face(trip_swap, vertices=temp_swap, is_known_to_be_minimal=True))
                         
     logging.info("Computing maximal additive faces... done")
-    return vert_face_additive  
-
-@cached_function
-def generate_minimal_triples(function):
-    """
-    Compute the minimal triples (projections) of the 
-    (maximal) additive faces of the given function.
-    """
-    logging.info("Computing minimal triples representing maximal additive faces...")
-    vert_face_additive = generate_vert_face_additive(function)
-    minimal_triples = []
-    for i in vert_face_additive:
-        minimal_triples.append(projections(i))
-    logging.info("Computing minimal triples representing maximal additive faces... done")
-    return minimal_triples    
-
-def triples_equal(a, b):
-    return interval_equal(a[0], b[0]) and interval_equal(a[1], b[1]) and interval_equal(a[2], b[2])
+    return faces
 
             
 ### Create a new class representing a "face" (which knows its
@@ -498,10 +488,6 @@ def plot_faces(faces, **kwds):
         p += f.plot(**kwds)
     return p
 
-@cached_function
-def generate_maximal_additive_faces(function):
-    return [ Face(trip, vertices=vertices, is_known_to_be_minimal=True) for trip, vertices in itertools.izip(generate_minimal_triples(function),generate_vert_face_additive(function)) ]
-
 def plot_trivial_2d_diagram_with_grid(function, xgrid=None, ygrid=None): 
     """
     Return a plot of the 2d complex with vertices marked that 
@@ -569,15 +555,14 @@ def plot_2d_diagram(function, show_function = True):
     `show(plot_2d_diagram(h), xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)`
     """
     bkpt = function.end_points()
-    vert_face_additive = generate_vert_face_additive(function)
-    minimal_triples = generate_minimal_triples(function)
-        
+    faces = generate_maximal_additive_faces(function)
+
     y = var('y')
 
     p = plot_2d_complex(function)
     kwds = { 'legend_label': "Additive face" }
-    for trip, vert in itertools.izip(minimal_triples, vert_face_additive):
-        p += plot_face(trip, vert, **kwds)
+    for face in faces:
+        p += face.plot(**kwds)
         if 'legend_label' in kwds:
             del kwds['legend_label']
     ### For non-subadditive functions, show the points where delta_pi
@@ -810,14 +795,13 @@ def interval_mod_1(interval):
 @cached_function
 def generate_covered_intervals(function):
     logging.info("Computing covered intervals...")
-    minimal_triples = generate_minimal_triples(function)
-            
+    faces = generate_maximal_additive_faces(function)
+
     covered_intervals = []      
-    # face = (I,J,K)
-    for face in minimal_triples:
-        if face_2D(face):
+    for face in faces:
+        if face_2D(face.minimal_triple):
             component = []
-            for int1 in face:
+            for int1 in face.minimal_triple:
                 component.append(interval_mod_1(int1))
             component.sort()
             component = merge_within_comp(component)
@@ -840,7 +824,7 @@ def generate_covered_intervals(function):
     #      legend_title="Directly covered, merged", \
     #      legend_loc=2) # legend in upper left
 
-    edges = [ face for face in minimal_triples if face_1D(face) ]
+    edges = [ face.minimal_triple for face in faces if face_1D(face.minimal_triple) ]
 
     any_change = True
     ## FIXME: Here we saturate the covered interval components
