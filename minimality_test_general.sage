@@ -208,6 +208,12 @@ def plot_2d_diagram_general(fn, show_function=True, continuity=None):
     ...          [open_interval(1/4, 1), FastLinearFunction(4/3, -1/3)], \
     ...          [singleton_interval(1), FastLinearFunction(0,0)]], merge=False)
     sage: plot_2d_diagram_general(h)
+
+    sage: h = FastPiecewise([[closed_interval(0,1/4), FastLinearFunction(4, 0)], \
+    ...           [open_interval(1/4,1/2), FastLinearFunction(3, -3/4)], \
+    ...           [closed_interval(1/2, 3/4), FastLinearFunction(-2, 7/4)], \
+    ...           [open_interval(3/4,1), FastLinearFunction(3, -2)], \
+    ...           [singleton_interval(1), FastLinearFunction(0,0)]], merge=False)
     """
     if continuity == None:
         continuity = fn.is_continuous_defined()
@@ -225,46 +231,53 @@ def plot_2d_diagram_general(fn, show_function=True, continuity=None):
     ### For non-subadditive functions, show the points where delta_pi
     ### is negative.
 
+
     def plot_nonsubadditive_fan(x, y, fan):
-        r = 0.05
-        if fan == (-1,-1,-1):
+        r = 0.03
+        if fan == (-1,-1,-1): #13
             p = disk((x,y), r, (pi, 3*pi/2), color='red', zorder=-5)
-            p += disk((x,y), r, (pi, 3*pi/2), color='white', thickness=4, fill=False, zorder=-4)
-        if fan == (-1, 1,-1):
+            p += line([(x,y), (x, y-r)], color='white', zorder=-4, thickness=3) # -3
+            p += line([(x,y), (x-r, y)], color='white', zorder=-4, thickness=3) # -9
+        if fan == (-1, 1,-1): #12
             p = disk((x,y), r, (3*pi/4, pi), color='red', zorder=-5)
-            p += disk((x,y), r, (3*pi/4, pi), color='white', thickness=4, fill=False, zorder=-4)
-        if fan == (-1, 1, 1):
+            p += line([(x,y), (x-r, y)], color='white', zorder=-4, thickness=3) # -9
+            p += line([(x,y), (x-r/sqrt(2), y+r/sqrt(2))], color='white', zorder=-4, thickness=3) #-10
+        if fan == (-1, 1, 1): #11
             p = disk((x,y), r, (pi/2, 3*pi/4), color='red', zorder=-5)
-            p += disk((x,y), r, (pi/2, 3*pi/4), color='white', thickness=4, fill=False, zorder=-4)
-        if fan == (-1, 1, 0):
-            p = line([(x,y), (x-r/sqrt(2), y+r/sqrt(2))], color='red', zorder=-3, \
-                     thickness=4, marker="s", markerfacecolor='white', markeredgewidth=0, markersize=2)
-        if fan == (-1, 0,-1):
-            p = line([(x,y), (x-r, y)], color='red', zorder=-3, \
-                     thickness=4, marker="s", markerfacecolor='white', markeredgewidth=0, markersize=2)
-        if fan == ( 1,-1,-1):
+            p += line([(x,y), (x, y+r)], color='white', zorder=-4, thickness=3) # -2
+            p += line([(x,y), (x-r/sqrt(2), y+r/sqrt(2))], color='white', zorder=-4, thickness=3) #-10
+        if fan == (-1, 1, 0): #10
+            p = line([(x,y), (x-r/sqrt(2), y+r/sqrt(2))], color='red', zorder=-3, thickness=3)
+            p += point([(x,y)], color = 'white', size=20, zorder=-2) # -1
+        if fan == (-1, 0,-1): #9
+            p = line([(x,y), (x-r, y)], color='red', zorder=-3, thickness=3)
+            p += point([(x,y)], color = 'white', size=20, zorder=-2) # -1
+        if fan == ( 1,-1,-1): #8
             p = disk((x,y), r, (3*pi/2, 7*pi/4), color='red', zorder=-5)
-            p += disk((x,y), r, (3*pi/2, 7*pi/4), color='white', thickness=4, fill=False, zorder=-4)
-        if fan == ( 1,-1, 1):
+            p += line([(x,y), (x, y-r)], color='white', zorder=-4, thickness=3) # -3
+            p += line([(x,y), (x+r/sqrt(2), y-r/sqrt(2))], color='white', zorder=-4, thickness=3) # -6
+        if fan == ( 1,-1, 1): #7
             p = disk((x,y), r, (7*pi/4, 2*pi), color='red', zorder=-5)
-            p += disk((x,y), r, (7*pi/4, 2*pi), color='white', thickness=4, fill=False, zorder=-4)
-        if fan == ( 1,-1, 0):
-            p = line([(x,y), (x+r/sqrt(2), y-r/sqrt(2))], color='red', zorder=-3, \
-                     thickness=4, marker="s", markerfacecolor='white', markeredgewidth=0, markersize=2)
-        if fan == ( 1, 1, 1):
+            p += line([(x,y), (x+r, y)], color='white', zorder=-4, thickness=3) # -4
+            p += line([(x,y), (x+r/sqrt(2), y-r/sqrt(2))], color='white', zorder=-4, thickness=3) # -6
+        if fan == ( 1,-1, 0): #6
+            p = line([(x,y), (x+r/sqrt(2), y-r/sqrt(2))], color='red', zorder=-3, thickness=3)
+            p += point([(x,y)], color = 'white', size=20, zorder=-2) # -1
+        if fan == ( 1, 1, 1): #5
             p = disk((x,y), r, (0, pi/2), color='red', zorder=-5)
-            p += disk((x,y), r, (0, pi/2), color='white', thickness=4, fill=False, zorder=-4)
-        if fan == ( 1, 0, 1):
-            p = line([(x,y), (x+r, y)], color='red', zorder=-3, \
-                     thickness=4, marker="s", markerfacecolor='white', markeredgewidth=0, markersize=2)
-        if fan == ( 0,-1,-1):
-            p = line([(x,y), (x, y-r)], color='red', zorder=-3, \
-                     thickness=4, marker="s", markerfacecolor='white', markeredgewidth=0, markersize=2)
-        if fan == ( 0, 1, 1):
-            p = line([(x,y), (x, y+r)], color='red', zorder=-3, \
-                     thickness=4, marker="s", markerfacecolor='white', markeredgewidth=0, markersize=2)
-        if fan == ( 0, 0, 0):
-            p = point([(x,y)], color = 'red', size = 10, zorder=-1)
+            p += line([(x,y), (x+r, y)], color='white', zorder=-4, thickness=3) # -4
+            p += line([(x,y), (x, y+r)], color='white', zorder=-4, thickness=3) # -2
+        if fan == ( 1, 0, 1): #4
+            p = line([(x,y), (x+r, y)], color='red', zorder=-3, thickness=3)
+            p += point([(x,y)], color = 'white', size=20, zorder=-2) # -1
+        if fan == ( 0,-1,-1): #3
+            p = line([(x,y), (x, y-r)], color='red', zorder=-3, thickness=3)
+            p += point([(x,y)], color = 'white', size=20, zorder=-2) # -1
+        if fan == ( 0, 1, 1): #2
+            p = line([(x,y), (x, y+r)], color='red', zorder=-3, thickness=3)
+            p += point([(x,y)], color = 'white', size=20, zorder=-2) # -1
+        if fan == ( 0, 0, 0): #1
+            p = point([(x,y)], color = 'red', size=20, zorder=-1)
         return p
 
     nonsubadditive_vertices = generate_nonsubadditive_vertices_general(fn, continuity=continuity, reduced=False)
@@ -278,9 +291,12 @@ def plot_2d_diagram_general(fn, show_function=True, continuity=None):
             p += plot_nonsubadditive_fan(x, y, (xeps, yeps, zeps))
             if x != y:
                 p += plot_nonsubadditive_fan(y, x, (yeps, xeps, zeps))
-
+        # add legend_label
+        p += point([(0,0)], color = "red", size = 50, legend_label="Subadditivity violated", zorder=-10)
+        p += point([(0,0)], color = "white", size = 50, zorder=-9)
     if show_function:
         x = var('x')
+        #FIXME parametric_plot doesn't work for discontinuous functions.
         p += parametric_plot((lambda x: x, lambda x: 0.3 * float(fn(x)) + 1), \
                                                 (x, 0, 1), color='blue', legend_label="Function pi")
         p += parametric_plot((lambda x: - 0.3 * float(fn(x)), lambda x: x), \
