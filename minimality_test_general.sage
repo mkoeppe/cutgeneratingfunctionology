@@ -1,4 +1,4 @@
-def generate_type_1_vertices_general(fn, comparison, continuity=True):
+def generate_type_1_vertices_general(fn, comparison, continuity=True, reduced=True):
     """A generator...
     "...'general' refers to the fact that it outputs 6-tuples (x,y,z,xeps,yeps,zeps).
     """
@@ -25,8 +25,7 @@ def generate_type_1_vertices_general(fn, comparison, continuity=True):
                     limits_z = limits[-1]
                 else:
                     limits_z = fn.limits(z)
-                zeps_set = [0, 1, -1]
-                if limits_x[0] == limits_x[1] == limits_x[-1] and limits_y[0] == limits_y[1] == limits_y[-1]:
+                if reduced and limits_x[0] == limits_x[1] == limits_x[-1] and limits_y[0] == limits_y[1] == limits_y[-1]:
                     # continuous at x and y
                     for zeps in [1, -1]:
                         # note that (0 0 0) has alreadly been checked.
@@ -38,7 +37,7 @@ def generate_type_1_vertices_general(fn, comparison, continuity=True):
                         if comparison(limits_x[eps] + limits_y[eps] - limits_z[eps], 0):
                             yield (x, y, x+y, eps, eps, eps)
                     for eps in [1, -1]:
-                        for zeps in zeps_set:
+                        for zeps in [0, 1, -1]:
                             # (+ - 0), (+ - +), (+ - -), (- + 0), (- + +), (- + -)
                             if comparison(limits_x[eps] + limits_y[-eps] - limits_z[zeps], 0):
                                 yield (x, y, x+y, eps, -eps, zeps)
@@ -49,7 +48,7 @@ def generate_type_1_vertices_general(fn, comparison, continuity=True):
                             # (+ 0 +), (- 0 -)
                             yield (x, y, x+y, eps, 0, eps)
 
-def generate_type_2_vertices_general(fn, comparison, continuity=True):
+def generate_type_2_vertices_general(fn, comparison, continuity=True, reduced=True):
     bkpt = fn.end_points()
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     if not continuity:
@@ -76,21 +75,37 @@ def generate_type_2_vertices_general(fn, comparison, continuity=True):
                 if not (limits_y[0] == limits_y[1] == limits_y[-1]):
                     # then y is a in bkpt. this is done in type1check_general.
                     continue
-                for xeps in [0, 1, -1]:
-                    for zeps in [0, 1, -1]:
-                        if comparison(limits_x[xeps] + limits_y[0], limits_z[zeps]):
-                            yield (x, y, z, xeps, 0, zeps)
-
+                if reduced:
+                    for xeps in [0, 1, -1]:
+                        for zeps in [0, 1, -1]:
+                            if comparison(limits_x[xeps] + limits_y[0], limits_z[zeps]):
+                                yield (x, y, z, xeps, 0, zeps)
+                else:
+                    for eps in [1, -1]:
+                        # (+ + +), (- - -). note that (0 0 0) has alreadly been checked.
+                        if comparison(limits_x[eps] + limits_y[eps] - limits_z[eps], 0):
+                            yield (x, y, x+y, eps, eps, eps)
+                    for eps in [1, -1]:
+                        for zeps in [0, 1, -1]:
+                            # (+ - 0), (+ - +), (+ - -), (- + 0), (- + +), (- + -)
+                            if comparison(limits_x[eps] + limits_y[-eps] - limits_z[zeps], 0):
+                                yield (x, y, x+y, eps, -eps, zeps)
+                        if comparison(limits_x[0] + limits_y[eps] - limits_z[eps], 0):
+                            # (0 + +), (0 - -)
+                            yield (x, y, x+y, 0, eps, eps)
+                        if comparison(limits_x[eps] + limits_y[0] - limits_z[eps], 0):
+                            # (+ 0 +), (- 0 -)
+                            yield (x, y, x+y, eps, 0, eps)
 @cached_function
-def generate_nonsubadditive_vertices_general(fn, continuity=True):
+def generate_nonsubadditive_vertices_general(fn, continuity=True, reduced=True):
     """
     We are returning a set of 6-tuples (x, y, z, xeps, yeps, zeps),
     so that duplicates are removed, and so the result can be cached for later use.
     """
     return { (x, y, z, xeps, yeps, zeps)
-             for (x, y, z, xeps, yeps, zeps) in itertools.chain(generate_type_1_vertices_general(fn, operator.lt, continuity),
-                                                                generate_type_2_vertices_general(fn, operator.lt, continuity))
-           }
+             for (x, y, z, xeps, yeps, zeps) in itertools.chain( \
+                generate_type_1_vertices_general(fn, operator.lt, continuity=continuity, reduced=reduced),\
+                generate_type_2_vertices_general(fn, operator.lt, continuity=continuity, reduced=reduced)) }
 
 def subadditivity_check_general(fn, continuity=None):
     """
@@ -182,3 +197,93 @@ def minimality_test_general(fn, f=None):
         return True
     logging.info('Thus pi is NOT minimal.')
     return False
+
+def plot_2d_diagram_general(fn, show_function=True, continuity=None):
+    """
+    To show only a part of it, use
+    `show(plot_2d_diagram(h), xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)`
+
+    EXAMPLES::
+    sage: h = FastPiecewise([[closed_interval(0,1/4), FastLinearFunction(4, 0)], \
+    ...          [open_interval(1/4, 1), FastLinearFunction(4/3, -1/3)], \
+    ...          [singleton_interval(1), FastLinearFunction(0,0)]], merge=False)
+    sage: plot_2d_diagram_general(h)
+    """
+    if continuity == None:
+        continuity = fn.is_continuous_defined()
+    p = plot_2d_complex(fn)
+
+    ## FIXME: Need to develope code for Face of discontinuous functions
+    #y = var('y')
+    #faces = generate_maximal_additive_faces(function)
+    #kwds = { 'legend_label': "Additive face" }
+    #for face in faces:
+    #    p += face.plot(**kwds)
+    #    if 'legend_label' in kwds:
+    #        del kwds['legend_label']
+
+    ### For non-subadditive functions, show the points where delta_pi
+    ### is negative.
+
+    def plot_nonsubadditive_fan(x, y, fan):
+        r = 0.05
+        if fan == (-1,-1,-1):
+            p = disk((x,y), r, (pi, 3*pi/2), color='red', zorder=-5)
+            p += disk((x,y), r, (pi, 3*pi/2), color='white', thickness=4, fill=False, zorder=-4)
+        if fan == (-1, 1,-1):
+            p = disk((x,y), r, (3*pi/4, pi), color='red', zorder=-5)
+            p += disk((x,y), r, (3*pi/4, pi), color='white', thickness=4, fill=False, zorder=-4)
+        if fan == (-1, 1, 1):
+            p = disk((x,y), r, (pi/2, 3*pi/4), color='red', zorder=-5)
+            p += disk((x,y), r, (pi/2, 3*pi/4), color='white', thickness=4, fill=False, zorder=-4)
+        if fan == (-1, 1, 0):
+            p = line([(x,y), (x-r/sqrt(2), y+r/sqrt(2))], color='red', zorder=-3, \
+                     thickness=4, marker="s", markerfacecolor='white', markeredgewidth=0, markersize=2)
+        if fan == (-1, 0,-1):
+            p = line([(x,y), (x-r, y)], color='red', zorder=-3, \
+                     thickness=4, marker="s", markerfacecolor='white', markeredgewidth=0, markersize=2)
+        if fan == ( 1,-1,-1):
+            p = disk((x,y), r, (3*pi/2, 7*pi/4), color='red', zorder=-5)
+            p += disk((x,y), r, (3*pi/2, 7*pi/4), color='white', thickness=4, fill=False, zorder=-4)
+        if fan == ( 1,-1, 1):
+            p = disk((x,y), r, (7*pi/4, 2*pi), color='red', zorder=-5)
+            p += disk((x,y), r, (7*pi/4, 2*pi), color='white', thickness=4, fill=False, zorder=-4)
+        if fan == ( 1,-1, 0):
+            p = line([(x,y), (x+r/sqrt(2), y-r/sqrt(2))], color='red', zorder=-3, \
+                     thickness=4, marker="s", markerfacecolor='white', markeredgewidth=0, markersize=2)
+        if fan == ( 1, 1, 1):
+            p = disk((x,y), r, (0, pi/2), color='red', zorder=-5)
+            p += disk((x,y), r, (0, pi/2), color='white', thickness=4, fill=False, zorder=-4)
+        if fan == ( 1, 0, 1):
+            p = line([(x,y), (x+r, y)], color='red', zorder=-3, \
+                     thickness=4, marker="s", markerfacecolor='white', markeredgewidth=0, markersize=2)
+        if fan == ( 0,-1,-1):
+            p = line([(x,y), (x, y-r)], color='red', zorder=-3, \
+                     thickness=4, marker="s", markerfacecolor='white', markeredgewidth=0, markersize=2)
+        if fan == ( 0, 1, 1):
+            p = line([(x,y), (x, y+r)], color='red', zorder=-3, \
+                     thickness=4, marker="s", markerfacecolor='white', markeredgewidth=0, markersize=2)
+        if fan == ( 0, 0, 0):
+            p = point([(x,y)], color = 'red', size = 10, zorder=-1)
+        return p
+
+    nonsubadditive_vertices = generate_nonsubadditive_vertices_general(fn, continuity=continuity, reduced=False)
+    if continuity:
+        nonsubadditive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices}
+        p += point(list(nonsubadditive_vertices), \
+                            color = "red", size = 50, legend_label="Subadditivity violated", zorder=-1)
+        p += point([ (y,x) for (x,y) in nonsubadditive_vertices ], color = "red", size = 50, zorder=-1)
+    elif nonsubadditive_vertices != {}:
+        for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices:
+            p += plot_nonsubadditive_fan(x, y, (xeps, yeps, zeps))
+            if x != y:
+                p += plot_nonsubadditive_fan(y, x, (yeps, xeps, zeps))
+
+    if show_function:
+        x = var('x')
+        p += parametric_plot((lambda x: x, lambda x: 0.3 * float(fn(x)) + 1), \
+                                                (x, 0, 1), color='blue', legend_label="Function pi")
+        p += parametric_plot((lambda x: - 0.3 * float(fn(x)), lambda x: x), \
+                                                (x, 0, 1), color='blue')
+    return p
+
