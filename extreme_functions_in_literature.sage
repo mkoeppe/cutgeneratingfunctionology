@@ -349,7 +349,7 @@ def dg_2_step_mir_limit(f=3/5, d=3):
 
     Parameters:
         f (real) \in (0,1);
-        d (positive interger): number of slopes on [0,f).
+        d (positive integer): number of slopes on [0,f).
 
     Function is known to be extreme under the conditions:
         0 < f < 1;
