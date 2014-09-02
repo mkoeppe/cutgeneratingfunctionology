@@ -394,6 +394,7 @@ class Face:
         """
         EXAMPLES::
         sage: load("extreme_functions_in_literature.sage")
+        sage: logging.disable(logging.INFO)
         sage: f = generate_maximal_additive_faces(bhk_irrational(delta=(23/250,1/125)))
         """
         if not vertices:
