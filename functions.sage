@@ -1076,6 +1076,11 @@ class FastLinearFunction :
         return FastLinearFunction(self._slope * other,
                                   self._intercept * other)
 
+
+    def __neg__(self):
+        return FastLinearFunction(-self._slope,
+                                  -self._intercept)
+
     __rmul__ = __mul__
 
     def __eq__(self, other):
@@ -1550,6 +1555,9 @@ class FastPiecewise (PiecewisePolynomial):
         intervals = intersection_of_coho_intervals([self.intervals(), other.intervals()])
         return FastPiecewise([ (interval, self.which_function_on_interval(interval) + other.which_function_on_interval(interval))
                                for interval in intervals ], merge=False)
+
+    def __neg__(self):
+        return FastPiecewise([[interval, -f] for interval,f in self.list()], merge=False)
         
     def __mul__(self,other):
         """In contrast to PiecewisePolynomial.__mul__, this does not do zero extension of domains.
@@ -1563,6 +1571,9 @@ class FastPiecewise (PiecewisePolynomial):
                                    for interval in intervals ], merge=False)
 
     __rmul__ = __mul__
+
+    def __sub__(self, other):
+        return self + (-other)
 
     ## Following just fixes a bug in the plot method in piecewise.py
     ## (see doctests below).  Also adds plotting of single points.
