@@ -408,7 +408,7 @@ def finite_dimensional_extremality_test_general(function, show_plots=False, f=No
         bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
         # Note: bkpt[0] == 0; bkpt[m] == 1
         slopes = [ slope for interval, slope in intervals_and_slopes ]
-        jumps = vector_space[n: n + 2*m]
+        jumps = vector_space.basis()[n: n + 2*m]
         # Initialize symbolic function and system of equations.
         current_value = zeros = vector_space.zero()
         pieces = []
@@ -427,13 +427,17 @@ def finite_dimensional_extremality_test_general(function, show_plots=False, f=No
             if limit_values[-1] == limit_values[0]:
                 # if \pi is left continuous at bkpt[i+1], so is any \phi
                 equations.append(jumps[2*i + 1])
-        pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, zeros)])
-        symbolic = FastPiecewise(pieces)
+        pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, current_value)])
+        symbolic = FastPiecewise(pieces, merge=False)
         if f == None:
             f = find_f(function)
         equations.append(symbolic(f))
         equations.append(symbolic(bkpt[m]))
-        for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, continuity=continuity, reduced=True):
+        for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices_general(function, continuity=continuity, reduced=True):
+            # handle 0- and 1+
+            x, xeps = periodic_one_limit(x, xeps, field)
+            y, yeps = periodic_one_limit(y, yeps, field)
+            z, zeps = periodic_one_limit(z, zeps, field)
             new_equation = symbolic.limit(x, xeps) + symbolic.limit(y, yeps) - symbolic.limit(z, zeps)
             equations.append(new_equation)
         equation_matrix = matrix(field, equations)
@@ -446,4 +450,13 @@ def finite_dimensional_extremality_test_general(function, show_plots=False, f=No
             return True
         else:
             #FIXME: perturbations...
+            print slope_jump_vects[0]
             return False
+
+def periodic_one_limit(x, xeps, field):
+    x = fractional(x)
+    if x == field(0) and xeps == -1:
+        x = field(1)
+    elif x == field(1) and xeps == 1:
+        x = field(0)
+    return x, xeps
