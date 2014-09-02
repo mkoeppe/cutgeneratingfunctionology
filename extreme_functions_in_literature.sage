@@ -1,3 +1,5 @@
+load("functions.sage")
+
 import logging
 
 logging.basicConfig(format='%(levelname)s: %(asctime)s %(message)s', level=logging.INFO)
@@ -237,10 +239,10 @@ def n_step_mir(f=4/5, a=[1, 3/10, 8/100]):
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
 
 
-def forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3):
+def gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3):
     """
     Summary: 
-        - Name: Forward 3-Slope;
+        - Name: GJ's Forward 3-Slope;
         - Infinite (or Finite); Dim = 1; Slopes = 3; Continuous; Analysis of subadditive polytope method;
         - Discovered [61] p.359, Construction.3, Fig.8;
         - Proven [61] p.359, thm.8.
@@ -259,11 +261,12 @@ def forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3):
 
     Examples:
         [61] p.360, Fig.8 ::
-            sage: h = forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/6)
-            sage: h = forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3)
-            sage: h = forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/2)
+            sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/6)
+            sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3)
+            sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/2)
+
         Try irrational case ::
-            sage: h = forward_3_slope(f=sqrt(17)/5, lambda_1=sqrt(5)/9, lambda_2=1/sqrt(10))
+            sage: h = gj_forward_3_slope(f=sqrt(17)/5, lambda_1=sqrt(5)/9, lambda_2=1/sqrt(10))
 
     Reference:
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
@@ -284,10 +287,10 @@ def forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3):
     return piecewise_function_from_breakpoints_and_values(bkpts, values)
 
 
-def backward_3_slope(f=1/12, bkpt=2/12):
+def drlm_backward_3_slope(f=1/12, bkpt=2/12):
     """
     Summary:
-        - Name: Backward 3-Slope;
+        - Name: drlm's Backward 3-Slope;
         - Infinite; Dim = 1; Slopes = 3; Continuous; Group relations method;
         - Discovered [40] p.154 eq.5;
         - Proven [40] p.153 thm.6.
@@ -312,15 +315,15 @@ def backward_3_slope(f=1/12, bkpt=2/12):
         Finite group --> Example 3.8 in [8] p.386,
         Infinite group --> Interpolation using Equation 5 from [40] p.154 ::
 
-        sage: h = backward_3_slope(f=1/12, bkpt=2/12)
+        sage: h = drlm_backward_3_slope(f=1/12, bkpt=2/12)
 
-        sage: h = backward_3_slope(f=1/12, bkpt=3/12)
+        sage: h = drlm_backward_3_slope(f=1/12, bkpt=3/12)
 
     Reference:
         [8]: J. Ar´aoz, L. Evans, R.E. Gomory, and E.L. Johnson, Cyclic groups and knapsack facets,
                 Mathematical Programming 96 (2003) 377–408.
                 
-        [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, Extreme inequalities for infinite group problems.,
+        [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
                 Mathematical Programming 121 (2010) 145–170.
 
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
@@ -336,11 +339,65 @@ def backward_3_slope(f=1/12, bkpt=2/12):
     slopes = [1/f, (1 + f - bkpt)/(1 + f)/(f - bkpt), 1/(1 + f), (1 + f - bkpt)/(1 + f)/(f - bkpt)]
     return piecewise_function_from_breakpoints_and_slopes(bkpts, slopes)
 
-
-def gj_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
+def dg_2_step_mir_limit(f=3/5, d=3):
     """
     Summary:
-        - Name: GJ's 2-Slope Limit;
+        - Name: DG-2-Step MIR Limit;
+        - Infinite; Dim = 1; Slopes = 1; Discontinuous; Simple sets method;
+        - Discovered [33] p.41, def.12;
+        - Proven [33] p.43, lemma 14.
+
+    Parameters:
+        f (real) \in (0,1);
+        d (positive integer): number of slopes on [0,f).
+
+    Function is known to be extreme under the conditions:
+        0 < f < 1;
+        d >= ceil(1 / (1 - f)) - 1.
+
+    Note:
+        This is the limit function as alpha in two_step_mir()
+        tends (from left) to f/d, where d is integer;
+        c.f. [33] p.42, lemma 13.
+
+        It's a special case of drlm_2_slope_limit(),
+        dg_2_step_mir_limit(f, d) =
+        multiplicative_homomorphism(drlm_2_slope_limit(f=1-f, nb_pieces_left=1, nb_pieces_right=d), -1)
+
+    Examples:
+        [33] p.42, Fig.6 ::
+            sage: h = dg_2_step_mir_limit(f=3/5, d=3)
+
+    Reference:
+        [33]: S. Dash and O. G¨unl¨uk, Valid inequalities based on simple mixed-integer sets.,
+                Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
+                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33–45.
+    """
+    if not (bool(0 < f < 1) & (d >= 1)):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if not bool(d >= ceil(1 / (1 - f)) - 1):
+        logging.info("Conditions for extremality are NOT satisfied.")
+    else:
+        logging.info("Conditions for extremality are satisfied.")
+    f = nice_field_values([f])[0]
+    field = f.parent()
+    pieces = []
+    for k in range(d):
+        left_x = f * k / d
+        right_x = f * (k + 1) / d
+        pieces = pieces + \
+                 [[singleton_interval(left_x), FastLinearFunction(field(0), left_x / f)], \
+                  [open_interval(left_x, right_x), FastLinearFunction(1 / (f - 1), (k + 1)/(d + 1)/(1 - f))]]
+    pieces.append([closed_interval(f, field(1)), FastLinearFunction(1 / (f - 1), 1 /(1 - f))])
+    h = FastPiecewise(pieces, merge=False)
+    # FIXME: Need to develop code for discontinuous functions.
+    logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
+    return h
+
+def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
+    """
+    Summary:
+        - Name: drlm's 2-Slope Limit;
         - Infinite; Dim = 1; Slopes = 1; Discontinuous; Group relations method;
         - Discovered [40] p.158 def.10;
         - Proven [40] p.159 thm.8.
@@ -355,10 +412,10 @@ def gj_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
 
     Examples:
         [40] p.159 Fig.4 ::
-            sage: h = gj_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4)
+            sage: h = drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4)
 
     Reference:
-        [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, Extreme inequalities for infinite group problems.,
+        [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
                 Mathematical Programming 121 (2010) 145–170.
     """
     m = nb_pieces_left
@@ -391,6 +448,47 @@ def gj_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
     # FIXME: Need to develop code for discontinuous functions.
     logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
     return psi
+
+def drlm_3_slope_limit(f=1/5):
+    """
+    Summary:
+        - Name: drlm-3-Slope Limit;
+        - Infinite; Dim = 1; Slopes = 2; Discontinuous; Group relations method;
+        - Discovered [40] p.161 def.11;
+        - Proven [40] p.161 thm.9.
+
+    Parameters:
+        f (real) \in (0,1);
+
+    Function is known to be extreme under the conditions:
+        0 < f < 1/3.
+
+    Note:
+        This is the limit function as bkpt tends to f in drlm_backward_3_slope(f, bkpt).
+
+    Examples:
+        [40] p.162 Fig.5 ::
+            sage: h = drlm_3_slope_limit(f=1/5)
+
+    Reference:
+        [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
+                Mathematical Programming 121 (2010) 145–170.
+    """
+    if not bool(0 < f < 1):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if not bool(0 < f < 1/3):
+        logging.info("Conditions for extremality are NOT satisfied.")
+    else:
+        logging.info("Conditions for extremality are satisfied.")
+    f = nice_field_values([f])[0]
+    field = f.parent()
+    pieces = [[closed_interval(0, f), FastLinearFunction(1/f, 0, field=field)], \
+              [open_interval(f, 1), FastLinearFunction(1/(f + 1), 0, field=field)], \
+              [singleton_interval(field(1)), FastLinearFunction(field(0), 0, field=field)]]
+    kappa = FastPiecewise(pieces, merge=False)
+    # FIXME: Need to develop code for discontinuous functions.
+    logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
+    return kappa
 
 def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
     """
@@ -506,6 +604,8 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24]):
         The (uniform) limit \psi = \lim_{n to \infty} \psi_n is well defined if \sum_{i = 0}^{\infty} {2^i * e[i]} < f.
         The (unifrom) limit \psi is a continuous facet, but is not piecewise linear. A counterexample of GJ's conjecture.
         Could use the function generate_example_e_for_psi_n(f, n, q) to generate a sequence e that satisfies the conditions for extremality.
+        psi_n_in_bccz_counterexample_construction() is a special case of n_step_mir(),
+        with f=f, a = [1, (f + e[0])/2, (f - e[0] + 2*e[1])/4, ...]
 
     Parameters:
         f (real) \in (0,1);
@@ -563,199 +663,173 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24]):
     slopes = [s_positive, s_negative] * (nb_interval // 2)
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
 
-### TODO ###
-def bhk_irrational():
+def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)):
     """
     Summary:
-        - Name: BHK's irrational function
+        - Name: BHK's irrational function.
         - Infinite; Dim = 1; Slopes = 3; Continuous;  Covered intervals and equivariant perturbation.
-        - Discovered [IR2]  p.33, section.5.2, fig.9-10;
+        - Discovered [IR2]  p.33, section.5.2, fig.9-10.
         - Proven [IR2] p.34, thm.5.3.
 
     Parameters:
-
+        f (real) \in (0,1);
+        d1 (real): length of the positive slope;
+        d2 (real): length of the zero slopes;
+        a0 (real): length of the first zig-zag;
+        delta (n-tuple of reals): length of the extra zig-zags.
 
     Function is known to be extreme under the conditions:
+        0 < f < 1;
+        d1, d2, a0, delta > 0;
+        d1 + d2 < f;
+        len(delta) == 2
+        sum(delta) <  d2 / 4; Weaker condition: 2*delta[0] + delta[1] < d2 / 2;
+        the two components of delta are linearly independent over \Q.
 
+    Relation between the code parameters and the paper parameters:
+        t1 = delta[0], t2 = delta[0] + delta[1], ...
+        a1 = a0 + t1, a2 = a0 + t2, ...
+        A = f/2 - a0/2 - d2/4,
+        A0 = f/2 - a0/2 + d2/4.
 
     Examples:
         [IR2]  p.34, thm.5.3::
-            sage: h = equivariant_perturbation_one_irrational()
+            sage: h = bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200))
+            sage: h = bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, 6* sqrt(2)/200, 1/500))
 
     Reference:
         [IR2] A. Basu, R. Hildebrand, and M. Köppe, Equivariant perturbation in Gomory and Johnson’s infinite group problem.
-                I. The one-dimensional case, eprint arXiv:1206.2079 [math.OC], 2012.
+                I. The one-dimensional case, Mathematics of Operations Research (2014), doi:10. 1287/moor.2014.0660
     """
-
-#####COPY#####
-def the_irrational_function_t1_t2(d1 = 3/5, d3 = 1/10, f = 4/5, p = 15/100, \
-                                  del1 = 1/200, del2 = sqrt(2)/200):
-    d2 = f - d1 - d3
-
+    if not (bool(0 < f < 1) and bool(d1 > 0) and bool(d2 > 0) and bool(a0 > 0) and (len(delta) >= 2) \
+            and bool(min(delta) > 0) and bool(d1 + d2 < f) and (sum(delta) < f/2 - d2/4 - 3*a0/2) ):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if len(delta) == 2:
+        if is_QQ_linearly_independent(delta) and  2*delta[0] + delta[1] < d2 / 2:
+            logging.info("Conditions for extremality are satisfied.")
+        else:
+            logging.info("Conditions for extremality are NOT satisfied.")
+    else:
+        logging.info("len(delta) >= 3, Conditions for extremality are unknown.")
+    d3 = f - d1 - d2
     c2 = 0
     c3 = -1/(1-f)
     c1 = (1-d2*c2-d3*c3)/d1
+    d21 = d2 / 2
+    d31 = c1 / (c1 - c3) * d21
+    d11 = a0 - d31
+    d13 = a0 - d21
+    d12 = (d1 - d13)/2 - d11
+    d32 = d3/2 - d31
+    zigzag_lengths = []
+    zigzag_slopes = []
+    delta_positive = 0
+    delta_negative = 0
+    for delta_i in delta:
+        delta_i_negative = c1 * delta_i / (c1 - c3)
+        delta_i_positive = delta_i - delta_i_negative
+        delta_positive += delta_i_positive
+        delta_negative += delta_i_negative
+        zigzag_lengths = zigzag_lengths + [delta_i_positive, delta_i_negative]
+        zigzag_slopes = zigzag_slopes + [c1, c3]
+    d12new = d12 - delta_positive
+    d32new = d32 - delta_negative
 
-    d12 = d2 / 2
-    d22 = d2 / 2
-
-    d13 = c1 / (c1 - c3) * d12
-    d43 = d13
-    d11 = p - d13
-    d31 = p - d12
-    d51 = d11
-    d41 = (d1 - d11 - d31 - d51)/2
-    d21 = d41
-    d23 = (d3 - d13 - d43)/2
-    d33 = d23
-
-    del13 = c1 * del1 / (c1 - c3)
-    del11 = del1 - del13
-
-    del23 = c1 * del2 / (c1 - c3)
-    del21 = del2 - del23
-
-    d21new = d21 - del11 - del21
-    d41new = d41 - del11 - del21
-    d23new = d23 - del13 - del23
-    d33new = d33 - del13 - del23
-
-    t1 = del1
-    t2 = del1 + del2
-    a0 = d11+d13
-    a1 = a0 + t1
-    a2 = a0 + t2
-    A = a0+d21+d23
-    A0 = A + d12
-
-    slopes = [c1,c3,c1,c3,c1,c3,c1,c3,c2,c1,c2,c3,c1,c3,c1,c3,c1,c3,c1,c3]
-
-    interval_lengths = [d11,d13,del11,del13,del21,del23,d21new,d23new,d12,d31,d22,d33new,d41new,del23,del21,del13,del11,d43,d51,1-f]
-
+    slopes_left = [c1,c3] + zigzag_slopes + [c1,c3,c2]
+    slopes = slopes_left + [c1] + slopes_left[::-1] + [c3]
+    intervals_left = [d11,d31] + zigzag_lengths + [d12new,d32new,d21]
+    interval_lengths = intervals_left + [d13] + intervals_left[::-1] + [1-f]
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
 
-#####COPY#####
-def the_irrational_function_t1_t2_t3(d1 = 3/5, d3 = 1/10, f = 4/5, p = 15/100, \
-                                     del1 = 1/200, del2 = 6*sqrt(2)/200, del3 = 1/500):
-
-    d2 = f - d1 - d3
-
-    c2 = 0
-    c3 = -1/(1-f)
-    c1 = (1-d2*c2-d3*c3)/d1
-
-    d12 = d2 / 2
-    d22 = d2 / 2
-
-    d13 = c1 / (c1 - c3) * d12
-    d43 = d13
-    d11 = p - d13
-    d31 = p - d12
-    d51 = d11
-    d41 = (d1 - d11 - d31 - d51)/2
-    d21 = d41
-    d23 = (d3 - d13 - d43)/2
-    d33 = d23
-
-    del13 = c1 * del1 / (c1 - c3)
-    del11 = del1 - del13
-
-    del23 = c1 * del2 / (c1 - c3)
-    del21 = del2 - del23
-
-    del33 = c1 * del3 / (c1 - c3)
-    del31 = del3 - del33
-
-    d21new = d21 - del11 - del21 - del31
-    d41new = d41 - del11 - del21 - del31
-    d23new = d23 - del13 - del23 - del33
-    d33new = d33 - del13 - del23 - del33
-
-    t1 = del1
-    t2 = del1 + del2
-    t3 = del1 + del2 + del3
-
-    a0 = d11+d13
-    a1 = a0 + t1
-    a2 = a0 + t2
-    a3 = a0 + t3
-
-    A = a0+d21+d23
-    A0 = A + d12
-
-    slopes = [c1,c3,c1,c3,c1,c3,c1,c3,c1,c3,c2,c1,c2,c3,c1,c3,c1,c3,c1,c3,c1,c3,c1,c3]
-
-    interval_lengths = [d11,d13,del11,del13,del21,del23,del31, del33, d21new,d23new,d12,d31,d22,d33new,d41new,del33,del31,del23,del21,del13,del11,d43,d51,1-f]
-
-    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
-
-#####COPY#####
-def gmi_irrational():
+def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), alpha=95/100):
     """
     A version of the irrational function with non-zero second slope,
     obtained by forming a convex combination of a modified version of the irrational function with the GMI cut.
     """
-    d1 = 3/5
-    d3 = 1/10
-    f = 4/5
-    p = 15/100
-    del1 = 1/200
-    del2 = sqrt(2)/200
-
-    d2 = f - d1 - d3
-
+    if not (bool(0 < f < 1) and bool(d1 > 0) and bool(d2 > 0) and bool(a0 > 0) and (len(delta) >= 2) \
+            and bool(min(delta) > 0) and bool(d1 + d2 < f) and (sum(delta) < f/2 - d2/4 - 3*a0/2) \
+            and bool(0 < alpha < 1)):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    # FIXME: Extremality condition ?
+    d3 = f - d1 - d2
     c2 = 0
-    #c3 = -1/(1-f)
-    c3 = (100/95)*(c3 - (5/100)*(5/4))
+    c3 = (-1/(1-f) - (1 - alpha)/f) / alpha
     c1 = (1-d2*c2-d3*c3)/d1
+    d21 = d2 / 2
+    d31 = c1 / (c1 - c3) * d21
+    d11 = a0 - d31
+    d13 = a0 - d21
+    d12 = (d1 - d13)/2 - d11
+    d32 = d3/2 - d31
+    zigzag_lengths = []
+    zigzag_slopes = []
+    delta_positive = 0
+    delta_negative = 0
+    for delta_i in delta:
+        delta_i_negative = c1 * delta_i / (c1 - c3)
+        delta_i_positive = delta_i - delta_i_negative
+        delta_positive += delta_i_positive
+        delta_negative += delta_i_negative
+        zigzag_lengths = zigzag_lengths + [delta_i_positive, delta_i_negative]
+        zigzag_slopes = zigzag_slopes + [c1, c3]
+    d12new = d12 - delta_positive
+    d32new = d32 - delta_negative
+    slopes_left = [c1,c3] + zigzag_slopes + [c1,c3,c2]
+    slopes = slopes_left + [c1] + slopes_left[::-1] + [-1/(1 - f)]
+    intervals_left = [d11,d31] + zigzag_lengths + [d12new,d32new,d21]
+    interval_lengths = intervals_left + [d13] + intervals_left[::-1] + [1-f]
 
-    d12 = d2 / 2
-    d22 = d2 / 2
+    bhk = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
+    gmi = gmic(f)
+    return alpha * bhk + (1 - alpha) * gmi
 
-    d13 = c1 / (c1 - c3) * d12
-    d43 = d13
-    d11 = p - d13
-    d31 = p - d12
-    d51 = d11
-    d41 = (d1 - d11 - d31 - d51)/2
-    d21 = d41
-    d23 = (d3 - d13 - d43)/2
-    d33 = d23
+def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4):
+    """
+    This 4-slope function is shown [KChen_thesis] to be extreme.
+    This function can also be shown to be a facet.
 
-    del13 = c1 * del1 / (c1 - c3)
-    del11 = del1 - del13
+    Parameters:
+        f (real) \in (0,1);
+        s_pos, s_neg (real): positive slope and negative slope
+        lam1, lam2 (real).
 
-    del23 = c1 * del2 / (c1 - c3)
-    del21 = del2 - del23
+    Requirement:
+        1/2 <= f <= 1;
+        s_pos > 1/f;
+        s_neg < 1/(f - 1);
+        0 < lam1 < min(1/2, (s_pos - s_neg) / s_pos / (1 - s_neg * f));
+        f - 1 / s_pos < lam2 < min(1/2, (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)).
 
-    d21new = d21 - del11 - del21
-    d41new = d41 - del11 - del21
-    d23new = d23 - del13 - del23
-    d33new = d33 - del13 - del23
+    Examples:
+        [KChen_thesis]  p.38, fig.8 ::
 
-    t1 = del1
-    t2 = del1 + del2
-    a0 = d11+d13
-    a1 = a0 + t1
-    a2 = a0 + t2
-    A = a0+d21+d23
-    A0 = A + d12
-    # replace last c3 by -1/(1-f)
-    slope = [c1,c3,c1,c3,c1,c3,c1,c3,c2,c1,c2,c3,c1,c3,c1,c3,c1,c3,c1,-1/(1-f)]
+        sage: h = chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4)
 
-    interval_length = [d11,d13,del11,del13,del21,del23,d21new,d23new,d12,d31,d22,d33new,d41new,del23,del21,del13,del11,d43,d51,1-f]
+        sage: h = chen_4_slope(f=1/2, s_pos=4, s_neg=-4, lam1=1/3, lam2=1/3)
 
-    pre_h = piecewise_function_from_interval_lengths_and_slopes(interval_length, slope)
+        The following function's parameters do not satisfy the requirement, however it is extreme ::
 
-    ###attach("GMI.sage")
-    f = 4/5
-    gmi_bkpt = [0,f,1]
-    gmi_values = [0,1,0]
+        sage: h = chen_4_slope(f=1/2, s_pos=5, s_neg=-5, lam1=1/5, lam2=1/5)
 
-    gmi = piecewise_function_from_breakpoints_and_values(gmi_bkpt, gmi_values)
-
-    h = 95/100 * pre_h + 5/100 * gmi
-    return h
-
- ### TODO ###
- # Survey page 8-10, table 1-3
+    Reference:
+        [KChen_thesis]:  K. Chen, Topics in group methods for integer programming,
+                            Ph.D. thesis, Georgia Institute of Technology, June 2011.
+    """
+    if not (bool(0 < f < 1) and bool(s_pos > 1/f) and bool(s_neg < 1/(f - 1)) \
+                            and bool(0 < lam1 < 1) and bool(0 < lam2 < 1)):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if bool(1/2 <= f) and bool(lam1 < (s_pos - s_neg) / s_pos / (1 - s_neg * f)) and \
+        bool (f - 1 / s_pos < lam2 < (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)):
+        logging.info("Conditions for extremality are satisfied.")
+    else:
+        logging.info("Conditions for extremality are NOT satisfied.")
+    slopes = [s_pos, s_neg, 1/f, s_neg, s_pos, s_neg, s_pos, 1/(f-1), s_pos, s_neg]
+    aa = lam1 * (1 - s_neg * f) / 2 / (s_pos - s_neg)
+    a = lam1 * f / 2
+    b = f - a
+    bb = f - aa
+    c = 1 + lam2 * (f - 1) / 2
+    d = 1 + f - c
+    cc = 1 + (s_pos * lam2 * (f - 1) - lam2) / 2 / (s_pos - s_neg)
+    dd = 1 + f - cc
+    return piecewise_function_from_breakpoints_and_slopes([0, aa, a, b, bb, f, dd, d, c, cc, 1], slopes)
