@@ -126,7 +126,7 @@ def subadditivity_check_general(fn, continuity=None):
     if continuity == None:
         continuity = fn.is_continuous_defined()
     result = True
-    for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices_general(fn, continuity):
+    for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices_general(fn, continuity=continuity, reduced=True):
         logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
         result = False
     if result:
@@ -177,7 +177,7 @@ def symmetric_check_general(fn, f, continuity=None):
         logging.info("Thus pi is not symmetric.")
     return result
 
-def minimality_test_general(fn, f=None):
+def minimality_test_general(fn, show_plots=False, f=None):
     """
     Check if fn is minimal with respect to f. Works for discontinuous functions as well.
     """
@@ -205,11 +205,18 @@ def minimality_test_general(fn, f=None):
                 return False
     if subadditivity_check_general(fn, continuity) and symmetric_check_general(fn, f, continuity):
         logging.info('Thus pi is minimal.')
-        return True
-    logging.info('Thus pi is NOT minimal.')
-    return False
+        is_minimal = True
+    else:
+        logging.info('Thus pi is NOT minimal.')
+        is_minimal = False
+    if show_plots:
+        logging.info("Plotting 2d diagram...")
+        show_plot( plot_2d_diagram_general(fn, show_function=False, continuity=continuity, known_minimal=is_minimal),\
+                     show_plots, tag='2d_diagram' )
+        logging.info("Plotting 2d diagram... done")
+    return is_minimal
 
-def plot_2d_diagram_general(fn, show_function=False, continuity=None):
+def plot_2d_diagram_general(fn, show_function=False, continuity=None, known_minimal=False):
     """
     To show only a part of it, use
     `show(plot_2d_diagram(h), xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)`
@@ -241,21 +248,21 @@ def plot_2d_diagram_general(fn, show_function=False, continuity=None):
 
     ### For non-subadditive functions, show the points where delta_pi
     ### is negative.
-
-    nonsubadditive_vertices = generate_nonsubadditive_vertices_general(fn, continuity=continuity, reduced=False)
-    if continuity:
-        nonsubadditive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices}
-        p += point(list(nonsubadditive_vertices), \
-                            color = "red", size = 50, legend_label="Subadditivity violated", zorder=-1)
-        p += point([ (y,x) for (x,y) in nonsubadditive_vertices ], color = "red", size = 50, zorder=-1)
-    elif nonsubadditive_vertices != set([]):
-        for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices:
-            p += plot_limit_fan_of_vertex(x, y, (xeps, yeps, zeps))
-            if x != y:
-                p += plot_limit_fan_of_vertex(y, x, (yeps, xeps, zeps))
-        # add legend_label
-        p += point([(0,0)], color = "red", size = 50, legend_label="Subadditivity violated", zorder=-10)
-        p += point([(0,0)], color = "white", size = 50, zorder=-9)
+    if not known_minimal:
+        nonsubadditive_vertices = generate_nonsubadditive_vertices_general(fn, continuity=continuity, reduced=False)
+        if continuity:
+            nonsubadditive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices}
+            p += point(list(nonsubadditive_vertices), \
+                                color = "red", size = 50, legend_label="Subadditivity violated", zorder=-1)
+            p += point([ (y,x) for (x,y) in nonsubadditive_vertices ], color = "red", size = 50, zorder=-1)
+        elif nonsubadditive_vertices != set([]):
+            for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices:
+                p += plot_limit_cone_of_vertex(x, y, (xeps, yeps, zeps))
+                if x != y:
+                    p += plot_limit_cone_of_vertex(y, x, (yeps, xeps, zeps))
+            # add legend_label
+            p += point([(0,0)], color = "red", size = 50, legend_label="Subadditivity violated", zorder=-10)
+            p += point([(0,0)], color = "white", size = 50, zorder=-9)
     if show_function:
         x = var('x')
         #FIXME parametric_plot doesn't work for discontinuous functions.
@@ -265,51 +272,53 @@ def plot_2d_diagram_general(fn, show_function=False, continuity=None):
                                                 (x, 0, 1), color='blue')
     return p
 
-def plot_limit_fan_of_vertex(x, y, fan, color='red', r=0.03):
-    if fan == (-1,-1,-1): #13
+def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03):
+    if cone == (-1,-1,-1): #13
         p = disk((x,y), r, (pi, 3*pi/2), color=color, zorder=-5)
         p += line([(x,y), (x, y-r)], color='white', zorder=-4, thickness=3) # -3
         p += line([(x,y), (x-r, y)], color='white', zorder=-4, thickness=3) # -9
-    if fan == (-1, 1,-1): #12
+    elif cone == (-1, 1,-1): #12
         p = disk((x,y), r, (3*pi/4, pi), color=color, zorder=-5)
         p += line([(x,y), (x-r, y)], color='white', zorder=-4, thickness=3) # -9
         p += line([(x,y), (x-r/sqrt(2), y+r/sqrt(2))], color='white', zorder=-4, thickness=3) #-10
-    if fan == (-1, 1, 1): #11
+    elif cone == (-1, 1, 1): #11
         p = disk((x,y), r, (pi/2, 3*pi/4), color=color, zorder=-5)
         p += line([(x,y), (x, y+r)], color='white', zorder=-4, thickness=3) # -2
         p += line([(x,y), (x-r/sqrt(2), y+r/sqrt(2))], color='white', zorder=-4, thickness=3) #-10
-    if fan == (-1, 1, 0): #10
+    elif cone == (-1, 1, 0): #10
         p = line([(x,y), (x-r/sqrt(2), y+r/sqrt(2))], color=color, zorder=-3, thickness=3)
         p += point([(x,y)], color='white', size=20, zorder=-2) # -1
-    if fan == (-1, 0,-1): #9
+    elif cone == (-1, 0,-1): #9
         p = line([(x,y), (x-r, y)], color=color, zorder=-3, thickness=3)
         p += point([(x,y)], color='white', size=20, zorder=-2) # -1
-    if fan == ( 1,-1,-1): #8
+    elif cone == ( 1,-1,-1): #8
         p = disk((x,y), r, (3*pi/2, 7*pi/4), color=color, zorder=-5)
         p += line([(x,y), (x, y-r)], color='white', zorder=-4, thickness=3) # -3
         p += line([(x,y), (x+r/sqrt(2), y-r/sqrt(2))], color='white', zorder=-4, thickness=3) # -6
-    if fan == ( 1,-1, 1): #7
+    elif cone == ( 1,-1, 1): #7
         p = disk((x,y), r, (7*pi/4, 2*pi), color=color, zorder=-5)
         p += line([(x,y), (x+r, y)], color='white', zorder=-4, thickness=3) # -4
         p += line([(x,y), (x+r/sqrt(2), y-r/sqrt(2))], color='white', zorder=-4, thickness=3) # -6
-    if fan == ( 1,-1, 0): #6
+    elif cone == ( 1,-1, 0): #6
         p = line([(x,y), (x+r/sqrt(2), y-r/sqrt(2))], color=color, zorder=-3, thickness=3)
         p += point([(x,y)], color='white', size=20, zorder=-2) # -1
-    if fan == ( 1, 1, 1): #5
+    elif cone == ( 1, 1, 1): #5
         p = disk((x,y), r, (0, pi/2), color=color, zorder=-5)
         p += line([(x,y), (x+r, y)], color='white', zorder=-4, thickness=3) # -4
         p += line([(x,y), (x, y+r)], color='white', zorder=-4, thickness=3) # -2
-    if fan == ( 1, 0, 1): #4
+    elif cone == ( 1, 0, 1): #4
         p = line([(x,y), (x+r, y)], color=color, zorder=-3, thickness=3)
         p += point([(x,y)], color='white', size=20, zorder=-2) # -1
-    if fan == ( 0,-1,-1): #3
+    elif cone == ( 0,-1,-1): #3
         p = line([(x,y), (x, y-r)], color=color, zorder=-3, thickness=3)
         p += point([(x,y)], color='white', size=20, zorder=-2) # -1
-    if fan == ( 0, 1, 1): #2
+    elif cone == ( 0, 1, 1): #2
         p = line([(x,y), (x, y+r)], color=color, zorder=-3, thickness=3)
         p += point([(x,y)], color='white', size=20, zorder=-2) # -1
-    if fan == ( 0, 0, 0): #1
+    elif cone == ( 0, 0, 0): #1
         p = point([(x,y)], color=color, size=20, zorder=-1)
+    else:
+         raise ValueError,"The limit cone %s does not exist." % cone
     return p
 
 ###### Temporary code. Look for covered intervals on a 2d-diagram ########
@@ -325,10 +334,88 @@ def plot_2d_additive_limit_vertices(fn, continuity=None):
         p += point([ (y,x) for (x,y) in additive_vertices ], color = "mediumspringgreen", size = 50, zorder=-1)
     elif additive_vertices != set([]):
         for (x, y, z, xeps, yeps, zeps) in additive_vertices:
-            p += plot_limit_fan_of_vertex(x, y, (xeps, yeps, zeps), color="mediumspringgreen")
+            p += plot_limit_cone_of_vertex(x, y, (xeps, yeps, zeps), color="mediumspringgreen")
             if x != y:
-                p += plot_limit_fan_of_vertex(y, x, (yeps, xeps, zeps), color="mediumspringgreen")
+                p += plot_limit_cone_of_vertex(y, x, (yeps, xeps, zeps), color="mediumspringgreen")
         # add legend_label
         p += point([(0,0)], color = "mediumspringgreen", size = 50, legend_label="Additivity", zorder=-10)
         p += point([(0,0)], color = "white", size = 50, zorder=-9)
     return p
+
+def finite_dimensional_extremality_test_general(function, show_plots=False, f=None, components=None):
+    #FIXME: parameter `components' is temporary. should be removed once generate_covered_intervals_general has been developped.
+    continuity = function.is_continuous_defined()
+    if continuity:    # Copy from functions.sage
+        symbolic, components, field = symbolic_piecewise(function)
+        equations = generate_additivity_equations(function, symbolic, field, f=f)
+        slopes_vects = equations.right_kernel().basis()
+        logging.info("Solution space has dimension %s" % len(slopes_vects))
+        if len(slopes_vects) == 0:
+            logging.info("Thus the function is extreme.")
+            return True
+        else:
+            for basis_index in range(len(slopes_vects)):
+                slopes = list(slopes_vects[basis_index])
+                perturbation = function._perturbation = generate_compatible_piecewise_function(components, slopes)
+                check_perturbation(function, perturbation,
+                                   show_plots=show_plots, show_plot_tag='perturbation-%s' % (basis_index + 1),
+                                   legend_title="Basic perturbation %s" % (basis_index + 1))
+            return False
+    else:
+        #FIXME: if function is discontinuous, need to provide components, a list recording covered_intervals.
+        # dg_2_step_mir_limit() example: components = [ [[0, 1/5], [1/5, 2/5], [2/5, 3/5], [3/5, 1]] ]
+        # drlm_3_slope_limit() example: components = [ [[0, 1/5]], [[1/5, 1]] ]
+        # rlm_dpl1_fig3_lowerleft_not_extreme() example: components = [ [[0, 1/4]], [[1/4, 5/8], [5/8, 1]] ]
+        field = function(0).parent().fraction_field()
+        bkpt_set = {interval[0] for component in components for interval in component}
+        # bkpt_set.add(1) are the possible discontinuous points
+        n = len(components)
+        m = len(bkpt_set)
+        vector_space = VectorSpace(field, n + 2*m)
+        component_slopes = vector_space.basis()[0:n]
+        intervals_and_slopes = []
+        for component, slope in itertools.izip(components, component_slopes):
+            intervals_and_slopes.extend([ (interval, slope) for interval in component ])
+        intervals_and_slopes.sort()
+        bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
+        # Note: bkpt[0] == 0; bkpt[m] == 1
+        slopes = [ slope for interval, slope in intervals_and_slopes ]
+        jumps = vector_space[n: n + 2*m]
+        # Initialize symbolic function and system of equations.
+        current_value = zeros = vector_space.zero()
+        pieces = []
+        limit_values = function.limits(bkpt[0])
+        equations = []
+        # Set up symbolic function
+        for i in range(m):
+            pieces.append([singleton_interval(bkpt[i]), FastLinearFunction(zeros, current_value)])
+            current_value += jumps[2*i]
+            if limit_values[0] == limit_values[1]:
+                # if \pi is right continuous at bkpt[i], so is any \phi
+                equations.append(jumps[2*i])
+            pieces.append([open_interval(bkpt[i], bkpt[i+1]), FastLinearFunction(slopes[i], current_value - slopes[i]*bkpt[i])])
+            current_value += slopes[i] * (bkpt[i+1] - bkpt[i])+ jumps[2*i + 1]
+            limit_values = function.limits(bkpt[i+1])
+            if limit_values[-1] == limit_values[0]:
+                # if \pi is left continuous at bkpt[i+1], so is any \phi
+                equations.append(jumps[2*i + 1])
+        pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, zeros)])
+        symbolic = FastPiecewise(pieces)
+        if f == None:
+            f = find_f(function)
+        equations.append(symbolic(f))
+        equations.append(symbolic(bkpt[m]))
+        for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, continuity=continuity, reduced=True):
+            new_equation = symbolic.limit(x, xeps) + symbolic.limit(y, yeps) - symbolic.limit(z, zeps)
+            equations.append(new_equation)
+        equation_matrix = matrix(field, equations)
+        # Solve system of equations.
+        # A solution gives [slope_value[0],..., slope_value[n-1], jump_value[0], ..., jump_value[2*m -1]]
+        slope_jump_vects = equation_matrix.right_kernel().basis()
+        logging.info("Solution space has dimension %s" % len(slope_jump_vects))
+        if len(slope_jump_vects) == 0:
+            logging.info("Thus the function is extreme.")
+            return True
+        else:
+            #FIXME: perturbations...
+            return False
