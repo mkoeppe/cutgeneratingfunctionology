@@ -2667,6 +2667,30 @@ def interval_length(interval):
         return interval[1] - interval[0]
     return 0
 
+def coho_interval_left_endpoint_with_epsilon(i):
+    """Return (x, epsilon)
+    where x is the left endpoint
+    and epsilon is 0 if the interval is left closed and 1 otherwise.
+    """
+    if len(i) == 2:
+        # old-fashioned closed interval
+        return i[0], 0 # Scanning from the left, turn on at left endpoint.
+    else:
+        # coho interval
+        return i.a, 0 if i.left_closed else 1
+
+def coho_interval_right_endpoint_with_epsilon(i):
+    """Return (x, epsilon)
+    where x is the right endpoint
+    and epsilon is 1 if the interval is right closed and 0 otherwise.
+    """
+    if len(i) == 2:
+        # old-fashioned closed interval
+        return i[1], 1 # Scanning from the left, turn off at right endpoint plus epsilon
+    else:
+        # coho interval
+        return i.b, 1 if i.right_closed else 0
+
 def scan_coho_interval_left_endpoints(interval_list, tag=None, delta=-1):
     """Generate events of the form `(x, epsilon), delta, tag.`
 
@@ -2674,12 +2698,7 @@ def scan_coho_interval_left_endpoints(interval_list, tag=None, delta=-1):
     and that the intervals are pairwise disjoint.
     """
     for i in interval_list:
-        if len(i) == 2:
-            # old-fashioned closed interval
-            yield (i[0], 0), delta, tag                             # Turn on at left endpoint
-        else:
-            # coho interval
-            yield (i.a, 0 if i.left_closed else 1), delta, tag
+        yield coho_interval_left_endpoint_with_epsilon(i), delta, tag
 
 def scan_coho_interval_right_endpoints(interval_list, tag=None, delta=+1):
     """Generate events of the form `(x, epsilon), delta, tag.`
@@ -2688,12 +2707,7 @@ def scan_coho_interval_right_endpoints(interval_list, tag=None, delta=+1):
     and that the intervals are pairwise disjoint.
     """
     for i in interval_list:
-        if len(i) == 2:
-            # old-fashioned closed interval
-            yield (i[1], 1), delta, tag                             # Turn off at right endpoint plus epsilon
-        else:
-            # coho interval
-            yield (i.b, 1 if i.right_closed else 0), delta, tag
+        yield coho_interval_right_endpoint_with_epsilon(i), delta, tag
 
 def scan_coho_interval_list(interval_list, tag=None, on_delta=-1, off_delta=+1):
     """Generate events of the form `(x, epsilon), delta, tag.`
