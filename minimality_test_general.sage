@@ -55,11 +55,10 @@ def generate_type_1_vertices_general(fn, comparison, continuity=True, reduced=Tr
 def generate_type_2_vertices_general(fn, comparison, continuity=True, reduced=True):
     """
     When reduced=True:
-        1) only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_check or setting up equations.
-        2) if fn is continuous at y, yeps = 0 could mean yeps=-1, 0 or 1 at same time. (notice that fn(y-) = fn(y) = fn(y+))
+        only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_check or setting up equations.
+        Note: if fn is continuous at y, then fn(y-) = fn(y) = fn(y+)
     When reduced=False:
-        1) outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive or additive_limit_vertices.
-        2) (x, y, z, xeps, yeps, zeps) has the usual meaning.
+        outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive or additive_limit_vertices.
     """
     bkpt = fn.end_points()
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
@@ -88,10 +87,13 @@ def generate_type_2_vertices_general(fn, comparison, continuity=True, reduced=Tr
                     # then y is a in bkpt. this is done in type1check_general.
                     continue
                 if reduced:
-                    for xeps in [0, 1, -1]:
-                        for zeps in [0, 1, -1]:
+                    for zeps in [1, -1]:
+                        for xeps in [0, 1, -1]:
                             if comparison(limits_x[xeps] + limits_y[0], limits_z[zeps]):
-                                yield (x, y, z, xeps, 0, zeps)
+                                yield (x, y, z, xeps, zeps, zeps)
+                    for xeps in [1, -1]:
+                        if comparison(limits_x[xeps] + limits_y[0], limits_z[0]):
+                            yield (x, y, z, xeps, -xeps, 0)
                 else:
                     for eps in [1, -1]:
                         # (+ + +), (- - -). note that (0 0 0) has alreadly been checked.
@@ -115,11 +117,9 @@ def generate_nonsubadditive_vertices_general(fn, continuity=True, reduced=True):
     so that duplicates are removed, and so the result can be cached for later use.
 
     When reduced=True:
-        1) only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_check.
-        2) if fn is continuous at y, yeps = 0 could mean yeps=-1, 0 or 1 at same time. (notice that fn(y-) = fn(y) = fn(y+))
+        only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_check.
     When reduced=False:
-        1) outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive_limit_vertices.
-        2) (x, y, z, xeps, yeps, zeps) has the usual meaning.
+        outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive_limit_vertices.
     """
     return { (x, y, z, xeps, yeps, zeps)
              for (x, y, z, xeps, yeps, zeps) in itertools.chain( \
@@ -133,11 +133,9 @@ def generate_additive_vertices_general(fn, continuity=True, reduced=True):
     so that duplicates are removed, and so the result can be cached for later use.
 
     When reduced=True:
-        1) only outputs fewer triples satisfying `comparison' relation, for the purpose of setting up the system of equations.
-        2) if fn is continuous at y, yeps = 0 could mean yeps=-1, 0 or 1 at same time. (notice that fn(y-) = fn(y) = fn(y+))
+        only outputs fewer triples satisfying `comparison' relation, for the purpose of setting up the system of equations.
     When reduced=False:
-        1) outputs all triples satisfying `comparison' relation, for the purpose of plotting additive_limit_vertices.
-        2) (x, y, z, xeps, yeps, zeps) has the usual meaning.
+        outputs all triples satisfying `comparison' relation, for the purpose of plotting additive_limit_vertices.
     """
     return { (x, y, z, xeps, yeps, zeps)
              for (x, y, z, xeps, yeps, zeps) in itertools.chain( \
