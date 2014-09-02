@@ -3043,6 +3043,9 @@ def generate_nonsubadditive_vertices(fn):
                                                                 generate_type_2_vertices(fn, operator.lt))
              if xeps==yeps==zeps==0 }
 
+class MaximumNumberOfIterationsReached(Exception):
+    pass
+
 def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True):
     do_phase_1_lifting = False
     if f == None:
