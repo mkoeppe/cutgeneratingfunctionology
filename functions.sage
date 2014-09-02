@@ -3266,6 +3266,12 @@ def compose_directed_moves(A, B, interiors=False, show_plots=False):
     return result
 
 def merge_functional_directed_moves(A, B, show_plots=False):
+    """
+    EXAMPLES::
+        sage: merge_functional_directed_moves(FunctionalDirectedMove([(3/10, 7/20), (9/20, 1/2)], (1,0)),
+                                              FunctionalDirectedMove([(3/10, 13/40)], (1,0)))
+        <FunctionalDirectedMove (1, 0) with domain [(3/10, 7/20), (9/20, 1/2)]>
+    """
     if A.directed_move != B.directed_move:
         raise ValueError, "Cannot merge, moves have different operations"
     #merge_two_comp(A.intervals(), B.intervals(), one_point_overlap_suffices=True), 
