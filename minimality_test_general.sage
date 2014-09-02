@@ -283,9 +283,9 @@ def plot_2d_diagram_general(fn, show_function=False, continuity=None, known_mini
             p += point([ (y,x) for (x,y) in nonsubadditive_vertices ], color = "red", size = 50, zorder=-1)
         elif nonsubadditive_vertices != set([]):
             for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices:
-                p += plot_limit_cone_of_vertex(x, y, (xeps, yeps, zeps))
+                p += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)))
                 if x != y:
-                    p += plot_limit_cone_of_vertex(y, x, (yeps, xeps, zeps))
+                    p += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)))
             # add legend_label
             p += point([(0,0)], color = "red", size = 50, legend_label="Subadditivity violated", zorder=-10)
             p += point([(0,0)], color = "white", size = 50, zorder=-9)
@@ -297,54 +297,58 @@ def plot_2d_diagram_general(fn, show_function=False, continuity=None, known_mini
         p += parametric_plot((lambda x: - 0.3 * float(fn(x)), lambda x: x), \
                                                 (x, 0, 1), color='blue')
     return p
+def epstriple_to_cone(epstriple):
+    if epstriple == (-1,-1,-1): #13
+        return [(-1, 0), (0, -1)]
+    elif epstriple == (-1, 1,-1): #12
+        return [(-1, 1), (-1, 0)]
+    elif epstriple == (-1, 1, 1): #11
+        return [(0, 1), (-1, 1)]
+    elif epstriple == (-1, 1, 0): #10
+        return [(-1, 1)]
+    elif epstriple == (-1, 0,-1): #9
+        return [(-1, 0)]
+    elif epstriple == ( 1,-1,-1): #8
+        return [(0, -1), (1, -1)]
+    elif epstriple == ( 1,-1, 1): #7
+        return [(1, -1), (1, 0)]
+    elif epstriple == ( 1,-1, 0): #6
+        return [(1, -1)]
+    elif epstriple == ( 1, 1, 1): #5
+        return [(1, 0), (0, 1)]
+    elif epstriple == ( 1, 0, 1): #4
+        return [(1, 0)]
+    elif epstriple == ( 0,-1,-1): #3
+        return [(0, -1)]
+    elif epstriple == ( 0, 1, 1): #2
+        return [(0, 1)]
+    elif epstriple == ( 0, 0, 0): #1
+        return []
+    else:
+        raise ValueError,"The limit epstriple %s does not exist." % epstriple
 
 def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03):
-    if cone == (-1,-1,-1): #13
-        p = disk((x,y), r, (pi, 3*pi/2), color=color, zorder=-5)
-        p += line([(x,y), (x, y-r)], color='white', zorder=-4, thickness=3) # -3
-        p += line([(x,y), (x-r, y)], color='white', zorder=-4, thickness=3) # -9
-    elif cone == (-1, 1,-1): #12
-        p = disk((x,y), r, (3*pi/4, pi), color=color, zorder=-5)
-        p += line([(x,y), (x-r, y)], color='white', zorder=-4, thickness=3) # -9
-        p += line([(x,y), (x-r/sqrt(2), y+r/sqrt(2))], color='white', zorder=-4, thickness=3) #-10
-    elif cone == (-1, 1, 1): #11
-        p = disk((x,y), r, (pi/2, 3*pi/4), color=color, zorder=-5)
-        p += line([(x,y), (x, y+r)], color='white', zorder=-4, thickness=3) # -2
-        p += line([(x,y), (x-r/sqrt(2), y+r/sqrt(2))], color='white', zorder=-4, thickness=3) #-10
-    elif cone == (-1, 1, 0): #10
-        p = line([(x,y), (x-r/sqrt(2), y+r/sqrt(2))], color=color, zorder=-3, thickness=3)
-        p += point([(x,y)], color='white', size=20, zorder=-2) # -1
-    elif cone == (-1, 0,-1): #9
-        p = line([(x,y), (x-r, y)], color=color, zorder=-3, thickness=3)
-        p += point([(x,y)], color='white', size=20, zorder=-2) # -1
-    elif cone == ( 1,-1,-1): #8
-        p = disk((x,y), r, (3*pi/2, 7*pi/4), color=color, zorder=-5)
-        p += line([(x,y), (x, y-r)], color='white', zorder=-4, thickness=3) # -3
-        p += line([(x,y), (x+r/sqrt(2), y-r/sqrt(2))], color='white', zorder=-4, thickness=3) # -6
-    elif cone == ( 1,-1, 1): #7
-        p = disk((x,y), r, (7*pi/4, 2*pi), color=color, zorder=-5)
-        p += line([(x,y), (x+r, y)], color='white', zorder=-4, thickness=3) # -4
-        p += line([(x,y), (x+r/sqrt(2), y-r/sqrt(2))], color='white', zorder=-4, thickness=3) # -6
-    elif cone == ( 1,-1, 0): #6
-        p = line([(x,y), (x+r/sqrt(2), y-r/sqrt(2))], color=color, zorder=-3, thickness=3)
-        p += point([(x,y)], color='white', size=20, zorder=-2) # -1
-    elif cone == ( 1, 1, 1): #5
-        p = disk((x,y), r, (0, pi/2), color=color, zorder=-5)
-        p += line([(x,y), (x+r, y)], color='white', zorder=-4, thickness=3) # -4
-        p += line([(x,y), (x, y+r)], color='white', zorder=-4, thickness=3) # -2
-    elif cone == ( 1, 0, 1): #4
-        p = line([(x,y), (x+r, y)], color=color, zorder=-3, thickness=3)
-        p += point([(x,y)], color='white', size=20, zorder=-2) # -1
-    elif cone == ( 0,-1,-1): #3
-        p = line([(x,y), (x, y-r)], color=color, zorder=-3, thickness=3)
-        p += point([(x,y)], color='white', size=20, zorder=-2) # -1
-    elif cone == ( 0, 1, 1): #2
-        p = line([(x,y), (x, y+r)], color=color, zorder=-3, thickness=3)
-        p += point([(x,y)], color='white', size=20, zorder=-2) # -1
-    elif cone == ( 0, 0, 0): #1
-        p = point([(x,y)], color=color, size=20, zorder=-1)
+    orig = vector(RDF, (x, y))
+    if len(cone) == 0:
+        p = point([orig], color=color, size=20, zorder=-1)
+    elif len(cone) == 1:
+        ray1 = vector(RDF, cone[0])
+        p = line([orig, orig + ray1 * r / ray1.norm()], color=color, zorder=-3, thickness=3)
+        p += point([orig], color='white', size=20, zorder=-2)
+    elif len(cone) ==2:
+        ray1 = vector(RDF, cone[0])
+        ray2 = vector(RDF, cone[1])
+        phi1 = arctan2(ray1[1], ray1[0])
+        phi2 = arctan2(ray2[1], ray2[0])
+        if phi1 > phi2:
+            phi1, phi2 = phi2, phi1
+        if phi2 - phi1 > pi:
+            phi1, phi2 = phi2, phi1 + 2 * pi
+        p = disk(orig, r, (phi1, phi2), color=color, zorder=-5)
+        p += line([orig, orig + ray1 * r / ray1.norm()], color='white', zorder=-4, thickness=3)
+        p += line([orig, orig + ray2 * r / ray2.norm()], color='white', zorder=-4, thickness=3)
     else:
-         raise ValueError,"The limit cone %s does not exist." % cone
+        raise ValueError, "The cone %s is not well defined." % cone
     return p
 
 ###### Temporary code. Look for covered intervals on a 2d-diagram ########
@@ -360,9 +364,9 @@ def plot_2d_additive_limit_vertices(fn, continuity=None):
         p += point([ (y,x) for (x,y) in additive_vertices ], color = "mediumspringgreen", size = 50, zorder=-1)
     elif additive_vertices != set([]):
         for (x, y, z, xeps, yeps, zeps) in additive_vertices:
-            p += plot_limit_cone_of_vertex(x, y, (xeps, yeps, zeps), color="mediumspringgreen")
+            p += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), color="mediumspringgreen")
             if x != y:
-                p += plot_limit_cone_of_vertex(y, x, (yeps, xeps, zeps), color="mediumspringgreen")
+                p += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)), color="mediumspringgreen")
         # add legend_label
         p += point([(0,0)], color = "mediumspringgreen", size = 50, legend_label="Additivity", zorder=-10)
         p += point([(0,0)], color = "white", size = 50, zorder=-9)
