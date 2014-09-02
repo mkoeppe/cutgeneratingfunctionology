@@ -1,3 +1,5 @@
+load("functions.sage")
+
 import logging
 
 logging.basicConfig(format='%(levelname)s: %(asctime)s %(message)s', level=logging.INFO)
@@ -262,6 +264,7 @@ def gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3):
             sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/6)
             sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3)
             sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/2)
+
         Try irrational case ::
             sage: h = gj_forward_3_slope(f=sqrt(17)/5, lambda_1=sqrt(5)/9, lambda_2=1/sqrt(10))
 

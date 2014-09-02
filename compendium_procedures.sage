@@ -1,9 +1,11 @@
-load("functions.sage") # FIXME: this makes loading this file in sage -t possible; needed because of default argument in projected_sequential_merge
+load("functions.sage")
+load("extreme_functions_in_literature.sage")                # for gmic()
 
 def transform_coho_interval(interval, shift, divisor):
     """Shift `interval` by `shift` and then divide it by `divisor`.
 
     EXAMPLES:
+    sage: load("functions.sage")
     sage: transform_coho_interval([1, 3], 1, 2)
     [1, 2]
     sage: transform_coho_interval([1, 3], 1, -1)
@@ -68,8 +70,9 @@ def projected_sequential_merge(g, n=1):
     Examples:
         [39]  p.311, fig.5 ::
 
+        sage: load("extreme_functions_in_literature.sage")
+        sage: logging.disable(logging.INFO)
         sage: g = multiplicative_homomorphism(gj_forward_3_slope(f=2/3, lambda_1=1/4, lambda_2=1/4), -1)
-
         sage: h = projected_sequential_merge(g, n=1)
 
     Reference:
@@ -105,6 +108,7 @@ def finite_group_order_from_function_f_oversampling_order(fn, f=None, oversampli
 
     EXAMPLES::
     sage: logging.disable(logging.INFO)
+    sage: load("functions.sage")
     sage: load("extreme_functions_in_literature.sage")
     sage: finite_group_order_from_function_f_oversampling_order(gmic(f=4/5), order=17)
     17
@@ -170,6 +174,7 @@ def restrict_to_finite_group(function, f=None, oversampling=None, order=None):
 
     EXAMPLES::
     sage: logging.disable(logging.WARN)
+    sage: load("functions.sage")
     sage: load("extreme_functions_in_literature.sage")
     sage: load("survey_examples.sage")
     sage: g = gj_2_slope()
@@ -228,9 +233,10 @@ represented as a `FastPiecewise` with singleton intervals within [0,1] as its pa
     
     The same as restrict_to_finite_group(drlm_not_extreme_1()):
 
+    sage: load("functions.sage")
     sage: logging.disable(logging.WARN)
     sage: h7 = discrete_function_from_points_and_values([0/7, 1/7, 2/7, 3/7, 4/7, 5/7, 6/7, 7/7], [0/10, 4/10, 8/10, 5/10, 2/10, 6/10, 10/10, 0/10])
-    sage: finite_dimensional_extremality_test(h7):
+    sage: finite_dimensional_extremality_test(h7)
     True
     sage: h = interpolate_to_infinite_group(h7)
     sage: extremality_test(h)
