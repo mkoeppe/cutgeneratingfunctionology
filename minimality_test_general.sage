@@ -121,10 +121,9 @@ def generate_nonsubadditive_vertices_general(fn, continuity=True, reduced=True):
     When reduced=False:
         outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive_limit_vertices.
     """
-    return { (x, y, z, xeps, yeps, zeps)
-             for (x, y, z, xeps, yeps, zeps) in itertools.chain( \
+    return set(itertools.chain( \
                 generate_type_1_vertices_general(fn, operator.lt, continuity=continuity, reduced=reduced),\
-                generate_type_2_vertices_general(fn, operator.lt, continuity=continuity, reduced=reduced)) }
+                generate_type_2_vertices_general(fn, operator.lt, continuity=continuity, reduced=reduced))  )
 
 @cached_function
 def generate_additive_vertices_general(fn, continuity=True, reduced=True):
@@ -137,10 +136,9 @@ def generate_additive_vertices_general(fn, continuity=True, reduced=True):
     When reduced=False:
         outputs all triples satisfying `comparison' relation, for the purpose of plotting additive_limit_vertices.
     """
-    return { (x, y, z, xeps, yeps, zeps)
-             for (x, y, z, xeps, yeps, zeps) in itertools.chain( \
+    return set(itertools.chain( \
                 generate_type_1_vertices_general(fn, operator.eq, continuity=continuity, reduced=reduced),\
-                generate_type_2_vertices_general(fn, operator.eq, continuity=continuity, reduced=reduced)) }
+                generate_type_2_vertices_general(fn, operator.eq, continuity=continuity, reduced=reduced)) )
 
 def subadditivity_check_general(fn, continuity=None):
     """
@@ -279,7 +277,7 @@ def plot_2d_diagram_general(fn, show_function=False, continuity=None, known_mini
             p += point(list(nonsubadditive_vertices), \
                                 color = "red", size = 50, legend_label="Subadditivity violated", zorder=-1)
             p += point([ (y,x) for (x,y) in nonsubadditive_vertices ], color = "red", size = 50, zorder=-1)
-        elif nonsubadditive_vertices != set([]):
+        elif nonsubadditive_vertices:
             for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices:
                 p += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)))
                 if x != y:
@@ -296,33 +294,23 @@ def plot_2d_diagram_general(fn, show_function=False, continuity=None, known_mini
                                                 (x, 0, 1), color='blue')
     return p
 def epstriple_to_cone(epstriple):
-    if epstriple == (-1,-1,-1): #13
-        return [(-1, 0), (0, -1)]
-    elif epstriple == (-1, 1,-1): #12
-        return [(-1, 1), (-1, 0)]
-    elif epstriple == (-1, 1, 1): #11
-        return [(0, 1), (-1, 1)]
-    elif epstriple == (-1, 1, 0): #10
-        return [(-1, 1)]
-    elif epstriple == (-1, 0,-1): #9
-        return [(-1, 0)]
-    elif epstriple == ( 1,-1,-1): #8
-        return [(0, -1), (1, -1)]
-    elif epstriple == ( 1,-1, 1): #7
-        return [(1, -1), (1, 0)]
-    elif epstriple == ( 1,-1, 0): #6
-        return [(1, -1)]
-    elif epstriple == ( 1, 1, 1): #5
-        return [(1, 0), (0, 1)]
-    elif epstriple == ( 1, 0, 1): #4
-        return [(1, 0)]
-    elif epstriple == ( 0,-1,-1): #3
-        return [(0, -1)]
-    elif epstriple == ( 0, 1, 1): #2
-        return [(0, 1)]
-    elif epstriple == ( 0, 0, 0): #1
-        return []
-    else:
+    dic = { (-1,-1,-1): [(-1, 0), (0, -1)], \
+            (-1, 1,-1): [(-1, 1), (-1, 0)], \
+            (-1, 1, 1): [(0, 1), (-1, 1)], \
+            (-1, 1, 0): [(-1, 1)], \
+            (-1, 0,-1): [(-1, 0)], \
+            ( 1,-1,-1): [(0, -1), (1, -1)], \
+            ( 1,-1, 1): [(1, -1), (1, 0)], \
+            ( 1,-1, 0): [(1, -1)], \
+            ( 1, 1, 1): [(1, 0), (0, 1)], \
+            ( 1, 0, 1): [(1, 0)], \
+            ( 0,-1,-1): [(0, -1)], \
+            ( 0, 1, 1): [(0, 1)], \
+            ( 0, 0, 0): [] \
+          }
+    try:
+        return dic[epstriple]
+    except KeyError:
         raise ValueError,"The limit epstriple %s does not exist." % epstriple
 
 def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03):
@@ -394,6 +382,8 @@ def finite_dimensional_extremality_test_general(function, show_plots=False, f=No
         # dg_2_step_mir_limit() example: components = [ [[0, 1/5], [1/5, 2/5], [2/5, 3/5], [3/5, 1]] ]
         # drlm_3_slope_limit() example: components = [ [[0, 1/5]], [[1/5, 1]] ]
         # rlm_dpl1_fig3_lowerleft_not_extreme() example: components = [ [[0, 1/4]], [[1/4, 5/8], [5/8, 1]] ]
+        if components == None:
+            raise ValueError,"Need to provide ``components'' for discontinuous funcitons."
         field = function(0).parent().fraction_field()
         bkpt_set = {interval[0] for component in components for interval in component}
         # bkpt_set.add(1) are the possible discontinuous points
@@ -409,26 +399,30 @@ def finite_dimensional_extremality_test_general(function, show_plots=False, f=No
         # Note: bkpt[0] == 0; bkpt[m] == 1
         slopes = [ slope for interval, slope in intervals_and_slopes ]
         jumps = vector_space.basis()[n: n + 2*m]
-        # Initialize symbolic function and system of equations.
+        # Initialize symbolic function
         current_value = zeros = vector_space.zero()
         pieces = []
-        limit_values = function.limits(bkpt[0])
-        equations = []
         # Set up symbolic function
         for i in range(m):
             pieces.append([singleton_interval(bkpt[i]), FastLinearFunction(zeros, current_value)])
             current_value += jumps[2*i]
+            pieces.append([open_interval(bkpt[i], bkpt[i+1]), FastLinearFunction(slopes[i], current_value - slopes[i]*bkpt[i])])
+            current_value += slopes[i] * (bkpt[i+1] - bkpt[i])+ jumps[2*i + 1]
+        pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, current_value)])
+        symbolic = FastPiecewise(pieces, merge=True)
+        global symfn
+        symfn = symbolic
+        # Set up system of equations
+        equations = []
+        limit_values = function.limits(bkpt[0])
+        for i in range(m):
             if limit_values[0] == limit_values[1]:
                 # if \pi is right continuous at bkpt[i], so is any \phi
                 equations.append(jumps[2*i])
-            pieces.append([open_interval(bkpt[i], bkpt[i+1]), FastLinearFunction(slopes[i], current_value - slopes[i]*bkpt[i])])
-            current_value += slopes[i] * (bkpt[i+1] - bkpt[i])+ jumps[2*i + 1]
             limit_values = function.limits(bkpt[i+1])
             if limit_values[-1] == limit_values[0]:
                 # if \pi is left continuous at bkpt[i+1], so is any \phi
                 equations.append(jumps[2*i + 1])
-        pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, current_value)])
-        symbolic = FastPiecewise(pieces, merge=False)
         if f == None:
             f = find_f(function)
         equations.append(symbolic(f))
@@ -450,8 +444,15 @@ def finite_dimensional_extremality_test_general(function, show_plots=False, f=No
             return True
         else:
             #FIXME: perturbations...
-            print slope_jump_vects[0]
+            #for basis_index in range(len(slope_jump_vects)):
+            #    slope_jump = list(slope_jump_vects[basis_index])
+            #    #perturbation = function._perturbation = generate_compatible_piecewise_function(components, slopes)
+            #    check_perturbation(function, perturbation,
+            #                        show_plots=show_plots, show_plot_tag='perturbation-%s' % (basis_index + 1),
+            #                        legend_title="Basic perturbation %s" % (basis_index + 1))
             return False
+
+#def generate_compatible_piecewise_function_general(components, slope_vars, field=None):
 
 def periodic_one_limit(x, xeps, field):
     x = fractional(x)
