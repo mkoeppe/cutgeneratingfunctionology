@@ -1524,42 +1524,43 @@ class FastPiecewise (PiecewisePolynomial):
             raise ValueError,"Value not defined at point %s%s, outside of domain." % (x0, print_sign(epsilon))
         return result
 
-    # Copy from piecewise.py
-    #def _make_compatible(self, other):
-    #    """
-    #    Returns self and other extended to be defined on the same domain as
-    #    well as a refinement of their intervals. This is used for adding
-    #    and multiplying piecewise functions.
-    #    """
-    #    a1, b1 = self.domain()
-    #    a2, b2 = other.domain()
-    #    a = min(a1, a2)
-    #    b = max(b1, b2)
-    #    F = self.extend_by_zero_to(a,b)
-    #    G = other.extend_by_zero_to(a,b)
-    #    endpts = list(set(F.end_points()).union(set(G.end_points())))
-    #    endpts.sort()
-    #    return F, G, zip(endpts, endpts[1:])
+    def which_function_on_interval(self, interval):
+        x = (interval[0] + interval[1]) / 2
+        # FIXME: This should check that the given `interval` is contained in the defining interval!
+        # This could be implemented by refactoring which_function using new function which_function_index.
+        return self.which_function(x)
 
-    # FIXME: fix __add__ and __mul__ so that they can handle
-    # discontinuous functions and functions defined on disconnected domain.
     def __add__(self,other):
-        F, G, intervals = self._make_compatible(other)
-        fcn = []
-        for a,b in intervals:
-            fcn.append([(a,b), F.which_function(b)+G.which_function(b)])        
-        return FastPiecewise(fcn)
+        """
+        In contrast to PiecewisePolynomial.__add__, this does not do zero extension of domains.
+        Rather, the result is only defined on the intersection of the domains.
+
+        EXAMPLES::
+        sage: f = FastPiecewise([[singleton_interval(1), FastLinearFunction(0,17)]], merge=False)
+        sage: g = FastPiecewise([[[0,2], FastLinearFunction(0,2)]], merge=False)
+        sage: (f+g).list()
+        [[<Int{1}>, <FastLinearFunction 19>]]
+        sage: h = FastPiecewise([[open_interval(1,3), FastLinearFunction(0,3)]], merge=False)
+        sage: (g+h).list()
+        [[<Int(1, 2]>, <FastLinearFunction 5>]]
+        sage: j = FastPiecewise([[open_interval(0,1), FastLinearFunction(0,1)], [[1, 3], FastLinearFunction(0, 5)]], merge=False)
+        sage: (g+j).list()
+        [[<Int(0, 1)>, <FastLinearFunction 3>], [<Int[1, 2]>, <FastLinearFunction 7>]]
+        """
+        intervals = intersection_of_coho_intervals([self.intervals(), other.intervals()])
+        return FastPiecewise([ (interval, self.which_function_on_interval(interval) + other.which_function_on_interval(interval))
+                               for interval in intervals ], merge=False)
         
     def __mul__(self,other):
+        """In contrast to PiecewisePolynomial.__mul__, this does not do zero extension of domains.
+        Rather, the result is only defined on the intersection of the domains."""
         if not isinstance(other, FastPiecewise):
             # assume scalar multiplication
-            return FastPiecewise([[(a,b), other*f] for (a,b),f in self.list()])
+            return FastPiecewise([[interval, other*f] for interval,f in self.list()])
         else:
-            F, G, intervals = self._make_compatible(other)
-            fcn = []
-            for a,b in intervals:
-                fcn.append([(a,b),F.which_function(b)*G.which_function(b)])     
-            return FastPiecewise(fcn)
+            intervals = intersection_of_coho_intervals([self.intervals(), other.intervals()])
+            return FastPiecewise([ (interval, self.which_function_on_interval(interval) * other.which_function_on_interval(interval))
+                                   for interval in intervals ], merge=False)
 
     __rmul__ = __mul__
 
