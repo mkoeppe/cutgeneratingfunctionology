@@ -1,6 +1,10 @@
 def generate_type_1_vertices_general(fn, comparison, continuity=True, reduced=True):
     """A generator...
     "...'general' refers to the fact that it outputs 6-tuples (x,y,z,xeps,yeps,zeps).
+    When reduced=True:
+        only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_check or setting up system of equations.
+    When reduced=False:
+        outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive or additive_limit_vertices.
     """
     bkpt = fn.end_points()
     if not continuity:
@@ -49,6 +53,14 @@ def generate_type_1_vertices_general(fn, comparison, continuity=True, reduced=Tr
                             yield (x, y, x+y, eps, 0, eps)
 
 def generate_type_2_vertices_general(fn, comparison, continuity=True, reduced=True):
+    """
+    When reduced=True:
+        1) only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_check or setting up equations.
+        2) if fn is continuous at y, yeps = 0 could mean yeps=-1, 0 or 1 at same time. (notice that fn(y-) = fn(y) = fn(y+))
+    When reduced=False:
+        1) outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive or additive_limit_vertices.
+        2) (x, y, z, xeps, yeps, zeps) has the usual meaning.
+    """
     bkpt = fn.end_points()
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     if not continuity:
@@ -101,6 +113,13 @@ def generate_nonsubadditive_vertices_general(fn, continuity=True, reduced=True):
     """
     We are returning a set of 6-tuples (x, y, z, xeps, yeps, zeps),
     so that duplicates are removed, and so the result can be cached for later use.
+
+    When reduced=True:
+        1) only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_check.
+        2) if fn is continuous at y, yeps = 0 could mean yeps=-1, 0 or 1 at same time. (notice that fn(y-) = fn(y) = fn(y+))
+    When reduced=False:
+        1) outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive_limit_vertices.
+        2) (x, y, z, xeps, yeps, zeps) has the usual meaning.
     """
     return { (x, y, z, xeps, yeps, zeps)
              for (x, y, z, xeps, yeps, zeps) in itertools.chain( \
@@ -112,6 +131,13 @@ def generate_additive_vertices_general(fn, continuity=True, reduced=True):
     """
     We are returning a set of 6-tuples (x, y, z, xeps, yeps, zeps),
     so that duplicates are removed, and so the result can be cached for later use.
+
+    When reduced=True:
+        1) only outputs fewer triples satisfying `comparison' relation, for the purpose of setting up the system of equations.
+        2) if fn is continuous at y, yeps = 0 could mean yeps=-1, 0 or 1 at same time. (notice that fn(y-) = fn(y) = fn(y+))
+    When reduced=False:
+        1) outputs all triples satisfying `comparison' relation, for the purpose of plotting additive_limit_vertices.
+        2) (x, y, z, xeps, yeps, zeps) has the usual meaning.
     """
     return { (x, y, z, xeps, yeps, zeps)
              for (x, y, z, xeps, yeps, zeps) in itertools.chain( \
