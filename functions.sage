@@ -1113,7 +1113,7 @@ class FastPiecewise (PiecewisePolynomial):
     def __init__(self, list_of_pairs, var=None, merge=True):
         # Sort intervals according to their left endpoints; In case of equality, place single point before interval. 
         # This setting would be helpful in plotting discontinuous functions   
-        list_of_pairs = sorted(list_of_pairs, key = lambda (i, f): (i[0], not(i[0] == i[1])))   
+        list_of_pairs = sorted(list_of_pairs, key = coho_interval_left_endpoint_with_epsilon)
         if merge:
             merged_list_of_pairs = []
             intervals_to_scan = []
@@ -2253,7 +2253,7 @@ def discrete_function_from_points_and_values(points, values, field=None):
     points, values = field_values[0:len(points)], field_values[-len(values):]
     pieces = [ (singleton_interval(point), FastLinearFunction(0, value))
                for point, value in itertools.izip(points, values) ]
-    return FastPiecewise(pieces, merge=True)
+    return FastPiecewise(pieces, merge=False)
 
 def limiting_slopes(fn):
     functions = fn.functions()
