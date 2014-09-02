@@ -40,7 +40,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         g = plot_something(h)
         g.save(destdir + "%s.pdf" % name)
 
-    for f in ['extremality_test', 'plot_2d_diagram', 'generate_example_e_for_psi_n', 'chen_3_slope_not_extreme', 'rlm_dpl1_fig3_lowerleft_not_extreme', 'psi_n_in_bccz_counterexample_construction']:
+    for f in ['extremality_test', 'plot_2d_diagram', 'generate_example_e_for_psi_n', 'chen_3_slope_not_extreme', 'rlm_dpl1_fig3_lowerleft', 'psi_n_in_bccz_counterexample_construction']:
         emit_tex_sage_command(f)
 
     ## Other figures.
