@@ -2722,6 +2722,46 @@ def scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, r
     assert interval_indicator == 0
     assert remove_indicator == 0
 
+def intersection_of_coho_intervals(interval_lists):
+    """Compute the intersection of the union of intervals. 
+    
+    Each interval_list must be sorted, but intervals may overlap.  In
+    this case, the output is broken into non-overlapping intervals at
+    the points where the overlap multiplicity changes.
+    
+    EXAMPLES:
+    sage: list(intersection_of_coho_intervals([[[1,2]], [[2,3]]]))
+    [<Int{2}>]
+    sage: list(intersection_of_coho_intervals([[[1,2], [2,3]], [[0,4]]]))
+    [<Int[1, 2)>, <Int{2}>, <Int(2, 3]>]
+    sage: list(intersection_of_coho_intervals([[[1,3], [2,4]], [[0,5]]]))
+    [<Int[1, 2)>, <Int[2, 3]>, <Int(3, 4]>]
+    sage: list(intersection_of_coho_intervals([[[1,2], left_open_interval(2,3)], [[0,4]]]))
+    [<Int[1, 2]>, <Int(2, 3]>]
+    sage: list(intersection_of_coho_intervals([[[1,3]], [[2,4]]]))
+    [<Int[2, 3]>]
+    """
+    scan = merge(*[scan_coho_interval_list(interval_list, tag=index) for index, interval_list in enumerate(interval_lists)])
+    interval_indicators = [ 0 for interval_list in interval_lists ]
+    (on_x, on_epsilon) = (None, None)
+    for ((x, epsilon), delta, index) in scan:
+        was_on = all(on > 0 for on in interval_indicators)
+        interval_indicators[index] -= delta
+        assert interval_indicators[index] >= 0
+        now_on = all(on > 0 for on in interval_indicators)
+        if was_on: 
+            assert on_x is not None
+            assert on_epsilon >= 0
+            assert epsilon >= 0
+            if (on_x, on_epsilon) < (x, epsilon):
+                yield closed_or_open_or_halfopen_interval(on_x, x,
+                                                          on_epsilon == 0, epsilon > 0)
+        if now_on:
+            (on_x, on_epsilon) = (x, epsilon)
+        else:
+            (on_x, on_epsilon) = (None, None)
+    assert all(on == 0 for on in interval_indicators) # no unbounded intervals
+
 def coho_interval_list_from_scan(scan):
     """Actually returns a generator."""
     indicator = 0
