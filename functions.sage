@@ -886,6 +886,7 @@ def ticks_keywords(function, y_ticks_for_breakpoints=False):
     ## FIXME: Can we influence ticks placement as well so that labels don't overlap?
     ## or maybe rotate labels 90 degrees?
     return {'ticks': [xticks, yticks], \
+
             'gridlines': True, \
             'tick_formatter': [xtick_formatter, ytick_formatter]}
 
@@ -3108,11 +3109,22 @@ def piecewise_function_from_robert_txt_file(filename):
         raise ValueError, "Lines 3/4 on f and value at f are not consistent with line 1."
     return piecewise_function_from_breakpoints_and_values([ x / xscale for x in xvalues ] + [1], [y / yf for y in yvalues] + [0])
 
-def random_piecewise_function(xgrid, ygrid):
+def random_piecewise_function(xgrid, ygrid, continuity=True):
     xvalues = [0] + [ x/xgrid for x in range(1, xgrid) ] + [1]
     f = randint(1, xgrid - 1)
     yvalues = [0] + [ randint(0, ygrid) / ygrid for i in range(1, f) ] + [1] + [ randint(0, ygrid) / ygrid for i in range(f+1, xgrid) ]+ [0]
-    return piecewise_function_from_breakpoints_and_values(xvalues, yvalues)
+    if continuity:        return piecewise_function_from_breakpoints_and_values(xvalues, yvalues)
+    else:
+        piece1 = [ [singleton_interval(xvalues[i]), FastLinearFunction(0, yvalues[i])] for i in range(xgrid+1) ]
+        leftlimits = [0] + [ randint(0, ygrid) / ygrid for i in range(1, xgrid+1) ]
+        rightlimits = [ randint(0, ygrid) / ygrid for i in range(1, xgrid+1) ] + [0]
+        slopes = [ (leftlimits[i+1] - rightlimits[i]) * xgrid for i in range(0, xgrid) ]
+        intercepts = [ rightlimits[i] - xvalues[i] * slopes[i] for i in range(0, xgrid) ]
+        piece2 = [ [open_interval(xvalues[i], xvalues[i+1]), FastLinearFunction(slopes[i], intercepts[i])] for i in range(xgrid) ]
+        pieces = [piece1[0]]
+        for i in range(xgrid):
+            pieces += [piece2[i], piece1[i+1]]
+        return FastPiecewise(pieces, merge=False)
 
 def is_QQ_linearly_independent(*numbers):
     """
