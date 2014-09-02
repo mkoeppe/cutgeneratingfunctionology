@@ -1076,6 +1076,11 @@ class FastLinearFunction :
         return FastLinearFunction(self._slope * other,
                                   self._intercept * other)
 
+
+    def __neg__(self):
+        return FastLinearFunction(-self._slope,
+                                  -self._intercept)
+
     __rmul__ = __mul__
 
     def __eq__(self, other):
@@ -1524,44 +1529,51 @@ class FastPiecewise (PiecewisePolynomial):
             raise ValueError,"Value not defined at point %s%s, outside of domain." % (x0, print_sign(epsilon))
         return result
 
-    # Copy from piecewise.py
-    #def _make_compatible(self, other):
-    #    """
-    #    Returns self and other extended to be defined on the same domain as
-    #    well as a refinement of their intervals. This is used for adding
-    #    and multiplying piecewise functions.
-    #    """
-    #    a1, b1 = self.domain()
-    #    a2, b2 = other.domain()
-    #    a = min(a1, a2)
-    #    b = max(b1, b2)
-    #    F = self.extend_by_zero_to(a,b)
-    #    G = other.extend_by_zero_to(a,b)
-    #    endpts = list(set(F.end_points()).union(set(G.end_points())))
-    #    endpts.sort()
-    #    return F, G, zip(endpts, endpts[1:])
+    def which_function_on_interval(self, interval):
+        x = (interval[0] + interval[1]) / 2
+        # FIXME: This should check that the given `interval` is contained in the defining interval!
+        # This could be implemented by refactoring which_function using new function which_function_index.
+        return self.which_function(x)
 
-    # FIXME: fix __add__ and __mul__ so that they can handle
-    # discontinuous functions and functions defined on disconnected domain.
     def __add__(self,other):
-        F, G, intervals = self._make_compatible(other)
-        fcn = []
-        for a,b in intervals:
-            fcn.append([(a,b), F.which_function(b)+G.which_function(b)])        
-        return FastPiecewise(fcn)
+        """
+        In contrast to PiecewisePolynomial.__add__, this does not do zero extension of domains.
+        Rather, the result is only defined on the intersection of the domains.
+
+        EXAMPLES::
+        sage: f = FastPiecewise([[singleton_interval(1), FastLinearFunction(0,17)]], merge=False)
+        sage: g = FastPiecewise([[[0,2], FastLinearFunction(0,2)]], merge=False)
+        sage: (f+g).list()
+        [[<Int{1}>, <FastLinearFunction 19>]]
+        sage: h = FastPiecewise([[open_interval(1,3), FastLinearFunction(0,3)]], merge=False)
+        sage: (g+h).list()
+        [[<Int(1, 2]>, <FastLinearFunction 5>]]
+        sage: j = FastPiecewise([[open_interval(0,1), FastLinearFunction(0,1)], [[1, 3], FastLinearFunction(0, 5)]], merge=False)
+        sage: (g+j).list()
+        [[<Int(0, 1)>, <FastLinearFunction 3>], [<Int[1, 2]>, <FastLinearFunction 7>]]
+        """
+        intervals = intersection_of_coho_intervals([self.intervals(), other.intervals()])
+        return FastPiecewise([ (interval, self.which_function_on_interval(interval) + other.which_function_on_interval(interval))
+                               for interval in intervals ], merge=False)
+
+    def __neg__(self):
+        return FastPiecewise([[interval, -f] for interval,f in self.list()], merge=False)
         
     def __mul__(self,other):
+        """In contrast to PiecewisePolynomial.__mul__, this does not do zero extension of domains.
+        Rather, the result is only defined on the intersection of the domains."""
         if not isinstance(other, FastPiecewise):
             # assume scalar multiplication
-            return FastPiecewise([[(a,b), other*f] for (a,b),f in self.list()])
+            return FastPiecewise([[interval, other*f] for interval,f in self.list()])
         else:
-            F, G, intervals = self._make_compatible(other)
-            fcn = []
-            for a,b in intervals:
-                fcn.append([(a,b),F.which_function(b)*G.which_function(b)])     
-            return FastPiecewise(fcn)
+            intervals = intersection_of_coho_intervals([self.intervals(), other.intervals()])
+            return FastPiecewise([ (interval, self.which_function_on_interval(interval) * other.which_function_on_interval(interval))
+                                   for interval in intervals ], merge=False)
 
     __rmul__ = __mul__
+
+    def __sub__(self, other):
+        return self + (-other)
 
     ## Following just fixes a bug in the plot method in piecewise.py
     ## (see doctests below).  Also adds plotting of single points.
@@ -2721,6 +2733,46 @@ def scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, r
     # No unbounded intervals:
     assert interval_indicator == 0
     assert remove_indicator == 0
+
+def intersection_of_coho_intervals(interval_lists):
+    """Compute the intersection of the union of intervals. 
+    
+    Each interval_list must be sorted, but intervals may overlap.  In
+    this case, the output is broken into non-overlapping intervals at
+    the points where the overlap multiplicity changes.
+    
+    EXAMPLES:
+    sage: list(intersection_of_coho_intervals([[[1,2]], [[2,3]]]))
+    [<Int{2}>]
+    sage: list(intersection_of_coho_intervals([[[1,2], [2,3]], [[0,4]]]))
+    [<Int[1, 2)>, <Int{2}>, <Int(2, 3]>]
+    sage: list(intersection_of_coho_intervals([[[1,3], [2,4]], [[0,5]]]))
+    [<Int[1, 2)>, <Int[2, 3]>, <Int(3, 4]>]
+    sage: list(intersection_of_coho_intervals([[[1,2], left_open_interval(2,3)], [[0,4]]]))
+    [<Int[1, 2]>, <Int(2, 3]>]
+    sage: list(intersection_of_coho_intervals([[[1,3]], [[2,4]]]))
+    [<Int[2, 3]>]
+    """
+    scan = merge(*[scan_coho_interval_list(interval_list, tag=index) for index, interval_list in enumerate(interval_lists)])
+    interval_indicators = [ 0 for interval_list in interval_lists ]
+    (on_x, on_epsilon) = (None, None)
+    for ((x, epsilon), delta, index) in scan:
+        was_on = all(on > 0 for on in interval_indicators)
+        interval_indicators[index] -= delta
+        assert interval_indicators[index] >= 0
+        now_on = all(on > 0 for on in interval_indicators)
+        if was_on: 
+            assert on_x is not None
+            assert on_epsilon >= 0
+            assert epsilon >= 0
+            if (on_x, on_epsilon) < (x, epsilon):
+                yield closed_or_open_or_halfopen_interval(on_x, x,
+                                                          on_epsilon == 0, epsilon > 0)
+        if now_on:
+            (on_x, on_epsilon) = (x, epsilon)
+        else:
+            (on_x, on_epsilon) = (None, None)
+    assert all(on == 0 for on in interval_indicators) # no unbounded intervals
 
 def coho_interval_list_from_scan(scan):
     """Actually returns a generator."""
