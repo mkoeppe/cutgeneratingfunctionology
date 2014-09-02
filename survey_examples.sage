@@ -54,7 +54,7 @@ def phi_s_in_drlm_not_extreme_2(s=10):
     Mathematical Programming 121 (2009), no. 1, 145–170,
     doi:10.1007/s10107-008-0229-6.
     Figure 2.
-    s is an interger;
+    s is an integer;
     phi_s_in_drlm_not_extreme_2(s) is an extreme function.
     The pointwise limit as s tends to \infty is not extreme. see drlm_not_extreme_2()
 
