@@ -1572,7 +1572,7 @@ class FastPiecewise (PiecewisePolynomial):
         [[<Int(1, 2]>, <FastLinearFunction 5>]]
         sage: j = FastPiecewise([[open_interval(0,1), FastLinearFunction(0,1)], [[1, 3], FastLinearFunction(0, 5)]], merge=False)
         sage: (g+j).list()
-        [[<Int(0, 1)>, <FastLinearFunction 3>], [<Int[1, 2]>, <FastLinearFunction 7>]]
+        [[<Int(0, 1)>, <FastLinearFunction 3>], [(1, 2), <FastLinearFunction 7>]]
         """
         intervals = intersection_of_coho_intervals([self.intervals(), other.intervals()])
         return FastPiecewise([ (interval, self.which_function_on_interval(interval) + other.which_function_on_interval(interval))
@@ -3276,8 +3276,7 @@ def compose_directed_moves(A, B, interiors=False, show_plots=False):
 def merge_functional_directed_moves(A, B, show_plots=False):
     """
     EXAMPLES::
-        sage: merge_functional_directed_moves(FunctionalDirectedMove([(3/10, 7/20), (9/20, 1/2)], (1,0)),
-                                              FunctionalDirectedMove([(3/10, 13/40)], (1,0)))
+        sage: merge_functional_directed_moves(FunctionalDirectedMove([(3/10, 7/20), (9/20, 1/2)], (1,0)),FunctionalDirectedMove([(3/10, 13/40)], (1,0)))
         <FunctionalDirectedMove (1, 0) with domain [(3/10, 7/20), (9/20, 1/2)]>
     """
     if A.directed_move != B.directed_move:
