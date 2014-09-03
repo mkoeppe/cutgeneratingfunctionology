@@ -1111,6 +1111,14 @@ class FastPiecewise (PiecewisePolynomial):
     than the standard class PiecewisePolynomial.
     """
     def __init__(self, list_of_pairs, var=None, merge=True):
+        """
+        EXAMPLES:
+        sage: h = FastPiecewise([[(3/10, 15/40), FastLinearFunction(1, 0)], [(13/40, 14/40), FastLinearFunction(1, 0)]], merge=True)
+        sage: len(h.intervals())
+        1
+        sage: h.intervals()[0][0], h.intervals()[0][1]
+        (3/10, 15/40)
+        """
         # Sort intervals according to their left endpoints; In case of equality, place single point before interval. 
         # This setting would be helpful in plotting discontinuous functions   
         list_of_pairs = sorted(list_of_pairs, key = coho_interval_left_endpoint_with_epsilon)
