@@ -33,7 +33,7 @@ def generate_type_1_vertices_general(fn, comparison, continuity=True, reduced=Tr
                     # continuous at x and y
                     for zeps in [1, -1]:
                         # note that (0 0 0) has alreadly been checked.
-                        if comparison(limits_x[0] + limits_y[0] - limits_z[eps], 0):
+                        if comparison(limits_x[0] + limits_y[0] - limits_z[zeps], 0):
                             yield (x, y, x+y, zeps, zeps, zeps)
                 else:
                     for eps in [1, -1]:
@@ -370,97 +370,80 @@ def finite_dimensional_extremality_test_general(function, show_plots=False, f=No
     True
     """
     #FIXME: parameter `components' is temporary. should be removed once generate_covered_intervals_general has been developped.
+    #if function is discontinuous, need to provide components, a list recording covered_intervals.
+    # dg_2_step_mir_limit() example: components = [ [[0, 1/5], [1/5, 2/5], [2/5, 3/5], [3/5, 1]] ]
+    # drlm_3_slope_limit() example: components = [ [[0, 1/5]], [[1/5, 1]] ]
+    # rlm_dpl1_fig3_lowerleft() example: components = [ [[0, 1/4]], [[1/4, 5/8], [5/8, 1]] ]
+    # drlm_not_extreme_2() example: components = [ [[0, 1/4], [1/4, 1/2], [1/2, 3/4], [3/4, 1]] ]
+
     continuity = function.is_continuous_defined()
-    if continuity:    # Copy from functions.sage
-        symbolic, components, field = symbolic_piecewise(function)
-        equations = generate_additivity_equations(function, symbolic, field, f=f)
-        slopes_vects = equations.right_kernel().basis()
-        logging.info("Solution space has dimension %s" % len(slopes_vects))
-        if len(slopes_vects) == 0:
-            logging.info("Thus the function is extreme.")
-            return True
-        else:
-            for basis_index in range(len(slopes_vects)):
-                slopes = list(slopes_vects[basis_index])
-                perturbation = function._perturbation = generate_compatible_piecewise_function(components, slopes)
-                check_perturbation(function, perturbation,
-                                   show_plots=show_plots, show_plot_tag='perturbation-%s' % (basis_index + 1),
-                                   legend_title="Basic perturbation %s" % (basis_index + 1))
-            return False
+    # temporary
+    if continuity:
+        components = generate_covered_intervals(function)
+    elif components == None:
+        raise ValueError,"Need to provide ``components'' for discontinuous funcitons."
+
+    field = function(0).parent().fraction_field()
+    symbolic = generate_symbolic_general(function, components, field=field)
+    equation_matrix = generate_additivity_equations_general(function, symbolic, field, f=f, continuity=continuity)
+    slope_jump_vects = equation_matrix.right_kernel().basis()
+    logging.info("Solution space has dimension %s" % len(slope_jump_vects))
+    if len(slope_jump_vects) == 0:
+        logging.info("Thus the function is extreme.")
+        return True
     else:
-        #FIXME: if function is discontinuous, need to provide components, a list recording covered_intervals.
-        # dg_2_step_mir_limit() example: components = [ [[0, 1/5], [1/5, 2/5], [2/5, 3/5], [3/5, 1]] ]
-        # drlm_3_slope_limit() example: components = [ [[0, 1/5]], [[1/5, 1]] ]
-        # rlm_dpl1_fig3_lowerleft() example: components = [ [[0, 1/4]], [[1/4, 5/8], [5/8, 1]] ]
-        # drlm_not_extreme_2() example: components = [ [[0, 1/4], [1/4, 1/2], [1/2, 3/4], [3/4, 1]] ]
-        if components == None:
-            raise ValueError,"Need to provide ``components'' for discontinuous funcitons."
-        field = function(0).parent().fraction_field()
-        bkpt_set = {interval[0] for component in components for interval in component}
-        # bkpt_set.add(1) are the possible discontinuous points
-        n = len(components)
-        m = len(bkpt_set)
-        vector_space = VectorSpace(field, n + 2*m)
-        component_slopes = vector_space.basis()[0:n]
-        intervals_and_slopes = []
-        for component, slope in itertools.izip(components, component_slopes):
-            intervals_and_slopes.extend([ (interval, slope) for interval in component ])
-        intervals_and_slopes.sort()
-        bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
-        # Note: bkpt[0] == 0; bkpt[m] == 1
-        slopes = [ slope for interval, slope in intervals_and_slopes ]
-        jumps = vector_space.basis()[n: n + 2*m]
-        # Initialize symbolic function
-        current_value = zeros = vector_space.zero()
-        pieces = []
-        # Set up symbolic function
-        for i in range(m):
-            pieces.append([singleton_interval(bkpt[i]), FastLinearFunction(zeros, current_value)])
-            current_value += jumps[2*i]
-            pieces.append([open_interval(bkpt[i], bkpt[i+1]), FastLinearFunction(slopes[i], current_value - slopes[i]*bkpt[i])])
-            current_value += slopes[i] * (bkpt[i+1] - bkpt[i])+ jumps[2*i + 1]
-        pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, current_value)])
-        symbolic = FastPiecewise(pieces, merge=False)
-        global symfn
-        symfn = symbolic
-        # Set up system of equations
-        equations = []
-        limit_values = function.limits(bkpt[0])
-        for i in range(m):
-            if limit_values[0] == limit_values[1]:
-                # if \pi is right continuous at bkpt[i], so is any \phi
-                equations.append(jumps[2*i])
-            limit_values = function.limits(bkpt[i+1])
-            if limit_values[-1] == limit_values[0]:
-                # if \pi is left continuous at bkpt[i+1], so is any \phi
-                equations.append(jumps[2*i + 1])
-        if f == None:
-            f = find_f(function)
-        equations.append(symbolic(f))
-        equations.append(symbolic(bkpt[m]))
-        for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices_general(function, continuity=continuity, reduced=True):
-            # handle 0- and 1+
-            x, xeps = periodic_one_limit(x, xeps, field)
-            y, yeps = periodic_one_limit(y, yeps, field)
-            z, zeps = periodic_one_limit(z, zeps, field)
-            new_equation = symbolic.limit(x, xeps) + symbolic.limit(y, yeps) - symbolic.limit(z, zeps)
-            equations.append(new_equation)
-        equation_matrix = matrix(field, equations)
-        # Solve system of equations.
-        # A solution gives [slope_value[0],..., slope_value[n-1], jump_value[0], ..., jump_value[2*m -1]]
-        slope_jump_vects = equation_matrix.right_kernel().basis()
-        logging.info("Solution space has dimension %s" % len(slope_jump_vects))
-        if len(slope_jump_vects) == 0:
-            logging.info("Thus the function is extreme.")
-            return True
-        else:
-            for basis_index in range(len(slope_jump_vects)):
-                slope_jump = slope_jump_vects[basis_index]
-                perturbation = function._perturbation = slope_jump * symbolic
-                check_perturbation_general(function, perturbation, continuity=continuity,
-                                            show_plots=show_plots, show_plot_tag='perturbation-%s' % (basis_index + 1),
-                                            legend_title="Basic perturbation %s" % (basis_index + 1))
-            return False
+        for basis_index in range(len(slope_jump_vects)):
+            slope_jump = slope_jump_vects[basis_index]
+            perturbation = function._perturbation = slope_jump * symbolic
+            check_perturbation_general(function, perturbation, continuity=continuity,
+                                        show_plots=show_plots, show_plot_tag='perturbation-%s' % (basis_index + 1),
+                                        legend_title="Basic perturbation %s" % (basis_index + 1))
+        return False
+
+def generate_symbolic_general(function, components, field=None):
+    n = len(components)
+    intervals_and_slopes = []
+    for component, slope in itertools.izip(components, range(n)):
+        intervals_and_slopes.extend([ (interval, slope) for interval in component ])
+    intervals_and_slopes.sort()
+    bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
+    limits = [function.limits(x) for x in bkpt]
+    num_jumps = sum([(x[-1] != x[0]) + (x[0] != x[1]) for x in limits]) - 2 # None at 0- and 1+, so sum-2
+    vector_space = VectorSpace(field, n + num_jumps)
+    unit_vectors = vector_space.basis()
+    slopes = [ unit_vectors[slope] for interval, slope in intervals_and_slopes ]
+    m = len(slopes)
+    # Set up symbolic function
+    current_value = zeros = vector_space.zero()
+    pieces = []
+    j = n
+    for i in range(m):
+        pieces.append([singleton_interval(bkpt[i]), FastLinearFunction(zeros, current_value)])
+        if limits[i][0] != limits[i][1]: # jump at bkpt[i]+
+            current_value += unit_vectors[j]
+            j += 1
+        pieces.append([open_interval(bkpt[i], bkpt[i+1]), FastLinearFunction(slopes[i], current_value - slopes[i]*bkpt[i])])
+        current_value += slopes[i] * (bkpt[i+1] - bkpt[i])
+        if limits[i+1][-1] != limits[i+1][0]: # jump at bkpt[i+1]-
+            current_value += unit_vectors[j]
+            j += 1
+    pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, current_value)])
+    return FastPiecewise(pieces, merge=True)
+
+def generate_additivity_equations_general(function, symbolic, field, f=None, continuity=True):
+    equations = []
+    if f == None:
+        f = find_f(function)
+    equations.append(symbolic(f))
+    equations.append(symbolic(field(1)))
+    for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices_general(function, continuity=continuity, reduced=True):
+        # handle 0- and 1+
+        x, xeps = periodic_one_limit(x, xeps, field)
+        y, yeps = periodic_one_limit(y, yeps, field)
+        z, zeps = periodic_one_limit(z, zeps, field)
+        new_equation = symbolic.limit(x, xeps) + symbolic.limit(y, yeps) - symbolic.limit(z, zeps)
+        equations.append(new_equation)
+    return  matrix(field, equations)
 
 def find_epsilon_interval_general(fn, perturb, continuity=True):
     """Compute the interval [minus_epsilon, plus_epsilon] such that
