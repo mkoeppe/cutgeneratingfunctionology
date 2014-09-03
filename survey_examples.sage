@@ -91,10 +91,10 @@ def bhk_irrational_extreme_limit_to_rational_nonextreme(n=Infinity):
     whose limit (n = Infinity) is a `bhk_irrational` function with rational parameters, 
     and hence not extreme. 
     """
-    del1 = 1/40 
+    del1 = 1/60
     if n != Infinity:
-        del1 -= sqrt(2) / (70*n)
-    del2 = 1/40
+        del1 -= sqrt(2) / (90*n)
+    del2 = 1/60
     return bhk_irrational(delta=(del1, del2))
 
 def drlm_gj_2_slope_extreme_limit_to_nonextreme(s=Infinity):
