@@ -1,3 +1,17 @@
+nonzero_eps = { (-1,-1,-1), (-1, 1,-1), (-1, 1, 1), (-1, 1, 0), (-1, 0,-1), ( 1,-1,-1), \
+                ( 1,-1, 1), ( 1,-1, 0), ( 1, 1, 1), ( 1, 0, 1), ( 0,-1,-1), ( 0, 1, 1) }
+continuous_xy_eps = { (-1,-1,-1), (1, 1, 1) }
+type2_reduced_eps = { (0,-1,-1), (0, 1, 1), (1,-1,-1), (1, 1, 1), (-1,-1,-1), (-1, 1, 1), \
+                      (1,-1, 0), (-1, 1, 0) }
+
+def limits_with_left0_right1(fn, fn_limits, x):
+    if x == 0:  # take care of limit at 0-
+        return fn_limits[0]
+    elif x == 1: # take care of limit at 1+
+        return fn_limits[-1]
+    else:
+        return fn.limits(x)
+
 def generate_type_1_vertices_general(fn, comparison, continuity=True, reduced=True):
     """A generator...
     "...'general' refers to the fact that it outputs 6-tuples (x,y,z,xeps,yeps,zeps).
@@ -21,36 +35,14 @@ def generate_type_1_vertices_general(fn, comparison, continuity=True, reduced=Tr
             if not continuity:
                 limits_x = limits[i]
                 limits_y = limits[j]
-                if z == 0:
-                    # take care of limit at 0-
-                    limits_z = limits[0]
-                elif z == 1:
-                    # take care of limit at 1+
-                    limits_z = limits[-1]
-                else:
-                    limits_z = fn.limits(z)
+                limits_z = limits_with_left0_right1(fn, limits, z)
                 if reduced and limits_x[0] == limits_x[1] == limits_x[-1] and limits_y[0] == limits_y[1] == limits_y[-1]:
-                    # continuous at x and y
-                    for zeps in [1, -1]:
-                        # note that (0 0 0) has alreadly been checked.
-                        if comparison(limits_x[0] + limits_y[0] - limits_z[zeps], 0):
-                            yield (x, y, x+y, zeps, zeps, zeps)
+                    eps_to_check = continuous_xy_eps # continuous at x and y
                 else:
-                    for eps in [1, -1]:
-                        # (+ + +), (- - -). note that (0 0 0) has alreadly been checked.
-                        if comparison(limits_x[eps] + limits_y[eps] - limits_z[eps], 0):
-                            yield (x, y, x+y, eps, eps, eps)
-                    for eps in [1, -1]:
-                        for zeps in [0, 1, -1]:
-                            # (+ - 0), (+ - +), (+ - -), (- + 0), (- + +), (- + -)
-                            if comparison(limits_x[eps] + limits_y[-eps] - limits_z[zeps], 0):
-                                yield (x, y, x+y, eps, -eps, zeps)
-                        if comparison(limits_x[0] + limits_y[eps] - limits_z[eps], 0):
-                            # (0 + +), (0 - -)
-                            yield (x, y, x+y, 0, eps, eps)
-                        if comparison(limits_x[eps] + limits_y[0] - limits_z[eps], 0):
-                            # (+ 0 +), (- 0 -)
-                            yield (x, y, x+y, eps, 0, eps)
+                    eps_to_check = nonzero_eps
+                for (xeps, yeps, zeps) in eps_to_check:
+                    if comparison(limits_x[xeps] + limits_y[yeps] - limits_z[zeps], 0):
+                       yield (x, y, x+y, xeps, yeps, zeps)
 
 def generate_type_2_vertices_general(fn, comparison, continuity=True, reduced=True):
     """
@@ -87,29 +79,13 @@ def generate_type_2_vertices_general(fn, comparison, continuity=True, reduced=Tr
                     # then y is a in bkpt. this is done in type1check_general.
                     continue
                 if reduced:
-                    for zeps in [1, -1]:
-                        for xeps in [0, 1, -1]:
-                            if comparison(limits_x[xeps] + limits_y[0], limits_z[zeps]):
-                                yield (x, y, z, xeps, zeps, zeps)
-                    for xeps in [1, -1]:
-                        if comparison(limits_x[xeps] + limits_y[0], limits_z[0]):
-                            yield (x, y, z, xeps, -xeps, 0)
+                    eps_to_check = type2_reduced_eps
                 else:
-                    for eps in [1, -1]:
-                        # (+ + +), (- - -). note that (0 0 0) has alreadly been checked.
-                        if comparison(limits_x[eps] + limits_y[eps] - limits_z[eps], 0):
-                            yield (x, y, x+y, eps, eps, eps)
-                    for eps in [1, -1]:
-                        for zeps in [0, 1, -1]:
-                            # (+ - 0), (+ - +), (+ - -), (- + 0), (- + +), (- + -)
-                            if comparison(limits_x[eps] + limits_y[-eps] - limits_z[zeps], 0):
-                                yield (x, y, x+y, eps, -eps, zeps)
-                        if comparison(limits_x[0] + limits_y[eps] - limits_z[eps], 0):
-                            # (0 + +), (0 - -)
-                            yield (x, y, x+y, 0, eps, eps)
-                        if comparison(limits_x[eps] + limits_y[0] - limits_z[eps], 0):
-                            # (+ 0 +), (- 0 -)
-                            yield (x, y, x+y, eps, 0, eps)
+                    eps_to_check = nonzero_eps
+                for (xeps, yeps, zeps) in eps_to_check:
+                    if comparison(limits_x[xeps] + limits_y[yeps] - limits_z[zeps], 0):
+                       yield (x, y, x+y, xeps, yeps, zeps)
+
 @cached_function
 def generate_nonsubadditive_vertices_general(fn, continuity=True, reduced=True):
     """
@@ -467,12 +443,7 @@ def find_epsilon_interval_general(fn, perturb, continuity=True):
 
     best_minus_epsilon_lower_bound = -10000
     best_plus_epsilon_upper_bound = +10000
-
-    if continuity:
-        eps_to_check = {(0, 0, 0)}
-    else:
-        eps_to_check = { (-1,-1,-1), (-1, 1,-1), (-1, 1, 1), (-1, 1, 0), (-1, 0,-1), ( 1,-1,-1), \
-                         ( 1,-1, 1), ( 1,-1, 0), ( 1, 1, 1), ( 1, 0, 1), ( 0,-1,-1), ( 0, 1, 1), ( 0, 0, 0) }
+    # type1check
     for i in range(len(bkpt)):
         perturb_x = perturb_limits[i]
         fn_x = fn_limits[i]
@@ -480,16 +451,15 @@ def find_epsilon_interval_general(fn, perturb, continuity=True):
             perturb_y = perturb_limits[j]
             fn_y = fn_limits[j]
             z = fractional(bkpt[i] + bkpt[j])
-            if z == 0:
-                perturb_z = perturb_limits[0]
-                fn_z = fn_limits[0]
-            elif z == 1:
-                perturb_z = perturb_limits[-1]
-                fn_z = fn_limits[-1]
+            perturb_z = limits_with_left0_right1(perturb, perturb_limits, z)
+            fn_z = limits_with_left0_right1(fn, fn_limits, z)
+            if continuity:
+                eps_to_check = {(0, 0, 0)}
+            elif fn_x[0] == fn_x[1] == fn_x[-1] and fn_y[0] == fn_y[1] == fn_y[-1]:
+                # if fn is continuous at x and y, then so is perturb.
+                eps_to_check = continuous_xy_eps
             else:
-                perturb_z = perturb.limits(z)
-                fn_z = fn.limits(z)
-
+                eps_to_check = nonzero_eps
             for (xeps, yeps, zeps) in eps_to_check:
                 delta_perturb = perturb_x[xeps] + perturb_y[yeps] - perturb_z[zeps]
                 if delta_perturb != 0:
@@ -504,7 +474,7 @@ def find_epsilon_interval_general(fn, perturb, continuity=True):
                     else:
                         if epsilon_upper_bound < best_plus_epsilon_upper_bound:
                             best_plus_epsilon_upper_bound = epsilon_upper_bound
-
+    # type2check
     for i in range(len(bkpt)):
         perturb_x = perturb_limits[i]
         fn_x = fn_limits[i]
@@ -516,15 +486,16 @@ def find_epsilon_interval_general(fn, perturb, continuity=True):
             perturb_z = perturb_limits[k]
             fn_z = fn_limits[k]
             y = bkpt2[k2] - bkpt[i]
-            if y == 0:
-                perturb_y = perturb_limits[0]
-                fn_y = fn_limits[0]
-            elif y == 1:
-                perturb_y = perturb_limits[-1]
-                fn_y = fn_limits[-1]
+            perturb_y = limits_with_left0_right1(perturb, perturb_limits, y)
+            fn_y = limits_with_left0_right1(fn, fn_limits, y)
+
+            if continuity:
+                eps_to_check = {(0, 0, 0)}
+            elif not (fn_y[0] == fn_y[1] == fn_y[-1]):
+                # then y is a in bkpt. this is done in type1check.
+                eps_to_check = {}
             else:
-                perturb_y = perturb.limits(y)
-                fn_y = fn.limits(y)
+                eps_to_check = type2_reduced_eps
 
             for (xeps, yeps, zeps) in eps_to_check:
                 delta_perturb = perturb_x[xeps] + perturb_y[yeps] - perturb_z[zeps]
