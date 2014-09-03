@@ -91,10 +91,10 @@ def bhk_irrational_extreme_limit_to_rational_nonextreme(n=Infinity):
     whose limit (n = Infinity) is a `bhk_irrational` function with rational parameters, 
     and hence not extreme. 
     """
-    del1 = 1/40 
+    del1 = 1/60
     if n != Infinity:
-        del1 -= sqrt(2) / (70*n)
-    del2 = 1/40
+        del1 -= sqrt(2) / (90*n)
+    del2 = 1/60
     return bhk_irrational(delta=(del1, del2))
 
 def drlm_gj_2_slope_extreme_limit_to_nonextreme(s=Infinity):
@@ -156,7 +156,7 @@ def chen_3_slope_not_extreme(f=1/2, lam=8):
     values = [0, 2/3, 2/3, 1/3, 1/3, 1, 2/3, 2/3, 1/3, 1/3, 0]
     return  piecewise_function_from_breakpoints_and_values(bkpts, values)
 
-def rlm_dpl1_fig3_lowerleft_not_extreme(f=1/4):
+def rlm_dpl1_fig3_lowerleft(f=1/4):
     """
     Reference: 2007-Richard-Li-Miller-Valid inequalities for MIPs and group polyhedra from approximate liftings.pdf.
 
@@ -170,19 +170,19 @@ def rlm_dpl1_fig3_lowerleft_not_extreme(f=1/4):
     All we know from the paper is that h on p.273, Fig.3-lowerleft is subadditive.
     It's not clear whether this h is extreme. (See discussion after thm.28 p.272.)
 
-    Code shows that many functions from this Fig3_lowerleft family are not extreme.
-    (No extreme function has been found so far.)
+    Code shows that some functions from this Fig3_lowerleft family are extreme.
+    Tested for f=1/4, f=1/5, f=3/10.
 
     Example p.273, Fig.3-lowerleft ::
-        sage: h = rlm_dpl1_fig3_lowerleft_not_extreme(f=1/4)
-        sage: simple_finite_dimensional_extremality_test(h)
-        False
+        sage: h = rlm_dpl1_fig3_lowerleft(f=1/4)
 
-    However all other 3 functions (corresponding to \phi from the DPL1 family) shown in Fig.3 are proven to be extreme.
+    All other 3 functions (corresponding to \phi from the DPL1 family) shown in Fig.3 are proven to be extreme.
     They are covered by drlm_3_slope_limit() and drlm_2_slope_limit() classes:
         upper-left:  drlm_3_slope_limit(1/3)
         upper-right: drlm_2_slope_limit(f=3/5, nb_pieces_left=1, nb_pieces_right=1)
         lower-right: drlm_2_slope_limit(f=3/5, nb_pieces_left=1, nb_pieces_right=2)
+
+    Conjecture: rlm_dpl1_fig3_lowerleft(f) is extreme for any 0 < f < 1/3.
     """
     if not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."

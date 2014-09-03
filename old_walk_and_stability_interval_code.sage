@@ -72,9 +72,6 @@ def random_walk(seed, moves, fn, num_it):
     #     plot(-0.4+x-x, [A,A+a2], color = "green"), ymin = -1, ymax = 0)
     return xlist
 
-class MaximumNumberOfIterationsReached(Exception):
-    pass
-
 class SignContradiction(Exception):
     pass
 

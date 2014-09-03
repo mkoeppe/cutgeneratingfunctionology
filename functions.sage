@@ -1118,32 +1118,53 @@ class FastPiecewise (PiecewisePolynomial):
     than the standard class PiecewisePolynomial.
     """
     def __init__(self, list_of_pairs, var=None, merge=True):
+        """
+        EXAMPLES:
+        sage: h = FastPiecewise([[(3/10, 15/40), FastLinearFunction(1, 0)], [(13/40, 14/40), FastLinearFunction(1, 0)]], merge=True)
+        sage: len(h.intervals())
+        1
+        sage: h.intervals()[0][0], h.intervals()[0][1]
+        (3/10, 15/40)
+        """
         # Sort intervals according to their left endpoints; In case of equality, place single point before interval. 
         # This setting would be helpful in plotting discontinuous functions   
-        list_of_pairs = sorted(list_of_pairs, key = lambda (i, f): (i[0], not(i[0] == i[1])))   
+        list_of_pairs = sorted(list_of_pairs, key = coho_interval_left_endpoint_with_epsilon)
         if merge:
-            # If adjacent functions are the same, just merge the pieces
             merged_list_of_pairs = []
-            merged_interval_a = None
-            merged_interval_b = None
-            last_f = None
-            for (a,b), f in list_of_pairs:
-                #print f, last_f, f != last_f
-                if f != last_f or (last_f != None and merged_interval_b < a):
-                    # Different function or a gap in the domain,
-                    # so push out the accumulated merged interval
-                    if last_f != None:
-                        merged_list_of_pairs.append(((merged_interval_a, merged_interval_b), last_f))
-                    last_f = f
-                    merged_interval_a = a
-                    merged_interval_b = b
+            intervals_to_scan = []
+            singleton = None
+            common_f = None
+            for (i, f) in list_of_pairs:
+                if common_f == f:
+                    intervals_to_scan.append(i)
+                    singleton = None
+                elif common_f != None and singleton != None and common_f(singleton) == f(singleton):
+                    intervals_to_scan.append(i)
+                    singleton = None
+                    common_f = f
+                elif i[0] == i[1] and common_f != None and common_f(i[0]) == f(i[0]):
+                    intervals_to_scan.append(i)
                 else:
-                    if last_f != None:
-                        merged_interval_b = max(b, merged_interval_b)
+                    merged_intervals = coho_interval_list_from_scan(scan_coho_interval_list(intervals_to_scan))
+                    for merged_i in merged_intervals:
+                        if merged_i.left_closed and merged_i.right_closed and merged_i[0] != merged_i[1]:
+                            merged_interval = (merged_i[0], merged_i[1])
+                        else:
+                            merged_interval = merged_i
+                        merged_list_of_pairs.append((merged_interval, common_f))
+                    intervals_to_scan = [i]
+                    if i[0] == i[1]:
+                        singleton = i[0]
                     else:
-                        merged_interval_b = b
-            if last_f != None:
-                merged_list_of_pairs.append(((merged_interval_a, merged_interval_b), last_f))
+                        singleton = None
+                    common_f = f
+            merged_intervals = union_of_coho_intervals_minus_union_of_coho_intervals([[interval] for interval in intervals_to_scan], [])
+            for merged_i in merged_intervals:
+                if merged_i.left_closed and merged_i.right_closed and merged_i[0] != merged_i[1]:
+                    merged_interval = (merged_i[0], merged_i[1])
+                else:
+                    merged_interval = merged_i
+                merged_list_of_pairs.append((merged_interval, common_f))
             list_of_pairs = merged_list_of_pairs
             
         PiecewisePolynomial.__init__(self, list_of_pairs, var)
@@ -1558,14 +1579,14 @@ class FastPiecewise (PiecewisePolynomial):
         [[<Int(1, 2]>, <FastLinearFunction 5>]]
         sage: j = FastPiecewise([[open_interval(0,1), FastLinearFunction(0,1)], [[1, 3], FastLinearFunction(0, 5)]], merge=False)
         sage: (g+j).list()
-        [[<Int(0, 1)>, <FastLinearFunction 3>], [<Int[1, 2]>, <FastLinearFunction 7>]]
+        [[<Int(0, 1)>, <FastLinearFunction 3>], [(1, 2), <FastLinearFunction 7>]]
         """
         intervals = intersection_of_coho_intervals([self.intervals(), other.intervals()])
         return FastPiecewise([ (interval, self.which_function_on_interval(interval) + other.which_function_on_interval(interval))
-                               for interval in intervals ], merge=False)
+                               for interval in intervals ], merge=True)
 
     def __neg__(self):
-        return FastPiecewise([[interval, -f] for interval,f in self.list()], merge=False)
+        return FastPiecewise([[interval, -f] for interval,f in self.list()], merge=True)
         
     def __mul__(self,other):
         """In contrast to PiecewisePolynomial.__mul__, this does not do zero extension of domains.
@@ -1576,7 +1597,7 @@ class FastPiecewise (PiecewisePolynomial):
         else:
             intervals = intersection_of_coho_intervals([self.intervals(), other.intervals()])
             return FastPiecewise([ (interval, self.which_function_on_interval(interval) * other.which_function_on_interval(interval))
-                                   for interval in intervals ], merge=False)
+                                   for interval in intervals ], merge=True)
 
     __rmul__ = __mul__
 
@@ -2661,6 +2682,30 @@ def interval_length(interval):
         return interval[1] - interval[0]
     return 0
 
+def coho_interval_left_endpoint_with_epsilon(i):
+    """Return (x, epsilon)
+    where x is the left endpoint
+    and epsilon is 0 if the interval is left closed and 1 otherwise.
+    """
+    if len(i) == 2:
+        # old-fashioned closed interval
+        return i[0], 0 # Scanning from the left, turn on at left endpoint.
+    else:
+        # coho interval
+        return i.a, 0 if i.left_closed else 1
+
+def coho_interval_right_endpoint_with_epsilon(i):
+    """Return (x, epsilon)
+    where x is the right endpoint
+    and epsilon is 1 if the interval is right closed and 0 otherwise.
+    """
+    if len(i) == 2:
+        # old-fashioned closed interval
+        return i[1], 1 # Scanning from the left, turn off at right endpoint plus epsilon
+    else:
+        # coho interval
+        return i.b, 1 if i.right_closed else 0
+
 def scan_coho_interval_left_endpoints(interval_list, tag=None, delta=-1):
     """Generate events of the form `(x, epsilon), delta, tag.`
 
@@ -2668,12 +2713,7 @@ def scan_coho_interval_left_endpoints(interval_list, tag=None, delta=-1):
     and that the intervals are pairwise disjoint.
     """
     for i in interval_list:
-        if len(i) == 2:
-            # old-fashioned closed interval
-            yield (i[0], 0), delta, tag                             # Turn on at left endpoint
-        else:
-            # coho interval
-            yield (i.a, 0 if i.left_closed else 1), delta, tag
+        yield coho_interval_left_endpoint_with_epsilon(i), delta, tag
 
 def scan_coho_interval_right_endpoints(interval_list, tag=None, delta=+1):
     """Generate events of the form `(x, epsilon), delta, tag.`
@@ -2682,12 +2722,7 @@ def scan_coho_interval_right_endpoints(interval_list, tag=None, delta=+1):
     and that the intervals are pairwise disjoint.
     """
     for i in interval_list:
-        if len(i) == 2:
-            # old-fashioned closed interval
-            yield (i[1], 1), delta, tag                             # Turn off at right endpoint plus epsilon
-        else:
-            # coho interval
-            yield (i.b, 1 if i.right_closed else 0), delta, tag
+        yield coho_interval_right_endpoint_with_epsilon(i), delta, tag
 
 def scan_coho_interval_list(interval_list, tag=None, on_delta=-1, off_delta=+1):
     """Generate events of the form `(x, epsilon), delta, tag.`
@@ -3023,6 +3058,9 @@ def generate_nonsubadditive_vertices(fn):
                                                                 generate_type_2_vertices(fn, operator.lt))
              if xeps==yeps==zeps==0 }
 
+class MaximumNumberOfIterationsReached(Exception):
+    pass
+
 def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True):
     do_phase_1_lifting = False
     if f == None:
@@ -3131,7 +3169,7 @@ def random_piecewise_function(xgrid, ygrid, continuity=True):
         pieces = [piece1[0]]
         for i in range(xgrid):
             pieces += [piece2[i], piece1[i+1]]
-        return FastPiecewise(pieces, merge=False)
+        return FastPiecewise(pieces, merge=True)
 
 def is_QQ_linearly_independent(*numbers):
     """
@@ -3243,6 +3281,11 @@ def compose_directed_moves(A, B, interiors=False, show_plots=False):
     return result
 
 def merge_functional_directed_moves(A, B, show_plots=False):
+    """
+    EXAMPLES::
+        sage: merge_functional_directed_moves(FunctionalDirectedMove([(3/10, 7/20), (9/20, 1/2)], (1,0)),FunctionalDirectedMove([(3/10, 13/40)], (1,0)))
+        <FunctionalDirectedMove (1, 0) with domain [(3/10, 7/20), (9/20, 1/2)]>
+    """
     if A.directed_move != B.directed_move:
         raise ValueError, "Cannot merge, moves have different operations"
     #merge_two_comp(A.intervals(), B.intervals(), one_point_overlap_suffices=True), 
