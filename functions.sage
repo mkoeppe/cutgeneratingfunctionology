@@ -1151,7 +1151,7 @@ class FastPiecewise (PiecewisePolynomial):
                     else:
                         singleton = None
                     common_f = f
-            merged_intervals = coho_interval_list_from_scan(scan_coho_interval_list(intervals_to_scan))
+            merged_intervals = union_of_coho_intervals_minus_union_of_coho_intervals([[interval] for interval in intervals_to_scan], [])
             for merged_i in merged_intervals:
                 if merged_i.left_closed and merged_i.right_closed and merged_i[0] != merged_i[1]:
                     merged_interval = (merged_i[0], merged_i[1])
