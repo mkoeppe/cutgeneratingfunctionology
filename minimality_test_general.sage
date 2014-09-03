@@ -359,6 +359,16 @@ def plot_2d_additive_limit_vertices(fn, continuity=None):
     return p
 
 def finite_dimensional_extremality_test_general(function, show_plots=False, f=None, components=None):
+    """
+    EXAMPLES::
+    sage: logging.disable(logging.INFO)
+    sage: h1 = drlm_not_extreme_2()
+    sage: finite_dimensional_extremality_test_general(h1,show_plots=True, components = [ [[0, 1/4], [1/4, 1/2], [1/2, 3/4], [3/4, 1]] ])
+    False
+    sage: h2 = drlm_3_slope_limit()
+    sage: finite_dimensional_extremality_test_general(h,show_plots=True, components = [ [[0, 1/5]], [[1/5, 1]] ])
+    True
+    """
     #FIXME: parameter `components' is temporary. should be removed once generate_covered_intervals_general has been developped.
     continuity = function.is_continuous_defined()
     if continuity:    # Copy from functions.sage
@@ -381,7 +391,8 @@ def finite_dimensional_extremality_test_general(function, show_plots=False, f=No
         #FIXME: if function is discontinuous, need to provide components, a list recording covered_intervals.
         # dg_2_step_mir_limit() example: components = [ [[0, 1/5], [1/5, 2/5], [2/5, 3/5], [3/5, 1]] ]
         # drlm_3_slope_limit() example: components = [ [[0, 1/5]], [[1/5, 1]] ]
-        # rlm_dpl1_fig3_lowerleft_not_extreme() example: components = [ [[0, 1/4]], [[1/4, 5/8], [5/8, 1]] ]
+        # rlm_dpl1_fig3_lowerleft() example: components = [ [[0, 1/4]], [[1/4, 5/8], [5/8, 1]] ]
+        # drlm_not_extreme_2() example: components = [ [[0, 1/4], [1/4, 1/2], [1/2, 3/4], [3/4, 1]] ]
         if components == None:
             raise ValueError,"Need to provide ``components'' for discontinuous funcitons."
         field = function(0).parent().fraction_field()
@@ -409,7 +420,7 @@ def finite_dimensional_extremality_test_general(function, show_plots=False, f=No
             pieces.append([open_interval(bkpt[i], bkpt[i+1]), FastLinearFunction(slopes[i], current_value - slopes[i]*bkpt[i])])
             current_value += slopes[i] * (bkpt[i+1] - bkpt[i])+ jumps[2*i + 1]
         pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, current_value)])
-        symbolic = FastPiecewise(pieces, merge=True)
+        symbolic = FastPiecewise(pieces, merge=False)
         global symfn
         symfn = symbolic
         # Set up system of equations
@@ -443,16 +454,131 @@ def finite_dimensional_extremality_test_general(function, show_plots=False, f=No
             logging.info("Thus the function is extreme.")
             return True
         else:
-            #FIXME: perturbations...
-            #for basis_index in range(len(slope_jump_vects)):
-            #    slope_jump = list(slope_jump_vects[basis_index])
-            #    #perturbation = function._perturbation = generate_compatible_piecewise_function(components, slopes)
-            #    check_perturbation(function, perturbation,
-            #                        show_plots=show_plots, show_plot_tag='perturbation-%s' % (basis_index + 1),
-            #                        legend_title="Basic perturbation %s" % (basis_index + 1))
+            for basis_index in range(len(slope_jump_vects)):
+                slope_jump = slope_jump_vects[basis_index]
+                perturbation = function._perturbation = slope_jump * symbolic
+                check_perturbation_general(function, perturbation, continuity=continuity,
+                                            show_plots=show_plots, show_plot_tag='perturbation-%s' % (basis_index + 1),
+                                            legend_title="Basic perturbation %s" % (basis_index + 1))
             return False
 
-#def generate_compatible_piecewise_function_general(components, slope_vars, field=None):
+def find_epsilon_interval_general(fn, perturb, continuity=True):
+    """Compute the interval [minus_epsilon, plus_epsilon] such that
+    (fn + epsilon * perturb) is subadditive for epsilon in this interval.
+    Assumes that fn is subadditive.
+
+    If one of the epsilons is 0, the function bails out early and returns 0, 0.
+    """
+    logging.info("Finding epsilon interval for perturbation...")
+    fn_bkpt = fn.end_points()
+    perturb_bkpt = perturb.end_points()
+    bkpt = merge_bkpt(fn_bkpt,perturb_bkpt)
+    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
+
+    fn_limits = [fn.limits(x) for x in bkpt]
+    fn_limits[0][-1] = fn_limits[-1][-1]
+    fn_limits[-1][1] = fn_limits[0][1]
+    perturb_limits = [perturb.limits(x) for x in bkpt]
+    perturb_limits[0][-1] = perturb_limits[-1][-1]
+    perturb_limits[-1][1] = perturb_limits[0][1]
+
+    best_minus_epsilon_lower_bound = -10000
+    best_plus_epsilon_upper_bound = +10000
+
+    if continuity:
+        eps_to_check = {(0, 0, 0)}
+    else:
+        eps_to_check = { (-1,-1,-1), (-1, 1,-1), (-1, 1, 1), (-1, 1, 0), (-1, 0,-1), ( 1,-1,-1), \
+                         ( 1,-1, 1), ( 1,-1, 0), ( 1, 1, 1), ( 1, 0, 1), ( 0,-1,-1), ( 0, 1, 1), ( 0, 0, 0) }
+    for i in range(len(bkpt)):
+        perturb_x = perturb_limits[i]
+        fn_x = fn_limits[i]
+        for j in range(i,len(bkpt)):
+            perturb_y = perturb_limits[j]
+            fn_y = fn_limits[j]
+            z = fractional(bkpt[i] + bkpt[j])
+            if z == 0:
+                perturb_z = perturb_limits[0]
+                fn_z = fn_limits[0]
+            elif z == 1:
+                perturb_z = perturb_limits[-1]
+                fn_z = fn_limits[-1]
+            else:
+                perturb_z = perturb.limits(z)
+                fn_z = fn.limits(z)
+
+            for (xeps, yeps, zeps) in eps_to_check:
+                delta_perturb = perturb_x[xeps] + perturb_y[yeps] - perturb_z[zeps]
+                if delta_perturb != 0:
+                    delta_fn = fn_x[xeps] + fn_y[yeps] - fn_z[zeps]
+                    if delta_fn == 0:
+                        logging.info("Zero epsilon encountered for x = %s, y = %s" % (bkpt[i], bkpt[j]) )
+                        return 0, 0 # See docstring
+                    epsilon_upper_bound = delta_fn / abs(delta_perturb)
+                    if delta_perturb > 0:
+                        if -epsilon_upper_bound > best_minus_epsilon_lower_bound:
+                            best_minus_epsilon_lower_bound = -epsilon_upper_bound
+                    else:
+                        if epsilon_upper_bound < best_plus_epsilon_upper_bound:
+                            best_plus_epsilon_upper_bound = epsilon_upper_bound
+
+    for i in range(len(bkpt)):
+        perturb_x = perturb_limits[i]
+        fn_x = fn_limits[i]
+        for k2 in range(i + 1, i + len(bkpt) - 1):
+            if k2 < len(bkpt):
+                k = k2
+            else:
+                k = k2 - len(bkpt) + 1
+            perturb_z = perturb_limits[k]
+            fn_z = fn_limits[k]
+            y = bkpt2[k2] - bkpt[i]
+            if y == 0:
+                perturb_y = perturb_limits[0]
+                fn_y = fn_limits[0]
+            elif y == 1:
+                perturb_y = perturb_limits[-1]
+                fn_y = fn_limits[-1]
+            else:
+                perturb_y = perturb.limits(y)
+                fn_y = fn.limits(y)
+
+            for (xeps, yeps, zeps) in eps_to_check:
+                delta_perturb = perturb_x[xeps] + perturb_y[yeps] - perturb_z[zeps]
+                if delta_perturb != 0:
+                    delta_fn = fn_x[xeps] + fn_y[yeps] - fn_z[zeps]
+                    if delta_fn == 0:
+                        logging.info("Zero epsilon encountered for x = %s, y = %s" % (bkpt[i], y) )
+                        return 0, 0 # See docstring
+                    epsilon_upper_bound = delta_fn / abs(delta_perturb)
+                    if delta_perturb > 0:
+                        if -epsilon_upper_bound > best_minus_epsilon_lower_bound:
+                            best_minus_epsilon_lower_bound = -epsilon_upper_bound
+                    else:
+                        if epsilon_upper_bound < best_plus_epsilon_upper_bound:
+                            best_plus_epsilon_upper_bound = epsilon_upper_bound
+    logging.info("Finding epsilon interval for perturbation... done.  Interval is %s", [best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound])
+    return best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound
+
+def check_perturbation_general(fn, perturb, continuity=True, \
+                                show_plots=False, show_plot_tag='perturbation', xmin=0, xmax=1, **show_kwds):
+    epsilon_interval = fn._epsilon_interval = find_epsilon_interval_general(fn, perturb, continuity=continuity)
+    epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
+    logging.info("Epsilon for constructed perturbation: %s" % epsilon)
+    if show_plots:
+        logging.info("Plotting perturbation...")
+        p = plot(fn, xmin=xmin, xmax=xmax, color='black', thickness=2, legend_label="original function")
+        p += plot(fn + epsilon_interval[0] * perturb, xmin=xmin, xmax=xmax, color='red', legend_label="-perturbed (min)")
+        p += plot(fn + epsilon_interval[1] * perturb, xmin=xmin, xmax=xmax, color='blue', legend_label="+perturbed (max)")
+        if -epsilon != epsilon_interval[0]:
+            p += plot(fn + (-epsilon) * perturb, xmin=xmin, xmax=xmax, color='orange', legend_label="-perturbed (matches max)")
+        elif epsilon != epsilon_interval[1]:
+            p += plot(fn + epsilon * perturb, xmin=xmin, xmax=xmax, color='cyan', legend_label="+perturbed (matches min)")
+        p += plot(rescale_to_amplitude(perturb, 1/10), xmin=xmin, xmax=xmax, color='magenta', legend_label="perturbation (rescaled)")
+        show_plot(p, show_plots, tag=show_plot_tag, **show_kwds)
+        logging.info("Plotting perturbation... done")
+    assert epsilon > 0, "Epsilon should be positive, something is wrong"
+    logging.info("Thus the function is not extreme.")
 
 def periodic_one_limit(x, xeps, field):
     x = fractional(x)
