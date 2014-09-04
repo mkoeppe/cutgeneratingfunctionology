@@ -688,3 +688,38 @@ def generate_uncovered_intervals_general(function):
     """
     covered_intervals = generate_covered_intervals_general(function)
     return uncovered_intervals_from_covered_intervals(covered_intervals)
+
+def plot_covered_intervals_general(function, covered_intervals=None, **plot_kwds):
+    """
+    Return a plot of the covered and uncovered intervals of `function`.
+    """
+    if covered_intervals is None:
+        covered_intervals = generate_covered_intervals_general(function)
+        uncovered_intervals = generate_uncovered_intervals_general(function)
+    else:
+        uncovered_intervals = uncovered_intervals_from_covered_intervals(covered_intervals)
+    # Plot the function with different colors.
+    # Each component has a unique color.
+    # The uncovered intervals is by default plotted in black.
+    colors = rainbow(len(covered_intervals))
+    graph = Graphics()
+    kwds = copy(plot_kwds)
+    kwds.update(ticks_keywords(function))
+    if uncovered_intervals:
+        graph += plot(function, [0,1],
+                      color = "black", legend_label="not covered", **kwds)
+        kwds = {}
+    elif not function.is_continuous_defined(): # to plot the discontinuity markers
+        graph += plot(function, [0,1], color = "black", **kwds)
+        kwds = {}
+    for i, component in enumerate(covered_intervals):
+        kwds.update({'legend_label': "covered component %s" % (i+1)})
+        for interval in component:
+            graph += plot(function.which_function((interval[0] + interval[1])/2), interval, color=colors[i], **kwds)
+            if 'legend_label' in kwds:
+                del kwds['legend_label']
+            if 'ticks' in kwds:
+                del kwds['ticks']
+            if 'tick_formatter' in kwds:
+                del kwds['tick_formatter']
+    return graph
