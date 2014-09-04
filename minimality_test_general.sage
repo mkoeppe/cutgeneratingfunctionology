@@ -39,7 +39,7 @@ def generate_type_1_vertices_general(fn, comparison, continuity=True, reduced=Tr
             if not continuity:
                 limits_x = limits[i]
                 limits_y = limits[j]
-                limits_z = limits_with_left0_right1(fn, limits, z)
+                limits_z = fn.limits(z)
                 if reduced and limits_x[0] == limits_x[1] == limits_x[-1] and limits_y[0] == limits_y[1] == limits_y[-1]:
                     eps_to_check = continuous_xy_eps # continuous at x and y
                 else:
