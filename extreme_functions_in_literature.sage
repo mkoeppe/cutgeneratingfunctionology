@@ -833,3 +833,48 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4):
     cc = 1 + (s_pos * lam2 * (f - 1) - lam2) / 2 / (s_pos - s_neg)
     dd = 1 + f - cc
     return piecewise_function_from_breakpoints_and_slopes([0, aa, a, b, bb, f, dd, d, c, cc, 1], slopes)
+
+ def rlm_dpl1_extreme_3a(f=1/4):
+    """
+    Reference: 2007-Richard-Li-Miller-Valid inequalities for MIPs and group polyhedra from approximate liftings.pdf.
+
+    For 0 < f < 1/3, by thm.28, the DPL1 function \phi (whose corresponding h is shown on p.273, Fig.3-lowerleft)
+    is "extreme". <-- not the usual definition.
+
+    See def.19 for the definition of DPLn. (It's a special family of discontinuous piecewise linear functions.)
+    See Prop.18 and Fig 1 for relation between \phi (DPLn representation) and h (group representation).
+    (h(u) is called f(u), and f is called r0 in this paper).
+
+    All we know from the paper is that h on p.273, Fig.3-lowerleft is subadditive.
+    It does not say whether this h is extreme. (See discussion after thm.28 p.272.)
+
+    Indeed, it can be verified using covered_intervals and by setting up equations
+    (specifically, 2 * \pi(f+) = \pi(2f+) and 2* \pi((1+f) / 2 +) = \pi(f+)) that
+    the function rlm_dpl1_fig3_lowerleft(f) is extreme for any 0 < f < 1/3.
+
+    Example p.273, Fig.3-lowerleft ::
+        sage: h = rlm_dpl1_extreme_3a(f=1/4)
+
+    All other 3 functions (corresponding to \phi from the DPL1 family) shown in Fig.3 are proven to be extreme.
+    They are covered by drlm_3_slope_limit() and drlm_2_slope_limit() classes:
+        upper-left:  drlm_3_slope_limit(1/3)
+        upper-right: drlm_2_slope_limit(f=3/5, nb_pieces_left=1, nb_pieces_right=1)
+        lower-right: drlm_2_slope_limit(f=3/5, nb_pieces_left=1, nb_pieces_right=2)
+    """
+    if not bool(0 < f < 1):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if bool(f < 1/3):
+        pass # is the fig3_lowerleft case
+    else:
+        pass # is not the fig3_lowerleft case
+    f = nice_field_values([f])[0]
+    field = f.parent()
+    pieces = [[closed_interval(field(0), f), FastLinearFunction(1/f, 0, field=field)], \
+              [open_interval(f, (1 + f)/2), FastLinearFunction(2/(1 + 2*f), 0, field=field)], \
+              [singleton_interval((1 + f)/2), FastLinearFunction(field(0), 1/2, field=field)], \
+              [open_interval((1 + f)/2, 1), FastLinearFunction(2/(1 + 2*f), -1/(1 + 2*f), field=field)], \
+              [singleton_interval(field(1)), FastLinearFunction(field(0), 0, field=field)]]
+    h = FastPiecewise(pieces, merge=False)
+    # FIXME: Need to develop code for discontinuous functions.
+    logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
+    return h
