@@ -332,30 +332,36 @@ def plot_2d_additive_limit_vertices(fn, continuity=None):
         p += point([(0,0)], color = "white", size = 50, zorder=-9)
     return p
 
-def finite_dimensional_extremality_test_general(function, show_plots=False, f=None, components=None):
+def finite_dimensional_extremality_test_general(function, show_plots=False, f=None):
     """
     EXAMPLES::
     sage: logging.disable(logging.INFO)
     sage: h1 = drlm_not_extreme_2()
-    sage: finite_dimensional_extremality_test_general(h1,show_plots=True, components = [ [[0, 1/4], [1/4, 1/2], [1/2, 3/4], [3/4, 1]] ])
+    sage: finite_dimensional_extremality_test_general(h1,show_plots=True)
     False
     sage: h2 = drlm_3_slope_limit()
-    sage: finite_dimensional_extremality_test_general(h,show_plots=True, components = [ [[0, 1/5]], [[1/5, 1]] ])
+    sage: finite_dimensional_extremality_test_general(h,show_plots=True)
     True
     """
-    #FIXME: parameter `components' is temporary. should be removed once generate_covered_intervals_general has been developped.
-    #if function is discontinuous, need to provide components, a list recording covered_intervals.
     # dg_2_step_mir_limit() example: components = [ [[0, 1/5], [1/5, 2/5], [2/5, 3/5], [3/5, 1]] ]
     # drlm_3_slope_limit() example: components = [ [[0, 1/5]], [[1/5, 1]] ]
     # rlm_dpl1_fig3_lowerleft() example: components = [ [[0, 1/4]], [[1/4, 5/8], [5/8, 1]] ]
     # drlm_not_extreme_2() example: components = [ [[0, 1/4], [1/4, 1/2], [1/2, 3/4], [3/4, 1]] ]
 
     continuity = function.is_continuous_defined()
-    # temporary
-    if continuity:
-        components = generate_covered_intervals(function)
-    elif components == None:
-        raise ValueError,"Need to provide ``components'' for discontinuous funcitons."
+
+    covered_intervals = generate_covered_intervals_general(function)
+    uncovered_intervals = generate_uncovered_intervals_general(function)
+    if uncovered_intervals:
+        logging.warn(\
+                     """There are non-covered intervals, so (1) the symbolic piecewise is
+                     not suitable for proving extremality; and (2) in the current
+                     implementation, there may be too many slope variables, since the 
+                     relations between non-covered intervals are not taken into account.""")
+        components = copy(covered_intervals)
+        components.extend([int] for int in uncovered_intervals)
+    else:
+        components = covered_intervals
 
     field = function(0).parent().fraction_field()
     symbolic = generate_symbolic_general(function, components, field=field)
