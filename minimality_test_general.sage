@@ -587,6 +587,7 @@ def symmetry_face(face):
     trip = face.minimal_triple
     return Face( (trip[1], trip[0], trip[2]), vertices=vert_sym )
 
+@cached_function
 def generate_maximal_additive_faces_general(function):
     logging.info("Computing maximal additive faces...")
     bkpt = function.end_points()
@@ -629,3 +630,61 @@ def generate_maximal_additive_faces_general(function):
                             faces.append(symmetry_face(face))
     logging.info("Computing maximal additive faces... done")
     return faces
+
+@cached_function
+def generate_covered_intervals_general(function):
+    logging.info("Computing covered intervals...")
+    faces = generate_maximal_additive_faces_general(function)
+
+    covered_intervals = []
+    for face in faces:
+        if face.is_2D():
+            component = []
+            for int1 in face.minimal_triple:
+                component.append(interval_mod_1(int1))
+            component.sort()
+            component = merge_within_comp(component)
+            covered_intervals.append(component)
+
+    remove_duplicate(covered_intervals)
+
+    for i in range(len(covered_intervals)):
+        for j in range(i+1, len(covered_intervals)):
+            if find_interior_intersection(covered_intervals[i], covered_intervals[j]):
+                covered_intervals[j] = merge_two_comp(covered_intervals[i],covered_intervals[j])
+                covered_intervals[i] = []
+
+    covered_intervals = remove_empty_comp(covered_intervals)
+
+    edges = [ face.minimal_triple for face in faces if face.is_1D()]
+
+    any_change = True
+    ## FIXME: Here we saturate the covered interval components
+    ## with the edge relations.  There should be a smarter way
+    ## to avoid this while loop.  Probably by keeping track 
+    ## of a set of non-covered components (connected by edges).
+    ## --Matthias
+    while any_change:
+        any_change = False
+        for edge in edges:
+            intervals = []
+            # 0 stands for I; 1 stands for J; 2 stands for K
+            IJK = []
+            for i in range(len(edge)):
+                if len(edge[i]) == 2:
+                    intervals.append(edge[i])
+                    IJK.append(i)
+            if edge_merge(covered_intervals,intervals,IJK):
+                any_change = True
+
+    covered_intervals = remove_empty_comp(covered_intervals)
+    logging.info("Computing covered intervals... done")
+    return covered_intervals
+
+@cached_function
+def generate_uncovered_intervals_general(function):
+    """
+    Compute a sorted list of uncovered intervals.
+    """
+    covered_intervals = generate_covered_intervals_general(function)
+    return uncovered_intervals_from_covered_intervals(covered_intervals)
