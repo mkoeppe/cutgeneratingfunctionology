@@ -1661,7 +1661,10 @@ class FastPiecewise (PiecewisePolynomial):
         from sage.plot.all import plot, Graphics
 
         g = Graphics()
-
+        if not 'rgbcolor' in kwds:
+            color = 'blue'
+        else:
+            color = kwds['rgbcolor']
         ### Code duplication with xmin/xmax code in plot.py.
         n = len(args)
         xmin = None
@@ -1708,33 +1711,36 @@ class FastPiecewise (PiecewisePolynomial):
             if (a < b) or (a == b) and (left_closed) and (right_closed):
                 if not (last_closed or last_end_point == [a, f(a)] and left_closed):
                     # plot last open right endpoint
-                    g += point(last_end_point, rgbcolor='white', faceted=True, pointsize=23)
+                    g += point(last_end_point, color=color, pointsize=23)
+                    g += point(last_end_point, rgbcolor='white', pointsize=10)
                 if last_closed and last_end_point != [] and last_end_point != [a, f(a)] and not left_closed:
                     # plot last closed right endpoint
-                    g += point(last_end_point, pointsize=23)
+                    g += point(last_end_point, color=color, pointsize=23)
                 if not (left_closed or last_end_point == [a, f(a)] and last_closed):
-                    # plot current open left endpoint   
-                    g += point([a, f(a)], rgbcolor='white', faceted=True, pointsize=23)
+                    # plot current open left endpoint
+                    g += point([a, f(a)], color=color, pointsize=23)
+                    g += point([a, f(a)], rgbcolor='white', pointsize=10)
                 if left_closed and last_end_point != [] and last_end_point != [a, f(a)] and not last_closed:
                     # plot current closed left endpoint
-                    g += point([a, f(a)], pointsize=23)
+                    g += point([a, f(a)], color=color, pointsize=23)
                 last_closed = right_closed
                 last_end_point = [b, f(b)]
             if a < b:
                 # We do not plot anything if a==b because
                 # otherwise plot complains that
                 # "start point and endpoint must be different"
-                g += plot(f, *args, xmin=a, xmax=b, **kwds)
+                g += plot(f, *args, xmin=a, xmax=b, zorder=-1, **kwds)
                 # If it's the first piece, pass all arguments. Otherwise,
                 # filter out 'legend_label' so that we don't add each
                 # piece to the legend separately (trac #12651).
                 if 'legend_label' in kwds:
                     del kwds['legend_label']
             elif (a == b) and (left_closed) and (right_closed):
-                g += point([a, f(a)], pointsize=23)
+                g += point([a, f(a)], color=color, pointsize=23)
         # plot open rightmost endpoint. minimal functions don't need this.
         if not last_closed:
-            g += point(last_end_point, rgbcolor='white', faceted=True, pointsize=23)  
+            g += point(last_end_point, color=color,pointsize=23)
+            g += point(last_end_point, rgbcolor='white', pointsize=10)
         return g
 
     def is_continuous_defined(self, xmin=0, xmax=1):
