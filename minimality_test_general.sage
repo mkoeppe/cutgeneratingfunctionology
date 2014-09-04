@@ -249,17 +249,15 @@ def plot_2d_diagram_general(fn, show_function=False, continuity=None, known_mini
         continuity = fn.is_continuous_defined()
     p = plot_2d_complex(fn)
 
-    ## FIXME: Need to develope code for Face of discontinuous functions
-    #y = var('y')
-    #faces = generate_maximal_additive_faces(function)
-    #kwds = { 'legend_label': "Additive face" }
-    #for face in faces:
-    #    p += face.plot(**kwds)
-    #    if 'legend_label' in kwds:
-    #        del kwds['legend_label']
+    y = var('y')
+    faces = generate_maximal_additive_faces_general(fn)
+    kwds = { 'legend_label': "Additive face" }
+    for face in faces:
+        p += face.plot(**kwds)
+        if 'legend_label' in kwds:
+            del kwds['legend_label']
 
-    ### For non-subadditive functions, show the points where delta_pi
-    ### is negative.
+    ### For non-subadditive functions, show the points where delta_pi is negative.
     if not known_minimal:
         nonsubadditive_vertices = generate_nonsubadditive_vertices_general(fn, continuity=continuity, reduced=False)
         if continuity:
@@ -545,10 +543,89 @@ def rescale_to_amplitude_general(perturb, amplitude):
     else:
         return perturb
 
-def periodic_one_limit(x, xeps, field):
+def periodic_one_limit(x, xeps, field=QQ):
     x = fractional(x)
     if x == field(0) and xeps == -1:
         x = field(1)
     elif x == field(1) and xeps == 1:
         x = field(0)
     return x, xeps
+
+def delta_pi_general(fn, x, y, (xeps, yeps, zeps)=(0,0,0)):
+    x, xeps = periodic_one_limit(x, xeps)
+    y, yeps = periodic_one_limit(y, yeps)
+    z, zeps = periodic_one_limit(x + y, zeps)
+    return fn.limit(x, xeps) + fn.limit(y, yeps) - fn.limit(z, zeps)
+
+def containing_eps_1d(x, interval):
+    # assume that x is in interval
+    if len(interval) == 1:
+        return [0, 1, -1]
+    elif x == interval[0]:
+        return [1]
+    elif x == interval[1]:
+        return [-1]
+    else:
+        return [0]
+
+def generate_containing_eps_triple(vertex, triple):
+    xeps_list = containing_eps_1d(vertex[0], triple[0])
+    yeps_list = containing_eps_1d(vertex[1], triple[1])
+    zeps_list = containing_eps_1d(vertex[0] + vertex[1], triple[2])
+    return [(xeps, yeps, zeps) for xeps in xeps_list for yeps in yeps_list for zeps in zeps_list]
+
+def is_additive_face(fn, face):
+    for vertex in face.vertices:
+        for eps_triple in generate_containing_eps_triple(vertex, face.minimal_triple):
+            if delta_pi_general(fn, vertex[0], vertex[1], eps_triple) != 0:
+                return False
+    return True
+
+def symmetry_face(face):
+    vert = face.vertices
+    vert_sym = [(vertex[1], vertex[0]) for vertex in vert]
+    trip = face.minimal_triple
+    return Face( (trip[1], trip[0], trip[2]), vertices=vert_sym )
+
+def generate_maximal_additive_faces_general(function):
+    logging.info("Computing maximal additive faces...")
+    bkpt = function.end_points()
+    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
+    n = len(bkpt) - 1
+    I_list = J_list = [ (bkpt[i], bkpt[i+1]) for i in range(n) ]
+    K_list = [ (bkpt2[i], bkpt2[i+1]) for i in range(2*n) ]
+
+    faces = []
+    # 2D faces
+    for i in range(n):
+        for j in range(i, n):
+            for k in range(2*n):
+                # Check if int(I+J) intersects int(K) is non-empty.
+                if len(interval_intersection(interval_sum(I_list[i],J_list[j]),K_list[k])) == 2:
+                    face = Face( (I_list[i], J_list[j], K_list[k]) )
+                    if is_additive_face(function, face): 
+                        faces.append(face)
+                        if i != j:
+                            faces.append(symmetry_face(face))
+    # 1D horizontal and vertical faces
+    for i in range(n + 1):
+        for j in range(n):
+            for k in range(2*n):
+                if len(interval_intersection((bkpt[i] + bkpt[j], bkpt[i] + bkpt[j+1]), K_list[k])) == 2:
+                    face = Face( ([bkpt[i]], J_list[j], K_list[k]) )
+                    if is_additive_face(function, face): 
+                        faces.append(face)
+                        faces.append(symmetry_face(face))
+    # 1D diagonal faces
+    for k in range(2*n + 1):
+        for i in range(n):
+            for j in range(i, n):
+                interval_K = interval_sum(I_list[i],J_list[j])
+                if interval_K[0] < bkpt2[k] < interval_K[1]:
+                    face = Face( (I_list[i], J_list[j], [bkpt2[k]]) )
+                    if is_additive_face(function, face): 
+                        faces.append(face)
+                        if i != j:
+                            faces.append(symmetry_face(face))
+    logging.info("Computing maximal additive faces... done")
+    return faces
