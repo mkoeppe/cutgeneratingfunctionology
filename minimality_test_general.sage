@@ -135,19 +135,9 @@ def subadditivity_check_general(fn, continuity=None):
         logging.info("Thus pi is not subadditive.")
     return result
 
-def symmetric_check_general(fn, f, continuity=None):
-    """
-    Check if fn is symmetric. Works for discontinuous functions as well.
-    """
-    result = True
-    if fn(f) != 1:
-        logging.info('pi(f) is not equal to 1.')
-        result = False
+def generate_nonsymmetric_vertices_general(fn, f, continuity=True):
     bkpt = fn.end_points()
-    if continuity == None:
-        continuity = fn.is_continuous_defined()
-    if not continuity:
-        limits = fn.limits_at_end_points()
+    limits = fn.limits_at_end_points()
     for i in range(len(bkpt)):
         x = bkpt[i]
         if x == f:
@@ -156,19 +146,30 @@ def symmetric_check_general(fn, f, continuity=None):
             y = f - x
         else:
             y = 1 + f - x
-        if fn.values_at_end_points()[i] + fn(y) != 1:
-            logging.info('pi(%s) + pi(%s) is not equal to 1' % (x, y))
-            result = False
+        if limits[i][0] + fn(y) != 1:
+            yield (x, y, 0, 0)
         if not continuity:
             limits_x = limits[i]
             limits_y = fn.limits(y)
-            # no trouble at 0- and 1+ since 0 < y < 1.
             if limits_x[-1] + limits_y[1] != 1:
-                logging.info('pi(%s-) + pi(%s+) is not equal to 1' % (x, y))
-                result = False
+                yield (x, y, -1, 1)
             if limits_x[1] + limits_y[-1] != 1:
-                logging.info('pi(%s+) + pi(%s-) is not equal to 1' % (x, y))
-                result = False
+                yield (x, y, 1, -1)
+
+def symmetric_check_general(fn, f, continuity=None):
+    """
+    Check if fn is symmetric. Works for discontinuous functions as well.
+    """
+    result = True
+    if fn(f) != 1:
+        logging.info('pi(f) is not equal to 1.')
+        result = False
+    if continuity == None:
+        continuity = fn.is_continuous_defined()
+    result = True
+    for (x, y, xeps, yeps) in generate_nonsymmetric_vertices_general(fn, f, continuity=continuity):
+        logging.info("pi(%s%s) + pi(%s%s) is not equal to 1" % (x, print_sign(xeps), y, print_sign(yeps)))
+        result = False
     if result:
         logging.info("pi is symmetric.")
     else:
