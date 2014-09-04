@@ -388,7 +388,8 @@ def generate_symbolic_general(function, components, field=None):
     intervals_and_slopes.sort()
     bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
     limits = [function.limits(x) for x in bkpt]
-    num_jumps = sum([(x[-1] != x[0]) + (x[0] != x[1]) for x in limits]) - 2 # None at 0- and 1+, so sum-2
+    num_jumps = sum([(x[-1] != x[0]) + (x[0] != x[1]) for x in limits[1:-1]]) + \
+                    (limits[0][0] != limits[0][1]) + (limits[-1][-1] != limits[-1][0]) # None at 0- and 1+, so sum-2
     vector_space = VectorSpace(field, n + num_jumps)
     unit_vectors = vector_space.basis()
     slopes = [ unit_vectors[slope] for interval, slope in intervals_and_slopes ]
@@ -729,3 +730,21 @@ def plot_covered_intervals_general(function, covered_intervals=None, **plot_kwds
             if 'tick_formatter' in kwds:
                 del kwds['tick_formatter']
     return graph
+
+def extremality_test_general(fn, show_plots=False, f=None):
+    if f == None:
+        f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    if f == None or not minimality_test_general(fn, show_plots=show_plots, f=f):
+        logging.info("Not minimal, thus not extreme.")
+    covered_intervals = generate_covered_intervals_general(fn)
+    uncovered_intervals = generate_uncovered_intervals_general(fn)
+    if show_plots:
+        logging.info("Plotting covered intervals...")
+        show_plot(plot_covered_intervals_general(fn), show_plots, tag='covered_intervals')
+        logging.info("Plotting covered intervals... done")
+    if not uncovered_intervals:
+        logging.info("All intervals are covered (or connected-to-covered). %s components." % len(covered_intervals))
+        return finite_dimensional_extremality_test_general(fn, show_plots, f=f)
+    else:
+        logging.info("Uncovered intervals: %s", (uncovered_intervals,))
+        logging.info("Unfinished code..........")
