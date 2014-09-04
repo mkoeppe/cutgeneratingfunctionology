@@ -834,7 +834,7 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4):
     dd = 1 + f - cc
     return piecewise_function_from_breakpoints_and_slopes([0, aa, a, b, bb, f, dd, d, c, cc, 1], slopes)
 
- def rlm_dpl1_extreme_3a(f=1/4):
+def rlm_dpl1_extreme_3a(f=1/4):
     """
     Reference: 2007-Richard-Li-Miller-Valid inequalities for MIPs and group polyhedra from approximate liftings.pdf.
 
