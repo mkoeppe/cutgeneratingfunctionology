@@ -18,14 +18,6 @@ dic_eps_to_cone = { (-1,-1,-1): [(-1, 0), (0, -1)], \
                     ( 0, 0, 0): [] \
                   }
 
-def limits_with_left0_right1(fn, fn_limits, x):
-    if x == 0:  # take care of limit at 0-
-        return fn_limits[0]
-    elif x == 1: # take care of limit at 1+
-        return fn_limits[-1]
-    else:
-        return fn.limits(x)
-
 def generate_type_1_vertices_general(fn, comparison, continuity=True, reduced=True):
     """A generator...
     "...'general' refers to the fact that it outputs 6-tuples (x,y,z,xeps,yeps,zeps).
@@ -37,8 +29,6 @@ def generate_type_1_vertices_general(fn, comparison, continuity=True, reduced=Tr
     bkpt = fn.end_points()
     if not continuity:
         limits = fn.limits_at_end_points()
-        limits[0][-1] = limits[-1][-1]
-        limits[-1][1] = limits[0][1]
     for i in range(len(bkpt)):
         for j in range(i,len(bkpt)):
             x = bkpt[i]
@@ -70,8 +60,6 @@ def generate_type_2_vertices_general(fn, comparison, continuity=True, reduced=Tr
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     if not continuity:
         limits = fn.limits_at_end_points()
-        limits[0][-1] = limits[-1][-1]
-        limits[-1][1] = limits[0][1]
     for i in range(len(bkpt)):
         for k2 in range(i + 1, i + len(bkpt) - 1):
             # only need to check for 0 < y < 1. and note that bkpt2[i + len(bkpt) - 1] == bkpt[i] + 1.
@@ -160,8 +148,6 @@ def symmetric_check_general(fn, f, continuity=None):
         continuity = fn.is_continuous_defined()
     if not continuity:
         limits = fn.limits_at_end_points()
-        limits[0][-1] = limits[-1][-1]
-        limits[-1][1] = limits[0][1]
     for i in range(len(bkpt)):
         x = bkpt[i]
         if x == f:
@@ -209,8 +195,6 @@ def minimality_test_general(fn, show_plots=False, f=None):
     continuity = fn.is_continuous_defined()
     if not continuity:
         limits = fn.limits_at_end_points()
-        limits[0][-1] = limits[-1][-1]
-        limits[-1][1] = limits[0][1]
         for x in limits:
             if not ((0 <= x[-1] <=1) and (0 <= x[1] <=1)):
                 logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
@@ -389,7 +373,7 @@ def generate_symbolic_general(function, components, field=None):
     bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
     limits = [function.limits(x) for x in bkpt]
     num_jumps = sum([(x[-1] != x[0]) + (x[0] != x[1]) for x in limits[1:-1]]) + \
-                    (limits[0][0] != limits[0][1]) + (limits[-1][-1] != limits[-1][0]) # None at 0- and 1+, so sum-2
+                    (limits[0][0] != limits[0][1]) + (limits[-1][-1] != limits[-1][0]) # don't count 0- and 1+
     vector_space = VectorSpace(field, n + num_jumps)
     unit_vectors = vector_space.basis()
     slopes = [ unit_vectors[slope] for interval, slope in intervals_and_slopes ]
@@ -418,11 +402,7 @@ def generate_additivity_equations_general(function, symbolic, field, f=None, con
     equations.append(symbolic(f))
     equations.append(symbolic(field(1)))
     for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices_general(function, continuity=continuity, reduced=True):
-        # handle 0- and 1+
-        x, xeps = periodic_one_limit(x, xeps, field)
-        y, yeps = periodic_one_limit(y, yeps, field)
-        z, zeps = periodic_one_limit(z, zeps, field)
-        new_equation = symbolic.limit(x, xeps) + symbolic.limit(y, yeps) - symbolic.limit(z, zeps)
+        new_equation = delta_pi_general(symbolic, x, y, (xeps, yeps, zeps))
         equations.append(new_equation)
     return  matrix(field, equations)
 
@@ -440,11 +420,7 @@ def find_epsilon_interval_general(fn, perturb, continuity=True):
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
 
     fn_limits = [fn.limits(x) for x in bkpt]
-    fn_limits[0][-1] = fn_limits[-1][-1]
-    fn_limits[-1][1] = fn_limits[0][1]
     perturb_limits = [perturb.limits(x) for x in bkpt]
-    perturb_limits[0][-1] = perturb_limits[-1][-1]
-    perturb_limits[-1][1] = perturb_limits[0][1]
 
     best_minus_epsilon_lower_bound = -10000
     best_plus_epsilon_upper_bound = +10000
@@ -456,8 +432,8 @@ def find_epsilon_interval_general(fn, perturb, continuity=True):
             perturb_y = perturb_limits[j]
             fn_y = fn_limits[j]
             z = fractional(bkpt[i] + bkpt[j])
-            perturb_z = limits_with_left0_right1(perturb, perturb_limits, z)
-            fn_z = limits_with_left0_right1(fn, fn_limits, z)
+            perturb_z = perturb.limits(z)
+            fn_z = fn.limits(z)
             if continuity:
                 eps_to_check = {(0, 0, 0)}
             elif fn_x[0] == fn_x[1] == fn_x[-1] and fn_y[0] == fn_y[1] == fn_y[-1]:
@@ -491,8 +467,8 @@ def find_epsilon_interval_general(fn, perturb, continuity=True):
             perturb_z = perturb_limits[k]
             fn_z = fn_limits[k]
             y = bkpt2[k2] - bkpt[i]
-            perturb_y = limits_with_left0_right1(perturb, perturb_limits, y)
-            fn_y = limits_with_left0_right1(fn, fn_limits, y)
+            perturb_y = perturb.limits(y)
+            fn_y = fn.limits(y)
 
             if continuity:
                 eps_to_check = {(0, 0, 0)}
@@ -550,19 +526,8 @@ def rescale_to_amplitude_general(perturb, amplitude):
     else:
         return perturb
 
-def periodic_one_limit(x, xeps, field=QQ):
-    x = fractional(x)
-    if x == field(0) and xeps == -1:
-        x = field(1)
-    elif x == field(1) and xeps == 1:
-        x = field(0)
-    return x, xeps
-
 def delta_pi_general(fn, x, y, (xeps, yeps, zeps)=(0,0,0)):
-    x, xeps = periodic_one_limit(x, xeps)
-    y, yeps = periodic_one_limit(y, yeps)
-    z, zeps = periodic_one_limit(x + y, zeps)
-    return fn.limit(x, xeps) + fn.limit(y, yeps) - fn.limit(z, zeps)
+    return fn.limit(fractional(x), xeps) + fn.limit(fractional(y), yeps) - fn.limit(fractional(x + y), zeps)
 
 def containing_eps_1d(x, interval):
     # assume that x is in interval
@@ -588,7 +553,7 @@ def is_additive_face(fn, face):
                 return False
     return True
 
-def symmetry_face(face):
+def x_y_swapped_face(face):
     vert = face.vertices
     vert_sym = [(vertex[1], vertex[0]) for vertex in vert]
     trip = face.minimal_triple
@@ -614,7 +579,7 @@ def generate_maximal_additive_faces_general(function):
                     if is_additive_face(function, face): 
                         faces.append(face)
                         if i != j:
-                            faces.append(symmetry_face(face))
+                            faces.append(x_y_swapped_face(face))
     # 1D horizontal and vertical faces
     for i in range(n + 1):
         for j in range(n):
@@ -623,7 +588,7 @@ def generate_maximal_additive_faces_general(function):
                     face = Face( ([bkpt[i]], J_list[j], K_list[k]) )
                     if is_additive_face(function, face): 
                         faces.append(face)
-                        faces.append(symmetry_face(face))
+                        faces.append(x_y_swapped_face(face))
     # 1D diagonal faces
     for k in range(2*n + 1):
         for i in range(n):
@@ -634,7 +599,7 @@ def generate_maximal_additive_faces_general(function):
                     if is_additive_face(function, face): 
                         faces.append(face)
                         if i != j:
-                            faces.append(symmetry_face(face))
+                            faces.append(x_y_swapped_face(face))
     logging.info("Computing maximal additive faces... done")
     return faces
 
