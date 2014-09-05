@@ -847,6 +847,14 @@ def ticks_keywords(function, y_ticks_for_breakpoints=False):
             'gridlines': True, \
             'tick_formatter': [xtick_formatter, ytick_formatter]}
 
+def delete_one_time_plot_kwds(kwds):
+    if 'legend_label' in kwds:
+        del kwds['legend_label']
+    if 'ticks' in kwds:
+        del kwds['ticks']
+    if 'tick_formatter' in kwds:
+        del kwds['tick_formatter']
+
 def plot_covered_intervals(function, covered_intervals=None, **plot_kwds):
     """
     Return a plot of the covered and uncovered intervals of `function`.
@@ -864,22 +872,19 @@ def plot_covered_intervals(function, covered_intervals=None, **plot_kwds):
     kwds = copy(plot_kwds)
     kwds.update(ticks_keywords(function))
     if uncovered_intervals:
-        graph += plot(function, [0,1],
-                      color = "black", legend_label="not covered", **kwds)
-        kwds = {}
+        kwds.update({'legend_label': "not covered"})
+        graph += plot(function, [0,1], color = "black", **kwds)
+        delete_one_time_plot_kwds(kwds)
     elif not function.is_continuous(): # to plot the discontinuity markers
         graph += plot(function, [0,1], color = "black", **kwds)
-        kwds = {}
+        delete_one_time_plot_kwds(kwds)
     for i, component in enumerate(covered_intervals):
         kwds.update({'legend_label': "covered component %s" % (i+1)})
         for interval in component:
-            graph += plot(function.which_function((interval[0] + interval[1])/2), interval, color=colors[i], **kwds)
-            if 'legend_label' in kwds:
-                del kwds['legend_label']
-            if 'ticks' in kwds:
-                del kwds['ticks']
-            if 'tick_formatter' in kwds:
-                del kwds['tick_formatter']
+            graph += plot(function.which_function((interval[0] + interval[1])/2), interval, color=colors[i], zorder=-1, **kwds)
+            # zorder=-1 puts them below the discontinuity markers,
+            # above the black function.
+            delete_one_time_plot_kwds(kwds)
     return graph
 
 ### Minimality check.
