@@ -1110,7 +1110,7 @@ class FastPiecewise (PiecewisePolynomial):
     Uses binary search to allow for faster function evaluations
     than the standard class PiecewisePolynomial.
     """
-    def __init__(self, list_of_pairs, var=None, periodic_extendable=True, merge=True):
+    def __init__(self, list_of_pairs, var=None, periodic_extension=True, merge=True):
         """
         EXAMPLES:
         sage: h = FastPiecewise([[(3/10, 15/40), FastLinearFunction(1, 0)], [(13/40, 14/40), FastLinearFunction(1, 0)]], merge=True)
@@ -1204,18 +1204,18 @@ class FastPiecewise (PiecewisePolynomial):
                 limits_at_end_points.append([right_value, None, left_limit])
             elif right_value != None:
                 values_at_end_points[-1] = right_value
-        if periodic_extendable:
-            if values_at_end_points[0] != values_at_end_points[-1]:
-                logging.warn("Function is actually not periodically extendable.")
-                periodic_extendable = False
-            else:
+        if periodic_extension:
+            #if values_at_end_points[0] != values_at_end_points[-1]:
+            #    logging.warn("Function is actually not periodically extendable.")
+            #    periodic_extension = False
+            #else:
                 limits_at_end_points[0][-1] = limits_at_end_points[-1][-1]
                 limits_at_end_points[-1][1] = limits_at_end_points[0][1]
         self._end_points = end_points
         self._ith_at_end_points = ith_at_end_points
         self._values_at_end_points = values_at_end_points
         self._limits_at_end_points = limits_at_end_points
-        self._periodic_extendable = periodic_extendable
+        self._periodic_extension = periodic_extension
 
     # The following makes this class hashable and thus enables caching
     # of the above functions; but we must promise not to modify the
@@ -1286,7 +1286,7 @@ class FastPiecewise (PiecewisePolynomial):
             ...                      [singleton_interval(3),f4],\
             ...                      [left_open_interval(3,6),f5],\
             ...                      [open_interval(6,7),f6],\
-            ...                      [(9,10),f7]], periodic_extendable= False, merge=False)
+            ...                      [(9,10),f7]], periodic_extension= False, merge=False)
             sage: f.limits_at_end_points()
             [[1, 1, None], [0, 0, 1], [None, e^2, -1], [4, sin(6), e^3], [sin(12), 3, sin(12)], [None, None, 4], [7, 7, None], [7, None, 7]]
         """
@@ -1449,6 +1449,8 @@ class FastPiecewise (PiecewisePolynomial):
         # Remember that intervals are sorted according to their left endpoints; singleton has priority.
         endpts = self.end_points()
         ith = self._ith_at_end_points
+        if self._periodic_extension:
+            x0 = fractional(x0)
         i = bisect_left(endpts, x0)
         if i >= len(endpts):
             raise ValueError,"Value not defined at point %s, outside of domain." % x0
@@ -1482,7 +1484,7 @@ class FastPiecewise (PiecewisePolynomial):
             ...                      [singleton_interval(3),f4],\
             ...                      [left_open_interval(3,6),f5],\
             ...                      [open_interval(6,7),f6],\
-            ...                      [(9,10),f7]], periodic_extendable=False, merge=False)
+            ...                      [(9,10),f7]], periodic_extension=False, merge=False)
             sage: f.limits(1/2)
             [1, 1, 1]
             sage: f.limits(1)
@@ -1502,6 +1504,8 @@ class FastPiecewise (PiecewisePolynomial):
         """
         endpts = self.end_points()
         ith = self._ith_at_end_points
+        if self._periodic_extension:
+            x0 = fractional(x0)
         i = bisect_left(endpts, x0)
         if i >= len(endpts):
             return [None, None, None]
@@ -1534,7 +1538,7 @@ class FastPiecewise (PiecewisePolynomial):
             ...                      [singleton_interval(3),f4],\
             ...                      [left_open_interval(3,6),f5],\
             ...                      [open_interval(6,7),f6],\
-            ...                      [(9,10),f7]], periodic_extendable=False, merge=False)
+            ...                      [(9,10),f7]], periodic_extension=False, merge=False)
             sage: f.limit(1,0)
             0
             sage: f.limit(1,1)

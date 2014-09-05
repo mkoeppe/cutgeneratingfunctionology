@@ -403,6 +403,9 @@ def generate_additivity_equations_general(function, symbolic, field, f=None, con
     equations.append(symbolic(f))
     equations.append(symbolic(field(1)))
     for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices_general(function, continuity=continuity, reduced=True):
+        # FIXME: symbolic has different vector values at 0 and 1.
+        # periodic_extension would be set to False if FastPiecewise.__init__ did an error check, which would cause symbolic(0-) to fail.
+        # Remove the error check in __init__, or treat 0- and 1+ differently for symbolic.
         new_equation = delta_pi_general(symbolic, x, y, (xeps, yeps, zeps))
         equations.append(new_equation)
     return  matrix(field, equations)
