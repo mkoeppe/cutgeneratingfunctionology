@@ -1032,28 +1032,6 @@ def minimality_test(fn, show_plots=False, f=None):
             logging.info('Thus pi is not minimal.')
             return False
 
-global default_field 
-default_field = QQ
-
-## Lambda functions are the fastest to evaluate, but we cannot add them,
-## which may be inconvenient.
-def very_fast_linear_function(slope, intercept, field=default_field):
-    """
-    Return a linear function.
-    """
-    # Ignore field in this implementation.
-    return lambda x: slope * x + intercept
-
-# Linear univariate polynomials are 10 times slower than lambda functions to evaluate,
-# but still 10 times faster to evaluate than symbolic expressions.
-# Note that this implementation is NOT compatible with symbolic expressions.
-# For example slope=0, intercept=sqrt(2) leads to the result
-# being just a symbolic expression, which is not callable.
-def fast_addable_linear_function(slope, intercept, field=default_field):
-     RK = PolynomialRing(field, 'x')
-     x = RK.0
-     return slope * x + intercept
-
 from sage.functions.piecewise import PiecewisePolynomial
 from bisect import bisect_left
 
@@ -1210,7 +1188,7 @@ class FastPiecewise (PiecewisePolynomial):
                 values_at_end_points.append(right_value)
                 limits_at_end_points.append([right_value, None, left_limit])
             elif right_value != None:
-                values_at_end_points[-1] = right_value
+                values_at_end_points[-1] = right_value        
         if periodic_extension and limits_at_end_points != []:
             #if values_at_end_points[0] != values_at_end_points[-1]:
             #    logging.warn("Function is actually not periodically extendable.")
@@ -1224,12 +1202,34 @@ class FastPiecewise (PiecewisePolynomial):
         self._limits_at_end_points = limits_at_end_points
         self._periodic_extension = periodic_extension
 
+        is_continuous = True
+        if len(end_points) == 1 and end_points[0] == None:
+            is_continuous = False
+        elif len(end_points)>= 2:
+            [l0, m0, r0] = limits_at_end_points[0]
+            [l1, m1, r1] = limits_at_end_points[-1]
+            if m0 == None or r0 == None or  m0 != r0 or l1 == None or m1 == None or l1 != m1:
+                is_continuous = False
+            else:
+                for i in range(1, len(end_points)-1):
+                    [l, m, r] = limits_at_end_points[i]
+                    if l == None or m == None or r == None or not(l == m == r):
+                        is_continuous = False
+                        break
+        self._is_continuous = is_continuous
+
     # The following makes this class hashable and thus enables caching
     # of the above functions; but we must promise not to modify the
     # contents of the instance.
     def __hash__(self):
         return id(self)
 
+    def is_continuous(self):
+        """
+        return if function is continuous
+        """
+        return self._is_continuous
+        
     def end_points(self):
         """
         Returns a list of all interval endpoints for this function.
@@ -2032,14 +2032,6 @@ class RealNumberField_absolute(NumberField_absolute):
         self._zero_element = self(0)
         self._one_element =  self(1)
         self._exact_embedding = self.hom([exact_embedding])
-
-    ## def specified_complex_embedding(self):
-    ##     ## This is so that _symbolic_ works.
-    ##     return self._exact_embedding
-    ### FIXME: _symbolic_ leads to infinite recursion of LazyWrappers etc.
-
-
-#### Repeat the whole exercise for quadratics... 
 
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 
