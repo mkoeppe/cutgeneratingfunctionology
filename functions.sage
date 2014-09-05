@@ -1039,7 +1039,7 @@ from bisect import bisect_left
 ## its performance against the other options. --Matthias
 class FastLinearFunction :
 
-    def __init__(self, slope, intercept, field=default_field):
+    def __init__(self, slope, intercept):
         self._slope = slope
         self._intercept = intercept
 
