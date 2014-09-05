@@ -1025,28 +1025,6 @@ def minimality_test(fn, show_plots=False, f=None):
             logging.info('Thus pi is not minimal.')
             return False
 
-global default_field 
-default_field = QQ
-
-## Lambda functions are the fastest to evaluate, but we cannot add them,
-## which may be inconvenient.
-def very_fast_linear_function(slope, intercept, field=default_field):
-    """
-    Return a linear function.
-    """
-    # Ignore field in this implementation.
-    return lambda x: slope * x + intercept
-
-# Linear univariate polynomials are 10 times slower than lambda functions to evaluate,
-# but still 10 times faster to evaluate than symbolic expressions.
-# Note that this implementation is NOT compatible with symbolic expressions.
-# For example slope=0, intercept=sqrt(2) leads to the result
-# being just a symbolic expression, which is not callable.
-def fast_addable_linear_function(slope, intercept, field=default_field):
-     RK = PolynomialRing(field, 'x')
-     x = RK.0
-     return slope * x + intercept
-
 from sage.functions.piecewise import PiecewisePolynomial
 from bisect import bisect_left
 
@@ -2025,14 +2003,6 @@ class RealNumberField_absolute(NumberField_absolute):
         self._zero_element = self(0)
         self._one_element =  self(1)
         self._exact_embedding = self.hom([exact_embedding])
-
-    ## def specified_complex_embedding(self):
-    ##     ## This is so that _symbolic_ works.
-    ##     return self._exact_embedding
-    ### FIXME: _symbolic_ leads to infinite recursion of LazyWrappers etc.
-
-
-#### Repeat the whole exercise for quadratics... 
 
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 
