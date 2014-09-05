@@ -1204,7 +1204,7 @@ class FastPiecewise (PiecewisePolynomial):
                 limits_at_end_points.append([right_value, None, left_limit])
             elif right_value != None:
                 values_at_end_points[-1] = right_value
-        if periodic_extension:
+        if periodic_extension and limits_at_end_points != []:
             #if values_at_end_points[0] != values_at_end_points[-1]:
             #    logging.warn("Function is actually not periodically extendable.")
             #    periodic_extension = False
@@ -1449,8 +1449,6 @@ class FastPiecewise (PiecewisePolynomial):
         # Remember that intervals are sorted according to their left endpoints; singleton has priority.
         endpts = self.end_points()
         ith = self._ith_at_end_points
-        if self._periodic_extension:
-            x0 = fractional(x0)
         i = bisect_left(endpts, x0)
         if i >= len(endpts):
             raise ValueError,"Value not defined at point %s, outside of domain." % x0
@@ -1504,8 +1502,6 @@ class FastPiecewise (PiecewisePolynomial):
         """
         endpts = self.end_points()
         ith = self._ith_at_end_points
-        if self._periodic_extension:
-            x0 = fractional(x0)
         i = bisect_left(endpts, x0)
         if i >= len(endpts):
             return [None, None, None]
