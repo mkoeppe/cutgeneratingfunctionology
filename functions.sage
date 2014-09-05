@@ -1181,7 +1181,7 @@ class FastPiecewise (PiecewisePolynomial):
                 values_at_end_points.append(right_value)
                 limits_at_end_points.append([right_value, None, left_limit])
             elif right_value != None:
-                values_at_end_points[-1] = right_value
+                values_at_end_points[-1] = right_value        
         if periodic_extension and limits_at_end_points != []:
             #if values_at_end_points[0] != values_at_end_points[-1]:
             #    logging.warn("Function is actually not periodically extendable.")
@@ -1195,12 +1195,34 @@ class FastPiecewise (PiecewisePolynomial):
         self._limits_at_end_points = limits_at_end_points
         self._periodic_extension = periodic_extension
 
+        is_continuous = True
+        if len(end_points) == 1 and end_points[0] == None:
+            is_continuous = False
+        elif len(end_points)>= 2:
+            [l0, m0, r0] = limits_at_end_points[0]
+            [l1, m1, r1] = limits_at_end_points[-1]
+            if m0 == None or r0 == None or  m0 != r0 or l1 == None or m1 == None or l1 != m1:
+                is_continuous = False
+            else:
+                for i in range(1, len(end_points)-1):
+                    [l, m, r] = limits_at_end_points[i]
+                    if l == None or m == None or r == None or not(l == m == r):
+                        is_continuous = False
+                        break
+        self._is_continuous = is_continuous
+
     # The following makes this class hashable and thus enables caching
     # of the above functions; but we must promise not to modify the
     # contents of the instance.
     def __hash__(self):
         return id(self)
 
+    def is_continuous(self):
+        """
+        return if function is continuous
+        """
+        return self._is_continuous
+        
     def end_points(self):
         """
         Returns a list of all interval endpoints for this function.

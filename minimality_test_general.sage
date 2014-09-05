@@ -18,7 +18,7 @@ dic_eps_to_cone = { (-1,-1,-1): [(-1, 0), (0, -1)], \
                     ( 0, 0, 0): [] \
                   }
 
-def generate_type_1_vertices_general(fn, comparison, continuity=True, reduced=True):
+def generate_type_1_vertices_general(fn, comparison, reduced=True):
     """A generator...
     "...'general' refers to the fact that it outputs 6-tuples (x,y,z,xeps,yeps,zeps).
     When reduced=True:
@@ -27,7 +27,7 @@ def generate_type_1_vertices_general(fn, comparison, continuity=True, reduced=Tr
         outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive or additive_limit_vertices.
     """
     bkpt = fn.end_points()
-    if not continuity:
+    if not fn.is_continuous():
         limits = fn.limits_at_end_points()
     for i in range(len(bkpt)):
         for j in range(i,len(bkpt)):
@@ -36,7 +36,7 @@ def generate_type_1_vertices_general(fn, comparison, continuity=True, reduced=Tr
             z = fractional(x + y)
             if comparison(fn.values_at_end_points()[i] + fn.values_at_end_points()[j], fn(z)):
                 yield (x, y, x+y, 0, 0, 0)
-            if not continuity:
+            if not fn.is_continuous():
                 limits_x = limits[i]
                 limits_y = limits[j]
                 limits_z = fn.limits(z)
@@ -48,7 +48,7 @@ def generate_type_1_vertices_general(fn, comparison, continuity=True, reduced=Tr
                     if comparison(limits_x[xeps] + limits_y[yeps] - limits_z[zeps], 0):
                        yield (x, y, x+y, xeps, yeps, zeps)
 
-def generate_type_2_vertices_general(fn, comparison, continuity=True, reduced=True):
+def generate_type_2_vertices_general(fn, comparison, reduced=True):
     """
     When reduced=True:
         only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_check or setting up equations.
@@ -58,7 +58,7 @@ def generate_type_2_vertices_general(fn, comparison, continuity=True, reduced=Tr
     """
     bkpt = fn.end_points()
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
-    if not continuity:
+    if not fn.is_continuous():
         limits = fn.limits_at_end_points()
     for i in range(len(bkpt)):
         for k2 in range(i + 1, i + len(bkpt) - 1):
@@ -72,7 +72,7 @@ def generate_type_2_vertices_general(fn, comparison, continuity=True, reduced=Tr
                 k = k2 - len(bkpt) + 1
             if comparison(fn.values_at_end_points()[i] + fn(y), fn.values_at_end_points()[k]):
                 yield (x, y, z, 0, 0, 0)
-            if not continuity:
+            if not fn.is_continuous():
                 limits_x = limits[i]
                 limits_z = limits[k]
                 limits_y = fn.limits(y)
@@ -89,7 +89,7 @@ def generate_type_2_vertices_general(fn, comparison, continuity=True, reduced=Tr
                        yield (x, y, x+y, xeps, yeps, zeps)
 
 @cached_function
-def generate_nonsubadditive_vertices_general(fn, continuity=True, reduced=True):
+def generate_nonsubadditive_vertices_general(fn, reduced=True):
     """
     We are returning a set of 6-tuples (x, y, z, xeps, yeps, zeps),
     so that duplicates are removed, and so the result can be cached for later use.
@@ -100,11 +100,11 @@ def generate_nonsubadditive_vertices_general(fn, continuity=True, reduced=True):
         outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive_limit_vertices.
     """
     return set(itertools.chain( \
-                generate_type_1_vertices_general(fn, operator.lt, continuity=continuity, reduced=reduced),\
-                generate_type_2_vertices_general(fn, operator.lt, continuity=continuity, reduced=reduced))  )
+                generate_type_1_vertices_general(fn, operator.lt, reduced=reduced),\
+                generate_type_2_vertices_general(fn, operator.lt, reduced=reduced))  )
 
 @cached_function
-def generate_additive_vertices_general(fn, continuity=True, reduced=True):
+def generate_additive_vertices_general(fn, reduced=True):
     """
     We are returning a set of 6-tuples (x, y, z, xeps, yeps, zeps),
     so that duplicates are removed, and so the result can be cached for later use.
@@ -115,18 +115,16 @@ def generate_additive_vertices_general(fn, continuity=True, reduced=True):
         outputs all triples satisfying `comparison' relation, for the purpose of plotting additive_limit_vertices.
     """
     return set(itertools.chain( \
-                generate_type_1_vertices_general(fn, operator.eq, continuity=continuity, reduced=reduced),\
-                generate_type_2_vertices_general(fn, operator.eq, continuity=continuity, reduced=reduced)) )
+                generate_type_1_vertices_general(fn, operator.eq, reduced=reduced),\
+                generate_type_2_vertices_general(fn, operator.eq, reduced=reduced)) )
 
-def subadditivity_check_general(fn, continuity=None):
+def subadditivity_check_general(fn):
     """
     Check if fn is subadditive. Works for discontinuous functions as well.
     """
     bkpt = fn.end_points()
-    if continuity == None:
-        continuity = fn.is_continuous_defined()
     result = True
-    for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices_general(fn, continuity=continuity, reduced=True):
+    for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices_general(fn, reduced=True):
         logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
         result = False
     if result:
@@ -135,7 +133,7 @@ def subadditivity_check_general(fn, continuity=None):
         logging.info("Thus pi is not subadditive.")
     return result
 
-def generate_nonsymmetric_vertices_general(fn, f, continuity=True):
+def generate_nonsymmetric_vertices_general(fn, f):
     bkpt = fn.end_points()
     limits = fn.limits_at_end_points()
     for i in range(len(bkpt)):
@@ -148,7 +146,7 @@ def generate_nonsymmetric_vertices_general(fn, f, continuity=True):
             y = 1 + f - x
         if limits[i][0] + fn(y) != 1:
             yield (x, y, 0, 0)
-        if not continuity:
+        if not fn.is_continuous():
             limits_x = limits[i]
             limits_y = fn.limits(y)
             if limits_x[-1] + limits_y[1] != 1:
@@ -156,7 +154,7 @@ def generate_nonsymmetric_vertices_general(fn, f, continuity=True):
             if limits_x[1] + limits_y[-1] != 1:
                 yield (x, y, 1, -1)
 
-def symmetric_check_general(fn, f, continuity=None):
+def symmetric_check_general(fn, f):
     """
     Check if fn is symmetric. Works for discontinuous functions as well.
     """
@@ -164,10 +162,8 @@ def symmetric_check_general(fn, f, continuity=None):
     if fn(f) != 1:
         logging.info('pi(f) is not equal to 1.')
         result = False
-    if continuity == None:
-        continuity = fn.is_continuous_defined()
     result = True
-    for (x, y, xeps, yeps) in generate_nonsymmetric_vertices_general(fn, f, continuity=continuity):
+    for (x, y, xeps, yeps) in generate_nonsymmetric_vertices_general(fn, f):
         logging.info("pi(%s%s) + pi(%s%s) is not equal to 1" % (x, print_sign(xeps), y, print_sign(yeps)))
         result = False
     if result:
@@ -193,14 +189,13 @@ def minimality_test_general(fn, show_plots=False, f=None):
         return False
     logging.info('pi(0) = 0')
     bkpt = fn.end_points()
-    continuity = fn.is_continuous_defined()
-    if not continuity:
+    if not fn.is_continuous():
         limits = fn.limits_at_end_points()
         for x in limits:
             if not ((0 <= x[-1] <=1) and (0 <= x[1] <=1)):
                 logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
                 return False
-    if subadditivity_check_general(fn, continuity) and symmetric_check_general(fn, f, continuity):
+    if subadditivity_check_general(fn) and symmetric_check_general(fn, f):
         logging.info('Thus pi is minimal.')
         is_minimal = True
     else:
@@ -208,12 +203,12 @@ def minimality_test_general(fn, show_plots=False, f=None):
         is_minimal = False
     if show_plots:
         logging.info("Plotting 2d diagram...")
-        show_plot( plot_2d_diagram_general(fn, show_function=False, continuity=continuity, known_minimal=is_minimal),\
+        show_plot( plot_2d_diagram_general(fn, show_function=False, known_minimal=is_minimal),\
                      show_plots, tag='2d_diagram' )
         logging.info("Plotting 2d diagram... done")
     return is_minimal
 
-def plot_2d_diagram_general(fn, show_function=False, continuity=None, known_minimal=False):
+def plot_2d_diagram_general(fn, show_function=False, known_minimal=False):
     """
     To show only a part of it, use
     `show(plot_2d_diagram(h), xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)`
@@ -230,8 +225,6 @@ def plot_2d_diagram_general(fn, show_function=False, continuity=None, known_mini
     ...           [open_interval(3/4,1), FastLinearFunction(3, -2)], \
     ...           [singleton_interval(1), FastLinearFunction(0,0)]])
     """
-    if continuity == None:
-        continuity = fn.is_continuous_defined()
     p = plot_2d_complex(fn)
 
     y = var('y')
@@ -244,8 +237,8 @@ def plot_2d_diagram_general(fn, show_function=False, continuity=None, known_mini
 
     ### For non-subadditive functions, show the points where delta_pi is negative.
     if not known_minimal:
-        nonsubadditive_vertices = generate_nonsubadditive_vertices_general(fn, continuity=continuity, reduced=False)
-        if continuity:
+        nonsubadditive_vertices = generate_nonsubadditive_vertices_general(fn, reduced=False)
+        if fn.is_continuous():
             nonsubadditive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices}
             p += point(list(nonsubadditive_vertices), \
                                 color = "red", size = 50, legend_label="Subadditivity violated", zorder=-1)
@@ -297,12 +290,10 @@ def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03):
     return p
 
 ###### Temporary code. Look for covered intervals on a 2d-diagram ########
-def plot_2d_additive_limit_vertices(fn, continuity=None):
-    if continuity == None:
-        continuity = fn.is_continuous_defined()
+def plot_2d_additive_limit_vertices(fn):
     p = plot_2d_complex(fn)
-    additive_vertices = generate_additive_vertices_general(fn, continuity=continuity, reduced=False)
-    if continuity:
+    additive_vertices = generate_additive_vertices_general(fn, reduced=False)
+    if fn.is_continuous():
         additive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in badditive_vertices}
         p += point(list(additive_vertices), \
                             color = "mediumspringgreen", size = 50, legend_label="Additivity", zorder=-1)
@@ -333,8 +324,6 @@ def finite_dimensional_extremality_test_general(function, show_plots=False, f=No
     # rlm_dpl1_fig3_lowerleft() example: components = [ [[0, 1/4]], [[1/4, 5/8], [5/8, 1]] ]
     # drlm_not_extreme_2() example: components = [ [[0, 1/4], [1/4, 1/2], [1/2, 3/4], [3/4, 1]] ]
 
-    continuity = function.is_continuous_defined()
-
     covered_intervals = generate_covered_intervals_general(function)
     uncovered_intervals = generate_uncovered_intervals_general(function)
     if uncovered_intervals:
@@ -350,7 +339,7 @@ def finite_dimensional_extremality_test_general(function, show_plots=False, f=No
 
     field = function(0).parent().fraction_field()
     symbolic = generate_symbolic_general(function, components, field=field)
-    equation_matrix = generate_additivity_equations_general(function, symbolic, field, f=f, continuity=continuity)
+    equation_matrix = generate_additivity_equations_general(function, symbolic, field, f=f)
     slope_jump_vects = equation_matrix.right_kernel().basis()
     logging.info("Solution space has dimension %s" % len(slope_jump_vects))
     if len(slope_jump_vects) == 0:
@@ -360,7 +349,7 @@ def finite_dimensional_extremality_test_general(function, show_plots=False, f=No
         for basis_index in range(len(slope_jump_vects)):
             slope_jump = slope_jump_vects[basis_index]
             perturbation = function._perturbation = slope_jump * symbolic
-            check_perturbation_general(function, perturbation, continuity=continuity,
+            check_perturbation_general(function, perturbation,
                                         show_plots=show_plots, show_plot_tag='perturbation-%s' % (basis_index + 1),
                                         legend_title="Basic perturbation %s" % (basis_index + 1))
         return False
@@ -396,13 +385,13 @@ def generate_symbolic_general(function, components, field=None):
     pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, current_value)])
     return FastPiecewise(pieces, merge=True)
 
-def generate_additivity_equations_general(function, symbolic, field, f=None, continuity=True):
+def generate_additivity_equations_general(function, symbolic, field, f=None):
     equations = []
     if f == None:
         f = find_f(function)
     equations.append(symbolic(f))
     equations.append(symbolic(field(1)))
-    for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices_general(function, continuity=continuity, reduced=True):
+    for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices_general(function, reduced=True):
         # FIXME: symbolic has different vector values at 0 and 1.
         # periodic_extension would be set to False if FastPiecewise.__init__ did an error check, which would cause symbolic(0-) to fail.
         # Remove the error check in __init__, or treat 0- and 1+ differently for symbolic.
@@ -410,7 +399,7 @@ def generate_additivity_equations_general(function, symbolic, field, f=None, con
         equations.append(new_equation)
     return  matrix(field, equations)
 
-def find_epsilon_interval_general(fn, perturb, continuity=True):
+def find_epsilon_interval_general(fn, perturb):
     """Compute the interval [minus_epsilon, plus_epsilon] such that
     (fn + epsilon * perturb) is subadditive for epsilon in this interval.
     Assumes that fn is subadditive.
@@ -438,7 +427,7 @@ def find_epsilon_interval_general(fn, perturb, continuity=True):
             z = fractional(bkpt[i] + bkpt[j])
             perturb_z = perturb.limits(z)
             fn_z = fn.limits(z)
-            if continuity:
+            if fn.is_continuous():
                 eps_to_check = {(0, 0, 0)}
             elif fn_x[0] == fn_x[1] == fn_x[-1] and fn_y[0] == fn_y[1] == fn_y[-1]:
                 # if fn is continuous at x and y, then so is perturb.
@@ -474,7 +463,7 @@ def find_epsilon_interval_general(fn, perturb, continuity=True):
             perturb_y = perturb.limits(y)
             fn_y = fn.limits(y)
 
-            if continuity:
+            if fn.is_continuous():
                 eps_to_check = {(0, 0, 0)}
             elif not (fn_y[0] == fn_y[1] == fn_y[-1]):
                 # then y is a in bkpt. this is done in type1check.
@@ -499,9 +488,9 @@ def find_epsilon_interval_general(fn, perturb, continuity=True):
     logging.info("Finding epsilon interval for perturbation... done.  Interval is %s", [best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound])
     return best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound
 
-def check_perturbation_general(fn, perturb, continuity=True, \
+def check_perturbation_general(fn, perturb, \
                                 show_plots=False, show_plot_tag='perturbation', xmin=0, xmax=1, **show_kwds):
-    epsilon_interval = fn._epsilon_interval = find_epsilon_interval_general(fn, perturb, continuity=continuity)
+    epsilon_interval = fn._epsilon_interval = find_epsilon_interval_general(fn, perturb)
     epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
     logging.info("Epsilon for constructed perturbation: %s" % epsilon)
     if show_plots:
