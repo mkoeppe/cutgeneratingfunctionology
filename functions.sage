@@ -1117,7 +1117,7 @@ class FastPiecewise (PiecewisePolynomial):
     Uses binary search to allow for faster function evaluations
     than the standard class PiecewisePolynomial.
     """
-    def __init__(self, list_of_pairs, var=None, merge=True):
+    def __init__(self, list_of_pairs, var=None, periodic_extension=True, merge=True):
         """
         EXAMPLES:
         sage: h = FastPiecewise([[(3/10, 15/40), FastLinearFunction(1, 0)], [(13/40, 14/40), FastLinearFunction(1, 0)]], merge=True)
@@ -1211,10 +1211,18 @@ class FastPiecewise (PiecewisePolynomial):
                 limits_at_end_points.append([right_value, None, left_limit])
             elif right_value != None:
                 values_at_end_points[-1] = right_value
+        if periodic_extension and limits_at_end_points != []:
+            #if values_at_end_points[0] != values_at_end_points[-1]:
+            #    logging.warn("Function is actually not periodically extendable.")
+            #    periodic_extension = False
+            #else:
+                limits_at_end_points[0][-1] = limits_at_end_points[-1][-1]
+                limits_at_end_points[-1][1] = limits_at_end_points[0][1]
         self._end_points = end_points
         self._ith_at_end_points = ith_at_end_points
         self._values_at_end_points = values_at_end_points
         self._limits_at_end_points = limits_at_end_points
+        self._periodic_extension = periodic_extension
 
     # The following makes this class hashable and thus enables caching
     # of the above functions; but we must promise not to modify the
@@ -1232,10 +1240,10 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f2(x) = 2
             sage: f3(x) = 1-x
             sage: f4(x) = x^2-5
-            sage: f = FastPiecewise([[open_interval(0,1),f1],[singleton_interval(1),f2],[open_interval(1,2),f3],[(2,3),f4]], merge=False)
+            sage: f = FastPiecewise([[open_interval(0,1),f1],[singleton_interval(1),f2],[open_interval(1,2),f3],[(2,3),f4]])
             sage: f.end_points()
             [0, 1, 2, 3]
-            sage: f = FastPiecewise([[open_interval(0,1),f1],[open_interval(2,3),f3]], merge=False)
+            sage: f = FastPiecewise([[open_interval(0,1),f1],[open_interval(2,3),f3]])
             sage: f.end_points()
             [0, 1, 2, 3]
         """
@@ -1260,7 +1268,7 @@ class FastPiecewise (PiecewisePolynomial):
             ...                      [singleton_interval(3),f4],\
             ...                      [left_open_interval(3,6),f5],\
             ...                      [open_interval(6,7),f6],\
-            ...                      [(9,10),f7]], merge=False)
+            ...                      [(9,10),f7]])
             sage: f.values_at_end_points()
             [1, 0, None, 4, sin(12), None, 7, 7]
         """
@@ -1285,7 +1293,7 @@ class FastPiecewise (PiecewisePolynomial):
             ...                      [singleton_interval(3),f4],\
             ...                      [left_open_interval(3,6),f5],\
             ...                      [open_interval(6,7),f6],\
-            ...                      [(9,10),f7]], merge=False)
+            ...                      [(9,10),f7]], periodic_extension= False)
             sage: f.limits_at_end_points()
             [[1, 1, None], [0, 0, 1], [None, e^2, -1], [4, sin(6), e^3], [sin(12), 3, sin(12)], [None, None, 4], [7, 7, None], [7, None, 7]]
         """
@@ -1324,7 +1332,7 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f = FastPiecewise([[right_open_interval(0,1),f1],
             ...                      [right_open_interval(1,2),f2],
             ...                      [right_open_interval(2,3),f3],
-            ...                      [closed_interval(3,10),f4]], merge=False)
+            ...                      [closed_interval(3,10),f4]])
             sage: f.which_function(0.5) is f1
             True
             sage: f.which_function(1) is f2
@@ -1334,7 +1342,7 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f.which_function(3) is f4
             True
             sage: f = FastPiecewise([[open_interval(0,1),f1],
-            ...                      [right_open_interval(2,3),f3]], merge=False)
+            ...                      [right_open_interval(2,3),f3]])
             sage: f.which_function(0)
             Traceback (most recent call last):
             ...
@@ -1411,7 +1419,7 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f = FastPiecewise([[right_open_interval(0,1),f1],
             ...                      [right_open_interval(1,2),f2],
             ...                      [right_open_interval(2,3),f3],
-            ...                      [closed_interval(3,10),f4]], merge=False)
+            ...                      [closed_interval(3,10),f4]])
             sage: f(0.5)
             1
             sage: f(1)
@@ -1421,7 +1429,7 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f(3)
             sin(6)
             sage: f = FastPiecewise([[open_interval(0,1),f1],
-            ...                      [right_open_interval(2,3),f3]], merge=False)
+            ...                      [right_open_interval(2,3),f3]])
             sage: f(0)
             Traceback (most recent call last):
             ...
@@ -1481,7 +1489,7 @@ class FastPiecewise (PiecewisePolynomial):
             ...                      [singleton_interval(3),f4],\
             ...                      [left_open_interval(3,6),f5],\
             ...                      [open_interval(6,7),f6],\
-            ...                      [(9,10),f7]], merge=False)
+            ...                      [(9,10),f7]], periodic_extension=False)
             sage: f.limits(1/2)
             [1, 1, 1]
             sage: f.limits(1)
@@ -1533,7 +1541,7 @@ class FastPiecewise (PiecewisePolynomial):
             ...                      [singleton_interval(3),f4],\
             ...                      [left_open_interval(3,6),f5],\
             ...                      [open_interval(6,7),f6],\
-            ...                      [(9,10),f7]], merge=False)
+            ...                      [(9,10),f7]], periodic_extension=False)
             sage: f.limit(1,0)
             0
             sage: f.limit(1,1)
@@ -1570,14 +1578,14 @@ class FastPiecewise (PiecewisePolynomial):
         Rather, the result is only defined on the intersection of the domains.
 
         EXAMPLES::
-        sage: f = FastPiecewise([[singleton_interval(1), FastLinearFunction(0,17)]], merge=False)
-        sage: g = FastPiecewise([[[0,2], FastLinearFunction(0,2)]], merge=False)
+        sage: f = FastPiecewise([[singleton_interval(1), FastLinearFunction(0,17)]])
+        sage: g = FastPiecewise([[[0,2], FastLinearFunction(0,2)]])
         sage: (f+g).list()
         [[<Int{1}>, <FastLinearFunction 19>]]
-        sage: h = FastPiecewise([[open_interval(1,3), FastLinearFunction(0,3)]], merge=False)
+        sage: h = FastPiecewise([[open_interval(1,3), FastLinearFunction(0,3)]])
         sage: (g+h).list()
         [[<Int(1, 2]>, <FastLinearFunction 5>]]
-        sage: j = FastPiecewise([[open_interval(0,1), FastLinearFunction(0,1)], [[1, 3], FastLinearFunction(0, 5)]], merge=False)
+        sage: j = FastPiecewise([[open_interval(0,1), FastLinearFunction(0,1)], [[1, 3], FastLinearFunction(0, 5)]])
         sage: (g+j).list()
         [[<Int(0, 1)>, <FastLinearFunction 3>], [(1, 2), <FastLinearFunction 7>]]
         """
@@ -1668,7 +1676,10 @@ class FastPiecewise (PiecewisePolynomial):
         from sage.plot.all import plot, Graphics
 
         g = Graphics()
-
+        if not 'rgbcolor' in kwds:
+            color = 'blue'
+        else:
+            color = kwds['rgbcolor']
         ### Code duplication with xmin/xmax code in plot.py.
         n = len(args)
         xmin = None
@@ -1715,66 +1726,63 @@ class FastPiecewise (PiecewisePolynomial):
             if (a < b) or (a == b) and (left_closed) and (right_closed):
                 if not (last_closed or last_end_point == [a, f(a)] and left_closed):
                     # plot last open right endpoint
-                    g += point(last_end_point, rgbcolor='white', faceted=True, pointsize=23)
+                    g += point(last_end_point, color=color, pointsize=23)
+                    g += point(last_end_point, rgbcolor='white', pointsize=10)
                 if last_closed and last_end_point != [] and last_end_point != [a, f(a)] and not left_closed:
                     # plot last closed right endpoint
-                    g += point(last_end_point, pointsize=23)
+                    g += point(last_end_point, color=color, pointsize=23)
                 if not (left_closed or last_end_point == [a, f(a)] and last_closed):
-                    # plot current open left endpoint   
-                    g += point([a, f(a)], rgbcolor='white', faceted=True, pointsize=23)
+                    # plot current open left endpoint
+                    g += point([a, f(a)], color=color, pointsize=23)
+                    g += point([a, f(a)], rgbcolor='white', pointsize=10)
                 if left_closed and last_end_point != [] and last_end_point != [a, f(a)] and not last_closed:
                     # plot current closed left endpoint
-                    g += point([a, f(a)], pointsize=23)
+                    g += point([a, f(a)], color=color, pointsize=23)
                 last_closed = right_closed
                 last_end_point = [b, f(b)]
             if a < b:
                 # We do not plot anything if a==b because
                 # otherwise plot complains that
                 # "start point and endpoint must be different"
-                g += plot(f, *args, xmin=a, xmax=b, **kwds)
+                g += plot(f, *args, xmin=a, xmax=b, zorder=-1, **kwds)
                 # If it's the first piece, pass all arguments. Otherwise,
                 # filter out 'legend_label' so that we don't add each
                 # piece to the legend separately (trac #12651).
                 if 'legend_label' in kwds:
                     del kwds['legend_label']
             elif (a == b) and (left_closed) and (right_closed):
-                g += point([a, f(a)], pointsize=23)
+                g += point([a, f(a)], color=color, pointsize=23)
         # plot open rightmost endpoint. minimal functions don't need this.
         if not last_closed:
-            g += point(last_end_point, rgbcolor='white', faceted=True, pointsize=23)  
+            g += point(last_end_point, color=color,pointsize=23)
+            g += point(last_end_point, rgbcolor='white', pointsize=10)
         return g
 
     def is_continuous_defined(self, xmin=0, xmax=1):
         """
         return True if self is defined on [xmin,xmax] and is continuous on [xmin,xmax]
         """
-        last_end_point = []
-        last_closed = True
-        for (i, f) in self.list():
-            a = i[0]
-            b = i[1]
-            left_closed = True
-            right_closed = True
-            if len(i) > 2: # coho interval
-                left_closed = i.left_closed
-                right_closed = i.right_closed
-            if a < xmin:
-                a = xmin
-                left_closed = True
-            if b > xmax:
-                b = xmax
-                right_closed = True
-            if (a < b) or (a == b) and (left_closed) and (right_closed):
-                if last_end_point == [] and not a == xmin:
-                    return False
-                if not (last_closed or last_end_point == [a, f(a)] and left_closed):
-                    return False
-                if not (left_closed or last_end_point == [a, f(a)] and last_closed):
-                    return False
-                last_closed = right_closed
-                last_end_point = [b, f(b)]
-        if not (last_closed and last_end_point[0] == xmax):
+        bkpt = self._end_points
+        if xmin < bkpt[0] or xmax > bkpt[-1]:
             return False
+        if xmin == xmax:
+            return (self(xmin) != None)
+        limits = self._limits_at_end_points
+        i = 0
+        while bkpt[i] < xmin:
+            i += 1
+        if bkpt[i] == xmin:
+            if limits[i][0] == None or limits[i][1] == None or limits[i][0] != limits[i][1]:
+                return False 
+            i += 1
+        while bkpt[i] < xmax:
+            if limits[i][-1] == None or limits[i][0] == None or limits[i][1] == None or \
+                                        not (limits[i][-1] == limits[i][0] == limits[i][1]):
+                return False
+            i += 1
+        if bkpt[i] == xmax:
+            if limits[i][0] == None or limits[i][-1] == None or limits[i][0] != limits[i][-1]:
+                return False
         return True
 
     def __repr__(self):
@@ -2268,7 +2276,7 @@ def discrete_function_from_points_and_values(points, values, field=None):
     points, values = field_values[0:len(points)], field_values[-len(values):]
     pieces = [ (singleton_interval(point), FastLinearFunction(0, value))
                for point, value in itertools.izip(points, values) ]
-    return FastPiecewise(pieces, merge=False)
+    return FastPiecewise(pieces)
 
 def limiting_slopes(fn):
     functions = fn.functions()

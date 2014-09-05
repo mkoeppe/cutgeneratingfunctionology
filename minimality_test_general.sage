@@ -3,14 +3,20 @@ nonzero_eps = { (-1,-1,-1), (-1, 1,-1), (-1, 1, 1), (-1, 1, 0), (-1, 0,-1), ( 1,
 continuous_xy_eps = { (-1,-1,-1), (1, 1, 1) }
 type2_reduced_eps = { (0,-1,-1), (0, 1, 1), (1,-1,-1), (1, 1, 1), (-1,-1,-1), (-1, 1, 1), \
                       (1,-1, 0), (-1, 1, 0) }
-
-def limits_with_left0_right1(fn, fn_limits, x):
-    if x == 0:  # take care of limit at 0-
-        return fn_limits[0]
-    elif x == 1: # take care of limit at 1+
-        return fn_limits[-1]
-    else:
-        return fn.limits(x)
+dic_eps_to_cone = { (-1,-1,-1): [(-1, 0), (0, -1)], \
+                    (-1, 1,-1): [(-1, 1), (-1, 0)], \
+                    (-1, 1, 1): [(0, 1), (-1, 1)], \
+                    (-1, 1, 0): [(-1, 1)], \
+                    (-1, 0,-1): [(-1, 0)], \
+                    ( 1,-1,-1): [(0, -1), (1, -1)], \
+                    ( 1,-1, 1): [(1, -1), (1, 0)], \
+                    ( 1,-1, 0): [(1, -1)], \
+                    ( 1, 1, 1): [(1, 0), (0, 1)], \
+                    ( 1, 0, 1): [(1, 0)], \
+                    ( 0,-1,-1): [(0, -1)], \
+                    ( 0, 1, 1): [(0, 1)], \
+                    ( 0, 0, 0): [] \
+                  }
 
 def generate_type_1_vertices_general(fn, comparison, continuity=True, reduced=True):
     """A generator...
@@ -23,8 +29,6 @@ def generate_type_1_vertices_general(fn, comparison, continuity=True, reduced=Tr
     bkpt = fn.end_points()
     if not continuity:
         limits = fn.limits_at_end_points()
-        limits[0][-1] = limits[-1][-1]
-        limits[-1][1] = limits[0][1]
     for i in range(len(bkpt)):
         for j in range(i,len(bkpt)):
             x = bkpt[i]
@@ -35,7 +39,7 @@ def generate_type_1_vertices_general(fn, comparison, continuity=True, reduced=Tr
             if not continuity:
                 limits_x = limits[i]
                 limits_y = limits[j]
-                limits_z = limits_with_left0_right1(fn, limits, z)
+                limits_z = fn.limits(z)
                 if reduced and limits_x[0] == limits_x[1] == limits_x[-1] and limits_y[0] == limits_y[1] == limits_y[-1]:
                     eps_to_check = continuous_xy_eps # continuous at x and y
                 else:
@@ -56,8 +60,6 @@ def generate_type_2_vertices_general(fn, comparison, continuity=True, reduced=Tr
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     if not continuity:
         limits = fn.limits_at_end_points()
-        limits[0][-1] = limits[-1][-1]
-        limits[-1][1] = limits[0][1]
     for i in range(len(bkpt)):
         for k2 in range(i + 1, i + len(bkpt) - 1):
             # only need to check for 0 < y < 1. and note that bkpt2[i + len(bkpt) - 1] == bkpt[i] + 1.
@@ -133,21 +135,9 @@ def subadditivity_check_general(fn, continuity=None):
         logging.info("Thus pi is not subadditive.")
     return result
 
-def symmetric_check_general(fn, f, continuity=None):
-    """
-    Check if fn is symmetric. Works for discontinuous functions as well.
-    """
-    result = True
-    if fn(f) != 1:
-        logging.info('pi(f) is not equal to 1.')
-        result = False
+def generate_nonsymmetric_vertices_general(fn, f, continuity=True):
     bkpt = fn.end_points()
-    if continuity == None:
-        continuity = fn.is_continuous_defined()
-    if not continuity:
-        limits = fn.limits_at_end_points()
-        limits[0][-1] = limits[-1][-1]
-        limits[-1][1] = limits[0][1]
+    limits = fn.limits_at_end_points()
     for i in range(len(bkpt)):
         x = bkpt[i]
         if x == f:
@@ -156,19 +146,30 @@ def symmetric_check_general(fn, f, continuity=None):
             y = f - x
         else:
             y = 1 + f - x
-        if fn.values_at_end_points()[i] + fn(y) != 1:
-            logging.info('pi(%s) + pi(%s) is not equal to 1' % (x, y))
-            result = False
+        if limits[i][0] + fn(y) != 1:
+            yield (x, y, 0, 0)
         if not continuity:
             limits_x = limits[i]
             limits_y = fn.limits(y)
-            # no trouble at 0- and 1+ since 0 < y < 1.
             if limits_x[-1] + limits_y[1] != 1:
-                logging.info('pi(%s-) + pi(%s+) is not equal to 1' % (x, y))
-                result = False
+                yield (x, y, -1, 1)
             if limits_x[1] + limits_y[-1] != 1:
-                logging.info('pi(%s+) + pi(%s-) is not equal to 1' % (x, y))
-                result = False
+                yield (x, y, 1, -1)
+
+def symmetric_check_general(fn, f, continuity=None):
+    """
+    Check if fn is symmetric. Works for discontinuous functions as well.
+    """
+    result = True
+    if fn(f) != 1:
+        logging.info('pi(f) is not equal to 1.')
+        result = False
+    if continuity == None:
+        continuity = fn.is_continuous_defined()
+    result = True
+    for (x, y, xeps, yeps) in generate_nonsymmetric_vertices_general(fn, f, continuity=continuity):
+        logging.info("pi(%s%s) + pi(%s%s) is not equal to 1" % (x, print_sign(xeps), y, print_sign(yeps)))
+        result = False
     if result:
         logging.info("pi is symmetric.")
     else:
@@ -195,8 +196,6 @@ def minimality_test_general(fn, show_plots=False, f=None):
     continuity = fn.is_continuous_defined()
     if not continuity:
         limits = fn.limits_at_end_points()
-        limits[0][-1] = limits[-1][-1]
-        limits[-1][1] = limits[0][1]
         for x in limits:
             if not ((0 <= x[-1] <=1) and (0 <= x[1] <=1)):
                 logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
@@ -222,30 +221,28 @@ def plot_2d_diagram_general(fn, show_function=False, continuity=None, known_mini
     EXAMPLES::
     sage: h = FastPiecewise([[closed_interval(0,1/4), FastLinearFunction(4, 0)], \
     ...          [open_interval(1/4, 1), FastLinearFunction(4/3, -1/3)], \
-    ...          [singleton_interval(1), FastLinearFunction(0,0)]], merge=False)
+    ...          [singleton_interval(1), FastLinearFunction(0,0)]])
     sage: plot_2d_diagram_general(h)
 
     sage: h = FastPiecewise([[closed_interval(0,1/4), FastLinearFunction(4, 0)], \
     ...           [open_interval(1/4,1/2), FastLinearFunction(3, -3/4)], \
     ...           [closed_interval(1/2, 3/4), FastLinearFunction(-2, 7/4)], \
     ...           [open_interval(3/4,1), FastLinearFunction(3, -2)], \
-    ...           [singleton_interval(1), FastLinearFunction(0,0)]], merge=False)
+    ...           [singleton_interval(1), FastLinearFunction(0,0)]])
     """
     if continuity == None:
         continuity = fn.is_continuous_defined()
     p = plot_2d_complex(fn)
 
-    ## FIXME: Need to develope code for Face of discontinuous functions
-    #y = var('y')
-    #faces = generate_maximal_additive_faces(function)
-    #kwds = { 'legend_label': "Additive face" }
-    #for face in faces:
-    #    p += face.plot(**kwds)
-    #    if 'legend_label' in kwds:
-    #        del kwds['legend_label']
+    y = var('y')
+    faces = generate_maximal_additive_faces_general(fn)
+    kwds = { 'legend_label': "Additive face" }
+    for face in faces:
+        p += face.plot(**kwds)
+        if 'legend_label' in kwds:
+            del kwds['legend_label']
 
-    ### For non-subadditive functions, show the points where delta_pi
-    ### is negative.
+    ### For non-subadditive functions, show the points where delta_pi is negative.
     if not known_minimal:
         nonsubadditive_vertices = generate_nonsubadditive_vertices_general(fn, continuity=continuity, reduced=False)
         if continuity:
@@ -270,22 +267,8 @@ def plot_2d_diagram_general(fn, show_function=False, continuity=None, known_mini
                                                 (x, 0, 1), color='blue')
     return p
 def epstriple_to_cone(epstriple):
-    dic = { (-1,-1,-1): [(-1, 0), (0, -1)], \
-            (-1, 1,-1): [(-1, 1), (-1, 0)], \
-            (-1, 1, 1): [(0, 1), (-1, 1)], \
-            (-1, 1, 0): [(-1, 1)], \
-            (-1, 0,-1): [(-1, 0)], \
-            ( 1,-1,-1): [(0, -1), (1, -1)], \
-            ( 1,-1, 1): [(1, -1), (1, 0)], \
-            ( 1,-1, 0): [(1, -1)], \
-            ( 1, 1, 1): [(1, 0), (0, 1)], \
-            ( 1, 0, 1): [(1, 0)], \
-            ( 0,-1,-1): [(0, -1)], \
-            ( 0, 1, 1): [(0, 1)], \
-            ( 0, 0, 0): [] \
-          }
     try:
-        return dic[epstriple]
+        return dic_eps_to_cone[epstriple]
     except KeyError:
         raise ValueError,"The limit epstriple %s does not exist." % epstriple
 
@@ -334,30 +317,36 @@ def plot_2d_additive_limit_vertices(fn, continuity=None):
         p += point([(0,0)], color = "white", size = 50, zorder=-9)
     return p
 
-def finite_dimensional_extremality_test_general(function, show_plots=False, f=None, components=None):
+def finite_dimensional_extremality_test_general(function, show_plots=False, f=None):
     """
     EXAMPLES::
     sage: logging.disable(logging.INFO)
     sage: h1 = drlm_not_extreme_2()
-    sage: finite_dimensional_extremality_test_general(h1,show_plots=True, components = [ [[0, 1/4], [1/4, 1/2], [1/2, 3/4], [3/4, 1]] ])
+    sage: finite_dimensional_extremality_test_general(h1,show_plots=True)
     False
     sage: h2 = drlm_3_slope_limit()
-    sage: finite_dimensional_extremality_test_general(h,show_plots=True, components = [ [[0, 1/5]], [[1/5, 1]] ])
+    sage: finite_dimensional_extremality_test_general(h,show_plots=True)
     True
     """
-    #FIXME: parameter `components' is temporary. should be removed once generate_covered_intervals_general has been developped.
-    #if function is discontinuous, need to provide components, a list recording covered_intervals.
     # dg_2_step_mir_limit() example: components = [ [[0, 1/5], [1/5, 2/5], [2/5, 3/5], [3/5, 1]] ]
     # drlm_3_slope_limit() example: components = [ [[0, 1/5]], [[1/5, 1]] ]
     # rlm_dpl1_fig3_lowerleft() example: components = [ [[0, 1/4]], [[1/4, 5/8], [5/8, 1]] ]
     # drlm_not_extreme_2() example: components = [ [[0, 1/4], [1/4, 1/2], [1/2, 3/4], [3/4, 1]] ]
 
     continuity = function.is_continuous_defined()
-    # temporary
-    if continuity:
-        components = generate_covered_intervals(function)
-    elif components == None:
-        raise ValueError,"Need to provide ``components'' for discontinuous funcitons."
+
+    covered_intervals = generate_covered_intervals_general(function)
+    uncovered_intervals = generate_uncovered_intervals_general(function)
+    if uncovered_intervals:
+        logging.warn(\
+                     """There are non-covered intervals, so (1) the symbolic piecewise is
+                     not suitable for proving extremality; and (2) in the current
+                     implementation, there may be too many slope variables, since the 
+                     relations between non-covered intervals are not taken into account.""")
+        components = copy(covered_intervals)
+        components.extend([int] for int in uncovered_intervals)
+    else:
+        components = covered_intervals
 
     field = function(0).parent().fraction_field()
     symbolic = generate_symbolic_general(function, components, field=field)
@@ -384,7 +373,8 @@ def generate_symbolic_general(function, components, field=None):
     intervals_and_slopes.sort()
     bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
     limits = [function.limits(x) for x in bkpt]
-    num_jumps = sum([(x[-1] != x[0]) + (x[0] != x[1]) for x in limits]) - 2 # None at 0- and 1+, so sum-2
+    num_jumps = sum([(x[-1] != x[0]) + (x[0] != x[1]) for x in limits[1:-1]]) + \
+                    (limits[0][0] != limits[0][1]) + (limits[-1][-1] != limits[-1][0]) # don't count 0- and 1+
     vector_space = VectorSpace(field, n + num_jumps)
     unit_vectors = vector_space.basis()
     slopes = [ unit_vectors[slope] for interval, slope in intervals_and_slopes ]
@@ -413,11 +403,10 @@ def generate_additivity_equations_general(function, symbolic, field, f=None, con
     equations.append(symbolic(f))
     equations.append(symbolic(field(1)))
     for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices_general(function, continuity=continuity, reduced=True):
-        # handle 0- and 1+
-        x, xeps = periodic_one_limit(x, xeps, field)
-        y, yeps = periodic_one_limit(y, yeps, field)
-        z, zeps = periodic_one_limit(z, zeps, field)
-        new_equation = symbolic.limit(x, xeps) + symbolic.limit(y, yeps) - symbolic.limit(z, zeps)
+        # FIXME: symbolic has different vector values at 0 and 1.
+        # periodic_extension would be set to False if FastPiecewise.__init__ did an error check, which would cause symbolic(0-) to fail.
+        # Remove the error check in __init__, or treat 0- and 1+ differently for symbolic.
+        new_equation = delta_pi_general(symbolic, x, y, (xeps, yeps, zeps))
         equations.append(new_equation)
     return  matrix(field, equations)
 
@@ -435,11 +424,7 @@ def find_epsilon_interval_general(fn, perturb, continuity=True):
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
 
     fn_limits = [fn.limits(x) for x in bkpt]
-    fn_limits[0][-1] = fn_limits[-1][-1]
-    fn_limits[-1][1] = fn_limits[0][1]
     perturb_limits = [perturb.limits(x) for x in bkpt]
-    perturb_limits[0][-1] = perturb_limits[-1][-1]
-    perturb_limits[-1][1] = perturb_limits[0][1]
 
     best_minus_epsilon_lower_bound = -10000
     best_plus_epsilon_upper_bound = +10000
@@ -451,8 +436,8 @@ def find_epsilon_interval_general(fn, perturb, continuity=True):
             perturb_y = perturb_limits[j]
             fn_y = fn_limits[j]
             z = fractional(bkpt[i] + bkpt[j])
-            perturb_z = limits_with_left0_right1(perturb, perturb_limits, z)
-            fn_z = limits_with_left0_right1(fn, fn_limits, z)
+            perturb_z = perturb.limits(z)
+            fn_z = fn.limits(z)
             if continuity:
                 eps_to_check = {(0, 0, 0)}
             elif fn_x[0] == fn_x[1] == fn_x[-1] and fn_y[0] == fn_y[1] == fn_y[-1]:
@@ -486,8 +471,8 @@ def find_epsilon_interval_general(fn, perturb, continuity=True):
             perturb_z = perturb_limits[k]
             fn_z = fn_limits[k]
             y = bkpt2[k2] - bkpt[i]
-            perturb_y = limits_with_left0_right1(perturb, perturb_limits, y)
-            fn_y = limits_with_left0_right1(fn, fn_limits, y)
+            perturb_y = perturb.limits(y)
+            fn_y = fn.limits(y)
 
             if continuity:
                 eps_to_check = {(0, 0, 0)}
@@ -521,23 +506,214 @@ def check_perturbation_general(fn, perturb, continuity=True, \
     logging.info("Epsilon for constructed perturbation: %s" % epsilon)
     if show_plots:
         logging.info("Plotting perturbation...")
-        p = plot(fn, xmin=xmin, xmax=xmax, color='black', thickness=2, legend_label="original function")
+        p = plot(rescale_to_amplitude_general(perturb, 1/10), xmin=xmin, xmax=xmax, color='magenta', legend_label="perturbation (rescaled)")
+
         p += plot(fn + epsilon_interval[0] * perturb, xmin=xmin, xmax=xmax, color='red', legend_label="-perturbed (min)")
         p += plot(fn + epsilon_interval[1] * perturb, xmin=xmin, xmax=xmax, color='blue', legend_label="+perturbed (max)")
         if -epsilon != epsilon_interval[0]:
             p += plot(fn + (-epsilon) * perturb, xmin=xmin, xmax=xmax, color='orange', legend_label="-perturbed (matches max)")
         elif epsilon != epsilon_interval[1]:
             p += plot(fn + epsilon * perturb, xmin=xmin, xmax=xmax, color='cyan', legend_label="+perturbed (matches min)")
-        p += plot(rescale_to_amplitude(perturb, 1/10), xmin=xmin, xmax=xmax, color='magenta', legend_label="perturbation (rescaled)")
+        p += plot(fn, xmin=xmin, xmax=xmax, color='black', thickness=2, legend_label="original function")
         show_plot(p, show_plots, tag=show_plot_tag, **show_kwds)
         logging.info("Plotting perturbation... done")
     assert epsilon > 0, "Epsilon should be positive, something is wrong"
     logging.info("Thus the function is not extreme.")
 
-def periodic_one_limit(x, xeps, field):
-    x = fractional(x)
-    if x == field(0) and xeps == -1:
-        x = field(1)
-    elif x == field(1) and xeps == 1:
-        x = field(0)
-    return x, xeps
+def rescale_to_amplitude_general(perturb, amplitude):
+    """For plotting purposes, rescale the function `perturb` so that its
+    maximum absolute function value is `amplitude`.
+    """
+    current_amplitude = max([ abs(x) for limits in perturb.limits_at_end_points() for x in limits ])
+    if current_amplitude != 0:
+        return perturb * (amplitude/current_amplitude)
+    else:
+        return perturb
+
+def delta_pi_general(fn, x, y, (xeps, yeps, zeps)=(0,0,0)):
+    return fn.limit(fractional(x), xeps) + fn.limit(fractional(y), yeps) - fn.limit(fractional(x + y), zeps)
+
+def containing_eps_1d(x, interval):
+    # assume that x is in interval
+    if len(interval) == 1:
+        return [0, 1, -1]
+    elif x == interval[0]:
+        return [1]
+    elif x == interval[1]:
+        return [-1]
+    else:
+        return [0]
+
+def generate_containing_eps_triple(vertex, triple):
+    xeps_list = containing_eps_1d(vertex[0], triple[0])
+    yeps_list = containing_eps_1d(vertex[1], triple[1])
+    zeps_list = containing_eps_1d(vertex[0] + vertex[1], triple[2])
+    return [(xeps, yeps, zeps) for xeps in xeps_list for yeps in yeps_list for zeps in zeps_list]
+
+def is_additive_face(fn, face):
+    for vertex in face.vertices:
+        for eps_triple in generate_containing_eps_triple(vertex, face.minimal_triple):
+            if delta_pi_general(fn, vertex[0], vertex[1], eps_triple) != 0:
+                return False
+    return True
+
+def x_y_swapped_face(face):
+    vert = face.vertices
+    vert_sym = [(vertex[1], vertex[0]) for vertex in vert]
+    trip = face.minimal_triple
+    return Face( (trip[1], trip[0], trip[2]), vertices=vert_sym )
+
+@cached_function
+def generate_maximal_additive_faces_general(function):
+    logging.info("Computing maximal additive faces...")
+    bkpt = function.end_points()
+    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
+    n = len(bkpt) - 1
+    I_list = J_list = [ (bkpt[i], bkpt[i+1]) for i in range(n) ]
+    K_list = [ (bkpt2[i], bkpt2[i+1]) for i in range(2*n) ]
+
+    faces = []
+    # 2D faces
+    for i in range(n):
+        for j in range(i, n):
+            for k in range(2*n):
+                # Check if int(I+J) intersects int(K) is non-empty.
+                if len(interval_intersection(interval_sum(I_list[i],J_list[j]),K_list[k])) == 2:
+                    face = Face( (I_list[i], J_list[j], K_list[k]) )
+                    if is_additive_face(function, face): 
+                        faces.append(face)
+                        if i != j:
+                            faces.append(x_y_swapped_face(face))
+    # 1D horizontal and vertical faces
+    for i in range(n + 1):
+        for j in range(n):
+            for k in range(2*n):
+                if len(interval_intersection((bkpt[i] + bkpt[j], bkpt[i] + bkpt[j+1]), K_list[k])) == 2:
+                    face = Face( ([bkpt[i]], J_list[j], K_list[k]) )
+                    if is_additive_face(function, face): 
+                        faces.append(face)
+                        faces.append(x_y_swapped_face(face))
+    # 1D diagonal faces
+    for k in range(2*n + 1):
+        for i in range(n):
+            for j in range(i, n):
+                interval_K = interval_sum(I_list[i],J_list[j])
+                if interval_K[0] < bkpt2[k] < interval_K[1]:
+                    face = Face( (I_list[i], J_list[j], [bkpt2[k]]) )
+                    if is_additive_face(function, face): 
+                        faces.append(face)
+                        if i != j:
+                            faces.append(x_y_swapped_face(face))
+    logging.info("Computing maximal additive faces... done")
+    return faces
+
+@cached_function
+def generate_covered_intervals_general(function):
+    logging.info("Computing covered intervals...")
+    faces = generate_maximal_additive_faces_general(function)
+
+    covered_intervals = []
+    for face in faces:
+        if face.is_2D():
+            component = []
+            for int1 in face.minimal_triple:
+                component.append(interval_mod_1(int1))
+            component.sort()
+            component = merge_within_comp(component)
+            covered_intervals.append(component)
+
+    remove_duplicate(covered_intervals)
+
+    for i in range(len(covered_intervals)):
+        for j in range(i+1, len(covered_intervals)):
+            if find_interior_intersection(covered_intervals[i], covered_intervals[j]):
+                covered_intervals[j] = merge_two_comp(covered_intervals[i],covered_intervals[j])
+                covered_intervals[i] = []
+
+    covered_intervals = remove_empty_comp(covered_intervals)
+
+    edges = [ face.minimal_triple for face in faces if face.is_1D()]
+
+    any_change = True
+    ## FIXME: Here we saturate the covered interval components
+    ## with the edge relations.  There should be a smarter way
+    ## to avoid this while loop.  Probably by keeping track 
+    ## of a set of non-covered components (connected by edges).
+    ## --Matthias
+    while any_change:
+        any_change = False
+        for edge in edges:
+            intervals = []
+            # 0 stands for I; 1 stands for J; 2 stands for K
+            IJK = []
+            for i in range(len(edge)):
+                if len(edge[i]) == 2:
+                    intervals.append(edge[i])
+                    IJK.append(i)
+            if edge_merge(covered_intervals,intervals,IJK):
+                any_change = True
+
+    covered_intervals = remove_empty_comp(covered_intervals)
+    logging.info("Computing covered intervals... done")
+    return covered_intervals
+
+@cached_function
+def generate_uncovered_intervals_general(function):
+    """
+    Compute a sorted list of uncovered intervals.
+    """
+    covered_intervals = generate_covered_intervals_general(function)
+    return uncovered_intervals_from_covered_intervals(covered_intervals)
+
+def plot_covered_intervals_general(function, covered_intervals=None, **plot_kwds):
+    """
+    Return a plot of the covered and uncovered intervals of `function`.
+    """
+    if covered_intervals is None:
+        covered_intervals = generate_covered_intervals_general(function)
+        uncovered_intervals = generate_uncovered_intervals_general(function)
+    else:
+        uncovered_intervals = uncovered_intervals_from_covered_intervals(covered_intervals)
+    # Plot the function with different colors.
+    # Each component has a unique color.
+    # The uncovered intervals is by default plotted in black.
+    colors = rainbow(len(covered_intervals))
+    graph = Graphics()
+    kwds = copy(plot_kwds)
+    kwds.update(ticks_keywords(function))
+    if uncovered_intervals:
+        graph += plot(function, [0,1],
+                      color = "black", legend_label="not covered", **kwds)
+        kwds = {}
+    elif not function.is_continuous_defined(): # to plot the discontinuity markers
+        graph += plot(function, [0,1], color = "black", **kwds)
+        kwds = {}
+    for i, component in enumerate(covered_intervals):
+        kwds.update({'legend_label': "covered component %s" % (i+1)})
+        for interval in component:
+            graph += plot(function.which_function((interval[0] + interval[1])/2), interval, color=colors[i], **kwds)
+            if 'legend_label' in kwds:
+                del kwds['legend_label']
+            if 'ticks' in kwds:
+                del kwds['ticks']
+            if 'tick_formatter' in kwds:
+                del kwds['tick_formatter']
+    return graph
+
+def extremality_test_general(fn, show_plots=False, f=None):
+    if f == None:
+        f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    if f == None or not minimality_test_general(fn, show_plots=show_plots, f=f):
+        logging.info("Not minimal, thus not extreme.")
+    covered_intervals = generate_covered_intervals_general(fn)
+    uncovered_intervals = generate_uncovered_intervals_general(fn)
+    if show_plots:
+        logging.info("Plotting covered intervals...")
+        show_plot(plot_covered_intervals_general(fn), show_plots, tag='covered_intervals')
+        logging.info("Plotting covered intervals... done")
+    if not uncovered_intervals:
+        logging.info("All intervals are covered (or connected-to-covered). %s components." % len(covered_intervals))
+        return finite_dimensional_extremality_test_general(fn, show_plots, f=f)
+    else:
+        logging.info("Uncovered intervals: %s", (uncovered_intervals,))
+        logging.info("Unfinished code..........")
