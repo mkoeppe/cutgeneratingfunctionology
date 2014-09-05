@@ -482,9 +482,9 @@ def drlm_3_slope_limit(f=1/5):
         logging.info("Conditions for extremality are satisfied.")
     f = nice_field_values([f])[0]
     field = f.parent()
-    pieces = [[closed_interval(0, f), FastLinearFunction(1/f, 0, field=field)], \
-              [open_interval(f, 1), FastLinearFunction(1/(f + 1), 0, field=field)], \
-              [singleton_interval(field(1)), FastLinearFunction(field(0), 0, field=field)]]
+    pieces = [[closed_interval(0, f), FastLinearFunction(1/f, 0)], \
+              [open_interval(f, 1), FastLinearFunction(1/(f + 1), 0)], \
+              [singleton_interval(field(1)), FastLinearFunction(field(0), 0)]]
     kappa = FastPiecewise(pieces)
     # FIXME: Need to develop code for discontinuous functions.
     logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
@@ -869,11 +869,11 @@ def rlm_dpl1_extreme_3a(f=1/4):
         pass # is not the fig3_lowerleft case
     f = nice_field_values([f])[0]
     field = f.parent()
-    pieces = [[closed_interval(field(0), f), FastLinearFunction(1/f, 0, field=field)], \
-              [open_interval(f, (1 + f)/2), FastLinearFunction(2/(1 + 2*f), 0, field=field)], \
-              [singleton_interval((1 + f)/2), FastLinearFunction(field(0), 1/2, field=field)], \
-              [open_interval((1 + f)/2, 1), FastLinearFunction(2/(1 + 2*f), -1/(1 + 2*f), field=field)], \
-              [singleton_interval(field(1)), FastLinearFunction(field(0), 0, field=field)]]
+    pieces = [[closed_interval(field(0), f), FastLinearFunction(1/f, 0)], \
+              [open_interval(f, (1 + f)/2), FastLinearFunction(2/(1 + 2*f), 0)], \
+              [singleton_interval((1 + f)/2), FastLinearFunction(field(0), 1/2)], \
+              [open_interval((1 + f)/2, 1), FastLinearFunction(2/(1 + 2*f), -1/(1 + 2*f))], \
+              [singleton_interval(field(1)), FastLinearFunction(field(0), 0)]]
     h = FastPiecewise(pieces)
     # FIXME: Need to develop code for discontinuous functions.
     logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
