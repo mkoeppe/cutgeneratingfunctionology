@@ -221,14 +221,14 @@ def plot_2d_diagram_general(fn, show_function=False, continuity=None, known_mini
     EXAMPLES::
     sage: h = FastPiecewise([[closed_interval(0,1/4), FastLinearFunction(4, 0)], \
     ...          [open_interval(1/4, 1), FastLinearFunction(4/3, -1/3)], \
-    ...          [singleton_interval(1), FastLinearFunction(0,0)]], merge=False)
+    ...          [singleton_interval(1), FastLinearFunction(0,0)]])
     sage: plot_2d_diagram_general(h)
 
     sage: h = FastPiecewise([[closed_interval(0,1/4), FastLinearFunction(4, 0)], \
     ...           [open_interval(1/4,1/2), FastLinearFunction(3, -3/4)], \
     ...           [closed_interval(1/2, 3/4), FastLinearFunction(-2, 7/4)], \
     ...           [open_interval(3/4,1), FastLinearFunction(3, -2)], \
-    ...           [singleton_interval(1), FastLinearFunction(0,0)]], merge=False)
+    ...           [singleton_interval(1), FastLinearFunction(0,0)]])
     """
     if continuity == None:
         continuity = fn.is_continuous_defined()

@@ -389,7 +389,7 @@ def dg_2_step_mir_limit(f=3/5, d=3):
                  [[singleton_interval(left_x), FastLinearFunction(field(0), left_x / f)], \
                   [open_interval(left_x, right_x), FastLinearFunction(1 / (f - 1), (k + 1)/(d + 1)/(1 - f))]]
     pieces.append([closed_interval(f, field(1)), FastLinearFunction(1 / (f - 1), 1 /(1 - f))])
-    h = FastPiecewise(pieces, merge=False)
+    h = FastPiecewise(pieces)
     # FIXME: Need to develop code for discontinuous functions.
     logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
     return h
@@ -444,7 +444,7 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
         pieces = pieces + \
                  [[open_interval(1 - (1 - f)* k / d, 1 - (1 - f)*(k - 1)/d), FastLinearFunction(s, -s*f + 1 - (d - k + 1)*delta_2)], \
                   [singleton_interval(1 - (1 - f)*(k - 1)/d), FastLinearFunction(0, (k - 1) / d)]]
-    psi = FastPiecewise(pieces, merge=False)    
+    psi = FastPiecewise(pieces)    
     # FIXME: Need to develop code for discontinuous functions.
     logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
     return psi
@@ -485,7 +485,7 @@ def drlm_3_slope_limit(f=1/5):
     pieces = [[closed_interval(0, f), FastLinearFunction(1/f, 0, field=field)], \
               [open_interval(f, 1), FastLinearFunction(1/(f + 1), 0, field=field)], \
               [singleton_interval(field(1)), FastLinearFunction(field(0), 0, field=field)]]
-    kappa = FastPiecewise(pieces, merge=False)
+    kappa = FastPiecewise(pieces)
     # FIXME: Need to develop code for discontinuous functions.
     logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
     return kappa
@@ -874,7 +874,7 @@ def rlm_dpl1_extreme_3a(f=1/4):
               [singleton_interval((1 + f)/2), FastLinearFunction(field(0), 1/2, field=field)], \
               [open_interval((1 + f)/2, 1), FastLinearFunction(2/(1 + 2*f), -1/(1 + 2*f), field=field)], \
               [singleton_interval(field(1)), FastLinearFunction(field(0), 0, field=field)]]
-    h = FastPiecewise(pieces, merge=False)
+    h = FastPiecewise(pieces)
     # FIXME: Need to develop code for discontinuous functions.
     logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
     return h

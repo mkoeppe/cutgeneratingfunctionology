@@ -44,7 +44,7 @@ def multiplicative_homomorphism(function, multiplier):
                    FastLinearFunction(function._slope * multiplier, function._intercept - function._slope * i))
                   for (interval, function) in function.list() \
                   for i in i_range ]
-    return FastPiecewise(new_pairs, merge=False)
+    return FastPiecewise(new_pairs)
 
 def projected_sequential_merge(g, n=1):
     """
@@ -98,7 +98,7 @@ def projected_sequential_merge(g, n=1):
                    FastLinearFunction(function._slope * multiplier, function._intercept - function._slope * (j + 1/(1-r))))
                   for (interval, function) in g.list() \
                   for j in range(n) ]
-    new_g = FastPiecewise(new_pairs, merge=False)
+    new_g = FastPiecewise(new_pairs)
     h = (1 / (n+1)) * xi + (1 / (n+1)) * new_g
     return h
 
@@ -215,7 +215,7 @@ def restrict_to_finite_group(function, f=None, oversampling=None, order=None):
     """
     order = finite_group_order_from_function_f_oversampling_order(function, f, oversampling, order)
     pieces = [ (singleton_interval(x/order), FastLinearFunction(0, function(x/order))) for x in range(order+1) ]
-    return FastPiecewise(pieces, merge=False)
+    return FastPiecewise(pieces)
 
 def interpolate_to_infinite_group(function):
     """Interpolate the given `function` to make it a function in the

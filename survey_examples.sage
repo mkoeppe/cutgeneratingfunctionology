@@ -46,7 +46,7 @@ def drlm_not_extreme_2():
                           [open_interval(1/2, 3/4), f4], \
                           [singleton_interval(3/4), f2], \
                           [open_interval(3/4, 1),f6], \
-                          [singleton_interval(1),f7]], merge=False)
+                          [singleton_interval(1),f7]])
 
 def phi_s_in_drlm_not_extreme_2(s=10):
     """Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
@@ -83,7 +83,7 @@ def phi_s_in_drlm_not_extreme_2(s=10):
 #                          [open_interval(d, e), f5], \
 #                          [closed_interval(e, f), f6], \
 #                          [open_interval(f, g),f7], \
-#                          [closed_interval(g, 1),f8]], merge=False)
+#                          [closed_interval(g, 1),f8]])
 
 def bhk_irrational_extreme_limit_to_rational_nonextreme(n=Infinity):
     """
