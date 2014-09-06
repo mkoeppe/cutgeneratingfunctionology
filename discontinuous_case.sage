@@ -369,20 +369,3 @@ def generate_maximal_additive_faces_general(function):
                             faces.append(x_y_swapped_face(face))
     logging.info("Computing maximal additive faces... done")
     return faces
-def extremality_test_general(fn, show_plots=False, f=None):
-    if f == None:
-        f = find_f(fn, no_error_if_not_minimal_anyway=True)
-    if f == None or not minimality_test_general(fn, show_plots=show_plots, f=f):
-        logging.info("Not minimal, thus not extreme.")
-    covered_intervals = generate_covered_intervals_general(fn)
-    uncovered_intervals = generate_uncovered_intervals_general(fn)
-    if show_plots:
-        logging.info("Plotting covered intervals...")
-        show_plot(plot_covered_intervals_general(fn), show_plots, tag='covered_intervals')
-        logging.info("Plotting covered intervals... done")
-    if not uncovered_intervals:
-        logging.info("All intervals are covered (or connected-to-covered). %s components." % len(covered_intervals))
-        return finite_dimensional_extremality_test_general(fn, show_plots, f=f)
-    else:
-        logging.info("Uncovered intervals: %s", (uncovered_intervals,))
-        logging.info("Unfinished code..........")
