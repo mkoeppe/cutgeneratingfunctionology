@@ -843,7 +843,7 @@ def plot_covered_intervals(function, covered_intervals=None, **plot_kwds):
         graph += plot(function, [0,1],
                       color = "black", legend_label="not covered", **kwds)
         kwds = {}
-    elif not function.is_continuous_defined(): # to plot the discontinuity markers
+    elif not function.is_continuous(): # to plot the discontinuity markers
         graph += plot(function, [0,1], color = "black", **kwds)
         kwds = {}
     for i, component in enumerate(covered_intervals):
