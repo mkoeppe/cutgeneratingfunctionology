@@ -3020,25 +3020,49 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None):
     """
     Solve a homogeneous linear system of additivity equations with one
     slope variable for every component (including every non-covered
-    interval).  Return a boolean that indicates whether the system has
-    a nontrivial solution.
+    interval) and one jump variable for each (left/right) discontinuity.
+    Return a boolean that indicates whether the system has a nontrivial solution.
+    EXAMPLES::
+    sage: logging.disable(logging.INFO)
+    sage: h1 = drlm_not_extreme_2()
+    sage: finite_dimensional_extremality_test(h1,show_plots=True)
+    False
+    sage: h2 = drlm_3_slope_limit()
+    sage: finite_dimensional_extremality_test(h,show_plots=True)
+    True
     """
-    if not function.is_continuous_defined():
-        logging.warn("This is a discontinuous function; finite dimensional extremality test does not handle it yet.")
-    symbolic, components, field = symbolic_piecewise(function)
-    equations = generate_additivity_equations(function, symbolic, field, f=f)
-    slopes_vects = equations.right_kernel().basis()
-    logging.info("Solution space has dimension %s" % len(slopes_vects))
-    if len(slopes_vects) == 0:
+    covered_intervals = generate_covered_intervals(function)
+    uncovered_intervals = generate_uncovered_intervals(function)
+    if uncovered_intervals:
+        logging.warn(\
+                     """There are non-covered intervals, so (1) the symbolic piecewise is
+                     not suitable for proving extremality; and (2) in the current
+                     implementation, there may be too many slope variables, since the 
+                     relations between non-covered intervals are not taken into account.""")
+        components = copy(covered_intervals)
+        components.extend([int] for int in uncovered_intervals)
+    else:
+        components = covered_intervals
+    # FIXME: fraction_field() required because parent could be Integer
+    # Ring.  This happens, for example, for three_slope_limit().  
+    # We really should have a function to retrieve the field of
+    # a FastPiecewise.  But now even .base_ring() fails because
+    # FastLinearFunction does not have a .base_ring() method.
+    field = function(0).parent().fraction_field()
+    symbolic = generate_symbolic(function, components, field=field)
+    equation_matrix = generate_additivity_equations(function, symbolic, field, f=f)
+    slope_jump_vects = equation_matrix.right_kernel().basis()
+    logging.info("Solution space has dimension %s" % len(slope_jump_vects))
+    if len(slope_jump_vects) == 0:
         logging.info("Thus the function is extreme.")
         return True
     else:
-        for basis_index in range(len(slopes_vects)):
-            slopes = list(slopes_vects[basis_index])
-            perturbation = function._perturbation = generate_compatible_piecewise_function(components, slopes)
-            check_perturbation(function, perturbation, 
-                               show_plots=show_plots, show_plot_tag='perturbation-%s' % (basis_index + 1), 
-                               legend_title="Basic perturbation %s" % (basis_index + 1))
+        for basis_index in range(len(slope_jump_vects)):
+            slope_jump = slope_jump_vects[basis_index]
+            perturbation = function._perturbation = slope_jump * symbolic
+            check_perturbation(function, perturbation,
+                                        show_plots=show_plots, show_plot_tag='perturbation-%s' % (basis_index + 1),
+                                        legend_title="Basic perturbation %s" % (basis_index + 1))
         return False
 
 def generate_type_1_vertices(fn, comparison, reduced=True):
