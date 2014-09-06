@@ -323,7 +323,15 @@ def delta_pi_general(fn, x, y, (xeps, yeps, zeps)=(0,0,0)):
     return fn.limit(fractional(x), xeps) + fn.limit(fractional(y), yeps) - fn.limit(fractional(x + y), zeps)
 
 def containing_eps_1d(x, interval):
-    # assume that x is in interval
+    """
+    Consider vertex v of face F.
+    Given 
+    x is the projection of a vertex v of the face F onto direction I/J/K.
+    interval is the projection of F onto the same direction I/J/K.
+    Note that x is in interval.
+    Return the approching directions among {x-, x, x+} 
+    that should be considered at v for testing the additivity of F.
+    """
     if len(interval) == 1:
         return [0, 1, -1]
     elif x == interval[0]:
@@ -334,12 +342,22 @@ def containing_eps_1d(x, interval):
         return [0]
 
 def generate_containing_eps_triple(vertex, triple):
+    """
+    Given vertex v of face F, and the 3-projection-interval triple of F.
+    Return the approching limits {(xeps, yeps, zeps)}
+    pointing inwards at v from containning faces of F,
+    that should be considered for testing the additivity of F.
+    """
     xeps_list = containing_eps_1d(vertex[0], triple[0])
     yeps_list = containing_eps_1d(vertex[1], triple[1])
     zeps_list = containing_eps_1d(vertex[0] + vertex[1], triple[2])
     return [(xeps, yeps, zeps) for xeps in xeps_list for yeps in yeps_list for zeps in zeps_list]
 
 def is_additive_face(fn, face):
+    """
+    Test whether the given face is additive 
+    by taking the appropriate limits (pointing inwards) at the vertices.
+    """
     for vertex in face.vertices:
         for eps_triple in generate_containing_eps_triple(vertex, face.minimal_triple):
             if delta_pi_general(fn, vertex[0], vertex[1], eps_triple) != 0:
