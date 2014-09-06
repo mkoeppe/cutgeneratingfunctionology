@@ -324,13 +324,11 @@ def delta_pi_general(fn, x, y, (xeps, yeps, zeps)=(0,0,0)):
 
 def containing_eps_1d(x, interval):
     """
-    Consider vertex v of face F.
-    Given 
-    x is the projection of a vertex v of the face F onto direction I/J/K.
-    interval is the projection of F onto the same direction I/J/K.
-    Note that x is in interval.
-    Return the approching directions among {x-, x, x+} 
-    that should be considered at v for testing the additivity of F.
+    Input:  x -- the projection of vertex v (of face F),
+            interval -- the projection of face F,
+    The projection direction is I/J/K. Note that x is in interval.
+    Return: the projection of approching limits (\subseteq {x-, x, x+})
+        that need to be considered at v for testing the additivity of F.
     """
     if len(interval) == 1:
         return [0, 1, -1]
