@@ -90,6 +90,9 @@ def generate_type_2_vertices_general(fn, comparison, reduced=True):
                        yield (x, y, x+y, xeps, yeps, zeps)
 
 def generate_nonsymmetric_vertices_general(fn, f):
+    """
+    Generate vertices (x, y, xeps, yeps) that violate symmetric_check
+    """
     bkpt = fn.end_points()
     limits = fn.limits_at_end_points()
     for i in range(len(bkpt)):
@@ -111,12 +114,19 @@ def generate_nonsymmetric_vertices_general(fn, f):
                 yield (x, y, 1, -1)
 
 def epstriple_to_cone(epstriple):
+    """
+    Convert (xeps, yeps, zeps) to the corresponding cone.
+    13 cases, see dic_eps_to_cone
+    """
     try:
         return dic_eps_to_cone[epstriple]
     except KeyError:
         raise ValueError,"The limit epstriple %s does not exist." % epstriple
 
 def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03):
+    """
+    plot a cone or a ray or a point 
+    """
     orig = vector(RDF, (x, y))
     if len(cone) == 0:
         p = point([orig], color=color, size=20, zorder=-1)
@@ -140,8 +150,10 @@ def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03):
         raise ValueError, "The cone %s is not well defined." % cone
     return p
 
-###### Temporary code. Look for covered intervals on a 2d-diagram ########
 def plot_2d_additive_limit_vertices(fn):
+    """
+    Temporary code. Show additivity information on a 2d-diagram
+    """
     p = plot_2d_complex(fn)
     additive_vertices = generate_additive_vertices(fn, reduced=False)
     if fn.is_continuous():
@@ -160,6 +172,13 @@ def plot_2d_additive_limit_vertices(fn):
     return p
 
 def generate_symbolic_general(function, components, field=None):
+    """
+    Construct a vector-space-valued piecewise linear function
+    compatible with the given `function`.  Each of the components of
+    the function has a slope that is a basis vector of the vector
+    space. Each discontinuous point has a left or/and right jump
+    that is a basis vector of the vector space.
+    """
     n = len(components)
     intervals_and_slopes = []
     for component, slope in itertools.izip(components, range(n)):
@@ -191,6 +210,10 @@ def generate_symbolic_general(function, components, field=None):
     return FastPiecewise(pieces, merge=True)
 
 def generate_additivity_equations_general(function, symbolic, field, f=None):
+    """
+    Using additivity, set up a finite-dimensional system of linear equations
+    that must be satisfied by any perturbation.
+    """
     equations = []
     if f == None:
         f = find_f(function)
@@ -294,6 +317,9 @@ def find_epsilon_interval_general(fn, perturb):
     return best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound
 
 def delta_pi_general(fn, x, y, (xeps, yeps, zeps)=(0,0,0)):
+    """
+    return delta_pi = fn(x, xeps) + fn(y, yeps) - fn(z, zeps)
+    """
     return fn.limit(fractional(x), xeps) + fn.limit(fractional(y), yeps) - fn.limit(fractional(x + y), zeps)
 
 def containing_eps_1d(x, interval):
