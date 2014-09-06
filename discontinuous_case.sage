@@ -110,57 +110,6 @@ def generate_nonsymmetric_vertices_general(fn, f):
             if limits_x[1] + limits_y[-1] != 1:
                 yield (x, y, 1, -1)
 
-def plot_2d_diagram_general(fn, show_function=False, known_minimal=False):
-    """
-    To show only a part of it, use
-    `show(plot_2d_diagram(h), xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)`
-
-    EXAMPLES::
-    sage: h = FastPiecewise([[closed_interval(0,1/4), FastLinearFunction(4, 0)], \
-    ...          [open_interval(1/4, 1), FastLinearFunction(4/3, -1/3)], \
-    ...          [singleton_interval(1), FastLinearFunction(0,0)]])
-    sage: plot_2d_diagram_general(h)
-
-    sage: h = FastPiecewise([[closed_interval(0,1/4), FastLinearFunction(4, 0)], \
-    ...           [open_interval(1/4,1/2), FastLinearFunction(3, -3/4)], \
-    ...           [closed_interval(1/2, 3/4), FastLinearFunction(-2, 7/4)], \
-    ...           [open_interval(3/4,1), FastLinearFunction(3, -2)], \
-    ...           [singleton_interval(1), FastLinearFunction(0,0)]])
-    """
-    p = plot_2d_complex(fn)
-
-    y = var('y')
-    faces = generate_maximal_additive_faces_general(fn)
-    kwds = { 'legend_label': "Additive face" }
-    for face in faces:
-        p += face.plot(**kwds)
-        if 'legend_label' in kwds:
-            del kwds['legend_label']
-
-    ### For non-subadditive functions, show the points where delta_pi is negative.
-    if not known_minimal:
-        nonsubadditive_vertices = generate_nonsubadditive_vertices_general(fn, reduced=False)
-        if fn.is_continuous():
-            nonsubadditive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices}
-            p += point(list(nonsubadditive_vertices), \
-                                color = "red", size = 50, legend_label="Subadditivity violated", zorder=-1)
-            p += point([ (y,x) for (x,y) in nonsubadditive_vertices ], color = "red", size = 50, zorder=-1)
-        elif nonsubadditive_vertices:
-            for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices:
-                p += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)))
-                if x != y:
-                    p += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)))
-            # add legend_label
-            p += point([(0,0)], color = "red", size = 50, legend_label="Subadditivity violated", zorder=-10)
-            p += point([(0,0)], color = "white", size = 50, zorder=-9)
-    if show_function:
-        x = var('x')
-        #FIXME parametric_plot doesn't work for discontinuous functions.
-        p += parametric_plot((lambda x: x, lambda x: 0.3 * float(fn(x)) + 1), \
-                                                (x, 0, 1), color='blue', legend_label="Function pi")
-        p += parametric_plot((lambda x: - 0.3 * float(fn(x)), lambda x: x), \
-                                                (x, 0, 1), color='blue')
-    return p
 def epstriple_to_cone(epstriple):
     try:
         return dic_eps_to_cone[epstriple]
