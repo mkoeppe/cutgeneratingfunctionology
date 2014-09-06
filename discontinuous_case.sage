@@ -88,51 +88,6 @@ def generate_type_2_vertices_general(fn, comparison, reduced=True):
                     if comparison(limits_x[xeps] + limits_y[yeps] - limits_z[zeps], 0):
                        yield (x, y, x+y, xeps, yeps, zeps)
 
-@cached_function
-def generate_nonsubadditive_vertices_general(fn, reduced=True):
-    """
-    We are returning a set of 6-tuples (x, y, z, xeps, yeps, zeps),
-    so that duplicates are removed, and so the result can be cached for later use.
-
-    When reduced=True:
-        only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_check.
-    When reduced=False:
-        outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive_limit_vertices.
-    """
-    return set(itertools.chain( \
-                generate_type_1_vertices_general(fn, operator.lt, reduced=reduced),\
-                generate_type_2_vertices_general(fn, operator.lt, reduced=reduced))  )
-
-@cached_function
-def generate_additive_vertices_general(fn, reduced=True):
-    """
-    We are returning a set of 6-tuples (x, y, z, xeps, yeps, zeps),
-    so that duplicates are removed, and so the result can be cached for later use.
-
-    When reduced=True:
-        only outputs fewer triples satisfying `comparison' relation, for the purpose of setting up the system of equations.
-    When reduced=False:
-        outputs all triples satisfying `comparison' relation, for the purpose of plotting additive_limit_vertices.
-    """
-    return set(itertools.chain( \
-                generate_type_1_vertices_general(fn, operator.eq, reduced=reduced),\
-                generate_type_2_vertices_general(fn, operator.eq, reduced=reduced)) )
-
-def subadditivity_check_general(fn):
-    """
-    Check if fn is subadditive. Works for discontinuous functions as well.
-    """
-    bkpt = fn.end_points()
-    result = True
-    for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices_general(fn, reduced=True):
-        logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
-        result = False
-    if result:
-        logging.info("pi is subadditive.")
-    else:
-        logging.info("Thus pi is not subadditive.")
-    return result
-
 def generate_nonsymmetric_vertices_general(fn, f):
     bkpt = fn.end_points()
     limits = fn.limits_at_end_points()
@@ -292,7 +247,7 @@ def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03):
 ###### Temporary code. Look for covered intervals on a 2d-diagram ########
 def plot_2d_additive_limit_vertices(fn):
     p = plot_2d_complex(fn)
-    additive_vertices = generate_additive_vertices_general(fn, reduced=False)
+    additive_vertices = generate_additive_vertices(fn, reduced=False)
     if fn.is_continuous():
         additive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in badditive_vertices}
         p += point(list(additive_vertices), \
@@ -391,7 +346,7 @@ def generate_additivity_equations_general(function, symbolic, field, f=None):
         f = find_f(function)
     equations.append(symbolic(f))
     equations.append(symbolic(field(1)))
-    for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices_general(function, reduced=True):
+    for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, reduced=True):
         # FIXME: symbolic has different vector values at 0 and 1.
         # periodic_extension would be set to False if FastPiecewise.__init__ did an error check, which would cause symbolic(0-) to fail.
         # Remove the error check in __init__, or treat 0- and 1+ differently for symbolic.

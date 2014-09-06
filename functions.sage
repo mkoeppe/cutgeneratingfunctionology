@@ -3018,45 +3018,53 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None):
                                legend_title="Basic perturbation %s" % (basis_index + 1))
         return False
 
-def generate_type_1_vertices(fn, comparison):
-    """A generator...
-    "...'general' refers to the fact that it outputs 6-tuples (x,xeps,y,yeps,z,zeps).
-    FIXME: it currently does not take care of any discontinuities at all.
-    """
-    bkpt = fn.end_points()
-    return ( (x,0,y,0,x+y,0) for x in bkpt for y in bkpt if x <= y and comparison(delta_pi(fn,x,y), 0) ) # generator comprehension
-    ## Equivalent to previous line:
-    # for x in bkpt:
-    #     for y in bkpt:
-    #         if x <= y and comparison(delta_pi(fn,x,y), 0):
-    #             yield (x,0,y,0,x+y,0)
+def generate_type_1_vertices(fn, comparison, reduced=True):
+    if fn.is_continuous():
+        return generate_type_1_vertices_continuous(fn, comparison)
+    else:
+        return generate_type_1_vertices_general(fn, comparison, reduced=reduced)
 
-def generate_type_2_vertices(fn, comparison):
-    bkpt = fn.end_points()
-    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
-    return ( (x,0,z-x,0,z,0) for x in bkpt for z in bkpt2 if x < z < 1+x and comparison(delta_pi(fn, x, z-x), 0) ) # generator comprehension
+def generate_type_2_vertices(fn, comparison, reduced=True):
+    if fn.is_continuous():
+        return generate_type_2_vertices_continuous(fn, comparison)
+    else:
+        return generate_type_2_vertices_general(fn, comparison, reduced=reduced)
 
 @cached_function
-def generate_additive_vertices(fn):
+def generate_additive_vertices(fn, reduced=True):
     """
-    This function does not output limit vertices for discontinuous function in any way.
-    We are returning a set, so that duplicates are removed, and so the result can be cached for later use.
+    We are returning a set of 6-tuples (x, y, z, xeps, yeps, zeps),
+    so that duplicates are removed, and so the result can be cached for later use.
+
+    When reduced=True:
+        only outputs fewer triples satisfying `comparison' relation, for the purpose of setting up the system of equations.
+    When reduced=False:
+        outputs all triples satisfying `comparison' relation, for the purpose of plotting additive_limit_vertices.
     """
-    return { (x, y) 
-             for (x, xeps, y, yeps, z, zeps) in itertools.chain(generate_type_1_vertices(fn, operator.eq),
-                                                                generate_type_2_vertices(fn, operator.eq))
-             if xeps==yeps==zeps==0 }
+    return set(itertools.chain( \
+                generate_type_1_vertices_general(fn, operator.eq, reduced=reduced),\
+                generate_type_2_vertices_general(fn, operator.eq, reduced=reduced)) )
 
 @cached_function
-def generate_nonsubadditive_vertices(fn):
+def generate_nonsubadditive_vertices(fn, reduced=True):
     """
-    This function does not output limit vertices for discontinuous function in any way.
-    We are returning a set, so that duplicates are removed, and so the result can be cached for later use.
+    We are returning a set of 6-tuples (x, y, z, xeps, yeps, zeps),
+    so that duplicates are removed, and so the result can be cached for later use.
+
+    When reduced=True:
+        only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_check.
+    When reduced=False:
+        outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive_limit_vertices.
     """
-    return { (x, y) 
-             for (x, xeps, y, yeps, z, zeps) in itertools.chain(generate_type_1_vertices(fn, operator.lt),
-                                                                generate_type_2_vertices(fn, operator.lt))
-             if xeps==yeps==zeps==0 }
+    return set(itertools.chain( \
+                generate_type_1_vertices_general(fn, operator.lt, reduced=reduced),\
+                generate_type_2_vertices_general(fn, operator.lt, reduced=reduced))  )
+
+def generate_nonsymmetric_vertices(fn, f):
+    if fn.is_continuous():
+        return generate_nonsymmetric_vertices_continuous(fn, f)
+    else:
+        return generate_nonsymmetric_vertices_general(fn, f)
 
 class MaximumNumberOfIterationsReached(Exception):
     pass
