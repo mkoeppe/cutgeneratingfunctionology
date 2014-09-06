@@ -2323,67 +2323,10 @@ def modified_delta_pi2(fn, fn_values2, pts, i, j):
     return fn_values2[i] + fn(fractional(pts[j] - pts[i])) - fn_values2[j]  
 
 def find_epsilon_interval(fn, perturb):
-    """Compute the interval [minus_epsilon, plus_epsilon] such that 
-    (fn + epsilon * perturb) is subadditive for epsilon in this interval.
-    Assumes that fn is subadditive.
-
-    If one of the epsilons is 0, the function bails out early and returns 0, 0.
-    """
-    logging.info("Finding epsilon interval for perturbation...")
-    fn_bkpt = fn.end_points()
-    perturb_bkpt = perturb.end_points()
-    bkpt_refinement = merge_bkpt(fn_bkpt,perturb_bkpt)
-    bkpt_refinement2 = []
-    length1 = len(bkpt_refinement)
-    for i in range(length1 - 1):
-        bkpt_refinement2.append(bkpt_refinement[i])
-    for i in range(length1):
-        bkpt_refinement2.append(bkpt_refinement[i]+1)
-    length2 = length1 + length1 - 1  
-
-    fn_values = []
-    perturb_values = []
-    for pt in bkpt_refinement2:
-        fn_values.append(fn(fractional(pt)))
-        perturb_values.append(perturb(fractional(pt)))
-    
-    best_minus_epsilon_lower_bound = -10000
-    best_plus_epsilon_upper_bound = +10000
-    # FIXME: We want to say infinity instead; but bool(SR(2) < infinity) ==> False
-    for i in range(length1):
-        for j in range(i,length1):
-            a = modified_delta_pi(perturb, perturb_values, bkpt_refinement, i, j)
-            if a != 0:
-                b = modified_delta_pi(fn, fn_values, bkpt_refinement, i, j) 
-                if b == 0:
-                    logging.info("Zero epsilon encountered for x = %s, y = %s" % (bkpt_refinement[i], bkpt_refinement[j]))
-                    return 0, 0 # See docstring
-                epsilon_upper_bound = b/(abs(a))
-                if a > 0:
-                    if -epsilon_upper_bound > best_minus_epsilon_lower_bound:
-                        best_minus_epsilon_lower_bound = -epsilon_upper_bound
-                else:
-                    if epsilon_upper_bound < best_plus_epsilon_upper_bound:
-                        best_plus_epsilon_upper_bound = epsilon_upper_bound
-
-    for i in range(length1):
-        for j in range(length2):
-            if bkpt_refinement2[j] - bkpt_refinement[i] > 0:
-                a = modified_delta_pi2(perturb, perturb_values, bkpt_refinement2, i, j)
-                if a != 0:
-                    b = modified_delta_pi2(fn, fn_values, bkpt_refinement2, i, j) 
-                    if b == 0:
-                        logging.info("Zero epsilon encountered for x = %s, y = %s" % (bkpt_refinement2[i], bkpt_refinement2[j] - bkpt_refinement2[i]))
-                        return 0, 0 # See docstring
-                    epsilon_upper_bound = b/(abs(a)) 
-                    if a > 0:
-                        if -epsilon_upper_bound > best_minus_epsilon_lower_bound:
-                            best_minus_epsilon_lower_bound = -epsilon_upper_bound
-                    else:
-                        if epsilon_upper_bound < best_plus_epsilon_upper_bound:
-                            best_plus_epsilon_upper_bound = epsilon_upper_bound
-    logging.info("Finding epsilon interval for perturbation... done.  Interval is %s", [best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound])
-    return best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound
+    if fn.is_continuous():
+        return find_epsilon_interval_continuous(fn, perturb)
+    else:
+        return find_epsilon_interval_general(fn, perturb)
 
 def find_largest_epsilon(fn, perturb):
     """
@@ -2825,62 +2768,23 @@ def lattice_plot(A, A0, t1, t2, size):
 class UnimplementedError (Exception):
     pass
 
-def generate_compatible_piecewise_function(components, component_slopes, field=None):
-    intervals_and_slopes = []
-    for component, slope in itertools.izip(components, component_slopes):
-        intervals_and_slopes.extend([ (interval, slope) for interval in component ])
-    intervals_and_slopes.sort()
-    bkpt = [ int[0] for int, slope in intervals_and_slopes ] + [1]
-    slopes = [ slope for int, slope in intervals_and_slopes ]
-    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
-
-def symbolic_piecewise(function):
-    """
-    Construct a vector-space-valued piecewise linear function
-    compatible with the given `function`.  Each of the components of
-    the function has a slope that is a basis vector of the vector
-    space.  Returns three values: The constructed function, the list
-    of components (including one component for every non-covered
-    interval), and the field over which the original `function` is
-    defined.
-    """
-    covered_intervals = generate_covered_intervals(function)
-    uncovered_intervals = generate_uncovered_intervals(function)
-    if uncovered_intervals:
-        logging.warn(\
-                     """There are non-covered intervals, so (1) the symbolic piecewise is
-                     not suitable for proving extremality; and (2) in the current
-                     implementation, there may be too many slope variables, since the 
-                     relations between non-covered intervals are not taken into account.""")
-        components = copy(covered_intervals)
-        components.extend([int] for int in uncovered_intervals)
+def generate_symbolic(fn, components, field=None):
+    if fn.is_continuous():
+        return generate_symbolic_continuous(fn, components, field=field)
     else:
-        components = covered_intervals
-    # FIXME: fraction_field() required because parent could be Integer
-    # Ring.  This happens, for example, for three_slope_limit().  
-    # We really should have a function to retrieve the field of
-    # a FastPiecewise.  But now even .base_ring() fails because
-    # FastLinearFunction does not have a .base_ring() method.
-    field = function(0).parent().fraction_field()
-    vector_space = VectorSpace(field,len(components))
-    slope_vars = vector_space.basis()
-    symbolic = generate_compatible_piecewise_function(components, slope_vars, field)
-    return symbolic, components, field
+        return generate_symbolic_general(fn, components, field=field)
 
-def generate_additivity_equations(function, symbolic, field, f=None):
-    if f==None:
-        f = find_f(function)
-    equations = matrix(field, ([delta_pi(symbolic, x, y) 
-                                for (x, y) in generate_additive_vertices(function) ]
-                               + [symbolic(f)]
-                               + [symbolic(1)]))
-    return equations
+def generate_additivity_equations(fn, symbolic, field, f=None):
+    if fn.is_continuous():
+        return generate_additivity_equations_continuous(fn, symbolic, field, f=f)
+    else:
+        return generate_additivity_equations_general(fn, symbolic, field, f=f)
 
 def rescale_to_amplitude(perturb, amplitude):
     """For plotting purposes, rescale the function `perturb` so that its
     maximum absolute function value is `amplitude`.
     """
-    current_amplitude = max([ abs(perturb(x)) for x in perturb.end_points() ])
+    current_amplitude = max([ abs(x) for limits in perturb.limits_at_end_points() for x in limits ])
     if current_amplitude != 0:
         return perturb * (amplitude/current_amplitude)
     else:
