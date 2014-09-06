@@ -1,3 +1,4 @@
+########## Code for Discontinuous Case ###########
 nonzero_eps = { (-1,-1,-1), (-1, 1,-1), (-1, 1, 1), (-1, 1, 0), (-1, 0,-1), ( 1,-1,-1), \
                 ( 1,-1, 1), ( 1,-1, 0), ( 1, 1, 1), ( 1, 0, 1), ( 0,-1,-1), ( 0, 1, 1) }
 continuous_xy_eps = { (-1,-1,-1), (1, 1, 1) }
@@ -108,60 +109,6 @@ def generate_nonsymmetric_vertices_general(fn, f):
                 yield (x, y, -1, 1)
             if limits_x[1] + limits_y[-1] != 1:
                 yield (x, y, 1, -1)
-
-def symmetric_check_general(fn, f):
-    """
-    Check if fn is symmetric. Works for discontinuous functions as well.
-    """
-    result = True
-    if fn(f) != 1:
-        logging.info('pi(f) is not equal to 1.')
-        result = False
-    result = True
-    for (x, y, xeps, yeps) in generate_nonsymmetric_vertices_general(fn, f):
-        logging.info("pi(%s%s) + pi(%s%s) is not equal to 1" % (x, print_sign(xeps), y, print_sign(yeps)))
-        result = False
-    if result:
-        logging.info("pi is symmetric.")
-    else:
-        logging.info("Thus pi is not symmetric.")
-    return result
-
-def minimality_test_general(fn, show_plots=False, f=None):
-    """
-    Check if fn is minimal with respect to f. Works for discontinuous functions as well.
-    """
-    for x in fn.values_at_end_points():
-        if (x < 0) or (x > 1):
-            logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
-            return False
-    if f==None:
-        f = find_f(fn, no_error_if_not_minimal_anyway=True)
-        if f==None:
-            return False
-    if fn(0) != 0:
-        logging.info('pi is NOT minimal because pi(0) is not equal to 0.')
-        return False
-    logging.info('pi(0) = 0')
-    bkpt = fn.end_points()
-    if not fn.is_continuous():
-        limits = fn.limits_at_end_points()
-        for x in limits:
-            if not ((0 <= x[-1] <=1) and (0 <= x[1] <=1)):
-                logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
-                return False
-    if subadditivity_check_general(fn) and symmetric_check_general(fn, f):
-        logging.info('Thus pi is minimal.')
-        is_minimal = True
-    else:
-        logging.info('Thus pi is NOT minimal.')
-        is_minimal = False
-    if show_plots:
-        logging.info("Plotting 2d diagram...")
-        show_plot( plot_2d_diagram_general(fn, show_function=False, known_minimal=is_minimal),\
-                     show_plots, tag='2d_diagram' )
-        logging.info("Plotting 2d diagram... done")
-    return is_minimal
 
 def plot_2d_diagram_general(fn, show_function=False, known_minimal=False):
     """

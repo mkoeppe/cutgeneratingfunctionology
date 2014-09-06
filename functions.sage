@@ -936,14 +936,11 @@ def plot_covered_intervals(function, covered_intervals=None, **plot_kwds):
 
 def subadditivity_check(fn):
     """
-    Check if a function is subadditive.
-    Could take quite a while. (O(n^2))
+    Check if fn is subadditive. Works for discontinuous functions as well.
     """
     result = True
-    for (x, y) in generate_nonsubadditive_vertices(fn):
-        logging.info("For x = %s, y = %s, x+y = %s" % (x, y, x+y))
-        logging.info("    Delta pi(x,y) = %s + %s - %s = %s < 0" % 
-                     (fn(fractional(x)), fn(fractional(y)), fn(fractional(x+y)), delta_pi(fn,x,y)))
+    for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices(fn, reduced=True):
+        logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
         result = False
     if result:
         logging.info("pi is subadditive.")
@@ -951,22 +948,18 @@ def subadditivity_check(fn):
         logging.info("Thus pi is not subadditive.")
     return result
 
-def symmetric_test(fn, f):
+def symmetric_check(fn, f):
+    """
+    Check if fn is symmetric. Works for discontinuous functions as well.
+    """
     result = True
     if fn(f) != 1:
         logging.info('pi(f) is not equal to 1.')
         result = False
-    else:
-        bkpt = fn.end_points()
-        for i in bkpt:
-            if i < f:
-                j = f - i
-            else:
-                j = 1 + f - i
-            if delta_pi(fn, i, j) != 0:
-                logging.info('For x = %s, y = %s' % (i,j))
-                logging.info('    Delta pi is equal to %s, not equal to 0' % delta_pi(fn, i, j))
-                result = False
+    result = True
+    for (x, y, xeps, yeps) in generate_nonsymmetric_vertices(fn, f):
+        logging.info("pi(%s%s) + pi(%s%s) is not equal to 1" % (x, print_sign(xeps), y, print_sign(yeps)))
+        result = False
     if result:
         logging.info('pi is symmetric.')
     else:
@@ -1001,9 +994,7 @@ def find_f(fn, no_error_if_not_minimal_anyway=False):
 
 def minimality_test(fn, show_plots=False, f=None):
     """
-    Check if function `fn` is minimal with respect to the given `f`.
-    If `f` is not provided, uses the one found by `find_f`.
-    Return a boolean.
+    Check if fn is minimal with respect to f. Works for discontinuous functions as well.
 
     EXAMPLES::
         sage: logging.disable(logging.INFO)
@@ -1012,25 +1003,37 @@ def minimality_test(fn, show_plots=False, f=None):
         sage: minimality_test(piecewise_function_from_breakpoints_and_values([0,1/2,1], [0,2,0]))
         False
     """
+    for x in fn.values_at_end_points():
+        if (x < 0) or (x > 1):
+            logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
+            return False
     if f==None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
         if f==None:
             return False
     if fn(0) != 0:
-        logging.info('pi is not minimal because pi(0) is not equal to 0.')
+        logging.info('pi is NOT minimal because pi(0) is not equal to 0.')
         return False
+    logging.info('pi(0) = 0')
+    bkpt = fn.end_points()
+    if not fn.is_continuous():
+        limits = fn.limits_at_end_points()
+        for x in limits:
+            if not ((0 <= x[-1] <=1) and (0 <= x[1] <=1)):
+                logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
+                return False
+    if subadditivity_check(fn) and symmetric_check(fn, f):
+        logging.info('Thus pi is minimal.')
+        is_minimal = True
     else:
-        logging.info('pi(0) = 0')
-        if show_plots:
-            logging.info("Plotting 2d diagram...")
-            show_plot(plot_2d_diagram(fn), show_plots, tag='2d_diagram')
-            logging.info("Plotting 2d diagram... done")
-        if subadditivity_check(fn) and symmetric_test(fn, f):
-            logging.info('Thus pi is minimal.')
-            return True
-        else:
-            logging.info('Thus pi is not minimal.')
-            return False
+        logging.info('Thus pi is NOT minimal.')
+        is_minimal = False
+    if show_plots:
+        logging.info("Plotting 2d diagram...")
+        show_plot( plot_2d_diagram(fn, known_minimal=is_minimal),\
+                     show_plots, tag='2d_diagram' )
+        logging.info("Plotting 2d diagram... done")
+    return is_minimal
 
 from sage.functions.piecewise import PiecewisePolynomial
 from bisect import bisect_left
