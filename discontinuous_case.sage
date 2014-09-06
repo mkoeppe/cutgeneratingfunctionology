@@ -339,37 +339,6 @@ def find_epsilon_interval_general(fn, perturb):
     logging.info("Finding epsilon interval for perturbation... done.  Interval is %s", [best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound])
     return best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound
 
-def check_perturbation_general(fn, perturb, \
-                                show_plots=False, show_plot_tag='perturbation', xmin=0, xmax=1, **show_kwds):
-    epsilon_interval = fn._epsilon_interval = find_epsilon_interval_general(fn, perturb)
-    epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
-    logging.info("Epsilon for constructed perturbation: %s" % epsilon)
-    if show_plots:
-        logging.info("Plotting perturbation...")
-        p = plot(rescale_to_amplitude_general(perturb, 1/10), xmin=xmin, xmax=xmax, color='magenta', legend_label="perturbation (rescaled)")
-
-        p += plot(fn + epsilon_interval[0] * perturb, xmin=xmin, xmax=xmax, color='red', legend_label="-perturbed (min)")
-        p += plot(fn + epsilon_interval[1] * perturb, xmin=xmin, xmax=xmax, color='blue', legend_label="+perturbed (max)")
-        if -epsilon != epsilon_interval[0]:
-            p += plot(fn + (-epsilon) * perturb, xmin=xmin, xmax=xmax, color='orange', legend_label="-perturbed (matches max)")
-        elif epsilon != epsilon_interval[1]:
-            p += plot(fn + epsilon * perturb, xmin=xmin, xmax=xmax, color='cyan', legend_label="+perturbed (matches min)")
-        p += plot(fn, xmin=xmin, xmax=xmax, color='black', thickness=2, legend_label="original function")
-        show_plot(p, show_plots, tag=show_plot_tag, **show_kwds)
-        logging.info("Plotting perturbation... done")
-    assert epsilon > 0, "Epsilon should be positive, something is wrong"
-    logging.info("Thus the function is not extreme.")
-
-def rescale_to_amplitude_general(perturb, amplitude):
-    """For plotting purposes, rescale the function `perturb` so that its
-    maximum absolute function value is `amplitude`.
-    """
-    current_amplitude = max([ abs(x) for limits in perturb.limits_at_end_points() for x in limits ])
-    if current_amplitude != 0:
-        return perturb * (amplitude/current_amplitude)
-    else:
-        return perturb
-
 def delta_pi_general(fn, x, y, (xeps, yeps, zeps)=(0,0,0)):
     return fn.limit(fractional(x), xeps) + fn.limit(fractional(y), yeps) - fn.limit(fractional(x + y), zeps)
 
