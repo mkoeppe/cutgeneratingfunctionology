@@ -1,12 +1,48 @@
+# Make sure current directory is in path.  
+# That's not true while doctesting (sage -t).
+if '' not in sys.path:
+    sys.path = [''] + sys.path
+
+from igp import *
+
 ## Various examples of functions that appear in the survey.
 
 def not_minimal_1(): # was not_minimal.sage
+    """
+    A non-minimal function.
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = not_minimal_1()
+        sage: minimality_test(h, False)
+        False
+    """
     return piecewise_function_from_breakpoints_and_values([0, 1/5, 2/5, 4/5, 1], [0, 1/5, 3/5, 1, 0])
 
 def not_minimal_2(): # was not_minimal_2.sage
+    """
+    A non-minimal function.
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = not_minimal_2()
+        sage: minimality_test(h, False)
+        False
+    """
     return piecewise_function_from_breakpoints_and_values([0, 1/5, 2/5, 3/5, 4/5, 1], [0, 1/5, 1/2, 4/5, 1, 0])
 
 def not_extreme_1(): # was symmetric_rational_function1.sage
+    """
+    A non-extreme, minimal function.
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = not_extreme_1()
+        sage: minimality_test(h, False)
+        True
+        sage: extremality_test(h, False)
+        False
+    """
     slopes = [10/3,0,10/3,0,10/3,-10/3,0,-10/3,0,-10/3]
     interval_lengths = [1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10]
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
@@ -20,6 +56,14 @@ def drlm_not_extreme_1():
 
     It is the interpolation of the extreme function C13 for the finite
     group problem of order 7 from Araoz, Evans, Gomory and Johnson.
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = drlm_not_extreme_1()
+        sage: minimality_test(h, False)
+        True
+        sage: extremality_test(h, False)
+        False
     """
     return piecewise_function_from_robert_txt_file("dey-richard-not-extreme.txt")
 
@@ -33,6 +77,14 @@ def drlm_not_extreme_2():
           since here s_positive = 3, whereas in
           drlm_2_slope_limit(f=1/2, nb_pieces_left=2, nb_pieces_right=2),
           the s_positive has to be 4.
+
+    EXAMPLES::
+        sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
+        sage: h = drlm_not_extreme_2()
+        sage: minimality_test(h, False)
+        True
+        sage: extremality_test(h, False)
+        False
     """
     f1 = FastLinearFunction(QQ(3), 0)
     f2 = FastLinearFunction(QQ(0), 1/2)
@@ -59,6 +111,12 @@ def phi_s_in_drlm_not_extreme_2(s=10):
     The pointwise limit as s tends to \infty is not extreme. see drlm_not_extreme_2()
 
     Note: s > 2
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = phi_s_in_drlm_not_extreme_2()
+        sage: extremality_test(h, False)
+        True
     """
     return  gj_2_slope_repeat(f=1/2, s_positive=3, s_negative=-s, m=2, n=3)
 #    f1(x) = 3*x
@@ -90,6 +148,21 @@ def bhk_irrational_extreme_limit_to_rational_nonextreme(n=Infinity):
     A sequence of `bhk_irrational` functions, each extreme, indexed by n = 1, 2, ...
     whose limit (n = Infinity) is a `bhk_irrational` function with rational parameters, 
     and hence not extreme. 
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = bhk_irrational_extreme_limit_to_rational_nonextreme(1)
+        sage: extremality_test(h, False)
+        True
+        sage: h = bhk_irrational_extreme_limit_to_rational_nonextreme(2)
+        sage: extremality_test(h, False)
+        True
+        sage: h = bhk_irrational_extreme_limit_to_rational_nonextreme(17)
+        sage: extremality_test(h, False)
+        True
+        sage: h = bhk_irrational_extreme_limit_to_rational_nonextreme()
+        sage: extremality_test(h, False)
+        False
     """
     del1 = 1/60
     if n != Infinity:
@@ -102,22 +175,69 @@ def drlm_gj_2_slope_extreme_limit_to_nonextreme(s=Infinity):
     A sequence of `phi_s_in_drlm_not_extreme_2` functions, each extreme,
     indexed by s, (where s is a real number, s = abs(negative_slope) and s > 2)
     whose limit (s = Infinity) is a `drlm_not_extreme_2` function which is not extreme.
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = drlm_gj_2_slope_extreme_limit_to_nonextreme(3)
+        sage: extremality_test(h, False)
+        True
+        sage: h = drlm_gj_2_slope_extreme_limit_to_nonextreme(17)
+        sage: extremality_test(h, False)
+        True
+        sage: h = drlm_gj_2_slope_extreme_limit_to_nonextreme()
+        sage: extremality_test(h, False)
+        False
     """
     if s != Infinity:
         return phi_s_in_drlm_not_extreme_2(s=s)
     return drlm_not_extreme_2()
 
 def drlm_2_slope_limit_1_1(f=1/2, nb_pieces_left=1, nb_pieces_right=1):
-    "An iconic choice of parameters in gj_2_slope."
+    """
+    An iconic choice of parameters in drlm_2_slope_limit.
+
+    EXAMPLES::
+        sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
+        sage: h = drlm_2_slope_limit_1_1()
+        sage: extremality_test(h, False)
+        True
+    """
     return drlm_2_slope_limit(f=f, nb_pieces_left=nb_pieces_left, nb_pieces_right=nb_pieces_right)
 
 def hildebrand_5_slope_22_1():
+    """
+    One of Hildebrand's world-record 5-slope functions.
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = hildebrand_5_slope_22_1()
+        sage: extremality_test(h, False)
+        True
+    """
     return piecewise_function_from_robert_txt_file("example5Slope22data.txt")
 
 def hildebrand_5_slope_24_1():
+    """
+    One of Hildebrand's world-record 5-slope functions.
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = hildebrand_5_slope_24_1()
+        sage: extremality_test(h, False)
+        True
+    """
     return piecewise_function_from_robert_txt_file("example5Slope24data.txt")
 
 def hildebrand_5_slope_28_1():
+    """
+    One of Hildebrand's world-record 5-slope functions.
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = hildebrand_5_slope_28_1()
+        sage: extremality_test(h, False)
+        True
+    """
     return piecewise_function_from_robert_txt_file("example5Slope28data.txt")
 
 def chen_3_slope_not_extreme(f=1/2, lam=8):
@@ -138,10 +258,15 @@ def chen_3_slope_not_extreme(f=1/2, lam=8):
 
     Examples:
         [KChen_thesis]  p.33, fig.7 NOT extreme::
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = chen_3_slope_not_extreme(f=1/2, lam=8)
+            sage: extremality_test(h, False)
+            False
 
-        extreme example ::
+        extreme example (with parameters not satisfying the requirement)::
             sage: h = chen_3_slope_not_extreme(f=2/3, lam=20)
+            sage: extremality_test(h, False)
+            True
 
     Reference:
         [KChen_thesis]:  K. Chen, Topics in group methods for integer programming,
@@ -162,6 +287,13 @@ def dr_projected_sequential_merge_3_slope(f=2/3, lambda_1=1/4, lambda_2=1/4, n=1
     g = multiplicative_homomorphism(gj_forward_3_slope(f=f, lambda_1=lambda_1, lambda_2=lambda_2),-1);
     xi = gmic(f/n).
     see projected_sequential_merge()
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = dr_projected_sequential_merge_3_slope()
+        sage: extremality_test(h, False)
+        True
+
     Reference:  p.311, fig.5,[39] SS Dey, JPP Richard, Relations between facets of low-and high-dimensional group problems,
                 Mathematical programming 123 (2), 285-313.
     """

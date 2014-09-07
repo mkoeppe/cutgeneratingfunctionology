@@ -1,4 +1,12 @@
+# Make sure current directory is in path.  
+# That's not true while doctesting (sage -t).
+if '' not in sys.path:
+    sys.path = [''] + sys.path
+
+from igp import *
+
 ########## Code for Discontinuous Case ###########
+
 nonzero_eps = { (-1,-1,-1), (-1, 1,-1), (-1, 1, 1), (-1, 1, 0), (-1, 0,-1), ( 1,-1,-1), \
                 ( 1,-1, 1), ( 1,-1, 0), ( 1, 1, 1), ( 1, 0, 1), ( 0,-1,-1), ( 0, 1, 1) }
 continuous_xy_eps = { (-1,-1,-1), (1, 1, 1) }
@@ -390,7 +398,7 @@ def generate_maximal_additive_faces_general(function):
                         if i != j:
                             faces.append(x_y_swapped_face(face))
     # 1D horizontal and vertical faces
-    for i in range(n + 1):
+    for i in range(n):
         for j in range(n):
             for k in range(2*n):
                 if len(interval_intersection((bkpt[i] + bkpt[j], bkpt[i] + bkpt[j+1]), K_list[k])) == 2:
@@ -399,7 +407,7 @@ def generate_maximal_additive_faces_general(function):
                         faces.append(face)
                         faces.append(x_y_swapped_face(face))
     # 1D diagonal faces
-    for k in range(2*n + 1):
+    for k in range(2*n):
         for i in range(n):
             for j in range(i, n):
                 interval_K = interval_sum(I_list[i],J_list[j])

@@ -5,6 +5,14 @@ This is Sage code for computation and experimentation with the (1-dimensional) G
 including an electronic compendium of extreme functions.
 
 
+How to run the code in a local copy of Sage
+-------------------------------------------
+
+1. Type: from igp import *
+
+2. ......
+
+
 How to run the code online via cloud.sagemath.com
 -------------------------------------------------
 
@@ -24,7 +32,7 @@ How to run the code online via cloud.sagemath.com
 
 7. Click "+ New", select "Sage worksheet"
 
-8. Type:  load("functions.sage") 
+8. Type:  from igp import *
    and hit shift+enter
 
 9. ......

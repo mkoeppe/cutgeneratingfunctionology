@@ -1,3 +1,10 @@
+# Make sure current directory is in path.  
+# That's not true while doctesting (sage -t).
+if '' not in sys.path:
+    sys.path = [''] + sys.path
+
+from igp import *
+
 import logging
 
 # this is a version of Python's StreamHandler which prints log
@@ -306,7 +313,6 @@ class Face:
     def __init__(self, triple, vertices=None, is_known_to_be_minimal=False):
         """
         EXAMPLES::
-        sage: load("extreme_functions_in_literature.sage")
         sage: logging.disable(logging.INFO)
         sage: f = generate_maximal_additive_faces(bhk_irrational(delta=(23/250,1/125)))
         """
@@ -485,37 +491,28 @@ def plot_2d_diagram(fn, show_function=True, known_minimal=False):
             p += point([(0,0)], color = "red", size = 50, legend_label="Subadditivity violated", zorder=-10)
             p += point([(0,0)], color = "white", size = 50, zorder=-9)
     if show_function:
-        if fn.is_continuous():
-            x = var('x')
-            p += parametric_plot((lambda x: x, lambda x: 0.3 * float(fn(x)) + 1), \
-                                                    (x, 0, 1), color='blue', legend_label="Function pi")
-            p += parametric_plot((lambda x: - 0.3 * float(fn(x)), lambda x: x), \
-                                                    (x, 0, 1), color='blue')
-        else:
-            # constant_one_fn = FastPiecewise( [[(0, 1), FastLinearFunction(0, 1)]] )
-            # p += plot(0.3 * fn + constant_one_fn, [0, 1], color='blue', legend_label="Function pi")
-            bkpt = fn.end_points()
-            limits = fn.limits_at_end_points()
-            if limits[0][0] != limits[0][1]:
-                p += point([(0,1), (0,0)], color='blue', size = 23, zorder=-1)
-            for i in range(len(bkpt) - 1):
-                x1 = bkpt[i]
-                y1 = limits[i][1]
-                x2 = bkpt[i+1]
-                y2 = limits[i+1][-1]
-                y3 = limits[i+1][0]
-                p += line([(x1, 0.3*y1 + 1), (x2, 0.3*y2 + 1)], color='blue', zorder=-2)
-                p += line([(-0.3*y1, x1), (-0.3*y2, x2)], color='blue', zorder=-2)
-                if limits[i][0] != y1:
-                    p += point([(x1, 0.3*y1 + 1), (-0.3*y1, x1)], color='blue', pointsize=23, zorder=-1)
-                    p += point([(x1, 0.3*y1 + 1), (-0.3*y1, x1)], color='white', pointsize=10, zorder=-1)
-                if (y2 != y3) or (i < len(bkpt) - 2) and (y3 != limits[i+1][1]):
-                    p += point([(x2, 0.3*y2 + 1), (-0.3*y2, x2)], color='blue', pointsize=23, zorder=-1)
-                    p += point([(x2, 0.3*y2 + 1), (-0.3*y2, x2)], color='white', pointsize=10, zorder=-1)
-                    p += point([(x2, 0.3*y3 + 1), (-0.3*y3, x2)], color='blue', pointsize=23, zorder=-1)
-            # add legend_label
-            p += line([(0,0), (0,1)], color='blue', legend_label="Function pi", zorder=-10)
-            p += line([(0,0), (0,1)], color='white', zorder=-9)
+        bkpt = fn.end_points()
+        limits = fn.limits_at_end_points()
+        if limits[0][0] != limits[0][1]:
+            p += point([(0,1), (0,0)], color='blue', size = 23, zorder=-1)
+        for i in range(len(bkpt) - 1):
+            x1 = bkpt[i]
+            y1 = limits[i][1]
+            x2 = bkpt[i+1]
+            y2 = limits[i+1][-1]
+            y3 = limits[i+1][0]
+            p += line([(x1, 0.3*y1 + 1), (x2, 0.3*y2 + 1)], color='blue', zorder=-2)
+            p += line([(-0.3*y1, x1), (-0.3*y2, x2)], color='blue', zorder=-2)
+            if limits[i][0] != y1:
+                p += point([(x1, 0.3*y1 + 1), (-0.3*y1, x1)], color='blue', pointsize=23, zorder=-1)
+                p += point([(x1, 0.3*y1 + 1), (-0.3*y1, x1)], color='white', pointsize=10, zorder=-1)
+            if (y2 != y3) or (i < len(bkpt) - 2) and (y3 != limits[i+1][1]):
+                p += point([(x2, 0.3*y2 + 1), (-0.3*y2, x2)], color='blue', pointsize=23, zorder=-1)
+                p += point([(x2, 0.3*y2 + 1), (-0.3*y2, x2)], color='white', pointsize=10, zorder=-1)
+                p += point([(x2, 0.3*y3 + 1), (-0.3*y3, x2)], color='blue', pointsize=23, zorder=-1)
+        # add legend_label
+        p += line([(0,0), (0,1)], color='blue', legend_label="Function pi", zorder=-10)
+        p += line([(0,0), (0,1)], color='white', zorder=-9)
     return p
 
 # Assume component is sorted.
@@ -815,7 +812,8 @@ def uncovered_intervals_from_covered_intervals(covered_intervals):
     sage: uncovered_intervals_from_covered_intervals([[[10/17, 11/17]], [[5/17, 6/17], [7/17, 8/17]]])
     [[0, 5/17], [6/17, 7/17], [8/17, 10/17], [11/17, 1]]
     """
-
+    if not covered_intervals:
+        return [[0,1]]
     covered = reduce(merge_two_comp, covered_intervals)
     return interval_minus_union_of_intervals([0,1], covered)
 
@@ -1057,7 +1055,7 @@ class FastPiecewise (PiecewisePolynomial):
         sage: len(h.intervals())
         1
         sage: h.intervals()[0][0], h.intervals()[0][1]
-        (3/10, 15/40)
+        (3/10, 3/8)
         """
         # Sort intervals according to their left endpoints; In case of equality, place single point before interval. 
         # This setting would be helpful in plotting discontinuous functions   
@@ -2859,12 +2857,12 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None):
     interval) and one jump variable for each (left/right) discontinuity.
     Return a boolean that indicates whether the system has a nontrivial solution.
     EXAMPLES::
-    sage: logging.disable(logging.INFO)
+    sage: logging.disable(logging.WARN)
     sage: h1 = drlm_not_extreme_2()
-    sage: finite_dimensional_extremality_test(h1,show_plots=True)
+    sage: finite_dimensional_extremality_test(h1, show_plots=True)
     False
     sage: h2 = drlm_3_slope_limit()
-    sage: finite_dimensional_extremality_test(h,show_plots=True)
+    sage: finite_dimensional_extremality_test(h2, show_plots=True)
     True
     """
     covered_intervals = generate_covered_intervals(function)
@@ -2973,14 +2971,14 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturba
         return finite_dimensional_extremality_test(fn, show_plots, f=f)
     else:
         logging.info("Uncovered intervals: %s", (uncovered_intervals,))
-        if not fn.is_continuous():
-            # FIXME: Moves for discontinuous case is not available yet.
-            return "N/A"
         if do_phase_1_lifting or finite_dimensional_test_first:
             # First try the finite dimensional one.
             if not finite_dimensional_extremality_test(fn, show_plots):
                 return False
         # Now do the magic.
+        if not fn.is_continuous():
+            # FIXME: Moves for discontinuous case is not available yet.
+            raise UnimplementedError, "Code for detecting perturbations using moves is not available yet in the discontinuous case."
         moves = generate_functional_directed_moves(fn)
         logging.debug("Moves relevant for these intervals: %s" % (moves,))
         if use_new_code:

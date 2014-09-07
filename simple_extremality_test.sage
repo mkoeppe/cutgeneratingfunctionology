@@ -1,3 +1,10 @@
+# Make sure current directory is in path.  
+# That's not true while doctesting (sage -t).
+if '' not in sys.path:
+    sys.path = [''] + sys.path
+
+from igp import *
+
 def simple_finite_dimensional_extremality_test(fn, show_plots=False, oversampling=3, order=None):
     """
     simple finite dimensional extremality test that does not go through the whole machinery of covered intervals etc., but rather sets up a grid 1/mq, where q is the lcm of the breakpoint denominator and m is the "oversampling factor" (we prove in Equivariant I that m=4 always is enough; in fact m = 3 suffices; one of these two values should be the default). The code should allow, for the irrational case, to specify a different grid (as the breakpoints don't have a gcd in this case). This code can then be easily extended to the discontinuous case! (I would be quite interested to know if this code would be able to detect any perturbation for some non-extreme "irrational" functions.)...
@@ -11,7 +18,7 @@ def simple_finite_dimensional_extremality_test(fn, show_plots=False, oversamplin
     values = [fn(pt) for pt in pts]
     # values = [fn(i / grid_nb) for i in range(grid_nb)]
     f_grid_index = int(f * grid_nb)
-    if not minimality_test_general(fn, f):
+    if not minimality_test(fn, show_plots=show_plots, f=f):
         logging.info("The function is NOT extreme.")
         return False
     basis_vects = VectorSpace(field,grid_nb).basis()
