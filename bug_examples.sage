@@ -12,3 +12,6 @@ def limits_out_of_range():                                  # plotting bug
 
 def chen_tricky_uncovered_intervals():
     return chen_3_slope_not_extreme(f=1/sqrt(3), lam=10)    
+
+def minimal_uncovered_interval_example()
+    return FastPiecewise([[singleton_interval(0), FastLinearFunction(0,0)], [open_interval(0, 1/2), FastLinearFunction(0, 1/2)], [singleton_interval(1/2), FastLinearFunction(0,1)], [open_interval(1/2, 1), FastLinearFunction(0, 1/2)],[singleton_interval(1), FastLinearFunction(0,0)]], merge=True)
