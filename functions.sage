@@ -2965,7 +2965,7 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturba
         logging.info("Uncovered intervals: %s", (uncovered_intervals,))
         if not fn.is_continuous():
             # FIXME: Moves for discontinuous case is not available yet.
-            return "N/A"
+            raise UnimplementedError, "........."
         if do_phase_1_lifting or finite_dimensional_test_first:
             # First try the finite dimensional one.
             if not finite_dimensional_extremality_test(fn, show_plots):
