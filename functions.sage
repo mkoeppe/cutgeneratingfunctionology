@@ -485,37 +485,28 @@ def plot_2d_diagram(fn, show_function=True, known_minimal=False):
             p += point([(0,0)], color = "red", size = 50, legend_label="Subadditivity violated", zorder=-10)
             p += point([(0,0)], color = "white", size = 50, zorder=-9)
     if show_function:
-        if fn.is_continuous():
-            x = var('x')
-            p += parametric_plot((lambda x: x, lambda x: 0.3 * float(fn(x)) + 1), \
-                                                    (x, 0, 1), color='blue', legend_label="Function pi")
-            p += parametric_plot((lambda x: - 0.3 * float(fn(x)), lambda x: x), \
-                                                    (x, 0, 1), color='blue')
-        else:
-            # constant_one_fn = FastPiecewise( [[(0, 1), FastLinearFunction(0, 1)]] )
-            # p += plot(0.3 * fn + constant_one_fn, [0, 1], color='blue', legend_label="Function pi")
-            bkpt = fn.end_points()
-            limits = fn.limits_at_end_points()
-            if limits[0][0] != limits[0][1]:
-                p += point([(0,1), (0,0)], color='blue', size = 23, zorder=-1)
-            for i in range(len(bkpt) - 1):
-                x1 = bkpt[i]
-                y1 = limits[i][1]
-                x2 = bkpt[i+1]
-                y2 = limits[i+1][-1]
-                y3 = limits[i+1][0]
-                p += line([(x1, 0.3*y1 + 1), (x2, 0.3*y2 + 1)], color='blue', zorder=-2)
-                p += line([(-0.3*y1, x1), (-0.3*y2, x2)], color='blue', zorder=-2)
-                if limits[i][0] != y1:
-                    p += point([(x1, 0.3*y1 + 1), (-0.3*y1, x1)], color='blue', pointsize=23, zorder=-1)
-                    p += point([(x1, 0.3*y1 + 1), (-0.3*y1, x1)], color='white', pointsize=10, zorder=-1)
-                if (y2 != y3) or (i < len(bkpt) - 2) and (y3 != limits[i+1][1]):
-                    p += point([(x2, 0.3*y2 + 1), (-0.3*y2, x2)], color='blue', pointsize=23, zorder=-1)
-                    p += point([(x2, 0.3*y2 + 1), (-0.3*y2, x2)], color='white', pointsize=10, zorder=-1)
-                    p += point([(x2, 0.3*y3 + 1), (-0.3*y3, x2)], color='blue', pointsize=23, zorder=-1)
-            # add legend_label
-            p += line([(0,0), (0,1)], color='blue', legend_label="Function pi", zorder=-10)
-            p += line([(0,0), (0,1)], color='white', zorder=-9)
+        bkpt = fn.end_points()
+        limits = fn.limits_at_end_points()
+        if limits[0][0] != limits[0][1]:
+            p += point([(0,1), (0,0)], color='blue', size = 23, zorder=-1)
+        for i in range(len(bkpt) - 1):
+            x1 = bkpt[i]
+            y1 = limits[i][1]
+            x2 = bkpt[i+1]
+            y2 = limits[i+1][-1]
+            y3 = limits[i+1][0]
+            p += line([(x1, 0.3*y1 + 1), (x2, 0.3*y2 + 1)], color='blue', zorder=-2)
+            p += line([(-0.3*y1, x1), (-0.3*y2, x2)], color='blue', zorder=-2)
+            if limits[i][0] != y1:
+                p += point([(x1, 0.3*y1 + 1), (-0.3*y1, x1)], color='blue', pointsize=23, zorder=-1)
+                p += point([(x1, 0.3*y1 + 1), (-0.3*y1, x1)], color='white', pointsize=10, zorder=-1)
+            if (y2 != y3) or (i < len(bkpt) - 2) and (y3 != limits[i+1][1]):
+                p += point([(x2, 0.3*y2 + 1), (-0.3*y2, x2)], color='blue', pointsize=23, zorder=-1)
+                p += point([(x2, 0.3*y2 + 1), (-0.3*y2, x2)], color='white', pointsize=10, zorder=-1)
+                p += point([(x2, 0.3*y3 + 1), (-0.3*y3, x2)], color='blue', pointsize=23, zorder=-1)
+        # add legend_label
+        p += line([(0,0), (0,1)], color='blue', legend_label="Function pi", zorder=-10)
+        p += line([(0,0), (0,1)], color='white', zorder=-9)
     return p
 
 # Assume component is sorted.
