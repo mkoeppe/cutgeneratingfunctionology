@@ -28,3 +28,6 @@ def minimal_has_uncovered_interval():
                           [singleton_interval(1/4), FastLinearFunction(0, 1)], \
                           [open_interval(1/4, 1), FastLinearFunction(0, 1/2)], \
                           [singleton_interval(1), FastLinearFunction(0,0)]], merge=True)
+
+def example7slopecoarse2():
+    return piecewise_function_from_robert_txt_file("example7slopeCoarse2.txt")
