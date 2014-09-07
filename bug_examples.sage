@@ -1,3 +1,10 @@
+# Make sure current directory is in path.  
+# That's not true while doctesting (sage -t).
+if '' not in sys.path:
+    sys.path = [''] + sys.path
+
+from igp import *
+
 def not_minimal_3(): # this was a bug
     return piecewise_function_from_breakpoints_and_values([0,1/5,4/5,1],[0,1/2,1,0])
 
@@ -30,4 +37,9 @@ def minimal_has_uncovered_interval():
                           [singleton_interval(1), FastLinearFunction(0,0)]], merge=True)
 
 def example7slopecoarse2():
+    """
+    sage: h = example7slopecoarse2()
+    sage: extremality_test(h, False)
+    False
+    """
     return piecewise_function_from_robert_txt_file("example7slopeCoarse2.txt")
