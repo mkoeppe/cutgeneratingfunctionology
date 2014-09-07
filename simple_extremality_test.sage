@@ -11,7 +11,7 @@ def simple_finite_dimensional_extremality_test(fn, show_plots=False, oversamplin
     values = [fn(pt) for pt in pts]
     # values = [fn(i / grid_nb) for i in range(grid_nb)]
     f_grid_index = int(f * grid_nb)
-    if not minimality_test_general(fn, f):
+    if not minimality_test(fn, show_plots=show_plots, f=f):
         logging.info("The function is NOT extreme.")
         return False
     basis_vects = VectorSpace(field,grid_nb).basis()
