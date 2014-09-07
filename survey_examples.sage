@@ -1,3 +1,10 @@
+# Make sure current directory is in path.  
+# That's not true while doctesting (sage -t).
+if '' not in sys.path:
+    sys.path = [''] + sys.path
+
+from igp import *
+
 ## Various examples of functions that appear in the survey.
 
 def not_minimal_1(): # was not_minimal.sage

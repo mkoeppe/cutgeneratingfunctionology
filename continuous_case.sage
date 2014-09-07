@@ -1,3 +1,10 @@
+# Make sure current directory is in path.  
+# That's not true while doctesting (sage -t).
+if '' not in sys.path:
+    sys.path = [''] + sys.path
+
+from igp import *
+
 ########## Code for Continuous Case ###########
 
 def generate_nonsymmetric_vertices_continuous(fn, f):

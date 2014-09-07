@@ -1,3 +1,10 @@
+# Make sure current directory is in path.  
+# That's not true while doctesting (sage -t).
+if '' not in sys.path:
+    sys.path = [''] + sys.path
+
+from igp import *
+
 import logging
 
 # this is a version of Python's StreamHandler which prints log
@@ -306,7 +313,6 @@ class Face:
     def __init__(self, triple, vertices=None, is_known_to_be_minimal=False):
         """
         EXAMPLES::
-        sage: load("extreme_functions_in_literature.sage")
         sage: logging.disable(logging.INFO)
         sage: f = generate_maximal_additive_faces(bhk_irrational(delta=(23/250,1/125)))
         """

@@ -1,9 +1,9 @@
-load("functions.sage")
+# Make sure current directory is in path.  
+# That's not true while doctesting (sage -t).
+if '' not in sys.path:
+    sys.path = [''] + sys.path
 
-import logging
-
-logging.basicConfig(format='%(levelname)s: %(asctime)s %(message)s', level=logging.INFO)
-
+from igp import *
 
 def gmic(f=4/5):
     """
