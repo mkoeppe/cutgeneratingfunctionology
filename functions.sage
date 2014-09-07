@@ -1048,7 +1048,7 @@ class FastPiecewise (PiecewisePolynomial):
         sage: len(h.intervals())
         1
         sage: h.intervals()[0][0], h.intervals()[0][1]
-        (3/10, 15/40)
+        (3/10, 3/8)
         """
         # Sort intervals according to their left endpoints; In case of equality, place single point before interval. 
         # This setting would be helpful in plotting discontinuous functions   
