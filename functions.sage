@@ -709,6 +709,7 @@ def interval_mod_1(interval):
     sage: interval_mod_1([-1/5,0])
     [4/5, 1]        
     """
+    interval = copy(interval)
     if len(interval) == 0:
         return interval
     elif len(interval) == 1:
