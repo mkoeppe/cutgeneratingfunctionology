@@ -805,7 +805,8 @@ def uncovered_intervals_from_covered_intervals(covered_intervals):
     sage: uncovered_intervals_from_covered_intervals([[[10/17, 11/17]], [[5/17, 6/17], [7/17, 8/17]]])
     [[0, 5/17], [6/17, 7/17], [8/17, 10/17], [11/17, 1]]
     """
-
+    if not covered_intervals:
+        return [[0,1]]
     covered = reduce(merge_two_comp, covered_intervals)
     return interval_minus_union_of_intervals([0,1], covered)
 
