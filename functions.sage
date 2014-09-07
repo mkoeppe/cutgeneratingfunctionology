@@ -2970,14 +2970,14 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturba
         return finite_dimensional_extremality_test(fn, show_plots, f=f)
     else:
         logging.info("Uncovered intervals: %s", (uncovered_intervals,))
-        if not fn.is_continuous():
-            # FIXME: Moves for discontinuous case is not available yet.
-            raise UnimplementedError, "........."
         if do_phase_1_lifting or finite_dimensional_test_first:
             # First try the finite dimensional one.
             if not finite_dimensional_extremality_test(fn, show_plots):
                 return False
         # Now do the magic.
+        if not fn.is_continuous():
+            # FIXME: Moves for discontinuous case is not available yet.
+            raise UnimplementedError, "Code for detecting perturbations using moves is not available yet in the discontinuous case."
         moves = generate_functional_directed_moves(fn)
         logging.debug("Moves relevant for these intervals: %s" % (moves,))
         if use_new_code:
