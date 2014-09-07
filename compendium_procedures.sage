@@ -35,6 +35,15 @@ def multiplicative_homomorphism(function, multiplier):
     """
     Construct the function x -> function(multiplier * x). 
     `multiplier` must be a nonzero integer.
+
+    EXAMPLES::
+    sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
+    sage: h = multiplicative_homomorphism(gmic(f=4/5), 3)
+    sage: extremality_test(h, False, f=4/15) # Provide f to suppress warning
+    True
+    sage: h = multiplicative_homomorphism(gmic(f=4/5), -2)
+    sage: extremality_test(h, False, f=3/5)
+    True
     """
     if not multiplier in ZZ or multiplier == 0:
         raise ValueError, "Bad parameter multiplier, needs to be a nonzero integer."
@@ -75,7 +84,11 @@ def projected_sequential_merge(g, n=1):
 
         sage: logging.disable(logging.INFO)
         sage: g = multiplicative_homomorphism(gj_forward_3_slope(f=2/3, lambda_1=1/4, lambda_2=1/4), -1)
+        sage: extremality_test(g, False)
+        True
         sage: h = projected_sequential_merge(g, n=1)
+        sage: extremality_test(h, False)
+        True
 
     Reference:
         [39] SS Dey, JPP Richard, Relations between facets of low-and high-dimensional group problems,

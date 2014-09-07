@@ -2856,12 +2856,12 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None):
     interval) and one jump variable for each (left/right) discontinuity.
     Return a boolean that indicates whether the system has a nontrivial solution.
     EXAMPLES::
-    sage: logging.disable(logging.INFO)
+    sage: logging.disable(logging.WARN)
     sage: h1 = drlm_not_extreme_2()
-    sage: finite_dimensional_extremality_test(h1,show_plots=True)
+    sage: finite_dimensional_extremality_test(h1, show_plots=True)
     False
     sage: h2 = drlm_3_slope_limit()
-    sage: finite_dimensional_extremality_test(h,show_plots=True)
+    sage: finite_dimensional_extremality_test(h2, show_plots=True)
     True
     """
     covered_intervals = generate_covered_intervals(function)

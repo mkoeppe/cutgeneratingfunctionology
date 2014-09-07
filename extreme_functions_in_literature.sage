@@ -19,7 +19,10 @@ def gmic(f=4/5):
     Examples: 
         [61] p.343, Fig. 1, Example 1 ::
 
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = gmic(4/5)
+            sage: extremality_test(h, False)
+            True
 
     Reference: 
         [55]: R.E. Gomory, An algorithm for the mixed integer problem, Tech. Report RM-2597, RAND Corporation, 1960.
@@ -55,9 +58,16 @@ def gj_2_slope(f=3/5, lambda_1=1/6):
     Examples:
         [61] p.354, Fig.6 ::
 
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = gj_2_slope(f=3/5, lambda_1=1/6)
+            sage: extremality_test(h, False)
+            True
             sage: h = gj_2_slope(f=3/5, lambda_1=1/2)
+            sage: extremality_test(h, False)
+            True
             sage: h = gj_2_slope(f=3/5, lambda_1=1)
+            sage: extremality_test(h, False, f=3/5)         # Provide f to suppress warning
+            True
 
     Reference:
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
@@ -97,7 +107,10 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3):
     Examples:
         [61] p.354, Fig.7 ::
 
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3)
+            sage: extremality_test(h, False)
+            True
 
     Reference:
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
@@ -138,7 +151,10 @@ def two_step_mir(f=4/5, alpha=3/10):
     Examples:
         [33] p.40, Fig.5 ::
 
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = two_step_mir(f=4/5, alpha=3/10)
+            sage: extremality_test(h, False)
+            True
 
     Reference:
         [33]: S. Dash and O. G¨unl¨uk, Valid inequalities based on simple mixed-integer sets.,
@@ -200,12 +216,25 @@ def n_step_mir(f=4/5, a=[1, 3/10, 8/100]):
     Examples:
         [74] p.333 - p.335, Fig.1 - Fig.6 ::
         
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = n_step_mir(f=4/5, a=[1])
+            sage: extremality_test(h, False)
+            True
             sage: h = n_step_mir(f=4/5, a=[1, 3/10])
+            sage: extremality_test(h, False)
+            True
             sage: h = n_step_mir(f=4/5, a=[1, 3/10, 8/100])
+            sage: extremality_test(h, False)
+            True
             sage: h = n_step_mir(f=4/5, a=[1, 3/10, 8/100, 3/100])
+            sage: extremality_test(h, False)
+            True
             sage: h = n_step_mir(f=4/5, a=[1, 45/100, 2/10, 558/10000, 11/1000])
+            sage: extremality_test(h, False)
+            True
             sage: h = n_step_mir(f=4/5, a=[1, 48/100, 19/100, 8/100, 32/1000, 12/1000])
+            sage: extremality_test(h, False)
+            True
 
     Reference:
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
@@ -262,11 +291,19 @@ def gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3):
     Examples:
         [61] p.360, Fig.8 ::
             sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/6)
+            sage: extremality_test(h, False)
+            True
             sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3)
+            sage: extremality_test(h, False)
+            True
             sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/2)
+            sage: extremality_test(h, False)
+            True
 
         Try irrational case ::
             sage: h = gj_forward_3_slope(f=sqrt(17)/5, lambda_1=sqrt(5)/9, lambda_2=1/sqrt(10))
+            sage: extremality_test(h, False)
+            True
 
     Reference:
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
@@ -315,9 +352,12 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12):
         Finite group --> Example 3.8 in [8] p.386,
         Infinite group --> Interpolation using Equation 5 from [40] p.154 ::
 
-        sage: h = drlm_backward_3_slope(f=1/12, bkpt=2/12)
-
-        sage: h = drlm_backward_3_slope(f=1/12, bkpt=3/12)
+            sage: h = drlm_backward_3_slope(f=1/12, bkpt=2/12)
+            sage: extremality_test(h, False)
+            True
+            sage: h = drlm_backward_3_slope(f=1/12, bkpt=3/12)
+            sage: extremality_test(h, False)
+            True
 
     Reference:
         [8]: J. Ar´aoz, L. Evans, R.E. Gomory, and E.L. Johnson, Cyclic groups and knapsack facets,
@@ -366,7 +406,10 @@ def dg_2_step_mir_limit(f=3/5, d=3):
 
     Examples:
         [33] p.42, Fig.6 ::
+            sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
             sage: h = dg_2_step_mir_limit(f=3/5, d=3)
+            sage: extremality_test(h, False)
+            True
 
     Reference:
         [33]: S. Dash and O. G¨unl¨uk, Valid inequalities based on simple mixed-integer sets.,
@@ -412,7 +455,10 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
 
     Examples:
         [40] p.159 Fig.4 ::
+            sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
             sage: h = drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4)
+            sage: extremality_test(h, False)
+            True
 
     Reference:
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
@@ -468,7 +514,10 @@ def drlm_3_slope_limit(f=1/5):
 
     Examples:
         [40] p.162 Fig.5 ::
+            sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
             sage: h = drlm_3_slope_limit(f=1/5)
+            sage: extremality_test(h, False)
+            True
 
     Reference:
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
@@ -513,12 +562,14 @@ def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
         def psi_n_in_bccz_counterexample_construction(f, e)
 
     Examples:
-        quick evaluations::
+        quick exact evaluations::
             sage: bccz_counterexample(f=2/3, q=4, eta=0, maxiter=10000)(r=1/5)
+            21/40
             sage: bccz_counterexample(f=2/3, q=4, eta=0, maxiter=10000)(r=1/4)
+            3/4
 
         too many iterations::
-            sage: bccz_counterexample(f=2/3, q=4, eta=0, maxiter=10000)(r=9/40)
+            sage: bccz_counterexample(f=2/3, q=4, eta=0, maxiter=10000)(r=9/40) # doctest: +SKIP
 
     Reference:
         [IR1]:  A. Basu, M. Conforti, G. Cornuéjols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
@@ -602,7 +653,7 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24]):
 
     Note:
         The (uniform) limit \psi = \lim_{n to \infty} \psi_n is well defined if \sum_{i = 0}^{\infty} {2^i * e[i]} < f.
-        The (unifrom) limit \psi is a continuous facet, but is not piecewise linear. A counterexample of GJ's conjecture.
+        The (uniform) limit \psi is a continuous facet, but is not piecewise linear. A counterexample of GJ's conjecture.
         Could use the function generate_example_e_for_psi_n(f, n, q) to generate a sequence e that satisfies the conditions for extremality.
         psi_n_in_bccz_counterexample_construction() is a special case of n_step_mir(),
         with f=f, a = [1, (f + e[0])/2, (f - e[0] + 2*e[1])/4, ...]
@@ -618,13 +669,17 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24]):
 
     Examples:
         [IR1]  p.30, fig.1::
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24])
-
+            sage: extremality_test(h, False)
+            True
             sage: h = psi_n_in_bccz_counterexample_construction(f=4/5, e=[1/5, 1/20, 1/80, 1/320, 1/1280])
-
-            sage: h = psi_n_in_bccz_counterexample_construction(f=4/5, e=generate_example_e_for_psi_n(f=4/5, n=7, q=3, eta=0))
-
-            sage: sum([plot(psi_n_in_bccz_counterexample_construction(e=generate_example_e_for_psi_n(n=n)), color=color, legend_label="psi_%d"%n) for n, color in zip(range(7),rainbow(7))])
+            sage: extremality_test(h, False, f=4/5)         # Suppress warning about non-unique f
+            True
+            sage: h = psi_n_in_bccz_counterexample_construction(f=4/5, e=generate_example_e_for_psi_n(f=4/5, n=7, q=3, eta=0)) # extremality_test takes long for this example; don't test!
+            sage: extremality_test(h, False)                # doctest: +SKIP
+            True
+            sage: sum([plot(psi_n_in_bccz_counterexample_construction(e=generate_example_e_for_psi_n(n=n)), color=color, legend_label="psi_%d"%n) for n, color in zip(range(7),rainbow(7))]) # doctest: +SKIP
 
     Reference: 
         [IR1]:  A. Basu, M. Conforti, G. Cornuéjols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
@@ -694,8 +749,24 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
 
     Examples:
         [IR2]  p.34, thm.5.3::
+
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200))
+            sage: extremality_test(h, False)
+            True
+
+        [IR2]  thm 5.4: Not extreme for rational data:: 
+
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: h = bhk_irrational(delta=[1/200, 3/200])
+            sage: extremality_test(h, False)
+            False
+
+        A generalization with 3 zigzags instead of 2 as in [IR2]::
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, 6* sqrt(2)/200, 1/500))
+            sage: extremality_test(h, False) # long time
+            True
 
     Reference:
         [IR2] A. Basu, R. Hildebrand, and M. Köppe, Equivariant perturbation in Gomory and Johnson’s infinite group problem.
@@ -745,6 +816,13 @@ def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/
     """
     A version of the irrational function with non-zero second slope,
     obtained by forming a convex combination of a modified version of the irrational function with the GMI cut.
+    Constructed by Chun Yu Hong, 2013.
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = bhk_gmi_irrational()
+        sage: extremality_test(h, False)
+        True
     """
     if not (bool(0 < f < 1) and bool(d1 > 0) and bool(d2 > 0) and bool(a0 > 0) and (len(delta) >= 2) \
             and bool(min(delta) > 0) and bool(d1 + d2 < f) and (sum(delta) < f/2 - d2/4 - 3*a0/2) \
@@ -803,13 +881,22 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4):
     Examples:
         [KChen_thesis]  p.38, fig.8 ::
 
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4)
+        sage: extremality_test(h, False)
+        True
 
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = chen_4_slope(f=1/2, s_pos=4, s_neg=-4, lam1=1/3, lam2=1/3)
+        sage: extremality_test(h, False)
+        True
 
         The following function's parameters do not satisfy the requirement, however it is extreme ::
 
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = chen_4_slope(f=1/2, s_pos=5, s_neg=-5, lam1=1/5, lam2=1/5)
+        sage: extremality_test(h, False)
+        True
 
     Reference:
         [KChen_thesis]:  K. Chen, Topics in group methods for integer programming,
@@ -853,7 +940,10 @@ def rlm_dpl1_extreme_3a(f=1/4):
     the function rlm_dpl1_fig3_lowerleft(f) is extreme for any 0 < f < 1/3.
 
     Example p.273, Fig.3-lowerleft ::
-        sage: h = rlm_dpl1_extreme_3a(f=1/4)
+            sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
+            sage: h = rlm_dpl1_extreme_3a(f=1/4)
+            sage: extremality_test(h, False)
+            True
 
     All other 3 functions (corresponding to \phi from the DPL1 family) shown in Fig.3 are proven to be extreme.
     They are covered by drlm_3_slope_limit() and drlm_2_slope_limit() classes:
