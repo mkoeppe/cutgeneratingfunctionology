@@ -1086,12 +1086,9 @@ class FastPiecewise (PiecewisePolynomial):
                 elif i[0] == i[1] and common_f != None and common_f(i[0]) == f(i[0]):
                     intervals_to_scan.append(i)
                 else:
-                    merged_intervals = coho_interval_list_from_scan(scan_coho_interval_list(intervals_to_scan))
-                    for merged_i in merged_intervals:
-                        if merged_i.left_closed and merged_i.right_closed and merged_i[0] != merged_i[1]:
-                            merged_interval = (merged_i[0], merged_i[1])
-                        else:
-                            merged_interval = merged_i
+                    merged_intervals = union_of_coho_intervals_minus_union_of_coho_intervals([[interval] for interval in intervals_to_scan], [],
+                                                                                             old_fashioned_closed_intervals=True)
+                    for merged_interval in merged_intervals:
                         merged_list_of_pairs.append((merged_interval, common_f))
                     intervals_to_scan = [i]
                     if i[0] == i[1]:
@@ -1099,12 +1096,9 @@ class FastPiecewise (PiecewisePolynomial):
                     else:
                         singleton = None
                     common_f = f
-            merged_intervals = union_of_coho_intervals_minus_union_of_coho_intervals([[interval] for interval in intervals_to_scan], [])
-            for merged_i in merged_intervals:
-                if merged_i.left_closed and merged_i.right_closed and merged_i[0] != merged_i[1]:
-                    merged_interval = (merged_i[0], merged_i[1])
-                else:
-                    merged_interval = merged_i
+            merged_intervals = union_of_coho_intervals_minus_union_of_coho_intervals([[interval] for interval in intervals_to_scan], [],
+                                                                                     old_fashioned_closed_intervals=True)
+            for merged_interval in merged_intervals:
                 merged_list_of_pairs.append((merged_interval, common_f))
             list_of_pairs = merged_list_of_pairs
             
@@ -2723,7 +2717,7 @@ def intersection_of_coho_intervals(interval_lists):
             (on_x, on_epsilon) = (None, None)
     assert all(on == 0 for on in interval_indicators) # no unbounded intervals
 
-def coho_interval_list_from_scan(scan):
+def coho_interval_list_from_scan(scan, old_fashioned_closed_intervals=False):
     """Actually returns a generator."""
     indicator = 0
     (on_x, on_epsilon) = (None, None)
@@ -2739,12 +2733,16 @@ def coho_interval_list_from_scan(scan):
             assert on_epsilon >= 0
             assert epsilon >= 0
             if (on_x, on_epsilon) < (x, epsilon):
-                yield closed_or_open_or_halfopen_interval(on_x, x,
-                                                          on_epsilon == 0, epsilon > 0)
+                left_closed = on_epsilon == 0
+                right_closed = epsilon > 0
+                if old_fashioned_closed_intervals and left_closed and right_closed and on_x < x:
+                    yield (on_x, x)
+                else:
+                    yield closed_or_open_or_halfopen_interval(on_x, x, left_closed, right_closed)
             (on_x, on_epsilon) = (None, None)
     assert indicator == 0
 
-def union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists):
+def union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists, old_fashioned_closed_intervals=False):
     """Compute a list of closed/open/half-open intervals that represent
     the set difference of `interval` and the union of the intervals in
     `remove_list`.
@@ -2759,8 +2757,10 @@ def union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove
     [<Int[0, 1)>, <Int(7, 10]>]
     sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0,10], closed_or_open_or_halfopen_interval(10, 20, False, True)]], [])
     [<Int[0, 20]>]
+    sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0,10], closed_or_open_or_halfopen_interval(10, 20, False, True)]], [], old_fashioned_closed_intervals=True)
+    [(0, 20)]
     """
-    gen = coho_interval_list_from_scan(scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists))
+    gen = coho_interval_list_from_scan(scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists), old_fashioned_closed_intervals)
     return list(gen)
 
 def proper_interval_list_from_scan(scan):
