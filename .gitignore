@@ -4,6 +4,7 @@
 *.DS_Store
 *.swp
 *.out
+*.pyc
 desktop.ini
 .dropbox
 Icon*
