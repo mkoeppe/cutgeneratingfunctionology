@@ -229,7 +229,7 @@ def interval_to_endpoints(int):
     elif len(int) == 2:
         return (int[0], int[1])
     else:
-        raise ValueError, "Not an interval: %s" % int
+        raise ValueError, "Not an interval: %s" % (int,)
 
 def interval_contained_in_interval(I, J):
     I = interval_to_endpoints(I)
