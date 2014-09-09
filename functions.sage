@@ -2744,6 +2744,43 @@ def intersection_of_coho_intervals(interval_lists):
             (on_x, on_epsilon) = (None, None)
     assert all(on == 0 for on in interval_indicators) # no unbounded intervals
 
+def coho_intervals_intersecting(a, b):
+    """
+    Determine if the two intervals intersect in at least 1 point.
+
+    EXAMPLES::
+    sage: coho_intervals_intersecting(singleton_interval(1), singleton_interval(1))
+    True
+    sage: coho_intervals_intersecting(singleton_interval(1), singleton_interval(2))
+    False
+    sage: coho_intervals_intersecting(singleton_interval(1), open_interval(1,2))
+    False
+    sage: coho_intervals_intersecting(singleton_interval(1), right_open_interval(1,2))
+    True
+    """
+    intervals = list(intersection_of_coho_intervals([[a], [b]]))
+    assert len(intervals) <= 1
+    return len(intervals) == 1
+
+def coho_intervals_intersecting_full_dimensionally(a, b):
+    """
+    Determine if the two intervals intersect in a proper interval.
+
+    sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), singleton_interval(1))
+    False
+    sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), singleton_interval(2))
+    False
+    sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), open_interval(1,2))
+    False
+    sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), right_open_interval(1,2))
+    False
+    sage: coho_intervals_intersecting_full_dimensionally(open_interval(0,2), right_open_interval(1,3))
+    True
+    """
+    intervals = list(intersection_of_coho_intervals([[a], [b]]))
+    assert len(intervals) <= 1
+    return len(intervals) == 1 and interval_length(intervals[0]) > 0
+
 def coho_interval_list_from_scan(scan, old_fashioned_closed_intervals=False):
     """Actually returns a generator."""
     indicator = 0
