@@ -3244,16 +3244,16 @@ def merge_functional_directed_moves(A, B, show_plots=False):
         show_plot(p, show_plots, tag='merge_functional_directed_moves')
     return C
 
-def plot_directed_moves(dmoves):
-    return sum(plot(dm) for dm in dmoves)
+def plot_directed_moves(dmoves, **kwds):
+    return Graphics() + sum(plot(dm, **kwds) for dm in dmoves)
 
 def reduce_with_dense_moves(functional_directed_move, dense_moves, show_plots=False):
     """
     EXAMPLES::
         sage: reduce_with_dense_moves(FunctionalDirectedMove([[3/10,7/10]],(1, 1/10)), [DenseDirectedMove([[[2/10,6/10],[2/10,6/10]]])])
-        <FunctionalDirectedMove (1, 1/10) with domain [(1/2, 7/10)]>
+        <FunctionalDirectedMove (1, 1/10) with domain [<Int(1/2, 7/10]>]>
         sage: reduce_with_dense_moves(FunctionalDirectedMove([[1/10,7/10]],(1, 1/10)), [DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]]), DenseDirectedMove([[[6/20,6/10],[4/10,6/10]]])])
-        <FunctionalDirectedMove (1, 1/10) with domain [(1/10, 3/10), (1/2, 7/10)]>
+        <FunctionalDirectedMove (1, 1/10) with domain [<Int[1/10, 3/10)>, <Int(1/2, 7/10]>]>
     """
     remove_lists = []
     for domain, codomain in itertools.chain(*[ dense_move.interval_pairs() for dense_move in dense_moves ]):
