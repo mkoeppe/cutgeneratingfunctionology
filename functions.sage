@@ -3057,8 +3057,7 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturba
                 return False
         # Now do the magic.
         if not fn.is_continuous():
-            # FIXME: Moves for discontinuous case is not available yet.
-            raise UnimplementedError, "Code for detecting perturbations using moves is not available yet in the discontinuous case."
+            logging.warning("Code for detecting perturbations using moves is EXPERIMENTAL in the discontinuous case.")
         moves = generate_functional_directed_moves(fn)
         logging.debug("Moves relevant for these intervals: %s" % (moves,))
         if use_new_code:
