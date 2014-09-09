@@ -80,6 +80,20 @@ def minimal_has_uncovered_interval():
                           [open_interval(1/4, 1), FastLinearFunction(0, 1/2)], \
                           [singleton_interval(1), FastLinearFunction(0,0)]], merge=True)
 
+def lift_of_minimal_has_uncovered_interval():
+    """
+    This function was obtained by:
+    sage_input(lift(minimal_has_uncovered_interval()))
+
+    The function has 3 slopes and discontinuities.
+
+    sage: logging.disable(logging.WARN)
+    sage: h = lift_of_minimal_has_uncovered_interval()
+    sage: len(generate_covered_intervals(h) + generate_uncovered_intervals(h)) >= 3
+    True
+    """
+    return FastPiecewise([[singleton_interval(QQ(0)), FastLinearFunction(QQ(0), QQ(0))], [open_interval(0, 1/8), FastLinearFunction(QQ(0), 3/4)], [singleton_interval(1/8), FastLinearFunction(QQ(0), 1/2)], [open_interval(1/8, 1/4), FastLinearFunction(QQ(0), 1/4)], [singleton_interval(1/4), FastLinearFunction(QQ(0), QQ(1))], [left_open_interval(1/4, 1/2), FastLinearFunction(QQ(0), 1/2)], [left_open_interval(1/2, 9/16), FastLinearFunction(QQ(4), -3/2)], [left_open_interval(9/16, 11/16), FastLinearFunction(-QQ(4), QQ(3))], [left_open_interval(11/16, 3/4), FastLinearFunction(QQ(4), -5/2)], [open_interval(3/4, 1), FastLinearFunction(QQ(0), 1/2)], [singleton_interval(1), FastLinearFunction(QQ(0), QQ(0))]])
+
 def example7slopecoarse2():
     """
     sage: logging.disable(logging.INFO); 
