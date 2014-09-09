@@ -1076,6 +1076,8 @@ class FastPiecewise (PiecewisePolynomial):
             singleton = None
             common_f = None
             for (i, f) in list_of_pairs:
+                if len(i) == 1:
+                    i = singleton_interval(i[0])            # upgrade to coho interval
                 if common_f == f:
                     intervals_to_scan.append(i)
                     singleton = None
@@ -2577,18 +2579,38 @@ def left_open_interval(a, b):
 def right_open_interval(a, b):
     return closed_or_open_or_halfopen_interval(a, b, True, False)
 
+def coho_interval_from_interval(int):
+    if len(int) == 0:
+        raise ValueError, "An empty interval does not have a coho_interval representation"
+    elif len(int) == 1:
+        return singleton_interval(int[0])
+    elif len(int) == 2:
+        return closed_interval(int[0], int[1])
+    else:
+        raise ValueError, "Not an interval: %s" % (int,)
+
 def interval_length(interval):
-    if interval[1] >= interval[0]:
+    """
+    Determine the length of the given `interval`.
+
+    `interval` can be old-fashioned or coho.
+    """
+    if len(interval) <= 1:
+        return 0
+    elif interval[1] >= interval[0]:
         return interval[1] - interval[0]
-    return 0
+    else:
+        return 0
 
 def coho_interval_left_endpoint_with_epsilon(i):
     """Return (x, epsilon)
     where x is the left endpoint
     and epsilon is 0 if the interval is left closed and 1 otherwise.
     """
-    if len(i) == 2:
-        # old-fashioned closed interval
+    if len(i) == 0:
+        raise ValueError, "An empty interval does not have a left endpoint."
+    elif len(i) <= 2:
+        # old-fashioned closed interval or singleton
         return i[0], 0 # Scanning from the left, turn on at left endpoint.
     else:
         # coho interval
@@ -2599,8 +2621,13 @@ def coho_interval_right_endpoint_with_epsilon(i):
     where x is the right endpoint
     and epsilon is 1 if the interval is right closed and 0 otherwise.
     """
-    if len(i) == 2:
-        # old-fashioned closed interval
+    if len(i) == 0:
+        raise ValueError, "An empty interval does not have a right endpoint."
+    elif len(i) == 1:
+        # old-fashioned singleton
+        return i[0], 1 # Scanning from the left, turn off at that point plus epsilon
+    elif len(i) == 2:
+        # old-fashioned proper closed interval
         return i[1], 1 # Scanning from the left, turn off at right endpoint plus epsilon
     else:
         # coho interval
