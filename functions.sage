@@ -2483,7 +2483,7 @@ def generate_functional_directed_moves(fn, intervals=None):
     for face in generate_maximal_additive_faces(fn):
         if face.is_directed_move():
             fdm = face.functional_directed_move(intervals)
-            if not fdm.is_identity() and fdm.intervals(): #and find_interior_intersection(fdm.intervals(), intervals): #FIXME: why interior?
+            if fdm.intervals():
                 moves.add(fdm)
     return list(moves)
 
