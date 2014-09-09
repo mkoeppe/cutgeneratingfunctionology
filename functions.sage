@@ -1056,10 +1056,18 @@ class FastLinearFunction :
         return not (self == other)
 
     def __repr__(self):
+        # Following the Sage convention of returning a pretty-printed
+        # expression in __repr__ (rather than __str__).
         try:
             return '<FastLinearFunction ' + sage.misc.misc.repr_lincomb([('x', self._slope), (1, self._intercept)], strip_one = True) + '>'
         except TypeError:
             return '<FastLinearFunction (%s)*x + (%s)>' % (self._slope, self._intercept)
+
+    def _sage_input_(self, sib, coerced):
+        """
+        Produce an expression which will reproduce this value when evaluated.
+        """
+        return sib.name('FastLinearFunction')(sib(self._slope), sib(self._intercept))
 
     ## FIXME: To be continued.
 
@@ -1771,6 +1779,16 @@ class FastPiecewise (PiecewisePolynomial):
                    + "\t values: " + repr([function(interval[0]), function(interval[1])])
         rep += ">"
         return rep
+
+    def _sage_input_(self, sib, coerced):
+        """
+        Produce an expression which will reproduce this value when evaluated.
+        """
+        # FIXME: Add keyword arguments
+        # FIXME: "sage_input(..., verify=True)" does not work yet
+        # because of module trouble?
+        return sib.name('FastPiecewise')(sib(self.list()))
+
         
 def print_sign(epsilon):
     if epsilon > 0:
@@ -2566,6 +2584,23 @@ class closed_or_open_or_halfopen_interval (_closed_or_open_or_halfopen_interval)
                 + repr(self.a) + ", " + repr(self.b) \
                 + ("]" if self.right_closed else ")")
         return "<Int" + r + ">"
+
+    def _sage_input_(self, sib, coerced):
+        """
+        Produce an expression which will reproduce this value when evaluated.
+        """
+        if self.a == self.b and self.left_closed and self.right_closed:
+            return sib.name('singleton_interval')(sib(self.a))
+        else:
+            if self.left_closed and self.right_closed:
+                name = 'closed_interval'
+            elif self.left_closed and not self.right_closed:
+                name = 'right_open_interval'
+            elif not self.left_closed and self.right_closed:
+                name = 'left_open_interval'
+            else:
+                name = 'open_interval'
+            return sib.name(name)(sib(self.a), sib(self.b))
 
 def closed_interval(a, b):
     return closed_or_open_or_halfopen_interval(a, b, True, True)
