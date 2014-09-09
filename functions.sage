@@ -3082,11 +3082,11 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturba
         check_perturbation(fn, perturb, show_plots=show_plots)
         return False
 
-def lift(fn, show_plots = False, **kwds):
+def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
     if extremality_test(fn, show_plots, **kwds):
         return fn
     else:
-        perturbed = fn._lifted = fn + fn._epsilon_interval[1] * fn._perturbation
+        perturbed = fn._lifted = fn + fn._epsilon_interval[which_perturbation] * fn._perturbation
         ## Following is strictly experimental: It may change what "f" is.
         if 'phase_1' in kwds and kwds['phase_1']:
             perturbed = rescale_to_amplitude(perturbed, 1)
