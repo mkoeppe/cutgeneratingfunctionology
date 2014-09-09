@@ -353,17 +353,34 @@ class Face:
             return polygon(convex_vert_list(vert), color=fill_color, **kwds)
 
     def is_directed_move(self):
-        return self.is_1D() #or self.is_0D()
-        # FIXME: Do we need additive vertices?
+        return self.is_1D() or self.is_0D()
         
     def directed_move_with_domain_and_codomain(self):
         """
         Maps a horizontal edge to a forward translation,
         a vertical edge to a backward translation, 
         a diagonal edge to a reflection.
+
+        `domain` and `codomain` are lists of old-fashioned intervals.
         """
+        # FIXME: In the discontinuous case, what is the right domain as a coho interval?
         trip = self.minimal_triple
-        if self.is_horizontal():
+        if self.is_0D():
+            x, y, z = trip[0][0], trip[1][0], trip[2][0]
+            # A 0-face corresponds to three moves:
+            # \tau_y:  a translation + y with domain {x}
+            # \tau_x:  a translation + x with domain {y}
+            # \rho_z:  a reflection (x+y) - with domain {x, y}.
+            # Because \tau_x = \tau_y \rho_z, it suffices to output
+            # \tau_y and \rho_z.  We use the fact that with each additive
+            # vertex, also the x_y_swapped vertex appears.
+            if x < y:
+                z_mod_1 = fractional(z)
+                y_adjusted = z_mod_1 - x
+                return (1, y_adjusted), [[x]], [[z_mod_1]]
+            else:
+                return (-1, z), [[x], [y]], [[y], [x]]
+        elif self.is_horizontal():
             return (1, trip[1][0]), [trip[0]], [trip[2]]
         elif self.is_vertical():
             return (1, -trip[0][0]), [trip[2]], [trip[1]]
