@@ -359,6 +359,11 @@ def generate_containing_eps_triple(vertex, triple):
     zeps_list = containing_eps_1d(vertex[0] + vertex[1], triple[2])
     return [(xeps, yeps, zeps) for xeps in xeps_list for yeps in yeps_list for zeps in zeps_list]
 
+## FIXME: Can't use the same function for 1d faces and 2d faces.  It's
+## quite different!   For example, any function h with h(0) = 0 must
+## have the left edges (x=0) and the lower edges (y=0) as additive
+## faces, no matter if it's discontinuous or not.
+
 def is_additive_face(fn, face):
     """
     Test whether the given face is additive 
@@ -417,5 +422,6 @@ def generate_maximal_additive_faces_general(function):
                         faces.append(face)
                         if i != j:
                             faces.append(x_y_swapped_face(face))
+    # FIXME: Add 0D faces
     logging.info("Computing maximal additive faces... done")
     return faces
