@@ -54,7 +54,7 @@ def chen_tricky_uncovered_intervals():
 
 def minimal_no_covered_interval():
     """
-    sage: logging.disable(logging.INFO); 
+    sage: logging.disable(logging.WARN) 
     sage: h = minimal_no_covered_interval()
     sage: extremality_test(h, False)
     False
@@ -67,7 +67,7 @@ def minimal_no_covered_interval():
 
 def minimal_has_uncovered_interval():
     """
-    sage: logging.disable(logging.INFO); 
+    sage: logging.disable(logging.WARN)
     sage: h = minimal_has_uncovered_interval()
     sage: extremality_test(h, False)
     False
