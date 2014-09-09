@@ -231,9 +231,9 @@ def interval_to_endpoints(int):
     else:
         raise ValueError, "Not an interval: %s" % (int,)
 
-def interval_contained_in_interval(I, J):
-    I = interval_to_endpoints(I)
-    J = interval_to_endpoints(J)
+def coho_interval_contained_in_coho_interval(I, J):
+    I = (coho_interval_left_endpoint_with_epsilon(I), coho_interval_right_endpoint_with_epsilon(I))
+    J = (coho_interval_left_endpoint_with_epsilon(J), coho_interval_right_endpoint_with_epsilon(J))
     return J[0] <= I[0] and I[1] <= J[1]
 
 ##
@@ -374,8 +374,9 @@ class Face:
 
     def functional_directed_move(self, intervals=None):
         directed_move, domain, codomain = self.directed_move_with_domain_and_codomain()
+        domain.sort(key=coho_interval_left_endpoint_with_epsilon)
         if not intervals == None:
-            domain = interval_list_intersection(domain, intervals)
+            domain = list(intersection_of_coho_intervals([domain, intervals]))
         return FunctionalDirectedMove(domain, directed_move)
 
     def is_0D(self):
@@ -2375,7 +2376,7 @@ class FunctionalDirectedMove (FastPiecewise):
 
     def __init__(self, domain_intervals, directed_move):
         function = fast_linear_function(directed_move[0], directed_move[1])
-        pieces = [ [interval_to_endpoints(interval), function] for interval in domain_intervals ]
+        pieces = [ (interval, function) for interval in domain_intervals ]
         FastPiecewise.__init__(self, pieces)
         self.directed_move = directed_move       # needed?
 
@@ -2406,28 +2407,11 @@ class FunctionalDirectedMove (FastPiecewise):
             next_x = fractional(self.directed_move[1]-x)
         return next_x
 
-    def apply_to_interval(self, interval, inverse=False):
-        # FIXME: Interval has to be a pair (a, b). This is only
-        # compatible with intervals as used in FastPiecewise, but
-        # nothing else in our code. 
-        #
+    def apply_to_coho_interval(self, interval, inverse=False):
         # This does not do error checking.  Some code depends on this fact!
         # FIXME: This should be made clear in the name of this function.
-        directed_move = self.directed_move
-        move_sign = directed_move[0]
-        if move_sign == 1:
-            if inverse:
-                result = (interval[0] - directed_move[1], interval[1] - directed_move[1])
-            else:
-                result = (interval[0] + directed_move[1], interval[1] + directed_move[1])
-        elif move_sign == -1:
-            result = (directed_move[1] - interval[1], directed_move[1] - interval[0])
-        else:
-            raise ValueError, "Move not valid: %s" % list(move)
-        return result
-
-    def apply_to_coho_interval(self, interval, inverse=False):
-        # This does not do complete error checking.
+        if len(interval) <= 2:
+            interval = coho_interval_from_interval(interval) # FIXME: Can be removed if FastPiecewise exclusively uses coho intervals.
         directed_move = self.directed_move
         move_sign = directed_move[0]
         if move_sign == 1:
@@ -2445,7 +2429,7 @@ class FunctionalDirectedMove (FastPiecewise):
         return result
 
     def range_intervals(self):
-        return [ self.apply_to_interval(interval) for interval in self.intervals() ] 
+        return [ self.apply_to_coho_interval(interval) for interval in self.intervals() ] 
 
     def is_identity(self):
         return self.directed_move[0] == 1 and self.directed_move[1] == 0
@@ -2482,7 +2466,7 @@ def generate_functional_directed_moves(fn, intervals=None):
     for face in generate_maximal_additive_faces(fn):
         if face.is_directed_move():
             fdm = face.functional_directed_move(intervals)
-            if not fdm.is_identity() and find_interior_intersection(fdm.intervals(), intervals): #FIXME: why interior?
+            if not fdm.is_identity() and fdm.intervals(): #and find_interior_intersection(fdm.intervals(), intervals): #FIXME: why interior?
                 moves.add(fdm)
     return list(moves)
 
@@ -3176,30 +3160,7 @@ def is_QQ_linearly_independent(*numbers):
     coordinate_matrix = matrix(QQ, [x.parent().0.coordinates_in_terms_of_powers()(x) for x in numbers])
     return rank(coordinate_matrix) == len(numbers)
 
-def interval_list_intersection(interval_list_1, interval_list_2, interiors=False):
-    """
-    Return a list of the intersections of the intervals
-    in `interval_list_1` and the intervals in `interval_list_2`.
-
-    Assumes the input lists are sorted.
-    The output is sorted.
-
-    EXAMPLES::
-    sage: interval_list_intersection([[2,3]], [[1,2], [3,5]])
-    [[2], [3]]
-    sage: interval_list_intersection([[2,6]], [[1,3], [5,7], [7,9]])
-    [[2, 3], [5, 6]]
-    """
-    overlap = []
-    # FIXME: Should be able to speed up by merging algorithm.
-    for int1 in interval_list_1:
-        for int2 in interval_list_2:
-            overlapped_int = interval_intersection(int1,int2)
-            if len(overlapped_int) >= 2 or (not interiors and len(overlapped_int) >= 1):
-                overlap.append(overlapped_int)
-    return sorted(overlap)
-
-def compose_directed_moves(A, B, interiors=False, show_plots=False):
+def compose_directed_moves(A, B, show_plots=False):
     """
     Compute the directed move that corresponds to the directed move `A` after `B`.
     
@@ -3209,34 +3170,30 @@ def compose_directed_moves(A, B, interiors=False, show_plots=False):
     """
     #print result_domain_intervals
     if A.is_functional() and B.is_functional():
-        A_domain_preimages = [ B.apply_to_interval(A_domain_interval, inverse=True) \
+        A_domain_preimages = [ B.apply_to_coho_interval(A_domain_interval, inverse=True) \
                                for A_domain_interval in A.intervals() ]
-        result_domain_intervals = interval_list_intersection(A_domain_preimages, B.intervals(), interiors=interiors)
-        if len(result_domain_intervals) > 0:
-            result = FunctionalDirectedMove([ interval_to_endpoints(I) for I in result_domain_intervals ], (A[0] * B[0], A[0] * B[1] + A[1]))
+        A_domain_preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
+        result_domain_intervals = intersection_of_coho_intervals([A_domain_preimages, B.intervals()])
+        if result_domain_intervals:
+            result = FunctionalDirectedMove(result_domain_intervals, (A[0] * B[0], A[0] * B[1] + A[1]))
         else:
             result = None
     elif not A.is_functional() and B.is_functional():
-        A_domain_preimages = [ B.apply_to_interval(A_domain_interval, inverse=True) \
+        A_domain_preimages = [ B.apply_to_coho_interval(A_domain_interval, inverse=True) \
                                for A_domain_interval in A.intervals() ]
-        # FIXME: This is a version of interval_list_intersection.  Should be able to speed up by merging algorithm. 
         interval_pairs = []
         for A_domain_preimage, A_range in itertools.izip(A_domain_preimages, A.range_intervals()):
-            for B_domain in B.intervals():
-                overlapped_int = interval_intersection(A_domain_preimage, B_domain)
-                if len(overlapped_int) >= 2 or (not interiors and len(overlapped_int) >= 1):
-                    interval_pairs.append((interval_to_endpoints(overlapped_int), A_range))
+            overlapped_ints = intersection_of_coho_intervals([[A_domain_preimage], B.intervals()])
+            interval_pairs += [ (overlapped_int, A_range) for overlapped_int in overlapped_ints ]
         if interval_pairs:
             result = DenseDirectedMove(interval_pairs)
         else:
             result = None
     elif A.is_functional() and not B.is_functional():
         interval_pairs = []
-        for A_domain_interval in A.intervals():
-            for B_domain_interval, B_range_interval in B.interval_pairs():
-                overlapped_int = interval_intersection(A_domain_interval, B_range_interval)
-                if len(overlapped_int) >= 2 or (not interiors and len(overlapped_int) >= 1):
-                    interval_pairs.append((B_domain_interval, A.apply_to_interval(interval_to_endpoints(overlapped_int))))
+        for B_domain_interval, B_range_interval in B.interval_pairs():
+            overlapped_ints = intersection_of_coho_intervals([A.intervals(), [B_range_interval]])
+            interval_pairs += [ (B_domain_interval, A.apply_to_coho_interval(overlapped_int)) for overlapped_int in overlapped_ints ]
         if interval_pairs:
             result = DenseDirectedMove(interval_pairs)
         else:
@@ -3283,16 +3240,12 @@ def reduce_with_dense_moves(functional_directed_move, dense_moves, show_plots=Fa
     """
     remove_lists = []
     for domain, codomain in itertools.chain(*[ dense_move.interval_pairs() for dense_move in dense_moves ]):
-        remove_list = []
-        int = interval_intersection(functional_directed_move.apply_to_interval(codomain, inverse=True) , domain)
-        if len(int) == 2:
-            remove_list.append(closed_or_open_or_halfopen_interval(int[0], int[1], True, True))
+        remove_list = list(intersection_of_coho_intervals([[functional_directed_move.apply_to_coho_interval(codomain, inverse=True)], [domain]]))
         remove_lists.append(remove_list)  # Each remove_list is sorted because each interval is a subinterval of the domain interval.
     #print remove_lists
-    scan_difference = scan_union_of_coho_intervals_minus_union_of_coho_intervals([functional_directed_move.intervals()], remove_lists)
-    proper_difference = list(proper_interval_list_from_scan(scan_difference))
-    if proper_difference:
-        result = FunctionalDirectedMove(proper_difference, functional_directed_move.directed_move)
+    difference = union_of_coho_intervals_minus_union_of_coho_intervals([functional_directed_move.intervals()], remove_lists)
+    if difference:
+        result = FunctionalDirectedMove(difference, functional_directed_move.directed_move)
     else:
         result = None
     if show_plots:
@@ -3336,17 +3289,17 @@ class DirectedMoveCompositionCompletion:
                         # dominates existing rectangle, do nothing (we take care of that later).
                         pass
                     elif (a_domain[0] == b_domain[0] and a_domain[1] == b_domain[1]
-                          and len(interval_intersection(a_codomain, b_codomain)) >= 1):
+                          and coho_intervals_intersecting(a_codomain, b_codomain)):
                           # simple vertical merge
                         a_codomain = ((min(a_codomain[0], b_codomain[0]), max(a_codomain[1], b_codomain[1])))
                         another_pass = True
                     elif (a_codomain[0] == b_codomain[0] and a_codomain[1] == b_codomain[1]
-                          and len(interval_intersection(a_domain, b_domain)) >= 1):
+                          and coho_intervals_intersecting(a_domain, b_domain)):
                           # simple horizontal merge
                         a_domain = ((min(a_domain[0], b_domain[0]), max(a_domain[1], b_domain[1])))
                         another_pass = True
-                    elif len(interval_intersection(a_domain, b_domain)) == 2 \
-                       and len(interval_intersection(a_codomain, b_codomain)) == 2:
+                    elif (coho_intervals_intersecting_full_dimensionally(a_domain, b_domain)
+                          and coho_intervals_intersecting_full_dimensionally(a_codomain, b_codomain)):
                         # full-dimensional intersection, extend to big rectangle.
                         logging.info("Applying rectangle lemma")
                         a_domain = ((min(a_domain[0], b_domain[0]), max(a_domain[1], b_domain[1])))
@@ -3428,12 +3381,12 @@ class DirectedMoveCompositionCompletion:
                 new_pairs = []
                 for (a_domain, a_codomain) in a.interval_pairs():
                     for (b_domain, b_codomain) in b.interval_pairs():
-                        if len(interval_intersection(a_domain, b_domain)) == 2 \
-                           and len(interval_intersection(a_codomain, b_codomain)) == 2:
+                        if (coho_intervals_intersecting_full_dimensionally(a_domain, b_domain)
+                            and coho_intervals_intersecting_full_dimensionally(a_codomain, b_codomain)):
                             # full-dimensional intersection, extend to big rectangle;
                             # but this is taken care of in add_move.
                             pass
-                        elif len(interval_intersection(a_codomain, b_domain)) == 2:
+                        elif coho_intervals_intersecting_full_dimensionally(a_codomain, b_domain):
                             # composition of dense moves
                             new_pairs.append((a_domain, b_codomain))
                 if new_pairs:
@@ -3449,7 +3402,7 @@ class DirectedMoveCompositionCompletion:
                         logging.info("New dense move from strip lemma: %s" % d)
                         self.add_move(d)
                         # self.maybe_show_plot()
-                c = compose_directed_moves(a, b, interiors=True)   ## experimental - only interiors
+                c = compose_directed_moves(a, b)
                 if c:
                     self.add_move(c)
 
@@ -3626,8 +3579,10 @@ def check_for_dense_move(m1, m2):
         t2 = m2[1]
         if is_QQ_linearly_independent(t1, t2) and t1 >= 0 and t2 >= 0:
             dense_intervals = []
-            for (l1, u1) in m1.intervals():
-                for (l2, u2) in m2.intervals():
+            for m1i in m1.intervals():
+                for m2i in m2.intervals():
+                    l1, u1 = m1i[0], m1i[1]
+                    l2, u2 = m2i[0], m2i[1]
                     L = max(l1, l2)
                     U = min(u1 + t1, u2 + t2)
                     if t1 + t2 <= U - L:
@@ -3638,8 +3593,8 @@ def check_for_dense_move(m1, m2):
 
 def is_interval_pair_dominated_by_dense_move(domain_interval, range_interval, dense_move):
     for (dense_domain_interval, dense_range_interval) in dense_move.interval_pairs():
-        if interval_contained_in_interval(domain_interval, dense_domain_interval) \
-           and interval_contained_in_interval(range_interval, dense_range_interval):
+        if coho_interval_contained_in_coho_interval(domain_interval, dense_domain_interval) \
+           and coho_interval_contained_in_coho_interval(range_interval, dense_range_interval):
             return True
     return False
 
