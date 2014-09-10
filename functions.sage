@@ -511,7 +511,7 @@ def plot_2d_diagram(fn, show_function=True, known_minimal=False):
         p += plot_function_at_borders(fn)
     return p
 
-def plot_function_at_borders(fn):
+def plot_function_at_borders(fn, color='blue', **kwds):
     """
     Plot the function twice, on the upper and the left border, 
     to decorate 2d diagrams.
@@ -520,24 +520,26 @@ def plot_function_at_borders(fn):
     bkpt = fn.end_points()
     limits = fn.limits_at_end_points()
     if limits[0][0] != limits[0][1]:
-        p += point([(0,1), (0,0)], color='blue', size = 23, zorder=-1)
+        p += point([(0,1), (0,0)], color=color, size = 23, zorder=-1, **kwds)
+        delete_one_time_plot_kwds(kwds)
     for i in range(len(bkpt) - 1):
         x1 = bkpt[i]
         y1 = limits[i][1]
         x2 = bkpt[i+1]
         y2 = limits[i+1][-1]
         y3 = limits[i+1][0]
-        p += line([(x1, 0.3*y1 + 1), (x2, 0.3*y2 + 1)], color='blue', zorder=-2)
-        p += line([(-0.3*y1, x1), (-0.3*y2, x2)], color='blue', zorder=-2)
+        p += line([(x1, 0.3*y1 + 1), (x2, 0.3*y2 + 1)], color=color, zorder=-2, **kwds)
+        delete_one_time_plot_kwds(kwds)
+        p += line([(-0.3*y1, x1), (-0.3*y2, x2)], color=color, zorder=-2)
         if limits[i][0] != y1:
-            p += point([(x1, 0.3*y1 + 1), (-0.3*y1, x1)], color='blue', pointsize=23, zorder=-1)
+            p += point([(x1, 0.3*y1 + 1), (-0.3*y1, x1)], color=color, pointsize=23, zorder=-1)
             p += point([(x1, 0.3*y1 + 1), (-0.3*y1, x1)], color='white', pointsize=10, zorder=-1)
         if (y2 != y3) or (i < len(bkpt) - 2) and (y3 != limits[i+1][1]):
-            p += point([(x2, 0.3*y2 + 1), (-0.3*y2, x2)], color='blue', pointsize=23, zorder=-1)
+            p += point([(x2, 0.3*y2 + 1), (-0.3*y2, x2)], color=color, pointsize=23, zorder=-1)
             p += point([(x2, 0.3*y2 + 1), (-0.3*y2, x2)], color='white', pointsize=10, zorder=-1)
-            p += point([(x2, 0.3*y3 + 1), (-0.3*y3, x2)], color='blue', pointsize=23, zorder=-1)
+            p += point([(x2, 0.3*y3 + 1), (-0.3*y3, x2)], color=color, pointsize=23, zorder=-1)
     # add legend_label
-    p += line([(0,0), (0,1)], color='blue', legend_label="Function pi", zorder=-10)
+    p += line([(0,0), (0,1)], color=color, legend_label="Function pi", zorder=-10)
     p += line([(0,0), (0,1)], color='white', zorder=-9)
     return p
 
@@ -2580,6 +2582,8 @@ def plot_intervals(intervals, ymin=0, ymax=1):
                      color="yellow", zorder = -8)
     return g
 
+
+
 import collections
 _closed_or_open_or_halfopen_interval = collections.namedtuple('Interval', ['a', 'b', 'left_closed', 'right_closed'])
 
@@ -3289,7 +3293,11 @@ def merge_functional_directed_moves(A, B, show_plots=False):
     return C
 
 def plot_directed_moves(dmoves, **kwds):
-    return Graphics() + sum(plot(dm, **kwds) for dm in dmoves)
+    g = Graphics()
+    for dm in dmoves:
+        g += plot(dm, **kwds)
+        delete_one_time_plot_kwds(kwds)
+    return g
 
 def reduce_with_dense_moves(functional_directed_move, dense_moves, show_plots=False):
     """
@@ -3319,13 +3327,15 @@ def reduce_with_dense_moves(functional_directed_move, dense_moves, show_plots=Fa
 
 class DirectedMoveCompositionCompletion:
 
-    def __init__(self, directed_moves, show_plots=False):
+    def __init__(self, directed_moves, show_plots=False, plot_background=None):
         self.show_plots = show_plots
+        self.plot_background = plot_background
         self.move_dict = dict()
         self.dense_moves = set()
         self.any_change = False
         for move in directed_moves:
             self.add_move(move)
+        self.maybe_show_plot('initmoves')
 
     def reduce_move_dict_with_dense_moves(self, dense_moves):
         new_move_dict = dict()
@@ -3410,13 +3420,16 @@ class DirectedMoveCompositionCompletion:
             self.reduce_move_dict_with_dense_moves(new_dense_moves)
             self.any_change = True
 
-    def plot(self, *args, **kwargs):
-        return plot_directed_moves(list(self.dense_moves) + list(self.move_dict.values()))
+    def plot(self, *args, **kwds):
+        g = plot_directed_moves(list(self.dense_moves) + list(self.move_dict.values()), **kwds)
+        if self.plot_background:
+            g += self.plot_background
+        return g
 
-    def maybe_show_plot(self):
+    def maybe_show_plot(self, tag='completion'):
         if self.show_plots:
             logging.info("Plotting...")
-            show_plot(self.plot(), self.show_plots, 'completion')
+            show_plot(self.plot(legend_label='moves'), self.show_plots, tag)
             logging.info("Plotting... done")
 
     def complete_one_round(self):
@@ -3489,8 +3502,9 @@ class DirectedMoveCompositionCompletion:
         return list(self.move_dict.values())
 
 
-def directed_move_composition_completion(directed_moves, show_plots=False, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
-    completion = DirectedMoveCompositionCompletion(directed_moves, show_plots=show_plots)
+def directed_move_composition_completion(directed_moves, show_plots=False, plot_background=None, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
+    completion = DirectedMoveCompositionCompletion(directed_moves,
+                                                   show_plots=show_plots, plot_background=plot_background)
     completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
     return completion.results()
 
@@ -3499,7 +3513,14 @@ def generate_directed_move_composition_completion(fn, show_plots=False, max_num_
     completion = getattr(fn, "_completion", None)
     if not completion:
         functional_directed_moves = generate_functional_directed_moves(fn)
-        completion = fn._completion = DirectedMoveCompositionCompletion(functional_directed_moves, show_plots=show_plots)
+        if show_plots:
+            plot_background = plot_function_at_borders(fn, color='black', **ticks_keywords(fn, y_ticks_for_breakpoints=True))
+            plot_background += polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
+        else:
+            plot_background = None
+        completion = fn._completion = DirectedMoveCompositionCompletion(functional_directed_moves,
+                                                                        show_plots=show_plots,
+                                                                        plot_background=plot_background)
     completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
     return completion.results()
 
