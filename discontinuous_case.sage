@@ -375,6 +375,7 @@ def is_additive_face(fn, face):
         vertex_1 = face.vertices[1]
         eps_triple_0 = generate_containing_eps_triple(vertex_0, face.minimal_triple)
         eps_triple_1 = generate_containing_eps_triple(vertex_1, face.minimal_triple)
+        # FIXME: both eps_triple_0 and _1 have length 3? in compatible order?
         for i in range(3):
             if delta_pi_general(fn, vertex_0[0], vertex_0[1], eps_triple_0[i]) == 0 and \
                delta_pi_general(fn, vertex_1[0], vertex_1[1], eps_triple_1[i]) == 0:
