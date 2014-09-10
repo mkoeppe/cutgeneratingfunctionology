@@ -300,3 +300,94 @@ def dr_projected_sequential_merge_3_slope(f=2/3, lambda_1=1/4, lambda_2=1/4, n=1
     g = multiplicative_homomorphism(gj_forward_3_slope(f=f, lambda_1=lambda_1, lambda_2=lambda_2),-1)
     h = projected_sequential_merge(g, n=n)
     return h
+
+def singleton_piece(x, y):
+    return (singleton_interval(x), FastLinearFunction(0, y))
+
+def linear_function_through_points(p, q):
+    slope = (q[1] - p[1]) / (q[0] - p[0])
+    intercept = p[1] - slope * p[0]
+    return FastLinearFunction(slope, intercept) 
+
+def open_piece(p, q):
+    return (open_interval(p[0], q[0]), linear_function_through_points(p, q))
+
+def closed_piece(p, q):
+    return (closed_interval(p[0], q[0]), linear_function_through_points(p, q))
+
+def left_open_piece(p, q):
+    return (left_open_interval(p[0], q[0]), linear_function_through_points(p, q))
+
+def right_open_piece(p, q):
+    return (right_open_interval(p[0], q[0]), linear_function_through_points(p, q))
+
+def hildebrand_2_sided_discont_1_slope_1():
+    """
+    The first known example of function that is discontinuous on both
+    sides of the origin but is also extreme.
+
+    Constructed by Robert Hildebrand (previously unpublished). 
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = hildebrand_2_sided_discont_1_slope_1()
+        sage: extremality_test(h, False)
+        True
+    """
+    return FastPiecewise([singleton_piece(0, 0),
+                          open_piece((0, 4/8), (1/8, 6/8)),
+                          closed_piece((1/8, 2/8), (3/8, 6/8)),
+                          open_piece((3/8, 2/8), (4/8, 4/8)),
+                          singleton_piece(4/8, 1),
+                          open_piece((4/8, 2/8), (5/8, 4/8)),
+                          closed_piece((5/8, 2/8), (7/8, 6/8)),
+                          open_piece((7/8, 4/8), (8/8, 6/8)),
+                          singleton_piece(1, 0)])
+
+
+def hildebrand_2_sided_discont_2_slope_1():
+    """
+    The second known example of function that is discontinuous on both
+    sides of the origin but is also extreme.  This one has 2 slopes.
+
+    Constructed by Robert Hildebrand (previously unpublished). 
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = hildebrand_2_sided_discont_2_slope_1()
+        sage: extremality_test(h, False)
+        True
+    """
+    return FastPiecewise([singleton_piece(0, 0),
+                          open_piece((0, 4/8), (1/8, 2/8)),
+                          singleton_piece(1/8, 6/8),
+                          open_piece((1/8, 2/8), (3/8, 6/8)),
+                          singleton_piece(3/8, 2/8),
+                          open_piece((3/8, 6/8), (4/8, 4/8)),
+                          singleton_piece(4/8, 1),
+                          open_piece((4/8, 4/8), (5/8, 6/8)),
+                          singleton_piece(5/8, 2/8),
+                          open_piece((5/8, 6/8), (7/8, 2/8)),
+                          singleton_piece(7/8, 6/8),
+                          open_piece((7/8, 2/8), (1, 4/8)),
+                          singleton_piece(1, 0)])
+
+def hildebrand_discont_3_slope_1():
+    """
+    This is a very new discontinuous 3-slope function that is extreme.
+
+    Constructed by Robert Hildebrand (previously unpublished).
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = hildebrand_discont_3_slope_1()
+        sage: extremality_test(h, False)
+        True
+    """
+    return FastPiecewise([right_open_piece((0, 0), (1/8, 6/8)),
+                          closed_piece((1/8, 2/8), (3/8, 6/8)),
+                          left_open_piece((3/8, 2/8), (4/8, 1)),
+                          left_open_piece((4/8, 4/8), (5/8, 6/8)),
+                          closed_piece((5/8, 6/8), (7/8, 2/8)), 
+                          right_open_piece((7/8, 2/8), (1, 4/8)), 
+                          singleton_piece(1, 0)])
