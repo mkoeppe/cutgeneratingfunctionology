@@ -165,7 +165,7 @@ def plot_2d_additive_limit_vertices(fn):
     p = plot_2d_complex(fn)
     additive_vertices = generate_additive_vertices(fn, reduced=False)
     if fn.is_continuous():
-        additive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in badditive_vertices}
+        additive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in additive_vertices}
         p += point(list(additive_vertices), \
                             color = "mediumspringgreen", size = 50, legend_label="Additivity", zorder=-1)
         p += point([ (y,x) for (x,y) in additive_vertices ], color = "mediumspringgreen", size = 50, zorder=-1)
@@ -359,21 +359,33 @@ def generate_containing_eps_triple(vertex, triple):
     zeps_list = containing_eps_1d(vertex[0] + vertex[1], triple[2])
     return [(xeps, yeps, zeps) for xeps in xeps_list for yeps in yeps_list for zeps in zeps_list]
 
-## FIXME: Can't use the same function for 1d faces and 2d faces.  It's
-## quite different!   For example, any function h with h(0) = 0 must
-## have the left edges (x=0) and the lower edges (y=0) as additive
-## faces, no matter if it's discontinuous or not.
-
 def is_additive_face(fn, face):
     """
     Test whether the given face is additive 
     by taking the appropriate limits (pointing inwards) at the vertices.
     """
-    for vertex in face.vertices:
-        for eps_triple in generate_containing_eps_triple(vertex, face.minimal_triple):
-            if delta_pi_general(fn, vertex[0], vertex[1], eps_triple) != 0:
+    if face.is_2D():
+        for vertex in face.vertices:
+            for eps_triple in generate_containing_eps_triple(vertex, face.minimal_triple):
+                if delta_pi_general(fn, vertex[0], vertex[1], eps_triple) != 0:
+                    return False
+        return True
+    elif face.is_1D():
+	vertex_0 = face.vertices[0]
+        vertex_1 = face.vertices[1]
+        eps_triple_0 = generate_containing_eps_triple(vertex_0, face.minimal_triple)
+        eps_triple_1 = generate_containing_eps_triple(vertex_1, face.minimal_triple)
+        for i in range(3):
+            if delta_pi_general(fn, vertex_0[0], vertex_0[1], eps_triple_0[i]) == 0 and \
+               delta_pi_general(fn, vertex_1[0], vertex_1[1], eps_triple_1[i]) == 0:
+                return True
+        return False
+    else:
+        vertex = face.vertices[0]
+        for eps_triple in nonzero_eps:
+            if delta_pi_general(fn, vertex[0], vertex[1], eps_triple) == 0:
                 return False
-    return True
+        return delta_pi_general(fn, vertex[0], vertex[1], (0,0,0)) == 0
 
 def x_y_swapped_face(face):
     vert = face.vertices
@@ -422,6 +434,16 @@ def generate_maximal_additive_faces_general(function):
                         faces.append(face)
                         if i != j:
                             faces.append(x_y_swapped_face(face))
-    # FIXME: Add 0D faces
+    # 0D faces
+    additive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function) if x != 1 and y != 1}
+    additive_vertices_seen = {vertex for face in faces for vertex in face.vertices}
+    additive_vertices_new = additive_vertices.difference(additive_vertices_seen)
+    for (x, y) in additive_vertices_new:
+        face = Face(([x], [y], [x+y]))
+        faces.append(face)
+        if x != y:
+            face = Face(([y], [x], [x+y]))
+            faces.append(face)
+
     logging.info("Computing maximal additive faces... done")
     return faces
