@@ -333,6 +333,7 @@ class Face:
         return '<Face ' + repr(self.minimal_triple) + '>'
 
     def plot(self, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color="mediumspringgreen", *args, **kwds):
+        y = var('y')
         trip = self.minimal_triple
         vert = self.vertices
         if self.is_0D():
@@ -484,7 +485,6 @@ def plot_2d_diagram(fn, show_function=True, known_minimal=False):
     ...           [singleton_interval(1), FastLinearFunction(0,0)]])
     """
     faces = generate_maximal_additive_faces(fn)
-    y = var('y')
     p = plot_2d_complex(fn)
     kwds = { 'legend_label': "Additive face" }
     for face in faces:
