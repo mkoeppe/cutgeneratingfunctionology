@@ -391,11 +391,18 @@ class Face:
             raise ValueError, "Face does not correspond to a directed move: %s" % self
 
     def functional_directed_move(self, intervals=None):
+        """If given, intervals must be sorted, disjoint"""
         directed_move, domain, codomain = self.directed_move_with_domain_and_codomain()
-        domain.sort(key=coho_interval_left_endpoint_with_epsilon)
-        if not intervals == None:
-            domain = list(intersection_of_coho_intervals([domain, intervals]))
-        return FunctionalDirectedMove(domain, directed_move)
+        fdm = FunctionalDirectedMove(domain, directed_move)
+        if intervals is None: 
+            return fdm
+        else:
+            # Now restrict to intervals.
+            domain = fdm.intervals()                        # sorted.
+            preimages = [ fdm.apply_to_coho_interval(interval, inverse=True) for interval in intervals ]
+            preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
+            new_domain = list(intersection_of_coho_intervals([domain, intervals, preimages]))
+        return FunctionalDirectedMove(new_domain, directed_move)
 
     def is_0D(self):
         return len(self.vertices) == 1
