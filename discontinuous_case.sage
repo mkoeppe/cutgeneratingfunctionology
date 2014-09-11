@@ -371,7 +371,7 @@ def is_additive_face(fn, face):
                     return False
         return True
     elif face.is_1D():
-	vertex_0 = face.vertices[0]
+        vertex_0 = face.vertices[0]
         vertex_1 = face.vertices[1]
         eps_triple_0 = generate_containing_eps_triple(vertex_0, face.minimal_triple)
         eps_triple_1 = generate_containing_eps_triple(vertex_1, face.minimal_triple)
