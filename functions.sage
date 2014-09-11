@@ -2544,7 +2544,10 @@ def plot_moves(seed, moves, colors=None, ymin=0, ymax=1):
     g += line([(seed,ymin), (seed,ymax)], color="magenta", legend_label="seed value")
     y = 0
     covered_interval = [0,1]
-    keys = { 'zorder': 7, 'legend_label': "moves" }
+    ## If I pass legend_label to arrow, it needs a legend_color key as well on Sage 6.x;
+    ## but in Sage 5.11 that key is unknown, causing repeated warnings. So don't put a legend_label for now. 
+    keys = { 'zorder': 7 #, 'legend_label': "moves" 
+         }
     for move, color in itertools.izip(moves, colors):
         next_x = move.apply_ignoring_domain(seed)
         arrow_interval = [min(seed, next_x), max(seed, next_x)]
