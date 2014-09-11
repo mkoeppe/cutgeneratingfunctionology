@@ -2543,7 +2543,7 @@ def plot_moves(seed, moves, colors=None, ymin=0, ymax=1):
     if colors == None:
         colors = rainbow(len(moves))
     g = Graphics()
-    g += line([(seed,ymin), (seed,ymax)], color="magenta", legend_label="seed value")
+    g += line([(seed,ymin), (seed,ymax)], color="mediumspringgreen", legend_label="seed value")
     y = 0
     covered_interval = [0,1]
     ## If I pass legend_label to arrow, it needs a legend_color key as well on Sage 6.x;
@@ -3111,7 +3111,7 @@ def generate_nonsymmetric_vertices(fn, f):
 class MaximumNumberOfIterationsReached(Exception):
     pass
 
-def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True):
+def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True):
     do_phase_1_lifting = False
     if f == None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
@@ -3151,7 +3151,7 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturba
         fn._seed = seed
         fn._stab_int = stab_int
         fn._walk_list = walk_list
-        if show_plots:
+        if show_plots and show_old_moves_diagram:
             logging.info("Plotting moves and reachable orbit...")
             # FIXME: Visualize stability intervals?
             g = (plot_walk(walk_list,thickness=0.7) + 
@@ -3160,6 +3160,11 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturba
             show_plot(g, show_plots, tag='moves')
             logging.info("Plotting moves and reachable orbit... done")
         perturb = fn._perturbation = approx_discts_function(walk_list, stab_int, perturbation_style=perturbation_style, function=fn)
+        if show_plots:
+            g = fn._completion.plot() 
+            g += plot_function_at_borders(rescale_to_amplitude(perturb,1/10), color='magenta', legend_label='perturbation (rescaled)')
+            g += plot_walk_in_completion_diagram(seed, walk_list)
+            show_plot(g, show_plots, tag='completion-perturb', legend_title="Completion of moves, perturbation", legend_loc="upper left")
         check_perturbation(fn, perturb, show_plots=show_plots)
         return False
 
@@ -3533,7 +3538,7 @@ class DirectedMoveCompositionCompletion:
                 logging.info("Reached %d rounds of the completion procedure, found %d directed moves and %d dense directed moves, stopping." % (self.num_rounds, len(self.move_dict), len(self.dense_moves)))
         else:
             self.is_complete = True
-            self.maybe_show_plot()
+            #self.maybe_show_plot()
             logging.info("Completion finished.  Found %d directed moves and %d dense directed moves." 
                          % (len(self.move_dict), len(self.dense_moves)))
 
@@ -3567,6 +3572,14 @@ def generate_directed_move_composition_completion(fn, show_plots=False, max_num_
                                                                         plot_background=plot_background)
     completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
     return completion.results()
+
+def plot_walk_in_completion_diagram(seed, walk_dict):
+    g = line([(seed,0), (seed,1)], color="limegreen", legend_label="seed value", linestyle=':')
+    kwds = { 'legend_label': "reachable orbit" }
+    for x in walk_dict.keys():
+        g += line([(0, x), (seed, x)], color="limegreen", linestyle=':', **kwds)
+        delete_one_time_plot_kwds(kwds)
+    return g
 
 def apply_functional_directed_moves(functional_directed_moves, seed):
     """
