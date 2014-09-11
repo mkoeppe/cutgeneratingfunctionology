@@ -2546,6 +2546,8 @@ def plot_moves(seed, moves, colors=None, ymin=0, ymax=1):
     keys = { 'zorder': 7 #, 'legend_label': "moves" 
          }
     for move, color in itertools.izip(moves, colors):
+        if move[0] == 1 and move[1] == 0:
+            continue                                        # don't plot the identity
         next_x = move.apply_ignoring_domain(seed)
         arrow_interval = [min(seed, next_x), max(seed, next_x)]
         if (len(interval_intersection(covered_interval, arrow_interval)) == 2):
