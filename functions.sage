@@ -2439,7 +2439,7 @@ class FunctionalDirectedMove (FastPiecewise):
         self.directed_move = directed_move       # needed?
 
     def __repr__(self):
-        return "<FunctionalDirectedMove %s with domain %s>" % (self.directed_move, self.intervals())
+        return "<FunctionalDirectedMove %s with domain %s, range %s>" % (self.directed_move, self.intervals(), self.range_intervals())
 
     def sign(self):
         return self.directed_move[0]
@@ -3258,7 +3258,7 @@ def compose_directed_moves(A, B, show_plots=False):
     
     EXAMPLES::
         sage: compose_directed_moves(FunctionalDirectedMove([(5/10,7/10)],(1, 2/10)),FunctionalDirectedMove([(2/10,4/10)],(1,2/10)))
-        <FunctionalDirectedMove (1, 2/5) with domain [(3/10, 2/5)]>
+        <FunctionalDirectedMove (1, 2/5) with domain [(3/10, 2/5)], range [<Int[7/10, 4/5]>]>
     """
     #print result_domain_intervals
     if A.is_functional() and B.is_functional():
@@ -3304,7 +3304,7 @@ def merge_functional_directed_moves(A, B, show_plots=False):
     """
     EXAMPLES::
         sage: merge_functional_directed_moves(FunctionalDirectedMove([(3/10, 7/20), (9/20, 1/2)], (1,0)),FunctionalDirectedMove([(3/10, 13/40)], (1,0)))
-        <FunctionalDirectedMove (1, 0) with domain [(3/10, 7/20), (9/20, 1/2)]>
+        <FunctionalDirectedMove (1, 0) with domain [(3/10, 7/20), (9/20, 1/2)], range [<Int[3/10, 7/20]>, <Int[9/20, 1/2]>]>
     """
     if A.directed_move != B.directed_move:
         raise ValueError, "Cannot merge, moves have different operations"
@@ -3330,9 +3330,9 @@ def reduce_with_dense_moves(functional_directed_move, dense_moves, show_plots=Fa
     """
     EXAMPLES::
         sage: reduce_with_dense_moves(FunctionalDirectedMove([[3/10,7/10]],(1, 1/10)), [DenseDirectedMove([[[2/10,6/10],[2/10,6/10]]])])
-        <FunctionalDirectedMove (1, 1/10) with domain [<Int(1/2, 7/10]>]>
+        <FunctionalDirectedMove (1, 1/10) with domain [<Int(1/2, 7/10]>], range [<Int(3/5, 4/5]>]>
         sage: reduce_with_dense_moves(FunctionalDirectedMove([[1/10,7/10]],(1, 1/10)), [DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]]), DenseDirectedMove([[[6/20,6/10],[4/10,6/10]]])])
-        <FunctionalDirectedMove (1, 1/10) with domain [<Int[1/10, 3/10)>, <Int(1/2, 7/10]>]>
+        <FunctionalDirectedMove (1, 1/10) with domain [<Int[1/10, 3/10)>, <Int(1/2, 7/10]>], range [<Int[1/5, 2/5)>, <Int(3/5, 4/5]>]>
     """
     remove_lists = []
     for domain, codomain in itertools.chain(*[ dense_move.interval_pairs() for dense_move in dense_moves ]):
