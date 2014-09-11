@@ -3161,6 +3161,8 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
             logging.info("Plotting moves and reachable orbit... done")
         perturb = fn._perturbation = approx_discts_function(walk_list, stab_int, perturbation_style=perturbation_style, function=fn)
         if show_plots:
+            if fn._completion.plot_background is None:
+                fn._completion.plot_background = plot_completion_diagram_background(fn)
             g = fn._completion.plot() 
             g += plot_function_at_borders(rescale_to_amplitude(perturb,1/10), color='magenta', legend_label='perturbation (rescaled)')
             g += plot_walk_in_completion_diagram(seed, walk_list)
@@ -3561,15 +3563,19 @@ def directed_move_composition_completion(directed_moves, show_plots=False, plot_
     completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
     return completion.results()
 
+def plot_completion_diagram_background(fn):
+    plot_background = plot_function_at_borders(fn, color='black', **ticks_keywords(fn, y_ticks_for_breakpoints=True))
+    plot_background += polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
+    plot_background += plot_function_at_borders(zero_perturbation_partial_function(fn), color='magenta', legend_label='fixed perturbation (mod interpol)', thickness=3)
+    return plot_background
+
 @cached_function
 def generate_directed_move_composition_completion(fn, show_plots=False, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
     completion = getattr(fn, "_completion", None)
     if not completion:
         functional_directed_moves = generate_functional_directed_moves(fn)
         if show_plots:
-            plot_background = plot_function_at_borders(fn, color='black', **ticks_keywords(fn, y_ticks_for_breakpoints=True))
-            plot_background += polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
-            plot_background += plot_function_at_borders(zero_perturbation_partial_function(fn), color='magenta', legend_label='fixed perturbation (mod interpol)', thickness=3)
+            plot_background = plot_completion_diagram_background(fn)
         else:
             plot_background = None
         completion = fn._completion = DirectedMoveCompositionCompletion(functional_directed_moves,
