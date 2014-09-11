@@ -2411,12 +2411,6 @@ def merge_bkpt(bkpt1, bkpt2):
         bkpt_new = bkpt_new + bkpt1[i:len(bkpt1)]
     return bkpt_new
 
-def modified_delta_pi(fn, fn_values, pts, i, j):
-    return fn_values[i] + fn_values[j] - fn(fractional(pts[i]+pts[j])) 
-
-def modified_delta_pi2(fn, fn_values2, pts, i, j):
-    return fn_values2[i] + fn(fractional(pts[j] - pts[i])) - fn_values2[j]  
-
 def find_epsilon_interval(fn, perturb):
     if fn.is_continuous():
         return find_epsilon_interval_continuous(fn, perturb)

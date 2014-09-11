@@ -33,6 +33,11 @@ def generate_type_2_vertices_continuous(fn, comparison):
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     return ( (x, z-x, z, 0, 0, 0) for x in bkpt for z in bkpt2 if x < z < 1+x and comparison(delta_pi(fn, x, z-x), 0) ) # generator comprehension
 
+def modified_delta_pi(fn, fn_values, pts, i, j):
+    return fn_values[i] + fn_values[j] - fn(fractional(pts[i]+pts[j])) 
+
+def modified_delta_pi2(fn, fn_values2, pts, i, j):
+    return fn_values2[i] + fn(fractional(pts[j] - pts[i])) - fn_values2[j]  
 
 @cached_function
 def generate_maximal_additive_faces_continuous(function):
