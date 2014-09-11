@@ -2523,13 +2523,16 @@ def generate_functional_directed_moves(fn, intervals=None):
     if intervals==None:
         # Default is to generate moves for ALL uncovered intervals
         intervals = generate_uncovered_intervals(fn)
-    moves = set()
+    moves = dict()
     for face in generate_maximal_additive_faces(fn):
         if face.is_directed_move():
             fdm = face.functional_directed_move(intervals)
             if fdm.intervals():
-                moves.add(fdm)
-    return list(moves)
+                if fdm.directed_move in moves:
+                    moves[fdm.directed_move] = merge_functional_directed_moves(moves[fdm.directed_move], fdm)
+                else:
+                    moves[fdm.directed_move] = fdm
+    return list(moves.values())
 
 def is_directed_move_possible(x, move):
     return move.can_apply(x)
@@ -2538,9 +2541,10 @@ def plot_moves(seed, moves, colors=None, ymin=0, ymax=1):
     if colors == None:
         colors = rainbow(len(moves))
     g = Graphics()
-    g += line([(seed,ymin), (seed,ymax)], color="magenta")
+    g += line([(seed,ymin), (seed,ymax)], color="magenta", legend_label="seed value")
     y = 0
     covered_interval = [0,1]
+    keys = { 'zorder': 7, 'legend_label': "moves" }
     for move, color in itertools.izip(moves, colors):
         next_x = move.apply_ignoring_domain(seed)
         arrow_interval = [min(seed, next_x), max(seed, next_x)]
@@ -2555,25 +2559,28 @@ def plot_moves(seed, moves, colors=None, ymin=0, ymax=1):
         if move[0] == -1:
             # Reflection
             bezier_y = y + min(0.03, 0.3 * float(abs(move[1]/2 - seed)))
-            g += arrow(path = [[(seed, y), (midpoint_x, bezier_y), \
-                                (next_x, y)]], \
-                       head = 2, \
-                       # legend_label = "xyzz"
-                       color = color, \
-                       zorder = 7
-            )
+            g += arrow(path = [[(seed, y), (midpoint_x, bezier_y),
+                                (next_x, y)]],
+                       head = 2, color = color, **keys)
             ## Plot the invariant point somehow?
             #g += point((move[1]/2, y + 0.03), color=color)
         elif move[0] == 1:
             # Translation
-            g += arrow((seed, y), (next_x, y), color=color, zorder = 7)
+            g += arrow((seed, y), (next_x, y), color=color, **keys)
         else:
             raise ValueError, "Bad move: %s" % list(move)
+        delete_one_time_plot_kwds(keys)
         g += text("%s" % list(move), (midpoint_x, y), \
                   vertical_alignment="bottom", \
                   horizontal_alignment="center", \
                   color=color, zorder = 7)
     return g
+
+def plot_possible_directed_moves(seed, directed_moves, fn):
+    possible_moves = [ directed_move for directed_move in directed_moves 
+                       if is_directed_move_possible(seed, directed_move) ]
+    colors = [ "blue" for move in possible_moves ]
+    return plot_moves(seed, possible_moves, colors)
 
 def plot_possible_and_impossible_directed_moves(seed, directed_moves, fn):
     colors = [ "blue" if is_directed_move_possible(seed, directed_move) \
@@ -2581,19 +2588,23 @@ def plot_possible_and_impossible_directed_moves(seed, directed_moves, fn):
     return plot_moves(seed, directed_moves, colors)
 
 
-def plot_walk(walk_dict, color="black", ymin=0, ymax=1, **options):
+def plot_walk(walk_dict, color="black", ymin=0, ymax=1, **kwds):
     #return point([ (x,0) for x in walk_dict.keys()])
     g = Graphics()
+    kwds['legend_label'] = "reachable orbit"
     for x in walk_dict.keys():
-        g += line([(x,ymin), (x,ymax)], color=color, zorder = -4, **options)
+        g += line([(x,ymin), (x,ymax)], color=color, zorder=-4, **kwds)
+        delete_one_time_plot_kwds(kwds)
     return g
 
-def plot_intervals(intervals, ymin=0, ymax=1):
+def plot_intervals(intervals, ymin=0, ymax=1, legend_label='not covered'):
     g = Graphics()
+    kwds = { 'legend_label': legend_label }
     for interval in intervals:
-        g += polygon([(interval[0], ymin), (interval[1], ymin), \
-                      (interval[1], ymax), (interval[0], ymax)], 
-                     color="yellow", zorder = -8)
+        g += polygon([(interval[0], ymin), (interval[1], ymin),
+                      (interval[1], ymax), (interval[0], ymax)],
+                     color="yellow", zorder = -8, **kwds)
+        delete_one_time_plot_kwds(kwds)
     return g
 
 
@@ -3137,7 +3148,7 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturba
             logging.info("Plotting moves and reachable orbit...")
             # FIXME: Visualize stability intervals?
             g = (plot_walk(walk_list,thickness=0.7) + 
-                 plot_possible_and_impossible_directed_moves(seed, moves, fn) + 
+                 plot_possible_directed_moves(seed, moves, fn) + 
                  plot_intervals(uncovered_intervals) + plot_covered_intervals(fn))
             show_plot(g, show_plots, tag='moves')
             logging.info("Plotting moves and reachable orbit... done")
