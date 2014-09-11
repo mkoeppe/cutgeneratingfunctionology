@@ -3187,6 +3187,11 @@ def lift_until_extreme(fn, show_plots = False, pause = False, **kwds):
             raw_input("Press enter to continue")
     return next
 
+def last_lifted(fn):
+    while hasattr(fn, '_lifted'):
+        fn = fn._lifted
+    return fn
+
 def piecewise_function_from_robert_txt_file(filename):
     """The .txt files have 4 rows.  
     1st row = Y values
