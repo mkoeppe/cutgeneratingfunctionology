@@ -3358,9 +3358,10 @@ class DirectedMoveCompositionCompletion:
         self.move_dict = dict()
         self.dense_moves = set()
         self.any_change = False
+        self.num_rounds = 0
         for move in directed_moves:
             self.add_move(move)
-        self.maybe_show_plot('initmoves')
+        self.is_complete = False
 
     def reduce_move_dict_with_dense_moves(self, dense_moves):
         new_move_dict = dict()
@@ -3451,10 +3452,19 @@ class DirectedMoveCompositionCompletion:
             g += self.plot_background
         return g
 
-    def maybe_show_plot(self, tag='completion'):
+    def maybe_show_plot(self):
         if self.show_plots:
             logging.info("Plotting...")
-            show_plot(self.plot(legend_label='moves'), self.show_plots, tag, legend_loc="upper left")
+            if self.is_complete:
+                tag = 'completion'
+                title = "Completion of moves" 
+            elif self.num_rounds == 0:
+                tag = 'initmoves'
+                title = "Initial moves"
+            else:
+                tag = 'completion'
+                title = "Moves after %s completion round%s" % (self.num_rounds, "s" if self.num_rounds > 1 else "")
+            show_plot(self.plot(legend_label='moves'), self.show_plots, tag, legend_title=title, legend_loc="upper left")
             logging.info("Plotting... done")
 
     def complete_one_round(self):
@@ -3506,16 +3516,17 @@ class DirectedMoveCompositionCompletion:
                     self.add_move(c)
 
     def complete(self, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
-        num_rounds = 0
-        while self.any_change and (not max_num_rounds or num_rounds < max_num_rounds):
+        while self.any_change and (max_num_rounds is not None or self.num_rounds < max_num_rounds):
             self.complete_one_round()
-            num_rounds += 1
-        if max_num_rounds and num_rounds == max_num_rounds:
+            self.num_rounds += 1
+        if max_num_rounds is not None and self.num_rounds == max_num_rounds:
             if error_if_max_num_rounds_exceeded:
-                raise MaximumNumberOfIterationsReached, "Reached %d rounds of the completion procedure, found %d directed moves and %d dense directed moves, stopping." % (num_rounds, len(self.move_dict), len(self.dense_moves))
+                raise MaximumNumberOfIterationsReached, "Reached %d rounds of the completion procedure, found %d directed moves and %d dense directed moves, stopping." % (self.num_rounds, len(self.move_dict), len(self.dense_moves))
             else:
-                logging.info("Reached %d rounds of the completion procedure, found %d directed moves and %d dense directed moves, stopping." % (num_rounds, len(self.move_dict), len(self.dense_moves)))
+                logging.info("Reached %d rounds of the completion procedure, found %d directed moves and %d dense directed moves, stopping." % (self.num_rounds, len(self.move_dict), len(self.dense_moves)))
         else:
+            self.is_complete = True
+            self.maybe_show_plot()
             logging.info("Completion finished.  Found %d directed moves and %d dense directed moves." 
                          % (len(self.move_dict), len(self.dense_moves)))
 
