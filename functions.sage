@@ -519,9 +519,8 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", **kwd
     p = Graphics()
     bkpt = fn.end_points()
     limits = fn.limits_at_end_points()
-    if limits[0][0] != limits[0][1]:
-        p += point([(0,1), (0,0)], color=color, size = 23, zorder=-1, **kwds)
-        delete_one_time_plot_kwds(kwds)
+    if limits[0][0] is not None and limits[0][0] != limits[0][1]:
+        p += point([(0,1), (0,0)], color=color, size = 23, zorder=-1)
     for i in range(len(bkpt) - 1):
         ## FIXME: This is an incomplete copy of FastPiecewise.plot().
         ## Fails for: z=zero_perturbation_partial_function(example7slopecoarse2()); plot(z,thickness=3) + plot_function_at_borders(z,color='magenta',thickness=3)
@@ -530,6 +529,7 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", **kwd
         x2 = bkpt[i+1]
         y2 = limits[i+1][-1]
         y3 = limits[i+1][0]
+        y4 = limits[i+1][1]
         if y1 is not None and y2 is not None:
             p += line([(x1, 0.3*y1 + 1), (x2, 0.3*y2 + 1)], color=color, zorder=-2, **kwds)
             delete_one_time_plot_kwds(kwds)
@@ -537,9 +537,12 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", **kwd
         if y1 is not None and limits[i][0] != y1:
             p += point([(x1, 0.3*y1 + 1), (-0.3*y1, x1)], color=color, pointsize=23, zorder=-1)
             p += point([(x1, 0.3*y1 + 1), (-0.3*y1, x1)], color='white', pointsize=10, zorder=-1)
-        if y2 is not None and y3 is not None and ((y2 != y3) or (i < len(bkpt) - 2) and (y3 != limits[i+1][1])):
+        if y2 is not None and y2 != y3:
             p += point([(x2, 0.3*y2 + 1), (-0.3*y2, x2)], color=color, pointsize=23, zorder=-1)
             p += point([(x2, 0.3*y2 + 1), (-0.3*y2, x2)], color='white', pointsize=10, zorder=-1)
+        if y3 is not None and ((y2 != y3) or ((i < len(bkpt) - 2) and (y3 != y4))) and \
+                              ((i == len(bkpt)-2) or not (y3 == y4 and y2 is None) and \
+                                                     not (y2 == y3 and y4 is None)):
             p += point([(x2, 0.3*y3 + 1), (-0.3*y3, x2)], color=color, pointsize=23, zorder=-1)
     # add legend_label
     p += line([(0,0), (0,1)], color=color, legend_label=legend_label, zorder=-10)
