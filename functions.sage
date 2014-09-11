@@ -522,8 +522,6 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", **kwd
     if limits[0][0] is not None and limits[0][0] != limits[0][1]:
         p += point([(0,1), (0,0)], color=color, size = 23, zorder=-1)
     for i in range(len(bkpt) - 1):
-        ## FIXME: This is an incomplete copy of FastPiecewise.plot().
-        ## Fails for: z=zero_perturbation_partial_function(example7slopecoarse2()); plot(z,thickness=3) + plot_function_at_borders(z,color='magenta',thickness=3)
         x1 = bkpt[i]
         y1 = limits[i][1]
         x2 = bkpt[i+1]
