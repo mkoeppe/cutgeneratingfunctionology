@@ -1733,6 +1733,10 @@ class FastPiecewise (PiecewisePolynomial):
         ## The case with three extra args is for the case of symbolic
         ## expressions; it does not apply here.  FIXME: We should
         ## probably signal an error.
+        point_kwds = dict()
+        for key in ['legend_label', 'alpha']:
+            if key in kwds:
+                point_kwds[key] = kwds[key]
         # record last right endpoint, then compare with next left endpoint to decide whether it needs to be plotted.
         last_end_point = []
         last_closed = True
@@ -1755,18 +1759,26 @@ class FastPiecewise (PiecewisePolynomial):
             if (a < b) or (a == b) and (left_closed) and (right_closed):
                 if not (last_closed or last_end_point == [a, f(a)] and left_closed):
                     # plot last open right endpoint
-                    g += point(last_end_point, color=color, pointsize=23)
-                    g += point(last_end_point, rgbcolor='white', pointsize=10)
+                    g += point(last_end_point, color=color, pointsize=23, **point_kwds)
+                    delete_one_time_plot_kwds(kwds)
+                    delete_one_time_plot_kwds(point_kwds)
+                    g += point(last_end_point, rgbcolor='white', pointsize=10, **point_kwds)
                 if last_closed and last_end_point != [] and last_end_point != [a, f(a)] and not left_closed:
                     # plot last closed right endpoint
-                    g += point(last_end_point, color=color, pointsize=23)
+                    g += point(last_end_point, color=color, pointsize=23, **point_kwds)
+                    delete_one_time_plot_kwds(kwds)
+                    delete_one_time_plot_kwds(point_kwds)
                 if not (left_closed or last_end_point == [a, f(a)] and last_closed):
                     # plot current open left endpoint
-                    g += point([a, f(a)], color=color, pointsize=23)
-                    g += point([a, f(a)], rgbcolor='white', pointsize=10)
+                    g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
+                    delete_one_time_plot_kwds(kwds)
+                    delete_one_time_plot_kwds(point_kwds)
+                    g += point([a, f(a)], rgbcolor='white', pointsize=10, **point_kwds)
                 if left_closed and last_end_point != [] and last_end_point != [a, f(a)] and not last_closed:
                     # plot current closed left endpoint
-                    g += point([a, f(a)], color=color, pointsize=23)
+                    g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
+                    delete_one_time_plot_kwds(kwds)
+                    delete_one_time_plot_kwds(point_kwds)
                 last_closed = right_closed
                 last_end_point = [b, f(b)]
             if a < b:
@@ -1777,14 +1789,18 @@ class FastPiecewise (PiecewisePolynomial):
                 # If it's the first piece, pass all arguments. Otherwise,
                 # filter out 'legend_label' so that we don't add each
                 # piece to the legend separately (trac #12651).
-                if 'legend_label' in kwds:
-                    del kwds['legend_label']
+                delete_one_time_plot_kwds(kwds)
+                delete_one_time_plot_kwds(point_kwds)
             elif (a == b) and (left_closed) and (right_closed):
-                g += point([a, f(a)], color=color, pointsize=23)
+                g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
+                delete_one_time_plot_kwds(kwds)
+                delete_one_time_plot_kwds(point_kwds)
         # plot open rightmost endpoint. minimal functions don't need this.
         if not last_closed:
-            g += point(last_end_point, color=color,pointsize=23)
-            g += point(last_end_point, rgbcolor='white', pointsize=10)
+            g += point(last_end_point, color=color,pointsize=23, **point_kwds)
+            delete_one_time_plot_kwds(kwds)
+            delete_one_time_plot_kwds(point_kwds)
+            g += point(last_end_point, rgbcolor='white', pointsize=10, **point_kwds)
         return g
 
     def is_continuous_defined(self, xmin=0, xmax=1):
