@@ -3674,7 +3674,12 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
     fn._stability_orbits = []
     completion = generate_directed_move_composition_completion(fn, show_plots=show_plots)
 
-    decomposition = find_decomposition_into_intervals_with_same_moves(completion)
+    z = zero_perturbation_partial_function(fn)
+    zero_intervals = z.intervals()
+    not_fixed_to_zero = union_of_coho_intervals_minus_union_of_coho_intervals([[[0,1]]], [zero_intervals])
+    restricted_completion = [ fdm.restricted(not_fixed_to_zero) for fdm in completion ]
+
+    decomposition = find_decomposition_into_intervals_with_same_moves(restricted_completion)
     done_intervals = set()
 
     for (interval, moves) in decomposition:
