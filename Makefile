@@ -4,7 +4,6 @@ SAGEFILES =					\
 	bug_examples.sage			\
 	compendium_procedures.sage		\
 	continuous_case.sage			\
-	debug_examples.sage			\
 	discontinuous_case.sage			\
 	extreme_functions_in_literature.sage	\
 	functions.sage				\
