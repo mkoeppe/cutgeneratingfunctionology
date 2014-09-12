@@ -301,7 +301,9 @@ def triples_equal(a, b):
 
 @cached_function
 def generate_maximal_additive_faces(fn):
-    if fn.is_continuous():
+    if fn.is_discrete():
+        return generate_maximal_additive_faces_discrete(fn)
+    elif fn.is_continuous():
         return generate_maximal_additive_faces_continuous(fn)
     else:
         return generate_maximal_additive_faces_general(fn)
@@ -1251,6 +1253,12 @@ class FastPiecewise (PiecewisePolynomial):
         """
         return self._is_continuous
         
+    def is_discrete(self):
+        """
+        Return if the function is discrete, i.e., all pieces are singletons
+        """
+        return all(interval_length(interval) == 0 for interval in self.intervals())
+
     def end_points(self):
         """
         Returns a list of all interval endpoints for this function.
@@ -2419,7 +2427,7 @@ def merge_bkpt(bkpt1, bkpt2):
     return bkpt_new
 
 def find_epsilon_interval(fn, perturb):
-    if fn.is_continuous():
+    if fn.is_continuous() or fn.is_discrete():
         return find_epsilon_interval_continuous(fn, perturb)
     else:
         return find_epsilon_interval_general(fn, perturb)
@@ -2964,13 +2972,13 @@ class UnimplementedError (Exception):
     pass
 
 def generate_symbolic(fn, components, field=None):
-    if fn.is_continuous():
+    if fn.is_continuous() or fn.is_discrete():
         return generate_symbolic_continuous(fn, components, field=field)
     else:
         return generate_symbolic_general(fn, components, field=field)
 
 def generate_additivity_equations(fn, symbolic, field, f=None):
-    if fn.is_continuous():
+    if fn.is_continuous() or fn.is_discrete():
         return generate_additivity_equations_continuous(fn, symbolic, field, f=f)
     else:
         return generate_additivity_equations_general(fn, symbolic, field, f=f)
@@ -3041,6 +3049,8 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None):
     sage: finite_dimensional_extremality_test(h2, show_plots=True)
     True
     """
+    if function.is_discrete():
+        return simple_finite_dimensional_extremality_test(function, oversampling=1)
     covered_intervals = generate_covered_intervals(function)
     uncovered_intervals = generate_uncovered_intervals(function)
     if uncovered_intervals:
@@ -3076,13 +3086,13 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None):
         return False
 
 def generate_type_1_vertices(fn, comparison, reduced=True):
-    if fn.is_continuous():
+    if fn.is_continuous() or fn.is_discrete():
         return generate_type_1_vertices_continuous(fn, comparison)
     else:
         return generate_type_1_vertices_general(fn, comparison, reduced=reduced)
 
 def generate_type_2_vertices(fn, comparison, reduced=True):
-    if fn.is_continuous():
+    if fn.is_continuous() or fn.is_discrete():
         return generate_type_2_vertices_continuous(fn, comparison)
     else:
         return generate_type_2_vertices_general(fn, comparison, reduced=reduced)
@@ -3118,7 +3128,7 @@ def generate_nonsubadditive_vertices(fn, reduced=True):
                 generate_type_2_vertices(fn, operator.lt, reduced=reduced))  )
 
 def generate_nonsymmetric_vertices(fn, f):
-    if fn.is_continuous():
+    if fn.is_continuous() or fn.is_discrete():
         return generate_nonsymmetric_vertices_continuous(fn, f)
     else:
         return generate_nonsymmetric_vertices_general(fn, f)
@@ -3136,6 +3146,8 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
             return False
         else:
             do_phase_1_lifting = True
+    if fn.is_discrete():
+        return simple_finite_dimensional_extremality_test(fn, show_plots=show_plots, f=f, oversampling=None)
     covered_intervals = generate_covered_intervals(fn)
     uncovered_intervals = generate_uncovered_intervals(fn)
     if show_plots:
