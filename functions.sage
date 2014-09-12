@@ -3099,8 +3099,8 @@ def generate_additive_vertices(fn, reduced=True):
         outputs all triples satisfying `comparison' relation, for the purpose of plotting additive_limit_vertices.
     """
     return set(itertools.chain( \
-                generate_type_1_vertices_general(fn, operator.eq, reduced=reduced),\
-                generate_type_2_vertices_general(fn, operator.eq, reduced=reduced)) )
+                generate_type_1_vertices(fn, operator.eq, reduced=reduced),\
+                generate_type_2_vertices(fn, operator.eq, reduced=reduced)) )
 
 @cached_function
 def generate_nonsubadditive_vertices(fn, reduced=True):
@@ -3114,8 +3114,8 @@ def generate_nonsubadditive_vertices(fn, reduced=True):
         outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive_limit_vertices.
     """
     return set(itertools.chain( \
-                generate_type_1_vertices_general(fn, operator.lt, reduced=reduced),\
-                generate_type_2_vertices_general(fn, operator.lt, reduced=reduced))  )
+                generate_type_1_vertices(fn, operator.lt, reduced=reduced),\
+                generate_type_2_vertices(fn, operator.lt, reduced=reduced))  )
 
 def generate_nonsymmetric_vertices(fn, f):
     if fn.is_continuous():
