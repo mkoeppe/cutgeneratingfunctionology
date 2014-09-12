@@ -256,9 +256,9 @@ represented as a `FastPiecewise` with singleton intervals within [0,1] as its pa
     sage: h28 = restrict_to_finite_group(h, oversampling=4)
     sage: finite_dimensional_extremality_test(h28)
     False
-    sage: h14 = restrict_to_finite_group(h, oversampling=2)
+    sage: h14 = restrict_to_finite_group(h, oversampling=2) # for this example, even factor 2 works!
     sage: finite_dimensional_extremality_test(h14)
-    True
+    False
 
     """
     # TODO: Allow `function` to be just a list of (x, y) pairs.
