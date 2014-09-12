@@ -3137,6 +3137,8 @@ class MaximumNumberOfIterationsReached(Exception):
     pass
 
 def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True):
+    if fn.is_discrete():
+        return simple_finite_dimensional_extremality_test(fn, show_plots=show_plots, f=f, oversampling=None)
     do_phase_1_lifting = False
     if f == None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
@@ -3146,8 +3148,6 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
             return False
         else:
             do_phase_1_lifting = True
-    if fn.is_discrete():
-        return simple_finite_dimensional_extremality_test(fn, show_plots=show_plots, f=f, oversampling=None)
     covered_intervals = generate_covered_intervals(fn)
     uncovered_intervals = generate_uncovered_intervals(fn)
     if show_plots:
