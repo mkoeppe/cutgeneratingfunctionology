@@ -404,12 +404,7 @@ class Face:
         if intervals is None: 
             return fdm
         else:
-            # Now restrict to intervals.
-            domain = fdm.intervals()                        # sorted.
-            preimages = [ fdm.apply_to_coho_interval(interval, inverse=True) for interval in intervals ]
-            preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
-            new_domain = list(intersection_of_coho_intervals([domain, intervals, preimages]))
-        return FunctionalDirectedMove(new_domain, directed_move)
+            return fdm.restricted(intervals)
 
     def is_0D(self):
         return len(self.vertices) == 1
@@ -2520,6 +2515,17 @@ class FunctionalDirectedMove (FastPiecewise):
             return [ (interval, (r - interval[0], r - interval[1]), r) for interval in self.intervals() ]
         else:
             raise ValueError, "Move not valid: %s" % list(move)
+
+    def restricted(self, intervals):
+        """ 
+        Return a new move that is the restriction of domain and codomain of `self` to `intervals`.
+        (The result may have the empty set as its domain.)
+        """
+        domain = self.intervals()                        # sorted.
+        preimages = [ self.apply_to_coho_interval(interval, inverse=True) for interval in intervals ]
+        preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
+        new_domain = list(intersection_of_coho_intervals([domain, intervals, preimages]))
+        return FunctionalDirectedMove(new_domain, self.directed_move)
 
 @cached_function
 def generate_functional_directed_moves(fn, intervals=None):
