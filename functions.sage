@@ -2528,16 +2528,18 @@ class FunctionalDirectedMove (FastPiecewise):
         return FunctionalDirectedMove(new_domain, self.directed_move)
 
 @cached_function
-def generate_functional_directed_moves(fn, intervals=None):
+def generate_functional_directed_moves(fn, restrict=True):
     """
-    Compute the moves (translations and reflections) relevant for the given intervals
-    (default: all uncovered intervals).
+    Compute the moves (translations and reflections) relevant for the uncovered interval
+    (if restrict is True) or for all intervals (if restrict is False).
     """
     ### FIXME: Do we also have to take care of edges of some
     ### full-dimensional additive faces sometimes?
-    if intervals==None:
+    if restrict:
         # Default is to generate moves for ALL uncovered intervals
         intervals = generate_uncovered_intervals(fn)
+    else:
+        intervals = None
     moves = dict()
     for face in generate_maximal_additive_faces(fn):
         if face.is_directed_move():
