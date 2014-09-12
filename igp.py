@@ -10,5 +10,5 @@ load("extreme_functions_in_literature.sage")
 load("survey_examples.sage")
 load("simple_extremality_test.sage")
 
-#load("bug_examples.sage")
+load("bug_examples.sage")
 
