@@ -365,9 +365,9 @@ class Face:
         `domain` and `codomain` are lists of old-fashioned intervals.
         """
         # FIXME: In the discontinuous case, what is the right domain as a coho interval?
-        trip = self.minimal_triple
+        (I, J, K) = self.minimal_triple
         if self.is_0D():
-            x, y, z = trip[0][0], trip[1][0], trip[2][0]
+            x, y, z = I[0], J[0], K[0]
             # A 0-face corresponds to three moves:
             # \tau_y:  a translation + y with domain {x}
             # \tau_x:  a translation + x with domain {y}
@@ -375,6 +375,9 @@ class Face:
             # Because \tau_x = \tau_y \rho_z, it suffices to output
             # \tau_y and \rho_z.  We use the fact that with each additive
             # vertex, also the x_y_swapped vertex appears.
+            ### FIXME: This should be done relative to zero_perturbation_partial_function.
+            ### Because a move is only valid if the function is fixed to zero on the move element.
+            ### FIXME: To be written what this means in the continuous case.
             if x < y:
                 z_mod_1 = fractional(z)
                 y_adjusted = z_mod_1 - x
@@ -382,11 +385,15 @@ class Face:
             else:
                 return (-1, z), [[x], [y]], [[y], [x]]
         elif self.is_horizontal():
-            return (1, trip[1][0]), [trip[0]], [trip[2]]
+            K_mod_1 = interval_mod_1(K)
+            t = K_mod_1[0] - I[0]
+            return (1, t), [I], [K_mod_1]
         elif self.is_vertical():
-            return (1, -trip[0][0]), [trip[2]], [trip[1]]
+            K_mod_1 = interval_mod_1(K)
+            t = K_mod_1[0] - J[0]
+            return (1, -t), [K_mod_1], [J]
         elif self.is_diagonal():
-            return (-1, trip[2][0]), [trip[0], trip[1]], [trip[1], trip[0]]
+            return (-1, K[0]), [I, J], [J, I]
         else:
             raise ValueError, "Face does not correspond to a directed move: %s" % self
 
