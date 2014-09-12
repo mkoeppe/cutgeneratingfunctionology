@@ -1028,7 +1028,7 @@ def minimality_test(fn, show_plots=False, f=None):
     if not fn.is_continuous():
         limits = fn.limits_at_end_points()
         for x in limits:
-            if not ((0 <= x[-1] <=1) and (0 <= x[1] <=1)):
+            if not ((x[-1] is None or 0 <= x[-1] <=1) and (x[1] is None or 0 <= x[1] <=1)):
                 logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
                 return False
     if subadditivity_check(fn) and symmetric_check(fn, f):
@@ -2979,7 +2979,7 @@ def rescale_to_amplitude(perturb, amplitude):
     """For plotting purposes, rescale the function `perturb` so that its
     maximum absolute function value is `amplitude`.
     """
-    current_amplitude = max([ abs(x) for limits in perturb.limits_at_end_points() for x in limits ])
+    current_amplitude = max([ abs(x) for limits in perturb.limits_at_end_points() for x in limits if x is not None])
     if current_amplitude != 0:
         return perturb * (amplitude/current_amplitude)
     else:
