@@ -3708,15 +3708,22 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
                     [ ("%s+" if to_do else "%s") % len(shifted_stability_intervals) \
                       for (shifted_stability_intervals, walk_dict, to_do) in fn._stability_orbits ]))
 
+def stab_int_length(x):
+    (orbit, walk_dict, _) = x
+    int = orbit[0]
+    return interval_length(int)
+
 def find_generic_seed_with_completion(fn, show_plots=False, max_num_it=None):
     # Ugly compatibility interface.
     find_decomposition_into_stability_intervals_with_completion(fn, show_plots=show_plots)
-    for (orbit, walk_dict, _) in fn._stability_orbits:
-        int = orbit[0]
-        if interval_length(int) > 0:
-            seed = (int.a + int.b) / 2
-            stab_int = closed_or_open_or_halfopen_interval(int.a - seed, int.b - seed, int.left_closed, int.right_closed)
-            return (seed, stab_int, walk_dict)
+    if not fn._stability_orbits:
+        return None, None, None
+    (orbit, walk_dict, _) = max(fn._stability_orbits, key=stab_int_length)
+    int = orbit[0]
+    if interval_length(int) > 0:
+        seed = (int.a + int.b) / 2
+        stab_int = closed_or_open_or_halfopen_interval(int.a - seed, int.b - seed, int.left_closed, int.right_closed)
+        return (seed, stab_int, walk_dict)
     return None, None, None
 
 class DenseDirectedMove ():
