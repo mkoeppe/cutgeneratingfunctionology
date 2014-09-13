@@ -3023,7 +3023,8 @@ def show_plot(graphics, show_plots, tag, **show_kwds):
     if isinstance(show_plots, str):
         graphics.save(show_plots % tag, figsize=show_plots_figsize, **show_kwds)
     elif show_plots:
-        graphics.show(figsize=show_plots_figsize, **show_kwds)
+        fname = tmp_filename('igp_%s_' % tag, ext='.png')
+        graphics.show(figsize=show_plots_figsize, filename=fname, **show_kwds)
 
 def plot_rescaled_perturbation(perturb, xmin=0, xmax=1, **kwds):
     return plot(rescale_to_amplitude(perturb, 1/10), xmin=xmin,
