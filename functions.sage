@@ -887,7 +887,7 @@ def ticks_keywords(function, y_ticks_for_breakpoints=False):
         ytick_formatter = xtick_formatter
     else:
         #yticks = 1/5
-        yticks = uniq([ function(x) for x in function.end_points() ])
+        yticks = uniq([ y for limits in function.limits_at_end_points() for y in limits if y is not None ])
         ytick_formatter = [ "$%s$" % latex(y) for y in yticks ]
     ## FIXME: Can we influence ticks placement as well so that labels don't overlap?
     ## or maybe rotate labels 90 degrees?
