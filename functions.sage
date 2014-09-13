@@ -3209,7 +3209,7 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
             g += plot_function_at_borders(rescale_to_amplitude(perturb,1/10), color='magenta', legend_label='perturbation (rescaled)')
             g += plot_walk_in_completion_diagram(seed, walk_list)
             show_plot(g, show_plots, tag='completion-perturb', legend_title="Completion of moves, perturbation", legend_loc="upper left")
-        check_perturbation(fn, perturb, show_plots=show_plots)
+        check_perturbation(fn, perturb, show_plots=show_plots, show_plot_tag='perturbation-1')
         return False
 
 def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
