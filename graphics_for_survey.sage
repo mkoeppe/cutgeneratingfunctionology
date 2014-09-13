@@ -15,6 +15,7 @@ compendium_figsize = 2.6
 survey_figsize = 4
 
 orig_ticks_keywords = igp.ticks_keywords
+orig_show_plots_figsize = igp.show_plots_figsize
 orig_rainbow = sage.plot.colors.rainbow
 orig_plot = sage.plot.plot.plot
 orig_plot_rescaled_perturbation = igp.plot_rescaled_perturbation
@@ -131,6 +132,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
     
     finally:
         igp.plot_rescaled_perturbation = orig_plot_rescaled_perturbation
+        igp.show_plots_figsize = orig_show_plots_figsize
         igp.rainbow = orig_rainbow
         igp.ticks_keywords = orig_ticks_keywords
         igp.plot = orig_plot
