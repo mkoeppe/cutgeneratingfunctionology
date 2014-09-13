@@ -554,8 +554,12 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", **kwd
                                                      not (y2 == y3 and y4 is None)):
             p += point([(x2, 0.3*y3 + 1), (-0.3*y3, x2)], color=color, pointsize=23, zorder=-1)
     # add legend_label
-    p += line([(0,0), (0,1)], color=color, legend_label=legend_label, zorder=-10)
-    p += line([(0,0), (0,1)], color='white', zorder=-9)
+    if fn.is_discrete():
+        p += point([(0,0)], color=color, pointsize=23,legend_label=legend_label, zorder=-10)
+        p += point([(0,0)], color='white', pointsize=23, zorder=-9)
+    else:
+        p += line([(0,0), (0,1)], color=color, legend_label=legend_label, zorder=-10)
+        p += line([(0,0), (0,1)], color='white', zorder=-9)
     return p
 
 # Assume component is sorted.
@@ -1734,9 +1738,10 @@ class FastPiecewise (PiecewisePolynomial):
         ## expressions; it does not apply here.  FIXME: We should
         ## probably signal an error.
         point_kwds = dict()
-        for key in ['legend_label', 'alpha']:
-            if key in kwds:
-                point_kwds[key] = kwds[key]
+        if 'alpha' in kwds:
+            point_kwds['alpha'] = kwds['alpha']
+        if 'legend_label' in kwds and self.is_discrete():
+            point_kwds['legend_label'] = kwds['legend_label']
         # record last right endpoint, then compare with next left endpoint to decide whether it needs to be plotted.
         last_end_point = []
         last_closed = True
@@ -1760,24 +1765,20 @@ class FastPiecewise (PiecewisePolynomial):
                 if not (last_closed or last_end_point == [a, f(a)] and left_closed):
                     # plot last open right endpoint
                     g += point(last_end_point, color=color, pointsize=23, **point_kwds)
-                    delete_one_time_plot_kwds(kwds)
                     delete_one_time_plot_kwds(point_kwds)
                     g += point(last_end_point, rgbcolor='white', pointsize=10, **point_kwds)
                 if last_closed and last_end_point != [] and last_end_point != [a, f(a)] and not left_closed:
                     # plot last closed right endpoint
                     g += point(last_end_point, color=color, pointsize=23, **point_kwds)
-                    delete_one_time_plot_kwds(kwds)
                     delete_one_time_plot_kwds(point_kwds)
                 if not (left_closed or last_end_point == [a, f(a)] and last_closed):
                     # plot current open left endpoint
                     g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
-                    delete_one_time_plot_kwds(kwds)
                     delete_one_time_plot_kwds(point_kwds)
                     g += point([a, f(a)], rgbcolor='white', pointsize=10, **point_kwds)
                 if left_closed and last_end_point != [] and last_end_point != [a, f(a)] and not last_closed:
                     # plot current closed left endpoint
                     g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
-                    delete_one_time_plot_kwds(kwds)
                     delete_one_time_plot_kwds(point_kwds)
                 last_closed = right_closed
                 last_end_point = [b, f(b)]
@@ -1790,15 +1791,13 @@ class FastPiecewise (PiecewisePolynomial):
                 # filter out 'legend_label' so that we don't add each
                 # piece to the legend separately (trac #12651).
                 delete_one_time_plot_kwds(kwds)
-                delete_one_time_plot_kwds(point_kwds)
+                #delete_one_time_plot_kwds(point_kwds)
             elif (a == b) and (left_closed) and (right_closed):
                 g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
-                delete_one_time_plot_kwds(kwds)
                 delete_one_time_plot_kwds(point_kwds)
         # plot open rightmost endpoint. minimal functions don't need this.
         if not last_closed:
             g += point(last_end_point, color=color,pointsize=23, **point_kwds)
-            delete_one_time_plot_kwds(kwds)
             delete_one_time_plot_kwds(point_kwds)
             g += point(last_end_point, rgbcolor='white', pointsize=10, **point_kwds)
         return g
