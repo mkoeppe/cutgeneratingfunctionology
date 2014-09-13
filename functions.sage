@@ -3213,7 +3213,7 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
         return False
 
 def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
-    if extremality_test(fn, show_plots, **kwds):
+    if not hasattr(fn, '_perturbation') and extremality_test(fn, show_plots, **kwds):
         return fn
     else:
         perturbed = fn._lifted = fn + fn._epsilon_interval[which_perturbation] * fn._perturbation
