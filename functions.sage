@@ -1045,8 +1045,8 @@ def minimality_test(fn, show_plots=False, f=None):
         is_minimal = False
     if show_plots:
         logging.info("Plotting 2d diagram...")
-        show_plot( plot_2d_diagram(fn, known_minimal=is_minimal),\
-                     show_plots, tag='2d_diagram' )
+        show_plot(plot_2d_diagram(fn, known_minimal=is_minimal),
+                  show_plots, tag='2d_diagram', object=fn)
         logging.info("Plotting 2d diagram... done")
     return is_minimal
 
@@ -3011,7 +3011,13 @@ def rescale_to_amplitude(perturb, amplitude):
 # Global figsize for all plots made by show_plots.
 show_plots_figsize = 10
 
-def show_plot(graphics, show_plots, tag, **show_kwds):
+# Set to True to have plots replace older plots with same tag and object.
+# But FIXME: Preview on Mac OS X does not update reliably.
+show_plots_update = False
+
+global_plots_by_tag = dict()
+
+def show_plot(graphics, show_plots, tag, object=None, **show_kwds):
     """
     Display or save `graphics`.
 
@@ -3023,8 +3029,32 @@ def show_plot(graphics, show_plots, tag, **show_kwds):
     if isinstance(show_plots, str):
         graphics.save(show_plots % tag, figsize=show_plots_figsize, **show_kwds)
     elif show_plots:
-        fname = tmp_filename('igp_%s_' % tag, ext='.png')
+        fname_graphics_kwds = [None, None, None]
+        if object is not None:
+            if not hasattr(object, '_plots_by_tag'):
+                object._plots_by_tag = dict()
+            plots_by_tag = object._plots_by_tag
+            if not show_plots_update or not tag in plots_by_tag:
+                plots_by_tag[tag] = fname_graphics_kwds
+            else:
+                fname_graphics_kwds = plots_by_tag[tag]
+        global_plots_by_tag[tag] = fname_graphics_kwds
+        if fname_graphics_kwds[0] is None:
+            fname_graphics_kwds[0] = tmp_filename('igp_%s_' % tag, ext='.png')
+        fname = fname_graphics_kwds[0]
+        fname_graphics_kwds[1] = graphics
+        fname_graphics_kwds[2] = show_kwds
         graphics.show(figsize=show_plots_figsize, filename=fname, **show_kwds)
+
+def zoom_plot(tag, object=None, **new_show_kwds):
+    if object is not None:
+        fname_graphics_kwds = object._plots_by_tag[tag]
+    else:
+        fname_graphics_kwds = global_plots_by_tag[tag]
+    (fname, graphics, kwds) = fname_graphics_kwds
+    kwds = copy(kwds)
+    kwds.update(new_show_kwds)
+    graphics.show(figsize=show_plots_figsize, filename=fname, **kwds)
 
 def plot_rescaled_perturbation(perturb, xmin=0, xmax=1, **kwds):
     return plot(rescale_to_amplitude(perturb, 1/10), xmin=xmin,
@@ -3045,7 +3075,7 @@ def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbatio
             p += plot(fn + epsilon * perturb, xmin=xmin, xmax=xmax, color='cyan', legend_label="+perturbed (matches min)")
         p += plot(fn, xmin=xmin, xmax=xmax, color='black', thickness=2,
                  legend_label="original function", **ticks_keywords(fn))
-        show_plot(p, show_plots, tag=show_plot_tag, **show_kwds)
+        show_plot(p, show_plots, tag=show_plot_tag, object=fn, **show_kwds)
         logging.info("Plotting perturbation... done")
     assert epsilon > 0, "Epsilon should be positive, something is wrong"
     logging.info("Thus the function is not extreme.")
@@ -3168,7 +3198,7 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
     uncovered_intervals = generate_uncovered_intervals(fn)
     if show_plots:
         logging.info("Plotting covered intervals...")
-        show_plot(plot_covered_intervals(fn), show_plots, tag='covered_intervals')
+        show_plot(plot_covered_intervals(fn), show_plots, tag='covered_intervals', object=fn)
         logging.info("Plotting covered intervals... done")
     if not uncovered_intervals:
         logging.info("All intervals are covered (or connected-to-covered). %s components." % len(covered_intervals))
@@ -3200,7 +3230,7 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
             g = (plot_walk(walk_list,thickness=0.7) + 
                  plot_possible_directed_moves(seed, moves, fn) + 
                  plot_intervals(uncovered_intervals) + plot_covered_intervals(fn))
-            show_plot(g, show_plots, tag='moves')
+            show_plot(g, show_plots, tag='moves', object=fn)
             logging.info("Plotting moves and reachable orbit... done")
         perturb = fn._perturbation = approx_discts_function(walk_list, stab_int, perturbation_style=perturbation_style, function=fn)
         if show_plots:
@@ -3209,7 +3239,7 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
             g = fn._completion.plot() 
             g += plot_function_at_borders(rescale_to_amplitude(perturb,1/10), color='magenta', legend_label='perturbation (rescaled)')
             g += plot_walk_in_completion_diagram(seed, walk_list)
-            show_plot(g, show_plots, tag='completion-perturb', legend_title="Completion of moves, perturbation", legend_loc="upper left")
+            show_plot(g, show_plots, tag='completion', object=fn._completion, legend_title="Completion of moves, perturbation", legend_loc="upper left")
         check_perturbation(fn, perturb, show_plots=show_plots, show_plot_tag='perturbation-1')
         return False
 
@@ -3521,12 +3551,12 @@ class DirectedMoveCompositionCompletion:
                 tag = 'completion'
                 title = "Completion of moves" 
             elif self.num_rounds == 0:
-                tag = 'initmoves'
+                tag = 'completion'
                 title = "Initial moves"
             else:
                 tag = 'completion'
                 title = "Moves after %s completion round%s" % (self.num_rounds, "s" if self.num_rounds > 1 else "")
-            show_plot(self.plot(legend_label='moves'), self.show_plots, tag, legend_title=title, legend_loc="upper left")
+            show_plot(self.plot(legend_label='moves'), self.show_plots, tag, legend_title=title, legend_loc="upper left", object=self)
             logging.info("Plotting... done")
 
     def complete_one_round(self):
