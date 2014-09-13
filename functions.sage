@@ -3047,6 +3047,19 @@ def show_plot(graphics, show_plots, tag, object=None, **show_kwds):
         graphics.show(figsize=show_plots_figsize, filename=fname, **show_kwds)
 
 def zoom_plot(tag, object=None, **new_show_kwds):
+    """
+    After `minimality_test' or `extremality_test' has been run with show_plots=True,
+    use zoom_plot to zoom in to a graph.
+
+    EXAMPLE::
+    sage: logging.disable(logging.INFO)
+    sage: h = bhk_irrational_extreme_limit_to_rational_nonextreme()
+    sage: extremality_test(h, True)
+    False
+    sage: zoom_plot('2d_diagram', xmin=0.1, xmax=0.4, ymin=0.1, ymax=0.4)
+    sage: zoom_plot('completion', xmin=0.3, xmax=0.5, ymin=0.3, ymax=0.5)
+    sage: zoom_plot('perturbation-1', xmin=0.25, xmax=0.4, ymin=0.25, ymax=0.5)
+    """
     if object is not None:
         fname_graphics_kwds = object._plots_by_tag[tag]
     else:
