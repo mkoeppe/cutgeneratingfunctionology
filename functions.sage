@@ -3195,22 +3195,48 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
         fn._walk_list = walk_list
         if show_plots and show_old_moves_diagram:
             logging.info("Plotting moves and reachable orbit...")
-            # FIXME: Visualize stability intervals?
-            g = (plot_walk(walk_list,thickness=0.7) + 
-                 plot_possible_directed_moves(seed, moves, fn) + 
-                 plot_intervals(uncovered_intervals) + plot_covered_intervals(fn))
+            g = plot_old_moves_diagram(fn)
             show_plot(g, show_plots, tag='moves', object=fn)
             logging.info("Plotting moves and reachable orbit... done")
         perturb = fn._perturbation = approx_discts_function(walk_list, stab_int, perturbation_style=perturbation_style, function=fn)
         if show_plots:
-            if fn._completion.plot_background is None:
-                fn._completion.plot_background = plot_completion_diagram_background(fn)
-            g = fn._completion.plot() 
-            g += plot_function_at_borders(rescale_to_amplitude(perturb,1/10), color='magenta', legend_label='perturbation (rescaled)')
-            g += plot_walk_in_completion_diagram(seed, walk_list)
+            logging.info("Plotting completion diagram with perturbation...")
+            g = plot_completion_diagram(fn)
             show_plot(g, show_plots, tag='completion', object=fn._completion, legend_title="Completion of moves, perturbation", legend_loc="upper left")
+            logging.info("Plotting completion diagram with perturbation... done")
         check_perturbation(fn, perturb, show_plots=show_plots, show_plot_tag='perturbation-1')
         return False
+
+def plot_old_moves_diagram(fn):
+    """
+    Return a plot of the 'old' moves diagram, superseded by plot_completion_diagram.
+    """
+    if not hasattr(fn, '_walk_list'):
+        extremality_test(fn, show_plots=False)
+    # FIXME: Visualize stability intervals?
+    moves = generate_functional_directed_moves(fn)
+    uncovered_intervals = generate_uncovered_intervals(fn)
+    return (plot_walk(fn._walk_list,thickness=0.7) + 
+            plot_possible_directed_moves(fn._seed, moves, fn) + 
+            plot_intervals(uncovered_intervals) + plot_covered_intervals(fn))
+
+def plot_completion_diagram(fn):
+    """
+    Return a plot of the completion diagram.
+    
+    To view a part only, use:
+    show(plot_completion_diagram(h), xmin=0.3, xmax=0.55, ymin=0.3, ymax=0.55).
+    """
+    if not (hasattr(fn, '_completion') and fn._completion.is_complete):
+        extremality_test(fn, show_plots=False)
+    if fn._completion.plot_background is None:
+        fn._completion.plot_background = plot_completion_diagram_background(fn)
+    g = fn._completion.plot() 
+    if hasattr(fn, '_perturbation'):
+        g += plot_function_at_borders(rescale_to_amplitude(fn._perturbation, 1/10), color='magenta', legend_label='perturbation (rescaled)')
+    if hasattr(fn, '_walk_list'):
+        g += plot_walk_in_completion_diagram(fn._seed, fn._walk_list)
+    return g
 
 def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
     if not hasattr(fn, '_perturbation') and extremality_test(fn, show_plots, **kwds):
