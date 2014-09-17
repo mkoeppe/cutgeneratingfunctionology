@@ -963,6 +963,8 @@ def rlm_dpl1_extreme_3a(f=1/4):
 
 def ll_strong_fractional(f=2/3):
     """
+    Letchford--Lodi's strong fractional cut.
+
     EXAMPLES::
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = ll_strong_fractional(f=2/3)
@@ -971,12 +973,13 @@ def ll_strong_fractional(f=2/3):
         sage: h = ll_strong_fractional(f=2/7)
         sage: minimality_test(h, False)
         False
-    Reference:
+
+    Reference::
         [78] Letchford-Lodi (2002) Thm.2, Fig 3;
         [33] S. Dash and O. G¨unl¨uk (2004) Thm.16
-    Remarks:
+    Remarks::
         Discontinuous, 1-slope;
-        The funciton is NOT minimal for 0 < f <1/2.
+        The function is NOT minimal for 0 < f <1/2.
         Similar to drlm_2_slope_limit(f=f, nb_piece_left=1, nb_piece_right=ceil(1/f)-1),
         except for limits at breakpoints.
     """
