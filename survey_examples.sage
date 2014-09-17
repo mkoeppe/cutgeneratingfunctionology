@@ -391,3 +391,39 @@ def hildebrand_discont_3_slope_1():
                           closed_piece((5/8, 6/8), (7/8, 2/8)), 
                           right_open_piece((7/8, 2/8), (1, 4/8)), 
                           singleton_piece(1, 0)])
+
+def ll_strong_fractional_bad_figure_3():
+    """
+    Corresponds to Figure 3 in Letchford-Lodi (2002); divided by its
+    value at f=2/3 to normalize.
+
+    This function is not subadditive, contrary to what is claimed.
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = ll_strong_fractional_bad_figure_3()
+        sage: minimality_test(h, False)
+        False
+    """
+    f = 2/3
+    h = FastPiecewise([closed_piece((0, 0), (2/3, 2/3)),
+                       open_piece((2/3, 0), (1, 1/3)),
+                       singleton_piece(1, 0)])
+    return h * (1/f)
+
+def ll_strong_fractional_bad_figure_3_corrected():
+    """
+    Corresponds to what Figure 3 in Letchford-Lodi (2002) should have
+    looked like; divided by its value at f=2/3 to normalize.
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = ll_strong_fractional_bad_figure_3_corrected()
+        sage: extremality_test(h, False)
+        True
+    """
+    f = 2/3
+    h = FastPiecewise([closed_piece((0, 0), (2/3, 2/3)),
+                       open_piece((2/3, 2/3 - 1/2), (1, 1 - 1/2)),
+                       singleton_piece(1, 0)])
+    return h * (1/f)
