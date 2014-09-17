@@ -968,3 +968,41 @@ def rlm_dpl1_extreme_3a(f=1/4):
     # FIXME: Need to develop code for discontinuous functions.
     logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
     return h
+
+def ll_strong_fractional(f=2/3):
+    """
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = ll_strong_fractional(f=2/3)
+        sage: extremality_test(h, False)
+        True
+        sage: h = ll_strong_fractional(f=2/7)
+        sage: minimality_test(h, False)
+        False
+    Reference:
+        [78] Letchford-Lodi (2002) Thm.2, Fig 3;
+        [33] S. Dash and O. G¨unl¨uk (2004) Thm.16
+    Remarks:
+        Discontinuous, 1-slope;
+        The funciton is NOT minimal for 0 < f <1/2.
+        Similar to drlm_2_slope_limit(f=f, nb_piece_left=1, nb_piece_right=ceil(1/f)-1),
+        except for limits at breakpoints.
+    """
+    if not bool(0 < f < 1):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if not bool(1/2 <= f < 1):
+        logging.info("The function is NOT minimal.")
+    else:
+        logging.info("Conditions for extremality are satisfied.")
+    [f] =  nice_field_values([f])
+    k = ceil(1/f) -1
+    pieces = [[closed_interval(0,f), FastLinearFunction(1/f, 0)]]
+    for p in range(k-1):
+        pieces.append([left_open_interval(f + (1 - f)* p / k, f + (1 - f)*(p + 1)/k), FastLinearFunction(1/f, -(p + 1)/f/(k + 1))])
+    p = k - 1
+    pieces.append([open_interval(f + (1 - f)* p / k, f + (1 - f)*(p + 1)/k), FastLinearFunction(1/f, -(p + 1)/f/(k + 1))])
+    pieces.append([singleton_interval(1), FastLinearFunction(0, 0)])
+    h = FastPiecewise(pieces)
+    # FIXME: Need to develop code for discontinuous functions.
+    logging.warn("This is a discontinuous function; code for handling discontinuous functions is not implemented yet.")
+    return h
