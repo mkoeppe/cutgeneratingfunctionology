@@ -58,6 +58,22 @@ def multiplicative_homomorphism(function, multiplier):
                   for i in i_range ]
     return FastPiecewise(new_pairs)
 
+def automorphism(function):
+    """
+    Apply the only nontrivial automorphism of the 1-dimensional
+    infinite group problem to the given `function`, i.e., construct
+    the function x -> function(-x).
+
+    See Johnson (1974) for a discussion of the automorphisms.
+
+    EXAMPLES::
+    sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
+    sage: h = automorphism(gmic(f=4/5))
+    sage: extremality_test(h, False, f=1/5)
+    True
+    """
+    return multiplicative_homomorphism(function, -1)
+
 def projected_sequential_merge(g, n=1):
     """
     construct the one-dimensional projected sequential merge inequality: h = g(with f = nr) @_n^1 gmic(f = r).

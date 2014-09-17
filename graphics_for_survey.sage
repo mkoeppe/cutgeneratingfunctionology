@@ -80,6 +80,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         igp.plot = plot_no_legend
 
         ## Compendium procedures table
+        procedure_graph('automorphism', gmic())
         procedure_graph('multiplicative_homomorphism', gmic(), multiplicative_homomorphism(gmic(), 3))
         procedure_graph('projected_sequential_merge', multiplicative_homomorphism(gj_forward_3_slope(),-1))
         procedure_graph('restrict_to_finite_group', gmic())
