@@ -392,6 +392,22 @@ def hildebrand_discont_3_slope_1():
                           right_open_piece((7/8, 2/8), (1, 4/8)), 
                           singleton_piece(1, 0)])
 
+def gomory_fractional(f=4/5):
+    """
+    The Gomory fractional cut.  
+    Not minimal.
+
+    EXAMPLES:
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = gomory_fractional(f=4/5)
+        sage: minimality_test(h, f=4/5)
+        False
+    """
+    h = FastPiecewise([right_open_piece((0, 0), (1, 1)), 
+                       singleton_piece(1, 0)])
+    # now normalize...
+    return h * (1/f)
+
 def ll_strong_fractional_bad_figure_3():
     """
     Corresponds to Figure 3 in Letchford-Lodi (2002); divided by its
