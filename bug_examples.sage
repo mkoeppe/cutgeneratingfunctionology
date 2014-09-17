@@ -111,3 +111,28 @@ def example7slopecoarse2():
     False
     """
     return piecewise_function_from_robert_txt_file("example7slopeCoarse2.txt")
+
+def gmic_disjoint(f=4/5):
+    """
+    sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+    sage: h = gmic_disjoint(4/5)
+    sage: extremality_test(h, False)
+    True
+    """        
+    pieces = [[right_open_interval(0, f), FastLinearFunction(1/f, 0)],
+              [[f, 1], FastLinearFunction(-1/(1-f), 1/(1-f))]]
+    return FastPiecewise(pieces, merge=False)
+
+def gmic_disjoint_with_singletons(f=4/5):
+    """
+    sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+    sage: h = gmic_disjoint_with_singletons(4/5)
+    sage: extremality_test(h, False)
+    True
+    """        
+    pieces = [singleton_piece(0, 0), 
+              [open_interval(0, f), FastLinearFunction(1/f, 0)],
+              [right_open_interval(f, 1), FastLinearFunction(-1/(1-f), 1/(1-f))],
+              singleton_piece(1, 0)]
+    return FastPiecewise(pieces, merge=False)
+
