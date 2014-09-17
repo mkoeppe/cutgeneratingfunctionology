@@ -2698,6 +2698,7 @@ def merge_bkpt(bkpt1, bkpt2):
         bkpt_new = bkpt_new + bkpt1[i:len(bkpt1)]
     return bkpt_new
 
+@cached_function
 def find_epsilon_interval(fn, perturb):
     if fn.is_continuous() or fn.is_discrete():
         return find_epsilon_interval_continuous(fn, perturb)
@@ -3296,10 +3297,13 @@ def plot_rescaled_perturbation(perturb, xmin=0, xmax=1, **kwds):
 
 check_perturbation_plot_three_perturbations = True
 
+def clear_perturbations(fn):
+    delattr(fn, '_perturbations')
+
 def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbation', xmin=0, xmax=1, **show_kwds):
-    epsilon_interval = fn._epsilon_interval = find_epsilon_interval(fn, perturb)
+    epsilon_interval = find_epsilon_interval(fn, perturb)
     epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
-    logging.info("Epsilon for constructed perturbation: %s" % epsilon)
+    #logging.info("Epsilon for constructed perturbation: %s" % epsilon)
     if show_plots:
         logging.info("Plotting perturbation...")
         p = plot_rescaled_perturbation(perturb, xmin=xmin, xmax=xmax)
@@ -3328,6 +3332,9 @@ def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbatio
         show_plot(p, show_plots, tag=show_plot_tag, object=fn, **show_kwds)
         logging.info("Plotting perturbation... done")
     assert epsilon > 0, "Epsilon should be positive, something is wrong"
+    if not hasattr(fn, '_perturbations'):
+        fn._perturbations = []
+    fn._perturbations.append(perturb)
     logging.info("Thus the function is not extreme.")
 
 def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn_about_uncovered_intervals=True):
@@ -3380,7 +3387,7 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn
     else:
         for basis_index in range(len(slope_jump_vects)):
             slope_jump = slope_jump_vects[basis_index]
-            perturbation = function._perturbation = slope_jump * symbolic
+            perturbation = slope_jump * symbolic
             check_perturbation(function, perturbation,
                                         show_plots=show_plots, show_plot_tag='perturbation-%s' % (basis_index + 1),
                                         legend_title="Basic perturbation %s" % (basis_index + 1))
@@ -3530,10 +3537,10 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
             g = plot_old_moves_diagram(fn)
             show_plot(g, show_plots, tag='moves', object=fn)
             logging.info("Plotting moves and reachable orbit... done")
-        perturb = fn._perturbation = approx_discts_function(walk_list, stab_int, perturbation_style=perturbation_style, function=fn)
+        perturb = approx_discts_function(walk_list, stab_int, perturbation_style=perturbation_style, function=fn)
         if show_plots:
             logging.info("Plotting completion diagram with perturbation...")
-            g = plot_completion_diagram(fn)
+            g = plot_completion_diagram(fn, perturb)        # at this point, the perturbation has not been stored yet
             show_plot(g, show_plots, tag='completion', object=fn._completion, legend_title="Completion of moves, perturbation", legend_loc="upper left")
             logging.info("Plotting completion diagram with perturbation... done")
         check_perturbation(fn, perturb, show_plots=show_plots, show_plot_tag='perturbation-1')
@@ -3552,7 +3559,7 @@ def plot_old_moves_diagram(fn):
             plot_possible_directed_moves(fn._seed, moves, fn) + 
             plot_intervals(uncovered_intervals) + plot_covered_intervals(fn))
 
-def plot_completion_diagram(fn):
+def plot_completion_diagram(fn, perturbation=None):
     """
     Return a plot of the completion diagram.
     
@@ -3565,17 +3572,23 @@ def plot_completion_diagram(fn):
     if fn._completion.plot_background is None:
         fn._completion.plot_background = plot_completion_diagram_background(fn)
     g = fn._completion.plot() 
-    if hasattr(fn, '_perturbation'):
-        g += plot_function_at_borders(rescale_to_amplitude(fn._perturbation, 1/10), color='magenta', legend_label='perturbation (rescaled)')
+    if perturbation is None and hasattr(fn, '_perturbations'):
+        perturbation = fn._perturbations[0]
+    if perturbation is not None:
+        g += plot_function_at_borders(rescale_to_amplitude(perturbation, 1/10), color='magenta', legend_label='perturbation (rescaled)')
     if hasattr(fn, '_walk_list'):
+        # FIXME: Need _seed and _walk_list relative to selected perturbation.
+        # Perhaps simply store them as attributes of the perturbation?
         g += plot_walk_in_completion_diagram(fn._seed, fn._walk_list)
     return g
 
 def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
-    if not hasattr(fn, '_perturbation') and extremality_test(fn, show_plots, **kwds):
+    if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots, **kwds):
         return fn
     else:
-        perturbed = fn._lifted = fn + fn._epsilon_interval[which_perturbation] * fn._perturbation
+        perturbation = fn._perturbations[0]
+        epsilon_interval = find_epsilon_interval(fn, perturbation)
+        perturbed = fn._lifted = fn + epsilon_interval[which_perturbation] * perturbation
         ## Following is strictly experimental: It may change what "f" is.
         if 'phase_1' in kwds and kwds['phase_1']:
             perturbed = rescale_to_amplitude(perturbed, 1)

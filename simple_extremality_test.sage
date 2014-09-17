@@ -51,7 +51,6 @@ def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, ove
             else:
                  # FIXME: Handle the discontinuous case properly !
                 perturbation = piecewise_function_from_breakpoints_and_values(pts+[1], solution+[0], field)
-            fn._perturbation = perturbation
             check_perturbation(fn, perturbation, show_plots=show_plots, 
                                show_plot_tag='perturbation-%s' % (sol_index + 1), 
                                legend_title="Basic perturbation %s" % (sol_index + 1))
