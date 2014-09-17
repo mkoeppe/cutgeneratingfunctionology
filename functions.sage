@@ -2329,7 +2329,7 @@ def limiting_slopes(fn):
     Compute the limiting slopes on the right and the left side of the
     origin.
     
-    The function `fn` is assumed subadditive.
+    The function `fn` is assumed minimal.
 
     EXAMPLES::
     sage: logging.disable(logging.WARN) # Suppress output in automatic tests.
@@ -2344,8 +2344,23 @@ def limiting_slopes(fn):
     sage: limiting_slopes(restrict_to_finite_group(gmic(f=4/5)))
     (5/4, -5)
     """
-    functions = fn.functions()
-    return functions[0]._slope, functions[-1]._slope
+    breakpoints = fn.end_points()
+    limits = fn.limits_at_end_points()
+    assert breakpoints[0] == 0
+    if limits[0][0] > 0 or limits[0][1] > 0:
+        limit_plus = +Infinity
+    elif limits[1][-1] is not None:
+        limit_plus = limits[1][-1] / breakpoints[1]
+    else:
+        limit_plus = limits[1][0] / breakpoints[1]
+    assert breakpoints[-1] == 1
+    if limits[-1][0] > 0 or limits[-1][-1] > 0:
+        limit_minus = -Infinity
+    elif limits[-2][+1] is not None:
+        limit_minus = -limits[-2][+1] / (1 - breakpoints[-2])
+    else:
+        limit_minus = -limits[-2][0] / (1 - breakpoints[-2])
+    return limit_plus, limit_minus
 
 maximal_asymmetric_peaks_around_orbit = 'maximal_asymmetric_peaks_around_orbit'
 maximal_symmetric_peaks_around_orbit = 'maximal_symmetric_peaks_around_orbit'
