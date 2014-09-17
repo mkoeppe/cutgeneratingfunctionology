@@ -2325,6 +2325,25 @@ def discrete_function_from_points_and_values(points, values, field=None):
     return FastPiecewise(pieces)
 
 def limiting_slopes(fn):
+    """
+    Compute the limiting slopes on the right and the left side of the
+    origin.
+    
+    The function `fn` is assumed subadditive.
+
+    EXAMPLES::
+    sage: logging.disable(logging.WARN) # Suppress output in automatic tests.
+    sage: limiting_slopes(gmic(f=4/5))
+    (5/4, -5)
+    sage: limiting_slopes(gmic_disjoint_with_singletons(f=4/5))
+    (5/4, -5)
+    sage: limiting_slopes(minimal_no_covered_interval())
+    (+Infinity, -Infinity)
+    sage: limiting_slopes(drlm_2_slope_limit_1_1())
+    (2, -Infinity)
+    sage: limiting_slopes(restrict_to_finite_group(gmic(f=4/5)))
+    (5/4, -5)
+    """
     functions = fn.functions()
     return functions[0]._slope, functions[-1]._slope
 
