@@ -437,6 +437,8 @@ def ll_strong_fractional_bad_figure_3_corrected():
         sage: h = ll_strong_fractional_bad_figure_3_corrected()
         sage: extremality_test(h, False)
         True
+        sage: h == ll_strong_fractional()
+        True
     """
     f = 2/3
     h = FastPiecewise([closed_piece((0, 0), (2/3, 2/3)),
