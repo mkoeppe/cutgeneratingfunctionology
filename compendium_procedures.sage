@@ -299,6 +299,7 @@ represented as a `FastPiecewise` with singleton intervals within [0,1] as its pa
     # We are not using
     # `piecewise_function_from_breakpoints_and_values` to allow to
     # interpolate some partially interpolated functions.
+    # FIXME: Actually implement that.
     for (interval, fn) in function.list():
         x = interval[0]
         y = fn(x)
@@ -309,3 +310,25 @@ represented as a `FastPiecewise` with singleton intervals within [0,1] as its pa
         last_x = interval[1]
         last_y = fn(last_x)
     return FastPiecewise(pieces)
+
+def two_slope_fill_in(function):
+    ## Experimental.
+    sp, sm = limiting_slopes(function)
+    last_x, last_y = None, None
+    pieces = []
+    for (interval, fn) in function.list():
+        x = interval[0]
+        y = fn(x)
+        if last_x is not None and last_x < x:
+            mx = (x*sm - last_x*sp + last_y - y)/(sm - sp)
+            my = (last_y*sm - (last_x*sm - x*sm + y)*sp)/(sm - sp)
+            if last_x < mx:
+                pieces.append(closed_piece((last_x, last_y), (mx, my)))
+            if mx < x:
+                pieces.append(closed_piece((mx, my), (x, y)))
+        last_x = interval[1]
+        last_y = fn(last_x)
+    return FastPiecewise(pieces)
+    
+
+
