@@ -477,7 +477,7 @@ def convex_vert_list(vertices):
         center = reduce(operator.add, map(vector, vertices)) / len(vertices)
         return sorted(vertices, cmp = lambda a,b: angle_cmp(a, b, center))
 
-def plot_2d_diagram(fn, show_function=True, known_minimal=False):
+def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal=False):
     """
     Return a plot of the 2d complex with shaded faces where delta_pi is 0.        
     To show only a part of it, use 
@@ -518,6 +518,8 @@ def plot_2d_diagram(fn, show_function=True, known_minimal=False):
             # add legend_label
             p += point([(0,0)], color = "red", size = 50, legend_label="Subadditivity violated", zorder=-10)
             p += point([(0,0)], color = "white", size = 50, zorder=-9)
+    if show_projection:
+        p += plot_projections_at_borders(fn)
     if show_function:
         p += plot_function_at_borders(fn)
     return p
@@ -561,6 +563,70 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", **kwd
         p += line([(0,0), (0,1)], color=color, legend_label=legend_label, zorder=-10)
         p += line([(0,0), (0,1)], color='white', zorder=-9)
     return p
+
+proj_plot_width = 0.02
+#proj_plot_colors = ['yellow', 'cyan', 'magenta']            # very clear but ugly
+#proj_plot_colors = ['darkseagreen', 'darkseagreen', 'slategray']
+proj_plot_colors = ['grey', 'grey', 'grey']
+proj_plot_alpha = 0.35
+#proj_plot_alpha = 1
+
+def plot_projections_at_borders(fn):
+    g = Graphics()
+    I_J_verts = set()
+    K_verts = set()
+    kwds = { 'alpha': proj_plot_alpha, 'zorder': -10 }
+    if proj_plot_colors[0] == proj_plot_colors[1] == proj_plot_colors[2]:
+        IJK_kwds = [ kwds for i in range(3) ]
+        kwds['legend_label'] = "projections p1(F), p2(F), p3(F)"
+    elif proj_plot_colors[0] == proj_plot_colors[1]:
+        IJK_kwds = [ kwds, kwds, copy(kwds) ]
+        kwds['legend_label'] = "projections p1(F), p2(F)"
+        IJK_kwds[2]['legend_label'] = "projections p3(F)"
+    else:
+        IJK_kwds = [ copy(kwds) for i in range(3) ]
+        for i in range(3):
+            IJK_kwds[i]['legend_label'] = "projections p_%s(F)" % (i+1)
+    for i in range(3):
+        #IJK_kwds[i]['legend_color'] = proj_plot_colors[i] # does not work in Sage 5.11
+        IJK_kwds[i]['color'] = proj_plot_colors[i]
+    for face in generate_maximal_additive_faces(fn):
+        I, J, K = face.minimal_triple
+        I_J_verts.update(I) # no need for J because the x-y swapped face will also be processed
+        K_verts.update(K)
+        if face.is_2D():
+            # plot I at top border
+            g += polygon([(I[0], 1), (I[1], 1), (I[1], 1 + proj_plot_width), (I[0], 1 + proj_plot_width)], **IJK_kwds[0])
+            delete_one_time_plot_kwds(IJK_kwds[0])
+            # plot J at left border
+            g += polygon([(0, J[0]), (0, J[1]), (-proj_plot_width, J[1]), (-proj_plot_width, J[0])], **IJK_kwds[1])
+            delete_one_time_plot_kwds(IJK_kwds[1])
+            # plot K at right/bottom borders
+            if coho_interval_contained_in_coho_interval(K, [0,1]):
+                g += polygon([(K[0], 0), (K[1], 0), (K[1] + proj_plot_width, -proj_plot_width), (K[0] + proj_plot_width, -proj_plot_width)], **IJK_kwds[2])
+            elif coho_interval_contained_in_coho_interval(K, [1,2]):
+                g += polygon([(1, K[0]-1), (1, K[1]-1), (1 + proj_plot_width, K[1] - 1 - proj_plot_width), (1 + proj_plot_width, K[0] - 1 - proj_plot_width)], **IJK_kwds[2])
+            else:
+                raise ValueError, "Bad face: %s" % face
+            delete_one_time_plot_kwds(IJK_kwds[2])
+    for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices(fn):
+        I_J_verts.add(x)
+        I_J_verts.add(y)
+        K_verts.add(z)
+    # plot dashed help lines corresponding to non-breakpoint projections. 
+    # (plot_2d_complex already draws solid lines for the breakpoints.)
+    I_J_verts.difference_update(fn.end_points())
+    for x in I_J_verts:
+        g += line([(x, 0), (x, 1)], linestyle=':', color='grey')
+        g += line([(0, x), (1, x)], linestyle=':', color='grey')
+    K_verts.difference_update(fn.end_points())
+    K_verts.difference_update(1 + x for x in fn.end_points())
+    for z in K_verts:
+        if z <= 1:
+            g += line([(0, z), (z, 0)], linestyle=':', color='grey')
+        else:
+            g += line([(1, z-1), (z-1, 1)], linestyle=':', color='grey')
+    return g
 
 # Assume component is sorted.
 def merge_within_comp(component, one_point_overlap_suffices=False):   

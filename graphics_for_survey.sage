@@ -19,6 +19,7 @@ orig_show_plots_figsize = igp.show_plots_figsize
 orig_rainbow = sage.plot.colors.rainbow
 orig_plot = sage.plot.plot.plot
 orig_plot_rescaled_perturbation = igp.plot_rescaled_perturbation
+orig_proj_plot_colors = igp.proj_plot_colors
 
 def compendium_ticks_keywords(function, y_ticks_for_breakpoints=False):
     return {'ticks':[[], []], 
@@ -138,5 +139,6 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         igp.rainbow = orig_rainbow
         igp.ticks_keywords = orig_ticks_keywords
         igp.plot = orig_plot
+        igp.proj_plot_colors = orig_proj_plot_colors
 
 os.system("cd %s && (pdflatex -synctex=1 -src-specials -interaction=nonstopmode igp-survey || pdflatex -synctex=1 -src-specials -interaction=nonstopmode igp-survey)" % (destdir,))
