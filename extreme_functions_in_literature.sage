@@ -975,13 +975,47 @@ def ll_strong_fractional(f=2/3):
         False
 
     Reference::
-        [78] Letchford-Lodi (2002) Thm.2, Fig 3;
-        [33] S. Dash and O. G¨unl¨uk (2004) Thm.16
+        [78] Letchford-Lodi (2002) Thm. 2, Fig. 3 (but note this figure shows the wrong function; 
+    see ll_strong_fractional_bad_figure_3 and ll_strong_fractional_bad_figure_3_corrected)
+
+        [33] S. Dash and O. G¨unl¨uk (2004) Thm. 16
+
     Remarks::
         Discontinuous, 1-slope;
-        The function is NOT minimal for 0 < f <1/2.
-        Similar to drlm_2_slope_limit(f=f, nb_piece_left=1, nb_piece_right=ceil(1/f)-1),
+
+        For f >= 1/2, this function is extreme, and is identical to 
+        drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=1).
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: f=2/3
+        sage: l = ll_strong_fractional(f)
+        sage: d = drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)
+        sage: dg = automorphism(dg_2_step_mir_limit(f=1-f, d=ceil(1/f)-1))
+        sage: show(plot(l, color='red', legend_label='ll_strong_fractional')) # not tested
+        sage: show(plot(d, color='blue', legend_label='drlm_2_slope_limit')) # not tested
+        sage: show(plot(dg, color='green', legend_label='automorphism(dg_2_step_mir_limit)')) # not tested
+        sage: l == d == dg
+        True
+
+    Remarks::
+        The function is NOT minimal for 0 < f < 1/2.  It equals
+        drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1),
         except for limits at breakpoints.
+
+    EXAMPLES::
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: f=1/3
+        sage: l = ll_strong_fractional(f)
+        sage: d = drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)
+        sage: dg = automorphism(dg_2_step_mir_limit(f=1-f, d=ceil(1/f)-1))
+        sage: show(plot(l, color='red', legend_label='ll_strong_fractional')) # not tested
+        sage: show(plot(d, color='blue', legend_label='drlm_2_slope_limit')) # not tested
+        sage: show(plot(dg, color='green', legend_label='automorphism(dg_2_step_mir_limit)')) # not tested
+        sage: d == dg
+        True
+        sage: l == d
+        False
     """
     if not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
