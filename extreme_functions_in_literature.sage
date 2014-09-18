@@ -132,7 +132,7 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3):
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
 
 
-def two_step_mir(f=4/5, alpha=3/10):
+def dg_2_step_mir(f=4/5, alpha=3/10):
     """
     Summary:
         - Name: 2-Step MIR;
@@ -152,7 +152,7 @@ def two_step_mir(f=4/5, alpha=3/10):
         [33] p.40, Fig.5 ::
 
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-            sage: h = two_step_mir(f=4/5, alpha=3/10)
+            sage: h = dg_2_step_mir(f=4/5, alpha=3/10)
             sage: extremality_test(h, False)
             True
 
@@ -189,7 +189,7 @@ def interval_length_n_step_mir(n, m, a, b):
         return result
 
 
-def n_step_mir(f=4/5, a=[1, 3/10, 8/100]):
+def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100]):
     """
     Summary:
         - Name: n-Step MIR;
@@ -210,29 +210,29 @@ def n_step_mir(f=4/5, a=[1, 3/10, 8/100]):
         b[i] = b[i - 1] - a[i] * floor(b[i - 1] / a[i]),  for i = 1, 2, ... , n-1.
 
     Note:
-        if a[i] > b[i-1] for some i, then the n_step_mir function degenerates, i.e.
-        n_step_mir(f, [a[0], .. , a[n - 1]]) = n_step_mir(f, [a[0], .. a[i - 1], a[i + 1], ... , a[n - 1]])
+        if a[i] > b[i-1] for some i, then the kf_n_step_mir function degenerates, i.e.
+        kf_n_step_mir(f, [a[0], .. , a[n - 1]]) = kf_n_step_mir(f, [a[0], .. a[i - 1], a[i + 1], ... , a[n - 1]])
 
     Examples:
         [74] p.333 - p.335, Fig.1 - Fig.6 ::
         
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-            sage: h = n_step_mir(f=4/5, a=[1])
+            sage: h = kf_n_step_mir(f=4/5, a=[1])
             sage: extremality_test(h, False)
             True
-            sage: h = n_step_mir(f=4/5, a=[1, 3/10])
+            sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10])
             sage: extremality_test(h, False)
             True
-            sage: h = n_step_mir(f=4/5, a=[1, 3/10, 8/100])
+            sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100])
             sage: extremality_test(h, False)
             True
-            sage: h = n_step_mir(f=4/5, a=[1, 3/10, 8/100, 3/100])
+            sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100, 3/100])
             sage: extremality_test(h, False)
             True
-            sage: h = n_step_mir(f=4/5, a=[1, 45/100, 2/10, 558/10000, 11/1000])
+            sage: h = kf_n_step_mir(f=4/5, a=[1, 45/100, 2/10, 558/10000, 11/1000])
             sage: extremality_test(h, False)
             True
-            sage: h = n_step_mir(f=4/5, a=[1, 48/100, 19/100, 8/100, 32/1000, 12/1000])
+            sage: h = kf_n_step_mir(f=4/5, a=[1, 48/100, 19/100, 8/100, 32/1000, 12/1000])
             sage: extremality_test(h, False)
             True
 
@@ -396,7 +396,7 @@ def dg_2_step_mir_limit(f=3/5, d=3):
         d >= ceil(1 / (1 - f)) - 1.
 
     Note:
-        This is the limit function as alpha in two_step_mir()
+        This is the limit function as alpha in dg_2_step_mir()
         tends (from left) to f/d, where d is integer;
         c.f. [33] p.42, lemma 13.
 
@@ -649,7 +649,7 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24]):
         The (uniform) limit \psi = \lim_{n to \infty} \psi_n is well defined if \sum_{i = 0}^{\infty} {2^i * e[i]} < f.
         The (uniform) limit \psi is a continuous facet, but is not piecewise linear. A counterexample of GJ's conjecture.
         Could use the function generate_example_e_for_psi_n(f, n, q) to generate a sequence e that satisfies the conditions for extremality.
-        psi_n_in_bccz_counterexample_construction() is a special case of n_step_mir(),
+        psi_n_in_bccz_counterexample_construction() is a special case of kf_n_step_mir(),
         with f=f, a = [1, (f + e[0])/2, (f - e[0] + 2*e[1])/4, ...]
 
     Parameters:
