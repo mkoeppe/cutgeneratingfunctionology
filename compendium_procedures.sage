@@ -58,21 +58,37 @@ def multiplicative_homomorphism(function, multiplier):
                   for i in i_range ]
     return FastPiecewise(new_pairs)
 
-def automorphism(function):
-    """
-    Apply the only nontrivial automorphism of the 1-dimensional
-    infinite group problem to the given `function`, i.e., construct
-    the function x -> function(-x).
+def automorphism(function, factor=-1):
+    """Apply an automorphism.
 
+    For the infinite group problem, apply the only nontrivial
+    automorphism of the 1-dimensional infinite group problem to the
+    given `function`, i.e., construct the function x -> function(-x).
     See Johnson (1974) for a discussion of the automorphisms.
+
+    In the finite group case, factor must be an integer coprime with
+    the group order.
 
     EXAMPLES::
     sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
     sage: h = automorphism(gmic(f=4/5))
     sage: extremality_test(h, False, f=1/5)
     True
+    sage: h = automorphism(restrict_to_finite_group(gmic(f=4/5)), 2)
+    sage: extremality_test(h, False)
+    True
     """
-    return multiplicative_homomorphism(function, -1)
+    if function.is_discrete():
+        order = finite_group_order_from_function_f_oversampling_order(function, oversampling=None)
+        if gcd(order, factor) != 1:
+            raise ValueError, "factor must be coprime with the group order, %s" % order
+        new_pairs = [ singleton_piece(fractional(x * factor), y)
+                      for x, y in itertools.izip(function.end_points(), function.values_at_end_points()) ]
+        return FastPiecewise(new_pairs)
+    else:
+        if abs(factor) != 1:
+            raise ValueError, "factor must be +1 or -1 (the default) in the infinite group case."
+        return multiplicative_homomorphism(function, -1)
 
 def projected_sequential_merge(g, n=1):
     """
