@@ -1136,8 +1136,7 @@ class FastPiecewise (PiecewisePolynomial):
         (3/10, 3/8)
         """
         # Sort intervals according to their left endpoints; In case of equality, place single point before interval. 
-        # This setting would be helpful in plotting discontinuous functions   
-        list_of_pairs = sorted(list_of_pairs, key = coho_interval_left_endpoint_with_epsilon)
+        list_of_pairs = sorted(list_of_pairs, key = lambda (i, f): coho_interval_left_endpoint_with_epsilon(i))
         if merge:
             merged_list_of_pairs = []
             intervals_to_scan = []
