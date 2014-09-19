@@ -134,13 +134,15 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
                 h = eval(name)(s)
                 extremality_test(h, show_plots=destdir + "%s_%s-%%s.pdf" % (name, s))
 
+        # Bccz figure
+        load("graphics_for_survey_bccz.sage")
+
         # Plot or re-plot some 2d diagrams with a different style
         igp.proj_plot_colors = ['grey', 'grey', 'grey']
         
         for name in [ 'bhk_irrational', 'gj_forward_3_slope', 'not_minimal_2', 'not_extreme_1' ]:
             emit_tex_sage_command(name)
             h = eval(name)()
-            # FIXME: Get rid of legend!
             plot_2d_diagram(h, True).save(destdir + "%s-2d_diagram.pdf" % name, figsize=6) # figsize??
 
     finally:
