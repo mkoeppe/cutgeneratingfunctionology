@@ -87,6 +87,7 @@ def plot_2d_complex(function):
     p = Graphics()
     kwd = ticks_keywords(function, True)
     kwd['legend_label'] = "Complex Delta pi"
+    plot_kwds_hook(kwd)
     ## We now use lambda functions instead of Sage symbolics for plotting, 
     ## as those give strange errors when combined with our RealNumberFieldElement.
     for i in range(1,len(bkpt)):
@@ -477,6 +478,9 @@ def convex_vert_list(vertices):
         center = reduce(operator.add, map(vector, vertices)) / len(vertices)
         return sorted(vertices, cmp = lambda a,b: angle_cmp(a, b, center))
 
+def plot_kwds_hook(kwds):
+    pass
+
 def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal=False):
     """
     Return a plot of the 2d complex with shaded faces where delta_pi is 0.        
@@ -498,6 +502,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     faces = generate_maximal_additive_faces(fn)
     p = plot_2d_complex(fn)
     kwds = { 'legend_label': "Additive face" }
+    plot_kwds_hook(kwds)
     for face in faces:
         p += face.plot(**kwds)
         delete_one_time_plot_kwds(kwds)
@@ -505,20 +510,23 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     ### For non-subadditive functions, show the points where delta_pi is negative.
     if not known_minimal:
         nonsubadditive_vertices = generate_nonsubadditive_vertices(fn, reduced=False)
-        if fn.is_continuous():
-            nonsubadditive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices}
-            p += point(list(nonsubadditive_vertices), \
-                                color = "red", size = 50, legend_label="Subadditivity violated", zorder=-1)
-            p += point([ (y,x) for (x,y) in nonsubadditive_vertices ], color = "red", size = 50, zorder=-1)
-        elif nonsubadditive_vertices:
-            for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices:
-                p += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)))
-                if x != y:
-                    p += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)))
-            # add legend_label
-            p += point([(0,0)], color = "red", size = 50, legend_label="Subadditivity violated", zorder=-10)
-            p += point([(0,0)], color = "white", size = 50, zorder=-9)
-    if show_projection:
+        if nonsubadditive_vertices:
+            kwds = { 'legend_label' : "Subadditivity violated" }
+            plot_kwds_hook(kwds)
+            if fn.is_continuous():
+                nonsubadditive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices}
+                p += point(list(nonsubadditive_vertices),
+                           color = "red", size = 50, zorder=-1, **kwds)
+                p += point([ (y,x) for (x,y) in nonsubadditive_vertices ], color = "red", size = 50, zorder=-1)
+            else:
+                for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices:
+                    p += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)))
+                    if x != y:
+                        p += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)))
+                # add legend_label
+                p += point([(0,0)], color = "red", size = 50, zorder=-10, **kwds)
+                p += point([(0,0)], color = "white", size = 50, zorder=-9)
+    if show_projections:
         p += plot_projections_at_borders(fn)
     if show_function:
         p += plot_function_at_borders(fn)
@@ -556,11 +564,13 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", **kwd
                                                      not (y2 == y3 and y4 is None)):
             p += point([(x2, 0.3*y3 + 1), (-0.3*y3, x2)], color=color, pointsize=23, zorder=-1)
     # add legend_label
+    kwds = { 'legend_label': legend_label }
+    plot_kwds_hook(kwds)
     if fn.is_discrete():
-        p += point([(0,0)], color=color, pointsize=23,legend_label=legend_label, zorder=-10)
+        p += point([(0,0)], color=color, pointsize=23, zorder=-10, **kwds)
         p += point([(0,0)], color='white', pointsize=23, zorder=-9)
     else:
-        p += line([(0,0), (0,1)], color=color, legend_label=legend_label, zorder=-10)
+        p += line([(0,0), (0,1)], color=color, zorder=-10, **kwds)
         p += line([(0,0), (0,1)], color='white', zorder=-9)
     return p
 
@@ -590,6 +600,7 @@ def plot_projections_at_borders(fn):
     for i in range(3):
         #IJK_kwds[i]['legend_color'] = proj_plot_colors[i] # does not work in Sage 5.11
         IJK_kwds[i]['color'] = proj_plot_colors[i]
+        plot_kwds_hook(IJK_kwds[i])
     for face in generate_maximal_additive_faces(fn):
         I, J, K = face.minimal_triple
         I_J_verts.update(I) # no need for J because the x-y swapped face will also be processed
@@ -988,6 +999,7 @@ def plot_covered_intervals(function, covered_intervals=None, **plot_kwds):
     kwds.update(ticks_keywords(function))
     if uncovered_intervals:
         kwds.update({'legend_label': "not covered"})
+        plot_kwds_hook(kwds)
         graph += plot(function, [0,1], color = "black", **kwds)
         delete_one_time_plot_kwds(kwds)
     elif not function.is_continuous(): # to plot the discontinuity markers
@@ -995,6 +1007,7 @@ def plot_covered_intervals(function, covered_intervals=None, **plot_kwds):
         delete_one_time_plot_kwds(kwds)
     for i, component in enumerate(covered_intervals):
         kwds.update({'legend_label': "covered component %s" % (i+1)})
+        plot_kwds_hook(kwds)
         for interval in component:
             graph += plot(function.which_function((interval[0] + interval[1])/2), interval, color=colors[i], zorder=-1, **kwds)
             # zorder=-1 puts them below the discontinuity markers,
@@ -3119,6 +3132,7 @@ def show_plot(graphics, show_plots, tag, object=None, **show_kwds):
     a string (file name format such as "FILENAME-%s.pdf", 
     where %s is replaced by `tag`.
     """
+    plot_kwds_hook(show_kwds)
     if isinstance(show_plots, str):
         graphics.save(show_plots % tag, figsize=show_plots_figsize, **show_kwds)
     elif show_plots:

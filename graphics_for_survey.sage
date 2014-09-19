@@ -18,6 +18,7 @@ orig_ticks_keywords = igp.ticks_keywords
 orig_show_plots_figsize = igp.show_plots_figsize
 orig_rainbow = sage.plot.colors.rainbow
 orig_plot = sage.plot.plot.plot
+orig_plot_kwds_hook = igp.plot_kwds_hook
 orig_plot_rescaled_perturbation = igp.plot_rescaled_perturbation
 orig_proj_plot_colors = igp.proj_plot_colors
 
@@ -42,11 +43,15 @@ def dark_rainbow(num):
     return ['darkblue', 'darkgreen', 'firebrick', 'darkcyan', 'darkmagenta'][:num]
 
 def plot_no_legend(f, *args, **kwds):
+    # really should rather use plot_kwds_hook everywhere in functions.sage
+    plot_kwds_hook_no_legend(kwds)
+    return orig_plot(f, *args, **kwds)
+
+def plot_kwds_hook_no_legend(kwds):
     if 'legend_label' in kwds:
         del kwds['legend_label']
     if 'legend_title' in kwds:
         del kwds['legend_title']
-    return orig_plot(f, *args, **kwds)
 
 def dont_plot_rescaled_perturbation(*args, **kwds):
     return Graphics()
@@ -79,6 +84,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         igp.rainbow = dark_rainbow
         # override
         igp.plot = plot_no_legend
+        igp.plot_kwds_hook = plot_kwds_hook_no_legend
 
         ## Compendium procedures table
         procedure_graph('automorphism', gmic())
@@ -143,6 +149,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         igp.rainbow = orig_rainbow
         igp.ticks_keywords = orig_ticks_keywords
         igp.plot = orig_plot
+        igp.plot_kwds_hook = orig_plot_kwds_hook
         igp.proj_plot_colors = orig_proj_plot_colors
 
 os.system("cd %s && (pdflatex -synctex=1 -src-specials -interaction=nonstopmode igp-survey || pdflatex -synctex=1 -src-specials -interaction=nonstopmode igp-survey)" % (destdir,))
