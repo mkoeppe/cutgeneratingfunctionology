@@ -104,11 +104,6 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         igp.ticks_keywords = survey_ticks_keywords
 
         #plot_2d_complex(gj_2_slope()).save(destdir + "%s-2d_complex.pdf" % "gj_2_slope")
-        for name in [ 'bhk_irrational', 'gj_forward_3_slope', 'not_minimal_2' ]:
-            emit_tex_sage_command(name)
-            h = eval(name)()
-            plot_2d_diagram(h, True).save(destdir + "%s-2d_diagram.pdf" % name, figsize=10) # figsize??
-
         for name in [ 'not_extreme_1', 'bhk_irrational_extreme_limit_to_rational_nonextreme', 'drlm_not_extreme_1' ]:
             emit_tex_sage_command(name)
             h = eval(name)()
@@ -132,7 +127,16 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
             for s in [3, 50]:
                 h = eval(name)(s)
                 extremality_test(h, show_plots=destdir + "%s_%s-%%s.pdf" % (name, s))
-    
+
+        # Plot or re-plot some 2d diagrams with a different style
+        igp.proj_plot_colors = ['grey', 'grey', 'grey']
+        
+        for name in [ 'bhk_irrational', 'gj_forward_3_slope', 'not_minimal_2', 'not_extreme_1' ]:
+            emit_tex_sage_command(name)
+            h = eval(name)()
+            # FIXME: Get rid of legend!
+            plot_2d_diagram(h, True).save(destdir + "%s-2d_diagram.pdf" % name, figsize=6) # figsize??
+
     finally:
         igp.plot_rescaled_perturbation = orig_plot_rescaled_perturbation
         igp.show_plots_figsize = orig_show_plots_figsize
