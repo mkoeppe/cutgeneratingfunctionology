@@ -3142,6 +3142,8 @@ def plot_rescaled_perturbation(perturb, xmin=0, xmax=1, **kwds):
     return plot(rescale_to_amplitude(perturb, 1/10), xmin=xmin,
                 xmax=xmax, color='magenta', legend_label="perturbation (rescaled)", **kwds)
 
+check_perturbation_plot_three_perturbations = True
+
 def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbation', xmin=0, xmax=1, **show_kwds):
     epsilon_interval = fn._epsilon_interval = find_epsilon_interval(fn, perturb)
     epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
@@ -3149,12 +3151,26 @@ def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbatio
     if show_plots:
         logging.info("Plotting perturbation...")
         p = plot_rescaled_perturbation(perturb, xmin=xmin, xmax=xmax)
-        p += plot(fn + epsilon_interval[0] * perturb, xmin=xmin, xmax=xmax, color='red', legend_label="-perturbed (min)")
-        p += plot(fn + epsilon_interval[1] * perturb, xmin=xmin, xmax=xmax, color='blue', legend_label="+perturbed (max)")
-        if -epsilon != epsilon_interval[0]:
-            p += plot(fn + (-epsilon) * perturb, xmin=xmin, xmax=xmax, color='orange', legend_label="-perturbed (matches max)")
-        elif epsilon != epsilon_interval[1]:
-            p += plot(fn + epsilon * perturb, xmin=xmin, xmax=xmax, color='cyan', legend_label="+perturbed (matches min)")
+        if check_perturbation_plot_three_perturbations:
+            p += plot(fn + epsilon_interval[0] * perturb, xmin=xmin, xmax=xmax, color='red', legend_label="-perturbed (min)")
+            p += plot(fn + epsilon_interval[1] * perturb, xmin=xmin, xmax=xmax, color='blue', legend_label="+perturbed (max)")
+            if -epsilon != epsilon_interval[0]:
+                p += plot(fn + (-epsilon) * perturb, xmin=xmin, xmax=xmax, color='orange', legend_label="-perturbed (matches max)")
+            elif epsilon != epsilon_interval[1]:
+                p += plot(fn + epsilon * perturb, xmin=xmin, xmax=xmax, color='cyan', legend_label="+perturbed (matches min)")
+        else:
+            label = "-perturbed"
+            if -epsilon == epsilon_interval[0]:
+                label += " (min)"
+            else:
+                label += " (matches max)"
+            p += plot(fn - epsilon * perturb, xmin=xmin, xmax=xmax, color='red', legend_label=label)
+            label = "+perturbed"
+            if epsilon == epsilon_interval[1]:
+                label += " (max)"
+            else:
+                label += " (matches min)"
+            p += plot(fn + epsilon * perturb, xmin=xmin, xmax=xmax, color='blue', legend_label=label)
         p += plot(fn, xmin=xmin, xmax=xmax, color='black', thickness=2,
                  legend_label="original function", **ticks_keywords(fn))
         show_plot(p, show_plots, tag=show_plot_tag, object=fn, **show_kwds)

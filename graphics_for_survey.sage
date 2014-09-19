@@ -21,6 +21,7 @@ orig_plot = sage.plot.plot.plot
 orig_plot_kwds_hook = igp.plot_kwds_hook
 orig_plot_rescaled_perturbation = igp.plot_rescaled_perturbation
 orig_proj_plot_colors = igp.proj_plot_colors
+orig_check_perturbation_plot_three_perturbations = igp.check_perturbation_plot_three_perturbations
 
 def compendium_ticks_keywords(function, y_ticks_for_breakpoints=False):
     return {'ticks':[[], []], 
@@ -108,6 +109,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
 
         igp.show_plots_figsize = survey_figsize
         igp.ticks_keywords = survey_ticks_keywords
+        igp.check_perturbation_plot_three_perturbations = False
 
         #plot_2d_complex(gj_2_slope()).save(destdir + "%s-2d_complex.pdf" % "gj_2_slope")
         for name in [ 'not_extreme_1', 'bhk_irrational_extreme_limit_to_rational_nonextreme', 'drlm_not_extreme_1' ]:
@@ -153,5 +155,6 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         igp.plot = orig_plot
         igp.plot_kwds_hook = orig_plot_kwds_hook
         igp.proj_plot_colors = orig_proj_plot_colors
+        igp.check_perturbation_plot_three_perturbations = orig_check_perturbation_plot_three_perturbations
 
 os.system("cd %s && (pdflatex -synctex=1 -src-specials -interaction=nonstopmode igp-survey || pdflatex -synctex=1 -src-specials -interaction=nonstopmode igp-survey)" % (destdir,))
