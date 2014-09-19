@@ -33,12 +33,43 @@ def compendium_ticks_keywords(function, y_ticks_for_breakpoints=False):
 
 def survey_ticks_keywords(function, y_ticks_for_breakpoints=False):
     return {'ticks':[[0,1], [0,1]], 
+            'tick_formatter': [['$0$', '$1$'], ['$0$', '$1$']],
             'gridlines': True,
             #'thickness': 3, 
             #'frame': True, 
             #'axes': False, 
             #'fig_tight': False
     }
+
+def c7_ticks_keywords(function, y_ticks_for_breakpoints=False):
+    xticks = [i/7 for i in range(7+1)]
+    xtick_formatter = [ "$%s$" % latex(x) for x in xticks ]
+    return {'ticks': [xticks, [1]],
+            'tick_formatter': [xtick_formatter, ['$1$']]}
+
+def latex_formatter_or_empty(x, labels_list = [0, 1]):
+    if x in labels_list:
+        return "$%s$" % latex(x)
+    else:
+        return ""
+
+def no_labels_ticks_keywords(function, y_ticks_for_breakpoints=False):
+    xticks = function.end_points()
+    xtick_formatter = [ latex_formatter_or_empty(x) for x in xticks ]
+    #xtick_formatter = 'latex'  # would not show rationals as fractions
+    ytick_formatter = None
+    if y_ticks_for_breakpoints:
+        yticks = xticks
+        ytick_formatter = xtick_formatter
+    else:
+        #yticks = 1/5
+        yticks = uniq([ y for limits in function.limits_at_end_points() for y in limits if y is not None ])
+        ytick_formatter = [ latex_formatter_or_empty(y) ]
+    ## FIXME: Can we influence ticks placement as well so that labels don't overlap?
+    ## or maybe rotate labels 90 degrees?
+    return {'ticks': [xticks, yticks],
+            'gridlines': True,
+            'tick_formatter': [xtick_formatter, ytick_formatter]}
 
 def dark_rainbow(num):
     return ['darkblue', 'darkgreen', 'firebrick', 'darkcyan', 'darkmagenta'][:num]
@@ -112,7 +143,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         igp.check_perturbation_plot_three_perturbations = False
 
         #plot_2d_complex(gj_2_slope()).save(destdir + "%s-2d_complex.pdf" % "gj_2_slope")
-        for name in [ 'not_extreme_1', 'bhk_irrational_extreme_limit_to_rational_nonextreme', 'drlm_not_extreme_1' ]:
+        for name in [ 'not_extreme_1', 'bhk_irrational_extreme_limit_to_rational_nonextreme' ]:
             emit_tex_sage_command(name)
             h = eval(name)()
             extremality_test(h, show_plots=destdir + "%s-%%s.pdf" % name)
@@ -141,11 +172,23 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
 
         # Plot or re-plot some 2d diagrams with a different style
         igp.proj_plot_colors = ['grey', 'grey', 'grey']
+        igp.ticks_keywords = no_labels_ticks_keywords
         
         for name in [ 'bhk_irrational', 'gj_forward_3_slope', 'not_minimal_2', 'not_extreme_1' ]:
             emit_tex_sage_command(name)
             h = eval(name)()
             plot_2d_diagram(h, True).save(destdir + "%s-2d_diagram.pdf" % name, figsize=6) # figsize??
+
+        igp.ticks_keywords = c7_ticks_keywords
+
+        for name in [ 'drlm_not_extreme_1' ]:
+            emit_tex_sage_command(name)
+            h = eval(name)()
+            extremality_test(h, show_plots=destdir + "%s-%%s.pdf" % name)
+        for oversampling in [1, 4]:
+            hr = restrict_to_finite_group(h, oversampling=oversampling)
+            plot_something(hr).save(destdir + "%s-restricted-%s.pdf" % (name, oversampling), figsize=survey_figsize)
+            extremality_test(hr, show_plots=destdir + "%s-restricted-%s-%%s.pdf" % (name, oversampling))
 
     finally:
         igp.plot_rescaled_perturbation = orig_plot_rescaled_perturbation
