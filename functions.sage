@@ -1720,6 +1720,9 @@ class FastPiecewise (PiecewisePolynomial):
 
     __rmul__ = __mul__
 
+    def __div__(self, other):
+        return self * (1 / other)
+
     def __sub__(self, other):
         return self + (-other)
 
