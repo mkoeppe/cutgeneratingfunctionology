@@ -445,3 +445,24 @@ def ll_strong_fractional_bad_figure_3_corrected():
                        open_piece((2/3, 2/3 - 1/2), (1, 1 - 1/2)),
                        singleton_piece(1, 0)])
     return h * (1/f)
+
+def california_ip():
+    """
+    The California Integer Programming cut, to be plotted with rgbcolor=(192, 54, 44).
+    Not minimal.
+    """
+    x = var('x')
+    scale = 1/10
+    shift = 1
+    g1(x) = scale * (x^2 + 4*x + 4) + shift
+    g2(x) = scale * x^2 + shift
+    g3(x) = scale * (x^2 - 4*x + 4) + shift
+    ggb = FastPiecewise([([-2, -1], g1),
+                         ([-1, 1], g2),
+                        ([1, 2], g3)])
+    pieces = [[(0, 5/14), FastLinearFunction(14/5, QQ(0))],
+              [(6/7, QQ(1)), FastLinearFunction(-QQ(7), QQ(7))]]
+    pieces += [ transform_piece_to_interval(piece, [5/14, 6/7], [-2, 2]) 
+                for piece in ggb.list() ]
+    logging.warn("This function is not piecewise linear; code for handling this function is not implemented.")
+    return FastPiecewise(pieces)

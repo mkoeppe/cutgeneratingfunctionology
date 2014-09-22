@@ -65,8 +65,6 @@ def no_labels_ticks_keywords(function, y_ticks_for_breakpoints=False):
         #yticks = 1/5
         yticks = uniq([ y for limits in function.limits_at_end_points() for y in limits if y is not None ])
         ytick_formatter = [ latex_formatter_or_empty(y) ]
-    ## FIXME: Can we influence ticks placement as well so that labels don't overlap?
-    ## or maybe rotate labels 90 degrees?
     return {'ticks': [xticks, yticks],
             'gridlines': True,
             'tick_formatter': [xtick_formatter, ytick_formatter]}
@@ -110,14 +108,18 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
 
     try:
 
-        # override function!
-        igp.ticks_keywords = compendium_ticks_keywords
         # override function to get darker colors suitable for print
         igp.rainbow = dark_rainbow
         # override
         igp.plot = plot_no_legend
         igp.plot_kwds_hook = plot_kwds_hook_no_legend
 
+        # Graph
+        
+        load('graphics_for_survey_poset.sage')
+
+        # override function!
+        igp.ticks_keywords = compendium_ticks_keywords
         ## Compendium procedures table
         procedure_graph('automorphism', gmic())
         procedure_graph('multiplicative_homomorphism', gmic(), multiplicative_homomorphism(gmic(), 3))
