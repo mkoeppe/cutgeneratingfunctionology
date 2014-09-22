@@ -981,7 +981,7 @@ def delete_one_time_plot_kwds(kwds):
     if 'tick_formatter' in kwds:
         del kwds['tick_formatter']
 
-def plot_covered_intervals(function, covered_intervals=None, **plot_kwds):
+def plot_covered_intervals(function, covered_intervals=None, uncovered_color='black', **plot_kwds):
     """
     Return a plot of the covered and uncovered intervals of `function`.
     """
@@ -1000,10 +1000,10 @@ def plot_covered_intervals(function, covered_intervals=None, **plot_kwds):
     if uncovered_intervals:
         kwds.update({'legend_label': "not covered"})
         plot_kwds_hook(kwds)
-        graph += plot(function, [0,1], color = "black", **kwds)
+        graph += plot(function, color = uncovered_color, **kwds)
         delete_one_time_plot_kwds(kwds)
     elif not function.is_continuous(): # to plot the discontinuity markers
-        graph += plot(function, [0,1], color = "black", **kwds)
+        graph += plot(function, color = uncovered_color, **kwds)
         delete_one_time_plot_kwds(kwds)
     for i, component in enumerate(covered_intervals):
         kwds.update({'legend_label': "covered component %s" % (i+1)})
