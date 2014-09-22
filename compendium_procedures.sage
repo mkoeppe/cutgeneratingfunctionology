@@ -31,6 +31,28 @@ def transform_coho_interval(interval, shift, divisor):
         else:
             return closed_or_open_or_halfopen_interval(y, x, interval.right_closed, interval.left_closed)
 
+def transform_piece(piece, shift, divisor):
+    """Transform the `piece` = (interval, function) of a piecewise
+    function by shifting `interval` by `shift` and then dividing it by
+    `divisor`.
+    """
+    (interval, function) = piece
+    try: 
+        new_func = FastLinearFunction(function._slope * divisor, function._intercept - function._slope * shift)
+    except AttributeError:
+        x = var('x')
+        g(x) = x * divisor - shift
+        new_func = compose(function, g)
+    return (transform_coho_interval(interval, shift, divisor), new_func)
+
+def transform_piece_to_interval(piece, new_interval, old_interval=None):
+    interval, function = piece
+    if old_interval is None:
+        old_interval = interval
+    divisor = (old_interval[1] - old_interval[0]) / (new_interval[1] - new_interval[0])
+    shift = new_interval[0] * divisor - old_interval[0]
+    return transform_piece(piece, shift, divisor)
+
 def multiplicative_homomorphism(function, multiplier):
     """
     Construct the function x -> function(multiplier * x). 
@@ -52,9 +74,8 @@ def multiplicative_homomorphism(function, multiplier):
     else: # multiplier < 0
         i_range = range(multiplier, 0)
     # This really wants to be in a compose method of FastLinear.
-    new_pairs = [ (transform_coho_interval(interval, i, multiplier), \
-                   FastLinearFunction(function._slope * multiplier, function._intercept - function._slope * i))
-                  for (interval, function) in function.list() \
+    new_pairs = [ transform_piece(piece, i, multiplier)
+                  for piece in function.list() \
                   for i in i_range ]
     return FastPiecewise(new_pairs)
 
@@ -132,19 +153,14 @@ def projected_sequential_merge(g, n=1):
     ith = bisect_left(g.end_points(), f)
     l = len(g.intervals())
     multiplier = (1 + n - f) / (1 - r)
-    new_pairs = [ (transform_coho_interval(interval, 0, n), \
-                   FastLinearFunction(function._slope * n, function._intercept))
-                  for (interval, function) in g.list()[0:ith]]
+    new_pairs = [ transform_piece(piece, 0, n)
+                  for piece in g.list()[0:ith]]
     i = r * multiplier - f
-    new_pairs = new_pairs + \
-                [ (transform_coho_interval(interval, i, multiplier), \
-                   FastLinearFunction(function._slope * multiplier, function._intercept - function._slope * i))
-                  for (interval, function) in g.list()[ith:l] ]
-    new_pairs = new_pairs + \
-                [ (transform_coho_interval(interval, j + 1/(1-r), multiplier), \
-                   FastLinearFunction(function._slope * multiplier, function._intercept - function._slope * (j + 1/(1-r))))
-                  for (interval, function) in g.list() \
-                  for j in range(n) ]
+    new_pairs += [ transform_piece(piece, i, multiplier)
+                   for piece in g.list()[ith:l] ]
+    new_pairs += [ transform_piece(piece, j + 1/(1-r), multiplier) 
+                   for piece in g.list()
+                   for j in range(n) ]
     new_g = FastPiecewise(new_pairs)
     h = (1 / (n+1)) * xi + (1 / (n+1)) * new_g
     return h
