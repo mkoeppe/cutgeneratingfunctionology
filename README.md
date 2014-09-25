@@ -4,6 +4,15 @@ infinite-group-relaxation-code
 This is Sage code for computation and experimentation with the (1-dimensional) Gomory-Johnson infinite group problem,
 including an electronic compendium of extreme functions.
 
+Authors
+-------
+
+See file AUTHORS
+
+License
+-------
+
+The code is released under the GNU General Public License, version 2, or any later version as published by the Free Software Foundation.
 
 How to run the code in a local copy of Sage
 -------------------------------------------
