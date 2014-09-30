@@ -127,6 +127,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         procedure_graph('restrict_to_finite_group', drlm_not_extreme_1())
         procedure_graph('restrict_to_finite_group_3', drlm_not_extreme_1(), restrict_to_finite_group(drlm_not_extreme_1(), oversampling=3))
         procedure_graph('interpolate_to_infinite_group', restrict_to_finite_group(gmic()))
+        procedure_graph('two_slope_fill_in', restrict_to_finite_group(gmic()))
 
         ## Compendium tables
         for name in [ 'll_strong_fractional', 'hildebrand_2_sided_discont_1_slope_1', 'hildebrand_2_sided_discont_2_slope_1', 'hildebrand_discont_3_slope_1', 'dr_projected_sequential_merge_3_slope', 'chen_4_slope', 'gmic', 'gj_2_slope', 'gj_2_slope_repeat', 'dg_2_step_mir', 'kf_n_step_mir', 'gj_forward_3_slope', 'drlm_backward_3_slope', 'drlm_2_slope_limit', 'drlm_2_slope_limit_1_1', 'bhk_irrational', 'bccz_counterexample', 'drlm_3_slope_limit', 'dg_2_step_mir_limit', 'rlm_dpl1_extreme_3a', 'hildebrand_5_slope_22_1', 'hildebrand_5_slope_24_1', 'hildebrand_5_slope_28_1' ]:

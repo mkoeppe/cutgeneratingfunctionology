@@ -23,7 +23,9 @@ for n in [0, 1, 2, 3, Infinity]:
             #xtick_formatter += ["", ""]
     yticks = [1]
     ytick_formatter = ["$1$"]
-    g = plot(h, ticks=[xticks, yticks], tick_formatter=[xtick_formatter, ytick_formatter], gridlines=True)
+    g = plot(h, ticks=[xticks, yticks],
+             tick_formatter=[xtick_formatter, ytick_formatter],
+             gridlines=True, color='black')
     if n != Infinity:
         for i, fn in h.list():
             if fn._slope < 0:
