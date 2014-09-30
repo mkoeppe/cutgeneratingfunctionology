@@ -12,6 +12,7 @@ def not_minimal_1(): # was not_minimal.sage
     A non-minimal function.
 
     EXAMPLES::
+
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = not_minimal_1()
         sage: minimality_test(h, False)
@@ -24,6 +25,7 @@ def not_minimal_2(): # was not_minimal_2.sage
     A non-minimal function.
 
     EXAMPLES::
+
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = not_minimal_2()
         sage: minimality_test(h, False)
@@ -36,6 +38,7 @@ def not_extreme_1(): # was symmetric_rational_function1.sage
     A non-extreme, minimal function.
 
     EXAMPLES::
+
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = not_extreme_1()
         sage: minimality_test(h, False)
@@ -58,6 +61,7 @@ def drlm_not_extreme_1():
     group problem of order 7 from Araoz, Evans, Gomory and Johnson.
 
     EXAMPLES::
+
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = drlm_not_extreme_1()
         sage: minimality_test(h, False)
@@ -68,17 +72,20 @@ def drlm_not_extreme_1():
     return piecewise_function_from_robert_txt_file("dey-richard-not-extreme.txt")
 
 def drlm_not_extreme_2():
-    """Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
+    """
+    Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
     On the extreme inequalities of infinite group problems,
     Mathematical Programming 121 (2009), no. 1, 145–170,
     doi:10.1007/s10107-008-0229-6.
     Figure 3.
-    Note: this is not any of drlm_2_slope_limit() funcitons,
+
+    Note: this is not any of drlm_2_slope_limit() functions,
           since here s_positive = 3, whereas in
           drlm_2_slope_limit(f=1/2, nb_pieces_left=2, nb_pieces_right=2),
           the s_positive has to be 4.
 
     EXAMPLES::
+
         sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
         sage: h = drlm_not_extreme_2()
         sage: minimality_test(h, False)
@@ -106,6 +113,7 @@ def phi_s_in_drlm_not_extreme_2(s=10):
     Mathematical Programming 121 (2009), no. 1, 145–170,
     doi:10.1007/s10107-008-0229-6.
     Figure 2.
+
     s is an integer;
     phi_s_in_drlm_not_extreme_2(s) is an extreme function.
     The pointwise limit as s tends to \infty is not extreme. see drlm_not_extreme_2()
@@ -113,6 +121,7 @@ def phi_s_in_drlm_not_extreme_2(s=10):
     Note: s > 2
 
     EXAMPLES::
+
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = phi_s_in_drlm_not_extreme_2()
         sage: extremality_test(h, False)
@@ -150,6 +159,7 @@ def bhk_irrational_extreme_limit_to_rational_nonextreme(n=Infinity):
     and hence not extreme. 
 
     EXAMPLES::
+
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = bhk_irrational_extreme_limit_to_rational_nonextreme(1)
         sage: extremality_test(h, False)
@@ -177,6 +187,7 @@ def drlm_gj_2_slope_extreme_limit_to_nonextreme(s=Infinity):
     whose limit (s = Infinity) is a `drlm_not_extreme_2` function which is not extreme.
 
     EXAMPLES::
+
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = drlm_gj_2_slope_extreme_limit_to_nonextreme(3)
         sage: extremality_test(h, False)
@@ -209,6 +220,7 @@ def hildebrand_5_slope_22_1():
     One of Hildebrand's world-record 5-slope functions.
 
     EXAMPLES::
+
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = hildebrand_5_slope_22_1()
         sage: extremality_test(h, False)
@@ -221,6 +233,7 @@ def hildebrand_5_slope_24_1():
     One of Hildebrand's world-record 5-slope functions.
 
     EXAMPLES::
+
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = hildebrand_5_slope_24_1()
         sage: extremality_test(h, False)
@@ -233,6 +246,7 @@ def hildebrand_5_slope_28_1():
     One of Hildebrand's world-record 5-slope functions.
 
     EXAMPLES::
+
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = hildebrand_5_slope_28_1()
         sage: extremality_test(h, False)
@@ -248,22 +262,27 @@ def chen_3_slope_not_extreme(f=1/2, lam=8):
     -\pi(C ) + \pi(CC) + \pi(D) - \pi(DD) = 0. This relation should not exist in E(\pi).
     Returned function can be extreme or NOT. Need to use extemality_test() to check.
 
-    Parameters:
+    Parameters::
+
         f (real) \in (0,1);
         lam (real): the first slope has length 1/lam.
 
-    Requirement:
+    Requirement::
+
         0 < f <= 1/2;
         lam > 3*max(1/f, 1 /(1-f))
 
-    Examples:
+    Examples::
+
         [KChen_thesis]  p.33, fig.7 NOT extreme::
+
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = chen_3_slope_not_extreme(f=1/2, lam=8)
             sage: extremality_test(h, False)
             False
 
-        extreme example (with parameters not satisfying the requirement)::
+        extreme example (with parameters NOT satisfying the requirement)::
+
             sage: h = chen_3_slope_not_extreme(f=2/3, lam=20)
             sage: extremality_test(h, False)
             True
@@ -283,12 +302,13 @@ def chen_3_slope_not_extreme(f=1/2, lam=8):
 
 def dr_projected_sequential_merge_3_slope(f=2/3, lambda_1=1/4, lambda_2=1/4, n=1):
     """
-    construct the one-dimensional projected sequential merge inequality: h = g @_n^1 xi, where
+    Construct the one-dimensional projected sequential merge inequality: h = g @_n^1 xi, where
     g = multiplicative_homomorphism(gj_forward_3_slope(f=f, lambda_1=lambda_1, lambda_2=lambda_2),-1);
     xi = gmic(f/n).
     see projected_sequential_merge()
 
     EXAMPLES::
+
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = dr_projected_sequential_merge_3_slope()
         sage: extremality_test(h, False)
@@ -329,6 +349,7 @@ def hildebrand_2_sided_discont_1_slope_1():
     Constructed by Robert Hildebrand (previously unpublished). 
 
     EXAMPLES::
+
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = hildebrand_2_sided_discont_1_slope_1()
         sage: extremality_test(h, False)
@@ -353,6 +374,7 @@ def hildebrand_2_sided_discont_2_slope_1():
     Constructed by Robert Hildebrand (previously unpublished). 
 
     EXAMPLES::
+
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = hildebrand_2_sided_discont_2_slope_1()
         sage: extremality_test(h, False)
@@ -379,6 +401,7 @@ def hildebrand_discont_3_slope_1():
     Constructed by Robert Hildebrand (previously unpublished).
 
     EXAMPLES::
+
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = hildebrand_discont_3_slope_1()
         sage: extremality_test(h, False)
@@ -398,6 +421,7 @@ def gomory_fractional(f=4/5):
     Not minimal.
 
     EXAMPLES:
+
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = gomory_fractional(f=4/5)
         sage: minimality_test(h, f=4/5)
@@ -416,6 +440,7 @@ def ll_strong_fractional_bad_figure_3():
     This function is not subadditive, contrary to what is claimed.
 
     EXAMPLES::
+
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = ll_strong_fractional_bad_figure_3()
         sage: minimality_test(h, False)
@@ -433,6 +458,7 @@ def ll_strong_fractional_bad_figure_3_corrected():
     looked like; divided by its value at f=2/3 to normalize.
 
     EXAMPLES::
+
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = ll_strong_fractional_bad_figure_3_corrected()
         sage: extremality_test(h, False)

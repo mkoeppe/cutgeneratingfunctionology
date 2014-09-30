@@ -17,9 +17,13 @@ The code is released under the GNU General Public License, version 2, or any lat
 How to run the code in a local copy of Sage
 -------------------------------------------
 
-1. Type: from igp import *
+1. Install Sage from http://www.sagemath.org/
 
-2. ......
+2. From the directory of the infinite-group-relaxation-code, start Sage.
+
+3. Type: from igp import *
+
+4. Follow the instructions in demo.sage.
 
 
 How to run the code online via cloud.sagemath.com
@@ -44,9 +48,7 @@ How to run the code online via cloud.sagemath.com
 8. Type:  from igp import *
    and hit shift+enter
 
-9. ......
-
-
+9. Follow the instructions in demo.sage
 
 
 To update the code to the latest version:

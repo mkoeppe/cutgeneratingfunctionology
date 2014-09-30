@@ -56,16 +56,18 @@ def transform_piece_to_interval(piece, new_interval, old_interval=None):
 def multiplicative_homomorphism(function, multiplier):
     """
     Construct the function x -> function(multiplier * x). 
+
     `multiplier` must be a nonzero integer.
 
     EXAMPLES::
-    sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
-    sage: h = multiplicative_homomorphism(gmic(f=4/5), 3)
-    sage: extremality_test(h, False, f=4/15) # Provide f to suppress warning
-    True
-    sage: h = multiplicative_homomorphism(gmic(f=4/5), -2)
-    sage: extremality_test(h, False, f=3/5)
-    True
+
+        sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
+        sage: h = multiplicative_homomorphism(gmic(f=4/5), 3)
+        sage: extremality_test(h, False, f=4/15) # Provide f to suppress warning
+        True
+        sage: h = multiplicative_homomorphism(gmic(f=4/5), -2)
+        sage: extremality_test(h, False, f=3/5)
+        True
     """
     if not multiplier in ZZ or multiplier == 0:
         raise ValueError, "Bad parameter multiplier, needs to be a nonzero integer."
@@ -91,13 +93,14 @@ def automorphism(function, factor=-1):
     the group order.
 
     EXAMPLES::
-    sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
-    sage: h = automorphism(gmic(f=4/5))
-    sage: extremality_test(h, False, f=1/5)
-    True
-    sage: h = automorphism(restrict_to_finite_group(gmic(f=4/5)), 2)
-    sage: extremality_test(h, False)
-    True
+
+        sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
+        sage: h = automorphism(gmic(f=4/5))
+        sage: extremality_test(h, False, f=1/5)
+        True
+        sage: h = automorphism(restrict_to_finite_group(gmic(f=4/5)), 2)
+        sage: extremality_test(h, False)
+        True
     """
     if function.is_discrete():
         order = finite_group_order_from_function_f_oversampling_order(function, oversampling=None)
@@ -135,13 +138,13 @@ def projected_sequential_merge(g, n=1):
     Examples:
         [39]  p.311, fig.5 ::
 
-        sage: logging.disable(logging.INFO)
-        sage: g = multiplicative_homomorphism(gj_forward_3_slope(f=2/3, lambda_1=1/4, lambda_2=1/4), -1)
-        sage: extremality_test(g, False)
-        True
-        sage: h = projected_sequential_merge(g, n=1)
-        sage: extremality_test(h, False)
-        True
+            sage: logging.disable(logging.INFO)
+            sage: g = multiplicative_homomorphism(gj_forward_3_slope(f=2/3, lambda_1=1/4, lambda_2=1/4), -1)
+            sage: extremality_test(g, False)
+            True
+            sage: h = projected_sequential_merge(g, n=1)
+            sage: extremality_test(h, False)
+            True
 
     Reference:
         [39] SS Dey, JPP Richard, Relations between facets of low-and high-dimensional group problems,
@@ -234,38 +237,39 @@ def restrict_to_finite_group(function, f=None, oversampling=None, order=None):
                 I. The one-dimensional case, Mathematics of Operations Research (2014), doi:10. 1287/moor.2014.0660
 
     EXAMPLES::
-    sage: logging.disable(logging.WARN)
-    sage: g = gj_2_slope()
-    sage: extremality_test(g)
-    True
-    sage: gf = restrict_to_finite_group(g)
-    sage: minimality_test(gf)
-    True
-    sage: finite_dimensional_extremality_test(gf)
-    True
-    sage: h = drlm_not_extreme_1()
-    sage: extremality_test(h)
-    False
-    sage: h7 = restrict_to_finite_group(h)
-    sage: h7.end_points()
-    [0, 1/7, 2/7, 3/7, 4/7, 5/7, 6/7, 1]
-    sage: minimality_test(h7)
-    True
-    sage: finite_dimensional_extremality_test(h7)
-    True
-    sage: h21 = restrict_to_finite_group(h, oversampling=3)
-    sage: minimality_test(h21)
-    True
-    sage: finite_dimensional_extremality_test(h21)
-    False
-    sage: h28 = restrict_to_finite_group(h, order=28)
-    sage: minimality_test(h28)
-    True
-    sage: finite_dimensional_extremality_test(h28)
-    False
-    sage: h5 = restrict_to_finite_group(h, order=5)
-    sage: minimality_test(h5)
-    False
+
+        sage: logging.disable(logging.WARN)
+        sage: g = gj_2_slope()
+        sage: extremality_test(g)
+        True
+        sage: gf = restrict_to_finite_group(g)
+        sage: minimality_test(gf)
+        True
+        sage: finite_dimensional_extremality_test(gf)
+        True
+        sage: h = drlm_not_extreme_1()
+        sage: extremality_test(h)
+        False
+        sage: h7 = restrict_to_finite_group(h)
+        sage: h7.end_points()
+        [0, 1/7, 2/7, 3/7, 4/7, 5/7, 6/7, 1]
+        sage: minimality_test(h7)
+        True
+        sage: finite_dimensional_extremality_test(h7)
+        True
+        sage: h21 = restrict_to_finite_group(h, oversampling=3)
+        sage: minimality_test(h21)
+        True
+        sage: finite_dimensional_extremality_test(h21)
+        False
+        sage: h28 = restrict_to_finite_group(h, order=28)
+        sage: minimality_test(h28)
+        True
+        sage: finite_dimensional_extremality_test(h28)
+        False
+        sage: h5 = restrict_to_finite_group(h, order=5)
+        sage: minimality_test(h5)
+        False
 
     Reference:
         [IR2] A. Basu, R. Hildebrand, and M. Köppe, Equivariant perturbation in Gomory and Johnson’s infinite group problem.
@@ -277,36 +281,36 @@ def restrict_to_finite_group(function, f=None, oversampling=None, order=None):
 
 def interpolate_to_infinite_group(function):
     """Interpolate the given `function` to make it a function in the
-infinite group problem.  
+    infinite group problem.  
 
-`function` may be a function of a finite (cyclic) group problem, 
-represented as a `FastPiecewise` with singleton intervals within [0,1] as its parts.
+    `function` may be a function of a finite (cyclic) group problem, 
+    represented as a `FastPiecewise` with singleton intervals within [0,1] as its parts.
 
-(`function` is actually allowed, however, to be more general; it can be any `FastPiecewise`.)
-
+    (`function` is actually allowed, however, to be more general; it can be any `FastPiecewise`.)
+    
     See `restrict_to_finite_group` for a discussion of the relation of
     the finite and infinite group problem.
 
     EXAMPLES::
     
-    The same as restrict_to_finite_group(drlm_not_extreme_1()):
+    The same as restrict_to_finite_group(drlm_not_extreme_1())::
 
-    sage: logging.disable(logging.WARN)
-    sage: h7 = discrete_function_from_points_and_values([0/7, 1/7, 2/7, 3/7, 4/7, 5/7, 6/7, 7/7], [0/10, 4/10, 8/10, 5/10, 2/10, 6/10, 10/10, 0/10])
-    sage: finite_dimensional_extremality_test(h7)
-    True
-    sage: h = interpolate_to_infinite_group(h7)
-    sage: extremality_test(h)
-    False
-    sage: h21 = restrict_to_finite_group(h, oversampling=3)
-    sage: finite_dimensional_extremality_test(h21)
-    False
-    sage: h28 = restrict_to_finite_group(h, oversampling=4)
-    sage: finite_dimensional_extremality_test(h28)
-    False
-    sage: h14 = restrict_to_finite_group(h, oversampling=2) # for this example, even factor 2 works!
-    sage: finite_dimensional_extremality_test(h14)
-    False
+        sage: logging.disable(logging.WARN)
+        sage: h7 = discrete_function_from_points_and_values([0/7, 1/7, 2/7, 3/7, 4/7, 5/7, 6/7, 7/7], [0/10, 4/10, 8/10, 5/10, 2/10, 6/10, 10/10, 0/10])
+        sage: finite_dimensional_extremality_test(h7)
+        True
+        sage: h = interpolate_to_infinite_group(h7)
+        sage: extremality_test(h)
+        False
+        sage: h21 = restrict_to_finite_group(h, oversampling=3)
+        sage: finite_dimensional_extremality_test(h21)
+        False
+        sage: h28 = restrict_to_finite_group(h, oversampling=4)
+        sage: finite_dimensional_extremality_test(h28)
+        False
+        sage: h14 = restrict_to_finite_group(h, oversampling=2) # for this example, even factor 2 works!
+        sage: finite_dimensional_extremality_test(h14)
+        False
 
     """
     # TODO: Allow `function` to be just a list of (x, y) pairs.
