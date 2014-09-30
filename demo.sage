@@ -126,3 +126,29 @@ interpolate_to_infinite_group?
 ## There's also this:
 projected_sequential_merge?
 
+## Sometimes, for complicated functions, the graphics do not show
+## enough detail.  
+h = bhk_irrational(delta=[1/200, 3/200])
+extremality_test(h, True)
+
+## :-(
+
+## There are two ways to see more.
+##
+## Approach 1: Use specific plotting functions to zoom in to some
+## areas of interest.
+
+## The 2d diagram, showing non-subadditive vertices and additive faces.
+show(plot_2d_diagram(h), xmin=0.15, xmax=0.35, ymin=0.15, ymax=0.35)
+
+## The diagram of covered intervals.
+show(plot_covered_intervals(h), xmin=0.15, xmax=0.35, ymin=0.22, ymax=0.55)
+
+## The completion diagram (to be explained in a forthcoming paper).
+show(plot_completion_diagram(h), xmin=0.28, xmax=0.52, ymin=0.25, ymax=0.35)
+
+## Approach 2: Increase the plotting figure size (the default is 10).
+igp.show_plots_figsize = 40
+h = bhk_irrational(delta=[1/200, 3/200])
+extremality_test(h, True)
+
