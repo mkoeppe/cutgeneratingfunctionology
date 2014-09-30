@@ -9,6 +9,12 @@ SAGEFILES =					\
 	functions.sage				\
 	survey_examples.sage
 
+all:
+	@echo "No need to 'make' anything. Just run it in Sage; see README.md"
+
+install:
+	@echo "No need to install anything. Just run it in Sage; see README.md"
+
 check:
 	$(SAGE) -tp 4 $(SAGEFILES)
 
