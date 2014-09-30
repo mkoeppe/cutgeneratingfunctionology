@@ -3423,12 +3423,22 @@ def piecewise_function_from_robert_txt_file(filename):
         raise ValueError, "Lines 3/4 on f and value at f are not consistent with line 1."
     return piecewise_function_from_breakpoints_and_values([ x / xscale for x in xvalues ] + [1], [y / yf for y in yvalues] + [0])
 
-def random_piecewise_function(xgrid, ygrid, continuity=True, symmetry=True):
+def random_piecewise_function(xgrid=10, ygrid=10, continuous_proba=1, symmetry=True):
+    """
+    return a random piecewise function with breakpoints on xgrid and values on ygrid.
+    continuous_proba (in [0,1]) indicates the probability that the function is (left/right) continuous at a breakpoint. 
+    set continuous_proba = 1 to get a continuous random function.
+    set symmetry=True to get a symmetric function. 
+
+    EXAMPLES::
+    sage: h = random_piecewise_function(10,10, 4/5, True)
+    """
     xvalues = [0] + [ x/xgrid for x in range(1, xgrid) ] + [1]
     f = randint(1, xgrid - 1)
     left_midpoint = f / 2
     right_midpoint = (f+xgrid) / 2
-    yvalues = [0] + [ randint(0, ygrid) / ygrid for i in range(1, f) ] + [1] + [ randint(0, ygrid) / ygrid for i in range(f+1, xgrid) ]+ [0]
+    #yvalues = [0] + [ randint(0, ygrid) / ygrid for i in range(1, f) ] + [1] + [ randint(0, ygrid) / ygrid for i in range(f+1, xgrid) ]+ [0]
+    yvalues = [0] + [ randint(1, ygrid-1) / ygrid for i in range(1, f) ] + [1] + [ randint(1, ygrid-1) / ygrid for i in range(f+1, xgrid) ]+ [0]
     if symmetry:
         for i in range(1, ceil(left_midpoint)):
             yvalues[f-i] = 1 - yvalues[i]
@@ -3438,12 +3448,24 @@ def random_piecewise_function(xgrid, ygrid, continuity=True, symmetry=True):
             yvalues[f + xgrid - i] = 1 - yvalues[i]
         if right_midpoint in ZZ:
             yvalues[right_midpoint] = 1/2
-    if continuity:
+    if continuous_proba == 1:
         return piecewise_function_from_breakpoints_and_values(xvalues, yvalues)
     else:
         piece1 = [ [singleton_interval(xvalues[i]), FastLinearFunction(0, yvalues[i])] for i in range(xgrid+1) ]
-        leftlimits = [0] + [ randint(0, ygrid) / ygrid for i in range(1, xgrid+1) ]
-        rightlimits = [ randint(0, ygrid) / ygrid for i in range(0, xgrid) ] + [0]
+        leftlimits = [0]
+        rightlimits = []
+        for i in range(0, ygrid):
+            p = random()
+            if p > continuous_proba:
+                rightlimits.append(randint(0, ygrid) / ygrid)
+            else:
+                rightlimits.append(yvalues[i])
+            p = random()
+            if p > continuous_proba:
+                leftlimits.append(randint(0, ygrid) / ygrid)
+            else:
+                leftlimits.append(yvalues[i+1])
+        rightlimits.append(0)
         if symmetry:
             for i in range(1, ceil(left_midpoint)):
                 leftlimits[f-i] = 1 - rightlimits[i]
