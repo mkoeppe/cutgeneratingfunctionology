@@ -353,7 +353,7 @@ class Face:
                                    (y,trip[0][0],trip[0][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
         elif self.is_2D():
             ## Sorting is necessary for this example:
-            ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/reu-2013/Sage_Function/dey-richard-not-extreme.txt"))
+            ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("data/dey-richard-not-extreme.txt"))
             return polygon(convex_vert_list(vert), color=fill_color, **kwds)
 
     def is_directed_move(self):

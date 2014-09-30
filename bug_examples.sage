@@ -110,7 +110,7 @@ def example7slopecoarse2():
     sage: extremality_test(h, False)
     False
     """
-    return piecewise_function_from_robert_txt_file("example7slopeCoarse2.txt")
+    return piecewise_function_from_robert_txt_file("data/example7slopeCoarse2.txt")
 
 def gmic_disjoint(f=4/5):
     """

@@ -69,7 +69,7 @@ def drlm_not_extreme_1():
         sage: extremality_test(h, False)
         False
     """
-    return piecewise_function_from_robert_txt_file("dey-richard-not-extreme.txt")
+    return piecewise_function_from_robert_txt_file("data/dey-richard-not-extreme.txt")
 
 def drlm_not_extreme_2():
     """
@@ -226,7 +226,7 @@ def hildebrand_5_slope_22_1():
         sage: extremality_test(h, False)
         True
     """
-    return piecewise_function_from_robert_txt_file("example5Slope22data.txt")
+    return piecewise_function_from_robert_txt_file("data/example5Slope22data.txt")
 
 def hildebrand_5_slope_24_1():
     """
@@ -239,7 +239,7 @@ def hildebrand_5_slope_24_1():
         sage: extremality_test(h, False)
         True
     """
-    return piecewise_function_from_robert_txt_file("example5Slope24data.txt")
+    return piecewise_function_from_robert_txt_file("data/example5Slope24data.txt")
 
 def hildebrand_5_slope_28_1():
     """
@@ -252,7 +252,7 @@ def hildebrand_5_slope_28_1():
         sage: extremality_test(h, False)
         True
     """
-    return piecewise_function_from_robert_txt_file("example5Slope28data.txt")
+    return piecewise_function_from_robert_txt_file("data/example5Slope28data.txt")
 
 def chen_3_slope_not_extreme(f=1/2, lam=8):
     """
