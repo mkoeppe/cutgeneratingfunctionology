@@ -776,10 +776,12 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
         [IR2] A. Basu, R. Hildebrand, and M. Köppe, Equivariant perturbation in Gomory and Johnson’s infinite group problem.
                 I. The one-dimensional case, Mathematics of Operations Research (2014), doi:10. 1287/moor.2014.0660
     """
-    if not (bool(0 < f < 1) and bool(d1 > 0) and bool(d2 > 0) and bool(a0 > 0) and (len(delta) >= 2) \
-            and bool(min(delta) > 0) and bool(d1 + d2 < f) and (sum(delta) < f/2 - d2/4 - 3*a0/2) ):
+    if not (bool(0 < f < 1) and bool(d1 > 0) and bool(d2 > 0) and bool(a0 > 0) 
+            and all(bool(deltai > 0) for deltai in delta) and bool(d1 + d2 < f) and (sum(delta) < f/2 - d2/4 - 3*a0/2) ):
         raise ValueError, "Bad parameters. Unable to construct the function."
-    if len(delta) == 2:
+    if len(delta) < 2:
+        logging.info("Conditions for extremality are NOT satisfied.")
+    elif len(delta) == 2:
         if is_QQ_linearly_independent(delta) and  2*delta[0] + delta[1] < d2 / 2:
             logging.info("Conditions for extremality are satisfied.")
         else:
