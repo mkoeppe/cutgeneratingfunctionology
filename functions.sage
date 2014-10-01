@@ -486,7 +486,7 @@ def convex_vert_list(vertices):
 def plot_kwds_hook(kwds):
     pass
 
-def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal=False):
+def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal=False, f=None):
     """
     Return a plot of the 2d complex with shaded faces where delta_pi is 0.        
     To show only a part of it, use 
@@ -504,6 +504,8 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     ...           [open_interval(3/4,1), FastLinearFunction(3, -2)], \
     ...           [singleton_interval(1), FastLinearFunction(0,0)]])
     """
+    if f == None:
+        f = find_f(fn, no_error_if_not_minimal_anyway=True)
     faces = generate_maximal_additive_faces(fn)
     p = plot_2d_complex(fn)
     kwds = { 'legend_label': "Additive face" }
@@ -530,6 +532,23 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
                         p += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)))
                 # add legend_label
                 p += point([(0,0)], color = "red", size = 50, zorder=-10, **kwds)
+                p += point([(0,0)], color = "white", size = 50, zorder=-9)
+        nonsymmetric_vertices = generate_nonsymmetric_vertices(fn, f)
+        if nonsymmetric_vertices:
+            kwds = { 'legend_label' : "Symmetry violated" }
+            plot_kwds_hook(kwds)
+            if fn.is_continuous():
+                nonsymmetric_vertices = {(x,y) for (x, y, xeps, yeps) in nonsymmetric_vertices}
+                p += point(list(nonsymmetric_vertices),
+                           color = "mediumvioletred", size = 50, zorder=-1, **kwds)
+                p += point([ (y,x) for (x,y) in nonsymmetric_vertices], color = "mediumvioletred", size = 50, zorder=-1)
+            else:
+                for (x, y, xeps, yeps) in nonsymmetric_vertices:
+                    p += plot_limit_cone_of_vertex(x, y, epspair_to_cone((xeps, yeps)), color = "mediumvioletred")
+                    if x != y:
+                        p += plot_limit_cone_of_vertex(y, x, epspair_to_cone((yeps, xeps)), color = "mediumvioletred")
+                # add legend_label
+                p += point([(0,0)], color = "mediumvioletred", size = 50, zorder=-10, **kwds)
                 p += point([(0,0)], color = "white", size = 50, zorder=-9)
     if show_projections:
         p += plot_projections_at_borders(fn)
@@ -1129,7 +1148,7 @@ def minimality_test(fn, show_plots=False, f=None):
         is_minimal = False
     if show_plots:
         logging.info("Plotting 2d diagram...")
-        show_plot(plot_2d_diagram(fn, known_minimal=is_minimal),
+        show_plot(plot_2d_diagram(fn, known_minimal=is_minimal, f=f),
                   show_plots, tag='2d_diagram', object=fn)
         logging.info("Plotting 2d diagram... done")
     return is_minimal
