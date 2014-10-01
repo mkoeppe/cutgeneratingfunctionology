@@ -517,42 +517,46 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     ### For non-subadditive functions, show the points where delta_pi is negative.
     if not known_minimal:
         nonsubadditive_vertices = generate_nonsubadditive_vertices(fn, reduced=False)
-        if nonsubadditive_vertices:
-            kwds = { 'legend_label' : "Subadditivity violated" }
-            plot_kwds_hook(kwds)
-            if fn.is_continuous():
-                nonsubadditive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices}
-                p += point(list(nonsubadditive_vertices),
-                           color = "red", size = 50, zorder=-1, **kwds)
-                p += point([ (y,x) for (x,y) in nonsubadditive_vertices ], color = "red", size = 50, zorder=-1)
-            else:
-                for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices:
-                    p += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)))
-                    if x != y:
-                        p += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)))
+        kwds = { 'legend_label' : "Subadditivity violated" }
+        plot_kwds_hook(kwds)
+        if fn.is_continuous():
+            nonsubadditive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices}
+            p += point(list(nonsubadditive_vertices),
+                       color = "red", size = 50, zorder=-1, **kwds)
+            p += point([ (y,x) for (x,y) in nonsubadditive_vertices ], color = "red", size = 50, zorder=-1)
+        else:
+            new_legend_label = False
+            for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices:
+                new_legend_label = True
+                p += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)))
+                if x != y:
+                    p += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)))
+            if new_legend_label:
                 # add legend_label
                 p += point([(0,0)], color = "red", size = 50, zorder=-10, **kwds)
                 p += point([(0,0)], color = "white", size = 50, zorder=-9)
         nonsymmetric_vertices = generate_nonsymmetric_vertices(fn, f)
-        if nonsymmetric_vertices:
-            kwds = { 'legend_label' : "Symmetry violated" }
-            plot_kwds_hook(kwds)
-            if fn.is_continuous():
-                nonsymmetric_vertices = {(x,y) for (x, y, xeps, yeps) in nonsymmetric_vertices}
-                p += point(list(nonsymmetric_vertices),
-                           color = "mediumvioletred", size = 50, zorder=5, **kwds)
-                p += point([ (y,x) for (x,y) in nonsymmetric_vertices], color = "mediumvioletred", size = 50, zorder=5)
-            else:
-                for (x, y, xeps, yeps) in nonsymmetric_vertices:
+        kwds = { 'legend_label' : "Symmetry violated" }
+        plot_kwds_hook(kwds)
+        if fn.is_continuous():
+            nonsymmetric_vertices = {(x,y) for (x, y, xeps, yeps) in nonsymmetric_vertices}
+            p += point(list(nonsymmetric_vertices),
+                       color = "mediumvioletred", size = 50, zorder=5, **kwds)
+            p += point([ (y,x) for (x,y) in nonsymmetric_vertices], color = "mediumvioletred", size = 50, zorder=5)
+        else:
+            new_legend_label = False
+            for (x, y, xeps, yeps) in nonsymmetric_vertices:
+                new_legend_label = True
+                if (xeps, yeps) == (0, 0):
+                    p += point([x, y], color="mediumvioletred", size=20, zorder=5)
+                else:
+                    p += disk([x, y], 0.03, (yeps* pi/2, (1 - xeps) * pi/2), color="mediumvioletred", zorder=5)
+                if x != y:
                     if (xeps, yeps) == (0, 0):
-                        p += point([x, y], color="mediumvioletred", size=20, zorder=5)
+                        p += point([y, x], color="mediumvioletred", size=20, zorder=5)
                     else:
-                        p += disk([x, y], 0.03, (yeps* pi/2, (1 - xeps) * pi/2), color="mediumvioletred", zorder=5)
-                    if x != y:
-                        if (xeps, yeps) == (0, 0):
-                            p += point([y, x], color="mediumvioletred", size=20, zorder=5)
-                        else:
-                            p += disk([y, x], 0.03, (xeps* pi/2, (1 - yeps) * pi/2), color="mediumvioletred", zorder=5)
+                        p += disk([y, x], 0.03, (xeps* pi/2, (1 - yeps) * pi/2), color="mediumvioletred", zorder=5)
+            if new_legend_label:
                 # add legend_label
                 p += point([(0,0)], color = "mediumvioletred", size = 50, zorder=-10, **kwds)
                 p += point([(0,0)], color = "white", size = 50, zorder=-9)
