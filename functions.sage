@@ -378,8 +378,13 @@ class Face:
             # Because \tau_x = \tau_y \rho_z, it suffices to output
             # \tau_y and \rho_z.  We use the fact that with each additive
             # vertex, also the x_y_swapped vertex appears.
+            ###
+            ### FIXME: This transitivity FAILS if we use restrict=True
+            ### in generate_functional_directed_moves!
+            ###
             ### FIXME: This should be done relative to zero_perturbation_partial_function.
             ### Because a move is only valid if the function is fixed to zero on the move element.
+            ###
             ### FIXME: To be written what this means in the continuous case.
             if x < y:
                 z_mod_1 = fractional(z)
@@ -2666,7 +2671,7 @@ class FunctionalDirectedMove (FastPiecewise):
         return FunctionalDirectedMove(new_domain, self.directed_move)
 
 @cached_function
-def generate_functional_directed_moves(fn, restrict=True):
+def generate_functional_directed_moves(fn, restrict=False):
     """
     Compute the moves (translations and reflections) relevant for the uncovered interval
     (if restrict is True) or for all intervals (if restrict is False).
