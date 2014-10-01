@@ -26,9 +26,6 @@ dic_eps_to_cone = { (-1,-1,-1): [(-1, 0), (0, -1)], \
                     ( 0, 1, 1): [(0, 1)], \
                     ( 0, 0, 0): [] \
                   }
-dic_epspair_to_cone = { (0, 0): [], \
-                        (1, -1): [(1, 0), (0, -1)], \
-                        (-1, 1): [(-1, 0), (0, 1)] }
 
 def generate_type_1_vertices_general(fn, comparison, reduced=True):
     """A generator...
@@ -134,27 +131,17 @@ def epstriple_to_cone(epstriple):
     except KeyError:
         raise ValueError,"The limit epstriple %s does not exist." % epstriple
 
-def epspair_to_cone(epspair):
-    """
-    Convert (xeps, yeps) to the corresponding cone.
-    Consider only the 3 cases used in generate_nonsymmetric_vertices.
-    """
-    try:
-        return dic_epspair_to_cone[epspair]
-    except KeyError:
-        raise ValueError,"The limit epspair %s does not exist." % epspair
-
 def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03):
     """
     plot a cone or a ray or a point 
     """
     orig = vector(RDF, (x, y))
     if len(cone) == 0:
-        p = point([orig], color=color, size=20, zorder=-1+10)
+        p = point([orig], color=color, size=20, zorder=-1)
     elif len(cone) == 1:
         ray1 = vector(RDF, cone[0])
-        p = line([orig, orig + ray1 * r / ray1.norm()], color=color, zorder=-3+10, thickness=3)
-        p += point([orig], color='white', size=20, zorder=-2+10)
+        p = line([orig, orig + ray1 * r / ray1.norm()], color=color, zorder=-3, thickness=3)
+        p += point([orig], color='white', size=20, zorder=-2)
     elif len(cone) ==2:
         ray1 = vector(RDF, cone[0])
         ray2 = vector(RDF, cone[1])
@@ -164,9 +151,9 @@ def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03):
             phi1, phi2 = phi2, phi1
         if phi2 - phi1 > pi:
             phi1, phi2 = phi2, phi1 + 2 * pi
-        p = disk(orig, r, (phi1, phi2), color=color, zorder=-5+10)
-        p += line([orig, orig + ray1 * r / ray1.norm()], color='white', zorder=-4+10, thickness=3)
-        p += line([orig, orig + ray2 * r / ray2.norm()], color='white', zorder=-4+10, thickness=3)
+        p = disk(orig, r, (phi1, phi2), color=color, zorder=-5)
+        p += line([orig, orig + ray1 * r / ray1.norm()], color='white', zorder=-4, thickness=3)
+        p += line([orig, orig + ray2 * r / ray2.norm()], color='white', zorder=-4, thickness=3)
     else:
         raise ValueError, "The cone %s is not well defined." % cone
     return p

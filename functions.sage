@@ -540,13 +540,19 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
             if fn.is_continuous():
                 nonsymmetric_vertices = {(x,y) for (x, y, xeps, yeps) in nonsymmetric_vertices}
                 p += point(list(nonsymmetric_vertices),
-                           color = "mediumvioletred", size = 50, zorder=-1, **kwds)
-                p += point([ (y,x) for (x,y) in nonsymmetric_vertices], color = "mediumvioletred", size = 50, zorder=-1)
+                           color = "mediumvioletred", size = 50, zorder=5, **kwds)
+                p += point([ (y,x) for (x,y) in nonsymmetric_vertices], color = "mediumvioletred", size = 50, zorder=5)
             else:
                 for (x, y, xeps, yeps) in nonsymmetric_vertices:
-                    p += plot_limit_cone_of_vertex(x, y, epspair_to_cone((xeps, yeps)), color = "mediumvioletred")
+                    if (xeps, yeps) == (0, 0):
+                        p += point([x, y], color="mediumvioletred", size=20, zorder=5)
+                    else:
+                        p += disk([x, y], 0.03, (yeps* pi/2, (1 - xeps) * pi/2), color="mediumvioletred", zorder=5)
                     if x != y:
-                        p += plot_limit_cone_of_vertex(y, x, epspair_to_cone((yeps, xeps)), color = "mediumvioletred")
+                        if (xeps, yeps) == (0, 0):
+                            p += point([y, x], color="mediumvioletred", size=20, zorder=5)
+                        else:
+                            p += disk([y, x], 0.03, (xeps* pi/2, (1 - yeps) * pi/2), color="mediumvioletred", zorder=5)
                 # add legend_label
                 p += point([(0,0)], color = "mediumvioletred", size = 50, zorder=-10, **kwds)
                 p += point([(0,0)], color = "white", size = 50, zorder=-9)
