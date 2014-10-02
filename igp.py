@@ -13,3 +13,4 @@ load("simple_extremality_test.sage")
 
 load("bug_examples.sage")
 
+logging.info("Welcome to the infinite-group-relaxation-code. DON'T PANIC. See demo.sage for instructions.")
