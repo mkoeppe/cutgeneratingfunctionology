@@ -124,6 +124,7 @@ def interval_intersection(int1, int2):
     Return the intersection of two intervals.
 
     EXAMPLES::
+
         sage: interval_intersection([1], [2])
         []
         sage: interval_intersection([1,3], [2,4])
@@ -187,18 +188,19 @@ def element_of_int(x,int):
     Determine whether value `x` is inside the interval `int`.
 
     EXAMPLES::
-    sage: element_of_int(1, [])
-    False
-    sage: element_of_int(1, [1])
-    True
-    sage: element_of_int(1, [2])
-    False
-    sage: element_of_int(1, [0,2])
-    True
-    sage: element_of_int(1, [1,2])
-    True
-    sage: element_of_int(2, [3,4])
-    False
+
+        sage: element_of_int(1, [])
+        False
+        sage: element_of_int(1, [1])
+        True
+        sage: element_of_int(1, [2])
+        False
+        sage: element_of_int(1, [0,2])
+        True
+        sage: element_of_int(1, [1,2])
+        True
+        sage: element_of_int(2, [3,4])
+        False
     """
     if len(int) == 0:
         return False
@@ -218,6 +220,7 @@ def interval_to_endpoints(int):
     of its endpoints, suitable for specifying pieces of a `FastPiecewise`.
 
     EXAMPLES::
+
         sage: interval_to_endpoints([1])
         (1, 1)
         sage: interval_to_endpoints([1,3])
@@ -316,8 +319,9 @@ class Face:
     def __init__(self, triple, vertices=None, is_known_to_be_minimal=False):
         """
         EXAMPLES::
-        sage: logging.disable(logging.INFO)
-        sage: f = generate_maximal_additive_faces(bhk_irrational(delta=(23/250,1/125)))
+
+            sage: logging.disable(logging.INFO)
+            sage: f = generate_maximal_additive_faces(bhk_irrational(delta=(23/250,1/125)))
         """
         if not vertices:
             vertices = verts(triple[0], triple[1], triple[2])
@@ -488,21 +492,36 @@ def plot_kwds_hook(kwds):
 
 def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal=False, f=None):
     """
-    Return a plot of the 2d complex with shaded faces where delta_pi is 0.        
-    To show only a part of it, use 
-    `show(plot_2d_diagram(h), xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)`
+    Return a plot of the 2d complex (Delta P) of `fn` with shaded
+    additive faces, i.e., faces where delta pi is 0.
+    
+    If `known_minimal` is False (the default), highlight
+    non-subadditive or non-symmetric vertices of the 2d complex.
+
+    If `show_function` is True (the default), plot the function at the left and top borders 
+    of the diagram via `plot_function_at_borders`. 
+
+    If `show_projections` is True (the default), plot the projections p1(F), p2(F), p3(F) of 
+    all full-dimensional additive faces via `plot_projections_at_borders`.
+
+    To show only a part of the diagram, use::
+
+        sage: show(plot_2d_diagram(h), xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)  # not tested
 
     EXAMPLES::
-    sage: h = FastPiecewise([[closed_interval(0,1/4), FastLinearFunction(4, 0)], \
-    ...          [open_interval(1/4, 1), FastLinearFunction(4/3, -1/3)], \
-    ...          [singleton_interval(1), FastLinearFunction(0,0)]])
-    sage: plot_2d_diagram(h)
 
-    sage: h = FastPiecewise([[closed_interval(0,1/4), FastLinearFunction(4, 0)], \
-    ...           [open_interval(1/4,1/2), FastLinearFunction(3, -3/4)], \
-    ...           [closed_interval(1/2, 3/4), FastLinearFunction(-2, 7/4)], \
-    ...           [open_interval(3/4,1), FastLinearFunction(3, -2)], \
-    ...           [singleton_interval(1), FastLinearFunction(0,0)]])
+        sage: h = FastPiecewise([[closed_interval(0,1/4), FastLinearFunction(4, 0)],
+        ...                      [open_interval(1/4, 1), FastLinearFunction(4/3, -1/3)],
+        ...                      [singleton_interval(1), FastLinearFunction(0,0)]])
+        sage: plot_2d_diagram(h)
+
+        sage: h = FastPiecewise([[closed_interval(0,1/4), FastLinearFunction(4, 0)],
+        ...                      [open_interval(1/4,1/2), FastLinearFunction(3, -3/4)],
+        ...                      [closed_interval(1/2, 3/4), FastLinearFunction(-2, 7/4)],
+        ...                      [open_interval(3/4,1), FastLinearFunction(3, -2)],
+        ...                      [singleton_interval(1), FastLinearFunction(0,0)]])
+        sage: plot_2d_diagram(h)
+
     """
     if f == None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
@@ -616,6 +635,12 @@ proj_plot_alpha = 0.35
 #proj_plot_alpha = 1
 
 def plot_projections_at_borders(fn):
+    """
+    Plot the projections p1(F), p2(F), p3(F) of all full-dimensional
+    additive faces F of `fn` as gray shadows: p1(F) at the top border,
+    p2(F) at the left border, p3(F) at the bottom and the right
+    borders.
+    """
     g = Graphics()
     I_J_verts = set()
     K_verts = set()
@@ -713,10 +738,11 @@ def partial_overlap(interval,component):
     of `interval` and the intervals in `component`.
 
     EXAMPLES::
-    sage: partial_overlap([2,3], [[1,2], [3,5]])
-    []
-    sage: partial_overlap([2,6], [[1,3], [5,7], [7,9]])
-    [[2, 3], [5, 6]]
+
+        sage: partial_overlap([2,3], [[1,2], [3,5]])
+        []
+        sage: partial_overlap([2,6], [[1,3], [5,7], [7,9]])
+        [[2, 3], [5, 6]]
     """
     overlap = []
     for int1 in component:
@@ -731,8 +757,9 @@ def remove_empty_comp(comps):
     Return a new list that includes all non-empty lists of `comps`.
 
     EXAMPLES::
-    sage: remove_empty_comp([[[1,2]], [], [[3,4],[5,6]]])
-    [[[1, 2]], [[3, 4], [5, 6]]]
+
+        sage: remove_empty_comp([[[1,2]], [], [[3,4],[5,6]]])
+        [[[1, 2]], [[3, 4], [5, 6]]]
     """
     temp = []
     for int in comps:
@@ -831,11 +858,12 @@ def find_interior_intersection(list1, list2):
 
     Assumes both lists are sorted.
     
-    EXAMPLES:
-    sage: find_interior_intersection([[1, 2], [3, 4]], [[2, 3], [4, 5]])
-    False
-    sage: find_interior_intersection([[1, 2], [3, 5]], [[2, 4]])
-    True
+    EXAMPLES::
+
+        sage: find_interior_intersection([[1, 2], [3, 4]], [[2, 3], [4, 5]])
+        False
+        sage: find_interior_intersection([[1, 2], [3, 5]], [[2, 4]])
+        True
     """
     i=0
     j=0
@@ -855,14 +883,15 @@ def interval_mod_1(interval):
     as a subinterval of [0,1].
 
     EXAMPLES::
-    sage: interval_mod_1([1,6/5])
-    [0, 1/5]
-    sage: interval_mod_1([1,2])
-    [0, 1]
-    sage: interval_mod_1([-3/10,-1/10])
-    [7/10, 9/10]
-    sage: interval_mod_1([-1/5,0])
-    [4/5, 1]        
+
+        sage: interval_mod_1([1,6/5])
+        [0, 1/5]
+        sage: interval_mod_1([1,2])
+        [0, 1]
+        sage: interval_mod_1([-3/10,-1/10])
+        [7/10, 9/10]
+        sage: interval_mod_1([-1/5,0])
+        [4/5, 1]        
     """
     interval = copy(interval)
     if len(interval) == 0:
@@ -952,12 +981,13 @@ def interval_minus_union_of_intervals(interval, remove_list):
     disjoint), and returns a sorted list.
 
     EXAMPLES::
-    sage: interval_minus_union_of_intervals([0, 10], [[-1, 0], [2, 3], [9,11]]) 
-    [[0, 2], [3, 9]]
-    sage: interval_minus_union_of_intervals([0, 10], [[-1, 0], [2, 3]]) 
-    [[0, 2], [3, 10]]
-    sage: interval_minus_union_of_intervals([0, 10], [[-1, 0], [2, 3], [9,11], [13, 17]])
-    [[0, 2], [3, 9]]
+
+        sage: interval_minus_union_of_intervals([0, 10], [[-1, 0], [2, 3], [9,11]]) 
+        [[0, 2], [3, 9]]
+        sage: interval_minus_union_of_intervals([0, 10], [[-1, 0], [2, 3]]) 
+        [[0, 2], [3, 10]]
+        sage: interval_minus_union_of_intervals([0, 10], [[-1, 0], [2, 3], [9,11], [13, 17]])
+        [[0, 2], [3, 9]]
     """
     scan = scan_union_of_coho_intervals_minus_union_of_coho_intervals([[interval]], [remove_list])
     return list(proper_interval_list_from_scan(scan))
@@ -967,10 +997,11 @@ def uncovered_intervals_from_covered_intervals(covered_intervals):
     of covered intervals.
 
     EXAMPLES::
-    sage: uncovered_intervals_from_covered_intervals([[[10/17, 11/17]], [[5/17, 6/17], [7/17, 8/17]]])
-    [[0, 5/17], [6/17, 7/17], [8/17, 10/17], [11/17, 1]]
-    sage: uncovered_intervals_from_covered_intervals([])
-    [[0, 1]]
+
+        sage: uncovered_intervals_from_covered_intervals([[[10/17, 11/17]], [[5/17, 6/17], [7/17, 8/17]]])
+        [[0, 5/17], [6/17, 7/17], [8/17, 10/17], [11/17, 1]]
+        sage: uncovered_intervals_from_covered_intervals([])
+        [[0, 1]]
     """
     if not covered_intervals:
         return [[0,1]]
@@ -1263,17 +1294,18 @@ class FastPiecewise (PiecewisePolynomial):
     """
     def __init__(self, list_of_pairs, var=None, periodic_extension=True, merge=True):
         """
-        EXAMPLES:
-        sage: h = FastPiecewise([[(3/10, 15/40), FastLinearFunction(1, 0)], [(13/40, 14/40), FastLinearFunction(1, 0)]], merge=True)
-        sage: len(h.intervals())
-        1
-        sage: h.intervals()[0][0], h.intervals()[0][1]
-        (3/10, 3/8)
-        sage: h = FastPiecewise([[(3/10, 15/40), FastLinearFunction(1, 0)], [(13/40, 14/40), FastLinearFunction(1, 0)], [(17,18), FastLinearFunction(77,78)]], merge=True)
-        sage: len(h.intervals())
-        2
-        sage: h.intervals()[0][0], h.intervals()[0][1]
-        (3/10, 3/8)
+        EXAMPLES::
+
+            sage: h = FastPiecewise([[(3/10, 15/40), FastLinearFunction(1, 0)], [(13/40, 14/40), FastLinearFunction(1, 0)]], merge=True)
+            sage: len(h.intervals())
+            1
+            sage: h.intervals()[0][0], h.intervals()[0][1]
+            (3/10, 3/8)
+            sage: h = FastPiecewise([[(3/10, 15/40), FastLinearFunction(1, 0)], [(13/40, 14/40), FastLinearFunction(1, 0)], [(17,18), FastLinearFunction(77,78)]], merge=True)
+            sage: len(h.intervals())
+            2
+            sage: h.intervals()[0][0], h.intervals()[0][1]
+            (3/10, 3/8)
         """
         # Sort intervals according to their left endpoints; In case of equality, place single point before interval. 
         list_of_pairs = sorted(list_of_pairs, key = lambda (i, f): coho_interval_left_endpoint_with_epsilon(i))
@@ -1750,16 +1782,17 @@ class FastPiecewise (PiecewisePolynomial):
         Rather, the result is only defined on the intersection of the domains.
 
         EXAMPLES::
-        sage: f = FastPiecewise([[singleton_interval(1), FastLinearFunction(0,17)]])
-        sage: g = FastPiecewise([[[0,2], FastLinearFunction(0,2)]])
-        sage: (f+g).list()
-        [[<Int{1}>, <FastLinearFunction 19>]]
-        sage: h = FastPiecewise([[open_interval(1,3), FastLinearFunction(0,3)]])
-        sage: (g+h).list()
-        [[<Int(1, 2]>, <FastLinearFunction 5>]]
-        sage: j = FastPiecewise([[open_interval(0,1), FastLinearFunction(0,1)], [[1, 3], FastLinearFunction(0, 5)]])
-        sage: (g+j).list()
-        [[<Int(0, 1)>, <FastLinearFunction 3>], [(1, 2), <FastLinearFunction 7>]]
+
+            sage: f = FastPiecewise([[singleton_interval(1), FastLinearFunction(0,17)]])
+            sage: g = FastPiecewise([[[0,2], FastLinearFunction(0,2)]])
+            sage: (f+g).list()
+            [[<Int{1}>, <FastLinearFunction 19>]]
+            sage: h = FastPiecewise([[open_interval(1,3), FastLinearFunction(0,3)]])
+            sage: (g+h).list()
+            [[<Int(1, 2]>, <FastLinearFunction 5>]]
+            sage: j = FastPiecewise([[open_interval(0,1), FastLinearFunction(0,1)], [[1, 3], FastLinearFunction(0, 5)]])
+            sage: (g+j).list()
+            [[<Int(0, 1)>, <FastLinearFunction 3>], [(1, 2), <FastLinearFunction 7>]]
         """
         intervals = intersection_of_coho_intervals([self.intervals(), other.intervals()])
         return FastPiecewise([ (interval, self.which_function_on_interval(interval) + other.which_function_on_interval(interval))
@@ -1830,20 +1863,20 @@ class FastPiecewise (PiecewisePolynomial):
 
         The implementation of the plot method in Sage 5.11 piecewise.py
         is incompatible with the use of the xmin and xmax arguments.  Test that
-        this has been fixed:
+        this has been fixed::
 
             sage: q = f.plot(xmin=0, xmax=3)
             sage: q = plot(f, xmin=0, xmax=3)
             sage: q = plot(f, 0, 3)
             sage: q = plot(f, 0, 3, color='red')
         
-        The implementation should crop according to the given xmin, xmax.
+        The implementation should crop according to the given xmin, xmax::
 
             sage: q = plot(f, 1/2, 3)
             sage: q = plot(f, 1, 2)
             sage: q = plot(f, 2, 3)
         
-        Also the following plot syntax should be accepted.
+        Also the following plot syntax should be accepted::
 
             sage: q = plot(f, [2, 3])
 
@@ -2200,19 +2233,20 @@ class RealNumberField_absolute(NumberField_absolute):
     for the purpose of latexing.
 
     EXAMPLES::
-    sage: field, field_values, morphism = number_field_elements_from_algebraics((sqrt(2), sqrt(3)))
-    sage: emb_field = RealNumberField(field.polynomial(), 'a', embedding=morphism(field.gen(0)), exact_embedding=SR(morphism(field.gen(0))))
-    sage: hom = field.hom([emb_field.gen(0)])
-    sage: Integer(7)/5 < hom(field_values[0])
-    True
-    sage: hom(field_values[0]) < Integer(3)/2
-    True
-    sage: hom(field_values[0]) < hom(field_values[1])
-    True
-    sage: Integer(3)/2 < hom(field_values[1])
-    True
-    sage: hom(field_values[1]) < 2
-    True
+
+        sage: field, field_values, morphism = number_field_elements_from_algebraics((sqrt(2), sqrt(3)))
+        sage: emb_field = RealNumberField(field.polynomial(), 'a', embedding=morphism(field.gen(0)), exact_embedding=SR(morphism(field.gen(0))))
+        sage: hom = field.hom([emb_field.gen(0)])
+        sage: Integer(7)/5 < hom(field_values[0])
+        True
+        sage: hom(field_values[0]) < Integer(3)/2
+        True
+        sage: hom(field_values[0]) < hom(field_values[1])
+        True
+        sage: Integer(3)/2 < hom(field_values[1])
+        True
+        sage: hom(field_values[1]) < 2
+        True
     """
 
     def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None,
@@ -2356,6 +2390,20 @@ def is_all_the_same_real_number_field(values):
         return False, values
 
 def nice_field_values(symb_values, field=None):
+    """
+    Coerce the real numbers in the list `symb_values` into a convenient common field
+    and return a list, parallel to `symb_values`, of the coerced values.
+
+    If all given numbers are rational, the field will be the rational
+    field (`QQ`).  
+
+    Otherwise, if the numbers are algebraic, the field
+    will be a suitable algebraic field extension of the rational
+    numbers, embedded into the real numbers, in the form of a
+    `RealNumberField`.  
+
+    Otherwise, the given numbers are returned as is.
+    """
     ### Add tests!
     if field is None:
         field = default_field
@@ -2402,6 +2450,19 @@ def nice_field_values(symb_values, field=None):
 
 #@logger
 def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field=None):
+    """
+    Create a continuous piecewise function from `bkpt`, `slopes`, and `values`.
+
+    `bkpt` and `values` are two parallel lists; it is assumed that `bkpt` is 
+    sorted in increasing order. 
+
+    `slopes` is one element shorter and represents the slopes of the interpolation.
+
+    The function is overdetermined by these data.  The consistency of the data is 
+    currently not checked.
+
+    The data are coerced into a common convenient field via `nice_field_values`.
+    """
     if field is None:
         field = default_field
     # global symb_values
@@ -2418,8 +2479,11 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
 
 def piecewise_function_from_breakpoints_and_values(bkpt, values, field=None):
     """
-    bkpt and values are two parallel lists; assuming bpkt is sorted (increasing).
-    Return a function.
+    Create a continuous piecewise function from `bkpt` and `values`.
+
+    `bkpt` and `values` are two parallel lists; assuming `bpkt` is sorted (increasing).
+
+    The data are coerced into a common convenient field via `nice_field_values`.
     """
     if len(bkpt)!=len(values):
         raise ValueError, "Need to have the same number of breakpoints and values."
@@ -2428,9 +2492,13 @@ def piecewise_function_from_breakpoints_and_values(bkpt, values, field=None):
 
 def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None):
     """
-    bkpt and slopes are two parallel lists (except that bkpt is one element longer).
-    The function always has value 0 on bkpt[0].
-    Return a function.
+    Create a continuous piecewise function from `bkpt` and `slopes`.
+
+    `bkpt` and `slopes` are two parallel lists (except that `bkpt` is
+    one element longer); assuming `bpkt` is sorted (increasing).  The
+    function always has value 0 on bkpt[0].  
+
+    The data are coerced into a common convenient field via `nice_field_values`.
     """
     if len(bkpt)!=len(slopes)+1:
         raise ValueError, "Need to have one breakpoint more than slopes."
@@ -2441,9 +2509,14 @@ def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None):
 
 def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=None):
     """
-    interval_lengths and slopes are two parallel lists.
-    The function always has value 0 on 0.
-    Return a function.
+    Create a continuous piecewise function from `interval_lengths` and `slopes`.
+
+    The function always has value 0 on 0. `interval_lengths` and
+    `slopes` are two parallel lists that define the function values to
+    the right of 0.
+
+    The data are coerced into a common convenient field via `nice_field_values`.
+
     """
     if len(interval_lengths)!=len(slopes):
         raise ValueError, "Number of given interval_lengths and slopes needs to be equal."
@@ -2456,6 +2529,13 @@ def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
 
 def discrete_function_from_points_and_values(points, values, field=None):
+    """
+    Create a function defined on a finite list of `points`. 
+
+    `points` and `values` are two parallel lists.
+
+    The data are coerced into a common convenient field via `nice_field_values`.
+    """
     if field is None:
         field = default_field
     # global symb_values
@@ -2474,17 +2554,18 @@ def limiting_slopes(fn):
     The function `fn` is assumed minimal.
 
     EXAMPLES::
-    sage: logging.disable(logging.WARN) # Suppress output in automatic tests.
-    sage: limiting_slopes(gmic(f=4/5))
-    (5/4, -5)
-    sage: limiting_slopes(gmic_disjoint_with_singletons(f=4/5))
-    (5/4, -5)
-    sage: limiting_slopes(minimal_no_covered_interval())
-    (+Infinity, -Infinity)
-    sage: limiting_slopes(drlm_2_slope_limit_1_1())
-    (2, -Infinity)
-    sage: limiting_slopes(restrict_to_finite_group(gmic(f=4/5)))
-    (5/4, -5)
+
+        sage: logging.disable(logging.WARN) # Suppress output in automatic tests.
+        sage: limiting_slopes(gmic(f=4/5))
+        (5/4, -5)
+        sage: limiting_slopes(gmic_disjoint_with_singletons(f=4/5))
+        (5/4, -5)
+        sage: limiting_slopes(minimal_no_covered_interval())
+        (+Infinity, -Infinity)
+        sage: limiting_slopes(drlm_2_slope_limit_1_1())
+        (2, -Infinity)
+        sage: limiting_slopes(restrict_to_finite_group(gmic(f=4/5)))
+        (5/4, -5)
     """
     breakpoints = fn.end_points()
     limits = fn.limits_at_end_points()
@@ -2964,8 +3045,10 @@ def scan_coho_interval_list(interval_list, tag=None, on_delta=-1, off_delta=+1):
 
     If merging is not desired, set on_delta=+1, off_delta=-1. 
 
-    sage: list(scan_coho_interval_list([closed_or_open_or_halfopen_interval(1, 2, True, False), closed_or_open_or_halfopen_interval(2, 3, True, True)]))
-    [((1, 0), -1, None), ((2, 0), -1, None), ((2, 0), 1, None), ((3, 1), 1, None)]
+    EXAMPLES::
+
+        sage: list(scan_coho_interval_list([closed_or_open_or_halfopen_interval(1, 2, True, False), closed_or_open_or_halfopen_interval(2, 3, True, True)]))
+        [((1, 0), -1, None), ((2, 0), -1, None), ((2, 0), 1, None), ((3, 1), 1, None)]
     """
     return merge(scan_coho_interval_left_endpoints(interval_list, tag, on_delta), 
                  scan_coho_interval_right_endpoints(interval_list, tag, off_delta))
@@ -3007,17 +3090,18 @@ def intersection_of_coho_intervals(interval_lists):
     this case, the output is broken into non-overlapping intervals at
     the points where the overlap multiplicity changes.
     
-    EXAMPLES:
-    sage: list(intersection_of_coho_intervals([[[1,2]], [[2,3]]]))
-    [<Int{2}>]
-    sage: list(intersection_of_coho_intervals([[[1,2], [2,3]], [[0,4]]]))
-    [<Int[1, 2)>, <Int{2}>, <Int(2, 3]>]
-    sage: list(intersection_of_coho_intervals([[[1,3], [2,4]], [[0,5]]]))
-    [<Int[1, 2)>, <Int[2, 3]>, <Int(3, 4]>]
-    sage: list(intersection_of_coho_intervals([[[1,2], left_open_interval(2,3)], [[0,4]]]))
-    [<Int[1, 2]>, <Int(2, 3]>]
-    sage: list(intersection_of_coho_intervals([[[1,3]], [[2,4]]]))
-    [<Int[2, 3]>]
+    EXAMPLES::
+
+        sage: list(intersection_of_coho_intervals([[[1,2]], [[2,3]]]))
+        [<Int{2}>]
+        sage: list(intersection_of_coho_intervals([[[1,2], [2,3]], [[0,4]]]))
+        [<Int[1, 2)>, <Int{2}>, <Int(2, 3]>]
+        sage: list(intersection_of_coho_intervals([[[1,3], [2,4]], [[0,5]]]))
+        [<Int[1, 2)>, <Int[2, 3]>, <Int(3, 4]>]
+        sage: list(intersection_of_coho_intervals([[[1,2], left_open_interval(2,3)], [[0,4]]]))
+        [<Int[1, 2]>, <Int(2, 3]>]
+        sage: list(intersection_of_coho_intervals([[[1,3]], [[2,4]]]))
+        [<Int[2, 3]>]
     """
     scan = merge(*[scan_coho_interval_list(interval_list, tag=index) for index, interval_list in enumerate(interval_lists)])
     interval_indicators = [ 0 for interval_list in interval_lists ]
@@ -3045,14 +3129,15 @@ def coho_intervals_intersecting(a, b):
     Determine if the two intervals intersect in at least 1 point.
 
     EXAMPLES::
-    sage: coho_intervals_intersecting(singleton_interval(1), singleton_interval(1))
-    True
-    sage: coho_intervals_intersecting(singleton_interval(1), singleton_interval(2))
-    False
-    sage: coho_intervals_intersecting(singleton_interval(1), open_interval(1,2))
-    False
-    sage: coho_intervals_intersecting(singleton_interval(1), right_open_interval(1,2))
-    True
+
+        sage: coho_intervals_intersecting(singleton_interval(1), singleton_interval(1))
+        True
+        sage: coho_intervals_intersecting(singleton_interval(1), singleton_interval(2))
+        False
+        sage: coho_intervals_intersecting(singleton_interval(1), open_interval(1,2))
+        False
+        sage: coho_intervals_intersecting(singleton_interval(1), right_open_interval(1,2))
+        True
     """
     intervals = list(intersection_of_coho_intervals([[a], [b]]))
     assert len(intervals) <= 1
@@ -3062,16 +3147,18 @@ def coho_intervals_intersecting_full_dimensionally(a, b):
     """
     Determine if the two intervals intersect in a proper interval.
 
-    sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), singleton_interval(1))
-    False
-    sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), singleton_interval(2))
-    False
-    sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), open_interval(1,2))
-    False
-    sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), right_open_interval(1,2))
-    False
-    sage: coho_intervals_intersecting_full_dimensionally(open_interval(0,2), right_open_interval(1,3))
-    True
+    EXAMPLES::
+
+        sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), singleton_interval(1))
+        False
+        sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), singleton_interval(2))
+        False
+        sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), open_interval(1,2))
+        False
+        sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), right_open_interval(1,2))
+        False
+        sage: coho_intervals_intersecting_full_dimensionally(open_interval(0,2), right_open_interval(1,3))
+        True
     """
     intervals = list(intersection_of_coho_intervals([[a], [b]]))
     assert len(intervals) <= 1
@@ -3111,14 +3198,15 @@ def union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove
     each pairwise disjoint).  Returns a sorted list.
 
     EXAMPLES::
-    sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0,10]]], [[[2,2], [3,4]]])
-    [<Int[0, 2)>, <Int(2, 3)>, <Int(4, 10]>]
-    sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0, 10]]], [[[1, 7]], [[2, 5]]])
-    [<Int[0, 1)>, <Int(7, 10]>]
-    sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0,10], closed_or_open_or_halfopen_interval(10, 20, False, True)]], [])
-    [<Int[0, 20]>]
-    sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0,10], closed_or_open_or_halfopen_interval(10, 20, False, True)]], [], old_fashioned_closed_intervals=True)
-    [(0, 20)]
+
+        sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0,10]]], [[[2,2], [3,4]]])
+        [<Int[0, 2)>, <Int(2, 3)>, <Int(4, 10]>]
+        sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0, 10]]], [[[1, 7]], [[2, 5]]])
+        [<Int[0, 1)>, <Int(7, 10]>]
+        sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0,10], closed_or_open_or_halfopen_interval(10, 20, False, True)]], [])
+        [<Int[0, 20]>]
+        sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0,10], closed_or_open_or_halfopen_interval(10, 20, False, True)]], [], old_fashioned_closed_intervals=True)
+        [(0, 20)]
     """
     gen = coho_interval_list_from_scan(scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists), old_fashioned_closed_intervals)
     return list(gen)
@@ -3176,7 +3264,7 @@ def generate_additivity_equations(fn, symbolic, field, f=None):
 
 def rescale_to_amplitude(perturb, amplitude):
     """For plotting purposes, rescale the function `perturb` so that its
-    maximum absolute function value is `amplitude`.
+    maximum (supremum) absolute function value is `amplitude`.
     """
     current_amplitude = max([ abs(x) for limits in perturb.limits_at_end_points() for x in limits if x is not None])
     if current_amplitude != 0:
@@ -3191,7 +3279,7 @@ def show_plot(graphics, show_plots, tag, object=None, **show_kwds):
     """
     Display or save `graphics`.
 
-    `show_plots` should be `False` (do nothing), 
+    `show_plots` can be one of: `False` (do nothing), 
     `True` (use `show` to display on screen),
     a string (file name format such as "FILENAME-%s.pdf", 
     where %s is replaced by `tag`.
@@ -3318,6 +3406,7 @@ def generate_additive_vertices(fn, reduced=True):
 
     When reduced=True:
         only outputs fewer triples satisfying `comparison' relation, for the purpose of setting up the system of equations.
+
     When reduced=False:
         outputs all triples satisfying `comparison' relation, for the purpose of plotting additive_limit_vertices.
     """
@@ -3333,6 +3422,7 @@ def generate_nonsubadditive_vertices(fn, reduced=True):
 
     When reduced=True:
         only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_test.
+
     When reduced=False:
         outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive_limit_vertices.
     """
@@ -3451,7 +3541,7 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
 
 def plot_old_moves_diagram(fn):
     """
-    Return a plot of the 'old' moves diagram, superseded by plot_completion_diagram.
+    Return a plot of the 'old' moves diagram, superseded by `plot_completion_diagram`.
     """
     if not hasattr(fn, '_walk_list'):
         extremality_test(fn, show_plots=False)
@@ -3466,8 +3556,9 @@ def plot_completion_diagram(fn):
     """
     Return a plot of the completion diagram.
     
-    To view a part only, use:
-    show(plot_completion_diagram(h), xmin=0.3, xmax=0.55, ymin=0.3, ymax=0.55).
+    To view a part only, use::
+
+        sage: show(plot_completion_diagram(h), xmin=0.3, xmax=0.55, ymin=0.3, ymax=0.55) # not tested
     """
     if not (hasattr(fn, '_completion') and fn._completion.is_complete):
         extremality_test(fn, show_plots=False)
@@ -3530,13 +3621,19 @@ def piecewise_function_from_robert_txt_file(filename):
 
 def random_piecewise_function(xgrid=10, ygrid=10, continuous_proba=1, symmetry=True):
     """
-    return a random piecewise function with breakpoints on xgrid and values on ygrid.
-    continuous_proba (in [0,1]) indicates the probability that the function is (left/right) continuous at a breakpoint. 
-    set continuous_proba = 1 to get a continuous random function.
-    set symmetry=True to get a symmetric function. 
+    Return a random, continuous or discontinuous piecewise linear function defined on [0, 1]
+    with breakpoints that are multiples of 1/`xgrid` and values that are multiples of 1/`ygrid`.
+
+    `continuous_proba` (a real number in [0,1]) indicates the probability that the function is (left/right) continuous at a breakpoint. 
+    Use continuous_proba = 1 (the default) to get a continuous piecewise linear function.
+
+    Use symmetry=True (the default) to get a symmetric function. 
 
     EXAMPLES::
-    sage: h = random_piecewise_function(10,10, 4/5, True)
+
+        sage: h = random_piecewise_function(10, 10)
+        sage: h = random_piecewise_function(10, 10, continuous_proba=4/5, symmetry=True)
+        sage: h = random_piecewise_function(10, 10, continuous_proba=4/5, symmetry=False)
     """
     xvalues = [0] + [ x/xgrid for x in range(1, xgrid) ] + [1]
     f = randint(1, xgrid - 1)
@@ -3597,17 +3694,19 @@ def is_QQ_linearly_independent(*numbers):
     Test if `numbers` are linearly independent over `QQ`.
 
     EXAMPLES::
-        sage: logging.disable(logging.INFO); is_QQ_linearly_independent()
+
+        sage: logging.disable(logging.INFO)  # Suppress output in automatic tests.
+        sage: is_QQ_linearly_independent()
         True
-        sage: logging.disable(logging.INFO); is_QQ_linearly_independent(1)
+        sage: is_QQ_linearly_independent(1)
         True
-        sage: logging.disable(logging.INFO); is_QQ_linearly_independent(0)
+        sage: is_QQ_linearly_independent(0)
         False
-        sage: logging.disable(logging.INFO); is_QQ_linearly_independent(1,2)
+        sage: is_QQ_linearly_independent(1,2)
         False
-        sage: logging.disable(logging.INFO); is_QQ_linearly_independent(1,sqrt(2))
+        sage: is_QQ_linearly_independent(1,sqrt(2))
         True
-        sage: logging.disable(logging.INFO); is_QQ_linearly_independent(1+sqrt(2),sqrt(2),1)
+        sage: is_QQ_linearly_independent(1+sqrt(2),sqrt(2),1)
         False
     """
     # trivial cases
@@ -3631,6 +3730,7 @@ def compose_directed_moves(A, B, show_plots=False):
     Compute the directed move that corresponds to the directed move `A` after `B`.
     
     EXAMPLES::
+
         sage: compose_directed_moves(FunctionalDirectedMove([(5/10,7/10)],(1, 2/10)),FunctionalDirectedMove([(2/10,4/10)],(1,2/10)))
         <FunctionalDirectedMove (1, 2/5) with domain [(3/10, 2/5)], range [<Int[7/10, 4/5]>]>
     """
@@ -3677,6 +3777,7 @@ def compose_directed_moves(A, B, show_plots=False):
 def merge_functional_directed_moves(A, B, show_plots=False):
     """
     EXAMPLES::
+
         sage: merge_functional_directed_moves(FunctionalDirectedMove([(3/10, 7/20), (9/20, 1/2)], (1,0)),FunctionalDirectedMove([(3/10, 13/40)], (1,0)))
         <FunctionalDirectedMove (1, 0) with domain [(3/10, 7/20), (9/20, 1/2)], range [<Int[3/10, 7/20]>, <Int[9/20, 1/2]>]>
     """
@@ -3703,6 +3804,7 @@ def plot_directed_moves(dmoves, **kwds):
 def reduce_with_dense_moves(functional_directed_move, dense_moves, show_plots=False):
     """
     EXAMPLES::
+
         sage: reduce_with_dense_moves(FunctionalDirectedMove([[3/10,7/10]],(1, 1/10)), [DenseDirectedMove([[[2/10,6/10],[2/10,6/10]]])])
         <FunctionalDirectedMove (1, 1/10) with domain [<Int(1/2, 7/10]>], range [<Int(3/5, 4/5]>]>
         sage: reduce_with_dense_moves(FunctionalDirectedMove([[1/10,7/10]],(1, 1/10)), [DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]]), DenseDirectedMove([[[6/20,6/10],[4/10,6/10]]])])

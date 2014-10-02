@@ -21,9 +21,7 @@ def generate_nonsymmetric_vertices_continuous(fn, f):
             yield (x, y, 0, 0)
 
 def generate_type_1_vertices_continuous(fn, comparison):
-    """A generator...
-    "...'general' refers to the fact that it outputs 6-tuples (x,xeps,y,yeps,z,zeps).
-    FIXME: it currently does not take care of any discontinuities at all.
+    """Output 6-tuples (x,xeps,y,yeps,z,zeps).
     """
     bkpt = fn.end_points()
     return ( (x, y, x+y, 0, 0, 0) for x in bkpt for y in bkpt if x <= y and comparison(delta_pi(fn,x,y), 0) ) # generator comprehension
