@@ -3242,31 +3242,36 @@ def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbatio
     assert epsilon > 0, "Epsilon should be positive, something is wrong"
     logging.info("Thus the function is not extreme.")
 
-def finite_dimensional_extremality_test(function, show_plots=False, f=None):
+def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn_about_uncovered_intervals=True):
     """
     Solve a homogeneous linear system of additivity equations with one
     slope variable for every component (including every non-covered
     interval) and one jump variable for each (left/right) discontinuity.
+
     Return a boolean that indicates whether the system has a nontrivial solution.
+
     EXAMPLES::
-    sage: logging.disable(logging.WARN)
-    sage: h1 = drlm_not_extreme_2()
-    sage: finite_dimensional_extremality_test(h1, show_plots=True)
-    False
-    sage: h2 = drlm_3_slope_limit()
-    sage: finite_dimensional_extremality_test(h2, show_plots=True)
-    True
+
+        sage: logging.disable(logging.WARN)
+        sage: h1 = drlm_not_extreme_2()
+        sage: finite_dimensional_extremality_test(h1, show_plots=True)
+        False
+        sage: h2 = drlm_3_slope_limit()
+        sage: finite_dimensional_extremality_test(h2, show_plots=True)
+        True
     """
     if function.is_discrete():
         return simple_finite_dimensional_extremality_test(function, oversampling=1)
     covered_intervals = generate_covered_intervals(function)
     uncovered_intervals = generate_uncovered_intervals(function)
     if uncovered_intervals:
-        logging.warn(\
-                     """There are non-covered intervals, so (1) the symbolic piecewise is
-                     not suitable for proving extremality; and (2) in the current
-                     implementation, there may be too many slope variables, since the 
-                     relations between non-covered intervals are not taken into account.""")
+        if warn_about_uncovered_intervals:
+            logging.warn("There are non-covered intervals, so this test is not suitable for proving extremality (only non-extremality).")
+        ## Also note that in the current implementation, it is not as
+        ## efficient as it could be due to too many slope variables,
+        ## since the relations between non-covered intervals are not
+        ## taken into account.  (No need to warn the user about that,
+        ## though.)
         components = copy(covered_intervals)
         components.extend([int] for int in uncovered_intervals)
     else:
@@ -3345,6 +3350,50 @@ class MaximumNumberOfIterationsReached(Exception):
     pass
 
 def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True):
+    """Check if `fn` is extreme for the group relaxation with the given `f`. 
+
+    If `fn` is discrete, it has to be defined on a cyclic subgroup of
+    the reals containing 1, restricted to [0, 1].  The group
+    relaxation is the corresponding cyclic group relaxation.
+
+    Otherwise `fn` needs to be defined on the interval [0, 1], and the
+    group relaxation is the infinite group relaxation.
+
+    If `f` is not provided, uses the one found by `find_f()`.
+
+    If `show_plots` is True (default: False), show many illustrating diagrams.
+
+    The function first runs `minimality_test`.
+    
+    In the infinite group case, if `finite_dimensional_test_first` is
+    True (default: False), after testing minimality of `fn`, we first
+    check if the `finite_dimensional_extremality_test` finds a
+    perturbation; otherwise (default) we first check for an
+    equivariant perturbation.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO) # to disable output in automatic tests.
+        sage: h = piecewise_function_from_breakpoints_and_values([0, 1/2, 1], [0, 1, 0])
+        sage: # This example has a unique candidate for "f", so we don't need to provide one.
+        sage: extremality_test(h, False)
+        True
+        sage: # Same, with plotting:
+        sage: extremality_test(h, True) # not tested
+        ... lots of plots shown ...
+        True
+        sage: h = multiplicative_homomorphism(gmic(f=4/5), 3) 
+        sage: # This example has several candidates for "f", so provide the one we mean:
+        sage: extremality_test(h, True, f=4/15) # not tested
+        ... lots of plots shown ...
+        True
+        sage: g = gj_2_slope()
+        sage: gf = restrict_to_finite_group(g)
+        sage: # This is now a finite (cyclic) group problem.
+        sage: extremality_test(gf, True) # not tested
+        ... lots of plots shown ...
+        True
+    """
     if fn.is_discrete():
         return simple_finite_dimensional_extremality_test(fn, show_plots=show_plots, f=f, oversampling=None)
     do_phase_1_lifting = False
@@ -3364,12 +3413,12 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
         logging.info("Plotting covered intervals... done")
     if not uncovered_intervals:
         logging.info("All intervals are covered (or connected-to-covered). %s components." % len(covered_intervals))
-        return finite_dimensional_extremality_test(fn, show_plots, f=f)
+        return finite_dimensional_extremality_test(fn, show_plots, f=f, warn_about_uncovered_intervals=False)
     else:
         logging.info("Uncovered intervals: %s", (uncovered_intervals,))
         if do_phase_1_lifting or finite_dimensional_test_first:
             # First try the finite dimensional one.
-            if not finite_dimensional_extremality_test(fn, show_plots):
+            if not finite_dimensional_extremality_test(fn, show_plots, warn_about_uncovered_intervals=False):
                 return False
         # Now do the magic.
         if not fn.is_continuous():
