@@ -5,6 +5,9 @@ This is Sage code for computation and experimentation with the
 (1-dimensional) Gomory-Johnson infinite group problem, including an
 electronic compendium of extreme functions.
 
+See http://www.sagemath.org/doc/tutorial/ for information on how to
+use Sage.
+
 Authors
 -------
 

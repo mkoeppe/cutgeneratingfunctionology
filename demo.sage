@@ -3,6 +3,8 @@
 ## We interact with Sage using commands that basically follow standard
 ## Python syntax.  
 ##
+## See http://www.sagemath.org/doc/tutorial/ for information on how to use Sage.
+##
 ## Copy these commands into your Sage terminal session or notebook session.
 
 ## First load the code.
