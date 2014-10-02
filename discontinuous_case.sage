@@ -31,7 +31,7 @@ def generate_type_1_vertices_general(fn, comparison, reduced=True):
     """A generator...
     "...'general' refers to the fact that it outputs 6-tuples (x,y,z,xeps,yeps,zeps).
     When reduced=True:
-        only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_check or setting up system of equations.
+        only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_test or setting up system of equations.
     When reduced=False:
         outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive or additive_limit_vertices.
     """
@@ -60,7 +60,7 @@ def generate_type_1_vertices_general(fn, comparison, reduced=True):
 def generate_type_2_vertices_general(fn, comparison, reduced=True):
     """
     When reduced=True:
-        only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_check or setting up equations.
+        only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_test or setting up equations.
         Note: if fn is continuous at y, then fn(y-) = fn(y) = fn(y+)
     When reduced=False:
         outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive or additive_limit_vertices.
@@ -99,7 +99,7 @@ def generate_type_2_vertices_general(fn, comparison, reduced=True):
 
 def generate_nonsymmetric_vertices_general(fn, f):
     """
-    Generate vertices (x, y, xeps, yeps) that violate symmetric_check
+    Generate vertices (x, y, xeps, yeps) that violate symmetric_test
     """
     bkpt = fn.end_points()
     limits = fn.limits_at_end_points()

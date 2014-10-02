@@ -1081,9 +1081,9 @@ def zero_perturbation_partial_function(function):
 
 ### Minimality check.
 
-def subadditivity_check(fn):
+def subadditivity_test(fn):
     """
-    Check if fn is subadditive. Works for discontinuous functions as well.
+    Check if `fn` is subadditive.
     """
     result = True
     for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices(fn, reduced=True):
@@ -1095,9 +1095,9 @@ def subadditivity_check(fn):
         logging.info("Thus pi is not subadditive.")
     return result
 
-def symmetric_check(fn, f):
+def symmetric_test(fn, f):
     """
-    Check if fn is symmetric. Works for discontinuous functions as well.
+    Check if `fn` is symmetric.
     """
     result = True
     if fn(f) != 1:
@@ -1141,9 +1141,17 @@ def find_f(fn, no_error_if_not_minimal_anyway=False):
 
 def minimality_test(fn, show_plots=False, f=None):
     """
-    Check if fn is minimal with respect to f. Works for discontinuous functions as well.
+    Check if `fn` is minimal with respect to the group relaxation with the given `f`. 
+
+    If `f` is not provided, use the one found by `find_f`.
+
+    If `show_plots` is True (default: False), show an illustrating diagram.
+
+    This function verifies that function values stay between 0 and 1 and
+    calls `subadditivity_test` and `symmetric_test`.
 
     EXAMPLES::
+
         sage: logging.disable(logging.INFO)
         sage: minimality_test(piecewise_function_from_breakpoints_and_values([0,1/5,4/5,1],[0,1/2,1,0]))
         False
@@ -1169,7 +1177,7 @@ def minimality_test(fn, show_plots=False, f=None):
             if not ((x[-1] is None or 0 <= x[-1] <=1) and (x[1] is None or 0 <= x[1] <=1)):
                 logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
                 return False
-    if subadditivity_check(fn) and symmetric_check(fn, f):
+    if subadditivity_test(fn) and symmetric_test(fn, f):
         logging.info('Thus pi is minimal.')
         is_minimal = True
     else:
@@ -3319,7 +3327,7 @@ def generate_nonsubadditive_vertices(fn, reduced=True):
     so that duplicates are removed, and so the result can be cached for later use.
 
     When reduced=True:
-        only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_check.
+        only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_test.
     When reduced=False:
         outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive_limit_vertices.
     """
