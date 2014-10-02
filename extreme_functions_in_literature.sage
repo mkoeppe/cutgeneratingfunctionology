@@ -12,6 +12,7 @@ def gmic(f=4/5):
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method;
         - Discovered [55] p.7-8, Eq.8;
         - Proven (Infinite) [60] p.377, thm.3.3; (Finite) [57] p.514, Appendix 3.
+        - (Although only extremality has been established in literature, the same proof shows that) gmic is a facet.
 
     Parameters:
         f (real) \in (0,1).
@@ -47,6 +48,7 @@ def gj_2_slope(f=3/5, lambda_1=1/6):
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method;
         - Discovered [61] p.352, Fig.5, construction 1;
         - Proven (Infinite) [60] p.377, thm.3.3; [61] p.352, thm.4; p.354, thm.5.
+        - gj_2_slope is a facet.
 
     Parameters:
         f (real) \in (0,1);
@@ -92,6 +94,7 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3):
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method;
         - Discovered [61] p.354, Fig.7, construction 2;
         - Proven (Infinite) [60] p.377, thm.3.3; [61] p.354, thm.5; p.355, thm.6.
+        - gj_2_slope_repeat is a facet.
 
     Parameters:
         f (real) \in (0,1);
@@ -139,6 +142,7 @@ def dg_2_step_mir(f=4/5, alpha=3/10):
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
         - Discovered [33]  p.39 def.8, Fig.5;
         - Proven (Infinite) [60] p.377, thm.3.3.
+        - dg_2_step_mir is a facet.
 
     Parameters:
         f (real) \in (0,1);
@@ -196,6 +200,7 @@ def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100]):
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
         - Discovered [74]  p.328, def.3, thm.2;
         - Proven (Infinite) [60] p.377, thm.3.3.
+        - (Although only extremality has been established in literature, the same proof shows that) kf_n_step_mir is a facet.
 
     Parameters:
         f (real) \in (0,1);
@@ -275,6 +280,7 @@ def gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3):
         - Infinite (or Finite); Dim = 1; Slopes = 3; Continuous; Analysis of subadditive polytope method;
         - Discovered [61] p.359, Construction.3, Fig.8;
         - Proven [61] p.359, thm.8.
+        - gj_forward_3_slope is a facet.
 
     Parameters:
         f (real) \in (0,1);
@@ -333,6 +339,7 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12):
         - Infinite; Dim = 1; Slopes = 3; Continuous; Group relations method;
         - Discovered [40] p.154 eq.5;
         - Proven [40] p.153 thm.6.
+        - (Although only extremality has been established in literature, the same proof shows that) drlm_backward_3_slope is a facet.
 
     Parameters:
         f, bkpt (real) \in (0,1).
@@ -388,6 +395,7 @@ def dg_2_step_mir_limit(f=3/5, d=3):
         - Infinite; Dim = 1; Slopes = 1; Discontinuous; Simple sets method;
         - Discovered [33] p.41, def.12;
         - Proven [33] p.43, lemma 14.
+        - dg_2_step_mir_limit is a facet.
 
     Parameters:
         f (real) \in (0,1);
@@ -445,6 +453,7 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
         - Infinite; Dim = 1; Slopes = 1; Discontinuous; Group relations method;
         - Discovered [40] p.158 def.10;
         - Proven [40] p.159 thm.8.
+        - (Although only extremality has been established in literature, the same proof shows that) drlm_2_slope_limit is a facet.
 
     Parameters:
         f (real) \in (0,1);
@@ -502,6 +511,7 @@ def drlm_3_slope_limit(f=1/5):
         - Infinite; Dim = 1; Slopes = 2; Discontinuous; Group relations method;
         - Discovered [40] p.161 def.11;
         - Proven [40] p.161 thm.9.
+        - (Although only extremality has been established in literature, the same proof shows that) drlm_3_slope_limit is a facet.
 
     Parameters:
         f (real) \in (0,1);
@@ -728,6 +738,7 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
         - Infinite; Dim = 1; Slopes = 3; Continuous;  Covered intervals and equivariant perturbation.
         - Discovered [IR2]  p.33, section.5.2, fig.9-10.
         - Proven [IR2] p.34, thm.5.3.
+        - (Although only extremality has been established in literature, the same proof shows that), bhk_irrational is a facet.
 
     Parameters:
         f (real) \in (0,1);
@@ -870,8 +881,7 @@ def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/
 
 def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4):
     """
-    This 4-slope function is shown [KChen_thesis] to be extreme.
-    This function can also be shown to be a facet.
+    This 4-slope function is shown [KChen_thesis] to be a facet.
 
     Parameters:
         f (real) \in (0,1);
@@ -944,7 +954,7 @@ def rlm_dpl1_extreme_3a(f=1/4):
 
     Indeed, it can be verified using covered_intervals and by setting up equations
     (specifically, 2 * \pi(f+) = \pi(2f+) and 2* \pi((1+f) / 2 +) = \pi(f+)) that
-    the function rlm_dpl1_fig3_lowerleft(f) is extreme for any 0 < f < 1/3.
+    the function rlm_dpl1_fig3_lowerleft(f) is a facet (and thus extreme) for any 0 < f < 1/3.
 
     Example p.273, Fig.3-lowerleft ::
 
@@ -999,7 +1009,7 @@ def ll_strong_fractional(f=2/3):
     Remarks::
         Discontinuous, 1-slope;
 
-        For f >= 1/2, this function is extreme, and is identical to 
+        For f >= 1/2, this function is facet (extreme), and is identical to
         drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=1).
 
     EXAMPLES::
