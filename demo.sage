@@ -53,6 +53,14 @@ extremality_test(h, show_plots=True)
 ## two perturbed functions in blue and red, whose average is the
 ## original function (black).
 
+## Here's the Gomory fractional cut.  
+gomory_fractional?
+h = gomory_fractional()
+plot_with_colored_slopes(h)
+
+## It is not even minimal:
+minimality_test(h, True)
+
 ## Let's consider an interesting discontinuous function.
 ## It was defined by Letchford and Lodi.
 ll_strong_fractional?
@@ -96,6 +104,11 @@ gomory_fractional?
 multiplicative_homomorphism?
 
 h = multiplicative_homomorphism(gmic(f=4/5), 3)
+
+## Note, this function has several points where it takes value 1,
+## and hence several candidates for "f".  If we don't provide the f value
+## that we mean, it will warn and pick the first one from the left.
+## So let's provide the f value.
 extremality_test(h, True, f=4/15)
 
 ## A special case of the above.
@@ -151,4 +164,18 @@ show(plot_completion_diagram(h), xmin=0.28, xmax=0.52, ymin=0.25, ymax=0.35)
 igp.show_plots_figsize = 40
 h = bhk_irrational(delta=[1/200, 3/200])
 extremality_test(h, True)
+
+## Of course, we can define functions from scratch.
+
+h = piecewise_function_from_breakpoints_and_values([0, 1/5, 2/5, 4/5, 1], [0, 1/5, 3/5, 1, 0]);
+extremality_test(h, True)
+
+## Here's another way.
+
+slopes = [10/3,0,10/3,0,10/3,-10/3,0,-10/3,0,-10/3]
+interval_lengths = [1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10]
+h = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
+extremality_test(h, True)
+
+## See extreme_functions_in_literature.sage and survey_examples.sage for many more examples.
 
