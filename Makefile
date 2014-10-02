@@ -18,3 +18,5 @@ install:
 check:
 	$(SAGE) -tp 4 $(SAGEFILES)
 
+tags: $(SAGEFILES)
+	etags $(SAGEFILES)
