@@ -420,7 +420,7 @@ def gomory_fractional(f=4/5):
     The Gomory fractional cut.  
     Not minimal.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = gomory_fractional(f=4/5)
