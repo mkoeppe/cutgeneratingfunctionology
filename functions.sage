@@ -1015,7 +1015,7 @@ def delete_one_time_plot_kwds(kwds):
     if 'tick_formatter' in kwds:
         del kwds['tick_formatter']
 
-def plot_covered_intervals(function, covered_intervals=None, uncovered_color='black', **plot_kwds):
+def plot_covered_intervals(function, covered_intervals=None, uncovered_color='black', labels=None, **plot_kwds):
     """
     Return a plot of the covered and uncovered intervals of `function`.
     """
@@ -1040,7 +1040,11 @@ def plot_covered_intervals(function, covered_intervals=None, uncovered_color='bl
         graph += plot(function, color = uncovered_color, **kwds)
         delete_one_time_plot_kwds(kwds)
     for i, component in enumerate(covered_intervals):
-        kwds.update({'legend_label': "covered component %s" % (i+1)})
+        if labels is None:
+            label = "covered component %s" % (i+1)
+        else:
+            label = labels[i]
+        kwds.update({'legend_label': label})
         plot_kwds_hook(kwds)
         for interval in component:
             graph += plot(function.which_function((interval[0] + interval[1])/2), interval, color=colors[i], zorder=-1, **kwds)
@@ -1048,6 +1052,21 @@ def plot_covered_intervals(function, covered_intervals=None, uncovered_color='bl
             # above the black function.
             delete_one_time_plot_kwds(kwds)
     return graph
+
+def plot_with_colored_slopes(fn):
+    """
+    Return a plot of `fn`, with pieces of different slopes in different colors.
+    """
+    slopes_dict = dict()
+    for i, f in fn.list():
+        if interval_length(i) > 0:
+            try: # Make sure we don't fail if passed a non-FastLinearFunction
+                if f._slope not in slopes_dict:
+                    slopes_dict[f._slope] = []
+                slopes_dict[f._slope].append((i[0], i[1]))
+            except AttributeError:
+                pass
+    return plot_covered_intervals(fn, slopes_dict.values(), labels=[ "Slope %s" % s for s in slopes_dict.keys() ])
 
 def zero_perturbation_partial_function(function):
     """

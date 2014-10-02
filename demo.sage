@@ -20,7 +20,7 @@ import igp; from igp import *
 h = gmic()
 
 ## Plot the function.
-plot(h)
+plot_with_colored_slopes(h)
 
 ## Test its extremality; this will create informative output and
 ## plots.
