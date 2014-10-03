@@ -8,10 +8,10 @@ from igp import *
 def gmic(f=4/5):
     """
     Summary:
-        - Name: GMIC;
+        - Name: GMIC (Gomory mixed integer cut);
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method;
         - Discovered [55] p.7-8, Eq.8;
-        - Proven (Infinite) [60] p.377, thm.3.3; (Finite) [57] p.514, Appendix 3.
+        - Proven extreme (for infinite group) [60] p.377, thm.3.3; (finite group) [57] p.514, Appendix 3.
         - (Although only extremality has been established in literature, the same proof shows that) gmic is a facet.
 
     Parameters:
@@ -44,10 +44,10 @@ def gmic(f=4/5):
 def gj_2_slope(f=3/5, lambda_1=1/6):
     """
     Summary:
-        - Name: GJ's 2-Slope;
+        - Name: Gomory--Johnson's 2-Slope;
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method;
         - Discovered [61] p.352, Fig.5, construction 1;
-        - Proven (Infinite) [60] p.377, thm.3.3; [61] p.352, thm.4; p.354, thm.5.
+        - Proven extreme (infinite group) [60] p.377, thm.3.3; [61] p.352, thm.4; p.354, thm.5.
         - gj_2_slope is a facet.
 
     Parameters:
@@ -90,10 +90,10 @@ def gj_2_slope(f=3/5, lambda_1=1/6):
 def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3):
     """
     Summary:
-        - Name: GJ's 2-Slope-repeat;
+        - Name: Gomory--Johnson's 2-Slope-repeat;
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method;
         - Discovered [61] p.354, Fig.7, construction 2;
-        - Proven (Infinite) [60] p.377, thm.3.3; [61] p.354, thm.5; p.355, thm.6.
+        - Proven extreme (for infinite group) [60] p.377, thm.3.3; [61] p.354, thm.5; p.355, thm.6.
         - gj_2_slope_repeat is a facet.
 
     Parameters:
@@ -141,7 +141,7 @@ def dg_2_step_mir(f=4/5, alpha=3/10):
         - Name: 2-Step MIR;
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
         - Discovered [33]  p.39 def.8, Fig.5;
-        - Proven (Infinite) [60] p.377, thm.3.3.
+        - Proven extreme (for infinite group) [60] p.377, thm.3.3.
         - dg_2_step_mir is a facet.
 
     Parameters:
@@ -199,7 +199,7 @@ def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100]):
         - Name: n-Step MIR;
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
         - Discovered [74]  p.328, def.3, thm.2;
-        - Proven (Infinite) [60] p.377, thm.3.3.
+        - Proven extreme (for infinite group) [60] p.377, thm.3.3.
         - (Although only extremality has been established in literature, the same proof shows that) kf_n_step_mir is a facet.
 
     Parameters:
@@ -276,10 +276,10 @@ def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100]):
 def gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3):
     """
     Summary: 
-        - Name: GJ's Forward 3-Slope;
+        - Name: Gomory--Johnson' Forward 3-Slope;
         - Infinite (or Finite); Dim = 1; Slopes = 3; Continuous; Analysis of subadditive polytope method;
         - Discovered [61] p.359, Construction.3, Fig.8;
-        - Proven [61] p.359, thm.8.
+        - Proven extreme [61] p.359, thm.8.
         - gj_forward_3_slope is a facet.
 
     Parameters:
@@ -394,7 +394,7 @@ def dg_2_step_mir_limit(f=3/5, d=3):
         - Name: DG-2-Step MIR Limit;
         - Infinite; Dim = 1; Slopes = 1; Discontinuous; Simple sets method;
         - Discovered [33] p.41, def.12;
-        - Proven [33] p.43, lemma 14.
+        - Proven extreme [33] p.43, lemma 14.
         - dg_2_step_mir_limit is a facet.
 
     Parameters:
@@ -408,7 +408,7 @@ def dg_2_step_mir_limit(f=3/5, d=3):
     Note:
         This is the limit function as alpha in dg_2_step_mir()
         tends (from left) to f/d, where d is integer;
-        c.f. [33] p.42, lemma 13.
+        cf. [33] p.42, lemma 13.
 
         It's a special case of drlm_2_slope_limit(),
         dg_2_step_mir_limit(f, d) =
@@ -452,7 +452,7 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
         - Name: drlm's 2-Slope Limit;
         - Infinite; Dim = 1; Slopes = 1; Discontinuous; Group relations method;
         - Discovered [40] p.158 def.10;
-        - Proven [40] p.159 thm.8.
+        - Proven extreme [40] p.159 thm.8.
         - (Although only extremality has been established in literature, the same proof shows that) drlm_2_slope_limit is a facet.
 
     Parameters:
@@ -510,7 +510,7 @@ def drlm_3_slope_limit(f=1/5):
         - Name: drlm-3-Slope Limit;
         - Infinite; Dim = 1; Slopes = 2; Discontinuous; Group relations method;
         - Discovered [40] p.161 def.11;
-        - Proven [40] p.161 thm.9.
+        - Proven extreme [40] p.161 thm.9.
         - (Although only extremality has been established in literature, the same proof shows that) drlm_3_slope_limit is a facet.
 
     Parameters:
@@ -550,8 +550,8 @@ def drlm_3_slope_limit(f=1/5):
 
 def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
     """
-    return function psi, a counterexample to GJ's conjecture;
-    psi is a continuous facet (hence extreme), but is not piecewise linear. c.f.[IR1]
+    return function psi, a counterexample to Gomory--Johnson's conjecture;
+    psi is a continuous facet (hence extreme), but is not piecewise linear. cf. [IR1]
 
     Parameters:
         f (real) \in (0,1);
@@ -661,7 +661,7 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24]):
         - Name: psi_n in the construction of BCCZ's counterexample to GJ's conjecture;
         - Infinite; Dim = 1; Slopes = 2; Continuous;  Analysis of subadditive polytope method.
         - Discovered [IR1]  p.30, section.3, fig.1;
-        - Proven [IR1] p.35, thm.4.7.
+        - Proven extreme [IR1] p.35, thm.4.7.
 
     Note:
         The (uniform) limit \psi = \lim_{n to \infty} \psi_n is well defined if \sum_{i = 0}^{\infty} {2^i * e[i]} < f.
@@ -737,7 +737,7 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
         - Name: BHK's irrational function.
         - Infinite; Dim = 1; Slopes = 3; Continuous;  Covered intervals and equivariant perturbation.
         - Discovered [IR2]  p.33, section.5.2, fig.9-10.
-        - Proven [IR2] p.34, thm.5.3.
+        - Proven extreme [IR2] p.34, thm.5.3.
         - (Although only extremality has been established in literature, the same proof shows that), bhk_irrational is a facet.
 
     Parameters:
@@ -940,7 +940,7 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4):
 
 def rlm_dpl1_extreme_3a(f=1/4):
     """
-    Reference: 2007-Richard-Li-Miller-Valid inequalities for MIPs and group polyhedra from approximate liftings.pdf.
+    From Richard--Li--Miller [RLM2009].
 
     For 0 < f < 1/3, by thm.28, the DPL1 function \phi (whose corresponding h is shown on p.273, Fig.3-lowerleft)
     is "extreme". <-- not the usual definition.
@@ -969,6 +969,11 @@ def rlm_dpl1_extreme_3a(f=1/4):
         upper-left:  drlm_3_slope_limit(1/3)
         upper-right: drlm_2_slope_limit(f=3/5, nb_pieces_left=1, nb_pieces_right=1)
         lower-right: drlm_2_slope_limit(f=3/5, nb_pieces_left=1, nb_pieces_right=2)
+
+    Reference:
+
+    .. [RLM2009] J.-P. P. Richard, Y. Li, and L. A. Miller, Valid inequalities for MIPs and group polyhedra
+       from approximate liftings, Mathematical Programming 118 (2009), no. 2, 253–277, doi:10.1007/s10107-007-0190-9
     """
     if not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
