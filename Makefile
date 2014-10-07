@@ -7,7 +7,9 @@ SAGEFILES =					\
 	discontinuous_case.sage			\
 	extreme_functions_in_literature.sage	\
 	functions.sage				\
+	simple_extremality_test.sage		\
 	survey_examples.sage
+
 
 all:
 	@echo "No need to 'make' anything. Just run it in Sage; see README.md"
