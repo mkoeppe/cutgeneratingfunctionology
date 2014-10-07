@@ -32,14 +32,20 @@ def compendium_ticks_keywords(function, y_ticks_for_breakpoints=False):
     }
 
 def survey_ticks_keywords(function, y_ticks_for_breakpoints=False):
-    return {'ticks':[[0,1], [0,1]], 
-            'tick_formatter': [['$0$', '$1$'], ['$0$', '$1$']],
-            'gridlines': True,
-            #'thickness': 3, 
-            #'frame': True, 
-            #'axes': False, 
-            #'fig_tight': False
-    }
+    if y_ticks_for_breakpoints:
+        return {'ticks':[[0,find_f(function),1], [0,find_f(function), 1]], 
+                'tick_formatter': [['$0$', '$f$', '$1$'], ['$0$', '$f$', '$1$']],
+                'gridlines': True,
+                #'thickness': 3, 
+                #'frame': True, 
+                #'axes': False, 
+                #'fig_tight': False
+                }
+    else:
+        return {'ticks':[[0,find_f(function),1], [0,1]], 
+                'tick_formatter': [['$0$', '$f$', '$1$'], ['$0$', '$1$']],
+                'gridlines': True,
+            }
 
 def c7_ticks_keywords(function, y_ticks_for_breakpoints=False):
     xticks = [i/7 for i in range(7+1)]
@@ -53,9 +59,17 @@ def latex_formatter_or_empty(x, labels_list = [0, 1]):
     else:
         return ""
 
+def latex_formatter_or_f_or_empty(x, f, labels_list = [0, 1]):
+    if x == f:
+        return "$f$"
+    elif x in labels_list:
+        return "$%s$" % latex(x)
+    else:
+        return ""
+
 def no_labels_ticks_keywords(function, y_ticks_for_breakpoints=False):
     xticks = function.end_points()
-    xtick_formatter = [ latex_formatter_or_empty(x) for x in xticks ]
+    xtick_formatter = [ latex_formatter_or_f_or_empty(x, find_f(function)) for x in xticks ]
     #xtick_formatter = 'latex'  # would not show rationals as fractions
     ytick_formatter = None
     if y_ticks_for_breakpoints:
@@ -116,7 +130,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
 
         # Graph
         
-        load('graphics_for_survey_poset.sage')
+        load('survey_graphics/graphics_for_survey_poset.sage')
 
         # override function!
         igp.ticks_keywords = compendium_ticks_keywords
@@ -171,7 +185,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
                 extremality_test(h, show_plots=destdir + "%s_%s-%%s.pdf" % (name, s))
 
         # Bccz figure
-        load("graphics_for_survey_bccz.sage")
+        load("survey_graphics/graphics_for_survey_bccz.sage")
 
         # Plot or re-plot some 2d diagrams with a different style
         igp.proj_plot_colors = ['grey', 'grey', 'grey']
