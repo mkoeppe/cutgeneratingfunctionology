@@ -4223,13 +4223,12 @@ def generate_generic_seeds_with_completion(fn, show_plots=False, max_num_it=None
     find_decomposition_into_stability_intervals_with_completion(fn, show_plots=show_plots)
     if not fn._stability_orbits:
         return
-    # FIXME: Yield all of them.
-    (orbit, walk_dict, _) = max(fn._stability_orbits, key=stab_int_length)
-    int = orbit[0]
-    if interval_length(int) > 0:
-        seed = (int.a + int.b) / 2
-        stab_int = closed_or_open_or_halfopen_interval(int.a - seed, int.b - seed, int.left_closed, int.right_closed)
-        yield (seed, stab_int, walk_dict)
+    for (orbit, walk_dict, _) in sorted(fn._stability_orbits, key=stab_int_length, reverse=True):
+        int = orbit[0]
+        if interval_length(int) > 0:
+            seed = (int.a + int.b) / 2
+            stab_int = closed_or_open_or_halfopen_interval(int.a - seed, int.b - seed, int.left_closed, int.right_closed)
+            yield (seed, stab_int, walk_dict)
 
 class DenseDirectedMove ():
 
