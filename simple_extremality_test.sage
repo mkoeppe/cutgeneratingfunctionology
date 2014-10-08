@@ -93,7 +93,8 @@ def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, ove
                 break
 
     if not seen_perturbation:
-        logging.info("No perturbation found.")
-        if oversampling is not None and oversampling >= 3 and order is None and fn.is_continuous():
+        if fn.is_discrete():
+            logging.info("Thus the function is extreme.")
+        elif oversampling is not None and oversampling >= 3 and order is None and fn.is_continuous():
             logging.info("Because oversampling >= 3, this means that the function is extreme.")
     return not seen_perturbation

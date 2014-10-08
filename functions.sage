@@ -3533,6 +3533,8 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
             logging.info("Thus the function is NOT extreme.")
             if not show_all_perturbations:
                 break
+    if not seen_perturbation:
+        logging.info("Thus the function is extreme.")
     return not seen_perturbation
 
 def generate_perturbations(fn, show_plots=False, show_old_moves_diagram=False, f=None, max_num_it=1000, perturbation_style=default_perturbation_style, finite_dimensional_test_first = False, use_new_code=True):
@@ -3571,7 +3573,7 @@ def generate_perturbations_equivariant(fn, show_plots=False, show_old_moves_diag
     if use_new_code:
         seed, stab_int, walk_list = find_generic_seed_with_completion(fn, show_plots=show_plots, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
         if not seed:
-            logging.info("Dense orbits in all non-covered intervals.  According to conjectures, this means that the function is extreme.")
+            logging.info("Dense orbits in all non-covered intervals.")
             return
     else:
         seed, stab_int, walk_list = find_generic_seed(fn, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
