@@ -829,6 +829,108 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
     interval_lengths = intervals_left + [d13] + intervals_left[::-1] + [1-f]
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
 
+def bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), c2=0):
+    """
+    A version of the irrational function with non-zero second slope
+
+    Parameters:
+        f (real) \in (0,1);
+        d1 (real): length of the positive slopes;
+        d2 (real): length of the slant (c2) slopes;
+        a0 (real): length of the first zig-zag;
+        delta (n-tuple of reals): length of the extra zig-zags.
+        c2 (real): slant slope, c2 = 0 in bhk_irrational() 
+
+    Function is known to be extreme under the conditions:
+        0 < f < 1;
+        d1, d2, a0, delta > 0;
+        d1 + d2 < f;
+        len(delta) == 2
+        sum(delta) <  d2 / 4; Weaker condition: 2*delta[0] + delta[1] < d2 / 2;
+        the two components of delta are linearly independent over \Q.
+        (?? sufficient ??) -1 / (1 - f) <= c2 <= (1 - d1 - d2) / (d1 + d2) / (1 - f);
+        Also needs:
+            sum(delta) < (f/2 - d2/4 - 3*a0/2) * c1 / (c1-c2);
+            5*a0 > 2*(c1-c2)/(c1-c3) * d2 + d2 / 2 + d1.
+            d?? > 0
+            ...
+
+    Relation between the code parameters and the paper parameters:
+        t1 = delta[0], t2 = delta[0] + delta[1], ...
+        a1 = a0 + t1, a2 = a0 + t2, ...
+        A = f/2 - a0/2 - d2/4,
+        A0 = f/2 - a0/2 + d2/4.
+
+    Example:
+        h = bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), c2=1/16)
+        # is the same as bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), alpha=95/100)
+
+    Bug example (function is not minimal):
+        h = bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=40/180, delta=(1/400, sqrt(2)/400))
+    """
+    if not (bool(0 < f < 1) and bool(d1 > 0) and bool(d2 > 0) and bool(a0 > 0)
+            and all(bool(deltai > 0) for deltai in delta) and bool(d1 + d2 < f)):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+
+    d3 = f - d1 - d2
+    c3 = -1/(1-f)
+    c1 = (1-d2*c2-d3*c3)/d1
+    d21 = d2 / 2
+    d31 = (c1 - c2) / (c1 - c3) * d21
+    d11 = a0 - d31
+    d13 = a0 - d21
+    d12 = (d1 - d13)/2 - d11
+    d32 = d3/2 - d31
+
+    if bool(d32 < 0):
+        raise ValueError, "Bad parameters. Unable to construct the function. "
+
+    a0_max = min(f - d2/2, d1 + d2/2 + 2*d31) / 3  # since A > 0 and d12 > 0
+
+    if not bool(d31 < a0 < a0_max):
+        raise ValueError, "Bad parameters. %s < a0 < %s is not satisfied. Unable to construct the function." % (d31, a0_max)
+
+    sumdelta_max = (f/2 - d2/4 - 3*a0/2) * c1 / (c1 - c2) # since d32 > 0
+    if not bool(sum(delta) < sumdelta_max):
+        raise ValueError, "Bad parameters. sum(delta) < %s is not satisfied. Unable to construct the function." % sumdelta_max
+
+    a0_min = (2*(c1-c2)/(c1-c3) * d2 + d2 / 2 + d1) / 5 # since d11 >= d12
+    c2_min = -1 / (1 - f) # since c2 >= c3
+    c2_max = (1 - d1 - d2) / (d1 + d2) / (1 - f) # since c2 <= c1
+    if bool(a0 < a0_min):
+        logging.info("Conditions for extremality are NOT satisfied. Minimality requires a0 >= %s" % a0_min)
+    elif not bool(c2_min <= c2 <= c2_max):
+        logging.info("Conditions for extremality are NOT satisfied. Need %s < c2 < %s" % (c2_min, c2_max))
+    elif len(delta) < 2:
+        logging.info("Conditions for extremality are NOT satisfied.")
+    elif len(delta) == 2:
+        if is_QQ_linearly_independent(delta) and  2*delta[0] + delta[1] < d2 / 2:
+            logging.info("Conditions for extremality are satisfied if it is a minimal function.")
+        else:
+            logging.info("Conditions for extremality are NOT satisfied.")
+    else:
+        logging.info("len(delta) >= 3, Conditions for extremality are unknown.")
+
+    zigzag_lengths = []
+    zigzag_slopes = []
+    delta_positive = 0
+    delta_negative = 0
+    for delta_i in delta:
+        delta_i_negative = (c1 - c2) * delta_i / (c1 - c3)
+        delta_i_positive = delta_i - delta_i_negative
+        delta_positive += delta_i_positive
+        delta_negative += delta_i_negative
+        zigzag_lengths = zigzag_lengths + [delta_i_positive, delta_i_negative]
+        zigzag_slopes = zigzag_slopes + [c1, c3]
+    d12new = d12 - delta_positive
+    d32new = d32 - delta_negative
+
+    slopes_left = [c1,c3] + zigzag_slopes + [c1,c3,c2]
+    slopes = slopes_left + [c1] + slopes_left[::-1] + [c3]
+    intervals_left = [d11,d31] + zigzag_lengths + [d12new,d32new,d21]
+    interval_lengths = intervals_left + [d13] + intervals_left[::-1] + [1-f]
+    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
+
 def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), alpha=95/100):
     """
     A version of the irrational function with non-zero second slope,
