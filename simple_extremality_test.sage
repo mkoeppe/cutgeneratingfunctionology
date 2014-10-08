@@ -11,7 +11,7 @@ def generate_perturbations_simple(fn, show_plots=False, f=None, oversampling=3, 
     """
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
-    field = fn(0).parent()
+    field = fn(0).parent().fraction_field()
     grid_nb = finite_group_order_from_function_f_oversampling_order(fn, f=f, oversampling=oversampling, order=order)
     grid = field(1 / grid_nb)
     pts = [grid * i for i in range(grid_nb)]
@@ -68,6 +68,8 @@ def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, ove
         sage: simple_finite_dimensional_extremality_test(drlm_not_extreme_1(), False, oversampling=1)
         True
         sage: simple_finite_dimensional_extremality_test(drlm_not_extreme_1(), False, oversampling=2)
+        False
+        sage: simple_finite_dimensional_extremality_test(minimal_has_uncovered_interval(), False)
         False
         sage: simple_finite_dimensional_extremality_test(drlm_not_extreme_2(), False)
         False
