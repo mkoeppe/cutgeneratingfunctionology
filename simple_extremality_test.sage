@@ -81,7 +81,10 @@ def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, ove
         return False
 
     seen_perturbation = False
-    for perturbation in generate_perturbations_simple(fn, show_plots=show_plots, f=f, oversampling=oversampling, order=order):
+    for index, perturbation in enumerate(generate_perturbations_simple(fn, show_plots=show_plots, f=f, oversampling=oversampling, order=order)):
+        check_perturbation(fn, perturbation,
+                           show_plots=show_plots, show_plot_tag='perturbation-%s' % (index + 1),
+                           legend_title="Basic perturbation %s" % (index + 1))
         if not seen_perturbation:
             seen_perturbation = True
             logging.info("Thus the function is NOT extreme.")
