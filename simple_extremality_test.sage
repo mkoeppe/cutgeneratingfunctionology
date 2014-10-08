@@ -48,16 +48,16 @@ def generate_perturbations_simple(fn, show_plots=False, f=None, oversampling=3, 
 
 def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, oversampling=3, order=None, show_all_perturbations=False):
     """
-    Simple finite dimensional extremality test that does not go
+    Simple finite dimensional extremality test for `fn` that does not go
     through the whole machinery of covered intervals etc., but rather
     sets up a grid 1/mq, where q is the lcm of the breakpoint
-    denominator and m is the `oversampling` factor (we prove in
-    Equivariant I that m = 4 always is enough; in the survey we prove
-    that, in fact, m = 3 (the default) suffices.
+    denominator and m is the `oversampling` factor. We prove in
+    Equivariant I that m = 4 always is enough for continuous functions; 
+    in the survey we prove that, in fact, m = 3 (the default) suffices.
 
     Instead of the `oversampling` factor, the code also allows to
-    specify a different grid; this is particularly useful for the
-    irrational case.
+    specify a different grid using parameter `order`; this is particularly 
+    useful for the irrational case.
 
     EXAMPLES::
 
