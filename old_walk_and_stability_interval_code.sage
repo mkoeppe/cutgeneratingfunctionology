@@ -1,3 +1,10 @@
+# Make sure current directory is in path.  
+# That's not true while doctesting (sage -t).
+if '' not in sys.path:
+    sys.path = [''] + sys.path
+
+from igp import *
+
 ## Old code for random walks and BFS.
 ## This is superseded by directed_move_composition_completion.
 
@@ -146,7 +153,7 @@ def deterministic_walk(seed, moves, fn=None, max_num_it = 1000, error_if_sign_co
             logging.info("Breadth-first search to discover the reachable orbit reached %d iterations, to do list has still %d items" % (num_it, len(to_do)))
         return xlist, to_do
 
-def find_generic_seed(fn, max_num_it = 1000):
+def generate_generic_seeds(fn, max_num_it = 1000):
     intervals = generate_uncovered_intervals(fn)
     if not intervals:
         raise ValueError, "Need an uncovered interval"
@@ -163,7 +170,7 @@ def find_generic_seed(fn, max_num_it = 1000):
                 logging.info("Stability interval does not contain 0 in its interior, continuing search.")
                 continue
             logging.info("Seed %s has a proper stability interval %s, reachable orbit has %s elements" % (seed, stab_int, len(walk_list)))
-            return (seed, stab_int, walk_list)
+            yield (seed, stab_int, walk_list)
         except SignContradiction:
             continue
 

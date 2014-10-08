@@ -3569,29 +3569,31 @@ def generate_perturbations_equivariant(fn, show_plots=False, show_old_moves_diag
     logging.debug("Moves relevant for these intervals: %s" % (moves,))
     ## FIXME: Loop over all perturbations.
     if use_new_code:
-        seed, stab_int, walk_list = find_generic_seed_with_completion(fn, show_plots=show_plots, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
-        if not seed:
-            logging.info("Dense orbits in all non-covered intervals.")
-            return
+        generator = generate_generic_seeds_with_completion(fn, show_plots=show_plots, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
     else:
-        seed, stab_int, walk_list = find_generic_seed(fn, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
-    fn._seed = seed
-    fn._stab_int = stab_int
-    fn._walk_list = walk_list
-    if show_plots and show_old_moves_diagram:
-        logging.info("Plotting moves and reachable orbit...")
-        g = plot_old_moves_diagram(fn)
-        show_plot(g, show_plots, tag='moves', object=fn)
-        logging.info("Plotting moves and reachable orbit... done")
-    perturb = approx_discts_function(walk_list, stab_int, perturbation_style=perturbation_style, function=fn)
-    if show_plots:
-        logging.info("Plotting completion diagram with perturbation...")
-        g = plot_completion_diagram(fn, perturb)        # at this point, the perturbation has not been stored yet
-        show_plot(g, show_plots, tag='completion', object=fn._completion, legend_title="Completion of moves, perturbation", legend_loc="upper left")
-        logging.info("Plotting completion diagram with perturbation... done")
-    check_perturbation(fn, perturb, show_plots=show_plots, show_plot_tag='perturbation-1')
-    yield perturb
-
+        generator = generate_generic_seeds(fn, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
+    seen_perturbation = False
+    for seed, stab_int, walk_list in generator:
+        fn._seed = seed
+        fn._stab_int = stab_int
+        fn._walk_list = walk_list
+        if show_plots and show_old_moves_diagram:
+            logging.info("Plotting moves and reachable orbit...")
+            g = plot_old_moves_diagram(fn)
+            show_plot(g, show_plots, tag='moves', object=fn)
+            logging.info("Plotting moves and reachable orbit... done")
+        perturb = approx_discts_function(walk_list, stab_int, perturbation_style=perturbation_style, function=fn)
+        if show_plots:
+            logging.info("Plotting completion diagram with perturbation...")
+            g = plot_completion_diagram(fn, perturb)        # at this point, the perturbation has not been stored yet
+            show_plot(g, show_plots, tag='completion', object=fn._completion, legend_title="Completion of moves, perturbation", legend_loc="upper left")
+            logging.info("Plotting completion diagram with perturbation... done")
+        check_perturbation(fn, perturb, show_plots=show_plots, show_plot_tag='perturbation-1')
+        seen_perturbation = True
+        yield perturb
+    if not seen_perturbation:
+        logging.info("Dense orbits in all non-covered intervals.")
+        
 def plot_old_moves_diagram(fn):
     """
     Return a plot of the 'old' moves diagram, superseded by `plot_completion_diagram`.
@@ -4216,18 +4218,18 @@ def stab_int_length(x):
     int = orbit[0]
     return interval_length(int)
 
-def find_generic_seed_with_completion(fn, show_plots=False, max_num_it=None):
+def generate_generic_seeds_with_completion(fn, show_plots=False, max_num_it=None):
     # Ugly compatibility interface.
     find_decomposition_into_stability_intervals_with_completion(fn, show_plots=show_plots)
     if not fn._stability_orbits:
-        return None, None, None
+        return
+    # FIXME: Yield all of them.
     (orbit, walk_dict, _) = max(fn._stability_orbits, key=stab_int_length)
     int = orbit[0]
     if interval_length(int) > 0:
         seed = (int.a + int.b) / 2
         stab_int = closed_or_open_or_halfopen_interval(int.a - seed, int.b - seed, int.left_closed, int.right_closed)
-        return (seed, stab_int, walk_dict)
-    return None, None, None
+        yield (seed, stab_int, walk_dict)
 
 class DenseDirectedMove ():
 
