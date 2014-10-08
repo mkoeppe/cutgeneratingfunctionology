@@ -10,6 +10,7 @@ load("compendium_procedures.sage")
 load("extreme_functions_in_literature.sage")
 load("survey_examples.sage")
 load("simple_extremality_test.sage")
+#load("old_walk_and_stability_interval_code.sage")
 
 load("bug_examples.sage")
 
