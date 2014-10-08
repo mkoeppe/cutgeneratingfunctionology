@@ -3363,14 +3363,10 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
     symbolic = generate_symbolic(function, components, field=field)
     equation_matrix = generate_additivity_equations(function, symbolic, field, f=f)
     slope_jump_vects = equation_matrix.right_kernel().basis()
-    logging.info("Solution space has dimension %s" % len(slope_jump_vects))
+    logging.info("Finite dimensional test: Solution space has dimension %s" % len(slope_jump_vects))
     for basis_index in range(len(slope_jump_vects)):
         slope_jump = slope_jump_vects[basis_index]
         perturbation = slope_jump * symbolic
-        # FIXME: Indexing perturbations does not make sense any more.
-        check_perturbation(function, perturbation,
-                           show_plots=show_plots, show_plot_tag='perturbation-%s' % (basis_index + 1),
-                           legend_title="Basic perturbation %s" % (basis_index + 1))
         yield perturbation
 
 def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn_about_uncovered_intervals=True, 
@@ -3397,7 +3393,10 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn
     if function.is_discrete():
         return simple_finite_dimensional_extremality_test(function, oversampling=1, show_all_perturbations=show_all_perturbations)
     seen_perturbation = False
-    for perturbation in generate_perturbations_finite_dimensional(function, show_plots=show_plots, f=f):
+    for index, perturbation in enumerate(generate_perturbations_finite_dimensional(function, show_plots=show_plots, f=f)):
+        check_perturbation(function, perturbation,
+                           show_plots=show_plots, show_plot_tag='perturbation-%s' % (index + 1),
+                           legend_title="Basic perturbation %s" % (index + 1))
         if not seen_perturbation:
             seen_perturbation = True
             logging.info("Thus the function is NOT extreme.")
@@ -3525,7 +3524,11 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
     if do_phase_1_lifting:
         finite_dimensional_test_first = True
     seen_perturbation = False
-    for perturbation in generate_perturbations(fn, show_plots=show_plots, show_old_moves_diagram=show_old_moves_diagram, f=f, max_num_it=max_num_it, finite_dimensional_test_first=finite_dimensional_test_first, perturbation_style=perturbation_style, use_new_code=use_new_code):
+    generator = generate_perturbations(fn, show_plots=show_plots, show_old_moves_diagram=show_old_moves_diagram, f=f, max_num_it=max_num_it, finite_dimensional_test_first=finite_dimensional_test_first, perturbation_style=perturbation_style, use_new_code=use_new_code)
+    for index, perturbation in enumerate(generator):
+        check_perturbation(fn, perturbation, show_plots=show_plots, 
+                           show_plot_tag='perturbation-%s' % (index + 1), 
+                           legend_title="Basic perturbation %s" % (index + 1))
         if not seen_perturbation:
             seen_perturbation = True
             logging.info("Thus the function is NOT extreme.")
@@ -3567,7 +3570,6 @@ def generate_perturbations_equivariant(fn, show_plots=False, show_old_moves_diag
         logging.warning("Code for detecting perturbations using moves is EXPERIMENTAL in the discontinuous case.")
     moves = generate_functional_directed_moves(fn)
     logging.debug("Moves relevant for these intervals: %s" % (moves,))
-    ## FIXME: Loop over all perturbations.
     if use_new_code:
         generator = generate_generic_seeds_with_completion(fn, show_plots=show_plots, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
     else:
@@ -3588,7 +3590,6 @@ def generate_perturbations_equivariant(fn, show_plots=False, show_old_moves_diag
             g = plot_completion_diagram(fn, perturb)        # at this point, the perturbation has not been stored yet
             show_plot(g, show_plots, tag='completion', object=fn._completion, legend_title="Completion of moves, perturbation", legend_loc="upper left")
             logging.info("Plotting completion diagram with perturbation... done")
-        check_perturbation(fn, perturb, show_plots=show_plots, show_plot_tag='perturbation-1')
         seen_perturbation = True
         yield perturb
     if not seen_perturbation:

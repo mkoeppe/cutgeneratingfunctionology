@@ -44,10 +44,6 @@ def generate_perturbations_simple(fn, show_plots=False, f=None, oversampling=3, 
         else:
              # FIXME: Handle the discontinuous case properly !
             perturbation = piecewise_function_from_breakpoints_and_values(pts+[1], solution+[0], field)
-        ### FIXME: Do we want to call check_perturbation here or in the caller?
-        check_perturbation(fn, perturbation, show_plots=show_plots, 
-                           show_plot_tag='perturbation-%s' % (sol_index + 1), 
-                           legend_title="Basic perturbation %s" % (sol_index + 1))
         yield perturbation
 
 def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, oversampling=3, order=None, show_all_perturbations=False):
