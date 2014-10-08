@@ -523,7 +523,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
         sage: plot_2d_diagram(h)
 
     """
-    if f == None:
+    if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
     faces = generate_maximal_additive_faces(fn)
     p = plot_2d_complex(fn)
@@ -1200,9 +1200,9 @@ def minimality_test(fn, show_plots=False, f=None):
         if (x < 0) or (x > 1):
             logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
             return False
-    if f==None:
+    if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
-        if f==None:
+        if f is None:
             return False
     if fn(0) != 0:
         logging.info('pi is NOT minimal because pi(0) is not equal to 0.')
@@ -1332,11 +1332,11 @@ class FastPiecewise (PiecewisePolynomial):
                 if common_f == f:
                     intervals_to_scan.append(i)
                     singleton = None
-                elif common_f != None and singleton != None and common_f(singleton) == f(singleton):
+                elif common_f is not None and singleton is not None and common_f(singleton) == f(singleton):
                     intervals_to_scan.append(i)
                     singleton = None
                     common_f = f
-                elif i[0] == i[1] and common_f != None and common_f(i[0]) == f(i[0]):
+                elif i[0] == i[1] and common_f is not None and common_f(i[0]) == f(i[0]):
                     intervals_to_scan.append(i)
                 else:
                     merged_intervals = union_of_coho_intervals_minus_union_of_coho_intervals([[interval] for interval in intervals_to_scan], [],
@@ -1363,7 +1363,7 @@ class FastPiecewise (PiecewisePolynomial):
         end_points = []
         # ith_at_end_points records in which interval the end_point first appears as a left_end or right_end.
         ith_at_end_points = []
-        # record the value at each end_point, value==None if end_point is not in the domain.
+        # record the value at each end_point, value=None if end_point is not in the domain.
         values_at_end_points = []
         # record function values at [x, x+, x-] for each endpoint x.
         limits_at_end_points = []
@@ -1384,7 +1384,7 @@ class FastPiecewise (PiecewisePolynomial):
                     limits_at_end_points[-1][1]= None
                 limits_at_end_points.append([left_value, right_limit, None])
             else:
-                if left_value != None:
+                if left_value is not None:
                     values_at_end_points[-1] = left_value
                     limits_at_end_points[-1][0] = left_value
                 limits_at_end_points[-1][1] = right_limit
@@ -1397,7 +1397,7 @@ class FastPiecewise (PiecewisePolynomial):
                 ith_at_end_points.append(i)
                 values_at_end_points.append(right_value)
                 limits_at_end_points.append([right_value, None, left_limit])
-            elif right_value != None:
+            elif right_value is not None:
                 values_at_end_points[-1] = right_value        
         if periodic_extension and limits_at_end_points != []:
             #if values_at_end_points[0] != values_at_end_points[-1]:
@@ -1413,17 +1413,17 @@ class FastPiecewise (PiecewisePolynomial):
         self._periodic_extension = periodic_extension
 
         is_continuous = True
-        if len(end_points) == 1 and end_points[0] == None:
+        if len(end_points) == 1 and end_points[0] is None:
             is_continuous = False
         elif len(end_points)>= 2:
             [l0, m0, r0] = limits_at_end_points[0]
             [l1, m1, r1] = limits_at_end_points[-1]
-            if m0 == None or r0 == None or  m0 != r0 or l1 == None or m1 == None or l1 != m1:
+            if m0 is None or r0 is None or  m0 != r0 or l1 is None or m1 is None or l1 != m1:
                 is_continuous = False
             else:
                 for i in range(1, len(end_points)-1):
                     [l, m, r] = limits_at_end_points[i]
-                    if l == None or m == None or r == None or not(l == m == r):
+                    if l is None or m is None or r is None or not(l == m == r):
                         is_continuous = False
                         break
         self._is_continuous = is_continuous
@@ -1588,7 +1588,7 @@ class FastPiecewise (PiecewisePolynomial):
         if i >= len(endpts):
             raise ValueError,"Value not defined at point %s, outside of domain." % x0
         if x0 == endpts[i]:
-            if not self._values_at_end_points[i] == None:
+            if self._values_at_end_points[i] is not None:
                 if self.functions()[ith[i]](x0) == self._values_at_end_points[i]:
                     return self.functions()[ith[i]]
                 else:
@@ -1676,7 +1676,7 @@ class FastPiecewise (PiecewisePolynomial):
         if i >= len(endpts):
             raise ValueError,"Value not defined at point %s, outside of domain." % x0
         if x0 == endpts[i]:
-            if not self._values_at_end_points[i] == None:
+            if self._values_at_end_points[i] is not None:
                 return self._values_at_end_points[i]
             else:
                 raise ValueError,"Value not defined at point %s, outside of domain." % x0
@@ -1778,7 +1778,7 @@ class FastPiecewise (PiecewisePolynomial):
             ValueError: Value not defined at point 8-, outside of domain.
         """
         result =self.limits(x0)[epsilon]
-        if result == None:
+        if result is None:
             raise ValueError,"Value not defined at point %s%s, outside of domain." % (x0, print_sign(epsilon))
         return result
 
@@ -1997,22 +1997,22 @@ class FastPiecewise (PiecewisePolynomial):
         if xmin < bkpt[0] or xmax > bkpt[-1]:
             return False
         if xmin == xmax:
-            return (self(xmin) != None)
+            return (self(xmin) is not None)
         limits = self._limits_at_end_points
         i = 0
         while bkpt[i] < xmin:
             i += 1
         if bkpt[i] == xmin:
-            if limits[i][0] == None or limits[i][1] == None or limits[i][0] != limits[i][1]:
+            if limits[i][0] is None or limits[i][1] is None or limits[i][0] != limits[i][1]:
                 return False 
             i += 1
         while bkpt[i] < xmax:
-            if limits[i][-1] == None or limits[i][0] == None or limits[i][1] == None or \
+            if limits[i][-1] is None or limits[i][0] is None or limits[i][1] is None or \
                                         not (limits[i][-1] == limits[i][0] == limits[i][1]):
                 return False
             i += 1
         if bkpt[i] == xmax:
-            if limits[i][0] == None or limits[i][-1] == None or limits[i][0] != limits[i][-1]:
+            if limits[i][0] is None or limits[i][-1] is None or limits[i][0] != limits[i][-1]:
                 return False
         return True
 
@@ -2864,7 +2864,7 @@ def is_directed_move_possible(x, move):
     return move.can_apply(x)
 
 def plot_moves(seed, moves, colors=None, ymin=0, ymax=1):
-    if colors == None:
+    if colors is None:
         colors = rainbow(len(moves))
     g = Graphics()
     g += line([(seed,ymin), (seed,ymax)], color="mediumspringgreen", legend_label="seed value")
@@ -3572,9 +3572,9 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
     if show_all_perturbations is None:
         show_all_perturbations = show_plots
     do_phase_1_lifting = False
-    if f == None:
+    if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
-    if f == None or not minimality_test(fn, show_plots=show_plots, f=f):
+    if f is None or not minimality_test(fn, show_plots=show_plots, f=f):
         logging.info("Not minimal, thus NOT extreme.")
         if not phase_1:
             return False

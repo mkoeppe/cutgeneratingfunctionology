@@ -219,7 +219,7 @@ def generate_symbolic_continuous(function, components, field=None):
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
 
 def generate_additivity_equations_continuous(function, symbolic, field, f=None):
-    if f==None:
+    if f is None:
         f = find_f(function)
     equations = [delta_pi(symbolic, x, y) \
                      for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function) ] \

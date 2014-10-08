@@ -223,7 +223,7 @@ def generate_additivity_equations_general(function, symbolic, field, f=None):
     that must be satisfied by any perturbation.
     """
     equations = []
-    if f == None:
+    if f is None:
         f = find_f(function)
     equations.append(symbolic(f))
     equations.append(symbolic(field(1)))
