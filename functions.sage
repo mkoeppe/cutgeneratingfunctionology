@@ -3374,7 +3374,7 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
         yield perturbation
 
 def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn_about_uncovered_intervals=True, 
-                                        show_all_perturbations=None):
+                                        show_all_perturbations=False):
     """
     Solve a homogeneous linear system of additivity equations with one
     slope variable for every component (including every non-covered
@@ -3466,7 +3466,7 @@ def generate_nonsymmetric_vertices(fn, f):
 class MaximumNumberOfIterationsReached(Exception):
     pass
 
-def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True, show_all_perturbations=None):
+def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True, show_all_perturbations=False):
     """Check if `fn` is extreme for the group relaxation with the given `f`. 
 
     If `fn` is discrete, it has to be defined on a cyclic subgroup of
@@ -3524,30 +3524,43 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
             return False
         else:
             do_phase_1_lifting = True
-    covered_intervals = generate_covered_intervals(fn)
-    uncovered_intervals = generate_uncovered_intervals(fn)
-    if show_plots:
-        logging.info("Plotting covered intervals...")
-        show_plot(plot_covered_intervals(fn), show_plots, tag='covered_intervals', object=fn)
-        logging.info("Plotting covered intervals... done")
-    if not uncovered_intervals:
-        logging.info("All intervals are covered (or connected-to-covered). %s components." % len(covered_intervals))
-        return finite_dimensional_extremality_test(fn, show_plots, f=f, warn_about_uncovered_intervals=False, show_all_perturbations=show_all_perturbations)
+    if do_phase_1_lifting:
+        finite_dimensional_test_first = True
+    seen_perturbation = False
+    for perturbation in generate_perturbations(fn, show_plots=show_plots, show_old_moves_diagram=show_old_moves_diagram, f=f, max_num_it=max_num_it, finite_dimensional_test_first=finite_dimensional_test_first, perturbation_style=perturbation_style, use_new_code=use_new_code):
+        if not seen_perturbation:
+            seen_perturbation = True
+            logging.info("Thus the function is NOT extreme.")
+            if not show_all_perturbations:
+                break
+    return not seen_perturbation
+
+def generate_perturbations(fn, show_plots=False, show_old_moves_diagram=False, f=None, max_num_it=1000, perturbation_style=default_perturbation_style, finite_dimensional_test_first = False, use_new_code=True):
+    """
+    Generate (with "yield") perturbations for `extremality_test`.
+    """
+    if fn.is_discrete():
+        all = generate_perturbations_simple(fn, show_plots=show_plots, f=f, oversampling=None)
     else:
-        logging.info("Uncovered intervals: %s", (uncovered_intervals,))
-        if do_phase_1_lifting or finite_dimensional_test_first:
-            # First try the finite dimensional one.
-            if not finite_dimensional_extremality_test(fn, show_plots, warn_about_uncovered_intervals=False):
-                return False
-        # Now do the magic.
-        seen_perturbation = False
-        for perturbation in generate_perturbations_equivariant(fn, show_plots=show_plots, show_old_moves_diagram=show_old_moves_diagram, f=f, max_num_it=max_num_it, perturbation_style=perturbation_style, use_new_code=use_new_code):
-            if not seen_perturbation:
-                seen_perturbation = True
-                logging.info("Thus the function is NOT extreme.")
-                if not show_all_perturbations:
-                    break
-        return not seen_perturbation
+        finite = generate_perturbations_finite_dimensional(fn, show_plots=show_plots, f=f)
+        covered_intervals = generate_covered_intervals(fn)
+        uncovered_intervals = generate_uncovered_intervals(fn)
+        if show_plots:
+            logging.info("Plotting covered intervals...")
+            show_plot(plot_covered_intervals(fn), show_plots, tag='covered_intervals', object=fn)
+            logging.info("Plotting covered intervals... done")
+        if not uncovered_intervals:
+            logging.info("All intervals are covered (or connected-to-covered). %s components." % len(covered_intervals))
+            all = finite
+        else:
+            logging.info("Uncovered intervals: %s", (uncovered_intervals,))
+            equi = generate_perturbations_equivariant(fn, show_plots=show_plots, show_old_moves_diagram=show_old_moves_diagram, f=f, max_num_it=max_num_it, perturbation_style=perturbation_style, use_new_code=use_new_code)
+            if finite_dimensional_test_first:
+                all = itertools.chain(finite, equi)
+            else:
+                all = itertools.chain(equi, finite)
+    for perturbation in all:
+        yield perturbation
 
 def generate_perturbations_equivariant(fn, show_plots=False, show_old_moves_diagram=False, f=None, max_num_it=1000, perturbation_style=default_perturbation_style, use_new_code=True):
     if not fn.is_continuous():

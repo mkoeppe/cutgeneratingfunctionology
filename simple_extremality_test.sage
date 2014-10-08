@@ -50,7 +50,7 @@ def generate_perturbations_simple(fn, show_plots=False, f=None, oversampling=3, 
                            legend_title="Basic perturbation %s" % (sol_index + 1))
         yield perturbation
 
-def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, oversampling=3, order=None, show_all_perturbations=None):
+def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, oversampling=3, order=None, show_all_perturbations=False):
     """
     Simple finite dimensional extremality test that does not go
     through the whole machinery of covered intervals etc., but rather
