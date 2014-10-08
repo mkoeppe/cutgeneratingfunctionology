@@ -3297,9 +3297,6 @@ def plot_rescaled_perturbation(perturb, xmin=0, xmax=1, **kwds):
 
 check_perturbation_plot_three_perturbations = True
 
-def clear_perturbations(fn):
-    delattr(fn, '_perturbations')
-
 def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbation', xmin=0, xmax=1, **show_kwds):
     epsilon_interval = find_epsilon_interval(fn, perturb)
     epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
@@ -3332,9 +3329,6 @@ def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbatio
         show_plot(p, show_plots, tag=show_plot_tag, object=fn, **show_kwds)
         logging.info("Plotting perturbation... done")
     assert epsilon > 0, "Epsilon should be positive, something is wrong"
-    if not hasattr(fn, '_perturbations'):
-        fn._perturbations = []
-    fn._perturbations.append(perturb)
     #logging.info("Thus the function is not extreme.")  ## Now printed by caller.
 
 def generate_perturbations_finite_dimensional(function, show_plots=False, f=None):
@@ -3393,7 +3387,9 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn
     if function.is_discrete():
         return simple_finite_dimensional_extremality_test(function, oversampling=1, show_all_perturbations=show_all_perturbations)
     seen_perturbation = False
+    function._perturbations = []
     for index, perturbation in enumerate(generate_perturbations_finite_dimensional(function, show_plots=show_plots, f=f)):
+        function._perturbations.append(perturbation)
         check_perturbation(function, perturbation,
                            show_plots=show_plots, show_plot_tag='perturbation-%s' % (index + 1),
                            legend_title="Basic perturbation %s" % (index + 1))
@@ -3525,7 +3521,9 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
         finite_dimensional_test_first = True
     seen_perturbation = False
     generator = generate_perturbations(fn, show_plots=show_plots, show_old_moves_diagram=show_old_moves_diagram, f=f, max_num_it=max_num_it, finite_dimensional_test_first=finite_dimensional_test_first, perturbation_style=perturbation_style, use_new_code=use_new_code)
+    fn._perturbations = []
     for index, perturbation in enumerate(generator):
+        fn._perturbations.append(perturbation)
         check_perturbation(fn, perturbation, show_plots=show_plots, 
                            show_plot_tag='perturbation-%s' % (index + 1), 
                            legend_title="Basic perturbation %s" % (index + 1))
@@ -3576,15 +3574,17 @@ def generate_perturbations_equivariant(fn, show_plots=False, show_old_moves_diag
         generator = generate_generic_seeds(fn, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
     seen_perturbation = False
     for seed, stab_int, walk_list in generator:
-        fn._seed = seed
-        fn._stab_int = stab_int
-        fn._walk_list = walk_list
+        # for debugging only:
+        #global last_seed, last_stab_int, last_walk_list = seed, stab_int, walk_list
+        perturb = approx_discts_function(walk_list, stab_int, perturbation_style=perturbation_style, function=fn)
+        perturb._seed = seed
+        perturb._stab_int = stab_int
+        perturb._walk_list = walk_list
         if show_plots and show_old_moves_diagram:
             logging.info("Plotting moves and reachable orbit...")
-            g = plot_old_moves_diagram(fn)
+            g = plot_old_moves_diagram(fn, perturb)
             show_plot(g, show_plots, tag='moves', object=fn)
             logging.info("Plotting moves and reachable orbit... done")
-        perturb = approx_discts_function(walk_list, stab_int, perturbation_style=perturbation_style, function=fn)
         if show_plots:
             logging.info("Plotting completion diagram with perturbation...")
             g = plot_completion_diagram(fn, perturb)        # at this point, the perturbation has not been stored yet
@@ -3595,17 +3595,25 @@ def generate_perturbations_equivariant(fn, show_plots=False, show_old_moves_diag
     if not seen_perturbation:
         logging.info("Dense orbits in all non-covered intervals.")
         
-def plot_old_moves_diagram(fn):
+def plot_old_moves_diagram(fn, perturbation=None, seed=None, stab_int=None, walk_list=None):
     """
     Return a plot of the 'old' moves diagram, superseded by `plot_completion_diagram`.
     """
-    if not hasattr(fn, '_walk_list'):
-        extremality_test(fn, show_plots=False)
+    if seed is None or stab_int is None or walk_list is None:
+        if perturbation is None:
+            if not hasattr(fn, '_perturbations'):
+                extremality_test(fn, show_plots=False)
+            if hasattr(fn, '_perturbations'):
+                perturbation = fn._perturbations[0]
+        if perturbation is not None:
+            seed, stab_int, walk_list = perturbation._seed, perturbation._stab_int, perturbation._walk_list
+        if seed is None or stab_int is None or walk_list is None:
+            raise ValueError, "Need one of `perturbation` or the triple `seed`, `stab_int`, `walk_list`."
     # FIXME: Visualize stability intervals?
     moves = generate_functional_directed_moves(fn)
     uncovered_intervals = generate_uncovered_intervals(fn)
-    return (plot_walk(fn._walk_list,thickness=0.7) + 
-            plot_possible_directed_moves(fn._seed, moves, fn) + 
+    return (plot_walk(walk_list,thickness=0.7) + 
+            plot_possible_directed_moves(seed, moves, fn) + 
             plot_intervals(uncovered_intervals) + plot_covered_intervals(fn))
 
 def plot_completion_diagram(fn, perturbation=None):
@@ -3632,6 +3640,7 @@ def plot_completion_diagram(fn, perturbation=None):
     return g
 
 def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
+    # FIXME: Need better interface for perturbation selection.
     if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots, **kwds):
         return fn
     else:
