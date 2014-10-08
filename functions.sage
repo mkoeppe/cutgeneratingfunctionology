@@ -3335,34 +3335,17 @@ def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbatio
     if not hasattr(fn, '_perturbations'):
         fn._perturbations = []
     fn._perturbations.append(perturb)
-    logging.info("Thus the function is not extreme.")
+    #logging.info("Thus the function is not extreme.")  ## Now printed by caller.
 
-def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn_about_uncovered_intervals=True):
+def generate_perturbations_finite_dimensional(function, show_plots=False, f=None):
+    ## FIXME: Perhaps we want an `oversampling` parameter as in generate_perturbations_simple??
     """
-    Solve a homogeneous linear system of additivity equations with one
-    slope variable for every component (including every non-covered
-    interval) and one jump variable for each (left/right) discontinuity.
-
-    Return a boolean that indicates whether the system has a nontrivial solution.
-
-    EXAMPLES::
-
-        sage: logging.disable(logging.WARN)
-        sage: h1 = drlm_not_extreme_2()
-        sage: finite_dimensional_extremality_test(h1, show_plots=True)
-        False
-        sage: h2 = drlm_3_slope_limit()
-        sage: finite_dimensional_extremality_test(h2, show_plots=True)
-        True
+    Generate (with "yield") perturbations for `finite_dimensional_extremality_test`.
     """
-    if function.is_discrete():
-        return simple_finite_dimensional_extremality_test(function, oversampling=1)
     covered_intervals = generate_covered_intervals(function)
     uncovered_intervals = generate_uncovered_intervals(function)
     if uncovered_intervals:
-        if warn_about_uncovered_intervals:
-            logging.warn("There are non-covered intervals, so this test is not suitable for proving extremality (only non-extremality).")
-        ## Also note that in the current implementation, it is not as
+        ## Note that in the current implementation, it is not as
         ## efficient as it could be due to too many slope variables,
         ## since the relations between non-covered intervals are not
         ## taken into account.  (No need to warn the user about that,
@@ -3381,17 +3364,54 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn
     equation_matrix = generate_additivity_equations(function, symbolic, field, f=f)
     slope_jump_vects = equation_matrix.right_kernel().basis()
     logging.info("Solution space has dimension %s" % len(slope_jump_vects))
-    if len(slope_jump_vects) == 0:
-        logging.info("Thus the function is extreme.")
-        return True
-    else:
-        for basis_index in range(len(slope_jump_vects)):
-            slope_jump = slope_jump_vects[basis_index]
-            perturbation = slope_jump * symbolic
-            check_perturbation(function, perturbation,
-                                        show_plots=show_plots, show_plot_tag='perturbation-%s' % (basis_index + 1),
-                                        legend_title="Basic perturbation %s" % (basis_index + 1))
-        return False
+    for basis_index in range(len(slope_jump_vects)):
+        slope_jump = slope_jump_vects[basis_index]
+        perturbation = slope_jump * symbolic
+        # FIXME: Indexing perturbations does not make sense any more.
+        check_perturbation(function, perturbation,
+                           show_plots=show_plots, show_plot_tag='perturbation-%s' % (basis_index + 1),
+                           legend_title="Basic perturbation %s" % (basis_index + 1))
+        yield perturbation
+
+def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn_about_uncovered_intervals=True, 
+                                        show_all_perturbations=None):
+    """
+    Solve a homogeneous linear system of additivity equations with one
+    slope variable for every component (including every non-covered
+    interval) and one jump variable for each (left/right) discontinuity.
+
+    Return a boolean that indicates whether the system has a nontrivial solution.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.WARN)
+        sage: h1 = drlm_not_extreme_2()
+        sage: finite_dimensional_extremality_test(h1, show_plots=True)
+        False
+        sage: h2 = drlm_3_slope_limit()
+        sage: finite_dimensional_extremality_test(h2, show_plots=True)
+        True
+    """
+    if show_all_perturbations is None:
+        show_all_perturbations = show_plots
+    if function.is_discrete():
+        return simple_finite_dimensional_extremality_test(function, oversampling=1, show_all_perturbations=show_all_perturbations)
+    seen_perturbation = False
+    for perturbation in generate_perturbations_finite_dimensional(function, show_plots=show_plots, f=f):
+        if not seen_perturbation:
+            seen_perturbation = True
+            logging.info("Thus the function is NOT extreme.")
+            if not show_all_perturbations:
+                break
+    if not seen_perturbation:
+        logging.info("Finite dimensional extremality test did not find a perturbation.")
+        uncovered_intervals = generate_uncovered_intervals(function)
+        if uncovered_intervals:
+            if warn_about_uncovered_intervals:
+                logging.warn("There are non-covered intervals, so this does NOT prove extremality.")
+        else:
+            logging.info("Thus the function is extreme.")
+    return not seen_perturbation
 
 def generate_type_1_vertices(fn, comparison, reduced=True):
     if fn.is_continuous() or fn.is_discrete():
@@ -3446,7 +3466,7 @@ def generate_nonsymmetric_vertices(fn, f):
 class MaximumNumberOfIterationsReached(Exception):
     pass
 
-def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True):
+def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True, show_all_perturbations=None):
     """Check if `fn` is extreme for the group relaxation with the given `f`. 
 
     If `fn` is discrete, it has to be defined on a cyclic subgroup of
@@ -3491,13 +3511,15 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
         ... lots of plots shown ...
         True
     """
+    if show_all_perturbations is None:
+        show_all_perturbations = show_plots
     if fn.is_discrete():
-        return simple_finite_dimensional_extremality_test(fn, show_plots=show_plots, f=f, oversampling=None)
+        return simple_finite_dimensional_extremality_test(fn, show_plots=show_plots, f=f, oversampling=None, show_all_perturbations=show_all_perturbations)
     do_phase_1_lifting = False
     if f == None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
     if f == None or not minimality_test(fn, show_plots=show_plots, f=f):
-        logging.info("Not minimal, thus not extreme.")
+        logging.info("Not minimal, thus NOT extreme.")
         if not phase_1:
             return False
         else:
@@ -3510,7 +3532,7 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
         logging.info("Plotting covered intervals... done")
     if not uncovered_intervals:
         logging.info("All intervals are covered (or connected-to-covered). %s components." % len(covered_intervals))
-        return finite_dimensional_extremality_test(fn, show_plots, f=f, warn_about_uncovered_intervals=False)
+        return finite_dimensional_extremality_test(fn, show_plots, f=f, warn_about_uncovered_intervals=False, show_all_perturbations=show_all_perturbations)
     else:
         logging.info("Uncovered intervals: %s", (uncovered_intervals,))
         if do_phase_1_lifting or finite_dimensional_test_first:
@@ -3518,33 +3540,44 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
             if not finite_dimensional_extremality_test(fn, show_plots, warn_about_uncovered_intervals=False):
                 return False
         # Now do the magic.
-        if not fn.is_continuous():
-            logging.warning("Code for detecting perturbations using moves is EXPERIMENTAL in the discontinuous case.")
-        moves = generate_functional_directed_moves(fn)
-        logging.debug("Moves relevant for these intervals: %s" % (moves,))
-        if use_new_code:
-            seed, stab_int, walk_list = find_generic_seed_with_completion(fn, show_plots=show_plots, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
-            if not seed:
-                logging.info("Dense orbits in all non-covered intervals.  According to conjectures, this means that the function is extreme.")
-                return True
-        else:
-            seed, stab_int, walk_list = find_generic_seed(fn, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
-        fn._seed = seed
-        fn._stab_int = stab_int
-        fn._walk_list = walk_list
-        if show_plots and show_old_moves_diagram:
-            logging.info("Plotting moves and reachable orbit...")
-            g = plot_old_moves_diagram(fn)
-            show_plot(g, show_plots, tag='moves', object=fn)
-            logging.info("Plotting moves and reachable orbit... done")
-        perturb = approx_discts_function(walk_list, stab_int, perturbation_style=perturbation_style, function=fn)
-        if show_plots:
-            logging.info("Plotting completion diagram with perturbation...")
-            g = plot_completion_diagram(fn, perturb)        # at this point, the perturbation has not been stored yet
-            show_plot(g, show_plots, tag='completion', object=fn._completion, legend_title="Completion of moves, perturbation", legend_loc="upper left")
-            logging.info("Plotting completion diagram with perturbation... done")
-        check_perturbation(fn, perturb, show_plots=show_plots, show_plot_tag='perturbation-1')
-        return False
+        seen_perturbation = False
+        for perturbation in generate_perturbations_equivariant(fn, show_plots=show_plots, show_old_moves_diagram=show_old_moves_diagram, f=f, max_num_it=max_num_it, perturbation_style=perturbation_style, use_new_code=use_new_code):
+            if not seen_perturbation:
+                seen_perturbation = True
+                logging.info("Thus the function is NOT extreme.")
+                if not show_all_perturbations:
+                    break
+        return not seen_perturbation
+
+def generate_perturbations_equivariant(fn, show_plots=False, show_old_moves_diagram=False, f=None, max_num_it=1000, perturbation_style=default_perturbation_style, use_new_code=True):
+    if not fn.is_continuous():
+        logging.warning("Code for detecting perturbations using moves is EXPERIMENTAL in the discontinuous case.")
+    moves = generate_functional_directed_moves(fn)
+    logging.debug("Moves relevant for these intervals: %s" % (moves,))
+    ## FIXME: Loop over all perturbations.
+    if use_new_code:
+        seed, stab_int, walk_list = find_generic_seed_with_completion(fn, show_plots=show_plots, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
+        if not seed:
+            logging.info("Dense orbits in all non-covered intervals.  According to conjectures, this means that the function is extreme.")
+            return
+    else:
+        seed, stab_int, walk_list = find_generic_seed(fn, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
+    fn._seed = seed
+    fn._stab_int = stab_int
+    fn._walk_list = walk_list
+    if show_plots and show_old_moves_diagram:
+        logging.info("Plotting moves and reachable orbit...")
+        g = plot_old_moves_diagram(fn)
+        show_plot(g, show_plots, tag='moves', object=fn)
+        logging.info("Plotting moves and reachable orbit... done")
+    perturb = approx_discts_function(walk_list, stab_int, perturbation_style=perturbation_style, function=fn)
+    if show_plots:
+        logging.info("Plotting completion diagram with perturbation...")
+        g = plot_completion_diagram(fn, perturb)        # at this point, the perturbation has not been stored yet
+        show_plot(g, show_plots, tag='completion', object=fn._completion, legend_title="Completion of moves, perturbation", legend_loc="upper left")
+        logging.info("Plotting completion diagram with perturbation... done")
+    check_perturbation(fn, perturb, show_plots=show_plots, show_plot_tag='perturbation-1')
+    yield perturb
 
 def plot_old_moves_diagram(fn):
     """

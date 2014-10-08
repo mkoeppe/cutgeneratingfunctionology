@@ -50,7 +50,7 @@ def generate_perturbations_simple(fn, show_plots=False, f=None, oversampling=3, 
                            legend_title="Basic perturbation %s" % (sol_index + 1))
         yield perturbation
 
-def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, oversampling=3, order=None, show_all_perturbations=True):
+def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, oversampling=3, order=None, show_all_perturbations=None):
     """
     Simple finite dimensional extremality test that does not go
     through the whole machinery of covered intervals etc., but rather
@@ -76,16 +76,19 @@ def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, ove
         sage: simple_finite_dimensional_extremality_test(drlm_not_extreme_2(), False)
         False
     """
+    if show_all_perturbations is None:
+        show_all_perturbations = show_plots
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
     if not minimality_test(fn, show_plots=show_plots, f=f):
-        logging.info("The function is NOT extreme.")
+        logging.info("Not minimal, thus NOT extreme.")
         return False
 
     seen_perturbation = False
     for perturbation in generate_perturbations_simple(fn, show_plots=show_plots, f=f, oversampling=oversampling, order=order):
         if not seen_perturbation:
             seen_perturbation = True
+            logging.info("Thus the function is NOT extreme.")
             if not show_all_perturbations:
                 break
 
