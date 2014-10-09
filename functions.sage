@@ -3670,10 +3670,8 @@ def plot_completion_diagram(fn, perturbation=None):
         perturbation = basic_perturbation(fn, perturbation)
     if perturbation is not None:
         g += plot_function_at_borders(rescale_to_amplitude(perturbation, 1/10), color='magenta', legend_label='perturbation (rescaled)')
-    if hasattr(fn, '_walk_list'):
-        # FIXME: Need _seed and _walk_list relative to selected perturbation.
-        # Perhaps simply store them as attributes of the perturbation?
-        g += plot_walk_in_completion_diagram(fn._seed, fn._walk_list)
+    if hasattr(perturbation, '_walk_list'):
+        g += plot_walk_in_completion_diagram(perturbation._seed, perturbation._walk_list)
     return g
 
 def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
