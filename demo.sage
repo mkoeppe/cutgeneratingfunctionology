@@ -55,6 +55,10 @@ extremality_test(h, show_plots=True)
 ## two perturbed functions in blue and red, whose average is the
 ## original function (black).
 
+## The extremality test stops when it has found one perturbation.  To
+## see more perturbations, we use the following:
+extremality_test(h, show_plots=True, show_all_perturbations=True)
+
 ## Here's the Gomory fractional cut.  
 gomory_fractional?
 h = gomory_fractional()
@@ -162,6 +166,9 @@ show(plot_covered_intervals(h), xmin=0.15, xmax=0.35, ymin=0.22, ymax=0.55)
 ## The completion diagram (to be explained in a forthcoming paper).
 show(plot_completion_diagram(h), xmin=0.28, xmax=0.52, ymin=0.25, ymax=0.35)
 
+## The perturbation diagram.  1 is the index of the perturbation shown.
+show(plot_perturbation_diagram(h, 1), xmin=0.28, xmax=0.35, ymin=0.33, ymax=0.4)
+
 ## Approach 2: Increase the plotting figure size (the default is 10).
 igp.show_plots_figsize = 40
 h = bhk_irrational(delta=[1/200, 3/200])
@@ -177,7 +184,7 @@ extremality_test(h, True)
 slopes = [10/3,0,10/3,0,10/3,-10/3,0,-10/3,0,-10/3]
 interval_lengths = [1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10]
 h = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
-extremality_test(h, True)
+extremality_test(h, True, show_all_perturbations=True)
 
 ## See extreme_functions_in_literature.sage and survey_examples.sage for many more examples.
 

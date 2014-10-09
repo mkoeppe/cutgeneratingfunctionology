@@ -3297,35 +3297,70 @@ def plot_rescaled_perturbation(perturb, xmin=0, xmax=1, **kwds):
 
 check_perturbation_plot_three_perturbations = True
 
+def basic_perturbation(fn, index):
+    """
+    Get a basic perturbation of `fn`.  `index` counts from 1 (to match the labels in the diagrams). 
+    """
+    if not hasattr(fn, '_perturbations'):
+        extremality_test(fn, show_plots=False)
+    if hasattr(fn, '_perturbations'):
+        try: 
+            return fn._perturbations[index-1]
+        except IndexError:
+            raise IndexError, "Bad perturbation index"
+    raise ValueError, "No perturbations"
+
+def plot_perturbation_diagram(fn, perturbation=None, xmin=0, xmax=1):
+    """
+    Plot a perturbation of `fn`.
+    
+    `perturbation` is either a perturbation function, or an integer
+    (which designates a basic perturbation of `fn` via
+    `basic_perturbation`).  If `perturbation` is not provided, it
+    defaults to the perturbation indexed 1.
+
+    To show only a part of the diagram, use::
+
+        sage: show(plot_perturbation_diagram(h, 1), xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)  # not tested
+    """
+    if perturbation is None:
+       perturbation = 1
+    if isinstance(perturbation, Integer):
+        perturbation = basic_perturbation(fn, perturbation)
+    epsilon_interval = find_epsilon_interval(fn, perturbation)
+    epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
+    p = plot_rescaled_perturbation(perturbation, xmin=xmin, xmax=xmax)
+    if check_perturbation_plot_three_perturbations:
+        p += plot(fn + epsilon_interval[0] * perturbation, xmin=xmin, xmax=xmax, color='red', legend_label="-perturbed (min)")
+        p += plot(fn + epsilon_interval[1] * perturbation, xmin=xmin, xmax=xmax, color='blue', legend_label="+perturbed (max)")
+        if -epsilon != epsilon_interval[0]:
+            p += plot(fn + (-epsilon) * perturbation, xmin=xmin, xmax=xmax, color='orange', legend_label="-perturbed (matches max)")
+        elif epsilon != epsilon_interval[1]:
+            p += plot(fn + epsilon * perturbation, xmin=xmin, xmax=xmax, color='cyan', legend_label="+perturbed (matches min)")
+    else:
+        label = "-perturbed"
+        if -epsilon == epsilon_interval[0]:
+            label += " (min)"
+        else:
+            label += " (matches max)"
+        p += plot(fn - epsilon * perturbation, xmin=xmin, xmax=xmax, color='red', legend_label=label)
+        label = "+perturbed"
+        if epsilon == epsilon_interval[1]:
+            label += " (max)"
+        else:
+            label += " (matches min)"
+        p += plot(fn + epsilon * perturbation, xmin=xmin, xmax=xmax, color='blue', legend_label=label)
+    p += plot(fn, xmin=xmin, xmax=xmax, color='black', thickness=2,
+             legend_label="original function", **ticks_keywords(fn))
+    return p
+
 def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbation', xmin=0, xmax=1, **show_kwds):
     epsilon_interval = find_epsilon_interval(fn, perturb)
     epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
     #logging.info("Epsilon for constructed perturbation: %s" % epsilon)
     if show_plots:
         logging.info("Plotting perturbation...")
-        p = plot_rescaled_perturbation(perturb, xmin=xmin, xmax=xmax)
-        if check_perturbation_plot_three_perturbations:
-            p += plot(fn + epsilon_interval[0] * perturb, xmin=xmin, xmax=xmax, color='red', legend_label="-perturbed (min)")
-            p += plot(fn + epsilon_interval[1] * perturb, xmin=xmin, xmax=xmax, color='blue', legend_label="+perturbed (max)")
-            if -epsilon != epsilon_interval[0]:
-                p += plot(fn + (-epsilon) * perturb, xmin=xmin, xmax=xmax, color='orange', legend_label="-perturbed (matches max)")
-            elif epsilon != epsilon_interval[1]:
-                p += plot(fn + epsilon * perturb, xmin=xmin, xmax=xmax, color='cyan', legend_label="+perturbed (matches min)")
-        else:
-            label = "-perturbed"
-            if -epsilon == epsilon_interval[0]:
-                label += " (min)"
-            else:
-                label += " (matches max)"
-            p += plot(fn - epsilon * perturb, xmin=xmin, xmax=xmax, color='red', legend_label=label)
-            label = "+perturbed"
-            if epsilon == epsilon_interval[1]:
-                label += " (max)"
-            else:
-                label += " (matches min)"
-            p += plot(fn + epsilon * perturb, xmin=xmin, xmax=xmax, color='blue', legend_label=label)
-        p += plot(fn, xmin=xmin, xmax=xmax, color='black', thickness=2,
-                 legend_label="original function", **ticks_keywords(fn))
+        p = plot_perturbation_diagram(fn, perturb, xmin=xmin, xmax=xmax)
         show_plot(p, show_plots, tag=show_plot_tag, object=fn, **show_kwds)
         logging.info("Plotting perturbation... done")
     assert epsilon > 0, "Epsilon should be positive, something is wrong"
@@ -3601,10 +3636,9 @@ def plot_old_moves_diagram(fn, perturbation=None, seed=None, stab_int=None, walk
     """
     if seed is None or stab_int is None or walk_list is None:
         if perturbation is None:
-            if not hasattr(fn, '_perturbations'):
-                extremality_test(fn, show_plots=False)
-            if hasattr(fn, '_perturbations'):
-                perturbation = fn._perturbations[0]
+           perturbation = 1
+        if isinstance(perturbation, Integer):
+            perturbation = basic_perturbation(fn, perturbation)
         if perturbation is not None:
             seed, stab_int, walk_list = perturbation._seed, perturbation._stab_int, perturbation._walk_list
         if seed is None or stab_int is None or walk_list is None:
@@ -3629,8 +3663,11 @@ def plot_completion_diagram(fn, perturbation=None):
     if fn._completion.plot_background is None:
         fn._completion.plot_background = plot_completion_diagram_background(fn)
     g = fn._completion.plot() 
-    if perturbation is None and hasattr(fn, '_perturbations'):
-        perturbation = fn._perturbations[0]
+    if perturbation is None:
+        if hasattr(fn, '_perturbations') and fn._perturbations:
+            perturbation = fn._perturbations[0]
+    elif isinstance(perturbation, Integer):
+        perturbation = basic_perturbation(fn, perturbation)
     if perturbation is not None:
         g += plot_function_at_borders(rescale_to_amplitude(perturbation, 1/10), color='magenta', legend_label='perturbation (rescaled)')
     if hasattr(fn, '_walk_list'):
