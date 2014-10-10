@@ -5,7 +5,7 @@ if '' not in sys.path:
 
 from igp import *
 
-def gmic(f=4/5):
+def gmic(f=4/5, field=None):
     """
     Summary:
         - Name: GMIC (Gomory mixed integer cut);
@@ -38,10 +38,10 @@ def gmic(f=4/5):
         raise ValueError, "Bad parameters. Unable to construct the function."
     gmi_bkpt = [0,f,1]
     gmi_values = [0,1,0]
-    return piecewise_function_from_breakpoints_and_values(gmi_bkpt, gmi_values)
+    return piecewise_function_from_breakpoints_and_values(gmi_bkpt, gmi_values, field=field)
 
 
-def gj_2_slope(f=3/5, lambda_1=1/6):
+def gj_2_slope(f=3/5, lambda_1=1/6, field=None):
     """
     Summary:
         - Name: Gomory--Johnson's 2-Slope;
@@ -84,10 +84,10 @@ def gj_2_slope(f=3/5, lambda_1=1/6):
         logging.info("Conditions for extremality are satisfied.")
     bkpts = [0, (f - lambda_1*(1 - f))/2, (f + lambda_1*(1 - f))/2, f, 1]
     values = [0, (1 + lambda_1)/2, (1 - lambda_1)/2, 1, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpts, values)
+    return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
 
 
-def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3):
+def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None):
     """
     Summary:
         - Name: Gomory--Johnson's 2-Slope-repeat;
@@ -132,10 +132,10 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3):
     len2_positive = (1 - f - n*len2_negative) / (n - 1)
     interval_lengths = [len1_positive, len1_negative] * (m - 1) + [len1_positive, len2_negative] + [len2_positive, len2_negative]*(n - 1)
     slopes = [s_positive, s_negative]*(m + n - 1)
-    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
+    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
 
-def dg_2_step_mir(f=4/5, alpha=3/10):
+def dg_2_step_mir(f=4/5, alpha=3/10, field=None):
     """
     Summary:
         - Name: 2-Step MIR;
@@ -180,7 +180,7 @@ def dg_2_step_mir(f=4/5, alpha=3/10):
     interval_lengths = [rho, alpha - rho] * tau
     interval_lengths[-1] = 1 - f
     slopes = [s_positive, s_negative] * tau
-    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
+    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
 
 def interval_length_n_step_mir(n, m, a, b):
@@ -193,7 +193,7 @@ def interval_length_n_step_mir(n, m, a, b):
         return result
 
 
-def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100]):
+def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100], field=None):
     """
     Summary:
         - Name: n-Step MIR;
@@ -270,10 +270,10 @@ def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100]):
     s_negative = a[0] /(b[0] - a[0])
     s_positive = - s_negative * interval_length_negative / interval_length_positive 
     slopes = [s_positive, s_negative] * (nb_interval // 2)
-    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
+    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
 
-def gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3):
+def gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3, field=None):
     """
     Summary: 
         - Name: Gomory--Johnson' Forward 3-Slope;
@@ -329,10 +329,10 @@ def gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3):
         logging.info("Conditions for extremality are satisfied.") 
     bkpts = [0, a1, a, f - a, f - a1, f, 1]
     values = [0, lambda_1 + lambda_2, lambda_1, 1 - lambda_1, 1 - lambda_1 - lambda_2, 1, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpts, values)
+    return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
 
 
-def drlm_backward_3_slope(f=1/12, bkpt=2/12):
+def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None):
     """
     Summary:
         - Name: drlm's Backward 3-Slope;
@@ -386,9 +386,9 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12):
     bkpts = [0, f, bkpt, 1 + f - bkpt, 1]
     # values = [0, 1, bkpt/(1 + f), (1 + f - bkpt)/(1 + f),0]
     slopes = [1/f, (1 + f - bkpt)/(1 + f)/(f - bkpt), 1/(1 + f), (1 + f - bkpt)/(1 + f)/(f - bkpt)]
-    return piecewise_function_from_breakpoints_and_slopes(bkpts, slopes)
+    return piecewise_function_from_breakpoints_and_slopes(bkpts, slopes, field=field)
 
-def dg_2_step_mir_limit(f=3/5, d=3):
+def dg_2_step_mir_limit(f=3/5, d=3, field=None):
     """
     Summary:
         - Name: DG-2-Step MIR Limit;
@@ -655,7 +655,7 @@ def generate_example_e_for_psi_n(f=2/3, n=7, q=4, eta=1/1000):
     return e
 
 
-def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24]):
+def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None):
     """
     Summary: 
         - Name: psi_n in the construction of BCCZ's counterexample to GJ's conjecture;
@@ -729,9 +729,9 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24]):
     s_negative = a[0] /(b[0] - a[0])
     s_positive = - s_negative * interval_length_negative / interval_length_positive 
     slopes = [s_positive, s_negative] * (nb_interval // 2)
-    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
+    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
-def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)):
+def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), field=None):
     """
     Summary:
         - Name: BHK's irrational function.
@@ -827,9 +827,9 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
     slopes = slopes_left + [c1] + slopes_left[::-1] + [c3]
     intervals_left = [d11,d31] + zigzag_lengths + [d12new,d32new,d21]
     interval_lengths = intervals_left + [d13] + intervals_left[::-1] + [1-f]
-    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
+    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
-def bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), c2=0):
+def bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), c2=0, field=None):
     """
     A version of the irrational function with non-zero second slope
 
@@ -929,9 +929,9 @@ def bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2
     slopes = slopes_left + [c1] + slopes_left[::-1] + [c3]
     intervals_left = [d11,d31] + zigzag_lengths + [d12new,d32new,d21]
     interval_lengths = intervals_left + [d13] + intervals_left[::-1] + [1-f]
-    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
+    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
-def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), alpha=95/100):
+def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), alpha=95/100, field=None):
     """
     A version of the irrational function with non-zero second slope,
     obtained by forming a convex combination of a modified version of the irrational function with the GMI cut.
@@ -977,11 +977,11 @@ def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/
     intervals_left = [d11,d31] + zigzag_lengths + [d12new,d32new,d21]
     interval_lengths = intervals_left + [d13] + intervals_left[::-1] + [1-f]
 
-    bhk = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
-    gmi = gmic(f)
+    bhk = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
+    gmi = gmic(f, field=field)
     return alpha * bhk + (1 - alpha) * gmi
 
-def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4):
+def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None):
     """
     This 4-slope function is shown [KChen_thesis] to be a facet.
 
@@ -1038,7 +1038,7 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4):
     d = 1 + f - c
     cc = 1 + (s_pos * lam2 * (f - 1) - lam2) / 2 / (s_pos - s_neg)
     dd = 1 + f - cc
-    return piecewise_function_from_breakpoints_and_slopes([0, aa, a, b, bb, f, dd, d, c, cc, 1], slopes)
+    return piecewise_function_from_breakpoints_and_slopes([0, aa, a, b, bb, f, dd, d, c, cc, 1], slopes, field=field)
 
 def rlm_dpl1_extreme_3a(f=1/4):
     """
