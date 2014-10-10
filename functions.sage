@@ -916,8 +916,7 @@ def interval_mod_1(interval):
         raise ValueError, "Not an interval: %s" % interval
 
 @cached_function
-def generate_covered_intervals(function):
-    logging.info("Computing covered intervals...")
+def generate_directly_covered_intervals(function):
     faces = generate_maximal_additive_faces(function)
 
     covered_intervals = []      
@@ -941,6 +940,14 @@ def generate_covered_intervals(function):
                 covered_intervals[i] = []
                     
     covered_intervals = remove_empty_comp(covered_intervals)
+    return covered_intervals
+
+@cached_function
+def generate_covered_intervals(function):
+    logging.info("Computing covered intervals...")
+    covered_intervals = generate_directly_covered_intervals(function)
+    faces = generate_maximal_additive_faces(function)
+
     # debugging plot:
     # show(plot_covered_intervals(function, covered_intervals), \
     #      legend_fancybox=True, \
