@@ -1,4 +1,4 @@
-## FIXME: BUG
+## fixed: BUG
 # z = SymbolicRNFElement(0); zero = z.parent()._zero_element; z == zero
 # returns False, should be True
 # dir(zero) 
@@ -11,14 +11,16 @@ default_symbolic_field = None
 
 class SymbolicRNFElement(FieldElement):
 
-    def __init__(self, value, symbolic=None):
-        FieldElement.__init__(self, default_symbolic_field) ## this is so that canonical_coercion works.
+    def __init__(self, value, symbolic=None, parent=None):
+        if parent is None:
+            parent = default_symbolic_field
+        FieldElement.__init__(self, parent) ## this is so that canonical_coercion works.
         self._val = value
         if symbolic is None:
             self._sym = SR(value)
         else:
             self._sym = symbolic
-        self._parent = default_symbolic_field ## this is so that .parent() works.
+        self._parent = parent ## this is so that .parent() works.
 
     def sym(self):
         return self._sym
@@ -103,8 +105,8 @@ class SymbolicRealNumberField(number_field_base.NumberField):
     def __init__(self):
         NumberField.__init__(self)
         self._element_class = SymbolicRNFElement
-        self._zero_element = SymbolicRNFElement(0)
-        self._one_element =  SymbolicRNFElement(1)
+        self._zero_element = SymbolicRNFElement(0, parent=self)
+        self._one_element =  SymbolicRNFElement(1, parent=self)
         self._eq = []
         self._le = []
         self._lt = []
