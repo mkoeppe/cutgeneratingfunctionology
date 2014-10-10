@@ -131,6 +131,11 @@ class SymbolicRealNumberField(number_field_base.NumberField):
         self._lt.append(comparison)
     def record_to_ne_list(self, comparison):
         self._ne.append(comparison)
+    def initialize_comparison_list(self):
+        self._eq = []
+        self._le = []
+        self._lt = []
+        self._ne = []
 
 default_symbolic_field = SymbolicRealNumberField()
 
