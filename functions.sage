@@ -2048,15 +2048,6 @@ def is_all_QQ(values):
         pass
     return is_rational, values
 
-def SymbolicRNF_values(symb_values):
-    result = []
-    for element in symb_values:
-        if isinstance(element,SymbolicRNFElement):
-            result.append(element)
-        else:
-            result.append(SymbolicRNFElement(element))
-    return result
-
 def nice_field_values(symb_values, field=None):
     """
     Coerce the real numbers in the list `symb_values` into a convenient common field
@@ -2074,7 +2065,6 @@ def nice_field_values(symb_values, field=None):
     """
     ### Add tests!
     if isinstance(field, SymbolicRealNumberField):
-        # symb_values = SymbolicRNF_values(symb_values)
         syms = []
         vals = []
         for element in symb_values:
@@ -2082,10 +2072,10 @@ def nice_field_values(symb_values, field=None):
                 syms.append(element.sym())
                 vals.append(element.val())
             else:
-                syms.append(SR(element))
+                syms.append(element)  # changed to not do SR. -mkoeppe
                 vals.append(element)
         vals = nice_field_values(vals) #, field=RealNumberField)
-        field_values = [SymbolicRNFElement(vals[i],syms[i]) for i in range(len(symb_values))]
+        field_values = [SymbolicRNFElement(vals[i],syms[i], parent=field) for i in range(len(symb_values))]
         return field_values
 
     if field is None:
@@ -2170,9 +2160,6 @@ def piecewise_function_from_breakpoints_and_values(bkpt, values, field=None):
     """
     if len(bkpt)!=len(values):
         raise ValueError, "Need to have the same number of breakpoints and values."
-    if isinstance(field, SymbolicRealNumberField):
-        bkpt = SymbolicRNF_values(bkpt)
-        values = SymbolicRNF_values(values)
     slopes = [ (values[i+1]-values[i])/(bkpt[i+1]-bkpt[i]) for i in range(len(bkpt)-1) ]
     return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field)
 
@@ -2189,10 +2176,6 @@ def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None):
     if len(bkpt)!=len(slopes)+1:
         raise ValueError, "Need to have one breakpoint more than slopes."
     values = [0]
-    if isinstance(field, SymbolicRealNumberField):
-        bkpt = SymbolicRNF_values(bkpt)
-        values = SymbolicRNF_values(values)
-        slopes = SymbolicRNF_values(slopes)
     for i in range(1,len(bkpt)-1):
         values.append(values[i-1] + slopes[i - 1] * (bkpt[i] - bkpt[i-1]))
     return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field)
@@ -2212,10 +2195,6 @@ def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes
         raise ValueError, "Number of given interval_lengths and slopes needs to be equal."
     bkpt = []
     bkpt.append(0)
-    if isinstance(field, SymbolicRealNumberField):
-        bkpt = SymbolicRNF_values(bkpt)
-        interval_lengths = SymbolicRNF_values(interval_lengths)
-        slopes = SymbolicRNF_values(slopes)
     for i in range(len(interval_lengths)):
         if interval_lengths[i] < 0:
             raise ValueError, "Interval lengths must be non-negative."

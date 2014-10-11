@@ -7,11 +7,12 @@ class SymbolicRNFElement(FieldElement):
 
     def __init__(self, value, symbolic=None, parent=None):
         if parent is None:
+            raise ValueError, "SymbolicRNFElement invoked with parent=None. That's asking for trouble"
             parent = default_symbolic_field
         FieldElement.__init__(self, parent) ## this is so that canonical_coercion works.
         self._val = value
         if symbolic is None:
-            self._sym = SR(value) #FIXME: Field??
+            self._sym = value # changed to not coerce into SR. -mkoeppe
         else:
             self._sym = symbolic
         self._parent = parent ## this is so that .parent() works.
@@ -59,26 +60,26 @@ class SymbolicRNFElement(FieldElement):
 
     def __add__(self, other):
         if not isinstance(other, SymbolicRNFElement):
-            other = SymbolicRNFElement(other)
-        return SymbolicRNFElement(self._val + other._val, self._sym + other._sym)
+            other = SymbolicRNFElement(other, parent=self.parent())
+        return SymbolicRNFElement(self._val + other._val, self._sym + other._sym, parent=self.parent())
 
     def __sub__(self, other):
         if not isinstance(other, SymbolicRNFElement):
-            other = SymbolicRNFElement(other)
-        return SymbolicRNFElement(self._val - other._val, self._sym - other._sym)
+            other = SymbolicRNFElement(other, parent=self.parent())
+        return SymbolicRNFElement(self._val - other._val, self._sym - other._sym, parent=self.parent())
 
     def __neg__(self):
-        return SymbolicRNFElement(-self._val, -self._sym)
+        return SymbolicRNFElement(-self._val, -self._sym, parent=self.parent())
 
     def __mul__(self, other):
         if not isinstance(other, SymbolicRNFElement):
-            other = SymbolicRNFElement(other)
-        return SymbolicRNFElement(self._val * other._val, self._sym * other._sym)
+            other = SymbolicRNFElement(other, parent=self.parent())
+        return SymbolicRNFElement(self._val * other._val, self._sym * other._sym, parent=self.parent())
 
     def __div__(self, other):
         if not isinstance(other, SymbolicRNFElement):
-            other = SymbolicRNFElement(other)
-        return SymbolicRNFElement(self._val / other._val, self._sym / other._sym)
+            other = SymbolicRNFElement(other, parent=self.parent())
+        return SymbolicRNFElement(self._val / other._val, self._sym / other._sym, parent=self.parent())
 
 
 from sage.rings.ring import Field
@@ -98,11 +99,12 @@ class SymbolicRealNumberField(number_field_base.NumberField):
         self._lt = set([])
         self._ne = set([])
     def _an_element_impl(self):
-        return SymbolicRNFElement(1)
+        return SymbolicRNFElement(1, parent=self)
     def _coerce_map_from_(self, S):
+        print "_coerce_map_from: self = %s, S = %s" % (self, S)
         # FIXME: need a coerce map from S to self
-        return CallableConvertMap(S, default_symbolic_field, SymbolicRNFElement, parent_as_first_arg=False)
-        # return CallableConvertMap(S, self, lambda s: SymbolicRNFElement(s, field=self), parent_as_first_arg=False)
+        # return CallableConvertMap(S, default_symbolic_field, SymbolicRNFElement, parent_as_first_arg=False)
+        return CallableConvertMap(S, self, lambda s: SymbolicRNFElement(s, parent=self), parent_as_first_arg=False)
     def get_eq_list(self):
         return self._eq
     def get_le_list(self):
