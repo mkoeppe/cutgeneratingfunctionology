@@ -88,38 +88,41 @@ import sage.rings.number_field.number_field_base as number_field_base
 
 from sage.structure.coerce_maps import CallableConvertMap
 
+from itertools import izip
+
 class SymbolicRealNumberField(number_field_base.NumberField):
     """
     Parametric search:
     EXAMPLES::
 
-        sage: symbolic_h = SymbolicRealNumberField()
-        sage: K,vf = PolynomialRing(QQ, "f").fraction_field().objgen()
-        sage: f = SymbolicRNFElement(4/5, vf, parent = symbolic_h)
-        sage: h = gmic(f, field=symbolic_h)
+        sage: K.<f> = SymbolicRealNumberField([4/5])
+        sage: h = gmic(f, field=K)
         sage: generate_maximal_additive_faces(h)
-        sage: symbolic_h.get_eq_list()
+        sage: K.get_eq_list()
         set([0])
-        sage: symbolic_h.get_lt_list()
+        sage: K.get_lt_list()
         set([2*f - 2, f - 2, -f, f - 1, -1/f, -f - 1, -2*f, -2*f + 1, -1/(-f^2 + f), -1])
 
-        sage: symbolic_h = SymbolicRealNumberField()
-        sage: frac_field = PolynomialRing(QQ, ["f", "lam"]).fraction_field()
-        sage: vf = frac_field.0 # same as frac_field.gen(i=0)
-        sage: vl = frac_field.1
-        sage: f = SymbolicRNFElement(4/5, vf, parent = symbolic_h)
-        sage: lam = SymbolicRNFElement(1/6, vl, parent = symbolic_h)
-        sage: h = gj_2_slope(f, lam, field=symbolic_h)
+        sage: K.<f, lam> = SymbolicRealNumberField([4/5, 1/6])
+        sage: h = gj_2_slope(f, lam, field=K)
     """
-    def __init__(self):
+
+    def __init__(self, values=[], names=()):
         NumberField.__init__(self)
         self._element_class = SymbolicRNFElement
         self._zero_element = SymbolicRNFElement(0, parent=self)
         self._one_element =  SymbolicRNFElement(1, parent=self)
         self._eq = set([])
-        self._le = set([])
+        #self._le = set([])
         self._lt = set([])
-        self._ne = set([])
+        #self._ne = set([])
+        vnames = PolynomialRing(QQ, names).fraction_field().gens();
+        self._gens = [ SymbolicRNFElement(value, name, parent=self) for (value, name) in izip(values, vnames) ]
+
+    def _first_ngens(self, n):
+        for i in range(n):
+            yield self._gens[i]
+
     def _an_element_impl(self):
         return SymbolicRNFElement(1, parent=self)
     def _coerce_map_from_(self, S):
@@ -129,19 +132,19 @@ class SymbolicRealNumberField(number_field_base.NumberField):
         return CallableConvertMap(S, self, lambda s: SymbolicRNFElement(s, parent=self), parent_as_first_arg=False)
     def get_eq_list(self):
         return self._eq
-    def get_le_list(self):
-        return self._le
+    #def get_le_list(self):
+    #    return self._le
     def get_lt_list(self):
         return self._lt
-    def get_ne_list(self):
-        return self._ne
+    #def get_ne_list(self):
+    #    return self._ne
     def record_to_eq_list(self, comparison):
         self._eq.add(comparison)
-    def record_to_le_list(self, comparison):
-        self._le.add(comparison)
+    #def record_to_le_list(self, comparison):
+    #    self._le.add(comparison)
     def record_to_lt_list(self, comparison):
         self._lt.add(comparison)
-    def record_to_ne_list(self, comparison):
-        self._ne.add(comparison)
+    #def record_to_ne_list(self, comparison):
+    #    self._ne.add(comparison)
 
 default_symbolic_field = SymbolicRealNumberField()
