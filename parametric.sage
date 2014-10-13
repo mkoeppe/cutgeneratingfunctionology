@@ -127,8 +127,6 @@ class SymbolicRealNumberField(number_field_base.NumberField):
         return SymbolicRNFElement(1, parent=self)
     def _coerce_map_from_(self, S):
         # print "_coerce_map_from: self = %s, S = %s" % (self, S)
-        # FIXME: need a coerce map from S to self
-        # return CallableConvertMap(S, default_symbolic_field, SymbolicRNFElement, parent_as_first_arg=False)
         return CallableConvertMap(S, self, lambda s: SymbolicRNFElement(s, parent=self), parent_as_first_arg=False)
     def get_eq_list(self):
         return self._eq
