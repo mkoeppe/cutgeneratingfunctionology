@@ -3335,7 +3335,7 @@ def plot_completion_diagram(fn, perturbation=None):
 
 def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
     # FIXME: Need better interface for perturbation selection.
-    if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots, **kwds):
+    if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots=show_plots, **kwds):
         return fn
     else:
         perturbation = fn._perturbations[0]
@@ -3350,11 +3350,36 @@ def lift_until_extreme(fn, show_plots = False, pause = False, **kwds):
     next, fn = fn, None
     while next != fn:
         fn = next
-        next = lift(fn, show_plots, **kwds)
+        next = lift(fn, show_plots=show_plots, **kwds)
         if pause and next != fn:
             raw_input("Press enter to continue")
     return next
 
+##############
+def lift_new(fn, order, show_plots = False, which_perturbation = 1, **kwds):
+    # FIXME: Need better interface for perturbation selection.
+    if not hasattr(fn, '_perturbations') and simple_finite_dimensional_extremality_test(fn, show_plots=show_plots, order=order):
+        return fn
+    else:
+        perturbation = fn._perturbations[0]
+        epsilon_interval = find_epsilon_interval(fn, perturbation)
+        perturbed = fn._lifted = fn + epsilon_interval[which_perturbation] * perturbation
+        ## Following is strictly experimental: It may change what "f" is.
+        if 'phase_1' in kwds and kwds['phase_1']:
+            perturbed = rescale_to_amplitude(perturbed, 1)
+        return perturbed
+
+def lift_new_until_extreme(fn, show_plots = False, pause = False, first_oversampling = 4, **kwds):
+    order = finite_group_order_from_function_f_oversampling_order(fn, oversampling=first_oversampling)
+    next = lift_new(fn, order, show_plots, **kwds)
+    while next != fn:
+        fn = next
+        next = lift_new(fn, order, show_plots=show_plots, **kwds)
+        if pause and next != fn:
+            raw_input("Press enter to continue")
+    return next
+
+##############
 def last_lifted(fn):
     while hasattr(fn, '_lifted'):
         fn = fn._lifted
