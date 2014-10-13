@@ -321,26 +321,6 @@ def dr_projected_sequential_merge_3_slope(f=2/3, lambda_1=1/4, lambda_2=1/4, n=1
     h = projected_sequential_merge(g, n=n)
     return h
 
-def singleton_piece(x, y):
-    return (singleton_interval(x), FastLinearFunction(0, y))
-
-def linear_function_through_points(p, q):
-    slope = (q[1] - p[1]) / (q[0] - p[0])
-    intercept = p[1] - slope * p[0]
-    return FastLinearFunction(slope, intercept) 
-
-def open_piece(p, q):
-    return (open_interval(p[0], q[0]), linear_function_through_points(p, q))
-
-def closed_piece(p, q):
-    return (closed_interval(p[0], q[0]), linear_function_through_points(p, q))
-
-def left_open_piece(p, q):
-    return (left_open_interval(p[0], q[0]), linear_function_through_points(p, q))
-
-def right_open_piece(p, q):
-    return (right_open_interval(p[0], q[0]), linear_function_through_points(p, q))
-
 def hildebrand_2_sided_discont_1_slope_1():
     """
     The first known example of function that is discontinuous on both
