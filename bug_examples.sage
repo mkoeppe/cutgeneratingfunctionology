@@ -71,6 +71,8 @@ def minimal_has_uncovered_interval():
     sage: h = minimal_has_uncovered_interval()
     sage: extremality_test(h, False)
     False
+    sage: simple_finite_dimensional_extremality_test(h, oversampling=4)
+    False
     """
     return FastPiecewise([[singleton_interval(0), FastLinearFunction(0, 0)], \
                           [open_interval(0, 1/8), FastLinearFunction(0, 3/4)],\
