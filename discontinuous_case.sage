@@ -275,7 +275,8 @@ def find_epsilon_interval_general(fn, perturb):
                 if delta_perturb != 0:
                     delta_fn = fn_x[xeps] + fn_y[yeps] - fn_z[zeps]
                     if delta_fn == 0:
-                        logging.info("Zero epsilon encountered for x = %s, y = %s" % (bkpt[i], bkpt[j]) )
+                        logging.info("Zero epsilon encountered for x = %s%s, y = %s%s, z=%s%s" % (bkpt[i], print_sign(xeps), \
+                                bkpt[j], print_sign(yeps), z, print_sign(zeps)) )
                         return 0, 0 # See docstring
                     epsilon_upper_bound = delta_fn / abs(delta_perturb)
                     if delta_perturb > 0:
