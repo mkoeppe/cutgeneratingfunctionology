@@ -2,6 +2,8 @@
 
 from sage.all import *
 
+load("logging.sage")
+load("real_number_field.sage")
 load("functions.sage")
 load("continuous_case.sage")
 load("discontinuous_case.sage")
