@@ -94,6 +94,7 @@ def generate_painted_complex(q, ff, aa):
                Face(([a - grid, a], [b - a + grid], [b, b + grid])) ]
     edges = [ face.minimal_triple for face in faces_1d ]
     faces = []
+    # first paint lower left and upper right corner?
     already_covered = []
     to_cover = interval_minus_union_of_intervals([0,1], final_uncovered)
     # logging.info("Need to cover %s" % to_cover)
@@ -233,7 +234,7 @@ def generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices):
             if x < z < 1+x:
                 y = z - x
                 v = [0] + list(delta_pi(fn_sym,x,y))
-                if (x, y) in additive_vertices:
+                if (x, y) in additive_vertices or (y, x) in additive_vertices:
                     eqns.append(v)
                 else:
                     ieqs.append(v)
@@ -248,8 +249,8 @@ def generate_vertex_function(q, ff, fn_sym, additive_vertices):
         # print "boundedness is %s" % p.is_compact()
         for x in p.vertices():
             k = len(set(x))
-            if k > 3:
-                print x
+            if k > 2: # can even write k > 3
+                print "%s gives a %s-slope function h =" % (x, k) 
                 v = vector(QQ,x)
                 yield v * fn_sym
             else:
@@ -273,7 +274,7 @@ def random_2q_example(q, ff, aa):
     """
     attempts = 0
     while attempts < 100:
-        print "attempt #%s" % attempts
+        # print "attempt #%s" % attempts
         green_faces, covered_intervals = generate_painted_complex(q, ff, aa)
         additive_vertices = generate_additive_vertices_from_faces(q, green_faces)
         f = ff / q
