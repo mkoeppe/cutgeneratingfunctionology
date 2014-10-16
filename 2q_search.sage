@@ -196,15 +196,15 @@ def generate_additive_vertices_from_faces(q, faces):
         else:
             i, j, k = face.minimal_triple
             if face.is_horizontal():
-                for x in range(i[0]*q, i[1]*q):
+                for x in range(i[0]*q, i[1]*q + 1):
                     if x/q <= j[0]:
                         additive_vertices.add((x/q, j[0]))
             elif face.is_vertical():
-                for y in range(j[0]*q, j[1]*q):
+                for y in range(j[0]*q, j[1]*q + 1):
                     if i[0] <= y/q:
                         additive_vertices.add((j[0], y/q))
             else:
-                for x in range(i[0]*q, i[1]*q):
+                for x in range(i[0]*q, i[1]*q + 1):
                     if 2*x/q <= k[0]:
                         additive_vertices.add((x/q, k[0] - x/q))   
     return additive_vertices
