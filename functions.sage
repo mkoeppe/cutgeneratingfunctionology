@@ -613,21 +613,7 @@ def plot_projections_at_borders(fn):
         I, J, K = face.minimal_triple
         I_J_verts.update(I) # no need for J because the x-y swapped face will also be processed
         K_verts.update(K)
-        if face.is_2D():
-            # plot I at top border
-            g += polygon([(I[0], 1), (I[1], 1), (I[1], 1 + proj_plot_width), (I[0], 1 + proj_plot_width)], **IJK_kwds[0])
-            delete_one_time_plot_kwds(IJK_kwds[0])
-            # plot J at left border
-            g += polygon([(0, J[0]), (0, J[1]), (-proj_plot_width, J[1]), (-proj_plot_width, J[0])], **IJK_kwds[1])
-            delete_one_time_plot_kwds(IJK_kwds[1])
-            # plot K at right/bottom borders
-            if coho_interval_contained_in_coho_interval(K, [0,1]):
-                g += polygon([(K[0], 0), (K[1], 0), (K[1] + proj_plot_width, -proj_plot_width), (K[0] + proj_plot_width, -proj_plot_width)], **IJK_kwds[2])
-            elif coho_interval_contained_in_coho_interval(K, [1,2]):
-                g += polygon([(1, K[0]-1), (1, K[1]-1), (1 + proj_plot_width, K[1] - 1 - proj_plot_width), (1 + proj_plot_width, K[0] - 1 - proj_plot_width)], **IJK_kwds[2])
-            else:
-                raise ValueError, "Bad face: %s" % face
-            delete_one_time_plot_kwds(IJK_kwds[2])
+        g += plot_projections_of_one_face(face, IJK_kwds)
     for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices(fn):
         I_J_verts.add(x)
         I_J_verts.add(y)
@@ -645,6 +631,26 @@ def plot_projections_at_borders(fn):
             g += line([(0, z), (z, 0)], linestyle=':', color='grey')
         else:
             g += line([(1, z-1), (z-1, 1)], linestyle=':', color='grey')
+    return g
+
+def plot_projections_of_one_face(face, IJK_kwds):
+    g = Graphics()
+    I, J, K = face.minimal_triple
+    if face.is_2D():
+        # plot I at top border
+        g += polygon([(I[0], 1), (I[1], 1), (I[1], 1 + proj_plot_width), (I[0], 1 + proj_plot_width)], **IJK_kwds[0])
+        delete_one_time_plot_kwds(IJK_kwds[0])
+        # plot J at left border
+        g += polygon([(0, J[0]), (0, J[1]), (-proj_plot_width, J[1]), (-proj_plot_width, J[0])], **IJK_kwds[1])
+        delete_one_time_plot_kwds(IJK_kwds[1])
+        # plot K at right/bottom borders
+        if coho_interval_contained_in_coho_interval(K, [0,1]):
+            g += polygon([(K[0], 0), (K[1], 0), (K[1] + proj_plot_width, -proj_plot_width), (K[0] + proj_plot_width, -proj_plot_width)], **IJK_kwds[2])
+        elif coho_interval_contained_in_coho_interval(K, [1,2]):
+            g += polygon([(1, K[0]-1), (1, K[1]-1), (1 + proj_plot_width, K[1] - 1 - proj_plot_width), (1 + proj_plot_width, K[0] - 1 - proj_plot_width)], **IJK_kwds[2])
+        else:
+            raise ValueError, "Bad face: %s" % face
+        delete_one_time_plot_kwds(IJK_kwds[2])
     return g
 
 # Assume component is sorted.
