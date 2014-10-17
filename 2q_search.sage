@@ -101,64 +101,21 @@ def intersect_with_segments(covered_interval, segments_left_endpoints):
     return False
 
 
-def plot_painted_faces(q, ff, faces):
-    """
-    Return a plot of the horizonal lines, vertical lines, and diagonal lines of the complex.
-    """
-    bkpt = [x/q for x in range(q+1)]
-    x = var('x')
+def plot_painted_faces(q, faces):
+    points = [x/q for x in range(q+1)]
+    values = [0 for x in range(q+1)]
+    function = discrete_function_from_points_and_values(points, values)
+
     p = Graphics()
-    kwds ={}
-    #kwds = { 'legend_label': "Complex Delta pi" }
-    plot_kwds_hook(kwds)
-    ## We now use lambda functions instead of Sage symbolics for plotting, 
-    ## as those give strange errors when combined with our RealNumberFieldElement.
-    for i in range(1,len(bkpt)):
-        p += plot(lambda x: bkpt[i]-x, (x, 0, bkpt[i]), color='grey', **kwds)
-        kwds = {}
-    for i in range(1,len(bkpt)-1):
-        p += plot(lambda x: (1+bkpt[i]-x), (x, bkpt[i], 1), color='grey')
-    for i in range(len(bkpt)):
-        p += plot(bkpt[i], (0, 1), color='grey')
-    y=var('y')
-    for i in range(len(bkpt)):
-        p += parametric_plot((bkpt[i],y),(y,0,1), color='grey')
-    #kwds = { 'legend_label': "Additive face" }
-    plot_kwds_hook(kwds)
-    for face in faces:
-        p += face.plot(**kwds)
-        delete_one_time_plot_kwds(kwds)
+    #p.set_legend_options(handlelength = 0)
+    p.set_legend_options(loc='upper right')
+    p += plot_2d_complex(function)
 
-    I_J_verts = set()
-    K_verts = set()
-    kwds = { 'alpha': proj_plot_alpha, 'zorder': -10 }
-
+    kwds = { 'alpha': proj_plot_alpha, 'zorder': -10, 'color': 'grey'}
     IJK_kwds = [ kwds for i in range(3) ]
-    #kwds['legend_label'] = "projections p1(F), p2(F), p3(F)"
-    
-    for i in range(3):
-        #IJK_kwds[i]['legend_color'] = proj_plot_colors[i] # does not work in Sage 5.11
-        IJK_kwds[i]['color'] = proj_plot_colors[i]
-        plot_kwds_hook(IJK_kwds[i])
     for face in faces:
-        I, J, K = face.minimal_triple
-        I_J_verts.update(I) # no need for J because the x-y swapped face will also be processed
-        K_verts.update(K)
-        if face.is_2D():
-            # plot I at top border
-            p += polygon([(I[0], 1), (I[1], 1), (I[1], 1 + proj_plot_width), (I[0], 1 + proj_plot_width)], **IJK_kwds[0])
-            delete_one_time_plot_kwds(IJK_kwds[0])
-            # plot J at left border
-            p += polygon([(0, J[0]), (0, J[1]), (-proj_plot_width, J[1]), (-proj_plot_width, J[0])], **IJK_kwds[1])
-            delete_one_time_plot_kwds(IJK_kwds[1])
-            # plot K at right/bottom borders
-            if coho_interval_contained_in_coho_interval(K, [0,1]):
-                p += polygon([(K[0], 0), (K[1], 0), (K[1] + proj_plot_width, -proj_plot_width), (K[0] + proj_plot_width, -proj_plot_width)], **IJK_kwds[2])
-            elif coho_interval_contained_in_coho_interval(K, [1,2]):
-                p += polygon([(1, K[0]-1), (1, K[1]-1), (1 + proj_plot_width, K[1] - 1 - proj_plot_width), (1 + proj_plot_width, K[0] - 1 - proj_plot_width)], **IJK_kwds[2])
-            else:
-                raise ValueError, "Bad face: %s" % face
-            delete_one_time_plot_kwds(IJK_kwds[2])
+        p += face.plot()
+        p += plot_projections_of_one_face(face, IJK_kwds)
     return p
 
 def generate_additive_vertices_from_faces(q, faces):
