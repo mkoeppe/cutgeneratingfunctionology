@@ -27,7 +27,7 @@ def paint_complex(q, ff, aa, faces, candidate_face_set):
         additive_vertices = generate_implied_additive_vertices(q, ff, additive_vertices, covered_intervals)
         if additive_vertices:
             # otherwise, infeasible. continue to next face in candidate_face_set
-            new_faces = generate_maximal_faces_from_vertices(q, additive_vertices)
+            new_faces = generate_faces_from_vertices(q, additive_vertices)
             new_covered = generate_covered_intervals_from_faces(new_faces)
             if not intersect_with_segments(new_covered, [(aa - 1)/q]):
                 # otherwise, infeasible. continue to next face in candidate_face_set
@@ -74,16 +74,62 @@ def intersect_with_segments(covered_interval, segments_left_endpoints):
                     return True
     return False
 
-def generate_covered_intervals_from_faces(faces):
-    #TODO
-    pass
 def generate_implied_additive_vertices(q, ff, additive_vertices, covered_intervals):
     #TODO
     pass
 
-def generate_maximal_faces_from_vertices(q, additive_vertices):
-    #TODO
-    pass
+def generate_faces_from_vertices(q, vertices):
+    # FIXME: Factor from generate_maximal_additive_faces_continuous(function)
+    xy_swapped_vertices = set([(y, x) for (x, y) in vertices])
+    vertices.update(xy_swapped_vertices)
+    faces = []
+    vertical_edge = set([])
+    horizontal_edge = set([])
+    pts = set([])
+    for x in range(q):
+        for y in range(x,q):
+            pt_00 = (x/q, (y+1)/q)
+            pt_10 = ((x+1)/q, y/q)
+            pt_01 = (x, (y+1)/q)
+            pt_11 = ((x+1)/q, (y+1)/q)
+            i = [x/q, (x+1)/q]
+            j = [y/q, (y+1)/q]
+            k1 = [(x+y)/q, (x+y+1)/q]
+            k2 = [(x+y+1)/q, (x+y+2)/q]
+            if pt_01 in vertices and pt_10 in vertices:
+                diagonal_to_add = True
+                if pt_00 in vertices:
+                    faces.append(Face((i,j,k1)))
+                    diagonal_to_add = False
+                    vertical_edge.add(pt_00)
+                    horizontal_edge.add(pt_00)
+                    pts.add(pt_00)
+                if pt_11 in vertices:
+                    faces.append(Face((i,j,k2)))
+                    diagonal_to_add = False
+                    vertical_edge.add(pt_10)
+                    horizontal_edge.add(pt_01)
+                    pts.add(pt_11)
+                if diagonal_to_add:
+                    faces.append(Face(i,j,[(x+y+1)/q]))
+                pts.add(pt_01)
+                pts.add(pt_10)
+            if pt_00 in vertices and pt_01 in vertices and not pt_00 in vertical_edge:
+                faces.append(Face([x/q], j, k1))
+                vertical_edge.add(pt_00)
+                pts.add(pt_00)
+                pts.add(pt_01)
+            if pt_00 in vertices and pt_10 in vertices and not pt_00 in horizontal_edge:
+                faces.append(Face(i, [y/q], k1))
+                horizontal_edge.add(pt_00)
+                pts.add(pt_00)
+                pts.add(pt_10)
+            if pt_00 in vertices and not pt_00 in pts:
+                faces.append(Face([x/q], [y/q], [(x+y)/q]))
+                pts.add(pt_00)
+    faces += [ x_y_swapped_face(face) for face in faces \
+                                       if face.minimal_triple[0] != face.minimal_triple[1] ]
+    return faces
 
 def plot_painted_faces(q, faces):
     """
