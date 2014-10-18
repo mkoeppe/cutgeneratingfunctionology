@@ -33,6 +33,8 @@ def pick_random_face(q, ff, aa, bb, to_cover):
         times += 1
         x = pick_random_integer(q, to_cover)
         y = pick_random_integer(q, to_cover)
+        if x > y:
+            x, y = y, x
         z = ZZ.random_element(2)
         if (x, y + 1) == (ff, ff) or (x + 1, y) == (ff, ff):
             continue
@@ -85,9 +87,14 @@ def generate_painted_complex(q, ff, aa):
     faces_1d = [ Face(([0,f], [0,f], [f])), Face(([f,1], [f,1], [1+f]))]
     # translation 
     faces_1d += [ Face(([b - a + grid], [a - grid, a], [b, b + grid])), \
-               Face(([a - grid, a], [b - a + grid], [b, b + grid])) ]
+                  Face(([a - grid, a], [b - a + grid], [b, b + grid])) ]
+    # f(0) = 0; f(1) = 0;
+    faces_1d += [ Face(([0, 1], [0], [0, 1])), \
+                  Face(([0], [0, 1], [0, 1])) ] #, \
+    #              Face(([0, 1], [1], [1, 2])), \
+    #              Face(([1], [0, 1], [1, 2]))  ]
     edges = [ face.minimal_triple for face in faces_1d ]
-    faces = []
+    faces = [] #2d-faces
     # first paint lower left and upper right corner?
     already_covered = []
     to_cover = interval_minus_union_of_intervals([0,1], final_uncovered)
@@ -96,14 +103,21 @@ def generate_painted_complex(q, ff, aa):
         face = pick_random_face(q, ff, aa, bb, to_cover)
         #logging.info("Try %s" % face)
         new_covered = covered_intervals_by_adding_face(face, edges, already_covered)
-        if not intersect_with_segments(new_covered, [a - grid]):
-            faces.append(face)
-            if face.minimal_triple[0] != face.minimal_triple[1]:
-                faces.append(x_y_swapped_face(face))
-            already_covered = new_covered
-            merged_covered = reduce(merge_two_comp, new_covered)           
-            to_cover = interval_minus_union_of_intervals([0,1], merge_two_comp(merged_covered, final_uncovered))
-            #logging.info("After painting this face green, it remains %s" % to_cover)
+        if intersect_with_segments(new_covered, [a - grid]):
+        # FIXME: causes infinite loop!
+            continue
+        additive_vertices = generate_additive_vertices_from_faces(q, faces + faces_1d + [face, x_y_swapped_face(face)])
+        new_additive_vertices = generate_induced_additive_vertices(q, ff, additive_vertices, new_covered)
+        if not new_additive_vertices:
+        # FIXME: causes infinite loop!
+            continue
+        faces = generate_faces_from_vertices(q, new_additive_vertices)
+        print "pick %s" % face
+        plot_painted_faces(q, faces+faces_1d).show(show_legend=False)
+        new_covered = generate_directly_covered_by_faces(faces, [])
+        already_covered = generate_indirectly_covered_by_edges(edges, new_covered)
+        to_cover = uncovered_intervals_from_covered_intervals(already_covered + [final_uncovered])
+        print "to_cover = %s" % to_cover
     green_faces = faces + faces_1d
     covered_intervals = [merge_within_comp(component, one_point_overlap_suffices=True) for component in already_covered] 
     return green_faces, covered_intervals
@@ -119,6 +133,28 @@ def intersect_with_segments(covered_interval, segments_left_endpoints):
                     return True
     return False
 
+def generate_induced_additive_vertices(q, ff, additive_vertices, covered_intervals):
+    uncovered_intervals = uncovered_intervals_from_covered_intervals(covered_intervals)
+    uncovered_components = []
+    for i in uncovered_intervals:
+        x = i[0]
+        while x < i[1]:
+            uncovered_components.append([[x, x + 1/q]])
+            x += 1/q
+    components = covered_intervals  + uncovered_components
+    fn_sym = generate_symbolic_continuous(None, components, field=QQ)
+    #h_list = list(generate_vertex_function(q, ff, fn_sym, additive_vertices))
+    found = False
+    common_additive_vertices = set([(x/q, y/q) for x in range(q+1) for y in range(q+1) if x <= y])
+    for h in generate_vertex_function(q, ff, fn_sym, additive_vertices, in_paint_phase=True):
+        h_1q = restrict_to_finite_group(h, f=ff/q, order=q)
+        h_additive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(h_1q)}
+        common_additive_vertices.intersection_update(h_additive_vertices)
+        found = True
+    if not found:
+        return False
+    else:
+        return common_additive_vertices
 
 def plot_painted_faces(q, faces):
     """
@@ -139,6 +175,19 @@ def plot_painted_faces(q, faces):
         p += face.plot()
         p += plot_projections_of_one_face(face, IJK_kwds)
     return p
+
+def generate_faces_from_vertices(q, vertices):
+    xy_swapped_vertices = set([(y, x) for (x, y) in vertices])
+    vertices.update(xy_swapped_vertices)
+    faces = []
+    for x in range(q):
+        for y in range(q):
+            if (x/q, (y+1)/q) in vertices and ((x+1)/q, y/q) in vertices:
+                if (x/q, y/q) in vertices:
+                    faces.append(Face(([x/q, (x+1)/q], [y/q, (y+1)/q], [(x+y)/q, (x+y+1)/q])))
+                if ((x+1)/q, (y+1)/q) in vertices:
+                    faces.append(Face(([x/q, (x+1)/q], [y/q, (y+1)/q], [(x+y+1)/q, (x+y+2)/q])))
+    return faces
 
 def generate_additive_vertices_from_faces(q, faces):
     """
@@ -215,7 +264,7 @@ def generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices):
                     ieqs.append(v)
     return ieqs, eqns
 
-def generate_vertex_function(q, ff, fn_sym, additive_vertices):
+def generate_vertex_function(q, ff, fn_sym, additive_vertices, in_paint_phase=False):
     """
     Generate real valued functions which correspond to vertices 
     of the polytope defined by [ieqs, eqns] = generate_ieqs_and_eqns(..)
@@ -227,13 +276,16 @@ def generate_vertex_function(q, ff, fn_sym, additive_vertices):
         #    print p.Vrepresentation()
         ## print "boundedness is %s" % p.is_compact()
         for x in p.vertices():
-            k = len(set(x))
-            if k > 2: # can even write k > 3
-                print "%s gives a %s-slope function h =" % (x, k) 
-                v = vector(QQ,x)
-                yield v * fn_sym
-            #else:
-            #    print "%s gives a %s-slope function. Ignore" % (x, k)
+            if in_paint_phase:
+                yield vector(QQ,x) * fn_sym
+            else:
+                k = len(set(x))
+                if k > 2: # can even write k > 3
+                    print "%s gives a %s-slope function h =" % (x, k) 
+                    v = vector(QQ,x)
+                    yield v * fn_sym
+                #else:
+                #    print "%s gives a %s-slope function. Ignore" % (x, k)
 
 def random_2q_example(q, ff=None, aa=None):
     """
@@ -254,7 +306,7 @@ def random_2q_example(q, ff=None, aa=None):
     attempts = 0
     random_ff = (ff is None)
     random_aa = (ff is None) or (aa is None)
-    while attempts < 100:
+    while attempts < 1:
     #while attempts >=0: 
         if random_ff:
             ff = ZZ.random_element(int(q/2),q)
