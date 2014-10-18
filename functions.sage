@@ -873,11 +873,10 @@ def interval_mod_1(interval):
 @cached_function
 def generate_directly_covered_intervals(function):
     faces = generate_maximal_additive_faces(function)
-    covered_intervals = generate_directly_covered_by_faces(faces, [])
-    return covered_intervals
+    return generate_directly_covered_intervals_from_faces(faces)
 
-def generate_directly_covered_by_faces(faces, was_covered):
-    covered_intervals = copy(was_covered)
+def generate_directly_covered_intervals_from_faces(faces):
+    covered_intervals = []
     for face in faces:
         if face.is_2D():
             component = []
@@ -903,9 +902,13 @@ def generate_directly_covered_by_faces(faces, was_covered):
 @cached_function
 def generate_covered_intervals(function):
     logging.info("Computing covered intervals...")
-    covered_intervals = generate_directly_covered_intervals(function)
     faces = generate_maximal_additive_faces(function)
+    covered_intervals = generate_covered_intervals_from_faces(faces)
+    logging.info("Computing covered intervals... done")
+    return covered_intervals
 
+def generate_covered_intervals_from_faces(faces):
+    covered_intervals = generate_directly_covered_intervals_from_faces(faces)
     # debugging plot:
     # show(plot_covered_intervals(function, covered_intervals), \
     #      legend_fancybox=True, \
@@ -913,12 +916,7 @@ def generate_covered_intervals(function):
     #      legend_loc=2) # legend in upper left
 
     edges = [ face.minimal_triple for face in faces if face.is_1D()]
-    covered_intervals = generate_indirectly_covered_by_edges(edges, covered_intervals)
-    logging.info("Computing covered intervals... done")
-    return covered_intervals
 
-def generate_indirectly_covered_by_edges(edges, was_covered):
-    covered_intervals = copy(was_covered)
     any_change = True
     ## FIXME: Here we saturate the covered interval components
     ## with the edge relations.  There should be a smarter way
