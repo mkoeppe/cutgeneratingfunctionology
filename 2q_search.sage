@@ -53,10 +53,10 @@ def paint_complex(q, ff, aa, faces, candidate_face_set):
         candidate_face_set.remove(face_picked)
         covered_intervals = generate_covered_intervals_from_faces(faces + [face_picked])
         additive_vertices = generate_additive_vertices_from_faces(q, faces + [face_picked])
-        additive_vertices = generate_induced_additive_vertices(q, ff, additive_vertices, covered_intervals)
-        # TODO:  replace it by generate_implied_additive_vertices(...) when the new function is available.
-        if additive_vertices:
-            # otherwise, infeasible. continue to next face in candidate_face_set
+        implied_additive_vertices = generate_implied_additive_vertices(q, ff, additive_vertices, covered_intervals)
+        if not implied_additive_vertices is False:
+            # implied_additive_vertices is False means infeasible. continue to next face in candidate_face_set
+            additive_vertices.update(implied_additive_vertices)
             new_faces = generate_faces_from_vertices(q, additive_vertices)
             new_covered = generate_covered_intervals_from_faces(new_faces)
             if not intersect_with_segments(new_covered, [(aa - 1)/q]):
@@ -119,27 +119,32 @@ def intersect_with_segments(covered_interval, segments_left_endpoints):
     return False
 
 def generate_implied_additive_vertices(q, ff, additive_vertices, covered_intervals):
-    #TODO: make use of p.Vrepresentation(i).incident() to replace scalar products
-    #def generate_induced_additive_vertices()
-    pass
-
-def generate_induced_additive_vertices(q, ff, additive_vertices, covered_intervals):
-    # TEMPORARY
+    """
+    Return new additive_vertices implied by the known additive_vertices
+    """
     to_cover_set = generate_to_cover_set(q, covered_intervals)
     uncovered_components = [[[x, x + 1/q]] for x in to_cover_set]
     components = covered_intervals  + uncovered_components
     fn_sym = generate_symbolic_continuous(None, components, field=QQ)
-    found = False
-    common_additive_vertices = set([(x/q, y/q) for x in range(q+1) for y in range(x, q+1)])
-    for h in generate_vertex_function(q, ff, fn_sym, additive_vertices, in_paint_phase=True):
-        h_1q = restrict_to_finite_group(h, f=ff/q, order=q)
-        h_additive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(h_1q)}
-        common_additive_vertices.intersection_update(h_additive_vertices)
-        found = True
-    if not found:
+    ieqdic, eqndic = generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices)
+    p = Polyhedron(ieqs = ieqdic.keys(), eqns = eqndic.keys())
+    if p.is_empty():
+        # infeasible
         return False
-    else:
-        return common_additive_vertices
+
+    n = p.n_vertices()
+    implied_additive_vertices = set([])
+    #for face_vertex in p.facial_incidences():
+    #FIXME: p.facial_incidences() causes DeprecationWarning
+    #    if len(face_vertex[1]) == n:
+    #        i = face_vertex[0]
+    #        fi = p.Hrepresentation(i)
+    for fi in p.Hrepresentation():
+        n_incident = len([v.index() for v in fi.incident()])
+        if n_incident == n: # fi is an implied equality
+            if tuple(fi) in ieqdic:
+                implied_additive_vertices.update(ieqdic[fi])
+    return implied_additive_vertices
 
 def generate_faces_from_vertices(q, vertices):
     # FIXME: Factor from generate_maximal_additive_faces_continuous(function)
