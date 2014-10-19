@@ -119,7 +119,7 @@ def intersect_with_segments(covered_interval, segments_left_endpoints):
     return False
 
 def generate_implied_additive_vertices(q, ff, additive_vertices, covered_intervals):
-    #TODO: make use of p.Vrepresentation(i).incident() to replace 
+    #TODO: make use of p.Vrepresentation(i).incident() to replace scalar products
     #def generate_induced_additive_vertices()
     pass
 
@@ -259,37 +259,69 @@ def generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices):
 
         additive_vertices are the green points on the 2d-grid, 
         where additivity is attained by fn_sym.
+
+    Output:
+        ieqdic, eqndic are dictionaries that maps ieq/eqn to 
+        the 2d-complex-vertices from which it comes;
+        key = ieq or eqn, value = set of 2d-complex-vertices.
     """
-    # TODO: use a dictionary that maps ieq to the 2d-complex-vertices from which it comes;
-    #       key = ieq, value = set of 2d-complex-vertices
-    ieqs = []
-    eqns = []
+    ieqdic = {}
+    eqndic = {}
     for x in range(q):
         v = fn_sym(x/q)
-        ieq_0 = [0] + list(v)  # fn(x/q) >= 0
-        ieq_1 = [1] + [-w for w in v] #fn(x/q) <=1
-        ieqs += [ieq_0, ieq_1]
-    eqns += [[0] + list(fn_sym(0)), [0] + list(fn_sym(1)), [-1] + list(fn_sym(ff/q))] #fn(0) = 0; fn(1) = 0; fn(f) = 1;
+        ieq = tuple([0]) + tuple(v)  # fn(x/q) >= 0
+        if not ieq in ieqdic:
+            ieqdic[ieq]=set([])
+        ieq = tuple([1]) + tuple([-w for w in v]) #fn(x/q) <=1
+        if not ieq in ieqdic:
+            ieqdic[ieq]=set([])
+    # fn(0) = 0
+    eqn = tuple([0]) + tuple(fn_sym(0))
+    if not eqn in eqndic:
+        eqndic[eqn] = set([]) # or = [(0,0)]?
+    # fn(1) = 0
+    eqn = tuple([0]) + tuple(fn_sym(1))
+    if not eqn in eqndic:
+        eqndic[eqn] = set([])
+    # fn(f) = 1
+    eqn = tuple([-1]) + tuple(fn_sym(ff/q))
+    if not eqn in eqndic:
+        eqndic[eqn] = set([])
+
     bkpt = fn_sym.end_points()
     for x in bkpt:
         for y in bkpt:
             if x <= y:
-                v = [0] + list(delta_pi(fn_sym,x,y))
+                v = tuple([0]) + tuple(delta_pi(fn_sym,x,y))
                 if (x, y) in additive_vertices:
-                    eqns.append(v)
+                    if v in eqndic:
+                        eqndic[v].add((x,y))
+                    else:
+                        eqndic[v] = set([(x,y)])
                 else:
-                    ieqs.append(v)
+                    if v in ieqdic:
+                        ieqdic[v].add((x,y))
+                    else:
+                        ieqdic[v] = set([(x,y)])
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     for x in bkpt:
         for z in bkpt2:
             if x < z < 1+x:
                 y = z - x
-                v = [0] + list(delta_pi(fn_sym,x,y))
-                if (x, y) in additive_vertices or (y, x) in additive_vertices:
-                    eqns.append(v)
+                if x > y:
+                    x, y = y, x
+                v = tuple([0]) + tuple(delta_pi(fn_sym,x,y))
+                if (x, y) in additive_vertices:
+                    if v in eqndic:
+                        eqndic[v].add((x,y))
+                    else:
+                        eqndic[v] = set([(x,y)])
                 else:
-                    ieqs.append(v)
-    return ieqs, eqns
+                    if v in ieqdic:
+                        ieqdic[v].add((x,y))
+                    else:
+                        ieqdic[v] = set([(x,y)])
+    return ieqdic, eqndic
 
 def generate_vertex_function(q, ff, fn_sym, additive_vertices, in_paint_phase=False):
     """
