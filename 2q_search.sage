@@ -348,7 +348,7 @@ def generate_vertex_function(q, ff, fn_sym, additive_vertices):
             #else:
             #    print "%s gives a %s-slope function. Ignore" % (x, k)
 
-def random_2q_example(q, ff=None, aa=None):
+def random_2q_example(q, ff=None, aa=None, max_attempts=None):
     """
     q, ff, aa are integers.
     3 <= ff < q and aa < ff/2
@@ -365,14 +365,24 @@ def random_2q_example(q, ff=None, aa=None):
         sage: logging.disable()
     """
     attempts = 0
-    random_ff = (ff is None)
     random_aa = (ff is None) or (aa is None)
-    while attempts < 1:
-    #while attempts >=0: 
-        if random_ff:
-            ff = ZZ.random_element(int(q/2),q)
-        if random_aa:
-            aa = ZZ.random_element(int(ff/4), int((ff+1)/2))
+    if ff is None:
+        candidate_ff = range(3,q)
+    else:
+        candidate_ff = [ff]
+    candidate_ff_aa = set([])
+    if aa is None:
+        for ff_0 in candidate_ff:
+            for aa_0 in range(1, int((ff_0 + 1)/2)):
+                candidate_ff_aa.add((ff_0, aa_0))
+    else:
+        for ff_0 in candidate_ff:
+            if 1 <= aa < int((ff_0 + 1)/2):
+                candidate_ff_aa.add((ff_0, aa))
+
+    while candidate_ff_aa and ((max_attempts is None) or (attempts < max_attempts)): 
+        (ff, aa) = random.sample(candidate_ff_aa, 1)[0]
+        candidate_ff_aa.remove((ff, aa))
         # print "attempt #%s with q = %s, ff = %s, aa = %s" % (attempts, q, ff, aa)
         faces = initial_faces_for_paint_complex(q, ff, aa)
         candidate_face_set = generate_candidate_face_set(q, ff, aa, [])
@@ -380,7 +390,7 @@ def random_2q_example(q, ff=None, aa=None):
         if can_paint is False:
             print "Painting doesn't exist for q = %s, ff = %s, aa = %s" % (q, ff, aa)
         elif len(can_paint[1]) >= 2:
-            # otherwise, too few slopes in covered_intervals, continue to the next attampt.
+            # otherwise, too few slopes in covered_intervals, continue to the next attempt.
             green_faces, covered_intervals = can_paint
             plot_painted_faces(q, green_faces)
             additive_vertices = generate_additive_vertices_from_faces(q, green_faces)
@@ -393,10 +403,11 @@ def random_2q_example(q, ff=None, aa=None):
                 if not extremality_test(h): # h is not extreme
                     h_2q = restrict_to_finite_group(h, f=f, oversampling=2, order=None)
                     if extremality_test(h_2q): # but h restricted to 1/2q is extreme
+                        print "h is a valid example!"
                         return h
                     else:
                         print "h restricted to 1/2q is not extreme. Not a good example"
                 else:
                     print "h is extreme. Not a good example"
-        attempts += 1
+        attempts += 1          
     print "Example function not found. Please try again."
