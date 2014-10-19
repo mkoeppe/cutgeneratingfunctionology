@@ -323,29 +323,25 @@ def generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices):
                         ieqdic[v] = set([(x,y)])
     return ieqdic, eqndic
 
-def generate_vertex_function(q, ff, fn_sym, additive_vertices, in_paint_phase=False):
+def generate_vertex_function(q, ff, fn_sym, additive_vertices):
     """
     Generate real valued functions which correspond to vertices 
     of the polytope defined by [ieqs, eqns] = generate_ieqs_and_eqns(..)
     """
-    # TODO: Rewrite; use a dictionary that maps ieq to the 2d-complex-vertices from which it comes;
-    ieqs, eqns = generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices)
-    p = Polyhedron(ieqs = ieqs, eqns = eqns)
+    ieqdic, eqndic = generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices)
+    p = Polyhedron(ieqs = ieqdic.keys(), eqns = eqndic.keys())
     if not p.is_empty():
         #if p.n_vertices() > 1:
         #    print p.Vrepresentation()
         ## print "boundedness is %s" % p.is_compact()
         for x in p.vertices():
-            if in_paint_phase:
-                yield vector(QQ,x) * fn_sym
-            else:
-                k = len(set(x))
-                if k > 2: # can even write k > 3
-                    print "%s gives a %s-slope function h =" % (x, k) 
-                    v = vector(QQ,x)
-                    yield v * fn_sym
-                #else:
-                #    print "%s gives a %s-slope function. Ignore" % (x, k)
+            k = len(set(x))
+            if k > 2: # can even write k > 3
+                print "%s gives a %s-slope function h =" % (x, k)
+                v = vector(QQ,x)
+                yield v * fn_sym
+            #else:
+            #    print "%s gives a %s-slope function. Ignore" % (x, k)
 
 def random_2q_example(q, ff=None, aa=None):
     """
@@ -363,7 +359,6 @@ def random_2q_example(q, ff=None, aa=None):
         sage: random_2q_example(13, 10, 4)
         sage: logging.disable()
     """
-    # TODO: Rewrite
     attempts = 0
     random_ff = (ff is None)
     random_aa = (ff is None) or (aa is None)
