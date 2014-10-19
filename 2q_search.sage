@@ -58,6 +58,10 @@ def paint_complex(q, ff, aa, faces, candidate_face_set):
         implied_additive_vertices = generate_implied_additive_vertices(q, ff, additive_vertices, covered_intervals)
         if not implied_additive_vertices is False:
             # implied_additive_vertices is False means infeasible. continue to next face in candidate_face_set
+            ################
+            if implied_additive_vertices:
+                print implied_additive_vertices
+            ################
             additive_vertices.update(implied_additive_vertices)
             new_faces = generate_faces_from_vertices(q, additive_vertices)
             new_covered = generate_covered_intervals_from_faces(new_faces)
@@ -66,6 +70,10 @@ def paint_complex(q, ff, aa, faces, candidate_face_set):
                 new_candidate_face_set = generate_candidate_face_set(q, ff, aa, new_covered)
                 if not new_candidate_face_set:
                     # all covered, finish
+                    #########
+                    print "Painting exists for q = %s, ff = %s, aa = %s" % (q, ff, aa)
+                    plot_painted_faces(q, new_faces).show(show_legend=False)
+                    #########
                     return new_faces, new_covered
                 result = paint_complex(q, ff, aa, new_faces, new_candidate_face_set)
                 if not result is False:
@@ -124,6 +132,10 @@ def generate_implied_additive_vertices(q, ff, additive_vertices, covered_interva
     """
     Return new additive_vertices implied by the known additive_vertices
     """
+    # FIXME: This function returns an empty set.
+    # Hrepresentation is always minimal. Unable to track back to 
+    # corrospending implied additive points on 2d-complex when an ieq is found to be eq.
+    # We may need to use cddlib more directly
     to_cover_set = generate_to_cover_set(q, covered_intervals)
     uncovered_components = [[[x, x + 1/q]] for x in to_cover_set]
     components = covered_intervals  + uncovered_components
@@ -352,8 +364,10 @@ def generate_vertex_function(q, ff, fn_sym, additive_vertices):
                 print "%s gives a %s-slope function h =" % (x, k)
                 v = vector(QQ,x)
                 yield v * fn_sym
-            #else:
-            #    print "%s gives a %s-slope function. Ignore" % (x, k)
+            else:
+                print "%s gives a %s-slope function. Ignore" % (x, k)
+    else:
+        print "p.is_empty() is True"
 
 def random_2q_example(q, ff=None, aa=None, max_attempts=None):
     """
@@ -396,7 +410,6 @@ def random_2q_example(q, ff=None, aa=None, max_attempts=None):
         elif len(can_paint[1]) >= 2:
             # otherwise, too few slopes in covered_intervals, continue to the next attempt.
             green_faces, covered_intervals = can_paint
-            plot_painted_faces(q, green_faces)
             additive_vertices = generate_additive_vertices_from_faces(q, green_faces)
             final_uncovered = [[(aa - 1) / q, aa / q], [(ff - aa) / q, (ff - aa + 1) / q]]
             components = covered_intervals  + [final_uncovered]
