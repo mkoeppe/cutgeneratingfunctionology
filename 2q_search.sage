@@ -20,9 +20,11 @@ def initial_faces_for_paint_complex(q, ff, aa):
     # translation
     faces += [ Face(([b - a + grid], [a - grid, a], [b, b + grid])), \
                Face(([a - grid, a], [b - a + grid], [b, b + grid])) ]
-    # f(0) = 0
+    # f(0) = 0, f(1) = 0
     faces += [ Face(([0, 1], [0], [0, 1])), \
-               Face(([0], [0, 1], [0, 1])) ]
+               Face(([0], [0, 1], [0, 1])), \
+               Face(([0, 1], [1], [1, 2])), \
+               Face(([1], [0, 1], [1, 2])),  ]
     return faces
 
 import random
@@ -146,10 +148,10 @@ def generate_implied_additive_vertices(q, ff, additive_vertices, covered_interva
                 implied_additive_vertices.update(ieqdic[fi])
     return implied_additive_vertices
 
-def generate_faces_from_vertices(q, vertices):
+def generate_faces_from_vertices(q, additive_vertices):
     # FIXME: Factor from generate_maximal_additive_faces_continuous(function)
-    xy_swapped_vertices = set([(y, x) for (x, y) in vertices])
-    vertices.update(xy_swapped_vertices)
+    xy_swapped_vertices = set([(y, x) for (x, y) in additive_vertices])
+    vertices = additive_vertices.union(xy_swapped_vertices)
     faces = []
     vertical_edge = set([])
     horizontal_edge = set([])
@@ -195,6 +197,11 @@ def generate_faces_from_vertices(q, vertices):
             if (pt_00 in vertices) and not (pt_00 in pts):
                 faces.append(Face(([x/q], [y/q], [(x+y)/q])))
                 pts.add(pt_00)
+        if (pt_01 in vertices) and (pt_11 in vertices) and not (pt_01 in horizontal_edge):
+                faces.append(Face((i, [1], k2)))
+                horizontal_edge.add(pt_01)
+                pts.add(pt_01)
+                pts.add(pt_11)
     faces += [ x_y_swapped_face(face) for face in faces \
                                        if face.minimal_triple[0] != face.minimal_triple[1] ]
     return faces
@@ -360,12 +367,9 @@ def random_2q_example(q, ff=None, aa=None, max_attempts=None):
 
     EXAMPLES::
 
-        sage: logging.disable(logging.INFO)
         sage: random_2q_example(13, 10, 4)
-        sage: logging.disable()
     """
     attempts = 0
-    random_aa = (ff is None) or (aa is None)
     if ff is None:
         candidate_ff = range(3,q)
     else:
