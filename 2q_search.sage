@@ -73,7 +73,7 @@ def paint_complex(q, ff, aa, faces, candidate_face_set):
                 if not new_candidate_face_set:
                     # all covered, finish
                     ######### debug...
-                    print "Painting exists for q = %s, ff = %s, aa = %s" % (q, ff, aa)
+                    print "    Painting exists for q = %s, ff = %s, aa = %s" % (q, ff, aa)
                     # plot_painted_faces(q, new_faces).show(show_legend=False)
                     ######### ...
                     return additive_vertices, new_faces, covered_intervals
@@ -260,7 +260,7 @@ def generate_additive_vertices_from_faces(q, faces):
                     if x <= y and k[0] <= (x + y) / q <= k[1]:
                         additive_vertices.add((x/q, y/q))
         elif face.is_0D():
-            additive_vertices.add(face.vertices)
+            additive_vertices.add(face.vertices[0])
         else:
             i, j, k = face.minimal_triple
             if face.is_horizontal():
@@ -396,12 +396,12 @@ def random_2q_example(q, ff=None, aa=None, max_attempts=None):
     while candidate_ff_aa and ((max_attempts is None) or (attempts < max_attempts)): 
         (ff, aa) = random.sample(candidate_ff_aa, 1)[0]
         candidate_ff_aa.remove((ff, aa))
-        # print "attempt #%s with q = %s, ff = %s, aa = %s" % (attempts, q, ff, aa)
+        print "attempt #%s with q = %s, ff = %s, aa = %s" % (attempts, q, ff, aa)
         faces = initial_faces_for_paint_complex(q, ff, aa)
         candidate_face_set = generate_candidate_face_set(q, ff, aa, [])
         can_paint = paint_complex(q, ff, aa, faces, candidate_face_set)
         if can_paint is False:
-            print "Painting doesn't exist for q = %s, ff = %s, aa = %s" % (q, ff, aa)
+            print "    Painting doesn't exist."
         elif len(can_paint[2]) >= 2:
             # otherwise, too few slopes in covered_intervals, continue to the next attempt.
             additive_vertices, green_faces, covered_intervals = can_paint
@@ -410,7 +410,7 @@ def random_2q_example(q, ff=None, aa=None, max_attempts=None):
             fn_sym = generate_symbolic_continuous(None, components, field=QQ)
             for h in generate_vertex_function(q, ff, fn_sym, additive_vertices):
                 print h
-                print "in attempt #%s with q = %s, ff = %s, aa = %s" % (attempts, q, ff, aa)
+                #print "in attempt #%s with q = %s, ff = %s, aa = %s" % (attempts, q, ff, aa)
                 if not extremality_test(h): # h is not extreme
                     h_2q = restrict_to_finite_group(h, f=f, oversampling=2, order=None)
                     if extremality_test(h_2q): # but h restricted to 1/2q is extreme
