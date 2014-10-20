@@ -58,10 +58,6 @@ def paint_complex(q, ff, aa, faces, candidate_face_set):
         implied_additive_vertices = generate_implied_additive_vertices(q, ff, additive_vertices, covered_intervals)
         if not implied_additive_vertices is False:
             # implied_additive_vertices is False means infeasible. continue to next face in candidate_face_set
-            ################
-            if implied_additive_vertices:
-                print implied_additive_vertices
-            ################
             additive_vertices.update(implied_additive_vertices)
             new_faces = generate_faces_from_vertices(q, additive_vertices)
             new_covered = generate_covered_intervals_from_faces(new_faces)
@@ -132,10 +128,6 @@ def generate_implied_additive_vertices(q, ff, additive_vertices, covered_interva
     """
     Return new additive_vertices implied by the known additive_vertices
     """
-    # FIXME: This function returns an empty set.
-    # Hrepresentation is always minimal. Unable to track back to 
-    # corrospending implied additive points on 2d-complex when an ieq is found to be eq.
-    # We may need to use cddlib more directly
     to_cover_set = generate_to_cover_set(q, covered_intervals)
     uncovered_components = [[[x, x + 1/q]] for x in to_cover_set]
     components = covered_intervals  + uncovered_components
@@ -146,19 +138,23 @@ def generate_implied_additive_vertices(q, ff, additive_vertices, covered_interva
         # infeasible
         return False
 
-    n = p.n_vertices()
     implied_additive_vertices = set([])
-    #for face_vertex in p.facial_incidences():
-    #FIXME: p.facial_incidences() causes DeprecationWarning
-    #    if len(face_vertex[1]) == n:
-    #        i = face_vertex[0]
-    #        fi = p.Hrepresentation(i)
-    for fi in p.Hrepresentation():
-        n_incident = len([v.index() for v in fi.incident()])
-        if n_incident == n: # fi is an implied equality
-            if tuple(fi) in ieqdic:
-                implied_additive_vertices.update(ieqdic[fi])
+
+    for ieq in ieqdic.keys():
+        if is_implied_eq(ieq, p):
+            implied_additive_vertices.update(ieqdic[ieq])
     return implied_additive_vertices
+
+def is_implied_eq(ieq, p):
+    """
+    Return if ieq <type 'tuple'> must hold with equality
+    on every vertices of polyhedron p
+    """
+    n = p.ambient_dim()
+    for x in p.vertices():
+        if sum([ x[i] * ieq[i + 1] for i in range(n) ]) != - ieq[0]:
+            return False
+    return True
 
 def generate_faces_from_vertices(q, additive_vertices):
     # FIXME: Factor from generate_maximal_additive_faces_continuous(function)
@@ -227,7 +223,6 @@ def plot_painted_faces(q, faces):
     function = discrete_function_from_points_and_values(points, values)
 
     p = Graphics()
-    #p.set_legend_options(handlelength = 0)
     p.set_legend_options(loc='upper right')
     p += plot_2d_complex(function)
 
@@ -311,40 +306,21 @@ def generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices):
     eqn = tuple([-1]) + tuple(fn_sym(ff/q))
     if not eqn in eqndic:
         eqndic[eqn] = set([])
-
-    bkpt = fn_sym.end_points()
-    for x in bkpt:
-        for y in bkpt:
-            if x <= y:
-                v = tuple([0]) + tuple(delta_pi(fn_sym,x,y))
-                if (x, y) in additive_vertices:
-                    if v in eqndic:
-                        eqndic[v].add((x,y))
-                    else:
-                        eqndic[v] = set([(x,y)])
+    # Note: If only do this for bkpts, some implied additive points on the grid
+    # (whose x or y coordinate lies in between two bkpts) will be missing!
+    for x in range(q+1):
+        for y in range(x, q+1):
+            v = tuple([0]) + tuple(delta_pi(fn_sym, x/q, y/q))
+            if (x/q, y/q) in additive_vertices:
+                if v in eqndic:
+                    eqndic[v].add((x/q, y/q))
                 else:
-                    if v in ieqdic:
-                        ieqdic[v].add((x,y))
-                    else:
-                        ieqdic[v] = set([(x,y)])
-    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
-    for x in bkpt:
-        for z in bkpt2:
-            if x < z < 1+x:
-                y = z - x
-                if x > y:
-                    x, y = y, x
-                v = tuple([0]) + tuple(delta_pi(fn_sym,x,y))
-                if (x, y) in additive_vertices:
-                    if v in eqndic:
-                        eqndic[v].add((x,y))
-                    else:
-                        eqndic[v] = set([(x,y)])
+                    eqndic[v] = set([(x/q, y/q)])
+            else:
+                if v in ieqdic:
+                    ieqdic[v].add((x/q, y/q))
                 else:
-                    if v in ieqdic:
-                        ieqdic[v].add((x,y))
-                    else:
-                        ieqdic[v] = set([(x,y)])
+                    ieqdic[v] = set([(x/q, y/q)])
     return ieqdic, eqndic
 
 def generate_vertex_function(q, ff, fn_sym, additive_vertices):
