@@ -7,7 +7,7 @@ def initial_faces_for_paint_complex(q, ff, aa):
 
     EXAMPLES::
 
-        sage: q=7; ff=10; aa=4
+        sage: q=8; ff=7; aa=2
         sage: faces = initial_faces_for_paint_complex(q, ff, aa)
         sage: plot_painted_faces(q,faces)
     """
@@ -43,11 +43,11 @@ def paint_complex(q, ff, aa, faces, candidate_face_set):
 
     EXAMPLES::
 
-        sage: q=7; ff=10; aa=4
+        sage: q=8; ff=7; aa=2
         sage: faces = initial_faces_for_paint_complex(q, ff, aa)
         sage: candidate_face_set = generate_candidate_face_set(q, ff, aa, [])
-        sage: paint_complex(q, ff, aa, faces, candidate_face_set)
-        False
+        sage: result = paint_complex(q, ff, aa, faces, candidate_face_set)
+        sage: plot_painted_faces(q, result[1])
     """
     # FIXME: Perhaps it's better to use generator, "yield" all possible paintings
     while candidate_face_set:
@@ -100,7 +100,7 @@ def generate_candidate_face_set(q, ff, aa, covered):
 
     EXAMPLES::
 
-        sage: q=7; ff=10; aa=4
+        sage: q=8; ff=7; aa=2
         sage: candidate_face_set = generate_candidate_face_set(q, ff, aa, [])
         sage: plot_painted_faces(q, candidate_face_set)
     """
@@ -375,7 +375,8 @@ def random_2q_example(q, ff=None, aa=None, max_attempts=None):
 
     EXAMPLES::
 
-        sage: random_2q_example(13, 10, 4)
+        sage: random_2q_example(8, 7, 2)
+        sage: random_2q_example(8, None, None)
     """
     attempts = 0
     if ff is None:
