@@ -52,29 +52,43 @@ def paint_complex(q, ff, aa, faces, candidate_face_set):
     # FIXME: Perhaps it's better to use generator, "yield" all possible paintings
     while candidate_face_set:
         face_picked = random.sample(candidate_face_set, 1)[0]
+        ###### debug...
+        # print face_picked
+        ###### ...
         candidate_face_set.remove(face_picked)
-        covered_intervals = generate_covered_intervals_from_faces(faces + [face_picked])
         additive_vertices = generate_additive_vertices_from_faces(q, faces + [face_picked])
+        new_faces = generate_faces_from_vertices(q, additive_vertices)
+        covered_intervals = generate_covered_intervals_from_faces(new_faces)
         implied_additive_vertices = generate_implied_additive_vertices(q, ff, additive_vertices, covered_intervals)
         if not implied_additive_vertices is False:
             # implied_additive_vertices is False means infeasible. continue to next face in candidate_face_set
-            additive_vertices.update(implied_additive_vertices)
-            new_faces = generate_faces_from_vertices(q, additive_vertices)
-            new_covered = generate_covered_intervals_from_faces(new_faces)
-            if not intersect_with_segments(new_covered, [(aa - 1)/q]):
+            if implied_additive_vertices:
+                # implied_additive_vertices is not empty, update the following things
+                additive_vertices.update(implied_additive_vertices)
+                new_faces = generate_faces_from_vertices(q, additive_vertices)
+                covered_intervals = generate_covered_intervals_from_faces(new_faces)
+            if not intersect_with_segments(covered_intervals, [(aa - 1)/q]):
                 # otherwise, infeasible. continue to next face in candidate_face_set
-                new_candidate_face_set = generate_candidate_face_set(q, ff, aa, new_covered)
+                new_candidate_face_set = generate_candidate_face_set(q, ff, aa, covered_intervals)
                 if not new_candidate_face_set:
                     # all covered, finish
-                    #########
+                    ######### debug...
                     print "Painting exists for q = %s, ff = %s, aa = %s" % (q, ff, aa)
-                    plot_painted_faces(q, new_faces).show(show_legend=False)
-                    #########
-                    return new_faces, new_covered
+                    # plot_painted_faces(q, new_faces).show(show_legend=False)
+                    ######### ...
+                    return additive_vertices, new_faces, covered_intervals
                 result = paint_complex(q, ff, aa, new_faces, new_candidate_face_set)
                 if not result is False:
                     # found a way of painting, return
                     return result
+    ############# debug...
+    #       else:
+    #           # infeasible. continue to next face in candidate_face_set
+    #           print "disselect this face"
+    #   else:
+    #       # infeasible. continue to next face in candidate_face_set
+    #       print "disselect this face"
+    #############  ...
     # all possibilities are tired, none is feasible
     return False
 
@@ -256,7 +270,7 @@ def generate_additive_vertices_from_faces(q, faces):
             elif face.is_vertical():
                 for y in range(j[0]*q, j[1]*q + 1):
                     if i[0] <= y/q:
-                        additive_vertices.add((j[0], y/q))
+                        additive_vertices.add((i[0], y/q))
             else:
                 for x in range(i[0]*q, i[1]*q + 1):
                     if 2*x/q <= k[0]:
@@ -340,9 +354,13 @@ def generate_vertex_function(q, ff, fn_sym, additive_vertices):
                 print "%s gives a %s-slope function h =" % (x, k)
                 v = vector(QQ,x)
                 yield v * fn_sym
+            ####### debug...
             else:
                 print "%s gives a %s-slope function. Ignore" % (x, k)
+                # this will probably print many lines
+            ####### ...
     else:
+        # this shouldn't happen!
         print "p.is_empty() is True"
 
 def random_2q_example(q, ff=None, aa=None, max_attempts=None):
@@ -383,10 +401,9 @@ def random_2q_example(q, ff=None, aa=None, max_attempts=None):
         can_paint = paint_complex(q, ff, aa, faces, candidate_face_set)
         if can_paint is False:
             print "Painting doesn't exist for q = %s, ff = %s, aa = %s" % (q, ff, aa)
-        elif len(can_paint[1]) >= 2:
+        elif len(can_paint[2]) >= 2:
             # otherwise, too few slopes in covered_intervals, continue to the next attempt.
-            green_faces, covered_intervals = can_paint
-            additive_vertices = generate_additive_vertices_from_faces(q, green_faces)
+            additive_vertices, green_faces, covered_intervals = can_paint
             final_uncovered = [[(aa - 1) / q, aa / q], [(ff - aa) / q, (ff - aa + 1) / q]]
             components = covered_intervals  + [final_uncovered]
             fn_sym = generate_symbolic_continuous(None, components, field=QQ)
