@@ -25,11 +25,18 @@ def initial_faces_for_paint_complex(q, ff, aa):
                Face(([0], [0, 1], [0, 1])), \
                Face(([0, 1], [1], [1, 2])), \
                Face(([1], [0, 1], [1, 2])),  ]
-    return faces
+    additive_vertices = generate_additive_vertices_from_faces(q, faces )
+    new_faces = generate_faces_from_vertices(q, additive_vertices)
+    return new_faces
 
 import random
 
-def paint_complex(q, ff, aa, faces, candidate_face_set):
+######
+global picked_face_set
+picked_face_set = set([])
+######
+
+def paint_complex(q, ff, aa, faces, candidate_face_set, non_candidate):
     """
     Randomly paint triangles green in a 2d-complex,
     until all intervals are covered except for [(aa-1)/q, aa/q] and its reflection.
@@ -45,17 +52,18 @@ def paint_complex(q, ff, aa, faces, candidate_face_set):
 
         sage: q=8; ff=7; aa=2
         sage: faces = initial_faces_for_paint_complex(q, ff, aa)
-        sage: candidate_face_set = generate_candidate_face_set(q, ff, aa, [])
-        sage: result = paint_complex(q, ff, aa, faces, candidate_face_set)
-        sage: plot_painted_faces(q, result[1])
+        sage: non_candidate = set([])
+        sage: candidate_face_set = generate_candidate_face_set(q, ff, aa, [], None, non_candidate)
+        sage: additive_vertices, green_faces, covered_intervals = 
+        ...        paint_complex(q, ff, aa, faces, candidate_face_set, non_candidate).next()
+        sage: plot_painted_faces(q, green_faces)
     """
-    # FIXME: Perhaps it's better to use generator, "yield" all possible paintings
     while candidate_face_set:
         face_picked = random.sample(candidate_face_set, 1)[0]
         ###### debug...
-        # print face_picked
+        #print face_picked
+        picked_face_set.add(face_picked)
         ###### ...
-        candidate_face_set.remove(face_picked)
         additive_vertices = generate_additive_vertices_from_faces(q, faces + [face_picked])
         new_faces = generate_faces_from_vertices(q, additive_vertices)
         covered_intervals = generate_covered_intervals_from_faces(new_faces)
@@ -67,36 +75,52 @@ def paint_complex(q, ff, aa, faces, candidate_face_set):
                 additive_vertices.update(implied_additive_vertices)
                 new_faces = generate_faces_from_vertices(q, additive_vertices)
                 covered_intervals = generate_covered_intervals_from_faces(new_faces)
-            if not intersect_with_segments(covered_intervals, [(aa - 1)/q]):
-                # otherwise, infeasible. continue to next face in candidate_face_set
-                new_candidate_face_set = generate_candidate_face_set(q, ff, aa, covered_intervals)
+            if not intersect_with_segments(covered_intervals, [(aa - 1)/q]) and \
+                   new_faces_are_lexically_larger(new_faces, non_candidate):
+                # stop recursion. continue to next face in candidate_face_set
+                new_candidate_face_set = generate_candidate_face_set(q, ff, aa, covered_intervals, face_picked, non_candidate)
                 if not new_candidate_face_set:
-                    # all covered, finish
-                    ######### debug...
-                    print "    Painting exists for q = %s, ff = %s, aa = %s" % (q, ff, aa)
-                    # plot_painted_faces(q, new_faces).show(show_legend=False)
-                    ######### ...
-                    return additive_vertices, new_faces, covered_intervals
-                result = paint_complex(q, ff, aa, new_faces, new_candidate_face_set)
-                if not result is False:
-                    # found a way of painting, return
-                    return result
-    ############# debug...
-    #       else:
-    #           # infeasible. continue to next face in candidate_face_set
-    #           print "disselect this face"
-    #   else:
-    #       # infeasible. continue to next face in candidate_face_set
-    #       print "disselect this face"
-    #############  ...
-    # all possibilities are tired, none is feasible
-    return False
+                    # stop recursion
+                    if generate_to_cover_set(q, covered_intervals) == set([(aa - 1) / q, (ff - aa) / q]):
+                        # all covered, finish
+                        ######### debug...
+                        #print "    Painting exists for q = %s, ff = %s, aa = %s" % (q, ff, aa)
+                        plot_painted_faces(q, new_faces).show(show_legend=False)
+                        print picked_face_set
+                        ######### ...
+                        yield additive_vertices, new_faces, covered_intervals
+                else:
+                    for additive_vertices, new_faces, covered_intervals in \
+                                paint_complex(q, ff, aa, new_faces, new_candidate_face_set, non_candidate):
+                        yield additive_vertices, new_faces, covered_intervals
 
-def generate_candidate_face_set(q, ff, aa, covered):
+        ##### debug...
+        #    else:
+        #        # infeasible. continue to next face in candidate_face_set
+        #        print "disselect this face %s" % face_picked
+        #else:
+        #    # infeasible. continue to next face in candidate_face_set
+        #    print "disselect this face %s" % face_picked
+        picked_face_set.remove(face_picked)
+        #### ...
+        candidate_face_set.remove(face_picked)
+        non_candidate.add(face_picked)
+
+def new_faces_are_lexically_larger(new_faces, non_candidate):
     """
-    Return a set of candidate_faces to paint in next step,
-    whose I, J are currently uncovered,
+    check if none of implied additive faces is in non_candidate
+    """
+    for face in new_faces:
+        if face in non_candidate:
+            return False
+    return True
+
+def generate_candidate_face_set(q, ff, aa, covered, last_face=None, non_candidate=set([])):
+    """
+    Return a set of candidate_faces (lexicographically > last_face)
+    to paint in next step, whose I, J are currently uncovered,
     and are different from [(aa-1)/q, aa/q] and its reflection.
+    Note that candidate_faces only takes faces with I <= J.
 
     EXAMPLES::
 
@@ -108,13 +132,19 @@ def generate_candidate_face_set(q, ff, aa, covered):
     to_cover.discard((aa - 1) / q)
     to_cover.discard((ff - aa) / q)
     # NOTE: candidate_faces only takes faces with x <= y
-    candidate_faces = [ Face(([x, x + 1/q], [y, y + 1/q], [x + y, x + y + 1/q])) \
-                        for x in to_cover for y in to_cover \
-                        if x <= y and (x + y) != (aa - 1)/q and (x + y) != ((ff - aa) / q)]
-    candidate_faces += [ Face(([x, x + 1/q], [y, y + 1/q], [x + y + 1/q, x + y + 2/q])) \
-                         for x in to_cover for y in to_cover \
-                         if x <= y and (x + y + 1/q) != (aa - 1)/q and (x + y + 1/q) != ((ff - aa) / q)]
-    return set(candidate_faces)
+    candidate_faces = set([])
+    for x in to_cover:
+        for y in to_cover:
+            if x <= y:
+                if (x + y) != (aa - 1)/q and (x + y) != ((ff - aa) / q):
+                    face = Face(([x, x + 1/q], [y, y + 1/q], [x + y, x + y + 1/q]))
+                    if last_face is None or face.minimal_triple > last_face.minimal_triple:
+                        candidate_faces.add(face)
+                if (x + y + 1/q) != (aa - 1)/q and (x + y + 1/q) != ((ff - aa) / q):
+                    face = Face(([x, x + 1/q], [y, y + 1/q], [x + y + 1/q, x + y + 2/q]))
+                    if last_face is None or face.minimal_triple > last_face.minimal_triple:
+                        candidate_faces.add(face)
+    return candidate_faces - non_candidate
 
 def generate_to_cover_set(q, covered):
     """
@@ -193,6 +223,7 @@ def generate_faces_from_vertices(q, additive_vertices):
                 if pt_00 in vertices:
                     faces.append(Face((i,j,k1)))
                     diagonal_to_add = False
+
                     vertical_edge.add(pt_00)
                     horizontal_edge.add(pt_00)
                     pts.add(pt_00)
@@ -322,6 +353,7 @@ def generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices):
         eqndic[eqn] = set([])
     # Note: If only do this for bkpts, some implied additive points on the grid
     # (whose x or y coordinate lies in between two bkpts) will be missing!
+    # FIXME: Use maximal_additive_faces, don't need inside additve_vertices
     for x in range(q+1):
         for y in range(x, q+1):
             v = tuple([0]) + tuple(delta_pi(fn_sym, x/q, y/q))
@@ -398,27 +430,25 @@ def random_2q_example(q, ff=None, aa=None, max_attempts=None):
         candidate_ff_aa.remove((ff, aa))
         print "attempt #%s with q = %s, ff = %s, aa = %s" % (attempts, q, ff, aa)
         faces = initial_faces_for_paint_complex(q, ff, aa)
-        candidate_face_set = generate_candidate_face_set(q, ff, aa, [])
-        can_paint = paint_complex(q, ff, aa, faces, candidate_face_set)
-        if can_paint is False:
-            print "    Painting doesn't exist."
-        elif len(can_paint[2]) >= 2:
+        covered_intervals = generate_covered_intervals_from_faces(faces)
+        candidate_face_set = generate_candidate_face_set(q, ff, aa, covered_intervals)
+        for additive_vertices, green_faces, covered_intervals in paint_complex(q, ff, aa, faces, candidate_face_set, set([])):
+            if len(green_faces) >= 2:
             # otherwise, too few slopes in covered_intervals, continue to the next attempt.
-            additive_vertices, green_faces, covered_intervals = can_paint
-            final_uncovered = [[(aa - 1) / q, aa / q], [(ff - aa) / q, (ff - aa + 1) / q]]
-            components = covered_intervals  + [final_uncovered]
-            fn_sym = generate_symbolic_continuous(None, components, field=QQ)
-            for h in generate_vertex_function(q, ff, fn_sym, additive_vertices):
-                print h
-                #print "in attempt #%s with q = %s, ff = %s, aa = %s" % (attempts, q, ff, aa)
-                if not extremality_test(h): # h is not extreme
-                    h_2q = restrict_to_finite_group(h, f=f, oversampling=2, order=None)
-                    if extremality_test(h_2q): # but h restricted to 1/2q is extreme
-                        print "h is a valid example!"
-                        return h
+                final_uncovered = [[(aa - 1) / q, aa / q], [(ff - aa) / q, (ff - aa + 1) / q]]
+                components = covered_intervals  + [final_uncovered]
+                fn_sym = generate_symbolic_continuous(None, components, field=QQ)
+                for h in generate_vertex_function(q, ff, fn_sym, additive_vertices):
+                    print h
+                    #print "in attempt #%s with q = %s, ff = %s, aa = %s" % (attempts, q, ff, aa)
+                    if not extremality_test(h): # h is not extreme
+                        h_2q = restrict_to_finite_group(h, f=f, oversampling=2, order=None)
+                        if extremality_test(h_2q): # but h restricted to 1/2q is extreme
+                            print "h is a valid example!"
+                            return h
+                        else:
+                            print "h restricted to 1/2q is not extreme. Not a good example"
                     else:
-                        print "h restricted to 1/2q is not extreme. Not a good example"
-                else:
-                    print "h is extreme. Not a good example"
-        attempts += 1          
+                        print "h is extreme. Not a good example"
+            attempts += 1
     print "Example function not found. Please try again."
