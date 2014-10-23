@@ -32,11 +32,11 @@ def initial_faces_for_paint_complex(q, ff, aa):
 import random
 
 ######
-global picked_face_set
-picked_face_set = set([])
+#global picked_face_set
+#picked_face_set = set([])
 ######
 
-def paint_complex(q, ff, aa, faces, candidate_face_set, non_candidate):
+def paint_complex(q, ff, aa, faces, candidate_face_set, last_non_candidate):
     """
     Randomly paint triangles green in a 2d-complex,
     until all intervals are covered except for [(aa-1)/q, aa/q] and its reflection.
@@ -58,11 +58,12 @@ def paint_complex(q, ff, aa, faces, candidate_face_set, non_candidate):
         ...        paint_complex(q, ff, aa, faces, candidate_face_set, non_candidate).next()
         sage: plot_painted_faces(q, green_faces)
     """
+    non_candidate = copy(last_non_candidate)
     while candidate_face_set:
         face_picked = random.sample(candidate_face_set, 1)[0]
         ###### debug...
         #print face_picked
-        picked_face_set.add(face_picked)
+        #picked_face_set.add(face_picked)
         ###### ...
         additive_vertices = generate_additive_vertices_from_faces(q, faces + [face_picked])
         new_faces = generate_faces_from_vertices(q, additive_vertices)
@@ -76,8 +77,7 @@ def paint_complex(q, ff, aa, faces, candidate_face_set, non_candidate):
                 new_faces = generate_faces_from_vertices(q, additive_vertices)
                 covered_intervals = generate_covered_intervals_from_faces(new_faces)
             if not intersect_with_segments(covered_intervals, [(aa - 1)/q]) and \
-                   new_faces_are_lexically_larger(new_faces, non_candidate):
-                # stop recursion. continue to next face in candidate_face_set
+                   new_faces_are_legal(new_faces, non_candidate):
                 new_candidate_face_set = generate_candidate_face_set(q, ff, aa, covered_intervals, face_picked, non_candidate)
                 if not new_candidate_face_set:
                     # stop recursion
@@ -85,8 +85,8 @@ def paint_complex(q, ff, aa, faces, candidate_face_set, non_candidate):
                         # all covered, finish
                         ######### debug...
                         #print "    Painting exists for q = %s, ff = %s, aa = %s" % (q, ff, aa)
-                        plot_painted_faces(q, new_faces).show(show_legend=False)
-                        print picked_face_set
+                        #plot_painted_faces(q, new_faces).show(show_legend=False)
+                        #print picked_face_set
                         ######### ...
                         yield additive_vertices, new_faces, covered_intervals
                 else:
@@ -101,12 +101,12 @@ def paint_complex(q, ff, aa, faces, candidate_face_set, non_candidate):
         #else:
         #    # infeasible. continue to next face in candidate_face_set
         #    print "disselect this face %s" % face_picked
-        picked_face_set.remove(face_picked)
+        #picked_face_set.remove(face_picked)
         #### ...
         candidate_face_set.remove(face_picked)
         non_candidate.add(face_picked)
 
-def new_faces_are_lexically_larger(new_faces, non_candidate):
+def new_faces_are_legal(new_faces, non_candidate):
     """
     check if none of implied additive faces is in non_candidate
     """
@@ -117,7 +117,7 @@ def new_faces_are_lexically_larger(new_faces, non_candidate):
 
 def generate_candidate_face_set(q, ff, aa, covered, last_face=None, non_candidate=set([])):
     """
-    Return a set of candidate_faces (lexicographically > last_face)
+    Return a set of candidate_faces (lexicographically > last_face, not in non_candidate)
     to paint in next step, whose I, J are currently uncovered,
     and are different from [(aa-1)/q, aa/q] and its reflection.
     Note that candidate_faces only takes faces with I <= J.
@@ -138,11 +138,11 @@ def generate_candidate_face_set(q, ff, aa, covered, last_face=None, non_candidat
             if x <= y:
                 if (x + y) != (aa - 1)/q and (x + y) != ((ff - aa) / q):
                     face = Face(([x, x + 1/q], [y, y + 1/q], [x + y, x + y + 1/q]))
-                    if last_face is None or face.minimal_triple > last_face.minimal_triple:
+                    if (last_face is None or face > last_face):
                         candidate_faces.add(face)
                 if (x + y + 1/q) != (aa - 1)/q and (x + y + 1/q) != ((ff - aa) / q):
                     face = Face(([x, x + 1/q], [y, y + 1/q], [x + y + 1/q, x + y + 2/q]))
-                    if last_face is None or face.minimal_triple > last_face.minimal_triple:
+                    if (last_face is None or face > last_face):
                         candidate_faces.add(face)
     return candidate_faces - non_candidate
 
