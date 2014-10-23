@@ -385,6 +385,11 @@ class Face:
     def is_diagonal(self):
         return self.is_1D() and \
                self.vertices[0][0] + self.vertices[0][1] == self.vertices[1][0] + self.vertices[1][1]
+    def __hash__(self):
+        return sum([hash(x) for i in self.minimal_triple for x in i])
+    def __cmp__(left, right):
+        return cmp(left.minimal_triple, right.minimal_triple)
+
 
 def plot_faces(faces, **kwds):
     p = Graphics()
