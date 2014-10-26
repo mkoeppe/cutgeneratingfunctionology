@@ -1,5 +1,4 @@
-destdir = "/media/sf_dropbox/"
-lpfilename = "2q.lp"
+destdir = "/media/sf_dropbox/2q_mip/"
 
 def fn_variable(q, x):
     return 'fn_%s' % int(x*q)
@@ -365,7 +364,7 @@ def write_lpfile(q, f, a):
 
         sage: write_lpfile(8, 7/8, 2/8)
     """
-    filename = open(destdir + lpfilename, "w")
+    filename = open(destdir + "2q_%s_%s_%s.lp" % (q, int(f*q), int(a*q)), "w")
     faces_2d = []
     faces_diag = []
     faces_hor = []
@@ -380,7 +379,7 @@ def write_lpfile(q, f, a):
     for xx in range(q):
         for yy in range(q+1):
             faces_hor.append( Face(([xx/q, (xx+1)/q], [yy/q], [(xx+yy)/q, (xx+yy+1)/q])) )
-            faces_ver.append( Face(([yy/q, (yy+1)/q], [xx/q], [(xx+yy)/q, (xx+yy+1)/q])) )
+            faces_ver.append( Face(([yy/q], [xx/q, (xx+1)/q], [(xx+yy)/q, (xx+yy+1)/q])) )
 
     for xx in range(q+1):
         for yy in range(q+1):
@@ -391,7 +390,7 @@ def write_lpfile(q, f, a):
     print_objective(filename, q)
     print >> filename, 'Subject to'
     for face in faces_2d + faces_diag + faces_hor + faces_ver:
-        if face.minimal_triple[0][0] <= face.minimal_triple[1][0]:
+        #if face.minimal_triple[0][0] <= face.minimal_triple[1][0]:
             print_logical_constraints(filename, q, face)
     
     for face in faces_0d:
@@ -418,10 +417,10 @@ def write_lpfile(q, f, a):
     print >> filename, 'Bounds'
     print_fn_bounds(filename, q)
     
-    print >> filename, 'Generals'
-    for xx in range(q):
-        print >> filename, '%s' % fn_variable(q, xx/q),
-    print >> filename, '%s' % fn_variable(q, 1)
+    #print >> filename, 'Generals'
+    #for xx in range(q):
+    #    print >> filename, '%s' % fn_variable(q, xx/q),
+    #print >> filename, '%s' % fn_variable(q, 1)
     
     print >> filename, 'Binary'
     for face in faces_2d + faces_diag + faces_hor + faces_ver + faces_0d :
