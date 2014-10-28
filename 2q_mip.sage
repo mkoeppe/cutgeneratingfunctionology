@@ -344,6 +344,156 @@ def print_interval_not_covered_constraints(filename, q, z):
             print >> filename, '%s >= 1' % translation_variable(q, x, z)
             print >> filename, '%s >= 1' % reflection_variable(q, x, z)
 
+################# TRY ######################
+def covered_i_variable(q, z, i):
+    """
+    EXAMPLES::
+
+        sage: covered_i_variable(7, 3/7, 2)
+        'c_3_2'
+    """
+    return 'c_%s_%s' % (int(z * q), i)
+
+def translation_i_variable(q, x, z, i):
+    """
+    EXAMPLES::
+
+        sage: translation_i_variable(7, 1/7, 3/7, 2)
+        't_1_3_2'
+    """
+    return 't_%s_%s_%s' % (int(x * q), int(z * q), i)
+
+def reflection_i_variable(q, x, z, i):
+    """
+    EXAMPLES::
+
+        sage: reflection_i_variable(7, 1/7, 3/7, 2)
+        'r_1_3_2'
+    """   
+    return 'r_%s_%s_%s' % (int(x * q), int(z * q), i)
+
+def print_directly_covered_constraints(filename, q, z):
+    """
+    EXAMPLES::
+
+        sage: print_directly_covered_constraints(sys.stdout, 3, 1/3)
+        c_1_0 - l_1_0 <= 0
+        c_1_0 - u_1_0 <= 0
+        c_1_0 - l_1_1 <= 0
+        c_1_0 - u_1_1 <= 0
+        c_1_0 - l_1_2 <= 0
+        c_1_0 - u_1_2 <= 0
+        c_1_0 - l_0_1 <= 0
+        c_1_0 - l_1_0 <= 0
+        c_1_0 - l_2_2 <= 0
+        c_1_0 - u_0_0 <= 0
+        c_1_0 - u_1_2 <= 0
+        c_1_0 - u_2_1 <= 0
+        c_1_0 - l_1_0 - u_1_0 - l_1_1 - u_1_1 - l_1_2 - u_1_2 - l_0_1 - l_1_0 - l_2_2 - u_0_0 - u_1_2 - u_2_1 >= -11
+    """
+    bkpt = [x/q for x in range(q)]
+    c_z_0 = covered_i_variable(q, z, 0)
+    variable_list = []
+    for y in bkpt:
+        # I projection: l_zz,yy and u_zz,yy
+        l = face_variable(q, Face(([z, z+1/q], [y, y+1/q], [z + y, z + y + 1/q])))
+        print >> filename, '%s - %s <= 0' % (c_z_0, l)
+        u = face_variable(q, Face(([z, z+1/q], [y, y+1/q], [z + y + 1/q, z + y + 2/q])))
+        print >> filename, '%s - %s <= 0' % (c_z_0, u)
+        variable_list += [l, u]
+    for x in bkpt:
+        # K projection: l_xx,zz-xx
+        y = z - x
+        if y < 0:
+            y += 1
+        l = face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y, x + y + 1/q])))
+        print >> filename, '%s - %s <= 0' % (c_z_0, l)
+        variable_list += [l]
+    for x in bkpt:
+        # K projection: u_xx,zz-xx-1
+        y = z - x - 1/q
+        if y < 0:
+            y += 1
+        u = face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y + 1/q, x + y + 2/q])))
+        print >> filename, '%s - %s <= 0' % (c_z_0, u)
+        variable_list += [u]
+    assert len(variable_list) == 4*q
+    print >> filename, '%s' % c_z_0,
+    for lu in variable_list:
+         print >> filename, '- %s' % lu,
+    print >> filename, '>= %s' % (1 - 4*q)
+
+def print_translation_i_constraints(filename, q, x, z, i):
+    """
+    EXAMPLES::
+
+        sage: print_translation_i_constraints(sys.stdout, 7, 1/7, 3/7, 2)
+        c_1_1 - t_1_3_2 <= 0
+        h_1_2 - t_1_3_2 <= 0
+        t_1_3_2 - c_1_1 - h_1_2 <= 0
+        sage: print_translation_i_constraints(sys.stdout, 7, 3/7, 1/7, 2)
+        c_3_1 - t_3_1_2 <= 0
+        h_1_2 - t_3_1_2 <= 0
+        t_3_1_2 - c_3_1 - h_1_2 <= 0
+    """
+    c_x_last = covered_i_variable(q, x, i-1)
+    t_x_z_i =  translation_i_variable(q, x, z, i)
+    print >> filename, '%s - %s <= 0' % (c_x_last, t_x_z_i)
+    if x <= z:
+        move = Face(([x, x + 1/q], [z - x], [z, z + 1/q])) # h_xx,zz-xx
+    else:
+        move = Face(([z, z + 1/q], [x - z], [x, x + 1/q])) # h_zz,xx-zz
+    print >> filename, '%s - %s <= 0' % (face_variable(q, move), t_x_z_i)
+    print >> filename, '%s - %s - %s <= 0' % (t_x_z_i, c_x_last, face_variable(q, move))
+    
+def print_reflection_i_constraints(filename, q, x, z, i):
+    """
+    EXAMPLES::
+
+        sage: print_reflection_i_constraints(sys.stdout, 7, 1/7, 3/7, 2)
+        c_1_1 - r_1_3_2 <= 0
+        d_1_3 - r_1_3_2 <= 0
+        r_1_3_2 - c_1_1 - d_1_3 <= 0
+    """
+    c_x_last = covered_i_variable(q, x, i-1)
+    r_x_z_i =  reflection_i_variable(q, x, z, i)
+    print >> filename, '%s - %s <= 0' % (c_x_last, r_x_z_i)
+    move = Face(([x, x + 1/q], [z, z + 1/q], [x + z + 1/q])) # d_xx,zz
+    print >> filename, '%s - %s <= 0' % (face_variable(q, move), r_x_z_i)
+    print >> filename, '%s - %s - %s <= 0' % (r_x_z_i, c_x_last, face_variable(q, move))
+    
+def print_undirectly_covered_i_constraints(filename, q, z, i):
+    """
+    EXAMPLES::
+
+        sage: print_undirectly_covered_i_constraints(sys.stdout, 3, 1/3, 2)
+        c_1_2 - c_1_1 <= 0
+        c_1_2 - t_0_1_2 <= 0
+        c_1_2 - r_0_1_2 <= 0
+        c_1_2 - t_2_1_2 <= 0
+        c_1_2 - r_2_1_2 <= 0
+        c_1_2 - c_1_1 - t_0_1_2 - r_0_1_2 - t_2_1_2 - r_2_1_2 >= -4
+    """
+    bkpt = [x/q for x in range(q)]
+    c_z_now = covered_i_variable(q, z, i)
+    c_z_last = covered_i_variable(q, z, i-1)
+    print >> filename, '%s - %s <= 0' % (c_z_now, c_z_last)
+    variable_list = [c_z_last]
+    for x in bkpt:
+        if x != z:
+            t_x_z_i = translation_i_variable(q, x, z, i)
+            r_x_z_i = reflection_i_variable(q, x, z, i)
+            print >> filename, '%s - %s <= 0' % (c_z_now, t_x_z_i)
+            print >> filename, '%s - %s <= 0' % (c_z_now, r_x_z_i)
+            variable_list += [t_x_z_i, r_x_z_i]
+    assert len(variable_list) == 2 * q - 1
+    print >> filename, '%s' % c_z_now,
+    for v in variable_list:
+         print >> filename, '- %s' % v,
+    print >> filename, '>= %s' % (2 - 2 * q)     
+
+#########################################
+
 def print_objective(filename, q):
     """
     EXAMPLES::
@@ -358,12 +508,14 @@ def print_objective(filename, q):
                                                face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y + 1/q, x + y + 2/q]))) ),
     print >> filename
     
-def write_lpfile(q, f, a):
+def write_lpfile(q, f, a, maxstep=None):
     """
     EXAMPLES:
 
         sage: write_lpfile(8, 7/8, 2/8)
     """
+    if maxstep is None:
+        maxstep = q
     filename = open(destdir + "2q_%s_%s_%s.lp" % (q, int(f*q), int(a*q)), "w")
     faces_2d = []
     faces_diag = []
@@ -404,34 +556,39 @@ def write_lpfile(q, f, a):
             x = xx / q
             z = zz / q
             if x != z:
-                print_translation_constraints(filename, q, x, z)
-                print_reflection_constraints(filename, q, x, z)
+                for step in range(1, maxstep):
+                    print_translation_i_constraints(filename, q, x, z, step)
+                    print_reflection_i_constraints(filename, q, x, z, step)
+
+    for zz in range(q):
+        z = zz / q
+        print_directly_covered_constraints(filename, q, z)
+        for step in range(1, maxstep):
+            print_undirectly_covered_i_constraints(filename, q, z, step)
 
     for zz in range(q):
         z = zz / q
         if z != a - 1/q and z != f - a:
-            print_interval_covered_constraints(filename, q, z)
+            print >> filename, '%s = 0' % covered_i_variable(q, z, maxstep - 1)
         else:
-            print_interval_not_covered_constraints(filename, q, z)
+            print >> filename, '%s = 1' % covered_i_variable(q, z, maxstep - 1)
           
     print >> filename, 'Bounds'
     print_fn_bounds(filename, q)
-    
-    #print >> filename, 'Generals'
-    #for xx in range(q):
-    #    print >> filename, '%s' % fn_variable(q, xx/q),
-    #print >> filename, '%s' % fn_variable(q, 1)
-    
+
     print >> filename, 'Binary'
     for face in faces_2d + faces_diag + faces_hor + faces_ver + faces_0d :
         print >> filename, face_variable(q, face),
+
     for z in range(q):
-        print >> filename, 'c_%s' % z,
+        for step in range(maxstep):
+            print >> filename, 'c_%s_%s' % (z, step),
     for z in range(q):
         for x in range(q):
             if x != z:
-                print >> filename, 't_%s_%s' % (x, z),
-                print >> filename, 'r_%s_%s' % (x, z),
+                for step in range(1, maxstep):
+                    print >> filename, 't_%s_%s_%s' % (x, z, step),
+                    print >> filename, 'r_%s_%s_%s' % (x, z, step),
     print >> filename
     print >> filename, 'End'
     filename.close()
