@@ -180,6 +180,46 @@ def print_fn_minimality_test(filename, q, f):
             print >> filename, '%s + %s - %s - 2 %s <= 0' %(fn_variable(q, x), fn_variable(q, y), \
                                                             fn_variable(q, z), vertex_variable(q, (x, y)))
 
+def print_trivial_additive_points(filename, q, f, a):
+    """
+    EXAMPLES::
+
+        sage: print_trivial_additive_points(sys.stdout, 3, 2/3, 1/3)
+        p_0_0 = 0
+        p_0_1 = 0
+        p_0_2 = 0
+        p_0_3 = 0
+        p_1_3 = 0
+        p_2_3 = 0
+        p_3_3 = 0
+        p_0_2 = 0
+        p_1_1 = 0
+        p_2_0 = 0
+        p_2_3 = 0
+        p_3_2 = 0
+        p_1_0 = 0
+        p_1_1 = 0
+    """
+    bkpt = [x/q for x in range(q+1)]
+    # border x = 0 and border y = 0 are green
+    for x in bkpt:
+        print >> filename, '%s = 0' % vertex_variable(q, (0, x))
+    for x in bkpt[1::]:
+        print >> filename, '%s = 0' % vertex_variable(q, (x, 1))
+    # diagonals corresponding to f
+    for x in bkpt:
+        if x < f:
+            print >> filename, '%s = 0' % vertex_variable(q, (x, f - x))
+        elif x == f:
+            print >> filename, '%s = 0' % vertex_variable(q, (x, f - x))
+            print >> filename, '%s = 0' % vertex_variable(q, (x, f - x + 1))
+        elif x > f:
+            print >> filename, '%s = 0' % vertex_variable(q, (x, f - x + 1))
+
+    b = f - a
+    print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a - 1/q))
+    print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a))
+    
 def covered_interval_variable(q, x):
     """
     EXAMPLES::
@@ -492,13 +532,26 @@ def print_undirectly_covered_i_constraints(filename, q, z, i):
          print >> filename, '- %s' % v,
     print >> filename, '>= %s' % (2 - 2 * q)     
 
-#########################################
-
-def print_objective(filename, q):
+def print_obj_max_subadd_slack(filename, q):
     """
     EXAMPLES::
 
-        sage: print_objective(sys.stdout, 2)
+        sage: print_obj_max_subadd_slack(sys.stdout, 3)
+        fn_0 + fn_1 + fn_2 
+    """
+    bkpt = [x/q for x in range(q)]
+    print >> filename, '%s' % fn_variable(q, bkpt[0]),
+    for x in bkpt[1::]:
+        print >> filename, '+ %s' % fn_variable(q, x),
+    print >> filename
+
+#########################################
+
+def print_obj_max_num_white_triangles(filename, q):
+    """
+    EXAMPLES::
+
+        sage: print_obj_max_num_white_triangles(sys.stdout, 2)
         + l_0_0 + u_0_0 + l_0_1 + u_0_1 + l_1_0 + u_1_0 + l_1_1 + u_1_1 
     """
     bkpt = [x/q for x in range(q)]
@@ -538,8 +591,10 @@ def write_lpfile(q, f, a, maxstep=None):
             faces_0d.append( Face(([xx/q], [yy/q], [(xx+yy)/q])) )
 
     print >> filename, '\ MIP model for 2q_search with q = %s, f = %s, a = %s' % (q, f, a)
+
     print >> filename, 'Maximize'
-    print_objective(filename, q)
+    print_obj_max_subadd_slack(filename, q)
+
     print >> filename, 'Subject to'
     for face in faces_2d + faces_diag + faces_hor + faces_ver:
         #if face.minimal_triple[0][0] <= face.minimal_triple[1][0]:
@@ -550,6 +605,8 @@ def write_lpfile(q, f, a, maxstep=None):
             print_xy_swapped_constraints(filename, q, face)
 
     print_fn_minimality_test(filename, q, f)
+
+    print_trivial_additive_points(filename, q, f, a)
 
     for zz in range(q):
         for xx in range(q):
@@ -593,6 +650,32 @@ def write_lpfile(q, f, a, maxstep=None):
     print >> filename, 'End'
     filename.close()
 
+def painted_faces_and_funciton_from_solution(filename, q):
+    """
+    Read the solution file, draw 2d complex and plot fn.
+    """
+    faces = []
+    bkpt = [x/q for x in range(q+1)]
+    values = [0 for x in range(q+1)]
+    with open(filename) as sol_file:
+        for line in sol_file:
+            i = line.find(' ')
+            s = line[0:i]
+            if s[0] == 'f':
+                j = s.find('_')
+                k = int(s[(j + 1)::])
+                v = eval(line[(i + 1)::])
+                values[k] = v
+            elif s[0] in set(['h','v','d','l','u','p']):
+                face = variable_face(q, s)
+                v = eval(line[(i + 1)::])
+                if v == 0:
+                    faces.append(face)
+    fn = piecewise_function_from_breakpoints_and_values(bkpt, values)
+    plot_painted_faces(q, faces).show(show_legend=False)
+    plot_with_colored_slopes(fn).show()
+    return faces, fn
+  
 #http://www.gurobi.com/documentation/5.6/reference-manual/lp_format
 #\ LP format example
 #Maximize
@@ -609,3 +692,21 @@ def write_lpfile(q, f, a, maxstep=None):
 #Binary
 #  x y z
 #End
+
+# Gurobi command
+# m = read('2q_8_7_2.lp')
+# m.optimize()
+# m.write('2q_8_7_2.sol')
+
+# sage: faces, fn = painted_faces_and_funciton_from_solution('/media/sf_dropbox/2q_mip/2q_8_7_2.sol', 8)
+
+##  model.printAttr('x')          # all non-zero solution values
+##  model.printAttr('lb', 'x*')   # bounds for vars whose names begin with 'x'
+##  model.printAttr(['lb', 'ub']) # lower and upper bounds
+# v = m.getVars()
+## gurobi> print v[0].varName, v[0].x
+# filename = open("2q_8_7_2.output", "w")
+# for i in range(len(v)):
+#     if v[i].x == 0:
+#         print >> filename, '%s = %s' %(v[i].varName, v[i].x)
+# filename.close()
