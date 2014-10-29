@@ -433,7 +433,7 @@ def random_2q_example(q, ff=None, aa=None, max_attempts=None):
         covered_intervals = generate_covered_intervals_from_faces(faces)
         candidate_face_set = generate_candidate_face_set(q, ff, aa, covered_intervals)
         for additive_vertices, green_faces, covered_intervals in paint_complex(q, ff, aa, faces, candidate_face_set, set([])):
-            if len(green_faces) >= 2:
+            if len(covered_intervals) >= 2:
             # otherwise, too few slopes in covered_intervals, continue to the next attempt.
                 final_uncovered = [[(aa - 1) / q, aa / q], [(ff - aa) / q, (ff - aa + 1) / q]]
                 components = covered_intervals  + [final_uncovered]
