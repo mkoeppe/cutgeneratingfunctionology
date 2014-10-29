@@ -650,9 +650,13 @@ def write_lpfile(q, f, a, maxstep=None):
     print >> filename, 'End'
     filename.close()
 
-def painted_faces_and_funciton_from_solution(filename, q):
+def painted_faces_and_funciton_from_solution(filename, q, showplots=True):
     """
     Read the solution file, draw 2d complex and plot fn.
+    EXAMPLES::
+
+        sage: faces, fn = painted_faces_and_funciton_from_solution(
+        ...                 '/media/sf_dropbox/2q_mip/2q_13_9_4.sol', 13)
     """
     faces = []
     bkpt = [x/q for x in range(q+1)]
@@ -672,10 +676,37 @@ def painted_faces_and_funciton_from_solution(filename, q):
                 if v == 0:
                     faces.append(face)
     fn = piecewise_function_from_breakpoints_and_values(bkpt, values)
-    plot_painted_faces(q, faces).show(show_legend=False)
-    plot_with_colored_slopes(fn).show()
+    if showplots:
+        plot_painted_faces(q, faces).show(show_legend=False)
+        plot_with_colored_slopes(fn).show()
     return faces, fn
-  
+
+def investigate_faces_solution(q, f, a, faces):
+    """
+    Check if the vertex-function corresponding to given painted faces is a good 2q-example.
+    EXAMPLES::
+
+        sage: faces, fn = painted_faces_and_funciton_from_solution(
+        ...                 '/media/sf_dropbox/2q_mip/2q_13_9_4.sol', 13, showplots=False)
+        sage: investigate_faces_solution(13, 9/13, 4/13, faces)
+    """
+    covered_intervals = generate_covered_intervals_from_faces(faces)
+    additive_vertices = generate_additive_vertices_from_faces(q, faces)
+    final_uncovered = [[a - 1/q, a], [f - a, f - a + 1 / q]]
+    components = covered_intervals  + [final_uncovered]
+    fn_sym = generate_symbolic_continuous(None, components, field=QQ)
+    ff = int(f * q)
+    for h in generate_vertex_function(q, ff, fn_sym, additive_vertices):
+        print h
+        if not extremality_test(h): # h is not extreme
+            h_2q = restrict_to_finite_group(h, f=f, oversampling=2, order=None)
+            if extremality_test(h_2q): # but h restricted to 1/2q is extreme
+                print "h is a valid example!"
+            else:
+                print "h restricted to 1/2q is not extreme. Not a good example"
+        else:
+            print "h is extreme. Not a good example"
+
 #http://www.gurobi.com/documentation/5.6/reference-manual/lp_format
 #\ LP format example
 #Maximize
