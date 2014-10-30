@@ -149,11 +149,11 @@ def print_fn_minimality_test(filename, q, f):
         fn_0 + fn_2 = 1
         fn_1 + fn_1 = 1
         fn_2 + fn_3 = 1
-        fn_1 + fn_1 - fn_2 >= 0
+        fn_1 + fn_1 - fn_2 - 1/10000 p_1_1 >= 0
         fn_1 + fn_1 - fn_2 - 2 p_1_1 <= 0
-        fn_1 + fn_2 - fn_3 >= 0
+        fn_1 + fn_2 - fn_3 - 1/10000 p_1_2 >= 0
         fn_1 + fn_2 - fn_3 - 2 p_1_2 <= 0
-        fn_2 + fn_2 - fn_1 >= 0
+        fn_2 + fn_2 - fn_1 - 1/10000 p_2_2 >= 0
         fn_2 + fn_2 - fn_1 - 2 p_2_2 <= 0
     """
     # fn(0) = 0
@@ -170,13 +170,16 @@ def print_fn_minimality_test(filename, q, f):
     while x <= (1+f)/2:
         print >> filename, '%s + %s = 1' % (fn_variable(q, x), fn_variable(q, 1 + f - x))
         x += 1/q 
-    # subadditivity and additivity conditions 
+    # strict-subadditivity and additivity conditions
+    small_m = 1/10000
     for i in range(1, q):
         for j in range(i, q):
             x = bkpt[i]
             y = bkpt[j]
             z = fractional(x + y)
-            print >> filename, '%s + %s - %s >= 0' %(fn_variable(q, x), fn_variable(q, y), fn_variable(q, z))
+            #print >> filename, '%s + %s - %s >= 0' %(fn_variable(q, x), fn_variable(q, y), fn_variable(q, z))
+            print >> filename, '%s + %s - %s - %s %s >= 0' %(fn_variable(q, x), fn_variable(q, y), fn_variable(q, z), \
+                                                             small_m, vertex_variable(q, (x, y)))
             print >> filename, '%s + %s - %s - 2 %s <= 0' %(fn_variable(q, x), fn_variable(q, y), \
                                                             fn_variable(q, z), vertex_variable(q, (x, y)))
 
@@ -544,9 +547,9 @@ def write_lpfile(q, f, a, maxstep=None):
     print >> filename, '\ MIP model for 2q_search with q = %s, f = %s, a = %s' % (q, f, a)
 
     print >> filename, 'Maximize'
-    #print_obj_max_subadd_slack(filename, q)
-    print_obj_min_directly_covered_times(filename, q)
-    print_obj_min_undirectly_covered_times(filename, q)
+    print_obj_max_subadd_slack(filename, q)
+    #print_obj_min_directly_covered_times(filename, q)
+    #print_obj_min_undirectly_covered_times(filename, q)
     #print_obj_min_covered_times_max_subadd_slack(filename, q, maxstep=maxstep)
     print >> filename
 
