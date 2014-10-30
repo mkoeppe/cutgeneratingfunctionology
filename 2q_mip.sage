@@ -298,92 +298,6 @@ def print_reflection_constraints(filename, q, x, z):
                                               covered_interval_variable(q, x), \
                                               face_variable(q, move))
 
-def print_interval_covered_constraints(filename, q, z):
-    """
-    EXAMPLES::
-
-        sage: print_interval_covered_constraints(sys.stdout, 3, 1/3)
-        c_1 = 0
-        + l_1_0 + u_1_0 + l_1_1 + u_1_1 + l_1_2 + u_1_2 + l_0_1 + l_1_0 + l_2_2 + u_0_0 + u_1_2 + u_2_1 + t_0_1 + r_0_1 + t_2_1 + r_2_1 <= 15
-    """
-    print >> filename, '%s = 0' % covered_interval_variable(q, z)
-    m = 0
-    bkpt = [x/q for x in range(q)]
-    for y in bkpt: 
-        # I projection: l_zz,yy and u_zz,yy
-        print >> filename, '+ %s + %s' % ( face_variable(q, Face(([z, z+1/q], [y, y+1/q], [z + y, z + y + 1/q]))), \
-                                           face_variable(q, Face(([z, z+1/q], [y, y+1/q], [z + y + 1/q, z + y + 2/q]))) ),
-        m += 2
-    for x in bkpt:
-        # K projection: l_xx,zz-xx
-        y = z - x
-        if y < 0:
-            y += 1
-        print >> filename, '+ %s' % face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y, x + y + 1/q]))),
-        m += 1
-    for x in bkpt:
-        # K projection: u_xx,zz-xx-1
-        y = z - x - 1/q
-        if y < 0:
-            y += 1
-        print >> filename, '+ %s' % face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y + 1/q, x + y + 2/q]))),
-        m += 1
-    for x in bkpt:
-        if x != z:
-            # t_xx,zz and r_xx,zz
-            print >> filename, '+ %s + %s' % (translation_variable(q, x, z), reflection_variable(q, x, z)),
-            m += 2
-    m = m - 1
-    assert m == 6*q - 3
-    print >> filename, '<= %s' %m 
-
-def print_interval_not_covered_constraints(filename, q, z):
-    """
-    EXAMPLES::
-
-        sage: print_interval_not_covered_constraints(sys.stdout, 3, 1/3)
-        c_1 = 1
-        l_1_0 >= 1
-        u_1_0 >= 1
-        l_1_1 >= 1
-        u_1_1 >= 1
-        l_1_2 >= 1
-        u_1_2 >= 1
-        l_0_1 >= 1
-        l_1_0 >= 1
-        l_2_2 >= 1
-        u_0_0 >= 1
-        u_1_2 >= 1
-        u_2_1 >= 1
-        t_0_1 >= 1
-        r_0_1 >= 1
-        t_2_1 >= 1
-        r_2_1 >= 1
-    """
-    print >> filename, '%s = 1' % covered_interval_variable(q, z)
-    bkpt = [x/q for x in range(q)]
-    for y in bkpt: 
-        # I projection: l_zz,yy and u_zz,yy
-        print >> filename, '%s >= 1' % face_variable(q, Face(([z, z+1/q], [y, y+1/q], [z + y, z + y + 1/q])))
-        print >> filename, '%s >= 1' % face_variable(q, Face(([z, z+1/q], [y, y+1/q], [z + y + 1/q, z + y + 2/q])))
-    for x in bkpt:
-        # K projection: l_xx,zz-xx
-        y = z - x
-        if y < 0:
-            y += 1
-        print >> filename, '%s >= 1' % face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y, x + y + 1/q])))
-    for x in bkpt:
-        # K projection: u_xx,zz-xx-1
-        y = z - x - 1/q
-        if y < 0:
-            y += 1
-        print >> filename, '%s >= 1' % face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y + 1/q, x + y + 2/q])))
-    for x in bkpt:
-        if x != z:
-            # t_xx,zz and r_xx,zz
-            print >> filename, '%s >= 1' % translation_variable(q, x, z)
-            print >> filename, '%s >= 1' % reflection_variable(q, x, z)
-
 ################# TRY ######################
 def covered_i_variable(q, z, i):
     """
@@ -460,8 +374,14 @@ def print_directly_covered_constraints(filename, q, z):
     assert len(variable_list) == 4*q
     print >> filename, '%s' % c_z_0,
     for lu in variable_list:
-         print >> filename, '- %s' % lu,
+        print >> filename, '- %s' % lu,
     print >> filename, '>= %s' % (1 - 4*q)
+
+    ## want: I,J projections don't intersect with each other
+    ## problem: this model has no feasible solution.
+    #for lu in variable_list[0: 2*q]:
+    #    print >> filename, '+ %s' % lu,
+    #print >> filename, '>= %s' % (2*q -1)
 
 def print_translation_i_constraints(filename, q, x, z, i):
     """
@@ -532,34 +452,65 @@ def print_undirectly_covered_i_constraints(filename, q, z, i):
          print >> filename, '- %s' % v,
     print >> filename, '>= %s' % (2 - 2 * q)     
 
-def print_obj_max_subadd_slack(filename, q):
+def print_obj_max_subadd_slack(filename, q, weight=1):
     """
+    subadd_slack = q * (\sum_x fn(x))
+
     EXAMPLES::
 
         sage: print_obj_max_subadd_slack(sys.stdout, 3)
-        fn_0 + fn_1 + fn_2 
+        1 fn_0 + 1 fn_1 + 1 fn_2 
     """
     bkpt = [x/q for x in range(q)]
-    print >> filename, '%s' % fn_variable(q, bkpt[0]),
+    print >> filename, '%s %s' % (weight, fn_variable(q, bkpt[0])),
     for x in bkpt[1::]:
-        print >> filename, '+ %s' % fn_variable(q, x),
-    print >> filename
+        print >> filename, '+ %s %s' % (weight, fn_variable(q, x)),
 
-#########################################
-
-def print_obj_max_num_white_triangles(filename, q):
+def print_obj_min_undirectly_covered_times(filename, q, step=None, weight=1):
     """
     EXAMPLES::
 
-        sage: print_obj_max_num_white_triangles(sys.stdout, 2)
-        + l_0_0 + u_0_0 + l_0_1 + u_0_1 + l_1_0 + u_1_0 + l_1_1 + u_1_1 
+        sage: print_obj_min_undirectly_covered_times(sys.stdout, 2)
+        + 1 t_0_1_1 + 1 r_0_1_1 + 1 t_1_0_1 + 1 r_1_0_1
+    """
+    if step is None:
+        step = q - 1
+    bkpt = [x/q for x in range(q)]
+    if step > 0:
+        for x in bkpt:
+            for z in bkpt:
+                if x != z:
+                    print >> filename, '+ %s %s' % (weight, translation_i_variable(q, x, z, step)),
+                    print >> filename, '+ %s %s' % (weight, reflection_i_variable(q, x, z, step)),
+
+def print_obj_min_covered_times_max_subadd_slack(filename, q, maxstep=None):
+    """
+    EXAMPLES::
+
+        sage: print_obj_min_covered_times_max_subadd_slack(sys.stdout, 2)
+        1 fn_0 + 1 fn_1 + 1 l_0_0 + 1 u_0_0 + 1 l_0_1 + 1 u_0_1 + 1 l_1_0 + 1 u_1_0 + 1 l_1_1 + 1 u_1_1 + 
+        1 t_0_1_1 + 1 r_0_1_1 + 1 t_1_0_1 + 1 r_1_0_1
+    """
+    if maxstep is None:
+        maxstep = q
+    print_obj_max_subadd_slack(filename, q, weight = 1) # should weight q instead of 1.
+    print_obj_min_directly_covered_times(filename, q, weight = 1)
+    print_obj_min_undirectly_covered_times(filename, q, step = maxstep - 1, weight = 1)
+
+#########################################
+
+def print_obj_min_directly_covered_times(filename, q, weight=1):
+    """
+    EXAMPLES::
+
+        sage: print_obj_min_directly_covered_times(sys.stdout, 2)
+        + 1 l_0_0 + 1 u_0_0 + 1 l_0_1 + 1 u_0_1 + 1 l_1_0 + 1 u_1_0 + 1 l_1_1 + 1 u_1_1 
     """
     bkpt = [x/q for x in range(q)]
     for x in bkpt:
         for y in bkpt:
-            print >> filename, '+ %s + %s' % ( face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y, x + y + 1/q]))), \
-                                               face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y + 1/q, x + y + 2/q]))) ),
-    print >> filename
+            print >> filename, '+ %s %s + %s %s' % ( weight, face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y, x + y + 1/q]))), \
+                                                     weight, face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y + 1/q, x + y + 2/q]))) ),
     
 def write_lpfile(q, f, a, maxstep=None):
     """
@@ -569,7 +520,7 @@ def write_lpfile(q, f, a, maxstep=None):
     """
     if maxstep is None:
         maxstep = q
-    filename = open(destdir + "2q_%s_%s_%s.lp" % (q, int(f*q), int(a*q)), "w")
+    filename = open(destdir + "2q_%s_%s_%s_%s.lp" % (q, int(f*q), int(a*q), maxstep), "w")
     faces_2d = []
     faces_diag = []
     faces_hor = []
@@ -593,7 +544,11 @@ def write_lpfile(q, f, a, maxstep=None):
     print >> filename, '\ MIP model for 2q_search with q = %s, f = %s, a = %s' % (q, f, a)
 
     print >> filename, 'Maximize'
-    print_obj_max_subadd_slack(filename, q)
+    #print_obj_max_subadd_slack(filename, q)
+    print_obj_min_directly_covered_times(filename, q)
+    print_obj_min_undirectly_covered_times(filename, q)
+    #print_obj_min_covered_times_max_subadd_slack(filename, q, maxstep=maxstep)
+    print >> filename
 
     print >> filename, 'Subject to'
     for face in faces_2d + faces_diag + faces_hor + faces_ver:
