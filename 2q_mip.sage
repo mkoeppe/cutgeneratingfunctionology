@@ -1,7 +1,5 @@
 destdir = "/media/sf_dropbox/2q_mip/"
 
-y_grid = 4
-
 def fn_variable(q, x):
     return 'fn_%s' % int(x*q)
 
@@ -140,7 +138,7 @@ def print_fn_bounds(filename, q):
     """
     bkpt = [x/q for x in range(q+1)]
     for x in bkpt:
-        print >> filename, '0 <= %s <= %s' % (fn_variable(q, x), y_grid)
+        print >> filename, '0 <= %s <= 1' % fn_variable(q, x)
 
 def print_fn_minimality_test(filename, q, f):
     """
@@ -166,15 +164,15 @@ def print_fn_minimality_test(filename, q, f):
     # symmetric conditions
     x = 0
     while x <= f/2:
-        print >> filename, '%s + %s = %s' % (fn_variable(q, x), fn_variable(q, f - x), y_grid)
+        print >> filename, '%s + %s = 1' % (fn_variable(q, x), fn_variable(q, f - x))
         x += 1/q
     x = f
     while x <= (1+f)/2:
-        print >> filename, '%s + %s = %s' % (fn_variable(q, x), fn_variable(q, 1 + f - x), y_grid)
+        print >> filename, '%s + %s = 1' % (fn_variable(q, x), fn_variable(q, 1 + f - x))
         x += 1/q 
     # strict-subadditivity and additivity conditions
     #small_m = 0
-    small_m = 1
+    small_m = 0.00001
     for i in range(1, q):
         for j in range(i, q):
             x = bkpt[i]
@@ -183,8 +181,8 @@ def print_fn_minimality_test(filename, q, f):
             #print >> filename, '%s + %s - %s >= 0' %(fn_variable(q, x), fn_variable(q, y), fn_variable(q, z))
             print >> filename, '%s + %s - %s - %s %s >= 0' %(fn_variable(q, x), fn_variable(q, y), fn_variable(q, z), \
                                                              small_m, vertex_variable(q, (x, y)))
-            print >> filename, '%s + %s - %s - %s %s <= 0' %(fn_variable(q, x), fn_variable(q, y), \
-                                                            fn_variable(q, z), 2*y_grid, vertex_variable(q, (x, y)))
+            print >> filename, '%s + %s - %s - 2 %s <= 0' %(fn_variable(q, x), fn_variable(q, y), \
+                                                            fn_variable(q, z), vertex_variable(q, (x, y)))
 
 def print_trivial_additive_points(filename, q, f):
     """
@@ -621,11 +619,6 @@ def write_lpfile(q, f, maxstep=None):
                     print >> filename, 't_%s_%s_%s' % (x, z, step),
                     print >> filename, 'r_%s_%s_%s' % (x, z, step),
     print >> filename
-
-    print >> filename, 'Generals'
-    for xx in range(q):
-        print >> filename, '%s' % fn_variable(q, xx/q),
-    print >> filename, '%s' % fn_variable(q, 1)
 
     print >> filename, 'End'
     filename.close()
