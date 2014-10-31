@@ -1,5 +1,7 @@
 destdir = "/media/sf_dropbox/2q_mip/"
 
+y_grid = 4
+
 def fn_variable(q, x):
     return 'fn_%s' % int(x*q)
 
@@ -138,7 +140,7 @@ def print_fn_bounds(filename, q):
     """
     bkpt = [x/q for x in range(q+1)]
     for x in bkpt:
-        print >> filename, '0 <= %s <= 1' % fn_variable(q, x)
+        print >> filename, '0 <= %s <= %s' % (fn_variable(q, x), y_grid)
 
 def print_fn_minimality_test(filename, q, f):
     """
@@ -164,14 +166,15 @@ def print_fn_minimality_test(filename, q, f):
     # symmetric conditions
     x = 0
     while x <= f/2:
-        print >> filename, '%s + %s = 1' % (fn_variable(q, x), fn_variable(q, f - x))
+        print >> filename, '%s + %s = %s' % (fn_variable(q, x), fn_variable(q, f - x), y_grid)
         x += 1/q
     x = f
     while x <= (1+f)/2:
-        print >> filename, '%s + %s = 1' % (fn_variable(q, x), fn_variable(q, 1 + f - x))
+        print >> filename, '%s + %s = %s' % (fn_variable(q, x), fn_variable(q, 1 + f - x), y_grid)
         x += 1/q 
     # strict-subadditivity and additivity conditions
-    small_m = 1/10000
+    #small_m = 0
+    small_m = 1
     for i in range(1, q):
         for j in range(i, q):
             x = bkpt[i]
@@ -180,10 +183,10 @@ def print_fn_minimality_test(filename, q, f):
             #print >> filename, '%s + %s - %s >= 0' %(fn_variable(q, x), fn_variable(q, y), fn_variable(q, z))
             print >> filename, '%s + %s - %s - %s %s >= 0' %(fn_variable(q, x), fn_variable(q, y), fn_variable(q, z), \
                                                              small_m, vertex_variable(q, (x, y)))
-            print >> filename, '%s + %s - %s - 2 %s <= 0' %(fn_variable(q, x), fn_variable(q, y), \
-                                                            fn_variable(q, z), vertex_variable(q, (x, y)))
+            print >> filename, '%s + %s - %s - %s %s <= 0' %(fn_variable(q, x), fn_variable(q, y), \
+                                                            fn_variable(q, z), 2*y_grid, vertex_variable(q, (x, y)))
 
-def print_trivial_additive_points(filename, q, f, a):
+def print_trivial_additive_points(filename, q, f):
     """
     EXAMPLES::
 
@@ -219,9 +222,9 @@ def print_trivial_additive_points(filename, q, f, a):
         elif x > f:
             print >> filename, '%s = 0' % vertex_variable(q, (x, f - x + 1))
 
-    b = f - a
-    print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a - 1/q))
-    print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a))
+    #b = f - a
+    #print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a - 1/q))
+    #print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a))
     
 def covered_interval_variable(q, x):
     """
@@ -500,6 +503,16 @@ def print_obj_min_covered_times_max_subadd_slack(filename, q, maxstep=None):
     print_obj_min_directly_covered_times(filename, q, weight = 1)
     print_obj_min_undirectly_covered_times(filename, q, step = maxstep - 1, weight = 1)
 
+def print_obj_5slope22(filename, q, weight=1):
+    h = piecewise_function_from_robert_txt_file("/media/sf_dropbox/data/example5Slope22data.txt")
+    bkpt = [x/q for x in range(q + 1)]
+    m = 0
+    for x in bkpt:
+        for y in bkpt:
+            if x <= y and h(x) + h(y) != h(fractional(x + y)):
+                print >> filename, '+ %s %s' % ( weight, vertex_variable(q, (x, y)) ),
+                m += 1
+    print m
 #########################################
 
 def print_obj_min_directly_covered_times(filename, q, weight=1):
@@ -515,7 +528,7 @@ def print_obj_min_directly_covered_times(filename, q, weight=1):
             print >> filename, '+ %s %s + %s %s' % ( weight, face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y, x + y + 1/q]))), \
                                                      weight, face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y + 1/q, x + y + 2/q]))) ),
     
-def write_lpfile(q, f, a, maxstep=None):
+def write_lpfile(q, f, maxstep=None):
     """
     EXAMPLES:
 
@@ -523,7 +536,8 @@ def write_lpfile(q, f, a, maxstep=None):
     """
     if maxstep is None:
         maxstep = q
-    filename = open(destdir + "2q_%s_%s_%s_%s.lp" % (q, int(f*q), int(a*q), maxstep), "w")
+    #filename = open(destdir + "2q_%s_%s_%s_%s.lp" % (q, int(f*q), int(a*q), maxstep), "w")
+    filename = open(destdir + "5slope_%s_%s.lp" % (q, int(f*q)), "w")
     faces_2d = []
     faces_diag = []
     faces_hor = []
@@ -544,13 +558,14 @@ def write_lpfile(q, f, a, maxstep=None):
         for yy in range(q+1):
             faces_0d.append( Face(([xx/q], [yy/q], [(xx+yy)/q])) )
 
-    print >> filename, '\ MIP model for 2q_search with q = %s, f = %s, a = %s' % (q, f, a)
+    print >> filename, '\ MIP model'# '\ MIP model for 2q_search with q = %s, f = %s, a = %s' % (q, f, a)
 
     print >> filename, 'Maximize'
-    print_obj_max_subadd_slack(filename, q)
+    #print_obj_max_subadd_slack(filename, q)
     #print_obj_min_directly_covered_times(filename, q)
     #print_obj_min_undirectly_covered_times(filename, q)
     #print_obj_min_covered_times_max_subadd_slack(filename, q, maxstep=maxstep)
+    print_obj_5slope22(filename, q, weight=1)
     print >> filename
 
     print >> filename, 'Subject to'
@@ -564,7 +579,7 @@ def write_lpfile(q, f, a, maxstep=None):
 
     print_fn_minimality_test(filename, q, f)
 
-    print_trivial_additive_points(filename, q, f, a)
+    print_trivial_additive_points(filename, q, f)
 
     for zz in range(q):
         for xx in range(q):
@@ -583,10 +598,11 @@ def write_lpfile(q, f, a, maxstep=None):
 
     for zz in range(q):
         z = zz / q
-        if z != a - 1/q and z != f - a:
-            print >> filename, '%s = 0' % covered_i_variable(q, z, maxstep - 1)
-        else:
-            print >> filename, '%s = 1' % covered_i_variable(q, z, maxstep - 1)
+        #if z != a - 1/q and z != f - a:
+        #    print >> filename, '%s = 0' % covered_i_variable(q, z, maxstep - 1)
+        #else:
+        #    print >> filename, '%s = 1' % covered_i_variable(q, z, maxstep - 1)
+        print >> filename, '%s = 0' % covered_i_variable(q, z, maxstep - 1)
           
     print >> filename, 'Bounds'
     print_fn_bounds(filename, q)
@@ -605,6 +621,12 @@ def write_lpfile(q, f, a, maxstep=None):
                     print >> filename, 't_%s_%s_%s' % (x, z, step),
                     print >> filename, 'r_%s_%s_%s' % (x, z, step),
     print >> filename
+
+    print >> filename, 'Generals'
+    for xx in range(q):
+        print >> filename, '%s' % fn_variable(q, xx/q),
+    print >> filename, '%s' % fn_variable(q, 1)
+
     print >> filename, 'End'
     filename.close()
 
@@ -667,20 +689,6 @@ def investigate_faces_solution(q, f, a, faces):
 
 #http://www.gurobi.com/documentation/5.6/reference-manual/lp_format
 #\ LP format example
-#Maximize
-#  x + y + z
-#Subject To
-#  c0: x + y = 1
-#  c1: x + 5 y + 2 z <= 10
-#  qc0: x + y + [ x ^ 2 - 2 x * y + 3 y ^ 2 ] <= 5
-#Bounds
-#  0 <= x <= 5
-#  z >= 2
-#Generals
-#  x y z
-#Binary
-#  x y z
-#End
 
 # Gurobi command
 # m = read('2q_8_7_2.lp')
@@ -699,3 +707,11 @@ def investigate_faces_solution(q, f, a, faces):
 #     if v[i].x == 0:
 #         print >> filename, '%s = %s' %(v[i].varName, v[i].x)
 # filename.close()
+#
+#q = 35;
+#for ff in range(q-1, 2, -1):
+#    for aa in range(int((ff - 1)/2), 1, -1):
+#        write_lpfile(q, ff/q, aa/q)
+# fname = '2q_%s_%s_%s_%s.lp' % (q, ff, aa, q)
+# m = read(fname)
+# m.optimize()
