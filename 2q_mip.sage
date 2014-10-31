@@ -149,11 +149,11 @@ def print_fn_minimality_test(filename, q, f):
         fn_0 + fn_2 = 1
         fn_1 + fn_1 = 1
         fn_2 + fn_3 = 1
-        fn_1 + fn_1 - fn_2 - 1/10000 p_1_1 >= 0
+        fn_1 + fn_1 - fn_2 >= 0
         fn_1 + fn_1 - fn_2 - 2 p_1_1 <= 0
-        fn_1 + fn_2 - fn_3 - 1/10000 p_1_2 >= 0
+        fn_1 + fn_2 - fn_3 >= 0
         fn_1 + fn_2 - fn_3 - 2 p_1_2 <= 0
-        fn_2 + fn_2 - fn_1 - 1/10000 p_2_2 >= 0
+        fn_2 + fn_2 - fn_1 >= 0
         fn_2 + fn_2 - fn_1 - 2 p_2_2 <= 0
     """
     # fn(0) = 0
@@ -172,15 +172,15 @@ def print_fn_minimality_test(filename, q, f):
         x += 1/q 
     # strict-subadditivity and additivity conditions
     #small_m = 0
-    small_m = 0.00001
+    #small_m = 1 / 10000
     for i in range(1, q):
         for j in range(i, q):
             x = bkpt[i]
             y = bkpt[j]
             z = fractional(x + y)
-            #print >> filename, '%s + %s - %s >= 0' %(fn_variable(q, x), fn_variable(q, y), fn_variable(q, z))
-            print >> filename, '%s + %s - %s - %s %s >= 0' %(fn_variable(q, x), fn_variable(q, y), fn_variable(q, z), \
-                                                             small_m, vertex_variable(q, (x, y)))
+            print >> filename, '%s + %s - %s >= 0' %(fn_variable(q, x), fn_variable(q, y), fn_variable(q, z))
+            #print >> filename, '%s + %s - %s - %s %s >= 0' %(fn_variable(q, x), fn_variable(q, y), fn_variable(q, z), \
+            #                                                 RR(small_m), vertex_variable(q, (x, y)))
             print >> filename, '%s + %s - %s - 2 %s <= 0' %(fn_variable(q, x), fn_variable(q, y), \
                                                             fn_variable(q, z), vertex_variable(q, (x, y)))
 
@@ -188,7 +188,7 @@ def print_trivial_additive_points(filename, q, f):
     """
     EXAMPLES::
 
-        sage: print_trivial_additive_points(sys.stdout, 3, 2/3, 1/3)
+        sage: print_trivial_additive_points(sys.stdout, 3, 2/3)
         p_0_0 = 0
         p_0_1 = 0
         p_0_2 = 0
@@ -201,8 +201,6 @@ def print_trivial_additive_points(filename, q, f):
         p_2_0 = 0
         p_2_3 = 0
         p_3_2 = 0
-        p_1_0 = 0
-        p_1_1 = 0
     """
     bkpt = [x/q for x in range(q+1)]
     # border x = 0 and border y = 0 are green
@@ -245,64 +243,6 @@ def variable_covered_interval(q, s):
     x = int(s[index1+1::])/q
     return [x, x + 1/q]
 
-def translation_variable(q, x, z):
-    """
-    EXAMPLES::
-
-        sage: translation_variable(7, 1/7, 3/7)
-        't_1_3'
-    """
-    return 't_%s_%s' % (int(x * q), int(z * q))
-
-def reflection_variable(q, x, z):
-    """
-    EXAMPLES::
-
-        sage: reflection_variable(7, 1/7, 3/7)
-        'r_1_3'
-    """
-    return 'r_%s_%s' % (int(x * q), int(z * q))
-
-def print_translation_constraints(filename, q, x, z):
-    """
-    EXAMPLES::
-
-        sage: print_translation_constraints(sys.stdout, 7, 1/7, 3/7)
-        c_1 - t_1_3 <= 0
-        h_1_2 - t_1_3 <= 0
-        t_1_3 - c_1 - h_1_2 <= 0
-        sage: print_translation_constraints(sys.stdout, 7, 3/7, 1/7)
-        c_3 - t_3_1 <= 0
-        h_1_2 - t_3_1 <= 0
-        t_3_1 - c_3 - h_1_2 <= 0
-    """
-    print >> filename, '%s - %s <= 0' % (covered_interval_variable(q, x), translation_variable(q, x, z))
-    if x <= z:
-        move = Face(([x, x + 1/q], [z - x], [z, z + 1/q])) # h_xx,zz-xx
-    else:
-        move = Face(([z, z + 1/q], [x - z], [x, x + 1/q])) # h_zz,xx-zz
-    print >> filename, '%s - %s <= 0' % (face_variable(q, move), translation_variable(q, x, z))
-    print >> filename, '%s - %s - %s <= 0' % (translation_variable(q, x, z), \
-                                              covered_interval_variable(q, x), \
-                                              face_variable(q, move))
-
-def print_reflection_constraints(filename, q, x, z):
-    """
-    EXAMPLES::
-
-        sage: print_reflection_constraints(sys.stdout, 7, 1/7, 3/7)
-        c_1 - r_1_3 <= 0
-        d_1_3 - r_1_3 <= 0
-        r_1_3 - c_1 - d_1_3 <= 0
-    """
-    print >> filename, '%s - %s <= 0' % (covered_interval_variable(q, x), reflection_variable(q, x, z))
-    move = Face(([x, x + 1/q], [z, z + 1/q], [x + z + 1/q])) # d_xx,zz
-    print >> filename, '%s - %s <= 0' % (face_variable(q, move), reflection_variable(q, x, z))
-    print >> filename, '%s - %s - %s <= 0' % (reflection_variable(q, x, z), \
-                                              covered_interval_variable(q, x), \
-                                              face_variable(q, move))
-
-################# TRY ######################
 def covered_i_variable(q, z, i):
     """
     EXAMPLES::
@@ -509,9 +449,16 @@ def print_obj_5slope22(filename, q, weight=1):
         for y in bkpt:
             if x <= y and h(x) + h(y) != h(fractional(x + y)):
                 print >> filename, '+ %s %s' % ( weight, vertex_variable(q, (x, y)) ),
-                m += 1
-    print m
-#########################################
+                #m += 1
+    #print m
+
+def print_obj_min_add_points(filename, q, weight=1):
+    bkpt = [x/q for x in range(q + 1)]
+    m = 0
+    for x in bkpt:
+        for y in bkpt:
+            if x <= y:
+                print >> filename, '+ %s %s' % ( weight, vertex_variable(q, (x, y)) )
 
 def print_obj_min_directly_covered_times(filename, q, weight=1):
     """
@@ -530,11 +477,10 @@ def write_lpfile(q, f, maxstep=None):
     """
     EXAMPLES:
 
-        sage: write_lpfile(8, 7/8, 2/8)
+        sage: write_lpfile(22, 10/22)
     """
     if maxstep is None:
         maxstep = q
-    #filename = open(destdir + "2q_%s_%s_%s_%s.lp" % (q, int(f*q), int(a*q), maxstep), "w")
     filename = open(destdir + "5slope_%s_%s.lp" % (q, int(f*q)), "w")
     faces_2d = []
     faces_diag = []
@@ -556,14 +502,15 @@ def write_lpfile(q, f, maxstep=None):
         for yy in range(q+1):
             faces_0d.append( Face(([xx/q], [yy/q], [(xx+yy)/q])) )
 
-    print >> filename, '\ MIP model'# '\ MIP model for 2q_search with q = %s, f = %s, a = %s' % (q, f, a)
+    print >> filename, '\ MIP model with q = %s, f = %s' % (q, f)
 
     print >> filename, 'Maximize'
     #print_obj_max_subadd_slack(filename, q)
     #print_obj_min_directly_covered_times(filename, q)
     #print_obj_min_undirectly_covered_times(filename, q)
     #print_obj_min_covered_times_max_subadd_slack(filename, q, maxstep=maxstep)
-    print_obj_5slope22(filename, q, weight=1)
+    #print_obj_5slope22(filename, q, weight=1)
+    print_obj_min_add_points(filename, q, weight=1)
     print >> filename
 
     print >> filename, 'Subject to'
@@ -596,10 +543,6 @@ def write_lpfile(q, f, maxstep=None):
 
     for zz in range(q):
         z = zz / q
-        #if z != a - 1/q and z != f - a:
-        #    print >> filename, '%s = 0' % covered_i_variable(q, z, maxstep - 1)
-        #else:
-        #    print >> filename, '%s = 1' % covered_i_variable(q, z, maxstep - 1)
         print >> filename, '%s = 0' % covered_i_variable(q, z, maxstep - 1)
           
     print >> filename, 'Bounds'
@@ -654,57 +597,20 @@ def painted_faces_and_funciton_from_solution(filename, q, showplots=True):
         plot_with_colored_slopes(fn).show()
     return faces, fn
 
-def investigate_faces_solution(q, f, a, faces):
+def investigate_faces_solution(q, f, faces):
     """
-    Check if the vertex-function corresponding to given painted faces is a good 2q-example.
+    Check the vertex-function corresponding to given painted faces.
     EXAMPLES::
 
-        sage: faces, fn = painted_faces_and_funciton_from_solution(
-        ...                 '/media/sf_dropbox/2q_mip/2q_13_9_4.sol', 13, showplots=False)
-        sage: investigate_faces_solution(13, 9/13, 4/13, faces)
+        sage: faces, fn = painted_faces_and_funciton_from_solution( \
+        ...               '/media/sf_dropbox/2q_mip/5slope_22_10_m0_min_add_point.sol',\
+        ...               22, showplots=False)
+        sage: investigate_faces_solution(22, 10/22, faces)
     """
-    covered_intervals = generate_covered_intervals_from_faces(faces)
+    components = generate_covered_intervals_from_faces(faces)
     additive_vertices = generate_additive_vertices_from_faces(q, faces)
-    final_uncovered = [[a - 1/q, a], [f - a, f - a + 1 / q]]
-    components = covered_intervals  + [final_uncovered]
     fn_sym = generate_symbolic_continuous(None, components, field=QQ)
     ff = int(f * q)
     for h in generate_vertex_function(q, ff, fn_sym, additive_vertices):
         print h
-        if not extremality_test(h): # h is not extreme
-            h_2q = restrict_to_finite_group(h, f=f, oversampling=2, order=None)
-            if extremality_test(h_2q): # but h restricted to 1/2q is extreme
-                print "h is a valid example!"
-            else:
-                print "h restricted to 1/2q is not extreme. Not a good example"
-        else:
-            print "h is extreme. Not a good example"
-
-#http://www.gurobi.com/documentation/5.6/reference-manual/lp_format
-#\ LP format example
-
-# Gurobi command
-# m = read('2q_8_7_2.lp')
-# m.optimize()
-# m.write('2q_8_7_2.sol')
-
-# sage: faces, fn = painted_faces_and_funciton_from_solution('/media/sf_dropbox/2q_mip/2q_8_7_2.sol', 8)
-
-##  model.printAttr('x')          # all non-zero solution values
-##  model.printAttr('lb', 'x*')   # bounds for vars whose names begin with 'x'
-##  model.printAttr(['lb', 'ub']) # lower and upper bounds
-# v = m.getVars()
-## gurobi> print v[0].varName, v[0].x
-# filename = open("2q_8_7_2.output", "w")
-# for i in range(len(v)):
-#     if v[i].x == 0:
-#         print >> filename, '%s = %s' %(v[i].varName, v[i].x)
-# filename.close()
-#
-#q = 35;
-#for ff in range(q-1, 2, -1):
-#    for aa in range(int((ff - 1)/2), 1, -1):
-#        write_lpfile(q, ff/q, aa/q)
-# fname = '2q_%s_%s_%s_%s.lp' % (q, ff, aa, q)
-# m = read(fname)
-# m.optimize()
+        extremality_test(h,True)
