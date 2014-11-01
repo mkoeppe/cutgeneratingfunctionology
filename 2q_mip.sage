@@ -458,7 +458,7 @@ def print_obj_min_add_points(filename, q, weight=1):
     for x in bkpt:
         for y in bkpt:
             if x <= y:
-                print >> filename, '+ %s %s' % ( weight, vertex_variable(q, (x, y)) )
+                print >> filename, '+ %s %s' % ( weight, vertex_variable(q, (x, y)) ),
 
 def print_obj_min_directly_covered_times(filename, q, weight=1):
     """
@@ -473,15 +473,15 @@ def print_obj_min_directly_covered_times(filename, q, weight=1):
             print >> filename, '+ %s %s + %s %s' % ( weight, face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y, x + y + 1/q]))), \
                                                      weight, face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y + 1/q, x + y + 2/q]))) ),
     
-def write_lpfile(q, f, maxstep=None):
+def write_lpfile(q, f, nums, maxstep=None):
     """
     EXAMPLES:
 
-        sage: write_lpfile(22, 10/22)
+        sage: write_lpfile(22, 10/22, 5)
     """
     if maxstep is None:
         maxstep = q
-    filename = open(destdir + "5slope_%s_%s.lp" % (q, int(f*q)), "w")
+    filename = open(destdir + "%sslope_%s_%s.lp" % (nums, q, int(f*q)), "w")
     faces_2d = []
     faces_diag = []
     faces_hor = []
@@ -505,12 +505,12 @@ def write_lpfile(q, f, maxstep=None):
     print >> filename, '\ MIP model with q = %s, f = %s' % (q, f)
 
     print >> filename, 'Maximize'
-    #print_obj_max_subadd_slack(filename, q) # is a constant!
+    print_obj_max_subadd_slack(filename, q) # is a constant!
     #print_obj_min_directly_covered_times(filename, q)
     #print_obj_min_undirectly_covered_times(filename, q)
     #print_obj_min_covered_times_max_subadd_slack(filename, q, maxstep=maxstep)
     #print_obj_5slope22(filename, q, weight=1)
-    print_obj_min_add_points(filename, q, weight=1)
+    #print_obj_min_add_points(filename, q, weight=1)
     print >> filename
 
     print >> filename, 'Subject to'
@@ -544,9 +544,12 @@ def write_lpfile(q, f, maxstep=None):
     for zz in range(q):
         z = zz / q
         print >> filename, '%s = 0' % covered_i_variable(q, z, maxstep - 1)
+
+    print_slope_constraints(filename, q, nums)
           
     print >> filename, 'Bounds'
     print_fn_bounds(filename, q)
+    print_slope_bounds(filename, q, nums)
 
     print >> filename, 'Binary'
     for face in faces_2d + faces_diag + faces_hor + faces_ver + faces_0d :
@@ -561,8 +564,12 @@ def write_lpfile(q, f, maxstep=None):
                 for step in range(1, maxstep):
                     print >> filename, 't_%s_%s_%s' % (x, z, step),
                     print >> filename, 'r_%s_%s_%s' % (x, z, step),
-    print >> filename
 
+    for k in range(nums):
+        for j in range(q):
+            print >> filename, '%s' % interval_slope_variable(j, k),
+        
+    print >> filename
     print >> filename, 'End'
     filename.close()
 
@@ -617,3 +624,87 @@ def investigate_faces_solution(q, f, faces):
         extremality_test(h,True)
         h_list.append(h)
     return h_list
+
+def slope_variable(k):
+    """
+    EXAMPLES::
+
+        sage: slope_variable(3)
+        's_3'
+    """
+    return 's_%s' % k
+
+def interval_slope_variable(j, k):
+    """
+    EXAMPLES::
+
+        sage: interval_slope_variable(7, 3)
+        'i_7_s_3'
+    """
+    return 'i_%s_s_%s' % (j, k)
+
+def print_slope_constraints(filename, q, nums):
+    """
+    EXAMPLES::
+
+        sage: print_slope_constraints(sys.stdout, 3, 3)
+        s_0 - s_1 > 0.0333333333333333
+        s_1 - s_2 > 0.0333333333333333
+        s_0 - 3 fn_1 = 0
+        i_0_s_0 = 1
+        s_2 + 3 fn_2 = 0
+        i_2_s_2 = 1
+        s_0 + 3 fn_1 - 3 fn_2 + 6 i_1_s_0 <= 6
+        s_0 + 3 fn_1 - 3 fn_2 - 6 i_1_s_0 >= -6
+        s_1 + 3 fn_1 - 3 fn_2 + 6 i_1_s_1 <= 6
+        s_1 + 3 fn_1 - 3 fn_2 - 6 i_1_s_1 >= -6
+        s_2 + 3 fn_1 - 3 fn_2 + 6 i_1_s_2 <= 6
+        s_2 + 3 fn_1 - 3 fn_2 - 6 i_1_s_2 >= -6
+        + i_0_s_0 + i_0_s_1 + i_0_s_2 = 1
+        + i_1_s_0 + i_1_s_1 + i_1_s_2 = 1
+        + i_2_s_0 + i_2_s_1 + i_2_s_2 = 1
+        + i_0_s_0 + i_1_s_0 + i_2_s_0 >= 1
+        + i_0_s_1 + i_1_s_1 + i_2_s_1 >= 1
+        + i_0_s_2 + i_1_s_2 + i_2_s_2 >= 1
+    """
+    # s_0 > s_2 > ... > s_nums-1
+    for k in range(0, nums - 1):
+        print >> filename, '%s - %s > %s' % (slope_variable(k), slope_variable(k+1), RR(1/q/10))
+
+    # first interval has the largest positive slope s_0
+    print >> filename, 's_0 - %s fn_1 = 0' % q
+    print >> filename, 'i_0_s_0 = 1'
+    # last interval has slope s_nums-1
+    print >> filename, 's_%s + %s fn_%s = 0' % (nums - 1, q, q - 1)
+    print >> filename, 'i_%s_s_%s = 1' % (q - 1, nums - 1)
+    # Condition: s_k + q(fn_j - fn_(j+1)) = 0 iff i_j_s_k = 1
+    # ==> 1) s_k + q * fn_j - q * fn_(j+1) <= 2*q * (1 - i_j_s_k)
+    # ==> 2) s_k + q * fn_j - q * fn_(j+1) >= - 2*q * (1 - i_j_s_k)
+    # ==> 3) sum i_j_s_k over k = 1
+    for j in range(1, q-1):
+        for k in range(nums):       
+            print >> filename, 's_%s + %s fn_%s - %s fn_%s + %s %s <= %s' % (k, q, j, q, j + 1, 2*q, interval_slope_variable(j, k), 2*q)
+            print >> filename, 's_%s + %s fn_%s - %s fn_%s - %s %s >= %s' % (k, q, j, q, j + 1, 2*q, interval_slope_variable(j, k), -2*q)
+    for j in range(q):
+        for k in range(nums):
+            print >> filename, '+ %s' % interval_slope_variable(j, k),
+        print >> filename, '= 1'
+    # Condition: sum i_j_s_k over j >= 1
+    for k in range(nums):
+        for j in range(q):
+            print >> filename, '+ %s' % interval_slope_variable(j, k),
+        print >> filename, '>= 1'
+
+def print_slope_bounds(filename, q, nums):
+    """
+    EXAMPLES::
+
+        sage: print_slope_bounds(sys.stdout, 3, 3)
+        -3 <= s_0 <= 3
+        -3 <= s_1 <= 3
+        -3 <= s_2 <= 3
+    """
+    for k in range(nums):
+        print >> filename, '%s <= %s <= %s' % (-q, slope_variable(k), q)
+
+    
