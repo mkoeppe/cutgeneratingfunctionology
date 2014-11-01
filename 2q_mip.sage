@@ -396,9 +396,10 @@ def print_undirectly_covered_i_constraints(filename, q, z, i):
          print >> filename, '- %s' % v,
     print >> filename, '>= %s' % (2 - 2 * q)     
 
-def print_obj_max_subadd_slack(filename, q, weight=1):
+def print_obj_max_subadd_slack(filename, q, weight=1): #is a constant!
     """
-    subadd_slack = q * (\sum_x fn(x))
+    subadd_slack = q * (\sum_x fn(x)) 
+                 = q * (q - 1)
 
     EXAMPLES::
 
@@ -454,7 +455,6 @@ def print_obj_5slope22(filename, q, weight=1):
 
 def print_obj_min_add_points(filename, q, weight=1):
     bkpt = [x/q for x in range(q + 1)]
-    m = 0
     for x in bkpt:
         for y in bkpt:
             if x <= y:
@@ -505,7 +505,7 @@ def write_lpfile(q, f, maxstep=None):
     print >> filename, '\ MIP model with q = %s, f = %s' % (q, f)
 
     print >> filename, 'Maximize'
-    #print_obj_max_subadd_slack(filename, q)
+    #print_obj_max_subadd_slack(filename, q) # is a constant!
     #print_obj_min_directly_covered_times(filename, q)
     #print_obj_min_undirectly_covered_times(filename, q)
     #print_obj_min_covered_times_max_subadd_slack(filename, q, maxstep=maxstep)
@@ -611,6 +611,9 @@ def investigate_faces_solution(q, f, faces):
     additive_vertices = generate_additive_vertices_from_faces(q, faces)
     fn_sym = generate_symbolic_continuous(None, components, field=QQ)
     ff = int(f * q)
+    h_list = []
     for h in generate_vertex_function(q, ff, fn_sym, additive_vertices):
         print h
         extremality_test(h,True)
+        h_list.append(h)
+    return h_list
