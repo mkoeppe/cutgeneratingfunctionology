@@ -396,6 +396,17 @@ def print_undirectly_covered_i_constraints(filename, q, z, i):
          print >> filename, '- %s' % v,
     print >> filename, '>= %s' % (2 - 2 * q)     
 
+def print_obj_max_slope_slack(filename, nums):
+    """
+    slope_slack = s_0 - s_(nums-1)
+
+    EXAMPLES::
+
+        sage: print_obj_max_slope_slack(sys.stdout, 5)
+        s_0 - s_4
+    """
+    print >> filename, 's_0 - s_%s' % (nums - 1),
+
 def print_obj_max_subadd_slack(filename, q, weight=1): #is a constant!
     """
     subadd_slack = q * (\sum_x fn(x)) 
@@ -477,11 +488,11 @@ def write_lpfile(q, f, nums, maxstep=None):
     """
     EXAMPLES:
 
-        sage: write_lpfile(22, 10/22, 5)
+        sage: write_lpfile(22, 10/22, 5, 2)
     """
     if maxstep is None:
         maxstep = q
-    filename = open(destdir + "%sslope_%s_%s.lp" % (nums, q, int(f*q)), "w")
+    filename = open(destdir + "%sslope_%s_%s_%s.lp" % (nums, q, int(f*q), maxstep), "w")
     faces_2d = []
     faces_diag = []
     faces_hor = []
@@ -502,10 +513,12 @@ def write_lpfile(q, f, nums, maxstep=None):
         for yy in range(q+1):
             faces_0d.append( Face(([xx/q], [yy/q], [(xx+yy)/q])) )
 
-    print >> filename, '\ MIP model with q = %s, f = %s' % (q, f)
+    print >> filename, '\ MIP model with q = %s, f = %s, num of slopes = %s, maxstep of tran/refl = %s' % (q, f, nums, maxstep)
 
     print >> filename, 'Maximize'
-    print_obj_max_subadd_slack(filename, q) # is a constant!
+    #print >> filename, 0
+    print_obj_max_slope_slack(filename, nums)
+    #print_obj_max_subadd_slack(filename, q) # is a constant!
     #print_obj_min_directly_covered_times(filename, q)
     #print_obj_min_undirectly_covered_times(filename, q)
     #print_obj_min_covered_times_max_subadd_slack(filename, q, maxstep=maxstep)
@@ -669,7 +682,7 @@ def print_slope_constraints(filename, q, nums):
     """
     # s_0 > s_2 > ... > s_nums-1
     for k in range(0, nums - 1):
-        print >> filename, '%s - %s > %s' % (slope_variable(k), slope_variable(k+1), RR(1/q/10))
+        print >> filename, '%s - %s >= %s' % (slope_variable(k), slope_variable(k+1), RR(q/4))
 
     # first interval has the largest positive slope s_0
     print >> filename, 's_0 - %s fn_1 = 0' % q
