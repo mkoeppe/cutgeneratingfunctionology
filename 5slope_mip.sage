@@ -517,16 +517,7 @@ def print_obj_min_directly_covered_times(filename, q, weight=1):
         for y in bkpt:
             print >> filename, '+ %s %s + %s %s' % ( weight, face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y, x + y + 1/q]))), \
                                                      weight, face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y + 1/q, x + y + 2/q]))) ),
-    
-def write_lpfile(q, f, nums, maxstep=None, m=0):
-    """
-    EXAMPLES:
-
-        sage: write_lpfile(22, 10/22, 5, 2)
-    """
-    if maxstep is None:
-        maxstep = q
-    filename = open(destdir + "%sslope_q%s_f%s_step%s_m%s.lp" % (nums, q, int(f*q), maxstep, m), "w")
+def all_faces(q):
     faces_2d = []
     faces_diag = []
     faces_hor = []
@@ -546,8 +537,21 @@ def write_lpfile(q, f, nums, maxstep=None, m=0):
     for xx in range(q+1):
         for yy in range(q+1):
             faces_0d.append( Face(([xx/q], [yy/q], [(xx+yy)/q])) )
+    return faces_2d, faces_diag, faces_hor, faces_ver, faces_0d
 
-    print >> filename, '\ MIP model with q = %s, f = %s, num of slopes = %s, maxstep of tran/refl = %s, small_m = %s' % (q, f, nums, maxstep, m)
+def write_lpfile(q, f, nums, maxstep=None, m=0):
+    """
+    EXAMPLES:
+
+        sage: write_lpfile(22, 10/22, 5, 1, 4)
+    """
+    if maxstep is None:
+        maxstep = q
+    filename = open(destdir + "%sslope_q%s_f%s_m%s_fulldim.lp" % (nums, q, int(f*q), m), "w")
+
+    faces_2d, faces_diag, faces_hor, faces_ver, faces_0d = all_faces(q)
+
+    print >> filename, '\ MIP model with q = %s, f = %s, num of slopes = %s, small_m = %s, without non-trivial 0d and 1d maximal faces' % (q, f, nums, m)
 
     print >> filename, 'Maximize'
     #print >> filename, 0
@@ -568,6 +572,13 @@ def write_lpfile(q, f, nums, maxstep=None, m=0):
     for face in faces_0d:
         if face.minimal_triple[0][0] < face.minimal_triple[1][0]:
             print_xy_swapped_constraints(filename, q, face)
+
+    # Additive domain is the union of fall-dimensional convex sets,
+    # except for the trivial additive points: symmetry reflection and x=0 and y=0.
+    print_no_maximal_faces_diag(filename, q, f, faces_diag)
+    print_no_maximal_faces_hor(filename, q, f, faces_hor)
+    print_no_maximal_faces_ver(filename, q, f, faces_ver)
+    print_no_maximal_faces_0d(filename, q, f, faces_0d)
 
     print_fn_minimality_test(filename, q, f, m)
 
@@ -771,4 +782,109 @@ def print_slope_bounds(filename, q, nums):
     for k in range(nums):
         print >> filename, '%s <= %s <= %s' % (-q, slope_variable(k), q)
 
-    
+def print_no_maximal_faces_diag(filename, q, f, faces_diag):
+    """
+    EXAMPLES::
+
+        sage: q = 3; f = 2/3;
+        sage: faces_2d, faces_diag, faces_hor, faces_ver, faces_0d = all_faces(q)
+        sage: print_no_maximal_faces_diag(sys.stdout, q, f, faces_diag)
+        l_0_0 + u_0_0 - d_0_0 <= 1
+        l_0_2 + u_0_2 - d_0_2 <= 1
+        l_1_1 + u_1_1 - d_1_1 <= 1
+        l_1_2 + u_1_2 - d_1_2 <= 1
+        l_2_0 + u_2_0 - d_2_0 <= 1
+        l_2_1 + u_2_1 - d_2_1 <= 1
+    """
+    for face in faces_diag:
+        (i, j, k) = face.minimal_triple
+        if k[0] != f and k[0] != 1 + f:
+            face_l = Face(( i, j, [k[0] - 1/q, k[0]] ))
+            face_u = Face(( i, j, [k[0], k[0] + 1/q] ))
+            var_d = face_variable(q, face)
+            var_l = face_variable(q, face_l)
+            var_u = face_variable(q, face_u)
+            # var_d == 0 iff var_l == 0 or var_u == 0,
+            # i.e. var_d + 1 >= var_l + var_u
+            print >> filename, '%s + %s - %s <= 1' % (var_l, var_u, var_d)
+
+def print_no_maximal_faces_hor(filename, q, f, faces_hor):
+    """
+    EXAMPLES::
+
+        sage: q = 3; f = 2/3;
+        sage: faces_2d, faces_diag, faces_hor, faces_ver, faces_0d = all_faces(q)
+        sage: print_no_maximal_faces_hor(sys.stdout, q, f, faces_hor)
+        l_0_1 + u_0_0 - h_0_1 <= 1
+        l_0_2 + u_0_1 - h_0_2 <= 1
+        l_1_1 + u_1_0 - h_1_1 <= 1
+        l_1_2 + u_1_1 - h_1_2 <= 1
+        l_2_1 + u_2_0 - h_2_1 <= 1
+        l_2_2 + u_2_1 - h_2_2 <= 1
+    """
+    for face in faces_hor:
+        (i, j, k) = face.minimal_triple
+        var_h = face_variable(q, face)
+        if j[0] != 0 and j[0] != 1:
+            face_l = Face(( i, [j[0], j[0] + 1/q], k ))
+            face_u = Face(( i, [j[0] - 1/q, j[0]], k ))
+            var_l = face_variable(q, face_l)
+            var_u = face_variable(q, face_u)
+            # var_h == 0 only if var_l == 0 or var_u == 0,
+            # i.e. var_h + 1 >= var_l + var_u
+            print >> filename, '%s + %s - %s <= 1' % (var_l, var_u, var_h)
+
+def print_no_maximal_faces_ver(filename, q, f, faces_ver):
+    """
+    EXAMPLES::
+
+        sage: q = 3; f = 2/3;
+        sage: faces_2d, faces_diag, faces_hor, faces_ver, faces_0d = all_faces(q)
+        sage: print_no_maximal_faces_ver(sys.stdout, q, f, faces_ver)
+        l_1_0 + u_0_0 - v_1_0 <= 1
+        l_2_0 + u_1_0 - v_2_0 <= 1
+        l_1_1 + u_0_1 - v_1_1 <= 1
+        l_2_1 + u_1_1 - v_2_1 <= 1
+        l_1_2 + u_0_2 - v_1_2 <= 1
+        l_2_2 + u_1_2 - v_2_2 <= 1
+    """
+    for face in faces_ver:
+        (i, j, k) = face.minimal_triple
+        var_v = face_variable(q, face)
+        if i[0] != 0 and i[0] != 1:
+            face_l = Face(( [i[0], i[0] + 1/q], j, k ))
+            face_u = Face(( [i[0] - 1/q, i[0]], j, k ))
+            var_l = face_variable(q, face_l)
+            var_u = face_variable(q, face_u)
+            # var_v == 0 only if var_l == 0 or var_u == 0,
+            # i.e. var_v + 1 >= var_l + var_u
+            print >> filename, '%s + %s - %s <= 1' % (var_l, var_u, var_v)
+
+def print_no_maximal_faces_0d(filename, q, f, faces_0d):
+    """
+    EXAMPLES::
+
+        sage: q = 3; f = 2/3;
+        sage: faces_2d, faces_diag, faces_hor, faces_ver, faces_0d = all_faces(q)
+        sage: print_no_maximal_faces_0d(sys.stdout, q, f, faces_0d)
+        h_0_1 + h_1_1 + v_1_0 + v_1_1 + d_0_1 + d_1_0 - p_1_1 <= 5
+        h_0_2 + h_1_2 + v_1_1 + v_1_2 + d_0_2 + d_1_1 - p_1_2 <= 5
+        h_1_1 + h_2_1 + v_2_0 + v_2_1 + d_1_1 + d_2_0 - p_2_1 <= 5
+        h_1_2 + h_2_2 + v_2_1 + v_2_2 + d_1_2 + d_2_1 - p_2_2 <= 5
+    """
+    for face in faces_0d:
+        (x, y) = face.vertices[0]
+        if x != 0 and x != 1 and y != 0 and y != 1:
+            xx = int(x * q)
+            yy = int(y * q)
+            p  = 'p_%s_%s' % (xx, yy)
+            h1 = 'h_%s_%s' % (xx - 1, yy)
+            h2 = 'h_%s_%s' % (xx, yy)
+            v1 = 'v_%s_%s' % (xx, yy - 1)
+            v2 = 'v_%s_%s' % (xx, yy)
+            d1 = 'd_%s_%s' % (xx - 1, yy)
+            d2 = 'd_%s_%s' % (xx, yy - 1)
+            # p == 0 only if at least one of h1, h2, v1, v2, d1, d2 is 0
+            # i.e. p + 5 >= h1 + h2 + v1 + v2 + d1 + d2
+            print >> filename, '%s + %s + %s + %s + %s + %s - %s <= 5' % (h1, h2, v1, v2, d1, d2, p)
+ 
