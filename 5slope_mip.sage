@@ -1,3 +1,37 @@
+def extreme_5slope_no_transrefl():
+    """
+    5-slope extreme function without any translation/reflection
+    except for the symmetry reflection.
+
+    LP model: 5slope_q22_f10_step1_m4.lp
+    q = 22; f = 10/22; given number of slopes = 5; maxstep = 1;
+    slope gap >= q/4; subadditive slack >= q/4;
+    obj = max_slope_slack.
+
+    Gurobi run on my laptop, (51.83s, obj = 30.25)
+    Optimal solution: solution_5slope_no_transrefl.sol
+    vertex function is a 5-slope extreme function
+
+    This function is obtained by:
+    sage: faces, fn = painted_faces_and_funciton_from_solution('.../solution_5slope_no_transrefl.sol', 22)
+    sage: h_list = investigate_faces_solution(22, 10/22, faces)
+    sage: new_5slope_1 = h_list[0]
+
+    EXAMPLES::
+
+        sage: h = extreme_5slope_no_transrefl()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+    """
+    bkpt = [0, 1/22, 1/11, 3/22, 2/11, 3/11, 7/22, 4/11, 9/22, 5/11,\
+             1/2, 6/11, 13/22, 7/11, 9/11, 19/22, 10/11, 21/22, 1]
+    values = [0, 23/32, 3/4, 7/16, 13/16, 3/16, 9/16, 1/4, 9/32, 1, \
+                11/32, 3/8, 3/4, 7/16, 9/16, 1/4, 5/8, 21/32, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+
 destdir = "/media/sf_dropbox/2q_mip/"
 
 def fn_variable(q, x):
@@ -554,9 +588,23 @@ def write_lpfile(q, f, nums, maxstep=None, m=0):
         for step in range(1, maxstep):
             print_undirectly_covered_i_constraints(filename, q, z, step)
 
-    for zz in range(q):
-        z = zz / q
-        print >> filename, '%s = 0' % covered_i_variable(q, z, maxstep - 1)
+    #for zz in range(q):
+    #    z = zz / q
+    #    print >> filename, '%s = 0' % covered_i_variable(q, z, maxstep - 1)
+
+    # set maxstep = 1, search for 5 slope function without any
+    # translation/reflection except for the symmetry reflection.
+
+    z = 0
+    while z < f/2:
+        print >> filename, '%s + %s <= 1' % (covered_i_variable(q, z, maxstep - 1), \
+                                             covered_i_variable(q, f - z - 1/q, maxstep - 1))
+        z += 1/q
+    z = f
+    while z < (1+f)/2:
+        print >> filename, '%s + %s <= 1' % (covered_i_variable(q, z, maxstep - 1), \
+                                             covered_i_variable(q, 1 + f - z - 1/q, maxstep - 1))
+        z += 1/q
 
     print_slope_constraints(filename, q, nums, m)
           
