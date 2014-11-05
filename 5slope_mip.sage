@@ -564,6 +564,23 @@ def print_obj_max_slope_slack(filename, nums):
     """
     print >> filename, 's_0 - s_%s' % (nums - 1),
 
+def print_obj_max_slope_slack_with_weights(filename, nums, weights):
+    """
+    slope_slack_with_weights = \sum_{0 <= i <= nums-2} {weights[i] * (s_i - s_(i+1))}
+
+    EXAMPLES::
+
+        sage: print_obj_max_slope_slack_with_weights(sys.stdout, 5, [1, 1, 1, 1])
+        + 1 s_0 - 1 s_1 + 1 s_1 - 1 s_2 + 1 s_2 - 1 s_3 + 1 s_3 - 1 s_4
+        sage: print_obj_max_slope_slack_with_weights(sys.stdout, 5, [1, 2, 2, 1])
+        + 1 s_0 - 1 s_1 + 2 s_1 - 2 s_2 + 2 s_2 - 2 s_3 + 1 s_3 - 1 s_4
+    """
+    if not weights:
+        print >> filename, 's_0 - s_%s' % (nums - 1),
+    else:
+        for i in range(nums - 1):
+            print >> filename, '+ %s s_%s - %s s_%s' % (weights[i], i, weights[i], i+1),
+
 def print_obj_max_subadd_slack(filename, q, weight=1): #is a constant!
     """
     subadd_slack = q * (\sum_x fn(x)) 
@@ -662,7 +679,7 @@ def all_faces(q):
             faces_0d.append( Face(([xx/q], [yy/q], [(xx+yy)/q])) )
     return faces_2d, faces_diag, faces_hor, faces_ver, faces_0d
 
-def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None):
+def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None, weights=[]):
     """
     EXAMPLES:
 
@@ -675,7 +692,12 @@ def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None):
     else:
        type_cover = 'step%s' % maxstep
 
-    filename = open(destdir + "%sslope_q%s_f%s_%s_m%s.lp" % (nums, q, int(f*q), type_cover, m), "w")
+    if weights:
+        strw = '_' + str(weights)
+    else:
+        strw = ''
+
+    filename = open(destdir + "%sslope_q%s_f%s_%s_m%s%s.lp" % (nums, q, int(f*q), type_cover, m, strw), "w")
 
     faces_2d, faces_diag, faces_hor, faces_ver, faces_0d = all_faces(q)
 
@@ -687,9 +709,13 @@ def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None):
     else:
         print >> filename, '\ maximum number of steps in covering = %s.' % maxstep
 
+    if weights:
+        print >> filename, '\obj = max_slope_slack with weights %s.' % weights
+
     print >> filename, 'Maximize'
     #print >> filename, 0
-    print_obj_max_slope_slack(filename, nums)
+    print_obj_max_slope_slack_with_weights(filename, nums, weights)
+    #print_obj_max_slope_slack(filename, nums)
     #print_obj_max_subadd_slack(filename, q) # is a constant!
     #print_obj_min_directly_covered_times(filename, q)
     #print_obj_min_undirectly_covered_times(filename, q)
