@@ -662,7 +662,7 @@ def all_faces(q):
             faces_0d.append( Face(([xx/q], [yy/q], [(xx+yy)/q])) )
     return faces_2d, faces_diag, faces_hor, faces_ver, faces_0d
 
-def write_lpfile(q, f, nums, maxstep=None, m=0):
+def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None):
     """
     EXAMPLES:
 
@@ -670,11 +670,22 @@ def write_lpfile(q, f, nums, maxstep=None, m=0):
     """
     if maxstep is None:
         maxstep = q
-    filename = open(destdir + "%sslope_q%s_f%s_m%s_fulldim.lp" % (nums, q, int(f*q), m), "w")
+    if type_cover == 'no_0d_1d' or type_cover == 'no_transrefl':
+        maxstep = 1
+    else:
+       type_cover = 'step%s' % maxstep
+
+    filename = open(destdir + "%sslope_q%s_f%s_%s_m%s.lp" % (nums, q, int(f*q), type_cover, m), "w")
 
     faces_2d, faces_diag, faces_hor, faces_ver, faces_0d = all_faces(q)
 
-    print >> filename, '\ MIP model with q = %s, f = %s, num of slopes = %s, small_m = %s, without non-trivial 0d and 1d maximal faces' % (q, f, nums, m)
+    print >> filename, '\ MIP model with q = %s, f = %s, num of slopes = %s, small_m = %s' % (q, f, nums, m)
+    if type_cover == 'no_0d_1d':
+        print >> filename, '\ without non-trivial 0d and 1d maximal faces.'
+    elif type_cover == 'no_transrefl':
+        print >> filename, '\ without any translation/reflection except for the symmetry reflection.'
+    else:
+        print >> filename, '\ maximum number of steps in covering = %s.' % maxstep
 
     print >> filename, 'Maximize'
     #print >> filename, 0
@@ -696,12 +707,13 @@ def write_lpfile(q, f, nums, maxstep=None, m=0):
         if face.minimal_triple[0][0] < face.minimal_triple[1][0]:
             print_xy_swapped_constraints(filename, q, face)
 
-    # Additive domain is the union of fall-dimensional convex sets,
-    # except for the trivial additive points: symmetry reflection and x=0 and y=0.
-    print_no_maximal_faces_diag(filename, q, f, faces_diag)
-    print_no_maximal_faces_hor(filename, q, f, faces_hor)
-    print_no_maximal_faces_ver(filename, q, f, faces_ver)
-    print_no_maximal_faces_0d(filename, q, f, faces_0d)
+    if type_cover == 'no_0d_1d':
+        # Additive domain is the union of fall-dimensional convex sets,
+        # except for the trivial additive points: symmetry reflection and x=0 and y=0.
+        print_no_maximal_faces_diag(filename, q, f, faces_diag)
+        print_no_maximal_faces_hor(filename, q, f, faces_hor)
+        print_no_maximal_faces_ver(filename, q, f, faces_ver)
+        print_no_maximal_faces_0d(filename, q, f, faces_0d)
 
     print_fn_minimality_test(filename, q, f, m)
 
@@ -722,23 +734,22 @@ def write_lpfile(q, f, nums, maxstep=None, m=0):
         for step in range(1, maxstep):
             print_undirectly_covered_i_constraints(filename, q, z, step)
 
-    #for zz in range(q):
-    #    z = zz / q
-    #    print >> filename, '%s = 0' % covered_i_variable(q, z, maxstep - 1)
-
-    # set maxstep = 1, search for 5 slope function without any
-    # translation/reflection except for the symmetry reflection.
-
-    z = 0
-    while z < f/2:
-        print >> filename, '%s + %s <= 1' % (covered_i_variable(q, z, maxstep - 1), \
-                                             covered_i_variable(q, f - z - 1/q, maxstep - 1))
-        z += 1/q
-    z = f
-    while z < (1+f)/2:
-        print >> filename, '%s + %s <= 1' % (covered_i_variable(q, z, maxstep - 1), \
-                                             covered_i_variable(q, 1 + f - z - 1/q, maxstep - 1))
-        z += 1/q
+    if maxstep > 1:
+        for zz in range(q):
+            z = zz / q
+            print >> filename, '%s = 0' % covered_i_variable(q, z, maxstep - 1)
+    else:
+        # maxstep = 1, consider the symmetry reflection.
+        z = 0
+        while z < f/2:
+            print >> filename, '%s + %s <= 1' % (covered_i_variable(q, z, 0), \
+                                                 covered_i_variable(q, f - z - 1/q, 0))
+            z += 1/q
+        z = f
+        while z < (1+f)/2:
+            print >> filename, '%s + %s <= 1' % (covered_i_variable(q, z, 0), \
+                                                 covered_i_variable(q, 1 + f - z - 1/q, 0))
+            z += 1/q
 
     print_slope_constraints(filename, q, nums, m)
           
