@@ -846,6 +846,7 @@ def investigate_faces_solution(q, f, faces):
         ...               22, showplots=False)
         sage: investigate_faces_solution(22, 10/22, faces)
     """
+    #attach 2q_search.sage
     components = generate_covered_intervals_from_faces(faces)
     additive_vertices = generate_additive_vertices_from_faces(q, faces)
     fn_sym = generate_symbolic_continuous(None, components, field=QQ)
