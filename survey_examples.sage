@@ -472,3 +472,173 @@ def california_ip():
                 for piece in ggb.list() ]
     logging.warn("This function is not piecewise linear; code for handling this function is not implemented.")
     return FastPiecewise(pieces)
+
+def kzh_2q_example_1():
+    """
+    A continuous 4-slope non-extreme function, whose restriction to
+    1/2q is extreme, thereby showing that an oversampling factor of 3
+    is optimal.
+
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    Example::
+
+        sage: h = kzh_2q_example_1()
+        sage: extremality_test(h)
+        False
+        sage: h_1q = restrict_to_finite_group(h, oversampling=1)
+        sage: extremality_test(h_1q)
+        True
+        sage: h_2q = restrict_to_finite_group(h, oversampling=2)
+        sage: extremality_test(h_2q)
+        True
+        sage: h_3q = restrict_to_finite_group(h, oversampling=3)
+        sage: extremality_test(h_3q)
+        False
+
+    """
+    bkpt = [0, 3/37, 4/37, 5/37, 9/37, 10/37, 11/37, 12/37, 13/37, 14/37, 15/37, 16/37,
+            20/37, 21/37, 22/37, 25/37, 26/37, 28/37, 29/37, 33/37, 34/37, 36/37, 1]
+    values = [0, 99/122, 21/122, 27/61, 19/61, 71/122, 15/61, 63/122, 59/122, 46/61, 51/122,
+                42/61, 34/61, 101/122, 23/122, 1, 22/61, 18/61, 69/122, 53/122, 43/61, 39/61, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_5_slope_fulldim_1(): #renamed from extreme_5slope_no_0d_1d_1
+    """
+    A continuous 5-slope extreme function without any 0-d or 1-d
+    maximal additive faces except for the symmetry reflection or x=0
+    or y=0.
+
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+
+        sage: h = kzh_5_slope_fulldim_1()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+    """
+    bkpt = [0, 2/37, 3/37, 5/37, 7/37, 10/37, 11/37, 12/37, 13/37, 14/37, 15/37,
+            18/37, 20/37, 22/37, 23/37, 25/37, 27/37, 28/37, 29/37, 33/37, 34/37, 35/37, 1]
+    values = [0, 59/90, 7/9, 64/135, 4/9, 73/90, 43/54, 29/45, 16/45, 11/54, 17/90,
+              5/9, 71/135, 2/9, 31/90, 1, 19/45, 73/270, 23/90, 67/90, 197/270, 26/45, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_5_slope_fulldim_2(): #renamed from extreme_5slope_no_0d_1d_2
+    """
+    A continuous 5-slope extreme function without any 0-d or 1-d
+    maximal additive faces except for the symmetry reflection or x=0
+    or y=0.
+
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+
+        sage: h = kzh_5_slope_fulldim_2()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+    """
+    bkpt = [0, 1/37, 2/37, 5/37, 7/37, 10/37, 12/37, 13/37, 15/37, 18/37, 20/37,
+            23/37, 24/37, 25/37, 26/37, 27/37, 28/37, 29/37, 33/37, 34/37, 35/37, 36/37, 1]
+    values = [0, 8/15, 4/13, 10/13, 47/78, 152/195, 239/390, 151/390, 43/195, 31/78,
+              3/13, 9/13, 7/15, 1, 151/195, 539/780, 121/260, 149/390, 241/390, 139/260, 241/780, 44/195, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_5_slope_fulldim_3(): #renamed from extreme_5slope_no_0d_1d_3
+    """
+    A continuous 5-slope extreme function without any 0-d or 1-d
+    maximal additive faces except for the symmetry reflection or x=0
+    or y=0.
+
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+
+        sage: h = kzh_5_slope_fulldim_3()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+    """
+    bkpt = [0, 1/37, 3/37, 5/37, 7/37, 10/37, 12/37, 13/37, 15/37, 18/37, 20/37,
+            22/37, 24/37, 25/37, 26/37, 27/37, 28/37, 29/37, 33/37, 34/37, 35/37, 36/37, 1]
+    values = [0, 8/15, 11/30, 49/60, 13/20, 77/100, 181/300, 119/300, 23/100, 7/20,
+              11/60, 19/30, 7/15, 1, 119/150, 71/100, 151/300, 21/50, 29/50, 149/300, 29/100, 31/150, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_5_slope_fulldim_4(): #renamed from extreme_5slope_no_0d_1d_4
+    """
+    5-slope extreme function without any 0-d or 1-d maximal additive faces
+    except for the symmetry reflection or x=0 or y=0.
+
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+
+        sage: h = kzh_5_slope_fulldim_4()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+    """
+    bkpt = [0, 1/37, 3/37, 5/37, 7/37, 10/37, 12/37, 13/37, 15/37, 18/37, 20/37,
+            22/37, 24/37, 25/37, 26/37, 27/37, 28/37, 29/37, 33/37, 34/37, 35/37, 36/37, 1]
+    values = [0, 41/63, 61/126, 191/252, 149/252, 197/252, 155/252, 97/252, 55/252,
+              103/252, 61/252, 65/126, 22/63, 1, 97/126, 173/252, 115/252, 47/126, 79/126, 137/252, 79/252, 29/126, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_5_slope_fulldim_5(): #renamed from extreme_5slope_no_0d_1d_5
+    """
+    5-slope extreme function without any 0-d or 1-d maximal additive faces
+    except for the symmetry reflection or x=0 or y=0.
+
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+
+        sage: h = kzh_5_slope_fulldim_5()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+    """
+    bkpt = [0, 1/37, 3/37, 5/37, 7/37, 10/37, 12/37, 13/37, 15/37, 18/37, 20/37,
+            22/37, 24/37, 25/37, 28/37, 29/37, 33/37, 34/37, 1]
+    values = [0, 145/221, 6/13, 10/13, 127/221, 347/442, 261/442, 181/442, 95/442,
+              94/221, 3/13, 7/13, 76/221, 1, 101/221, 159/442, 283/442, 120/221, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_5_slope_fulldim_covers_1(): #renamed from extreme_5slope_no_transrefl
+    """
+    5-slope extreme function whose extremality proof does not depend
+    on lower-dimensional additive faces.  All intervals are directly covered.
+
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    requires to translate and reflect covered intervals.
+
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+
+        sage: h = kzh_5_slope_fulldim_covers_1()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+    """
+    bkpt = [0, 1/22, 1/11, 3/22, 2/11, 3/11, 7/22, 4/11, 9/22, 5/11,
+            1/2, 6/11, 13/22, 7/11, 9/11, 19/22, 10/11, 21/22, 1]
+    values = [0, 23/32, 3/4, 7/16, 13/16, 3/16, 9/16, 1/4, 9/32, 1,
+              11/32, 3/8, 3/4, 7/16, 9/16, 1/4, 5/8, 21/32, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
