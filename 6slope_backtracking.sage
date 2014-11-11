@@ -129,10 +129,10 @@ def directly_covered_by_adding_face(last_covered_intervals, face):
 ######
 
 def paint_complex(q, f, last_additive_vertices, last_faces_set, last_covered_intervals, \
-                  candidate_face_set, last_non_candidate):
+                  candidate_faces, last_non_candidate):
     """
     Randomly paint triangles green in a 2d-complex, until all intervals are covered.
-    Return green_faces and covered_intervals if a possible way of painting is found,
+    Return additive_vertices, green_faces and covered_intervals if a possible way of painting is found,
     otherwise, return False
 
     EXAMPLES::
@@ -140,14 +140,16 @@ def paint_complex(q, f, last_additive_vertices, last_faces_set, last_covered_int
         sage: q = 5; f = 3/5; num_of_slopes = 2;
         sage: additive_vertices, faces_set, covered_intervals = \
         ...     initial_vertices_faces_and_covered_intervals(q, f)
-        sage: candidate_face_set = generate_candidate_face_set(q, f, covered_intervals, None, set([]))
+        sage: candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
         sage: additive_vertices, green_faces, covered_intervals = \
-        ...     paint_complex(q, f, additive_vertices, faces_set, covered_intervals, candidate_face_set, set([])).next()
+        ...     paint_complex(q, f, additive_vertices, faces_set, covered_intervals, candidate_faces, set([])).next()
         sage: plot_painted_faces(q, green_faces)
     """
     non_candidate = copy(last_non_candidate)
-    while candidate_face_set:
-        face_picked = candidate_face_set.pop()
+    n = 0
+    while n < len(candidate_faces):
+        face_picked = candidate_faces[n]
+        n += 1
         ###### debug...
         #print face_picked
         #picked_face_set.add(face_picked)
@@ -170,13 +172,12 @@ def paint_complex(q, f, last_additive_vertices, last_faces_set, last_covered_int
                             faces_set.add(face)
                             covered_intervals = directly_covered_by_adding_face(covered_intervals, face)
         if not legal_picked:
-            #candidate_face_set.remove(face_picked)
             non_candidate.add(face_picked)
             continue
         implied_additive_vertices = generate_implied_additive_vertices(q, f, additive_vertices, covered_intervals)
         if not implied_additive_vertices is False:
             # implied_additive_vertices is False means infeasible or too few slopes.
-            # continue to next face in candidate_face_set
+            # continue to next face in candidate_faces
             for v in implied_additive_vertices:
                 if (v[0] <= v[1]) and (not v in additive_vertices) and legal_picked:
                     additive_vertices.add(v)
@@ -190,10 +191,10 @@ def paint_complex(q, f, last_additive_vertices, last_faces_set, last_covered_int
                                 faces_set.add(face)
                                 covered_intervals = directly_covered_by_adding_face(covered_intervals, face)
             if legal_picked:
-                new_candidate_face_set = generate_candidate_face_set(q, f, covered_intervals, face_picked, non_candidate)
-                if not new_candidate_face_set:
+                new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, face_picked)
+                if not new_candidate_faces:
                     # stop recursion
-                    if not generate_to_cover_set(q, covered_intervals):
+                    if not generate_to_cover(q, covered_intervals):
                         # all covered, finish
                         ######### debug...
                         #print "    Painting exists for q = %s, f = %s" % (q, f)
@@ -203,7 +204,7 @@ def paint_complex(q, f, last_additive_vertices, last_faces_set, last_covered_int
                         yield additive_vertices, faces_set, covered_intervals
                 else:
                     for additive_vertices, faces_set, covered_intervals in \
-                            paint_complex(q, f, additive_vertices, faces_set, covered_intervals, new_candidate_face_set, non_candidate):
+                            paint_complex(q, f, additive_vertices, faces_set, covered_intervals, new_candidate_faces, non_candidate):
                         yield additive_vertices, faces_set, covered_intervals
         ##### debug...
         #    else:
@@ -214,10 +215,9 @@ def paint_complex(q, f, last_additive_vertices, last_faces_set, last_covered_int
         #    print "disselect this face %s" % face_picked
         #picked_face_set.remove(face_picked)
         #### ...
-        #candidate_face_set.remove(face_picked)
         non_candidate.add(face_picked)
 
-def generate_candidate_face_set(q, f, covered, last_face=None, non_candidate=set([])):
+def generate_candidate_faces(q, f, covered, last_face=None):
     """
     Return a set of candidate_faces (lexicographically > last_face, not in non_candidate)
     to paint in next step, whose I, J are currently uncovered.
@@ -228,41 +228,42 @@ def generate_candidate_face_set(q, f, covered, last_face=None, non_candidate=set
         sage: q = 5; f = 3/5; num_of_slopes = 2;
         sage: additive_vertices, faces_set, covered_intervals = \
         ...     initial_vertices_faces_and_covered_intervals(q, f)
-        sage: candidate_face_set = generate_candidate_face_set(q, f, covered_intervals, None, set([]))
+        sage: candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
+        sage: candidate_faces
         set([<Face ([1/5, 2/5], [1/5, 2/5], [2/5, 3/5])>, <Face ([1/5, 2/5], [1/5, 2/5], [3/5, 4/5])>])
     """
-    to_cover = generate_to_cover_set(q, covered)
+    to_cover = generate_to_cover(q, covered)
     # NOTE: candidate_faces only takes faces with x <= y
-    candidate_faces = set([])
+    candidate_faces = []
     for x in to_cover:
         for y in to_cover:
             if x <= y:
                 #if (x + y) in to_cover:
                 face = Face(([x, x + 1/q], [y, y + 1/q], [x + y, x + y + 1/q]))
                 if (last_face is None or face > last_face):
-                    candidate_faces.add(face)
+                    candidate_faces.append(face)
                 #if (x + y + 1/q) in to_cover:
                 face = Face(([x, x + 1/q], [y, y + 1/q], [x + y + 1/q, x + y + 2/q]))
                 if (last_face is None or face > last_face):
-                    candidate_faces.add(face)
-    return candidate_faces - non_candidate
+                    candidate_faces.append(face)
+    return candidate_faces
 
-def generate_to_cover_set(q, covered):
+def generate_to_cover(q, covered):
     """
     Return a set {k/q | 0 <=k < q, [k/q, (k+1)/q] is uncovered}
 
     EXAMPLES::
 
         sage: covered_intervals = [[[0, 1/5], [2/5, 3/5]], [[3/5, 4/5], [4/5, 1]]]
-        sage: generate_to_cover_set(5, covered_intervals)
-        set([1/5])
+        sage: generate_to_cover(5, covered_intervals)
+        [1/5]
     """
     to_cover = set([x/q for x in range(q)])
     for component in covered:
         for i in component:
             for x in range(i[0]*q, i[1]*q):
                 to_cover.discard(x/q)
-    return to_cover
+    return sorted(list(to_cover))
 
 def generate_implied_additive_vertices(q, f, additive_vertices, covered_intervals):
     """
@@ -280,8 +281,8 @@ def generate_implied_additive_vertices(q, f, additive_vertices, covered_interval
         sage: generate_implied_additive_vertices(q, f, additive_vertices, covered_intervals)
         False
     """
-    to_cover_set = generate_to_cover_set(q, covered_intervals)
-    uncovered_components = [[[x, x + 1/q]] for x in to_cover_set]
+    to_cover = generate_to_cover(q, covered_intervals)
+    uncovered_components = [[[x, x + 1/q]] for x in to_cover]
     components = covered_intervals  + uncovered_components
     # stop backtracking if there are too fews slopes.
     if len(components) < num_of_slopes:
@@ -419,10 +420,10 @@ def generate_vertex_function(q, f, fn_sym, additive_vertices):
 
 def search_6slope_example(q, f):
     last_additive_vertices, last_faces_set, last_covered_intervals = initial_vertices_faces_and_covered_intervals(q, f)
-    candidate_face_set = generate_candidate_face_set(q, f, last_covered_intervals, None, set([]))
+    candidate_faces = generate_candidate_faces(q, f, last_covered_intervals, None)
     found = False
     for additive_vertices, green_faces, covered_intervals in \
-            paint_complex(q, f, last_additive_vertices, last_faces_set, last_covered_intervals, candidate_face_set, set([])):
+            paint_complex(q, f, last_additive_vertices, last_faces_set, last_covered_intervals, candidate_faces, set([])):
         if len(covered_intervals) >= num_of_slopes:
             # otherwise, too few slopes in covered_intervals, continue to the next attempt.
             fn_sym = generate_symbolic_continuous(None, covered_intervals, field=QQ)
