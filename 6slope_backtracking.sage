@@ -5,8 +5,14 @@
 
 import random
 
-global num_of_slopes
+#global num_of_slopes
 num_of_slopes = 6 # set to 6 as we are looking for 6-slope functions
+
+#global to_check_implied
+to_check_implied = 0
+
+#global check_implied_period
+check_implied_period = 2
 
 def trivial_additive_vertices_for_paint_complex(q, f):
     """
@@ -126,6 +132,7 @@ def directly_covered_by_adding_face(last_covered_intervals, face):
 ######
 #global picked_face_set
 #picked_face_set = set([])
+#npick = -1
 ######
 
 def paint_complex(q, f, last_additive_vertices, last_faces_set, last_covered_intervals, \
@@ -146,8 +153,13 @@ def paint_complex(q, f, last_additive_vertices, last_faces_set, last_covered_int
         sage: plot_painted_faces(q, green_faces)
     """
     non_candidate = copy(last_non_candidate)
+    num_candidate_faces = len(candidate_faces)
     n = 0
-    while n < len(candidate_faces):
+    ### debug
+    #global npick
+    #npick += 1
+    ###
+    while n < num_candidate_faces:
         face_picked = candidate_faces[n]
         n += 1
         ###### debug...
@@ -174,48 +186,78 @@ def paint_complex(q, f, last_additive_vertices, last_faces_set, last_covered_int
         if not legal_picked:
             non_candidate.add(face_picked)
             continue
-        implied_additive_vertices = generate_implied_additive_vertices(q, f, additive_vertices, covered_intervals)
-        if not implied_additive_vertices is False:
-            # implied_additive_vertices is False means infeasible or too few slopes.
-            # continue to next face in candidate_faces
-            for v in implied_additive_vertices:
-                if (v[0] <= v[1]) and (not v in additive_vertices) and legal_picked:
-                    additive_vertices.add(v)
-                    for face in faces_around_vertex(q, v):
-                        if not face in faces_set and \
-                               additive_vertices.issuperset([(x,y) for (x,y) in face.vertices if x <= y]):
-                            if face in non_candidate:
-                                legal_picked = False
-                                break
-                            else:
-                                faces_set.add(face)
-                                covered_intervals = directly_covered_by_adding_face(covered_intervals, face)
-            if legal_picked:
-                new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, face_picked)
-                if not new_candidate_faces:
-                    # stop recursion
-                    if not generate_to_cover(q, covered_intervals):
-                        # all covered, finish
-                        ######### debug...
-                        #print "    Painting exists for q = %s, f = %s" % (q, f)
-                        #plot_painted_faces(q, faces_set).show(show_legend=False)
-                        #print picked_face_set
-                        ######### ...
-                        yield additive_vertices, faces_set, covered_intervals
-                else:
-                    for additive_vertices, faces_set, covered_intervals in \
-                            paint_complex(q, f, additive_vertices, faces_set, covered_intervals, new_candidate_faces, non_candidate):
-                        yield additive_vertices, faces_set, covered_intervals
-        ##### debug...
-        #    else:
-        #        # infeasible. continue to next face in candidate_face_set
-        #        print "disselect this face %s" % face_picked
-        #else:
-        #    # infeasible. continue to next face in candidate_face_set
-        #    print "disselect this face %s" % face_picked
-        #picked_face_set.remove(face_picked)
-        #### ...
+
+        global to_check_implied
+        to_check_implied += 1
+        if to_check_implied == check_implied_period:
+            to_check_implied = 0
+            ### debug
+            #nface = len(faces_set)
+            #ntocover =len(generate_to_cover(q, covered_intervals))
+            ###
+            implied_additive_vertices = generate_implied_additive_vertices(q, f, additive_vertices, covered_intervals)
+            if implied_additive_vertices is False:
+                # implied_additive_vertices is False means infeasible or too few slopes.
+                # continue to next face in candidate_faces
+                legal_picked = False
+            else:
+                for v in implied_additive_vertices:
+                    if (v[0] <= v[1]) and (not v in additive_vertices) and legal_picked:
+                        additive_vertices.add(v)
+                        for face in faces_around_vertex(q, v):
+                            if not face in faces_set and \
+                                   additive_vertices.issuperset([(x,y) for (x,y) in face.vertices if x <= y]):
+                                if face in non_candidate:
+                                    legal_picked = False
+                                    break
+                                else:
+                                    faces_set.add(face)
+                                    covered_intervals = directly_covered_by_adding_face(covered_intervals, face)
+            ###debug
+            #for i in range(npick):
+            #    print '',
+            #if implied_additive_vertices is False:
+            #    print 'stop',
+            #else:
+            #    print len(implied_additive_vertices),
+            #print len(faces_set)-nface,
+            #print ntocover - len(generate_to_cover(q, covered_intervals))
+            ###
+        # If infeasible or encounter non_candidate or
+        # only few slopes are possible given current covered_intervals, stop recursion.
+        if legal_picked and num_slopes_at_best(q, covered_intervals) >= num_of_slopes:
+            new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, face_picked)
+            if not new_candidate_faces:
+                # stop recursion
+                if not generate_to_cover(q, covered_intervals):
+                    # all covered, finish
+                    ######### debug...
+                    #print "    Painting exists for q = %s, f = %s" % (q, f)
+                    #plot_painted_faces(q, faces_set).show(show_legend=False)
+                    #print picked_face_set
+                    ######### ...
+                    yield additive_vertices, faces_set, covered_intervals
+            else:
+                for additive_vertices, faces_set, covered_intervals in \
+                        paint_complex(q, f, additive_vertices, faces_set, covered_intervals, new_candidate_faces, non_candidate):
+                    yield additive_vertices, faces_set, covered_intervals
         non_candidate.add(face_picked)
+    ###debug
+    #npick -= 1
+    ###
+
+def num_slopes_at_best(q, covered_intervals):
+    """
+    Return an upper bound on the final number of slopes given current covered_intervals.
+
+    EXAMPLES::
+
+        sage: covered_intervals = [[[0, 1/5], [2/5, 3/5]], [[3/5, 4/5], [4/5, 1]]]
+        sage: num_slopes_at_best(5, covered_intervals)
+        3
+    """
+    uncovered_num = q - sum([len(component) for component in covered_intervals])
+    return uncovered_num + len(covered_intervals)
 
 def generate_candidate_faces(q, f, covered, last_face=None):
     """
@@ -414,9 +456,10 @@ def generate_vertex_function(q, f, fn_sym, additive_vertices):
             #    print "%s gives a %s-slope function. Ignore" % (x, k)
             #    # this will probably print many lines
             ####### ...
-    else:
-        # this shouldn't happen!
-        print "p.is_empty() is True"
+    #else:
+        # this shouldn't happen! 
+        # This can happen if we only check generate_implied_additive_vertices once in a while
+        #print "p.is_empty() is True"
 
 def search_6slope_example(q, f):
     last_additive_vertices, last_faces_set, last_covered_intervals = initial_vertices_faces_and_covered_intervals(q, f)
