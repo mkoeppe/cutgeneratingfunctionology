@@ -1,102 +1,169 @@
 # backtracking search for 6-slope extreme functions, 
-# using incremental computation for additive_vertices, additive_faces and covered_intervals.
-# do not consider translation/reflection other than the symmetry reflection regarding f. (so, no edge-merge)
-# copy-paste from 2q_search.sage and edited.
+# using incremental computation for vertices_color, additive_faces and covered_intervals.
+# do not consider translation/reflection other than the symmetry reflection regarding f. (so, no edge-merge).
+# incremental polyhedral computation for implied green vertices,
+# using http://www.sagemath.org/doc/reference/libs/sage/libs/ppl.html#sage.libs.ppl.Polyhedron.minimize
 
-import random
+# Note: vertices_color (q+1)*(q+1) 0-1 array, 0: green, 1: white.
+# vertices have integer coordinates, k is integer in function value fn(k).
+# faces, covered_intervals have rational coordinates.
+# only record vertex (x,y) with x <=y and F(I,J,K) with I <= J.
+# polytope defines the feasible region of (fn(0), fn(1/q),...,fn(1)).
+
+from sage.libs.ppl import C_Polyhedron, Constraint, Constraint_System, Generator, Generator_System, Variable, point
+import numpy
 
 #global num_of_slopes
 num_of_slopes = 6 # set to 6 as we are looking for 6-slope functions
 
-#global to_check_implied
-to_check_implied = 0
-
-#global check_implied_period
-check_implied_period = 2
-
-def trivial_additive_vertices_for_paint_complex(q, f):
+def initial_vertices_color(q, f):
     """
-    Return additive_vertices (x<=y) corresonding to
+    paint green ( = 0) for vertices (x<=y) corresonding to
     fn(0) = 0, fn(1) = 0 and reflection around f/2 and (1-f)/2.
 
-    Examples::
+    EXAMPLES::
 
-        sage: trivial_additive_vertices_for_paint_complex(5, 3/5)
-        set([(0, 4/5), (0, 1), (1/5, 2/5), (0, 0), (2/5, 1), (3/5, 1), (4/5, 4/5), (0, 2/5), (1, 1), (0, 3/5), (0, 1/5), (1/5, 1), (4/5, 1)])
+        sage: initial_vertices_color(5, 3/5)
+        array([[0, 0, 0, 0, 0, 0],
+               [1, 1, 0, 1, 1, 0],
+               [1, 1, 1, 1, 1, 0],
+               [1, 1, 1, 1, 1, 0],
+               [1, 1, 1, 1, 0, 0],
+               [1, 1, 1, 1, 1, 0]])
     """
-    additive_vertices = set([])
-    bkpt = [x/q for x in range(q+1)]
+    vertices_color = numpy.ones((q+1,q+1),int)
+    # color: 1-white; 0-green
+    ff = int(f*q)
     # border x = 0 and border y = 0 are green
-    for x in bkpt:
-        additive_vertices.add((0, x))
-    for x in bkpt[1::]:
-        additive_vertices.add((x, 1))
+    for x in range(q+1):
+        vertices_color[0, x] = 0
+        vertices_color[x, q] = 0
     # diagonals corresponding to f
-    for x in bkpt:
-        if x <= f/2:
-            additive_vertices.add((x, f - x))
-        elif (x >= f) and (x <= f -x +1):
-            additive_vertices.add((x, f - x + 1))
-    return additive_vertices
+    for x in range(q+1):
+        if x <= ff/2:
+            vertices_color[x, ff - x] = 0
+        elif (x >= ff) and (x <= ff - x + q):
+            vertices_color[x, ff - x + q] = 0
+    return vertices_color
 
-def initial_vertices_faces_and_covered_intervals(q, f):
+def initial_faces_and_covered_intervals(q, f, vertices_color):
     """
-    Return additive_vertices, additive_faces_set and covered_intervals,
+    Return additive_faces_set and covered_intervals,
     corresponding to fn(0) = 0, fn(1) = 0 and reflection around f/2 and (1-f)/2.
 
     EXAMPLES::
 
-        sage: additive_vertices, faces_set, covered_intervals = initial_vertices_faces_and_covered_intervals(5, 3/5);
+        sage: q=5; f=3/5;
+        sage: vertices_color = initial_vertices_color(q, f);
+        sage: faces_set, covered_intervals = initial_faces_and_covered_intervals(q, f, vertices_color)
         sage: faces_set
-        set([<Face ([3/5, 4/5], [4/5, 1], [8/5, 9/5])>, <Face ([4/5, 1], [4/5, 1], [9/5, 2])>, <Face ([0, 1/5], [0, 1/5], [0, 1/5])>, <Face ([4/5, 1], [4/5, 1], [8/5, 9/5])>, <Face ([0, 1/5], [2/5, 3/5], [2/5, 3/5])>])
+        set([<Face ([3/5, 4/5], [4/5, 1], [8/5, 9/5])>, <Face ([4/5, 1], [4/5, 1], [9/5, 2])>, 
+             <Face ([0, 1/5], [0, 1/5], [0, 1/5])>, <Face ([4/5, 1], [4/5, 1], [8/5, 9/5])>, 
+             <Face ([0, 1/5], [2/5, 3/5], [2/5, 3/5])>])
         sage: covered_intervals
         [[[0, 1/5], [2/5, 3/5]], [[3/5, 4/5], [4/5, 1]]]
     """
-    additive_vertices = trivial_additive_vertices_for_paint_complex(q, f)
     faces_set = set([])
     covered_intervals = []
-    for xx in range(q):
-        for yy in range(xx, q):
-            for zz in range(2):
-                face = Face(([xx/q, (xx+1)/q], [yy/q, (yy+1)/q], [(xx+yy+zz)/q, (xx+yy+zz+1)/q]))
-                if additive_vertices.issuperset([(x,y) for (x,y) in face.vertices if x <= y]):
+    for x in range(q):
+        for y in range(x, q):
+            for z in range(2):
+                face = Face(([x/q, (x+1)/q], [y/q, (y+1)/q], [(x+y+z)/q, (x+y+z+1)/q]))
+                if x < y:
+                    vertices = [(x+1, y), (x, y+1), (x+z, y+z)]
+                else:
+                    vertices = [(x, y+1), (x+z, y+z)]
+                if sum(vertices_color[v] for v in vertices) == 0 :
                     faces_set.add(face)
-                    covered_intervals = directly_covered_by_adding_face(covered_intervals, face)
-    return additive_vertices, faces_set, covered_intervals
+                    covered_intervals = directly_covered_by_adding_face(covered_intervals, face, f)
+    return faces_set, covered_intervals
 
-def faces_around_vertex(q, v):
+def initial_polytope(q, f, vertices_color):
     """
-    Given a grid vertex v (v[0] <= v[1]), return small triangle faces (I <= J) that are around v.
+    Return the initial polytope that defines 
+    the feasible region of (fn(0), fn(1/q),...,fn(1))
 
     EXAMPLES::
 
-        sage: faces_around_vertex(5, (1/5, 2/5))
-        [<Face ([0, 1/5], [2/5, 3/5], [2/5, 3/5])>, <Face ([0, 1/5], [2/5, 3/5], [3/5, 4/5])>, <Face ([1/5, 2/5], [2/5, 3/5], [3/5, 4/5])>, <Face ([0, 1/5], [1/5, 2/5], [2/5, 3/5])>, <Face ([1/5, 2/5], [1/5, 2/5], [2/5, 3/5])>, <Face ([1/5, 2/5], [1/5, 2/5], [3/5, 4/5])>]
-        sage: faces_around_vertex(5, (1/5, 1/5))
-        [<Face ([0, 1/5], [1/5, 2/5], [1/5, 2/5])>, <Face ([0, 1/5], [1/5, 2/5], [2/5, 3/5])>, <Face ([1/5, 2/5], [1/5, 2/5], [2/5, 3/5])>, <Face ([0, 1/5], [0, 1/5], [1/5, 2/5])>]
+        sage: q=5; f=3/5;
+        sage: vertices_color = initial_vertices_color(q, f);
+        sage: polytope = initial_polytope(q, f, vertices_color)
+        sage: polytope.minimized_generators()
+        Generator_System {point(0/4, 3/4, 1/4, 4/4, 2/4, 0/4), 
+                          point(0/6, 2/6, 4/6, 6/6, 3/6, 0/6)}
     """
-    (x, y) = v
-    if x > y:
+    polytope = C_Polyhedron(q + 1, 'universe')
+    fn = [ Variable(i) for i in range(q+1) ]
+
+    polytope.add_constraint(fn[0] == 0)
+    polytope.add_constraint(fn[q] == 0)
+    polytope.add_constraint(fn[int(f*q)] == 1)
+    for i in range(1,q):
+        polytope.add_constraint(fn[i] >= 0)
+        polytope.add_constraint(fn[i] <= 1)
+    # symmetry is taken care by initial green vertices
+
+    for x in range(1, q):
+        for y in range(x, q):
+            z = (x + y) % q
+            if vertices_color[x, y] == 0:
+                polytope.add_constraint(fn[x] + fn[y] == fn[z])
+            else:
+                polytope.add_constraint(fn[x] + fn[y] >= fn[z])
+    return polytope
+
+def faces_around_vertex(q, v):
+    """
+    Given a grid vertex v (integers, v[0] <= v[1]), return small triangle faces (QQ, I <= J)
+    and their vertices (integers, xx <= yy) that are around v.
+
+    EXAMPLES::
+
+        sage: faces_around_vertex(5, (1, 2))
+        [(<Face ([0, 1/5], [2/5, 3/5], [2/5, 3/5])>, [(0, 2), (1, 2), (0, 3)]), 
+         (<Face ([0, 1/5], [2/5, 3/5], [3/5, 4/5])>, [(1, 2), (0, 3), (1, 3)]), 
+         (<Face ([1/5, 2/5], [2/5, 3/5], [3/5, 4/5])>, [(1, 2), (2, 2), (1, 3)]), 
+         (<Face ([0, 1/5], [1/5, 2/5], [2/5, 3/5])>, [(1, 1), (0, 2), (1, 2)]), 
+         (<Face ([1/5, 2/5], [1/5, 2/5], [2/5, 3/5])>, [(1, 1), (1, 2)]), 
+         (<Face ([1/5, 2/5], [1/5, 2/5], [3/5, 4/5])>, [(1, 2), (2, 2)])]
+        sage: faces_around_vertex(5, (1, 1))
+        [(<Face ([0, 1/5], [1/5, 2/5], [1/5, 2/5])>, [(0, 1), (1, 1), (0, 2)]), 
+         (<Face ([0, 1/5], [1/5, 2/5], [2/5, 3/5])>, [(1, 1), (0, 2), (1, 2)]), 
+         (<Face ([1/5, 2/5], [1/5, 2/5], [2/5, 3/5])>, [(1, 1), (1, 2)]), 
+         (<Face ([0, 1/5], [0, 1/5], [1/5, 2/5])>, [(0, 1), (1, 1)])]
+    """
+    (xx, yy) = v
+    if xx > yy:
         return []
     # Note: v[0]<=v[1]; only return faces with I <= J
-    xl = x - 1/q
-    xr = x + 1/q
-    yl = y - 1/q
-    yr = y + 1/q
-    faces =[ \
-           Face(([xl, x],[y, yr],[xl+y, xl+y+1/q])), \
-           Face(([xl, x],[y, yr],[xl+y+1/q, xl+y+2/q])), \
-           Face(([x, xr],[y, yr],[x+y, x+y+1/q])), \
-           Face(([xl, x],[yl, y],[xl+yl+1/q, xl+yl+2/q])), \
-           ]
-    if x <= yl:
-        faces += [ \
-                 Face(([x, xr],[yl, y],[x+yl, xl+y+1/q])), \
-                 Face(([x, xr],[yl, y],[x+yl+1/q, xl+y+2/q])), \
-                 ]
-    return faces
+    xl = xx - 1
+    xr = xx + 1
+    yl = yy - 1
+    yr = yy + 1
+    if xx < yl:
+        return [ \
+           (Face(([xl/q, xx/q],[yy/q, yr/q],[(xl+yy)/q, (xl+yy+1)/q])), [(xl, yy), (xx, yy), (xl, yr)]), \
+           (Face(([xl/q, xx/q],[yy/q, yr/q],[(xl+yy+1)/q, (xl+yy+2)/q])), [(xx, yy), (xl, yr), (xx, yr)]), \
+           (Face(([xx/q, xr/q],[yy/q, yr/q],[(xx+yy)/q, (xx+yy+1)/q])), [(xx, yy), (xr, yy), (xx, yr)]), \
+           (Face(([xl/q, xx/q],[yl/q, yy/q],[(xl+yl+1)/q, (xl+yl+2)/q])), [(xx, yl), (xl, yy), (xx, yy)]),\
+           (Face(([xx/q, xr/q],[yl/q, yy/q],[(xx+yl)/q, (xl+yy+1)/q])), [(xx, yl), (xr, yl), (xx, yy)]), \
+           (Face(([xx/q, xr/q],[yl/q, yy/q],[(xx+yl+1)/q, (xl+yy+2)/q])), [(xx, yy),(xr, yl),(xr, yy)]) ]
+    elif xx == yl:
+        return [ \
+           (Face(([xl/q, xx/q],[yy/q, yr/q],[(xl+yy)/q, (xl+yy+1)/q])), [(xl, yy), (xx, yy), (xl, yr)]), \
+           (Face(([xl/q, xx/q],[yy/q, yr/q],[(xl+yy+1)/q, (xl+yy+2)/q])), [(xx, yy), (xl, yr), (xx, yr)]), \
+           (Face(([xx/q, xr/q],[yy/q, yr/q],[(xx+yy)/q, (xx+yy+1)/q])), [(xx, yy), (xr, yy), (xx, yr)]), \
+           (Face(([xl/q, xx/q],[yl/q, yy/q],[(xl+yl+1)/q, (xl+yl+2)/q])), [(xx, yl), (xl, yy), (xx, yy)]),\
+           (Face(([xx/q, xr/q],[yl/q, yy/q],[(xx+yl)/q, (xl+yy+1)/q])), [(xx, yl), (xx, yy)]), \
+           (Face(([xx/q, xr/q],[yl/q, yy/q],[(xx+yl+1)/q, (xl+yy+2)/q])), [(xx, yy),(xr, yy)]) ]
+    else:
+        return [ \
+           (Face(([xl/q, xx/q],[yy/q, yr/q],[(xl+yy)/q, (xl+yy+1)/q])), [(xl, yy), (xx, yy), (xl, yr)]), \
+           (Face(([xl/q, xx/q],[yy/q, yr/q],[(xl+yy+1)/q, (xl+yy+2)/q])), [(xx, yy), (xl, yr), (xx, yr)]), \
+           (Face(([xx/q, xr/q],[yy/q, yr/q],[(xx+yy)/q, (xx+yy+1)/q])), [(xx, yy), (xx, yr)]), \
+           (Face(([xl/q, xx/q],[yl/q, yy/q],[(xl+yl+1)/q, (xl+yl+2)/q])), [(xl, yy), (xx, yy)])]
 
-def directly_covered_by_adding_face(last_covered_intervals, face):
+def directly_covered_by_adding_face(last_covered_intervals, face, f):
     """
     Compute incrementally new covered_intervals by adding a new face.
     Consider only directly covered and symmetry reflection regarding f.
@@ -105,7 +172,7 @@ def directly_covered_by_adding_face(last_covered_intervals, face):
 
         sage: last_covered_intervals = [[[0, 1/5], [2/5, 3/5]], [[3/5, 4/5], [4/5, 1]]]
         sage: face = Face(([1/5, 2/5], [1/5, 2/5], [3/5, 4,5]))
-        sage: directly_covered_by_adding_face(last_covered_intervals, face)
+        sage: directly_covered_by_adding_face(last_covered_intervals, face, 3/5)
         [[[0, 1/5], [2/5, 3/5]], [[1/5, 2/5], [3/5, 4/5], [4/5, 1]]]
     """
     covered_intervals = copy(last_covered_intervals)
@@ -129,100 +196,81 @@ def directly_covered_by_adding_face(last_covered_intervals, face):
     covered_intervals = remove_empty_comp(covered_intervals)
     return covered_intervals
 
-######
-#global picked_face_set
-#picked_face_set = set([])
-#npick = -1
-######
-
-def paint_complex(q, f, last_additive_vertices, last_faces_set, last_covered_intervals, \
-                  candidate_faces, last_non_candidate):
+def paint_complex(q, f, last_vertices_color, last_faces_set, last_covered_intervals, \
+                  candidate_faces, last_non_candidate, last_polytope):
     """
     Randomly paint triangles green in a 2d-complex, until all intervals are covered.
-    Return additive_vertices, green_faces and covered_intervals if a possible way of painting is found,
-    otherwise, return False
+    Return the polytope which defines the feasible region of (fn(0), fn(1/q),...,fn(1)) for that paint_complex
 
     EXAMPLES::
-
         sage: q = 5; f = 3/5; num_of_slopes = 2;
-        sage: additive_vertices, faces_set, covered_intervals = \
-        ...     initial_vertices_faces_and_covered_intervals(q, f)
+        sage: vertices_color = initial_vertices_color(q, f);
+        sage: faces_set, covered_intervals = initial_faces_and_covered_intervals(q, f, vertices_color)
+        sage: polytope = initial_polytope(q, f, vertices_color)
         sage: candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
-        sage: additive_vertices, green_faces, covered_intervals = \
-        ...     paint_complex(q, f, additive_vertices, faces_set, covered_intervals, candidate_faces, set([])).next()
-        sage: plot_painted_faces(q, green_faces)
+        sage: for result_polytope in paint_complex(q, f, vertices_color, faces_set, covered_intervals, candidate_faces, set([]), polytope):
+        ...       print result_polytope.minimized_generators()
+        Generator_System {point(0/6, 2/6, 4/6, 6/6, 3/6, 0/6)}
+        Generator_System {point(0/4, 3/4, 1/4, 4/4, 2/4, 0/4)}
     """
     non_candidate = copy(last_non_candidate)
     num_candidate_faces = len(candidate_faces)
     n = 0
-    ### debug
-    #global npick
-    #npick += 1
-    ###
     while n < num_candidate_faces:
         face_picked = candidate_faces[n]
         n += 1
-        ###### debug...
-        #print face_picked
-        #picked_face_set.add(face_picked)
-        ###### ...
         faces_set = copy(last_faces_set)
         faces_set.add(face_picked)
-        additive_vertices = copy(last_additive_vertices)
-        covered_intervals = directly_covered_by_adding_face(last_covered_intervals, face_picked)
+        vertices_color = copy(last_vertices_color)
+        covered_intervals = directly_covered_by_adding_face(last_covered_intervals, face_picked, f)
+        polytope = copy(last_polytope)
+
         legal_picked = True
-        for v in face_picked.vertices:
-            if (v[0] <= v[1]) and (not v in additive_vertices) and legal_picked:
-                additive_vertices.add(v)
-                for face in faces_around_vertex(q, v):
-                    if not face in faces_set and \
-                           additive_vertices.issuperset([(x,y) for (x,y) in face.vertices if x <= y]):
+        for v_green in face_picked.vertices:
+            x = int(v_green[0] * q)
+            y = int(v_green[1] * q)
+            if (x <= y) and (vertices_color[x, y] == 1) and legal_picked:
+                # new green vertice
+                vertices_color[x, y] = 0
+                # update polytope
+                z = (x + y) % q
+                polytope.add_constraint( Variable(x) + Variable(y) == Variable(z) )
+                for (face, vertices) in faces_around_vertex(q, (x, y)):
+                    if not face in faces_set and sum(vertices_color[v] for v in vertices) == 0:
+                        # find new green face.
                         if face in non_candidate:
                             legal_picked = False
                             break
                         else:
                             faces_set.add(face)
-                            covered_intervals = directly_covered_by_adding_face(covered_intervals, face)
-        if not legal_picked:
+                            covered_intervals = directly_covered_by_adding_face(covered_intervals, face, f)
+        if polytope.is_empty() or not legal_picked or num_slopes_at_best(q, covered_intervals) < num_of_slopes:
+            # If infeasible or encounter non_candidate or too few slopes, stop recursion.
             non_candidate.add(face_picked)
             continue
-
-        global to_check_implied
-        to_check_implied += 1
-        if to_check_implied == check_implied_period:
-            to_check_implied = 0
-            ### debug
-            #nface = len(faces_set)
-            #ntocover =len(generate_to_cover(q, covered_intervals))
-            ###
-            implied_additive_vertices = generate_implied_additive_vertices(q, f, additive_vertices, covered_intervals)
-            if implied_additive_vertices is False:
-                # implied_additive_vertices is False means infeasible or too few slopes.
-                # continue to next face in candidate_faces
-                legal_picked = False
-            else:
-                for v in implied_additive_vertices:
-                    if (v[0] <= v[1]) and (not v in additive_vertices) and legal_picked:
-                        additive_vertices.add(v)
-                        for face in faces_around_vertex(q, v):
-                            if not face in faces_set and \
-                                   additive_vertices.issuperset([(x,y) for (x,y) in face.vertices if x <= y]):
-                                if face in non_candidate:
-                                    legal_picked = False
-                                    break
-                                else:
-                                    faces_set.add(face)
-                                    covered_intervals = directly_covered_by_adding_face(covered_intervals, face)
-            ###debug
-            #for i in range(npick):
-            #    print '',
-            #if implied_additive_vertices is False:
-            #    print 'stop',
-            #else:
-            #    print len(implied_additive_vertices),
-            #print len(faces_set)-nface,
-            #print ntocover - len(generate_to_cover(q, covered_intervals))
-            ###
+        # look for implied additive vertices
+        for x in range(1, q):
+            for y in range(x, q):
+                if legal_picked and (vertices_color[x, y] == 1):
+                    z = (x + y) % q
+                    # FIXME: try "relation_with"!
+                    if polytope.maximize(Variable(x) + Variable(y) - Variable(z))['sup_n'] == 0:
+                        # find implied additive vertices
+                        vertices_color[x, y] = 0
+                        polytope.add_constraint( Variable(x) + Variable(y) == Variable(z) )
+                        if polytope.is_empty():
+                            legal_picked = False
+                            break
+                        else:
+                            for (face, vertices) in faces_around_vertex(q, (x, y)):
+                                if not face in faces_set and sum(vertices_color[v] for v in vertices) == 0:
+                                    # find new green face.
+                                    if face in non_candidate:
+                                        legal_picked = False
+                                        break
+                                    else:
+                                        faces_set.add(face)
+                                        covered_intervals = directly_covered_by_adding_face(covered_intervals, face, f)
         # If infeasible or encounter non_candidate or
         # only few slopes are possible given current covered_intervals, stop recursion.
         if legal_picked and num_slopes_at_best(q, covered_intervals) >= num_of_slopes:
@@ -231,20 +279,12 @@ def paint_complex(q, f, last_additive_vertices, last_faces_set, last_covered_int
                 # stop recursion
                 if not generate_to_cover(q, covered_intervals):
                     # all covered, finish
-                    ######### debug...
-                    #print "    Painting exists for q = %s, f = %s" % (q, f)
-                    #plot_painted_faces(q, faces_set).show(show_legend=False)
-                    #print picked_face_set
-                    ######### ...
-                    yield additive_vertices, faces_set, covered_intervals
+                    yield polytope
             else:
-                for additive_vertices, faces_set, covered_intervals in \
-                        paint_complex(q, f, additive_vertices, faces_set, covered_intervals, new_candidate_faces, non_candidate):
-                    yield additive_vertices, faces_set, covered_intervals
+                for result_polytope in paint_complex(q, f, vertices_color, faces_set, \
+                        covered_intervals, new_candidate_faces, non_candidate, polytope):
+                    yield result_polytope
         non_candidate.add(face_picked)
-    ###debug
-    #npick -= 1
-    ###
 
 def num_slopes_at_best(q, covered_intervals):
     """
@@ -259,7 +299,7 @@ def num_slopes_at_best(q, covered_intervals):
     uncovered_num = q - sum([len(component) for component in covered_intervals])
     return uncovered_num + len(covered_intervals)
 
-def generate_candidate_faces(q, f, covered, last_face=None):
+def generate_candidate_faces(q, f, covered_intervals, last_face=None):
     """
     Return a set of candidate_faces (lexicographically > last_face, not in non_candidate)
     to paint in next step, whose I, J are currently uncovered.
@@ -268,13 +308,12 @@ def generate_candidate_faces(q, f, covered, last_face=None):
     EXAMPLES::
 
         sage: q = 5; f = 3/5; num_of_slopes = 2;
-        sage: additive_vertices, faces_set, covered_intervals = \
-        ...     initial_vertices_faces_and_covered_intervals(q, f)
-        sage: candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
-        sage: candidate_faces
+        sage: vertices_color = initial_vertices_color(q, f);
+        sage: faces_set, covered_intervals = initial_faces_and_covered_intervals(q, f, vertices_color)
+        sage: generate_candidate_faces(q, f, covered_intervals, None)
         set([<Face ([1/5, 2/5], [1/5, 2/5], [2/5, 3/5])>, <Face ([1/5, 2/5], [1/5, 2/5], [3/5, 4/5])>])
     """
-    to_cover = generate_to_cover(q, covered)
+    to_cover = generate_to_cover(q, covered_intervals)
     # NOTE: candidate_faces only takes faces with x <= y
     candidate_faces = []
     for x in to_cover:
@@ -290,7 +329,7 @@ def generate_candidate_faces(q, f, covered, last_face=None):
                     candidate_faces.append(face)
     return candidate_faces
 
-def generate_to_cover(q, covered):
+def generate_to_cover(q, covered_intervals):
     """
     Return a set {k/q | 0 <=k < q, [k/q, (k+1)/q] is uncovered}
 
@@ -301,58 +340,11 @@ def generate_to_cover(q, covered):
         [1/5]
     """
     to_cover = set([x/q for x in range(q)])
-    for component in covered:
+    for component in covered_intervals:
         for i in component:
             for x in range(i[0]*q, i[1]*q):
                 to_cover.discard(x/q)
     return sorted(list(to_cover))
-
-def generate_implied_additive_vertices(q, f, additive_vertices, covered_intervals):
-    """
-    Return new additive_vertices implied by the known additive_vertices
-
-    EXAMPLES::
-
-        sage: q = 5; f = 3/5; num_of_slopes = 2;
-        sage: additive_vertices = set([(0, 4/5), (0, 1), (1/5, 2/5), (0, 0), (2/5, 1), (3/5, 1), \
-        ...    (4/5, 1), (0, 2/5), (1, 1), (0, 3/5), (0, 1/5), (2/5, 2/5), (1/5, 1), (4/5, 4/5)])
-        sage: covered_intervals = [[[0, 1/5], [2/5, 3/5]], [[1/5, 2/5], [3/5, 4/5], [4/5, 1]]]
-        sage: generate_implied_additive_vertices(q, f, additive_vertices, covered_intervals)
-        set([(2/5, 4/5)])
-        sage: num_of_slopes = 3;
-        sage: generate_implied_additive_vertices(q, f, additive_vertices, covered_intervals)
-        False
-    """
-    to_cover = generate_to_cover(q, covered_intervals)
-    uncovered_components = [[[x, x + 1/q]] for x in to_cover]
-    components = covered_intervals  + uncovered_components
-    # stop backtracking if there are too fews slopes.
-    if len(components) < num_of_slopes:
-        return False
-    fn_sym = generate_symbolic_continuous(None, components, field=QQ)
-    ieqdic, eqndic = generate_ieqs_and_eqns(q, f, fn_sym, additive_vertices)
-    p = Polyhedron(ieqs = ieqdic.keys(), eqns = eqndic.keys())
-    if p.is_empty():
-        # infeasible
-        return False
-
-    implied_additive_vertices = set([])
-
-    for ieq in ieqdic.keys():
-        if is_implied_eq(ieq, p):
-            implied_additive_vertices.update(ieqdic[ieq])
-    return implied_additive_vertices
-
-def is_implied_eq(ieq, p):
-    """
-    Return if ieq <type 'tuple'> must hold with equality
-    on every vertices of polyhedron p
-    """
-    n = p.ambient_dim()
-    for x in p.vertices():
-        if sum([ x[i] * ieq[i + 1] for i in range(n) ]) != - ieq[0]:
-            return False
-    return True
 
 def plot_painted_faces(q, faces):
     """
@@ -373,106 +365,47 @@ def plot_painted_faces(q, faces):
         p += plot_projections_of_one_face(face, IJK_kwds)
     return p
 
-def generate_ieqs_and_eqns(q, f, fn_sym, additive_vertices):
+def generate_vertex_function(q, polytope):
     """
-    Return the equalities (by additivity) and inequalities (by subadditivity)
-    that the slope variables must satisfy.
+    Generate real valued functions corresponding to vertices of the polytope.
+    Return those functions that have required number of slope values.
 
-    Inputs:
-        q, f*q are integers
-
-        fn_sym is the symbolic function generated by considering covered_intervals:
-        intervals in the same component of a function must have the same slope value.
-        Take slope of the i-th component as the i-th unit vector. 
-        Then fn_sym maps x (\in [0,1]) to a vector of dim = number of components.
-
-        additive_vertices are the green points on the 2d-grid, 
-        where additivity is attained by fn_sym.
-
-    Output:
-        ieqdic, eqndic are dictionaries that maps ieq/eqn to 
-        the 2d-complex-vertices from which it comes;
-        key = ieq or eqn, value = set of 2d-complex-vertices.
+    EXAMPLES::
+        sage: q=5; f=3/5; num_of_slopes = 2;
+        sage: vertices_color = initial_vertices_color(q, f);
+        sage: polytope = initial_polytope(q, f, vertices_color)
+        sage: h = generate_vertex_function(q, polytope).next()
     """
-    ieqdic = {}
-    eqndic = {}
-    for x in range(q):
-        v = fn_sym(x/q)
-        ieq = tuple([0]) + tuple(v)  # fn(x/q) >= 0
-        if not ieq in ieqdic:
-            ieqdic[ieq]=set([])
-        ieq = tuple([1]) + tuple([-w for w in v]) #fn(x/q) <=1
-        if not ieq in ieqdic:
-            ieqdic[ieq]=set([])
-    # fn(0) = 0
-    eqn = tuple([0]) + tuple(fn_sym(0))
-    if not eqn in eqndic:
-        eqndic[eqn] = set([]) # or = [(0,0)]?
-    # fn(1) = 0
-    eqn = tuple([0]) + tuple(fn_sym(1))
-    if not eqn in eqndic:
-        eqndic[eqn] = set([])
-    # fn(f) = 1
-    eqn = tuple([-1]) + tuple(fn_sym(f))
-    if not eqn in eqndic:
-        eqndic[eqn] = set([])
-    # Note: If only do this for bkpts, some implied additive points on the grid
-    # (whose x or y coordinate lies in between two bkpts) will be missing!
-    # FIXME: Use maximal_additive_faces, don't need inside additve_vertices
-    for x in range(q+1):
-        for y in range(x, q+1):
-            v = tuple([0]) + tuple(delta_pi(fn_sym, x/q, y/q))
-            if (x/q, y/q) in additive_vertices:
-                if v in eqndic:
-                    eqndic[v].add((x/q, y/q))
-                else:
-                    eqndic[v] = set([(x/q, y/q)])
-            else:
-                if v in ieqdic:
-                    ieqdic[v].add((x/q, y/q))
-                else:
-                    ieqdic[v] = set([(x/q, y/q)])
-    return ieqdic, eqndic
-
-def generate_vertex_function(q, f, fn_sym, additive_vertices):
-    """
-    Generate real valued functions which correspond to vertices 
-    of the polytope defined by [ieqs, eqns] = generate_ieqs_and_eqns(..)
-    """
-    ieqdic, eqndic = generate_ieqs_and_eqns(q, f, fn_sym, additive_vertices)
-    p = Polyhedron(ieqs = ieqdic.keys(), eqns = eqndic.keys())
-    if not p.is_empty():
-        #if p.n_vertices() > 1:
-        #    print p.Vrepresentation()
-        ## print "boundedness is %s" % p.is_compact()
-        for x in p.vertices():
-            k = len(set(x))
-            if k >= num_of_slopes:
-                print "%s gives a %s-slope function h =" % (x, k)
-                v = vector(QQ,x)
-                yield v * fn_sym
-            ####### debug...
-            #else:
-            #    print "%s gives a %s-slope function. Ignore" % (x, k)
-            #    # this will probably print many lines
-            ####### ...
-    #else:
-        # this shouldn't happen! 
-        # This can happen if we only check generate_implied_additive_vertices once in a while
-        #print "p.is_empty() is True"
+    bkpt = [i/q for i in range(q+1)]
+    for v in polytope.minimized_generators():
+        v_n = v.coefficients()
+        v_d = v.divisor()
+        num = len(set([v_n[i+1] - v_n[i] for i in range(q)]))
+        if num >= num_of_slopes:
+            values = [v_n[i] / v_d for i in range(q+1)]
+            h = piecewise_function_from_breakpoints_and_values(bkpt, values)
+            yield h
 
 def search_6slope_example(q, f):
-    last_additive_vertices, last_faces_set, last_covered_intervals = initial_vertices_faces_and_covered_intervals(q, f)
-    candidate_faces = generate_candidate_faces(q, f, last_covered_intervals, None)
+    """
+    Search for extreme functions that have required number of slope values.
+
+    EXAMPLES::
+        sage: q=5; f=3/5; num_of_slopes = 2;
+        sage: h = search_6slope_example(q, f).next()
+    """
+    #initialization
+    vertices_color = initial_vertices_color(q, f)
+    faces_set, covered_intervals = initial_faces_and_covered_intervals(q, f, vertices_color)
+    polytope = initial_polytope(q, f, vertices_color)
+    candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
+
     found = False
-    for additive_vertices, green_faces, covered_intervals in \
-            paint_complex(q, f, last_additive_vertices, last_faces_set, last_covered_intervals, candidate_faces, set([])):
-        if len(covered_intervals) >= num_of_slopes:
-            # otherwise, too few slopes in covered_intervals, continue to the next attempt.
-            fn_sym = generate_symbolic_continuous(None, covered_intervals, field=QQ)
-            for h in generate_vertex_function(q, f, fn_sym, additive_vertices):
-                print h
-                found = True
-                yield h #return h
+    for result_polytope in \
+            paint_complex(q, f, vertices_color, faces_set, covered_intervals, candidate_faces, set([]), polytope):
+        for h in generate_vertex_function(q, result_polytope):
+            print h
+            found = True
+            yield h #return h
     if not found:
         print "Example function not found. Please try again."
