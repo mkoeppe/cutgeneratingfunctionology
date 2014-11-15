@@ -314,8 +314,8 @@ def paint_complex(q, f, last_vertices_color, last_faces_color, last_covered_inte
                             faces_color[face] = 0
                             covered_intervals = directly_covered_by_adding_face(covered_intervals, face, q, f)
         polytope = C_Polyhedron(cs)
-        if polytope.is_empty() or not legal_picked or num_slopes_at_best(q, covered_intervals) < num_of_slopes:
-            # If infeasible or encounter non_candidate or too few slopes, stop recursion.
+        if not legal_picked or num_slopes_at_best(q, covered_intervals) < num_of_slopes or polytope.is_empty():
+            # If encounter non_candidate or too few slopes, stop recursion or infeasible.
             #faces_color[face_picked] = 2
             continue
         # look for implied additive vertices
