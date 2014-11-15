@@ -260,14 +260,15 @@ def paint_complex(q, f, last_vertices_color, last_faces_set, last_covered_interv
             for y in range(x, q):
                 if legal_picked and (vertices_color[x, y] == 1):
                     z = (x + y) % q
-                    # TODO: compare "maximize" and "relation_with"
+                    # Note: compare "maximize" and "relation_with" --> relation_with is slightly faster
                     # try "maximize"
                     #if polytope.maximize(Variable(x) + Variable(y) - Variable(z))['sup_n'] == 0:
                     # try "relation_with"
                     if polytope.relation_with( Variable(x) + Variable(y) == Variable(z) ).implies(Poly_Con_Relation.is_included()):
                         # find implied additive vertices
                         vertices_color[x, y] = 0
-                        polytope.add_constraint( Variable(x) + Variable(y) == Variable(z) ) #TODO: try without adding implied equality
+                        #Note: not adding implied equality is slightly faster
+                        #polytope.add_constraint( Variable(x) + Variable(y) == Variable(z) )
                         for (face, vertices) in faces_around_vertex(q, (x, y)):
                             if not face in faces_set and sum(vertices_color[v] for v in vertices) == 0:
                                 # find new green face.
@@ -287,8 +288,9 @@ def paint_complex(q, f, last_vertices_color, last_faces_set, last_covered_interv
                     # all covered, finish
                     yield polytope
             else:
+                # Note: using polytope.minimized_constraints() is slightly slower.
                 for result_polytope in paint_complex(q, f, vertices_color, faces_set, \
-                        covered_intervals, new_candidate_faces, non_candidate, polytope.minimized_constraints()): #TODO: try with polytope.constraints()
+                        covered_intervals, new_candidate_faces, non_candidate, polytope.constraints()):
                     yield result_polytope
         non_candidate.add(face_picked)
 
