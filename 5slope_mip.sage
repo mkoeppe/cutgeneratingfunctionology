@@ -1,3 +1,14 @@
+# Find 6-slope extreme function fulldim_covers_6slope_q25_1(), using:
+#   LP model: 6slope_q25_f8_no_transrefl_m12.lp
+#   obtained by: (set obj = max_slope_slack)
+#       sage: write_lpfile(25, 8/25, 6, 1, m=12, type_cover='no_transrefl', weights=[])
+#   Gurobi run on "point", setParam("MIPFocus", 0)
+#   interrupt at first feasible solution (3min, obj = 30.38)
+#   Solution file: solution_6slope_q25_f8_no_transrefl_m12.sol
+#   vertex function is a 6-slope extreme function
+#       sage: faces, fn = painted_faces_and_funciton_from_solution('.../solution_6slope_q25_f8_no_transrefl_m12.sol', 25, showplots=False)
+#       sage: h = investigate_faces_solution(25, 8/25, faces)[0]
+
 def extreme_5slope_no_0d_1d_1():
     """
     5-slope extreme function without any 0-d or 1-d maximal additive faces
