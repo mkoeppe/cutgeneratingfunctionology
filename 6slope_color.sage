@@ -1,3 +1,14 @@
+# call search_6slope_example(q, f) in 6slope_color.sage
+# with q = 25, f = 8, num_of_slopes = 6
+# find a fulldim_covers_6slope_extreme functions
+def fulldim_covers_6slope_q25_1():
+    # q = 25; f = 8
+    bkpt = [0, 1/25, 2/25, 6/25, 7/25, 8/25, 9/25, 2/5, 11/25, 12/25, \
+            13/25, 3/5, 16/25, 17/25, 18/25, 4/5, 21/25, 22/25, 23/25, 24/25, 1]
+    values = [0, 17/36, 1/4, 3/4, 19/36, 1, 37/144, 5/24, 121/288, 107/288, 7/12, \
+                35/72, 19/72, 53/72, 37/72, 5/12, 181/288, 167/288, 19/24, 107/144, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
 # backtracking search for 6-slope extreme functions, 
 # using incremental computation for polytope, vertices_color, faces_color and covered_intervals.
 # do not consider translation/reflection other than the symmetry reflection regarding f.
