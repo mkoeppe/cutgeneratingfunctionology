@@ -59,7 +59,7 @@ def initial_vertices_color(q, f):
 
     EXAMPLES::
 
-        sage: initial_vertices_color(5, 3/5)
+        sage: initial_vertices_color(5, 3)
         array([[0, 0, 0, 0, 0, 0],
                [1, 1, 0, 1, 1, 0],
                [1, 1, 1, 1, 1, 0],
@@ -79,6 +79,16 @@ def initial_vertices_color(q, f):
             vertices_color[x, f - x] = 0
         elif (x >= f) and (x <= f - x + q):
             vertices_color[x, f - x + q] = 0
+    # implied additive vertices
+    cs = initial_cs(q, f, vertices_color)
+    polytope = C_Polyhedron(cs)
+    for x in range(1, q):
+        for y in range(x, q):
+            if (vertices_color[x, y] == 1):
+                    z = (x + y) % q
+                    if polytope.relation_with( Variable(x) + Variable(y) == Variable(z) ).implies(Poly_Con_Relation.is_included()):
+                        # find implied additive vertices
+                        vertices_color[x, y] = 0
     return vertices_color
 
 def initial_faces_color_and_covered_intervals(q, f, vertices_color):
@@ -287,10 +297,15 @@ def num_slopes_at_best(q, covered_intervals):
     uncovered_num = q - sum([len(component) for component in covered_intervals])
     return uncovered_num + len(covered_intervals)
 
-def paint_complex(q, f, last_vertices_color, last_faces_color, last_covered_intervals, candidate_faces, last_cs):
+def paint_complex_heuristic(q, f, last_vertices_color, last_faces_color, last_covered_intervals, candidate_faces, last_cs):
     """
-    Randomly paint triangles green in a 2d-complex, until all intervals are covered.
-    Return the polytope which defines the feasible region of (\pi(0), \pi(1/q),...,\pi(1)) for that paint_complex
+    Paint triangles green in a 2d-complex, until all intervals are covered.
+    Return the polytope which defines the feasible region of (\pi(0), \pi(1/q),...,\pi(1)) for that paint_complex_heuristic
+
+    Heuristic: 
+        I, J projections of the next face to paint are chosen from currently uncovered intervals.
+        Stop painting immediately once everything is covered.
+        Edges are not considered.
 
     EXAMPLES::
 
@@ -299,7 +314,7 @@ def paint_complex(q, f, last_vertices_color, last_faces_color, last_covered_inte
         sage: faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
         sage: cs = initial_cs(q, f, vertices_color)
         sage: candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
-        sage: for result_polytope in paint_complex(q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs):
+        sage: for result_polytope in paint_complex_heuristic(q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs):
         ...       print result_polytope.minimized_generators()
         Generator_System {point(0/6, 2/6, 4/6, 6/6, 3/6, 0/6)}
         Generator_System {point(0/4, 3/4, 1/4, 4/4, 2/4, 0/4)}
@@ -372,10 +387,112 @@ def paint_complex(q, f, last_vertices_color, last_faces_color, last_covered_inte
                     # all covered, finish
                     yield polytope
             else:
-                for result_polytope in paint_complex(q, f, vertices_color, faces_color, \
+                for result_polytope in paint_complex_heuristic(q, f, vertices_color, faces_color, \
                         covered_intervals, new_candidate_faces, polytope.constraints()):
                     yield result_polytope
         #faces_color[face_picked] = 2
+
+def paint_complex_2d_complete(q, f, last_vertices_color, last_faces_color, last_covered_intervals, (x, y, w), last_cs):
+    """
+    Paint triangles green in a 2d-complex, until all possibilities are tried.
+    If all intervals are covered, 
+    return the polytope which defines the feasible region of (\pi(0), \pi(1/q),...,\pi(1)) for that paint_complex_2d_complete
+
+    2d_complete: 
+        Allow painting any face, even if covered already.
+        Edges are not considered.
+
+    EXAMPLES::
+
+        sage: q = 5; f = 3; num_of_slopes = 2;
+        sage: vertices_color = initial_vertices_color(q, f);
+        sage: faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
+        sage: cs = initial_cs(q, f, vertices_color)
+        sage: for result_polytope in paint_complex_2d_complete(q, f, vertices_color, faces_color, covered_intervals, (0, 0, 0), cs):
+        ...       print result_polytope.minimized_generators()
+        Generator_System {point(0/6, 2/6, 4/6, 6/6, 3/6, 0/6)}
+        Generator_System {point(0/4, 3/4, 1/4, 4/4, 2/4, 0/4)}
+    """
+    if (x, y, w) == (q - 1, q - 1, 1):
+        # finish painting, check if all intervals are covered
+        if not generate_to_cover(q, last_covered_intervals):
+            # all covered, return valid painting
+            polytope = C_Polyhedron(last_cs)
+            if not polytope.is_empty():
+                yield polytope
+    else:
+        # move to the next triangle
+        w += 1
+        if w == 2:
+            w = 0
+            y += 1
+        if y == q:
+            x += 1
+            y = x
+        # face_picked = (x, y, w)
+        faces_color = copy(last_faces_color)
+        if faces_color[(x, y, w)] == 1: # color is unkown
+            vertices_color = copy(last_vertices_color)
+            cs = copy(last_cs)
+            # First, try out green triangle (x, y, w)
+            faces_color [(x, y, w)] = 0
+            covered_intervals = directly_covered_by_adding_face(last_covered_intervals, (x, y, w), q, f)
+            legal_picked = True
+            if x < y:
+                vertices_picked = [(x+1, y), (x, y+1), (x+w, y+w)]
+            else:
+                vertices_picked = [(x, y+1), (x+w, y+w)]
+            for (i, j) in vertices_picked:
+                if (vertices_color[i, j] == 1) and legal_picked:
+                    # new green vertice
+                    vertices_color[i, j] = 0
+                    # update cs
+                    k = (i + j) % q
+                    cs.insert( Variable(i) + Variable(j) == Variable(k) )
+                    for (face, vertices) in faces_around_vertex(q, (i, j)):
+                        if faces_color[face] != 0 and sum(vertices_color[v] for v in vertices) == 0:
+                            # find new green face.
+                            if faces_color[face] == 2: # face is in non_candidate
+                                legal_picked = False
+                                break
+                            else:
+                                faces_color[face] = 0
+                                covered_intervals = directly_covered_by_adding_face(covered_intervals, face, q, f)
+            if legal_picked and num_slopes_at_best(q, covered_intervals) >= num_of_slopes:
+                # If encounter non_candidate or too few slopes, stop recursion
+                polytope = C_Polyhedron(cs)
+                if not polytope.is_empty():
+                    # If infeasible, stop recursion
+                    # look for implied additive vertices
+                    for i in range(1, q):
+                        for j in range(i, q):
+                            if legal_picked and (vertices_color[i, j] == 1):
+                                k = (i + j) % q
+                                if polytope.relation_with( Variable(i) + Variable(j) == Variable(k) \
+                                                            ).implies(Poly_Con_Relation.is_included()):
+                                    # find implied additive vertices
+                                    vertices_color[i, j] = 0
+                                    for (face, vertices) in faces_around_vertex(q, (i, j)):
+                                        if faces_color[face] != 0 and sum(vertices_color[v] for v in vertices) == 0:
+                                            # find new green face.
+                                            if faces_color[face] == 2: # face is in non_candidate
+                                                legal_picked = False
+                                                break
+                                            else:
+                                                faces_color[face] = 0
+                                                covered_intervals = directly_covered_by_adding_face(covered_intervals, face, q, f)
+                    # If infeasible or encounter non_candidate or
+                    # only few slopes are possible after considering implied things, stop recursion.
+                    if legal_picked and num_slopes_at_best(q, covered_intervals) >= num_of_slopes:
+                        for result_polytope in paint_complex_2d_complete(q, f, \
+                                vertices_color, faces_color, covered_intervals, (x, y, w), cs):
+                            yield result_polytope
+            # Now, try out white triangle (x, y, w)
+            faces_color = copy(last_faces_color)
+            faces_color [(x, y, w)] = 2
+        for result_polytope in paint_complex_2d_complete(q, f, \
+                last_vertices_color, faces_color, last_covered_intervals, (x, y, w), last_cs):
+            yield result_polytope
 
 def plot_painted_faces(q, faces):
     """
@@ -402,10 +519,11 @@ def plot_painted_faces(q, faces):
         p += plot_projections_of_one_face(face, IJK_kwds)
     return p
 
-def generate_vertex_function(q, polytope):
+def generate_vertex_function(q, polytope, v_set=set([])):
     """
     Generate real valued functions corresponding to vertices of the polytope.
-    Return those functions that have required number of slope values.
+    Return those functions that have required number of slope values,
+    but have not been found before (not in v_set).
 
     EXAMPLES::
 
@@ -421,30 +539,61 @@ def generate_vertex_function(q, polytope):
         num = len(set([v_n[i+1] - v_n[i] for i in range(q)]))
         if num >= num_of_slopes:
             values = [v_n[i] / v_d for i in range(q+1)]
-            h = piecewise_function_from_breakpoints_and_values(bkpt, values)
-            yield h
+            if not tuple(values) in v_set:
+                v_set.add(tuple(values))
+                h = piecewise_function_from_breakpoints_and_values(bkpt, values)
+                yield h
 
-def search_6slope_example(q, f):
+def search_6slope_example(q, f, complete=False, print_function=True):
     """
     Search for extreme functions that have required number of slope values.
+
+    If 'complete' is True, use paint_complex_2d_complete() to paint complex;
+    If 'complete' is False, use paint_complex_heuristic() to paint complex.
 
     EXAMPLES::
 
         sage: q=5; f=3; num_of_slopes = 2;
-        sage: h = search_6slope_example(q, f).next()
+        sage: h = search_6slope_example(q, f, complete=False, print_function=True).next()
     """
     #initialization
     vertices_color = initial_vertices_color(q, f)
     faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
     cs = initial_cs(q, f, vertices_color)
     candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
-
-    found = False
-    for result_polytope in \
-            paint_complex(q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs):
-        for h in generate_vertex_function(q, result_polytope):
-            print h
-            found = True
+    if complete:
+        gen = paint_complex_2d_complete(q, f, vertices_color, faces_color, covered_intervals, (0, 0, 0), cs)
+    else:
+        gen = paint_complex_heuristic(q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs)
+    v_set = set([])
+    for result_polytope in gen:
+        for h in generate_vertex_function(q, result_polytope, v_set):
+            if print_function:
+                print h
             yield h #return h
-    if not found:
+    if not v_set:
         print "Example function not found. Please try again."
+
+import time
+def search_6slope_given_q(q, f_list=None, complete=False, print_function=True):
+    """
+    EXAMPLES::
+
+        sage: q = 12; num_of_slopes = 3;
+        sage: h_list = search_6slope_given_q(q, [1], complete=True, print_function=True)
+    """
+    h_list = []
+    n_sol = 0
+    if f_list is None:
+        f_list = range(1, q)
+    for f in f_list:
+        t = time.localtime()
+        print "f = %s, start_time = %s:%s" % (f, t[3], t[4])
+        for h in search_6slope_example(q, f, complete, print_function):
+              h_list.append(h)
+              n_sol += 1
+              print "Found solution No.%s" % n_sol
+    t = time.localtime()
+    print "finish_time = %s:%s" % (t[3], t[4])
+    return h_list
+
