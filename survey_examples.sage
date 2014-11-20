@@ -617,7 +617,7 @@ def kzh_5_slope_fulldim_5(): #renamed from extreme_5slope_no_0d_1d_5
               94/221, 3/13, 7/13, 76/221, 1, 101/221, 159/442, 283/442, 120/221, 0]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
-def kzh_5_slope_fulldim_covers_1(): #renamed from extreme_5slope_no_transrefl
+def kzh_5_slope_fulldim_covers_1(): #renamed from extreme_5slope_no_transrefl or from fulldim_covers_5slope_q22_6()
     """
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
@@ -642,3 +642,187 @@ def kzh_5_slope_fulldim_covers_1(): #renamed from extreme_5slope_no_transrefl
               11/32, 3/8, 3/4, 7/16, 9/16, 1/4, 5/8, 21/32, 0]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
+def kzh_5_slope_fulldim_covers_2(): # renamed from fulldim_covers_5slope_q22_1()
+    """
+    5-slope extreme function whose extremality proof does not depend
+    on lower-dimensional additive faces.  All intervals are directly covered.
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    requires to translate and reflect covered intervals.
+
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+
+        sage: h = kzh_5_slope_fulldim_covers_2()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+    """
+    # q = 22, f = 1
+    bkpt = [0, 1/22, 3/22, 2/11, 5/22, 3/11, 4/11, 9/22, 5/11, 1/2, \
+            6/11, 13/22, 7/11, 15/22, 17/22, 9/11, 19/22, 10/11, 1]
+    values = [0, 1, 1/4, 1/3, 31/48, 1/2, 2/3, 25/48, 5/6, \
+              11/16, 5/16, 1/6, 23/48, 1/3, 1/2, 17/48, 2/3, 3/4, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_5_slope_fulldim_covers_3(): # renamed from fulldim_covers_5slope_q22_2()
+    """
+    5-slope extreme function whose extremality proof does not depend
+    on lower-dimensional additive faces.  All intervals are directly covered.
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    requires to translate and reflect covered intervals.
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+        sage: h = kzh_5_slope_fulldim_covers_3()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+    """
+    # q = 22, f = 1
+    bkpt = [0, 1/22, 3/22, 2/11, 5/22, 3/11, 4/11, 9/22, 5/11, 1/2, \
+            6/11, 13/22, 7/11, 15/22, 17/22, 9/11, 19/22, 10/11, 1]
+    values = [0, 1, 31/113, 34/113, 81/113, 62/113, 68/113, 49/113, 96/113, 77/113, \
+                36/113, 17/113, 64/113, 45/113, 51/113, 32/113, 79/113, 82/113, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_5_slope_fulldim_covers_4(): # renamed from fulldim_covers_5slope_q22_3()
+    """
+    5-slope extreme function whose extremality proof does not depend
+    on lower-dimensional additive faces.  All intervals are directly covered.
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    requires to translate and reflect covered intervals.
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+        sage: h = kzh_5_slope_fulldim_covers_4()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+    """
+    # q = 22, f = 3
+    bkpt = [0, 1/22, 1/11, 3/22, 2/11, 5/22, 3/11, 7/22, 9/22, 5/11, 1/2, \
+            6/11, 13/22, 7/11, 15/22, 8/11, 9/11, 19/22, 10/11, 21/22, 1]
+    values = [0, 15/23, 8/23, 1, 26/69, 49/69, 50/69, 29/69, 31/69, 10/69, 11/23, \
+                4/23, 19/23, 12/23, 59/69, 38/69, 40/69, 19/69, 20/69, 43/69, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_5_slope_fulldim_covers_5(): # renamed from fulldim_covers_5slope_q22_4()
+    """
+    5-slope extreme function whose extremality proof does not depend
+    on lower-dimensional additive faces.  All intervals are directly covered.
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    requires to translate and reflect covered intervals.
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+        sage: h = kzh_5_slope_fulldim_covers_5()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+    """
+    # q = 22, f = 7
+    bkpt = [0, 1/22, 3/22, 2/11, 3/11, 7/22, 4/11, 9/22, 1/2, \
+            13/22, 7/11, 15/22, 8/11, 9/11, 10/11, 21/22, 1]
+    values = [0, 7/16, 5/8, 3/8, 9/16, 1, 13/32, 5/32, 11/16, \
+               3/16, 9/32, 23/32, 13/16, 5/16, 27/32, 19/32, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_5_slope_fulldim_covers_6(): # renamed from fulldim_covers_5slope_q22_5()
+    """
+    5-slope extreme function whose extremality proof does not depend
+    on lower-dimensional additive faces.  All intervals are directly covered.
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    requires to translate and reflect covered intervals.
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+        sage: h = kzh_5_slope_fulldim_covers_6()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+    """
+    # q = 22, f = 8
+    bkpt = [0, 1/22, 1/11, 3/22, 5/22, 3/11, 7/22, 4/11, 9/22, \
+            6/11, 13/22, 7/11, 8/11, 17/22, 9/11, 21/22, 1]
+    values = [0, 7/12, 5/9, 2/9, 7/9, 4/9, 5/12, 1, 13/36, \
+              5/18, 5/9, 2/9, 7/9, 4/9, 13/18, 23/36, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_6_slope_fulldim_covers_1(): # renamed from fulldim_covers_6slope_q25_1()
+    """
+    6-slope extreme function whose extremality proof does not depend
+    on lower-dimensional additive faces.  All intervals are directly covered.
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    requires to translate and reflect covered intervals.
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+        sage: h = kzh_6_slope_fulldim_covers_1()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+    """
+    # q = 25; f = 8
+    bkpt = [0, 1/25, 2/25, 6/25, 7/25, 8/25, 9/25, 2/5, 11/25, 12/25, \
+            13/25, 3/5, 16/25, 17/25, 18/25, 4/5, 21/25, 22/25, 23/25, 24/25, 1]
+    values = [0, 17/36, 1/4, 3/4, 19/36, 1, 37/144, 5/24, 121/288, 107/288, 7/12, \
+                35/72, 19/72, 53/72, 37/72, 5/12, 181/288, 167/288, 19/24, 107/144, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_6_slope_fulldim_covers_2(): # renamed from fulldim_covers_6slope_q26_1()
+    """
+    6-slope extreme function whose extremality proof does not depend
+    on lower-dimensional additive faces.  All intervals are directly covered.
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    requires to translate and reflect covered intervals.
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+        sage: h = kzh_6_slope_fulldim_covers_2()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+    """
+    # q = 26, f = 13
+    bkpt = [0, 1/26, 3/26, 5/26, 3/13, 7/26, 4/13, 5/13, 6/13, 1/2, \
+            7/13, 8/13, 9/13, 19/26, 10/13, 21/26, 23/26, 25/26, 1]
+    values = [0, 3/7, 5/7, 1/7, 2/7, 5/7, 6/7, 2/7, 4/7, 1, \
+              4/7, 2/7, 6/7, 5/7, 2/7, 1/7, 5/7, 3/7, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_6_slope_fulldim_covers_3(): # renamed from fulldim_covers_6slope_q38_1()
+    """
+    6-slope extreme function whose extremality proof does not depend
+    on lower-dimensional additive faces.  All intervals are directly covered.
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    requires to translate and reflect covered intervals.
+    This example has a similar 2d-diagram as that of kzh_6_slope_fulldim_covers_2()
+
+    EXAMPLES::
+        sage: h = kzh_6_slope_fulldim_covers_3()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+    """
+    # q = 38, f = 19
+    bkpt = [0, 1/38, 5/38, 7/38, 9/38, 5/19, 6/19, 7/19, 9/19, 1/2, \
+            10/19, 12/19, 13/19, 14/19, 29/38, 31/38, 33/38, 37/38, 1]
+    values = [0, 7/17, 11/17, 3/17, 5/17, 12/17, 14/17, 6/17, 10/17, 1, \
+            10/17, 6/17, 14/17, 12/17, 5/17, 3/17, 11/17, 7/17, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
