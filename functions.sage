@@ -3732,10 +3732,10 @@ class DirectedMoveCompositionCompletion:
                 tag = 'completion'
                 title = "Completion of moves" 
             elif self.num_rounds == 0:
-                tag = 'completion'
+                tag = 'completion-0'
                 title = "Initial moves"
             else:
-                tag = 'completion'
+                tag = 'completion-%s' % self.num_rounds
                 title = "Moves after %s completion round%s" % (self.num_rounds, "s" if self.num_rounds > 1 else "")
             show_plot(self.plot(legend_label='moves'), self.show_plots, tag, legend_title=title, legend_loc="upper left", object=self)
             logging.info("Plotting... done")

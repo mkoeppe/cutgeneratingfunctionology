@@ -5,6 +5,11 @@ This is Sage code for computation and experimentation with the
 (1-dimensional) Gomory-Johnson infinite group problem, including an
 electronic compendium of extreme functions.
 
+See the survey "Light on the Infinite Group Relaxation" 
+(http://www.optimization-online.org/DB_HTML/2014/10/4620.html)
+for the mathematical background and a table of functions in the 
+electronic compendium.
+
 See http://www.sagemath.org/doc/tutorial/ for information on how to
 use Sage.
 

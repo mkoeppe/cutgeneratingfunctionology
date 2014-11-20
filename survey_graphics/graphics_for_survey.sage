@@ -138,8 +138,9 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         procedure_graph('automorphism', gmic())
         procedure_graph('multiplicative_homomorphism', gmic(), multiplicative_homomorphism(gmic(), 3))
         procedure_graph('projected_sequential_merge', multiplicative_homomorphism(gj_forward_3_slope(),-1))
-        procedure_graph('restrict_to_finite_group', drlm_not_extreme_1())
-        procedure_graph('restrict_to_finite_group_3', drlm_not_extreme_1(), restrict_to_finite_group(drlm_not_extreme_1(), oversampling=3))
+        h = gj_2_slope(f=3/5, lambda_1=1/2)
+        procedure_graph('restrict_to_finite_group', h)
+        procedure_graph('restrict_to_finite_group_3', h, restrict_to_finite_group(h, oversampling=3))
         procedure_graph('interpolate_to_infinite_group', restrict_to_finite_group(gmic()))
         procedure_graph('two_slope_fill_in', restrict_to_finite_group(gmic()))
 
