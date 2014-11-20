@@ -580,20 +580,25 @@ def search_6slope_given_q(q, f_list=None, complete=False, print_function=True):
     EXAMPLES::
 
         sage: q = 12; num_of_slopes = 3;
-        sage: h_list = search_6slope_given_q(q, [1], complete=True, print_function=True)
+        sage: logging.disable(logging.INFO)
+        sage: h_list = search_6slope_given_q(q, None, complete=False, print_function=False)
     """
     h_list = []
     n_sol = 0
     if f_list is None:
         f_list = range(1, q)
+    start_cpu_t = time.clock()
     for f in f_list:
         t = time.localtime()
-        print "f = %s, start_time = %s:%s" % (f, t[3], t[4])
+        cpu_t = time.clock()
+        print "f = %s, start_wall_time = %s:%s" % (f, t[3], t[4])
         for h in search_6slope_example(q, f, complete, print_function):
               h_list.append(h)
               n_sol += 1
               print "Found solution No.%s" % n_sol
+        print "q = %s, f = %s takes cpu_time = %s" % (q, f, time.clock() - cpu_t)
     t = time.localtime()
-    print "finish_time = %s:%s" % (t[3], t[4])
+    print "finish_wall_time = %s:%s" % (t[3], t[4])
+    print "Total cpu_time = %s" %(time.clock() - start_cpu_t)
     return h_list
 
