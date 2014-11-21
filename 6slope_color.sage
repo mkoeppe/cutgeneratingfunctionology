@@ -423,7 +423,7 @@ def num_slopes_at_best(q, covered_intervals, uncovered_intervals=None):
         uncovered_num = len(uncovered_intervals)
     return uncovered_num + len(covered_intervals)
 
-def paint_complex_heuristic(q, f, last_vertices_color, last_faces_color, last_covered_intervals, candidate_faces, last_cs):
+def paint_complex_heuristic(q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, last_cs):
     """
     Paint triangles green in a 2d-complex, until all intervals are covered.
     Return the polytope which defines the feasible region of (\pi(0), \pi(1/q),...,\pi(1)) for that paint_complex_heuristic
@@ -448,14 +448,11 @@ def paint_complex_heuristic(q, f, last_vertices_color, last_faces_color, last_co
     num_candidate_faces = len(candidate_faces)
     n = 0
     while n < num_candidate_faces:
-        faces_color = copy(last_faces_color)
-        for i in range(n): 
-            # set color =2 for non_candidate faces
-            faces_color[candidate_faces[i]] = 2
         face_picked = candidate_faces[n]
         n += 1
         faces_color[face_picked] = 0
-        vertices_color = copy(last_vertices_color)
+        changed_faces = []
+        changed_vertices = []
         covered_intervals = directly_covered_by_adding_face(last_covered_intervals, face_picked, q, f)
         cs = copy(last_cs)
 
@@ -469,6 +466,7 @@ def paint_complex_heuristic(q, f, last_vertices_color, last_faces_color, last_co
             if (vertices_color[x, y] == 1) and legal_picked:
                 # new green vertice
                 vertices_color[x, y] = 0
+                changed_vertices.append((x, y))
                 # update cs
                 z = (x + y) % q
                 cs.insert( Variable(x) + Variable(y) == Variable(z) )
@@ -480,11 +478,16 @@ def paint_complex_heuristic(q, f, last_vertices_color, last_faces_color, last_co
                             break
                         else:
                             faces_color[face] = 0
+                            changed_faces.append(face)
                             covered_intervals = directly_covered_by_adding_face(covered_intervals, face, q, f)
         polytope = C_Polyhedron(cs)
         if not legal_picked or num_slopes_at_best(q, covered_intervals) < num_of_slopes or polytope.is_empty():
             # If encounter non_candidate or too few slopes, stop recursion or infeasible.
-            #faces_color[face_picked] = 2
+            for face in changed_faces:
+                faces_color[face] = 1
+            for v in changed_vertices:
+                vertices_color[v] = 1
+            faces_color[face_picked] = 2
             continue
         # look for implied additive vertices
         for x in range(1, q):
@@ -494,6 +497,7 @@ def paint_complex_heuristic(q, f, last_vertices_color, last_faces_color, last_co
                     if polytope.relation_with( Variable(x) + Variable(y) == Variable(z) ).implies(Poly_Con_Relation.is_included()):
                         # find implied additive vertices
                         vertices_color[x, y] = 0
+                        changed_vertices.append((x, y))
                         for (face, vertices) in faces_around_vertex(q, (x, y)):
                             if faces_color[face] != 0 and sum(vertices_color[v] for v in vertices) == 0:
                                 # find new green face.
@@ -502,6 +506,7 @@ def paint_complex_heuristic(q, f, last_vertices_color, last_faces_color, last_co
                                     break
                                 else:
                                     faces_color[face] = 0
+                                    changed_faces.append(face)
                                     covered_intervals = directly_covered_by_adding_face(covered_intervals, face, q, f)
         # If infeasible or encounter non_candidate or
         # only few slopes are possible given current covered_intervals, stop recursion.
@@ -516,9 +521,15 @@ def paint_complex_heuristic(q, f, last_vertices_color, last_faces_color, last_co
                 for result_polytope in paint_complex_heuristic(q, f, vertices_color, faces_color, \
                         covered_intervals, new_candidate_faces, polytope.constraints()):
                     yield result_polytope
-        #faces_color[face_picked] = 2
+        for face in changed_faces:
+            faces_color[face] = 1
+        for v in changed_vertices:
+            vertices_color[v] = 1
+        faces_color[face_picked] = 2
+    for face in candidate_faces:
+        faces_color[face] = 1
 
-def paint_complex_fulldim_covers(q, f, last_vertices_color, last_faces_color, last_covered_intervals, (x, y, w), last_cs):
+def paint_complex_fulldim_covers(q, f, vertices_color, faces_color, last_covered_intervals, (x, y, w), last_cs):
     """
     Paint triangles green in a 2d-complex, until all possibilities are tried.
     If all intervals are covered, 
@@ -539,14 +550,8 @@ def paint_complex_fulldim_covers(q, f, last_vertices_color, last_faces_color, la
         Generator_System {point(0/6, 2/6, 4/6, 6/6, 3/6, 0/6)}
         Generator_System {point(0/4, 3/4, 1/4, 4/4, 2/4, 0/4)}
     """
-    if (x, y, w) == (q - 1, q - 1, 1):
-        # finish painting, check if all intervals are covered
-        if not generate_to_cover(q, last_covered_intervals):
-            # all covered, return valid painting
-            polytope = C_Polyhedron(last_cs)
-            if not polytope.is_empty():
-                yield polytope
-    else:
+    picked_faces = []
+    while (x, y, w) < (q - 1, q - 1, 1):
         # move to the next triangle
         w += 1
         if w == 2:
@@ -556,9 +561,10 @@ def paint_complex_fulldim_covers(q, f, last_vertices_color, last_faces_color, la
             x += 1
             y = x
         # face_picked = (x, y, w)
-        faces_color = copy(last_faces_color)
         if faces_color[(x, y, w)] == 1: # color is unkown
-            vertices_color = copy(last_vertices_color)
+            picked_faces.append( (x, y, w) )
+            changed_faces = []
+            changed_vertices = []
             cs = copy(last_cs)
             # First, try out green triangle (x, y, w)
             faces_color [(x, y, w)] = 0
@@ -572,6 +578,7 @@ def paint_complex_fulldim_covers(q, f, last_vertices_color, last_faces_color, la
                 if (vertices_color[i, j] == 1) and legal_picked:
                     # new green vertice
                     vertices_color[i, j] = 0
+                    changed_vertices.append((i, j))
                     # update cs
                     k = (i + j) % q
                     cs.insert( Variable(i) + Variable(j) == Variable(k) )
@@ -583,6 +590,7 @@ def paint_complex_fulldim_covers(q, f, last_vertices_color, last_faces_color, la
                                 break
                             else:
                                 faces_color[face] = 0
+                                changed_faces.append(face)
                                 covered_intervals = directly_covered_by_adding_face(covered_intervals, face, q, f)
             if legal_picked and num_slopes_at_best(q, covered_intervals) >= num_of_slopes:
                 # If encounter non_candidate or too few slopes, stop recursion
@@ -598,6 +606,7 @@ def paint_complex_fulldim_covers(q, f, last_vertices_color, last_faces_color, la
                                                             ).implies(Poly_Con_Relation.is_included()):
                                     # find implied additive vertices
                                     vertices_color[i, j] = 0
+                                    changed_vertices.append((i, j))
                                     for (face, vertices) in faces_around_vertex(q, (i, j)):
                                         if faces_color[face] != 0 and sum(vertices_color[v] for v in vertices) == 0:
                                             # find new green face.
@@ -606,6 +615,7 @@ def paint_complex_fulldim_covers(q, f, last_vertices_color, last_faces_color, la
                                                 break
                                             else:
                                                 faces_color[face] = 0
+                                                changed_faces.append(face)
                                                 covered_intervals = directly_covered_by_adding_face(covered_intervals, face, q, f)
                     # If infeasible or encounter non_candidate or
                     # only few slopes are possible after considering implied things, stop recursion.
@@ -614,11 +624,22 @@ def paint_complex_fulldim_covers(q, f, last_vertices_color, last_faces_color, la
                                 vertices_color, faces_color, covered_intervals, (x, y, w), cs):
                             yield result_polytope
             # Now, try out white triangle (x, y, w)
-            faces_color = copy(last_faces_color)
+            for face in changed_faces:
+                faces_color[face] = 1
+            for v in changed_vertices:
+                vertices_color[v] = 1
+            #faces_color = copy(last_faces_color)
             faces_color [(x, y, w)] = 2
-        for result_polytope in paint_complex_fulldim_covers(q, f, \
-                last_vertices_color, faces_color, last_covered_intervals, (x, y, w), last_cs):
-            yield result_polytope
+    if (x, y, w) == (q - 1, q - 1, 1):
+        # finish painting, check if all intervals are covered
+        if not generate_to_cover(q, last_covered_intervals):
+            # all covered, return valid painting
+            polytope = C_Polyhedron(last_cs)
+            if not polytope.is_empty():
+                yield polytope
+    #recover picked_faces
+    for face in picked_faces:
+        faces_color[face] = 1
 
 def initial_covered_uncovered(q, f, vertices_color):
     """
