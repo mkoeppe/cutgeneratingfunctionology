@@ -408,12 +408,17 @@ def num_slopes_at_best(q, covered_intervals, uncovered_intervals=None):
         sage: covered_intervals = [set([0,2])]
         sage: uncovered_intervals = [set([1]), set([3,4])]
         sage: num_slopes_at_best(5, covered_intervals)
-        4
+        3
         sage: num_slopes_at_best(5, covered_intervals, uncovered_intervals)
         3
     """
     if uncovered_intervals is None:
-        uncovered_num = q - sum([len(component) for component in covered_intervals])
+        #uncovered_num = q - sum([len(component) for component in covered_intervals])
+        # consider connected components in uncovered_intervals
+        to_cover = set(range(0, (f + 1) // 2) + range(f, (f + q + 1) // 2))
+        for component in covered_intervals:
+            to_cover -= component
+        uncovered_num = len(to_cover)
     else:
         uncovered_num = len(uncovered_intervals)
     return uncovered_num + len(covered_intervals)
