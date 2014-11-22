@@ -516,7 +516,7 @@ def paint_complex_heuristic(q, f, vertices_color, faces_color, last_covered_inte
                     else:
                         for result_polytope in paint_complex_heuristic(q, f, vertices_color, faces_color, \
                                 covered_intervals, new_candidate_faces, polytope.constraints()):
-                            # Note: use minimized_constraints() in 'heuristic' mode takes longer
+                            # Note: use minimized_constraints() in 'heuristic' mode takes longer. WHY??
                             yield result_polytope
         # Now, try out white triangle (x, y, w)
         for face in changed_faces:
@@ -626,7 +626,6 @@ def paint_complex_fulldim_covers(q, f, vertices_color, faces_color, last_covered
                 faces_color[face] = 1
             for v in changed_vertices:
                 vertices_color[v] = 1
-            #faces_color = copy(last_faces_color)
             faces_color [(x, y, w)] = 2
     if (x, y, w) == (q - 1, q - 1, 1):
         # finish painting, check if all intervals are covered
@@ -696,7 +695,7 @@ def update_around_green_vertex(q, (x, y), vertices_color, covered_intervals, unc
                 update_covered_uncovered_by_adding_edge(covered_intervals, uncovered_intervals, to_merge_set, q)
     return covered_intervals, uncovered_intervals
 
-def paint_complex_complete(q, f, last_vertices_color, last_covered_intervals, last_uncovered_intervals, (x, y), cs):
+def paint_complex_complete(q, f, vertices_color, last_covered_intervals, last_uncovered_intervals, (x, y), cs):
     """
     Paint vertices green in a 2d-complex, until all possibilities are tried.
     If all intervals are covered (consider both green triangles and edges),
@@ -712,29 +711,21 @@ def paint_complex_complete(q, f, last_vertices_color, last_covered_intervals, la
         Generator_System {point(0/6, 2/6, 4/6, 6/6, 3/6, 0/6)}
         Generator_System {point(0/4, 3/4, 1/4, 4/4, 2/4, 0/4)}
     """
-    if (x, y) == (q - 1, q - 1):
-        # finish painting, check if all intervals are covered
-        if not last_uncovered_intervals:
-            # all covered, return valid painting
-            polytope = C_Polyhedron(cs)
-            if not polytope.is_empty():
-                yield polytope
-    else:
+    picked_vertices = []
+    while (x, y) < (q - 1, q - 1):
         # move to the next vertices
         y += 1
         if y == q:
             x += 1
             y = x
-        # vertex_picked = (x, y)
-        vertices_color = copy(last_vertices_color)
         if vertices_color[(x, y)] == 1: # color is unkown
-            covered_intervals = copy(last_covered_intervals)
-            uncovered_intervals = copy(last_uncovered_intervals)
+            picked_vertices.append((x, y))
+            changed_vertices = []
             # First, try out green vertex (x, y)
             vertices_color[(x, y)] = 0
             z = (x + y) % q
             covered_intervals, uncovered_intervals = update_around_green_vertex(q, (x, y), \
-                                    vertices_color, covered_intervals, uncovered_intervals)
+                            vertices_color, last_covered_intervals, last_uncovered_intervals)
             # If too few slopes, stop recursion
             if num_slopes_at_best(q, covered_intervals, uncovered_intervals) >= num_of_slopes:
                 polytope = C_Polyhedron(cs)
@@ -757,6 +748,7 @@ def paint_complex_complete(q, f, last_vertices_color, last_covered_intervals, la
                                     else:
                                         # paint this implied vertex green
                                         vertices_color[i, j] = 0
+                                        changed_vertices.append((i, j))
                                         covered_intervals, uncovered_intervals = update_around_green_vertex(q, (i, j), \
                                                                     vertices_color, covered_intervals, uncovered_intervals)
                                         if num_slopes_at_best(q, covered_intervals, uncovered_intervals) < num_of_slopes:
@@ -769,11 +761,19 @@ def paint_complex_complete(q, f, last_vertices_color, last_covered_intervals, la
                                 covered_intervals, uncovered_intervals, (x, y), polytope.minimized_constraints()):
                             yield result_polytope
             # Now, try out white vertex (x, y)
-            vertices_color = copy(last_vertices_color)
+            for (i, j) in changed_vertices:
+                vertices_color[i, j] = 1
             vertices_color[(x, y)] = 2
-        for result_polytope in paint_complex_complete(q, f, vertices_color, \
-                                last_covered_intervals, last_uncovered_intervals, (x, y), cs):
-            yield result_polytope
+    if (x, y) == (q - 1, q - 1):
+        # finish painting, check if all intervals are covered
+        if not last_uncovered_intervals:
+            # all covered, return valid painting
+            polytope = C_Polyhedron(cs)
+            if not polytope.is_empty():
+                yield polytope
+    # recover picked_vertices
+    for v in picked_vertices:
+        vertices_color[v] = 1
 
 def plot_painted_faces(q, faces):
     """
