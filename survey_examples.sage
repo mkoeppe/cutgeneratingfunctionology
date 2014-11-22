@@ -867,3 +867,9 @@ def kzh_5_slope_q22_f10_4():
 
 #def kzh_5_slope_q22_f10_5():
 #    return kzh_5_slope_fulldim_covers_1()
+
+def kzh_5_slope_q22_f2_1():
+    bkpt = [0, 1/11, 3/22, 2/11, 5/22, 3/11, 7/22, 4/11, 5/11, 1/2, 13/22, 7/11, 8/11, 17/22, 9/11, 19/22, 10/11, 21/22, 1]
+    values = [0, 1, 2/5, 8/15, 3/10, 13/30, 1/5, 7/10, 3/5, 11/15, 4/15, 2/5, 3/10, 4/5, 17/30, 7/10, 7/15, 3/5, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
