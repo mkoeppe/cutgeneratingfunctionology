@@ -1,35 +1,7 @@
-# call search_6slope_example(q, f) in 6slope_color.sage
-# find a fulldim_covers_6slope_extreme functions
-def fulldim_covers_6slope_q25_1():
-    # q = 25; f = 8
-    bkpt = [0, 1/25, 2/25, 6/25, 7/25, 8/25, 9/25, 2/5, 11/25, 12/25, \
-            13/25, 3/5, 16/25, 17/25, 18/25, 4/5, 21/25, 22/25, 23/25, 24/25, 1]
-    values = [0, 17/36, 1/4, 3/4, 19/36, 1, 37/144, 5/24, 121/288, 107/288, 7/12, \
-                35/72, 19/72, 53/72, 37/72, 5/12, 181/288, 167/288, 19/24, 107/144, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpt, values)
-
-def fulldim_covers_6slope_q26_1():
-    # q = 26, f = 13
-    bkpt = [0, 1/26, 3/26, 5/26, 3/13, 7/26, 4/13, 5/13, 6/13, 1/2, \
-            7/13, 8/13, 9/13, 19/26, 10/13, 21/26, 23/26, 25/26, 1]
-    values = [0, 3/7, 5/7, 1/7, 2/7, 5/7, 6/7, 2/7, 4/7, 1, \
-              4/7, 2/7, 6/7, 5/7, 2/7, 1/7, 5/7, 3/7, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpt, values)
-
-# Similar 2d-diagram
-def fulldim_covers_6slope_q38_1():
-    # q = 38, f = 19
-    bkpt = [0, 1/38, 5/38, 7/38, 9/38, 5/19, 6/19, 7/19, 9/19, 1/2, \
-            10/19, 12/19, 13/19, 14/19, 29/38, 31/38, 33/38, 37/38, 1]
-    values = [0, 7/17, 11/17, 3/17, 5/17, 12/17, 14/17, 6/17, 10/17, 1, \
-            10/17, 6/17, 14/17, 12/17, 5/17, 3/17, 11/17, 7/17, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpt, values)
-
 # backtracking search for 6-slope extreme functions, 
-# using incremental computation for polytope, vertices_color, faces_color and covered_intervals.
-# do not consider translation/reflection other than the symmetry reflection regarding f.
+# using incremental computation for polytope, vertices_color, faces_color and covered/uncovered_intervals.
 
-# polyhedral computatoin library:
+# polyhedral computation library:
 # http://www.sagemath.org/doc/reference/libs/sage/libs/ppl.html#sage.libs.ppl.Polyhedron.minimize
 
 # work with array and integer variables. 
@@ -45,6 +17,9 @@ def fulldim_covers_6slope_q38_1():
 # [0,1] and [0,2] are covered with slope s1, [3,4] and [4,5] are covered with slope s2.
 # only record vertex (x,y) and face = (x, y, w) with x <= y.
 # polytope defines the feasible region of (\pi(0), \pi(1/q),..., \pi(1)).
+
+# Main: def search_6slope_example(q, f, mode) or def search_6slope_given_q(q, f_list, mode)
+# if look for 5-slope function, first set global variable num_of_slopes = 5
 
 from sage.libs.ppl import C_Polyhedron, Constraint, Constraint_System, Generator, Generator_System, Variable, point, Poly_Con_Relation
 import numpy
