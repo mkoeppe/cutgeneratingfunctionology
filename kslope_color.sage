@@ -34,6 +34,13 @@ import numpy
 #global num_of_slopes
 num_of_slopes = 6 # set to 6 as we are looking for 6-slope functions
 
+poly_is_included = Poly_Con_Relation.is_included()
+
+@cached_function
+def additive_constraint(q, x, y):
+    z = (x + y) % q
+    return Variable(x) + Variable(y) == Variable(z)
+
 def initial_vertices_color(q, f):
     """
     paint green ( = 0) for vertices (x<=y) corresonding to
@@ -67,8 +74,7 @@ def initial_vertices_color(q, f):
     for x in range(1, q):
         for y in range(x, q):
             if (vertices_color[x, y] == 1):
-                    z = (x + y) % q
-                    if polytope.relation_with( Variable(x) + Variable(y) == Variable(z) ).implies(Poly_Con_Relation.is_included()):
+                    if polytope.relation_with( additive_constraint(q, x, y) ).implies(poly_is_included):
                         # find implied additive vertices
                         vertices_color[x, y] = 0
     return vertices_color
@@ -148,11 +154,12 @@ def initial_cs(q, f, vertices_color):
         for y in range(x, q):
             z = (x + y) % q
             if vertices_color[x, y] == 0:
-                cs.insert(fn[x] + fn[y] == fn[z])
+                cs.insert(additive_constraint(q, x, y)) # fn[x] + fn[y] == fn[z]
             else:
                 cs.insert(fn[x] + fn[y] >= fn[z])
     return cs
 
+@cached_function
 def edges_around_vertex(q, v):
     """
     Given a grid vertex v (assume that v[0] <= v[1], v is not on the border),
@@ -201,6 +208,7 @@ def edges_around_vertex(q, v):
            (set([ yy, (xx + yy) % q ]), (xx, yr)), \
            (set([ xl, yy ]), (xl, yr)) ]
 
+@cached_function
 def faces_around_vertex(q, v):
     """
     Given a grid vertex v (assume that v[0] <= v[1], v is not on the border),
@@ -463,16 +471,14 @@ def paint_complex_heuristic(q, f, vertices_color, faces_color, last_covered_inte
             polytope = C_Polyhedron(cs)
             # update polytope
             for (x, y) in changed_vertices:
-                z = (x + y) % q
-                polytope.add_constraint( Variable(x) + Variable(y) == Variable(z) )
+                polytope.add_constraint( additive_constraint(q, x, y) )
             if not polytope.is_empty():
                 # If infeasible, stop recursion
                 # look for implied additive vertices
                 for x in range(1, q):
                     for y in range(x, q):
                         if legal_picked and (vertices_color[x, y] == 1):
-                            z = (x + y) % q
-                            if polytope.relation_with( Variable(x) + Variable(y) == Variable(z) ).implies(Poly_Con_Relation.is_included()):
+                            if polytope.relation_with( additive_constraint(q, x, y) ).implies(poly_is_included):
                                 # find implied additive vertices
                                 vertices_color[x, y] = 0
                                 changed_vertices.append((x, y))
@@ -573,17 +579,14 @@ def paint_complex_fulldim_covers(q, f, vertices_color, faces_color, last_covered
                 polytope = C_Polyhedron(cs)
                 # update polytope
                 for (i, j) in changed_vertices:
-                    k = (i + j) % q
-                    polytope.add_constraint( Variable(i) + Variable(j) == Variable(k) )
+                    polytope.add_constraint( additive_constraint(q, i, j) )
                 if not polytope.is_empty():
                     # If infeasible, stop recursion
                     # look for implied additive vertices
                     for i in range(1, q):
                         for j in range(i, q):
                             if legal_picked and (vertices_color[i, j] == 1):
-                                k = (i + j) % q
-                                if polytope.relation_with( Variable(i) + Variable(j) == Variable(k) \
-                                                            ).implies(Poly_Con_Relation.is_included()):
+                                if polytope.relation_with( additive_constraint(q, i, j) ).implies(poly_is_included):
                                     # find implied additive vertices
                                     vertices_color[i, j] = 0
                                     changed_vertices.append((i, j))
@@ -711,7 +714,7 @@ def paint_complex_complete(q, f, vertices_color, last_covered_intervals, last_un
             # If too few slopes, stop recursion
             if num_slopes_at_best(q, f, covered_intervals, uncovered_intervals) >= num_of_slopes:
                 polytope = C_Polyhedron(cs)
-                polytope.add_constraint( Variable(x) + Variable(y) == Variable(z) )
+                polytope.add_constraint( additive_constraint(q, x, y) )
                 # If infeasible, stop recursion
                 if not polytope.is_empty():
                     legal_picked = True
@@ -719,9 +722,7 @@ def paint_complex_complete(q, f, vertices_color, last_covered_intervals, last_un
                     for i in range(1, q):
                         for j in range(i, q):
                             if legal_picked and (vertices_color[i, j] != 0):
-                                k = (i + j) % q
-                                if polytope.relation_with( Variable(i) + Variable(j) == Variable(k) \
-                                                            ).implies(Poly_Con_Relation.is_included()):
+                                if polytope.relation_with( additive_constraint(q, i, j) ).implies(poly_is_included):
                                     # find implied additive vertices
                                     if vertices_color[i, j] == 2:
                                         # encounter non_candidate vertex, stop recursion
@@ -737,7 +738,7 @@ def paint_complex_complete(q, f, vertices_color, last_covered_intervals, last_un
                                             legal_picked = False
                                             break
                                         #else: # This is not necessary. add_constraint only taks longer
-                                        #    polytope.add_constraint( Variable(i) + Variable(j) == Variable(k) )
+                                        #    polytope.add_constraint( additive_constraint(q, i, j) )
                     if legal_picked:
                         for result_polytope in paint_complex_complete(q, f, vertices_color, \
                                 covered_intervals, uncovered_intervals, (x, y), polytope.minimized_constraints()):
