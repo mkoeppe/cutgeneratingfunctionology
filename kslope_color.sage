@@ -113,7 +113,7 @@ def initial_faces_color_and_covered_intervals(q, f, vertices_color):
                     vertices = [(x+1, y), (x, y+1), (x+w, y+w)]
                 else:
                     vertices = [(x, y+1), (x+w, y+w)]
-                if sum(vertices_color[v] for v in vertices) == 0 :
+                if all(vertices_color[v] == 0 for v in vertices):
                     face = (x, y, w)
                     faces_color[face] = 0
                     covered_intervals = directly_covered_by_adding_face(covered_intervals, face, q, f)
@@ -456,7 +456,7 @@ def paint_complex_heuristic(q, f, vertices_color, faces_color, last_covered_inte
                 vertices_color[x, y] = 0
                 changed_vertices.append((x, y))
                 for (face, vertices) in faces_around_vertex(q, (x, y)):
-                    if faces_color[face] != 0 and sum(vertices_color[v] for v in vertices) == 0:
+                    if faces_color[face] != 0 and all(vertices_color[v] == 0 for v in vertices):
                         # find new green face.
                         if faces_color[face] == 2: # face is in non_candidate
                             legal_picked = False
@@ -483,7 +483,7 @@ def paint_complex_heuristic(q, f, vertices_color, faces_color, last_covered_inte
                                 vertices_color[x, y] = 0
                                 changed_vertices.append((x, y))
                                 for (face, vertices) in faces_around_vertex(q, (x, y)):
-                                    if faces_color[face] != 0 and sum(vertices_color[v] for v in vertices) == 0:
+                                    if faces_color[face] != 0 and all(vertices_color[v] == 0 for v in vertices):
                                         # find new green face.
                                         if faces_color[face] == 2: # face is in non_candidate
                                             legal_picked = False
@@ -565,7 +565,7 @@ def paint_complex_fulldim_covers(q, f, vertices_color, faces_color, last_covered
                     vertices_color[i, j] = 0
                     changed_vertices.append((i, j))
                     for (face, vertices) in faces_around_vertex(q, (i, j)):
-                        if faces_color[face] != 0 and sum(vertices_color[v] for v in vertices) == 0:
+                        if faces_color[face] != 0 and all(vertices_color[v] == 0 for v in vertices):
                             # find new green face.
                             if faces_color[face] == 2: # face is in non_candidate
                                 legal_picked = False
@@ -591,7 +591,7 @@ def paint_complex_fulldim_covers(q, f, vertices_color, faces_color, last_covered
                                     vertices_color[i, j] = 0
                                     changed_vertices.append((i, j))
                                     for (face, vertices) in faces_around_vertex(q, (i, j)):
-                                        if faces_color[face] != 0 and sum(vertices_color[v] for v in vertices) == 0:
+                                        if faces_color[face] != 0 and all(vertices_color[v] == 0 for v in vertices):
                                             # find new green face.
                                             if faces_color[face] == 2: # face is in non_candidate
                                                 legal_picked = False
@@ -667,7 +667,7 @@ def update_around_green_vertex(q, (x, y), vertices_color, covered_intervals, unc
     """
     deja_v = set([])
     for (face, vertices) in faces_around_vertex(q, (x, y)):
-        if sum(vertices_color[v] for v in vertices) == 0:
+        if all(vertices_color[v] == 0 for v in vertices):
             # find new green face.
             deja_v.update(vertices)
             covered_intervals, uncovered_intervals = \
