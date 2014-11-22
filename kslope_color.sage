@@ -1,3 +1,10 @@
+# Make sure current directory is in path.
+# That's not true while doctesting (sage -t).
+if '' not in sys.path:
+    sys.path = [''] + sys.path
+
+from igp import *
+
 # backtracking search for 6-slope extreme functions, 
 # using incremental computation for polytope, vertices_color, faces_color and covered/uncovered_intervals.
 
@@ -18,7 +25,7 @@
 # only record vertex (x,y) and face = (x, y, w) with x <= y.
 # polytope defines the feasible region of (\pi(0), \pi(1/q),..., \pi(1)).
 
-# Main: def search_6slope_example(q, f, mode) or def search_6slope_given_q(q, f_list, mode)
+# Main: def search_kslope_example(q, f, mode) or def search_kslope_given_q(q, f_list, mode)
 # if look for 5-slope function, first set global variable num_of_slopes = 5
 
 from sage.libs.ppl import C_Polyhedron, Constraint, Constraint_System, Generator, Generator_System, Variable, point, Poly_Con_Relation
@@ -800,7 +807,7 @@ def generate_vertex_function(q, polytope, v_set=set([])):
                 h = piecewise_function_from_breakpoints_and_values(bkpt, values)
                 yield h
 
-def search_6slope_example(q, f, mode='heuristic', print_function=True):
+def search_kslope_example(q, f, mode='heuristic', print_function=True):
     """
     Search for extreme functions that have required number of slope values.
 
@@ -811,7 +818,7 @@ def search_6slope_example(q, f, mode='heuristic', print_function=True):
     EXAMPLES::
 
         sage: q=5; f=3; num_of_slopes = 2;
-        sage: h = search_6slope_example(q, f, mode='heuristic', print_function=True).next()
+        sage: h = search_kslope_example(q, f, mode='heuristic', print_function=True).next()
     """
     #initialization
     vertices_color = initial_vertices_color(q, f)
@@ -838,13 +845,13 @@ def search_6slope_example(q, f, mode='heuristic', print_function=True):
         print "Example function not found. Please try again."
 
 import time
-def search_6slope_given_q(q, f_list=None, mode='heuristic', print_function=True):
+def search_kslope_given_q(q, f_list=None, mode='heuristic', print_function=True):
     """
     EXAMPLES::
 
         sage: q = 12; num_of_slopes = 3;
         sage: logging.disable(logging.INFO)
-        sage: h_list = search_6slope_given_q(q, None, mode='heuristic', print_function=False)
+        sage: h_list = search_kslope_given_q(q, None, mode='heuristic', print_function=False)
     """
     h_list = []
     n_sol = 0
@@ -855,7 +862,7 @@ def search_6slope_given_q(q, f_list=None, mode='heuristic', print_function=True)
         t = time.localtime()
         cpu_t = time.clock()
         print "f = %s, start_wall_time = %s:%s" % (f, t[3], t[4])
-        for h in search_6slope_example(q, f, mode, print_function):
+        for h in search_kslope_example(q, f, mode, print_function):
               h_list.append(h)
               n_sol += 1
               print "Found solution No.%s" % n_sol
