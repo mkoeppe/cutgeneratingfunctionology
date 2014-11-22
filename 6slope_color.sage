@@ -372,7 +372,7 @@ def generate_candidate_faces(q, f, covered_intervals, last_face=None):
                     candidate_faces.append(face)
     return candidate_faces
 
-def num_slopes_at_best(q, covered_intervals, uncovered_intervals=None):
+def num_slopes_at_best(q, f, covered_intervals, uncovered_intervals=None):
     """
     Return an upper bound on the final number of slopes,
     given current covered_intervals (and optionally, uncovered_intervals 
@@ -382,9 +382,9 @@ def num_slopes_at_best(q, covered_intervals, uncovered_intervals=None):
 
         sage: covered_intervals = [set([0,2])]
         sage: uncovered_intervals = [set([1]), set([3,4])]
-        sage: num_slopes_at_best(5, covered_intervals)
+        sage: num_slopes_at_best(5, 3, covered_intervals)
         3
-        sage: num_slopes_at_best(5, covered_intervals, uncovered_intervals)
+        sage: num_slopes_at_best(5, 3, covered_intervals, uncovered_intervals)
         3
     """
     if uncovered_intervals is None:
@@ -451,7 +451,7 @@ def paint_complex_heuristic(q, f, vertices_color, faces_color, last_covered_inte
                             changed_faces.append(face)
                             covered_intervals = directly_covered_by_adding_face(covered_intervals, face, q, f)
         # look for implied additive vertices
-        if legal_picked and num_slopes_at_best(q, covered_intervals) >= num_of_slopes:
+        if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= num_of_slopes:
             # If encounter non_candidate or too few slopes, stop recursion
             polytope = C_Polyhedron(cs)
             # update polytope
@@ -481,7 +481,7 @@ def paint_complex_heuristic(q, f, vertices_color, faces_color, last_covered_inte
                                             covered_intervals = directly_covered_by_adding_face(covered_intervals, face, q, f)
                 # If infeasible or encounter non_candidate or
                 # only few slopes are possible given current covered_intervals, stop recursion.
-                if legal_picked and num_slopes_at_best(q, covered_intervals) >= num_of_slopes:
+                if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= num_of_slopes:
                     new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, face_picked)
                     if not new_candidate_faces:
                         # stop recursion
@@ -561,7 +561,7 @@ def paint_complex_fulldim_covers(q, f, vertices_color, faces_color, last_covered
                                 faces_color[face] = 0
                                 changed_faces.append(face)
                                 covered_intervals = directly_covered_by_adding_face(covered_intervals, face, q, f)
-            if legal_picked and num_slopes_at_best(q, covered_intervals) >= num_of_slopes:
+            if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= num_of_slopes:
                 # If encounter non_candidate or too few slopes, stop recursion
                 polytope = C_Polyhedron(cs)
                 # update polytope
@@ -592,7 +592,7 @@ def paint_complex_fulldim_covers(q, f, vertices_color, faces_color, last_covered
                                                 covered_intervals = directly_covered_by_adding_face(covered_intervals, face, q, f)
                     # If infeasible or encounter non_candidate or
                     # only few slopes are possible after considering implied things, stop recursion.
-                    if legal_picked and num_slopes_at_best(q, covered_intervals) >= num_of_slopes:
+                    if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= num_of_slopes:
                         for result_polytope in paint_complex_fulldim_covers(q, f, \
                                 vertices_color, faces_color, covered_intervals, (x, y, w), polytope.minimized_constraints()):
                             yield result_polytope
@@ -702,7 +702,7 @@ def paint_complex_complete(q, f, vertices_color, last_covered_intervals, last_un
             covered_intervals, uncovered_intervals = update_around_green_vertex(q, (x, y), \
                             vertices_color, last_covered_intervals, last_uncovered_intervals)
             # If too few slopes, stop recursion
-            if num_slopes_at_best(q, covered_intervals, uncovered_intervals) >= num_of_slopes:
+            if num_slopes_at_best(q, f, covered_intervals, uncovered_intervals) >= num_of_slopes:
                 polytope = C_Polyhedron(cs)
                 polytope.add_constraint( Variable(x) + Variable(y) == Variable(z) )
                 # If infeasible, stop recursion
@@ -726,7 +726,7 @@ def paint_complex_complete(q, f, vertices_color, last_covered_intervals, last_un
                                         changed_vertices.append((i, j))
                                         covered_intervals, uncovered_intervals = update_around_green_vertex(q, (i, j), \
                                                                     vertices_color, covered_intervals, uncovered_intervals)
-                                        if num_slopes_at_best(q, covered_intervals, uncovered_intervals) < num_of_slopes:
+                                        if num_slopes_at_best(q, f, covered_intervals, uncovered_intervals) < num_of_slopes:
                                             legal_picked = False
                                             break
                                         #else: # This is not necessary. add_constraint only taks longer
