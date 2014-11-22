@@ -839,10 +839,10 @@ def search_kslope_example(q, f, mode='heuristic', print_function=True):
     for result_polytope in gen:
         for h in generate_vertex_function(q, result_polytope, v_set):
             if print_function:
-                print h
-            yield h #return h
+                logging.info("h = %s" % h)
+            yield h
     if not v_set:
-        print "Example function not found. Please try again."
+        logging.info("Example function not found. Please try again.")
 
 import time
 def search_kslope_given_q(q, f_list=None, mode='heuristic', print_function=True):
@@ -850,7 +850,6 @@ def search_kslope_given_q(q, f_list=None, mode='heuristic', print_function=True)
     EXAMPLES::
 
         sage: q = 12; num_of_slopes = 3;
-        sage: logging.disable(logging.INFO)
         sage: h_list = search_kslope_given_q(q, None, mode='heuristic', print_function=False)
     """
     h_list = []
@@ -859,16 +858,13 @@ def search_kslope_given_q(q, f_list=None, mode='heuristic', print_function=True)
         f_list = range(1, (q // 2) + 1)
     start_cpu_t = time.clock()
     for f in f_list:
-        t = time.localtime()
         cpu_t = time.clock()
-        print "f = %s, start_wall_time = %s:%s" % (f, t[3], t[4])
+        logging.info( "Search for extreme funtions with q = %s, f = %s, num_of_slopes >= %s" % (q, f, num_of_slopes) )
         for h in search_kslope_example(q, f, mode, print_function):
               h_list.append(h)
               n_sol += 1
-              print "Found solution No.%s" % n_sol
-        print "q = %s, f = %s takes cpu_time = %s" % (q, f, time.clock() - cpu_t)
-    t = time.localtime()
-    print "finish_wall_time = %s:%s" % (t[3], t[4])
-    print "Total cpu_time = %s" %(time.clock() - start_cpu_t)
+              logging.info("Found solution No.%s" % n_sol)
+        logging.info("q = %s, f = %s takes cpu_time = %s" % (q, f, time.clock() - cpu_t))
+    logging.info("Total cpu_time = %s" %(time.clock() - start_cpu_t))
     return h_list
 
