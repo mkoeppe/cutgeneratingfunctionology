@@ -405,14 +405,16 @@ def num_slopes_at_best(q, f, covered_intervals, uncovered_intervals=None):
         uncovered_num = len(uncovered_intervals)
     return uncovered_num + len(covered_intervals)
 
-def update_around_green_face(q, f, vertices_color, changed_vertices, faces_color, changed_faces, covered_intervals, (x, y, w)):
+def update_around_green_face(q, f, vertices_color, faces_color, covered_intervals, (x, y, w)):
     """
     Subfunction of paint_complex_heuristic() and paint_complex_fulldim_covers().
     Painting triangle (x, y, w) from white to green induces some new green triangles around it.
-    Update vertices_color, changed_vertices, faces_color, changed_faces correspondingly.
-    If there is non_candidate among implied green faces, return False.
-    Otherwise, return True and updated covered_intervals.
+    Update vertices_color, faces_color, correspondingly.
+    If there is non_candidate among implied green faces, return (False, None, changed_vertices, changed_faces).
+    Otherwise, return (True, updated covered_intervals, changed_vertices, changed_faces).
     """
+    changed_vertices = []
+    changed_faces = []
     if x < y:
         vertices_picked = [(x+1, y), (x, y+1), (x+w, y+w)]
     else:
@@ -426,11 +428,11 @@ def update_around_green_face(q, f, vertices_color, changed_vertices, faces_color
                 if faces_color[face] != 0 and all(vertices_color[v] == 0 for v in vertices):
                     # find new green face.
                     if faces_color[face] == 2: # face is in non_candidate
-                        return False, None
+                        return False, None, changed_vertices, changed_faces
                     faces_color[face] = 0
                     changed_faces.append(face)
                     covered_intervals = directly_covered_by_adding_face(covered_intervals, face, q, f)
-    return True, covered_intervals
+    return True, covered_intervals, changed_vertices, changed_faces
 
 def update_implied_faces(q, f, vertices_color, changed_vertices, faces_color, changed_faces, covered_intervals, polytope):
     """
@@ -485,11 +487,9 @@ def paint_complex_heuristic(k_slopes, q, f, vertices_color, faces_color, last_co
         (x, y, w) = candidate_faces[n]
         n += 1
         faces_color[(x, y, w)] = 0
-        changed_faces = []
-        changed_vertices = []
         covered_intervals = directly_covered_by_adding_face(last_covered_intervals, (x, y, w), q, f)
-        legal_picked, covered_intervals = update_around_green_face(q, f, \
-                    vertices_color, changed_vertices, faces_color, changed_faces, covered_intervals, (x, y, w))
+        legal_picked, covered_intervals, changed_vertices, changed_faces = update_around_green_face( \
+                    q, f, vertices_color, faces_color, covered_intervals, (x, y, w))
         # If encounter non_candidate or too few slopes, stop recursion
         if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
             polytope = C_Polyhedron(cs)
@@ -556,13 +556,11 @@ def paint_complex_fulldim_covers(k_slopes, q, f, vertices_color, faces_color, la
             y = x
         if faces_color[(x, y, w)] == 1: # color is unkown
             picked_faces.append( (x, y, w) )
-            changed_faces = []
-            changed_vertices = []
             # First, try out green triangle (x, y, w)
             faces_color [(x, y, w)] = 0
             covered_intervals = directly_covered_by_adding_face(last_covered_intervals, (x, y, w), q, f)
-            legal_picked, covered_intervals = update_around_green_face(q, f, \
-                    vertices_color, changed_vertices, faces_color, changed_faces, covered_intervals, (x, y, w))
+            legal_picked, covered_intervals, changed_vertices, changed_faces = update_around_green_face( \
+                    q, f, vertices_color, faces_color, covered_intervals, (x, y, w))
             # If encounter non_candidate or too few slopes, stop recursion
             if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
                 polytope = C_Polyhedron(cs)
