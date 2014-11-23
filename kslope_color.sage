@@ -155,7 +155,7 @@ def initial_cs(q, f, vertices_color):
                 cs.insert(fn[x] + fn[y] >= fn[z])
     return cs
 
-#@cached_function
+@cached_function
 def edges_around_vertex(q, v):
     """
     Given a grid vertex v (assume that v[0] <= v[1], v is not on the border),
@@ -202,7 +202,7 @@ def edges_around_vertex(q, v):
            (set([ yy, (xx + yy) % q ]), (xx, yr)), \
            (set([ xl, yy ]), (xl, yr)) ]
 
-#@cached_function
+@cached_function
 def faces_around_vertex(q, v):
     """
     Given a grid vertex v (assume that v[0] <= v[1], v is not on the border),
@@ -304,8 +304,8 @@ def update_covered_uncovered_by_adding_face(last_covered_intervals, last_uncover
 
 def update_covered_uncovered_by_adding_edge(last_covered_intervals, last_uncovered_intervals, to_merge_set, q):
     """
-    Compute incrementally new covered_intervals and new uncovered_intervals 
-    by adding a new green edge, which implies that the elements in to_merge_set must be connected.
+    Compute incrementally new covered_intervals and new uncovered_intervals, resulting from
+    adding a new green edge that connects the elements in to_merge_set.
 
     EXAMPLES::
 
@@ -317,22 +317,23 @@ def update_covered_uncovered_by_adding_edge(last_covered_intervals, last_uncover
     """
     covered_intervals = []
     uncovered_intervals = []
+    new_set = copy(to_merge_set)
     new_set_is_covered = False
     for component in last_uncovered_intervals:
-        if component & to_merge_set:
-            to_merge_set.update(component)
+        if component & new_set:
+            new_set.update(component)
         else:
             uncovered_intervals.append(component)
     for component in last_covered_intervals:
-        if component & to_merge_set:
-            to_merge_set.update(component)
+        if component & new_set:
+            new_set.update(component)
             new_set_is_covered = True
         else:
             covered_intervals.append(component)
     if new_set_is_covered:
-        covered_intervals.append(to_merge_set)
+        covered_intervals.append(new_set)
     else:
-        uncovered_intervals.append(to_merge_set)
+        uncovered_intervals.append(new_set)
     return covered_intervals, uncovered_intervals
 
 def generate_to_cover(q, covered_intervals):
