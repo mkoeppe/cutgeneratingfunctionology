@@ -1,4 +1,11 @@
-destdir = "/media/sf_dropbox/2q_mip/"
+# Make sure current directory is in path.
+# That's not true while doctesting (sage -t).
+if '' not in sys.path:
+    sys.path = [''] + sys.path
+
+from igp import *
+
+destdir = "/media/sf_dropbox/2q_mip/" # FIXME: UPDATE THIS
 
 def fn_variable(q, x):
     return 'fn_%s' % int(x*q)
@@ -221,27 +228,6 @@ def print_trivial_additive_points(filename, q, f):
     #b = f - a
     #print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a - 1/q))
     #print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a))
-    
-def covered_interval_variable(q, x):
-    """
-    EXAMPLES::
-
-        sage: covered_interval_variable(7, 3/7)
-        'c_3'
-    """
-    return 'c_%s' % int(x * q)
-
-def variable_covered_interval(q, s):
-    """
-    EXAMPLES::
-
-        sage: variable_covered_interval(7, 'c_3')
-        [3/7, 4/7]
-    """
-    assert s[0] == 'c', "varialbe %s is not a covered interval" % s
-    index1 = s.rfind('_')
-    x = int(s[index1+1::])/q
-    return [x, x + 1/q]
 
 def covered_i_variable(q, z, i):
     """
@@ -488,7 +474,7 @@ def write_lpfile(q, f, nums, maxstep=None, m=0):
     """
     EXAMPLES:
 
-        sage: write_lpfile(22, 10/22, 5, 2)
+        sage: write_lpfile(22, 10/22, 5, 2) # not tested
     """
     if maxstep is None:
         maxstep = q
@@ -591,8 +577,8 @@ def painted_faces_and_funciton_from_solution(filename, q, showplots=True):
     Read the solution file, draw 2d complex and plot fn.
     EXAMPLES::
 
-        sage: faces, fn = painted_faces_and_funciton_from_solution(
-        ...                 '/media/sf_dropbox/2q_mip/2q_13_9_4.sol', 13)
+        sage: faces, fn = painted_faces_and_funciton_from_solution( \       # not tested
+        ...                 '/media/sf_dropbox/2q_mip/2q_13_9_4.sol', 13)   # not tested
     """
     faces = []
     bkpt = [x/q for x in range(q+1)]
@@ -622,10 +608,10 @@ def investigate_faces_solution(q, f, faces):
     Check the vertex-function corresponding to given painted faces.
     EXAMPLES::
 
-        sage: faces, fn = painted_faces_and_funciton_from_solution( \
-        ...               '/media/sf_dropbox/2q_mip/5slope_22_10_m0_min_add_point.sol',\
-        ...               22, showplots=False)
-        sage: investigate_faces_solution(22, 10/22, faces)
+        sage: faces, fn = painted_faces_and_funciton_from_solution( \           # not tested
+        ...     '/media/sf_dropbox/2q_mip/5slope_22_10_m0_min_add_point.sol',\  # not tested
+        ...     22, showplots=False)                                            # not tested
+        sage: investigate_faces_solution(22, 10/22, faces)                      # not tested
     """
     components = generate_covered_intervals_from_faces(faces)
     additive_vertices = generate_additive_vertices_from_faces(q, faces)
@@ -660,9 +646,9 @@ def print_slope_constraints(filename, q, nums, m=0):
     """
     EXAMPLES::
 
-        sage: print_slope_constraints(sys.stdout, 3, 3)
-        s_0 - s_1 > 0.0333333333333333
-        s_1 - s_2 > 0.0333333333333333
+        sage: print_slope_constraints(sys.stdout, 3, 3, m=0)
+        s_0 - s_1 >= 0
+        s_1 - s_2 >= 0
         s_0 - 3 fn_1 = 0
         i_0_s_0 = 1
         s_2 + 3 fn_2 = 0

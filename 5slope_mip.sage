@@ -228,27 +228,6 @@ def print_trivial_additive_points(filename, q, f):
     #b = f - a
     #print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a - 1/q))
     #print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a))
-    
-def covered_interval_variable(q, x):
-    """
-    EXAMPLES::
-
-        sage: covered_interval_variable(7, 3/7)
-        'c_3'
-    """
-    return 'c_%s' % int(x * q)
-
-def variable_covered_interval(q, s):
-    """
-    EXAMPLES::
-
-        sage: variable_covered_interval(7, 'c_3')
-        [3/7, 4/7]
-    """
-    assert s[0] == 'c', "varialbe %s is not a covered interval" % s
-    index1 = s.rfind('_')
-    x = int(s[index1+1::])/q
-    return [x, x + 1/q]
 
 def covered_i_variable(q, z, i):
     """
@@ -658,10 +637,10 @@ def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None, weights=[]):
 def painted_faces_and_funciton_from_solution(filename, q, showplots=True):
     """
     Read the solution file, draw 2d complex and plot fn.
-    EXAMPLES: # Don't check in doctesting
+    EXAMPLES::
 
-        faces, fn = painted_faces_and_funciton_from_solution( \
-                    '/media/sf_dropbox/2q_mip/2q_13_9_4.sol', 13)
+        sage: faces, fn = painted_faces_and_funciton_from_solution( \   # not tested
+        ...            '/media/sf_dropbox/2q_mip/2q_13_9_4.sol', 13)    # not tested
     """
     faces = []
     bkpt = [x/q for x in range(q+1)]
@@ -689,12 +668,12 @@ def painted_faces_and_funciton_from_solution(filename, q, showplots=True):
 def investigate_faces_solution(q, f, faces):
     """
     Check the vertex-function corresponding to given painted faces.
-    EXAMPLES: # Don't check in doctesting
+    EXAMPLES::
 
-        faces, fn = painted_faces_and_funciton_from_solution( \
-        ...               '/media/sf_dropbox/2q_mip/5slope_22_10_m0_min_add_point.sol',\
-        ...               22, showplots=False)
-        investigate_faces_solution(22, 10/22, faces)
+        sage: faces, fn = painted_faces_and_funciton_from_solution( \           # not tested
+        ...   '/media/sf_dropbox/2q_mip/5slope_22_10_m0_min_add_point.sol',\    # not tested
+        ...   22, showplots=False)                                              # not tested
+        sage: investigate_faces_solution(22, 10/22, faces)                      # not tested
     """
     #FIXME: need to attach 2q_search.sage
     components = generate_covered_intervals_from_faces(faces)
