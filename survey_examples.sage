@@ -848,6 +848,12 @@ def kzh_6_slope_fulldim_covers_4():
     values = [0, 47/127, 40/127, 87/127, 80/127, 1, 39/127, 86/127, 45/127, 58/127, 98/127, 209/254, 45/254, 29/127, 69/127, 82/127, 41/127, 88/127, 0]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
+def kzh_6_slope_fulldim_covers_5():
+    # q = 27, f = 7
+    bkpt = [0, 1/27, 2/27, 1/9, 4/27, 5/27, 2/9, 7/27, 8/27, 10/27, 11/27, 4/9, 13/27, 16/27, 2/3, 7/9, 22/27, 23/27, 8/9, 26/27, 1]
+    values = [0, 43/76, 59/76, 3/4, 1/4, 17/76, 33/76, 1, 1/2, 17/38, 25/38, 3/4, 37/76, 29/38, 9/38, 39/76, 1/4, 13/38, 21/38, 1/2, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
 #def kzh_5_slope_q22_f10_0():
 #    return hildebrand_5_slope_22_1()
 
