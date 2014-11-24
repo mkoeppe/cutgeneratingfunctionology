@@ -1,172 +1,11 @@
-# Find 6-slope extreme function fulldim_covers_6slope_q25_1(), using:
-#   LP model: 6slope_q25_f8_no_transrefl_m12.lp
-#   obtained by: (set obj = max_slope_slack)
-#       sage: write_lpfile(25, 8/25, 6, 1, m=12, type_cover='no_transrefl', weights=[])
-#   Gurobi run on "point", setParam("MIPFocus", 0)
-#   interrupt at first feasible solution (3min, obj = 30.38)
-#   Solution file: solution_6slope_q25_f8_no_transrefl_m12.sol
-#   vertex function is a 6-slope extreme function
-#       sage: faces, fn = painted_faces_and_funciton_from_solution('.../solution_6slope_q25_f8_no_transrefl_m12.sol', 25, showplots=False)
-#       sage: h = investigate_faces_solution(25, 8/25, faces)[0]
+# Make sure current directory is in path.
+# That's not true while doctesting (sage -t).
+if '' not in sys.path:
+    sys.path = [''] + sys.path
 
-def extreme_5slope_no_0d_1d_1():
-    """
-    5-slope extreme function without any 0-d or 1-d maximal additive faces
-    except for the symmetry reflection or x=0 or y=0.
+from igp import *
 
-    LP model: 5slope_q37_f25_m12_fulldim.lp
-    q = 37; f = 25/37; given number of slopes = 5; maxstep = 1;
-    slope gap >= q/12; subadditive slack >= q/12;
-    obj = max_slope_slack. MIPFocus = 1
-
-    Gurobi run on my laptop,
-    Interrupt at the 2nd feasible solution (662s, obj = 22.81667)
-    Solution file: solution_5slope_no_0d_1d_1.sol
-    vertex function is a 5-slope extreme function
-
-    This function is obtained by:
-    sage: faces, fn = painted_faces_and_funciton_from_solution('.../solution_5slope_no_0d_1d_1.sol', 37, showplots=False)
-    sage: h_list = investigate_faces_solution(37, 25/37, faces)
-    sage: extreme_5slope_no_0d_1d_1 = h_list[0]
-
-    EXAMPLES::
-
-        sage: h = extreme_5slope_no_0d_1d_1()
-        sage: extremality_test(h)
-        True
-    """
-    bkpt = [0, 2/37, 3/37, 5/37, 7/37, 10/37, 11/37, 12/37, 13/37, 14/37, 15/37, \
-            18/37, 20/37, 22/37, 23/37, 25/37, 27/37, 28/37, 29/37, 33/37, 34/37, 35/37, 1]
-    values = [0, 59/90, 7/9, 64/135, 4/9, 73/90, 43/54, 29/45, 16/45, 11/54, 17/90, \
-              5/9, 71/135, 2/9, 31/90, 1, 19/45, 73/270, 23/90, 67/90, 197/270, 26/45, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpt, values)
-
-def extreme_5slope_no_0d_1d_2():
-    """
-    5-slope extreme function without any 0-d or 1-d maximal additive faces
-    except for the symmetry reflection or x=0 or y=0.
-
-    LP model: 5slope_q37_f25_m12_fulldim.lp
-    q = 37; f = 25/37; given number of slopes = 5; maxstep = 1;
-    slope gap >= q/12; subadditive slack >= q/12;
-    obj = max_slope_slack. MIPFocus = 1
-
-    Gurobi run on my laptop,
-    Interrupt at the 4nd feasible solution (1285s, obj = 28.08205)
-    Solution file: solution_5slope_no_0d_1d_2.sol
-    vertex function is a 5-slope extreme function
-
-    This function is obtained by:
-    sage: faces, fn = painted_faces_and_funciton_from_solution('.../solution_5slope_no_0d_1d_2.sol', 37, showplots=False)
-    sage: h_list = investigate_faces_solution(37, 25/37, faces)
-    sage: extreme_5slope_no_0d_1d_2 = h_list[0]
-
-    EXAMPLES::
-
-        sage: h = extreme_5slope_no_0d_1d_2()
-        sage: extremality_test(h)
-        True
-    """
-    bkpt = [0, 1/37, 2/37, 5/37, 7/37, 10/37, 12/37, 13/37, 15/37, 18/37, 20/37, \
-            23/37, 24/37, 25/37, 26/37, 27/37, 28/37, 29/37, 33/37, 34/37, 35/37, 36/37, 1]
-    values = [0, 8/15, 4/13, 10/13, 47/78, 152/195, 239/390, 151/390, 43/195, 31/78, \
-              3/13, 9/13, 7/15, 1, 151/195, 539/780, 121/260, 149/390, 241/390, 139/260, 241/780, 44/195, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpt, values)
-
-def extreme_5slope_no_0d_1d_3():
-    """
-    5-slope extreme function without any 0-d or 1-d maximal additive faces
-    except for the symmetry reflection or x=0 or y=0.
-
-    LP model: 5slope_q37_f25_m12_fulldim.lp
-    Solution file: solution_5slope_no_0d_1d_3and4.sol
-    the first vertex function is a 5-slope extreme function
-    """
-    bkpt = [0, 1/37, 3/37, 5/37, 7/37, 10/37, 12/37, 13/37, 15/37, 18/37, 20/37, \
-            22/37, 24/37, 25/37, 26/37, 27/37, 28/37, 29/37, 33/37, 34/37, 35/37, 36/37, 1]
-    values = [0, 8/15, 11/30, 49/60, 13/20, 77/100, 181/300, 119/300, 23/100, 7/20, \
-              11/60, 19/30, 7/15, 1, 119/150, 71/100, 151/300, 21/50, 29/50, 149/300, 29/100, 31/150, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpt, values)
-
-def extreme_5slope_no_0d_1d_4():
-    """
-    5-slope extreme function without any 0-d or 1-d maximal additive faces
-    except for the symmetry reflection or x=0 or y=0.
-
-    LP model: 5slope_q37_f25_m12_fulldim.lp
-    Solution file: solution_5slope_no_0d_1d_3and4.sol
-    the second vertex function is a 5-slope extreme function
-    """
-    bkpt = [0, 1/37, 3/37, 5/37, 7/37, 10/37, 12/37, 13/37, 15/37, 18/37, 20/37, \
-            22/37, 24/37, 25/37, 26/37, 27/37, 28/37, 29/37, 33/37, 34/37, 35/37, 36/37, 1]
-    values = [0, 41/63, 61/126, 191/252, 149/252, 197/252, 155/252, 97/252, 55/252, \
-              103/252, 61/252, 65/126, 22/63, 1, 97/126, 173/252, 115/252, 47/126, 79/126, 137/252, 79/252, 29/126, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpt, values)
-
-def extreme_5slope_no_0d_1d_5():
-    """
-    5-slope extreme function without any 0-d or 1-d maximal additive faces
-    except for the symmetry reflection or x=0 or y=0.
-
-    LP model: 5slope_q37_f25_m12_fulldim.lp
-    Solution file: solution_5slope_no_0d_1d_5.sol
-    vertex function is a 5-slope extreme function
-    """
-    bkpt = [0, 1/37, 3/37, 5/37, 7/37, 10/37, 12/37, 13/37, 15/37, 18/37, 20/37, \
-            22/37, 24/37, 25/37, 28/37, 29/37, 33/37, 34/37, 1]
-    values = [0, 145/221, 6/13, 10/13, 127/221, 347/442, 261/442, 181/442, 95/442, \
-              94/221, 3/13, 7/13, 76/221, 1, 101/221, 159/442, 283/442, 120/221, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpt, values)
-
-def extreme_5slope_no_transrefl():
-    """
-    5-slope extreme function without any translation/reflection
-    except for the symmetry reflection.
-
-    LP model: 5slope_q22_f10_step1_m4.lp
-    q = 22; f = 10/22; given number of slopes = 5; maxstep = 1;
-    slope gap >= q/4; subadditive slack >= q/4;
-    obj = max_slope_slack.
-
-    Gurobi run on my laptop, (51.83s, obj = 30.25)
-    Optimal solution: solution_5slope_no_transrefl.sol
-    vertex function is a 5-slope extreme function
-
-    This function is obtained by:
-    sage: faces, fn = painted_faces_and_funciton_from_solution('.../solution_5slope_no_transrefl.sol', 22, showplots=False)
-    sage: h_list = investigate_faces_solution(22, 10/22, faces)
-    sage: new_5slope_1 = h_list[0]
-
-    EXAMPLES::
-
-        sage: h = extreme_5slope_no_transrefl()
-        sage: extremality_test(h)
-        True
-        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
-        []
-    """
-    bkpt = [0, 1/22, 1/11, 3/22, 2/11, 3/11, 7/22, 4/11, 9/22, 5/11,\
-             1/2, 6/11, 13/22, 7/11, 9/11, 19/22, 10/11, 21/22, 1]
-    values = [0, 23/32, 3/4, 7/16, 13/16, 3/16, 9/16, 1/4, 9/32, 1, \
-                11/32, 3/8, 3/4, 7/16, 9/16, 1/4, 5/8, 21/32, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpt, values)
-
-def extreme_5slope_no_transrefl_2():
-    """
-    5-slope extreme function without any translation/reflection
-    except for the symmetry reflection.
-
-    LP model: 6slope_q39_f16_step1_m12.lp
-    Solution file: solution_5slope_transrefl_2.sol
-    The third vertex function is a 5-slope extreme function
-    """
-    bkpt = [0, 1/39, 1/13, 4/39, 2/13, 7/39, 3/13, 10/39, 4/13, 1/3, 5/13, 16/39, \
-            17/39, 7/13, 22/39, 8/13, 25/39, 9/13, 28/39, 10/13, 31/39, 11/13, 34/39, 38/39, 1]
-    values = [0, 7/8, 11/24, 19/24, 3/8, 17/24, 7/24, 5/8, 5/24, 13/24, 1/8, 1, 1/4, \
-              1/2, 5/6, 5/12, 3/4, 1/3, 2/3, 1/4, 7/12, 1/6, 1/2, 3/4, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpt, values)
-
-destdir = "/media/sf_dropbox/2q_mip/"
+destdir = "/media/sf_dropbox/2q_mip/" # FIXME: UPDATE THIS
 
 def fn_variable(q, x):
     return 'fn_%s' % int(x*q)
@@ -694,7 +533,7 @@ def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None, weights=[]):
     """
     EXAMPLES:
 
-        sage: write_lpfile(22, 10/22, 5, 1, 4)
+        sage: write_lpfile(22, 10/22, 5, 1, 4) # not tested
     """
     if maxstep is None:
         maxstep = q
@@ -819,10 +658,10 @@ def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None, weights=[]):
 def painted_faces_and_funciton_from_solution(filename, q, showplots=True):
     """
     Read the solution file, draw 2d complex and plot fn.
-    EXAMPLES::
+    EXAMPLES: # Don't check in doctesting
 
-        sage: faces, fn = painted_faces_and_funciton_from_solution(
-        ...                 '/media/sf_dropbox/2q_mip/2q_13_9_4.sol', 13)
+        faces, fn = painted_faces_and_funciton_from_solution( \
+                    '/media/sf_dropbox/2q_mip/2q_13_9_4.sol', 13)
     """
     faces = []
     bkpt = [x/q for x in range(q+1)]
@@ -850,14 +689,14 @@ def painted_faces_and_funciton_from_solution(filename, q, showplots=True):
 def investigate_faces_solution(q, f, faces):
     """
     Check the vertex-function corresponding to given painted faces.
-    EXAMPLES::
+    EXAMPLES: # Don't check in doctesting
 
-        sage: faces, fn = painted_faces_and_funciton_from_solution( \
+        faces, fn = painted_faces_and_funciton_from_solution( \
         ...               '/media/sf_dropbox/2q_mip/5slope_22_10_m0_min_add_point.sol',\
         ...               22, showplots=False)
-        sage: investigate_faces_solution(22, 10/22, faces)
+        investigate_faces_solution(22, 10/22, faces)
     """
-    #attach 2q_search.sage
+    #FIXME: need to attach 2q_search.sage
     components = generate_covered_intervals_from_faces(faces)
     additive_vertices = generate_additive_vertices_from_faces(q, faces)
     fn_sym = generate_symbolic_continuous(None, components, field=QQ)
@@ -891,9 +730,9 @@ def print_slope_constraints(filename, q, nums, m=0):
     """
     EXAMPLES::
 
-        sage: print_slope_constraints(sys.stdout, 3, 3)
-        s_0 - s_1 > 0.0333333333333333
-        s_1 - s_2 > 0.0333333333333333
+        sage: print_slope_constraints(sys.stdout, 3, 3, m=0)
+        s_0 - s_1 >= 0
+        s_1 - s_2 >= 0
         s_0 - 3 fn_1 = 0
         i_0_s_0 = 1
         s_2 + 3 fn_2 = 0
