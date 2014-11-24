@@ -61,7 +61,7 @@ def variable_face(q, s):
         sage: variable_face(q, 'p_2_2')
         <Face ([2/7], [2/7], [4/7])>
     """
-    assert s[0] in set(['h','v','d','l','u','p']), "varialbe %s is not a face" % s
+    assert s[0] in set(['h','v','d','l','u','p']), "variable %s is not a face" % s
     index1 = s.find('_')
     index2 = s.rfind('_')
     x = int(s[index1+1: index2])/q
@@ -95,7 +95,7 @@ def variable_vertex(q, s):
         sage: variable_vertex(7, 'p_1_2')
         (1/7, 2/7)
     """
-    assert s[0] == 'p', "varialbe %s is not a vertex" % s
+    assert s[0] == 'p', "variable %s is not a vertex" % s
     index1 = s.find('_')
     index2 = s.rfind('_')
     x = int(s[index1+1: index2])/q
@@ -229,6 +229,15 @@ def print_trivial_additive_points(filename, q, f):
     #print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a - 1/q))
     #print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a))
 
+def move_variable(q, x, z):
+    """
+    EXAMPLES::
+
+        sage: move_variable(7, 1/7, 3/7)
+        'm_1_3'
+    """
+    return 'm_%s_%s' % (int(x * q), int(z * q))
+
 def covered_i_variable(q, z, i):
     """
     EXAMPLES::
@@ -313,28 +322,51 @@ def print_directly_covered_constraints(filename, q, z):
     #    print >> filename, '+ %s' % lu,
     #print >> filename, '>= %s' % (2*q -1)
 
+def print_move_constraints(filename, q, x, z):
+    """
+    EXAMPLES::
+
+        sage: print_move_constraints(sys.stdout, 7, 1/7, 3/7)
+        m_1_3 - h_1_2 <= 0
+        m_1_3 - v_5_3 <= 0
+        h_1_2 + v_5_3 - m_1_3 <= 1
+        sage: print_move_constraints(sys.stdout, 7, 3/7, 1/7)
+        m_3_1 - h_3_5 <= 0
+        m_3_1 - v_2_1 <= 0
+        h_3_5 + v_2_1 - m_3_1 <= 1
+    """
+    m_x_z = move_variable(q, x, z)
+    if z >= x:
+        y = z - x
+    else:
+        y = z - x + 1
+    # Maps a horizontal edge to a forward translation.
+    forward_move = Face(([x, x + 1/q], [y], [x + y, x + y + 1/q])) # h_xx,(zz-xx)%q
+    # Maps a vertical edge to a backward translation.
+    backward_move = Face(([1 - y], [z, z + 1/q], [1 - y + z, 1 - y + z + 1/q])) # v_(xx-zz)%q,zz
+    # m_x_z = min(forward_move, backward_move)
+    # m_x_z == 0 only if forward_move == 0 or backward_move == 0,
+    # i.e. m_x_z + 1 >= forward_move + backward_move
+    print >> filename, '%s - %s <= 0' % (m_x_z, face_variable(q, forward_move))
+    print >> filename, '%s - %s <= 0' % (m_x_z, face_variable(q, backward_move))
+    print >> filename, '%s + %s - %s <= 1' % (face_variable(q, forward_move), \
+                                              face_variable(q, backward_move), m_x_z)
+
 def print_translation_i_constraints(filename, q, x, z, i):
     """
     EXAMPLES::
 
         sage: print_translation_i_constraints(sys.stdout, 7, 1/7, 3/7, 2)
         c_1_1 - t_1_3_2 <= 0
-        h_1_2 - t_1_3_2 <= 0
-        t_1_3_2 - c_1_1 - h_1_2 <= 0
-        sage: print_translation_i_constraints(sys.stdout, 7, 3/7, 1/7, 2)
-        c_3_1 - t_3_1_2 <= 0
-        h_1_2 - t_3_1_2 <= 0
-        t_3_1_2 - c_3_1 - h_1_2 <= 0
+        m_1_3 - t_1_3_2 <= 0
+        t_1_3_2 - c_1_1 - m_1_3 <= 0
     """
     c_x_last = covered_i_variable(q, x, i-1)
+    m_x_z = move_variable(q, x, z)
     t_x_z_i =  translation_i_variable(q, x, z, i)
     print >> filename, '%s - %s <= 0' % (c_x_last, t_x_z_i)
-    if x <= z:
-        move = Face(([x, x + 1/q], [z - x], [z, z + 1/q])) # h_xx,zz-xx
-    else:
-        move = Face(([z, z + 1/q], [x - z], [x, x + 1/q])) # h_zz,xx-zz
-    print >> filename, '%s - %s <= 0' % (face_variable(q, move), t_x_z_i)
-    print >> filename, '%s - %s - %s <= 0' % (t_x_z_i, c_x_last, face_variable(q, move))
+    print >> filename, '%s - %s <= 0' % (m_x_z, t_x_z_i)
+    print >> filename, '%s - %s - %s <= 0' % (t_x_z_i, c_x_last, m_x_z)
     
 def print_reflection_i_constraints(filename, q, x, z, i):
     """
@@ -530,6 +562,8 @@ def write_lpfile(q, f, nums, maxstep=None, m=0):
             x = xx / q
             z = zz / q
             if x != z:
+                if maxstep > 1:
+                    print_move_constraints(filename, q, x, z)
                 for step in range(1, maxstep):
                     print_translation_i_constraints(filename, q, x, z, step)
                     print_reflection_i_constraints(filename, q, x, z, step)
@@ -560,6 +594,8 @@ def write_lpfile(q, f, nums, maxstep=None, m=0):
     for z in range(q):
         for x in range(q):
             if x != z:
+                if maxstep > 1:
+                    print >> filename, 'm_%s_%s' % (x, z),
                 for step in range(1, maxstep):
                     print >> filename, 't_%s_%s_%s' % (x, z, step),
                     print >> filename, 'r_%s_%s_%s' % (x, z, step),
