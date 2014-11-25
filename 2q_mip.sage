@@ -61,7 +61,7 @@ def variable_face(q, s):
         sage: variable_face(q, 'p_2_2')
         <Face ([2/7], [2/7], [4/7])>
     """
-    assert s[0] in set(['h','v','d','l','u','p']), "variable %s is not a face" % s
+    assert s[0] in set(['h','v','d','l','u','p']), "varialbe %s is not a face" % s
     index1 = s.find('_')
     index2 = s.rfind('_')
     x = int(s[index1+1: index2])/q
@@ -95,7 +95,7 @@ def variable_vertex(q, s):
         sage: variable_vertex(7, 'p_1_2')
         (1/7, 2/7)
     """
-    assert s[0] == 'p', "variable %s is not a vertex" % s
+    assert s[0] == 'p', "varialbe %s is not a vertex" % s
     index1 = s.find('_')
     index2 = s.rfind('_')
     x = int(s[index1+1: index2])/q
@@ -187,15 +187,15 @@ def print_fn_minimality_test(filename, q, f, m=0):
                 print >> filename, '%s + %s - %s >= 0' %(fn_variable(q, x), fn_variable(q, y), fn_variable(q, z))
             else:
                 print >> filename, '%s + %s - %s - %s %s >= 0' %(fn_variable(q, x), fn_variable(q, y), fn_variable(q, z), \
-                                                                 RR(1 / m), vertex_variable(q, (x, y)))
+                                                                 RR(1/m), vertex_variable(q, (x, y)))
             print >> filename, '%s + %s - %s - 2 %s <= 0' %(fn_variable(q, x), fn_variable(q, y), \
                                                             fn_variable(q, z), vertex_variable(q, (x, y)))
 
-def print_trivial_additive_points(filename, q, f):
+def print_trivial_additive_points_2q(filename, q, f, a):
     """
     EXAMPLES::
 
-        sage: print_trivial_additive_points(sys.stdout, 3, 2/3)
+        sage: print_trivial_additive_points_2q(sys.stdout, 3, 2/3, 1/3)
         p_0_0 = 0
         p_0_1 = 0
         p_0_2 = 0
@@ -208,6 +208,8 @@ def print_trivial_additive_points(filename, q, f):
         p_2_0 = 0
         p_2_3 = 0
         p_3_2 = 0
+        p_1_0 = 0
+        p_1_1 = 0
     """
     bkpt = [x/q for x in range(q+1)]
     # border x = 0 and border y = 0 are green
@@ -225,9 +227,9 @@ def print_trivial_additive_points(filename, q, f):
         elif x > f:
             print >> filename, '%s = 0' % vertex_variable(q, (x, f - x + 1))
 
-    #b = f - a
-    #print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a - 1/q))
-    #print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a))
+    b = f - a
+    print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a - 1/q))
+    print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a))
 
 def move_variable(q, x, z):
     """
@@ -502,15 +504,15 @@ def print_obj_min_directly_covered_times(filename, q, weight=1):
             print >> filename, '+ %s %s + %s %s' % ( weight, face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y, x + y + 1/q]))), \
                                                      weight, face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y + 1/q, x + y + 2/q]))) ),
     
-def write_lpfile(q, f, nums, maxstep=None, m=0):
+def write_lpfile_2q(q, f, a, nums, maxstep=None, m=0):
     """
     EXAMPLES:
 
-        sage: write_lpfile(22, 10/22, 5, 2) # not tested
+        sage: write_lpfile_2q(37, 25/37, 11/37, 4, maxstep=2, m=4) # not tested
     """
     if maxstep is None:
         maxstep = q
-    filename = open(destdir + "%sslope_q%s_f%s_step%s_m%s.lp" % (nums, q, int(f*q), maxstep, m), "w")
+    filename = open(destdir + "mip_q%s_f%s_a%s_%sslope_%smaxstep_m%s.lp" % (q, int(f*q), int(a*q), nums, maxstep, m), "w")
     faces_2d = []
     faces_diag = []
     faces_hor = []
@@ -531,7 +533,7 @@ def write_lpfile(q, f, nums, maxstep=None, m=0):
         for yy in range(q+1):
             faces_0d.append( Face(([xx/q], [yy/q], [(xx+yy)/q])) )
 
-    print >> filename, '\ MIP model with q = %s, f = %s, num of slopes = %s, maxstep of tran/refl = %s, small_m = %s' % (q, f, nums, maxstep, m)
+    print >> filename, '\ MIP model with q = %s, f = %s, a = %s, num of slopes = %s, maxstep of tran/refl = %s, small_m = %s' % (q, f, a, nums, maxstep, m)
 
     print >> filename, 'Maximize'
     #print >> filename, 0
@@ -553,9 +555,10 @@ def write_lpfile(q, f, nums, maxstep=None, m=0):
         if face.minimal_triple[0][0] < face.minimal_triple[1][0]:
             print_xy_swapped_constraints(filename, q, face)
 
+    # if no 1/m trick for subadditivity, set m=0 in print_fn_minimality_test.
     print_fn_minimality_test(filename, q, f, m)
 
-    print_trivial_additive_points(filename, q, f)
+    print_trivial_additive_points_2q(filename, q, f, a)
 
     for zz in range(q):
         for xx in range(q):
@@ -576,9 +579,12 @@ def write_lpfile(q, f, nums, maxstep=None, m=0):
 
     for zz in range(q):
         z = zz / q
-        print >> filename, '%s = 0' % covered_i_variable(q, z, maxstep - 1)
+        if z != a - 1/q and z != f - a:
+            print >> filename, '%s = 0' % covered_i_variable(q, z, maxstep - 1)
+        else:
+            print >> filename, '%s = 1' % covered_i_variable(q, z, maxstep - 1)
 
-    print_slope_constraints(filename, q, nums, m)
+    print_slope_constraints_2q(filename, q, f, a, nums, m)
           
     print >> filename, 'Bounds'
     print_fn_bounds(filename, q)
@@ -603,7 +609,7 @@ def write_lpfile(q, f, nums, maxstep=None, m=0):
     for k in range(nums):
         for j in range(q):
             print >> filename, '%s' % interval_slope_variable(j, k),
-        
+
     print >> filename
     print >> filename, 'End'
     filename.close()
@@ -639,25 +645,34 @@ def painted_faces_and_funciton_from_solution(filename, q, showplots=True):
         plot_with_colored_slopes(fn).show()
     return faces, fn
 
-def investigate_faces_solution(q, f, faces):
+def investigate_faces_solution_2q(q, f, a, faces):
     """
-    Check the vertex-function corresponding to given painted faces.
+    Check if the vertex-function corresponding to given painted faces is a good 2q-example.
     EXAMPLES::
 
-        sage: faces, fn = painted_faces_and_funciton_from_solution( \           # not tested
-        ...     '/media/sf_dropbox/2q_mip/5slope_22_10_m0_min_add_point.sol',\  # not tested
-        ...     22, showplots=False)                                            # not tested
-        sage: investigate_faces_solution(22, 10/22, faces)                      # not tested
+        sage: faces, fn = painted_faces_and_funciton_from_solution(             # not tested
+        ...     '/media/sf_dropbox/2q_mip/2q_13_9_4.sol', 13, showplots=False)  # not tested
+        sage: investigate_faces_solution_2q(13, 9/13, 4/13, faces)              # not tested
     """
-    components = generate_covered_intervals_from_faces(faces)
+    #FIXME: need to attach 2q_search.sage
+    covered_intervals = generate_covered_intervals_from_faces(faces)
     additive_vertices = generate_additive_vertices_from_faces(q, faces)
+    final_uncovered = [[a - 1/q, a], [f - a, f - a + 1 / q]]
+    components = covered_intervals  + [final_uncovered]
     fn_sym = generate_symbolic_continuous(None, components, field=QQ)
     ff = int(f * q)
     h_list = []
     for h in generate_vertex_function(q, ff, fn_sym, additive_vertices):
         print h
-        extremality_test(h,True)
         h_list.append(h)
+        if not extremality_test(h): # h is not extreme
+            h_2q = restrict_to_finite_group(h, f=f, oversampling=2, order=None)
+            if extremality_test(h_2q): # but h restricted to 1/2q is extreme
+                print "h is a valid example!"
+            else:
+                print "h restricted to 1/2q is not extreme. Not a good example"
+        else:
+            print "h is extreme. Not a good example"
     return h_list
 
 def slope_variable(k):
@@ -678,29 +693,48 @@ def interval_slope_variable(j, k):
     """
     return 'i_%s_s_%s' % (j, k)
 
-def print_slope_constraints(filename, q, nums, m=0):
+def print_slope_constraints_2q(filename, q, f, a, nums, m=0):
     """
     EXAMPLES::
 
-        sage: print_slope_constraints(sys.stdout, 3, 3, m=0)
+        sage: print_slope_constraints_2q(sys.stdout, 4, 3/4, 2/4, 3, m=0)
         s_0 - s_1 >= 0
         s_1 - s_2 >= 0
-        s_0 - 3 fn_1 = 0
+        s_0 - 4 fn_1 = 0
         i_0_s_0 = 1
-        s_2 + 3 fn_2 = 0
-        i_2_s_2 = 1
-        s_0 + 3 fn_1 - 3 fn_2 + 6 i_1_s_0 <= 6
-        s_0 + 3 fn_1 - 3 fn_2 - 6 i_1_s_0 >= -6
-        s_1 + 3 fn_1 - 3 fn_2 + 6 i_1_s_1 <= 6
-        s_1 + 3 fn_1 - 3 fn_2 - 6 i_1_s_1 >= -6
-        s_2 + 3 fn_1 - 3 fn_2 + 6 i_1_s_2 <= 6
-        s_2 + 3 fn_1 - 3 fn_2 - 6 i_1_s_2 >= -6
+        s_2 + 4 fn_3 = 0
+        i_3_s_2 = 1
+        s_0 + 4 fn_1 - 4 fn_2 + 8 i_1_s_0 <= 8
+        s_0 + 4 fn_1 - 4 fn_2 - 8 i_1_s_0 >= -8
+        s_1 + 4 fn_1 - 4 fn_2 + 8 i_1_s_1 <= 8
+        s_1 + 4 fn_1 - 4 fn_2 - 8 i_1_s_1 >= -8
+        s_2 + 4 fn_1 - 4 fn_2 + 8 i_1_s_2 <= 8
+        s_2 + 4 fn_1 - 4 fn_2 - 8 i_1_s_2 >= -8
+        s_0 + 4 fn_2 - 4 fn_3 + 8 i_2_s_0 <= 8
+        s_0 + 4 fn_2 - 4 fn_3 - 8 i_2_s_0 >= -8
+        s_1 + 4 fn_2 - 4 fn_3 + 8 i_2_s_1 <= 8
+        s_1 + 4 fn_2 - 4 fn_3 - 8 i_2_s_1 >= -8
+        s_2 + 4 fn_2 - 4 fn_3 + 8 i_2_s_2 <= 8
+        s_2 + 4 fn_2 - 4 fn_3 - 8 i_2_s_2 >= -8
         + i_0_s_0 + i_0_s_1 + i_0_s_2 = 1
         + i_1_s_0 + i_1_s_1 + i_1_s_2 = 1
         + i_2_s_0 + i_2_s_1 + i_2_s_2 = 1
-        + i_0_s_0 + i_1_s_0 + i_2_s_0 >= 1
-        + i_0_s_1 + i_1_s_1 + i_2_s_1 >= 1
-        + i_0_s_2 + i_1_s_2 + i_2_s_2 >= 1
+        + i_3_s_0 + i_3_s_1 + i_3_s_2 = 1
+        + i_0_s_0 + i_1_s_0 + i_2_s_0 + i_3_s_0 >= 1
+        + i_0_s_1 + i_1_s_1 + i_2_s_1 + i_3_s_1 >= 1
+        + i_0_s_2 + i_1_s_2 + i_2_s_2 + i_3_s_2 >= 1
+        i_1_s_0 + i_0_s_0 <= 1
+        i_1_s_0 - i_1_s_0 = 0
+        i_1_s_0 + i_2_s_0 <= 1
+        i_1_s_0 + i_3_s_0 <= 1
+        i_1_s_1 + i_0_s_1 <= 1
+        i_1_s_1 - i_1_s_1 = 0
+        i_1_s_1 + i_2_s_1 <= 1
+        i_1_s_1 + i_3_s_1 <= 1
+        i_1_s_2 + i_0_s_2 <= 1
+        i_1_s_2 - i_1_s_2 = 0
+        i_1_s_2 + i_2_s_2 <= 1
+        i_1_s_2 + i_3_s_2 <= 1
     """
     # s_0 > s_1 > ... > s_nums-1
     for k in range(0, nums - 1):
@@ -720,7 +754,7 @@ def print_slope_constraints(filename, q, nums, m=0):
     # ==> 2) s_k + q * fn_j - q * fn_(j+1) >= - 2*q * (1 - i_j_s_k)
     # ==> 3) sum i_j_s_k over k = 1
     for j in range(1, q-1):
-        for k in range(nums):       
+        for k in range(nums):
             print >> filename, 's_%s + %s fn_%s - %s fn_%s + %s %s <= %s' % (k, q, j, q, j + 1, 2*q, interval_slope_variable(j, k), 2*q)
             print >> filename, 's_%s + %s fn_%s - %s fn_%s - %s %s >= %s' % (k, q, j, q, j + 1, 2*q, interval_slope_variable(j, k), -2*q)
     for j in range(q):
@@ -732,6 +766,18 @@ def print_slope_constraints(filename, q, nums, m=0):
         for j in range(q):
             print >> filename, '+ %s' % interval_slope_variable(j, k),
         print >> filename, '>= 1'
+    # Two special intervals have the same slope value,
+    # which is different from the slope values of other intervals
+    ja = int(a * q) - 1
+    jb = int((f - a) * q)
+    for k in range(nums):
+        for j in range(q):
+            if j == jb:
+                print >> filename, '%s - %s = 0' % ( interval_slope_variable(ja, k), \
+                                                     interval_slope_variable(jb, k) )
+            elif j != ja:
+                print >> filename, '%s + %s <= 1' % ( interval_slope_variable(ja, k), \
+                                                      interval_slope_variable(j, k) )
 
 def print_slope_bounds(filename, q, nums):
     """
@@ -745,4 +791,34 @@ def print_slope_bounds(filename, q, nums):
     for k in range(nums):
         print >> filename, '%s <= %s <= %s' % (-q, slope_variable(k), q)
 
-    
+
+# Comments:
+# def kzh_2q_example_1() is obtained by
+#    LP model: mip_q37_f25_a11_4slope_2maxstep_m4.lp
+#    q = 37; f = 25/37; a = 11/37;
+#    given number of slopes = 4; maxstep = 2;
+#    slope gap >= q/4; subadditivity slack = 1/4;
+#    obj = max_slope_slack.
+#
+#    Gurobi run on my laptop (276s, obj = 33.66393)
+#    Optimal solution: solution_2q_example_m4.sol
+#
+#    ( Or
+#    (1) LP model: mip_q37_f25_a11_4slope_2maxstep_m12.lp
+#    slope gap >= q/12; subadditivity slack = 1/12;
+#    Gurobi run on my laptop (1080s, obj = 33.66393)
+#    Optimal solution: solution_2q_example_m12.sol
+#
+#    (2) LP model: mip_q37_f25_a11_4slope_2maxstep_m12slopegaponly.lp
+#    slope gap >= q/12; no 1/m trick on subadditivity slack;
+#    Gurobi run on point.math.ucdavis.edu (7412s, obj = 33.66393)
+#    Optimal solution: solution_2q_example_m12slopegaponly.sol )
+#
+#    The vertex function is a 4-slope non-extreme function,
+#    whose restriction to 1/2q is extreme.
+#
+#    This two_q_example is obtained by:
+#    sage: faces, fn = painted_faces_and_funciton_from_solution('.../solution_2q_example_m4.sol', 37) # not tested
+#    sage: h_list = investigate_faces_solution_2q(37, 25/37, 11/37, faces)                            # not tested
+#    sage: h = h_list[0]                                                                              # not tested
+
