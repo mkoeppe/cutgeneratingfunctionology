@@ -452,3 +452,59 @@ def random_2q_example(q, ff=None, aa=None, max_attempts=None):
                         print "h is extreme. Not a good example"
             attempts += 1
     print "Example function not found. Please try again."
+
+def generate_covered_intervals_from_faces(faces):
+    covered_intervals = generate_directly_covered_intervals_from_faces(faces)
+    # debugging plot:
+    # show(plot_covered_intervals(function, covered_intervals), \
+    #      legend_fancybox=True, \
+    #      legend_title="Directly covered, merged", \
+    #      legend_loc=2) # legend in upper left
+
+    edges = [ face.minimal_triple for face in faces if face.is_1D()]
+
+    any_change = True
+    ## FIXME: Here we saturate the covered interval components
+    ## with the edge relations.  There should be a smarter way
+    ## to avoid this while loop.  Probably by keeping track 
+    ## of a set of non-covered components (connected by edges).
+    ## --Matthias
+    while any_change:
+        any_change = False
+        for edge in edges:
+            intervals = []
+            # 0 stands for I; 1 stands for J; 2 stands for K
+            IJK = []
+            for i in range(len(edge)):
+                if len(edge[i]) == 2:
+                    intervals.append(edge[i])
+                    IJK.append(i)
+            if edge_merge(covered_intervals,intervals,IJK):
+                any_change = True
+
+    covered_intervals = remove_empty_comp(covered_intervals)
+    return covered_intervals
+
+def generate_directly_covered_intervals_from_faces(faces):
+    covered_intervals = []
+    for face in faces:
+        if face.is_2D():
+            component = []
+            for int1 in face.minimal_triple:
+                component.append(interval_mod_1(int1))
+            component.sort()
+            component = merge_within_comp(component)
+            covered_intervals.append(component)
+            
+    remove_duplicate(covered_intervals)
+    
+    #show(plot_covered_intervals(function, covered_intervals), xmax=1.5)
+
+    for i in range(len(covered_intervals)):
+        for j in range(i+1, len(covered_intervals)):
+            if find_interior_intersection(covered_intervals[i], covered_intervals[j]):
+                covered_intervals[j] = merge_two_comp(covered_intervals[i],covered_intervals[j])
+                covered_intervals[i] = []
+                    
+    covered_intervals = remove_empty_comp(covered_intervals)
+    return covered_intervals

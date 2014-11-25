@@ -878,9 +878,7 @@ def interval_mod_1(interval):
 @cached_function
 def generate_directly_covered_intervals(function):
     faces = generate_maximal_additive_faces(function)
-    return generate_directly_covered_intervals_from_faces(faces)
-
-def generate_directly_covered_intervals_from_faces(faces):
+    
     covered_intervals = []
     for face in faces:
         if face.is_2D():
@@ -907,13 +905,9 @@ def generate_directly_covered_intervals_from_faces(faces):
 @cached_function
 def generate_covered_intervals(function):
     logging.info("Computing covered intervals...")
+    covered_intervals = generate_directly_covered_intervals(function)
     faces = generate_maximal_additive_faces(function)
-    covered_intervals = generate_covered_intervals_from_faces(faces)
-    logging.info("Computing covered intervals... done")
-    return covered_intervals
 
-def generate_covered_intervals_from_faces(faces):
-    covered_intervals = generate_directly_covered_intervals_from_faces(faces)
     # debugging plot:
     # show(plot_covered_intervals(function, covered_intervals), \
     #      legend_fancybox=True, \
