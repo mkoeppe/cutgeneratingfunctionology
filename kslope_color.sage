@@ -65,14 +65,14 @@ def initial_vertices_color(q, f):
         elif (x >= f) and (x <= f - x + q):
             vertices_color[x, f - x + q] = 0
     # implied additive vertices
-    cs = initial_cs(q, f, vertices_color)
-    polytope = C_Polyhedron(cs)
-    for x in range(1, q):
-        for y in range(x, q):
-            if (vertices_color[x, y] == 1):
-                    if polytope.relation_with( additive_constraint(q, x, y) ).implies(poly_is_included):
-                        # find implied additive vertices
-                        vertices_color[x, y] = 0
+    #cs = initial_cs(q, f, vertices_color)
+    #polytope = C_Polyhedron(cs)
+    #for x in range(1, q):
+    #    for y in range(x, q):
+    #        if (vertices_color[x, y] == 1):
+    #                if polytope.relation_with( additive_constraint(q, x, y) ).implies(poly_is_included):
+    #                    # find implied additive vertices
+    #                    vertices_color[x, y] = 0
     return vertices_color
 
 def initial_faces_color_and_covered_intervals(q, f, vertices_color):
@@ -794,6 +794,7 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic', print_function=True)
     Search for extreme functions that have required number of slope values.
 
     If `mode` is (defaut) 'heuristic', use paint_complex_heuristic() to paint;
+    If `mode` is 'partical', use paint_complex_partial() to paint a few triangles, then enumerate vertex-functions;
     If `mode` is 'fulldim_covers', use paint_complex_fulldim_covers() to paint;
     If `mode` is 'complete', use paint_complex_complete() to paint;
 
@@ -812,6 +813,10 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic', print_function=True)
         faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
         candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
         gen = paint_complex_heuristic(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs)
+    elif mode == 'partial':
+        faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
+        candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
+        gen = paint_complex_partial(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs)
     elif mode == 'fulldim_covers':
         faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
         gen = paint_complex_fulldim_covers(k_slopes, q, f, vertices_color, faces_color, covered_intervals, (0, 0, 0), cs)
@@ -855,4 +860,99 @@ def search_kslope_given_q(k_slopes, q, f_list=None, mode='heuristic', print_func
         logging.info("q = %s, f = %s takes cpu_time = %s" % (q, f, time.clock() - cpu_t))
     logging.info("Total cpu_time = %s" %(time.clock() - start_cpu_t))
     return h_list
+
+def naive_search_kslope_example(k_slopes, q, f, print_function=False):
+    logging.disable(logging.INFO)
+    cpu_t = time.clock()
+    print "Search for extreme funtions with q = %s, f = %s, k_slopes >= %s" % (q, f, k_slopes)
+    #vertices_color = numpy.ones((q+1,q+1),int)
+    # color: 1-white; 0-green
+    # border x = 0 and border y = 0 are green
+    #for x in range(q+1):
+    #    vertices_color[0, x] = 0
+    #    vertices_color[x, q] = 0
+    # diagonals corresponding to f
+    #for x in range(q+1):
+    #    if x <= f/2:
+    #        vertices_color[x, f - x] = 0
+    #    elif (x >= f) and (x <= f - x + q):
+    #        vertices_color[x, f - x + q] = 0
+    # implied additive vertices
+    vertices_color = initial_vertices_color(q, f)
+    cs = initial_cs(q, f, vertices_color)
+    polytope = C_Polyhedron(cs)
+    v_set = set([])
+    h_list = []
+    n_sol = 0
+    for h in generate_vertex_function(k_slopes, q, polytope, v_set):
+        covered_intervals = generate_directly_covered_intervals(h)
+        if uncovered_intervals_from_covered_intervals(covered_intervals)== []:
+            all_covered = True
+        else:
+            all_covered = not (generate_uncovered_intervals(h))
+        if all_covered:
+        #if not (generate_uncovered_intervals(h)):
+            if print_function:
+                print "h = %s" % h
+            h_list.append(h)
+            n_sol += 1
+            print "Found solution No.%s" % n_sol
+    print "q = %s, f = %s takes cpu_time = %s" % (q, f, time.clock() - cpu_t)
+    logging.disable(logging.NOTSET)
+    return h_list
+
+def naive_search(k_slopes, q, f_list, print_function=False):
+    h_list = []
+    for f in f_list:
+        hh = naive_search_kslope_example(k_slopes, q, f, print_function)
+        h_list += hh
+    return h_list
+
+def measure_stats(q, f_list, name=None):
+    if name is None:
+        fout = sys.stdout
+    else:
+        fout = open("%s.txt" % name, "a")
+    bkpt = [i/q for i in range(q+1)]
+    logging.disable(logging.INFO)
+    for f in f_list:
+        cpu_t = time.clock()
+        vertices_color = initial_vertices_color(q, f)
+        cs = initial_cs(q, f, vertices_color)
+        extreme_points = C_Polyhedron(cs).minimized_generators()
+        tot_vertices = len(extreme_points)
+        print >> fout, "q = %s, f = %s, num_vertices = %s, poly_gen_time = %s," % (q, f, tot_vertices, time.clock() - cpu_t)
+        num_extreme = [0]*11
+        num_full = [0]*11
+        for v in extreme_points:
+            v_n = v.coefficients()
+            v_d = v.divisor()
+            slopes = len(set([v_n[i+1] - v_n[i] for i in range(q)]))
+            if slopes == 2:
+                num_extreme[2] += 1
+                num_full[2] += 1
+            else:
+                values = [v_n[i] / v_d for i in range(q+1)]
+                h = piecewise_function_from_breakpoints_and_values(bkpt, values)
+                directly_covered_intervals = generate_directly_covered_intervals(h)
+                if uncovered_intervals_from_covered_intervals(directly_covered_intervals)== []:
+                    num_extreme[slopes] += 1
+                    num_full[slopes] += 1
+                elif not (generate_uncovered_intervals(h)):
+                    num_extreme[slopes] += 1
+        tot_extreme = sum(num_extreme)
+        tot_full = sum(num_full)
+        print >> fout, "        perc_extreme = %s, perc_full = %s, cpu_time = %s," %(round(tot_extreme*100/tot_vertices), \
+                                                                round(tot_full*100/tot_vertices), time.clock() - cpu_t)
+        print >> fout, "        num_extreme = %s,  k-slope  %s" % (tot_extreme, num_extreme[2:])
+        print >> fout, "        num_full = %s,  k-slope  %s" % (tot_full, num_full[2:])
+    logging.disable(logging.NOTSET)
+    return
+
+def paint_complex_partial(k_slopes, q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, cs):
+    """
+    Combine 'heuristic' backracting search with vertex enumeration.
+    """
+    # TODO
+    pass
 
