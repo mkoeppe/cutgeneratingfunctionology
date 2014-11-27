@@ -1114,12 +1114,12 @@ def find_f(fn, no_error_if_not_minimal_anyway=False):
             raise ValueError, "The given function does not stay in the range of [0, 1], so cannot determine f.  Provide parameter f to minimality_test or extremality_test."
     for x in fn.end_points():
         if fn(x) == 1:
-            if f:
+            if not f is None:
                 logging.warn("The given function has more than one breakpoint where the function takes the value 1; using f = %s.  Provide parameter f to minimality_test or extremality_test if you want a different f." % f)
                 return f
             else:
                 f = x
-    if f:
+    if not f is None:
         return f
     if no_error_if_not_minimal_anyway:
         logging.info('pi is not minimal because it has no breakpoint where the function takes value 1.')
