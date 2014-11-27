@@ -25,7 +25,7 @@ from igp import *
 # only record vertex (x,y) and face = (x, y, w) with x <= y.
 # polytope defines the feasible region of (\pi(0), \pi(1/q),..., \pi(1)).
 
-# Main: def search_kslope_example(k_slopes, q, f, mode) or def search_kslope_given_q(k_slopes, q, f_list, mode)
+# Main: def search_kslope(k_slopes, q, f_list, mode), def naive_search(), and def measure_stats()
 
 from sage.libs.ppl import C_Polyhedron, Constraint, Constraint_System, Generator, Generator_System, Variable, point, Poly_Con_Relation
 import numpy
@@ -481,11 +481,7 @@ def paint_complex_heuristic(k_slopes, q, f, vertices_color, faces_color, last_co
         Generator_System {point(0/6, 2/6, 4/6, 6/6, 3/6, 0/6)}
         Generator_System {point(0/4, 3/4, 1/4, 4/4, 2/4, 0/4)}
     """
-    num_candidate_faces = len(candidate_faces)
-    n = 0
-    while n < num_candidate_faces:
-        (x, y, w) = candidate_faces[n]
-        n += 1
+    for (x, y, w) in candidate_faces:
         faces_color[(x, y, w)] = 0
         covered_intervals = directly_covered_by_adding_face(last_covered_intervals, (x, y, w), q, f)
         legal_picked, covered_intervals, changed_vertices, changed_faces = update_around_green_face( \
@@ -789,12 +785,12 @@ def generate_vertex_function(k_slopes , q, polytope, v_set=set([])):
                 h = piecewise_function_from_breakpoints_and_values(bkpt, values)
                 yield h
 
-def search_kslope_example(k_slopes, q, f, mode='heuristic', print_function=True):
+def search_kslope_example(k_slopes, q, f, mode='heuristic'):
     """
     Search for extreme functions that have required number of slope values.
 
     If `mode` is (defaut) 'heuristic', use paint_complex_heuristic() to paint;
-    If `mode` is 'partical', use paint_complex_partial() to paint a few triangles, then enumerate vertex-functions;
+    If `mode` is 'partical', use paint_complex_combined() to paint a few triangles, then enumerate vertex-functions;
     If `mode` is 'fulldim_covers', use paint_complex_fulldim_covers() to paint;
     If `mode` is 'complete', use paint_complex_complete() to paint;
 
@@ -802,7 +798,7 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic', print_function=True)
 
         sage: logging.disable(logging.INFO)
         sage: q=5; f=3; k_slopes = 2;
-        sage: h = search_kslope_example(k_slopes, q, f, mode='heuristic', print_function=True).next()
+        sage: h = search_kslope_example(k_slopes, q, f, mode='heuristic').next()
         sage: h == piecewise_function_from_breakpoints_and_values([0, 3/5, 1], [0, 1, 0])
         True
     """
@@ -813,10 +809,10 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic', print_function=True)
         faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
         candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
         gen = paint_complex_heuristic(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs)
-    elif mode == 'partial':
+    elif mode == 'combined':
         faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
         candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
-        gen = paint_complex_partial(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs)
+        gen = paint_complex_combined(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs)
     elif mode == 'fulldim_covers':
         faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
         gen = paint_complex_fulldim_covers(k_slopes, q, f, vertices_color, faces_color, covered_intervals, (0, 0, 0), cs)
@@ -824,24 +820,22 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic', print_function=True)
         covered_intervals, uncovered_intervals = initial_covered_uncovered(q, f, vertices_color)
         gen = paint_complex_complete(k_slopes, q, f, vertices_color, covered_intervals, uncovered_intervals, (1, 0), cs)
     else:
-        raise ValueError, "mode must be one of {'heuristic', 'fulldim_covers', 'complete'."
+        raise ValueError, "mode must be one of {'heuristic', 'combined', 'fulldim_covers', 'complete'."
     v_set = set([])
     for result_polytope in gen:
         for h in generate_vertex_function(k_slopes, q, result_polytope, v_set):
-            if print_function:
-                logging.info("h = %s" % h)
             yield h
     if not v_set:
         logging.info("Example function not found. Please try again.")
 
 import time
-def search_kslope_given_q(k_slopes, q, f_list=None, mode='heuristic', print_function=True):
+def search_kslope(k_slopes, q, f_list=None, mode='heuristic', print_function=False):
     """
     EXAMPLES::
 
         sage: logging.disable(logging.INFO)
         sage: q = 12; k_slopes = 3;
-        sage: h_list = search_kslope_given_q(k_slopes, q, None, mode='heuristic', print_function=False)
+        sage: h_list = search_kslope(k_slopes, q, None, mode='heuristic', print_function=False)
         sage: len(h_list)
         13
     """
@@ -853,18 +847,22 @@ def search_kslope_given_q(k_slopes, q, f_list=None, mode='heuristic', print_func
     for f in f_list:
         cpu_t = time.clock()
         logging.info( "Search for extreme funtions with q = %s, f = %s, k_slopes >= %s" % (q, f, k_slopes) )
-        for h in search_kslope_example(k_slopes, q, f, mode, print_function):
-              h_list.append(h)
-              n_sol += 1
-              logging.info("Found solution No.%s" % n_sol)
+        logging.disable(logging.INFO) # Too many logging from functions.sage
+        for h in search_kslope_example(k_slopes, q, f, mode):
+            if not mode == 'combined' or not (generate_uncovered_intervals(h)):
+                h_list.append(h)
+                n_sol += 1
+                if print_function:
+                    print "h = %s" % h
+                print "Found solution No.%s, in %s seconds" % (n_sol, time.clock() - cpu_t)
+        logging.disable(logging.NOTSET)
         logging.info("q = %s, f = %s takes cpu_time = %s" % (q, f, time.clock() - cpu_t))
     logging.info("Total cpu_time = %s" %(time.clock() - start_cpu_t))
     return h_list
 
 def naive_search_kslope_example(k_slopes, q, f, print_function=False):
-    logging.disable(logging.INFO)
     cpu_t = time.clock()
-    print "Search for extreme funtions with q = %s, f = %s, k_slopes >= %s" % (q, f, k_slopes)
+    logging.info("Search for extreme funtions with q = %s, f = %s, k_slopes >= %s" % (q, f, k_slopes))
     #vertices_color = numpy.ones((q+1,q+1),int)
     # color: 1-white; 0-green
     # border x = 0 and border y = 0 are green
@@ -884,6 +882,7 @@ def naive_search_kslope_example(k_slopes, q, f, print_function=False):
     v_set = set([])
     h_list = []
     n_sol = 0
+    logging.disable(logging.INFO) # Too many logging from functions.sage
     for h in generate_vertex_function(k_slopes, q, polytope, v_set):
         covered_intervals = generate_directly_covered_intervals(h)
         if uncovered_intervals_from_covered_intervals(covered_intervals)== []:
@@ -896,9 +895,9 @@ def naive_search_kslope_example(k_slopes, q, f, print_function=False):
                 print "h = %s" % h
             h_list.append(h)
             n_sol += 1
-            print "Found solution No.%s" % n_sol
-    print "q = %s, f = %s takes cpu_time = %s" % (q, f, time.clock() - cpu_t)
+            print "Found solution No.%s, in %s seconds" % (n_sol, time.clock() - cpu_t)
     logging.disable(logging.NOTSET)
+    logging.info("q = %s, f = %s takes cpu_time = %s" % (q, f, time.clock() - cpu_t))
     return h_list
 
 def naive_search(k_slopes, q, f_list, print_function=False):
@@ -949,10 +948,45 @@ def measure_stats(q, f_list, name=None):
     logging.disable(logging.NOTSET)
     return
 
-def paint_complex_partial(k_slopes, q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, cs):
+def paint_complex_combined(k_slopes, q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, cs):
     """
     Combine 'heuristic' backracting search with vertex enumeration.
+    Stop backtracting when num_candidate_faces <= q * q / 2 ?
     """
-    # TODO
-    pass
+    for (x, y, w) in candidate_faces:
+        covered_intervals = directly_covered_by_adding_face(last_covered_intervals, (x, y, w), q, f)
+        legal_picked, covered_intervals, changed_vertices, changed_faces = update_around_green_face( \
+                    q, f, vertices_color, faces_color, covered_intervals, (x, y, w))
+        # If encounter non_candidate or too few slopes, stop recursion
+        if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
+            polytope = C_Polyhedron(cs)
+            # update polytope
+            for (i, j) in changed_vertices:
+                polytope.add_constraint( additive_constraint(q, i, j) )
+            #TODO what if we do not check is_empty and do not update implied things?
+            if not polytope.is_empty():
+                # If infeasible, stop recursion
+                # look for implied additive vertices and faces
+                legal_picked, covered_intervals = update_implied_faces(q, f, \
+                        vertices_color, changed_vertices, faces_color, changed_faces, covered_intervals, polytope)
+                # If encounter non_candidate or too few slopes, stop recursion.
+                if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
+                    new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, (x, y, w))
+                    if len(new_candidate_faces) <= q * q / 2: #TODO try other numbers
+                        # Suppose that k_slopes > 2. If k_slopes = 2, waist time on checking covered for 2-slope functions.
+                        # stop recursion
+                        yield polytope #, also yield covered_intervals?
+                    else:
+                        for result_polytope in paint_complex_combined(k_slopes, q, f, vertices_color, faces_color, \
+                                covered_intervals, new_candidate_faces, polytope.constraints()):
+                            # Note: use minimized_constraints() in 'heuristic' mode takes longer. WHY??
+                            yield result_polytope
+        # Now, try out white triangle (x, y, w)
+        for face in changed_faces:
+            faces_color[face] = 1
+        for v in changed_vertices:
+            vertices_color[v] = 1
+        faces_color[(x, y, w)] = 2
+    for face in candidate_faces:
+        faces_color[face] = 1
 
