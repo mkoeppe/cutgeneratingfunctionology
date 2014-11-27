@@ -52,6 +52,9 @@ class SymbolicRNFElement(FieldElement):
         parent = self._val.parent()
         return cmp(self._val, parent._zero_element)
 
+    def __float__(self):
+        return float(self._val)
+
     def __repr__(self):
         return repr(self._sym)
 
