@@ -758,7 +758,19 @@ def plot_painted_faces(q, faces):
         p += plot_projections_of_one_face(face, IJK_kwds)
     return p
 
-def generate_vertex_function(k_slopes , q, polytope, v_set=set([])):
+def generate_vertex_values(k_slopes , q, polytope,  v_set=set([])):
+    for v in polytope.minimized_generators():
+        v_n = v.coefficients()
+        v_d = v.divisor()
+        num = len(set([v_n[i+1] - v_n[i] for i in range(q)]))
+        if num >= k_slopes:
+            values = [v_n[i] / v_d for i in range(q+1)]
+            if not tuple(values) in v_set:
+                v_set.add(tuple(values))
+                yield values
+
+
+def generate_vertex_function(k_slopes, q, polytope,  v_set=set([])):
     """
     Generate real valued functions corresponding to vertices of the polytope.
     Return those functions that have required number of slope values,
@@ -790,7 +802,7 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic'):
     Search for extreme functions that have required number of slope values.
 
     If `mode` is (defaut) 'heuristic', use paint_complex_heuristic() to paint;
-    If `mode` is 'partical', use paint_complex_combined() to paint a few triangles, then enumerate vertex-functions;
+    If `mode` is 'combined', use paint_complex_combined() to paint a few triangles, then enumerate vertex-functions;
     If `mode` is 'fulldim_covers', use paint_complex_fulldim_covers() to paint;
     If `mode` is 'complete', use paint_complex_complete() to paint;
 
@@ -820,11 +832,19 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic'):
         covered_intervals, uncovered_intervals = initial_covered_uncovered(q, f, vertices_color)
         gen = paint_complex_complete(k_slopes, q, f, vertices_color, covered_intervals, uncovered_intervals, (1, 0), cs)
     else:
-        raise ValueError, "mode must be one of {'heuristic', 'combined', 'fulldim_covers', 'complete'."
+        raise ValueError, "mode must be one of {'heuristic', 'combined', 'fulldim_covers', 'complete'}."
     v_set = set([])
-    for result_polytope in gen:
-        for h in generate_vertex_function(k_slopes, q, result_polytope, v_set):
-            yield h
+    if mode == 'combined':
+        bkpt = [i/q for i in range(q+1)]
+        for result_polytope, were_covered_intervals in gen:
+            for values in generate_vertex_values(k_slopes, q, result_polytope, v_set):
+                if all_intervals_covered(q, f, values, were_covered_intervals):
+                    h = piecewise_function_from_breakpoints_and_values(bkpt, values)
+                    yield h
+    else:
+        for result_polytope in gen:
+            for h in generate_vertex_function(k_slopes, q, result_polytope, v_set):
+                yield h
     if not v_set:
         logging.info("Example function not found. Please try again.")
 
@@ -849,12 +869,11 @@ def search_kslope(k_slopes, q, f_list=None, mode='heuristic', print_function=Fal
         logging.info( "Search for extreme funtions with q = %s, f = %s, k_slopes >= %s" % (q, f, k_slopes) )
         logging.disable(logging.INFO) # Too many logging from functions.sage
         for h in search_kslope_example(k_slopes, q, f, mode):
-            if not mode == 'combined' or not (generate_uncovered_intervals(h)):
-                h_list.append(h)
-                n_sol += 1
-                if print_function:
-                    print "h = %s" % h
-                print "Found solution No.%s, in %s seconds" % (n_sol, time.clock() - cpu_t)
+            h_list.append(h)
+            n_sol += 1
+            if print_function:
+                print "h = %s" % h
+            print "Found solution No.%s, in %s seconds" % (n_sol, time.clock() - cpu_t)
         logging.disable(logging.NOTSET)
         logging.info("q = %s, f = %s takes cpu_time = %s" % (q, f, time.clock() - cpu_t))
     logging.info("Total cpu_time = %s" %(time.clock() - start_cpu_t))
@@ -955,6 +974,7 @@ def paint_complex_combined(k_slopes, q, f, vertices_color, faces_color, last_cov
     Combine 'heuristic' backracting search with vertex enumeration.
     Stop backtracting when num_candidate_faces <= q * q / 2 ?
     """
+    threshold = q * (q + 1) * when_switch #TODO try other numbers
     for (x, y, w) in candidate_faces:
         covered_intervals = directly_covered_by_adding_face(last_covered_intervals, (x, y, w), q, f)
         legal_picked, covered_intervals, changed_vertices, changed_faces = update_around_green_face( \
@@ -973,15 +993,15 @@ def paint_complex_combined(k_slopes, q, f, vertices_color, faces_color, last_cov
                 # If encounter non_candidate or too few slopes, stop recursion.
                 if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
                     new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, (x, y, w))
-                    if len(new_candidate_faces) <= q * (q + 1) * when_switch: #TODO try other numbers
+                    if len(new_candidate_faces) <= threshold:
                         # Suppose that k_slopes > 2. If k_slopes = 2, waist time on checking covered for 2-slope functions.
                         # stop recursion
-                        yield polytope #, also yield covered_intervals?
+                        yield polytope,  covered_intervals
                     else:
-                        for result_polytope in paint_complex_combined(k_slopes, q, f, vertices_color, faces_color, \
-                                covered_intervals, new_candidate_faces, polytope.constraints()):
+                        for result_polytope, result_covered_intervals in paint_complex_combined(k_slopes, q, f, \
+                                vertices_color, faces_color, covered_intervals, new_candidate_faces, polytope.constraints()):
                             # Note: use minimized_constraints() in 'heuristic' mode takes longer. WHY??
-                            yield result_polytope
+                            yield result_polytope, result_covered_intervals
         # Now, try out white triangle (x, y, w)
         for face in changed_faces:
             faces_color[face] = 1
@@ -991,3 +1011,11 @@ def paint_complex_combined(k_slopes, q, f, vertices_color, faces_color, last_cov
     for face in candidate_faces:
         faces_color[face] = 1
 
+def all_intervals_covered(q, f, values, were_covered_intervals):
+    # TODO: compute incrementally from were_covered_intervals
+    bkpt = [i/q for i in range(q+1)]
+    h = piecewise_function_from_breakpoints_and_values(bkpt, values)
+    if not (generate_uncovered_intervals(h)):
+        return True
+    else:
+        return False
