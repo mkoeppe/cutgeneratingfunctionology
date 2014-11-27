@@ -948,6 +948,8 @@ def measure_stats(q, f_list, name=None):
     logging.disable(logging.NOTSET)
     return
 
+when_switch = 1 / 2
+
 def paint_complex_combined(k_slopes, q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, cs):
     """
     Combine 'heuristic' backracting search with vertex enumeration.
@@ -963,7 +965,6 @@ def paint_complex_combined(k_slopes, q, f, vertices_color, faces_color, last_cov
             # update polytope
             for (i, j) in changed_vertices:
                 polytope.add_constraint( additive_constraint(q, i, j) )
-            #TODO what if we do not check is_empty and do not update implied things?
             if not polytope.is_empty():
                 # If infeasible, stop recursion
                 # look for implied additive vertices and faces
@@ -972,7 +973,7 @@ def paint_complex_combined(k_slopes, q, f, vertices_color, faces_color, last_cov
                 # If encounter non_candidate or too few slopes, stop recursion.
                 if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
                     new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, (x, y, w))
-                    if len(new_candidate_faces) <= q * q / 2: #TODO try other numbers
+                    if len(new_candidate_faces) <= q * (q + 1) * when_switch: #TODO try other numbers
                         # Suppose that k_slopes > 2. If k_slopes = 2, waist time on checking covered for 2-slope functions.
                         # stop recursion
                         yield polytope #, also yield covered_intervals?
