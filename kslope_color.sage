@@ -1012,10 +1012,74 @@ def paint_complex_combined(k_slopes, q, f, vertices_color, faces_color, last_cov
         faces_color[face] = 1
 
 def all_intervals_covered(q, f, values, were_covered_intervals):
-    # TODO: compute incrementally from were_covered_intervals
-    bkpt = [i/q for i in range(q+1)]
-    h = piecewise_function_from_breakpoints_and_values(bkpt, values)
-    if not (generate_uncovered_intervals(h)):
+    to_cover = generate_to_cover(q, were_covered_intervals)
+    if not to_cover:
         return True
+    covered_intervals = copy(were_covered_intervals)
+    uncovered_intervals = []
+    for i in to_cover:
+        if 1 <= i < (f + 1) // 2:
+            uncovered_intervals.append(set([i, f - i - 1]))
+        if (f + 1) <=  i < (f + q + 1) // 2:
+            uncovered_intervals.append(set([i, q + f - i - 1]))
+    add_v = numpy.ones((q+1,q+1), bool)
+    for x in range(q+1):
+        for y in range(x, q+1):
+            add_v[x, y] = add_v[y, x] = (values[x] + values[y] == values[(x + y) % q])
+    deja_connected = set([])
+    deja_face = set([])
+    # directly covered
+    for x in to_cover:
+        for y in range(q):
+            for w in range(2):
+                # I proj to x; K proj to x
+                for face in [ (x, y, w), ((x - y) % q, (y - w) % q, w) ]:
+                    if all(add_v[v] for v in vertices_of_face(face)) and not face in deja_face:
+                        deja_face.add(face)
+                        deja_connected.update(connected_pair_of_face(face, q))
+                        covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_face( \
+                                                         covered_intervals, uncovered_intervals, face, q)
+                        if not uncovered_intervals:
+                            return True
+    # undirectly covered
+    for x in to_cover:
+        for y in range(1, q):
+            # forward and backward translation to x.
+            for u in [x, (x - y) % q]:
+                connected = translation_pair(u, y, q)
+                if add_v[u, y] and add_v[u + 1, y] and not connected in deja_connected:
+                    deja_connected.add(connected)
+                    covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_edge( \
+                                       covered_intervals, uncovered_intervals, set(connected), q)
+                    if not uncovered_intervals:
+                        return True
+            # reflection
+            connected = sort_pair(x, y)
+            if add_v[x, y + 1] and add_v[x + 1, y] and not connected in deja_connected:
+                deja_connected.add(connected)
+                covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_edge( \
+                                   covered_intervals, uncovered_intervals, set(connected), q)
+                if not uncovered_intervals:
+                    return True
+    return False
+
+#@cached_function
+def vertices_of_face(face):
+    (x, y, w) = face
+    return [(x + w, y + w), (x + 1, y), (x, y + 1)]
+
+#@cached_function
+def connected_pair_of_face(face, q):
+    (x, y, w) = face
+    return [translation_pair(x, y + w, q), translation_pair(y, x + w, q), sort_pair(x, y)]
+
+#@cached_function
+def translation_pair(x, y, q):
+    return sort_pair(x, (x + y) % q)
+
+def sort_pair(x, y):
+    if x <= y:
+        return (x, y)
     else:
-        return False
+        return (y, x)
+
