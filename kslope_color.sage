@@ -351,6 +351,12 @@ def generate_to_cover(q, covered_intervals):
         to_cover -= component
     return sorted(list(to_cover))
 
+def generate_uncovered_set(q, uncovered_intervals):
+    uncovered_set = set([])
+    for component in uncovered_intervals:
+        uncovered_set.update(component)
+    return uncovered_set
+
 def generate_candidate_faces(q, f, covered_intervals, last_face=None):
     """
     Return a list of candidate_faces (lexicographically > last_face)
@@ -996,39 +1002,45 @@ def all_intervals_covered(q, f, values, last_covered_intervals):
             add_v[x, y] = add_v[y, x] = (values[x] + values[y] == values[(x + y) % q])
     was_connected = set([])
     was_face = set([])
+    uncovered_set = set(to_cover)
     # directly covered
     for x in to_cover:
-        for y in range(q):
-            for w in range(2):
-                # I proj to x; K proj to x
-                for face in [ (x, y, w), ((x - y) % q, (y - w) % q, w) ]:
-                    if all(add_v[v] for v in vertices_of_face(face)) and not face in was_face:
-                        was_face.add(face)
-                        was_connected.update(connected_pair_of_face(face, q))
-                        covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_face( \
-                                                         covered_intervals, uncovered_intervals, face, q)
-                        if not uncovered_intervals:
-                            return True
+        if x in uncovered_set:
+            for y in range(q):
+                for w in range(2):
+                    # I proj to x; K proj to x
+                    for face in [ (x, y, w), ((x - y) % q, (y - w) % q, w) ]:
+                        if all(add_v[v] for v in vertices_of_face(face)) and not face in was_face:
+                            was_face.add(face)
+                            was_connected.update(connected_pair_of_face(face, q))
+                            covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_face( \
+                                                             covered_intervals, uncovered_intervals, face, q)
+                            if not uncovered_intervals:
+                                return True
+            uncovered_set = generate_uncovered_set(q, uncovered_intervals)
+    to_cover = list(uncovered_set)
     # undirectly covered
     for x in to_cover:
-        for y in range(1, q):
-            # forward and backward translation to x.
-            for u in [x, (x - y) % q]:
-                connected = translation_pair(u, y, q)
-                if add_v[u, y] and add_v[u + 1, y] and not connected in was_connected:
+        if x in uncovered_set:
+            for y in range(1, q):
+                # forward and backward translation to x.
+                for u in [x, (x - y) % q]:
+                    connected = translation_pair(u, y, q)
+                    if add_v[u, y] and add_v[u + 1, y] and not connected in was_connected:
+                        was_connected.add(connected)
+                        covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_edge( \
+                                           covered_intervals, uncovered_intervals, set(connected), q)
+                        if not uncovered_intervals:
+                            return True
+                # reflection
+                connected = sort_pair(x, y)
+                if add_v[x, y + 1] and add_v[x + 1, y] and not connected in was_connected:
                     was_connected.add(connected)
                     covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_edge( \
                                        covered_intervals, uncovered_intervals, set(connected), q)
                     if not uncovered_intervals:
                         return True
-            # reflection
-            connected = sort_pair(x, y)
-            if add_v[x, y + 1] and add_v[x + 1, y] and not connected in was_connected:
-                was_connected.add(connected)
-                covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_edge( \
-                                   covered_intervals, uncovered_intervals, set(connected), q)
-                if not uncovered_intervals:
-                    return True
+            uncovered_set = generate_uncovered_set(q, uncovered_intervals)
     return False
 
 #@cached_function
