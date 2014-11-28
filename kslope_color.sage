@@ -632,16 +632,16 @@ def update_around_green_vertex(q, (x, y), vertices_color, covered_intervals, unc
         sage: update_around_green_vertex(q, (x, y), vertices_color, covered_intervals, uncovered_intervals)
         ([set([0, 2]), set([1, 3, 4])], [])
     """
-    deja_v = set([])
+    was_v = set([])
     for (face, vertices) in faces_around_vertex(q, (x, y)):
         if all(vertices_color[v] == 0r for v in vertices):
             # find new green face.
-            deja_v.update(vertices)
+            was_v.update(vertices)
             covered_intervals, uncovered_intervals = \
                 update_covered_uncovered_by_adding_face(covered_intervals, uncovered_intervals, face, q)
     for (to_merge_set, v) in edges_around_vertex(q, (x, y)):
         # if an green edge is included in a green face, don't need to update_covered_uncovered again.
-        if vertices_color[v] == 0 and not v in deja_v:
+        if vertices_color[v] == 0 and not v in was_v:
             # find new green edge.
             covered_intervals, uncovered_intervals = \
                 update_covered_uncovered_by_adding_edge(covered_intervals, uncovered_intervals, to_merge_set, q)
@@ -836,9 +836,9 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic'):
     v_set = set([])
     if mode == 'combined':
         bkpt = [i/q for i in range(q+1)]
-        for result_polytope, were_covered_intervals in gen:
+        for result_polytope, last_covered_intervals in gen:
             for values in generate_vertex_values(k_slopes, q, result_polytope, v_set):
-                if all_intervals_covered(q, f, values, were_covered_intervals):
+                if all_intervals_covered(q, f, values, last_covered_intervals):
                     h = piecewise_function_from_breakpoints_and_values(bkpt, values)
                     yield h
     else:
@@ -967,7 +967,7 @@ def measure_stats(q, f_list, name=None):
     logging.disable(logging.NOTSET)
     return
 
-when_switch = 1 / 2
+when_switch = 3 / 4
 
 def paint_complex_combined(k_slopes, q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, cs):
     """
@@ -1011,11 +1011,17 @@ def paint_complex_combined(k_slopes, q, f, vertices_color, faces_color, last_cov
     for face in candidate_faces:
         faces_color[face] = 1
 
-def all_intervals_covered(q, f, values, were_covered_intervals):
-    to_cover = generate_to_cover(q, were_covered_intervals)
+def all_intervals_covered(q, f, values, last_covered_intervals):
+    """
+    Input:
+        values: [pi(0), pi(1/q), .. pi(1)]
+        last_covered_intervals: covered_intervals after painting complex
+    Return whether all intervals are covered. incremental computation
+    """
+    to_cover = generate_to_cover(q, last_covered_intervals)
     if not to_cover:
         return True
-    covered_intervals = copy(were_covered_intervals)
+    covered_intervals = copy(last_covered_intervals)
     uncovered_intervals = []
     for i in to_cover:
         if 1 <= i < (f + 1) // 2:
@@ -1026,17 +1032,17 @@ def all_intervals_covered(q, f, values, were_covered_intervals):
     for x in range(q+1):
         for y in range(x, q+1):
             add_v[x, y] = add_v[y, x] = (values[x] + values[y] == values[(x + y) % q])
-    deja_connected = set([])
-    deja_face = set([])
+    was_connected = set([])
+    was_face = set([])
     # directly covered
     for x in to_cover:
         for y in range(q):
             for w in range(2):
                 # I proj to x; K proj to x
                 for face in [ (x, y, w), ((x - y) % q, (y - w) % q, w) ]:
-                    if all(add_v[v] for v in vertices_of_face(face)) and not face in deja_face:
-                        deja_face.add(face)
-                        deja_connected.update(connected_pair_of_face(face, q))
+                    if all(add_v[v] for v in vertices_of_face(face)) and not face in was_face:
+                        was_face.add(face)
+                        was_connected.update(connected_pair_of_face(face, q))
                         covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_face( \
                                                          covered_intervals, uncovered_intervals, face, q)
                         if not uncovered_intervals:
@@ -1047,16 +1053,16 @@ def all_intervals_covered(q, f, values, were_covered_intervals):
             # forward and backward translation to x.
             for u in [x, (x - y) % q]:
                 connected = translation_pair(u, y, q)
-                if add_v[u, y] and add_v[u + 1, y] and not connected in deja_connected:
-                    deja_connected.add(connected)
+                if add_v[u, y] and add_v[u + 1, y] and not connected in was_connected:
+                    was_connected.add(connected)
                     covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_edge( \
                                        covered_intervals, uncovered_intervals, set(connected), q)
                     if not uncovered_intervals:
                         return True
             # reflection
             connected = sort_pair(x, y)
-            if add_v[x, y + 1] and add_v[x + 1, y] and not connected in deja_connected:
-                deja_connected.add(connected)
+            if add_v[x, y + 1] and add_v[x + 1, y] and not connected in was_connected:
+                was_connected.add(connected)
                 covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_edge( \
                                    covered_intervals, uncovered_intervals, set(connected), q)
                 if not uncovered_intervals:
@@ -1065,16 +1071,26 @@ def all_intervals_covered(q, f, values, were_covered_intervals):
 
 #@cached_function
 def vertices_of_face(face):
+    """
+    Return 3 vertices of the given triangle face.
+    """
     (x, y, w) = face
     return [(x + w, y + w), (x + 1, y), (x, y + 1)]
 
 #@cached_function
 def connected_pair_of_face(face, q):
+    """
+    Return 2 translation and 1 reflection corresponding to 3 edges of the given triangle face.
+    """
     (x, y, w) = face
     return [translation_pair(x, y + w, q), translation_pair(y, x + w, q), sort_pair(x, y)]
 
 #@cached_function
 def translation_pair(x, y, q):
+    """
+    Return the translation (2 components (first < second), they are connected)
+    corresponding to the horizontal edge ( (x, y), (x + 1, y) )
+    """
     return sort_pair(x, (x + y) % q)
 
 def sort_pair(x, y):
