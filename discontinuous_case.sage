@@ -395,7 +395,6 @@ def x_y_swapped_face(face):
     trip = face.minimal_triple
     return Face( (trip[1], trip[0], trip[2]), vertices=vert_sym )
 
-@cached_function
 def generate_maximal_additive_faces_general(function):
     logging.info("Computing maximal additive faces...")
     bkpt = function.end_points()
