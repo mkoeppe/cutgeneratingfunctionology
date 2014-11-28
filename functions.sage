@@ -252,14 +252,17 @@ def remove_duplicate(myList):
 def triples_equal(a, b):
     return interval_equal(a[0], b[0]) and interval_equal(a[1], b[1]) and interval_equal(a[2], b[2])
 
-@cached_function
 def generate_maximal_additive_faces(fn):
+    if hasattr(fn, '_maximal_additive_faces'):
+        return fn._maximal_additive_faces
     if fn.is_discrete():
-        return generate_maximal_additive_faces_discrete(fn)
+        result = generate_maximal_additive_faces_discrete(fn)
     elif fn.is_continuous():
-        return generate_maximal_additive_faces_continuous(fn)
+        result = generate_maximal_additive_faces_continuous(fn)
     else:
-        return generate_maximal_additive_faces_general(fn)
+        result = generate_maximal_additive_faces_general(fn)
+    fn._maximal_additive_faces = result
+    return result
             
 ### Create a new class representing a "face" (which knows its
 ### vertices, minimal triple, whether it's a translation/reflection,
@@ -864,8 +867,10 @@ def interval_mod_1(interval):
     else:
         raise ValueError, "Not an interval: %s" % interval
 
-@cached_function
 def generate_directly_covered_intervals(function):
+    if hasattr(function, '_directly_covered_intervals'):
+        return function._directly_covered_intervals
+
     faces = generate_maximal_additive_faces(function)
 
     covered_intervals = []      
@@ -889,10 +894,13 @@ def generate_directly_covered_intervals(function):
                 covered_intervals[i] = []
                     
     covered_intervals = remove_empty_comp(covered_intervals)
+    function._directly_covered_intervals = covered_intervals
     return covered_intervals
 
-@cached_function
 def generate_covered_intervals(function):
+    if hasattr(function, '_covered_intervals'):
+        return function._covered_intervals
+
     logging.info("Computing covered intervals...")
     covered_intervals = generate_directly_covered_intervals(function)
     faces = generate_maximal_additive_faces(function)
@@ -926,6 +934,8 @@ def generate_covered_intervals(function):
 
     covered_intervals = remove_empty_comp(covered_intervals)
     logging.info("Computing covered intervals... done")
+
+    function._covered_intervals = covered_intervals
     return covered_intervals
 
 def interval_minus_union_of_intervals(interval, remove_list):
@@ -964,13 +974,16 @@ def uncovered_intervals_from_covered_intervals(covered_intervals):
     covered = reduce(merge_two_comp, covered_intervals)
     return interval_minus_union_of_intervals([0,1], covered)
 
-@cached_function
 def generate_uncovered_intervals(function):
     """
     Compute a sorted list of uncovered intervals.
     """
+    if hasattr(function, '_uncovered_intervals'):
+        return function._uncovered_intervals
     covered_intervals = generate_covered_intervals(function)
-    return uncovered_intervals_from_covered_intervals(covered_intervals)
+    result = uncovered_intervals_from_covered_intervals(covered_intervals)
+    function._uncovered_intervals = result
+    return result
 
 def ticks_keywords(function, y_ticks_for_breakpoints=False):
     """
@@ -1100,11 +1113,12 @@ def symmetric_test(fn, f):
         logging.info('Thus pi is not symmetric.')
     return result
 
-@cached_function
 def find_f(fn, no_error_if_not_minimal_anyway=False):
     """
     Find the value of `f' for the given function `fn'.
     """
+    if hasattr(fn, '_f'):
+        return fn._f
     f = None
     for x in fn.end_points():
         if fn(x) > 1 or fn(x) < 0: 
@@ -1120,6 +1134,7 @@ def find_f(fn, no_error_if_not_minimal_anyway=False):
             else:
                 f = x
     if f:
+        fn._f = f
         return f
     if no_error_if_not_minimal_anyway:
         logging.info('pi is not minimal because it has no breakpoint where the function takes value 1.')
