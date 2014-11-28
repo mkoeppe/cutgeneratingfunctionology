@@ -984,16 +984,14 @@ def all_intervals_covered(q, f, values, last_covered_intervals):
         last_covered_intervals: covered_intervals after painting complex
     Return whether all intervals are covered. incremental computation
     """
-    to_cover = generate_to_cover(q, last_covered_intervals)
+    to_cover = [i for i in generate_to_cover(q, last_covered_intervals) \
+                if (1 <= i < (f + 1) // 2) or ((f + 1) <=  i < (f + q + 1) // 2)]
     if not to_cover:
         return True
     covered_intervals = copy(last_covered_intervals)
     uncovered_intervals = []
     for i in to_cover:
-        if 1 <= i < (f + 1) // 2:
-            uncovered_intervals.append(set([i, f - i - 1]))
-        if (f + 1) <=  i < (f + q + 1) // 2:
-            uncovered_intervals.append(set([i, q + f - i - 1]))
+        uncovered_intervals.append(set([i, (f - i - 1) % q]))
     add_v = numpy.ones((q+1,q+1), bool)
     for x in range(q+1):
         for y in range(x, q+1):
@@ -1001,44 +999,55 @@ def all_intervals_covered(q, f, values, last_covered_intervals):
     was_connected = set([])
     was_face = set([])
     uncovered_set = set(to_cover)
+    #TODO: white_strip = set([])
     # directly covered
     for x in to_cover:
         if x in uncovered_set:
-            for y in range(q):
-                for w in range(2):
-                    # I proj to x; K proj to x
-                    for face in [ (x, y, w), ((x - y) % q, (y - w) % q, w) ]:
-                        if all(add_v[v] for v in vertices_of_face(face)) and not face in was_face:
-                            was_face.add(face)
-                            was_connected.update(connected_pair_of_face(face, q))
-                            covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_face( \
-                                                             covered_intervals, uncovered_intervals, face, q)
-                            if not uncovered_intervals:
-                                return 'direct'
-            uncovered_set = generate_uncovered_set(q, uncovered_intervals)
-    to_cover = list(uncovered_set)
+            for i in [x, (f - x - 1) % q]: # consider symmetry
+                for y in range(q):
+                    for w in range(2):
+                        # I proj to i; K proj to i
+                        for face in [ (i, y, w), ((i - y) % q, (y - w) % q, w) ]:
+                            if all(add_v[v] for v in vertices_of_face(face)) and not face in was_face:
+                                was_face.add(face)
+                                was_connected.update(connected_pair_of_face(face, q))
+                                covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_face( \
+                                                                 covered_intervals, uncovered_intervals, face, q)
+                                if not uncovered_intervals:
+                                    return 'direct'
+                uncovered_set = generate_uncovered_set(q, uncovered_intervals)
+                if not x in uncovered_set:
+                    # then symmetry of x is covered too.
+                    break
+            #if x in uncovered_set: TODO check white strip
+    to_cover = [i for i in uncovered_set \
+                if (1 <= i < (f + 1) // 2) or ((f + 1) <=  i < (f + q + 1) // 2)]
     # undirectly covered
     for x in to_cover:
         if x in uncovered_set:
-            for y in range(1, q):
-                # forward and backward translation to x.
-                for u in [x, (x - y) % q]:
-                    connected = translation_pair(u, y, q)
-                    if add_v[u, y] and add_v[u + 1, y] and not connected in was_connected:
+            for i in [x, (f - x - 1) % q]: # consider symmetry
+                for y in range(1, q):
+                    # forward and backward translation to i.
+                    for u in [i, (i - y) % q]:
+                        connected = translation_pair(u, y, q)
+                        if add_v[u, y] and add_v[u + 1, y] and not connected in was_connected:
+                            was_connected.add(connected)
+                            covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_edge( \
+                                               covered_intervals, uncovered_intervals, set(connected), q)
+                            if not uncovered_intervals:
+                                return 'undirect'
+                    # reflection
+                    connected = sort_pair(i, y)
+                    if add_v[i, y + 1] and add_v[i + 1, y] and not connected in was_connected:
                         was_connected.add(connected)
                         covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_edge( \
                                            covered_intervals, uncovered_intervals, set(connected), q)
                         if not uncovered_intervals:
                             return 'undirect'
-                # reflection
-                connected = sort_pair(x, y)
-                if add_v[x, y + 1] and add_v[x + 1, y] and not connected in was_connected:
-                    was_connected.add(connected)
-                    covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_edge( \
-                                       covered_intervals, uncovered_intervals, set(connected), q)
-                    if not uncovered_intervals:
-                        return 'undirect'
-            uncovered_set = generate_uncovered_set(q, uncovered_intervals)
+                uncovered_set = generate_uncovered_set(q, uncovered_intervals)
+                if not x in uncovered_set:
+                    # then symmetry of x is covered too.
+                    break
     return False
 
 #@cached_function
