@@ -919,13 +919,11 @@ def measure_stats(q, f_list, name=None):
                 num_full[2] += 1
             else:
                 values = [v_n[i] / v_d for i in range(q+1)]
-                h = piecewise_function_from_breakpoints_and_values(bkpt, values)
-                directly_covered_intervals = generate_directly_covered_intervals(h)
-                if uncovered_intervals_from_covered_intervals(directly_covered_intervals)== []:
+                whether_covered = all_intervals_covered(q, f, values, [])
+                if whether_covered:
                     num_extreme[slopes] += 1
-                    num_full[slopes] += 1
-                elif not (generate_uncovered_intervals(h)):
-                    num_extreme[slopes] += 1
+                    if whether_covered == 'direct':
+                        num_full[slopes] += 1
         tot_extreme = sum(num_extreme)
         tot_full = sum(num_full)
         print >> fout, "        perc_extreme = %s, perc_full = %s, cpu_time = %s," %(round(tot_extreme*100/tot_vertices), \
@@ -1016,7 +1014,7 @@ def all_intervals_covered(q, f, values, last_covered_intervals):
                             covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_face( \
                                                              covered_intervals, uncovered_intervals, face, q)
                             if not uncovered_intervals:
-                                return True
+                                return 'direct'
             uncovered_set = generate_uncovered_set(q, uncovered_intervals)
     to_cover = list(uncovered_set)
     # undirectly covered
@@ -1031,7 +1029,7 @@ def all_intervals_covered(q, f, values, last_covered_intervals):
                         covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_edge( \
                                            covered_intervals, uncovered_intervals, set(connected), q)
                         if not uncovered_intervals:
-                            return True
+                            return 'undirect'
                 # reflection
                 connected = sort_pair(x, y)
                 if add_v[x, y + 1] and add_v[x + 1, y] and not connected in was_connected:
@@ -1039,7 +1037,7 @@ def all_intervals_covered(q, f, values, last_covered_intervals):
                     covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_edge( \
                                        covered_intervals, uncovered_intervals, set(connected), q)
                     if not uncovered_intervals:
-                        return True
+                        return 'undirect'
             uncovered_set = generate_uncovered_set(q, uncovered_intervals)
     return False
 
