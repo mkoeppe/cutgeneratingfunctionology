@@ -944,14 +944,14 @@ def measure_stats(q, f_list, name=None):
     logging.disable(logging.NOTSET)
     return
 
-when_switch = 3 / 4
+when_switch = 3 / 4 # 3/4 seems optimal
 
 def paint_complex_combined(k_slopes, q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, cs):
     """
     Combine 'heuristic' backracting search with vertex enumeration.
     Stop backtracting when num_candidate_faces <= q * q / 2 ?
     """
-    threshold = q * (q + 1) * when_switch #TODO try other numbers
+    threshold = q * (q + 1) * when_switch
     for (x, y, w) in candidate_faces:
         covered_intervals = directly_covered_by_adding_face(last_covered_intervals, (x, y, w), q, f)
         legal_picked, covered_intervals, changed_vertices, changed_faces = update_around_green_face( \
@@ -1050,7 +1050,7 @@ def all_intervals_covered(q, f, values, last_covered_intervals):
 def update_directly_cover(q, x, add_v, was_face, was_connected, covered_intervals, uncovered_intervals):
     """
     Look for green triangles in 2d-complex that covers x.
-    Bail out if all covered.
+    Bail out if x is covered.
     Update was_face, was_connected. 
     Return new covered_intervals and uncovered_intervals.
     """
@@ -1063,8 +1063,7 @@ def update_directly_cover(q, x, add_v, was_face, was_connected, covered_interval
                     was_connected.update(connected_pair_of_face(face, q))
                     covered_intervals, uncovered_intervals = update_covered_uncovered_by_adding_face( \
                                                      covered_intervals, uncovered_intervals, face, q)
-                    if not uncovered_intervals:
-                        return covered_intervals, uncovered_intervals
+                    return covered_intervals, uncovered_intervals
     return covered_intervals, uncovered_intervals
 
 def update_undirectly_cover(q, x, add_v, was_face, was_connected, covered_intervals, uncovered_intervals):
