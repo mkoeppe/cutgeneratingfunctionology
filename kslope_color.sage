@@ -766,6 +766,10 @@ def plot_painted_faces(q, faces):
     return p
 
 def generate_vertex_values(k_slopes , q, polytope,  v_set=set([])):
+    """
+    Return vertices of the polytope, whose corresponding 
+    piecewise_linear function h has at least  k_slopes.
+    """
     for v in polytope.minimized_generators():
         v_n = v.coefficients()
         v_d = v.divisor()
@@ -896,6 +900,12 @@ def search_kslope(k_slopes, q, f_list=None, mode='heuristic', print_function=Fal
     return h_list
 
 def measure_stats(q, f_list, name=None):
+    """
+    Given (q, f), write {num_vertices, running times, 
+    percentage and number of extreme functions, 
+    percentage and number of fulldim_cover extreme functions,
+    and number of k-slope extreme functions} to a file
+    """
     if name is None:
         fout = sys.stdout
     else:
@@ -1038,6 +1048,12 @@ def all_intervals_covered(q, f, values, last_covered_intervals):
     return False
 
 def update_directly_cover(q, x, add_v, was_face, was_connected, covered_intervals, uncovered_intervals):
+    """
+    Look for green triangles in 2d-complex that covers x.
+    Bail out if all covered.
+    Update was_face, was_connected. 
+    Return new covered_intervals and uncovered_intervals.
+    """
     for y in range(q):
         for w in range(2):
             # I proj to x; K proj to x
@@ -1052,6 +1068,12 @@ def update_directly_cover(q, x, add_v, was_face, was_connected, covered_interval
     return covered_intervals, uncovered_intervals
 
 def update_undirectly_cover(q, x, add_v, was_face, was_connected, covered_intervals, uncovered_intervals):
+    """
+    Look for green edges in 2d-complex that connects x to others.
+    Bail out if all covered.
+    Update was_face, was_connected. 
+    Return new covered_intervals and uncovered_intervals.
+    """
     for y in range(1, q):
         # forward and backward translation to x.
         for u in [x, (x - y) % q]:
@@ -1074,6 +1096,10 @@ def update_undirectly_cover(q, x, add_v, was_face, was_connected, covered_interv
     return covered_intervals, uncovered_intervals
 
 def white_strip(q, f, x, add_v):
+    """
+    Check if column / diagonal strip of x are all white.
+    If so, x cannot be covered. Vertex function is not extreme.
+    """
     for xx in [x, (f - x - 1) % q]:
         for y in range(1, q):
             # forward and backward translation to xx.
