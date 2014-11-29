@@ -626,13 +626,13 @@ def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None, weights=[]):
     # all intervals are covered (consider symmetry).
     z = 0
     while z < f/2:
-        print >> filename, '%s + %s <= 1' % (covered_i_variable(q, z, 0), \
-                                             covered_i_variable(q, f - z - 1/q, 0))
+        print >> filename, '%s + %s <= 1' % (covered_i_variable(q, z, maxstep - 1), \
+                                             covered_i_variable(q, f - z - 1/q, maxstep - 1))
         z += 1/q
     z = f
     while z < (1+f)/2:
-        print >> filename, '%s + %s <= 1' % (covered_i_variable(q, z, 0), \
-                                             covered_i_variable(q, 1 + f - z - 1/q, 0))
+        print >> filename, '%s + %s <= 1' % (covered_i_variable(q, z, maxstep - 1), \
+                                             covered_i_variable(q, 1 + f - z - 1/q, maxstep - 1))
         z += 1/q
 
     print_slope_constraints(filename, q, nums, m)
