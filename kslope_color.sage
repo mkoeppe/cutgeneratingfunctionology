@@ -408,6 +408,7 @@ def num_slopes_at_best(q, f, covered_intervals, uncovered_intervals=None):
             to_cover -= component
         uncovered_num = len(to_cover)
     else:
+
         uncovered_num = len(uncovered_intervals)
     return uncovered_num + len(covered_intervals)
 
@@ -996,7 +997,7 @@ def all_intervals_covered(q, f, values, last_covered_intervals):
     for x in range(q+1):
         for y in range(x, q+1):
             add_v[x, y] = add_v[y, x] = (values[x] + values[y] == values[(x + y) % q])
-    was_connected = set([])
+    was_connected = set([tuple(sym_pair) for sym_pair in uncovered_intervals]) #connected by symmetry
     was_face = set([])
     uncovered_set = set(to_cover)
     # directly covered
@@ -1013,11 +1014,11 @@ def all_intervals_covered(q, f, values, last_covered_intervals):
                 if not uncovered_intervals:
                     return 'direct'
                 uncovered_set = generate_uncovered_set(q, uncovered_intervals)
-                #if x in uncovered_set:
-                #    #check white strip
-                #    if white_stirp(q, f, x, add_v):
-                #        # x cannot be covered. not extreme function
-                #        return False
+                if x in uncovered_set:
+                    #check white strip
+                    if white_strip(q, f, x, add_v):
+                        # x cannot be covered. not extreme function
+                        return False
 
     to_cover = [i for i in uncovered_set if (1 <= i < (f + 1) // 2) or ((f + 1) <=  i < (f + q + 1) // 2)]
     # undirectly covered
@@ -1061,6 +1062,7 @@ def update_undirectly_cover(q, x, add_v, was_face, was_connected, covered_interv
                                    covered_intervals, uncovered_intervals, set(connected), q)
                 if not uncovered_intervals:
                     return covered_intervals, uncovered_intervals
+    for y in range(x) + range(x + 1, q):
         # reflection
         connected = sort_pair(x, y)
         if add_v[x, y + 1] and add_v[x + 1, y] and not connected in was_connected:
@@ -1070,6 +1072,19 @@ def update_undirectly_cover(q, x, add_v, was_face, was_connected, covered_interv
             if not uncovered_intervals:
                 return covered_intervals, uncovered_intervals
     return covered_intervals, uncovered_intervals
+
+def white_strip(q, f, x, add_v):
+    for xx in [x, (f - x - 1) % q]:
+        for y in range(1, q):
+            # forward and backward translation to xx.
+            for u in [xx, (xx - y) % q]:
+                if add_v[u, y] and add_v[u + 1, y]:
+                    return False
+        for y in range(xx) + range(xx + 1, q):
+            # reflection except for symmetry
+            if add_v[xx, y + 1] and add_v[xx + 1, y] and ((xx + y + 1) % q != f):
+                return False
+    return True
 
 #@cached_function
 def vertices_of_face(face):
