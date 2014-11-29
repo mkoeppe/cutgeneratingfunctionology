@@ -69,7 +69,9 @@ def drlm_not_extreme_1():
         sage: extremality_test(h, False)
         False
     """
-    return piecewise_function_from_robert_txt_file("data/dey-richard-not-extreme.txt")
+    bkpt = [0, 2/7, 4/7, 6/7, 1]
+    values = [0, 4/5, 1/5, 1, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def drlm_not_extreme_2():
     """
@@ -226,7 +228,11 @@ def hildebrand_5_slope_22_1():
         sage: extremality_test(h, False)
         True
     """
-    return piecewise_function_from_robert_txt_file("data/example5Slope22data.txt")
+    bkpt = [0, 1/22, 1/11, 3/22, 2/11, 3/11, 7/22, 4/11, 9/22, 5/11, \
+            1/2, 6/11, 13/22, 7/11, 15/22, 17/22, 9/11, 19/22, 10/11, 21/22, 1]
+    values = [0, 3/4, 1/4, 1/4, 1/2, 1/2, 3/4, 3/4, 1/4, 1, \
+              1/2, 1/2, 3/4, 1/2, 3/4, 1/4, 1/2, 1/4, 1/2, 1/2, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def hildebrand_5_slope_24_1():
     """
@@ -239,7 +245,11 @@ def hildebrand_5_slope_24_1():
         sage: extremality_test(h, False)
         True
     """
-    return piecewise_function_from_robert_txt_file("data/example5Slope24data.txt")
+    bkpt = [0, 1/24, 1/12, 1/8, 1/6, 1/3, 3/8, 5/12, 11/24, 1/2, \
+            13/24, 7/12, 5/8, 2/3, 17/24, 19/24, 5/6, 7/8, 11/12, 23/24, 1]
+    values = [0, 1/2, 1/2, 3/4, 1/2, 1/2, 1/4, 1/2, 1/2, 1, \
+              1/4, 1/2, 1/4, 1/4, 3/4, 1/4, 3/4, 3/4, 1/2, 3/4, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def hildebrand_5_slope_28_1():
     """
@@ -252,7 +262,11 @@ def hildebrand_5_slope_28_1():
         sage: extremality_test(h, False)
         True
     """
-    return piecewise_function_from_robert_txt_file("data/example5Slope28data.txt")
+    bkpt = [0, 1/28, 1/14, 3/28, 5/28, 3/14, 2/7, 9/28, 11/28, 3/7, 13/28, 1/2, \
+            15/28, 4/7, 17/28, 9/14, 19/28, 5/7, 11/14, 23/28, 6/7, 25/28, 13/14, 27/28, 1]
+    values = [0, 1/2, 1/2, 3/4, 3/4, 1/2, 1/2, 1/4, 1/4, 1/2, 1/2, 1, \
+              1/4, 3/4, 1/2, 1/2, 1/4, 1/2, 1/2, 3/4, 1/2, 1/2, 1/4, 3/4, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def chen_3_slope_not_extreme(f=1/2, lam=8):
     """
@@ -636,6 +650,7 @@ def kzh_5_slope_fulldim_covers_1(): #renamed from extreme_5slope_no_transrefl or
         sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
         []
     """
+    # q = 22; f = 10
     bkpt = [0, 1/22, 1/11, 3/22, 2/11, 3/11, 7/22, 4/11, 9/22, 5/11,
             1/2, 6/11, 13/22, 7/11, 9/11, 19/22, 10/11, 21/22, 1]
     values = [0, 23/32, 3/4, 7/16, 13/16, 3/16, 9/16, 1/4, 9/32, 1,
@@ -826,3 +841,29 @@ def kzh_6_slope_fulldim_covers_3(): # renamed from fulldim_covers_6slope_q38_1()
     values = [0, 7/17, 11/17, 3/17, 5/17, 12/17, 14/17, 6/17, 10/17, 1, \
             10/17, 6/17, 14/17, 12/17, 5/17, 3/17, 11/17, 7/17, 0]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+#def kzh_5_slope_q22_f10_0():
+#    return hildebrand_5_slope_22_1()
+
+def kzh_5_slope_q22_f10_1():
+    bkpt = [0, 1/22, 1/11, 3/22, 2/11, 3/11, 7/22, 4/11, 9/22, 5/11, 1/2, 6/11, 13/22, 7/11, 15/22, 17/22, 9/11, 19/22, 10/11, 21/22, 1]
+    values = [0, 29/48, 7/24, 5/24, 7/12, 5/12, 19/24, 17/24, 19/48, 1, 11/16, 29/48, 3/4, 2/3, 17/48, 31/48, 1/3, 1/4, 19/48, 5/16, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_5_slope_q22_f10_2():
+    bkpt = [0, 1/22, 1/11, 3/22, 2/11, 3/11, 7/22, 4/11, 9/22, 5/11, 1/2, 13/22, 7/11, 15/22, 17/22, 9/11, 19/22, 21/22, 1]
+    values = [0, 21/34, 10/17, 4/17, 9/17, 8/17, 13/17, 7/17, 13/34, 1, 11/34, 9/34, 19/34, 7/34, 27/34, 15/34, 25/34, 23/34, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_5_slope_q22_f10_3():
+    bkpt = [0, 1/22, 1/11, 3/22, 7/22, 4/11, 9/22, 5/11, 1/2, 6/11, 13/22, 7/11, 15/22, 17/22, 9/11, 19/22, 10/11, 21/22, 1]
+    values = [0, 23/32, 3/4, 7/16, 9/16, 1/4, 9/32, 1, 11/32, 3/8, 3/4, 7/16, 13/16, 3/16, 9/16, 1/4, 5/8, 21/32, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_5_slope_q22_f10_4():
+    bkpt = [0, 1/22, 1/11, 3/22, 2/11, 3/11, 7/22, 4/11, 9/22, 5/11, 1/2, 6/11, 15/22, 17/22, 10/11, 21/22, 1]
+    values = [0, 5/6, 3/4, 7/16, 17/48, 31/48, 9/16, 1/4, 1/6, 1, 11/24, 3/8, 13/16, 3/16, 5/8, 13/24, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+#def kzh_5_slope_q22_f10_5():
+#    return kzh_5_slope_fulldim_covers_1()

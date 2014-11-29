@@ -37,7 +37,6 @@ def modified_delta_pi(fn, fn_values, pts, i, j):
 def modified_delta_pi2(fn, fn_values2, pts, i, j):
     return fn_values2[i] + fn(fractional(pts[j] - pts[i])) - fn_values2[j]  
 
-@cached_function
 def generate_maximal_additive_faces_continuous(function):
     logging.info("Computing maximal additive faces...")
     bkpt = function.end_points()

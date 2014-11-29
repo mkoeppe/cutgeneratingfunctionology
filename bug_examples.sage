@@ -112,7 +112,11 @@ def example7slopecoarse2():
     sage: extremality_test(h, False)
     False
     """
-    return piecewise_function_from_robert_txt_file("data/example7slopeCoarse2.txt")
+    bkpt = [0, 1/24, 1/12, 1/8, 1/6, 5/24, 7/24, 1/3, 3/8, 5/12, 11/24, 1/2, \
+            13/24, 7/12, 5/8, 2/3, 5/6, 7/8, 11/12, 23/24, 1]
+    values = [0, 3/4, 1/4, 3/4, 1/2, 3/4, 1/4, 1/2, 1/4, 3/4, 1/4, 1, \
+              1/4, 1/2, 1/4, 1/2, 1/2, 3/4, 1/2, 3/4, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def example7slopecoarse2_lifted():
     """
