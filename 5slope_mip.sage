@@ -623,22 +623,17 @@ def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None, weights=[]):
         for step in range(1, maxstep):
             print_undirectly_covered_i_constraints(filename, q, z, step)
 
-    if maxstep > 1:
-        for zz in range(q):
-            z = zz / q
-            print >> filename, '%s = 0' % covered_i_variable(q, z, maxstep - 1)
-    else:
-        # maxstep = 1, consider the symmetry reflection.
-        z = 0
-        while z < f/2:
-            print >> filename, '%s + %s <= 1' % (covered_i_variable(q, z, 0), \
-                                                 covered_i_variable(q, f - z - 1/q, 0))
-            z += 1/q
-        z = f
-        while z < (1+f)/2:
-            print >> filename, '%s + %s <= 1' % (covered_i_variable(q, z, 0), \
-                                                 covered_i_variable(q, 1 + f - z - 1/q, 0))
-            z += 1/q
+    # all intervals are covered (consider symmetry).
+    z = 0
+    while z < f/2:
+        print >> filename, '%s + %s <= 1' % (covered_i_variable(q, z, 0), \
+                                             covered_i_variable(q, f - z - 1/q, 0))
+        z += 1/q
+    z = f
+    while z < (1+f)/2:
+        print >> filename, '%s + %s <= 1' % (covered_i_variable(q, z, 0), \
+                                             covered_i_variable(q, 1 + f - z - 1/q, 0))
+        z += 1/q
 
     print_slope_constraints(filename, q, nums, m)
           
