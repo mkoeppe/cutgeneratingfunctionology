@@ -1,3 +1,4 @@
+from __future__ import division
 # Make sure current directory is in path.
 # That's not true while doctesting (sage -t).
 if '' not in sys.path:
@@ -60,7 +61,7 @@ def initial_vertices_color(q, f):
         vertices_color[x, q] = 0
     # diagonals corresponding to f
     for x in range(q+1):
-        if x <= QQ(f)/2:
+        if x <= f/2:
             vertices_color[x, f - x] = 0
         elif (x >= f) and (x <= f - x + q):
             vertices_color[x, f - x + q] = 0
@@ -403,7 +404,7 @@ def num_slopes_at_best(q, f, covered_intervals, uncovered_intervals=None):
     if uncovered_intervals is None:
         #uncovered_num = q - sum([len(component) for component in covered_intervals])
         # consider connected components in uncovered_intervals
-        to_cover = set(range(0, (f + 1) / 2) + range(f, (f + q + 1) / 2))
+        to_cover = set(range(0, (f + 1) // 2) + range(f, (f + q + 1) // 2))
         for component in covered_intervals:
             to_cover -= component
         uncovered_num = len(to_cover)
@@ -612,8 +613,8 @@ def initial_covered_uncovered(q, f, vertices_color):
     # lower-left and upper-right green triangle
     covered_intervals = [set([0, f-1]), set([f, q-1])]
     # consider reflection regarding f.
-    uncovered_intervals = [set([i, f - i - 1]) for i in range(1, (f + 1) / 2)]
-    uncovered_intervals += [set([i, q + f - i - 1]) for i in range(f + 1, (f + q + 1) / 2)]
+    uncovered_intervals = [set([i, f - i - 1]) for i in range(1, (f + 1) // 2)]
+    uncovered_intervals += [set([i, q + f - i - 1]) for i in range(f + 1, (f + q + 1) // 2)]
     for x in range(1, q):
         for y in range(x, q):
             if vertices_color[(x, y)] == 0:
@@ -748,8 +749,8 @@ def generate_vertex_values(k_slopes , q, polytope,  v_set=set([])):
         v_n = v.coefficients()
         num = len(set([v_n[i+1] - v_n[i] for i in range(q)]))
         if num >= k_slopes:
-            if not tuple(v_n) in v_set:
-                v_set.add(tuple(v_n))
+            if not v_n in v_set:
+                v_set.add(v_n)
                 yield v_n
 
 def search_kslope_example(k_slopes, q, f, mode='heuristic'):
@@ -822,7 +823,7 @@ def search_kslope(k_slopes, q, f_list=None, mode='heuristic', print_function=Fal
     h_list = []
     n_sol = 0
     if f_list is None:
-        f_list = range(1, (q / 2) + 1)
+        f_list = range(1, (q // 2) + 1)
     start_cpu_t = time.clock()
     for f in f_list:
         cpu_t = time.clock()
@@ -871,13 +872,13 @@ def measure_stats(q, f_list, name=None):
                         num_full[slopes] += 1
         tot_extreme = sum(num_extreme)
         tot_full = sum(num_full)
-        print >> fout, "        perc_extreme = %s, perc_full = %s, cpu_time = %s," %(tot_extreme*100/tot_vertices, \
-                                                                tot_full*100/tot_vertices, time.clock() - cpu_t)
+        print >> fout, "        perc_extreme = %s, perc_full = %s, cpu_time = %s," %(tot_extreme*100//tot_vertices, \
+                                                                tot_full*100//tot_vertices, time.clock() - cpu_t)
         print >> fout, "        num_extreme = %s,  k-slope  %s" % (tot_extreme, num_extreme[2:])
         print >> fout, "        num_full = %s,  k-slope  %s" % (tot_full, num_full[2:])
     return
 
-when_switch = QQ(3) / 4 # 3/4 seems optimal
+when_switch = 3 / 4 # 3/4 seems optimal
 
 def paint_complex_combined(k_slopes, q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, cs):
     """
@@ -929,7 +930,7 @@ def all_intervals_covered(q, f, values, last_covered_intervals):
     Return whether all intervals are covered. incremental computation
     """
     to_cover = [i for i in generate_to_cover(q, last_covered_intervals) \
-                if (1 <= i < (f + 1) / 2) or ((f + 1) <=  i < (f + q + 1) / 2)]
+                if (1 <= i < (f + 1) // 2) or ((f + 1) <=  i < (f + q + 1) // 2)]
     if not to_cover:
         return True
     covered_intervals = copy(last_covered_intervals)
@@ -963,7 +964,7 @@ def all_intervals_covered(q, f, values, last_covered_intervals):
                         # x cannot be covered. not extreme function
                         return False
 
-    to_cover = [i for i in uncovered_set if (1 <= i < (f + 1) / 2) or ((f + 1) <=  i < (f + q + 1) / 2)]
+    to_cover = [i for i in uncovered_set if (1 <= i < (f + 1) // 2) or ((f + 1) <=  i < (f + q + 1) // 2)]
     # undirectly covered
     for x in to_cover:
         if x in uncovered_set:
