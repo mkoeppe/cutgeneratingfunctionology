@@ -155,6 +155,8 @@ def initial_cs(q, f, vertices_color):
 def initial_mip(q, f, vertices_color):
     global m
     global delta
+    global var_id
+    var_id = numpy.zeros((q, q), int)
     m = MixedIntegerLinearProgram(maximization=True, solver = "GLPK") # "GLPK" slow! "ppl" very slow! try solver = "Gurobi"
     fn = m.new_variable(real=True, nonnegative=True)
     for i in range(q + 1):
@@ -164,6 +166,7 @@ def initial_mip(q, f, vertices_color):
     m.set_max(fn[0], 0) # fn[0] == 0
     m.set_max(fn[q], 0) # fn[q] == 0
     m.set_min(fn[f], 1) # fn[f] == 1
+    num_var = q + 1
     delta = m.new_variable(real=True, nonnegative=True) # delta[x, y] >= 0
     for x in range(1, q):
         for y in range(x, q):
@@ -175,6 +178,9 @@ def initial_mip(q, f, vertices_color):
                 m.set_max(delta[x, y], 0)       # fn[x] + fn[y] == fn[z]
             else:
                 m.set_max(delta[x, y], None)
+            var_id[x, y] = num_var
+            num_var += 1
+    m.set_objective(None)
 
 @cached_function
 def edges_around_vertex(q, v):
@@ -498,8 +504,12 @@ def update_implied_faces_mip(q, f, vertices_color, changed_vertices, faces_color
     for i in range(1, q):
         for j in range(i, q):
             if (vertices_color[i, j] == 1):
-                m.set_objective(delta[i, j])
-                if m.solve(objective_only=True) == 0:
+                #m.set_objective(delta[i, j])
+                m_glpk = m.get_backend()
+                m_glpk.objective_coefficient(var_id[i, j], 1)
+                obj_val = m.solve(objective_only=True)
+                m_glpk.objective_coefficient(var_id[i, j], 0)
+                if  obj_val == 0:
                     # find implied additive vertices
                     vertices_color[i, j] = 0
                     changed_vertices.append((i, j))
@@ -1002,7 +1012,7 @@ def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last
             # update constraint_system, set up MIP_Problem
             for (i, j) in changed_vertices:
                 m.set_max(delta[i, j], 0)
-            m.set_objective(None)
+            #m.set_objective(None)
             try:
                 m.solve(objective_only=True)
                 is_feasible = True
