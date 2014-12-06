@@ -155,8 +155,8 @@ def initial_cs(q, f, vertices_color):
 def initial_mip(q, f, vertices_color):
     global m
     global delta
-    m = MixedIntegerLinearProgram(maximization=True, solver = "GLPK") # solver = "Gurobi"
-    fn = m.new_variable(real=True) #, nonnegative=True)
+    m = MixedIntegerLinearProgram(maximization=True, solver = "GLPK") # "GLPK" slow! "ppl" very slow! try solver = "Gurobi"
+    fn = m.new_variable(real=True, nonnegative=True)
     for i in range(q + 1):
         # 0 <= fn[i] <= 1
         m.set_min(fn[i], 0)
@@ -164,7 +164,7 @@ def initial_mip(q, f, vertices_color):
     m.set_max(fn[0], 0) # fn[0] == 0
     m.set_max(fn[q], 0) # fn[q] == 0
     m.set_min(fn[f], 1) # fn[f] == 1
-    delta = m.new_variable(real=True) #, nonnegative=True) # delta[x, y] >= 0
+    delta = m.new_variable(real=True, nonnegative=True) # delta[x, y] >= 0
     for x in range(1, q):
         for y in range(x, q):
             z = (x + y) % q
@@ -833,10 +833,14 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic'):
         candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
         gen = paint_complex_heuristic(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs)
     elif mode == 'combined':      
-        initial_mip(q, f, vertices_color) # set initial global variable m and delta
         faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
         candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
-        gen = paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces)
+        if q > q_threshold:
+            initial_mip(q, f, vertices_color) # set initial global variable m and delta
+            gen = paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces)
+        else:
+            cs = initial_cs(q, f, vertices_color)
+            gen = paint_complex_combined_pol(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs)
     elif mode == 'fulldim_covers':
         cs = initial_cs(q, f, vertices_color)
         faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
@@ -989,56 +993,51 @@ def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last
     Enumerate and check vertex functions then.
     """
     threshold = q * (q + 1) * when_switch
-    if q <= q_threshold:
-        cs = initial_cs(q, f, vertices_color)
-        for result_polytope, result_covered_intervals in paint_complex_combined_pol(k_slopes, q, f, \
-                                vertices_color, faces_color, last_covered_intervals, candidate_faces, cs):
-            yield result_polytope, result_covered_intervals
-    elif len(candidate_faces) <= threshold:
-        #print "num_candidate = %s < %s, yield polytope now" % (len(candidate_faces), threshold)
-        cs = initial_cs(q, f, vertices_color)
-        polytope = C_Polyhedron(cs)
-        yield polytope, last_covered_intervals
-    else:
-        for (x, y, w) in candidate_faces:
-            covered_intervals = directly_covered_by_adding_face(last_covered_intervals, (x, y, w), q, f)
-            legal_picked, covered_intervals, changed_vertices, changed_faces = update_around_green_face( \
-                        q, f, vertices_color, faces_color, covered_intervals, (x, y, w))
-            # If encounter non_candidate or too few slopes, stop recursion
-            if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
-                # update constraint_system, set up MIP_Problem
-                for (i, j) in changed_vertices:
-                    m.set_max(delta[i, j], 0)
-                m.set_objective(None)
-                try:
-                    m.solve(objective_only=True)
-                    is_feasible = True
-                except MIPSolverException:
-                    # If infeasible, stop recursion
-                    is_feasible = False
-                if is_feasible:
-                    # look for implied additive vertices and faces
-                    # add implied equalities to m
-                    the_last_changed = len(changed_vertices)
-                    legal_picked, covered_intervals = update_implied_faces_mip(q, f, \
-                            vertices_color, changed_vertices, faces_color, changed_faces, covered_intervals)
-                    # If encounter non_candidate or too few slopes, stop recursion.
-                    if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
-                        new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, (x, y, w))
-                        for (i, j) in changed_vertices[the_last_changed::]:
-                            m.set_max(delta[i, j], 0)
+    for (x, y, w) in candidate_faces:
+        covered_intervals = directly_covered_by_adding_face(last_covered_intervals, (x, y, w), q, f)
+        legal_picked, covered_intervals, changed_vertices, changed_faces = update_around_green_face( \
+                    q, f, vertices_color, faces_color, covered_intervals, (x, y, w))
+        # If encounter non_candidate or too few slopes, stop recursion
+        if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
+            # update constraint_system, set up MIP_Problem
+            for (i, j) in changed_vertices:
+                m.set_max(delta[i, j], 0)
+            m.set_objective(None)
+            try:
+                m.solve(objective_only=True)
+                is_feasible = True
+            except MIPSolverException:
+                # If infeasible, stop recursion
+                is_feasible = False
+            if is_feasible:
+                # look for implied additive vertices and faces
+                # add implied equalities to m
+                the_last_changed = len(changed_vertices)
+                legal_picked, covered_intervals = update_implied_faces_mip(q, f, \
+                        vertices_color, changed_vertices, faces_color, changed_faces, covered_intervals)
+                # If encounter non_candidate or too few slopes, stop recursion.
+                if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
+                    new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, (x, y, w))
+                    for (i, j) in changed_vertices[the_last_changed::]:
+                        m.set_max(delta[i, j], 0)
+                    if len(new_candidate_faces) <= threshold:
+                        #print "num_candidate = %s < %s, yield polytope now" % (len(candidate_faces), threshold)
+                        cs = initial_cs(q, f, vertices_color)
+                        polytope = C_Polyhedron(cs)
+                        yield polytope, last_covered_intervals
+                    else:
                         for result_polytope, result_covered_intervals in paint_complex_combined_mip(k_slopes, q, f, \
                                 vertices_color, faces_color, covered_intervals, new_candidate_faces):
                             yield result_polytope, result_covered_intervals
-            # Now, try out white triangle (x, y, w)
-            for face in changed_faces:
-                faces_color[face] = 1
-            for v in changed_vertices:
-                vertices_color[v] = 1
-                m.set_max(delta[v], None)
-            faces_color[(x, y, w)] = 2
-        for face in candidate_faces:
+        # Now, try out white triangle (x, y, w)
+        for face in changed_faces:
             faces_color[face] = 1
+        for v in changed_vertices:
+            vertices_color[v] = 1
+            m.set_max(delta[v], None)
+        faces_color[(x, y, w)] = 2
+    for face in candidate_faces:
+       faces_color[face] = 1
 
 def all_intervals_covered(q, f, values, last_covered_intervals):
     """
