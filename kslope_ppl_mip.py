@@ -183,6 +183,7 @@ def initial_mip(q, f, vertices_color):
             num_var += 1
     m.set_objective(None)
     m.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+    m.solver_parameter("obj_upper_limit", 0.01)
 
 @cached_function
 def edges_around_vertex(q, v):
