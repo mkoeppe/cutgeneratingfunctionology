@@ -31,6 +31,7 @@ from sage.libs.ppl import C_Polyhedron, Constraint, Constraint_System, Generator
                           Poly_Con_Relation, MIP_Problem, Linear_Expression
 import numpy
 from sage.numerical.mip import MixedIntegerLinearProgram, MIPVariable, MIPSolverException
+import sage.numerical.backends.glpk_backend as backend
 
 poly_is_included = Poly_Con_Relation.is_included()
 
@@ -181,6 +182,7 @@ def initial_mip(q, f, vertices_color):
             var_id[x, y] = num_var
             num_var += 1
     m.set_objective(None)
+    m.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
 
 @cached_function
 def edges_around_vertex(q, v):
@@ -1013,6 +1015,7 @@ def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last
             for (i, j) in changed_vertices:
                 m.set_max(delta[i, j], 0)
             #m.set_objective(None)
+            m.solver_parameter("primal_v_dual", "GLP_DUAL")
             try:
                 m.solve(objective_only=True)
                 is_feasible = True
@@ -1023,6 +1026,7 @@ def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last
                 # look for implied additive vertices and faces
                 # add implied equalities to m
                 the_last_changed = len(changed_vertices)
+                m.solver_parameter("primal_v_dual", "GLP_PRIMAL")
                 legal_picked, covered_intervals = update_implied_faces_mip(q, f, \
                         vertices_color, changed_vertices, faces_color, changed_faces, covered_intervals)
                 # If encounter non_candidate or too few slopes, stop recursion.
