@@ -857,6 +857,13 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic'):
         else:
             cs = initial_cs(q, f, vertices_color)
             gen = paint_complex_combined_pol(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs, cs_matrix)
+    elif mode == 'no_implied':
+        faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
+        candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
+        cs_matrix = matrix(QQ, 2, q, sparse = True)
+        cs_matrix[0, 0] = 1
+        cs_matrix[1, f] = 1
+        gen = paint_complex_no_implied(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix)
     elif mode == 'fulldim_covers':
         cs = initial_cs(q, f, vertices_color)
         faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
@@ -869,9 +876,9 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic'):
         cs = initial_cs(q, f, vertices_color)
         polytope = C_Polyhedron(cs)
     else:
-        raise ValueError, "mode must be one of {'heuristic', 'combined', 'fulldim_covers', 'complete', 'naive'}."
+        raise ValueError, "mode must be one of {'heuristic', 'combined', 'fulldim_covers', 'complete', 'naive', 'no_implied'}."
     v_set = set([])
-    if mode == 'combined':
+    if mode == 'combined' or mode == 'no_implied':
         for result_polytope, last_covered_intervals in gen:
             for values in generate_vertex_values(k_slopes, q, result_polytope, v_set):
                 if all_intervals_covered(q, f, values, last_covered_intervals):
@@ -1069,6 +1076,34 @@ def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last
         faces_color[(x, y, w)] = 2
     for face in candidate_faces:
        faces_color[face] = 1
+
+def paint_complex_no_implied(k_slopes, q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, cs_matrix):
+    """
+    Do not consider implied green things.
+    """
+    for (x, y, w) in candidate_faces:
+        covered_intervals = directly_covered_by_adding_face(last_covered_intervals, (x, y, w), q, f)
+        legal_picked, covered_intervals, changed_vertices, changed_faces = update_around_green_face( \
+                    q, f, vertices_color, faces_color, covered_intervals, (x, y, w))
+        if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
+            new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, (x, y, w))
+            exp_dim, new_cs_matrix = dim_cs_matrix(q, changed_vertices, cs_matrix)
+            if not new_candidate_faces or exp_dim <= dim_threshold:
+                cs = initial_cs(q, f, vertices_color)
+                polytope = C_Polyhedron(cs)
+                yield polytope, last_covered_intervals
+            else:
+                for result_polytope, result_covered_intervals in paint_complex_no_implied(k_slopes, q, f, \
+                       vertices_color, faces_color, covered_intervals, new_candidate_faces, new_cs_matrix):
+                   yield result_polytope, result_covered_intervals
+        for face in changed_faces:
+            faces_color[face] = 1
+        for v in changed_vertices:
+            vertices_color[v] = 1
+        faces_color[(x, y, w)] = 2
+    for face in candidate_faces:
+       faces_color[face] = 1
+
 
 def all_intervals_covered(q, f, values, last_covered_intervals):
     """
