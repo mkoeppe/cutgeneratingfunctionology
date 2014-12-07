@@ -957,9 +957,9 @@ def measure_stats(q, f_list, name=None):
     return
 
 q_threshold = 10
-rank_threshold = 3
+dim_threshold = 25
 
-def rank_cs_matrix(q, changed_vertices, cs_matrix):
+def dim_cs_matrix(q, changed_vertices, cs_matrix):
     """
     construct the new cs_matrix, and compute its rank
     """
@@ -970,13 +970,13 @@ def rank_cs_matrix(q, changed_vertices, cs_matrix):
         new_cs_row[j] += 1
         new_cs_row[(i + j) % q] -= 1
         new_cs_matrix = new_cs_matrix.stack(new_cs_row)
-    rk = new_cs_matrix.rank()
-    return rk, new_cs_matrix
+    d = q - new_cs_matrix.rank()
+    return d, new_cs_matrix
 
 def paint_complex_combined_pol(k_slopes, q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, cs):
     """
     Combine 'heuristic' backracting search with vertex enumeration.
-    Stop backtracting when rank(cs_matrix) >= rank_threshold
+    Stop backtracting when q - rank(cs_matrix) <= dim_threshold
     """
     for (x, y, w) in candidate_faces:
         covered_intervals = directly_covered_by_adding_face(last_covered_intervals, (x, y, w), q, f)
@@ -996,8 +996,8 @@ def paint_complex_combined_pol(k_slopes, q, f, vertices_color, faces_color, last
                 # If encounter non_candidate or too few slopes, stop recursion.
                 if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
                     new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, (x, y, w))
-                    rk, new_cs_matrix = rank_cs_matrix(q, changed_vertices, cs_matrix)
-                    if not new_candidate_faces or rk >= rank_threshold:
+                    exp_dim, new_cs_matrix = dim_cs_matrix(q, changed_vertices, cs_matrix)
+                    if not new_candidate_faces or exp_dim <= dim_threshold:
                         # Suppose that k_slopes > 2. If k_slopes = 2, waist time on checking covered for 2-slope functions.
                         # stop recursion
                         yield polytope,  covered_intervals
@@ -1019,7 +1019,7 @@ def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last
     """
     Combine 'heuristic' backracting search (using MILP library) with vertex enumeration.
     For q <= q_threshold, Polyhedron is faster. 
-    If rank(cs_matrix) >= rank_threshold, stop backtracking search.
+    If q - rank(cs_matrix) <= dim_threshold, stop backtracking search.
     Enumerate and check vertex functions then.
     """
     for (x, y, w) in candidate_faces:
@@ -1051,9 +1051,8 @@ def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last
                     new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, (x, y, w))
                     for (i, j) in changed_vertices[the_last_changed::]:
                         m.set_max(delta[i, j], 0)
-                    rk, new_cs_matrix = rank_cs_matrix(q, changed_vertices, cs_matrix)
-                    if not new_candidate_faces or rk >= rank_threshold:
-                        #print "rank = %s >= %s, yield polytope now" % (new_cs_matrix.rank(), rank_threshold)
+                    exp_dim, new_cs_matrix = dim_cs_matrix(q, changed_vertices, cs_matrix) # or changed_vertices[0:the_last_changed]?
+                    if not new_candidate_faces or exp_dim <= dim_threshold:
                         cs = initial_cs(q, f, vertices_color)
                         polytope = C_Polyhedron(cs)
                         yield polytope, last_covered_intervals
