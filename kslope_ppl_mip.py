@@ -405,7 +405,7 @@ def generate_uncovered_set(q, uncovered_intervals):
         uncovered_set.update(component)
     return uncovered_set
 
-def generate_candidate_faces(q, f, covered_intervals, last_face=None):
+def generate_candidate_faces(q, f, covered_intervals, last_face=None, faces_color=None, sym=False):
     """
     Return a list of candidate_faces (lexicographically > last_face)
     to paint in next step, whose I, J are currently uncovered.
@@ -416,7 +416,7 @@ def generate_candidate_faces(q, f, covered_intervals, last_face=None):
         sage: q = 5; f = 3;
         sage: vertices_color = initial_vertices_color(q, f);
         sage: faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
-        sage: generate_candidate_faces(q, f, covered_intervals, None)
+        sage: generate_candidate_faces(q, f, covered_intervals)
         [(1, 1, 0), (1, 1, 1)]
     """
     to_cover = generate_to_cover(q, covered_intervals)
@@ -424,12 +424,12 @@ def generate_candidate_faces(q, f, covered_intervals, last_face=None):
     candidate_faces = []
     for x in to_cover:
         for y in to_cover:
-            if x <= y:
+            if (x <= y) and (not sym or x + y < q - 1) :
                 face = (x, y, 0)
-                if (last_face is None or face > last_face):
+                if (last_face is None or face > last_face) and (faces_color is None or faces_color[face] == 1):
                     candidate_faces.append(face)
                 face = (x, y, 1)
-                if (last_face is None or face > last_face):
+                if (last_face is None or face > last_face) and (faces_color is None or faces_color[face] == 1):
                     candidate_faces.append(face)
     return candidate_faces
 
@@ -514,7 +514,7 @@ def update_implied_faces_pol(q, f, vertices_color, changed_vertices, faces_color
                         covered_intervals = directly_covered_by_adding_face(covered_intervals, face, q, f)
     return True, covered_intervals
 
-def update_implied_faces_mip(q, f, vertices_color, changed_vertices, faces_color, changed_faces, covered_intervals):
+def update_implied_faces_mip(q, f, vertices_color, changed_vertices, faces_color, changed_faces, covered_intervals, sym=False):
     """
     Subfunction of paint_complex_combined_mip().
     Look for implied additive vertices and faces, given MIP_Problem m.
@@ -524,7 +524,7 @@ def update_implied_faces_mip(q, f, vertices_color, changed_vertices, faces_color
     """
     for i in range(1, q):
         for j in range(i, q):
-            if (vertices_color[i, j] == 1):
+            if (vertices_color[i, j] == 1) and (not sym or i + j <= q):
                 #m.set_objective(delta[i, j])
                 m_glpk = m.get_backend()
                 m_glpk.objective_coefficient(var_id[i, j], 1)
@@ -561,7 +561,7 @@ def paint_complex_heuristic(k_slopes, q, f, vertices_color, faces_color, last_co
         sage: vertices_color = initial_vertices_color(q, f);
         sage: faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
         sage: cs = initial_cs(q, f, vertices_color)
-        sage: candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
+        sage: candidate_faces = generate_candidate_faces(q, f, covered_intervals)
         sage: for result_polytope in paint_complex_heuristic(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs):
         ...       result_polytope.minimized_generators()
         Generator_System {point(0/6, 2/6, 4/6, 6/6, 3/6, 0/6)}
@@ -585,7 +585,7 @@ def paint_complex_heuristic(k_slopes, q, f, vertices_color, faces_color, last_co
                         vertices_color, changed_vertices, faces_color, changed_faces, covered_intervals, polytope)
                 # If encounter non_candidate or too few slopes, stop recursion.
                 if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
-                    new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, (x, y, w))
+                    new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, last_face=(x, y, w))
                     if not new_candidate_faces:
                         # stop recursion
                         if not generate_to_cover(q, covered_intervals):
@@ -861,11 +861,11 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic'):
     if mode == 'heuristic':
         cs = initial_cs(q, f, vertices_color)
         faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
-        candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
+        candidate_faces = generate_candidate_faces(q, f, covered_intervals, last_face=None)
         gen = paint_complex_heuristic(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs)
     elif mode == 'combined':      
         faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
-        candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
+        candidate_faces = generate_candidate_faces(q, f, covered_intervals, last_face=None)
         cs_matrix = initial_cs_matrix(q, f)
         if q > q_threshold:
             initial_mip(q, f, vertices_color) # set initial global variable m and delta
@@ -873,9 +873,12 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic'):
         else:
             cs = initial_cs(q, f, vertices_color)
             gen = paint_complex_combined_pol(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs, cs_matrix)
+    elif mode == 'sym':
+        vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix = initialization_sym(q, f)
+        gen = paint_complex_combined_sym(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix)
     elif mode == 'no_implied':
         faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
-        candidate_faces = generate_candidate_faces(q, f, covered_intervals, None)
+        candidate_faces = generate_candidate_faces(q, f, covered_intervals, last_face=None)
         cs_matrix = initial_cs_matrix(q, f)
         gen = paint_complex_no_implied(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix)
     elif mode == 'fulldim_covers':
@@ -890,12 +893,12 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic'):
         cs = initial_cs(q, f, vertices_color)
         polytope = C_Polyhedron(cs)
     else:
-        raise ValueError, "mode must be one of {'heuristic', 'combined', 'fulldim_covers', 'complete', 'naive', 'no_implied'}."
+        raise ValueError, "mode must be one of {'heuristic', 'combined', 'fulldim_covers', 'complete', 'naive', 'no_implied', 'sym'}."
     v_set = set([])
-    if mode == 'combined' or mode == 'no_implied':
-        for result_polytope, last_covered_intervals in gen:
+    if mode == 'combined' or mode == 'no_implied' or mode == 'sym':
+        for result_polytope, result_covered_intervals in gen:
             for values in generate_vertex_values(k_slopes, q, result_polytope, v_set):
-                if all_intervals_covered(q, f, values, last_covered_intervals):
+                if all_intervals_covered(q, f, values, result_covered_intervals):
                     yield values
     elif mode == 'naive':
         for values in generate_vertex_values(k_slopes, q, polytope, v_set):
@@ -1017,7 +1020,7 @@ def paint_complex_combined_pol(k_slopes, q, f, vertices_color, faces_color, last
                         vertices_color, changed_vertices, faces_color, changed_faces, covered_intervals, polytope)
                 # If encounter non_candidate or too few slopes, stop recursion.
                 if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
-                    new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, (x, y, w))
+                    new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, last_face=(x, y, w))
                     # use changed_vertices[0:the_last_changed]. don't put implied equalities in cs_matrix.
                     exp_dim, new_cs_matrix = dim_cs_matrix(q, changed_vertices[0:the_last_changed], cs_matrix)
                     if not new_candidate_faces or exp_dim <= dim_threshold:
@@ -1071,7 +1074,7 @@ def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last
                         vertices_color, changed_vertices, faces_color, changed_faces, covered_intervals)
                 # If encounter non_candidate or too few slopes, stop recursion.
                 if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
-                    new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, (x, y, w))
+                    new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, last_face=(x, y, w))
                     for (i, j) in changed_vertices[the_last_changed::]:
                         m.set_max(delta[i, j], 0)
                     exp_dim, new_cs_matrix = dim_cs_matrix(q, changed_vertices[0:the_last_changed], cs_matrix)
@@ -1079,7 +1082,7 @@ def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last
                     if not new_candidate_faces or exp_dim <= dim_threshold:
                         cs = initial_cs(q, f, vertices_color)
                         polytope = C_Polyhedron(cs)
-                        yield polytope, last_covered_intervals
+                        yield polytope, covered_intervals
                     else:
                         for result_polytope, result_covered_intervals in paint_complex_combined_mip(k_slopes, q, f, \
                                 vertices_color, faces_color, covered_intervals, new_candidate_faces, new_cs_matrix):
@@ -1103,12 +1106,12 @@ def paint_complex_no_implied(k_slopes, q, f, vertices_color, faces_color, last_c
         legal_picked, covered_intervals, changed_vertices, changed_faces = update_around_green_face( \
                     q, f, vertices_color, faces_color, covered_intervals, (x, y, w))
         if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
-            new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, (x, y, w))
+            new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, last_face=(x, y, w))
             exp_dim, new_cs_matrix = dim_cs_matrix(q, changed_vertices, cs_matrix)
             if not new_candidate_faces or exp_dim <= dim_threshold:
                 cs = initial_cs(q, f, vertices_color)
                 polytope = C_Polyhedron(cs)
-                yield polytope, last_covered_intervals
+                yield polytope, covered_intervals
             else:
                 for result_polytope, result_covered_intervals in paint_complex_no_implied(k_slopes, q, f, \
                        vertices_color, faces_color, covered_intervals, new_candidate_faces, new_cs_matrix):
@@ -1274,3 +1277,138 @@ def sort_pair(x, y):
     else:
         return (y, x)
 
+
+def initialization_sym(q, f):
+    p = int(f / 2)
+    vertices_color = initial_vertices_color(q, f)
+    vertices_color[1, p] = vertices_color[q - p, q - 1] = 0
+    vertices_color[p, p] = vertices_color[q - p, q - p] = 0
+    faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
+    for x in range(f):
+        for y in range(x, q - x):
+            for w in range(2):
+                if x + y + w >= f:
+                    faces_color[(x, y, w)] = faces_color[(q - y - 1, q - x - 1, 1 - w)] = 2
+                elif x >= 1 and (y >=  p + 1 or x + y + w <= p):
+                    faces_color[(x, y, w)] = faces_color[(q - y - 1, q - x - 1, 1 - w)] = 2
+    candidate_faces = generate_candidate_faces(q, f, covered_intervals, last_face=None, faces_color=faces_color, sym = True)
+    cs_matrix = matrix(QQ, 1 + p + f, q, sparse = True)
+    # fn[0] = 0, fn[f] = 1
+    cs_matrix[0, 0] = 1
+    cs_matrix[1, f] = 1
+    # symmetry
+    for i in range(1, p + 1):
+        cs_matrix[1 + i, i] = 1
+        cs_matrix[1 + i, f - i] = 1
+    # fn[i] = fn[q - i]
+    for i in range(1, f):
+        cs_matrix[1 + p + i, i] = 1
+        cs_matrix[1 + p + i, q - i] = -1
+    #initial_mip(q, f, vertices_color)
+    global m
+    global delta
+    global var_id
+    var_id = numpy.zeros((q, q), int)
+    m = MixedIntegerLinearProgram(maximization=True, solver = "GLPK") # "GLPK" slow! "ppl" very slow! try solver = "Gurobi"
+    fn = m.new_variable(real=True, nonnegative=True)
+    for i in range(f + 1):
+        # 0 <= fn[i] <= 1
+        m.set_min(fn[i], 0)
+        m.set_max(fn[i], 1)
+    m.set_max(fn[0], 0) # fn[0] == 0
+    #m.set_max(fn[q], 0) # fn[q] == 0
+    m.set_min(fn[f], 1) # fn[f] == 1
+    for i in range(f):
+        m.add_constraint(fn[i] == fn[q - i])
+    num_var = q + 1
+    # only consider delta[x, y] where x <= y and  x + y <= q
+    delta = m.new_variable(real=True, nonnegative=True) # delta[x, y] >= 0
+    for x in range(1, q):
+        for y in range(x, q):
+            if x + y <= q:
+                z = (x + y) % q
+                # delta[x, y] = fn[x] + fn[y] - fn[z]
+                m.add_constraint(fn[x] + fn[y] - fn[z] - delta[x, y], min=0, max=0)
+                m.set_min(delta[x, y], 0)           # fn[x] + fn[y] >= fn[z]
+                if vertices_color[x, y] == 0:
+                    m.set_max(delta[x, y], 0)       # fn[x] + fn[y] == fn[z]
+                else:
+                    m.set_max(delta[x, y], None)
+                var_id[x, y] = num_var
+                num_var += 1
+    m.set_objective(None)
+    m.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+    m.solver_parameter("obj_upper_limit", 0.01)
+    return vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix
+
+def paint_complex_combined_sym(k_slopes, q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, cs_matrix):
+    """
+    Special case: kzh_6_slope_fulldim_covers_2() and kzh_6_slope_fulldim_covers_3()
+    q = 2f, f mod 2 = 1. symmetry between left and right parts of f. 2d-diagram is white in the middle...
+    """
+    for (x, y, w) in candidate_faces:
+        covered_intervals = directly_covered_by_adding_face(last_covered_intervals, (x, y, w), q, f)
+        legal_picked, covered_intervals, changed_vertices, changed_faces = update_around_green_face( \
+                    q, f, vertices_color, faces_color, covered_intervals, (x, y, w))
+        if legal_picked:
+            for (i, j) in changed_vertices:
+                vertices_color[q - j, q - i] = vertices_color[i, j]
+            for (x1, y1, w1) in changed_faces:
+                (x2, y2, w2) = (q - y1 - 1, q - x1 - 1, 1 - w1)
+                faces_color[(x2, y2, w2)] = faces_color[(x1, y1, w1)]
+                covered_intervals = directly_covered_by_adding_face(covered_intervals, (x2, y2, w2), q, f)
+        # If encounter non_candidate or too few slopes, stop recursion
+        if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
+            # update constraint_system, set up MIP_Problem
+            for (i, j) in changed_vertices:
+                m.set_max(delta[i, j], 0)
+            #m.set_objective(None)
+            m.solver_parameter("primal_v_dual", "GLP_DUAL")
+            try:
+                m.solve(objective_only=True)
+                is_feasible = True
+            except MIPSolverException:
+                # If infeasible, stop recursion
+                is_feasible = False
+            if is_feasible:
+                # look for implied additive vertices and faces
+                # add implied equalities to m
+                the_last_changed_v = len(changed_vertices)
+                the_last_changed_f = len(changed_faces)
+                m.solver_parameter("primal_v_dual", "GLP_PRIMAL")
+                legal_picked, covered_intervals = update_implied_faces_mip(q, f, \
+                        vertices_color, changed_vertices, faces_color, changed_faces, covered_intervals, sym=True)
+                if legal_picked:
+                    for (i, j) in changed_vertices[the_last_changed_v::]:
+                        vertices_color[q - j, q - i] = vertices_color[i, j]
+                    for (x1, y1, w1) in changed_faces[the_last_changed_f::]:
+                        (x2, y2, w2) = (q - y1 - 1, q - x1 - 1, 1 - w1)
+                        faces_color[(x2, y2, w2)] = faces_color[(x1, y1, w1)]
+                        covered_intervals = directly_covered_by_adding_face(covered_intervals, (x2, y2, w2), q, f)
+                # If encounter non_candidate or too few slopes, stop recursion.
+                if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
+                    new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, (x, y, w), faces_color, sym=True)
+                    for (i, j) in changed_vertices[the_last_changed_v::]:
+                        m.set_max(delta[i, j], 0)
+                    exp_dim, new_cs_matrix = dim_cs_matrix(q, changed_vertices[0:the_last_changed_v], cs_matrix)
+                    # implied equalities are redundant in cs_matrix. don't put them in.
+                    if not new_candidate_faces or exp_dim <= dim_threshold:
+                        cs = initial_cs(q, f, vertices_color)
+                        polytope = C_Polyhedron(cs)
+                        yield polytope, covered_intervals
+                    else:
+                        for result_polytope, result_covered_intervals in paint_complex_combined_sym(k_slopes, q, f, \
+                                vertices_color, faces_color, covered_intervals, new_candidate_faces, new_cs_matrix):
+                            yield result_polytope, result_covered_intervals
+        # Now, try out white triangle (x, y, w)
+        for (x1, y1, w1) in changed_faces:
+            (x2, y2, w2) = (q - y1 - 1, q - x1 - 1, 1 - w1)
+            faces_color[(x1, y1, w1)] = faces_color[(x2, y2, w2)] = 1
+        for (i, j) in changed_vertices:
+            vertices_color[i, j] = vertices_color[q - j, q - i] = 1
+            m.set_max(delta[(i, j)], None)
+        (x2, y2, w2) = (q - y - 1, q - x - 1, 1 - w)
+        faces_color[(x, y, w)] = faces_color[(x2, y2, w2)] = 2
+    for (x1, y1, w1) in candidate_faces:
+        (x2, y2, w2) = (q - y1 - 1, q - x1 - 1, 1 - w1)
+        faces_color[(x1, y1, w1)] = faces_color[(x2, y2, w2)] = 1
