@@ -895,9 +895,9 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic'):
         polytope = C_Polyhedron(cs)
     elif mode == 'sym_naive':
         # note that q = 2*f
-        #p = int(f / 2)
-        #vertices_color[1, p] = vertices_color[q - p, q - 1] = 0
-        #vertices_color[p, p] = vertices_color[q - p, q - p] = 0
+        p = int(f / 2)
+        vertices_color[1, p] = vertices_color[q - p, q - 1] = 0
+        vertices_color[p, p] = vertices_color[q - p, q - p] = 0
         cs = initial_cs_sym(q, f, vertices_color)
         polytope = C_Polyhedron(cs)
     else:
@@ -989,8 +989,8 @@ def measure_stats(q, f_list, name=None):
         print >> fout, "        num_full = %s,  k-slope  %s" % (tot_full, num_full[2:])
     return
 
-q_threshold = 10
-dim_threshold = 25
+q_threshold = 20
+dim_threshold = 11
 
 def dim_cs_matrix(q, changed_vertices, cs_matrix):
     """
