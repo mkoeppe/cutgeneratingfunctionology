@@ -874,6 +874,7 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic'):
             cs = initial_cs(q, f, vertices_color)
             gen = paint_complex_combined_pol(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs, cs_matrix)
     elif mode == 'sym':
+        # note that q = 2*f
         vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix = initialization_sym(q, f)
         gen = paint_complex_combined_sym(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix)
     elif mode == 'no_implied':
@@ -892,15 +893,22 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic'):
     elif mode == 'naive':
         cs = initial_cs(q, f, vertices_color)
         polytope = C_Polyhedron(cs)
+    elif mode == 'sym_naive':
+        # note that q = 2*f
+        #p = int(f / 2)
+        #vertices_color[1, p] = vertices_color[q - p, q - 1] = 0
+        #vertices_color[p, p] = vertices_color[q - p, q - p] = 0
+        cs = initial_cs_sym(q, f, vertices_color)
+        polytope = C_Polyhedron(cs)
     else:
-        raise ValueError, "mode must be one of {'heuristic', 'combined', 'fulldim_covers', 'complete', 'naive', 'no_implied', 'sym'}."
+        raise ValueError, "mode must be one of {'heuristic', 'combined', 'fulldim_covers', 'complete', 'naive', 'no_implied', 'sym', 'sym_naive'}."
     v_set = set([])
     if mode == 'combined' or mode == 'no_implied' or mode == 'sym':
         for result_polytope, result_covered_intervals in gen:
             for values in generate_vertex_values(k_slopes, q, result_polytope, v_set):
                 if all_intervals_covered(q, f, values, result_covered_intervals):
                     yield values
-    elif mode == 'naive':
+    elif mode == 'naive' or mode == 'sym_naive':
         for values in generate_vertex_values(k_slopes, q, polytope, v_set):
             if all_intervals_covered(q, f, values, []):
                 yield values
@@ -922,6 +930,7 @@ def search_kslope(k_slopes, q, f_list=None, mode='heuristic', print_function=Fal
         sage: len(h_list)
         13
     """
+    global h_list
     h_list = []
     n_sol = 0
     if f_list is None:
@@ -934,7 +943,7 @@ def search_kslope(k_slopes, q, f_list=None, mode='heuristic', print_function=Fal
             h_list.append(h)
             n_sol += 1
             if print_function:
-                logging.info("h = %s" % h)
+                logging.info("h = %s" % (h,))
             logging.info("Found solution No.%s, in %s seconds" % (n_sol, time.clock() - cpu_t))
         logging.info("q = %s, f = %s takes cpu_time = %s" % (q, f, time.clock() - cpu_t))
     logging.info("Total cpu_time = %s" %(time.clock() - start_cpu_t))
@@ -1276,8 +1285,7 @@ def sort_pair(x, y):
         return (x, y)
     else:
         return (y, x)
-
-
+    
 def initialization_sym(q, f):
     p = int(f / 2)
     vertices_color = initial_vertices_color(q, f)
@@ -1323,23 +1331,41 @@ def initialization_sym(q, f):
     num_var = q + 1
     # only consider delta[x, y] where x <= y and  x + y <= q
     delta = m.new_variable(real=True, nonnegative=True) # delta[x, y] >= 0
-    for x in range(1, q):
-        for y in range(x, q):
-            if x + y <= q:
-                z = (x + y) % q
-                # delta[x, y] = fn[x] + fn[y] - fn[z]
-                m.add_constraint(fn[x] + fn[y] - fn[z] - delta[x, y], min=0, max=0)
-                m.set_min(delta[x, y], 0)           # fn[x] + fn[y] >= fn[z]
-                if vertices_color[x, y] == 0:
-                    m.set_max(delta[x, y], 0)       # fn[x] + fn[y] == fn[z]
-                else:
-                    m.set_max(delta[x, y], None)
-                var_id[x, y] = num_var
-                num_var += 1
+    for x in range(1, f + 1):
+        for y in range(x, q - x + 1):
+            z = (x + y) % q # need this?
+            # delta[x, y] = fn[x] + fn[y] - fn[z]
+            m.add_constraint(fn[x] + fn[y] - fn[z] - delta[x, y], min=0, max=0)
+            m.set_min(delta[x, y], 0)           # fn[x] + fn[y] >= fn[z]
+            if vertices_color[x, y] == 0:
+                m.set_max(delta[x, y], 0)       # fn[x] + fn[y] == fn[z]
+            else:
+                m.set_max(delta[x, y], None)
+            var_id[x, y] = num_var
+            num_var += 1
     m.set_objective(None)
     m.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
     m.solver_parameter("obj_upper_limit", 0.01)
     return vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix
+
+def initial_cs_sym(q, f, vertices_color):
+    cs = Constraint_System()
+    fn = [ Variable(i) for i in range(q+1) ]
+
+    cs.insert(fn[0] == 0)
+    cs.insert(fn[q] == 0)
+    cs.insert(fn[f] == 1)
+    for i in range(1, f):
+        cs.insert(fn[i] >= 0)
+        cs.insert(fn[i] <= 1)
+        cs.insert(fn[i] - fn[q - i] == 0)
+    for x in range(1, f + 1):
+        for y in range(x, q - x + 1):
+            if vertices_color[x, y] == 0:
+                cs.insert(fn[x] + fn[y] == fn[x + y])
+            else:
+                cs.insert(fn[x] + fn[y] >= fn[x + y])
+    return cs
 
 def paint_complex_combined_sym(k_slopes, q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, cs_matrix):
     """
@@ -1393,7 +1419,7 @@ def paint_complex_combined_sym(k_slopes, q, f, vertices_color, faces_color, last
                     exp_dim, new_cs_matrix = dim_cs_matrix(q, changed_vertices[0:the_last_changed_v], cs_matrix)
                     # implied equalities are redundant in cs_matrix. don't put them in.
                     if not new_candidate_faces or exp_dim <= dim_threshold:
-                        cs = initial_cs(q, f, vertices_color)
+                        cs = initial_cs_sym(q, f, vertices_color)
                         polytope = C_Polyhedron(cs)
                         yield polytope, covered_intervals
                     else:
