@@ -447,7 +447,7 @@ def convex_vert_list(vertices):
 def plot_kwds_hook(kwds):
     pass
 
-def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal=False, f=None):
+def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal=False, f=None, colorful=False):
     """
     Return a plot of the 2d complex (Delta P) of `fn` with shaded
     additive faces, i.e., faces where delta pi is 0.
@@ -486,8 +486,24 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     p = plot_2d_complex(fn)
     kwds = { 'legend_label': "Additive face" }
     plot_kwds_hook(kwds)
+    if colorful:
+        covered_intervals = generate_covered_intervals(fn)
+        colors = rainbow(len(covered_intervals))
+        interval_color = [(interval[0], i) \
+                          for (i, component) in enumerate(covered_intervals) \
+                          for interval in component]
+        interval_color.sort()
+    else:
+        covered_intervals = None
     for face in faces:
-        p += face.plot(**kwds)
+        if not covered_intervals is None and face.is_2D():
+            I = face.minimal_triple[0]
+            x = (I[0] + I[1]) / 2
+            j = bisect_left(interval_color, (x, len(covered_intervals) + 1)) # should be bisect
+            i = interval_color[j-1][1]
+            p += face.plot(fill_color = colors[i], **kwds)
+        else:
+            p += face.plot(**kwds)
         delete_one_time_plot_kwds(kwds)
 
     ### For non-subadditive functions, show the points where delta_pi is negative.
@@ -539,10 +555,10 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     if show_projections:
         p += plot_projections_at_borders(fn)
     if show_function:
-        p += plot_function_at_borders(fn)
+        p += plot_function_at_borders(fn, covered_intervals = covered_intervals)
     return p
 
-def plot_function_at_borders(fn, color='blue', legend_label="Function pi", **kwds):
+def plot_function_at_borders(fn, color='blue', legend_label="Function pi", covered_intervals=None, **kwds):
     """
     Plot the function twice, on the upper and the left border, 
     to decorate 2d diagrams.
@@ -550,6 +566,8 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", **kwd
     p = Graphics()
     bkpt = fn.end_points()
     limits = fn.limits_at_end_points()
+    if not covered_intervals is None:
+        color = 'black'
     if limits[0][0] is not None and limits[0][0] != limits[0][1]:
         p += point([(0,1), (0,0)], color=color, size = 23, zorder=-1)
     for i in range(len(bkpt) - 1):
@@ -573,6 +591,16 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", **kwd
                               ((i == len(bkpt)-2) or not (y3 == y4 and y2 is None) and \
                                                      not (y2 == y3 and y4 is None)):
             p += point([(x2, 0.3*y3 + 1), (-0.3*y3, x2)], color=color, pointsize=23, zorder=-1)
+    if not covered_intervals is None:
+        colors = rainbow(len(covered_intervals))
+        for i, component in enumerate(covered_intervals):
+            for interval in component:
+                x1 = interval[0]
+                x2 = interval[1]
+                y1 = fn.limit(x1, 1)
+                y2 = fn.limit(x2, -1)
+                p += line([(x1, 0.3*y1 + 1), (x2, 0.3*y2 + 1)], color=colors[i], zorder=-2, **kwds)
+                p += line([(-0.3*y1, x1), (-0.3*y2, x2)], color=colors[i], zorder=-2, **kwds)
     # add legend_label
     kwds = { 'legend_label': legend_label }
     plot_kwds_hook(kwds)
@@ -582,6 +610,7 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", **kwd
     else:
         p += line([(0,0), (0,1)], color=color, zorder=-10, **kwds)
         p += line([(0,0), (0,1)], color='white', zorder=-9)
+    # plot function at borders with different colors according to slope values.
     return p
 
 proj_plot_width = 0.02
@@ -1220,6 +1249,7 @@ class FastLinearFunction :
             return float(self._slope) * x + float(self._intercept)
         else:
             return self._slope * x + self._intercept
+
 
     def __float__(self):
         return self
@@ -2007,6 +2037,7 @@ class FastPiecewise (PiecewisePolynomial):
         # FIXME: "sage_input(..., verify=True)" does not work yet
         # because of module trouble?
         return sib.name('FastPiecewise')(sib(self.list()))
+
 
 
 def singleton_piece(x, y):
@@ -3395,6 +3426,31 @@ def lift_until_extreme(fn, show_plots = False, pause = False, **kwds):
             raw_input("Press enter to continue")
     return next
 
+##############
+def lift_new(fn, order, show_plots = False, which_perturbation = 1, **kwds):
+    # FIXME: Need better interface for perturbation selection.
+    if not hasattr(fn, '_perturbations') and simple_finite_dimensional_extremality_test(fn, show_plots=show_plots, order=order):
+        return fn
+    else:
+        perturbation = fn._perturbations[0]
+        epsilon_interval = find_epsilon_interval(fn, perturbation)
+        perturbed = fn._lifted = fn + epsilon_interval[which_perturbation] * perturbation
+        ## Following is strictly experimental: It may change what "f" is.
+        if 'phase_1' in kwds and kwds['phase_1']:
+            perturbed = rescale_to_amplitude(perturbed, 1)
+        return perturbed
+
+def lift_new_until_extreme(fn, show_plots = False, pause = False, first_oversampling = 4, **kwds):
+    order = finite_group_order_from_function_f_oversampling_order(fn, oversampling=first_oversampling)
+    next = lift_new(fn, order, show_plots, **kwds)
+    while next != fn:
+        fn = next
+        next = lift_new(fn, order, show_plots=show_plots, **kwds)
+        if pause and next != fn:
+            raw_input("Press enter to continue")
+    return next
+
+##############
 def last_lifted(fn):
     while hasattr(fn, '_lifted'):
         fn = fn._lifted
