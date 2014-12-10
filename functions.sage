@@ -3575,7 +3575,7 @@ def compose_directed_moves(A, B, show_plots=False):
         A_domain_preimages = [ B.apply_to_coho_interval(A_domain_interval, inverse=True) \
                                for A_domain_interval in A.intervals() ]
         A_domain_preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
-        result_domain_intervals = intersection_of_coho_intervals([A_domain_preimages, B.intervals()])
+        result_domain_intervals = list(intersection_of_coho_intervals([A_domain_preimages, B.intervals()])) # generator!
         if result_domain_intervals:
             result = FunctionalDirectedMove(result_domain_intervals, (A[0] * B[0], A[0] * B[1] + A[1]))
         else:
