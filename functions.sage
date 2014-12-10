@@ -3651,8 +3651,11 @@ def reduce_with_dense_moves(functional_directed_move, dense_moves, show_plots=Fa
     remove_lists = []
     for domain, codomain in itertools.chain(*[ dense_move.interval_pairs() for dense_move in dense_moves ]):
         remove_list = list(intersection_of_coho_intervals([[functional_directed_move.apply_to_coho_interval(codomain, inverse=True)], [domain]]))
-        remove_lists.append(remove_list)  # Each remove_list is sorted because each interval is a subinterval of the domain interval.
+        if remove_list:
+            remove_lists.append(remove_list)  # Each remove_list is sorted because each interval is a subinterval of the domain interval.
     #print remove_lists
+    if not remove_lists:
+        return functional_directed_move
     difference = union_of_coho_intervals_minus_union_of_coho_intervals([functional_directed_move.intervals()], remove_lists)
     if difference:
         result = FunctionalDirectedMove(difference, functional_directed_move.directed_move)
