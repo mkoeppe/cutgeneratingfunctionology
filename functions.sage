@@ -3646,6 +3646,8 @@ def reduce_with_dense_moves(functional_directed_move, dense_moves, show_plots=Fa
         sage: reduce_with_dense_moves(FunctionalDirectedMove([[1/10,7/10]],(1, 1/10)), [DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]]), DenseDirectedMove([[[6/20,6/10],[4/10,6/10]]])])
         <FunctionalDirectedMove (1, 1/10) with domain [<Int[1/10, 3/10)>, <Int(1/2, 7/10]>], range [<Int[1/5, 2/5)>, <Int(3/5, 4/5]>]>
     """
+    if not dense_moves:
+        return functional_directed_move
     remove_lists = []
     for domain, codomain in itertools.chain(*[ dense_move.interval_pairs() for dense_move in dense_moves ]):
         remove_list = list(intersection_of_coho_intervals([[functional_directed_move.apply_to_coho_interval(codomain, inverse=True)], [domain]]))
