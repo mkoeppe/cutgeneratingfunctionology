@@ -180,6 +180,11 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
         result._embedded = self_e / other_e
         return result
 
+    def __hash__(self):
+        if not hasattr(self, '_hash'):
+            self._hash = NumberFieldElement_absolute.__hash__(self)
+        return self._hash
+
 class RealNumberField_absolute(NumberField_absolute):
     """
     A RealNumberField knows its embedding into a RealIntervalField
@@ -233,6 +238,11 @@ class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
     def __repr__(self):
         embedded = self.embedded()
         return 'RNF%s' % embedded
+
+    def __hash__(self):
+        if not hasattr(self, '_hash'):
+            self._hash = NumberFieldElement_quadratic.__hash__(self)
+        return self._hash
 
 class RealNumberField_quadratic(NumberField_quadratic):
     def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None,
