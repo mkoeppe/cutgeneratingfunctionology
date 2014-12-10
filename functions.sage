@@ -3558,7 +3558,7 @@ def is_QQ_linearly_independent(*numbers):
     numbers = nice_field_values(numbers, RealNumberField)
     if not is_real_number_field_element(numbers[0]):
         raise ValueError, "Q-linear independence test only implemented for algebraic numbers"
-    coordinate_matrix = matrix(QQ, [x.parent().0.coordinates_in_terms_of_powers()(x) for x in numbers])
+    coordinate_matrix = matrix(QQ, [x.list() for x in numbers])
     return rank(coordinate_matrix) == len(numbers)
 
 def compose_directed_moves(A, B, show_plots=False):
