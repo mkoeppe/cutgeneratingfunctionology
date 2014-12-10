@@ -12,10 +12,10 @@ SAGEFILES =					\
 
 
 all:
-	@echo "No need to 'make' anything. Just run it in Sage; see README.md"
+	@echo "No need to 'make' anything. Just run it in Sage; see README.rst"
 
 install:
-	@echo "No need to install anything. Just run it in Sage; see README.md"
+	@echo "No need to install anything. Just run it in Sage; see README.rst"
 
 check:
 	$(SAGE) -tp 4 $(SAGEFILES)
