@@ -1827,7 +1827,8 @@ class FastPiecewise (PiecewisePolynomial):
         return self + (-other)
 
     ## Following just fixes a bug in the plot method in piecewise.py
-    ## (see doctests below).  Also adds plotting of single points.
+    ## (see doctests below).  Also adds plotting of single points
+    ## and discontinuity markers.
     def plot(self, *args, **kwds):
         """
         Returns the plot of self.
@@ -1923,6 +1924,8 @@ class FastPiecewise (PiecewisePolynomial):
             point_kwds['alpha'] = kwds['alpha']
         if 'legend_label' in kwds and self.is_discrete():
             point_kwds['legend_label'] = kwds['legend_label']
+        # Whether to plot discontinuity markers
+        discontinuity_markers = kwds.pop('discontinuity_markers', True)
         # record last right endpoint, then compare with next left endpoint to decide whether it needs to be plotted.
         last_end_point = []
         last_closed = True
@@ -1941,28 +1944,29 @@ class FastPiecewise (PiecewisePolynomial):
             if (xmax is not None) and (b > xmax):
                 b = xmax
                 right_closed = True
-            # Handle open/half-open intervals here
-            if (a < b) or (a == b) and (left_closed) and (right_closed):
-                if not (last_closed or last_end_point == [a, f(a)] and left_closed):
-                    # plot last open right endpoint
-                    g += point(last_end_point, color=color, pointsize=23, **point_kwds)
-                    delete_one_time_plot_kwds(point_kwds)
-                    g += point(last_end_point, rgbcolor='white', pointsize=10, **point_kwds)
-                if last_closed and last_end_point != [] and last_end_point != [a, f(a)] and not left_closed:
-                    # plot last closed right endpoint
-                    g += point(last_end_point, color=color, pointsize=23, **point_kwds)
-                    delete_one_time_plot_kwds(point_kwds)
-                if not (left_closed or last_end_point == [a, f(a)] and last_closed):
-                    # plot current open left endpoint
-                    g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
-                    delete_one_time_plot_kwds(point_kwds)
-                    g += point([a, f(a)], rgbcolor='white', pointsize=10, **point_kwds)
-                if left_closed and last_end_point != [] and last_end_point != [a, f(a)] and not last_closed:
-                    # plot current closed left endpoint
-                    g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
-                    delete_one_time_plot_kwds(point_kwds)
-                last_closed = right_closed
-                last_end_point = [b, f(b)]
+            if discontinuity_markers:
+                # Handle open/half-open intervals here
+                if a < b or (a == b and left_closed and right_closed):
+                    if not (last_closed or last_end_point == [a, f(a)] and left_closed):
+                        # plot last open right endpoint
+                        g += point(last_end_point, color=color, pointsize=23, **point_kwds)
+                        delete_one_time_plot_kwds(point_kwds)
+                        g += point(last_end_point, rgbcolor='white', pointsize=10, **point_kwds)
+                    if last_closed and last_end_point != [] and last_end_point != [a, f(a)] and not left_closed:
+                        # plot last closed right endpoint
+                        g += point(last_end_point, color=color, pointsize=23, **point_kwds)
+                        delete_one_time_plot_kwds(point_kwds)
+                    if not (left_closed or last_end_point == [a, f(a)] and last_closed):
+                        # plot current open left endpoint
+                        g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
+                        delete_one_time_plot_kwds(point_kwds)
+                        g += point([a, f(a)], rgbcolor='white', pointsize=10, **point_kwds)
+                    if left_closed and last_end_point != [] and last_end_point != [a, f(a)] and not last_closed:
+                        # plot current closed left endpoint
+                        g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
+                        delete_one_time_plot_kwds(point_kwds)
+                    last_closed = right_closed
+                    last_end_point = [b, f(b)]
             if a < b:
                 # We do not plot anything if a==b because
                 # otherwise plot complains that
@@ -1973,11 +1977,11 @@ class FastPiecewise (PiecewisePolynomial):
                 # piece to the legend separately (trac #12651).
                 delete_one_time_plot_kwds(kwds)
                 #delete_one_time_plot_kwds(point_kwds)
-            elif (a == b) and (left_closed) and (right_closed):
+            elif a == b and left_closed and right_closed:
                 g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
                 delete_one_time_plot_kwds(point_kwds)
         # plot open rightmost endpoint. minimal functions don't need this.
-        if not last_closed:
+        if discontinuity_markers and not last_closed:
             g += point(last_end_point, color=color,pointsize=23, **point_kwds)
             delete_one_time_plot_kwds(point_kwds)
             g += point(last_end_point, rgbcolor='white', pointsize=10, **point_kwds)
@@ -2512,6 +2516,11 @@ class FunctionalDirectedMove (FastPiecewise):
         preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
         new_domain = list(intersection_of_coho_intervals([domain, intervals, preimages]))
         return FunctionalDirectedMove(new_domain, self.directed_move)
+
+    def plot(self, *args, **kwds):
+        kwds = copy(kwds)
+        kwds['discontinuity_markers'] = False
+        return FastPiecewise.plot(self, *args, **kwds)
 
 @cached_function
 def generate_functional_directed_moves(fn, restrict=False):
