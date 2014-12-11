@@ -3525,6 +3525,34 @@ def random_piecewise_function(xgrid=10, ygrid=10, continuous_proba=1, symmetry=T
             pieces += [piece2[i], piece1[i+1]]
         return FastPiecewise(pieces, merge=True)
 
+def is_all_QQ_fastpath(values):
+    """
+    This version does not do the full check whether it can be coerced to QQ,
+    which is slow for RealNumberField.
+    """
+    for x in values:
+        if not isinstance(x, (int, long, Rational, Integer)):
+            return False
+    return True
+
+from sage.rings.number_field.number_field_element import is_NumberFieldElement
+
+def is_all_the_same_number_field_fastpath(values):
+    """
+    This version does not try coercions and compares fields using 'is', rather than their comparison operator.
+    """
+    number_field_seen = None
+    for x in values:
+        if is_NumberFieldElement(x):
+            if number_field_seen:
+                if number_field_seen is not x.parent():
+                    return False
+            else:
+                number_field_seen = x.parent()
+        else:
+            return False
+    return True
+
 def is_QQ_linearly_independent(*numbers):
     """
     Test if `numbers` are linearly independent over `QQ`.
@@ -3551,13 +3579,15 @@ def is_QQ_linearly_independent(*numbers):
     elif len(numbers) == 1:
         return numbers[0] != 0
     # fast path for rationals
-    all_QQ, numbers = is_all_QQ(numbers)
-    if all_QQ:
+    if is_all_QQ_fastpath(numbers):
         return False
-    # otherwise try to coerce to common number field
-    numbers = nice_field_values(numbers, RealNumberField)
-    if not is_real_number_field_element(numbers[0]):
-        raise ValueError, "Q-linear independence test only implemented for algebraic numbers"
+    if not is_all_the_same_number_field_fastpath(numbers):
+        # try to coerce to common number field
+        numbers = nice_field_values(numbers, RealNumberField)
+        if not is_NumberFieldElement(numbers[0]):
+            if is_all_QQ(numbers):
+                return False
+            raise ValueError, "Q-linear independence test only implemented for algebraic numbers"
     coordinate_matrix = matrix(QQ, [x.list() for x in numbers])
     return rank(coordinate_matrix) == len(numbers)
 

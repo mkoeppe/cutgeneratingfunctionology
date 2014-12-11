@@ -309,7 +309,7 @@ def RealNumberField(polynomial, name=None, latex_name=None, check=True, embeddin
 
 def is_real_number_field_element(x):
     try:
-        x.embedded() # FIXME: this is a hack
+        x.embedded # FIXME: this is a hack
         return True
     except AttributeError:
         return False
