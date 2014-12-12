@@ -876,7 +876,11 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic'):
     elif mode == 'sym':
         # note that q = 2*f
         vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix = initialization_sym(q, f)
-        gen = paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix, sym=True)
+        if not candidate_faces:
+            # imposing too much initial green, candidate_faces is empty, but still have uncovered.
+            gen = gen_initial_polytope_sym(q, f, vertices_color, covered_intervals)
+        else:
+            gen = paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix, sym=True)
     elif mode == 'no_implied':
         faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
         candidate_faces = generate_candidate_faces(q, f, covered_intervals, last_face=None)
@@ -895,9 +899,9 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic'):
         polytope = C_Polyhedron(cs)
     elif mode == 'sym_naive':
         # note that q = 2*f
-        p = int(f / 2)
-        vertices_color[1, p] = vertices_color[q - p, q - 1] = 0
-        vertices_color[p, p] = vertices_color[q - p, q - p] = 0
+        f2 = int(f / 2)
+        vertices_color[1, f2] = vertices_color[q - f2, q - 1] = 0
+        vertices_color[f2, f2] = vertices_color[q - f2, q - f2] = 0
         cs = initial_cs_sym(q, f, vertices_color)
         polytope = C_Polyhedron(cs)
     else:
@@ -1060,6 +1064,7 @@ def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last
     restrict to the special 2d-diagram such as kzh_6_slope_fulldim_covers_2() and kzh_6_slope_fulldim_covers_3().
     q = 2f, f mod 2 = 1. symmetry between left and right parts of f. 2d-diagram is white in the middle.
     """
+    the_last_constraint = m.number_of_constraints()
     for (x, y, w) in candidate_faces:
         covered_intervals = directly_covered_by_adding_face(last_covered_intervals, (x, y, w), q, f)
         legal_picked, covered_intervals, changed_vertices, changed_faces = update_around_green_face( \
@@ -1105,7 +1110,7 @@ def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last
                     for (i, j) in changed_vertices[the_last_changed_v::]:
                         m.set_max(delta[i, j], 0)
                     exp_dim, new_cs_matrix = dim_cs_matrix(q, changed_vertices[0:the_last_changed_v], cs_matrix)
-                    # implied equalities are redundant in cs_matrix. don't put them in.
+                    # ??? implied equalities are redundant in cs_matrix. don't put them in.
                     if not new_candidate_faces or exp_dim <= dim_threshold:
                         if sym:
                             cs = initial_cs_sym(q, f, vertices_color)
@@ -1128,12 +1133,22 @@ def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last
                 vertices_color[q - j, q - i] = 1
             m.set_max(delta[(i, j)], None)
         faces_color[(x, y, w)] = 2
+        set_subadd_lower_bound((x, y, w))
         if sym:
             faces_color[(q - y - 1, q - x - 1, 1 - w)] = 2
     for (x1, y1, w1) in candidate_faces:
         faces_color[(x1, y1, w1)] = 1
         if sym:
             faces_color[(q - y1 - 1, q - x1 - 1, 1 - w1)] = 1
+    m.remove_constraints(range(the_last_constraint,  m.number_of_constraints()))
+
+eps = QQ(1)/4
+
+def set_subadd_lower_bound((x, y, w)):
+    if x < y:
+        m.add_constraint(delta[(x+1, y)] + delta[(x, y+1)] + delta[(x+w, y+w)], min = eps)
+    else:
+        m.add_constraint(2 * delta[(x, y+1)] + delta[(x+w, y+w)], min = eps)
 
 def paint_complex_no_implied(k_slopes, q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, cs_matrix):
     """
@@ -1167,6 +1182,7 @@ def all_intervals_covered(q, f, values, last_covered_intervals):
     Input:
         values: [pi(0), pi(1/q), .. pi(1)]
         last_covered_intervals: covered_intervals after painting complex
+
     Return whether all intervals are covered. incremental computation
     """
     to_cover = [i for i in generate_to_cover(q, last_covered_intervals) \
@@ -1316,32 +1332,39 @@ def sort_pair(x, y):
         return (y, x)
     
 def initialization_sym(q, f):
-    p = int(f / 2)
+    f2 = int(f / 2)
+    f3 = int(f / 3)
     vertices_color = initial_vertices_color(q, f)
-    vertices_color[1, p] = vertices_color[q - p, q - 1] = 0
-    vertices_color[p, p] = vertices_color[q - p, q - p] = 0
-    faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
-    for x in range(f):
-        for y in range(x, q - x):
-            for w in range(2):
-                if x + y + w >= f:
-                    faces_color[(x, y, w)] = faces_color[(q - y - 1, q - x - 1, 1 - w)] = 2
-                elif x >= 1 and (y >=  p + 1 or x + y + w <= p):
-                    faces_color[(x, y, w)] = faces_color[(q - y - 1, q - x - 1, 1 - w)] = 2
-    candidate_faces = generate_candidate_faces(q, f, covered_intervals, last_face=None, faces_color=faces_color, sym = True)
-    cs_matrix = matrix(QQ, 1 + p + f, q, sparse = True)
+    # impose some initial green vertices
+    changed_vertices = [(1, f2), (f2, f2)]
+    changed_vertices += [(2, f2 - 1), (2, f2), (f2 - 1, f2)]
+    if f % 3 == 0: # Not very promising...
+        changed_vertices += [(f3 - 1, f3 - 1), (f3 - 1, f3), (f3 - 1, f3 + 1), (f3 - 1, f3 + 2), \
+                             (f3 - 2, f3 + 1), (f3, f3 + 1), (f3 + 1, f3 + 1)]
+    elif f % 3 == 1:
+        changed_vertices += [(f3 - 2, f3 + 1), (f3 - 2, f3 + 2), (f3 - 1, f3 + 1), (f3, f3), \
+                             (f3, f3 + 1), (f3 + 1, f3 + 1), (f3 + 1, f3 + 2)]
+    elif f % 3 == 2:
+        changed_vertices += [(f3 - 1, f3 + 1), (f3 - 1, f3 + 2), (f3, f3 + 1), (f3 + 1, f3 + 1), (f3 + 1, f3 + 2)]
+    # impose their symmetric vertices too
+    for (i, j) in changed_vertices:
+        vertices_color[i, j] = vertices_color[q - j, q - i] = 0
+    # construct the initial constraint matrix
+    cs_matrix = matrix(QQ, 1 + f2 + f, q, sparse = True)
     # fn[0] = 0, fn[f] = 1
     cs_matrix[0, 0] = 1
     cs_matrix[1, f] = 1
     # symmetry
-    for i in range(1, p + 1):
+    for i in range(1, f2 + 1):
         cs_matrix[1 + i, i] = 1
         cs_matrix[1 + i, f - i] = 1
     # fn[i] = fn[q - i]
     for i in range(1, f):
-        cs_matrix[1 + p + i, i] = 1
-        cs_matrix[1 + p + i, q - i] = -1
-    #initial_mip(q, f, vertices_color)
+        cs_matrix[1 + f2 + i, i] = 1
+        cs_matrix[1 + f2 + i, q - i] = -1
+    # update cs_matrix according to the changed_vertices that we imposed 
+    exp_dim, new_cs_matrix = dim_cs_matrix(q, changed_vertices, cs_matrix)
+    # construct the initial LP problem
     global m
     global delta
     global var_id
@@ -1375,7 +1398,24 @@ def initialization_sym(q, f):
     m.set_objective(None)
     m.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
     m.solver_parameter("obj_upper_limit", 0.01)
-    return vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix
+    
+    faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
+    # impose some initial non-candidate faces
+    for x in range(f):
+        for y in range(x, q - x):
+            if x + y == q - 1:
+                w_range = [0]
+            else:
+                w_range = [0, 1]
+            for w in w_range:
+                if x + y + w >= f:
+                    faces_color[(x, y, w)] = faces_color[(q - y - 1, q - x - 1, 1 - w)] = 2
+                    set_subadd_lower_bound((x, y, w))
+                elif x >= 1 and (y >=  f2 + 1 or x + y + w <= f2):
+                    faces_color[(x, y, w)] = faces_color[(q - y - 1, q - x - 1, 1 - w)] = 2
+                    set_subadd_lower_bound((x, y, w))
+    candidate_faces = generate_candidate_faces(q, f, covered_intervals, last_face=None, faces_color=faces_color, sym = True)
+    return vertices_color, faces_color, covered_intervals, candidate_faces, new_cs_matrix
 
 def initial_cs_sym(q, f, vertices_color):
     cs = Constraint_System()
@@ -1395,3 +1435,23 @@ def initial_cs_sym(q, f, vertices_color):
             else:
                 cs.insert(fn[x] + fn[y] >= fn[x + y])
     return cs
+
+def gen_initial_polytope_sym(q, f, vertices_color, covered_intervals):
+    cs = initial_cs_sym(q, f, vertices_color)
+    polytope = C_Polyhedron(cs)
+    yield polytope, covered_intervals
+
+def save_plot(q, hh, destdir ="/media/sf_dropbox/sym_mode_2d_diagrams/"):
+    #destdir ="/homes/home02/y/yzh/Dropbox/group-relaxation-sage-code/sym_mode_2d_diagrams/"):
+    logging.disable(logging.info)
+    for i in range(len(hh)):
+        v_n = hh[i]
+        h = h_from_vertex_values(v_n)
+        num = len(set([v_n[j+1] - v_n[j] for j in range(q)]))
+        name = "%sq%s_%s" %(num, q, i)
+        if not extremality_test(h):
+            name += "_notextreme"
+        name += ".png"
+        g = plot_2d_diagram(h, colorful=True)
+        g.save(destdir + name, figsize = 20, show_legend=False)
+    logging.disable(logging.NOTSET)
