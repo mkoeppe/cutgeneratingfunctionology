@@ -908,10 +908,14 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic'):
         raise ValueError, "mode must be one of {'heuristic', 'combined', 'fulldim_covers', 'complete', 'naive', 'no_implied', 'sym', 'sym_naive'}."
     v_set = set([])
     if mode == 'combined' or mode == 'no_implied' or mode == 'sym':
+        #global filename
+        #filename = open(dir_math + "profiler/dim_threshold/%sslope_q%s_f%s_%sdim.txt" % (k_slopes, q, f, dim_threshold), "w")
+        #print >> filename, "k_slope = %s, q = %s, f = %s, dim_threshold = %s" % (k_slopes, q, f, dim_threshold)
         for result_polytope, result_covered_intervals in gen:
             for values in generate_vertex_values(k_slopes, q, result_polytope, v_set):
                 if all_intervals_covered(q, f, values, result_covered_intervals):
                     yield values
+        #filename.close()
     elif mode == 'naive' or mode == 'sym_naive':
         for values in generate_vertex_values(k_slopes, q, polytope, v_set):
             if all_intervals_covered(q, f, values, []):
@@ -994,7 +998,7 @@ def measure_stats(q, f_list, name=None):
     return
 
 q_threshold = 20
-dim_threshold = 11
+dim_threshold = 8
 
 def dim_cs_matrix(q, changed_vertices, cs_matrix):
     """
@@ -1036,6 +1040,7 @@ def paint_complex_combined_pol(k_slopes, q, f, vertices_color, faces_color, last
                     new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, last_face=(x, y, w))
                     # use changed_vertices[0:the_last_changed]. don't put implied equalities in cs_matrix.
                     exp_dim, new_cs_matrix = dim_cs_matrix(q, changed_vertices[0:the_last_changed], cs_matrix)
+                    #exp_dim, new_cs_matrix = dim_cs_matrix(q, changed_vertices, cs_matrix)
                     if not new_candidate_faces or exp_dim <= dim_threshold:
                         # Suppose that k_slopes > 2. If k_slopes = 2, waist time on checking covered for 2-slope functions.
                         # stop recursion
@@ -1109,6 +1114,7 @@ def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last
                     new_candidate_faces= generate_candidate_faces(q, f, covered_intervals, (x, y, w), faces_color, sym=sym)
                     for (i, j) in changed_vertices[the_last_changed_v::]:
                         m.set_max(delta[i, j], 0)
+                    #exp_dim, new_cs_matrix = dim_cs_matrix(q, changed_vertices, cs_matrix)
                     exp_dim, new_cs_matrix = dim_cs_matrix(q, changed_vertices[0:the_last_changed_v], cs_matrix)
                     # ??? implied equalities are redundant in cs_matrix. don't put them in.
                     if not new_candidate_faces or exp_dim <= dim_threshold:
@@ -1117,6 +1123,8 @@ def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last
                         else:
                             cs = initial_cs(q, f, vertices_color)
                         polytope = C_Polyhedron(cs)
+                        #print >> filename, "exp_dim = %s, got " % exp_dim,
+                        #print >> filename, polytope
                         yield polytope, covered_intervals
                     else:
                         for result_polytope, result_covered_intervals in paint_complex_combined_mip(k_slopes, q, f, \
@@ -1441,8 +1449,9 @@ def gen_initial_polytope_sym(q, f, vertices_color, covered_intervals):
     polytope = C_Polyhedron(cs)
     yield polytope, covered_intervals
 
-def save_plot(q, hh, destdir ="/media/sf_dropbox/sym_mode_2d_diagrams/"):
-    #destdir ="/homes/home02/y/yzh/Dropbox/group-relaxation-sage-code/sym_mode_2d_diagrams/"):
+dir_math ="/homes/home02/y/yzh/Dropbox/group-relaxation-sage-code/"
+dir_yuan ="/media/sf_dropbox/sym_mode_2d_diagrams/"
+def save_plot(q, hh, destdir = dir_math+"sym_mode_2d_diagrams/"):
     logging.disable(logging.info)
     for i in range(len(hh)):
         v_n = hh[i]
