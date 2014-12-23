@@ -1464,3 +1464,55 @@ def save_plot(q, hh, destdir = dir_math+"sym_mode_2d_diagrams/"):
         g = plot_2d_diagram(h, colorful=True)
         g.save(destdir + name, figsize = 20, show_legend=False)
     logging.disable(logging.NOTSET)
+
+def pattern_1(l, k_slopes, show_plots=False):
+    f = int(18 * l + 11); 
+    q = int(2 * f)
+    f2 = int(9 * l + 5) # = int(f / 2)
+    f3 = int(6 * l + 3) # = int(f / 3)
+    vertices_color = initial_vertices_color(q, f)
+    # impose some initial green vertices
+    changed_vertices = [(f3 + 1, f3 + 1), (f2, f2)]
+    for k in range(f3 + 2, f2, 3):
+        changed_vertices += [(k, k), (k, k + 1), (k, k + 2), (k, k + 3), (k - 1, k + 2), (k + 1, k + 2), (k + 2, k + 2)]
+    changed_vertices += [(1, f2), (2, f2 - 1), (2, f2), (3, f2 - 1)]
+    for k in range(1, l + 1):
+        i = 6 * k - 1
+        j = f2 - 3 * k + 1
+        changed_vertices += [(i - 1, j - 1), (i - 1, j), (i - 1, j + 1), (i - 1, j + 2), (i, j - 1), (i, j + 1), \
+                             (i + 1, j - 2), (i + 1, j - 1), (i + 1, j), (i + 1, j + 1), \
+                             (i + 2, j - 1), (i + 3, j - 2), (i + 3, j - 1), (i + 4, j - 2)]
+    # impose their symmetric vertices too
+    for (i, j) in changed_vertices:
+        vertices_color[i, j] = vertices_color[q - j, q - i] = 0    
+    #faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
+    cs = initial_cs_sym(q, f, vertices_color)
+    polytope = C_Polyhedron(cs)
+    v_set = set([])
+    vv = []
+    if show_plots == 'math':
+        destdir = dir_math+"sym_mode_2d_diagrams/"+"patterns/"
+    elif show_plots:
+        destdir = dir_yuan+"patterns/"
+    #logging.disable(logging.info)
+    for v in polytope.minimized_generators():
+        v_n = v.coefficients()
+        num = len(set([v_n[i+1] - v_n[i] for i in range(q)]))
+        if num >= k_slopes:
+            if not tuple(v_n) in v_set:
+                v_set.add(tuple(v_n))
+                #if all_intervals_covered(q, f, v_n, covered_intervals):
+                vv.append(v_n)
+                if show_plots:
+                        h = h_from_vertex_values(v_n)
+                        name = "%sq%s_%s" %(num, q, len(vv))
+                        #if not extremality_test(h):
+                        #    name += "_notextreme"
+                        #g2 =plot_with_colored_slopes(h);
+                        #g2.save(destdir + name + "_plot.png" )
+                        name += ".png"
+                        g = plot_2d_diagram(h, colorful=True)
+                        figsize = 12 * l + 8
+                        g.save(destdir + name, figsize = figsize, show_legend=False)    
+    #logging.disable(logging.NOTSET)
+    return vv
