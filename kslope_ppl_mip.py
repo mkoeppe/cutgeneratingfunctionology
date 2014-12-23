@@ -1465,7 +1465,7 @@ def save_plot(q, hh, destdir = dir_math+"sym_mode_2d_diagrams/"):
         g.save(destdir + name, figsize = 20, show_legend=False)
     logging.disable(logging.NOTSET)
 
-def pattern_1(l, k_slopes, show_plots=False):
+def pattern_1_vertices_color(l):
     f = int(18 * l + 11); 
     q = int(2 * f)
     f2 = int(9 * l + 5) # = int(f / 2)
@@ -1484,35 +1484,67 @@ def pattern_1(l, k_slopes, show_plots=False):
                              (i + 2, j - 1), (i + 3, j - 2), (i + 3, j - 1), (i + 4, j - 2)]
     # impose their symmetric vertices too
     for (i, j) in changed_vertices:
-        vertices_color[i, j] = vertices_color[q - j, q - i] = 0    
-    #faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
-    cs = initial_cs_sym(q, f, vertices_color)
+        vertices_color[i, j] = vertices_color[q - j, q - i] = 0
+    return vertices_color
+
+def pattern_1_fn(l):
+    f = int(18 * l + 11);
+    q = int(2 * f)
+    fn = [Linear_Expression(0)] * (q + 1)
+    s = [Variable(0)]
+    for k in range(1, l + 1):
+        s += [Variable(k), Variable(k), Variable(k + 1), Variable(k), Variable(k + 1), Variable(k)]
+    s += [Variable(l + 1)]
+    for k in range(l + 1, 0, -1):
+        s += [Variable(k), Variable(k + 1), Variable(k)]
+    s = s + [Variable(0)] + s[-1::-1]
+    for k in range(f):
+        fn[k + 1] = fn[k] + s[k]
+    for k in range(f):
+        fn[q - k] = fn[k]
+    return fn
+
+def pattern_1(l, k_slopes, show_plots=False):
+    f = int(18 * l + 11);
+    q = int(2 * f)
+    vertices_color = pattern_1_vertices_color(l)
+    fn = pattern_1_fn(l)
+    cs = Constraint_System()
+    cs.insert(fn[0] == 0)
+    cs.insert(fn[f] == 1)
+    for i in range(1, f):
+        cs.insert(fn[i] >= 0)
+        cs.insert(fn[i] <= 1)
+    for x in range(1, f + 1):
+        for y in range(x, q - x + 1):
+            if vertices_color[x, y] == 0:
+                cs.insert(fn[x] + fn[y] == fn[x + y])
+            else:
+                cs.insert(fn[x] + fn[y] >= fn[x + y])
+    #return cs
     polytope = C_Polyhedron(cs)
     v_set = set([])
     vv = []
+    nn = []
     if show_plots == 'math':
         destdir = dir_math+"sym_mode_2d_diagrams/"+"patterns/"
     elif show_plots:
         destdir = dir_yuan+"patterns/"
     #logging.disable(logging.info)
     for v in polytope.minimized_generators():
-        v_n = v.coefficients()
+        #v.coefficients() is numerator of component's slope value
+        v_n = [sum(p*q for p, q in zip(fn[i].coefficients(), v.coefficients())) for i in range(q+1)]
         num = len(set([v_n[i+1] - v_n[i] for i in range(q)]))
         if num >= k_slopes:
             if not tuple(v_n) in v_set:
                 v_set.add(tuple(v_n))
-                #if all_intervals_covered(q, f, v_n, covered_intervals):
                 vv.append(v_n)
+                nn.append(num)
                 if show_plots:
-                        h = h_from_vertex_values(v_n)
-                        name = "%sq%s_%s" %(num, q, len(vv))
-                        #if not extremality_test(h):
-                        #    name += "_notextreme"
-                        #g2 =plot_with_colored_slopes(h);
-                        #g2.save(destdir + name + "_plot.png" )
-                        name += ".png"
-                        g = plot_2d_diagram(h, colorful=True)
-                        figsize = 12 * l + 8
-                        g.save(destdir + name, figsize = figsize, show_legend=False)    
+                    h = h_from_vertex_values(v_n)
+                    name = "%sq%s_%s.png" %(num, q, len(vv))
+                    g = plot_2d_diagram(h, colorful=True)
+                    figsize = 12 * l + 8
+                    g.save(destdir + name, figsize = figsize, show_legend=False)
     #logging.disable(logging.NOTSET)
-    return vv
+    return vv, nn
