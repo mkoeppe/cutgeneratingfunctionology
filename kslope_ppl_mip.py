@@ -1465,50 +1465,84 @@ def save_plot(q, hh, destdir = dir_math+"sym_mode_2d_diagrams/"):
         g.save(destdir + name, figsize = 20, show_legend=False)
     logging.disable(logging.NOTSET)
 
-def pattern_1_vertices_color(l):
-    f = int(18 * l + 11); 
-    q = int(2 * f)
-    f2 = int(9 * l + 5) # = int(f / 2)
-    f3 = int(6 * l + 3) # = int(f / 3)
+def pattern_vertices_color(l, pattern):
+    if pattern == 1 or pattern == 2 or pattern == 3:
+        f = 18 * l + 11
+        f2 = 9 * l + 5 # = int(f / 2)
+        f3 = 6 * l + 3 # = int(f / 3)
+    q = 2 * f
     vertices_color = initial_vertices_color(q, f)
+    changed_vertices = []
     # impose some initial green vertices
-    changed_vertices = [(f3 + 1, f3 + 1), (f2, f2)]
-    for k in range(f3 + 2, f2, 3):
-        changed_vertices += [(k, k), (k, k + 1), (k, k + 2), (k, k + 3), (k - 1, k + 2), (k + 1, k + 2), (k + 2, k + 2)]
-    changed_vertices += [(1, f2), (2, f2 - 1), (2, f2), (3, f2 - 1)]
-    for k in range(1, l + 1):
-        i = 6 * k - 1
-        j = f2 - 3 * k + 1
-        changed_vertices += [(i - 1, j - 1), (i - 1, j), (i - 1, j + 1), (i - 1, j + 2), (i, j - 1), (i, j + 1), \
+    if pattern == 1 or pattern == 2 or pattern == 3:
+        for k in range(f3 + 2, f2, 3):
+            changed_vertices += [(k, k), (k, k + 1), (k, k + 2), (k - 1, k - 1), (k - 1, k), (k - 1, k + 2), (k + 1, k + 2)]
+            if pattern == 1:
+                changed_vertices +=  [(k, k + 3)]
+            if pattern == 3:
+                changed_vertices += [(k - 1, k + 1), (k + 1, k + 1)]
+        changed_vertices += [(f2 - 1, f2 - 1), (f2 - 1, f2), (f2, f2), \
+                             (1, f2), (2, f2 - 1), (2, f2), (3, f2 - 1)]
+        if pattern == 3:
+            changed_vertices += [(f2 - 1, f2 + 1), (1, f2 - 1), (1, f2 + 1)]
+        for k in range(1, l + 1):
+            i = 6 * k - 1
+            j = f2 - 3 * k + 1
+            changed_vertices += [(i - 1, j), (i - 1, j + 1), (i, j - 1), (i, j + 1), \
                              (i + 1, j - 2), (i + 1, j - 1), (i + 1, j), (i + 1, j + 1), \
                              (i + 2, j - 1), (i + 3, j - 2), (i + 3, j - 1), (i + 4, j - 2)]
+            if pattern == 1:
+                changed_vertices += [(i - 1, j - 1), (i - 1, j + 2)]
+            if pattern == 3:
+                changed_vertices += [(i, j), (i + 2, j), (i + 2, j - 2)]
     # impose their symmetric vertices too
     for (i, j) in changed_vertices:
         vertices_color[i, j] = vertices_color[q - j, q - i] = 0
     return vertices_color
 
-def pattern_1_fn(l):
-    f = int(18 * l + 11);
-    q = int(2 * f)
+def pattern_s(l, pattern):
+    if pattern == 1:
+        s = [Variable(0)]
+        for k in range(1, l + 1):
+            s += [Variable(k), Variable(k), Variable(k + 1), Variable(k), Variable(k + 1), Variable(k)]
+        s += [Variable(l + 1)]
+        for k in range(l + 1, 0, -1):
+            s += [Variable(k), Variable(k + 1), Variable(k)]
+    elif pattern == 2:
+        s = [Variable(0), Variable(1), Variable(1)]
+        for k in range(1, l + 1):
+            s += [Variable(2 * k), Variable(2 * k + 1), Variable(2 * k), Variable(2 * k + 1), Variable(2 * k), Variable(2 * k)]
+        s += [Variable(2 * l + 2)]
+        for k in range(l, 0, -1):
+            s += [Variable(2 * k), Variable(2 * k + 1), Variable(2 * k)]
+        s += [Variable(1)]
+    elif pattern == 3:
+        s = [Variable(0)] * 3
+        for k in range(1, l + 1):
+            s += [Variable(k)] * 6
+        #s += [Variable(l + 1)]
+        s += [-Variable(0)]
+        for k in range(l, 0, -1):
+            s += [Variable(k)] * 3
+        s += [Variable(0)]
+    return s + [Variable(0)] + s[-1::-1]
+
+def pattern_fn(l, pattern):
+    s = pattern_s(l, pattern)
+    f = len(s)
+    q = 2 * f
     fn = [Linear_Expression(0)] * (q + 1)
-    s = [Variable(0)]
-    for k in range(1, l + 1):
-        s += [Variable(k), Variable(k), Variable(k + 1), Variable(k), Variable(k + 1), Variable(k)]
-    s += [Variable(l + 1)]
-    for k in range(l + 1, 0, -1):
-        s += [Variable(k), Variable(k + 1), Variable(k)]
-    s = s + [Variable(0)] + s[-1::-1]
     for k in range(f):
         fn[k + 1] = fn[k] + s[k]
     for k in range(f):
         fn[q - k] = fn[k]
     return fn
 
-def pattern_1(l, k_slopes, show_plots=False):
-    f = int(18 * l + 11);
-    q = int(2 * f)
-    vertices_color = pattern_1_vertices_color(l)
-    fn = pattern_1_fn(l)
+def pattern_extreme(l, k_slopes, pattern=1, show_plots=False):
+    vertices_color = pattern_vertices_color(l, pattern)
+    fn = pattern_fn(l, pattern)
+    q = len(fn) - 1
+    f = int(q / 2)
     cs = Constraint_System()
     cs.insert(fn[0] == 0)
     cs.insert(fn[f] == 1)
@@ -1521,15 +1555,14 @@ def pattern_1(l, k_slopes, show_plots=False):
                 cs.insert(fn[x] + fn[y] == fn[x + y])
             else:
                 cs.insert(fn[x] + fn[y] >= fn[x + y])
-    #return cs
     polytope = C_Polyhedron(cs)
     v_set = set([])
     vv = []
     nn = []
     if show_plots == 'math':
-        destdir = dir_math+"sym_mode_2d_diagrams/"+"patterns/"
+        destdir = dir_math+"sym_mode_2d_diagrams/"+"patterns_%s/" % pattern
     elif show_plots:
-        destdir = dir_yuan+"patterns/"
+        destdir = dir_yuan+"patterns_%s/" % pattern
     #logging.disable(logging.info)
     for v in polytope.minimized_generators():
         #v.coefficients() is numerator of component's slope value
@@ -1540,6 +1573,7 @@ def pattern_1(l, k_slopes, show_plots=False):
                 v_set.add(tuple(v_n))
                 vv.append(v_n)
                 nn.append(num)
+                print v.coefficients()
                 if show_plots:
                     h = h_from_vertex_values(v_n)
                     name = "%sq%s_%s.png" %(num, q, len(vv))
