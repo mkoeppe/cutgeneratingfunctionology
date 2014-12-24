@@ -1466,35 +1466,43 @@ def save_plot(q, hh, destdir = dir_math+"sym_mode_2d_diagrams/"):
     logging.disable(logging.NOTSET)
 
 def pattern_vertices_color(l, pattern):
-    if pattern == 1 or pattern == 2 or pattern == 3:
+    if pattern <= 3:
         f = 18 * l + 11
         f2 = 9 * l + 5 # = int(f / 2)
         f3 = 6 * l + 3 # = int(f / 3)
+    elif pattern <= 5:
+        f3 = 6 * l + 1
+        f2 = 9 * l + 2
+        f = 18 * l + 5
     q = 2 * f
     vertices_color = initial_vertices_color(q, f)
     changed_vertices = []
     # impose some initial green vertices
-    if pattern == 1 or pattern == 2 or pattern == 3:
-        for k in range(f3 + 2, f2, 3):
-            changed_vertices += [(k, k), (k, k + 1), (k, k + 2), (k - 1, k - 1), (k - 1, k), (k - 1, k + 2), (k + 1, k + 2)]
-            if pattern == 1:
-                changed_vertices +=  [(k, k + 3)]
-            if pattern == 3:
-                changed_vertices += [(k - 1, k + 1), (k + 1, k + 1)]
-        changed_vertices += [(f2 - 1, f2 - 1), (f2 - 1, f2), (f2, f2), \
-                             (1, f2), (2, f2 - 1), (2, f2), (3, f2 - 1)]
+    for k in range(f3 + 2, f2, 3):
+        changed_vertices += [(k, k), (k, k + 1), (k, k + 2), (k - 1, k - 1), (k - 1, k), (k - 1, k + 2), (k + 1, k + 2)]
+        if pattern == 1 or pattern == 4 or pattern == 5 and k < f2 - 2:
+            changed_vertices +=  [(k, k + 3)]
         if pattern == 3:
-            changed_vertices += [(f2 - 1, f2 + 1), (1, f2 - 1), (1, f2 + 1)]
-        for k in range(1, l + 1):
+            changed_vertices += [(k - 1, k + 1), (k + 1, k + 1)]
+    changed_vertices += [(1, f2), (f2, f2)]
+    if pattern <= 3:
+        changed_vertices += [(f2 - 1, f2 - 1), (f2 - 1, f2), (2, f2 - 1), (2, f2), (3, f2 - 1)]
+    if pattern == 3:
+        changed_vertices += [(f2 - 1, f2 + 1), (1, f2 - 1), (1, f2 + 1)]
+    for k in range(1, l + 1):
+        if pattern <= 3:
             i = 6 * k - 1
             j = f2 - 3 * k + 1
-            changed_vertices += [(i - 1, j), (i - 1, j + 1), (i, j - 1), (i, j + 1), \
-                             (i + 1, j - 2), (i + 1, j - 1), (i + 1, j), (i + 1, j + 1), \
-                             (i + 2, j - 1), (i + 3, j - 2), (i + 3, j - 1), (i + 4, j - 2)]
-            if pattern == 1:
-                changed_vertices += [(i - 1, j - 1), (i - 1, j + 2)]
-            if pattern == 3:
-                changed_vertices += [(i, j), (i + 2, j), (i + 2, j - 2)]
+        elif pattern <= 5:
+            i = 6 * k - 3
+            j = f2 - 3 * k + 2 
+        changed_vertices += [(i - 1, j), (i - 1, j + 1), (i, j - 1), (i, j + 1), \
+                         (i + 1, j - 2), (i + 1, j - 1), (i + 1, j), (i + 1, j + 1), \
+                         (i + 2, j - 1), (i + 3, j - 2), (i + 3, j - 1), (i + 4, j - 2)]
+        if pattern == 1 or pattern == 4 or pattern == 5 and k > 1:
+            changed_vertices += [(i - 1, j - 1), (i - 1, j + 2)]
+        if pattern == 3:
+            changed_vertices += [(i, j), (i + 2, j), (i + 2, j - 2)]
     # impose their symmetric vertices too
     for (i, j) in changed_vertices:
         vertices_color[i, j] = vertices_color[q - j, q - i] = 0
@@ -1525,7 +1533,21 @@ def pattern_s(l, pattern):
         for k in range(l, 0, -1):
             s += [Variable(k)] * 3
         s += [Variable(0)]
-    return s + [Variable(0)] + s[-1::-1]
+    elif pattern == 4:
+        s = []
+        for k in range(l):
+            s += [Variable(k), Variable(k + 1)] * 3
+        for k in range(l, 0, -1):
+            s += [Variable(k), Variable(k + 1), Variable(k)]
+        s += [Variable(0), Variable(1)]
+    elif pattern == 5:
+        s = [Variable(l + 2)]
+        for k in range(l, 0, -1):
+            s += [Variable(k), Variable(k + 1), Variable(k), Variable(k + 1), Variable(k), Variable(k)]
+        s += [Variable(0)]
+        for k in range(1, l+1):
+            s += [Variable(k), Variable(k + 1), Variable(k)]
+    return s + [s[0]] + s[-1::-1]
 
 def pattern_fn(l, pattern):
     s = pattern_s(l, pattern)
