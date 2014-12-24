@@ -1488,7 +1488,7 @@ def pattern_vertices_color(l, pattern):
     # impose some initial green vertices
     for k in range(f3 + 2, f2, 3):
         changed_vertices += [(k, k), (k, k + 1), (k, k + 2), (k - 1, k - 1), (k - 1, k), (k - 1, k + 2), (k + 1, k + 2)]
-        if pattern == 1 or pattern == 4 or pattern == 5 and k < f2 - 2 or pattern == 6 or pattern == 7:
+        if pattern <= 1 or pattern == 4 or pattern == 5 and k < f2 - 2 or pattern == 6 or pattern == 7:
             changed_vertices +=  [(k, k + 3)]
         if pattern == 3:
             changed_vertices += [(k - 1, k + 1), (k + 1, k + 1)]
@@ -1497,6 +1497,8 @@ def pattern_vertices_color(l, pattern):
         changed_vertices += [(f2 - 1, f2 - 1), (f2 - 1, f2), (2, f2 - 1), (2, f2), (3, f2 - 1)]
     if pattern == 3:
         changed_vertices += [(f2 - 1, f2 + 1), (1, f2 - 1), (1, f2 + 1)]
+    if pattern == 0:
+        changed_vertices += [(f3, f3), (f3, f3 + 2)]
     if pattern == 6:
         changed_vertices += [(f3, f3), (f3, f3 + 1)]
     if pattern == 7:
@@ -1511,7 +1513,7 @@ def pattern_vertices_color(l, pattern):
         changed_vertices += [(i - 1, j), (i - 1, j + 1), (i, j - 1), (i, j + 1), \
                          (i + 1, j - 2), (i + 1, j - 1), (i + 1, j), (i + 1, j + 1), \
                          (i + 2, j - 1), (i + 3, j - 2), (i + 3, j - 1), (i + 4, j - 2)]
-        if pattern == 1 or pattern == 4 or pattern == 5 and k > 1 or pattern == 6 or pattern == 7:
+        if pattern <= 1 or pattern == 4 or pattern == 5 and k > 1 or pattern == 6 or pattern == 7:
             changed_vertices += [(i - 1, j - 1), (i - 1, j + 2)]
         if pattern == 3:
             changed_vertices += [(i, j), (i + 2, j), (i + 2, j - 2)]
@@ -1521,11 +1523,13 @@ def pattern_vertices_color(l, pattern):
     return vertices_color
 
 def pattern_s(l, pattern):
-    if pattern == 1 or pattern == 6 or pattern == 7:
+    if pattern <= 1 or pattern == 6 or pattern == 7:
         s = [Variable(0), Variable(1)]
         for k in range(1, l + 1):
             s += [Variable(k), Variable(k + 1)] * 3
-        if pattern == 1:
+        if pattern == 0:
+            s += [Variable(l + 1), Variable(l + 1), Variable(l + 1)]
+        elif pattern == 1:
             s += [Variable(l + 1), Variable(l + 2), Variable(l + 1)]
         elif pattern == 6:
             s += [Variable(l + 1), Variable(l + 2), Variable(l + 2), Variable(l + 1)]
@@ -1577,7 +1581,7 @@ def pattern_fn(l, pattern):
         fn[q - k] = fn[k]
     return fn
 
-def pattern_extreme(l, k_slopes, pattern=1, show_plots=False):
+def pattern_extreme(l, k_slopes, pattern=0, show_plots=False):
     vertices_color = pattern_vertices_color(l, pattern)
     fn = pattern_fn(l, pattern)
     q = len(fn) - 1
