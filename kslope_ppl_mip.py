@@ -1470,36 +1470,48 @@ def pattern_vertices_color(l, pattern):
         f = 18 * l + 11
         f2 = 9 * l + 5 # = int(f / 2)
         f3 = 6 * l + 3 # = int(f / 3)
-    elif pattern <= 5:
+    elif pattern == 4 or pattern == 5:
         f3 = 6 * l + 1
         f2 = 9 * l + 2
         f = 18 * l + 5
+    elif pattern == 6:
+        f3 = 6 * l + 4
+        f2 = 9 * l + 6
+        f = 18 * l + 13
+    elif pattern == 7:
+        f3 = 6 * l + 5
+        f2 = 9 * l + 7
+        f = 18 * l + 15
     q = 2 * f
     vertices_color = initial_vertices_color(q, f)
     changed_vertices = []
     # impose some initial green vertices
     for k in range(f3 + 2, f2, 3):
         changed_vertices += [(k, k), (k, k + 1), (k, k + 2), (k - 1, k - 1), (k - 1, k), (k - 1, k + 2), (k + 1, k + 2)]
-        if pattern == 1 or pattern == 4 or pattern == 5 and k < f2 - 2:
+        if pattern == 1 or pattern == 4 or pattern == 5 and k < f2 - 2 or pattern == 6 or pattern == 7:
             changed_vertices +=  [(k, k + 3)]
         if pattern == 3:
             changed_vertices += [(k - 1, k + 1), (k + 1, k + 1)]
     changed_vertices += [(1, f2), (f2, f2)]
-    if pattern <= 3:
+    if pattern <= 3 or pattern == 6 or pattern == 7:
         changed_vertices += [(f2 - 1, f2 - 1), (f2 - 1, f2), (2, f2 - 1), (2, f2), (3, f2 - 1)]
     if pattern == 3:
         changed_vertices += [(f2 - 1, f2 + 1), (1, f2 - 1), (1, f2 + 1)]
+    if pattern == 6:
+        changed_vertices += [(f3, f3), (f3, f3 + 1)]
+    if pattern == 7:
+        changed_vertices += [(f3 - 1, f3 - 1), (f3 - 1, f3), (f3 - 1, f3 + 1), (f3 - 1, f3 + 2), (f3, f3 + 1)]
     for k in range(1, l + 1):
-        if pattern <= 3:
+        if pattern <= 3 or pattern == 6 or pattern == 7:
             i = 6 * k - 1
             j = f2 - 3 * k + 1
-        elif pattern <= 5:
+        elif pattern == 4 or pattern == 5:
             i = 6 * k - 3
             j = f2 - 3 * k + 2 
         changed_vertices += [(i - 1, j), (i - 1, j + 1), (i, j - 1), (i, j + 1), \
                          (i + 1, j - 2), (i + 1, j - 1), (i + 1, j), (i + 1, j + 1), \
                          (i + 2, j - 1), (i + 3, j - 2), (i + 3, j - 1), (i + 4, j - 2)]
-        if pattern == 1 or pattern == 4 or pattern == 5 and k > 1:
+        if pattern == 1 or pattern == 4 or pattern == 5 and k > 1 or pattern == 6 or pattern == 7:
             changed_vertices += [(i - 1, j - 1), (i - 1, j + 2)]
         if pattern == 3:
             changed_vertices += [(i, j), (i + 2, j), (i + 2, j - 2)]
@@ -1509,12 +1521,17 @@ def pattern_vertices_color(l, pattern):
     return vertices_color
 
 def pattern_s(l, pattern):
-    if pattern == 1:
-        s = [Variable(0)]
+    if pattern == 1 or pattern == 6 or pattern == 7:
+        s = [Variable(0), Variable(1)]
         for k in range(1, l + 1):
-            s += [Variable(k), Variable(k), Variable(k + 1), Variable(k), Variable(k + 1), Variable(k)]
-        s += [Variable(l + 1)]
-        for k in range(l + 1, 0, -1):
+            s += [Variable(k), Variable(k + 1)] * 3
+        if pattern == 1:
+            s += [Variable(l + 1), Variable(l + 2), Variable(l + 1)]
+        elif pattern == 6:
+            s += [Variable(l + 1), Variable(l + 2), Variable(l + 2), Variable(l + 1)]
+        elif pattern == 7:
+            s += [Variable(l + 1), Variable(l + 2), Variable(l + 1), Variable(l + 2), Variable(l + 1)]
+        for k in range(l, 0, -1):
             s += [Variable(k), Variable(k + 1), Variable(k)]
     elif pattern == 2:
         s = [Variable(0), Variable(1), Variable(1)]
@@ -1540,7 +1557,7 @@ def pattern_s(l, pattern):
         for k in range(l, 0, -1):
             s += [Variable(k), Variable(k + 1), Variable(k)]
         s += [Variable(0), Variable(1)]
-    elif pattern == 5:
+    elif pattern == 5: # inverse
         s = [Variable(l + 2)]
         for k in range(l, 0, -1):
             s += [Variable(k), Variable(k + 1), Variable(k), Variable(k + 1), Variable(k), Variable(k)]
