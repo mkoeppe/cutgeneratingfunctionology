@@ -1465,25 +1465,22 @@ def save_plot(q, hh, destdir = dir_math+"sym_mode_2d_diagrams/"):
         g.save(destdir + name, figsize = 20, show_legend=False)
     logging.disable(logging.NOTSET)
 
-def pattern_vertices_color(l, pattern):
+def pattern_q_and_f(l, pattern):
     if pattern <= 3:
         f = 18 * l + 11
-        f2 = 9 * l + 5 # = int(f / 2)
-        f3 = 6 * l + 3 # = int(f / 3)
     elif pattern == 4 or pattern == 5:
-        f3 = 6 * l + 1
-        f2 = 9 * l + 2
         f = 18 * l + 5
     elif pattern == 6:
-        f3 = 6 * l + 4
-        f2 = 9 * l + 6
         f = 18 * l + 13
     elif pattern == 7:
-        f3 = 6 * l + 5
-        f2 = 9 * l + 7
         f = 18 * l + 15
     q = 2 * f
-    vertices_color = initial_vertices_color(q, f)
+    return q, f
+
+def pattern_additive_vertices(l, pattern):
+    q, f = pattern_q_and_f(l, pattern)
+    f2 = int(f / 2)
+    f3 = int(f / 3)
     changed_vertices = []
     # impose some initial green vertices
     for k in range(f3 + 2, f2, 3):
@@ -1517,6 +1514,23 @@ def pattern_vertices_color(l, pattern):
             changed_vertices += [(i - 1, j - 1), (i - 1, j + 2)]
         if pattern == 3:
             changed_vertices += [(i, j), (i + 2, j), (i + 2, j - 2)]
+    return changed_vertices
+
+def pattern_more_additive_vertices(l, pattern):
+    q, f = pattern_q_and_f(l, pattern)
+    f2 = int(f / 2)
+    f3 = int(f / 3)
+    changed_vertices = [(f3 + 2, q - 4), (f3 + 4, q - 10), (f2 - 2 , f2 - 2), (f3 + 4, q - 12)]
+    #changed_vertices = [(f3 + 2, f - f3 + 2), (f3 + 4, f - f3 + 6), (f2 - 2 , f2 - 2)]
+    #changed_vertices += [ (f3 + 2, f + 9),(f3 + 4, f - f3 + 8)]
+    return changed_vertices
+
+def pattern_vertices_color(l, pattern):
+    q, f = pattern_q_and_f(l, pattern)
+    vertices_color = initial_vertices_color(q, f)
+    changed_vertices = pattern_additive_vertices(l, pattern)
+    #if pattern == 0:
+    #    changed_vertices += pattern_more_additive_vertices(l, pattern)
     # impose their symmetric vertices too
     for (i, j) in changed_vertices:
         vertices_color[i, j] = vertices_color[q - j, q - i] = 0
@@ -1581,9 +1595,7 @@ def pattern_fn(l, pattern):
         fn[q - k] = fn[k]
     return fn
 
-def pattern_extreme(l, k_slopes, pattern=0, show_plots=False):
-    vertices_color = pattern_vertices_color(l, pattern)
-    fn = pattern_fn(l, pattern)
+def pattern_polytope(vertices_color, fn):
     q = len(fn) - 1
     f = int(q / 2)
     cs = Constraint_System()
@@ -1599,6 +1611,13 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False):
             else:
                 cs.insert(fn[x] + fn[y] >= fn[x + y])
     polytope = C_Polyhedron(cs)
+    return polytope
+
+def pattern_extreme(l, k_slopes, pattern=0, show_plots=False):
+    q, f = pattern_q_and_f(l, pattern)
+    vertices_color = pattern_vertices_color(l, pattern)
+    fn = pattern_fn(l, pattern)
+    polytope = pattern_polytope(vertices_color, fn)
     v_set = set([])
     vv = []
     nn = []
@@ -1621,7 +1640,7 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False):
                     h = h_from_vertex_values(v_n)
                     name = "%sq%s_%s.png" %(num, q, len(vv))
                     g = plot_2d_diagram(h, colorful=True)
-                    figsize = 12 * l + 8
+                    figsize = 10 * l
                     g.save(destdir + name, figsize = figsize, show_legend=False)
     #logging.disable(logging.NOTSET)
     return vv, nn
