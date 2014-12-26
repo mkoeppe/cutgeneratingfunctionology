@@ -1520,17 +1520,19 @@ def pattern_more_additive_vertices(l, pattern):
     q, f = pattern_q_and_f(l, pattern)
     f2 = int(f / 2)
     f3 = int(f / 3)
-    changed_vertices = [(f3 + 2, q - 4), (f3 + 4, q - 10), (f2 - 2 , f2 - 2), (f3 + 4, q - 12)]
-    #changed_vertices = [(f3 + 2, f - f3 + 2), (f3 + 4, f - f3 + 6), (f2 - 2 , f2 - 2)]
-    #changed_vertices += [ (f3 + 2, f + 9),(f3 + 4, f - f3 + 8)]
+    more_additivity = [(f3 + 2, q - 4), (f3 + 4, q - 10), (f2 - 2 , f2 - 2), (f3 + 4, q - 12), \
+                       (f2 - 8, f2 - 8), (f2 - 17, f2 - 17), (f2 - 23, f2 - 23), \
+                       (f3 + 8, q - 22), (f3 + 7, q - 19), (f2 - 14, f2 - 14)]
+    l_seuil = [0, 1, 3, 4, 5, 10, 13, 15, 15, 16]
+    changed_vertices = [more_additivity[i] for i in range(len(l_seuil)) if l >= l_seuil[i]]
     return changed_vertices
 
 def pattern_vertices_color(l, pattern):
     q, f = pattern_q_and_f(l, pattern)
     vertices_color = initial_vertices_color(q, f)
     changed_vertices = pattern_additive_vertices(l, pattern)
-    #if pattern == 0:
-    #    changed_vertices += pattern_more_additive_vertices(l, pattern)
+    if pattern == 0:
+        changed_vertices += pattern_more_additive_vertices(l, pattern)
     # impose their symmetric vertices too
     for (i, j) in changed_vertices:
         vertices_color[i, j] = vertices_color[q - j, q - i] = 0
@@ -1635,7 +1637,7 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False):
                 v_set.add(tuple(v_n))
                 vv.append(v_n)
                 nn.append(num)
-                print v.coefficients()
+                print num, v.coefficients()
                 if show_plots:
                     h = h_from_vertex_values(v_n)
                     name = "%sq%s_%s.png" %(num, q, len(vv))
