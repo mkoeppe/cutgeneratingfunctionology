@@ -517,7 +517,7 @@ def update_implied_faces_pol(q, f, vertices_color, changed_vertices, faces_color
 def update_implied_faces_mip(q, f, vertices_color, changed_vertices, faces_color, changed_faces, covered_intervals, sym=False):
     """
     Subfunction of paint_complex_combined_mip().
-    Look for implied additive vertices and faces, given MIP_Problem m.
+    Look for implied additive vertices and faces, given MILP m.
     Update vertices_color, changed_vertices, faces_color, changed_faces
     If there is non_candidate among implied green faces, return False.
     Otherwise, return True and updated covered_intervals.
@@ -881,27 +881,27 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic'):
             gen = gen_initial_polytope_sym(q, f, vertices_color, covered_intervals)
         else:
             gen = paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix, sym=True)
-    elif mode == 'no_implied':
+    elif mode == 'no_implied': # useless
         faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
         candidate_faces = generate_candidate_faces(q, f, covered_intervals, last_face=None)
         cs_matrix = initial_cs_matrix(q, f)
         gen = paint_complex_no_implied(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix)
-    elif mode == 'fulldim_covers':
+    elif mode == 'fulldim_covers': #useless
         cs = initial_cs(q, f, vertices_color)
         faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
         gen = paint_complex_fulldim_covers(k_slopes, q, f, vertices_color, faces_color, covered_intervals, (0, 0, 0), cs)
-    elif mode == 'complete':
+    elif mode == 'complete': #useless
         cs = initial_cs(q, f, vertices_color)
         covered_intervals, uncovered_intervals = initial_covered_uncovered(q, f, vertices_color)
         gen = paint_complex_complete(k_slopes, q, f, vertices_color, covered_intervals, uncovered_intervals, (1, 0), cs)
     elif mode == 'naive':
         cs = initial_cs(q, f, vertices_color)
         polytope = C_Polyhedron(cs)
-    elif mode == 'sym_naive':
+    elif mode == 'sym_naive': #useless
         # note that q = 2*f
-        f2 = int(f / 2)
-        vertices_color[1, f2] = vertices_color[q - f2, q - 1] = 0
-        vertices_color[f2, f2] = vertices_color[q - f2, q - f2] = 0
+        #f2 = int(f / 2)
+        #vertices_color[1, f2] = vertices_color[q - f2, q - 1] = 0 #???
+        #vertices_color[f2, f2] = vertices_color[q - f2, q - f2] = 0 #???
         cs = initial_cs_sym(q, f, vertices_color)
         polytope = C_Polyhedron(cs)
     else:
@@ -1083,7 +1083,7 @@ def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last
                 covered_intervals = directly_covered_by_adding_face(covered_intervals, (x2, y2, w2), q, f)
         # If encounter non_candidate or too few slopes, stop recursion
         if legal_picked and num_slopes_at_best(q, f, covered_intervals) >= k_slopes:
-            # update constraint_system, set up MIP_Problem
+            # update MILP m
             for (i, j) in changed_vertices:
                 m.set_max(delta[i, j], 0)
             #m.set_objective(None)
