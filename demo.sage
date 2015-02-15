@@ -186,5 +186,12 @@ interval_lengths = [1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10]
 h = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
 extremality_test(h, True, show_all_perturbations=True)
 
+## See the extreme function with the world-record number of different slopes. 
+
+extreme_function_with_world_record_number_of_slopes?
+
+h = extreme_function_with_world_record_number_of_slopes()
+plot_with_colored_slopes(h).show(figsize=70)
+
 ## See extreme_functions_in_literature.sage and survey_examples.sage for many more examples.
 

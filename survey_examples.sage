@@ -692,6 +692,7 @@ def kzh_5_slope_fulldim_covers_3(): # renamed from fulldim_covers_5slope_q22_2()
     described in Koeppe--Zhou (forthcoming).
 
     EXAMPLES::
+
         sage: h = kzh_5_slope_fulldim_covers_3()
         sage: extremality_test(h)
         True
@@ -715,6 +716,7 @@ def kzh_5_slope_fulldim_covers_4(): # renamed from fulldim_covers_5slope_q22_3()
     described in Koeppe--Zhou (forthcoming).
 
     EXAMPLES::
+
         sage: h = kzh_5_slope_fulldim_covers_4()
         sage: extremality_test(h)
         True
@@ -738,6 +740,7 @@ def kzh_5_slope_fulldim_covers_5(): # renamed from fulldim_covers_5slope_q22_4()
     described in Koeppe--Zhou (forthcoming).
 
     EXAMPLES::
+
         sage: h = kzh_5_slope_fulldim_covers_5()
         sage: extremality_test(h)
         True
@@ -761,6 +764,7 @@ def kzh_5_slope_fulldim_covers_6(): # renamed from fulldim_covers_5slope_q22_5()
     described in Koeppe--Zhou (forthcoming).
 
     EXAMPLES::
+
         sage: h = kzh_5_slope_fulldim_covers_6()
         sage: extremality_test(h)
         True
@@ -784,6 +788,7 @@ def kzh_6_slope_fulldim_covers_1(): # renamed from fulldim_covers_6slope_q25_1()
     described in Koeppe--Zhou (forthcoming).
 
     EXAMPLES::
+
         sage: h = kzh_6_slope_fulldim_covers_1()
         sage: extremality_test(h)
         True
@@ -807,6 +812,7 @@ def kzh_6_slope_fulldim_covers_2(): # renamed from fulldim_covers_6slope_q26_1()
     described in Koeppe--Zhou (forthcoming).
 
     EXAMPLES::
+
         sage: h = kzh_6_slope_fulldim_covers_2()
         sage: extremality_test(h)
         True
@@ -827,8 +833,11 @@ def kzh_6_slope_fulldim_covers_3(): # renamed from fulldim_covers_6slope_q38_1()
     This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
     requires to translate and reflect covered intervals.
     This example has a similar 2d-diagram as that of kzh_6_slope_fulldim_covers_2()
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
 
     EXAMPLES::
+
         sage: h = kzh_6_slope_fulldim_covers_3()
         sage: extremality_test(h)
         True
@@ -843,12 +852,46 @@ def kzh_6_slope_fulldim_covers_3(): # renamed from fulldim_covers_6slope_q38_1()
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_6_slope_fulldim_covers_4():
+    """
+    6-slope extreme function whose extremality proof does not depend
+    on lower-dimensional additive faces.  All intervals are directly covered.
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    requires to translate and reflect covered intervals.
+    This example has a similar 2d-diagram as that of kzh_6_slope_fulldim_covers_2()
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+
+        sage: h = kzh_6_slope_fulldim_covers_4()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+    """
     # q = 27, f = 5
     bkpt = [0, 1/27, 2/27, 1/9, 4/27, 5/27, 2/9, 7/27, 1/3, 11/27, 13/27, 14/27, 2/3, 19/27, 7/9, 23/27, 25/27, 26/27, 1]
     values = [0, 47/127, 40/127, 87/127, 80/127, 1, 39/127, 86/127, 45/127, 58/127, 98/127, 209/254, 45/254, 29/127, 69/127, 82/127, 41/127, 88/127, 0]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_6_slope_fulldim_covers_5():
+    """
+    6-slope extreme function whose extremality proof does not depend
+    on lower-dimensional additive faces.  All intervals are directly covered.
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    requires to translate and reflect covered intervals.
+    This example has a similar 2d-diagram as that of kzh_6_slope_fulldim_covers_2()
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+
+        sage: h = kzh_6_slope_fulldim_covers_5()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+    """
     # q = 27, f = 7
     bkpt = [0, 1/27, 2/27, 1/9, 4/27, 5/27, 2/9, 7/27, 8/27, 10/27, 11/27, 4/9, 13/27, 16/27, 2/3, 7/9, 22/27, 23/27, 8/9, 26/27, 1]
     values = [0, 43/76, 59/76, 3/4, 1/4, 17/76, 33/76, 1, 1/2, 17/38, 25/38, 3/4, 37/76, 29/38, 9/38, 39/76, 1/4, 13/38, 21/38, 1/2, 0]
@@ -886,6 +929,18 @@ def kzh_5_slope_q22_f2_1():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_7_slope_1():
+    """
+    A 7-slope extreme function.
+
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+
+        sage: h = kzh_7_slope_1()
+        sage: extremality_test(h)
+        True
+    """
     # q = 33; f = 11
     bkpt = [0, 1/33, 2/33, 1/11, 4/33, 7/33, 8/33, 3/11, 10/33, 1/3, 4/11, 13/33, 14/33, \
             5/11, 16/33, 19/33, 25/33, 28/33, 29/33, 10/11, 31/33, 32/33, 1]
@@ -894,6 +949,18 @@ def kzh_7_slope_1():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_7_slope_2():
+    """
+    A 7-slope extreme function.
+
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+
+        sage: h = kzh_7_slope_2()
+        sage: extremality_test(h)
+        True
+    """
     # q = 34; f = 12
     bkpt = [0, 1/34, 1/17, 3/34, 2/17, 5/34, 7/34, 4/17, 9/34, 5/17, 11/34, 6/17, 13/34, 7/17, 15/34, 8/17, 1/2, \
             19/34, 10/17, 21/34, 25/34, 13/17, 27/34, 29/34, 15/17, 31/34, 16/17, 33/34, 1]
@@ -902,6 +969,18 @@ def kzh_7_slope_2():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_7_slope_3():
+    """
+    A 7-slope extreme function.
+
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+
+        sage: h = kzh_7_slope_3()
+        sage: extremality_test(h)
+        True
+    """
     # q = 31; f = 10
     bkpt = [0, 2/31, 3/31, 4/31, 6/31, 7/31, 8/31, 10/31, 11/31, 13/31, 14/31, 15/31, 16/31, 17/31, \
         18/31, 19/31, 20/31, 21/31, 22/31, 23/31, 24/31, 25/31, 26/31, 27/31, 28/31, 30/31, 1]
@@ -910,6 +989,18 @@ def kzh_7_slope_3():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_7_slope_4():
+    """
+    A 7-slope extreme function.
+
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+
+        sage: h = kzh_7_slope_4()
+        sage: extremality_test(h)
+        True
+    """
     # q = 29; f = 10
     bkpt = [0, 1/29, 2/29, 3/29, 4/29, 6/29, 7/29, 8/29, 9/29, 10/29, 11/29, 12/29, 15/29, \
             16/29, 17/29, 18/29, 19/29, 20/29, 21/29, 22/29, 23/29, 24/29, 27/29, 28/29, 1]
@@ -936,6 +1027,20 @@ def pattern0_sym_fn(l, sv):
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_28_slope_1():
+    """
+    A 28-slope extreme function.
+
+    This is the current world record.
+
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+
+        sage: h = kzh_28_slope_1()
+        sage: extremality_test(h)
+        True
+    """
     # q = 778; f = 389
     l = 21
     sv= (71755, 71715, 71715, 71655, 71655, 71595, 71595, 71595, 70995, 70995, 70611, 70611, \
@@ -943,8 +1048,29 @@ def kzh_28_slope_1():
     return pattern0_sym_fn(l, sv)
 
 def kzh_28_slope_2():
+    """
+    A 28-slope extreme function.
+
+    This is the current world record.
+
+    This example was found by computer-based search, which will be
+    described in Koeppe--Zhou (forthcoming).
+
+    EXAMPLES::
+
+        sage: h = kzh_28_slope_2()
+        sage: extremality_test(h)
+        True
+    """
     # q = 778; f = 389
     l = 21
     sv= (27455, 27447, 27447, 27435, 27435, 27423, 27423, 27423, 27303, 27303, 27303, 26919, \
          26343, 26343, -18171, -26631, -27271, -27271, -27415, -27415, -27431, -27441, -27449)
     return pattern0_sym_fn(l, sv)
+
+###
+### Add more functions here
+###
+
+extreme_function_with_world_record_number_of_slopes = kzh_28_slope_1
+
