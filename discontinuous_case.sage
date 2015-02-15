@@ -194,7 +194,11 @@ def generate_symbolic_general(function, components, field=None):
     intervals_and_slopes.sort()
     bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
     limits = [function.limits(x) for x in bkpt]
-    num_jumps = sum([(x[-1] != x[0]) + (x[0] != x[1]) for x in limits[1:-1]]) + \
+    two_sided_discontinuous = limits[0][0] != limits[0][1] and limits[-1][-1] != limits[-1][0]
+    if two_sided_discontinuous:
+        num_jumps = 2 * len(bkpt) - 2
+    else:
+        num_jumps = sum([(x[-1] != x[0]) + (x[0] != x[1]) for x in limits[1:-1]]) + \
                     (limits[0][0] != limits[0][1]) + (limits[-1][-1] != limits[-1][0]) # don't count 0- and 1+
     vector_space = VectorSpace(field, n + num_jumps)
     unit_vectors = vector_space.basis()
@@ -206,12 +210,12 @@ def generate_symbolic_general(function, components, field=None):
     j = n
     for i in range(m):
         pieces.append([singleton_interval(bkpt[i]), FastLinearFunction(zeros, current_value)])
-        if limits[i][0] != limits[i][1]: # jump at bkpt[i]+
+        if two_sided_discontinuous or limits[i][0] != limits[i][1]: # jump at bkpt[i]+
             current_value += unit_vectors[j]
             j += 1
         pieces.append([open_interval(bkpt[i], bkpt[i+1]), FastLinearFunction(slopes[i], current_value - slopes[i]*bkpt[i])])
         current_value += slopes[i] * (bkpt[i+1] - bkpt[i])
-        if limits[i+1][-1] != limits[i+1][0]: # jump at bkpt[i+1]-
+        if two_sided_discontinuous or limits[i+1][-1] != limits[i+1][0]: # jump at bkpt[i+1]-
             current_value += unit_vectors[j]
             j += 1
     pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, current_value)])
@@ -227,12 +231,20 @@ def generate_additivity_equations_general(function, symbolic, field, f=None):
         f = find_f(function)
     equations.append(symbolic(f))
     equations.append(symbolic(field(1)))
-    for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, reduced=True):
+    limits_0 = function.limits(field(0))
+    limits_1 = function.limits(field(1))
+    two_sided_discontinuous = limits_0[0] != limits_0[1] and limits_1[-1] != limits_1[0]
+    for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, reduced = not two_sided_discontinuous):
         # FIXME: symbolic has different vector values at 0 and 1.
         # periodic_extension would be set to False if FastPiecewise.__init__ did an error check, which would cause symbolic(0-) to fail.
         # Remove the error check in __init__, or treat 0- and 1+ differently for symbolic.
         new_equation = delta_pi_general(symbolic, x, y, (xeps, yeps, zeps))
         equations.append(new_equation)
+    if two_sided_discontinuous:
+        # from symmetric condition. f/2 and (1+f)/2 might not be in bkpt, 
+        # so generate_additive_vertices() does not cover these two equations.
+        equations.append(symbolic(f/2))
+        equations.append(symbolic((1 + f) / 2))
     return  matrix(field, equations)
 
 def find_epsilon_interval_general(fn, perturb):
@@ -265,8 +277,10 @@ def find_epsilon_interval_general(fn, perturb):
             fn_z = fn.limits(z)
             if fn.is_continuous():
                 eps_to_check = {(0, 0, 0)}
-            elif fn_x[0] == fn_x[1] == fn_x[-1] and fn_y[0] == fn_y[1] == fn_y[-1]:
-                # if fn is continuous at x and y, then so is perturb.
+            elif fn_x[0] == fn_x[1] == fn_x[-1] and fn_y[0] == fn_y[1] == fn_y[-1] and \
+                 perturb_x[0] == perturb_x[1] == perturb_x[-1] and perturb_y[0] == perturb_y[1] == perturb_y[-1]:
+                ## if fn is continuous at x and y, then so is perturb.
+                # both fn and perturb are continuous at x and y. ( needed if two-sided discontinuous at 0)
                 eps_to_check = continuous_xy_eps
             else:
                 eps_to_check = nonzero_eps
@@ -304,8 +318,12 @@ def find_epsilon_interval_general(fn, perturb):
                 eps_to_check = {(0, 0, 0)}
             elif not (fn_y[0] == fn_y[1] == fn_y[-1]):
                 # then y is a in bkpt. this is done in type1check.
+                # for two_sided_discontinuous, could add (optional)
+                # "or not (perturb_y[0] == perturb_y[1] == perturb_y[-1]):"
                 eps_to_check = {}
             else:
+                # consider only y not being in bkpt.
+                # so fn and perturb are both continuous at y. type2_reduced_eps works.
                 eps_to_check = type2_reduced_eps
 
             for (xeps, yeps, zeps) in eps_to_check:
@@ -376,7 +394,7 @@ def is_additive_face(fn, face):
         vertex_1 = face.vertices[1]
         eps_triple_0 = generate_containing_eps_triple(vertex_0, face.minimal_triple)
         eps_triple_1 = generate_containing_eps_triple(vertex_1, face.minimal_triple)
-        # FIXME: both eps_triple_0 and _1 have length 3? in compatible order?
+        # FIXME: both eps_triple_0 and _1 have length 3? in compatible order? Yes.
         for i in range(3):
             if delta_pi_general(fn, vertex_0[0], vertex_0[1], eps_triple_0[i]) == 0 and \
                delta_pi_general(fn, vertex_1[0], vertex_1[1], eps_triple_1[i]) == 0:
