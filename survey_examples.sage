@@ -916,3 +916,35 @@ def kzh_7_slope_4():
     values = [0, 65/99, 19/66, 7/33, 19/33, 14/33, 26/33, 47/66, 34/99, 1, 16/33, 26/99, 47/99, \
               25/99, 61/99, 107/198, 17/99, 82/99, 91/198, 38/99, 74/99, 52/99, 73/99, 17/33, 0]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def pattern0_sym_fn(l, sv):
+    f = 18 * l + 11
+    q = 2 * f
+    s=[0, 1]
+    for k in range(1, l + 1):
+        s += [k, k + 1] * 3
+    s += [l + 1] * 3
+    for k in range(l, 0, -1):
+        s += [k, k + 1, k]
+    sk = s + [s[0]] + s[-1::-1]
+    v_n = [0] * (f + 1)
+    for k in range(f):
+        v_n[k + 1] = v_n[k] + sv[sk[k]]
+    v_d = v_n[-1]
+    bkpt = [x / q for x in range(q + 1)]
+    values = [y / v_d for y in v_n + v_n[-2::-1]]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_28_slope_1():
+    # q = 778; f = 389
+    l = 21
+    sv= (71755, 71715, 71715, 71655, 71655, 71595, 71595, 71595, 70995, 70995, 70611, 70611, \
+         69267, 69267, -47799, -69939, -70835, -70835, -71555, -71555, -71635, -71685, -71725)
+    return pattern0_sym_fn(l, sv)
+
+def kzh_28_slope_2():
+    # q = 778; f = 389
+    l = 21
+    sv= (27455, 27447, 27447, 27435, 27435, 27423, 27423, 27423, 27303, 27303, 27303, 26919, \
+         26343, 26343, -18171, -26631, -27271, -27271, -27415, -27415, -27431, -27441, -27449)
+    return pattern0_sym_fn(l, sv)
