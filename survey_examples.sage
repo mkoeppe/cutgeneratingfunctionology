@@ -1038,7 +1038,7 @@ def kzh_28_slope_1():
     EXAMPLES::
 
         sage: h = kzh_28_slope_1()
-        sage: extremality_test(h)
+        sage: extremality_test(h) # long time
         True
     """
     # q = 778; f = 389
@@ -1059,7 +1059,7 @@ def kzh_28_slope_2():
     EXAMPLES::
 
         sage: h = kzh_28_slope_2()
-        sage: extremality_test(h)
+        sage: extremality_test(h) # long time
         True
     """
     # q = 778; f = 389
