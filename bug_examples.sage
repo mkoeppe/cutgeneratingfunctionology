@@ -155,3 +155,25 @@ def gmic_disjoint_with_singletons(f=4/5):
               singleton_piece(1, 0)]
     return FastPiecewise(pieces, merge=False)
 
+def two_sided_discontinuous_cannot_assume_any_continuity():
+    """
+    This function is two-sided discontinuous at the origin.  The
+    extremality test then cannot assume any left or right continuity
+    of the perturbation function at the breakpoints, even if such
+    one-sided continuity is present in the function.
+
+    This example has been constructed by Yuan Zhou. 
+
+    EXAMPLES::
+
+        sage: h = two_sided_discontinuous_cannot_assume_any_continuity()
+        sage: extremality_test(h)
+        False
+    """
+    return FastPiecewise([singleton_piece(0, 0),
+                          open_piece((0, 2/3), (1/8, 3/4)),
+                          closed_piece((1/8, 1/4), (3/8, 3/4)),
+                          open_piece((3/8, 1/4), (4/8, 1/3)),
+                          singleton_piece(4/8, 1),
+                          open_piece((4/8, 1/3), (8/8, 2/3)),
+                          singleton_piece(1, 0)])
