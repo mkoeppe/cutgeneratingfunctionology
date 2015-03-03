@@ -153,6 +153,29 @@ def initial_cs(q, f, vertices_color):
                 cs.insert(delta_expr(q, x, y) >= 0) # fn[x] + fn[y] >= fn[z]
     return cs
 
+def initial_cs_reordered(q, f, vertices_color):
+    """
+    symmetry + subadd + nonnegativity constraints
+    """
+    cs = Constraint_System()
+    fn = [ Variable(i) for i in range(q+1) ]
+
+    cs.insert(fn[0] == 0)
+    cs.insert(fn[q] == 0)
+    cs.insert(fn[f] == 1)
+    for x in range(1, q):
+        for y in range(x, q):
+            if vertices_color[x, y] == 0:
+                cs.insert(delta_expr(q, x, y) == 0) # fn[x] + fn[y] == fn[z]
+    for x in range(1, q):
+        for y in range(x, q):
+            if vertices_color[x, y] != 0:
+                cs.insert(delta_expr(q, x, y) >= 0) # fn[x] + fn[y] >= fn[z]
+    for i in range(1,q):
+        cs.insert(fn[i] >= 0)
+        cs.insert(fn[i] <= 1)
+    return cs
+
 def initial_cs_matrix(q, f):
     n1 = int(f / 2)
     n2 = int((f + q) / 2) - f
@@ -957,7 +980,7 @@ def search_kslope(k_slopes, q, f_list=None, mode='heuristic', print_function=Fal
     logging.info("Total cpu_time = %s" %(time.clock() - start_cpu_t))
     return h_list
 
-def measure_stats(q, f_list, name=None):
+def measure_stats(q, f_list, name=None, reordered_cs=False):
     """
     Given (q, f), write {num_vertices, running times, 
     percentage and number of extreme functions, 
@@ -971,7 +994,10 @@ def measure_stats(q, f_list, name=None):
     for f in f_list:
         cpu_t = time.clock()
         vertices_color = initial_vertices_color(q, f)
-        cs = initial_cs(q, f, vertices_color)
+        if reordered_cs:
+            cs = initial_cs_reordered(q, f, vertices_color)
+        else:
+            cs = initial_cs(q, f, vertices_color)
         extreme_points = C_Polyhedron(cs).minimized_generators()
         tot_vertices = len(extreme_points)
         print >> fout, "q = %s, f = %s, num_vertices = %s, poly_gen_time = %s," % (q, f, tot_vertices, time.clock() - cpu_t)
@@ -1527,11 +1553,11 @@ def pattern_more_additive_vertices(l, pattern):
     changed_vertices = [more_additivity[i] for i in range(len(l_seuil)) if l >= l_seuil[i]]
     return changed_vertices
 
-def pattern_vertices_color(l, pattern):
+def pattern_vertices_color(l, pattern, more_ini_additive = True):
     q, f = pattern_q_and_f(l, pattern)
     vertices_color = initial_vertices_color(q, f)
     changed_vertices = pattern_additive_vertices(l, pattern)
-    if pattern == 0:
+    if pattern == 0 and more_ini_additive:
         changed_vertices += pattern_more_additive_vertices(l, pattern)
     # impose their symmetric vertices too
     for (i, j) in changed_vertices:
@@ -1615,9 +1641,9 @@ def pattern_polytope(vertices_color, fn):
     polytope = C_Polyhedron(cs)
     return polytope
 
-def pattern_extreme(l, k_slopes, pattern=0, show_plots=False):
+def pattern_extreme(l, k_slopes, pattern=0, show_plots=False, more_ini_additive=True):
     q, f = pattern_q_and_f(l, pattern)
-    vertices_color = pattern_vertices_color(l, pattern)
+    vertices_color = pattern_vertices_color(l, pattern, more_ini_additive=more_ini_additive)
     fn = pattern_fn(l, pattern)
     polytope = pattern_polytope(vertices_color, fn)
     v_set = set([])
@@ -1627,7 +1653,7 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False):
         destdir = dir_math+"sym_mode_2d_diagrams/"+"patterns_%s/" % pattern
     elif show_plots:
         destdir = dir_yuan+"patterns_%s/" % pattern
-    #logging.disable(logging.info)
+    logging.disable(logging.info)
     for v in polytope.minimized_generators():
         #v.coefficients() is numerator of component's slope value
         v_n = [sum(p*q for p, q in zip(fn[i].coefficients(), v.coefficients())) for i in range(q+1)]
@@ -1643,13 +1669,13 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False):
                 #h = h_from_vertex_values(v_n)
                 #h_is_extreme =  simple_finite_dimensional_extremality_test(\
                 #                h, show_plots=False, f=None, oversampling=None, order=q, show_all_perturbations=False)
-                print num, v.coefficients()
                 #if not h_is_extreme:
-                #    print "Not extreme"
+                #    print "Not extreme",
+                print num, v.coefficients(), v.divisor()
                 if show_plots: # and h_is_extreme:
                     name = "%sq%s_%s.png" %(num, q, len(vv))
                     g = plot_2d_diagram(h, colorful=True)
                     figsize = 10 * l
                     g.save(destdir + name, figsize = figsize, show_legend=False)
-    #logging.disable(logging.NOTSET)
+    logging.disable(logging.NOTSET)
     return vv, nn
