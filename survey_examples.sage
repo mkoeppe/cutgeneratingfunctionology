@@ -518,6 +518,29 @@ def kzh_2q_example_1():
                 42/61, 34/61, 101/122, 23/122, 1, 22/61, 18/61, 69/122, 53/122, 43/61, 39/61, 0]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
+def zhou_two_sided_discontinuous_cannot_assume_any_continuity():
+    """
+    This function is two-sided discontinuous at the origin.  The
+    extremality test then cannot assume any left or right continuity
+    of the perturbation function at the breakpoints, even if such
+    one-sided continuity is present in the function.
+
+    This example has been constructed by Yuan Zhou (2014).
+
+    EXAMPLES::
+
+        sage: h = zhou_two_sided_discontinuous_cannot_assume_any_continuity()
+        sage: extremality_test(h)
+        False
+    """
+    return FastPiecewise([singleton_piece(0, 0),
+                          open_piece((0, 2/3), (1/8, 3/4)),
+                          closed_piece((1/8, 1/4), (3/8, 3/4)),
+                          open_piece((3/8, 1/4), (4/8, 1/3)),
+                          singleton_piece(4/8, 1),
+                          open_piece((4/8, 1/3), (8/8, 2/3)),
+                          singleton_piece(1, 0)])
+
 def kzh_5_slope_fulldim_1(): #renamed from extreme_5slope_no_0d_1d_1
     """
     A continuous 5-slope extreme function without any 0-d or 1-d
