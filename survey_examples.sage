@@ -219,7 +219,12 @@ def drlm_2_slope_limit_1_1(f=1/2, nb_pieces_left=1, nb_pieces_right=1):
 
 def hildebrand_5_slope_22_1():
     """
-    One of Hildebrand's world-record 5-slope functions.
+    One of Hildebrand's 5-slope functions.
+
+    They held the world record regarding the number of slopes until
+    functions with more slopes were discovered in 2014.
+
+    From Hildebrand (2013, unpublished).
 
     EXAMPLES::
 
@@ -236,7 +241,12 @@ def hildebrand_5_slope_22_1():
 
 def hildebrand_5_slope_24_1():
     """
-    One of Hildebrand's world-record 5-slope functions.
+    One of Hildebrand's 5-slope functions.
+
+    They held the world record regarding the number of slopes until
+    functions with more slopes were discovered in 2014.
+
+    From Hildebrand (2013, unpublished).
 
     EXAMPLES::
 
@@ -253,7 +263,12 @@ def hildebrand_5_slope_24_1():
 
 def hildebrand_5_slope_28_1():
     """
-    One of Hildebrand's world-record 5-slope functions.
+    One of Hildebrand's 5-slope functions.
+
+    They held the world record regarding the number of slopes until
+    functions with more slopes were discovered in 2014.
+
+    From Hildebrand (2013, unpublished).
 
     EXAMPLES::
 
@@ -340,7 +355,7 @@ def hildebrand_2_sided_discont_1_slope_1():
     The first known example of function that is discontinuous on both
     sides of the origin but is also extreme.
 
-    Constructed by Robert Hildebrand (previously unpublished). 
+    Constructed by Robert Hildebrand (2013, unpublished).
 
     EXAMPLES::
 
@@ -365,7 +380,7 @@ def hildebrand_2_sided_discont_2_slope_1():
     The second known example of function that is discontinuous on both
     sides of the origin but is also extreme.  This one has 2 slopes.
 
-    Constructed by Robert Hildebrand (previously unpublished). 
+    Constructed by Robert Hildebrand (2013, unpublished).
 
     EXAMPLES::
 
@@ -392,7 +407,7 @@ def hildebrand_discont_3_slope_1():
     """
     This is a very new discontinuous 3-slope function that is extreme.
 
-    Constructed by Robert Hildebrand (previously unpublished).
+    Constructed by Robert Hildebrand (2013, unpublished).
 
     EXAMPLES::
 
