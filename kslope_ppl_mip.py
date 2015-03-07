@@ -1679,3 +1679,21 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False, more_ini_additive=
                     g.save(destdir + name, figsize = figsize, show_legend=False)
     logging.disable(logging.NOTSET)
     return vv, nn
+
+def write_panda_format_cs(cs, fname=None):
+    if fname:
+        filename = open(dir_math+"profiler/"+fname, "w")
+    else:
+        filename = sys.stdout
+    print >> filename, 'Inequalities:'
+    for c in cs:
+        for x in c.coefficients():
+            print >> filename, -x,
+        print >> filename, -c.inhomogeneous_term()
+        if c.is_equality():
+            for x in c.coefficients():
+                print >> filename, x,
+            print >> filename, c.inhomogeneous_term()
+    if fname:
+        filename.close()
+    return
