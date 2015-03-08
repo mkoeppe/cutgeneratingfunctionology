@@ -1476,7 +1476,7 @@ def gen_initial_polytope_sym(q, f, vertices_color, covered_intervals):
     yield polytope, covered_intervals
 
 dir_math ="/homes/home02/y/yzh/Dropbox/group-relaxation-sage-code/"
-dir_yuan ="/media/sf_dropbox/sym_mode_2d_diagrams/"
+dir_yuan ="/media/sf_dropboxcode/"
 def save_plot(q, hh, destdir = dir_math+"sym_mode_2d_diagrams/"):
     logging.disable(logging.info)
     for i in range(len(hh)):
@@ -1652,7 +1652,7 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False, more_ini_additive=
     if show_plots == 'math':
         destdir = dir_math+"sym_mode_2d_diagrams/"+"patterns_%s/" % pattern
     elif show_plots:
-        destdir = dir_yuan+"patterns_%s/" % pattern
+        destdir = dir_yuan+"sym_mode_2d_diagrams/"+"patterns_%s/" % pattern
     logging.disable(logging.info)
     for v in polytope.minimized_generators():
         #v.coefficients() is numerator of component's slope value
@@ -1695,5 +1695,48 @@ def write_panda_format_cs(cs, fname=None):
                 print >> filename, x,
             print >> filename, c.inhomogeneous_term()
     if fname:
+        filename.close()
+    return
+
+def write_porta_ieq(q, f, destdir=None):
+    vertices_color = initial_vertices_color(q, f);
+    cs = initial_cs(q, f, vertices_color)
+    if destdir is None:
+        filename = sys.stdout
+    elif destdir == 'yuan':
+        filename = open(dir_yuan+"profiler/porta_q%sf%s.ieq" % (q, f), "w")
+    else:
+        filename = open(dir_math+"profiler/porta_q%sf%s.ieq" % (q, f), "w")
+    print >> filename, 'DIM = %s' % (q + 1)  #=cs.space_dimension()
+    print >> filename
+
+    print >> filename, 'VALID'
+    print >> filename, 0,
+    for i in range(1, f):
+        print >> filename, '%s/%s' % (i, f),
+    print >> filename, 1,
+    for i in range(q - f - 1, 0, -1):
+        print >> filename, '%s/%s' % (i, q - f),
+    print >> filename, 0
+    print >> filename
+
+    print >> filename, 'INEQUALITIES_SECTION'
+    for c in cs:
+        coefs = c.coefficients()
+        for i in range(q+1):
+            x = coefs[i]
+            if x > 0:
+                print >> filename, '+%sx%s' % (x, i+1),
+            elif x < 0:
+                print >> filename, '%sx%s' % (x, i+1),
+        if c.is_equality():
+            print >> filename, '==',
+        else:
+            print >> filename, '>=',
+        print >> filename, '%s' % -c.inhomogeneous_term()
+    print >> filename
+
+    print >> filename, 'END'
+    if not destdir is None:
         filename.close()
     return
