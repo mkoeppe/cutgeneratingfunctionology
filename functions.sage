@@ -944,15 +944,31 @@ def plot_covered_intervals(function, covered_intervals=None, uncovered_color='bl
             label = labels[i]
         kwds.update({'legend_label': label})
         plot_kwds_hook(kwds)
+        last_endpoint = None
         for interval in component:
+            linear = function.which_function((interval[0] + interval[1])/2)
             # We do not plot anything if float(interval[0])==float(interval[1]) because
             # otherwise plot complains that
             # "start point and endpoint must be different"
             if float(interval[0])<float(interval[1]):
-                graph += plot(function.which_function((interval[0] + interval[1])/2), interval, color=colors[i], zorder=-1, **kwds)
+                graph += plot(linear, interval, color=colors[i], zorder=-1, **kwds)
                 # zorder=-1 puts them below the discontinuity markers,
                 # above the black function.
                 delete_one_time_plot_kwds(kwds)
+                # Show a little marker where adjacent intervals of the same component end
+                # if the function is continuous at that point.
+                # For example, in zhou_two_sided_discontinuous_cannot_assume_any_continuity, or
+                # hildebrand_discont_3_slope_1().
+                if interval[0] == last_endpoint:
+                    limits = function.limits(last_endpoint)
+                    if limits[0] == limits[1] == limits[2]:
+                        slope = linear._slope
+                        scale = 0.01
+                        dx = scale * slope / sqrt(1 + slope**2) # FIXME: this tries to make it orthogonal to the slope
+                        dy = -scale / sqrt(1 + slope**2)        # but fails to take the aspect ratio of the plot into account.
+                        graph += line([(last_endpoint - dx, function(last_endpoint) - dy), (last_endpoint + dx, function(last_endpoint) + dy)],
+                                      color=colors[i], zorder=-1)
+            last_endpoint = interval[1]
     return graph
 
 def number_of_components(fn):
