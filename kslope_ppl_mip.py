@@ -1740,3 +1740,47 @@ def write_porta_ieq(q, f, destdir=None):
     if not destdir is None:
         filename.close()
     return
+
+def write_lrs_ine(q, f, destdir=None):
+    vertices_color = initial_vertices_color(q, f);
+    cs = initial_cs(q, f, vertices_color)
+    if destdir is None:
+        fname = None
+    elif destdir == 'yuan':
+        fname = dir_yuan+"profiler/lrs_q%sf%s.ine" % (q, f)
+    else:
+        fname = dir_math+"profiler/lrs_q%sf%s.ine" % (q, f)
+    write_lrs_format_cs(cs, fname=fname)
+    return
+
+def write_lrs_format_cs(cs, fname=None):
+    if fname:
+        filename = open(fname, "w")
+    else:
+        filename = sys.stdout
+    print >> filename, fname
+    print >> filename, "H-representation"
+    m = len(cs)
+    n = cs.space_dimension() + 1
+    k = 0
+    linearities = []
+    for i in range(m):
+        c = cs[i]
+        if c.is_equality():
+            k += 1
+            linearities.append(i)
+    print >> filename, "linearity %s" % k,
+    for i in linearities:
+        print >> filename, i + 1,
+    print >> filename
+    print >> filename, "begin"
+    print >> filename, "%s %s rational" %(m, n)
+    for c in cs:
+        print >> filename, c.inhomogeneous_term(),
+        for x in c.coefficients():
+            print >> filename, x,
+        print >> filename
+    print >> filename, "end"
+    if fname:
+        filename.close()
+    return
