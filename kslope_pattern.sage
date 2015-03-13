@@ -21,8 +21,7 @@ def pattern_glpk_lp(l, more_ini_additive=True, exact_arithmetic=True):
     objfun = 0
     lp.add_constraint(fn[f] == 1)
     for i in range(1, f):
-        lp.add_constraint(fn[i] >= 0)
-        lp.add_constraint(fn[i] <= 1)
+        lp.add_constraint(fn[i], max=1, min=0)
     for x in range(1, f + 1):
         for y in range(x, q - x + 1):
             if vertices_color[x, y] == 0:
@@ -34,7 +33,10 @@ def pattern_glpk_lp(l, more_ini_additive=True, exact_arithmetic=True):
     #lp.show()
     lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
     lp.solver_parameter("primal_v_dual", "GLP_DUAL")
-    optval = lp.solve()
+    try:
+        optval = lp.solve()
+    except MIPSolverException:
+        return 'NA', 'NA', 'NA', 'NA'
     if exact_arithmetic:
         b = lp.get_backend() 
         optsol = exact_optsol(b)
@@ -61,6 +63,7 @@ def pattern_glpk_lp(l, more_ini_additive=True, exact_arithmetic=True):
     return optval, optsol, k_slope, v
 
 def exact_optsol(b):
+    #sage_input(b)
     ncol = b.ncols()
     nrow = b.nrows()
     A = matrix(QQ, ncol + nrow, ncol + nrow, sparse = True)
@@ -89,7 +92,17 @@ def exact_optsol(b):
             else:
                 Y[n] = b.row_bounds(i)[1]
             n += 1
-    X = A \ Y
+
+    filename = open(dir_math+"profiler/solveAXisY", "w")
+    #print >> filename, "A =",
+    #print >> filename, sage_input(A)
+    #print >> filename
+    #print >> filename, "Y =",
+    #print >> filename, sage_input(Y)
+    filename.close()
+
+    #X = A \ Y
+    X = A.solve_right(Y, check=False)
     return X[0:ncol]    
             
 
@@ -132,15 +145,10 @@ def pattern_glpk_test(l_list, exact_arithmetic=True):
     slopes = []
     for l in l_list:
         start_cpu_t = time.clock();
-        try:
-            optval, optsol, k, v_glpk = pattern_glpk_lp(l, exact_arithmetic=exact_arithmetic);
-            cpu_t = time.clock();
-            print l, k, cpu_t - start_cpu_t
-            slopes.append(k)
-        except MIPSolverException:
-            cpu_t = time.clock();
-            print l, "NA", cpu_t - start_cpu_t
-            slopes.append(-1)
+        optval, optsol, k, v_glpk = pattern_glpk_lp(l, exact_arithmetic=exact_arithmetic);
+        cpu_t = time.clock();
+        print l, k, cpu_t - start_cpu_t
+        slopes.append(k)
     return slopes
 
 def pattern_ppl_test(l_list):
