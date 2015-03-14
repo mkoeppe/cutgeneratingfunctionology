@@ -1682,7 +1682,7 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False, more_ini_additive=
 
 def write_panda_format_cs(cs, fname=None):
     if fname:
-        filename = open(dir_math+"profiler/"+fname, "w")
+        filename = open(dir_math+"profiler/panda/"+fname, "w")
     else:
         filename = sys.stdout
     print >> filename, 'Inequalities:'
@@ -1704,9 +1704,9 @@ def write_porta_ieq(q, f, destdir=None):
     if destdir is None:
         filename = sys.stdout
     elif destdir == 'yuan':
-        filename = open(dir_yuan+"profiler/porta_q%sf%s.ieq" % (q, f), "w")
+        filename = open(dir_yuan+"profiler/porta/porta_q%sf%s.ieq" % (q, f), "w")
     else:
-        filename = open(dir_math+"profiler/porta_q%sf%s.ieq" % (q, f), "w")
+        filename = open(dir_math+"profiler/porta/porta_q%sf%s.ieq" % (q, f), "w")
     print >> filename, 'DIM = %s' % (q + 1)  #=cs.space_dimension()
     print >> filename
 
@@ -1747,9 +1747,9 @@ def write_lrs_ine(q, f, destdir=None):
     if destdir is None:
         fname = None
     elif destdir == 'yuan':
-        fname = dir_yuan+"profiler/lrs_q%sf%s.ine" % (q, f)
+        fname = dir_yuan+"profiler/lrs/lrs_q%sf%s.ine" % (q, f)
     else:
-        fname = dir_math+"profiler/lrs_q%sf%s.ine" % (q, f)
+        fname = dir_math+"profiler/lrs/lrs_q%sf%s.ine" % (q, f)
     write_lrs_format_cs(cs, fname=fname)
     return
 
@@ -1758,8 +1758,18 @@ def write_lrs_format_cs(cs, fname=None):
         filename = open(fname, "w")
     else:
         filename = sys.stdout
-    print >> filename, fname
-    print >> filename, "H-representation"
+    lrs_string = convert_pplcs_to_lrs(cs, fname=fname)
+    print >> filename, lrs_string
+    if fname:
+        filename.close()
+    return
+
+def convert_pplcs_to_lrs(cs, fname=None):
+    if fname:
+        s = fname + '\n'
+    else:
+        s = ""
+    s += "H-representation" + '\n'
     m = len(cs)
     n = cs.space_dimension() + 1
     k = 0
@@ -1769,18 +1779,99 @@ def write_lrs_format_cs(cs, fname=None):
         if c.is_equality():
             k += 1
             linearities.append(i)
-    print >> filename, "linearity %s" % k,
+    if k > 0:
+        s += "linearity %s " % k
     for i in linearities:
-        print >> filename, i + 1,
-    print >> filename
-    print >> filename, "begin"
-    print >> filename, "%s %s rational" %(m, n)
+        s += repr(i + 1)  + ' '
+    s += '\n'
+    s += "begin\n"
+    s += "%s %s rational\n" %(m, n)
     for c in cs:
-        print >> filename, c.inhomogeneous_term(),
+        s += repr(c.inhomogeneous_term()) + ' '
         for x in c.coefficients():
-            print >> filename, x,
-        print >> filename
-    print >> filename, "end"
-    if fname:
-        filename.close()
-    return
+            s += repr(x) + ' '
+        s += '\n'
+    s += 'end\n'
+    return s
+
+def read_lrs_to_cs_or_gs(fname):
+    myfile = open(fname, "r")
+    lrs_string = myfile.read()
+    myfile.close()
+    return convert_lrs_to_pplcs(lrs_string)
+
+def convert_lrs_to_pplcs(lrs_string):
+    """
+    COPY from src/geometry/polyhedron/backend_cdd.py
+    Polyhedron_cdd._init_from_cdd_output(self, cdd_output_string)
+    """
+    cddout=lrs_string.splitlines()
+
+    # nested function
+    def expect_in_cddout(expected_string):
+        l = cddout.pop(0).strip()
+        if l!=expected_string:
+            raise ValueError, ('Error while parsing cdd output: expected "'
+                               +expected_string+'" but got "'+l+'".\n' )
+    # nested function
+    def cdd_linearities():
+        l = cddout[0].split()
+        if l[0] != "linearity":
+            return []
+        cddout.pop(0)
+        assert len(l) == int(l[1])+2, "Not enough linearities given"
+        return [int(i)-1 for i in l[2:]]  # make indices pythonic
+
+    # nested function
+    def cdd_convert(string, field=QQ):
+        """
+        Converts the cdd output string to a QQ numerical value.
+        """
+        return [field(x) for x in string.split()]
+
+    # nested function
+    def find_in_cddout(expected_string):
+        """
+        Find the expected string in a list of strings, and
+        truncates ``cddout`` to start at that point. Returns
+        ``False`` if search fails.
+        """
+        for pos in range(0,len(cddout)):
+            l = cddout[pos].strip();
+            if l==expected_string:
+                # must not assign to cddout in nested function
+                for i in range(0,pos+1):
+                    cddout.pop(0)
+                return True
+        return False
+
+    def lrs_row_to_linear_expression(l):
+        rational_list = cdd_convert(l)
+        num_list = [x.numerator() for x in rational_list]
+        den_list = [x.denominator() for x in rational_list]
+        common_den = lcm(den_list)
+        ihom = int(common_den / den_list[0]) * num_list[0]
+        coef = [int(common_den / den_list[i]) * num_list[i] for i in range(1, len(rational_list))]
+        return Linear_Expression(coef, ihom)
+
+    if find_in_cddout('V-representation'):
+        raise NotImplementedError, "V-representation Not implemented."
+
+    if find_in_cddout('H-representation'):
+        cs = Constraint_System()
+        equations = cdd_linearities()
+        expect_in_cddout('begin')
+        l = cddout.pop(0).split()
+        m = int(l[0])
+        n = int(l[1]) - 1
+        fn = [ Variable(i) for i in range(n) ]
+        for i in range(m):
+            l = cddout.pop(0)
+            lin_exp = lrs_row_to_linear_expression(l)
+            if i in equations:
+                cs.insert(lin_exp == 0)
+            else:
+                cs.insert(lin_exp >= 0)
+        expect_in_cddout('end')
+        return cs
+
