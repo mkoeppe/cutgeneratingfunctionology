@@ -1702,44 +1702,60 @@ def write_porta_ieq(q, f, destdir=None):
     vertices_color = initial_vertices_color(q, f);
     cs = initial_cs(q, f, vertices_color)
     if destdir is None:
-        filename = sys.stdout
+        fname = None
     elif destdir == 'yuan':
-        filename = open(dir_yuan+"profiler/porta/porta_q%sf%s.ieq" % (q, f), "w")
+        fname = dir_yuan+"profiler/porta/porta_q%sf%s.ieq" % (q, f)
     else:
-        filename = open(dir_math+"profiler/porta/porta_q%sf%s.ieq" % (q, f), "w")
-    print >> filename, 'DIM = %s' % (q + 1)  #=cs.space_dimension()
-    print >> filename
+        fname = dir_math+"profiler/porta/porta_q%sf%s.ieq" % (q, f)
+    write_porta_format_cs(cs, q=q, f=f, fname=fname)
+    return
 
-    print >> filename, 'VALID'
-    print >> filename, 0,
-    for i in range(1, f):
-        print >> filename, '%s/%s' % (i, f),
-    print >> filename, 1,
-    for i in range(q - f - 1, 0, -1):
-        print >> filename, '%s/%s' % (i, q - f),
-    print >> filename, 0
-    print >> filename
+def write_porta_format_cs(cs, q=None, f=None, fname=None):
+    # q, f are used to find a valid point -- gmic function
+    # this valid point is required by 'traf' as the 0 is not in the feasible region.
+    if fname:
+        filename = open(fname, "w")
+    else:
+        filename = sys.stdout
+    porta_string = convert_pplcs_to_porta(cs, q=q, f=f)
+    print >> filename, porta_string
+    if fname:
+        filename.close()
+    return
 
-    print >> filename, 'INEQUALITIES_SECTION'
+def convert_pplcs_to_porta(cs, q=None, f=None):
+    # q, f are used to find a valid point -- gmic function
+    # this valid point is required by 'traf' as the 0 is not in the feasible region.
+    s = ""
+    s += "DIM = %s\n" % cs.space_dimension()
+    s += "\n"
+    if not q is None:
+        s += 'VALID\n'
+        s += '0 '
+        for i in range(1, f):
+            s += '%s/%s ' % (i, f)
+        s += '1 '
+        for i in range(q - f - 1, 0, -1):
+            s += '%s/%s ' % (i, q - f)
+        s += '0\n'
+        s += '\n'
+    s += 'INEQUALITIES_SECTION\n'
     for c in cs:
         coefs = c.coefficients()
         for i in range(q+1):
             x = coefs[i]
             if x > 0:
-                print >> filename, '+%sx%s' % (x, i+1),
+                s += '+%sx%s ' % (x, i+1)
             elif x < 0:
-                print >> filename, '%sx%s' % (x, i+1),
+                s += '%sx%s ' % (x, i+1)
         if c.is_equality():
-            print >> filename, '==',
+            s += '== '
         else:
-            print >> filename, '>=',
-        print >> filename, '%s' % -c.inhomogeneous_term()
-    print >> filename
-
-    print >> filename, 'END'
-    if not destdir is None:
-        filename.close()
-    return
+            s += '>= '
+        s += '%s\n' % -c.inhomogeneous_term()
+    s += '\n'
+    s += 'END\n'
+    return s
 
 def write_lrs_ine(q, f, destdir=None):
     vertices_color = initial_vertices_color(q, f);
