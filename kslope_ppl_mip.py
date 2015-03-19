@@ -866,12 +866,12 @@ def h_from_vertex_values(v_n):
     values = [QQ(y) / v_d for y in v_n]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
-def search_kslope_example(k_slopes, q, f, mode='heuristic', prep=False):
+def search_kslope_example(k_slopes, q, f, mode='combined', prep=False):
     """
     Search for extreme functions that have required number of slope values.
 
-    If `mode` is (defaut) 'heuristic', use paint_complex_heuristic() to paint;
-    If `mode` is 'combined', use paint_complex_combined() to paint a few triangles, then enumerate vertex-functions;
+    If `mode` is 'heuristic', use paint_complex_heuristic() to paint;
+    If `mode` is (defaut)'combined', use paint_complex_combined() to paint a few triangles, then enumerate vertex-functions;
     If `mode` is 'fulldim_covers', use paint_complex_fulldim_covers() to paint;
     If `mode` is 'complete', use paint_complex_complete() to paint;
     If `mode` is 'naive', enumerate vertex-fuctions and check whether all invervals are covered;
@@ -956,7 +956,7 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic', prep=False):
         logging.info("Example function not found. Please try again.")
 
 import time
-def search_kslope(k_slopes, q, f_list=None, mode='heuristic', print_function=False):
+def search_kslope(k_slopes, q, f_list=None, mode='combined', print_function=False):
     """
     EXAMPLES::
 
@@ -1030,8 +1030,9 @@ def measure_stats(q, f_list, name=None, reordered_cs=False, prep=False):
         print >> fout, "        num_full = %s,  k-slope  %s" % (tot_full, num_full[2:])
     return
 
-q_threshold = 17 #was 20
-dim_threshold = 8
+q_threshold = 17 # better to have preprocessing for q > q_threshold, dim > 7
+dim_threshold = 8 
+# q_threshold was 20, dim_threshold was 8, changed 3/19/2015
 
 def dim_cs_matrix(q, changed_vertices, cs_matrix):
     """
