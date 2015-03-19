@@ -1920,3 +1920,47 @@ def convert_lrs_to_ppl(lrs_string):
                 cs.insert(lin_exp >= 0)
         expect_in_cddout('end')
         return cs
+
+def lrs_redund(in_str, verbose=False):
+        """
+        To remove redundant inequalities from an H-representation or
+        input points that are not vertices from a V-representation
+        use the command 'redund' from lrslib.
+        Input: lrs format in_str; Output: lrs format out_str;
+
+        Copy and edit from def _volume_lrs(self, verbose=False),
+        http://www.sagenb.org/src/geometry/polyhedron/base.py
+        """
+        if is_package_installed('lrs') != True:
+            print 'You must install the optional lrs package ' \
+                  'for this function to work'
+            raise NotImplementedError
+
+        from sage.misc.temporary_file import tmp_filename
+        from subprocess import Popen, PIPE
+        in_filename = tmp_filename()
+        in_file = file(in_filename,'w')
+        in_file.write(in_str)
+        in_file.close()
+        if verbose: print in_str
+
+        redund_procs = Popen(['redund',in_filename],stdin = PIPE, stdout=PIPE, stderr=PIPE)
+        out_str, err = redund_procs.communicate()
+        if verbose:
+            print out_str
+
+        return out_str
+
+def remove_redundancy_from_cs(cs, verbose=False, return_lrs=False):
+    """
+    Remove redundant inequalities from cs using the command 'redund' from lrslib.
+    Return the new cs without redundancy
+    in ppl format if return_lrs==False (default), or in lrs format if return_lrs==True 
+    """
+    in_str = convert_pplcs_to_lrs(cs, fname=None)
+    out_str = lrs_redund(in_str, verbose=verbose)
+    if return_lrs:
+        return out_str
+    else:
+        return convert_lrs_to_ppl(out_str)
+
