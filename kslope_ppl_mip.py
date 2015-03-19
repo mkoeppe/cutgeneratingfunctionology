@@ -1814,11 +1814,14 @@ def read_lrs_to_cs_or_gs(fname):
     myfile = open(fname, "r")
     lrs_string = myfile.read()
     myfile.close()
-    return convert_lrs_to_pplcs(lrs_string)
+    return convert_lrs_to_ppl(lrs_string)
 
-def convert_lrs_to_pplcs(lrs_string):
+def convert_lrs_to_ppl(lrs_string):
     """
-    COPY from src/geometry/polyhedron/backend_cdd.py
+    Convert lrs format H-representation to ppl cs;
+    or lrs format V-representation (of a polytope) to ppl gs.
+
+    COPY from src/geometry/polyhedron/backend_cdd.py and edit
     Polyhedron_cdd._init_from_cdd_output(self, cdd_output_string)
     """
     cddout=lrs_string.splitlines()
@@ -1826,7 +1829,7 @@ def convert_lrs_to_pplcs(lrs_string):
     # nested function
     def expect_in_cddout(expected_string):
         l = cddout.pop(0).strip()
-        if l!=expected_string:
+        if l != expected_string:
             raise ValueError, ('Error while parsing cdd output: expected "'
                                +expected_string+'" but got "'+l+'".\n' )
     # nested function
@@ -1870,8 +1873,35 @@ def convert_lrs_to_pplcs(lrs_string):
         coef = [int(common_den / den_list[i]) * num_list[i] for i in range(1, len(rational_list))]
         return Linear_Expression(coef, ihom)
 
+    def lrs_row_to_point(l):
+        rational_list = cdd_convert(l)
+        num_list = [x.numerator() for x in rational_list]
+        den_list = [x.denominator() for x in rational_list]
+        common_den = lcm(den_list)
+        coef = [int(common_den / den_list[i]) * num_list[i] for i in range(len(rational_list))]
+        return point(Linear_Expression(coef, 0), common_den)
+
     if find_in_cddout('V-representation'):
-        raise NotImplementedError, "V-representation Not implemented."
+        # Suppose it's the V-representation of a polytope.
+        # Return the ppl generator_system that contains the vertices.
+        # Sometimes the number of vertices is unknown from the input file, so read till 'end'
+        # ex: in the output of lrs vertex enumertaion file.ext.
+        #raise NotImplementedError, "V-representation Not implemented."
+        gs = Generator_System()
+        equations = cdd_linearities()
+        expect_in_cddout('begin')
+        l = cddout.pop(0).split()
+        n = int(l[1]) - 1
+        l = cddout.pop(0).strip()
+        while l != 'end':
+            l_type = l[0]
+            l = l[1:]
+            #if (i in equations) or l_type == '0':
+            #    raise NotImplementedError, "V-representation of line or ray is NOT implemented."
+            vertex = lrs_row_to_point(l)
+            gs.insert(vertex)
+            l = cddout.pop(0).strip()
+        return gs
 
     if find_in_cddout('H-representation'):
         cs = Constraint_System()
@@ -1882,7 +1912,7 @@ def convert_lrs_to_pplcs(lrs_string):
         n = int(l[1]) - 1
         fn = [ Variable(i) for i in range(n) ]
         for i in range(m):
-            l = cddout.pop(0)
+            l = cddout.pop(0).strip()
             lin_exp = lrs_row_to_linear_expression(l)
             if i in equations:
                 cs.insert(lin_exp == 0)
@@ -1890,4 +1920,3 @@ def convert_lrs_to_pplcs(lrs_string):
                 cs.insert(lin_exp >= 0)
         expect_in_cddout('end')
         return cs
-
