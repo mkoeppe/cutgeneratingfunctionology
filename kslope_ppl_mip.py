@@ -841,11 +841,16 @@ def paint_complex_complete(k_slopes, q, f, vertices_color, last_covered_interval
     for v in picked_vertices:
         vertices_color[v] = 1
 
-def generate_vertex_values(k_slopes , q, polytope,  v_set=set([])):
+def generate_vertex_values(k_slopes , q, polytope,  v_set=set([]), prep=False):
     """
     Return vertices of the polytope, whose corresponding 
     piecewise_linear function h has at least  k_slopes.
     """
+    if prep and q > q_threshold:
+        # for small q, pre-processing does not pay off
+        cs = polytope.constraints()
+        cs_prep = remove_redundancy_from_cs(cs)
+        polytope = C_Polyhedron(cs_prep)
     for v in polytope.minimized_generators():
         v_n = v.coefficients()
         num = len(set([v_n[i+1] - v_n[i] for i in range(q)]))
@@ -861,7 +866,7 @@ def h_from_vertex_values(v_n):
     values = [QQ(y) / v_d for y in v_n]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
-def search_kslope_example(k_slopes, q, f, mode='heuristic'):
+def search_kslope_example(k_slopes, q, f, mode='heuristic', prep=False):
     """
     Search for extreme functions that have required number of slope values.
 
@@ -935,17 +940,17 @@ def search_kslope_example(k_slopes, q, f, mode='heuristic'):
         #filename = open(dir_math + "profiler/dim_threshold/%sslope_q%s_f%s_%sdim.txt" % (k_slopes, q, f, dim_threshold), "w")
         #print >> filename, "k_slope = %s, q = %s, f = %s, dim_threshold = %s" % (k_slopes, q, f, dim_threshold)
         for result_polytope, result_covered_intervals in gen:
-            for values in generate_vertex_values(k_slopes, q, result_polytope, v_set):
+            for values in generate_vertex_values(k_slopes, q, result_polytope, v_set, prep=prep):
                 if all_intervals_covered(q, f, values, result_covered_intervals):
                     yield values
         #filename.close()
     elif mode == 'naive' or mode == 'sym_naive':
-        for values in generate_vertex_values(k_slopes, q, polytope, v_set):
+        for values in generate_vertex_values(k_slopes, q, polytope, v_set, prep=prep):
             if all_intervals_covered(q, f, values, []):
                 yield values
     else:
         for result_polytope in gen:
-            for values in generate_vertex_values(k_slopes, q, result_polytope, v_set):
+            for values in generate_vertex_values(k_slopes, q, result_polytope, v_set, prep=prep):
                 yield values
     if not v_set:
         logging.info("Example function not found. Please try again.")
@@ -980,7 +985,7 @@ def search_kslope(k_slopes, q, f_list=None, mode='heuristic', print_function=Fal
     logging.info("Total cpu_time = %s" %(time.clock() - start_cpu_t))
     return h_list
 
-def measure_stats(q, f_list, name=None, reordered_cs=False):
+def measure_stats(q, f_list, name=None, reordered_cs=False, prep=False):
     """
     Given (q, f), write {num_vertices, running times, 
     percentage and number of extreme functions, 
@@ -998,6 +1003,8 @@ def measure_stats(q, f_list, name=None, reordered_cs=False):
             cs = initial_cs_reordered(q, f, vertices_color)
         else:
             cs = initial_cs(q, f, vertices_color)
+        if prep:
+            cs = remove_redundancy_from_cs(cs)
         extreme_points = C_Polyhedron(cs).minimized_generators()
         tot_vertices = len(extreme_points)
         print >> fout, "q = %s, f = %s, num_vertices = %s, poly_gen_time = %s," % (q, f, tot_vertices, time.clock() - cpu_t)
@@ -1023,7 +1030,7 @@ def measure_stats(q, f_list, name=None, reordered_cs=False):
         print >> fout, "        num_full = %s,  k-slope  %s" % (tot_full, num_full[2:])
     return
 
-q_threshold = 20
+q_threshold = 17 #was 20
 dim_threshold = 8
 
 def dim_cs_matrix(q, changed_vertices, cs_matrix):
@@ -1623,7 +1630,7 @@ def pattern_fn(l, pattern):
         fn[q - k] = fn[k]
     return fn
 
-def pattern_polytope(vertices_color, fn):
+def pattern_polytope(vertices_color, fn, prep=False):
     q = len(fn) - 1
     f = int(q / 2)
     cs = Constraint_System()
@@ -1638,14 +1645,16 @@ def pattern_polytope(vertices_color, fn):
                 cs.insert(fn[x] + fn[y] == fn[x + y])
             else:
                 cs.insert(fn[x] + fn[y] >= fn[x + y])
+    if prep:
+        cs = remove_redundancy_from_cs(cs)
     polytope = C_Polyhedron(cs)
     return polytope
 
-def pattern_extreme(l, k_slopes, pattern=0, show_plots=False, more_ini_additive=True):
+def pattern_extreme(l, k_slopes, pattern=0, show_plots=False, more_ini_additive=True, prep=False):
     q, f = pattern_q_and_f(l, pattern)
     vertices_color = pattern_vertices_color(l, pattern, more_ini_additive=more_ini_additive)
     fn = pattern_fn(l, pattern)
-    polytope = pattern_polytope(vertices_color, fn)
+    polytope = pattern_polytope(vertices_color, fn, prep=prep)
     v_set = set([])
     vv = []
     nn = []
