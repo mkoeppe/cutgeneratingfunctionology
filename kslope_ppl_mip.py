@@ -25,7 +25,7 @@ from igp import *
 # only record vertex (x,y) and face = (x, y, w) with x <= y.
 # polytope defines the feasible region of (\pi(0), \pi(1/q),..., \pi(1)).
 
-# Main: def search_kslope(k_slopes, q, f_list, mode) and def measure_stats()
+# Main: def search_kslope(k_slopes, q, f_list, mode, prep) and def measure_stats()
 
 from sage.libs.ppl import C_Polyhedron, Constraint, Constraint_System, Generator, Generator_System, Variable, point, \
                           Poly_Con_Relation, MIP_Problem, Linear_Expression
@@ -34,6 +34,15 @@ from sage.numerical.mip import MixedIntegerLinearProgram, MIPVariable, MIPSolver
 import sage.numerical.backends.glpk_backend as backend
 
 poly_is_included = Poly_Con_Relation.is_included()
+
+q_threshold = 20
+dim_threshold = 11
+exp_dim_prep = 9;
+exp_dim_lrs = 13;
+# q_threshold was 20, dim_threshold was 8, changed 3/19/2015
+# do preprocessing if exp_dim >= exp_dim_prep;
+# vertex-enumeration using ppl if exp_dim < exp_dim_lrs
+# vertex-enumeration using lrs if exp_dim >= exp_dim_lrs
 
 @cached_function
 def additive_constraint(q, x, y):
@@ -841,17 +850,31 @@ def paint_complex_complete(k_slopes, q, f, vertices_color, last_covered_interval
     for v in picked_vertices:
         vertices_color[v] = 1
 
-def generate_vertex_values(k_slopes , q, polytope,  v_set=set([]), prep=False):
+def vertex_enumeration(polytope, prep=False, exp_dim=0):
+    if not prep or (0 < exp_dim < exp_dim_prep):
+        # no preprocessing
+        extreme_points = polytope.minimized_generators()
+    elif exp_dim >= exp_dim_lrs:
+        # preprocessing and vertex enumertation using redund + lrs
+        cs = polytope.constraints()
+        cs_prep_lrs_str = remove_redundancy_from_cs(cs, return_lrs=True)
+        v_lrs_str = lrs_lrs(cs_prep_lrs_str)
+        extreme_points = convert_lrs_to_ppl(v_lrs_str)
+    else:
+        # preprocessing and vertex enumertation using redund + ppl
+        cs = polytope.constraints()
+        cs_prep = remove_redundancy_from_cs(cs)
+        polytope = C_Polyhedron(cs_prep)
+        extreme_points = polytope.minimized_generators()
+    return extreme_points
+
+def generate_vertex_values(k_slopes , q, polytope,  v_set=set([]), prep=False, exp_dim=0):
     """
     Return vertices of the polytope, whose corresponding 
     piecewise_linear function h has at least  k_slopes.
     """
-    if prep and q > q_threshold:
-        # for small q, pre-processing does not pay off
-        cs = polytope.constraints()
-        cs_prep = remove_redundancy_from_cs(cs)
-        polytope = C_Polyhedron(cs_prep)
-    for v in polytope.minimized_generators():
+    extreme_points = vertex_enumeration(polytope, prep=prep, exp_dim=exp_dim)
+    for v in extreme_points:
         v_n = v.coefficients()
         num = len(set([v_n[i+1] - v_n[i] for i in range(q)]))
         if num >= k_slopes:
@@ -906,6 +929,7 @@ def search_kslope_example(k_slopes, q, f, mode='combined', prep=False):
         vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix = initialization_sym(q, f)
         if not candidate_faces:
             # imposing too much initial green, candidate_faces is empty, but still have uncovered.
+            raise ValueError, "imposing too much initial green, candidate_faces is empty, but still have uncovered."
             gen = gen_initial_polytope_sym(q, f, vertices_color, covered_intervals)
         else:
             gen = paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix, sym=True)
@@ -939,8 +963,8 @@ def search_kslope_example(k_slopes, q, f, mode='combined', prep=False):
         #global filename
         #filename = open(dir_math + "profiler/dim_threshold/%sslope_q%s_f%s_%sdim.txt" % (k_slopes, q, f, dim_threshold), "w")
         #print >> filename, "k_slope = %s, q = %s, f = %s, dim_threshold = %s" % (k_slopes, q, f, dim_threshold)
-        for result_polytope, result_covered_intervals in gen:
-            for values in generate_vertex_values(k_slopes, q, result_polytope, v_set, prep=prep):
+        for result_polytope, result_covered_intervals, exp_dim in gen:
+            for values in generate_vertex_values(k_slopes, q, result_polytope, v_set, prep=prep, exp_dim=exp_dim):
                 if all_intervals_covered(q, f, values, result_covered_intervals):
                     yield values
         #filename.close()
@@ -956,7 +980,7 @@ def search_kslope_example(k_slopes, q, f, mode='combined', prep=False):
         logging.info("Example function not found. Please try again.")
 
 import time
-def search_kslope(k_slopes, q, f_list=None, mode='combined', print_function=False):
+def search_kslope(k_slopes, q, f_list=None, mode='combined', prep=False, print_function=False):
     """
     EXAMPLES::
 
@@ -975,7 +999,7 @@ def search_kslope(k_slopes, q, f_list=None, mode='combined', print_function=Fals
     for f in f_list:
         cpu_t = time.clock()
         logging.info( "Search for extreme funtions with q = %s, f = %s, k_slopes >= %s, mode = %s" % (q, f, k_slopes, mode) )
-        for h in search_kslope_example(k_slopes, q, f, mode):
+        for h in search_kslope_example(k_slopes, q, f, mode=mode, prep=prep):
             h_list.append(h)
             n_sol += 1
             if print_function:
@@ -1030,10 +1054,6 @@ def measure_stats(q, f_list, name=None, reordered_cs=False, prep=False):
         print >> fout, "        num_full = %s,  k-slope  %s" % (tot_full, num_full[2:])
     return
 
-q_threshold = 17 # better to have preprocessing for q > q_threshold, dim > 7
-dim_threshold = 8 
-# q_threshold was 20, dim_threshold was 8, changed 3/19/2015
-
 def dim_cs_matrix(q, changed_vertices, cs_matrix):
     """
     construct the new cs_matrix, and compute its rank
@@ -1078,12 +1098,12 @@ def paint_complex_combined_pol(k_slopes, q, f, vertices_color, faces_color, last
                     if not new_candidate_faces or exp_dim <= dim_threshold:
                         # Suppose that k_slopes > 2. If k_slopes = 2, waist time on checking covered for 2-slope functions.
                         # stop recursion
-                        yield polytope,  covered_intervals
+                        yield polytope,  covered_intervals, exp_dim
                     else:
-                        for result_polytope, result_covered_intervals in paint_complex_combined_pol(k_slopes, q, f, \
+                        for result_polytope, result_covered_intervals, result_exp_dim in paint_complex_combined_pol(k_slopes, q, f, \
                                 vertices_color, faces_color, covered_intervals, new_candidate_faces, polytope.constraints(), new_cs_matrix):
                             # Note: use minimized_constraints() in 'heuristic' mode takes longer. WHY??
-                            yield result_polytope, result_covered_intervals
+                            yield result_polytope, result_covered_intervals, result_exp_dim
         # Now, try out white triangle (x, y, w)
         for face in changed_faces:
             faces_color[face] = 1
@@ -1159,11 +1179,11 @@ def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last
                         polytope = C_Polyhedron(cs)
                         #print >> filename, "exp_dim = %s, got " % exp_dim,
                         #print >> filename, polytope
-                        yield polytope, covered_intervals
+                        yield polytope, covered_intervals, exp_dim
                     else:
-                        for result_polytope, result_covered_intervals in paint_complex_combined_mip(k_slopes, q, f, \
+                        for result_polytope, result_covered_intervals, result_exp_dim in paint_complex_combined_mip(k_slopes, q, f, \
                                 vertices_color, faces_color, covered_intervals, new_candidate_faces, new_cs_matrix, sym=sym):
-                            yield result_polytope, result_covered_intervals
+                            yield result_polytope, result_covered_intervals, result_exp_dim
         # Now, try out white triangle (x, y, w)
         for (x1, y1, w1) in changed_faces:
             faces_color[(x1, y1, w1)] = 1
@@ -2015,4 +2035,5 @@ def lcdd_rational(in_str, verbose=False):
             print out_str
 
         return out_str
+
 
