@@ -1931,6 +1931,9 @@ def convert_lrs_to_ppl(lrs_string):
         expect_in_cddout('end')
         return cs
 
+from sage.misc.temporary_file import tmp_filename
+from subprocess import Popen, PIPE
+
 def lrs_redund(in_str, verbose=False):
         """
         To remove redundant inequalities from an H-representation or
@@ -1946,8 +1949,6 @@ def lrs_redund(in_str, verbose=False):
                   'for this function to work'
             raise NotImplementedError
 
-        from sage.misc.temporary_file import tmp_filename
-        from subprocess import Popen, PIPE
         in_filename = tmp_filename()
         in_file = file(in_filename,'w')
         in_file.write(in_str)
@@ -1973,4 +1974,45 @@ def remove_redundancy_from_cs(cs, verbose=False, return_lrs=False):
         return out_str
     else:
         return convert_lrs_to_ppl(out_str)
+
+def lrs_lrs(in_str, verbose=False):
+        """
+        use the command 'lrs' from lrslib.
+        Input: lrs format in_str; Output: lrs format out_str;
+        """
+        if is_package_installed('lrs') != True:
+            print 'You must install the optional lrs package ' \
+                  'for this function to work'
+            raise NotImplementedError
+
+        in_filename = tmp_filename()
+        in_file = file(in_filename,'w')
+        in_file.write(in_str)
+        in_file.close()
+        if verbose: print in_str
+
+        redund_procs = Popen(['lrs',in_filename],stdin = PIPE, stdout=PIPE, stderr=PIPE)
+        out_str, err = redund_procs.communicate()
+        if verbose:
+            print out_str
+
+        return out_str
+
+def lcdd_rational(in_str, verbose=False):
+        """
+        use the command 'lcdd_gmp' from cddlib.
+        Input: cdd format in_str; Output: cdd format out_str;
+        """
+        in_filename = tmp_filename()
+        in_file = file(in_filename,'w')
+        in_file.write(in_str)
+        in_file.close()
+        if verbose: print in_str
+
+        redund_procs = Popen(['lcdd_gmp',in_filename],stdin = PIPE, stdout=PIPE, stderr=PIPE)
+        out_str, err = redund_procs.communicate()
+        if verbose:
+            print out_str
+
+        return out_str
 
