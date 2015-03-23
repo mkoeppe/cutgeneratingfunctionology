@@ -850,8 +850,8 @@ def paint_complex_complete(k_slopes, q, f, vertices_color, last_covered_interval
     for v in picked_vertices:
         vertices_color[v] = 1
 
-def vertex_enumeration(polytope, prep=False, exp_dim=0):
-    if not prep or (0 < exp_dim < exp_dim_prep):
+def vertex_enumeration(polytope, prep=False, exp_dim=-1):
+    if not prep or (0 <= exp_dim < exp_dim_prep):
         # no preprocessing
         extreme_points = polytope.minimized_generators()
     elif exp_dim >= exp_dim_lrs:
@@ -995,18 +995,24 @@ def search_kslope(k_slopes, q, f_list=None, mode='combined', prep=False, print_f
     n_sol = 0
     if f_list is None:
         f_list = range(1, (q / 2) + 1)
-    start_cpu_t = time.clock()
+    time_ini = os.times()
     for f in f_list:
-        cpu_t = time.clock()
+        time_start = os.times()
         logging.info( "Search for extreme funtions with q = %s, f = %s, k_slopes >= %s, mode = %s" % (q, f, k_slopes, mode) )
         for h in search_kslope_example(k_slopes, q, f, mode=mode, prep=prep):
             h_list.append(h)
             n_sol += 1
             if print_function:
                 logging.info("h = %s" % (h,))
-            logging.info("Found solution No.%s, in %s seconds" % (n_sol, time.clock() - cpu_t))
-        logging.info("q = %s, f = %s takes cpu_time = %s" % (q, f, time.clock() - cpu_t))
-    logging.info("Total cpu_time = %s" %(time.clock() - start_cpu_t))
+            time_end = os.times()
+            t = sum([time_end[i]-time_start[i] for i in range(4)])
+            logging.info("Found solution No.%s, in %s seconds" % (n_sol, t))
+        time_end = os.times()
+        t = sum([time_end[i]-time_start[i] for i in range(4)])
+        logging.info("q = %s, f = %s takes cpu_time = %s" % (q, f, t))
+    time_end = os.times()
+    t = sum([time_end[i]-time_ini[i] for i in range(4)])
+    logging.info("Total cpu_time = %s" % t)
     return h_list
 
 def measure_stats(q, f_list, name=None, reordered_cs=False, prep=False):
@@ -1710,23 +1716,59 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False, more_ini_additive=
     logging.disable(logging.NOTSET)
     return vv, nn
 
-def write_panda_format_cs(cs, fname=None):
+def write_panda_format_cs(cs, fname=None, newcode=True):
     if fname:
         filename = open(dir_math+"profiler/panda/"+fname, "w")
     else:
         filename = sys.stdout
-    print >> filename, 'Inequalities:'
-    for c in cs:
-        for x in c.coefficients():
-            print >> filename, -x,
-        print >> filename, -c.inhomogeneous_term()
-        if c.is_equality():
+    if newcode:
+        panda_string = convert_pplcs_to_panda(cs)
+        print >> filename, panda_string
+    else:
+        print >> filename, 'Inequalities:'
+        for c in cs:
             for x in c.coefficients():
-                print >> filename, x,
-            print >> filename, c.inhomogeneous_term()
+                print >> filename, -x,
+            print >> filename, -c.inhomogeneous_term()
+            if c.is_equality():
+                for x in c.coefficients():
+                    print >> filename, x,
+                print >> filename, c.inhomogeneous_term()
     if fname:
         filename.close()
     return
+
+def convert_pplcs_to_panda(cs):
+    s = "Names\n"
+    q = cs.space_dimension() - 1;
+    for i in range(1, q+2):
+        s += "x%s " % i
+    s += "\n"
+    s += 'Equations\n'
+    for c in cs:
+        if c.is_equality():
+            coefs = c.coefficients()
+            for i in range(q+1):
+                x = coefs[i]
+                if x > 0:
+                    s += '+%sx%s ' % (x, i+1)
+                elif x < 0:
+                    s += '%sx%s ' % (x, i+1)
+            s += '= '
+            s += '%s\n' % -c.inhomogeneous_term()
+    s += 'Inequalities\n'
+    for c in cs:
+        if not c.is_equality():
+            coefs = c.coefficients()
+            for i in range(q+1):
+                x = coefs[i]
+                if x > 0:
+                    s += '+%sx%s ' % (x, i+1)
+                elif x < 0:
+                    s += '%sx%s ' % (x, i+1)
+            s += '>= '
+            s += '%s\n' % -c.inhomogeneous_term()
+    return s
 
 def write_porta_ieq(q, f, destdir=None):
     vertices_color = initial_vertices_color(q, f);
@@ -2036,4 +2078,92 @@ def lcdd_rational(in_str, verbose=False):
 
         return out_str
 
+def measure_stats_detail(q, f, prep=True):
+    vertices_color = initial_vertices_color(q, f);
+    cs = initial_cs(q, f, vertices_color)
+    polytope = C_Polyhedron(cs)
+    exp_dim = int(q / 2) - 1
+    time_start = os.times()
+    extreme_points = vertex_enumeration(polytope, prep=prep, exp_dim=exp_dim)
+    time_end = os.times()
+    t = sum([time_end[i]-time_start[i] for i in range(4)])
+    num = len(extreme_points)
+    slope = []
+    extreme = []
+    vdenominator = []
+    sdenominator = []
+    for v in extreme_points:
+        v_n = v.coefficients()
+        s = set([v_n[i+1] - v_n[i] for i in range(q)])
+        ns = len(s)
+        slope.append(ZZ(ns))
+        if ns == 2:
+            extreme.append(ZZ(1))
+        else:
+            whether_covered = all_intervals_covered(q, f, v_n, [])
+            if whether_covered:
+                extreme.append(ZZ(1))
+            else:
+                extreme.append(ZZ(0))
+        divisor = v.divisor()
+        vdenominator.append(ZZ(divisor))
+        gcd_s = gcd(list(s)+[divisor])
+        sdenominator.append(ZZ(divisor / gcd_s))
+    return t, ZZ(num), slope, extreme, vdenominator, sdenominator     
+    
+def write_stats_detail(q, prep=True, destdir=None):
+    if destdir is None:
+        filename = sys.stdout
+    elif destdir == 'yuan':
+        filename = open(dir_yuan+"profiler/sage_input/stats_q%s.sage" % q, "a")
+    else:
+        filename = open(dir_math+"profiler/sage_input/stats_q%s.sage" % q, "a")
+    
+    t_enumeration = []
+    n_vertex = []
+    n_slope = []
+    is_extreme = []
+    denominator_v = []
+    denominator_s = []
+    max_denominator_v = []
+    max_denominator_s = []
+    
+    for f in range(1, int(q/2)+1):
+        t, num, slope, extreme, vdenominator, sdenominator = measure_stats_detail(q, f, prep=prep)
+        t_enumeration.append(t)
+        n_vertex.append(num)
+        n_slope.append(slope)
+        is_extreme.append(extreme)
+        denominator_v.append(vdenominator)
+        denominator_s.append(sdenominator)
+        max_denominator_v.append(max(vdenominator))
+        max_denominator_s.append(max(sdenominator)) 
+
+    print >> filename, "t_enumeration =",
+    print >> filename, sage_input(t_enumeration)
+    print >> filename
+    print >> filename, "n_vertex =",
+    print >> filename, sage_input(n_vertex)
+    print >> filename
+    print >> filename, "n_slope =",
+    print >> filename, sage_input(n_slope)
+    print >> filename
+    print >> filename, "is_extreme =",
+    print >> filename, sage_input(is_extreme)
+    print >> filename
+    print >> filename, "denominator_v =",
+    print >> filename, sage_input(denominator_v)
+    print >> filename
+    print >> filename, "denominator_s =",
+    print >> filename, sage_input(denominator_s)
+    print >> filename
+    print >> filename, "max_denominator_v =",
+    print >> filename, sage_input(max_denominator_v)
+    print >> filename
+    print >> filename, "max_denominator_s =",
+    print >> filename, sage_input(max_denominator_s)
+    
+    if destdir:
+        filename.close()
+    return
 
