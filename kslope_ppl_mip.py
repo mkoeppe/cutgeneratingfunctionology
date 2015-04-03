@@ -861,8 +861,7 @@ def vertex_enumeration(polytope, prep=True, exp_dim=-1, vetime=False):
         # preprocessing and vertex enumertation using redund + lrs
         cs = polytope.constraints()
         cs_prep_lrs_str = remove_redundancy_from_cs(cs, return_lrs=True)
-        v_lrs_str = lrs_lrs(cs_prep_lrs_str)
-        extreme_points = convert_lrs_to_ppl(v_lrs_str)
+        extreme_points = lrs_lrsinput_pploutput(cs_prep_lrs_str)
     else:
         # preprocessing and vertex enumertation using redund + ppl
         cs = polytope.constraints()
@@ -871,6 +870,7 @@ def vertex_enumeration(polytope, prep=True, exp_dim=-1, vetime=False):
         extreme_points = polytope.minimized_generators()
     if vetime:
         et = os.times(); 
+        logging.info("user=%s, sys=%s, child user=%s, child sys=%s" %(et[0]-st[0], et[1]-st[1], et[2]-st[2], et[3]-st[3]))
         t = sum([et[i]-st[i] for i in range(4)]);
         logging.info("Vertex enumeration time = %s" % t)
     return extreme_points
@@ -2047,45 +2047,64 @@ def remove_redundancy_from_cs(cs, verbose=False, return_lrs=False):
         return convert_lrs_to_ppl(out_str)
 
 def lrs_lrs(in_str, verbose=False):
-        """
-        use the command 'lrs' from lrslib.
-        Input: lrs format in_str; Output: lrs format out_str;
-        """
-        if is_package_installed('lrs') != True:
-            print 'You must install the optional lrs package ' \
-                  'for this function to work'
-            raise NotImplementedError
+    """
+    use the command 'lrs' from lrslib.
+    Input: lrs format in_str; Output: lrs format out_str;
+    """
+    if is_package_installed('lrs') != True:
+        print 'You must install the optional lrs package ' \
+              'for this function to work'
+        raise NotImplementedError
+    in_filename = tmp_filename()
+    in_file = file(in_filename,'w')
+    in_file.write(in_str)
+    in_file.close()
+    if verbose: print in_str
 
-        in_filename = tmp_filename()
-        in_file = file(in_filename,'w')
-        in_file.write(in_str)
-        in_file.close()
-        if verbose: print in_str
+    redund_procs = Popen(['lrs',in_filename],stdin = PIPE, stdout=PIPE, stderr=PIPE)
+    out_str, err = redund_procs.communicate()
+    if verbose:
+        print out_str
+    return out_str
 
-        redund_procs = Popen(['lrs',in_filename],stdin = PIPE, stdout=PIPE, stderr=PIPE)
-        out_str, err = redund_procs.communicate()
-        if verbose:
-            print out_str
+def lrs_lrsinput_pploutput(in_str):
+    """
+    use the command 'lrs' from lrslib.
+    Input: lrs format in_str; Output: ppl format extreme_points;
+    
+    EXAMPLES::
 
-        return out_str
-
+        sage: cube_in_str = "cube\n*cube of side 2 centred at origin\nH-representation\nbegin\n6  4 rational" + \
+        ...                 "\n1 1 0 0\n1 0 1 0\n1 0 0 1\n1 -1 0 0\n1 0 -1 0\n1 0 0 -1\nend"
+        sage: lrs_lrsinput_pploutput(cube_in_str)
+        Generator_System {point(1/1, 1/1, 1/1), point(-1/1, 1/1, 1/1), point(1/1, -1/1, 1/1), point(-1/1, -1/1, 1/1), point(1/1, 1/1, -1/1), point(-1/1, 1/1, -1/1), point(1/1, -1/1, -1/1), point(-1/1, -1/1, -1/1)}
+        sage: lrs_q5f3_str = "lrs_q5f3\nH-representation\nlinearity 5 1 2 3 13 21\nbegin\n21 7 rational" + \
+        ...                  "\n0 1 0 0 0 0 0\n0 0 0 0 0 0 1\n-1 0 0 0 1 0 0\n0 0 1 0 0 0 0\n1 0 -1 0 0 0 0\n0 0 0 1 0 0 0\n1 0 0 -1 0 0 0\n0 0 0 0 1 0 0" + \
+        ...                  "\n1 0 0 0 -1 0 0\n0 0 0 0 0 1 0\n1 0 0 0 0 -1 0\n0 0 2 -1 0 0 0\n0 0 1 1 -1 0 0\n0 0 1 0 1 -1 0\n0 -1 1 0 0 1 0" + \
+        ...                  "\n0 0 0 2 0 -1 0\n0 -1 0 1 1 0 0\n0 0 -1 1 0 1 0\n0 0 -1 0 2 0 0\n0 0 0 -1 1 1 0\n0 0 0 0 1 -2 0\nend"
+        sage: lrs_lrsinput_pploutput(lrs_q5f3_str)
+        Generator_System {point(0/6, 2/6, 4/6, 6/6, 3/6, 0/6), point(0/4, 3/4, 1/4, 4/4, 2/4, 0/4)}    
+    """
+    v_lrs_str = lrs_lrs(in_str)
+    extreme_points = convert_lrs_to_ppl(v_lrs_str)
+    return extreme_points
+   
 def lcdd_rational(in_str, verbose=False):
-        """
-        use the command 'lcdd_gmp' from cddlib.
-        Input: cdd format in_str; Output: cdd format out_str;
-        """
-        in_filename = tmp_filename()
-        in_file = file(in_filename,'w')
-        in_file.write(in_str)
-        in_file.close()
-        if verbose: print in_str
-
-        redund_procs = Popen(['lcdd_gmp',in_filename],stdin = PIPE, stdout=PIPE, stderr=PIPE)
-        out_str, err = redund_procs.communicate()
-        if verbose:
-            print out_str
-
-        return out_str
+    """
+    use the command 'lcdd_gmp' from cddlib.
+    Input: cdd format in_str; Output: cdd format out_str;
+    """
+    in_filename = tmp_filename()
+    in_file = file(in_filename,'w')
+    in_file.write(in_str)
+    in_file.close()
+    if verbose: 
+        print in_str
+    redund_procs = Popen(['lcdd_gmp',in_filename],stdin = PIPE, stdout=PIPE, stderr=PIPE)
+    out_str, err = redund_procs.communicate()
+    if verbose:
+        print out_str
+    return out_str
 
 def measure_stats_detail(q, f, prep=True):
     vertices_color = initial_vertices_color(q, f);
