@@ -1825,60 +1825,77 @@ class FastPiecewise (PiecewisePolynomial):
             point_kwds['legend_label'] = kwds['legend_label']
         # Whether to plot discontinuity markers
         discontinuity_markers = kwds.pop('discontinuity_markers', True)
+        if self._is_continuous:
+            discontinuity_markers = False
         # record last right endpoint, then compare with next left endpoint to decide whether it needs to be plotted.
         last_end_point = []
         last_closed = True
-        for (i, f) in self.list():
-            a = i[0]
-            b = i[1]
-            left_closed = True
-            right_closed = True
-            if len(i) > 2: # coho interval
-                left_closed = i.left_closed
-                right_closed = i.right_closed
-            # using the above data.
-            if (xmin is not None) and (a < xmin):
-                a = xmin
+
+        # if self._periodic_extension is True, plot the periodic extension of the function.
+        bkpt_leftmost = self._end_points[0]
+        bkpt_rightmost = self._end_points[-1]
+        period = bkpt_rightmost - bkpt_leftmost
+        if xmin is None or not self._periodic_extension:
+            period_left = 0
+        else:
+            period_left = floor((xmin - bkpt_leftmost)/period)
+        if xmax is None or not self._periodic_extension:
+            period_right = 1
+        else:
+            period_right = ceil((xmax - bkpt_leftmost)/period)
+
+        for t in range(period_left, period_right):
+            for (i, f) in self.list():
+                a = i[0] + t * period
+                b = i[1] + t * period
                 left_closed = True
-            if (xmax is not None) and (b > xmax):
-                b = xmax
                 right_closed = True
-            if discontinuity_markers:
-                # Handle open/half-open intervals here
-                if a < b or (a == b and left_closed and right_closed):
-                    if not (last_closed or last_end_point == [a, f(a)] and left_closed):
-                        # plot last open right endpoint
-                        g += point(last_end_point, color=color, pointsize=23, **point_kwds)
-                        delete_one_time_plot_kwds(point_kwds)
-                        g += point(last_end_point, rgbcolor='white', pointsize=10, **point_kwds)
-                    if last_closed and last_end_point != [] and last_end_point != [a, f(a)] and not left_closed:
-                        # plot last closed right endpoint
-                        g += point(last_end_point, color=color, pointsize=23, **point_kwds)
-                        delete_one_time_plot_kwds(point_kwds)
-                    if not (left_closed or last_end_point == [a, f(a)] and last_closed):
-                        # plot current open left endpoint
-                        g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
-                        delete_one_time_plot_kwds(point_kwds)
-                        g += point([a, f(a)], rgbcolor='white', pointsize=10, **point_kwds)
-                    if left_closed and last_end_point != [] and last_end_point != [a, f(a)] and not last_closed:
-                        # plot current closed left endpoint
-                        g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
-                        delete_one_time_plot_kwds(point_kwds)
-                    last_closed = right_closed
-                    last_end_point = [b, f(b)]
-            if a < b and (float(b) - float(a))/(plot_pts-1) != float(0):
-                # We do not plot anything if (float(b) - float(a))/(plot_pts-1) == float(0) because
-                # otherwise the plot method in src/plot/misc.py complains that
-                # "start point and endpoint must be different"
-                g += plot(f, *args, xmin=a, xmax=b, zorder=-1, **kwds)
-                # If it's the first piece, pass all arguments. Otherwise,
-                # filter out 'legend_label' so that we don't add each
-                # piece to the legend separately (trac #12651).
-                delete_one_time_plot_kwds(kwds)
-                #delete_one_time_plot_kwds(point_kwds)
-            elif a == b and left_closed and right_closed:
-                g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
-                delete_one_time_plot_kwds(point_kwds)
+                if len(i) > 2: # coho interval
+                    left_closed = i.left_closed
+                    right_closed = i.right_closed
+                # using the above data.
+                if (xmin is not None) and (a < xmin):
+                    a = xmin
+                    left_closed = True
+                if (xmax is not None) and (b > xmax):
+                    b = xmax
+                    right_closed = True
+                if discontinuity_markers:
+                    # Handle open/half-open intervals here
+                    if a < b or (a == b and left_closed and right_closed):
+                        if not (last_closed or last_end_point == [a, f(a - t * period)] and left_closed):
+                            # plot last open right endpoint
+                            g += point(last_end_point, color=color, pointsize=23, **point_kwds)
+                            delete_one_time_plot_kwds(point_kwds)
+                            g += point(last_end_point, rgbcolor='white', pointsize=10, **point_kwds)
+                        if last_closed and last_end_point != [] and last_end_point != [a, f(a - t * period)] and not left_closed:
+                            # plot last closed right endpoint
+                            g += point(last_end_point, color=color, pointsize=23, **point_kwds)
+                            delete_one_time_plot_kwds(point_kwds)
+                        if not (left_closed or last_end_point == [a, f(a - t * period)] and last_closed):
+                            # plot current open left endpoint
+                            g += point([a, f(a - t * period)], color=color, pointsize=23, **point_kwds)
+                            delete_one_time_plot_kwds(point_kwds)
+                            g += point([a, f(a - t * period)], rgbcolor='white', pointsize=10, **point_kwds)
+                        if left_closed and last_end_point != [] and last_end_point != [a, f(a - t * period)] and not last_closed:
+                            # plot current closed left endpoint
+                            g += point([a, f(a - t * period)], color=color, pointsize=23, **point_kwds)
+                            delete_one_time_plot_kwds(point_kwds)
+                        last_closed = right_closed
+                        last_end_point = [b, f(b - t * period)]
+                if a < b and (float(b) - float(a))/(plot_pts-1) != float(0):
+                    # We do not plot anything if (float(b) - float(a))/(plot_pts-1) == float(0) because
+                    # otherwise the plot method in src/plot/misc.py complains that
+                    # "start point and endpoint must be different"
+                    g += plot(f, *args, xmin=a, xmax=b, zorder=-1, **kwds)g += plot(lambda x: f(x - t * period), *args, xmin=a, xmax=b, zorder=-1, **kwds)
+                    # If it's the first piece, pass all arguments. Otherwise,
+                    # filter out 'legend_label' so that we don't add each
+                    # piece to the legend separately (trac #12651).
+                    delete_one_time_plot_kwds(kwds)
+                    #delete_one_time_plot_kwds(point_kwds)
+                elif a == b and left_closed and right_closed and discontinuity_markers:
+                    g += point([a, f(a - t * period)], color=color, pointsize=23, **point_kwds)
+                    delete_one_time_plot_kwds(point_kwds)
         # plot open rightmost endpoint. minimal functions don't need this.
         if discontinuity_markers and not last_closed:
             g += point(last_end_point, color=color,pointsize=23, **point_kwds)
