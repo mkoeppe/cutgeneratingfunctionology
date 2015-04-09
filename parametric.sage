@@ -1,3 +1,10 @@
+# Make sure current directory is in path.  
+# That's not true while doctesting (sage -t).
+if '' not in sys.path:
+    sys.path = [''] + sys.path
+
+from igp import *
+
 import sage.structure.element
 from sage.structure.element import FieldElement
 
@@ -100,7 +107,8 @@ class SymbolicRealNumberField(number_field_base.NumberField):
 
         sage: K.<f> = SymbolicRealNumberField([4/5])
         sage: h = gmic(f, field=K)
-        sage: generate_maximal_additive_faces(h)
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: generate_maximal_additive_faces(h);
         sage: K.get_eq_list()
         set([0])
         sage: K.get_lt_list()
