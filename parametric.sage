@@ -63,7 +63,11 @@ class SymbolicRNFElement(FieldElement):
         return float(self._val)
 
     def __repr__(self):
-        return repr(self._sym)
+        r = repr(self._sym)
+        if len(r) > 1:
+            return '('+r+')~'
+        else:
+            return r+'~'
 
     def _latex_(self):
         return "%s" % (latex(self._sym))
@@ -109,10 +113,10 @@ class SymbolicRealNumberField(number_field_base.NumberField):
         sage: h = gmic(f, field=K)
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: generate_maximal_additive_faces(h);
-        sage: K.get_eq_list()
-        set([0])
-        sage: K.get_lt_list()
-        set([2*f - 2, f - 2, -f, f - 1, -1/f, -f - 1, -2*f, -2*f + 1, -1/(-f^2 + f), -1])
+        sage: list(K.get_eq_list())
+        [0]
+        sage: list(K.get_lt_list())
+        [2*f - 2, f - 2, -f, f - 1, -1/f, -f - 1, -2*f, -2*f + 1, -1/(-f^2 + f), -1]
 
         sage: K.<f, lam> = SymbolicRealNumberField([4/5, 1/6])
         sage: h = gj_2_slope(f, lam, field=K)
@@ -124,9 +128,7 @@ class SymbolicRealNumberField(number_field_base.NumberField):
         self._zero_element = SymbolicRNFElement(0, parent=self)
         self._one_element =  SymbolicRNFElement(1, parent=self)
         self._eq = set([])
-        #self._le = set([])
         self._lt = set([])
-        #self._ne = set([])
         vnames = PolynomialRing(QQ, names).fraction_field().gens();
         self._gens = [ SymbolicRNFElement(value, name, parent=self) for (value, name) in izip(values, vnames) ]
 
@@ -141,19 +143,11 @@ class SymbolicRealNumberField(number_field_base.NumberField):
         return CallableConvertMap(S, self, lambda s: SymbolicRNFElement(s, parent=self), parent_as_first_arg=False)
     def get_eq_list(self):
         return self._eq
-    #def get_le_list(self):
-    #    return self._le
     def get_lt_list(self):
         return self._lt
-    #def get_ne_list(self):
-    #    return self._ne
     def record_to_eq_list(self, comparison):
         self._eq.add(comparison)
-    #def record_to_le_list(self, comparison):
-    #    self._le.add(comparison)
     def record_to_lt_list(self, comparison):
         self._lt.add(comparison)
-    #def record_to_ne_list(self, comparison):
-    #    self._ne.add(comparison)
 
 default_symbolic_field = SymbolicRealNumberField()
