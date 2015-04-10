@@ -116,22 +116,22 @@ class SymbolicRealNumberField(number_field_base.NumberField):
         sage: list(K.get_eq_list())
         [0]
         sage: list(K.get_eq_poly())
-        [0]
+        []
         sage: list(K.get_lt_list())
         [2*f - 2, f - 2, -f, f - 1, -1/f, -f - 1, -2*f, -2*f + 1, -1/(-f^2 + f), -1]
         sage: list(K.get_lt_poly())
-        [2*f - 2, f - 2, f^2 - f, -f, f - 1, -f - 1, -2*f, -2*f + 1, -1]
+        [2*f - 2, f - 2, f^2 - f, -f, f - 1, -f - 1, -2*f, -2*f + 1]
 
         sage: K.<f, lam> = SymbolicRealNumberField([4/5, 1/6])
         sage: h = gj_2_slope(f, lam, field=K)
         sage: list(K.get_eq_list())
         [0]
         sage: list(K.get_eq_poly())
-        [0]
+        []
         sage: list(K.get_lt_list())
         [-1/2*f*lam - 1/2*f + 1/2*lam, lam - 1, f - 1, -lam, (-f*lam - f + lam)/(-f + 1), f*lam - lam, (-1/2)/(-1/2*f^2*lam - 1/2*f^2 + f*lam + 1/2*f - 1/2*lam), -f]
         sage: list(K.get_lt_poly())
-        [-1/2*f*lam - 1/2*f + 1/2*lam, lam - 1, f - 1, 1/2*f^2*lam + 1/2*f^2 - f*lam - 1/2*f + 1/2*lam, -lam, f*lam - lam, -f, -1/2, -1, -f*lam - f + lam]
+        [f - 1, -f*lam - f + lam, -1/2*f*lam - 1/2*f + 1/2*lam, 1/2*f^2*lam + 1/2*f^2 - f*lam - 1/2*f + 1/2*lam, -lam, f*lam - lam, -f, lam - 1]
     """
 
     def __init__(self, values=[], names=()):
@@ -179,13 +179,14 @@ class SymbolicRealNumberField(number_field_base.NumberField):
             self.record_poly(comparison.numerator())
             self.record_poly(comparison.denominator())
     def record_poly(self, poly):
-        v = poly(self._values)
-        if v == 0:
-            self.record_to_eq_poly(poly)
-        elif v < 0:
-            self.record_to_lt_poly(poly)
-        else:
-            self.record_to_lt_poly(-poly)
+        if poly.degree() > 0:
+            v = poly(self._values)
+            if v == 0:
+                self.record_to_eq_poly(poly)
+            elif v < 0:
+                self.record_to_lt_poly(poly)
+            else:
+                self.record_to_lt_poly(-poly)
     def record_to_eq_poly(self, poly):
         if not poly in self._eq_poly:
             logging.info("New element in %s._eq_poly: %s" % (repr(self), poly))
