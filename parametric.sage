@@ -110,16 +110,28 @@ class SymbolicRealNumberField(number_field_base.NumberField):
     EXAMPLES::
 
         sage: K.<f> = SymbolicRealNumberField([4/5])
-        sage: h = gmic(f, field=K)
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-        sage: generate_maximal_additive_faces(h);
+        sage: h = gmic(f, field=K)
+        sage: _ = generate_maximal_additive_faces(h);
         sage: list(K.get_eq_list())
+        [0]
+        sage: list(K.get_eq_poly())
         [0]
         sage: list(K.get_lt_list())
         [2*f - 2, f - 2, -f, f - 1, -1/f, -f - 1, -2*f, -2*f + 1, -1/(-f^2 + f), -1]
+        sage: list(K.get_lt_poly())
+        [2*f - 2, f - 2, f^2 - f, -f, f - 1, -f - 1, -2*f, -2*f + 1, -1]
 
         sage: K.<f, lam> = SymbolicRealNumberField([4/5, 1/6])
         sage: h = gj_2_slope(f, lam, field=K)
+        sage: list(K.get_eq_list())
+        [0]
+        sage: list(K.get_eq_poly())
+        [0]
+        sage: list(K.get_lt_list())
+        [-1/2*f*lam - 1/2*f + 1/2*lam, lam - 1, f - 1, -lam, (-f*lam - f + lam)/(-f + 1), f*lam - lam, (-1/2)/(-1/2*f^2*lam - 1/2*f^2 + f*lam + 1/2*f - 1/2*lam), -f]
+        sage: list(K.get_lt_poly())
+        [-1/2*f*lam - 1/2*f + 1/2*lam, lam - 1, f - 1, 1/2*f^2*lam + 1/2*f^2 - f*lam - 1/2*f + 1/2*lam, -lam, f*lam - lam, -f, -1/2, -1, -f*lam - f + lam]
     """
 
     def __init__(self, values=[], names=()):
@@ -129,8 +141,11 @@ class SymbolicRealNumberField(number_field_base.NumberField):
         self._one_element =  SymbolicRNFElement(1, parent=self)
         self._eq = set([])
         self._lt = set([])
+        self._eq_poly = set([])
+        self._lt_poly = set([])
         vnames = PolynomialRing(QQ, names).fraction_field().gens();
         self._gens = [ SymbolicRNFElement(value, name, parent=self) for (value, name) in izip(values, vnames) ]
+        self._values = values
 
     def _first_ngens(self, n):
         for i in range(n):
@@ -141,13 +156,43 @@ class SymbolicRealNumberField(number_field_base.NumberField):
     def _coerce_map_from_(self, S):
         # print "_coerce_map_from: self = %s, S = %s" % (self, S)
         return CallableConvertMap(S, self, lambda s: SymbolicRNFElement(s, parent=self), parent_as_first_arg=False)
+    def __repr__(self):
+        return 'SymbolicRNF%s' %repr(self.gens())
     def get_eq_list(self):
         return self._eq
     def get_lt_list(self):
         return self._lt
+    def get_eq_poly(self):
+        return self._eq_poly
+    def get_lt_poly(self):
+        return self._lt_poly
     def record_to_eq_list(self, comparison):
-        self._eq.add(comparison)
+        if not comparison in self._eq:
+            logging.info("New element in %s._eq: %s" % (repr(self), comparison))
+            self._eq.add(comparison)
+            self.record_poly(comparison.numerator())
+            #FIXME: also need comparison.denominator() != 0
     def record_to_lt_list(self, comparison):
-        self._lt.add(comparison)
+        if not comparison in self._lt:
+            logging.info("New element in %s._lt: %s" % (repr(self), comparison))
+            self._lt.add(comparison)
+            self.record_poly(comparison.numerator())
+            self.record_poly(comparison.denominator())
+    def record_poly(self, poly):
+        v = poly(self._values)
+        if v == 0:
+            self.record_to_eq_poly(poly)
+        elif v < 0:
+            self.record_to_lt_poly(poly)
+        else:
+            self.record_to_lt_poly(-poly)
+    def record_to_eq_poly(self, poly):
+        if not poly in self._eq_poly:
+            logging.info("New element in %s._eq_poly: %s" % (repr(self), poly))
+            self._eq_poly.add(poly)
+    def record_to_lt_poly(self, poly):
+        if not poly in self._lt_poly:
+            logging.info("New element in %s._lt_poly: %s" % (repr(self), poly))
+            self._lt_poly.add(poly)
 
 default_symbolic_field = SymbolicRealNumberField()
