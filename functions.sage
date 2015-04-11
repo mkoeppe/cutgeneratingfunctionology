@@ -466,14 +466,14 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
         ...                      [open_interval(1/4, 1), FastLinearFunction(4/3, -1/3)],
         ...                      [singleton_interval(1), FastLinearFunction(0,0)]])
         sage: plot_2d_diagram(h)
-
+        Graphics object ...
         sage: h = FastPiecewise([[closed_interval(0,1/4), FastLinearFunction(4, 0)],
         ...                      [open_interval(1/4,1/2), FastLinearFunction(3, -3/4)],
         ...                      [closed_interval(1/2, 3/4), FastLinearFunction(-2, 7/4)],
         ...                      [open_interval(3/4,1), FastLinearFunction(3, -2)],
         ...                      [singleton_interval(1), FastLinearFunction(0,0)]])
         sage: plot_2d_diagram(h)
-
+        Graphics object ...
     """
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
@@ -1815,6 +1815,7 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f = FastPiecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
             sage: P = f.plot(rgbcolor=(0.7,0.1,0), plot_points=40)
             sage: P
+            Graphics object...
         
         Remember: to view this, type show(P) or P.save("path/myplot.png")
         and then open it in a graphics viewer such as GIMP.
