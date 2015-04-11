@@ -1,4 +1,4 @@
-SAGE=/Users/mkoeppe/s/sage/sage-5.11/sage
+SAGE=sage
 
 SAGEFILES =					\
 	bug_examples.sage			\
