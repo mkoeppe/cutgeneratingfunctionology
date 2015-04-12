@@ -169,17 +169,17 @@ class SymbolicRealNumberField(number_field_base.NumberField):
         return CallableConvertMap(S, self, lambda s: SymbolicRNFElement(s, parent=self), parent_as_first_arg=False)
     def __repr__(self):
         return 'SymbolicRNF%s' %repr(self.gens())
-    def __call__(self, x):
-        if isinstance(x, (int, long, sage.rings.integer.Integer)) and x==0:
-            return self.zero_element()
-        elif isinstance(x, (int, long, sage.rings.integer.Integer)) and x==1:
-            return self.one_element()
-        elif x in QQ:
-            return SymbolicRNFElement(x, parent=self)
-        elif isinstance(x, self._element_class):
-            return x
-        else:
-            raise NotImplementedError
+    def __call__(self, elt):
+        if parent(elt) == self:
+            return elt
+        try: 
+            QQ_elt = QQ(elt)
+            return SymbolicRNFElement(QQ_elt, parent=self)
+        except:
+            raise ValueError, "SymbolicRealNumberField called with element", elt
+
+    def _coerce_impl(self, x):
+        return self(x)
     def get_eq_list(self):
         return self._eq
     def get_lt_list(self):
