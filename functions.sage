@@ -1380,13 +1380,13 @@ class FastPiecewise (PiecewisePolynomial):
         if len(end_points) == 1 and end_points[0] is None:
             is_continuous = False
         elif len(end_points)>= 2:
-            [l0, m0, r0] = limits_at_end_points[0]
-            [l1, m1, r1] = limits_at_end_points[-1]
+            [m0, r0, l0] = limits_at_end_points[0]
+            [m1, r1, l1] = limits_at_end_points[-1]
             if m0 is None or r0 is None or  m0 != r0 or l1 is None or m1 is None or l1 != m1:
                 is_continuous = False
             else:
                 for i in range(1, len(end_points)-1):
-                    [l, m, r] = limits_at_end_points[i]
+                    [m, r, l] = limits_at_end_points[i]
                     if l is None or m is None or r is None or not(l == m == r):
                         is_continuous = False
                         break
