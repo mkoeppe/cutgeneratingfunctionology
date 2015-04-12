@@ -190,7 +190,7 @@ class SymbolicRealNumberField(number_field_base.NumberField):
             logging.info("New element in %s._eq: %s" % (repr(self), comparison))
             self._eq.add(comparison)
             self.record_poly(comparison.numerator())
-            #FIXME: also need comparison.denominator() != 0
+            self.record_poly(comparison.denominator())
     def record_to_lt_list(self, comparison):
         if not comparison in self._lt:
             logging.info("New element in %s._lt: %s" % (repr(self), comparison))
@@ -198,7 +198,7 @@ class SymbolicRealNumberField(number_field_base.NumberField):
             self.record_poly(comparison.numerator())
             self.record_poly(comparison.denominator())
     def record_poly(self, poly):
-        if poly.degree() > 0:
+        if not poly in QQ and poly.degree() > 0:
             v = poly(self._values)
             if v == 0:
                 self.record_to_eq_poly(poly)
