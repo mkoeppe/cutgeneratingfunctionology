@@ -3079,12 +3079,21 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
     field = function(0).parent().fraction_field()
     symbolic = generate_symbolic(function, components, field=field)
     equation_matrix = generate_additivity_equations(function, symbolic, field, f=f)
-    slope_jump_vects = equation_matrix.right_kernel().basis()
-    logging.info("Finite dimensional test: Solution space has dimension %s" % len(slope_jump_vects))
-    for basis_index in range(len(slope_jump_vects)):
-        slope_jump = slope_jump_vects[basis_index]
-        perturbation = slope_jump * symbolic
-        yield perturbation
+    if str(equation_matrix[0][0])[-1] == '~':
+        # This is parameter region search. Solution space should have dimension 0.
+        # To avoid right_kernel() calling matrix._pari_().matker() which causes error,
+        # we compute rank(equation_matrix)
+        if rank(equation_matrix) == equation_matrix.ncols():
+            logging.info("Finite dimensional test: Solution space has dimension 0")
+        else:
+            logging.info("Function with provided parameters is not extreme. Something was wrong!")
+    else:
+        slope_jump_vects = equation_matrix.right_kernel().basis()
+        logging.info("Finite dimensional test: Solution space has dimension %s" % len(slope_jump_vects))
+        for basis_index in range(len(slope_jump_vects)):
+            slope_jump = slope_jump_vects[basis_index]
+            perturbation = slope_jump * symbolic
+            yield perturbation
 
 def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn_about_uncovered_intervals=True, 
                                         show_all_perturbations=False):
