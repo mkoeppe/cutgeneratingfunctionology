@@ -17,6 +17,9 @@ class SymbolicRNFElement(FieldElement):
             raise ValueError, "SymbolicRNFElement invoked with parent=None. That's asking for trouble"
             parent = default_symbolic_field
         FieldElement.__init__(self, parent) ## this is so that canonical_coercion works.
+        ## Test coercing the value to RR, so that we do not try to build a SymbolicRNFElement
+        ## from something like a tuple or something else that does not make any sense.
+        RR(value)
         self._val = value
         if symbolic is None:
             self._sym = value # changed to not coerce into SR. -mkoeppe
