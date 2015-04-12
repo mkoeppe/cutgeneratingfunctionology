@@ -215,7 +215,8 @@ def generate_symbolic_continuous(function, components, field=None):
     intervals_and_slopes.sort()
     bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
     slopes = [ slope for interval, slope in intervals_and_slopes ]
-    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
+    # Use field=False so that nice_field_values does not try to do magic.
+    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=False)
 
 def generate_additivity_equations_continuous(function, symbolic, field, f=None):
     if f is None:

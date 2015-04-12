@@ -2068,6 +2068,8 @@ def nice_field_values(symb_values, field=None):
     Coerce the real numbers in the list `symb_values` into a convenient common field
     and return a list, parallel to `symb_values`, of the coerced values.
 
+    If `field` is `False`, the given numbers are returned as is.
+
     If all given numbers are rational, the field will be the rational
     field (`QQ`).  
 
@@ -2079,6 +2081,9 @@ def nice_field_values(symb_values, field=None):
     Otherwise, the given numbers are returned as is.
     """
     ### Add tests!
+    if field is False:
+        # do nothing
+        return symb_values
     if isinstance(field, SymbolicRealNumberField):
         syms = []
         vals = []
