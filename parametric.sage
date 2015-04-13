@@ -115,7 +115,8 @@ from sage.structure.coerce_maps import CallableConvertMap
 
 from itertools import izip
 
-class SymbolicRealNumberField(number_field_base.NumberField):
+#class SymbolicRealNumberField(number_field_base.NumberField):
+class SymbolicRealNumberField(Field):
     """
     Parametric search:
     EXAMPLES::
