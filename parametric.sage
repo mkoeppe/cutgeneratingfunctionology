@@ -143,6 +143,8 @@ class SymbolicRealNumberField(Field):
         [2*f - 2, f - 2, -f, f - 1, -1/f, -f - 1, -2*f, -2*f + 1, -1/(-f^2 + f), -1]
         sage: list(K.get_lt_poly())
         [2*f - 2, f - 2, f^2 - f, -f, f - 1, -f - 1, -2*f, -2*f + 1]
+        sage: list(K.get_lt_factor())
+        [f - 2, -f + 1/2, f - 1, -f - 1, -f]
 
         sage: K.<f, lam> = SymbolicRealNumberField([4/5, 1/6])
         sage: h = gj_2_slope(f, lam, field=K)
@@ -154,6 +156,8 @@ class SymbolicRealNumberField(Field):
         [-1/2*f*lam - 1/2*f + 1/2*lam, lam - 1, f - 1, -lam, (-f*lam - f + lam)/(-f + 1), f*lam - lam, (-1/2)/(-1/2*f^2*lam - 1/2*f^2 + f*lam + 1/2*f - 1/2*lam), -f]
         sage: list(K.get_lt_poly())
         [f - 1, -f*lam - f + lam, -1/2*f*lam - 1/2*f + 1/2*lam, 1/2*f^2*lam + 1/2*f^2 - f*lam - 1/2*f + 1/2*lam, -lam, f*lam - lam, -f, lam - 1]
+        sage: list(K.get_lt_factor())
+        [-lam, f - 1, -f*lam - f + lam, -f, lam - 1]
 
         sage: K.<f,alpha> = SymbolicRealNumberField([4/5, 3/10])
         sage: h=dg_2_step_mir(f, alpha, field=K, conditioncheck=False)
@@ -169,6 +173,8 @@ class SymbolicRealNumberField(Field):
         sage: h = drlm_3_slope_limit(f, conditioncheck=False)
         sage: extremality_test(h)
         True
+        sage: list(K.get_lt_factor())
+        [f - 1, f - 1/2, f - 1/3, f - 2, -f - 1, -f]
 
     """
 
@@ -181,6 +187,8 @@ class SymbolicRealNumberField(Field):
         self._lt = set([])
         self._eq_poly = set([])
         self._lt_poly = set([])
+        self._eq_factor = set([])
+        self._lt_factor = set([])
         vnames = PolynomialRing(QQ, names).fraction_field().gens();
         self._gens = [ SymbolicRNFElement(value, name, parent=self) for (value, name) in izip(values, vnames) ]
         self._values = values
@@ -215,6 +223,10 @@ class SymbolicRealNumberField(Field):
         return self._eq_poly
     def get_lt_poly(self):
         return self._lt_poly
+    def get_eq_factor(self):
+        return self._eq_factor
+    def get_lt_factor(self):
+        return self._lt_factor
     def record_to_eq_list(self, comparison):
         if not comparison in self._eq:
             logging.info("New element in %s._eq: %s" % (repr(self), comparison))
@@ -238,11 +250,26 @@ class SymbolicRealNumberField(Field):
                 self.record_to_lt_poly(-poly)
     def record_to_eq_poly(self, poly):
         if not poly in self._eq_poly:
-            logging.info("New element in %s._eq_poly: %s" % (repr(self), poly))
+            #logging.info("New element in %s._eq_poly: %s" % (repr(self), poly))
             self._eq_poly.add(poly)
+            for (fac, d) in poly.factor():
+                # record the factor if it's zero
+                if fac(self._values) == 0 and not fac in self._eq_factor:
+                    #logging.info("New element in %s._eq_factor: %s" % (repr(self), fac))
+                    self._eq_factor.add(fac)
     def record_to_lt_poly(self, poly):
         if not poly in self._lt_poly:
-            logging.info("New element in %s._lt_poly: %s" % (repr(self), poly))
+            #logging.info("New element in %s._lt_poly: %s" % (repr(self), poly))
             self._lt_poly.add(poly)
+            for (fac, d) in poly.factor():
+                # record the factor if it's raised to an odd power.
+                if d % 2 == 1:
+                    if fac(self._values) < 0:
+                        new_fac = fac
+                    else:
+                        new_fac = -fac
+                    if not new_fac in self._lt_factor:
+                        #logging.info("New element in %s._lt_factor: %s" % (repr(self), new_fac))
+                        self._lt_factor.add(new_fac)
 
 default_symbolic_field = SymbolicRealNumberField()
