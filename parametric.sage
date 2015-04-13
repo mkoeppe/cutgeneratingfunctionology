@@ -62,6 +62,16 @@ class SymbolicRNFElement(FieldElement):
         parent = self._val.parent()
         return cmp(self._val, parent._zero_element)
 
+    def floor(self):
+        result = floor(self._val)
+        result <= self < result + 1
+        return result
+
+    def ceil(self):
+        result = ceil(self._val)
+        result - 1 < self <= result
+        return result
+
     def __float__(self):
         return float(self._val)
 
@@ -144,6 +154,22 @@ class SymbolicRealNumberField(Field):
         [-1/2*f*lam - 1/2*f + 1/2*lam, lam - 1, f - 1, -lam, (-f*lam - f + lam)/(-f + 1), f*lam - lam, (-1/2)/(-1/2*f^2*lam - 1/2*f^2 + f*lam + 1/2*f - 1/2*lam), -f]
         sage: list(K.get_lt_poly())
         [f - 1, -f*lam - f + lam, -1/2*f*lam - 1/2*f + 1/2*lam, 1/2*f^2*lam + 1/2*f^2 - f*lam - 1/2*f + 1/2*lam, -lam, f*lam - lam, -f, lam - 1]
+
+        sage: K.<f,alpha> = SymbolicRealNumberField([4/5, 3/10])
+        sage: h=dg_2_step_mir(f, alpha, field=K, conditioncheck=False)
+        sage: extremality_test(h)
+        True
+
+        sage: K.<f,a1,a2,a3> = SymbolicRealNumberField([4/5, 1, 3/10, 2/25])
+        sage: h = kf_n_step_mir(f, (a1, a2, a3), conditioncheck=False)
+        sage: extremality_test(h)
+        True
+
+        sage: K.<f> = SymbolicRealNumberField([1/5])
+        sage: h = drlm_3_slope_limit(f, conditioncheck=False)
+        sage: extremality_test(h)
+        True
+
     """
 
     def __init__(self, values=[], names=()):
