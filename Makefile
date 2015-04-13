@@ -7,6 +7,7 @@ SAGEFILES =					\
 	discontinuous_case.sage			\
 	extreme_functions_in_literature.sage	\
 	functions.sage				\
+	parametric.sage				\
 	simple_extremality_test.sage		\
 	survey_examples.sage
 
