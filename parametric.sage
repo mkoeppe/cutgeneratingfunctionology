@@ -273,3 +273,133 @@ class SymbolicRealNumberField(Field):
                         self._lt_factor.add(new_fac)
 
 default_symbolic_field = SymbolicRealNumberField()
+
+from sage.libs.ppl import Variable, Constraint, Linear_Expression, Constraint_System, NNC_Polyhedron
+
+def polynomial_to_linexpr(t, monomial_list, v_dict):
+    # coefficients in ppl constraint must be integers.
+    lcd = lcm([x.denominator() for x in t.coefficients()])
+    linexpr = Linear_Expression(0)
+    #print 't=%s' % t
+    if len(t.args()) <= 1:
+        # sage.rings.polynomial.polynomial_rational_flint object has no attribute 'monomials'
+        for (k, c) in t.dict().items():
+            #print '(k, c) = (%s, %s)' % (k, c);
+            m = (t.args()[0])^k
+            if m in v_dict.keys():
+                v = v_dict[m]
+            elif k == 0:
+                # constant term, don't construct a new Variable for it.
+                v = 1
+            else:
+                nv = len(monomial_list)
+                v = Variable(nv)
+                v_dict[m] = v
+                monomial_list.append(m)
+            #print '(m, v) = (%s, %s)' % (m, v);
+            linexpr += (lcd * c) * v
+    else:
+        for m in t.monomials():
+            if m in v_dict.keys():
+                v = v_dict[m]
+            elif m == 1:
+                v = 1
+            else:
+                nv = len(monomial_list)
+                v = Variable(nv)
+                v_dict[m] = v
+                monomial_list.append(m)
+            coeffv = t.monomial_coefficient(m)
+            linexpr += (lcd * coeffv) * v
+    #print 'linexpr=%s' % linexpr
+    return linexpr
+
+def cs_of_eq_lt_poly(eq_poly, lt_poly):
+    monomial_list = []
+    v_dict ={}
+    cs = Constraint_System()
+    for t in eq_poly:
+        linexpr = polynomial_to_linexpr(t, monomial_list, v_dict)
+        cs.insert( linexpr == 0 )
+    for t in lt_poly:
+        linexpr = polynomial_to_linexpr(t, monomial_list, v_dict)
+        cs.insert( linexpr < 0 )
+    return cs, monomial_list, v_dict
+
+def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
+    """
+    Given polymonial equality and inequality lists.
+    Treat each monomial as a new variable.
+    This gives a linear inequality system.
+    Remove redundant inequalities using PPL.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: K.<f> = SymbolicRealNumberField([4/5])
+        sage: h = gmic(f, field=K)
+        sage: _ = extremality_test(h)
+        sage: eq_poly =list(K.get_eq_poly())
+        sage: lt_poly =list(K.get_lt_poly())
+        sage: (eq_poly, lt_poly)
+        ([], [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1])
+        sage: simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly)
+        ([], [f - 1, -2*f + 1, f^2 - f])
+
+        sage: eq_factor =list(K.get_eq_factor())
+        sage: lt_factor =list(K.get_lt_factor())
+        sage: (eq_factor, lt_factor)
+        ([], [f - 2, -f + 1/2, f - 1, -f - 1, -f])
+        sage: simplify_eq_lt_poly_via_ppl(eq_factor, lt_factor)
+        ([], [f - 1, -2*f + 1])
+
+        sage: K.<f, lam> = SymbolicRealNumberField([4/5, 1/6])
+        sage: h = gj_2_slope(f, lam, field=K, conditioncheck=False)
+        sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_poly()), list(K.get_lt_poly()))
+        ([], [f - 1, f*lam - lam, f^2*lam + f^2 - 2*f*lam - f + lam, -f*lam - f + lam])
+        sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_factor()), list(K.get_lt_factor()))
+        ([], [-f*lam - f + lam, f - 1, -lam])
+
+        sage: _ = extremality_test(h)
+        sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_poly()), list(K.get_lt_poly()))
+        ([], [f^2*lam + f^2 - 2*f*lam - f + lam, -2*f*lam + f + 2*lam - 1, -f*lam - 3*f + lam + 2, -lam, lam - 1, f*lam - lam])
+        sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_factor()), list(K.get_lt_factor()))
+        ([], [f*lam - 3*f - lam + 2, -f*lam - 3*f + lam + 2, 3*f*lam - f - 3*lam, -3*f*lam - f + 3*lam, -lam, f - 1, 2*lam - 1])
+
+        sage: K.<f,alpha> = SymbolicRealNumberField([4/5, 3/10])             # Bad example! parameter region = {given point}.
+        sage: h=dg_2_step_mir(f, alpha, field=K, conditioncheck=False)
+        sage: _ = extremality_test(h)
+        sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_poly()), list(K.get_lt_poly()))
+        ([-10*alpha + 3, -5*f + 4], [5*f^2 - 10*f*alpha - 1])
+        sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_factor()), list(K.get_lt_factor()))
+        ([-10*alpha + 3, -5*f + 4], [])
+
+        sage: K.<f> = SymbolicRealNumberField([1/5])
+        sage: h = drlm_3_slope_limit(f, conditioncheck=False)
+        sage: _ = extremality_test(h)
+        sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_poly()), list(K.get_lt_poly()))
+        ([], [3*f - 1, -f^2 - f, -f])
+        sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_factor()), list(K.get_lt_factor()))
+        ([], [3*f - 1, -f])
+
+    """
+    mineq = []
+    minlt = []
+    cs, monomial_list, v_dict = cs_of_eq_lt_poly(eq_poly, lt_poly)
+    #print 'cs = %s' % cs
+    p = NNC_Polyhedron(cs)
+    mincs = p.minimized_constraints()
+    #print 'mincs = %s' % mincs
+    #print 'monomial_list = %s' % monomial_list
+    #print 'v_dict = %s' % v_dict
+    for c in mincs:
+        coeff = c.coefficients()
+        # constraint is written with '>', while lt_poly records '<' relation
+        t = sum([-x*y for x, y in itertools.izip(coeff, monomial_list)]) - c.inhomogeneous_term()
+        if c.is_equality():
+            mineq.append(t)
+        else:
+            minlt.append(t)
+    # note that polynomials in mineq and minlt can have leading coefficient != 1
+    return mineq, minlt
+
