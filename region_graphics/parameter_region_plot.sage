@@ -91,8 +91,11 @@ def regionplot(K, color="blue", alpha=0.5, legend_label=None, xmin=-0.1, xmax=1.
 def regionplot_two_parameters(fun_name="drlm_backward_3_slope", var_name=('f','b'), var_value=[1/12-1/30, 2/12], \
                               xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000):
     """
-    sage: regionplot_two_parameters("drlm_backward_3_slope", ('f','b'), [1/12-1/30, 2/12])
-    sage: regionplot_two_parameters("drlm_backward_3_slope", ('f','b'), [1/12+1/30, 2/12])
+    sage: logging.disable(logging.INFO)
+    sage: g, fname, fparam = regionplot_two_parameters("drlm_backward_3_slope", ('f','b'), [1/12-1/30, 2/12])
+    sage: g.save(fname+".pdf", title=fname+fparam, legend_loc=7)
+    sage: g, fname, fparam = regionplot_two_parameters("drlm_backward_3_slope", ('f','b'), [1/12+1/30, 2/12])
+    sage: g, fname, fparam = regionplot_two_parameters("gj_2_slope", ('f','lam'), [3/5, 1/6], plot_points=100)
     """
     K = SymbolicRealNumberField(var_value, var_name)
     if len(var_name) == 2:
@@ -116,10 +119,7 @@ def regionplot_two_parameters(fun_name="drlm_backward_3_slope", var_name=('f','b
                         xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
     p = point([K._values],color = "white", size = 10, zorder=5)
     g = reg_cf+reg_ct+reg_cfm+reg_cfe+p
-    return g
-    
-#sage: logging.disable(logging.INFO)
-#sage: g1 = regionplot_two_parameters("drlm_backward_3_slope", ('f','b'), [1/12-1/30, 2/12])
-#sage: g1.save("drlm_backward_3_slope_1.pdf", title="drlm_backward_3_slope(1/12-1/30, 2/12)",legend_loc=7)
-#sage: g2= regionplot_two_parameters("drlm_backward_3_slope", ('f','b'), [1/12+1/30, 2/12])
-#sage: g2.save("drlm_backward_3_slope_2.pdf", title="drlm_backward_3_slope(1/12+1/30, 2/12)",legend_loc=7)
+    fun_param = "(%s=%s, %s=%s)" % (var_name[0], var_value[0], var_name[1], var_value[1]) 
+    g.show(show_legend=False, title=fun_name+fun_param) #, axes_labels=var_name)
+    return g, fun_name, fun_param
+
