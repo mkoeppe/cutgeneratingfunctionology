@@ -191,7 +191,18 @@ class SymbolicRealNumberField(Field):
         self._lt_factor = set([])
         vnames = PolynomialRing(QQ, names).fraction_field().gens();
         self._gens = [ SymbolicRNFElement(value, name, parent=self) for (value, name) in izip(values, vnames) ]
+        self._names = names
         self._values = values
+
+    def __copy__(self):
+        Kcopy = self.__class__(self._values, self._names)
+        Kcopy._eq.update(self._eq)
+        Kcopy._lt.update(self._lt)
+        Kcopy._eq_poly.update(self._eq_poly)
+        Kcopy._lt_poly.update(self._lt_poly)
+        Kcopy._eq_factor.update(self._eq_factor)
+        Kcopy._lt_factor.update(self._lt_factor)
+        return Kcopy
 
     def _first_ngens(self, n):
         for i in range(n):
