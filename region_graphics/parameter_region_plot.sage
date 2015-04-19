@@ -87,29 +87,39 @@ def regionplot(K, color="blue", alpha=0.5, legend_label=None, xmin=-0.1, xmax=1.
     g = region_plot_patch([ lhs(x, y) < 0 for lhs in lin ], (x, xmin, xmax), (y, ymin, ymax), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
     g += line([(0,0),(0,1)], color = color, legend_label=legend_label, alpha = alpha, zorder=-10)
     return g
-    
-def regionplot_drlm_backward_3_slope(f_val=1/12-1/1000, b_val=2/12, plot_points=1000):
-    K.<f, b> = SymbolicRealNumberField([f_val, b_val])
-    h = drlm_backward_3_slope(f, b, field=K, conditioncheck=False)
-    reg_cf = regionplot(K, color="orange", alpha=0.5, legend_label="construction", plot_points=plot_points)
 
+def regionplot_two_parameters(fun_name="drlm_backward_3_slope", var_name=('f','b'), var_value=[1/12-1/30, 2/12], \
+                              xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000):
+    """
+    sage: regionplot_two_parameters("drlm_backward_3_slope", ('f','b'), [1/12-1/30, 2/12])
+    sage: regionplot_two_parameters("drlm_backward_3_slope", ('f','b'), [1/12+1/30, 2/12])
+    """
+    K = SymbolicRealNumberField(var_value, var_name)
+    if len(var_name) == 2:
+        h = eval(fun_name)(K.gens()[0], K.gens()[1], field=K, conditioncheck=False)
+    else:
+        raise NotImplementedError, "Not 2 parameters. Not implemented."
+    reg_cf = regionplot(K, color="orange", alpha=0.5, legend_label="construction", \
+                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
     minimality_test(h)
-    reg_cfm = regionplot(K, color="green", alpha=0.5, legend_label="min_test", plot_points=plot_points)
-
+    reg_cfm = regionplot(K, color="green", alpha=0.5, legend_label="min_test", \
+                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
     extremality_test(h)
-    reg_cfe = regionplot(K, color="blue", alpha=0.5, legend_label="ext_test", plot_points=plot_points)
-
-    K.<f, b> = SymbolicRealNumberField([f_val, b_val])
-    h = drlm_backward_3_slope(f, b, field=K, conditioncheck=True)
-    reg_ct  = regionplot(K, color="red", alpha=0.5, legend_label="conditioncheck", plot_points=plot_points)
-
+    reg_cfe = regionplot(K, color="blue", alpha=0.5, legend_label="ext_test", \
+                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+    K = SymbolicRealNumberField(var_value, var_name)
+    if len(var_name) == 2:
+        h = eval(fun_name)(K.gens()[0], K.gens()[1], field=K, conditioncheck=True)
+    else:
+        raise NotImplementedError, "Not 2 parameters. Not implemented."
+    reg_ct  = regionplot(K, color="red", alpha=0.5, legend_label="conditioncheck", \
+                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
     p = point([K._values],color = "white", size = 10, zorder=5)
-
     g = reg_cf+reg_ct+reg_cfm+reg_cfe+p
     return g
     
 #sage: logging.disable(logging.INFO)
-#sage: g1 = regionplot_drlm_backward_3_slope(f_val=1/12-1/30, b_val=2/12)
+#sage: g1 = regionplot_two_parameters("drlm_backward_3_slope", ('f','b'), [1/12-1/30, 2/12])
 #sage: g1.save("drlm_backward_3_slope_1.pdf", title="drlm_backward_3_slope(1/12-1/30, 2/12)",legend_loc=7)
-#sage: g2= regionplot_drlm_backward_3_slope(f_val=1/12+1/30, b_val=2/12)
+#sage: g2= regionplot_two_parameters("drlm_backward_3_slope", ('f','b'), [1/12+1/30, 2/12])
 #sage: g2.save("drlm_backward_3_slope_2.pdf", title="drlm_backward_3_slope(1/12+1/30, 2/12)",legend_loc=7)
