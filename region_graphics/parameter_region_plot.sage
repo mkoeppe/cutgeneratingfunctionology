@@ -6,8 +6,8 @@ from sage.plot.colors import rgbcolor, get_cmap
 from sage.misc.misc import xsrange
 import operator
 
-@options(plot_points=100, incol='blue', outcol='white', bordercol=None, borderstyle=None, borderwidth=None,frame=False,axes=True, legend_label=None, aspect_ratio=1)
-def region_plot_bis(f, xrange, yrange, plot_points, incol, outcol, bordercol, borderstyle, borderwidth, inalpha=0.5, outalpha=0, **options):
+@options(plot_points=100, incol='blue', outcol=None, bordercol=None, borderstyle=None, borderwidth=None,frame=False,axes=True, legend_label=None, aspect_ratio=1, alpha=1)
+def region_plot_patch(f, xrange, yrange, plot_points, incol, outcol, bordercol, borderstyle, borderwidth, alpha, **options):
     from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid
     import numpy
@@ -31,10 +31,15 @@ def region_plot_bis(f, xrange, yrange, plot_points, incol, outcol, bordercol, bo
 
     from matplotlib.colors import ListedColormap
     incol = rgbcolor(incol)
-    outcol = rgbcolor(outcol)
-    cmap = ListedColormap([incol, outcol])
-    cmap.set_over(outcol, alpha=outalpha)
-    cmap.set_under(incol, alpha=inalpha)
+    if outcol:
+        outcol = rgbcolor(outcol)
+        cmap = ListedColormap([incol, outcol])
+        cmap.set_over(outcol, alpha=alpha)
+    else:
+        outcol = rgbcolor('white')
+        cmap = ListedColormap([incol, outcol])
+        cmap.set_over(outcol, alpha=0)
+    cmap.set_under(incol, alpha=alpha)
 
     g = Graphics()
 
@@ -79,7 +84,7 @@ def regionplot(K, color="blue", alpha=0.5, legend_label=None, xmin=-0.1, xmax=1.
     leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
     if leq:
         print "WARNING: equation list is not empty!"
-    g = region_plot_bis([ lhs(x, y) < 0 for lhs in lin ], (x, xmin, xmax), (y, ymin, ymax), incol=color, inalpha=alpha, plot_points=plot_points, bordercol=color)
+    g = region_plot_patch([ lhs(x, y) < 0 for lhs in lin ], (x, xmin, xmax), (y, ymin, ymax), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
     g += line([(0,0),(0,1)], color = color, legend_label=legend_label, alpha = alpha, zorder=-10)
     return g
     
