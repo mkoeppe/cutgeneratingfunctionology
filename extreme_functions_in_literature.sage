@@ -386,7 +386,8 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
     if conditioncheck:
         if not bool(0 < f < bkpt < 1 + f - bkpt < 1):
             raise ValueError, "Bad parameters. Unable to construct the function."
-        if not ((f in QQ) & (bkpt in QQ) & bool(0 < f < bkpt < ((1 + f)/4) < 1)):
+        #if not ((f in QQ) & (bkpt in QQ) & bool(0 < f < bkpt < ((1 + f)/4) < 1)):
+        if not bool(0 < f < bkpt < ((1 + f)/4) < 1):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
