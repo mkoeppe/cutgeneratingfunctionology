@@ -481,17 +481,25 @@ def region_plot_patch(f, xrange, yrange, plot_points, incol, outcol, bordercol, 
 
     return g
 
-def plot_2d_parameter_region(K, color="blue", alpha=0.5, legend_label=None, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000):
+def plot_2d_parameter_region(K, color="blue", alpha=0.5, legend_label=None, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, level="factor", plot_points=1000):
     x,y = var('x,y')
-    leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
+    if level == "factor":
+        leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
+    elif level == "poly":
+        leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_poly(), K.get_lt_poly())
+    else:
+        leq = list(K.get_eq_list())
+        lin = list(K.get_lt_list())
+        #print leq, lin
     if leq:
         print "WARNING: equation list is not empty!"
+        print leq
     g = region_plot_patch([ lhs(x, y) < 0 for lhs in lin ], (x, xmin, xmax), (y, ymin, ymax), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
     g += line([(0,0),(0,1)], color = color, legend_label=legend_label, zorder=-10) #, alpha = alpha)
     return g
 
 def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f','b'), var_value=[1/12-1/30, 2/12], \
-                              xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000):
+                              xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, level="factor", plot_points=1000):
     """
     sage: logging.disable(logging.INFO)
     sage: g, fname, fparam = plot_parameter_region("drlm_backward_3_slope", ('f','b'), [1/12-1/30, 2/12])
@@ -505,7 +513,7 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f','b'), 
     else:
         raise NotImplementedError, "Not 2 parameters. Not implemented."
     reg_cf = plot_2d_parameter_region(K, color="orange", alpha=0.5, legend_label="construction", \
-                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
     is_minimal = minimality_test(h)
     if is_minimal:
         color_cfm = "green"
@@ -514,7 +522,7 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f','b'), 
         color_cfm = "darkslategrey"
         legend_cfm = "not_minimal"
     reg_cfm = plot_2d_parameter_region(K, color=color_cfm, alpha=0.5, legend_label=legend_cfm, \
-                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
 
     is_extreme = False
     if is_minimal:
@@ -526,7 +534,7 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f','b'), 
             color_cfe = "cyan" #"blueviolet"?
             legend_cfe = "not_extreme"
         reg_cfe = plot_2d_parameter_region(K, color=color_cfe, alpha=0.5, legend_label=legend_cfe, \
-                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
 
     K = SymbolicRealNumberField(var_value, var_name)
     if len(var_name) == 2:
@@ -540,7 +548,7 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f','b'), 
         color_ct = "grey"
         legend_ct ="cond_unsatisfied"
     reg_ct  = plot_2d_parameter_region(K, color=color_ct, alpha=0.5, legend_label=legend_ct, \
-                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
 
     p = point([K._values],color = "white", size = 10, zorder=10)
     if is_minimal:
