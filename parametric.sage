@@ -487,7 +487,7 @@ def plot_2d_parameter_region(K, color="blue", alpha=0.5, legend_label=None, xmin
     if leq:
         print "WARNING: equation list is not empty!"
     g = region_plot_patch([ lhs(x, y) < 0 for lhs in lin ], (x, xmin, xmax), (y, ymin, ymax), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
-    g += line([(0,0),(0,1)], color = color, legend_label=legend_label, alpha = alpha, zorder=-10)
+    g += line([(0,0),(0,1)], color = color, legend_label=legend_label, zorder=-10) #, alpha = alpha)
     return g
 
 def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f','b'), var_value=[1/12-1/30, 2/12], \
@@ -515,26 +515,60 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f','b'), 
         legend_cfm = "not_minimal"
     reg_cfm = plot_2d_parameter_region(K, color=color_cfm, alpha=0.5, legend_label=legend_cfm, \
                         xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
-    is_extreme = extremality_test(h)
-    if is_extreme:
-        color_cfe = "blue"
-        legend_cfe = "is_extreme"
-    else:
-        color_cfe = "cyan" #"blueviolet"?
-        legend_cfe = "not_extreme" 
-    reg_cfe = plot_2d_parameter_region(K, color=color_cfe, alpha=0.5, legend_label=legend_cfe, \
+
+    is_extreme = False
+    if is_minimal:
+        if is_extreme_qq_bkpt_known_min(h):
+            is_extreme = True
+            color_cfe = "blue"
+            legend_cfe = "is_extreme"
+        else:
+            color_cfe = "cyan" #"blueviolet"?
+            legend_cfe = "not_extreme"
+        reg_cfe = plot_2d_parameter_region(K, color=color_cfe, alpha=0.5, legend_label=legend_cfe, \
                         xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+
     K = SymbolicRealNumberField(var_value, var_name)
     if len(var_name) == 2:
         h = eval(fun_name)(K.gens()[0], K.gens()[1], field=K, conditioncheck=True)
     else:
         raise NotImplementedError, "Not 2 parameters. Not implemented."
-    reg_ct  = plot_2d_parameter_region(K, color="red", alpha=0.5, legend_label="conditioncheck", \
+    if is_extreme:
+        color_ct = "red"
+        legend_ct = "cond_satisfied"
+    else:
+        color_ct = "grey"
+        legend_ct ="cond_unsatisfied"
+    reg_ct  = plot_2d_parameter_region(K, color=color_ct, alpha=0.5, legend_label=legend_ct, \
                         xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
-    p = point([K._values],color = "white", size = 10, zorder=5)
-    g = reg_cf+reg_ct+reg_cfm+reg_cfe+p
-    fun_param = "(%s=%s, %s=%s)" % (var_name[0], var_value[0], var_name[1], var_value[1]) 
-    g.show(show_legend=False, title=fun_name+fun_param) #, axes_labels=var_name)
+
+    p = point([K._values],color = "white", size = 10, zorder=10)
+    if is_minimal:
+        g = reg_cf+reg_ct+reg_cfm+reg_cfe+p
+    else:
+        g = reg_cf+reg_ct+reg_cfm+p
+    fun_param = "(%s=%s, %s=%s)" % (var_name[0], var_value[0], var_name[1], var_value[1])
+    g.show(title=fun_name+fun_param) #show_legend=False, axes_labels=var_name)
     return g, fun_name, fun_param
 
-
+def is_extreme_qq_bkpt_known_min(function):
+    f = find_f(function, no_error_if_not_minimal_anyway=True)
+    covered_intervals = generate_covered_intervals(function)
+    uncovered_intervals = generate_uncovered_intervals(function)
+    if uncovered_intervals:
+        logging.info("Function has uncovered intervals, thus is NOT extreme.")
+        return False
+    else:
+        components = covered_intervals
+    field = function(0).parent().fraction_field()
+    symbolic = generate_symbolic(function, components, field=field)
+    equation_matrix = generate_additivity_equations(function, symbolic, field, f=f)
+    slope_jump_vects = equation_matrix.right_kernel_matrix()
+    sol_dim = slope_jump_vects.nrows()
+    if sol_dim > 0:
+        logging.info("Finite dimensional test: Solution space has dimension %s" % sol_dim)
+        logging.info("Thus the function is NOT extreme.")
+        return False
+    else:
+        logging.info("The function is extreme.")
+        return True
