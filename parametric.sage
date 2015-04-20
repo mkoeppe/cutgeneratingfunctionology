@@ -239,13 +239,13 @@ class SymbolicRealNumberField(Field):
     def get_lt_factor(self):
         return self._lt_factor
     def record_to_eq_list(self, comparison):
-        if not comparison in self._eq:
+        if not comparison.is_zero() and not comparison in QQ and not comparison in self._eq:
             logging.info("New element in %s._eq: %s" % (repr(self), comparison))
             self._eq.add(comparison)
             self.record_poly(comparison.numerator())
             self.record_poly(comparison.denominator())
     def record_to_lt_list(self, comparison):
-        if not comparison in self._lt:
+        if not comparison in QQ and not comparison in self._lt:
             logging.info("New element in %s._lt: %s" % (repr(self), comparison))
             self._lt.add(comparison)
             self.record_poly(comparison.numerator())
