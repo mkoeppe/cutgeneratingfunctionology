@@ -414,3 +414,127 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
     # note that polynomials in mineq and minlt can have leading coefficient != 1
     return mineq, minlt
 
+from sage.plot.contour_plot import equify
+from sage.plot.contour_plot import ContourPlot
+from sage.plot.primitive import GraphicPrimitive
+from sage.misc.decorators import options, suboptions
+from sage.plot.colors import rgbcolor, get_cmap
+from sage.misc.misc import xsrange
+import operator
+
+@options(plot_points=100, incol='blue', outcol=None, bordercol=None, borderstyle=None, borderwidth=None,frame=False,axes=True, legend_label=None, aspect_ratio=1, alpha=1)
+def region_plot_patch(f, xrange, yrange, plot_points, incol, outcol, bordercol, borderstyle, borderwidth, alpha, **options):
+    from sage.plot.all import Graphics
+    from sage.plot.misc import setup_for_eval_on_grid
+    import numpy
+
+    if not isinstance(f, (list, tuple)):
+        f = [f]
+
+    f = [equify(g) for g in f]
+
+    g, ranges = setup_for_eval_on_grid(f, [xrange, yrange], plot_points)
+    xrange,yrange=[r[:2] for r in ranges]
+
+    xy_data_arrays = numpy.asarray([[[func(x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
+                                     for y in xsrange(*ranges[1], include_endpoint=True)]
+                                    for func in g],dtype=float)
+    xy_data_array=numpy.abs(xy_data_arrays.prod(axis=0))
+    # Now we need to set entries to negative iff all
+    # functions were negative at that point.
+    neg_indices = (xy_data_arrays<0).all(axis=0)
+    xy_data_array[neg_indices]=-xy_data_array[neg_indices]
+
+    from matplotlib.colors import ListedColormap
+    incol = rgbcolor(incol)
+    if outcol:
+        outcol = rgbcolor(outcol)
+        cmap = ListedColormap([incol, outcol])
+        cmap.set_over(outcol, alpha=alpha)
+    else:
+        outcol = rgbcolor('white')
+        cmap = ListedColormap([incol, outcol])
+        cmap.set_over(outcol, alpha=0)
+    cmap.set_under(incol, alpha=alpha)
+
+    g = Graphics()
+
+    # Reset aspect_ratio to 'automatic' in case scale is 'semilog[xy]'.
+    # Otherwise matplotlib complains.
+    scale = options.get('scale', None)
+    if isinstance(scale, (list, tuple)):
+        scale = scale[0]
+    if scale == 'semilogy' or scale == 'semilogx':
+        options['aspect_ratio'] = 'automatic'
+
+    g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
+    g.add_primitive(ContourPlot(xy_data_array, xrange,yrange,
+                                dict(contours=[-1e-20, 0, 1e-20], cmap=cmap, fill=True, **options)))
+
+    if bordercol or borderstyle or borderwidth:
+        cmap = [rgbcolor(bordercol)] if bordercol else ['black']
+        linestyles = [borderstyle] if borderstyle else None
+        linewidths = [borderwidth] if borderwidth else None
+        g.add_primitive(ContourPlot(xy_data_array, xrange, yrange,
+                                    dict(linestyles=linestyles, linewidths=linewidths,
+                                         contours=[0], cmap=[bordercol], fill=False, **options)))
+
+    return g
+
+def plot_2d_parameter_region(K, color="blue", alpha=0.5, legend_label=None, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000):
+    x,y = var('x,y')
+    leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
+    if leq:
+        print "WARNING: equation list is not empty!"
+    g = region_plot_patch([ lhs(x, y) < 0 for lhs in lin ], (x, xmin, xmax), (y, ymin, ymax), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
+    g += line([(0,0),(0,1)], color = color, legend_label=legend_label, alpha = alpha, zorder=-10)
+    return g
+
+def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f','b'), var_value=[1/12-1/30, 2/12], \
+                              xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000):
+    """
+    sage: logging.disable(logging.INFO)
+    sage: g, fname, fparam = plot_parameter_region("drlm_backward_3_slope", ('f','b'), [1/12-1/30, 2/12])
+    sage: g.save(fname+".pdf", title=fname+fparam, legend_loc=7)
+    sage: g, fname, fparam = plot_parameter_region("drlm_backward_3_slope", ('f','b'), [1/12+1/30, 2/12])
+    sage: g, fname, fparam = plot_parameter_region("gj_2_slope", ('f','lam'), [3/5, 1/6], plot_points=100)
+    """
+    K = SymbolicRealNumberField(var_value, var_name)
+    if len(var_name) == 2:
+        h = eval(fun_name)(K.gens()[0], K.gens()[1], field=K, conditioncheck=False)
+    else:
+        raise NotImplementedError, "Not 2 parameters. Not implemented."
+    reg_cf = plot_2d_parameter_region(K, color="orange", alpha=0.5, legend_label="construction", \
+                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+    is_minimal = minimality_test(h)
+    if is_minimal:
+        color_cfm = "green"
+        legend_cfm = "is_minimal"
+    else:
+        color_cfm = "darkslategrey"
+        legend_cfm = "not_minimal"
+    reg_cfm = plot_2d_parameter_region(K, color=color_cfm, alpha=0.5, legend_label=legend_cfm, \
+                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+    is_extreme = extremality_test(h)
+    if is_extreme:
+        color_cfe = "blue"
+        legend_cfe = "is_extreme"
+    else:
+        color_cfe = "cyan" #"blueviolet"?
+        legend_cfe = "not_extreme" 
+    reg_cfe = plot_2d_parameter_region(K, color=color_cfe, alpha=0.5, legend_label=legend_cfe, \
+                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+    K = SymbolicRealNumberField(var_value, var_name)
+    if len(var_name) == 2:
+        h = eval(fun_name)(K.gens()[0], K.gens()[1], field=K, conditioncheck=True)
+    else:
+        raise NotImplementedError, "Not 2 parameters. Not implemented."
+    reg_ct  = plot_2d_parameter_region(K, color="red", alpha=0.5, legend_label="conditioncheck", \
+                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+    p = point([K._values],color = "white", size = 10, zorder=5)
+    g = reg_cf+reg_ct+reg_cfm+reg_cfe+p
+    fun_param = "(%s=%s, %s=%s)" % (var_name[0], var_value[0], var_name[1], var_value[1]) 
+    g.show(show_legend=False, title=fun_name+fun_param) #, axes_labels=var_name)
+    return g, fun_name, fun_param
+
+
