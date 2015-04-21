@@ -426,15 +426,17 @@ import operator
 def region_plot_patch(f, xrange, yrange, plot_points, incol, outcol, bordercol, borderstyle, borderwidth, alpha, **options):
     from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid
+    from sage.symbolic.expression import is_Expression
     import numpy
 
     if not isinstance(f, (list, tuple)):
         f = [f]
 
-    f = [equify(g) for g in f]
+    feqs = [equify(g) for g in f if is_Expression(g) and g.operator() is operator.eq and not equify(g).is_zero()]
+    f = [equify(g) for g in f if not (is_Expression(g) and g.operator() is operator.eq)]
 
     g, ranges = setup_for_eval_on_grid(f, [xrange, yrange], plot_points)
-    xrange,yrange=[r[:2] for r in ranges]
+    xxrange,yyrange=[r[:2] for r in ranges]
 
     xy_data_arrays = numpy.asarray([[[func(x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
                                      for y in xsrange(*ranges[1], include_endpoint=True)]
@@ -468,14 +470,27 @@ def region_plot_patch(f, xrange, yrange, plot_points, incol, outcol, bordercol, 
         options['aspect_ratio'] = 'automatic'
 
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
-    g.add_primitive(ContourPlot(xy_data_array, xrange,yrange,
+    if not feqs:
+        g.add_primitive(ContourPlot(xy_data_array, xxrange,yyrange,
                                 dict(contours=[-1e-20, 0, 1e-20], cmap=cmap, fill=True, **options)))
+    else:
+        if len(feqs) > 1:
+            feqs = [sum([fn**2 for fn in feqs])]
+            print "WARNING: There are at least 2 equations; If the region is denerated to points, plotting might show nothing."
+        #print "%s = 0" % feqs[0]
+        feq, ranges = setup_for_eval_on_grid(feqs, [xrange, yrange], plot_points)
+        mask = numpy.asarray([[elt > 0 for elt in rows] for rows in xy_data_array], dtype=bool)
+        xy_data_array = numpy.asarray([[feq[0](x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
+                                        for y in xsrange(*ranges[1], include_endpoint=True)], dtype=float)
+        xy_data_array[mask] = None
+        if not bordercol:
+            bordercol = incol
 
     if bordercol or borderstyle or borderwidth:
         cmap = [rgbcolor(bordercol)] if bordercol else ['black']
         linestyles = [borderstyle] if borderstyle else None
         linewidths = [borderwidth] if borderwidth else None
-        g.add_primitive(ContourPlot(xy_data_array, xrange, yrange,
+        g.add_primitive(ContourPlot(xy_data_array, xxrange, yyrange,
                                     dict(linestyles=linestyles, linewidths=linewidths,
                                          contours=[0], cmap=[bordercol], fill=False, **options)))
 
@@ -494,7 +509,8 @@ def plot_2d_parameter_region(K, color="blue", alpha=0.5, legend_label=None, xmin
     if leq:
         print "WARNING: equation list is not empty!"
         print leq
-    g = region_plot_patch([ lhs(x, y) < 0 for lhs in lin ], (x, xmin, xmax), (y, ymin, ymax), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
+    g = region_plot_patch([ lhs(x, y) == 0 for lhs in leq ] + [ lhs(x, y) < 0 for lhs in lin ], \
+                            (x, xmin, xmax), (y, ymin, ymax), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
     g += line([(0,0),(0,1)], color = color, legend_label=legend_label, zorder=-10) #, alpha = alpha)
     return g
 
