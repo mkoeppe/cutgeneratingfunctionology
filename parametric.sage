@@ -498,14 +498,15 @@ def plot_2d_parameter_region(K, color="blue", alpha=0.5, legend_label=None, xmin
     g += line([(0,0),(0,1)], color = color, legend_label=legend_label, zorder=-10) #, alpha = alpha)
     return g
 
-def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f','b'), var_value=[1/12-1/30, 2/12], \
-                              xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, level="factor", plot_points=1000):
+def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f','b'), var_value=[1/12-1/30, 2/12], extreme_var_value=None, \
+                              xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, level="factor", plot_points=1000, use_simplied_extremality_test=True):
     """
     sage: logging.disable(logging.INFO)
     sage: g, fname, fparam = plot_parameter_region("drlm_backward_3_slope", ('f','b'), [1/12-1/30, 2/12])
     sage: g.save(fname+".pdf", title=fname+fparam, legend_loc=7)
     sage: g, fname, fparam = plot_parameter_region("drlm_backward_3_slope", ('f','b'), [1/12+1/30, 2/12])
     sage: g, fname, fparam = plot_parameter_region("gj_2_slope", ('f','lam'), [3/5, 1/6], plot_points=100)
+    sage: g, fname, fparam = plot_parameter_region("gj_forward_3_slope", ('f','lambda_1'), [18/20, 3/10], [4/5, 2/9])
     """
     K = SymbolicRealNumberField(var_value, var_name)
     if len(var_name) == 2:
@@ -526,8 +527,11 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f','b'), 
 
     is_extreme = False
     if is_minimal:
-        if is_extreme_qq_bkpt_known_min(h):
-            is_extreme = True
+        if use_simplied_extremality_test:
+            is_extreme = simplified_extremality_test(h)
+        else:
+            is_extreme = extremality_test(h)
+        if is_extreme:
             color_cfe = "blue"
             legend_cfe = "is_extreme"
         else:
@@ -535,8 +539,14 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f','b'), 
             legend_cfe = "not_extreme"
         reg_cfe = plot_2d_parameter_region(K, color=color_cfe, alpha=0.5, legend_label=legend_cfe, \
                         xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
+    p = point([K._values],color = "white", size = 10, zorder=10)
 
-    K = SymbolicRealNumberField(var_value, var_name)
+    if not extreme_var_value:
+	    extreme_var_value = var_value
+    else:
+	    is_extreme = True # assume that extreme_var_value gives an extreme function.
+
+    K = SymbolicRealNumberField(extreme_var_value, var_name)
     if len(var_name) == 2:
         h = eval(fun_name)(K.gens()[0], K.gens()[1], field=K, conditioncheck=True)
     else:
@@ -550,7 +560,6 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f','b'), 
     reg_ct  = plot_2d_parameter_region(K, color=color_ct, alpha=0.5, legend_label=legend_ct, \
                         xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
 
-    p = point([K._values],color = "white", size = 10, zorder=10)
     if is_minimal:
         g = reg_cf+reg_ct+reg_cfm+reg_cfe+p
     else:
@@ -559,7 +568,10 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f','b'), 
     g.show(title=fun_name+fun_param) #show_legend=False, axes_labels=var_name)
     return g, fun_name, fun_param
 
-def is_extreme_qq_bkpt_known_min(function):
+def simplified_extremality_test(function):
+    """
+    function has rational bkpts; function is known to be minimal.
+    """
     f = find_f(function, no_error_if_not_minimal_anyway=True)
     covered_intervals = generate_covered_intervals(function)
     uncovered_intervals = generate_uncovered_intervals(function)
