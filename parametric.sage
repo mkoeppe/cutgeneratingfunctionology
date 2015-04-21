@@ -436,7 +436,7 @@ def region_plot_patch(f, xrange, yrange, plot_points, incol, outcol, bordercol, 
     f = [equify(g) for g in f if not (is_Expression(g) and g.operator() is operator.eq)]
     neqs = len(feqs)
     if neqs > 1:
-        print "WARNING: There are at least 2 equations; If the region is denerated to points, plotting might show nothing."
+        logging.warn("There are at least 2 equations; If the region is denerated to points, plotting might show nothing.")
         feqs = [sum([fn**2 for fn in feqs])]
         neqs = 1
     if neqs and not bordercol:
@@ -509,79 +509,81 @@ def plot_2d_parameter_region(K, color="blue", alpha=0.5, legend_label=None, xmin
         lin = list(K.get_lt_list())
         #print leq, lin
     if leq:
-        print "WARNING: equation list is not empty!"
-        print leq
+        logging.warn("equation list %s is not empty!" % leq)
     g = region_plot_patch([ lhs(x, y) == 0 for lhs in leq ] + [ lhs(x, y) < 0 for lhs in lin ], \
                             (x, xmin, xmax), (y, ymin, ymax), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
     g += line([(0,0),(0,1)], color = color, legend_label=legend_label, zorder=-10) #, alpha = alpha)
     return g
 
-def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f','b'), var_value=[1/12-1/30, 2/12], extreme_var_value=None, \
-                              xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, level="factor", plot_points=1000, use_simplied_extremality_test=True):
+def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f'), var_value=None, use_simplied_extremality_test=True,\
+                              xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, level="factor", plot_points=1000):
     """
     sage: logging.disable(logging.INFO)
-    sage: g, fname, fparam = plot_parameter_region("drlm_backward_3_slope", ('f','b'), [1/12-1/30, 2/12])
+    sage: g, fname, fparam = plot_parameter_region("drlm_backward_3_slope", ('f','bkpt'), [1/12-1/30, 2/12])
     sage: g.save(fname+".pdf", title=fname+fparam, legend_loc=7)
-    sage: g, fname, fparam = plot_parameter_region("drlm_backward_3_slope", ('f','b'), [1/12+1/30, 2/12])
-    sage: g, fname, fparam = plot_parameter_region("gj_2_slope", ('f','lam'), [3/5, 1/6], plot_points=100)
-    sage: g, fname, fparam = plot_parameter_region("gj_forward_3_slope", ('f','lambda_1'), [18/20, 3/10], [4/5, 2/9])
+    sage: g, fname, fparam = plot_parameter_region("drlm_backward_3_slope", ('f','bkpt'), [1/12+1/30, 2/12])
+    sage: g, fname, fparam = plot_parameter_region("gj_2_slope", ('f','lambda_1'), [3/5, 1/6], plot_points=100)
+    sage: g, fname, fparam = plot_parameter_region("gj_forward_3_slope", ('f','lambda_1'), [9/10, 3/10])
     """
-    K = SymbolicRealNumberField(var_value, var_name)
-    if len(var_name) == 2:
-        h = eval(fun_name)(K.gens()[0], K.gens()[1], field=K, conditioncheck=False)
-    else:
+    from sage.misc.sageinspect import sage_getargspec
+
+    if len(var_name) != 2:
+        #TODO
         raise NotImplementedError, "Not 2 parameters. Not implemented."
-    reg_cf = plot_2d_parameter_region(K, color="orange", alpha=0.5, legend_label="construction", \
-                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
-    is_minimal = minimality_test(h)
-    if is_minimal:
-        color_cfm = "green"
-        legend_cfm = "is_minimal"
-    else:
-        color_cfm = "darkslategrey"
-        legend_cfm = "not_minimal"
-    reg_cfm = plot_2d_parameter_region(K, color=color_cfm, alpha=0.5, legend_label=legend_cfm, \
-                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
-
-    is_extreme = False
-    if is_minimal:
-        if use_simplied_extremality_test:
-            is_extreme = simplified_extremality_test(h)
-        else:
-            is_extreme = extremality_test(h)
-        if is_extreme:
-            color_cfe = "blue"
-            legend_cfe = "is_extreme"
-        else:
-            color_cfe = "cyan" #"blueviolet"?
-            legend_cfe = "not_extreme"
-        reg_cfe = plot_2d_parameter_region(K, color=color_cfe, alpha=0.5, legend_label=legend_cfe, \
-                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
-    p = point([K._values],color = "white", size = 10, zorder=10)
-
-    if not extreme_var_value:
-	    extreme_var_value = var_value
-    else:
-	    is_extreme = True # assume that extreme_var_value gives an extreme function.
+    args, varargs, keywords, defaults = sage_getargspec(eval(fun_name))
+    default_args = {}
+    for i in range(len(args)):
+        default_args[args[i]]=defaults[i]
+    extreme_var_value = [default_args[v] for v in var_name]
+    if not var_value:
+        var_value = extreme_var_value
 
     K = SymbolicRealNumberField(extreme_var_value, var_name)
-    if len(var_name) == 2:
-        h = eval(fun_name)(K.gens()[0], K.gens()[1], field=K, conditioncheck=True)
-    else:
-        raise NotImplementedError, "Not 2 parameters. Not implemented."
-    if is_extreme:
-        color_ct = "red"
-        legend_ct = "cond_satisfied"
-    else:
-        color_ct = "grey"
-        legend_ct ="cond_unsatisfied"
-    reg_ct  = plot_2d_parameter_region(K, color=color_ct, alpha=0.5, legend_label=legend_ct, \
+    h = eval(fun_name)(K.gens()[0], K.gens()[1], field=K, conditioncheck=False)
+    reg_cf = plot_2d_parameter_region(K, color="orange", alpha=0.5, legend_label="construction", \
                         xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
 
-    if is_minimal:
-        g = reg_cf+reg_ct+reg_cfm+reg_cfe+p
-    else:
-        g = reg_cf+reg_ct+reg_cfm+p
+    K = SymbolicRealNumberField(extreme_var_value, var_name)
+    h = eval(fun_name)(K.gens()[0], K.gens()[1], field=K, conditioncheck=True)
+    reg_ct  = plot_2d_parameter_region(K, color="red", alpha=0.5, legend_label="conditioncheck", \
+                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
+    g = reg_cf+reg_ct
+
+    K = SymbolicRealNumberField(var_value, var_name)
+    try:
+        h = eval(fun_name)(K.gens()[0], K.gens()[1], field=K, conditioncheck=False)
+        is_minimal = minimality_test(h)
+        if is_minimal:
+            color_cfm = "green"
+            legend_cfm = "is_minimal"
+        else:
+            color_cfm = "darkslategrey"
+            legend_cfm = "not_minimal"
+        reg_cfm = plot_2d_parameter_region(K, color=color_cfm, alpha=0.5, legend_label=legend_cfm, \
+                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
+        g += reg_cfm
+        is_extreme = False
+        if is_minimal:
+            if use_simplied_extremality_test:
+                is_extreme = simplified_extremality_test(h)
+            else:
+                is_extreme = extremality_test(h)
+            if is_extreme:
+                color_cfe = "blue"
+                legend_cfe = "is_extreme"
+            else:
+                color_cfe = "cyan" #"blueviolet"?
+                legend_cfe = "not_extreme"
+            reg_cfe = plot_2d_parameter_region(K, color=color_cfe, alpha=0.5, legend_label=legend_cfe, \
+                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
+            g += reg_cfe
+        p = point([K._values], color = "white", size = 10, zorder=10)
+
+    except (AssertionError,ValueError, TypeError, NotImplementedError):
+        logging.warn("(%s=%s, %s=%s) is out of the constructable region." % (var_name[0], var_value[0], var_name[1], var_value[1]))
+        p = point([K._values], color = "black", size = 10, zorder=10)
+    g += p
+
     fun_param = "(%s=%s, %s=%s)" % (var_name[0], var_value[0], var_name[1], var_value[1])
     g.show(title=fun_name+fun_param) #show_legend=False, axes_labels=var_name)
     return g, fun_name, fun_param
@@ -610,3 +612,6 @@ def simplified_extremality_test(function):
     else:
         logging.info("The function is extreme.")
         return True
+
+def gj_forward_3_slope_f():
+    return lambda lambda_1, lambda_2, f=4/5, **options: gj_forward_3_slope(f, lambda_1, lambda_2, **options)
