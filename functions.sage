@@ -3538,6 +3538,8 @@ def is_QQ_linearly_independent(*numbers):
         return True
     elif len(numbers) == 1:
         return numbers[0] != 0
+    if isinstance(numbers[0], SymbolicRNFElement):
+        return False
     # fast path for rationals
     all_QQ, numbers = is_all_QQ(numbers)
     if all_QQ:
