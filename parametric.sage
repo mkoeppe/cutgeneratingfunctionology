@@ -434,13 +434,22 @@ def region_plot_patch(f, xrange, yrange, plot_points, incol, outcol, bordercol, 
 
     feqs = [equify(g) for g in f if is_Expression(g) and g.operator() is operator.eq and not equify(g).is_zero()]
     f = [equify(g) for g in f if not (is_Expression(g) and g.operator() is operator.eq)]
-
-    g, ranges = setup_for_eval_on_grid(f, [xrange, yrange], plot_points)
-    xxrange,yyrange=[r[:2] for r in ranges]
+    neqs = len(feqs)
+    if neqs > 1:
+        print "WARNING: There are at least 2 equations; If the region is denerated to points, plotting might show nothing."
+        feqs = [sum([fn**2 for fn in feqs])]
+        neqs = 1
+    if neqs and not bordercol:
+        bordercol = incol
+    if not f:
+        return implicit_plot(feqs[0], xrange, yrange, plot_points=plot_points, fill=False, \
+                             linewidth=borderwidth, linestyle=borderstyle, color=bordercol, **options)
+    f_all, ranges = setup_for_eval_on_grid(feqs + f, [xrange, yrange], plot_points)
+    xrange,yrange=[r[:2] for r in ranges]
 
     xy_data_arrays = numpy.asarray([[[func(x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
                                      for y in xsrange(*ranges[1], include_endpoint=True)]
-                                    for func in g],dtype=float)
+                                    for func in f_all[neqs::]],dtype=float)
     xy_data_array=numpy.abs(xy_data_arrays.prod(axis=0))
     # Now we need to set entries to negative iff all
     # functions were negative at that point.
@@ -470,27 +479,20 @@ def region_plot_patch(f, xrange, yrange, plot_points, incol, outcol, bordercol, 
         options['aspect_ratio'] = 'automatic'
 
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
-    if not feqs:
-        g.add_primitive(ContourPlot(xy_data_array, xxrange,yyrange,
+
+    if neqs == 0:
+        g.add_primitive(ContourPlot(xy_data_array, xrange,yrange,
                                 dict(contours=[-1e-20, 0, 1e-20], cmap=cmap, fill=True, **options)))
     else:
-        if len(feqs) > 1:
-            feqs = [sum([fn**2 for fn in feqs])]
-            print "WARNING: There are at least 2 equations; If the region is denerated to points, plotting might show nothing."
-        #print "%s = 0" % feqs[0]
-        feq, ranges = setup_for_eval_on_grid(feqs, [xrange, yrange], plot_points)
         mask = numpy.asarray([[elt > 0 for elt in rows] for rows in xy_data_array], dtype=bool)
-        xy_data_array = numpy.asarray([[feq[0](x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
+        xy_data_array = numpy.asarray([[f_all[0](x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
                                         for y in xsrange(*ranges[1], include_endpoint=True)], dtype=float)
         xy_data_array[mask] = None
-        if not bordercol:
-            bordercol = incol
-
     if bordercol or borderstyle or borderwidth:
         cmap = [rgbcolor(bordercol)] if bordercol else ['black']
         linestyles = [borderstyle] if borderstyle else None
         linewidths = [borderwidth] if borderwidth else None
-        g.add_primitive(ContourPlot(xy_data_array, xxrange, yyrange,
+        g.add_primitive(ContourPlot(xy_data_array, xrange, yrange,
                                     dict(linestyles=linestyles, linewidths=linewidths,
                                          contours=[0], cmap=[bordercol], fill=False, **options)))
 
