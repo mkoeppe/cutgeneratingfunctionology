@@ -278,7 +278,7 @@ def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
 
-def gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3, field=None, conditioncheck=True):
+def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditioncheck=True):
     """
     Summary: 
         - Name: Gomory--Johnson' Forward 3-Slope;
@@ -296,25 +296,25 @@ def gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3, field=None, conditionc
         0 <= lambda_2 <= 1  (in literature).
 
     Note: 
-        Since the domain and range are in [0,1]. I think the conditions should be:
-        (0 <= lambda_1 <= 1/2)  &  (0 <= lambda_2 <= 1 - lambda_1) & (0 < lambda_1 * f + lambda_2 * (f - 1) < lambda_1 * f < f / 2).
+        Since the domain and range are in [0,1], I think the conditions for a three-slope extreme function should be:
+        (0 <= lambda_1 <= 1/2)  &  (0 <= lambda_2 <= 1) & (0 < lambda_1 * f + lambda_2 * (f - 1) < lambda_1 * f).
 
     Examples:
         [61] p.360, Fig.8 ::
 
-            sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/6)
+            sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=1/3)
             sage: extremality_test(h, False)
             True
-            sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3)
+            sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3)
             sage: extremality_test(h, False)
             True
-            sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/2)
+            sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=1)
             sage: extremality_test(h, False)
             True
 
         Try irrational case ::
 
-            sage: h = gj_forward_3_slope(f=sqrt(17)/5, lambda_1=sqrt(5)/9, lambda_2=1/sqrt(10))
+            sage: h = gj_forward_3_slope(f=sqrt(17)/5, lambda_1=2*sqrt(5)/9, lambda_2=2/sqrt(10))
             sage: extremality_test(h, False)
             True
 
@@ -323,18 +323,18 @@ def gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3, field=None, conditionc
     """
     if conditioncheck and not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
-    a = lambda_1 * f
-    a1 = a + lambda_2 * (f - 1)
+    a = lambda_1 * f / 2
+    a1 = a + lambda_2 * (f - 1) / 2
     if conditioncheck:
         if not bool(0 < a1 < a < f / 2):
             raise ValueError, "Bad parameters. Unable to construct the function."
         # note the discrepancy with the published literature
-        if not (bool(0 <= lambda_1 <= 1/2) & bool(0 <= lambda_2 <= 1 - lambda_1)):
+        if not (bool(0 <= lambda_1 <= 1/2) & bool(0 <= lambda_2 <= 1)):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.") 
     bkpts = [0, a1, a, f - a, f - a1, f, 1]
-    values = [0, lambda_1 + lambda_2, lambda_1, 1 - lambda_1, 1 - lambda_1 - lambda_2, 1, 0]
+    values = [0, (lambda_1 + lambda_2)/2, lambda_1 / 2, 1 - lambda_1 / 2, 1 - (lambda_1 + lambda_2)/2, 1, 0]
     return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
 
 
