@@ -442,7 +442,7 @@ def dg_2_step_mir_limit(f=3/5, d=3, field=None, conditioncheck=True):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
-    f = nice_field_values([f])[0]
+    f = nice_field_values([f], field)[0]
     field = f.parent()
     pieces = []
     for k in range(d):
@@ -455,7 +455,7 @@ def dg_2_step_mir_limit(f=3/5, d=3, field=None, conditioncheck=True):
     h = FastPiecewise(pieces)
     return h
 
-def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, conditioncheck=True):
+def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, conditioncheck=True):
     """
     Summary:
         - Name: drlm's 2-Slope Limit;
@@ -500,7 +500,7 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, conditionchec
     else:
         delta_1 = (s*f - 1)/(m - 1)
     # in irrational case, try to coerce to common number field
-    [f, s, delta_1, delta_2, m, d] =  nice_field_values([f, s, delta_1, delta_2, m, d])
+    [f, s, delta_1, delta_2, m, d] =  nice_field_values([f, s, delta_1, delta_2, m, d], field)
     pieces = []
     for k in range(m):
         pieces = pieces + \
