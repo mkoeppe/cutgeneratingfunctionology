@@ -524,6 +524,7 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f'), var_
     sage: g, fname, fparam = plot_parameter_region("drlm_backward_3_slope", ('f','bkpt'), [1/12+1/30, 2/12])
     sage: g, fname, fparam = plot_parameter_region("gj_2_slope", ('f','lambda_1'), [3/5, 1/6], plot_points=100)
     sage: g, fname, fparam = plot_parameter_region("gj_forward_3_slope", ('f','lambda_1'), [9/10, 3/10])
+    sage: g, fname, fparam = plot_parameter_region("gj_forward_3_slope", ('lambda_1','lambda_2'))
     """
     from sage.misc.sageinspect import sage_getargspec
 
@@ -539,19 +540,34 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f'), var_
         var_value = extreme_var_value
 
     K = SymbolicRealNumberField(extreme_var_value, var_name)
-    h = eval(fun_name)(K.gens()[0], K.gens()[1], field=K, conditioncheck=False)
+    test_point = copy(default_args)
+    test_point[var_name[0]] = K.gens()[0]
+    test_point[var_name[1]] = K.gens()[1]
+    test_point['field'] = K
+    test_point['conditioncheck'] = False
+    h = eval(fun_name)(**test_point)
     reg_cf = plot_2d_parameter_region(K, color="orange", alpha=0.5, legend_label="construction", \
                         xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
 
     K = SymbolicRealNumberField(extreme_var_value, var_name)
-    h = eval(fun_name)(K.gens()[0], K.gens()[1], field=K, conditioncheck=True)
+    test_point = copy(default_args)
+    test_point[var_name[0]] = K.gens()[0]
+    test_point[var_name[1]] = K.gens()[1]
+    test_point['field'] = K
+    test_point['conditioncheck'] = True
+    h = eval(fun_name)(**test_point)
     reg_ct  = plot_2d_parameter_region(K, color="red", alpha=0.5, legend_label="conditioncheck", \
                         xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
     g = reg_cf+reg_ct
 
     K = SymbolicRealNumberField(var_value, var_name)
+    test_point = copy(default_args)
+    test_point[var_name[0]] = K.gens()[0]
+    test_point[var_name[1]] = K.gens()[1]
+    test_point['field'] = K
+    test_point['conditioncheck'] = False
     try:
-        h = eval(fun_name)(K.gens()[0], K.gens()[1], field=K, conditioncheck=False)
+        h = eval(fun_name)(**test_point)
         is_minimal = minimality_test(h)
         if is_minimal:
             color_cfm = "green"
@@ -612,6 +628,3 @@ def simplified_extremality_test(function):
     else:
         logging.info("The function is extreme.")
         return True
-
-def gj_forward_3_slope_f():
-    return lambda lambda_1, lambda_2, f=4/5, **options: gj_forward_3_slope(f, lambda_1, lambda_2, **options)
