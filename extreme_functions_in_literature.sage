@@ -169,13 +169,85 @@ def dg_2_step_mir(f=4/5, alpha=3/10, field=None, conditioncheck=True):
 
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
     """
+    according_to_literature = None
     if conditioncheck:
         if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
             raise ValueError, "Bad parameters. Unable to construct the function."
         if not bool(ceil(f / alpha) <= 1 / alpha):
             logging.info("Conditions for extremality are NOT satisfied.")
+            according_to_literature = 'minimal'
         else:
             logging.info("Conditions for extremality are satisfied.")
+            according_to_literature = 'extreme'
+    rho = f - alpha * floor(f / alpha)
+    tau = ceil(f / alpha)
+    s_positive = (1 - rho*tau) / (rho*tau*(1 - f))
+    s_negative = - 1/(1 - f)
+    interval_lengths = [rho, alpha - rho] * tau
+    interval_lengths[-1] = 1 - f
+    slopes = [s_positive, s_negative] * tau
+    h = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
+    h._according_to_literature = according_to_literature
+    return h
+
+
+class Dg_2_Step_Mir:
+
+    def __init__():
+        pass
+
+    def check_conditions(self, f=4/5, alpha=3/10):
+        if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
+            return 'not_constructible'
+        if not bool(ceil(f / alpha) <= 1 / alpha):
+            return 'minimal'
+        else:
+            return 'extreme'
+
+        #####  Bad name follows....
+    def check_conditions_and_warn(self, *args, **kwargs):  ### could be in superclass
+        c = check_conditions(self, *args, **kwards)
+        if c == 'not_constructible':
+            raise ValueError, "Bad parameters. Unable to construct the function."
+        elif c == 'minimal':
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
+    
+    def __call__(self, f=4/5, alpha=3/10, field=None, conditioncheck=True):
+    """
+    Summary:
+        - Name: 2-Step MIR;
+        - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
+        - Discovered [33]  p.39 def.8, Fig.5;
+        - Proven extreme (for infinite group) [60] p.377, thm.3.3.
+        - dg_2_step_mir is a facet.
+
+    Parameters:
+        f (real) \in (0,1);
+        alpha (real) \in (0,f).
+
+    Function is known to be extreme under the conditions:
+        0 < alpha < f < 1;
+        f / alpha < ceil(f / alpha) <= 1 / alpha.
+
+    Examples:
+        [33] p.40, Fig.5 ::
+
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: h = dg_2_step_mir(f=4/5, alpha=3/10)
+            sage: extremality_test(h, False)
+            True
+
+    Reference:
+        [33]: S. Dash and O. G¨unl¨uk, Valid inequalities based on simple mixed-integer sets.,
+                Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
+                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33–45.
+
+        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+    """
+    if conditioncheck:
+        check_conditions_and_warn(f, alpha)
     rho = f - alpha * floor(f / alpha)
     tau = ceil(f / alpha)
     s_positive = (1 - rho*tau) / (rho*tau*(1 - f))
@@ -184,6 +256,8 @@ def dg_2_step_mir(f=4/5, alpha=3/10, field=None, conditioncheck=True):
     interval_lengths[-1] = 1 - f
     slopes = [s_positive, s_negative] * tau
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
+
+dg_2_step_mir = Dg_2_Step_Mir()
 
 
 def interval_length_n_step_mir(n, m, a, b):
