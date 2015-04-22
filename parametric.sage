@@ -436,7 +436,7 @@ def region_plot_patch(f, xrange, yrange, plot_points, incol, outcol, bordercol, 
     f = [equify(g) for g in f if not (is_Expression(g) and g.operator() is operator.eq)]
     neqs = len(feqs)
     if neqs > 1:
-        logging.warn("There are at least 2 equations; If the region is denerated to points, plotting might show nothing.")
+        logging.warn("There are at least 2 equations; If the region is degenerated to points, plotting might show nothing.")
         feqs = [sum([fn**2 for fn in feqs])]
         neqs = 1
     if neqs and not bordercol:
@@ -515,22 +515,25 @@ def plot_2d_parameter_region(K, color="blue", alpha=0.5, legend_label=None, xmin
     g += line([(0,0),(0,1)], color = color, legend_label=legend_label, zorder=-10) #, alpha = alpha)
     return g
 
-def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f'), var_value=None, use_simplied_extremality_test=True,\
+def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f'), var_value=None, use_simplified_extremality_test=True,\
                               xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, level="factor", plot_points=1000):
     """
     sage: logging.disable(logging.INFO)
     sage: g, fname, fparam = plot_parameter_region("drlm_backward_3_slope", ('f','bkpt'), [1/12-1/30, 2/12])
     sage: g.save(fname+".pdf", title=fname+fparam, legend_loc=7)
     sage: g, fname, fparam = plot_parameter_region("drlm_backward_3_slope", ('f','bkpt'), [1/12+1/30, 2/12])
-    sage: g, fname, fparam = plot_parameter_region("gj_2_slope", ('f','lambda_1'), [3/5, 1/6], plot_points=100)
+    sage: g, fname, fparam = plot_parameter_region("gj_2_slope", ('f','lambda_1'), plot_points=100)
     sage: g, fname, fparam = plot_parameter_region("gj_forward_3_slope", ('f','lambda_1'), [9/10, 3/10])
     sage: g, fname, fparam = plot_parameter_region("gj_forward_3_slope", ('lambda_1','lambda_2'))
     """
     from sage.misc.sageinspect import sage_getargspec
 
-    if len(var_name) != 2:
+    if len(var_name) == 1:
         #TODO
-        raise NotImplementedError, "Not 2 parameters. Not implemented."
+        raise NotImplementedError, "One parameter. Not implemented."
+    if len(var_name) >= 3:
+        #TODO
+        raise NotImplementedError, "More than three parameters. Not implemented."
     args, varargs, keywords, defaults = sage_getargspec(eval(fun_name))
     default_args = {}
     for i in range(len(args)):
@@ -580,7 +583,7 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f'), var_
         g += reg_cfm
         is_extreme = False
         if is_minimal:
-            if use_simplied_extremality_test:
+            if use_simplified_extremality_test:
                 is_extreme = simplified_extremality_test(h)
             else:
                 is_extreme = extremality_test(h)
