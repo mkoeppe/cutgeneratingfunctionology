@@ -516,7 +516,7 @@ def plot_2d_parameter_region(K, color="blue", alpha=0.5, legend_label=None, xmin
     return g
 
 def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f'), var_value=None, use_simplified_extremality_test=True,\
-                              xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, level="factor", plot_points=1000):
+                              xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, level="factor", plot_points=1000, **opt_non_default):
     """
     sage: logging.disable(logging.INFO)
     sage: g, fname, fparam = plot_parameter_region("drlm_backward_3_slope", ('f','bkpt'), [1/12-1/30, 2/12])
@@ -525,6 +525,8 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f'), var_
     sage: g, fname, fparam = plot_parameter_region("gj_2_slope", ('f','lambda_1'), plot_points=100)
     sage: g, fname, fparam = plot_parameter_region("gj_forward_3_slope", ('f','lambda_1'), [9/10, 3/10])
     sage: g, fname, fparam = plot_parameter_region("gj_forward_3_slope", ('lambda_1','lambda_2'))
+    sage: g, fname, fparam = plot_parameter_region("gj_forward_3_slope", ('lambda_1','lambda_2'), f=3/4, lambda_1=2/3, lambda_2=3/5)
+    sage: g, fname, fparam = plot_parameter_region("gj_forward_3_slope", ('lambda_1','lambda_2'), f=1/2, lambda_2=1/3)
     """
     from sage.misc.sageinspect import sage_getargspec
 
@@ -538,6 +540,9 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f'), var_
     default_args = {}
     for i in range(len(args)):
         default_args[args[i]]=defaults[i]
+    for (opt_name, opt_value) in opt_non_default.items():
+        if opt_name in default_args:
+            default_args[opt_name] = opt_value
     extreme_var_value = [default_args[v] for v in var_name]
     if not var_value:
         var_value = extreme_var_value
