@@ -515,20 +515,21 @@ def plot_2d_parameter_region(K, color="blue", alpha=0.5, legend_label=None, xmin
     g += line([(0,0),(0,1)], color = color, legend_label=legend_label, zorder=-10) #, alpha = alpha)
     return g
 
-def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f'), var_value=None, use_simplified_extremality_test=True,\
+def plot_parameter_region(function=drlm_backward_3_slope, var_name=('f'), var_value=None, use_simplified_extremality_test=True,\
                               xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, level="factor", plot_points=1000, **opt_non_default):
     """
     sage: logging.disable(logging.INFO)
-    sage: g, fname, fparam = plot_parameter_region("drlm_backward_3_slope", ('f','bkpt'), [1/12-1/30, 2/12])
+    sage: g, fname, fparam = plot_parameter_region(drlm_backward_3_slope, ('f','bkpt'), [1/12-1/30, 2/12])
     sage: g.save(fname+".pdf", title=fname+fparam, legend_loc=7)
-    sage: g, fname, fparam = plot_parameter_region("drlm_backward_3_slope", ('f','bkpt'), [1/12+1/30, 2/12])
-    sage: g, fname, fparam = plot_parameter_region("gj_2_slope", ('f','lambda_1'), plot_points=100)
-    sage: g, fname, fparam = plot_parameter_region("gj_forward_3_slope", ('f','lambda_1'), [9/10, 3/10])
-    sage: g, fname, fparam = plot_parameter_region("gj_forward_3_slope", ('lambda_1','lambda_2'))
-    sage: g, fname, fparam = plot_parameter_region("gj_forward_3_slope", ('lambda_1','lambda_2'), f=3/4, lambda_1=2/3, lambda_2=3/5)
-    sage: g, fname, fparam = plot_parameter_region("gj_forward_3_slope", ('lambda_1','lambda_2'), f=1/2, lambda_2=1/3)
+    sage: g, fname, fparam = plot_parameter_region(drlm_backward_3_slope, ('f','bkpt'), [1/12+1/30, 2/12])
+    sage: g, fname, fparam = plot_parameter_region(gj_2_slope, ('f','lambda_1'), plot_points=100)
+    sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ('f','lambda_1'), [9/10, 3/10])
+    sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ('lambda_1','lambda_2'))
+    sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ('lambda_1','lambda_2'), f=3/4, lambda_1=2/3, lambda_2=3/5)
+    sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ('lambda_1','lambda_2'), [3/5, 7/5], f=1/2, lambda_1=4/9, lambda_2=1/3)
+    sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ('lambda_1','lambda_2'), [9/10, 3/7], f=1/2, lambda_1=4/9, lambda_2=1/3)
     """
-    from sage.misc.sageinspect import sage_getargspec
+    from sage.misc.sageinspect import sage_getargspec, sage_getvariablename
 
     if len(var_name) == 1:
         #TODO
@@ -536,7 +537,7 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f'), var_
     if len(var_name) >= 3:
         #TODO
         raise NotImplementedError, "More than three parameters. Not implemented."
-    args, varargs, keywords, defaults = sage_getargspec(eval(fun_name))
+    args, varargs, keywords, defaults = sage_getargspec(function)
     default_args = {}
     for i in range(len(args)):
         default_args[args[i]]=defaults[i]
@@ -553,7 +554,7 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f'), var_
     test_point[var_name[1]] = K.gens()[1]
     test_point['field'] = K
     test_point['conditioncheck'] = False
-    h = eval(fun_name)(**test_point)
+    h = function(**test_point)
     reg_cf = plot_2d_parameter_region(K, color="orange", alpha=0.5, legend_label="construction", \
                         xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
 
@@ -563,7 +564,7 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f'), var_
     test_point[var_name[1]] = K.gens()[1]
     test_point['field'] = K
     test_point['conditioncheck'] = True
-    h = eval(fun_name)(**test_point)
+    h = function(**test_point)
     reg_ct  = plot_2d_parameter_region(K, color="red", alpha=0.5, legend_label="conditioncheck", \
                         xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
     g = reg_cf+reg_ct
@@ -575,7 +576,7 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f'), var_
     test_point['field'] = K
     test_point['conditioncheck'] = False
     try:
-        h = eval(fun_name)(**test_point)
+        h = function(**test_point)
         is_minimal = minimality_test(h)
         if is_minimal:
             color_cfm = "green"
@@ -604,10 +605,13 @@ def plot_parameter_region(fun_name="drlm_backward_3_slope", var_name=('f'), var_
         p = point([K._values], color = "white", size = 10, zorder=10)
 
     except (AssertionError,ValueError, TypeError, NotImplementedError):
-        logging.warn("(%s=%s, %s=%s) is out of the constructable region." % (var_name[0], var_value[0], var_name[1], var_value[1]))
+        logging.warn("(%s=%s, %s=%s) is out of the constructible region." % (var_name[0], var_value[0], var_name[1], var_value[1]))
         p = point([K._values], color = "black", size = 10, zorder=10)
     g += p
 
+    fun_name = sage_getvariablename(function)[0]
+    if fun_name == 'function':
+        fun_name = sage_getvariablename(function)[1]
     fun_param = "(%s=%s, %s=%s)" % (var_name[0], var_value[0], var_name[1], var_value[1])
     g.show(title=fun_name+fun_param) #show_legend=False, axes_labels=var_name)
     return g, fun_name, fun_param
