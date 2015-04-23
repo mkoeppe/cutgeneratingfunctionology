@@ -520,26 +520,22 @@ def plot_2d_parameter_region(K, color="blue", alpha=0.5, legend_label=None, xmin
     g += line([(0,0),(0,0.001)], color = color, legend_label=legend_label, zorder=-10) #, alpha = alpha)
     return g
 
-def plot_parameter_region(function=drlm_backward_3_slope, var_name=('f'), var_value=None, use_simplified_extremality_test=True,\
+def plot_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_value=None, use_simplified_extremality_test=True,\
                               xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, level="factor", plot_points=1000, **opt_non_default):
     """
     sage: logging.disable(logging.INFO)
-    sage: g, fname, fparam = plot_parameter_region(drlm_backward_3_slope, ('f','bkpt'), [1/12-1/30, 2/12])
+    sage: g, fname, fparam = plot_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12-1/30, 2/12])
     sage: g.save(fname+".pdf", title=fname+fparam, legend_loc=7)
-    sage: g, fname, fparam = plot_parameter_region(drlm_backward_3_slope, ('f','bkpt'), [1/12+1/30, 2/12])
-    sage: g, fname, fparam = plot_parameter_region(gj_2_slope, ('f','lambda_1'), plot_points=100)
-    sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ('f','lambda_1'), [9/10, 3/10])
-    sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ('lambda_1','lambda_2'))
-    sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ('lambda_1','lambda_2'), f=3/4, lambda_1=2/3, lambda_2=3/5)
-    sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ('lambda_1','lambda_2'), [3/5, 7/5], f=1/2, lambda_1=4/9, lambda_2=1/3)
-    sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ('lambda_1','lambda_2'), [9/10, 3/7], f=1/2, lambda_1=4/9, lambda_2=1/3)
+    sage: g, fname, fparam = plot_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12+1/30, 2/12])
+    sage: g, fname, fparam = plot_parameter_region(gj_2_slope, ('f','lambda_1'], plot_points=100)
+    sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ['f','lambda_1'], [9/10, 3/10])
+    sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'])
+    sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'], f=3/4, lambda_1=2/3, lambda_2=3/5)
+    sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'], [3/5, 7/5], f=1/2, lambda_1=4/9, lambda_2=1/3)
+    sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'], [9/10, 3/7], f=1/2, lambda_1=4/9, lambda_2=1/3)
     """
     from sage.misc.sageinspect import sage_getargspec, sage_getvariablename
 
-    #if len(var_name) == 1:
-    #    #TODO
-    #    raise NotImplementedError, "One parameter. Not implemented."
-    print var_name, len(var_name)
     if len(var_name) >= 3:
         #TODO
         raise NotImplementedError, "More than three parameters. Not implemented."
