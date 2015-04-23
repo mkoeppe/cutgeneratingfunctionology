@@ -514,7 +514,7 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, c
     psi = FastPiecewise(pieces)    
     return psi
 
-def drlm_3_slope_limit(f=1/5, conditioncheck=True):
+def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
     """
     Summary:
         - Name: drlm-3-Slope Limit;
@@ -551,7 +551,7 @@ def drlm_3_slope_limit(f=1/5, conditioncheck=True):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
-    f = nice_field_values([f])[0]
+    f = nice_field_values([f], field)[0]
     field = f.parent()
     pieces = [[closed_interval(0, f), FastLinearFunction(1/f, 0)], \
               [open_interval(f, 1), FastLinearFunction(1/(f + 1), 0)], \
@@ -1053,7 +1053,7 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
     dd = 1 + f - cc
     return piecewise_function_from_breakpoints_and_slopes([0, aa, a, b, bb, f, dd, d, c, cc, 1], slopes, field=field)
 
-def rlm_dpl1_extreme_3a(f=1/4, conditioncheck=True):
+def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
     """
     From Richard--Li--Miller [RLM2009].
 
@@ -1097,7 +1097,7 @@ def rlm_dpl1_extreme_3a(f=1/4, conditioncheck=True):
             pass # is the fig3_lowerleft case
         else:
             pass # is not the fig3_lowerleft case
-    f = nice_field_values([f])[0]
+    f = nice_field_values([f], field)[0]
     field = f.parent()
     pieces = [[closed_interval(field(0), f), FastLinearFunction(1/f, 0)], \
               [open_interval(f, (1 + f)/2), FastLinearFunction(2/(1 + 2*f), 0)], \
@@ -1107,7 +1107,7 @@ def rlm_dpl1_extreme_3a(f=1/4, conditioncheck=True):
     h = FastPiecewise(pieces)
     return h
 
-def ll_strong_fractional(f=2/3, conditioncheck=True):
+def ll_strong_fractional(f=2/3, field=None, conditioncheck=True):
     """
     Letchford--Lodi's strong fractional cut.
 
@@ -1173,7 +1173,8 @@ def ll_strong_fractional(f=2/3, conditioncheck=True):
             logging.info("The function is NOT minimal.")
         else:
             logging.info("Conditions for extremality are satisfied.")
-    [f] =  nice_field_values([f])
+    f = nice_field_values([f], field)[0]
+    field = f.parent()
     k = ceil(1/f) -1
     pieces = [[closed_interval(0,f), FastLinearFunction(1/f, 0)]]
     for p in range(k-1):
