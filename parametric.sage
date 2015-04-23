@@ -207,7 +207,8 @@ class SymbolicRealNumberField(Field):
     def _first_ngens(self, n):
         for i in range(n):
             yield self._gens[i]
-
+    def ngens(self):
+        return len(self._gens)
     def _an_element_impl(self):
         return SymbolicRNFElement(1, parent=self)
     def _coerce_map_from_(self, S):
@@ -510,9 +511,13 @@ def plot_2d_parameter_region(K, color="blue", alpha=0.5, legend_label=None, xmin
         #print leq, lin
     if leq:
         logging.warn("equation list %s is not empty!" % leq)
-    g = region_plot_patch([ lhs(x, y) == 0 for lhs in leq ] + [ lhs(x, y) < 0 for lhs in lin ], \
+    if K.ngens() == 2:
+        g = region_plot_patch([ lhs(x, y) == 0 for lhs in leq ] + [ lhs(x, y) < 0 for lhs in lin ], \
                             (x, xmin, xmax), (y, ymin, ymax), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
-    g += line([(0,0),(0,1)], color = color, legend_label=legend_label, zorder=-10) #, alpha = alpha)
+    else: # K.ngens() is 1
+        g = region_plot_patch([ lhs(x) == 0 for lhs in leq ] + [ lhs(x) < 0 for lhs in lin ] + [y >= -0.01, y <= 0.01], \
+                            (x, xmin, xmax), (y, -0.1, 0.3), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color, ticks=[None,[]])
+    g += line([(0,0),(0,0.001)], color = color, legend_label=legend_label, zorder=-10) #, alpha = alpha)
     return g
 
 def plot_parameter_region(function=drlm_backward_3_slope, var_name=('f'), var_value=None, use_simplified_extremality_test=True,\
@@ -531,9 +536,10 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=('f'), var_va
     """
     from sage.misc.sageinspect import sage_getargspec, sage_getvariablename
 
-    if len(var_name) == 1:
-        #TODO
-        raise NotImplementedError, "One parameter. Not implemented."
+    #if len(var_name) == 1:
+    #    #TODO
+    #    raise NotImplementedError, "One parameter. Not implemented."
+    print var_name, len(var_name)
     if len(var_name) >= 3:
         #TODO
         raise NotImplementedError, "More than three parameters. Not implemented."
@@ -550,8 +556,8 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=('f'), var_va
 
     K = SymbolicRealNumberField(extreme_var_value, var_name)
     test_point = copy(default_args)
-    test_point[var_name[0]] = K.gens()[0]
-    test_point[var_name[1]] = K.gens()[1]
+    for i in range(len(var_name)):
+        test_point[var_name[i]] = K.gens()[i]
     test_point['field'] = K
     test_point['conditioncheck'] = False
     h = function(**test_point)
@@ -560,8 +566,8 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=('f'), var_va
 
     K = SymbolicRealNumberField(extreme_var_value, var_name)
     test_point = copy(default_args)
-    test_point[var_name[0]] = K.gens()[0]
-    test_point[var_name[1]] = K.gens()[1]
+    for i in range(len(var_name)):
+        test_point[var_name[i]] = K.gens()[i]
     test_point['field'] = K
     test_point['conditioncheck'] = True
     h = function(**test_point)
@@ -571,8 +577,8 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=('f'), var_va
 
     K = SymbolicRealNumberField(var_value, var_name)
     test_point = copy(default_args)
-    test_point[var_name[0]] = K.gens()[0]
-    test_point[var_name[1]] = K.gens()[1]
+    for i in range(len(var_name)):
+        test_point[var_name[i]] = K.gens()[i]
     test_point['field'] = K
     test_point['conditioncheck'] = False
     try:
@@ -602,17 +608,22 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=('f'), var_va
             reg_cfe = plot_2d_parameter_region(K, color=color_cfe, alpha=0.5, legend_label=legend_cfe, \
                         xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
             g += reg_cfe
-        p = point([K._values], color = "white", size = 10, zorder=10)
-
+            color_p = "white"
     except (AssertionError,ValueError, TypeError, NotImplementedError):
         logging.warn("(%s=%s, %s=%s) is out of the constructible region." % (var_name[0], var_value[0], var_name[1], var_value[1]))
-        p = point([K._values], color = "black", size = 10, zorder=10)
+        color_p = "black"
+    if len(var_name) == 2:
+        p = point([K._values], color = color_p, size = 10, zorder=10)
+        fun_param = "(%s=%s, %s=%s)" % (var_name[0], var_value[0], var_name[1], var_value[1])
+    else:
+        p = point([(K._values[0], 0)], color = color_p, size = 10, zorder=10)
+        fun_param = "(%s=%s)" % (var_name[0], var_value[0])
     g += p
 
     fun_name = sage_getvariablename(function)[0]
     if fun_name == 'function':
         fun_name = sage_getvariablename(function)[1]
-    fun_param = "(%s=%s, %s=%s)" % (var_name[0], var_value[0], var_name[1], var_value[1])
+
     g.show(title=fun_name+fun_param) #show_legend=False, axes_labels=var_name)
     return g, fun_name, fun_param
 
