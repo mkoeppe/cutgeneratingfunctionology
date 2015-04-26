@@ -520,6 +520,33 @@ def plot_2d_parameter_region(K, color="blue", alpha=0.5, legend_label=None, xmin
     g += line([(0,0),(0,0.001)], color = color, legend_label=legend_label, zorder=-10) #, alpha = alpha)
     return g
 
+def plot_parameter_region_in_literature(function, var_name, default_args, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000):
+    # draft code. only works for some special cases.
+    # should use currying, see also functools.partial
+    x, y = var('x, y')
+    test_point = copy(default_args)
+    del test_point['field']
+    del test_point['conditioncheck']
+    for v in var_name:
+        del test_point[v]
+    if len(var_name) == 2:
+        reg_cf = region_plot_patch( \
+                    [ lambda x, y: function.check_conditions(**dict({var_name[0]: x, var_name[1]: y}, **test_point)) != 'not_constructible' ], \
+                    (x, xmin, xmax), (y, ymin, ymax), incol="orange", bordercol="orange", alpha=0.5, plot_points=plot_points)
+        reg_ct = region_plot_patch( \
+                    [ lambda x, y: function.check_conditions(**dict({var_name[0]: x, var_name[1]: y}, **test_point)) == 'extreme' ], \
+                    (x, xmin, xmax), (y, ymin, ymax), incol="red", bordercol="red", alpha=0.5, plot_points=plot_points)
+    else:
+        reg_cf = region_plot_patch( \
+                    [ lambda x, y: function.check_conditions(**dict({var_name[0]: x}, **test_point )) != 'not_constructible' ] + [ y >= -0.01, y <= 0.01 ], \
+                    (x, xmin, xmax), (y,-0.1, 0.3), incol="orange", bordercol="orange", alpha=0.5, ticks=[None,[]], plot_points=plot_points)
+        reg_ct = region_plot_patch( \
+                    [ lambda x, y: function.check_conditions(**dict({var_name[0]: x}, **test_point )) == 'extreme' ] + [ y >= -0.01, y <= 0.01 ], \
+                    (x, xmin, xmax), (y,-0.1, 0.3), incol="red", bordercol="red", alpha=0.5, ticks=[None,[]], plot_points=plot_points)
+    reg_cf += line([(0,0),(0,0.01)], color = "orange", legend_label="construction", zorder=-10)
+    reg_ct += line([(0,0),(0,0.01)], color ="red", legend_label="conditioncheck", zorder=-10)
+    return reg_cf+reg_ct
+
 def plot_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_value=None, use_simplified_extremality_test=True,\
                               xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, level="factor", plot_points=1000, **opt_non_default):
     """
@@ -572,8 +599,8 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
                             xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
         g = reg_cf+reg_ct
     else:
-        g = Graphics()
-        logging.warn("The function involves non-algebraic operations. Plot parameter region according to literature seperately.")
+        g = plot_parameter_region_in_literature(function, var_name, default_args, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+        logging.warn("This function involves non-algebraic operations. Parameter region according to literature was plotted seperately.")
 
     K = SymbolicRealNumberField(var_value, var_name)
     test_point = copy(default_args)
@@ -588,7 +615,7 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
             color_cfm = "green"
             legend_cfm = "is_minimal"
         else:
-            color_cfm = "darkslategrey"
+            color_cfm = "darkslategrey" #"black"
             legend_cfm = "not_minimal"
         reg_cfm = plot_2d_parameter_region(K, color=color_cfm, alpha=0.5, legend_label=legend_cfm, \
                         xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
