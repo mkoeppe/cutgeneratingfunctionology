@@ -175,7 +175,7 @@ def dg_2_step_mir(f=4/5, alpha=3/10, field=None, conditioncheck=True):
             raise ValueError, "Bad parameters. Unable to construct the function."
         if not bool(ceil(f / alpha) <= 1 / alpha):
             logging.info("Conditions for extremality are NOT satisfied.")
-            according_to_literature = 'minimal'
+            according_to_literature = 'constructible'
         else:
             logging.info("Conditions for extremality are satisfied.")
             according_to_literature = 'extreme'
@@ -200,7 +200,7 @@ class Dg_2_Step_Mir:
         if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
             return 'not_constructible'
         if not bool(ceil(f / alpha) <= 1 / alpha):
-            return 'minimal'
+            return 'constructible'
         else:
             return 'extreme'
 
@@ -209,7 +209,7 @@ class Dg_2_Step_Mir:
         c = self.check_conditions(*args, **kwargs)
         if c == 'not_constructible':
             raise ValueError, "Bad parameters. Unable to construct the function."
-        elif c == 'minimal':
+        elif c == 'constructible':
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
@@ -270,87 +270,108 @@ def interval_length_n_step_mir(n, m, a, b):
         return result
 
 
-def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
-    """
-    Summary:
-        - Name: n-Step MIR;
-        - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
-        - Discovered [74]  p.328, def.3, thm.2;
-        - Proven extreme (for infinite group) [60] p.377, thm.3.3.
-        - (Although only extremality has been established in literature, the same proof shows that) kf_n_step_mir is a facet.
+class Kf_N_Step_Mir:
 
-    Parameters:
-        f (real) \in (0,1);
-        a (list of reals, with length = n) \in (0,f).
+    def __init__(self):
+        pass
 
-    Function is known to be extreme under the conditions:
-        0 < a[1] < f < 1 == a[0];
-        a[i] > 0, for i = 0, 1, ... , n-1;
-        b[i - 1] / a[i] < ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i],  for i = 1, 2, ... , n-1;
-        where,
-        b[0] = f;
-        b[i] = b[i - 1] - a[i] * floor(b[i - 1] / a[i]),  for i = 1, 2, ... , n-1.
-
-    Note:
-        if a[i] > b[i-1] for some i, then the kf_n_step_mir function degenerates, i.e.
-        kf_n_step_mir(f, [a[0], .. , a[n - 1]]) = kf_n_step_mir(f, [a[0], .. a[i - 1], a[i + 1], ... , a[n - 1]])
-
-    Examples:
-        [74] p.333 - p.335, Fig.1 - Fig.6 ::
-        
-            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-            sage: h = kf_n_step_mir(f=4/5, a=[1])
-            sage: extremality_test(h, False)
-            True
-            sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10])
-            sage: extremality_test(h, False)
-            True
-            sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100])
-            sage: extremality_test(h, False)
-            True
-            sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100, 3/100])
-            sage: extremality_test(h, False)
-            True
-            sage: h = kf_n_step_mir(f=4/5, a=[1, 45/100, 2/10, 558/10000, 11/1000])
-            sage: extremality_test(h, False)
-            True
-            sage: h = kf_n_step_mir(f=4/5, a=[1, 48/100, 19/100, 8/100, 32/1000, 12/1000])
-            sage: extremality_test(h, False)
-            True
-
-    Reference:
-        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
-
-        [74]: K. Kianfar and Y. Fathi, Generalized mixed integer rounding valid inequalities:
-                Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313–346.
-    """
-    if conditioncheck:
+    def check_conditions(self, f=4/5, a=[1, 3/10, 8/100]):
         if (a == []) | (not bool(0 < f < 1 == a[0])):
-            raise ValueError, "Bad parameters. Unable to construct the function."
-    b = []
-    b.append(f)
-    n = len(a)
-    t = True
-    for i in range(1, n):
-        b.append(b[i - 1] - a[i] * floor(b[i - 1] / a[i]))
-        if not (bool(0 < a[i]) & bool(b[i - 1] / a[i] < ceil(b[i - 1] / a[i]))):
-            raise ValueError, "Bad parameters. Unable to construct the function."
-        if not bool(ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i]):
-            t = False
-    if conditioncheck:
-        if t:
-            logging.info("Conditions for extremality are satisfied.")
-        else:
-            logging.info("Conditions for extremality are NOT satisfied.")
-    interval_lengths =  interval_length_n_step_mir(n, 1, a, b)
-    nb_interval = len(interval_lengths)
-    interval_length_positive = sum(interval_lengths[i] for i in range(0, nb_interval, 2))
-    interval_length_negative = sum(interval_lengths[i] for i in range(1, nb_interval, 2))
-    s_negative = a[0] /(b[0] - a[0])
-    s_positive = - s_negative * interval_length_negative / interval_length_positive 
-    slopes = [s_positive, s_negative] * (nb_interval // 2)
-    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
+            return 'not_constructible'
+        b = []
+        b.append(f)
+        n = len(a)
+        for i in range(1, n):
+            b.append(b[i - 1] - a[i] * floor(b[i - 1] / a[i]))
+            if not (bool(0 < a[i]) & bool(b[i - 1] / a[i] < ceil(b[i - 1] / a[i]))):
+                return 'not_constructible'
+        for i in range(1, n):
+            if not bool(ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i]):
+                return 'constructible'
+        return 'extreme'
 
+        #####  Bad name follows....
+    def check_conditions_and_warn(self, *args, **kwargs):  ### could be in superclass
+        c = self.check_conditions(*args, **kwargs)
+        if c == 'not_constructible':
+            raise ValueError, "Bad parameters. Unable to construct the function."
+        elif c == 'constructible':
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
+
+    def __call__(self, f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
+        """
+        Summary:
+            - Name: n-Step MIR;
+            - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
+            - Discovered [74]  p.328, def.3, thm.2;
+            - Proven extreme (for infinite group) [60] p.377, thm.3.3.
+            - (Although only extremality has been established in literature, the same proof shows that) kf_n_step_mir is a facet.
+
+        Parameters:
+            f (real) \in (0,1);
+            a (list of reals, with length = n) \in (0,f).
+
+        Function is known to be extreme under the conditions:
+            0 < a[1] < f < 1 == a[0];
+            a[i] > 0, for i = 0, 1, ... , n-1;
+            b[i - 1] / a[i] < ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i],  for i = 1, 2, ... , n-1;
+            where,
+            b[0] = f;
+            b[i] = b[i - 1] - a[i] * floor(b[i - 1] / a[i]),  for i = 1, 2, ... , n-1.
+
+        Note:
+            if a[i] > b[i-1] for some i, then the kf_n_step_mir function degenerates, i.e.
+            kf_n_step_mir(f, [a[0], .. , a[n - 1]]) = kf_n_step_mir(f, [a[0], .. a[i - 1], a[i + 1], ... , a[n - 1]])
+
+        Examples:
+            [74] p.333 - p.335, Fig.1 - Fig.6 ::
+        
+                sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+                sage: h = kf_n_step_mir(f=4/5, a=[1])
+                sage: extremality_test(h, False)
+                True
+                sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10])
+                sage: extremality_test(h, False)
+                True
+                sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100])
+                sage: extremality_test(h, False)
+                True
+                sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100, 3/100])
+                sage: extremality_test(h, False)
+                True
+                sage: h = kf_n_step_mir(f=4/5, a=[1, 45/100, 2/10, 558/10000, 11/1000])
+                sage: extremality_test(h, False)
+                True
+                sage: h = kf_n_step_mir(f=4/5, a=[1, 48/100, 19/100, 8/100, 32/1000, 12/1000])
+                sage: extremality_test(h, False)
+                True
+
+        Reference:
+            [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+
+            [74]: K. Kianfar and Y. Fathi, Generalized mixed integer rounding valid inequalities:
+
+                    Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313–346.
+        """
+        if conditioncheck:
+            self.check_conditions_and_warn(f, a)
+        b = []
+        b.append(f)
+        n = len(a)
+        for i in range(1, n):
+            b.append(b[i - 1] - a[i] * floor(b[i - 1] / a[i]))
+        interval_lengths =  interval_length_n_step_mir(n, 1, a, b)
+        nb_interval = len(interval_lengths)
+        interval_length_positive = sum(interval_lengths[i] for i in range(0, nb_interval, 2))
+        interval_length_negative = sum(interval_lengths[i] for i in range(1, nb_interval, 2))
+        s_negative = a[0] /(b[0] - a[0])
+        s_positive = - s_negative * interval_length_negative / interval_length_positive
+        slopes = [s_positive, s_negative] * (nb_interval // 2)
+        return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
+
+kf_n_step_mir = Kf_N_Step_Mir()
 
 def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditioncheck=True):
     """
