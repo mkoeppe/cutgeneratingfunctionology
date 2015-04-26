@@ -527,7 +527,7 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
     sage: g, fname, fparam = plot_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12-1/30, 2/12])
     sage: g.save(fname+".pdf", title=fname+fparam, legend_loc=7)
     sage: g, fname, fparam = plot_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12+1/30, 2/12])
-    sage: g, fname, fparam = plot_parameter_region(gj_2_slope, ('f','lambda_1'], plot_points=100)
+    sage: g, fname, fparam = plot_parameter_region(gj_2_slope, ['f','lambda_1'], plot_points=100)
     sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ['f','lambda_1'], [9/10, 3/10])
     sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'])
     sage: g, fname, fparam = plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'], f=3/4, lambda_1=2/3, lambda_2=3/5)
@@ -604,7 +604,7 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
             reg_cfe = plot_2d_parameter_region(K, color=color_cfe, alpha=0.5, legend_label=legend_cfe, \
                         xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
             g += reg_cfe
-            color_p = "white"
+        color_p = "white"
     except (AssertionError,ValueError, TypeError, NotImplementedError):
         logging.warn("(%s=%s, %s=%s) is out of the constructible region." % (var_name[0], var_value[0], var_name[1], var_value[1]))
         color_p = "black"
