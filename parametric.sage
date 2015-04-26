@@ -577,7 +577,7 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
     if not var_value:
         var_value = extreme_var_value
 
-    if not isinstance(function, Extreme_Functions_Factory):
+    if not isinstance(function, ExtremeFunctionsFactory):
         K = SymbolicRealNumberField(extreme_var_value, var_name)
         test_point = copy(default_args)
         for i in range(len(var_name)):
@@ -600,7 +600,7 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
         g = reg_cf+reg_ct
     else:
         g = plot_parameter_region_in_literature(function, var_name, default_args, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
-        logging.warn("This function involves non-algebraic operations. Parameter region according to literature was plotted seperately.")
+        logging.warn("This function involves non-algebraic operations. Parameter region according to literature was plotted separately.")
 
     K = SymbolicRealNumberField(var_value, var_name)
     test_point = copy(default_args)

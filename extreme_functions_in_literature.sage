@@ -190,7 +190,7 @@ def dg_2_step_mir(f=4/5, alpha=3/10, field=None, conditioncheck=True):
     h._according_to_literature = according_to_literature
     return h
 
-class Extreme_Functions_Factory:
+class ExtremeFunctionsFactory:
     #####  Bad name follows....
     def check_conditions_and_warn(self, *args, **kwargs):  ### could be in superclass
         c = self.check_conditions(*args, **kwargs)
@@ -201,7 +201,7 @@ class Extreme_Functions_Factory:
         else:
             logging.info("Conditions for extremality are satisfied.")
 
-class Dg_2_Step_Mir(Extreme_Functions_Factory):
+class Dg2StepMir(ExtremeFunctionsFactory):
 
     def __init__(self):
         pass
@@ -257,7 +257,7 @@ class Dg_2_Step_Mir(Extreme_Functions_Factory):
         slopes = [s_positive, s_negative] * tau
         return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
-dg_2_step_mir = Dg_2_Step_Mir()
+dg_2_step_mir = Dg2StepMir()
 
 
 def interval_length_n_step_mir(n, m, a, b):
@@ -270,7 +270,7 @@ def interval_length_n_step_mir(n, m, a, b):
         return result
 
 
-class Kf_N_Step_Mir(Extreme_Functions_Factory):
+class KfNStepMir(ExtremeFunctionsFactory):
 
     def __init__(self):
         pass
@@ -360,7 +360,7 @@ class Kf_N_Step_Mir(Extreme_Functions_Factory):
         slopes = [s_positive, s_negative] * (nb_interval // 2)
         return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
-kf_n_step_mir = Kf_N_Step_Mir()
+kf_n_step_mir = KfNStepMir()
 
 def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditioncheck=True):
     """
@@ -480,7 +480,7 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
     slopes = [1/f, (1 + f - bkpt)/(1 + f)/(f - bkpt), 1/(1 + f), (1 + f - bkpt)/(1 + f)/(f - bkpt)]
     return piecewise_function_from_breakpoints_and_slopes(bkpts, slopes, field=field)
 
-class Dg_2_Step_Mir_Limit(Extreme_Functions_Factory):
+class Dg2StepMirLimit(ExtremeFunctionsFactory):
 
     def __init__(self):
         pass
@@ -546,7 +546,7 @@ class Dg_2_Step_Mir_Limit(Extreme_Functions_Factory):
         h = FastPiecewise(pieces)
         return h
 
-dg_2_step_mir_limit = Dg_2_Step_Mir_Limit()
+dg_2_step_mir_limit = Dg2StepMirLimit()
 
 def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, conditioncheck=True):
     """
@@ -1202,7 +1202,7 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
     return h
 
 
-class Ll_Strong_Fractional(Extreme_Functions_Factory):
+class LlStrongFractional(ExtremeFunctionsFactory):
 
     def __init__(self):
         pass
@@ -1288,4 +1288,4 @@ class Ll_Strong_Fractional(Extreme_Functions_Factory):
         h = FastPiecewise(pieces)
         return h
 
-ll_strong_fractional = Ll_Strong_Fractional()
+ll_strong_fractional = LlStrongFractional()
