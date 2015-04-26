@@ -541,8 +541,8 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
         raise NotImplementedError, "More than three parameters. Not implemented."
     args, varargs, keywords, defaults = sage_getargspec(function)
     default_args = {}
-    for i in range(len(args)):
-        default_args[args[i]]=defaults[i]
+    for i in range(len(defaults)):
+        default_args[args[-i-1]]=defaults[-i-1]
     for (opt_name, opt_value) in opt_non_default.items():
         if opt_name in default_args:
             default_args[opt_name] = opt_value
@@ -550,26 +550,30 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
     if not var_value:
         var_value = extreme_var_value
 
-    K = SymbolicRealNumberField(extreme_var_value, var_name)
-    test_point = copy(default_args)
-    for i in range(len(var_name)):
-        test_point[var_name[i]] = K.gens()[i]
-    test_point['field'] = K
-    test_point['conditioncheck'] = False
-    h = function(**test_point)
-    reg_cf = plot_2d_parameter_region(K, color="orange", alpha=0.5, legend_label="construction", \
-                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
+    if not isinstance(function, Extreme_Functions_Factory):
+        K = SymbolicRealNumberField(extreme_var_value, var_name)
+        test_point = copy(default_args)
+        for i in range(len(var_name)):
+            test_point[var_name[i]] = K.gens()[i]
+        test_point['field'] = K
+        test_point['conditioncheck'] = False
+        h = function(**test_point)
+        reg_cf = plot_2d_parameter_region(K, color="orange", alpha=0.5, legend_label="construction", \
+                            xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
 
-    K = SymbolicRealNumberField(extreme_var_value, var_name)
-    test_point = copy(default_args)
-    for i in range(len(var_name)):
-        test_point[var_name[i]] = K.gens()[i]
-    test_point['field'] = K
-    test_point['conditioncheck'] = True
-    h = function(**test_point)
-    reg_ct  = plot_2d_parameter_region(K, color="red", alpha=0.5, legend_label="conditioncheck", \
-                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
-    g = reg_cf+reg_ct
+        K = SymbolicRealNumberField(extreme_var_value, var_name)
+        test_point = copy(default_args)
+        for i in range(len(var_name)):
+            test_point[var_name[i]] = K.gens()[i]
+        test_point['field'] = K
+        test_point['conditioncheck'] = True
+        h = function(**test_point)
+        reg_ct  = plot_2d_parameter_region(K, color="red", alpha=0.5, legend_label="conditioncheck", \
+                            xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
+        g = reg_cf+reg_ct
+    else:
+        g = Graphics()
+        logging.warn("The function involves non-algebraic operations. Plot parameter region according to literature seperately.")
 
     K = SymbolicRealNumberField(var_value, var_name)
     test_point = copy(default_args)
@@ -619,9 +623,11 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
         fun_param = "(%s=%s)" % (var_name[0], var_value[0])
     g += p
 
-    fun_name = sage_getvariablename(function)[0]
-    if fun_name == 'function':
-        fun_name = sage_getvariablename(function)[1]
+    fun_names = sage_getvariablename(function)
+    i = 0
+    while fun_names[i] == 'function':
+        i += 1
+    fun_name = fun_names[i]
 
     g.show(title=fun_name+fun_param) #show_legend=False, axes_labels=var_name)
     return g, fun_name, fun_param
