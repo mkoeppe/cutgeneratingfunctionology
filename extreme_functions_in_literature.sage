@@ -342,7 +342,6 @@ class Kf_N_Step_Mir(Extreme_Functions_Factory):
             [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
 
             [74]: K. Kianfar and Y. Fathi, Generalized mixed integer rounding valid inequalities:
-
                     Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313–346.
         """
         if conditioncheck:
@@ -1202,80 +1201,91 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
     h = FastPiecewise(pieces)
     return h
 
-def ll_strong_fractional(f=2/3, field=None, conditioncheck=True):
-    """
-    Letchford--Lodi's strong fractional cut.
 
-    EXAMPLES::
+class Ll_Strong_Fractional(Extreme_Functions_Factory):
 
-        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-        sage: h = ll_strong_fractional(f=2/3)
-        sage: extremality_test(h, False)
-        True
-        sage: h = ll_strong_fractional(f=2/7)
-        sage: minimality_test(h, False)
-        False
+    def __init__(self):
+        pass
 
-    Reference::
-        [78] Letchford-Lodi (2002) Thm. 2, Fig. 3 (but note this figure shows the wrong function; 
-             see ll_strong_fractional_bad_figure_3 and ll_strong_fractional_bad_figure_3_corrected)
-
-        [33] S. Dash and O. G¨unl¨uk (2004) Thm. 16
-
-    Remarks::
-        Discontinuous, 1-slope;
-
-        For f >= 1/2, this function is facet (extreme), and is identical to
-        drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=1).
-
-    EXAMPLES::
-
-        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-        sage: f=2/3
-        sage: l = ll_strong_fractional(f)
-        sage: d = drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)
-        sage: dg = automorphism(dg_2_step_mir_limit(f=1-f, d=ceil(1/f)-1))
-        sage: show(plot(l, color='red', legend_label='ll_strong_fractional')) # not tested
-        sage: show(plot(d, color='blue', legend_label='drlm_2_slope_limit')) # not tested
-        sage: show(plot(dg, color='green', legend_label='automorphism(dg_2_step_mir_limit)')) # not tested
-        sage: l == d == dg
-        True
-
-    Remarks::
-        The function is NOT minimal for 0 < f < 1/2.  It equals
-        drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1),
-        except for limits at breakpoints.
-
-    EXAMPLES::
-
-        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-        sage: f=1/3
-        sage: l = ll_strong_fractional(f)
-        sage: d = drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)
-        sage: dg = automorphism(dg_2_step_mir_limit(f=1-f, d=ceil(1/f)-1))
-        sage: show(plot(l, color='red', legend_label='ll_strong_fractional')) # not tested
-        sage: show(plot(d, color='blue', legend_label='drlm_2_slope_limit')) # not tested
-        sage: show(plot(dg, color='green', legend_label='automorphism(dg_2_step_mir_limit)')) # not tested
-        sage: d == dg
-        True
-        sage: l == d
-        False
-    """
-    if conditioncheck:
+    def check_conditions(self, f=2/3):
         if not bool(0 < f < 1):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            return 'not_constructible'
         if not bool(1/2 <= f < 1):
-            logging.info("The function is NOT minimal.")
+            return 'constructible'
         else:
-            logging.info("Conditions for extremality are satisfied.")
-    f = nice_field_values([f], field)[0]
-    field = f.parent()
-    k = ceil(1/f) -1
-    pieces = [[closed_interval(0,f), FastLinearFunction(1/f, 0)]]
-    for p in range(k-1):
-        pieces.append([left_open_interval(f + (1 - f)* p / k, f + (1 - f)*(p + 1)/k), FastLinearFunction(1/f, -(p + 1)/f/(k + 1))])
-    p = k - 1
-    pieces.append([open_interval(f + (1 - f)* p / k, f + (1 - f)*(p + 1)/k), FastLinearFunction(1/f, -(p + 1)/f/(k + 1))])
-    pieces.append([singleton_interval(1), FastLinearFunction(0, 0)])
-    h = FastPiecewise(pieces)
-    return h
+            return 'extreme'
+
+    def __call__(self, f=2/3, field=None, conditioncheck=True):
+        """
+        Letchford--Lodi's strong fractional cut.
+
+        EXAMPLES::
+
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: h = ll_strong_fractional(f=2/3)
+            sage: extremality_test(h, False)
+            True
+            sage: h = ll_strong_fractional(f=2/7)
+            sage: minimality_test(h, False)
+            False
+
+        Reference::
+            [78] Letchford-Lodi (2002) Thm. 2, Fig. 3 (but note this figure shows the wrong function; 
+                 see ll_strong_fractional_bad_figure_3 and ll_strong_fractional_bad_figure_3_corrected)
+
+            [33] S. Dash and O. G¨unl¨uk (2004) Thm. 16
+
+        Remarks::
+            Discontinuous, 1-slope;
+
+            For f >= 1/2, this function is facet (extreme), and is identical to
+            drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=1).
+
+        EXAMPLES::
+
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: f=2/3
+            sage: l = ll_strong_fractional(f)
+            sage: d = drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)
+            sage: dg = automorphism(dg_2_step_mir_limit(f=1-f, d=ceil(1/f)-1))
+            sage: show(plot(l, color='red', legend_label='ll_strong_fractional')) # not tested
+            sage: show(plot(d, color='blue', legend_label='drlm_2_slope_limit')) # not tested
+            sage: show(plot(dg, color='green', legend_label='automorphism(dg_2_step_mir_limit)')) # not tested
+            sage: l == d == dg
+            True
+
+        Remarks::
+            The function is NOT minimal for 0 < f < 1/2.  It equals
+            drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1),
+            except for limits at breakpoints.
+
+        EXAMPLES::
+
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: f=1/3
+            sage: l = ll_strong_fractional(f)
+            sage: d = drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)
+            sage: dg = automorphism(dg_2_step_mir_limit(f=1-f, d=ceil(1/f)-1))
+            sage: show(plot(l, color='red', legend_label='ll_strong_fractional')) # not tested
+            sage: show(plot(d, color='blue', legend_label='drlm_2_slope_limit')) # not tested
+            sage: show(plot(dg, color='green', legend_label='automorphism(dg_2_step_mir_limit)')) # not tested
+            sage: d == dg
+            True
+            sage: l == d
+            False
+        """
+        if conditioncheck:
+            self.check_conditions_and_warn(f)
+        f = nice_field_values([f], field)[0]
+        field = f.parent()
+        k = ceil(1/f) -1
+        pieces = [[closed_interval(0,f), FastLinearFunction(1/f, 0)]]
+        for p in range(k-1):
+            pieces.append([left_open_interval(f + (1 - f)* p / k, f + (1 - f)*(p + 1)/k), FastLinearFunction(1/f, -(p + 1)/f/(k + 1))])
+        p = k - 1
+        pieces.append([open_interval(f + (1 - f)* p / k, f + (1 - f)*(p + 1)/k), FastLinearFunction(1/f, -(p + 1)/f/(k + 1))])
+        pieces.append([singleton_interval(1), FastLinearFunction(0, 0)])
+        h = FastPiecewise(pieces)
+        return h
+
+ll_strong_fractional = Ll_Strong_Fractional()
