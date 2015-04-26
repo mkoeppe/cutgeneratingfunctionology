@@ -190,8 +190,18 @@ def dg_2_step_mir(f=4/5, alpha=3/10, field=None, conditioncheck=True):
     h._according_to_literature = according_to_literature
     return h
 
+class Extreme_Functions_Factory:
+    #####  Bad name follows....
+    def check_conditions_and_warn(self, *args, **kwargs):  ### could be in superclass
+        c = self.check_conditions(*args, **kwargs)
+        if c == 'not_constructible':
+            raise ValueError, "Bad parameters. Unable to construct the function."
+        elif c == 'constructible':
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
 
-class Dg_2_Step_Mir:
+class Dg_2_Step_Mir(Extreme_Functions_Factory):
 
     def __init__(self):
         pass
@@ -204,16 +214,6 @@ class Dg_2_Step_Mir:
         else:
             return 'extreme'
 
-        #####  Bad name follows....
-    def check_conditions_and_warn(self, *args, **kwargs):  ### could be in superclass
-        c = self.check_conditions(*args, **kwargs)
-        if c == 'not_constructible':
-            raise ValueError, "Bad parameters. Unable to construct the function."
-        elif c == 'constructible':
-            logging.info("Conditions for extremality are NOT satisfied.")
-        else:
-            logging.info("Conditions for extremality are satisfied.")
-    
     def __call__(self, f=4/5, alpha=3/10, field=None, conditioncheck=True):
         """
         Summary:
@@ -270,7 +270,7 @@ def interval_length_n_step_mir(n, m, a, b):
         return result
 
 
-class Kf_N_Step_Mir:
+class Kf_N_Step_Mir(Extreme_Functions_Factory):
 
     def __init__(self):
         pass
@@ -289,16 +289,6 @@ class Kf_N_Step_Mir:
             if not bool(ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i]):
                 return 'constructible'
         return 'extreme'
-
-        #####  Bad name follows....
-    def check_conditions_and_warn(self, *args, **kwargs):  ### could be in superclass
-        c = self.check_conditions(*args, **kwargs)
-        if c == 'not_constructible':
-            raise ValueError, "Bad parameters. Unable to construct the function."
-        elif c == 'constructible':
-            logging.info("Conditions for extremality are NOT satisfied.")
-        else:
-            logging.info("Conditions for extremality are satisfied.")
 
     def __call__(self, f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
         """
@@ -491,64 +481,73 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
     slopes = [1/f, (1 + f - bkpt)/(1 + f)/(f - bkpt), 1/(1 + f), (1 + f - bkpt)/(1 + f)/(f - bkpt)]
     return piecewise_function_from_breakpoints_and_slopes(bkpts, slopes, field=field)
 
-def dg_2_step_mir_limit(f=3/5, d=3, field=None, conditioncheck=True):
-    """
-    Summary:
-        - Name: DG-2-Step MIR Limit;
-        - Infinite; Dim = 1; Slopes = 1; Discontinuous; Simple sets method;
-        - Discovered [33] p.41, def.12;
-        - Proven extreme [33] p.43, lemma 14.
-        - dg_2_step_mir_limit is a facet.
+class Dg_2_Step_Mir_Limit(Extreme_Functions_Factory):
 
-    Parameters:
-        f (real) \in (0,1);
-        d (positive integer): number of slopes on [0,f).
+    def __init__(self):
+        pass
 
-    Function is known to be extreme under the conditions:
-        0 < f < 1;
-        d >= ceil(1 / (1 - f)) - 1.
-
-    Note:
-        This is the limit function as alpha in dg_2_step_mir()
-        tends (from left) to f/d, where d is integer;
-        cf. [33] p.42, lemma 13.
-
-        It's a special case of drlm_2_slope_limit(),
-        dg_2_step_mir_limit(f, d) =
-        multiplicative_homomorphism(drlm_2_slope_limit(f=1-f, nb_pieces_left=1, nb_pieces_right=d), -1)
-
-    Examples:
-        [33] p.42, Fig.6 ::
-
-            sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
-            sage: h = dg_2_step_mir_limit(f=3/5, d=3)
-            sage: extremality_test(h, False)
-            True
-
-    Reference:
-        [33]: S. Dash and O. G¨unl¨uk, Valid inequalities based on simple mixed-integer sets.,
-                Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
-                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33–45.
-    """
-    if conditioncheck:
+    def check_conditions(self, f=3/5, d=3):
         if not (bool(0 < f < 1) & (d >= 1)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            return 'not_constructible'
         if not bool(d >= ceil(1 / (1 - f)) - 1):
-            logging.info("Conditions for extremality are NOT satisfied.")
+            return 'constructible'
         else:
-            logging.info("Conditions for extremality are satisfied.")
-    f = nice_field_values([f], field)[0]
-    field = f.parent()
-    pieces = []
-    for k in range(d):
-        left_x = f * k / d
-        right_x = f * (k + 1) / d
-        pieces = pieces + \
-                 [[singleton_interval(left_x), FastLinearFunction(field(0), left_x / f)], \
-                  [open_interval(left_x, right_x), FastLinearFunction(1 / (f - 1), (k + 1)/(d + 1)/(1 - f))]]
-    pieces.append([closed_interval(f, field(1)), FastLinearFunction(1 / (f - 1), 1 /(1 - f))])
-    h = FastPiecewise(pieces)
-    return h
+            return 'extreme'
+    
+    def __call__(self, f=3/5, d=3, field=None, conditioncheck=True):
+        """
+        Summary:
+            - Name: DG-2-Step MIR Limit;
+            - Infinite; Dim = 1; Slopes = 1; Discontinuous; Simple sets method;
+            - Discovered [33] p.41, def.12;
+            - Proven extreme [33] p.43, lemma 14.
+            - dg_2_step_mir_limit is a facet.
+
+        Parameters:
+            f (real) \in (0,1);
+            d (positive integer): number of slopes on [0,f).
+
+        Function is known to be extreme under the conditions:
+            0 < f < 1;
+            d >= ceil(1 / (1 - f)) - 1.
+
+        Note:
+            This is the limit function as alpha in dg_2_step_mir()
+            tends (from left) to f/d, where d is integer;
+            cf. [33] p.42, lemma 13.
+            It's a special case of drlm_2_slope_limit(),
+            dg_2_step_mir_limit(f, d) =
+            multiplicative_homomorphism(drlm_2_slope_limit(f=1-f, nb_pieces_left=1, nb_pieces_right=d), -1)
+
+        Examples:
+            [33] p.42, Fig.6 ::
+
+                sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
+                sage: h = dg_2_step_mir_limit(f=3/5, d=3)
+                sage: extremality_test(h, False)
+                True
+
+        Reference:
+            [33]: S. Dash and O. G¨unl¨uk, Valid inequalities based on simple mixed-integer sets.,
+                    Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
+                    (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33–45.
+        """     
+        if conditioncheck:
+            self.check_conditions_and_warn(f, d)
+        f = nice_field_values([f], field)[0]
+        field = f.parent()
+        pieces = []
+        for k in range(d):
+            left_x = f * k / d
+            right_x = f * (k + 1) / d
+            pieces = pieces + \
+                     [[singleton_interval(left_x), FastLinearFunction(field(0), left_x / f)], \
+                      [open_interval(left_x, right_x), FastLinearFunction(1 / (f - 1), (k + 1)/(d + 1)/(1 - f))]]
+        pieces.append([closed_interval(f, field(1)), FastLinearFunction(1 / (f - 1), 1 /(1 - f))])
+        h = FastPiecewise(pieces)
+        return h
+
+dg_2_step_mir_limit = Dg_2_Step_Mir_Limit()
 
 def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, conditioncheck=True):
     """
