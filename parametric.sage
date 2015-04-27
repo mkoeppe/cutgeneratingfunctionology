@@ -605,7 +605,7 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
                         xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, level=level, plot_points=plot_points)
             g += reg_cfe
         color_p = "white"
-    except (AssertionError,ValueError, TypeError, NotImplementedError):
+    except: # (AssertionError,ValueError, TypeError, NotImplementedError, IndexError, ZeroDivisionError):
         if len(var_name) == 2:
             logging.warn("(%s=%s, %s=%s) is out of the constructible region." % (var_name[0], var_value[0], var_name[1], var_value[1]))
         else:
