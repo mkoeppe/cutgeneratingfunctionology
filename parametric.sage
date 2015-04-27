@@ -751,7 +751,7 @@ def find_region_around_given_point(function, var_name, var_value, default_args):
         else:
             leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
             return 'not_minimal', leq, lin
-    except (AssertionError,ValueError, TypeError, NotImplementedError):
+    except: # (AssertionError,ValueError, TypeError, NotImplementedError, IndexError, ZeroDivisionError):
         return 'not_constructible', [], []
 
 def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], random_points=10, \
@@ -773,7 +773,7 @@ def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], rando
             default_args[opt_name] = opt_value
     extreme_var_value = [default_args[v] for v in var_name]
     var_value = extreme_var_value
-    is_constructible = find_region_according_to_literature(function, var_name, var_value, default_args, 'constructible')
+    #is_constructible = find_region_according_to_literature(function, var_name, var_value, default_args, 'constructible')
     #if plot_points > 0:
     #    is_extreme = find_region_according_to_literature(function, var_name, var_value, default_args, 'extreme')
     #    g = region_plot_lambda_1d_or_2d(len(var_name), is_constructible, 'orange', alpha=0.5, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
@@ -784,8 +784,8 @@ def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], rando
     last_n_points_was_covered = 0
     while random_points > 0:
         x, y = QQ(uniform(xmin, xmax)), QQ(uniform(ymin, ymax))
-        while not is_constructible(x, y):
-            x, y = QQ(uniform(xmin, xmax)), QQ(uniform(ymin, ymax))
+        #while not is_constructible(x, y):
+        #    x, y = QQ(uniform(xmin, xmax)), QQ(uniform(ymin, ymax))
         point_is_covered = False
         for (region_type, leq, lin) in regions:
             if (len(var_name) == 2) and all(abs(l(x, y)) <= 1e-5 for l in leq) and all(l(x, y) <= 1e-5 for l in lin) or \
@@ -799,9 +799,10 @@ def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], rando
         if point_is_covered:
             last_n_points_was_covered += 1
         else:
-            last_n_points_was_covered = 0
             region_type, leq, lin = find_region_around_given_point(function, var_name, var_value, default_args)
-            regions.append((region_type, leq, lin))
+            if not region_type == 'not_constructible':
+                regions.append((region_type, leq, lin))
+                last_n_points_was_covered = 0
         tested_points.append(var_value)
         random_points -= 1
     if plot_points > 0:
