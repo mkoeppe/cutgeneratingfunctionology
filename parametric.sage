@@ -754,10 +754,10 @@ def find_region_around_given_point(function, var_name, var_value, default_args):
     except: # (AssertionError,ValueError, TypeError, NotImplementedError, IndexError, ZeroDivisionError):
         return 'not_constructible', [], []
 
-def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], random_points=10, \
-                              xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=0, show_points=True, **opt_non_default):
+def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], random_points=10, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, \
+                            plot_points=0, show_points=True, regions = [], tested_points = [], **opt_non_default):
     """
-    sage: regions, tested_points, last_n_points_was_covered = cover_parameter_region(drlm_backward_3_slope, ['f','bkpt'], random_points=200, plot_points=1000)
+    sage: regions, tested_points, last_n_points_were_covered = cover_parameter_region(drlm_backward_3_slope, ['f','bkpt'], random_points=200, plot_points=1000)
     """
     from sage.misc.sageinspect import sage_getargspec, sage_getvariablename
 
@@ -779,9 +779,9 @@ def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], rando
     #    g = region_plot_lambda_1d_or_2d(len(var_name), is_constructible, 'orange', alpha=0.5, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
     #    g += region_plot_lambda_1d_or_2d(len(var_name), is_extreme, 'red', alpha=0.5, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
     #    g.show()
-    regions = []
-    tested_points = []
-    last_n_points_was_covered = 0
+    #regions = []
+    #tested_points = []
+    last_n_points_were_covered = 0
     while random_points > 0:
         x, y = QQ(uniform(xmin, xmax)), QQ(uniform(ymin, ymax))
         #while not is_constructible(x, y):
@@ -797,12 +797,12 @@ def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], rando
         else:
             var_value = [x]
         if point_is_covered:
-            last_n_points_was_covered += 1
+            last_n_points_were_covered += 1
         else:
             region_type, leq, lin = find_region_around_given_point(function, var_name, var_value, default_args)
             if not region_type == 'not_constructible':
                 regions.append((region_type, leq, lin))
-                last_n_points_was_covered = 0
+                last_n_points_were_covered = 0
         tested_points.append(var_value)
         random_points -= 1
     if plot_points > 0:
@@ -814,7 +814,7 @@ def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], rando
             i += 1
         fun_name = fun_names[i]
         g.show(title=fun_name+'%s' % var_name)
-    return regions, tested_points, last_n_points_was_covered
+    return regions, tested_points, last_n_points_were_covered
 
 def region_plot_1d_or_2d(d, leq, lin, color, alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000):
     x,y = var('x,y')
