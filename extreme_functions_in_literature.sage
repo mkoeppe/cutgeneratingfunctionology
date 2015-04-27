@@ -1099,10 +1099,20 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
         1/2 <= f <= 1;
         s_pos > 1/f;
         s_neg < 1/(f - 1);
-        0 < lam1 < min(1/2, (s_pos - s_neg) / s_pos / (1 - s_neg * f));
+        1 - f + 1/s_neg < lam1 < min(1/2, (s_pos - s_neg) / s_pos / (1 - s_neg * f));
         f - 1 / s_pos < lam2 < min(1/2, (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)).
 
-    Examples::
+    Note:
+        The lower bound 0 < lam1 claimed in [KChen_thesis] is not sufficient for extremality.
+        The following example satisfies the extremality conditions according to [KChen_thesis],
+        however it violates the subadditivity, and thus is not an extreme function::
+
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: h = chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/100, lam2=49/100)
+            sage: extremality_test(h, False)
+            False
+
+    Examples:
         [KChen_thesis]  p.38, fig.8::
 
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
@@ -1131,7 +1141,7 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
                                 and bool(0 < lam1 < 1) and bool(0 < lam2 < 1)):
             raise ValueError, "Bad parameters. Unable to construct the function."
         if bool(1/2 <= f) and bool(lam1 < 1/2) and bool(lam2 < 1/2) and \
-                bool(lam1 < (s_pos - s_neg) / s_pos / (1 - s_neg * f)) and \
+                bool(1 - f + 1/s_neg < lam1 < (s_pos - s_neg) / s_pos / (1 - s_neg * f)) and \
                 bool (f - 1 / s_pos < lam2 < (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)):
             logging.info("Conditions for extremality are satisfied.")
         else:
