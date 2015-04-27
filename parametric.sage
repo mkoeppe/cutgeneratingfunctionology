@@ -683,3 +683,158 @@ def simplified_extremality_test(function):
     else:
         logging.info("The function is extreme.")
         return True
+
+
+###########################
+# Randomly pick some points.
+# Can their parameter regions cover the extreme region according to literature?
+###########################
+
+def find_region_according_to_literature(function, var_name, var_value, default_args, region_type):
+
+    x,y = var('x,y')
+    test_point = copy(default_args)
+    if not isinstance(function, ExtremeFunctionsFactory):
+        K = SymbolicRealNumberField(var_value, var_name)
+        for i in range(len(var_name)):
+            test_point[var_name[i]] = K.gens()[i]
+        test_point['field'] = K
+        if region_type == 'constructible':
+            test_point['conditioncheck'] = False
+        elif region_type == 'extreme':
+            test_point['conditioncheck'] = True
+        else:
+            raise ValueError, "Bad argument region_type = %s" % region_type
+        h = function(**test_point)
+        leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
+        if leq:
+            logging.warn("Bad default arguments! Equation list %s is not empty!" % leq)
+        if len(var_name) == 2:
+            return lambda x, y: all(abs(l(x, y)) <= 1e-5 for l in leq) and all(l(x, y) <= 1e-5 for l in lin)
+        else:
+            return lambda x, y: all(abs(l(x)) <= 1e-5 for l in leq) and all(l(x) <= 1e-5 for l in lin)
+    else:
+        del test_point['field']
+        del test_point['conditioncheck']
+        for v in var_name:
+            del test_point[v]
+        if region_type == 'constructible':
+            if len(var_name) == 2:
+                return lambda x, y: function.check_conditions(**dict({var_name[0]: x, var_name[1]: y}, **test_point)) != 'not_constructible'
+            else:
+                return lambda x, y: function.check_conditions(**dict({var_name[0]: x}, **test_point )) != 'not_constructible'
+        elif region_type == 'extreme':
+            if len(var_name) == 2:
+                return lambda x, y: function.check_conditions(**dict({var_name[0]: x, var_name[1]: y}, **test_point)) == 'extreme'
+            else:
+                return lambda x, y: function.check_conditions(**dict({var_name[0]: x}, **test_point )) == 'extreme'
+        else:
+            raise ValueError, "Bad argument region_type = %s" % region_type
+
+def find_region_around_given_point(function, var_name, var_value, default_args):
+    K = SymbolicRealNumberField(var_value, var_name)
+    test_point = copy(default_args)
+    for i in range(len(var_name)):
+        test_point[var_name[i]] = K.gens()[i]
+    test_point['field'] = K
+    test_point['conditioncheck'] = False
+    try:
+        h = function(**test_point)
+        is_minimal = minimality_test(h)
+        if is_minimal:
+            is_extreme = simplified_extremality_test(h)
+            leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
+            if is_extreme:
+                return 'is_extreme', leq, lin
+            else:
+                return 'not_extreme', leq, lin
+        else:
+            leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
+            return 'not_minimal', leq, lin
+    except (AssertionError,ValueError, TypeError, NotImplementedError):
+        return 'not_constructible', [], []
+
+def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], random_points=10, \
+                              xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=0, show_points=True, **opt_non_default):
+    """
+    sage: regions, tested_points, last_n_points_was_covered = cover_parameter_region(drlm_backward_3_slope, ['f','bkpt'], random_points=200, plot_points=1000)
+    """
+    from sage.misc.sageinspect import sage_getargspec, sage_getvariablename
+
+    if len(var_name) >= 3:
+        #TODO
+        raise NotImplementedError, "More than three parameters. Not implemented."
+    args, varargs, keywords, defaults = sage_getargspec(function)
+    default_args = {}
+    for i in range(len(defaults)):
+        default_args[args[-i-1]]=defaults[-i-1]
+    for (opt_name, opt_value) in opt_non_default.items():
+        if opt_name in default_args:
+            default_args[opt_name] = opt_value
+    extreme_var_value = [default_args[v] for v in var_name]
+    var_value = extreme_var_value
+    is_constructible = find_region_according_to_literature(function, var_name, var_value, default_args, 'constructible')
+    regions = []
+    tested_points = []
+    last_n_points_was_covered = 0
+    while random_points > 0:
+        x, y = QQ(uniform(xmin, xmax)), QQ(uniform(ymin, ymax))
+        while not is_constructible(x, y):
+            x, y = QQ(uniform(xmin, xmax)), QQ(uniform(ymin, ymax))
+        point_is_covered = False
+        for (region_type, leq, lin) in regions:
+            if (len(var_name) == 2) and all(abs(l(x, y)) <= 1e-5 for l in leq) and all(l(x, y) <= 1e-5 for l in lin) or \
+               (len(var_name) == 1) and all(abs(l(x)) <= 1e-5 for l in leq) and all(l(x) <= 1e-5 for l in lin):
+                point_is_covered = True
+                break
+        if len(var_name) == 2:
+            var_value = [x, y]
+        else:
+            var_value = [x]
+        if point_is_covered:
+            last_n_points_was_covered += 1
+        else:
+            last_n_points_was_covered = 0
+            region_type, leq, lin = find_region_around_given_point(function, var_name, var_value, default_args)
+            regions.append((region_type, leq, lin))
+        tested_points.append(var_value)
+        random_points -= 1
+    if plot_points > 0:
+        g = plot_covered_regions(regions, d=len(var_name), alpha=0.5, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+        if show_points:
+            for tested_p in tested_points:
+                if len(var_name) == 2:
+                    g += point([tested_p], color = 'white', size = 2, zorder=10)
+                else:
+                    g += point([(tested_p[0], 0)], color = 'white', size = 2, zorder=10)
+        g.show()
+    return regions, tested_points, last_n_points_was_covered
+
+def region_plot_1d_or_2d(d, leq, lin, color, alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000):
+    x,y = var('x,y')
+    if d == 2:
+        return region_plot_patch([ lhs(x, y) == 0 for lhs in leq ] + [ lhs(x, y) < 0 for lhs in lin ], \
+                (x, xmin, xmax), (y, ymin, ymax), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
+    else:
+        return region_plot_patch([ lhs(x) == 0 for lhs in leq ] + [ lhs(x) < 0 for lhs in lin ] + [y >= -0.01, y <= 0.01], \
+                            (x, xmin, xmax), (y, -0.1, 0.3), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color, ticks=[None,[]])
+
+def plot_covered_regions(regions, d, alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000):
+    x,y = var('x,y')
+    not_minimal_regions = [(leq, lin) for (region_type, leq, lin) in regions if region_type == 'not_minimal']
+    not_extreme_regions = [(leq, lin) for (region_type, leq, lin) in regions if region_type == 'not_extreme']
+    is_extreme_regions = [(leq, lin) for (region_type, leq, lin) in regions if region_type == 'is_extreme']
+    g = Graphics()
+    color = 'orange'
+    g += line([(0,0),(0,0.001)], color = color, legend_label='constructible', zorder=-10)
+    for (leq, lin) in not_minimal_regions:
+        g += region_plot_1d_or_2d(d, leq, lin, color=color, alpha=alpha, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)    
+    color = 'green'
+    g += line([(0,0),(0,0.001)], color = color, legend_label='is_minimal', zorder=-10)
+    for (leq, lin) in not_extreme_regions:
+        g += region_plot_1d_or_2d(d, leq, lin, color=color, alpha=alpha, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+    color = 'blue'
+    g += line([(0,0),(0,0.001)], color = color, legend_label='is_extreme', zorder=-10)
+    for (leq, lin) in is_extreme_regions:
+        g += region_plot_1d_or_2d(d, leq, lin, color=color, alpha=alpha, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+    return g
