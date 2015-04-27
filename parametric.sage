@@ -774,6 +774,11 @@ def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], rando
     extreme_var_value = [default_args[v] for v in var_name]
     var_value = extreme_var_value
     is_constructible = find_region_according_to_literature(function, var_name, var_value, default_args, 'constructible')
+    #if plot_points > 0:
+    #    is_extreme = find_region_according_to_literature(function, var_name, var_value, default_args, 'extreme')
+    #    g = region_plot_lambda_1d_or_2d(len(var_name), is_constructible, 'orange', alpha=0.5, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+    #    g += region_plot_lambda_1d_or_2d(len(var_name), is_extreme, 'red', alpha=0.5, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+    #    g.show()
     regions = []
     tested_points = []
     last_n_points_was_covered = 0
@@ -800,14 +805,14 @@ def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], rando
         tested_points.append(var_value)
         random_points -= 1
     if plot_points > 0:
-        g = plot_covered_regions(regions, d=len(var_name), alpha=0.5, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
-        if show_points:
-            for tested_p in tested_points:
-                if len(var_name) == 2:
-                    g += point([tested_p], color = 'white', size = 2, zorder=10)
-                else:
-                    g += point([(tested_p[0], 0)], color = 'white', size = 2, zorder=10)
-        g.show()
+        g = plot_covered_regions(regions, tested_points, d=len(var_name), alpha=0.5, \
+            xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points, show_points=show_points)
+        fun_names = sage_getvariablename(function)
+        i = 0
+        while fun_names[i] == 'function':
+            i += 1
+        fun_name = fun_names[i]
+        g.show(title=fun_name+'%s' % var_name)
     return regions, tested_points, last_n_points_was_covered
 
 def region_plot_1d_or_2d(d, leq, lin, color, alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000):
@@ -819,22 +824,36 @@ def region_plot_1d_or_2d(d, leq, lin, color, alpha=0.5, xmin=-0.1, xmax=1.1, ymi
         return region_plot_patch([ lhs(x) == 0 for lhs in leq ] + [ lhs(x) < 0 for lhs in lin ] + [y >= -0.01, y <= 0.01], \
                             (x, xmin, xmax), (y, -0.1, 0.3), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color, ticks=[None,[]])
 
-def plot_covered_regions(regions, d, alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000):
+def region_plot_lambda_1d_or_2d(d, lambdafun, color, alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000):
+    if d == 2:
+        return region_plot_patch([lambdafun], (x, xmin, xmax), (y, ymin, ymax), \
+                incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
+    else:
+        return region_plot_patch([lambdafun] + [y >= -0.01, y <= 0.01], (x, xmin, xmax), (y, -0.1, 0.3), \
+                incol=color, alpha=alpha, plot_points=plot_points, bordercol=color, ticks=[None,[]])
+
+def plot_covered_regions(regions, tested_points, d, alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000, show_points=True):
     x,y = var('x,y')
     not_minimal_regions = [(leq, lin) for (region_type, leq, lin) in regions if region_type == 'not_minimal']
     not_extreme_regions = [(leq, lin) for (region_type, leq, lin) in regions if region_type == 'not_extreme']
     is_extreme_regions = [(leq, lin) for (region_type, leq, lin) in regions if region_type == 'is_extreme']
     g = Graphics()
     color = 'orange'
-    g += line([(0,0),(0,0.001)], color = color, legend_label='constructible', zorder=-10)
+    #g += line([(0,0),(0,0.001)], color = color, legend_label='constructible', zorder=-10)
     for (leq, lin) in not_minimal_regions:
         g += region_plot_1d_or_2d(d, leq, lin, color=color, alpha=alpha, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)    
     color = 'green'
-    g += line([(0,0),(0,0.001)], color = color, legend_label='is_minimal', zorder=-10)
+    #g += line([(0,0),(0,0.001)], color = color, legend_label='minimal', zorder=-10)
     for (leq, lin) in not_extreme_regions:
         g += region_plot_1d_or_2d(d, leq, lin, color=color, alpha=alpha, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
     color = 'blue'
-    g += line([(0,0),(0,0.001)], color = color, legend_label='is_extreme', zorder=-10)
+    #g += line([(0,0),(0,0.001)], color = color, legend_label='extreme', zorder=-10)
     for (leq, lin) in is_extreme_regions:
         g += region_plot_1d_or_2d(d, leq, lin, color=color, alpha=alpha, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+    if show_points:
+        for tested_p in tested_points:
+            if d == 2:
+                g += point([tested_p], color = 'white', size = 2, zorder=10)
+            else:
+                g += point([(tested_p[0], 0)], color = 'white', size = 2, zorder=10)
     return g
