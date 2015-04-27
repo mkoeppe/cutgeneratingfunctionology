@@ -195,6 +195,7 @@ class SymbolicRealNumberField(Field):
         self._values = values
 
     def __copy__(self):
+        logging.warn("copy(%s) is invoked" % self)
         Kcopy = self.__class__(self._values, self._names)
         Kcopy._eq.update(self._eq)
         Kcopy._lt.update(self._lt)
