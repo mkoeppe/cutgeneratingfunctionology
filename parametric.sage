@@ -711,9 +711,9 @@ def find_region_according_to_literature(function, var_name, var_value, default_a
         if leq:
             logging.warn("Bad default arguments! Equation list %s is not empty!" % leq)
         if len(var_name) == 2:
-            return lambda x, y: all(abs(l(x, y)) <= 1e-5 for l in leq) and all(l(x, y) <= 1e-5 for l in lin)
+            return lambda x, y: all(l(x, y) == 0 for l in leq) and all(l(x, y) < 0 for l in lin)
         else:
-            return lambda x, y: all(abs(l(x)) <= 1e-5 for l in leq) and all(l(x) <= 1e-5 for l in lin)
+            return lambda x, y: all(l(x) == 0 for l in leq) and all(l(x) < 0 for l in lin)
     else:
         del test_point['field']
         del test_point['conditioncheck']
@@ -789,8 +789,8 @@ def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], rando
         #    x, y = QQ(uniform(xmin, xmax)), QQ(uniform(ymin, ymax))
         point_is_covered = False
         for (region_type, leq, lin) in regions:
-            if (len(var_name) == 2) and all(abs(l(x, y)) <= 1e-5 for l in leq) and all(l(x, y) <= 1e-5 for l in lin) or \
-               (len(var_name) == 1) and all(abs(l(x)) <= 1e-5 for l in leq) and all(l(x) <= 1e-5 for l in lin):
+            if (len(var_name) == 2) and all(l(x, y) == 0 for l in leq) and all(l(x, y) < 0 for l in lin) or \
+               (len(var_name) == 1) and all(l(x) == 0 for l in leq) and all(l(x) < 0 for l in lin):
                 point_is_covered = True
                 break
         if len(var_name) == 2:
