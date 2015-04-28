@@ -283,7 +283,7 @@ default_symbolic_field = SymbolicRealNumberField()
 
 
 ###############################
-# Simpilfy polynomials
+# Simplify polynomials
 ###############################
 
 from sage.libs.ppl import Variable, Constraint, Linear_Expression, Constraint_System, NNC_Polyhedron
@@ -480,13 +480,14 @@ def simplified_extremality_test(function):
 # Find regions
 #############################
 
-def find_region_according_to_literature(function, var_name, var_value, region_type, default_args=None, \
+def find_region_according_to_literature(function, var_name, var_value, region_level, default_args=None, \
                                         level="factor", non_algrebraic_warn=True, **opt_non_default):
+    ## Note: region_level = 'constructible' / 'extreme'
     if default_args is None:
         default_args = read_default_args(function, **opt_non_default)
     if not isinstance(function, ExtremeFunctionsFactory):
         K, test_point = construct_field_and_test_point(function, var_name, var_value, default_args)
-        if region_type == 'extreme':
+        if region_level == 'extreme':
             test_point['conditioncheck'] = True
         h = function(**test_point)
         leq, lin =  read_simplified_leq_lin(K, level=level)
@@ -502,18 +503,18 @@ def find_region_according_to_literature(function, var_name, var_value, region_ty
         for v in var_name:
             del test_point[v]
         x, y = var('x, y')
-        if region_type == 'constructible':
+        if region_level == 'constructible':
             if len(var_name) == 2:
                 return lambda x, y: function.check_conditions(**dict({var_name[0]: x, var_name[1]: y}, **test_point)) != 'not_constructible'
             else:
                 return lambda x, y: function.check_conditions(**dict({var_name[0]: x}, **test_point )) != 'not_constructible'
-        elif region_type == 'extreme':
+        elif region_level == 'extreme':
             if len(var_name) == 2:
                 return lambda x, y: function.check_conditions(**dict({var_name[0]: x, var_name[1]: y}, **test_point)) == 'extreme'
             else:
                 return lambda x, y: function.check_conditions(**dict({var_name[0]: x}, **test_point )) == 'extreme'
         else:
-            raise ValueError, "Bad argument region_type = %s" % region_type
+            raise ValueError, "Bad argument region_level = %s" % region_level
 
 def find_region_around_given_point(K, h, level="factor", region_level='extreme', is_minimal=None, use_simplified_extremality_test=True):
     ## Note: region_level = 'constructible' / 'minimal'/ 'extreme'
@@ -670,14 +671,18 @@ def plot_region_according_to_literature(function, var_name, default_args=None, l
     g += line([(0,0),(0,0.01)], color ="red", legend_label="claimed_extreme", zorder=-10)
     return g
 
-def plot_covered_regions(regions, tested_points, d, alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000, show_points=True):
+def plot_covered_regions(regions, tested_points, d, alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000, show_points=2):
     covered_type_color = {'not_minimal': 'orange', 'not_extreme': 'green', 'is_extreme': 'blue'}
     g = Graphics()
-    for (region_type, leq, lin) in regions:
-        g += plot_region_given_dim_and_description(d, (leq, lin), color=covered_type_color[region_type], \
+    for (covered_type, leq, lin) in regions:
+        g += plot_region_given_dim_and_description(d, (leq, lin), color=covered_type_color[covered_type], \
                             alpha=alpha, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
+    # show_points: 0 -- don't show points, 1 -- show white points; 2 -- show all points
     if show_points:
         for (p_val, p_col) in tested_points:
+            if show_points == 1 and p_col == 'black':
+                # don't plot black points out of the constructible region.
+                continue
             if d == 2:
                 g += point([p_val], color = p_col, size = 2, zorder=10)
             else:
@@ -690,17 +695,26 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
     """
     sage: logging.disable(logging.INFO)
     sage: g, fname, fparam = plot_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12-1/30, 2/12])
-
     sage: g.save(fname+".pdf", title=fname+fparam, legend_loc=7)
-    sage: plot_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12+1/30, 2/12])
-    sage: plot_parameter_region(gj_2_slope, ['f','lambda_1'], plot_points=100)
-    sage: plot_parameter_region(gj_forward_3_slope, ['f','lambda_1'], [9/10, 3/10])
 
+    sage: plot_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12+1/30, 2/12], plot_points=500)
+    sage: plot_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/10-1/100, 3/10], plot_points=500)
+
+    sage: plot_parameter_region(gj_2_slope, ['f','lambda_1'], plot_points=100)
+    sage: plot_parameter_region(gj_2_slope, ['f','lambda_1'], [4/5, 4/6], plot_points=100)
+
+    sage: plot_parameter_region(gj_forward_3_slope, ['f','lambda_1'], [9/10, 3/10])
     sage: plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'])
     sage: plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'], f=3/4, lambda_1=2/3, lambda_2=3/5)
     sage: plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'], [3/5, 7/5], f=1/2, lambda_1=4/9, lambda_2=1/3)
     sage: plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'], [9/10, 3/7], f=1/2, lambda_1=4/9, lambda_2=1/3)
-    sage: plot_parameter_region(dg_2_step_mir, ['f','alpha'], [3/5,2/5-1/23],  plot_points=100)
+
+    sage: plot_parameter_region(chen_4_slope, ['lam1', 'lam2'], [1/4, 1/4], plot_points=100)
+
+    sage: plot_parameter_region(dg_2_step_mir, ['f','alpha'], [3/5,2/5-1/23],  plot_points=500)
+    sage: plot_parameter_region(dg_2_step_mir_limit, ['f'], [8/13], d=2, plot_points=500)
+
+    sage: plot_parameter_region(kf_n_step_mir, ['f'], [1/13], plot_points=100)
     """
     d = len(var_name)
     if d >= 3:
@@ -753,16 +767,27 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
 ###########################
 
 def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], random_points=10, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, \
-                            plot_points=0, show_points=True, regions=[], tested_points=[], **opt_non_default):
+                            plot_points=0, show_points=2, regions=None, tested_points=None, **opt_non_default):
     """
-    sage: regions, tested_points, last_n_points_were_covered = cover_parameter_region(drlm_backward_3_slope, ['f','bkpt'], random_points=200, plot_points=1000)
+    sage: regions, tested_points, last_n_points_was_covered = cover_parameter_region(gmic, ['f'], random_points=10, plot_points=100)
+    sage: _ = cover_parameter_region(drlm_backward_3_slope, ['f','bkpt'], random_points=200, plot_points=500)
+    sage: _ = cover_parameter_region(gj_2_slope, ['f', 'lambda_1'], 300, plot_points=100, show_points=1)
+
+    sage: _ = cover_parameter_region(gj_forward_3_slope, ['lambda_1', 'lambda_2'], random_points=500, plot_points=500)
+    sage: _ = cover_parameter_region(gj_forward_3_slope, ['f', 'lambda_1'], random_points=100, plot_points=500)
+
+    sage: regions, tested_points, last_n_points_was_covered = cover_parameter_region(chen_4_slope, ['lam1', 'lam2'], 20, plot_points=0)
+    sage: _ = cover_parameter_region(chen_4_slope, ['lam1', 'lam2'], 20, plot_points=500, show_points=1, regions=regions, tested_points=tested_points)
     """
     d = len(var_name)
     if d >= 3:
         #TODO
         raise NotImplementedError, "More than three parameters. Not implemented."
     default_args = read_default_args(function, **opt_non_default)
-    var_value = [default_args[v] for v in var_name]
+    if regions is None:
+        regions = []
+    if tested_points is None:
+        tested_points = []
     last_n_points_were_covered = 0
     while random_points > 0:
         x, y = QQ(uniform(xmin, xmax)), QQ(uniform(ymin, ymax))
@@ -771,7 +796,7 @@ def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], rando
         else:
             var_value = [x]
         # NOTE: When the function is not_constructible on this point,
-        # it's costly to go through all the previously found regions and return "point_is_covered=False"
+        # it's costly to go through all the previously found regions and then return "point_is_covered=False"
         # So, first test if it's constructible
         K, test_point = construct_field_and_test_point(function, var_name, var_value, default_args)
         try:
