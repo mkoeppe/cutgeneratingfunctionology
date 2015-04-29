@@ -242,13 +242,13 @@ class SymbolicRealNumberField(Field):
         return self._lt_factor
     def record_to_eq_list(self, comparison):
         if not comparison.is_zero() and not comparison in QQ and not comparison in self._eq:
-            logging.info("New element in %s._eq: %s" % (repr(self), comparison))
+            logging.debug("New element in %s._eq: %s" % (repr(self), comparison))
             self._eq.add(comparison)
             self.record_poly(comparison.numerator())
             self.record_poly(comparison.denominator())
     def record_to_lt_list(self, comparison):
         if not comparison in QQ and not comparison in self._lt:
-            logging.info("New element in %s._lt: %s" % (repr(self), comparison))
+            logging.debug("New element in %s._lt: %s" % (repr(self), comparison))
             self._lt.add(comparison)
             self.record_poly(comparison.numerator())
             self.record_poly(comparison.denominator())
@@ -283,6 +283,7 @@ class SymbolicRealNumberField(Field):
                         self.record_factor(new_fac, operator.lt)
 
     def record_factor(self, fac, op):
+        #print "add %s, %s to %s" % (fac, op, self.polyhedron.constraints())
         space_dim_old = len(self.monomial_list)
         linexpr = polynomial_to_linexpr(fac, self.monomial_list, self.v_dict)
         space_dim_to_add = len(self.monomial_list) - space_dim_old
@@ -290,6 +291,7 @@ class SymbolicRealNumberField(Field):
             constraint_to_add = (linexpr < 0)
         else:
             constraint_to_add = (linexpr == 0)
+        #print "constraint_to_add = %s" % constraint_to_add
         if space_dim_to_add:
             self.polyhedron.add_space_dimensions_and_embed(space_dim_to_add)
             add_new_element = True
@@ -297,9 +299,12 @@ class SymbolicRealNumberField(Field):
             add_new_element = not self.polyhedron.relation_with(constraint_to_add).implies(poly_is_included)
         if add_new_element:
             self.polyhedron.add_constraint(constraint_to_add)
+            #print " add new constraint, %s" %self.polyhedron.constraints()
             if op == operator.lt:
+                logging.info("New constraint: %s < 0" % fac)
                 self._lt_factor.add(fac)
             else:
+                logging.info("New constraint: %s == 0" % fac)
                 self._eq_factor.add(fac)
 
 default_symbolic_field = SymbolicRealNumberField()
