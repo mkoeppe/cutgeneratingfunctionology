@@ -315,6 +315,25 @@ default_symbolic_field = SymbolicRealNumberField()
 ###############################
 
 def polynomial_to_linexpr(t, monomial_list, v_dict):
+    """
+    sage: P.<x,y,z> = QQ[]
+    sage: monomial_list = []; v_dict = {};
+    sage: t = 27/113 * x^2 + y*z + 1/2
+    sage: polynomial_to_linexpr(t, monomial_list, v_dict)
+    54*x0+226*x1+113
+    sage: monomial_list
+    [x^2, y*z]
+    sage: v_dict
+    {y*z: x1, x^2: x0}
+
+    sage: tt = x + 1/3 * y*z
+    sage: polynomial_to_linexpr(tt, monomial_list, v_dict)
+    x1+3*x2
+    sage: monomial_list
+    [x^2, y*z, x]
+    sage: v_dict
+    {x: x2, y*z: x1, x^2: x0}
+    """
     # coefficients in ppl constraint must be integers.
     lcd = lcm([x.denominator() for x in t.coefficients()])
     linexpr = Linear_Expression(0)
@@ -349,6 +368,17 @@ def polynomial_to_linexpr(t, monomial_list, v_dict):
     return linexpr
 
 def cs_of_eq_lt_poly(eq_poly, lt_poly):
+    """
+    sage: P.<f>=QQ[]
+    sage: eq_poly =[]; lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
+    sage: cs, monomial_list, v_dict = cs_of_eq_lt_poly(eq_poly, lt_poly)
+    sage: cs
+    Constraint_System {-x0+1>0, -x0+2>0, x0-x1>0, x0>0, -x0+1>0, x0+1>0, x0>0, 2*x0-1>0}
+    sage: monomial_list
+    [f, f^2]
+    sage: v_dict
+    {f: x0, f^2: x1}
+    """
     monomial_list = []
     v_dict ={}
     cs = Constraint_System()
@@ -423,6 +453,14 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
 
 
 def read_leq_lin_from_polyhedron(p, monomial_list, v_dict):
+    """
+    sage: P.<f>=QQ[]
+    sage: eq_poly =[]; lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
+    sage: cs, monomial_list, v_dict = cs_of_eq_lt_poly(eq_poly, lt_poly)
+    sage: p = NNC_Polyhedron(cs)
+    sage: read_leq_lin_from_polyhedron(p, monomial_list, v_dict)
+    ([], [f - 1, -2*f + 1, f^2 - f])
+    """
     mineq = []
     minlt = []
     mincs = p.minimized_constraints()
@@ -489,6 +527,15 @@ def read_default_args(function, **opt_non_default):
     return default_args
 
 def construct_field_and_test_point(function, var_name, var_value, default_args):
+    """
+    sage: function=gmic; var_name=['f']; var_value=[1/2];
+    sage: default_args = read_default_args(function)
+    sage: K, test_point = construct_field_and_test_point(function, var_name, var_value, default_args)
+    sage: K
+    SymbolicRNF[f~]
+    sage: test_point
+    {'conditioncheck': False, 'f': f~, 'field': SymbolicRNF[f~]}
+    """
     K = SymbolicRealNumberField(var_value, var_name)
     test_point = copy(default_args)
     for i in range(len(var_name)):
@@ -528,6 +575,12 @@ def simplified_extremality_test(function):
 
 def find_region_according_to_literature(function, var_name, var_value, region_level, default_args=None, \
                                         level="factor", non_algrebraic_warn=True, **opt_non_default):
+    """
+    sage: find_region_according_to_literature(gmic, ['f'], [4/5], 'constructible')
+    ([], [f - 1, -f])
+    sage: find_region_according_to_literature(drlm_backward_3_slope, ['f','bkpt'], [1/12, 2/12], 'extreme')
+    ([], [f - bkpt, -f + 4*bkpt - 1, -f])
+    """
     ## Note: region_level = 'constructible' / 'extreme'
     if default_args is None:
         default_args = read_default_args(function, **opt_non_default)
@@ -563,7 +616,7 @@ def find_region_according_to_literature(function, var_name, var_value, region_le
             raise ValueError, "Bad argument region_level = %s" % region_level
 
 def find_region_around_given_point(K, h, level="factor", region_level='extreme', is_minimal=None, use_simplified_extremality_test=True):
-    ## Note: region_level = 'constructible' / 'minimal'/ 'extreme'
+    ## Note: region_level = 'constructible' / 'minimal'/ 'extreme'. test cases see find_parameter_region()
     if region_level == 'constructible':
         leq, lin = read_simplified_leq_lin(K, level=level)
         return 'is_constructible', leq, lin
@@ -588,9 +641,16 @@ def find_region_around_given_point(K, h, level="factor", region_level='extreme',
 
 def find_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_value=None, use_simplified_extremality_test=True,\
                         level="factor", region_level='extreme', **opt_non_default):
-    # don't plot, but measure running time.
+    """
+    sage: find_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12+1/30, 2/12], region_level='constructible')
+    ('is_constructible', [], [f - bkpt, -f + 2*bkpt - 1, -f])
+    sage: find_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12+1/30, 2/12], region_level='minimal')
+    ('is_minimal', [], [f - bkpt, -f + 3*bkpt - 1, -2*f + bkpt])
+    sage: find_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12+1/30, 2/12], region_level='extreme')
+    ('is_extreme', [], [f - bkpt, -f + 4*bkpt - 1, -2*f + bkpt, f^2 - f*bkpt - 1])
+    """
     # similar to find_region_around_given_point(), but start from constructing K and test point.
-    st = os.times()
+    #st = os.times() # don't plot, but measure running time.
     d = len(var_name)
     if d >= 3:
         #TODO
@@ -605,8 +665,8 @@ def find_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
                         is_minimal=None, use_simplified_extremality_test=use_simplified_extremality_test)
     except:
         region_type, leq, lin = 'not_constructible', [], []
-    et = os.times();
-    print "cpu time = %s" % sum([et[i]-st[i] for i in range(4)])
+    #et = os.times();
+    #print "cpu time = %s" % sum([et[i]-st[i] for i in range(4)])
     return region_type, leq, lin
 
 ##############################
