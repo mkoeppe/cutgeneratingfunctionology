@@ -192,8 +192,8 @@ def dg_2_step_mir(f=4/5, alpha=3/10, field=None, conditioncheck=True):
 
 class ExtremeFunctionsFactory:
     #####  Bad name follows....
-    def check_conditions_and_warn(self, *args, **kwargs):  ### could be in superclass
-        c = self.check_conditions(*args, **kwargs)
+    def check_conditions(self, *args, **kwargs):  ### could be in superclass
+        c = self.claimed_parameter_attributes(*args, **kwargs)
         if c == 'not_constructible':
             raise ValueError, "Bad parameters. Unable to construct the function."
         elif c == 'constructible':
@@ -206,7 +206,7 @@ class Dg2StepMir(ExtremeFunctionsFactory):
     def __init__(self):
         pass
 
-    def check_conditions(self, f=4/5, alpha=3/10):
+    def claimed_parameter_attributes(self, f=4/5, alpha=3/10):
         if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
             return 'not_constructible'
         if not bool(ceil(f / alpha) <= 1 / alpha):
@@ -247,7 +247,7 @@ class Dg2StepMir(ExtremeFunctionsFactory):
             [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
         """
         if conditioncheck:
-            self.check_conditions_and_warn(f, alpha)
+            self.check_conditions(f, alpha)
         rho = f - alpha * floor(f / alpha)
         tau = ceil(f / alpha)
         s_positive = (1 - rho*tau) / (rho*tau*(1 - f))
@@ -275,7 +275,7 @@ class KfNStepMir(ExtremeFunctionsFactory):
     def __init__(self):
         pass
 
-    def check_conditions(self, f=4/5, a=[1, 3/10, 8/100]):
+    def claimed_parameter_attributes(self, f=4/5, a=[1, 3/10, 8/100]):
         if (a == []) | (not bool(0 < f < 1 == a[0])):
             return 'not_constructible'
         b = []
@@ -345,7 +345,7 @@ class KfNStepMir(ExtremeFunctionsFactory):
                     Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313–346.
         """
         if conditioncheck:
-            self.check_conditions_and_warn(f, a)
+            self.check_conditions(f, a)
         b = []
         b.append(f)
         n = len(a)
@@ -485,7 +485,7 @@ class Dg2StepMirLimit(ExtremeFunctionsFactory):
     def __init__(self):
         pass
 
-    def check_conditions(self, f=3/5, d=3):
+    def claimed_parameter_attributes(self, f=3/5, d=3):
         if not (bool(0 < f < 1) & (d >= 1)):
             return 'not_constructible'
         if not bool(d >= ceil(1 / (1 - f)) - 1):
@@ -532,7 +532,7 @@ class Dg2StepMirLimit(ExtremeFunctionsFactory):
                     (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33–45.
         """     
         if conditioncheck:
-            self.check_conditions_and_warn(f, d)
+            self.check_conditions(f, d)
         f = nice_field_values([f], field)[0]
         field = f.parent()
         pieces = []
@@ -1217,7 +1217,7 @@ class LlStrongFractional(ExtremeFunctionsFactory):
     def __init__(self):
         pass
 
-    def check_conditions(self, f=2/3):
+    def claimed_parameter_attributes(self, f=2/3):
         if not bool(0 < f < 1):
             return 'not_constructible'
         if not bool(1/2 <= f < 1):
@@ -1285,7 +1285,7 @@ class LlStrongFractional(ExtremeFunctionsFactory):
             False
         """
         if conditioncheck:
-            self.check_conditions_and_warn(f)
+            self.check_conditions(f)
         f = nice_field_values([f], field)[0]
         field = f.parent()
         k = ceil(1/f) -1

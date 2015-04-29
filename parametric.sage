@@ -604,14 +604,14 @@ def find_region_according_to_literature(function, var_name, var_value, region_le
         x, y = var('x, y')
         if region_level == 'constructible':
             if len(var_name) == 2:
-                return lambda x, y: function.check_conditions(**dict({var_name[0]: x, var_name[1]: y}, **test_point)) != 'not_constructible'
+                return lambda x, y: function.claimed_parameter_attributes(**dict({var_name[0]: x, var_name[1]: y}, **test_point)) != 'not_constructible'
             else:
-                return lambda x, y: function.check_conditions(**dict({var_name[0]: x}, **test_point )) != 'not_constructible'
+                return lambda x, y: function.claimed_parameter_attributes(**dict({var_name[0]: x}, **test_point )) != 'not_constructible'
         elif region_level == 'extreme':
             if len(var_name) == 2:
-                return lambda x, y: function.check_conditions(**dict({var_name[0]: x, var_name[1]: y}, **test_point)) == 'extreme'
+                return lambda x, y: function.claimed_parameter_attributes(**dict({var_name[0]: x, var_name[1]: y}, **test_point)) == 'extreme'
             else:
-                return lambda x, y: function.check_conditions(**dict({var_name[0]: x}, **test_point )) == 'extreme'
+                return lambda x, y: function.claimed_parameter_attributes(**dict({var_name[0]: x}, **test_point )) == 'extreme'
         else:
             raise ValueError, "Bad argument region_level = %s" % region_level
 
