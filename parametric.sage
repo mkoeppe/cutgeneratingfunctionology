@@ -8,6 +8,8 @@ from igp import *
 import sage.structure.element
 from sage.structure.element import FieldElement
 
+from sage.libs.ppl import Variable, Constraint, Linear_Expression, Constraint_System, NNC_Polyhedron, Poly_Con_Relation
+poly_is_included = Poly_Con_Relation.is_included()
 
 ###############################
 # Symbolic Real Number Field
@@ -130,27 +132,19 @@ class SymbolicRealNumberField(Field):
     Parametric search:
     EXAMPLES::
 
-        sage: K.<f> = SymbolicRealNumberField([4/5])
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: K.<f> = SymbolicRealNumberField([4/5])
         sage: h = gmic(f, field=K)
         sage: _ = generate_maximal_additive_faces(h);
-        sage: list(K.get_eq_list())
-        [0]
-        sage: list(K.get_eq_poly())
-        []
-        sage: list(K.get_lt_list())
-        [2*f - 2, f - 2, -f, f - 1, -1/f, -f - 1, -2*f, -2*f + 1, -1/(-f^2 + f), -1]
-        sage: list(K.get_lt_poly())
-        [2*f - 2, f - 2, f^2 - f, -f, f - 1, -f - 1, -2*f, -2*f + 1]
-        sage: list(K.get_lt_factor())
-        [f - 2, -f + 1/2, f - 1, -f - 1, -f]
+        sage: list(K.get_eq_list()), list(K.get_lt_list())
+        ([], [2*f - 2, f - 2, -f, f - 1, -1/f, -f - 1, -2*f, -2*f + 1, -1/(-f^2 + f)])
+        sage: list(K.get_eq_poly()), list(K.get_lt_poly())
+        ([], [2*f - 2, f - 2, f^2 - f, -f, f - 1, -f - 1, -2*f, -2*f + 1])
+        sage: list(K.get_eq_factor()), list(K.get_lt_factor())
+        ([], [-f + 1/2, f - 1, -f])
 
         sage: K.<f, lam> = SymbolicRealNumberField([4/5, 1/6])
         sage: h = gj_2_slope(f, lam, field=K)
-        sage: list(K.get_eq_list())
-        [0]
-        sage: list(K.get_eq_poly())
-        []
         sage: list(K.get_lt_list())
         [-1/2*f*lam - 1/2*f + 1/2*lam, lam - 1, f - 1, -lam, (-f*lam - f + lam)/(-f + 1), f*lam - lam, (-1/2)/(-1/2*f^2*lam - 1/2*f^2 + f*lam + 1/2*f - 1/2*lam), -f]
         sage: list(K.get_lt_poly())
@@ -173,8 +167,7 @@ class SymbolicRealNumberField(Field):
         sage: extremality_test(h)
         True
         sage: list(K.get_lt_factor())
-        [f - 1, f - 1/2, f - 1/3, f - 2, -f - 1, -f]
-
+        [f - 1/2, f - 1/3, f - 1, -f]
     """
 
     def __init__(self, values=[], names=()):
@@ -192,6 +185,15 @@ class SymbolicRealNumberField(Field):
         self._gens = [ SymbolicRNFElement(value, name, parent=self) for (value, name) in izip(values, vnames) ]
         self._names = names
         self._values = values
+
+        # do the computation of the polyhedron incrementally,
+        # rather than first building a huge list and then in a second step processing it.
+        # the polyhedron defined by all constraints in self._eq/lt_factor
+        self.polyhedron = NNC_Polyhedron(0, 'universe')
+        # records the monomials that appear in self._eq/lt_factor
+        self.monomial_list = []
+        # a dictionary that maps each monomial to the index of its corresponding Variable in self.polyhedron
+        self.v_dict = {}
 
     def __copy__(self):
         logging.warn("copy(%s) is invoked" % self)
@@ -265,7 +267,8 @@ class SymbolicRealNumberField(Field):
             for (fac, d) in poly.factor():
                 # record the factor if it's zero
                 if fac(self._values) == 0 and not fac in self._eq_factor:
-                    self._eq_factor.add(fac)
+                    self.record_factor(fac, operator.eq)
+
     def record_to_lt_poly(self, poly):
         if not poly in self._lt_poly:
             self._lt_poly.add(poly)
@@ -277,7 +280,27 @@ class SymbolicRealNumberField(Field):
                     else:
                         new_fac = -fac
                     if not new_fac in self._lt_factor:
-                        self._lt_factor.add(new_fac)
+                        self.record_factor(new_fac, operator.lt)
+
+    def record_factor(self, fac, op):
+        space_dim_old = len(self.monomial_list)
+        linexpr = polynomial_to_linexpr(fac, self.monomial_list, self.v_dict)
+        space_dim_to_add = len(self.monomial_list) - space_dim_old
+        if op == operator.lt:
+            constraint_to_add = (linexpr < 0)
+        else:
+            constraint_to_add = (linexpr == 0)
+        if space_dim_to_add:
+            self.polyhedron.add_space_dimensions_and_embed(space_dim_to_add)
+            add_new_element = True
+        else:
+            add_new_element = not self.polyhedron.relation_with(constraint_to_add).implies(poly_is_included)
+        if add_new_element:
+            self.polyhedron.add_constraint(constraint_to_add)
+            if op == operator.lt:
+                self._lt_factor.add(fac)
+            else:
+                self._eq_factor.add(fac)
 
 default_symbolic_field = SymbolicRealNumberField()
 
@@ -285,8 +308,6 @@ default_symbolic_field = SymbolicRealNumberField()
 ###############################
 # Simplify polynomials
 ###############################
-
-from sage.libs.ppl import Variable, Constraint, Linear_Expression, Constraint_System, NNC_Polyhedron
 
 def polynomial_to_linexpr(t, monomial_list, v_dict):
     # coefficients in ppl constraint must be integers.
@@ -391,10 +412,14 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
         ([], [3*f - 1, -f])
 
     """
-    mineq = []
-    minlt = []
     cs, monomial_list, v_dict = cs_of_eq_lt_poly(eq_poly, lt_poly)
     p = NNC_Polyhedron(cs)
+    return read_leq_lin_from_polyhedron(p, monomial_list, v_dict)
+
+
+def read_leq_lin_from_polyhedron(p, monomial_list, v_dict):
+    mineq = []
+    minlt = []
     mincs = p.minimized_constraints()
     for c in mincs:
         coeff = c.coefficients()
@@ -408,8 +433,24 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
     return mineq, minlt
 
 def read_simplified_leq_lin(K, level="factor"):
+    """
+    sage: K.<f> = SymbolicRealNumberField([4/5])
+    sage: h = gmic(f, field=K)
+    sage: _ = extremality_test(h)
+    sage: read_simplified_leq_lin(K)
+    ([], [f - 1, -2*f + 1])
+
+    sage: K.<f> = SymbolicRealNumberField([1/5])
+    sage: h = drlm_3_slope_limit(f, conditioncheck=False)
+    sage: _ = extremality_test(h)
+    sage: read_simplified_leq_lin(K)
+    ([], [3*f - 1, -f])
+    """
     if level == "factor":
-        leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
+        #leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
+        # Since we update K.polyhedron incrementally,
+        # just read leq and lin from its minimized constraint system.
+        leq, lin = read_leq_lin_from_polyhedron(K.polyhedron, K.monomial_list, K.v_dict)
     elif level == "poly":
         leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_poly(), K.get_lt_poly())
     else:
