@@ -540,6 +540,28 @@ def find_region_around_given_point(K, h, level="factor", region_level='extreme',
         leq, lin = read_simplified_leq_lin(K, level=level)
         return 'not_minimal', leq, lin
 
+def find_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_value=None, use_simplified_extremality_test=True,\
+                        level="factor", region_level='extreme', **opt_non_default):
+    # don't plot, but measure running time.
+    # similar to find_region_around_given_point(), but start from constructing K and test point.
+    st = os.times()
+    d = len(var_name)
+    if d >= 3:
+        #TODO
+        raise NotImplementedError, "More than three parameters. Not implemented."
+    default_args = read_default_args(function, **opt_non_default)
+    if not var_value:
+        var_value = [default_args[v] for v in var_name]
+    K, test_point = construct_field_and_test_point(function, var_name, var_value, default_args)
+    try:
+        h = function(**test_point)
+        region_type, leq, lin = find_region_around_given_point(K, h, level=level, region_level=region_level, \
+                        is_minimal=None, use_simplified_extremality_test=use_simplified_extremality_test)
+    except:
+        region_type, leq, lin = 'not_constructible', [], []
+    et = os.times();
+    print "cpu time = %s" % sum([et[i]-st[i] for i in range(4)])
+    return region_type, leq, lin
 
 ##############################
 # Plot regions
