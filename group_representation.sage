@@ -25,6 +25,9 @@ def cpl3_function(r0, z1, o1, o2):
          (5/7, 6/7)     <FastLinearFunction 7/12*x + 1/4>        values: [2/3, 3/4]
          (6/7, 1)       <FastLinearFunction 7/4*x - 3/4>         values: [3/4, 1]>
         sage: q = plot(p)
+
+    Reference:
+        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Infinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
     """
     if not (bool(0 < r0 < 1) & bool(0 < z1) & bool(0 <= o1) & bool(0 <= o2)):
         raise ValueError, "Bad parameters. Unable to construct the function."
@@ -107,7 +110,6 @@ def group_function_from_superadditive_lifting_function(phi, f=None):
 
     return fn
 
-# Extreme functions (extreme_functions_in_literature.sage)
 def mlr_cpl3_a_2_slope(r0=3/13, z1=3/26, field=None, conditioncheck=True):
     """
     Summary:
