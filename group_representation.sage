@@ -18,12 +18,12 @@ def cpl3_function(r0, z1, o1, o2):
         sage: p = cpl3_function(r0=1/7, z1=1/7, o1=1/4, o2=1/12)
         sage: p
         <FastPiecewise with 6 parts, 
-         (0, 1/7)	<FastLinearFunction 0>	 values: [0, 0]
-         (1/7, 2/7)	<FastLinearFunction 7/4*x - 1/4>	 values: [0, 1/4]
-         (2/7, 3/7)	<FastLinearFunction 7/12*x + 1/12>	 values: [1/4, 1/3]
-         (3/7, 5/7)	<FastLinearFunction 7/6*x - 1/6>	 values: [1/3, 2/3]
-         (5/7, 6/7)	<FastLinearFunction 7/12*x + 1/4>	 values: [2/3, 3/4]
-         (6/7, 1)	<FastLinearFunction 7/4*x - 3/4>	 values: [3/4, 1]>
+         (0, 1/7)       <FastLinearFunction 0>   values: [0, 0]
+         (1/7, 2/7)     <FastLinearFunction 7/4*x - 1/4>         values: [0, 1/4]
+         (2/7, 3/7)     <FastLinearFunction 7/12*x + 1/12>       values: [1/4, 1/3]
+         (3/7, 5/7)     <FastLinearFunction 7/6*x - 1/6>         values: [1/3, 2/3]
+         (5/7, 6/7)     <FastLinearFunction 7/12*x + 1/4>        values: [2/3, 3/4]
+         (6/7, 1)       <FastLinearFunction 7/4*x - 3/4>         values: [3/4, 1]>
         sage: q = plot(p)
     """
     if not (bool(0 < r0 < 1) & bool(0 < z1) & bool(0 <= o1) & bool(0 <= o2)):
@@ -42,7 +42,7 @@ def cpl3_function(r0, z1, o1, o2):
         list_of_pairs = [[(bkpt[i], bkpt[i+1]), linear_function_through_points([bkpt[i], values[i]], [bkpt[i+1], values[i+1]])] for i in range(len(bkpt)-1)]
         return PiecewiseQuasiPeriodic(list_of_pairs)
     else:
-        logging.info("Break-points are not in the consecutive order.")
+        raise ValueError, "Bad parameters. Unable to construct the function (breakpoints would not be in consecutive order)"
 
 def superadditive_lifting_function_from_group_function(fn, f=None):
     """
@@ -117,9 +117,13 @@ def mlr_cpl3_a_2_slope(r0=3/13, z1=3/26, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0< r0 (real) < 1, 0 < z1 (real)
+        0 < r0 (real) < 1, 0 < z1 (real)
     Function is known to be extreme under the conditions:
         0 < r0 < 1, 0 <= z1 < 1
+
+    Note:
+        Parameter z1 is not actually used.
+        Same as gmic(f=r0).
 
     Examples:
         page 183, Fig 2, point a::
@@ -132,9 +136,11 @@ def mlr_cpl3_a_2_slope(r0=3/13, z1=3/26, field=None, conditioncheck=True):
             sage: fn = group_function_from_superadditive_lifting_function(phi)
             sage: h == fn
             True
+            sage: h == gmic(f=3/13)
+            True
 
     Reference:
-        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Inifinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
+        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Infinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
     """
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1)):
@@ -157,7 +163,7 @@ def mlr_cpl3_b_3_slope(r0=3/26, z1=1/13, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0< r0 (real) < 1, 0 < z1 (real)
+        0 < r0 (real) < 1, 0 < z1 (real)
     Function is known to be extreme under the conditions:
         3*r0 + 8*z1 <= 1
 
@@ -167,20 +173,22 @@ def mlr_cpl3_b_3_slope(r0=3/26, z1=1/13, field=None, conditioncheck=True):
     Examples:
         page 183, Fig 2, point b::
 
-    	    sage: logging.disable(logging.INFO) # Suppress output
-	    sage: h1 = mlr_cpl3_b_3_slope(r0=3/26, z1=1/13)
-	    sage: extremality_test(h1)
-	    True
+            sage: logging.disable(logging.INFO) # Suppress output
+            sage: h1 = mlr_cpl3_b_3_slope(r0=3/26, z1=1/13)
+            sage: extremality_test(h1)
+            True
             sage: phi = cpl3_function(r0=3/26, z1=1/13, o1=7/58, o2=7/58)
             sage: fn = group_function_from_superadditive_lifting_function(phi)
             sage: h1 == fn
             True
-	    sage: h2 = drlm_backward_3_slope(f=3/26,bkpt=7/26)
-	    sage: extremality_test(h2)
-	    True
+            sage: h2 = drlm_backward_3_slope(f=3/26,bkpt=7/26)
+            sage: extremality_test(h2)
+            True
+            sage: h1 == h2
+            True
    
     Reference:
-        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Inifinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
+        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Infinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
     """
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1)):
@@ -195,7 +203,7 @@ def mlr_cpl3_b_3_slope(r0=3/26, z1=1/13, field=None, conditioncheck=True):
         slopes = [1/r0, (2*z1-1)/(2*z1*(1+r0)), (2*z1-1)/(2*z1*(1+r0)), 1/(1+r0), (2*z1-1)/(2*z1*(1+r0)), (2*z1-1)/(2*z1*(1+r0))]
         return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None)
     else:
-        logging.info("Break-points are not in consecutive order.")
+        raise ValueError, "Bad parameters. Unable to construct the function (breakpoints would not be in consecutive order)"
     
 def mlr_cpl3_c_3_slope(r0=5/24, z1=1/12, field=None, conditioncheck=True):
     """
@@ -206,7 +214,7 @@ def mlr_cpl3_c_3_slope(r0=5/24, z1=1/12, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0< r0 (real) < 1, 0 < z1 (real)
+        0 < r0 (real) < 1, 0 < z1 (real)
     Function is known to be extreme under the conditions:
         3*r0 + 4*z1 <= 1
 
@@ -224,12 +232,14 @@ def mlr_cpl3_c_3_slope(r0=5/24, z1=1/12, field=None, conditioncheck=True):
             sage: fn = group_function_from_superadditive_lifting_function(phi)
             sage: h1 == fn
             True
-	    sage: h2 = drlm_backward_3_slope(f=5/24,bkpt=7/24)
-	    sage: extremality_test(h2)
-	    True
+            sage: h2 = drlm_backward_3_slope(f=5/24,bkpt=7/24)
+            sage: extremality_test(h2)
+            True
+            sage: h1 == h2
+            True
 
     Reference:
-        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Inifinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
+        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Infinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
     """
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1)):
@@ -244,7 +254,7 @@ def mlr_cpl3_c_3_slope(r0=5/24, z1=1/12, field=None, conditioncheck=True):
         slopes = [1/r0, (z1-1)/(z1*(1+r0)), 1/(1+r0), 1/(1+r0), 1/(1+r0), (z1-1)/(z1*(1+r0))]
         return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None)
     else:
-        logging.info("Break-points are not in consecutive order.")
+        raise ValueError, "Bad parameters. Unable to construct the function (breakpoints would not be in consecutive order)"
 
 def mlr_cpl3_d_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
     """
@@ -255,7 +265,7 @@ def mlr_cpl3_d_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
        
     Parameters:
-        0< r0 (real) < 1, 0 < z1 (real)
+        0 < r0 (real) < 1, 0 < z1 (real)
     Function is known to be extreme under the conditions:
         r0 = 2*z1, r0 + 8*z1 <= 1
 
@@ -272,7 +282,7 @@ def mlr_cpl3_d_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
             True
 
     Reference:
-        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Inifinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
+        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Infinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
     """
     if z1 is None:
         z1 = r0/2
@@ -289,7 +299,7 @@ def mlr_cpl3_d_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
         slopes = [1/r0, (2*z1+1)/(2*z1*(r0-1)), (1-2*z1)/(2*z1*(1-r0)), 1/(r0-1), (1-2*z1)/(2*z1*(1-r0)), (2*z1+1)/(2*z1*(r0-1))]
         return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None)
     else:
-        logging.info("Break-points are not in consecutive order.")
+        raise ValueError, "Bad parameters. Unable to construct the function (breakpoints would not be in consecutive order)"
 
 def mlr_cpl3_f_2_or_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
     """
@@ -300,7 +310,7 @@ def mlr_cpl3_f_2_or_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0< r0 (real) < 1, 0 < z1 (real)
+        0 < r0 (real) < 1, 0 < z1 (real)
     Function is known to be extreme under the conditions:
         r0 <= z1, r0 + 5*z1 = 1
 
@@ -308,12 +318,11 @@ def mlr_cpl3_f_2_or_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
         page 184, Fig 3, point f1 and f2::
 
             sage: logging.disable(logging.INFO) # Suppress output
-            sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
             sage: h1 = mlr_cpl3_f_2_or_3_slope(r0=1/6, z1=1/6)
-            sage: extremality_test(h1)
+            sage: extremality_test(h1, f=1/6)
             True
             sage: phi = cpl3_function(r0=1/6, z1=1/6, o1=1/3, o2=0) 
-            sage: fn = group_function_from_superadditive_lifting_function(phi)
+            sage: fn = group_function_from_superadditive_lifting_function(phi, f=1/6)
             sage: h1 == fn
             True
             sage: h2 = mlr_cpl3_f_2_or_3_slope(r0=3/23, z1=4/23)
@@ -321,7 +330,7 @@ def mlr_cpl3_f_2_or_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
             True
 
     Reference:
-        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Inifinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
+        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Infinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
     """
     if z1 is None:
         z1 = (1-r0)/5
@@ -338,7 +347,7 @@ def mlr_cpl3_f_2_or_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
         slopes = [1/r0, (z1*r0+8*z1^2-r0-6*z1+1)/(z1*(r0^2+4*z1+8*z1*r0-1)), (r0+8*z1-2)/(r0^2+4*z1+8*z1*r0-1), (r0+8*z1-1)/(r0^2+4*z1+8*z1*r0-1), (r0+8*z1-2)/(r0^2+4*z1+8*z1*r0-1), (z1*r0+8*z1^2-r0-6*z1+1)/(z1*(r0^2+4*z1+8*z1*r0-1))]
         return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None)
     else:
-        logging.info("Break-points are not in consecutive order.")
+        raise ValueError, "Bad parameters. Unable to construct the function (breakpoints would not be in consecutive order)"
        
 def mlr_cpl3_g_3_slope(r0=1/12, z1=None, field=None, conditioncheck=True):
     """
@@ -349,7 +358,7 @@ def mlr_cpl3_g_3_slope(r0=1/12, z1=None, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0< r0 (real) < 1, 0 < z1 (real)
+        0 < r0 (real) < 1, 0 < z1 (real)
     Function is known to be extreme under the conditions:
         r0 < z1, 2*r0 + 4*z1 = 1
 
@@ -366,7 +375,7 @@ def mlr_cpl3_g_3_slope(r0=1/12, z1=None, field=None, conditioncheck=True):
             True
 
     Reference:
-        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Inifinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
+        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Infinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
     """
     if z1 is None:
         z1 = (1-2*r0)/4
@@ -383,7 +392,7 @@ def mlr_cpl3_g_3_slope(r0=1/12, z1=None, field=None, conditioncheck=True):
         slopes = [1/r0, 3/(3*r0-1), (1-3*z1)/(z1*(1-3*r0)), 3/(3*r0-1), (1-3*z1)/(z1*(1-3*r0)), 3/(3*r0-1)]
         return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None)
     else:
-        logging.info("Break-points are not in consecutive order.")
+        raise ValueError, "Bad parameters. Unable to construct the function (breakpoints would not be in consecutive order)"
 
 def mlr_cpl3_h_2_slope(r0=1/4, z1=1/6, field=None, conditioncheck=True):
     """
@@ -394,7 +403,7 @@ def mlr_cpl3_h_2_slope(r0=1/4, z1=1/6, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0< r0 (real) < 1, 0 < z1 (real)
+        0 < r0 (real) < 1, 0 < z1 (real)
     Function is known to be extreme under the conditions:
         r0 + 4*z1 <= 1 < 2*r0 + 4*z1
 
@@ -411,7 +420,7 @@ def mlr_cpl3_h_2_slope(r0=1/4, z1=1/6, field=None, conditioncheck=True):
             True
 
     Reference:
-        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Inifinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
+        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Infinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
     """
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1)):
@@ -426,7 +435,7 @@ def mlr_cpl3_h_2_slope(r0=1/4, z1=1/6, field=None, conditioncheck=True):
         slopes = [1/r0, (4*z1-1)/(4*r0*z1), 1/r0, (4*z1-1)/(4*r0*z1)]
         return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None)
     else:
-        logging.info("Break-points are not in consecutive order.")
+        raise ValueError, "Bad parameters. Unable to construct the function (breakpoints would not be in consecutive order)"
 
 def mlr_cpl3_k_2_slope(r0=7/27, z1=4/27, field=None, conditioncheck=True):
     """
@@ -437,7 +446,7 @@ def mlr_cpl3_k_2_slope(r0=7/27, z1=4/27, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0< r0 (real) < 1, 0 < z1 (real)
+        0 < r0 (real) < 1, 0 < z1 (real)
     Function is known to be extreme under the conditions:
         r0 <= 2*z1, r0 + 5*z1 = 1
 
@@ -454,7 +463,7 @@ def mlr_cpl3_k_2_slope(r0=7/27, z1=4/27, field=None, conditioncheck=True):
             True
 
     Reference:
-        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Inifinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
+        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Infinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
 
     """
     if z1 is None:
@@ -472,7 +481,7 @@ def mlr_cpl3_k_2_slope(r0=7/27, z1=4/27, field=None, conditioncheck=True):
         slopes = [1/r0, (3*z1-1)/(3*z1*r0), 1/r0, (2-3*r0-12*z1)/(3*r0*(1-r0-4*z1)), 1/r0, (3*z1-1)/(3*z1*r0)]
         return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None)
     else:
-        logging.info("Break-points are not in consecutive order.")
+        raise ValueError, "Bad parameters. Unable to construct the function (breakpoints would not be in consecutive order)"
 
 def mlr_cpl3_l_2_slope(r0=8/25, z1=None, field=None, conditioncheck=True):
     """
@@ -484,7 +493,7 @@ def mlr_cpl3_l_2_slope(r0=8/25, z1=None, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0< r0 (real) < 1, 0 < z1 (real)
+        0 < r0 (real) < 1, 0 < z1 (real)
     Function is known to be extreme under the conditions:
         r0 = 2*z1, 6*z1 <= 1 < 7*z1
 
@@ -501,7 +510,7 @@ def mlr_cpl3_l_2_slope(r0=8/25, z1=None, field=None, conditioncheck=True):
             True
 
     Reference:
-        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Inifinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
+        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Infinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
     """
     if z1 is None:
         z1 = r0/2
@@ -518,7 +527,7 @@ def mlr_cpl3_l_2_slope(r0=8/25, z1=None, field=None, conditioncheck=True):
         slopes = [1/r0, 2/(2*r0-1), (1-4*z1)/(2*z1-4*z1*r0), 2/(2*r0-1), (1-4*z1)/(2*z1-4*z1*r0), 2/(2*r0-1)]
         return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None)
     else:
-        logging.info("Break-points are not in consecutive order.")
+        raise ValueError, "Bad parameters. Unable to construct the function (breakpoints would not be in consecutive order)"
 
 def mlr_cpl3_n_3_slope(r0=16/22, z1=1/22, field=None, conditioncheck=True):
     """
@@ -529,7 +538,7 @@ def mlr_cpl3_n_3_slope(r0=16/22, z1=1/22, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0< r0 (real) < 1, 0 < z1 (real)
+        0 < r0 (real) < 1, 0 < z1 (real)
     Function is known to be extreme under the conditions:
         r0 > 2*z1, r0 + 8*z1 < 1
 
@@ -546,7 +555,7 @@ def mlr_cpl3_n_3_slope(r0=16/22, z1=1/22, field=None, conditioncheck=True):
             True
 
     Reference:
-        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Inifinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
+        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Infinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
     """
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1)):
@@ -561,7 +570,7 @@ def mlr_cpl3_n_3_slope(r0=16/22, z1=1/22, field=None, conditioncheck=True):
         slopes = [1/r0, (1+r0)/(r0*(r0-1)), 1/r0, 1/(r0-1), 1/r0, (1+r0)/(r0*(r0-1))]
         return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None)
     else:
-        logging.info("Break-points are not in consecutive order.")
+        raise ValueError, "Bad parameters. Unable to construct the function (breakpoints would not be in consecutive order)"
 
 def mlr_cpl3_o_2_slope(r0=3/8, z1=None, field=None, conditioncheck=True):
     """
@@ -572,7 +581,7 @@ def mlr_cpl3_o_2_slope(r0=3/8, z1=None, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0< r0 (real) < 1, 0 < z1 (real)
+        0 < r0 (real) < 1, 0 < z1 (real)
     Function is known to be extreme under the conditions:
         r0 >= 2*z1, 2*r0 + 2*z1 = 1
 
@@ -580,9 +589,8 @@ def mlr_cpl3_o_2_slope(r0=3/8, z1=None, field=None, conditioncheck=True):
         page 186, Fig 5, point o::
 
             sage: logging.disable(logging.INFO) # Suppress output
-            sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
             sage: h = mlr_cpl3_o_2_slope(r0=3/8, z1=1/8)
-            sage: extremality_test(h)
+            sage: extremality_test(h, f=3/8)
             True
             sage: phi = cpl3_function(r0=3/8, z1=1/8, o1=1/2, o2=0) 
             sage: fn = group_function_from_superadditive_lifting_function(phi)
@@ -590,7 +598,7 @@ def mlr_cpl3_o_2_slope(r0=3/8, z1=None, field=None, conditioncheck=True):
             True
 
     Reference:
-        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Inifinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
+        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Infinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
     """
     if z1 is None:
         z1 = (1-2*r0)/2
@@ -607,7 +615,7 @@ def mlr_cpl3_o_2_slope(r0=3/8, z1=None, field=None, conditioncheck=True):
         slopes = [1/r0, 2/(2*r0-1), (4*z1-4*z1*r0-1+2*r0)/(2*r0*z1*(1-2*r0)), 1/r0, (4*z1-4*z1*r0-1+2*r0)/(2*r0*z1*(1-2*r0)), 2/(2*r0-1)]
         return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None)
     else:
-        logging.info("Break-points are not in consecutive order.")
+        raise ValueError, "Bad parameters. Unable to construct the function (breakpoints would not be in consecutive order)"
 
 def mlr_cpl3_p_2_slope(r0=5/12, z1=None, field=None, conditioncheck=True):
     """
@@ -619,7 +627,7 @@ def mlr_cpl3_p_2_slope(r0=5/12, z1=None, field=None, conditioncheck=True):
 
 
     Parameters:
-        0< r0 (real) < 1, 0 < z1 (real)
+        0 < r0 (real) < 1, 0 < z1 (real)
     Function is known to be extreme under the conditions:
         r0 > 2*z1, 2*r0 + 2*z1 = 1
 
@@ -627,9 +635,8 @@ def mlr_cpl3_p_2_slope(r0=5/12, z1=None, field=None, conditioncheck=True):
         page 186, Fig 5, point p1 and p2::
 
             sage: logging.disable(logging.INFO) # Suppress output
-            sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
             sage: h = mlr_cpl3_p_2_slope(r0=5/12, z1=1/12)
-            sage: extremality_test(h)
+            sage: extremality_test(h, f=5/12)
             True
             sage: phi = cpl3_function(5/12,1/12,1/2,0)
             sage: fn = group_function_from_superadditive_lifting_function(phi)
@@ -637,7 +644,7 @@ def mlr_cpl3_p_2_slope(r0=5/12, z1=None, field=None, conditioncheck=True):
             True
 
     Reference:
-        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Inifinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
+        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Infinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
 
     """
     if z1 is None:
@@ -655,7 +662,7 @@ def mlr_cpl3_p_2_slope(r0=5/12, z1=None, field=None, conditioncheck=True):
         slopes = [1/r0, 2/(2*r0-1), 1/r0, (-r0+2*r0^2-2*z1+8*z1*r0)/(r0*(1-2*r0)*(1-r0-4*z1)), 1/r0, 2/(2*r0-1)]
         return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None)
     else:
-        logging.info("Break-points are not in consecutive order.")
+        raise ValueError, "Bad parameters. Unable to construct the function (breakpoints would not be in consecutive order)"
 
 def mlr_cpl3_q_2_slope(r0=5/12, z1=3/24, field=None, conditioncheck=True):
     """
@@ -667,7 +674,7 @@ def mlr_cpl3_q_2_slope(r0=5/12, z1=3/24, field=None, conditioncheck=True):
 
 
     Parameters:
-        0< r0 (real) < 1, 0 < z1 (real)
+        0 < r0 (real) < 1, 0 < z1 (real)
     Function is known to be extreme under the conditions:
         r0 > 2*z1, r0+4*z1 <= 1 < r0+5*z1
 
@@ -684,7 +691,7 @@ def mlr_cpl3_q_2_slope(r0=5/12, z1=3/24, field=None, conditioncheck=True):
             True
 
     Reference:
-        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Inifinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
+        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Infinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
     """
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1)):
@@ -699,7 +706,7 @@ def mlr_cpl3_q_2_slope(r0=5/12, z1=3/24, field=None, conditioncheck=True):
         slopes = [1/r0,(r0+2*z1)/(r0*(-1+r0+2*z1)), 1/r0, (r0+2*z1)/(r0*(-1+r0+2*z1)), 1/r0, (r0+2*z1)/(r0*(-1+r0+2*z1))]
         return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None)
     else:
-        logging.info("Break-points are not in consecutive order.")
+        raise ValueError, "Bad parameters. Unable to construct the function (breakpoints would not be in consecutive order)"
 
 def mlr_cpl3_r_2_slope(r0=3/7, z1=1/7, field=None, conditioncheck=True):
     """
@@ -710,7 +717,7 @@ def mlr_cpl3_r_2_slope(r0=3/7, z1=1/7, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0< r0 (real) < 1, 0 < z1 (real)
+        0 < r0 (real) < 1, 0 < z1 (real)
     Function is known to be extreme under the conditions:
         r0 > 2*z1, r0+4*z1 <= 1 <= 2*r0+2*z1
 
@@ -727,7 +734,7 @@ def mlr_cpl3_r_2_slope(r0=3/7, z1=1/7, field=None, conditioncheck=True):
             True
 
     Reference:
-        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Inifinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
+        - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Infinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
     """
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1)):
@@ -742,7 +749,7 @@ def mlr_cpl3_r_2_slope(r0=3/7, z1=1/7, field=None, conditioncheck=True):
         slopes = [1/r0, (2*z1-1)/(2*r0*z1), 1/r0, 1/r0, 1/r0, (2*z1-1)/(2*r0*z1)]
         return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None)
     else:
-        logging.info("Break-points are not in consecutive order.")
+        raise ValueError, "Bad parameters. Unable to construct the function (breakpoints would not be in consecutive order)"
 
 
 
