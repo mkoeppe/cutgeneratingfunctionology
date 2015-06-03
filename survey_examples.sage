@@ -53,7 +53,7 @@ def not_extreme_1(): # was symmetric_rational_function1.sage
 def drlm_not_extreme_1():
     """Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
     On the extreme inequalities of infinite group problems,
-    Mathematical Programming 121 (2009), no. 1, 145–170,
+    Mathematical Programming 121 (2009), no. 1, 145-170,
     doi:10.1007/s10107-008-0229-6.
     Figure 1.
 
@@ -77,7 +77,7 @@ def drlm_not_extreme_2():
     """
     Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
     On the extreme inequalities of infinite group problems,
-    Mathematical Programming 121 (2009), no. 1, 145–170,
+    Mathematical Programming 121 (2009), no. 1, 145-170,
     doi:10.1007/s10107-008-0229-6.
     Figure 3.
 
@@ -112,7 +112,7 @@ def drlm_not_extreme_2():
 def phi_s_in_drlm_not_extreme_2(s=10):
     """Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
     On the extreme inequalities of infinite group problems,
-    Mathematical Programming 121 (2009), no. 1, 145–170,
+    Mathematical Programming 121 (2009), no. 1, 145-170,
     doi:10.1007/s10107-008-0229-6.
     Figure 2.
 

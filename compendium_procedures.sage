@@ -233,7 +233,7 @@ def restrict_to_finite_group(function, f=None, oversampling=None, order=None):
     This is Theorem 1.5 in [IR2].
     
     Reference:
-        [IR2] A. Basu, R. Hildebrand, and M. Köppe, Equivariant perturbation in Gomory and Johnson’s infinite group problem.
+        [IR2] A. Basu, R. Hildebrand, and M. Koeppe, Equivariant perturbation in Gomory and Johnson's infinite group problem.
                 I. The one-dimensional case, Mathematics of Operations Research (2014), doi:10. 1287/moor.2014.0660
 
     EXAMPLES::
@@ -272,7 +272,7 @@ def restrict_to_finite_group(function, f=None, oversampling=None, order=None):
         False
 
     Reference:
-        [IR2] A. Basu, R. Hildebrand, and M. Köppe, Equivariant perturbation in Gomory and Johnson’s infinite group problem.
+        [IR2] A. Basu, R. Hildebrand, and M. Koeppe, Equivariant perturbation in Gomory and Johnson's infinite group problem.
                 I. The one-dimensional case, Mathematics of Operations Research (2014), doi:10. 1287/moor.2014.0660
     """
     order = finite_group_order_from_function_f_oversampling_order(function, f, oversampling, order)
