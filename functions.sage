@@ -458,7 +458,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
 
     To show only a part of the diagram, use::
 
-        sage: show(plot_2d_diagram(h), xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)  # not tested
+        sage: plot_2d_diagram(h).show(xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)  # not tested
 
     EXAMPLES::
 
@@ -3037,7 +3037,7 @@ def plot_perturbation_diagram(fn, perturbation=None, xmin=0, xmax=1):
 
     To show only a part of the diagram, use::
 
-        sage: show(plot_perturbation_diagram(h, 1), xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)  # not tested
+        sage: plot_perturbation_diagram(h, 1).show(xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)  # not tested
     """
     if perturbation is None:
        perturbation = 1
@@ -3372,7 +3372,7 @@ def plot_completion_diagram(fn, perturbation=None):
     
     To view a part only, use::
 
-        sage: show(plot_completion_diagram(h), xmin=0.3, xmax=0.55, ymin=0.3, ymax=0.55) # not tested
+        sage: plot_completion_diagram(h).show(xmin=0.3, xmax=0.55, ymin=0.3, ymax=0.55) # not tested
     """
     if not (hasattr(fn, '_completion') and fn._completion.is_complete):
         extremality_test(fn, show_plots=False)

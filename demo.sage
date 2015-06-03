@@ -158,16 +158,16 @@ extremality_test(h, True)
 ## areas of interest.
 
 ## The 2d diagram, showing non-subadditive vertices and additive faces.
-show(plot_2d_diagram(h), xmin=0.15, xmax=0.35, ymin=0.15, ymax=0.35)
+plot_2d_diagram(h).show(xmin=0.15, xmax=0.35, ymin=0.15, ymax=0.35)
 
 ## The diagram of covered intervals.
-show(plot_covered_intervals(h), xmin=0.15, xmax=0.35, ymin=0.22, ymax=0.55)
+plot_covered_intervals(h).show(xmin=0.15, xmax=0.35, ymin=0.22, ymax=0.55)
 
 ## The completion diagram (to be explained in a forthcoming paper).
-show(plot_completion_diagram(h), xmin=0.28, xmax=0.52, ymin=0.25, ymax=0.35)
+plot_completion_diagram(h).show(xmin=0.28, xmax=0.52, ymin=0.25, ymax=0.35)
 
 ## The perturbation diagram.  1 is the index of the perturbation shown.
-show(plot_perturbation_diagram(h, 1), xmin=0.28, xmax=0.35, ymin=0.33, ymax=0.4)
+plot_perturbation_diagram(h, 1).show(xmin=0.28, xmax=0.35, ymin=0.33, ymax=0.4)
 
 ## Approach 2: Increase the plotting figure size (the default is 10).
 igp.show_plots_figsize = 40
