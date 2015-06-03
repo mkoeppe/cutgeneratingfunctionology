@@ -30,9 +30,9 @@ def gmic(f=4/5, field=None, conditioncheck=True):
 
         [57]: R.E. Gomory, Some polyhedra related to combinatorial problems, Linear Algebra and its Application 2 (1969) 451-558.
 
-        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
 
-        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
+        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
     if conditioncheck and not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
@@ -72,9 +72,9 @@ def gj_2_slope(f=3/5, lambda_1=1/6, field=None, conditioncheck=True):
             True
 
     Reference:
-        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
 
-        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
+        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
     if conditioncheck:
         if not (bool(0 < f < 1) & bool(0 < lambda_1 < f/(1 - f))):
@@ -117,9 +117,9 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
             True
 
     Reference:
-        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
 
-        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
+        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
     if conditioncheck:
         if not (bool(0 < f < 1) & (m >= 2) & (n >= 2) & bool (s_positive > 1 / f) & bool(s_negative < 1/(f - 1))):
@@ -140,7 +140,7 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
 def dg_2_step_mir(f=4/5, alpha=3/10, field=None, conditioncheck=True):
     """
     Summary:
-        - Name: 2-Step MIR;
+        - Name: Dash-Gunluk's 2-Step MIR;
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
         - Discovered [33]  p.39 def.8, Fig.5;
         - Proven extreme (for infinite group) [60] p.377, thm.3.3.
@@ -163,11 +163,11 @@ def dg_2_step_mir(f=4/5, alpha=3/10, field=None, conditioncheck=True):
             True
 
     Reference:
-        [33]: S. Dash and O. G¨unl¨uk, Valid inequalities based on simple mixed-integer sets.,
+        [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
                 Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
-                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33–45.
+                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
 
-        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
     """
     if conditioncheck:
         if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
@@ -199,7 +199,7 @@ def interval_length_n_step_mir(n, m, a, b):
 def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
     """
     Summary:
-        - Name: n-Step MIR;
+        - Name: Kianfar-Fathi's n-Step MIR;
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
         - Discovered [74]  p.328, def.3, thm.2;
         - Proven extreme (for infinite group) [60] p.377, thm.3.3.
@@ -245,10 +245,10 @@ def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
             True
 
     Reference:
-        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
 
         [74]: K. Kianfar and Y. Fathi, Generalized mixed integer rounding valid inequalities:
-                Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313–346.
+                Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313-346.
     """
     if conditioncheck:
         if (a == []) | (not bool(0 < f < 1 == a[0])):
@@ -319,7 +319,7 @@ def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditionc
             True
 
     Reference:
-        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
+        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
     if conditioncheck and not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
@@ -341,7 +341,7 @@ def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditionc
 def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
     """
     Summary:
-        - Name: drlm's Backward 3-Slope;
+        - Name: Dey--Richard--Li--Miller's Backward 3-Slope;
         - Infinite; Dim = 1; Slopes = 3; Continuous; Group relations method;
         - Discovered [40] p.154 eq.5;
         - Proven [40] p.153 thm.6.
@@ -375,13 +375,13 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
             True
 
     Reference:
-        [8]: J. Ar´aoz, L. Evans, R.E. Gomory, and E.L. Johnson, Cyclic groups and knapsack facets,
-                Mathematical Programming 96 (2003) 377–408.
+        [8]: J. Araoz, L. Evans, R.E. Gomory, and E.L. Johnson, Cyclic groups and knapsack facets,
+                Mathematical Programming 96 (2003) 377-408.
                 
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
-                Mathematical Programming 121 (2010) 145–170.
+                Mathematical Programming 121 (2010) 145-170.
 
-        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
+        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
     if conditioncheck:
         if not bool(0 < f < bkpt < 1 + f - bkpt < 1):
@@ -399,7 +399,7 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
 def dg_2_step_mir_limit(f=3/5, d=3, field=None, conditioncheck=True):
     """
     Summary:
-        - Name: DG-2-Step MIR Limit;
+        - Name: Dash-Gunluk 2-Step MIR Limit;
         - Infinite; Dim = 1; Slopes = 1; Discontinuous; Simple sets method;
         - Discovered [33] p.41, def.12;
         - Proven extreme [33] p.43, lemma 14.
@@ -431,9 +431,9 @@ def dg_2_step_mir_limit(f=3/5, d=3, field=None, conditioncheck=True):
             True
 
     Reference:
-        [33]: S. Dash and O. G¨unl¨uk, Valid inequalities based on simple mixed-integer sets.,
+        [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
                 Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
-                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33–45.
+                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
     """
     if conditioncheck:
         if not (bool(0 < f < 1) & (d >= 1)):
@@ -458,7 +458,7 @@ def dg_2_step_mir_limit(f=3/5, d=3, field=None, conditioncheck=True):
 def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, conditioncheck=True):
     """
     Summary:
-        - Name: drlm's 2-Slope Limit;
+        - Name: Dey--Richard--Li--Miller's 2-Slope Limit;
         - Infinite; Dim = 1; Slopes = 1; Discontinuous; Group relations method;
         - Discovered [40] p.158 def.10;
         - Proven extreme [40] p.159 thm.8.
@@ -482,7 +482,7 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, c
 
     Reference:
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
-                Mathematical Programming 121 (2010) 145–170.
+                Mathematical Programming 121 (2010) 145-170.
     """
     m = nb_pieces_left
     d = nb_pieces_right
@@ -517,7 +517,7 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, c
 def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
     """
     Summary:
-        - Name: drlm-3-Slope Limit;
+        - Name: Dey--Richard--Li--Miller's 3-Slope Limit;
         - Infinite; Dim = 1; Slopes = 2; Discontinuous; Group relations method;
         - Discovered [40] p.161 def.11;
         - Proven extreme [40] p.161 thm.9.
@@ -542,7 +542,7 @@ def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
 
     Reference:
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
-                Mathematical Programming 121 (2010) 145–170.
+                Mathematical Programming 121 (2010) 145-170.
     """
     if conditioncheck:
         if not bool(0 < f < 1):
@@ -561,7 +561,9 @@ def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
 
 def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
     """
-    return function psi, a counterexample to Gomory--Johnson's conjecture;
+    return function psi, a counterexample to Gomory--Johnson's conjecture
+    constructed by Basu--Conforti--Cornuejols--Zambelli.
+
     psi is a continuous facet (hence extreme), but is not piecewise linear. cf. [IR1]
 
     Parameters:
@@ -595,8 +597,8 @@ def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
             sage: bccz_counterexample(f=2/3, q=4, eta=0, maxiter=10000)(r=9/40) # doctest: +SKIP
 
     Reference:
-        [IR1]:  A. Basu, M. Conforti, G. Cornuéjols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
-                    Mathematical Programming Ser. A 133 (2012), 25–38.
+        [IR1]:  A. Basu, M. Conforti, G. Cornuejols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
+                    Mathematical Programming Ser. A 133 (2012), 25-38.
     """
     if not (bool(0 < f < 1) & bool(q > 2) & bool(0 <= eta < 1)):
         raise ValueError, "Bad parameters."
@@ -653,8 +655,8 @@ def generate_example_e_for_psi_n(f=2/3, n=7, q=4, eta=1/1000):
         4) psi is not in W^{1,1}.
 
     Reference: 
-        [IR1]:  A. Basu, M. Conforti, G. Cornuéjols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
-                    Mathematical Programming Ser. A 133 (2012), 25–38.
+        [IR1]:  A. Basu, M. Conforti, G. Cornuejols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
+                    Mathematical Programming Ser. A 133 (2012), 25-38.
     """
     if n == 0:
         return []
@@ -706,8 +708,8 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
             sage: sum([plot(psi_n_in_bccz_counterexample_construction(e=generate_example_e_for_psi_n(n=n)), color=color, legend_label="psi_%d"%n) for n, color in zip(range(7),rainbow(7))]) # doctest: +SKIP
 
     Reference: 
-        [IR1]:  A. Basu, M. Conforti, G. Cornuéjols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
-                    Mathematical Programming Ser. A 133 (2012), 25–38.
+        [IR1]:  A. Basu, M. Conforti, G. Cornuejols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
+                    Mathematical Programming Ser. A 133 (2012), 25-38.
     """
     if conditioncheck and not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
@@ -746,7 +748,7 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
 def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), field=None):
     """
     Summary:
-        - Name: BHK's irrational function.
+        - Name: Basu-Hildebrand-Koeppe's irrational function.
         - Infinite; Dim = 1; Slopes = 3; Continuous;  Covered intervals and equivariant perturbation.
         - Discovered [IR2]  p.33, section.5.2, fig.9-10.
         - Proven extreme [IR2] p.34, thm.5.3.
@@ -796,8 +798,8 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
             True
 
     Reference:
-        [IR2] A. Basu, R. Hildebrand, and M. Köppe, Equivariant perturbation in Gomory and Johnson’s infinite group problem.
-                I. The one-dimensional case, Mathematics of Operations Research (2014), doi:10. 1287/moor.2014.0660
+        [IR2] A. Basu, R. Hildebrand, and M. Koeppe, Equivariant perturbation in Gomory and Johnson's infinite group problem.
+                I. The one-dimensional case, Mathematics of Operations Research (2014), doi:10.1287/moor.2014.0660
     """
     if not (bool(0 < f < 1) and bool(d1 > 0) and bool(d2 > 0) and bool(a0 > 0) 
             and all(bool(deltai > 0) for deltai in delta) and bool(d1 + d2 < f) and (sum(delta) < f/2 - d2/4 - 3*a0/2) ):
@@ -1099,7 +1101,7 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
     Reference:
 
     .. [RLM2009] J.-P. P. Richard, Y. Li, and L. A. Miller, Valid inequalities for MIPs and group polyhedra
-       from approximate liftings, Mathematical Programming 118 (2009), no. 2, 253–277, doi:10.1007/s10107-007-0190-9
+       from approximate liftings, Mathematical Programming 118 (2009), no. 2, 253-277, doi:10.1007/s10107-007-0190-9
     """
     if conditioncheck:
         if not bool(0 < f < 1):
@@ -1136,7 +1138,7 @@ def ll_strong_fractional(f=2/3, field=None, conditioncheck=True):
         [78] Letchford-Lodi (2002) Thm. 2, Fig. 3 (but note this figure shows the wrong function; 
              see ll_strong_fractional_bad_figure_3 and ll_strong_fractional_bad_figure_3_corrected)
 
-        [33] S. Dash and O. G¨unl¨uk (2004) Thm. 16
+        [33] S. Dash and O. Gunluk (2004) Thm. 16
 
     Remarks::
         Discontinuous, 1-slope;
