@@ -1020,6 +1020,9 @@ def ticks_keywords(function, y_ticks_for_breakpoints=False):
     Compute `plot` keywords for displaying the ticks.
     """
     xticks = function.end_points()
+    f = find_f(function, no_error_if_not_minimal_anyway=True)
+    if f is not None and not f in xticks:
+        xticks.append(f)
     xtick_formatter = [ "$%s$" % latex(x) for x in xticks ]
     #xtick_formatter = 'latex'  # would not show rationals as fractions
     ytick_formatter = None
@@ -1028,7 +1031,7 @@ def ticks_keywords(function, y_ticks_for_breakpoints=False):
         ytick_formatter = xtick_formatter
     else:
         #yticks = 1/5
-        yticks = uniq([ y for limits in function.limits_at_end_points() for y in limits if y is not None ])
+        yticks = uniq([1] + [ y for limits in function.limits_at_end_points() for y in limits if y is not None ])
         ytick_formatter = [ "$%s$" % latex(y) for y in yticks ]
     ## FIXME: Can we influence ticks placement as well so that labels don't overlap?
     ## or maybe rotate labels 90 degrees?
