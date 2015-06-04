@@ -439,7 +439,10 @@ def gomory_fractional(f=4/5):
     h = FastPiecewise([right_open_piece((0, 0), (1, 1)), 
                        singleton_piece(1, 0)])
     # now normalize...
-    return h * (1/f)
+    gf = h * (1/f)
+    # Remember what is f (mostly for plotting purposes)
+    gf._f = f
+    return gf
 
 def ll_strong_fractional_bad_figure_3():
     """
