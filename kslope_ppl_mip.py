@@ -1666,7 +1666,7 @@ def pattern_fn(l, pattern):
         fn[q - k] = fn[k]
     return fn
 
-def pattern_polytope(vertices_color, fn, prep=True):
+def pattern_polytope(vertices_color, fn):
     q = len(fn) - 1
     f = int(q / 2)
     cs = Constraint_System()
@@ -1681,16 +1681,14 @@ def pattern_polytope(vertices_color, fn, prep=True):
                 cs.insert(fn[x] + fn[y] == fn[x + y])
             else:
                 cs.insert(fn[x] + fn[y] >= fn[x + y])
-    if prep:
-        cs = remove_redundancy_from_cs(cs)
     polytope = C_Polyhedron(cs)
     return polytope
 
-def pattern_extreme(l, k_slopes, pattern=0, show_plots=False, more_ini_additive=True, prep=True):
+def pattern_extreme(l, k_slopes, pattern=0, show_plots=False, more_ini_additive=True):
     q, f = pattern_q_and_f(l, pattern)
     vertices_color = pattern_vertices_color(l, pattern, more_ini_additive=more_ini_additive)
     fn = pattern_fn(l, pattern)
-    polytope = pattern_polytope(vertices_color, fn, prep=prep)
+    polytope = pattern_polytope(vertices_color, fn)
     v_set = set([])
     vv = []
     nn = []
