@@ -1187,6 +1187,58 @@ def pattern0_sym_fn(l, sv):
     values = [y / v_d for y in v_n + v_n[-2::-1]]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
+def kzh_6_slope_1():
+    """
+    A 6-slope extreme function.
+
+    Its two-dimensional polyhedral complex includes special patterns.
+
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
+
+    EXAMPLES::
+
+        sage: h = kzh_6_slope_1()
+        sage: extremality_test(h)
+        True
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
+    """
+    # q = 58; f = 29
+    l = 1
+    sv = (11, 7, -5)
+    return pattern0_sym_fn(l, sv)
+
+def kzh_10_slope_1():
+    """
+    A 10-slope extreme function.
+
+    Its two-dimensional polyhedral complex includes special patterns.
+
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
+
+    EXAMPLES::
+
+        sage: h = kzh_10_slope_1()
+        sage: extremality_test(h)
+        True
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
+    """
+    # q = 166; f = 83
+    l = 4
+    sv= (13, 12, 11, 9, -10, -12)
+    return pattern0_sym_fn(l, sv)
+
 def kzh_28_slope_1():
     """
     A 28-slope extreme function.
