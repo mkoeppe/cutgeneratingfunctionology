@@ -15,6 +15,7 @@ def cpl3_function(r0, z1, o1, o2):
 
     EXAMPLE::
 
+        sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
         sage: p = cpl3_function(r0=1/7, z1=1/7, o1=1/4, o2=1/12)
         sage: p
         <FastPiecewise with 6 parts, 
@@ -48,7 +49,8 @@ def superadditive_lifting_function_from_group_function(fn, f=None):
     Convert a standard representation 'phi' (a superadditive quasiperiodic function) from a group representation 'fn' (a subadditive periodic function).
 
     EXAMPLE::
-        
+
+        sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
         sage: fn = mlr_cpl3_d_3_slope(r0=1/7, z1=1/7)
         sage: phi = superadditive_lifting_function_from_group_function(fn)
         sage: phi_expected = FastPiecewise([[(0, 1/7), FastLinearFunction(0,0)], [(1/7, 2/7), FastLinearFunction(7/4, -1/4)], [(2/7, 3/7), FastLinearFunction(7/12, 1/12)], [(3/7, 5/7), FastLinearFunction(7/6, -1/6)], [(5/7, 6/7), FastLinearFunction(7/12, 1/4)], [(6/7, 1), FastLinearFunction(7/4, -3/4)]])
@@ -75,6 +77,7 @@ def group_function_from_superadditive_lifting_function(phi, f=None):
 
     EXAMPLE::
 
+        sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
         sage: phi = cpl3_function(r0=1/7, z1=1/7, o1=1/4, o2=1/12)
         sage: fn = group_function_from_superadditive_lifting_function(phi)
         sage: fn_expected = FastPiecewise([[(0, 1/7), FastLinearFunction(7, 0)], [(1/7, 2/7), FastLinearFunction(-21/4, 7/4)], [(2/7, 3/7), FastLinearFunction(35/12, -7/12)], [(3/7, 5/7), FastLinearFunction(-7/6, 7/6)], [(5/7, 6/7), FastLinearFunction(35/12, -7/4)], [(6/7, 1), FastLinearFunction(-21/4, 21/4)]])
@@ -120,7 +123,7 @@ def mlr_cpl3_a_2_slope(r0=3/13, z1=3/26, field=None, conditioncheck=True):
     Examples:
         page 183, Fig 2, point a::
 
-            sage: logging.disable(logging.INFO) # Suppress output
+            sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h = mlr_cpl3_a_2_slope(r0=3/13, z1=3/26)
             sage: extremality_test(h)
             True
@@ -166,7 +169,7 @@ def mlr_cpl3_b_3_slope(r0=3/26, z1=1/13, field=None, conditioncheck=True):
     Examples:
         page 183, Fig 2, point b::
 
-            sage: logging.disable(logging.INFO) # Suppress output
+            sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_b_3_slope(r0=3/26, z1=1/13)
             sage: extremality_test(h1)
             True
@@ -194,15 +197,13 @@ def mlr_cpl3_b_3_slope(r0=3/26, z1=1/13, field=None, conditioncheck=True):
         else:
             logging.info("Conditions for extremality are satisfied.")
 
-    bkpt = [0, r0, r0+2*z1, 1-2*z1, 1]
-    if all(bkpt[i] < bkpt[i+1] for i in xrange(len(bkpt)-1)):
+    if z1 < (1-r0)/4:
+        bkpt = [0, r0, r0+2*z1, 1-2*z1, 1]
         slopes = [1/r0, (2*z1-1)/(2*z1*(1+r0)), 1/(1+r0), (2*z1-1)/(2*z1*(1+r0))]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
     else:
-        assert 0 < r0 < r0+2*z1 == 1-2*z1 < 1, "Constructed breakpoints are not in consecutive order"
         bkpt = [0, r0, 1]
         slopes = [1/r0, (2*z1-1)/(2*z1*(1+r0))]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
+    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
         
 def mlr_cpl3_c_3_slope(r0=5/24, z1=1/12, field=None, conditioncheck=True):
     """
@@ -223,7 +224,7 @@ def mlr_cpl3_c_3_slope(r0=5/24, z1=1/12, field=None, conditioncheck=True):
     Examples:
         page 183, Fig 2, point c::
 
-            sage: logging.disable(logging.INFO) # Suppress output
+            sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_c_3_slope(r0=5/24, z1=1/12)
             sage: extremality_test(h1)
             True
@@ -265,10 +266,14 @@ def mlr_cpl3_d_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
     Function is known to be extreme under the conditions:
         r0 = 2*z1, r0 + 8*z1 <= 1
 
+    Note:
+        multiplicative_homomorphism(mlr_cpl3_d_3_slope(r0, z1 = 2*r0), -1) == gj_forward_3_slope(f=1-r0, lambda_1=2*z1/(1-r0), lambda_2=z1/r0);
+        gj_forward_3_slope being extreme only requires:  r0 >= z1, r0 + 4*z1 <= 1.
+
     Examples:
         p.183, Fig 2, point d1::
 
-            sage: logging.disable(logging.INFO) # Suppress output
+            sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_d_3_slope(r0=1/6, z1=1/12)
             sage: extremality_test(h1)
             True
@@ -297,14 +302,13 @@ def mlr_cpl3_d_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
         else:
             logging.info("Conditions for extremality are satisfied.")
 
-    bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
-    if all(bkpt[i] < bkpt[i+1] for i in xrange(len(bkpt)-1)):
+    if z1 < (1-r0)/4:
+        bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
         slopes = [1/r0, (2*z1+1)/(2*z1*(r0-1)), (1-2*z1)/(2*z1*(1-r0)), 1/(r0-1), (1-2*z1)/(2*z1*(1-r0)), (2*z1+1)/(2*z1*(r0-1))]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
     else:
         bkpt = [0, r0, r0+z1, 1-z1, 1]
         slopes = [1/r0, (2*z1+1)/(2*z1*(r0-1)), (1-2*z1)/(2*z1*(1-r0)), (2*z1+1)/(2*z1*(r0-1))]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
+    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
 
 def mlr_cpl3_f_2_or_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
     """
@@ -325,7 +329,7 @@ def mlr_cpl3_f_2_or_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
     Examples:
         page 184, Fig 3, point f1 and f2::
 
-            sage: logging.disable(logging.INFO) # Suppress output
+            sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_f_2_or_3_slope(r0=1/6, z1=1/6)
             sage: extremality_test(h1, f=1/6)
             True
@@ -353,14 +357,13 @@ def mlr_cpl3_f_2_or_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
         else:
             logging.info("Conditions for extremality are satisfied.")
 
-    bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
-    if all(bkpt[i] < bkpt[i+1] for i in xrange(len(bkpt)-1)):
+    if z1 < (1-r0)/4:
+        bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
         slopes = [1/r0, (z1*r0+8*z1^2-r0-6*z1+1)/(z1*(r0^2+4*z1+8*z1*r0-1)), (r0+8*z1-2)/(r0^2+4*z1+8*z1*r0-1), (r0+8*z1-1)/(r0^2+4*z1+8*z1*r0-1), (r0+8*z1-2)/(r0^2+4*z1+8*z1*r0-1), (z1*r0+8*z1^2-r0-6*z1+1)/(z1*(r0^2+4*z1+8*z1*r0-1))]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
     else:
         bkpt = [0, r0, 1]
         slopes = [1/r0, (z1*r0+8*z1^2-r0-6*z1+1)/(z1*(r0^2+4*z1+8*z1*r0-1))]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
+    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
 
 def mlr_cpl3_g_3_slope(r0=1/12, z1=None, field=None, conditioncheck=True):
     """
@@ -378,7 +381,7 @@ def mlr_cpl3_g_3_slope(r0=1/12, z1=None, field=None, conditioncheck=True):
     Examples:
         page 184, Fig 3, point g::
 
-            sage: logging.disable(logging.INFO) # Suppress output
+            sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_g_3_slope(r0=1/12, z1=5/24)
             sage: extremality_test(h1)
             True
@@ -406,15 +409,13 @@ def mlr_cpl3_g_3_slope(r0=1/12, z1=None, field=None, conditioncheck=True):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
-
-    bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
-    if all(bkpt[i] < bkpt[i+1] for i in xrange(len(bkpt)-1)):
+    if z1 < (1-r0)/4:
+        bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
         slopes = [1/r0, 3/(3*r0-1), (1-3*z1)/(z1*(1-3*r0)), 3/(3*r0-1), (1-3*z1)/(z1*(1-3*r0)), 3/(3*r0-1)]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
     else:
         bkpt = [0, r0, r0+z1, 1-z1, 1]
         slopes = [1/r0, 3/(3*r0-1), (1-3*z1)/(z1*(1-3*r0)), 3/(3*r0-1)]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
+    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
 
 def mlr_cpl3_h_2_slope(r0=1/4, z1=1/6, field=None, conditioncheck=True):
     """
@@ -435,7 +436,7 @@ def mlr_cpl3_h_2_slope(r0=1/4, z1=1/6, field=None, conditioncheck=True):
     Examples:
         page 183, Fig 2, point h::
 
-            sage: logging.disable(logging.INFO) # Suppress output
+            sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_h_2_slope(r0=1/4, z1=1/6)
             sage: extremality_test(h1)
             True
@@ -443,7 +444,7 @@ def mlr_cpl3_h_2_slope(r0=1/4, z1=1/6, field=None, conditioncheck=True):
             sage: fn = group_function_from_superadditive_lifting_function(phi)
             sage: h1 == fn
             True
-            sage: h2 = mlr_cpl3_h_2_slope(r0=1/4, z1=3/16, conditioncheck=False)
+            sage: h2 = mlr_cpl3_h_2_slope(r0=1/4, z1=3/16)
             sage: h2 == gmic(f=1/4)
             True
 
@@ -457,17 +458,15 @@ def mlr_cpl3_h_2_slope(r0=1/4, z1=1/6, field=None, conditioncheck=True):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
-
-    bkpt = [0, r0, r0+2*z1, 1-2*z1, 1]
-    if all(bkpt[i] < bkpt[i+1] for i in xrange(len(bkpt)-1)):
+    if z1 < (1-r0)/4:
+        bkpt = [0, r0, r0+2*z1, 1-2*z1, 1]
         slopes = [1/r0, (4*z1-1)/(4*r0*z1), 1/r0, (4*z1-1)/(4*r0*z1)]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
     else:
         bkpt = [0, r0, 1]
         slopes = [1/r0, (4*z1-1)/(4*r0*z1)]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
+    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
 
-def mlr_cpl3_k_2_slope(r0=7/27, z1=4/27, field=None, conditioncheck=True): # phi_end_points for group function
+def mlr_cpl3_k_2_slope(r0=7/27, z1=4/27, field=None, conditioncheck=True):
     """
     Summary:
         - The group representation of the continuous piecewise linear lifting (CPL) function.
@@ -483,7 +482,7 @@ def mlr_cpl3_k_2_slope(r0=7/27, z1=4/27, field=None, conditioncheck=True): # phi
     Examples:
         page 185, Fig 4, point k1::
 
-            sage: logging.disable(logging.INFO) # Suppress output
+            sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h = mlr_cpl3_k_2_slope(r0=7/27, z1=4/27)
             sage: extremality_test(h)
             True
@@ -505,16 +504,13 @@ def mlr_cpl3_k_2_slope(r0=7/27, z1=4/27, field=None, conditioncheck=True): # phi
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
-
-    bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
-    if all(bkpt[i] < bkpt[i+1] for i in xrange(len(bkpt)-1)):
+    if z1 < (1-r0)/4:
+        bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
         slopes = [1/r0, (3*z1-1)/(3*z1*r0), 1/r0, (2-3*r0-12*z1)/(3*r0*(1-r0-4*z1)), 1/r0, (3*z1-1)/(3*z1*r0)]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
     else:
-        assert 0 < r0 < r0+z1 < r0+2*z1 == 1-2*z1 < 1-z1 < 1
         bkpt = [0, r0, r0+z1, 1-z1, 1]
         slopes = [1/r0, (3*z1-1)/(3*z1*r0), 1/r0, (3*z1-1)/(3*z1*r0)]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
+    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
         
 def mlr_cpl3_l_2_slope(r0=8/25, z1=None, field=None, conditioncheck=True):
     """
@@ -536,7 +532,7 @@ def mlr_cpl3_l_2_slope(r0=8/25, z1=None, field=None, conditioncheck=True):
     Examples:
         page 185, Fig 4, point l::
 
-            sage: logging.disable(logging.INFO) # Suppress output
+            sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_l_2_slope(r0=8/25, z1=4/25)
             sage: extremality_test(h1)
             True 
@@ -564,17 +560,15 @@ def mlr_cpl3_l_2_slope(r0=8/25, z1=None, field=None, conditioncheck=True):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
-
-    bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
-    if all(bkpt[i] < bkpt[i+1] for i in xrange(len(bkpt)-1)):
+    if z1 < (1-r0)/4:
+        bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
         slopes = [1/r0, 2/(2*r0-1), (1-4*z1)/(2*z1-4*z1*r0), 2/(2*r0-1), (1-4*z1)/(2*z1-4*z1*r0), 2/(2*r0-1)]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
     else:
         bkpt = [0, r0, r0+z1, 1-z1, 1]
         slopes = [1/r0, 2/(2*r0-1), (1-4*z1)/(2*z1-4*z1*r0), 2/(2*r0-1)]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
+    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
 
-def mlr_cpl3_n_3_slope(r0=16/22, z1=1/22, field=None, conditioncheck=True):
+def mlr_cpl3_n_3_slope(r0=9/25, z1=2/25, field=None, conditioncheck=True):
     """
     Summary:
         - The group representation of the continuous piecewise linear lifting (CPL) function.
@@ -585,12 +579,16 @@ def mlr_cpl3_n_3_slope(r0=16/22, z1=1/22, field=None, conditioncheck=True):
     Parameters:
         0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4
     Function is known to be extreme under the conditions:
-        r0 > 2*z1, r0 + 8*z1 < 1
+        r0 > 2*z1, r0 + 8*z1 <= 1
+
+    Note:
+        multiplicative_homomorphism( mlr_cpl3_n_3_slope(r0, z1), -1) == gj_forward_3_slope(f=1-r0, lambda_1=2*z1/(1-r0), lambda_2=z1/r0);
+        gj_forward_3_slope being extreme only requires:  r0 >= z1, r0 + 4*z1 <= 1.
 
     Examples:
         page 185, Fig 4, point n2::
 
-            sage: logging.disable(logging.INFO) # Suppress output
+            sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_n_3_slope(r0=9/25, z1=2/25)
             sage: extremality_test(h1)
             True
@@ -612,19 +610,18 @@ def mlr_cpl3_n_3_slope(r0=16/22, z1=1/22, field=None, conditioncheck=True):
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
             raise ValueError, "Bad parameters. Unable to construct the function."
-        if not (bool(r0 > 2*z1) & bool(r0+8*z1<1)):
+        if not (bool(r0 > 2*z1) & bool(r0+8*z1<=1)):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
 
-    bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
-    if all(bkpt[i] < bkpt[i+1] for i in xrange(len(bkpt)-1)):
+    if z1 < (1-r0)/4:
+        bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
         slopes = [1/r0, (1+r0)/(r0*(r0-1)), 1/r0, 1/(r0-1), 1/r0, (1+r0)/(r0*(r0-1))]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
     else:
         bkpt = [0, r0, r0+z1, 1-z1, 1]
         slopes = [1/r0, (1+r0)/(r0*(r0-1)), 1/r0, (1+r0)/(r0*(r0-1))]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
+    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
 
 def mlr_cpl3_o_2_slope(r0=3/8, z1=None, field=None, conditioncheck=True):
     """
@@ -642,7 +639,7 @@ def mlr_cpl3_o_2_slope(r0=3/8, z1=None, field=None, conditioncheck=True):
     Examples:
         page 186, Fig 5, point o::
 
-            sage: logging.disable(logging.INFO) # Suppress output
+            sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_o_2_slope(r0=3/8, z1=1/8)
             sage: extremality_test(h1, f=3/8)
             True
@@ -670,15 +667,13 @@ def mlr_cpl3_o_2_slope(r0=3/8, z1=None, field=None, conditioncheck=True):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
-
-    bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
-    if all(bkpt[i] < bkpt[i+1] for i in xrange(len(bkpt)-1)):
+    if z1 < (1-r0)/4:
+        bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
         slopes = [1/r0, 2/(2*r0-1), (4*z1-4*z1*r0-1+2*r0)/(2*r0*z1*(1-2*r0)), 1/r0, (4*z1-4*z1*r0-1+2*r0)/(2*r0*z1*(1-2*r0)), 2/(2*r0-1)]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
     else:
         bkpt = [0, r0, r0+z1, 1-z1, 1]
         slopes = [1/r0, 2/(2*r0-1), (4*z1-4*z1*r0-1+2*r0)/(2*r0*z1*(1-2*r0)), 2/(2*r0-1)]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
+    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
         
 def mlr_cpl3_p_2_slope(r0=5/12, z1=None, field=None, conditioncheck=True):
     """
@@ -700,8 +695,7 @@ def mlr_cpl3_p_2_slope(r0=5/12, z1=None, field=None, conditioncheck=True):
     Examples:
         page 186, Fig 5, point p1 and p2::
 
-            sage: logging.disable(logging.INFO) # Suppress output
-            sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
+            sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_p_2_slope(r0=5/12, z1=1/12)
             sage: extremality_test(h1, f=5/12)
             True
@@ -729,15 +723,13 @@ def mlr_cpl3_p_2_slope(r0=5/12, z1=None, field=None, conditioncheck=True):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
-
-    bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
-    if all(bkpt[i] < bkpt[i+1] for i in xrange(len(bkpt)-1)):
+    if z1 < (1-r0)/4:
+        bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
         slopes = [1/r0, 2/(2*r0-1), 1/r0, (-r0+2*r0^2-2*z1+8*z1*r0)/(r0*(1-2*r0)*(1-r0-4*z1)), 1/r0, 2/(2*r0-1)]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
     else:
         bkpt = [0, r0, r0+z1, 1-z1, 1]
         slopes = [1/r0, 2/(2*r0-1), 1/r0, 2/(2*r0-1)]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
+    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
         
 def mlr_cpl3_q_2_slope(r0=5/12, z1=3/24, field=None, conditioncheck=True):
     """
@@ -756,7 +748,7 @@ def mlr_cpl3_q_2_slope(r0=5/12, z1=3/24, field=None, conditioncheck=True):
     Examples:
         page 186, Fig 5, point q::
 
-            sage: logging.disable(logging.INFO) # Suppress output
+            sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_q_2_slope(r0=5/12, z1=3/24)
             sage: extremality_test(h1)
             True
@@ -782,15 +774,13 @@ def mlr_cpl3_q_2_slope(r0=5/12, z1=3/24, field=None, conditioncheck=True):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
-
-    bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
-    if all(bkpt[i] < bkpt[i+1] for i in xrange(len(bkpt)-1)):
+    if z1 < (1-r0)/4:
+        bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
         slopes = [1/r0,(r0+2*z1)/(r0*(-1+r0+2*z1)), 1/r0, (r0+2*z1)/(r0*(-1+r0+2*z1)), 1/r0, (r0+2*z1)/(r0*(-1+r0+2*z1))]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
     else:
         bkpt = [0, r0, r0+z1, 1-z1, 1]
         slopes = [1/r0, (r0+2*z1)/(r0*(-1+r0+2*z1)), 1/r0, (r0+2*z1)/(r0*(-1+r0+2*z1))]
-        return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
+    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
 
 def mlr_cpl3_r_2_slope(r0=3/7, z1=1/7, field=None, conditioncheck=True):
     """
@@ -808,7 +798,7 @@ def mlr_cpl3_r_2_slope(r0=3/7, z1=1/7, field=None, conditioncheck=True):
     Examples:
         page 185, Fig , point r::
 
-            sage: logging.disable(logging.INFO) # Suppress output
+            sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h = mlr_cpl3_r_2_slope(r0=3/7, z1=1/7)
             sage: extremality_test(h)
             True 
