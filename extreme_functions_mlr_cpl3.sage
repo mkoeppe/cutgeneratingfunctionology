@@ -7,14 +7,14 @@ from igp import *
 
 def cpl3_function(r0, z1, o1, o2):
     """
-    Construct a CPL3 function.
+    Construct a CPL3= function.
 
     Parameters:
-        0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4, 0 <= o1, o2 (real)
+        0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4, 0 <= o1, o2 (real), o1 + o2 <= 1/2;
+        if z1 = (1-r0)/4, then o1 + o2 = 1/2.
 
     EXAMPLE::
 
-        sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
         sage: p = cpl3_function(r0=1/7, z1=1/7, o1=1/4, o2=1/12)
         sage: p
         <FastPiecewise with 6 parts, 
@@ -29,23 +29,19 @@ def cpl3_function(r0, z1, o1, o2):
     Reference:
         - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Infinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
     """
-    if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4) & bool(0 <= o1) & bool(0 <= o2)):
+    if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)) or (bool(z1 == (1-r0)/4) & bool(o1 + o2 != 1/2)):
         raise ValueError, "Bad parameters. Unable to construct the function."
-    if not bool(((1-r0)/2-2*z1 >= 0) and bool(1/2-o1-o2 >= 0)):
+    if not (bool(0 <= o1) & bool(0 <= o2) & bool(o1+o2 <= 1/2)):
         logging.info("Conditions for a CPL-3 function are NOT satisfied.")
 
-    bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
-    if r0+2*z1 < 1-2*z1:
-        assert all(bkpt[i] < bkpt[i+1] for i in xrange(len(bkpt)-1)), "Constructed breakpoints are not in consecutive order"
+    if z1 < (1-r0)/4:
+        bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
         values = [0, 0, o1, o1+o2, 1-(o1+o2), 1-o1, 1]
-        list_of_pairs = [[(bkpt[i], bkpt[i+1]), linear_function_through_points([bkpt[i], values[i]], [bkpt[i+1], values[i+1]])] for i in range(len(bkpt)-1)]
-        return PiecewiseQuasiPeriodic(list_of_pairs)
     else:
-        assert 0 < r0 < r0+z1 < r0+2*z1 == 1-2*z1 < 1-z1 < 1, "Constructed breakpoints are not in consecutive order"
-        bkpt = [0, r0, r0+z1, r0+2*z1, 1-z1, 1]
-        values = [0, 0, o1, o1+o2, 1-o1, 1]
-        list_of_pairs = [[(bkpt[i], bkpt[i+1]), linear_function_through_points([bkpt[i], values[i]], [bkpt[i+1], values[i+1]])] for i in range(len(bkpt)-1)]
-        return PiecewiseQuasiPeriodic(list_of_pairs)
+        bkpt = [0, r0, r0+z1, 1-z1, 1]
+        values = [0, 0, o1, 1-o1, 1]
+    list_of_pairs = [[(bkpt[i], bkpt[i+1]), linear_function_through_points([bkpt[i], values[i]], [bkpt[i+1], values[i+1]])] for i in range(len(bkpt)-1)]
+    return PiecewiseQuasiPeriodic(list_of_pairs)
 
 def superadditive_lifting_function_from_group_function(fn, f=None):
     """
@@ -518,7 +514,6 @@ def mlr_cpl3_k_2_slope(r0=7/27, z1=4/27, field=None, conditioncheck=True): # phi
             logging.info("Conditions for extremality are satisfied.")
 
     bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
-    print bkpt
     if all(bkpt[i] < bkpt[i+1] for i in xrange(len(bkpt)-1)):
         slopes = [1/r0, (3*z1-1)/(3*z1*r0), 1/r0, (2-3*r0-12*z1)/(3*r0*(1-r0-4*z1)), 1/r0, (3*z1-1)/(3*z1*r0)]
         return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None)
@@ -526,8 +521,6 @@ def mlr_cpl3_k_2_slope(r0=7/27, z1=4/27, field=None, conditioncheck=True): # phi
         assert 0 < r0 < r0+z1 < r0+2*z1 == 1-2*z1 < 1-z1 < 1
         bkpt = [0, r0, r0+z1, 1-z1, 1]
         slopes = [1/r0, (3*z1-1)/(3*z1*r0), 1/r0, (3*z1-1)/(3*z1*r0)]
-        ## print bkpt
-        ## print slopes
         return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None)
         
 def mlr_cpl3_l_2_slope(r0=8/25, z1=None, field=None, conditioncheck=True):
