@@ -13,7 +13,7 @@ class PiecewiseQuasiPeriodic(FastPiecewise):
     It is assumed 'interval' from the first list of (interval, function) pairs is in the form (0,x1) for some x1 > 0.
     """
 
-    def __init__(self, list_of_pairs):
+    def __init__(self, list_of_pairs, quasiperiodic_extension=True):
         """
         EXAMPLE::
 
@@ -29,7 +29,7 @@ class PiecewiseQuasiPeriodic(FastPiecewise):
              (1/2, 3/2) <FastLinearFunction -4/3*x + 2>  values: [4/3, 0]>
         """
 
-        FastPiecewise.__init__(self, list_of_pairs, var=None, periodic_extension=False, merge=True)
+        FastPiecewise.__init__(self, list_of_pairs, var=None, periodic_extension=quasiperiodic_extension, merge=True)
 
         bkpt = self._end_points
         values = self._values_at_end_points
@@ -45,6 +45,7 @@ class PiecewiseQuasiPeriodic(FastPiecewise):
             values_of_periodic_function.append(values[i]-self.linear_term(bkpt[i]))
 
         self.periodic_term = piecewise_function_from_breakpoints_and_values(bkpt, values_of_periodic_function, field=None)
+        self._quasiperiodic_extension = quasiperiodic_extension
 
     def __call__(self, x0):
         """
@@ -81,4 +82,101 @@ class PiecewiseQuasiPeriodic(FastPiecewise):
             value_at_shifted_x0 = value_of_periodic_term_at_shifted_x0 + value_of_linear_term_at_shifted_x0
 
         return value_at_shifted_x0
+
+    def plot(self, *args, **kwds):
+        """
+        Returns the plot of self.
+
+        Keyword arguments are passed onto the plot command for each piece
+        of the function. E.g., the plot_points keyword affects each
+        segment of the plot.
+
+        EXAMPLES::
+
+            sage: q = PiecewiseQuasiPeriodic([[(0,1/2), FastLinearFunction(3,0)],[(1/2,3/2), FastLinearFunction(-1,2)]])
+            sage: P = plot(q)
+
+        The implementation of the plot method is incompatible with the use of the xmin and xmax arguments.
+
+            sage: p = q.plot(xmin=0, xmax=3)
+            sage: p = plot(q, xmin=0, xmax=3)
+            sage: p = plot(q, 0, 3)
+            sage: q = plot(q, 0, 3, color='red')
+
+        Also the following plot syntax should be accepted::
+
+            sage: p = plot(q, [0, 3])
+        """
+
+        from sage.plot.all import plot, Graphics
+
+        g = Graphics()
+        if not 'rgbcolor' in kwds:
+            color = 'blue'
+        else:
+            color = kwds['rgbcolor']
+        ### Code duplication with xmin/xmax code in plot.py.
+        n = len(args)
+        xmin = None
+        xmax = None
+        if n == 0:
+            # if there are no extra args, try to get xmin,xmax from
+            # keyword arguments
+            xmin = kwds.pop('xmin', None)
+            xmax = kwds.pop('xmax', None)
+        elif n == 1:
+            # if there is one extra arg, then it had better be a tuple
+            xmin, xmax = args[0]
+            args = []
+        elif n == 2:
+            # if there are two extra args, they should be xmin and xmax
+            xmin = args[0]
+            xmax = args[1]
+            args = []
+        point_kwds = dict()
+        if 'alpha' in kwds:
+            point_kwds['alpha'] = kwds['alpha']
+        if 'legend_label' in kwds and self.is_discrete():
+            point_kwds['legend_label'] = kwds['legend_label']
+        # pop discontinuity markers.
+        # Since quasiperiodic functions are continuous, discontinuity_markers are not used.
+        discontinuity_markers = kwds.pop('discontinuity_markers', True)
+        # if self._quasiperiodic_extension is True, plot the quasiperiodic extension of the function.
+
+        if (xmin is None) or (not self._quasiperiodic_extension):
+            xmin = 0
+        if (xmax is None) or (not self._quasiperiodic_extension):
+            xmax = xmin+self.period
+
+        diff = self._values_at_end_points[-1]-self._values_at_end_points[0]
+        number_of_repetition = floor(xmin/self.period)
+
+        temp_list = []
+        for (i, f) in self.list():
+
+            a = i[0] + number_of_repetition*self.period
+            b = i[1] + number_of_repetition*self.period
+
+            temp_list.append([(a,b), linear_function_through_points([a, f(i[0]) + number_of_repetition*diff], [b, f(i[1]) + number_of_repetition*diff])])
+
+        repetition = self._end_points[0] + number_of_repetition*self.period
+        factor = 0
+        while repetition <= xmax:
+
+            for (i, f) in temp_list:
+
+                a = i[0] + factor*self.period
+                b = i[1] + factor*self.period
+
+                if (xmin is not None) and (a < xmin):
+                    a = xmin
+                if (xmax is not None) and (b > xmax):
+                    b = xmax
+                if a < b:
+                    g += plot(linear_function_through_points([a, f(i[0]) + factor*diff], [b, f(i[1]) + factor*diff]), *args, xmin=a, xmax=b, zorder=-1, **kwds)
+                    delete_one_time_plot_kwds(kwds)
+
+            factor += 1
+            repetition += self.period
+        return g
 
