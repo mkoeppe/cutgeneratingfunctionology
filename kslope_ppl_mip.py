@@ -2013,10 +2013,10 @@ def lrs_redund(in_str, verbose=False):
         Copy and edit from def _volume_lrs(self, verbose=False),
         http://www.sagenb.org/src/geometry/polyhedron/base.py
         """
-        if is_package_installed('lrs') != True:
-            print 'You must install the optional lrs package ' \
-                  'for this function to work'
-            raise NotImplementedError
+        #if is_package_installed('lrslib') != True:
+        #    print 'You must install the optional lrs package ' \
+        #          'for this function to work'
+        #    raise NotImplementedError
 
         in_filename = tmp_filename()
         in_file = file(in_filename,'w')
@@ -2049,10 +2049,10 @@ def lrs_lrs(in_str, verbose=False):
     use the command 'lrs' from lrslib.
     Input: lrs format in_str; Output: lrs format out_str;
     """
-    if is_package_installed('lrs') != True:
-        print 'You must install the optional lrs package ' \
-              'for this function to work'
-        raise NotImplementedError
+    #if is_package_installed('lrslib') != True:
+    #    print 'You must install the optional lrs package ' \
+    #          'for this function to work'
+    #    raise NotImplementedError
     in_filename = tmp_filename()
     in_file = file(in_filename,'w')
     in_file.write(in_str)
