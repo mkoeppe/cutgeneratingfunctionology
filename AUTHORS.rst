@@ -6,3 +6,6 @@ It was later revised and extended by Matthias Koeppe and Yuan Zhou.
 
 Yuan Zhou wrote the electronic compendium of extreme functions.
 
+Masumi Sugiyama contributed the mlr_cpl3_... functions to the
+compendium, and added functions that convert between group functions
+and superadditive lifting functions.
