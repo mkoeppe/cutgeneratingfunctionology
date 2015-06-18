@@ -2789,10 +2789,10 @@ def scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, r
         was_on = on
         if tag:                                       # interval event
             interval_indicator -= delta
-            assert(interval_indicator) >= 0
+            assert(interval_indicator) >= 0, "interval_indicator should stay non-negative; required sort order must be violated"
         else:                                           # remove event
             remove_indicator -= delta
-            assert(remove_indicator) >= 0
+            assert(remove_indicator) >= 0, "remove_indicator should stay non-negative; required sort order must be violated"
         now_on = interval_indicator > 0 and remove_indicator == 0
         if not was_on and now_on: # switched on
             yield (x, epsilon), -1, None
@@ -2800,8 +2800,8 @@ def scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, r
             yield (x, epsilon), +1, None
         on = now_on
     # No unbounded intervals:
-    assert interval_indicator == 0
-    assert remove_indicator == 0
+    assert interval_indicator == 0, "interval_indicator should be zero at the end of the scan"
+    assert remove_indicator == 0, "remove_indicator should be zero at the end of the scan"
 
 def intersection_of_coho_intervals(interval_lists):
     """Compute the intersection of the union of intervals. 
