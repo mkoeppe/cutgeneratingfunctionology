@@ -69,7 +69,7 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
             self._embedded = e = embedding(self)
         return e
 
-    def __cmp__(left, right):
+    def __cmp__(left, right):   # Before trac 17890, need to specialize this function.
     #     return (left)._cmp(right)
     # def _cmp(left, right):
         # print "cmp", left, "and", right
@@ -82,6 +82,15 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
             raise UnimplementedError, "Precision of real interval field not sufficient to continue"
         return result
 
+    def _cmp_(left, right):    # After trac 17890, need to specialize this function.
+        #print "cmp", left, "and", right
+        if NumberFieldElement_absolute._cmp_(left, right) == 0:
+            return 0
+        result = cmp(left.embedded(), right.embedded())
+        if result == 0:
+            raise UnimplementedError, "Precision of real interval field not sufficient to continue"
+        return result
+    
     def __abs__(self):
         if self.sign() >= 0:
             return self
