@@ -95,6 +95,8 @@ bccz_counterexample?
 bhk_irrational?
 chen_4_slope?
 rlm_dpl1_extreme_3a?
+mlr_cpl3_g_3_slope?
+# Many more mlr_cpl3_... functions.
 not_extreme_1?
 drlm_not_extreme_2?
 hildebrand_5_slope_28_1?
