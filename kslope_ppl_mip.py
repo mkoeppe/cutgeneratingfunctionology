@@ -1756,6 +1756,68 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False, more_ini_additive=
     logging.disable(logging.NOTSET)
     return vv, nn
 
+def plot_pattern(l, more_ini_additive = True, show_plots=True):
+    f = 18 * l + 11
+    q = 2 * f
+    s=[0, 1]
+    for k in range(1, l + 1):
+        s += [k, k + 1] * 3
+    s += [l + 1] * 3
+    for k in range(l, 0, -1):
+        s += [k, k + 1, k]
+    sk = s + [s[0]] + s[-1::-1]
+    nc = max(sk)+1
+    sc = [nc - i - 1 for i in sk] + [2*nc - i - 1 for i in sk]
+    colors = rainbow(2*nc)
+    vertices_color = pattern_vertices_color(l, pattern=0, more_ini_additive=more_ini_additive)
+    for i in range(q):
+        for j in range (i):
+            vertices_color[i,j]=vertices_color[j,i]
+    for i in range(q):
+        vertices_color[q][i]=vertices_color[i][q]=0
+    vertices_color[q][q]=0
+    g = Graphics()
+
+    vertical_edge = set([])
+    horizontal_edge = set([])
+    pts = set([])
+    for i in range(q):
+        for j in range(q):
+            #if vertices_color[i,j]==0:
+            #    g += points([(i,j)])
+            if vertices_color[i+1,j]==0 and vertices_color[i,j+1]==0:
+                if vertices_color[i,j]==0:
+                    g += polygon([(i,j),(i+1,j),(i,j+1)], color=colors[sc[i]], fill=True)
+                    pts.add((i,j));
+                    vertical_edge.add((i,j))
+                    horizontal_edge.add((i,j))
+                if vertices_color[i+1, j+1]==0:
+                    g += polygon([(i+1,j+1),(i+1,j),(i,j+1)], color=colors[sc[i]], fill=True)
+                    pts.add((i+1, j+1))
+                    vertical_edge.add((i+1,j))
+                    horizontal_edge.add((i,j+1))
+                if vertices_color[i,j] == 1 and vertices_color[i+1, j+1] == 1:
+                    g += line([(i+1,j),(i,j+1)], color='springgreen',linestyle='-')
+                pts.add((i+1,j));
+                pts.add((i,j+1));
+            if vertices_color[i,j]==0 and vertices_color[i,j+1]==0 and not ((i,j) in vertical_edge):
+                g += line([(i,j),(i,j+1)], color='springgreen',linestyle='-')
+                vertical_edge.add((i,j))
+                pts.add((i,j))
+                pts.add((i,j+1))
+            if vertices_color[i,j]==0 and vertices_color[i+1,j]==0 and not ((i,j) in horizontal_edge):
+                g += line([(i,j),(i+1,j)], color='springgreen',linestyle='-')
+                horizontal_edge.add((i,j))
+                pts.add((i,j))
+                pts.add((i+1,j))
+            if vertices_color[i,j]==0 and not ((i,j) in pts):
+                g += points([(i,j)], color='springgreen')
+                pts.add((i,j))
+    if show_plots:
+        g.show(gridlines=[range(q+1),range(q+1)],gridlinesstyle=dict(color="grey", linestyle=":"),figsize=10*l)
+    else:
+        return g
+
 def write_panda_format_cs(cs, fname=None, newcode=True):
     if fname:
         filename = open(dir_math+"profiler/panda/"+fname, "w")
