@@ -1535,6 +1535,10 @@ def save_plot(q, hh, destdir = dir_math+"sym_mode_2d_diagrams/"):
     logging.disable(logging.NOTSET)
 
 def pattern_q_and_f(l, pattern):
+    """
+    pattern == 0 corresponds to the pattern described in the paper.
+    In the paper, r is what is called l here.
+    """
     if pattern <= 3:
         f = 18 * l + 11
     elif pattern == 4 or pattern == 5:
@@ -1547,6 +1551,16 @@ def pattern_q_and_f(l, pattern):
     return q, f
 
 def pattern_additive_vertices(l, pattern):
+    """
+    Return a list of pairs (i, j) of integers i <= j
+    such that (i, j)/q is a prescribed additivity.
+
+    These additivities form the additive triangles.
+
+    pattern == 0 corresponds to the pattern described in the paper.
+    Remaining patterns are undocumented.
+    In the paper, r is what is called l here.
+    """
     q, f = pattern_q_and_f(l, pattern)
     f2 = int(f / 2)
     f3 = int(f / 3)
@@ -1586,6 +1600,10 @@ def pattern_additive_vertices(l, pattern):
     return changed_vertices
 
 def pattern_more_additive_vertices(l, pattern):
+    """
+    Extra additive points, to be added to pattern_additive_vertices
+to reduce the dimension.
+    """
     q, f = pattern_q_and_f(l, pattern)
     f2 = int(f / 2)
     f3 = int(f / 3)
@@ -1685,6 +1703,20 @@ def pattern_polytope(vertices_color, fn):
     return polytope
 
 def pattern_extreme(l, k_slopes, pattern=0, show_plots=False, more_ini_additive=True):
+    """
+    Computes the functions corresponding to the extreme points of the
+    polytope corresponding to subadditivities and prescribed additivities,
+    according to `pattern` and size parameter `l` (called r in the paper).
+    Does not do extremality tests.
+
+    Prints lines:
+    NUM-SLOPES  SV (input to pattern0_sym_fn)  DENOMINATOR
+
+    Return values:
+
+     vv - list of lists of function values (integers)
+     nn - list of number of slopes
+    """
     q, f = pattern_q_and_f(l, pattern)
     vertices_color = pattern_vertices_color(l, pattern, more_ini_additive=more_ini_additive)
     fn = pattern_fn(l, pattern)
@@ -1716,8 +1748,9 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False, more_ini_additive=
                 #    print "Not extreme",
                 print num, v.coefficients(), v.divisor()
                 if show_plots: # and h_is_extreme:
+                    h = h_from_vertex_values(v_n)
                     name = "%sq%s_%s.png" %(num, q, len(vv))
-                    g = plot_2d_diagram(h, colorful=True)
+                    g = plot_2d_diagram(h, colorful=False)
                     figsize = 10 * l
                     g.save(destdir + name, figsize = figsize, show_legend=False)
     logging.disable(logging.NOTSET)
