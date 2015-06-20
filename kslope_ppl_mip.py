@@ -1719,7 +1719,9 @@ def pattern_polytope(vertices_color, fn):
     polytope = C_Polyhedron(cs)
     return polytope
 
-def pattern_extreme(l, k_slopes, pattern=0, show_plots=False, more_ini_additive=True):
+def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
+                    test_extremality=False,
+                    more_ini_additive=True):
     """
     Computes the functions corresponding to the extreme points of the
     polytope corresponding to subadditivities and prescribed additivities,
@@ -1754,21 +1756,31 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False, more_ini_additive=
                 v_set.add(tuple(v_n))
                 vv.append(v_n)
                 nn.append(num)
-                #FIXME: Imposing symmetry may result in non-extreme all covered vertex-function. 
-                # Should do extremality_text()?
-                # all covered, continuous => extreme iff system of equations has unique solution
-                #h = h_from_vertex_values(v_n)
-                #h_is_extreme =  simple_finite_dimensional_extremality_test(\
-                #                h, show_plots=False, f=None, oversampling=None, order=q, show_all_perturbations=False)
-                #if not h_is_extreme:
-                #    print "Not extreme",
                 print num, v.coefficients(), v.divisor()
+                # Note: Imposing the invariance under x -> 1-x may
+                # result in a non-extreme all covered vertex-function.
+                h_is_extreme = 'untested'
+                if test_extremality:
+                    # all covered, continuous => extreme iff system of equations has unique solution
+                    h = h_from_vertex_values(v_n)
+                    h_is_extreme = simple_finite_dimensional_extremality_test(h, show_plots=False, f=None, oversampling=None, order=q, show_all_perturbations=False)
+                    if h_is_extreme:
+                        print "Extreme!"
+                    else:
+                        print "Not extreme"
                 if show_plots: # and h_is_extreme:
                     h = h_from_vertex_values(v_n)
                     name = "%sq%s_%s.png" %(num, q, len(vv))
-                    g = plot_2d_diagram(h, colorful=False)
+                    g = plot_2d_diagram(h, colorful=True)
                     figsize = 10 * l
                     g.save(destdir + name, figsize = figsize, show_legend=False)
+                    sage_name = "%sq%s_%s.sage" %(num, q, len(vv))
+                    with open(destdir + sage_name, "w") as sage_file:
+                        print >> sage_file, "q = %s; f = %s; num_slopes = %s; divisor = %s; extreme = %r" % (q, f, num, v.divisor(), h_is_extreme)
+                        print >> sage_file, "l = %s" % l
+                        print >> sage_file, "sv = %s" % (v.coefficients(),)
+                        print >> sage_file, "h = pattern%s_sym_fn(l, sv)" % pattern  # this function only exists for pattern=0
+                    print "Saved to ", destdir + name, destdir + sage_name
     logging.disable(logging.NOTSET)
     return vv, nn
 
