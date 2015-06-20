@@ -27,8 +27,9 @@ from igp import *
 
 # Main: def search_kslope(k_slopes, q, f_list, mode, prep) and def measure_stats()
 
-from sage.libs.ppl import C_Polyhedron, Constraint, Constraint_System, Generator, Generator_System, Variable, point, \
+from sage.libs.ppl import C_Polyhedron, Constraint, Constraint_System, Generator, Generator_System, Variable, \
                           Poly_Con_Relation, MIP_Problem, Linear_Expression
+## Can't import 'point' -- clashes with plot2d point
 import numpy
 from sage.numerical.mip import MixedIntegerLinearProgram, MIPVariable, MIPSolverException
 import sage.numerical.backends.glpk_backend as backend
@@ -2053,7 +2054,7 @@ def convert_lrs_to_ppl(lrs_string):
         den_list = [x.denominator() for x in rational_list]
         common_den = lcm(den_list)
         coef = [int(common_den / den_list[i]) * num_list[i] for i in range(len(rational_list))]
-        return point(Linear_Expression(coef, 0), common_den)
+        return sage.libs.ppl.point(Linear_Expression(coef, 0), common_den)
 
     if find_in_cddout('V-representation'):
         # Suppose it's the V-representation of a polytope.
