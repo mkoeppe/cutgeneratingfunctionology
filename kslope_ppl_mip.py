@@ -46,6 +46,16 @@ exp_dim_lrs = 13;
 # vertex-enumeration using ppl if exp_dim < exp_dim_lrs
 # vertex-enumeration using lrs if exp_dim >= exp_dim_lrs
 
+# from http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
+import os, errno
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc: # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else: raise
+
 @cached_function
 def additive_constraint(q, x, y):
     z = (x + y) % q
@@ -1519,9 +1529,15 @@ def gen_initial_polytope_sym(q, f, vertices_color, covered_intervals):
     polytope = C_Polyhedron(cs)
     yield polytope, covered_intervals
 
-dir_math ="/homes/home02/y/yzh/Dropbox/group-relaxation-sage-code/"
-dir_yuan ="/media/sf_dropboxcode/"
-def save_plot(q, hh, destdir = dir_math+"sym_mode_2d_diagrams/"):
+output_dir = "./"
+## override this in a file named "config.sage" if necessary
+
+#### The following are no longer used.
+## dir_math ="/homes/home02/y/yzh/Dropbox/group-relaxation-sage-code/"
+## dir_yuan ="/media/sf_dropboxcode/"
+
+def save_plot(q, hh, destdir = output_dir+"sym_mode_2d_diagrams/"):
+    mkdir_p(destdir)
     logging.disable(logging.info)
     for i in range(len(hh)):
         v_n = hh[i]
@@ -1725,10 +1741,9 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False, more_ini_additive=
     v_set = set([])
     vv = []
     nn = []
-    if show_plots == 'math':
-        destdir = dir_math+"sym_mode_2d_diagrams/"+"patterns_%s/" % pattern
-    elif show_plots:
-        destdir = dir_yuan+"sym_mode_2d_diagrams/"+"patterns_%s/" % pattern
+    if show_plots:
+        destdir = output_dir+"sym_mode_2d_diagrams/"+"patterns_%s/" % pattern
+        mkdir_p(destdir)
     logging.disable(logging.info)
     for v in polytope.minimized_generators():
         #v.coefficients() is numerator of component's slope value
@@ -1821,7 +1836,9 @@ def plot_pattern(l, more_ini_additive = True, show_plots=True):
 
 def write_panda_format_cs(cs, fname=None, newcode=True):
     if fname:
-        filename = open(dir_math+"profiler/panda/"+fname, "w")
+        dir = output_dir+"profiler/panda/"
+        mkdir_p(dir)
+        filename = open(dir+fname, "w")
     else:
         filename = sys.stdout
     if newcode:
@@ -1878,10 +1895,10 @@ def write_porta_ieq(q, f, destdir=None):
     cs = initial_cs(q, f, vertices_color)
     if destdir is None:
         fname = None
-    elif destdir == 'yuan':
-        fname = dir_yuan+"profiler/porta/porta_q%sf%s.ieq" % (q, f)
     else:
-        fname = dir_math+"profiler/porta/porta_q%sf%s.ieq" % (q, f)
+        dir = output_dir+"profiler/porta/"
+        mkdir_p(dir)
+        fname = dir + "porta_q%sf%s.ieq" % (q, f)
     write_porta_format_cs(cs, q=q, f=f, fname=fname)
     return
 
@@ -1937,10 +1954,10 @@ def write_lrs_ine(q, f, destdir=None):
     cs = initial_cs(q, f, vertices_color)
     if destdir is None:
         fname = None
-    elif destdir == 'yuan':
-        fname = dir_yuan+"profiler/lrs/lrs_q%sf%s.ine" % (q, f)
     else:
-        fname = dir_math+"profiler/lrs/lrs_q%sf%s.ine" % (q, f)
+        dir = output_dir+"profiler/lrs/"
+        mkdir_p(dir)
+        fname = dir + "lrs_q%sf%s.ine" % (q, f)
     write_lrs_format_cs(cs, fname=fname)
     return
 
@@ -2236,10 +2253,10 @@ def measure_stats_detail(q, f, prep=True):
 def write_stats_detail(q, prep=True, destdir=None):
     if destdir is None:
         filename = sys.stdout
-    elif destdir == 'yuan':
-        filename = open(dir_yuan+"profiler/sage_input/stats_q%s.sage" % q, "a")
     else:
-        filename = open(dir_math+"profiler/sage_input/stats_q%s.sage" % q, "a")
+        dir = output_dir+"profiler/sage_input/"
+        mkdir_p(dir)
+        filename = open(dir + "stats_q%s.sage" % q, "a")
     
     t_enumeration = []
     n_vertex = []
