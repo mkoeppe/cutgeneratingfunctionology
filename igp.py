@@ -21,4 +21,9 @@ load("extreme_functions_mlr_cpl3.sage")
 
 load("bug_examples.sage")
 
+try:
+    load("config.sage")
+except IOError:
+    pass
+
 logging.info("Welcome to the infinite-group-relaxation-code. DON'T PANIC. See demo.sage for instructions.")
