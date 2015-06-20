@@ -1,8 +1,8 @@
 import igp
 from igp import *
 
-#destdir = "/Users/mkoeppe/Dropbox/basu-hildebrand-koeppe-papers-for-yuan/survey/"
-destdir ="/media/sf_yuan/"
+destdir = "/Users/mkoeppe/Dropbox/basu-hildebrand-koeppe-papers-for-yuan/yuan/extreme-notes/"
+#destdir ="/media/sf_yuan/"
 
 emitted_names = set()
 
@@ -213,9 +213,11 @@ try:
         g = plot_2d_diagram(h)
         f = find_f(h)
         b = (1+f)/2
-        g += text("$F_1$", (f/4, f/4), axis_coords=False, vertical_alignment='bottom', \
-                  horizontal_alignment='left', color='black', fontsize=15)
+        g += text("$F_1$", (f/3, f/3), axis_coords=False, vertical_alignment='center', \
+                  horizontal_alignment='center', color='black', fontsize=15)
         g += text("$F_2$", ((1-b)/4 + b, (1-b)/4 + b), axis_coords=False, vertical_alignment='center', \
+                  horizontal_alignment='center', color='black', fontsize=15)
+        g += text("$F_3$", (f + (b-2*f)/3, f + (b-2*f)/3), axis_coords=False, vertical_alignment='center', \
                   horizontal_alignment='center', color='black', fontsize=15)
         g.save(destdir + "%s-2d_diagram.pdf" % name, figsize = diagram_figsize)   
         

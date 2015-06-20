@@ -5,7 +5,7 @@ if '' not in sys.path:
 
 from igp import *
 
-def gmic(f=4/5, field=None):
+def gmic(f=4/5, field=None, conditioncheck=True):
     """
     Summary:
         - Name: GMIC (Gomory mixed integer cut);
@@ -30,18 +30,18 @@ def gmic(f=4/5, field=None):
 
         [57]: R.E. Gomory, Some polyhedra related to combinatorial problems, Linear Algebra and its Application 2 (1969) 451-558.
 
-        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
 
-        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
+        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
-    if not bool(0 < f < 1):
+    if conditioncheck and not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
     gmi_bkpt = [0,f,1]
     gmi_values = [0,1,0]
     return piecewise_function_from_breakpoints_and_values(gmi_bkpt, gmi_values, field=field)
 
 
-def gj_2_slope(f=3/5, lambda_1=1/6, field=None):
+def gj_2_slope(f=3/5, lambda_1=1/6, field=None, conditioncheck=True):
     """
     Summary:
         - Name: Gomory--Johnson's 2-Slope;
@@ -72,22 +72,23 @@ def gj_2_slope(f=3/5, lambda_1=1/6, field=None):
             True
 
     Reference:
-        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
 
-        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
+        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
-    if not (bool(0 < f < 1) & bool(0 < lambda_1 < f/(1 - f))):
-        raise ValueError, "Bad parameters. Unable to construct the function."
-    if not (bool(lambda_1 <= 1)):
-        logging.info("Conditions for extremality are NOT satisfied.")
-    else:
-        logging.info("Conditions for extremality are satisfied.")
+    if conditioncheck:
+        if not (bool(0 < f < 1) & bool(0 < lambda_1 < f/(1 - f))):
+            raise ValueError, "Bad parameters. Unable to construct the function."
+        if not (bool(lambda_1 <= 1)):
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
     bkpts = [0, (f - lambda_1*(1 - f))/2, (f + lambda_1*(1 - f))/2, f, 1]
     values = [0, (1 + lambda_1)/2, (1 - lambda_1)/2, 1, 0]
     return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
 
 
-def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None):
+def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, conditioncheck=True):
     """
     Summary:
         - Name: Gomory--Johnson's 2-Slope-repeat;
@@ -116,16 +117,17 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None):
             True
 
     Reference:
-        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
 
-        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
+        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
-    if not (bool(0 < f < 1) & (m >= 2) & (n >= 2) & bool (s_positive > 1 / f) & bool(s_negative < 1/(f - 1))):
-        raise ValueError, "Bad parameters. Unable to construct the function."
-    if not (bool(m >= (s_positive - s_positive*s_negative*f) / (s_positive - s_negative)) & bool(n >= (- s_negative + s_positive*s_negative*(f - 1)) / (s_positive - s_negative))):
-        logging.info("Conditions for extremality are NOT satisfied.")
-    else:
-        logging.info("Conditions for extremality are satisfied.")
+    if conditioncheck:
+        if not (bool(0 < f < 1) & (m >= 2) & (n >= 2) & bool (s_positive > 1 / f) & bool(s_negative < 1/(f - 1))):
+            raise ValueError, "Bad parameters. Unable to construct the function."
+        if not (bool(m >= (s_positive - s_positive*s_negative*f) / (s_positive - s_negative)) & bool(n >= (- s_negative + s_positive*s_negative*(f - 1)) / (s_positive - s_negative))):
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
     len1_positive = (1 - s_negative*f) / (s_positive - s_negative) / m
     len1_negative = (f - m*len1_positive) / (m - 1)
     len2_negative = (1 - s_positive*(f - 1)) / (s_positive - s_negative) / n
@@ -135,10 +137,10 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None):
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
 
-def dg_2_step_mir(f=4/5, alpha=3/10, field=None):
+def dg_2_step_mir(f=4/5, alpha=3/10, field=None, conditioncheck=True):
     """
     Summary:
-        - Name: 2-Step MIR;
+        - Name: Dash-Gunluk's 2-Step MIR;
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
         - Discovered [33]  p.39 def.8, Fig.5;
         - Proven extreme (for infinite group) [60] p.377, thm.3.3.
@@ -161,18 +163,19 @@ def dg_2_step_mir(f=4/5, alpha=3/10, field=None):
             True
 
     Reference:
-        [33]: S. Dash and O. G¨unl¨uk, Valid inequalities based on simple mixed-integer sets.,
+        [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
                 Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
-                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33–45.
+                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
 
-        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
     """
-    if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
-        raise ValueError, "Bad parameters. Unable to construct the function."
-    if not bool(ceil(f / alpha) <= 1 / alpha):
-        logging.info("Conditions for extremality are NOT satisfied.")
-    else:
-        logging.info("Conditions for extremality are satisfied.")
+    if conditioncheck:
+        if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
+            raise ValueError, "Bad parameters. Unable to construct the function."
+        if not bool(ceil(f / alpha) <= 1 / alpha):
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
     rho = f - alpha * floor(f / alpha)
     tau = ceil(f / alpha)
     s_positive = (1 - rho*tau) / (rho*tau*(1 - f))
@@ -193,10 +196,10 @@ def interval_length_n_step_mir(n, m, a, b):
         return result
 
 
-def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100], field=None):
+def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
     """
     Summary:
-        - Name: n-Step MIR;
+        - Name: Kianfar-Fathi's n-Step MIR;
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
         - Discovered [74]  p.328, def.3, thm.2;
         - Proven extreme (for infinite group) [60] p.377, thm.3.3.
@@ -242,13 +245,14 @@ def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100], field=None):
             True
 
     Reference:
-        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
 
         [74]: K. Kianfar and Y. Fathi, Generalized mixed integer rounding valid inequalities:
-                Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313–346.
+                Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313-346.
     """
-    if (a == []) | (not bool(0 < f < 1 == a[0])):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+    if conditioncheck:
+        if (a == []) | (not bool(0 < f < 1 == a[0])):
+            raise ValueError, "Bad parameters. Unable to construct the function."
     b = []
     b.append(f)
     n = len(a)
@@ -259,10 +263,11 @@ def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100], field=None):
             raise ValueError, "Bad parameters. Unable to construct the function."
         if not bool(ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i]):
             t = False
-    if t:
-        logging.info("Conditions for extremality are satisfied.")
-    else:
-        logging.info("Conditions for extremality are NOT satisfied.")
+    if conditioncheck:
+        if t:
+            logging.info("Conditions for extremality are satisfied.")
+        else:
+            logging.info("Conditions for extremality are NOT satisfied.")
     interval_lengths =  interval_length_n_step_mir(n, 1, a, b)
     nb_interval = len(interval_lengths)
     interval_length_positive = sum(interval_lengths[i] for i in range(0, nb_interval, 2))
@@ -273,7 +278,7 @@ def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100], field=None):
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
 
-def gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3, field=None):
+def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditioncheck=True):
     """
     Summary: 
         - Name: Gomory--Johnson' Forward 3-Slope;
@@ -291,51 +296,52 @@ def gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3, field=None):
         0 <= lambda_2 <= 1  (in literature).
 
     Note: 
-        Since the domain and range are in [0,1]. I think the conditions should be:
-        (0 <= lambda_1 <= 1/2)  &  (0 <= lambda_2 <= 1 - lambda_1) & (0 < lambda_1 * f + lambda_2 * (f - 1) < lambda_1 * f < f / 2).
+        Since the domain and range are in [0,1], I think the conditions for a three-slope extreme function should be:
+        (0 <= lambda_1 <= 1/2)  &  (0 <= lambda_2 <= 1) & (0 < lambda_1 * f + lambda_2 * (f - 1) < lambda_1 * f).
 
     Examples:
         [61] p.360, Fig.8 ::
 
-            sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/6)
+            sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=1/3)
             sage: extremality_test(h, False)
             True
-            sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/3)
+            sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3)
             sage: extremality_test(h, False)
             True
-            sage: h = gj_forward_3_slope(f=4/5, lambda_1=2/9, lambda_2=1/2)
+            sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=1)
             sage: extremality_test(h, False)
             True
 
         Try irrational case ::
 
-            sage: h = gj_forward_3_slope(f=sqrt(17)/5, lambda_1=sqrt(5)/9, lambda_2=1/sqrt(10))
+            sage: h = gj_forward_3_slope(f=sqrt(17)/5, lambda_1=2*sqrt(5)/9, lambda_2=2/sqrt(10))
             sage: extremality_test(h, False)
             True
 
     Reference:
-        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
+        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
-    if not bool(0 < f < 1):
+    if conditioncheck and not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
-    a = lambda_1 * f
-    a1 = a + lambda_2 * (f - 1)
-    if not bool(0 < a1 < a < f / 2):
-        raise ValueError, "Bad parameters. Unable to construct the function."
-    # note the discrepancy with the published literature
-    if not (bool(0 <= lambda_1 <= 1/2) & bool(0 <= lambda_2 <= 1 - lambda_1)):
-        logging.info("Conditions for extremality are NOT satisfied.")
-    else:
-        logging.info("Conditions for extremality are satisfied.") 
+    a = lambda_1 * f / 2
+    a1 = a + lambda_2 * (f - 1) / 2
+    if conditioncheck:
+        if not bool(0 < a1 < a < f / 2):
+            raise ValueError, "Bad parameters. Unable to construct the function."
+        # note the discrepancy with the published literature
+        if not (bool(0 <= lambda_1 <= 1/2) & bool(0 <= lambda_2 <= 1)):
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.") 
     bkpts = [0, a1, a, f - a, f - a1, f, 1]
-    values = [0, lambda_1 + lambda_2, lambda_1, 1 - lambda_1, 1 - lambda_1 - lambda_2, 1, 0]
+    values = [0, (lambda_1 + lambda_2)/2, lambda_1 / 2, 1 - lambda_1 / 2, 1 - (lambda_1 + lambda_2)/2, 1, 0]
     return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
 
 
-def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None):
+def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
     """
     Summary:
-        - Name: drlm's Backward 3-Slope;
+        - Name: Dey--Richard--Li--Miller's Backward 3-Slope;
         - Infinite; Dim = 1; Slopes = 3; Continuous; Group relations method;
         - Discovered [40] p.154 eq.5;
         - Proven [40] p.153 thm.6.
@@ -369,29 +375,31 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None):
             True
 
     Reference:
-        [8]: J. Ar´aoz, L. Evans, R.E. Gomory, and E.L. Johnson, Cyclic groups and knapsack facets,
-                Mathematical Programming 96 (2003) 377–408.
+        [8]: J. Araoz, L. Evans, R.E. Gomory, and E.L. Johnson, Cyclic groups and knapsack facets,
+                Mathematical Programming 96 (2003) 377-408.
                 
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
-                Mathematical Programming 121 (2010) 145–170.
+                Mathematical Programming 121 (2010) 145-170.
 
-        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
+        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
-    if not bool(0 < f < bkpt < 1 + f - bkpt < 1):
-        raise ValueError, "Bad parameters. Unable to construct the function."
-    if not ((f in QQ) & (bkpt in QQ) & bool(0 < f < bkpt < ((1 + f)/4) < 1)):
-        logging.info("Conditions for extremality are NOT satisfied.")
-    else:
-        logging.info("Conditions for extremality are satisfied.")
+    if conditioncheck:
+        if not bool(0 < f < bkpt < 1 + f - bkpt < 1):
+            raise ValueError, "Bad parameters. Unable to construct the function."
+        #if not ((f in QQ) & (bkpt in QQ) & bool(0 < f < bkpt < ((1 + f)/4) < 1)):
+        if not bool(0 < f < bkpt < ((1 + f)/4) < 1):
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
     bkpts = [0, f, bkpt, 1 + f - bkpt, 1]
     # values = [0, 1, bkpt/(1 + f), (1 + f - bkpt)/(1 + f),0]
     slopes = [1/f, (1 + f - bkpt)/(1 + f)/(f - bkpt), 1/(1 + f), (1 + f - bkpt)/(1 + f)/(f - bkpt)]
     return piecewise_function_from_breakpoints_and_slopes(bkpts, slopes, field=field)
 
-def dg_2_step_mir_limit(f=3/5, d=3, field=None):
+def dg_2_step_mir_limit(f=3/5, d=3, field=None, conditioncheck=True):
     """
     Summary:
-        - Name: DG-2-Step MIR Limit;
+        - Name: Dash-Gunluk 2-Step MIR Limit;
         - Infinite; Dim = 1; Slopes = 1; Discontinuous; Simple sets method;
         - Discovered [33] p.41, def.12;
         - Proven extreme [33] p.43, lemma 14.
@@ -423,17 +431,18 @@ def dg_2_step_mir_limit(f=3/5, d=3, field=None):
             True
 
     Reference:
-        [33]: S. Dash and O. G¨unl¨uk, Valid inequalities based on simple mixed-integer sets.,
+        [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
                 Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
-                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33–45.
+                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
     """
-    if not (bool(0 < f < 1) & (d >= 1)):
-        raise ValueError, "Bad parameters. Unable to construct the function."
-    if not bool(d >= ceil(1 / (1 - f)) - 1):
-        logging.info("Conditions for extremality are NOT satisfied.")
-    else:
-        logging.info("Conditions for extremality are satisfied.")
-    f = nice_field_values([f])[0]
+    if conditioncheck:
+        if not (bool(0 < f < 1) & (d >= 1)):
+            raise ValueError, "Bad parameters. Unable to construct the function."
+        if not bool(d >= ceil(1 / (1 - f)) - 1):
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
+    f = nice_field_values([f], field)[0]
     field = f.parent()
     pieces = []
     for k in range(d):
@@ -446,10 +455,10 @@ def dg_2_step_mir_limit(f=3/5, d=3, field=None):
     h = FastPiecewise(pieces)
     return h
 
-def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
+def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, conditioncheck=True):
     """
     Summary:
-        - Name: drlm's 2-Slope Limit;
+        - Name: Dey--Richard--Li--Miller's 2-Slope Limit;
         - Infinite; Dim = 1; Slopes = 1; Discontinuous; Group relations method;
         - Discovered [40] p.158 def.10;
         - Proven extreme [40] p.159 thm.8.
@@ -473,16 +482,17 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
 
     Reference:
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
-                Mathematical Programming 121 (2010) 145–170.
+                Mathematical Programming 121 (2010) 145-170.
     """
     m = nb_pieces_left
     d = nb_pieces_right
-    if not ((m in ZZ) & (d in ZZ) & (m >= 1) & (d >= 1) & bool(0 < f < 1)):
-        raise ValueError, "Bad parameters. Unable to construct the function."
-    if not bool(m*(1 - f) <= d*f):
-        logging.info("Conditions for extremality are NOT satisfied.")
-    else:
-        logging.info("Conditions for extremality are satisfied.")
+    if conditioncheck:
+        if not ((m in ZZ) & (d in ZZ) & (m >= 1) & (d >= 1) & bool(0 < f < 1)):
+            raise ValueError, "Bad parameters. Unable to construct the function."
+        if not bool(m*(1 - f) <= d*f):
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
     s = (m + d)/((d + 1)*f - (m - 1)*(1 - f))
     delta_2 = (s - s*f + 1)/(d + 1)
     if m == 1:
@@ -490,7 +500,7 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
     else:
         delta_1 = (s*f - 1)/(m - 1)
     # in irrational case, try to coerce to common number field
-    [f, s, delta_1, delta_2, m, d] =  nice_field_values([f, s, delta_1, delta_2, m, d])
+    [f, s, delta_1, delta_2, m, d] =  nice_field_values([f, s, delta_1, delta_2, m, d], field)
     pieces = []
     for k in range(m):
         pieces = pieces + \
@@ -504,10 +514,10 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4):
     psi = FastPiecewise(pieces)    
     return psi
 
-def drlm_3_slope_limit(f=1/5):
+def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
     """
     Summary:
-        - Name: drlm-3-Slope Limit;
+        - Name: Dey--Richard--Li--Miller's 3-Slope Limit;
         - Infinite; Dim = 1; Slopes = 2; Discontinuous; Group relations method;
         - Discovered [40] p.161 def.11;
         - Proven extreme [40] p.161 thm.9.
@@ -532,15 +542,16 @@ def drlm_3_slope_limit(f=1/5):
 
     Reference:
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
-                Mathematical Programming 121 (2010) 145–170.
+                Mathematical Programming 121 (2010) 145-170.
     """
-    if not bool(0 < f < 1):
-        raise ValueError, "Bad parameters. Unable to construct the function."
-    if not bool(0 < f < 1/3):
-        logging.info("Conditions for extremality are NOT satisfied.")
-    else:
-        logging.info("Conditions for extremality are satisfied.")
-    f = nice_field_values([f])[0]
+    if conditioncheck:
+        if not bool(0 < f < 1):
+            raise ValueError, "Bad parameters. Unable to construct the function."
+        if not bool(0 < f < 1/3):
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
+    f = nice_field_values([f], field)[0]
     field = f.parent()
     pieces = [[closed_interval(0, f), FastLinearFunction(1/f, 0)], \
               [open_interval(f, 1), FastLinearFunction(1/(f + 1), 0)], \
@@ -550,7 +561,9 @@ def drlm_3_slope_limit(f=1/5):
 
 def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
     """
-    return function psi, a counterexample to Gomory--Johnson's conjecture;
+    return function psi, a counterexample to Gomory--Johnson's conjecture
+    constructed by Basu--Conforti--Cornuejols--Zambelli.
+
     psi is a continuous facet (hence extreme), but is not piecewise linear. cf. [IR1]
 
     Parameters:
@@ -584,8 +597,8 @@ def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
             sage: bccz_counterexample(f=2/3, q=4, eta=0, maxiter=10000)(r=9/40) # doctest: +SKIP
 
     Reference:
-        [IR1]:  A. Basu, M. Conforti, G. Cornuéjols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
-                    Mathematical Programming Ser. A 133 (2012), 25–38.
+        [IR1]:  A. Basu, M. Conforti, G. Cornuejols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
+                    Mathematical Programming Ser. A 133 (2012), 25-38.
     """
     if not (bool(0 < f < 1) & bool(q > 2) & bool(0 <= eta < 1)):
         raise ValueError, "Bad parameters."
@@ -642,8 +655,8 @@ def generate_example_e_for_psi_n(f=2/3, n=7, q=4, eta=1/1000):
         4) psi is not in W^{1,1}.
 
     Reference: 
-        [IR1]:  A. Basu, M. Conforti, G. Cornuéjols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
-                    Mathematical Programming Ser. A 133 (2012), 25–38.
+        [IR1]:  A. Basu, M. Conforti, G. Cornuejols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
+                    Mathematical Programming Ser. A 133 (2012), 25-38.
     """
     if n == 0:
         return []
@@ -655,7 +668,7 @@ def generate_example_e_for_psi_n(f=2/3, n=7, q=4, eta=1/1000):
     return e
 
 
-def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None):
+def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None, conditioncheck=True):
     """
     Summary: 
         - Name: psi_n in the construction of BCCZ's counterexample to GJ's conjecture;
@@ -695,10 +708,10 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None)
             sage: sum([plot(psi_n_in_bccz_counterexample_construction(e=generate_example_e_for_psi_n(n=n)), color=color, legend_label="psi_%d"%n) for n, color in zip(range(7),rainbow(7))]) # doctest: +SKIP
 
     Reference: 
-        [IR1]:  A. Basu, M. Conforti, G. Cornuéjols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
-                    Mathematical Programming Ser. A 133 (2012), 25–38.
+        [IR1]:  A. Basu, M. Conforti, G. Cornuejols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
+                    Mathematical Programming Ser. A 133 (2012), 25-38.
     """
-    if not bool(0 < f < 1):
+    if conditioncheck and not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
     n = len(e)
     if n == 0:
@@ -707,21 +720,22 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None)
     a = [1]
     b = [f]
     sum_e = 0
-    if not bool(0 < e[0]):
+    if conditioncheck and not bool(0 < e[0]):
         raise ValueError, "Bad parameters. Unable to construct the function."
     t = bool(e[0] <= 1 - f)
     for i in range(0, n):
         a.append((b[i] + e[i]) / 2)
         b.append((b[i] - e[i]) / 2)
         sum_e = sum_e + (2^i) * e[i]
-        if not (bool(e[i] > 0) & bool(sum_e < f)):
+        if conditioncheck and not (bool(e[i] > 0) & bool(sum_e < f)):
             raise ValueError, "Bad parameters. Unable to construct the function."
         if not (i == 0) | bool(e[i] <= e[i-1]):
             t = False
-    if t:
-        logging.info("Conditions for extremality are satisfied.")
-    else:
-        logging.info("Conditions for extremality are NOT satisfied.")
+    if conditioncheck:
+        if t:
+            logging.info("Conditions for extremality are satisfied.")
+        else:
+            logging.info("Conditions for extremality are NOT satisfied.")
     interval_lengths =  interval_length_n_step_mir(n + 1, 1, a, b)
     nb_interval = len(interval_lengths)
     interval_length_positive = sum(interval_lengths[i] for i in range(0, nb_interval, 2))
@@ -734,7 +748,7 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None)
 def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), field=None):
     """
     Summary:
-        - Name: BHK's irrational function.
+        - Name: Basu-Hildebrand-Koeppe's irrational function.
         - Infinite; Dim = 1; Slopes = 3; Continuous;  Covered intervals and equivariant perturbation.
         - Discovered [IR2]  p.33, section.5.2, fig.9-10.
         - Proven extreme [IR2] p.34, thm.5.3.
@@ -784,8 +798,8 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
             True
 
     Reference:
-        [IR2] A. Basu, R. Hildebrand, and M. Köppe, Equivariant perturbation in Gomory and Johnson’s infinite group problem.
-                I. The one-dimensional case, Mathematics of Operations Research (2014), doi:10. 1287/moor.2014.0660
+        [IR2] A. Basu, R. Hildebrand, and M. Koeppe, Equivariant perturbation in Gomory and Johnson's infinite group problem.
+                I. The one-dimensional case, Mathematics of Operations Research (2014), doi:10.1287/moor.2014.0660
     """
     if not (bool(0 < f < 1) and bool(d1 > 0) and bool(d2 > 0) and bool(a0 > 0) 
             and all(bool(deltai > 0) for deltai in delta) and bool(d1 + d2 < f) and (sum(delta) < f/2 - d2/4 - 3*a0/2) ):
@@ -981,7 +995,7 @@ def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/
     gmi = gmic(f, field=field)
     return alpha * bhk + (1 - alpha) * gmi
 
-def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None):
+def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, conditioncheck=True):
     """
     This 4-slope function is shown [KChen_thesis] to be a facet.
 
@@ -994,10 +1008,20 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None):
         1/2 <= f <= 1;
         s_pos > 1/f;
         s_neg < 1/(f - 1);
-        0 < lam1 < min(1/2, (s_pos - s_neg) / s_pos / (1 - s_neg * f));
+        1 - f + 1/s_neg < lam1 < min(1/2, (s_pos - s_neg) / s_pos / (1 - s_neg * f));
         f - 1 / s_pos < lam2 < min(1/2, (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)).
 
-    Examples::
+    Note:
+        The lower bound 0 < lam1 claimed in [KChen_thesis] is not sufficient for extremality.
+        The following example satisfies the extremality conditions according to [KChen_thesis],
+        however it violates the subadditivity, and thus is not an extreme function::
+
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: h = chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/100, lam2=49/100)
+            sage: extremality_test(h, False)
+            False
+
+    Examples:
         [KChen_thesis]  p.38, fig.8::
 
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
@@ -1021,14 +1045,16 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None):
         [KChen_thesis]:  K. Chen, Topics in group methods for integer programming,
                             Ph.D. thesis, Georgia Institute of Technology, June 2011.
     """
-    if not (bool(0 < f < 1) and bool(s_pos > 1/f) and bool(s_neg < 1/(f - 1)) \
-                            and bool(0 < lam1 < 1) and bool(0 < lam2 < 1)):
-        raise ValueError, "Bad parameters. Unable to construct the function."
-    if bool(1/2 <= f) and bool(lam1 < (s_pos - s_neg) / s_pos / (1 - s_neg * f)) and \
-        bool (f - 1 / s_pos < lam2 < (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)):
-        logging.info("Conditions for extremality are satisfied.")
-    else:
-        logging.info("Conditions for extremality are NOT satisfied.")
+    if conditioncheck:
+        if not (bool(0 < f < 1) and bool(s_pos > 1/f) and bool(s_neg < 1/(f - 1)) \
+                                and bool(0 < lam1 < 1) and bool(0 < lam2 < 1)):
+            raise ValueError, "Bad parameters. Unable to construct the function."
+        if bool(1/2 <= f) and bool(lam1 < 1/2) and bool(lam2 < 1/2) and \
+                bool(1 - f + 1/s_neg < lam1 < (s_pos - s_neg) / s_pos / (1 - s_neg * f)) and \
+                bool (f - 1 / s_pos < lam2 < (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)):
+            logging.info("Conditions for extremality are satisfied.")
+        else:
+            logging.info("Conditions for extremality are NOT satisfied.")
     slopes = [s_pos, s_neg, 1/f, s_neg, s_pos, s_neg, s_pos, 1/(f-1), s_pos, s_neg]
     aa = lam1 * (1 - s_neg * f) / 2 / (s_pos - s_neg)
     a = lam1 * f / 2
@@ -1040,7 +1066,7 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None):
     dd = 1 + f - cc
     return piecewise_function_from_breakpoints_and_slopes([0, aa, a, b, bb, f, dd, d, c, cc, 1], slopes, field=field)
 
-def rlm_dpl1_extreme_3a(f=1/4):
+def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
     """
     From Richard--Li--Miller [RLM2009].
 
@@ -1075,15 +1101,16 @@ def rlm_dpl1_extreme_3a(f=1/4):
     Reference:
 
     .. [RLM2009] J.-P. P. Richard, Y. Li, and L. A. Miller, Valid inequalities for MIPs and group polyhedra
-       from approximate liftings, Mathematical Programming 118 (2009), no. 2, 253–277, doi:10.1007/s10107-007-0190-9
+       from approximate liftings, Mathematical Programming 118 (2009), no. 2, 253-277, doi:10.1007/s10107-007-0190-9
     """
-    if not bool(0 < f < 1):
-        raise ValueError, "Bad parameters. Unable to construct the function."
-    if bool(f < 1/3):
-        pass # is the fig3_lowerleft case
-    else:
-        pass # is not the fig3_lowerleft case
-    f = nice_field_values([f])[0]
+    if conditioncheck:
+        if not bool(0 < f < 1):
+            raise ValueError, "Bad parameters. Unable to construct the function."
+        if bool(f < 1/3):
+            pass # is the fig3_lowerleft case
+        else:
+            pass # is not the fig3_lowerleft case
+    f = nice_field_values([f], field)[0]
     field = f.parent()
     pieces = [[closed_interval(field(0), f), FastLinearFunction(1/f, 0)], \
               [open_interval(f, (1 + f)/2), FastLinearFunction(2/(1 + 2*f), 0)], \
@@ -1093,7 +1120,7 @@ def rlm_dpl1_extreme_3a(f=1/4):
     h = FastPiecewise(pieces)
     return h
 
-def ll_strong_fractional(f=2/3):
+def ll_strong_fractional(f=2/3, field=None, conditioncheck=True):
     """
     Letchford--Lodi's strong fractional cut.
 
@@ -1111,7 +1138,7 @@ def ll_strong_fractional(f=2/3):
         [78] Letchford-Lodi (2002) Thm. 2, Fig. 3 (but note this figure shows the wrong function; 
              see ll_strong_fractional_bad_figure_3 and ll_strong_fractional_bad_figure_3_corrected)
 
-        [33] S. Dash and O. G¨unl¨uk (2004) Thm. 16
+        [33] S. Dash and O. Gunluk (2004) Thm. 16
 
     Remarks::
         Discontinuous, 1-slope;
@@ -1152,13 +1179,15 @@ def ll_strong_fractional(f=2/3):
         sage: l == d
         False
     """
-    if not bool(0 < f < 1):
-        raise ValueError, "Bad parameters. Unable to construct the function."
-    if not bool(1/2 <= f < 1):
-        logging.info("The function is NOT minimal.")
-    else:
-        logging.info("Conditions for extremality are satisfied.")
-    [f] =  nice_field_values([f])
+    if conditioncheck:
+        if not bool(0 < f < 1):
+            raise ValueError, "Bad parameters. Unable to construct the function."
+        if not bool(1/2 <= f < 1):
+            logging.info("The function is NOT minimal.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
+    f = nice_field_values([f], field)[0]
+    field = f.parent()
     k = ceil(1/f) -1
     pieces = [[closed_interval(0,f), FastLinearFunction(1/f, 0)]]
     for p in range(k-1):

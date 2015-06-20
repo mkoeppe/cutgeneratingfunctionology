@@ -53,7 +53,7 @@ def not_extreme_1(): # was symmetric_rational_function1.sage
 def drlm_not_extreme_1():
     """Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
     On the extreme inequalities of infinite group problems,
-    Mathematical Programming 121 (2009), no. 1, 145–170,
+    Mathematical Programming 121 (2009), no. 1, 145-170,
     doi:10.1007/s10107-008-0229-6.
     Figure 1.
 
@@ -77,7 +77,7 @@ def drlm_not_extreme_2():
     """
     Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
     On the extreme inequalities of infinite group problems,
-    Mathematical Programming 121 (2009), no. 1, 145–170,
+    Mathematical Programming 121 (2009), no. 1, 145-170,
     doi:10.1007/s10107-008-0229-6.
     Figure 3.
 
@@ -112,7 +112,7 @@ def drlm_not_extreme_2():
 def phi_s_in_drlm_not_extreme_2(s=10):
     """Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
     On the extreme inequalities of infinite group problems,
-    Mathematical Programming 121 (2009), no. 1, 145–170,
+    Mathematical Programming 121 (2009), no. 1, 145-170,
     doi:10.1007/s10107-008-0229-6.
     Figure 2.
 
@@ -219,7 +219,12 @@ def drlm_2_slope_limit_1_1(f=1/2, nb_pieces_left=1, nb_pieces_right=1):
 
 def hildebrand_5_slope_22_1():
     """
-    One of Hildebrand's world-record 5-slope functions.
+    One of Hildebrand's 5-slope functions.
+
+    They held the world record regarding the number of slopes until
+    functions with more slopes were discovered in 2014.
+
+    From Hildebrand (2013, unpublished).
 
     EXAMPLES::
 
@@ -236,7 +241,12 @@ def hildebrand_5_slope_22_1():
 
 def hildebrand_5_slope_24_1():
     """
-    One of Hildebrand's world-record 5-slope functions.
+    One of Hildebrand's 5-slope functions.
+
+    They held the world record regarding the number of slopes until
+    functions with more slopes were discovered in 2014.
+
+    From Hildebrand (2013, unpublished).
 
     EXAMPLES::
 
@@ -253,7 +263,12 @@ def hildebrand_5_slope_24_1():
 
 def hildebrand_5_slope_28_1():
     """
-    One of Hildebrand's world-record 5-slope functions.
+    One of Hildebrand's 5-slope functions.
+
+    They held the world record regarding the number of slopes until
+    functions with more slopes were discovered in 2014.
+
+    From Hildebrand (2013, unpublished).
 
     EXAMPLES::
 
@@ -340,7 +355,7 @@ def hildebrand_2_sided_discont_1_slope_1():
     The first known example of function that is discontinuous on both
     sides of the origin but is also extreme.
 
-    Constructed by Robert Hildebrand (previously unpublished). 
+    Constructed by Robert Hildebrand (2013, unpublished).
 
     EXAMPLES::
 
@@ -365,7 +380,7 @@ def hildebrand_2_sided_discont_2_slope_1():
     The second known example of function that is discontinuous on both
     sides of the origin but is also extreme.  This one has 2 slopes.
 
-    Constructed by Robert Hildebrand (previously unpublished). 
+    Constructed by Robert Hildebrand (2013, unpublished).
 
     EXAMPLES::
 
@@ -392,7 +407,7 @@ def hildebrand_discont_3_slope_1():
     """
     This is a very new discontinuous 3-slope function that is extreme.
 
-    Constructed by Robert Hildebrand (previously unpublished).
+    Constructed by Robert Hildebrand (2013, unpublished).
 
     EXAMPLES::
 
@@ -424,7 +439,10 @@ def gomory_fractional(f=4/5):
     h = FastPiecewise([right_open_piece((0, 0), (1, 1)), 
                        singleton_piece(1, 0)])
     # now normalize...
-    return h * (1/f)
+    gf = h * (1/f)
+    # Remember what is f (mostly for plotting purposes)
+    gf._f = f
+    return gf
 
 def ll_strong_fractional_bad_figure_3():
     """
@@ -493,8 +511,8 @@ def kzh_2q_example_1():
     1/2q is extreme, thereby showing that an oversampling factor of 3
     is optimal.
 
-    This example was found by computer-based search, which will be
-    described in Koeppe--Zhou (forthcoming).
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
 
     Example::
 
@@ -511,6 +529,12 @@ def kzh_2q_example_1():
         sage: extremality_test(h_3q)
         False
 
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
+
     """
     bkpt = [0, 3/37, 4/37, 5/37, 9/37, 10/37, 11/37, 12/37, 13/37, 14/37, 15/37, 16/37,
             20/37, 21/37, 22/37, 25/37, 26/37, 28/37, 29/37, 33/37, 34/37, 36/37, 1]
@@ -518,14 +542,37 @@ def kzh_2q_example_1():
                 42/61, 34/61, 101/122, 23/122, 1, 22/61, 18/61, 69/122, 53/122, 43/61, 39/61, 0]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
+def zhou_two_sided_discontinuous_cannot_assume_any_continuity():
+    """
+    This function is two-sided discontinuous at the origin.  The
+    extremality test then cannot assume any left or right continuity
+    of the perturbation function at the breakpoints, even if such
+    one-sided continuity is present in the function.
+
+    This example has been constructed by Yuan Zhou (2014).
+
+    EXAMPLES::
+
+        sage: h = zhou_two_sided_discontinuous_cannot_assume_any_continuity()
+        sage: extremality_test(h)
+        False
+    """
+    return FastPiecewise([singleton_piece(0, 0),
+                          open_piece((0, 2/3), (1/8, 3/4)),
+                          closed_piece((1/8, 1/4), (3/8, 3/4)),
+                          open_piece((3/8, 1/4), (4/8, 1/3)),
+                          singleton_piece(4/8, 1),
+                          open_piece((4/8, 1/3), (8/8, 2/3)),
+                          singleton_piece(1, 0)])
+
 def kzh_5_slope_fulldim_1(): #renamed from extreme_5slope_no_0d_1d_1
     """
     A continuous 5-slope extreme function without any 0-d or 1-d
     maximal additive faces except for the symmetry reflection or x=0
     or y=0.
 
-    This example was found by computer-based search, which will be
-    described in Koeppe--Zhou (forthcoming).
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
 
     EXAMPLES::
 
@@ -534,6 +581,12 @@ def kzh_5_slope_fulldim_1(): #renamed from extreme_5slope_no_0d_1d_1
         True
         sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
         []
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
     """
     bkpt = [0, 2/37, 3/37, 5/37, 7/37, 10/37, 11/37, 12/37, 13/37, 14/37, 15/37,
             18/37, 20/37, 22/37, 23/37, 25/37, 27/37, 28/37, 29/37, 33/37, 34/37, 35/37, 1]
@@ -547,8 +600,8 @@ def kzh_5_slope_fulldim_2(): #renamed from extreme_5slope_no_0d_1d_2
     maximal additive faces except for the symmetry reflection or x=0
     or y=0.
 
-    This example was found by computer-based search, which will be
-    described in Koeppe--Zhou (forthcoming).
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
 
     EXAMPLES::
 
@@ -557,6 +610,12 @@ def kzh_5_slope_fulldim_2(): #renamed from extreme_5slope_no_0d_1d_2
         True
         sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
         []
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
     """
     bkpt = [0, 1/37, 2/37, 5/37, 7/37, 10/37, 12/37, 13/37, 15/37, 18/37, 20/37,
             23/37, 24/37, 25/37, 26/37, 27/37, 28/37, 29/37, 33/37, 34/37, 35/37, 36/37, 1]
@@ -570,8 +629,8 @@ def kzh_5_slope_fulldim_3(): #renamed from extreme_5slope_no_0d_1d_3
     maximal additive faces except for the symmetry reflection or x=0
     or y=0.
 
-    This example was found by computer-based search, which will be
-    described in Koeppe--Zhou (forthcoming).
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
 
     EXAMPLES::
 
@@ -580,6 +639,12 @@ def kzh_5_slope_fulldim_3(): #renamed from extreme_5slope_no_0d_1d_3
         True
         sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
         []
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
     """
     bkpt = [0, 1/37, 3/37, 5/37, 7/37, 10/37, 12/37, 13/37, 15/37, 18/37, 20/37,
             22/37, 24/37, 25/37, 26/37, 27/37, 28/37, 29/37, 33/37, 34/37, 35/37, 36/37, 1]
@@ -592,8 +657,8 @@ def kzh_5_slope_fulldim_4(): #renamed from extreme_5slope_no_0d_1d_4
     5-slope extreme function without any 0-d or 1-d maximal additive faces
     except for the symmetry reflection or x=0 or y=0.
 
-    This example was found by computer-based search, which will be
-    described in Koeppe--Zhou (forthcoming).
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
 
     EXAMPLES::
 
@@ -602,6 +667,12 @@ def kzh_5_slope_fulldim_4(): #renamed from extreme_5slope_no_0d_1d_4
         True
         sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
         []
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
     """
     bkpt = [0, 1/37, 3/37, 5/37, 7/37, 10/37, 12/37, 13/37, 15/37, 18/37, 20/37,
             22/37, 24/37, 25/37, 26/37, 27/37, 28/37, 29/37, 33/37, 34/37, 35/37, 36/37, 1]
@@ -614,8 +685,8 @@ def kzh_5_slope_fulldim_5(): #renamed from extreme_5slope_no_0d_1d_5
     5-slope extreme function without any 0-d or 1-d maximal additive faces
     except for the symmetry reflection or x=0 or y=0.
 
-    This example was found by computer-based search, which will be
-    described in Koeppe--Zhou (forthcoming).
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
 
     EXAMPLES::
 
@@ -624,6 +695,12 @@ def kzh_5_slope_fulldim_5(): #renamed from extreme_5slope_no_0d_1d_5
         True
         sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
         []
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
     """
     bkpt = [0, 1/37, 3/37, 5/37, 7/37, 10/37, 12/37, 13/37, 15/37, 18/37, 20/37,
             22/37, 24/37, 25/37, 28/37, 29/37, 33/37, 34/37, 1]
@@ -636,11 +713,11 @@ def kzh_5_slope_fulldim_covers_1(): #renamed from extreme_5slope_no_transrefl or
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
 
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
     requires to translate and reflect covered intervals.
 
-    This example was found by computer-based search, which will be
-    described in Koeppe--Zhou (forthcoming).
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
 
     EXAMPLES::
 
@@ -649,6 +726,12 @@ def kzh_5_slope_fulldim_covers_1(): #renamed from extreme_5slope_no_transrefl or
         True
         sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
         []
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
     """
     # q = 22; f = 10
     bkpt = [0, 1/22, 1/11, 3/22, 2/11, 3/11, 7/22, 4/11, 9/22, 5/11,
@@ -661,11 +744,11 @@ def kzh_5_slope_fulldim_covers_2(): # renamed from fulldim_covers_5slope_q22_1()
     """
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
     requires to translate and reflect covered intervals.
 
-    This example was found by computer-based search, which will be
-    described in Koeppe--Zhou (forthcoming).
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
 
     EXAMPLES::
 
@@ -674,6 +757,12 @@ def kzh_5_slope_fulldim_covers_2(): # renamed from fulldim_covers_5slope_q22_1()
         True
         sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
         []
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
     """
     # q = 22, f = 1
     bkpt = [0, 1/22, 3/22, 2/11, 5/22, 3/11, 4/11, 9/22, 5/11, 1/2, \
@@ -686,17 +775,24 @@ def kzh_5_slope_fulldim_covers_3(): # renamed from fulldim_covers_5slope_q22_2()
     """
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
     requires to translate and reflect covered intervals.
-    This example was found by computer-based search, which will be
-    described in Koeppe--Zhou (forthcoming).
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
 
     EXAMPLES::
+
         sage: h = kzh_5_slope_fulldim_covers_3()
         sage: extremality_test(h)
         True
         sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
         []
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
     """
     # q = 22, f = 1
     bkpt = [0, 1/22, 3/22, 2/11, 5/22, 3/11, 4/11, 9/22, 5/11, 1/2, \
@@ -709,17 +805,24 @@ def kzh_5_slope_fulldim_covers_4(): # renamed from fulldim_covers_5slope_q22_3()
     """
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
     requires to translate and reflect covered intervals.
-    This example was found by computer-based search, which will be
-    described in Koeppe--Zhou (forthcoming).
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
 
     EXAMPLES::
+
         sage: h = kzh_5_slope_fulldim_covers_4()
         sage: extremality_test(h)
         True
         sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
         []
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
     """
     # q = 22, f = 3
     bkpt = [0, 1/22, 1/11, 3/22, 2/11, 5/22, 3/11, 7/22, 9/22, 5/11, 1/2, \
@@ -732,17 +835,24 @@ def kzh_5_slope_fulldim_covers_5(): # renamed from fulldim_covers_5slope_q22_4()
     """
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
     requires to translate and reflect covered intervals.
-    This example was found by computer-based search, which will be
-    described in Koeppe--Zhou (forthcoming).
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
 
     EXAMPLES::
+
         sage: h = kzh_5_slope_fulldim_covers_5()
         sage: extremality_test(h)
         True
         sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
         []
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
     """
     # q = 22, f = 7
     bkpt = [0, 1/22, 3/22, 2/11, 3/11, 7/22, 4/11, 9/22, 1/2, \
@@ -755,12 +865,13 @@ def kzh_5_slope_fulldim_covers_6(): # renamed from fulldim_covers_5slope_q22_5()
     """
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
     requires to translate and reflect covered intervals.
-    This example was found by computer-based search, which will be
-    described in Koeppe--Zhou (forthcoming).
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
 
     EXAMPLES::
+
         sage: h = kzh_5_slope_fulldim_covers_6()
         sage: extremality_test(h)
         True
@@ -778,17 +889,24 @@ def kzh_6_slope_fulldim_covers_1(): # renamed from fulldim_covers_6slope_q25_1()
     """
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
     requires to translate and reflect covered intervals.
-    This example was found by computer-based search, which will be
-    described in Koeppe--Zhou (forthcoming).
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
 
     EXAMPLES::
+
         sage: h = kzh_6_slope_fulldim_covers_1()
         sage: extremality_test(h)
         True
         sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
         []
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
     """
     # q = 25; f = 8
     bkpt = [0, 1/25, 2/25, 6/25, 7/25, 8/25, 9/25, 2/5, 11/25, 12/25, \
@@ -801,17 +919,24 @@ def kzh_6_slope_fulldim_covers_2(): # renamed from fulldim_covers_6slope_q26_1()
     """
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
     requires to translate and reflect covered intervals.
-    This example was found by computer-based search, which will be
-    described in Koeppe--Zhou (forthcoming).
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
 
     EXAMPLES::
+
         sage: h = kzh_6_slope_fulldim_covers_2()
         sage: extremality_test(h)
         True
         sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
         []
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
     """
     # q = 26, f = 13
     bkpt = [0, 1/26, 3/26, 5/26, 3/13, 7/26, 4/13, 5/13, 6/13, 1/2, \
@@ -824,16 +949,25 @@ def kzh_6_slope_fulldim_covers_3(): # renamed from fulldim_covers_6slope_q38_1()
     """
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof 
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
     requires to translate and reflect covered intervals.
     This example has a similar 2d-diagram as that of kzh_6_slope_fulldim_covers_2()
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
 
     EXAMPLES::
+
         sage: h = kzh_6_slope_fulldim_covers_3()
         sage: extremality_test(h)
         True
         sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
         []
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
     """
     # q = 38, f = 19
     bkpt = [0, 1/38, 5/38, 7/38, 9/38, 5/19, 6/19, 7/19, 9/19, 1/2, \
@@ -843,12 +977,58 @@ def kzh_6_slope_fulldim_covers_3(): # renamed from fulldim_covers_6slope_q38_1()
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_6_slope_fulldim_covers_4():
+    """
+    6-slope extreme function whose extremality proof does not depend
+    on lower-dimensional additive faces.  All intervals are directly covered.
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
+    requires to translate and reflect covered intervals.
+    This example has a similar 2d-diagram as that of kzh_6_slope_fulldim_covers_2()
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
+
+    EXAMPLES::
+
+        sage: h = kzh_6_slope_fulldim_covers_4()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
+    """
     # q = 27, f = 5
     bkpt = [0, 1/27, 2/27, 1/9, 4/27, 5/27, 2/9, 7/27, 1/3, 11/27, 13/27, 14/27, 2/3, 19/27, 7/9, 23/27, 25/27, 26/27, 1]
     values = [0, 47/127, 40/127, 87/127, 80/127, 1, 39/127, 86/127, 45/127, 58/127, 98/127, 209/254, 45/254, 29/127, 69/127, 82/127, 41/127, 88/127, 0]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_6_slope_fulldim_covers_5():
+    """
+    6-slope extreme function whose extremality proof does not depend
+    on lower-dimensional additive faces.  All intervals are directly covered.
+    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
+    requires to translate and reflect covered intervals.
+    This example has a similar 2d-diagram as that of kzh_6_slope_fulldim_covers_2()
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
+
+    EXAMPLES::
+
+        sage: h = kzh_6_slope_fulldim_covers_5()
+        sage: extremality_test(h)
+        True
+        sage: uncovered_intervals_from_covered_intervals(generate_directly_covered_intervals(h))
+        []
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
+    """
     # q = 27, f = 7
     bkpt = [0, 1/27, 2/27, 1/9, 4/27, 5/27, 2/9, 7/27, 8/27, 10/27, 11/27, 4/9, 13/27, 16/27, 2/3, 7/9, 22/27, 23/27, 8/9, 26/27, 1]
     values = [0, 43/76, 59/76, 3/4, 1/4, 17/76, 33/76, 1, 1/2, 17/38, 25/38, 3/4, 37/76, 29/38, 9/38, 39/76, 1/4, 13/38, 21/38, 1/2, 0]
@@ -886,6 +1066,24 @@ def kzh_5_slope_q22_f2_1():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_7_slope_1():
+    """
+    A 7-slope extreme function.
+
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
+
+    EXAMPLES::
+
+        sage: h = kzh_7_slope_1()
+        sage: extremality_test(h)
+        True
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
+    """
     # q = 33; f = 11
     bkpt = [0, 1/33, 2/33, 1/11, 4/33, 7/33, 8/33, 3/11, 10/33, 1/3, 4/11, 13/33, 14/33, \
             5/11, 16/33, 19/33, 25/33, 28/33, 29/33, 10/11, 31/33, 32/33, 1]
@@ -894,6 +1092,24 @@ def kzh_7_slope_1():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_7_slope_2():
+    """
+    A 7-slope extreme function.
+
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
+
+    EXAMPLES::
+
+        sage: h = kzh_7_slope_2()
+        sage: extremality_test(h)
+        True
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
+    """
     # q = 34; f = 12
     bkpt = [0, 1/34, 1/17, 3/34, 2/17, 5/34, 7/34, 4/17, 9/34, 5/17, 11/34, 6/17, 13/34, 7/17, 15/34, 8/17, 1/2, \
             19/34, 10/17, 21/34, 25/34, 13/17, 27/34, 29/34, 15/17, 31/34, 16/17, 33/34, 1]
@@ -902,6 +1118,24 @@ def kzh_7_slope_2():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_7_slope_3():
+    """
+    A 7-slope extreme function.
+
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
+
+    EXAMPLES::
+
+        sage: h = kzh_7_slope_3()
+        sage: extremality_test(h)
+        True
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
+    """
     # q = 31; f = 10
     bkpt = [0, 2/31, 3/31, 4/31, 6/31, 7/31, 8/31, 10/31, 11/31, 13/31, 14/31, 15/31, 16/31, 17/31, \
         18/31, 19/31, 20/31, 21/31, 22/31, 23/31, 24/31, 25/31, 26/31, 27/31, 28/31, 30/31, 1]
@@ -910,9 +1144,158 @@ def kzh_7_slope_3():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_7_slope_4():
+    """
+    A 7-slope extreme function.
+
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
+
+    EXAMPLES::
+
+        sage: h = kzh_7_slope_4()
+        sage: extremality_test(h)
+        True
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
+    """
     # q = 29; f = 10
     bkpt = [0, 1/29, 2/29, 3/29, 4/29, 6/29, 7/29, 8/29, 9/29, 10/29, 11/29, 12/29, 15/29, \
             16/29, 17/29, 18/29, 19/29, 20/29, 21/29, 22/29, 23/29, 24/29, 27/29, 28/29, 1]
     values = [0, 65/99, 19/66, 7/33, 19/33, 14/33, 26/33, 47/66, 34/99, 1, 16/33, 26/99, 47/99, \
               25/99, 61/99, 107/198, 17/99, 82/99, 91/198, 38/99, 74/99, 52/99, 73/99, 17/33, 0]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def pattern0_sym_fn(l, sv):
+    f = 18 * l + 11
+    q = 2 * f
+    s=[0, 1]
+    for k in range(1, l + 1):
+        s += [k, k + 1] * 3
+    s += [l + 1] * 3
+    for k in range(l, 0, -1):
+        s += [k, k + 1, k]
+    sk = s + [s[0]] + s[-1::-1]
+    v_n = [0] * (f + 1)
+    for k in range(f):
+        v_n[k + 1] = v_n[k] + sv[sk[k]]
+    v_d = v_n[-1]
+    bkpt = [x / q for x in range(q + 1)]
+    values = [y / v_d for y in v_n + v_n[-2::-1]]
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
+
+def kzh_6_slope_1():
+    """
+    A 6-slope extreme function.
+
+    Its two-dimensional polyhedral complex includes special patterns.
+
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
+
+    EXAMPLES::
+
+        sage: h = kzh_6_slope_1()
+        sage: extremality_test(h)
+        True
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
+    """
+    # q = 58; f = 29
+    l = 1
+    sv = (11, 7, -5)
+    return pattern0_sym_fn(l, sv)
+
+def kzh_10_slope_1():
+    """
+    A 10-slope extreme function.
+
+    Its two-dimensional polyhedral complex includes special patterns.
+
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
+
+    EXAMPLES::
+
+        sage: h = kzh_10_slope_1()
+        sage: extremality_test(h)
+        True
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
+    """
+    # q = 166; f = 83
+    l = 4
+    sv= (13, 12, 11, 9, -10, -12)
+    return pattern0_sym_fn(l, sv)
+
+def kzh_28_slope_1():
+    """
+    A 28-slope extreme function.
+
+    This is the current world record.
+
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
+
+    EXAMPLES::
+
+        sage: h = kzh_28_slope_1()
+        sage: extremality_test(h) # long time
+        True
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
+    """
+    # q = 778; f = 389
+    l = 21
+    sv= (71755, 71715, 71715, 71655, 71655, 71595, 71595, 71595, 70995, 70995, 70611, 70611, \
+         69267, 69267, -47799, -69939, -70835, -70835, -71555, -71555, -71635, -71685, -71725)
+    return pattern0_sym_fn(l, sv)
+
+def kzh_28_slope_2():
+    """
+    A 28-slope extreme function.
+
+    This is the current world record.
+
+    This example was found by computer-based search
+    described in Koeppe--Zhou [KZh2015a].
+
+    EXAMPLES::
+
+        sage: h = kzh_28_slope_2()
+        sage: extremality_test(h) # long time
+        True
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
+    """
+    # q = 778; f = 389
+    l = 21
+    sv= (27455, 27447, 27447, 27435, 27435, 27423, 27423, 27423, 27303, 27303, 27303, 26919, \
+         26343, 26343, -18171, -26631, -27271, -27271, -27415, -27415, -27431, -27441, -27449)
+    return pattern0_sym_fn(l, sv)
+
+###
+### Add more functions here
+###
+
+extreme_function_with_world_record_number_of_slopes = kzh_28_slope_1
+

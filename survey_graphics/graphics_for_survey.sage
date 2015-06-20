@@ -53,6 +53,12 @@ def c7_ticks_keywords(function, y_ticks_for_breakpoints=False):
     return {'ticks': [xticks, [1]],
             'tick_formatter': [xtick_formatter, ['$1$']]}
 
+def c37_ticks_keywords(function, y_ticks_for_breakpoints=False):
+    xticks = [i/37 for i in range(37+1)]
+    xtick_formatter = [ "$%s$" % latex(x) for x in xticks ]
+    return {'ticks': [xticks, [1]],
+            'tick_formatter': [xtick_formatter, ['$1$']]}
+
 def latex_formatter_or_empty(x, labels_list = [0, 1]):
     if x in labels_list:
         return "$%s$" % latex(x)
@@ -84,7 +90,61 @@ def no_labels_ticks_keywords(function, y_ticks_for_breakpoints=False):
             'tick_formatter': [xtick_formatter, ytick_formatter]}
 
 def dark_rainbow(num):
-    return ['darkblue', 'darkgreen', 'firebrick', 'darkcyan', 'darkmagenta'][:num]
+    return ['darkblue', 'darkgreen', 'firebrick', 'darkcyan', 'darkmagenta', 'darkgrey', 'royalblue'][:num]
+
+from sage.plot.colors import float_to_html, hsv_to_rgb
+
+def dark_rainbow_general(n, format='hex'):
+    """
+    Adapted from sage function rainbow.
+
+    Returns a list of colors sampled at equal intervals over the
+    spectrum, from Hue-Saturation-Value (HSV) coordinates (0, 1, 1) to
+    (1, 1, 1).  This range is red at the extremes, but it covers
+    orange, yellow, green, cyan, blue, violet, and many other hues in
+    between.  This function is particularly useful for representing
+    vertex partitions on graphs.
+
+    INPUT:
+
+    - ``n`` - a number; the length of the list
+
+    - ``format`` - a string (default: 'hex'); the output format for
+      each color in the list; the other choice is 'rgbtuple'
+
+    OUTPUT:
+
+    - a list of strings or RGB 3-tuples of floats in the interval
+      [0.0, 1.0]
+
+    EXAMPLES::
+
+        sage: from sage.plot.colors import rainbow
+        sage: rainbow(7)
+        ['#ff0000', '#ffda00', '#48ff00', '#00ff91', '#0091ff', '#4800ff', '#ff00da']
+        sage: rainbow(7, 'rgbtuple')
+        [(1.0, 0.0, 0.0), (1.0, 0.8571428571428571, 0.0), (0.2857142857142858, 1.0, 0.0), (0.0, 1.0, 0.5714285714285712), (0.0, 0.5714285714285716, 1.0), (0.2857142857142856, 0.0, 1.0), (1.0, 0.0, 0.8571428571428577)]
+
+    AUTHORS:
+
+    - Robert L. Miller
+
+    - Karl-Dieter Crisman (directly use :func:`hsv_to_rgb` for hues)
+
+    """
+    from sage.rings.integer import Integer
+    n = Integer(n) # In case n is a Python int and i/n below would give 0!
+    R = []
+
+    for i in range(n):
+        R.append(tuple(map(float, hsv_to_rgb(i / n, 1, 0.4))))
+
+    if format == 'rgbtuple':
+        return R
+    elif format == 'hex':
+        for j in range(len(R)):
+            R[j] = float_to_html(*R[j])
+        return R
 
 def plot_no_legend(f, *args, **kwds):
     # really should rather use plot_kwds_hook everywhere in functions.sage
@@ -123,7 +183,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
     try:
 
         # override function to get darker colors suitable for print
-        igp.rainbow = dark_rainbow
+        igp.rainbow = dark_rainbow_general
         # override
         igp.plot = plot_no_legend
         igp.plot_kwds_hook = plot_kwds_hook_no_legend
@@ -145,7 +205,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         procedure_graph('two_slope_fill_in', restrict_to_finite_group(gmic()))
 
         ## Compendium tables
-        for name in [ 'll_strong_fractional', 'hildebrand_2_sided_discont_1_slope_1', 'hildebrand_2_sided_discont_2_slope_1', 'hildebrand_discont_3_slope_1', 'dr_projected_sequential_merge_3_slope', 'chen_4_slope', 'gmic', 'gj_2_slope', 'gj_2_slope_repeat', 'dg_2_step_mir', 'kf_n_step_mir', 'gj_forward_3_slope', 'drlm_backward_3_slope', 'drlm_2_slope_limit', 'drlm_2_slope_limit_1_1', 'bhk_irrational', 'bccz_counterexample', 'drlm_3_slope_limit', 'dg_2_step_mir_limit', 'rlm_dpl1_extreme_3a', 'hildebrand_5_slope_22_1', 'hildebrand_5_slope_24_1', 'hildebrand_5_slope_28_1' ]:
+        for name in [ 'll_strong_fractional', 'hildebrand_2_sided_discont_1_slope_1', 'hildebrand_2_sided_discont_2_slope_1', 'hildebrand_discont_3_slope_1', 'dr_projected_sequential_merge_3_slope', 'chen_4_slope', 'gmic', 'gj_2_slope', 'gj_2_slope_repeat', 'dg_2_step_mir', 'kf_n_step_mir', 'gj_forward_3_slope', 'drlm_backward_3_slope', 'drlm_2_slope_limit', 'drlm_2_slope_limit_1_1', 'bhk_irrational', 'bccz_counterexample', 'drlm_3_slope_limit', 'dg_2_step_mir_limit', 'rlm_dpl1_extreme_3a', 'hildebrand_5_slope_22_1', 'hildebrand_5_slope_24_1', 'hildebrand_5_slope_28_1', 'kzh_7_slope_1', 'kzh_28_slope_1' ]:
             emit_tex_sage_command(name)
             h = eval(name)()
             g = plot_something(h)
@@ -161,7 +221,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         igp.check_perturbation_plot_three_perturbations = False
 
         #plot_2d_complex(gj_2_slope()).save(destdir + "%s-2d_complex.pdf" % "gj_2_slope")
-        for name in [ 'not_extreme_1', 'bhk_irrational_extreme_limit_to_rational_nonextreme' ]:
+        for name in [ 'not_extreme_1', 'bhk_irrational_extreme_limit_to_rational_nonextreme', 'zhou_two_sided_discontinuous_cannot_assume_any_continuity']:
             emit_tex_sage_command(name)
             h = eval(name)()
             extremality_test(h, show_plots=destdir + "%s-%%s.pdf" % name)
@@ -190,6 +250,18 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
 
         # Plot or re-plot some 2d diagrams with a different style
         igp.proj_plot_colors = ['grey', 'grey', 'grey']
+        igp.ticks_keywords = survey_ticks_keywords
+
+        name = 'gmic'
+        g = plot_2d_diagram(h)
+        h = eval(name)(2/3)
+        f = find_f(h)
+        g += text("$F_1$", (f/3, f/3), axis_coords=False, vertical_alignment='center',
+                  horizontal_alignment='center', color='black', fontsize=15)
+        g += text("$F_2$", (1 - (1-f)/3, 1 - (1-f)/3), axis_coords=False, vertical_alignment='center',
+                  horizontal_alignment='center', color='black', fontsize=15)
+        g.save(destdir + "%s-2d_diagram.pdf" % name, figsize = 6)
+
         igp.ticks_keywords = no_labels_ticks_keywords
         
         for name in [ 'bhk_irrational', 'gj_forward_3_slope', 'not_minimal_2', 'not_extreme_1' ]:
@@ -203,10 +275,24 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
             emit_tex_sage_command(name)
             h = eval(name)()
             extremality_test(h, show_plots=destdir + "%s-%%s.pdf" % name)
-        for oversampling in [1, 4]:
-            hr = restrict_to_finite_group(h, oversampling=oversampling)
-            plot_something(hr).save(destdir + "%s-restricted-%s.pdf" % (name, oversampling), figsize=survey_figsize)
-            extremality_test(hr, show_plots=destdir + "%s-restricted-%s-%%s.pdf" % (name, oversampling))
+            for oversampling in [1, 4]:
+                hr = restrict_to_finite_group(h, oversampling=oversampling)
+                plot_something(hr).save(destdir + "%s-restricted-%s.pdf" % (name, oversampling), figsize=survey_figsize)
+                extremality_test(hr, show_plots=destdir + "%s-restricted-%s-%%s.pdf" % (name, oversampling))
+
+
+        #### This one is too complicated to be pretty in the survey's style of figure. Omit.
+        igp.ticks_keywords = c37_ticks_keywords
+
+        for name in [ 'kzh_2q_example_1' ]:
+            emit_tex_sage_command(name)
+            ## h = eval(name)()
+            ## extremality_test(h, show_plots=destdir + "%s-%%s.pdf" % name)
+            ## for oversampling in [1, 2, 3, 4]:
+            ##     hr = restrict_to_finite_group(h, oversampling=oversampling)
+            ##     plot_something(hr).save(destdir + "%s-restricted-%s.pdf" % (name, oversampling), figsize=survey_figsize)
+            ##     extremality_test(hr, show_plots=destdir + "%s-restricted-%s-%%s.pdf" % (name, oversampling))
+
 
     finally:
         igp.plot_rescaled_perturbation = orig_plot_rescaled_perturbation

@@ -231,11 +231,10 @@ def restrict_to_finite_group(function, f=None, oversampling=None, order=None):
     If, in addition `oversampling` >= 3, then the following holds:
     The restriction is extreme if and only if `function` is extreme.
     This is Theorem 1.5 in [IR2].
-    
-    Reference:
-        [IR2] A. Basu, R. Hildebrand, and M. Köppe, Equivariant perturbation in Gomory and Johnson’s infinite group problem.
-                I. The one-dimensional case, Mathematics of Operations Research (2014), doi:10. 1287/moor.2014.0660
 
+    This `oversampling` factor of 3 is best possible, as demonstrated
+    by function `kzh_2q_example_1` from [KZh2015a].
+    
     EXAMPLES::
 
         sage: logging.disable(logging.WARN)
@@ -272,8 +271,14 @@ def restrict_to_finite_group(function, f=None, oversampling=None, order=None):
         False
 
     Reference:
-        [IR2] A. Basu, R. Hildebrand, and M. Köppe, Equivariant perturbation in Gomory and Johnson’s infinite group problem.
+        [IR2] A. Basu, R. Hildebrand, and M. Koeppe, Equivariant perturbation in Gomory and Johnson's infinite group problem.
                 I. The one-dimensional case, Mathematics of Operations Research (2014), doi:10. 1287/moor.2014.0660
+
+        [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search
+        strategies for extreme functions of the Gomory--Johnson
+        infinite group problem, 2015, e-print
+        http://arxiv.org/abs/1506.00017 [math.OC].
+
     """
     order = finite_group_order_from_function_f_oversampling_order(function, f, oversampling, order)
     pieces = [ (singleton_interval(x/order), FastLinearFunction(0, function(x/order))) for x in range(order+1) ]

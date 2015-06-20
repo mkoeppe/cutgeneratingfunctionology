@@ -463,7 +463,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
 
     To show only a part of the diagram, use::
 
-        sage: show(plot_2d_diagram(h), xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)  # not tested
+        sage: plot_2d_diagram(h).show(xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)  # not tested
 
     EXAMPLES::
 
@@ -471,14 +471,14 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
         ...                      [open_interval(1/4, 1), FastLinearFunction(4/3, -1/3)],
         ...                      [singleton_interval(1), FastLinearFunction(0,0)]])
         sage: plot_2d_diagram(h)
-
+        Graphics object ...
         sage: h = FastPiecewise([[closed_interval(0,1/4), FastLinearFunction(4, 0)],
         ...                      [open_interval(1/4,1/2), FastLinearFunction(3, -3/4)],
         ...                      [closed_interval(1/2, 3/4), FastLinearFunction(-2, 7/4)],
         ...                      [open_interval(3/4,1), FastLinearFunction(3, -2)],
         ...                      [singleton_interval(1), FastLinearFunction(0,0)]])
         sage: plot_2d_diagram(h)
-
+        Graphics object ...
     """
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
@@ -527,31 +527,32 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
                 # add legend_label
                 p += point([(0,0)], color = "red", size = 50, zorder=-10, **kwds)
                 p += point([(0,0)], color = "white", size = 50, zorder=-9)
-        nonsymmetric_vertices = generate_nonsymmetric_vertices(fn, f)
-        kwds = { 'legend_label' : "Symmetry violated" }
-        plot_kwds_hook(kwds)
-        if fn.is_continuous():
-            nonsymmetric_vertices = {(x,y) for (x, y, xeps, yeps) in nonsymmetric_vertices}
-            p += point(list(nonsymmetric_vertices),
-                       color = "mediumvioletred", size = 50, zorder=5, **kwds)
-            p += point([ (y,x) for (x,y) in nonsymmetric_vertices], color = "mediumvioletred", size = 50, zorder=5)
-        else:
-            new_legend_label = False
-            for (x, y, xeps, yeps) in nonsymmetric_vertices:
-                new_legend_label = True
-                if (xeps, yeps) == (0, 0):
-                    p += point([x, y], color="mediumvioletred", size=20, zorder=5)
-                else:
-                    p += disk([x, y], 0.03, (yeps* pi/2, (1 - xeps) * pi/2), color="mediumvioletred", zorder=5)
-                if x != y:
+        if f is not None:
+            nonsymmetric_vertices = generate_nonsymmetric_vertices(fn, f)
+            kwds = { 'legend_label' : "Symmetry violated" }
+            plot_kwds_hook(kwds)
+            if fn.is_continuous():
+                nonsymmetric_vertices = {(x,y) for (x, y, xeps, yeps) in nonsymmetric_vertices}
+                p += point(list(nonsymmetric_vertices),
+                           color = "mediumvioletred", size = 50, zorder=5, **kwds)
+                p += point([ (y,x) for (x,y) in nonsymmetric_vertices], color = "mediumvioletred", size = 50, zorder=5)
+            else:
+                new_legend_label = False
+                for (x, y, xeps, yeps) in nonsymmetric_vertices:
+                    new_legend_label = True
                     if (xeps, yeps) == (0, 0):
-                        p += point([y, x], color="mediumvioletred", size=20, zorder=5)
+                        p += point([x, y], color="mediumvioletred", size=20, zorder=5)
                     else:
-                        p += disk([y, x], 0.03, (xeps* pi/2, (1 - yeps) * pi/2), color="mediumvioletred", zorder=5)
-            if new_legend_label:
-                # add legend_label
-                p += point([(0,0)], color = "mediumvioletred", size = 50, zorder=-10, **kwds)
-                p += point([(0,0)], color = "white", size = 50, zorder=-9)
+                        p += disk([x, y], 0.03, (yeps* pi/2, (1 - xeps) * pi/2), color="mediumvioletred", zorder=5)
+                    if x != y:
+                        if (xeps, yeps) == (0, 0):
+                            p += point([y, x], color="mediumvioletred", size=20, zorder=5)
+                        else:
+                            p += disk([y, x], 0.03, (xeps* pi/2, (1 - yeps) * pi/2), color="mediumvioletred", zorder=5)
+                if new_legend_label:
+                    # add legend_label
+                    p += point([(0,0)], color = "mediumvioletred", size = 50, zorder=-10, **kwds)
+                    p += point([(0,0)], color = "white", size = 50, zorder=-9)
     if show_projections:
         p += plot_projections_at_borders(fn)
     if show_function:
@@ -1030,6 +1031,9 @@ def ticks_keywords(function, y_ticks_for_breakpoints=False):
     Compute `plot` keywords for displaying the ticks.
     """
     xticks = function.end_points()
+    f = find_f(function, no_error_if_not_minimal_anyway=True)
+    if f is not None and not f in xticks:
+        xticks.append(f)
     xtick_formatter = [ "$%s$" % latex(x) for x in xticks ]
     #xtick_formatter = 'latex'  # would not show rationals as fractions
     ytick_formatter = None
@@ -1038,7 +1042,7 @@ def ticks_keywords(function, y_ticks_for_breakpoints=False):
         ytick_formatter = xtick_formatter
     else:
         #yticks = 1/5
-        yticks = uniq([ y for limits in function.limits_at_end_points() for y in limits if y is not None ])
+        yticks = uniq([1] + [ y for limits in function.limits_at_end_points() for y in limits if y is not None ])
         ytick_formatter = [ "$%s$" % latex(y) for y in yticks ]
     ## FIXME: Can we influence ticks placement as well so that labels don't overlap?
     ## or maybe rotate labels 90 degrees?
@@ -1416,18 +1420,19 @@ class FastPiecewise (PiecewisePolynomial):
         self._values_at_end_points = values_at_end_points
         self._limits_at_end_points = limits_at_end_points
         self._periodic_extension = periodic_extension
+        self._call_cache = dict()
 
         is_continuous = True
         if len(end_points) == 1 and end_points[0] is None:
             is_continuous = False
         elif len(end_points)>= 2:
-            [l0, m0, r0] = limits_at_end_points[0]
-            [l1, m1, r1] = limits_at_end_points[-1]
+            [m0, r0, l0] = limits_at_end_points[0]
+            [m1, r1, l1] = limits_at_end_points[-1]
             if m0 is None or r0 is None or  m0 != r0 or l1 is None or m1 is None or l1 != m1:
                 is_continuous = False
             else:
                 for i in range(1, len(end_points)-1):
-                    [l, m, r] = limits_at_end_points[i]
+                    [m, r, l] = limits_at_end_points[i]
                     if l is None or m is None or r is None or not(l == m == r):
                         is_continuous = False
                         break
@@ -1606,7 +1611,6 @@ class FastPiecewise (PiecewisePolynomial):
             return self.functions()[ith[i]]
         raise ValueError,"Value not defined at point %s, outside of domain." % x0
 
-    @cached_method
     def __call__(self,x0):
         """
         Evaluates self at x0. 
@@ -1674,6 +1678,10 @@ class FastPiecewise (PiecewisePolynomial):
             ...
             ValueError: Value not defined at point 3, outside of domain.
         """
+        # fast path 
+        result = self._call_cache.get(x0)
+        if result is not None:
+            return result
         # Remember that intervals are sorted according to their left endpoints; singleton has priority.
         endpts = self.end_points()
         ith = self._ith_at_end_points
@@ -1682,13 +1690,17 @@ class FastPiecewise (PiecewisePolynomial):
             raise ValueError,"Value not defined at point %s, outside of domain." % x0
         if x0 == endpts[i]:
             if self._values_at_end_points[i] is not None:
-                return self._values_at_end_points[i]
+                result = self._values_at_end_points[i]
+                self._call_cache[x0] = result
+                return result
             else:
                 raise ValueError,"Value not defined at point %s, outside of domain." % x0
         if i == 0:
             raise ValueError,"Value not defined at point %s, outside of domain." % x0
         if is_pt_in_interval(self._intervals[ith[i]],x0):
-            return self.functions()[ith[i]](x0)
+            result = self.functions()[ith[i]](x0)
+            self._call_cache[x0] = result
+            return result
         raise ValueError,"Value not defined at point %s, outside of domain." % x0
 
     def limits(self, x0):
@@ -1838,7 +1850,8 @@ class FastPiecewise (PiecewisePolynomial):
         return self + (-other)
 
     ## Following just fixes a bug in the plot method in piecewise.py
-    ## (see doctests below).  Also adds plotting of single points.
+    ## (see doctests below).  Also adds plotting of single points
+    ## and discontinuity markers.
     def plot(self, *args, **kwds):
         """
         Returns the plot of self.
@@ -1856,6 +1869,7 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f = FastPiecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
             sage: P = f.plot(rgbcolor=(0.7,0.1,0), plot_points=40)
             sage: P
+            Graphics object...
         
         Remember: to view this, type show(P) or P.save("path/myplot.png")
         and then open it in a graphics viewer such as GIMP.
@@ -1934,6 +1948,8 @@ class FastPiecewise (PiecewisePolynomial):
             point_kwds['alpha'] = kwds['alpha']
         if 'legend_label' in kwds and self.is_discrete():
             point_kwds['legend_label'] = kwds['legend_label']
+        # Whether to plot discontinuity markers
+        discontinuity_markers = kwds.pop('discontinuity_markers', True)
         # record last right endpoint, then compare with next left endpoint to decide whether it needs to be plotted.
         last_end_point = []
         last_closed = True
@@ -1952,28 +1968,29 @@ class FastPiecewise (PiecewisePolynomial):
             if (xmax is not None) and (b > xmax):
                 b = xmax
                 right_closed = True
-            # Handle open/half-open intervals here
-            if (a < b) or (a == b) and (left_closed) and (right_closed):
-                if not (last_closed or last_end_point == [a, f(a)] and left_closed):
-                    # plot last open right endpoint
-                    g += point(last_end_point, color=color, pointsize=23, **point_kwds)
-                    delete_one_time_plot_kwds(point_kwds)
-                    g += point(last_end_point, rgbcolor='white', pointsize=10, **point_kwds)
-                if last_closed and last_end_point != [] and last_end_point != [a, f(a)] and not left_closed:
-                    # plot last closed right endpoint
-                    g += point(last_end_point, color=color, pointsize=23, **point_kwds)
-                    delete_one_time_plot_kwds(point_kwds)
-                if not (left_closed or last_end_point == [a, f(a)] and last_closed):
-                    # plot current open left endpoint
-                    g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
-                    delete_one_time_plot_kwds(point_kwds)
-                    g += point([a, f(a)], rgbcolor='white', pointsize=10, **point_kwds)
-                if left_closed and last_end_point != [] and last_end_point != [a, f(a)] and not last_closed:
-                    # plot current closed left endpoint
-                    g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
-                    delete_one_time_plot_kwds(point_kwds)
-                last_closed = right_closed
-                last_end_point = [b, f(b)]
+            if discontinuity_markers:
+                # Handle open/half-open intervals here
+                if a < b or (a == b and left_closed and right_closed):
+                    if not (last_closed or last_end_point == [a, f(a)] and left_closed):
+                        # plot last open right endpoint
+                        g += point(last_end_point, color=color, pointsize=23, **point_kwds)
+                        delete_one_time_plot_kwds(point_kwds)
+                        g += point(last_end_point, rgbcolor='white', pointsize=10, **point_kwds)
+                    if last_closed and last_end_point != [] and last_end_point != [a, f(a)] and not left_closed:
+                        # plot last closed right endpoint
+                        g += point(last_end_point, color=color, pointsize=23, **point_kwds)
+                        delete_one_time_plot_kwds(point_kwds)
+                    if not (left_closed or last_end_point == [a, f(a)] and last_closed):
+                        # plot current open left endpoint
+                        g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
+                        delete_one_time_plot_kwds(point_kwds)
+                        g += point([a, f(a)], rgbcolor='white', pointsize=10, **point_kwds)
+                    if left_closed and last_end_point != [] and last_end_point != [a, f(a)] and not last_closed:
+                        # plot current closed left endpoint
+                        g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
+                        delete_one_time_plot_kwds(point_kwds)
+                    last_closed = right_closed
+                    last_end_point = [b, f(b)]
             if a < b:
                 # We do not plot anything if a==b because
                 # otherwise plot complains that
@@ -1984,11 +2001,11 @@ class FastPiecewise (PiecewisePolynomial):
                 # piece to the legend separately (trac #12651).
                 delete_one_time_plot_kwds(kwds)
                 #delete_one_time_plot_kwds(point_kwds)
-            elif (a == b) and (left_closed) and (right_closed):
+            elif a == b and left_closed and right_closed:
                 g += point([a, f(a)], color=color, pointsize=23, **point_kwds)
                 delete_one_time_plot_kwds(point_kwds)
         # plot open rightmost endpoint. minimal functions don't need this.
-        if not last_closed:
+        if discontinuity_markers and not last_closed:
             g += point(last_end_point, color=color,pointsize=23, **point_kwds)
             delete_one_time_plot_kwds(point_kwds)
             g += point(last_end_point, rgbcolor='white', pointsize=10, **point_kwds)
@@ -2538,6 +2555,11 @@ class FunctionalDirectedMove (FastPiecewise):
         new_domain = list(intersection_of_coho_intervals([domain, intervals, preimages]))
         return FunctionalDirectedMove(new_domain, self.directed_move)
 
+    def plot(self, *args, **kwds):
+        kwds = copy(kwds)
+        kwds['discontinuity_markers'] = False
+        return FastPiecewise.plot(self, *args, **kwds)
+
 @cached_function
 def generate_functional_directed_moves(fn, restrict=False):
     """
@@ -2800,10 +2822,10 @@ def scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, r
         was_on = on
         if tag:                                       # interval event
             interval_indicator -= delta
-            assert(interval_indicator) >= 0
+            assert(interval_indicator) >= 0, "interval_indicator should stay non-negative; required sort order must be violated"
         else:                                           # remove event
             remove_indicator -= delta
-            assert(remove_indicator) >= 0
+            assert(remove_indicator) >= 0, "remove_indicator should stay non-negative; required sort order must be violated"
         now_on = interval_indicator > 0 and remove_indicator == 0
         if not was_on and now_on: # switched on
             yield (x, epsilon), -1, None
@@ -2811,8 +2833,8 @@ def scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, r
             yield (x, epsilon), +1, None
         on = now_on
     # No unbounded intervals:
-    assert interval_indicator == 0
-    assert remove_indicator == 0
+    assert interval_indicator == 0, "interval_indicator should be zero at the end of the scan"
+    assert remove_indicator == 0, "remove_indicator should be zero at the end of the scan"
 
 def intersection_of_coho_intervals(interval_lists):
     """Compute the intersection of the union of intervals. 
@@ -3051,7 +3073,7 @@ def plot_perturbation_diagram(fn, perturbation=None, xmin=0, xmax=1):
 
     To show only a part of the diagram, use::
 
-        sage: show(plot_perturbation_diagram(h, 1), xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)  # not tested
+        sage: plot_perturbation_diagram(h, 1).show(xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)  # not tested
     """
     if perturbation is None:
        perturbation = 1
@@ -3386,7 +3408,7 @@ def plot_completion_diagram(fn, perturbation=None):
     
     To view a part only, use::
 
-        sage: show(plot_completion_diagram(h), xmin=0.3, xmax=0.55, ymin=0.3, ymax=0.55) # not tested
+        sage: plot_completion_diagram(h).show(xmin=0.3, xmax=0.55, ymin=0.3, ymax=0.55) # not tested
     """
     if not (hasattr(fn, '_completion') and fn._completion.is_complete):
         extremality_test(fn, show_plots=False)
@@ -3550,6 +3572,34 @@ def random_piecewise_function(xgrid=10, ygrid=10, continuous_proba=1, symmetry=T
             pieces += [piece2[i], piece1[i+1]]
         return FastPiecewise(pieces, merge=True)
 
+def is_all_QQ_fastpath(values):
+    """
+    This version does not do the full check whether it can be coerced to QQ,
+    which is slow for RealNumberField.
+    """
+    for x in values:
+        if not isinstance(x, (int, long, Rational, Integer)):
+            return False
+    return True
+
+from sage.rings.number_field.number_field_element import is_NumberFieldElement
+
+def is_all_the_same_number_field_fastpath(values):
+    """
+    This version does not try coercions and compares fields using 'is', rather than their comparison operator.
+    """
+    number_field_seen = None
+    for x in values:
+        if is_NumberFieldElement(x):
+            if number_field_seen:
+                if number_field_seen is not x.parent():
+                    return False
+            else:
+                number_field_seen = x.parent()
+        else:
+            return False
+    return True
+
 def is_QQ_linearly_independent(*numbers):
     """
     Test if `numbers` are linearly independent over `QQ`.
@@ -3576,14 +3626,16 @@ def is_QQ_linearly_independent(*numbers):
     elif len(numbers) == 1:
         return numbers[0] != 0
     # fast path for rationals
-    all_QQ, numbers = is_all_QQ(numbers)
-    if all_QQ:
+    if is_all_QQ_fastpath(numbers):
         return False
-    # otherwise try to coerce to common number field
-    numbers = nice_field_values(numbers, RealNumberField)
-    if not is_real_number_field_element(numbers[0]):
-        raise ValueError, "Q-linear independence test only implemented for algebraic numbers"
-    coordinate_matrix = matrix(QQ, [x.parent().0.coordinates_in_terms_of_powers()(x) for x in numbers])
+    if not is_all_the_same_number_field_fastpath(numbers):
+        # try to coerce to common number field
+        numbers = nice_field_values(numbers, RealNumberField)
+        if not is_NumberFieldElement(numbers[0]):
+            if is_all_QQ(numbers):
+                return False
+            raise ValueError, "Q-linear independence test only implemented for algebraic numbers"
+    coordinate_matrix = matrix(QQ, [x.list() for x in numbers])
     return rank(coordinate_matrix) == len(numbers)
 
 def compose_directed_moves(A, B, show_plots=False):
@@ -3600,7 +3652,7 @@ def compose_directed_moves(A, B, show_plots=False):
         A_domain_preimages = [ B.apply_to_coho_interval(A_domain_interval, inverse=True) \
                                for A_domain_interval in A.intervals() ]
         A_domain_preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
-        result_domain_intervals = intersection_of_coho_intervals([A_domain_preimages, B.intervals()])
+        result_domain_intervals = list(intersection_of_coho_intervals([A_domain_preimages, B.intervals()])) # generator!
         if result_domain_intervals:
             result = FunctionalDirectedMove(result_domain_intervals, (A[0] * B[0], A[0] * B[1] + A[1]))
         else:
@@ -3671,11 +3723,16 @@ def reduce_with_dense_moves(functional_directed_move, dense_moves, show_plots=Fa
         sage: reduce_with_dense_moves(FunctionalDirectedMove([[1/10,7/10]],(1, 1/10)), [DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]]), DenseDirectedMove([[[6/20,6/10],[4/10,6/10]]])])
         <FunctionalDirectedMove (1, 1/10) with domain [<Int[1/10, 3/10)>, <Int(1/2, 7/10]>], range [<Int[1/5, 2/5)>, <Int(3/5, 4/5]>]>
     """
+    if not dense_moves:
+        return functional_directed_move
     remove_lists = []
     for domain, codomain in itertools.chain(*[ dense_move.interval_pairs() for dense_move in dense_moves ]):
         remove_list = list(intersection_of_coho_intervals([[functional_directed_move.apply_to_coho_interval(codomain, inverse=True)], [domain]]))
-        remove_lists.append(remove_list)  # Each remove_list is sorted because each interval is a subinterval of the domain interval.
+        if remove_list:
+            remove_lists.append(remove_list)  # Each remove_list is sorted because each interval is a subinterval of the domain interval.
     #print remove_lists
+    if not remove_lists:
+        return functional_directed_move
     difference = union_of_coho_intervals_minus_union_of_coho_intervals([functional_directed_move.intervals()], remove_lists)
     if difference:
         result = FunctionalDirectedMove(difference, functional_directed_move.directed_move)
