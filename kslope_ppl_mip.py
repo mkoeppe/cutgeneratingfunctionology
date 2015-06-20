@@ -1779,7 +1779,11 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
                         print >> sage_file, "q = %s; f = %s; num_slopes = %s; divisor = %s; extreme = %r" % (q, f, num, v.divisor(), h_is_extreme)
                         print >> sage_file, "l = %s" % l
                         print >> sage_file, "sv = %s" % (v.coefficients(),)
-                        print >> sage_file, "h = pattern%s_sym_fn(l, sv)" % pattern  # this function only exists for pattern=0
+                        if pattern != 0:
+                            print >> sage_file, "v_n = %s" % (v_n,)
+                            print >> sage_file, "h = h_from_vertex_values(v_n)"
+                        else:
+                            print >> sage_file, "h = pattern%s_sym_fn(l, sv)" % pattern  # this function only exists for pattern=0
                     print "Saved to ", destdir + name, destdir + sage_name
     logging.disable(logging.NOTSET)
     return vv, nn
