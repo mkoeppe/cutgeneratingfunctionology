@@ -1722,7 +1722,7 @@ def pattern_polytope(vertices_color, fn):
 
 def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
                     test_extremality=False,
-                    more_ini_additive=True):
+                    more_ini_additive=True, count_components=False):
     """
     Computes the functions corresponding to the extreme points of the
     polytope corresponding to subadditivities and prescribed additivities,
@@ -1741,9 +1741,8 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
     v_set = set([])
     vv = []
     nn = []
-    if show_plots:
-        destdir = output_dir+"sym_mode_2d_diagrams/"+"patterns_%s/" % pattern
-        mkdir_p(destdir)
+    destdir = output_dir+"sym_mode_2d_diagrams/"+"patterns_%s/" % pattern
+    mkdir_p(destdir)
     logging.disable(logging.info)
     for v in polytope.minimized_generators():
         #v.coefficients() is numerator of component's slope value
@@ -1754,35 +1753,38 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
                 v_set.add(tuple(v_n))
                 vv.append(v_n)
                 nn.append(num)
-                print num, v.coefficients(), v.divisor()
+                #print num, v.coefficients(), v.divisor()
                 # Note: Imposing the invariance under x -> 1-x may
                 # result in a non-extreme all covered vertex-function.
                 h_is_extreme = 'untested'
-                if test_extremality:
+                h = None
+                if test_extremality or count_components or show_plots:
                     # all covered, continuous => extreme iff system of equations has unique solution
                     h = h_from_vertex_values(v_n)
+                if test_extremality:
                     h_is_extreme = simple_finite_dimensional_extremality_test(h, show_plots=False, f=None, oversampling=None, order=q, show_all_perturbations=False)
-                    if h_is_extreme:
-                        print "Extreme!"
-                    else:
-                        print "Not extreme"
+                num_components = 'not computed'
+                if count_components:
+                    num_components = len(generate_covered_intervals(h))
+                sage_name = "%sq%s_%s.sage" %(num, q, len(vv))
+                info = "q = %s; f = %s; num_components = %r; num_slopes = %s; divisor = %s; extreme = %r\n" % (q, f, num_components, num, v.divisor(), h_is_extreme)
+                info += "l = %s; " % l
+                info += "sv = %s\n" % (v.coefficients(),)
+                if pattern != 0:
+                    info += "v_n = %s\n" % (v_n,)
+                    info += "h = h_from_vertex_values(v_n)\n"
+                else:
+                    info += "h = pattern%s_sym_fn(l, sv)\n" % pattern  # this function only exists for pattern=0
+                print "##### ", destdir + sage_name
+                print info,
+                with open(destdir + sage_name, "w") as sage_file:
+                    print >> sage_file, info
                 if show_plots: # and h_is_extreme:
-                    h = h_from_vertex_values(v_n)
                     name = "%sq%s_%s.png" %(num, q, len(vv))
                     g = plot_2d_diagram(h, colorful=True)
                     figsize = 10 * l
                     g.save(destdir + name, figsize = figsize, show_legend=False)
-                    sage_name = "%sq%s_%s.sage" %(num, q, len(vv))
-                    with open(destdir + sage_name, "w") as sage_file:
-                        print >> sage_file, "q = %s; f = %s; num_slopes = %s; divisor = %s; extreme = %r" % (q, f, num, v.divisor(), h_is_extreme)
-                        print >> sage_file, "l = %s" % l
-                        print >> sage_file, "sv = %s" % (v.coefficients(),)
-                        if pattern != 0:
-                            print >> sage_file, "v_n = %s" % (v_n,)
-                            print >> sage_file, "h = h_from_vertex_values(v_n)"
-                        else:
-                            print >> sage_file, "h = pattern%s_sym_fn(l, sv)" % pattern  # this function only exists for pattern=0
-                    print "Saved to ", destdir + name, destdir + sage_name
+                    print "# Plot saved in", destdir + name
     logging.disable(logging.NOTSET)
     #return vv, nn
     if len(nn) > 0:
