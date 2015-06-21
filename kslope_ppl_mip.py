@@ -1732,10 +1732,7 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
     Prints lines:
     NUM-SLOPES  SV (input to pattern0_sym_fn)  DENOMINATOR
 
-    Return values:
-
-     vv - list of lists of function values (integers)
-     nn - list of number of slopes
+    Returns the max number of slopes found, regardless of extremality test.
     """
     q, f = pattern_q_and_f(l, pattern)
     vertices_color = pattern_vertices_color(l, pattern, more_ini_additive=more_ini_additive)
@@ -1787,7 +1784,11 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
                             print >> sage_file, "h = pattern%s_sym_fn(l, sv)" % pattern  # this function only exists for pattern=0
                     print "Saved to ", destdir + name, destdir + sage_name
     logging.disable(logging.NOTSET)
-    return vv, nn
+    #return vv, nn
+    if len(nn) > 0:
+        return max(nn)
+    else:
+        return 0
 
 def plot_pattern(l, more_ini_additive = True, show_plots=True):
     f = 18 * l + 11
