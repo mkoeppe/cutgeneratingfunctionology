@@ -1627,6 +1627,7 @@ to reduce the dimension.
     more_additivity = [(f3 + 2, q - 4), (f3 + 4, q - 10), (f2 - 2 , f2 - 2), (f3 + 4, q - 12), \
                        (f2 - 8, f2 - 8), (f2 - 17, f2 - 17), (f2 - 23, f2 - 23), \
                        (f3 + 8, q - 22), (f3 + 7, q - 19), (f2 - 14, f2 - 14)]
+    ## components merge: l>=3, s1=s2; l>=5, s3=s4; l>=10, s6=s7; l>=13, s8=s9; l>=16, s12=s13.
     l_seuil = [0, 1, 3, 4, 5, 10, 13, 15, 15, 16]
     changed_vertices = [more_additivity[i] for i in range(len(l_seuil)) if l >= l_seuil[i]]
     return changed_vertices
