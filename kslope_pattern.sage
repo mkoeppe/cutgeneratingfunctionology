@@ -1,6 +1,6 @@
 # attach kslope_ppl_mip.py
 
-def pattern_glpk_lp(l, more_ini_additive=True, exact_arithmetic=True):
+def pattern_glpk_lp(l, more_ini_additive=True, exact_arithmetic=True, reconstruct_rational=True):
     # pattern=0, guess obj function, solve lp
     q, f = pattern_q_and_f(l, 0)
     lp = MixedIntegerLinearProgram(maximization=True, solver = "GLPK")
@@ -11,6 +11,7 @@ def pattern_glpk_lp(l, more_ini_additive=True, exact_arithmetic=True):
     s += [var_slope[l + 1], var_slope[l + 1], var_slope[l + 1]]
     for k in range(l, 0, -1):
         s += [var_slope[k], var_slope[k + 1], var_slope[k]]
+    objfun = sum([16^i * s[i] for i in range(len(s))])
     s = s + [s[0]] + s[-1::-1]
     fn = [0] * (q + 1)
     for k in range(f):
@@ -18,7 +19,6 @@ def pattern_glpk_lp(l, more_ini_additive=True, exact_arithmetic=True):
     for k in range(f):
         fn[q - k] = fn[k]
     vertices_color = pattern_vertices_color(l, 0, more_ini_additive=more_ini_additive)
-    objfun = 0
     lp.add_constraint(fn[f] == 1)
     for i in range(1, f):
         lp.add_constraint(fn[i], max=1, min=0)
@@ -26,18 +26,20 @@ def pattern_glpk_lp(l, more_ini_additive=True, exact_arithmetic=True):
         for y in range(x, q - x + 1):
             if vertices_color[x, y] == 0:
                 lp.add_constraint(fn[x] + fn[y] == fn[x + y])
-                objfun += fn[x + y] - fn[x] - fn[y]
             else:
                 lp.add_constraint(fn[x] + fn[y] >= fn[x + y]) 
     lp.set_objective(objfun)
     #lp.show()
-    lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
-    lp.solver_parameter("primal_v_dual", "GLP_DUAL")
+    if exact_arithmetic:
+        lp.solver_parameter("simplex_or_intopt", "exact_simplex_only")
+    else:
+        lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+    lp.solver_parameter("primal_v_dual", "GLP_PRIMAL")  ### ???
     try:
         optval = lp.solve()
     except MIPSolverException:
         return 'NA', 'NA', 'NA', 'NA'
-    if exact_arithmetic:
+    if reconstruct_rational:
         b = lp.get_backend() 
         optsol = exact_optsol(b)
         k_slope = len(set(optsol) | set([-i for i in optsol]))
@@ -93,13 +95,13 @@ def exact_optsol(b):
                 Y[n] = b.row_bounds(i)[1]
             n += 1
 
-    filename = open(dir_math+"profiler/solveAXisY", "w")
+    #filename = open(dir_math+"profiler/solveAXisY", "w")
     #print >> filename, "A =",
     #print >> filename, sage_input(A)
     #print >> filename
     #print >> filename, "Y =",
     #print >> filename, sage_input(Y)
-    filename.close()
+    #filename.close()
 
     #X = A \ Y
     X = A.solve_right(Y, check=False)
@@ -110,10 +112,10 @@ def pattern_ppl_lp(l, more_ini_additive=True): #TOO SLOW
     pattern = 0
     q, f = pattern_q_and_f(l, pattern)
     vertices_color = pattern_vertices_color(l, pattern, more_ini_additive=more_ini_additive)
-    global fn
+    s = pattern_s(l, pattern)
     fn = pattern_fn(l, pattern)
-    #print fn
-    objfun = Linear_Expression(0)
+    #objfun = Linear_Expression(0)
+    objfun = sum([16^i * s[i] for i in range(len(s))])
     cs = Constraint_System()
     cs.insert(fn[0] == 0)
     cs.insert(fn[f] == 1)
@@ -124,12 +126,9 @@ def pattern_ppl_lp(l, more_ini_additive=True): #TOO SLOW
         for y in range(x, q - x + 1):
             if vertices_color[x, y] == 0:
                 cs.insert(fn[x] + fn[y] == fn[x + y])
-                objfun += fn[x + y] - fn[x] - fn[y]
             else:
                 cs.insert(fn[x] + fn[y] >= fn[x + y])
     lp = MIP_Problem(l + 2, cs, objfun)
-    #print lp.space_dimension()
-    #print lp.objective_function()
     optval = lp.optimal_value()
     optsol = lp.optimizing_point()
     s_coe = optsol.coefficients()
@@ -141,22 +140,24 @@ def pattern_ppl_lp(l, more_ini_additive=True): #TOO SLOW
     #return optval, optsol, k_slope, h, v_div
     return optval, optsol, k_slope, v, v_div
 
-def pattern_glpk_test(l_list, exact_arithmetic=True):
+def pattern_glpk_test(l_list, more_ini_additive=True, exact_arithmetic=True, reconstruct_rational=True):
     slopes = []
     for l in l_list:
         start_cpu_t = time.clock();
-        optval, optsol, k, v_glpk = pattern_glpk_lp(l, exact_arithmetic=exact_arithmetic);
+        optval, optsol, k, v_glpk = pattern_glpk_lp(l, more_ini_additive=more_ini_additive, \
+                                                    exact_arithmetic=exact_arithmetic, \
+                                                    reconstruct_rational=reconstruct_rational);
         cpu_t = time.clock();
         print l, k, cpu_t - start_cpu_t
         slopes.append(k)
     return slopes
 
-def pattern_ppl_test(l_list):
+def pattern_ppl_test(l_list, more_ini_additive=True):
     slopes = []
     for l in l_list:
         start_cpu_t = time.clock();
         try:
-            optval, optsol, k, v_ppl, v_div = pattern_ppl_lp(l);
+            optval, optsol, k, v_ppl, v_div = pattern_ppl_lp(l, more_ini_additive=more_ini_additive);
             cpu_t = time.clock();
             print l, k, cpu_t - start_cpu_t
             slopes.append(k)
