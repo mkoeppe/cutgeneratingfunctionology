@@ -1,6 +1,6 @@
 # attach kslope_ppl_mip.py
 
-def pattern_glpk_lp(l, more_ini_additive=False, exact_arithmetic=True, simplex_first=True, reconstruct_rational=False):
+def pattern_glpk_lp(l, more_ini_additive=False, exact_arithmetic=True, simplex_first=True, reconstruct_rational=False, objcoef=None):
     # pattern=0, guess obj function, solve lp
     q, f = pattern_q_and_f(l, 0)
     lp = MixedIntegerLinearProgram(maximization=True, solver = "GLPK")
@@ -11,7 +11,9 @@ def pattern_glpk_lp(l, more_ini_additive=False, exact_arithmetic=True, simplex_f
     s += [var_slope[l + 1], var_slope[l + 1], var_slope[l + 1]]
     for k in range(l, 0, -1):
         s += [var_slope[k], var_slope[k + 1], var_slope[k]]
-    objfun = sum([16^i * s[i] for i in range(len(s))])
+    if objcoef is None:
+        objcoef = [16^i for i in range(l+2)]
+    objfun = sum([objcoef[i] * var_slope[i] for i in range(l+2)])
     s = s + [s[0]] + s[-1::-1]
     fn = [0] * (q + 1)
     for k in range(f):
@@ -111,14 +113,17 @@ def exact_optsol(b):
     return X[0:ncol]    
             
 
-def pattern_ppl_lp(l, more_ini_additive=False): #TOO SLOW
+def pattern_ppl_lp(l, more_ini_additive=False, objcoef=None): #TOO SLOW
     pattern = 0
     q, f = pattern_q_and_f(l, pattern)
     vertices_color = pattern_vertices_color(l, pattern, more_ini_additive=more_ini_additive)
     s = pattern_s(l, pattern)
     fn = pattern_fn(l, pattern)
     #objfun = Linear_Expression(0)
-    objfun = sum([16^i * s[i] for i in range(len(s))])
+    #objfun = sum([16^i * s[i] for i in range(len(s))])
+    if objcoef is None:
+        objcoef = [16^i for i in range(l+2)]
+    objfun = sum([objcoef[i] * var_slope[i] for i in range(l+2)])
     cs = Constraint_System()
     cs.insert(fn[0] == 0)
     cs.insert(fn[f] == 1)
