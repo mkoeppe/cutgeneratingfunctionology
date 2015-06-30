@@ -284,7 +284,7 @@ def restrict_to_finite_group(function, f=None, oversampling=None, order=None):
     pieces = [ (singleton_interval(x/order), FastLinearFunction(0, function(x/order))) for x in range(order+1) ]
     return FastPiecewise(pieces)
 
-def interpolate_to_infinite_group(function):
+def interpolate_to_infinite_group(function, merge=True):
     """Interpolate the given `function` to make it a function in the
     infinite group problem.  
 
@@ -295,6 +295,8 @@ def interpolate_to_infinite_group(function):
     
     See `restrict_to_finite_group` for a discussion of the relation of
     the finite and infinite group problem.
+
+    If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
 
     EXAMPLES::
     
@@ -334,7 +336,7 @@ def interpolate_to_infinite_group(function):
             pieces.append(([last_x, x], FastLinearFunction(slope, intercept)))
         last_x = interval[1]
         last_y = fn(last_x)
-    return FastPiecewise(pieces)
+    return FastPiecewise(pieces, merge=merge)
 
 def two_slope_fill_in(function):
     ## Experimental.
