@@ -1802,6 +1802,8 @@ class FastPiecewise (PiecewisePolynomial):
 
     def __add__(self,other):
         """
+        Add `self` and another piecewise function.
+
         In contrast to PiecewisePolynomial.__add__, this does not do zero extension of domains.
         Rather, the result is only defined on the intersection of the domains.
 
@@ -1826,8 +1828,12 @@ class FastPiecewise (PiecewisePolynomial):
         return FastPiecewise([[interval, -f] for interval,f in self.list()], merge=True)
         
     def __mul__(self,other):
-        """In contrast to PiecewisePolynomial.__mul__, this does not do zero extension of domains.
-        Rather, the result is only defined on the intersection of the domains."""
+        """
+        Multiply `self` by a scalar or another piecewise function.
+
+        In contrast to PiecewisePolynomial.__mul__, this does not do zero extension of domains.
+        Rather, the result is only defined on the intersection of the domains.
+        """
         if not isinstance(other, FastPiecewise):
             # assume scalar multiplication
             return FastPiecewise([[interval, other*f] for interval,f in self.list()])
