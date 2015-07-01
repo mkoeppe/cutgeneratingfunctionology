@@ -19,6 +19,8 @@ load("extreme_functions_mlr_cpl3.sage")
 
 load("bug_examples.sage")
 
+import extreme_functions
+
 try:
     load("config.sage")
 except IOError:
