@@ -1722,17 +1722,34 @@ def pattern_polytope(vertices_color, fn):
 
 def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
                     test_extremality=False,
-                    more_ini_additive=True, count_components=False):
-    """
+                    more_ini_additive=True, count_components=False, use_sha1=True):
+    r"""
     Computes the functions corresponding to the extreme points of the
     polytope corresponding to subadditivities and prescribed additivities,
     according to `pattern` and size parameter `l` (called r in the paper).
-    Does not do extremality tests.
+
+    If `test_extremality` is True (default is False), check extremality.
 
     Prints lines:
     NUM-SLOPES  SV (input to pattern0_sym_fn)  DENOMINATOR
 
+    Creates files in the directory 'sym_mode_2d_diagrams/patterns_PATTERN/'
+    (this directory is created if it does not exist).
+
     Returns the max number of slopes found, regardless of extremality test.
+
+    EXAMPLES::
+
+        sage: pattern_extreme(3, 4, 0, test_extremality=True, count_components=True)
+        #####  ...
+        q = 130; f = 65; num_components = 8; num_slopes = 8; divisor = 205; extreme = True
+        l = 3; sv = (49, 9, 9, 3, -19)
+        h = pattern0_sym_fn(l, sv)
+        #####  ...
+        q = 130; f = 65; num_components = 6; num_slopes = 6; divisor = 33; extreme = True
+        l = 3; sv = (9, 1, 1, 1, -3)
+        h = pattern0_sym_fn(l, sv)
+        8
     """
     q, f = pattern_q_and_f(l, pattern)
     vertices_color = pattern_vertices_color(l, pattern, more_ini_additive=more_ini_additive)
@@ -1758,7 +1775,7 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
                 # result in a non-extreme all covered vertex-function.
                 h_is_extreme = 'untested'
                 h = None
-                if test_extremality or count_components or show_plots:
+                if test_extremality or count_components or show_plots or use_sha1:
                     # all covered, continuous => extreme iff system of equations has unique solution
                     h = h_from_vertex_values(v_n)
                 if test_extremality:
@@ -1766,7 +1783,11 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
                 num_components = 'not computed'
                 if count_components:
                     num_components = len(generate_covered_intervals(h))
-                sage_name = "%sq%s_%s.sage" %(num, q, len(vv))
+                if use_sha1:
+                    id = h.sha1()
+                else:
+                    id = len(vv)
+                sage_name = "%sq%s_%s.sage" %(num, q, id)
                 info = "q = %s; f = %s; num_components = %r; num_slopes = %s; divisor = %s; extreme = %r\n" % (q, f, num_components, num, v.divisor(), h_is_extreme)
                 info += "l = %s; " % l
                 info += "sv = %s\n" % (v.coefficients(),)
@@ -1780,7 +1801,7 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
                 with open(destdir + sage_name, "w") as sage_file:
                     print >> sage_file, info
                 if show_plots: # and h_is_extreme:
-                    name = "%sq%s_%s.png" %(num, q, len(vv))
+                    name = "%sq%s_%s.png" %(num, q, id)
                     g = plot_2d_diagram(h, colorful=True)
                     figsize = 10 * l
                     g.save(destdir + name, figsize = figsize, show_legend=False)
