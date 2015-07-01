@@ -1807,6 +1807,8 @@ class FastPiecewise (PiecewisePolynomial):
 
     def __add__(self,other):
         """
+        Add `self` and another piecewise function.
+
         In contrast to PiecewisePolynomial.__add__, this does not do zero extension of domains.
         Rather, the result is only defined on the intersection of the domains.
 
@@ -1831,8 +1833,12 @@ class FastPiecewise (PiecewisePolynomial):
         return FastPiecewise([[interval, -f] for interval,f in self.list()], merge=True)
         
     def __mul__(self,other):
-        """In contrast to PiecewisePolynomial.__mul__, this does not do zero extension of domains.
-        Rather, the result is only defined on the intersection of the domains."""
+        """
+        Multiply `self` by a scalar or another piecewise function.
+
+        In contrast to PiecewisePolynomial.__mul__, this does not do zero extension of domains.
+        Rather, the result is only defined on the intersection of the domains.
+        """
         if not isinstance(other, FastPiecewise):
             # assume scalar multiplication
             return FastPiecewise([[interval, other*f] for interval,f in self.list()])
@@ -2055,7 +2061,32 @@ class FastPiecewise (PiecewisePolynomial):
         # because of module trouble?
         return sib.name('FastPiecewise')(sib(self.list()))
 
+    def sha1(self):
+        """
+        Return a SHA-1 hash of the function.
 
+        The hash is intended to stay stable even when the code is updated.
+
+        Merged and unmerged versions have the same hash.
+
+        TESTS::
+
+            sage: h1 = piecewise_function_from_breakpoints_and_slopes([0, 1/4, 1/2, 1], [1, 1, -1], merge=False)
+            sage: h1.sha1()
+            'c562cf38581076609876b1c4fab604756690db7b'
+            sage: h2 = piecewise_function_from_breakpoints_and_slopes([0, 1/4, 1/2, 1], [1, 1, -1], merge=True)
+            sage: h2.sha1()
+            'c562cf38581076609876b1c4fab604756690db7b'
+
+        """
+        from hashlib import sha1
+        self_merged = self * 1            # in case we were constructed with merge=False!
+        data = zip(self_merged.end_points(), self_merged.limits_at_end_points())
+        is_rational, _ = is_all_QQ(flatten(data))
+        if not is_rational:
+            logging.warn("For functions with non-rational data, cannot guarantee a stable SHA-1 hash.")
+        stable_str = str(data)
+        return sha1(stable_str).hexdigest()
 
 def singleton_piece(x, y):
     return (singleton_interval(x), FastLinearFunction(0, y))
@@ -2196,7 +2227,7 @@ def nice_field_values(symb_values, field=None):
     return field_values
 
 #@logger
-def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field=None):
+def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field=None, merge=True):
     """
     Create a continuous piecewise function from `bkpt`, `slopes`, and `values`.
 
@@ -2209,6 +2240,8 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
     currently not checked.
 
     The data are coerced into a common convenient field via `nice_field_values`.
+
+    If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
     """
     if field is None:
         field = default_field
@@ -2222,22 +2255,25 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
     ## intercepts = [ canonicalize_number(intercept) for intercept in intercepts ]
     #print slopes
     return FastPiecewise([ [(bkpt[i],bkpt[i+1]), 
-                            fast_linear_function(slopes[i], intercepts[i])] for i in range(len(bkpt)-1) ])
+                            fast_linear_function(slopes[i], intercepts[i])] for i in range(len(bkpt)-1) ],
+                         merge=merge)
 
-def piecewise_function_from_breakpoints_and_values(bkpt, values, field=None):
+def piecewise_function_from_breakpoints_and_values(bkpt, values, field=None, merge=True):
     """
     Create a continuous piecewise function from `bkpt` and `values`.
 
     `bkpt` and `values` are two parallel lists; assuming `bpkt` is sorted (increasing).
 
     The data are coerced into a common convenient field via `nice_field_values`.
+
+    If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
     """
     if len(bkpt)!=len(values):
         raise ValueError, "Need to have the same number of breakpoints and values."
     slopes = [ (values[i+1]-values[i])/(bkpt[i+1]-bkpt[i]) for i in range(len(bkpt)-1) ]
-    return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field)
+    return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field, merge=merge)
 
-def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None):
+def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None, merge=True):
     """
     Create a continuous piecewise function from `bkpt` and `slopes`.
 
@@ -2246,15 +2282,17 @@ def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None):
     function always has value 0 on bkpt[0].  
 
     The data are coerced into a common convenient field via `nice_field_values`.
+
+    If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
     """
     if len(bkpt)!=len(slopes)+1:
         raise ValueError, "Need to have one breakpoint more than slopes."
     values = [0]
     for i in range(1,len(bkpt)-1):
         values.append(values[i-1] + slopes[i - 1] * (bkpt[i] - bkpt[i-1]))
-    return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field)
+    return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field, merge=merge)
 
-def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=None):
+def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=None, merge=True):
     """
     Create a continuous piecewise function from `interval_lengths` and `slopes`.
 
@@ -2264,6 +2302,7 @@ def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes
 
     The data are coerced into a common convenient field via `nice_field_values`.
 
+    If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
     """
     if len(interval_lengths)!=len(slopes):
         raise ValueError, "Number of given interval_lengths and slopes needs to be equal."
@@ -2273,7 +2312,7 @@ def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes
         if interval_lengths[i] < 0:
             raise ValueError, "Interval lengths must be non-negative."
         bkpt.append(bkpt[i]+interval_lengths[i])
-    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
+    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field, merge=merge)
 
 def discrete_function_from_points_and_values(points, values, field=None):
     """
