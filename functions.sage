@@ -2056,7 +2056,32 @@ class FastPiecewise (PiecewisePolynomial):
         # because of module trouble?
         return sib.name('FastPiecewise')(sib(self.list()))
 
+    def sha1(self):
+        """
+        Return a SHA-1 hash of the function.
 
+        The hash is intended to stay stable even when the code is updated.
+
+        Merged and unmerged versions have the same hash.
+
+        TESTS::
+
+            sage: h1 = piecewise_function_from_breakpoints_and_slopes([0, 1/4, 1/2, 1], [1, 1, -1], merge=False)
+            sage: h1.sha1()
+            'c562cf38581076609876b1c4fab604756690db7b'
+            sage: h2 = piecewise_function_from_breakpoints_and_slopes([0, 1/4, 1/2, 1], [1, 1, -1], merge=True)
+            sage: h2.sha1()
+            'c562cf38581076609876b1c4fab604756690db7b'
+
+        """
+        from hashlib import sha1
+        self_merged = self * 1            # in case we were constructed with merge=False!
+        data = zip(self_merged.end_points(), self_merged.limits_at_end_points())
+        is_rational, _ = is_all_QQ(flatten(data))
+        if not is_rational:
+            logging.warn("For functions with non-rational data, cannot guarantee a stable SHA-1 hash.")
+        stable_str = str(data)
+        return sha1(stable_str).hexdigest()
 
 def singleton_piece(x, y):
     return (singleton_interval(x), FastLinearFunction(0, y))
