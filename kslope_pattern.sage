@@ -1,10 +1,25 @@
 # attach kslope_ppl_mip.py
 
-def pattern_glpk_lp(l, more_ini_additive=False, exact_arithmetic=True, simplex_first=True, reconstruct_rational=False, objcoef=None):
-    # pattern=0, guess obj function, solve lp
+ppl_dim_threshold = 10
+
+def pattern_setup_lp(l, more_ini_additive=False, objcoef=None):
+    r"""
+    Set up a MixedIntegerLinearProgram() with respect to the prescribled painting (pattern=0, sym=True).
+
+    Returns:
+        - fn: function values at 1/q\Z in terms of s_0, s_1, ... , s_{l+1}
+    Global variables:
+        - pattern_lp: MixedIntegerLinearProgram()
+        - var_slope: slope variables s_0, s_1, ... , s_{l+1}
+        - var_delta: auxiliary variables deltafn;
+                     controle additive/subadd by pattern_lp.set_max(var_delta[deltafn], 0) or pattern_lp.set_max(var_delta[deltafn], None)      
+        - deltafn_dic: a dictionary, key = delta, value = a list [(i,j) such that \delta\pi[i,j]=key]
+
+    """
+    global pattern_lp, var_slope, var_delta, deltafn_dic
     q, f = pattern_q_and_f(l, 0)
-    lp = MixedIntegerLinearProgram(maximization=True, solver = "GLPK")
-    var_slope = lp.new_variable(real=True, nonnegative=False)
+    pattern_lp = MixedIntegerLinearProgram(maximization=True, solver = "GLPK")
+    var_slope = pattern_lp.new_variable(real=True, nonnegative=False)
     s = [var_slope[0], var_slope[1]]
     for k in range(1, l + 1):
         s += [var_slope[k], var_slope[k + 1]] * 3
@@ -21,22 +36,215 @@ def pattern_glpk_lp(l, more_ini_additive=False, exact_arithmetic=True, simplex_f
     for k in range(f):
         fn[q - k] = fn[k]
     vertices_color = pattern_vertices_color(l, 0, more_ini_additive=more_ini_additive)
-    lp.add_constraint(fn[f] == 1)
+    pattern_lp.add_constraint(fn[f] == 1)
     for i in range(1, f):
-        lp.add_constraint(fn[i], max=1, min=0)
+        pattern_lp.add_constraint(fn[i], max=1, min=0)
+    var_delta = pattern_lp.new_variable(real=True, nonnegative=True)
+    deltafn_dic = {}
     for x in range(1, f + 1):
         for y in range(x, q - x + 1):
-            if vertices_color[x, y] == 0:
-                lp.add_constraint(fn[x] + fn[y] == fn[x + y])
+            # cannot use mutable key: deltafn = fn[x] + fn[y] - fn[x + y]
+            deltafn = tuple_of_deltafn(l+2, fn[x] + fn[y] - fn[x + y])
+            if deltafn in deltafn_dic.keys():
+                deltafn_dic[deltafn].append((x,y))
             else:
-                lp.add_constraint(fn[x] + fn[y] >= fn[x + y]) 
-    lp.set_objective(objfun)
-    #lp.show()
+                deltafn_dic[deltafn] = [(x,y)]
+                pattern_lp.add_constraint(fn[x] + fn[y] - fn[x + y] - var_delta[deltafn], min=0, max=0)
+    for deltafn, xypairs in deltafn_dic.items():
+        is_additive = False
+        for x, y in xypairs:
+            if vertices_color[x, y] == 0:
+                is_additive = True
+                break
+        if is_additive:
+            pattern_lp.set_max(var_delta[deltafn], 0)
+        else:
+            pattern_lp.set_max(var_delta[deltafn], None)
+    pattern_lp.set_objective(objfun)
+    pattern_lp.solver_parameter("primal_v_dual", "GLP_PRIMAL")
+    return fn
+
+def pattern_positive_zero_undecided_deltafn(vertices_color):
+    """
+    According to the prescribled painting, compute the lists positive_deltafn, zero_deltafn and undecided_deltafn.
+    zero_deltafn does not include the implied zero deltafn.
+    pattern_lp, vertices_color will be modified.
+    """
+    positive_deltafn = []
+    zero_deltafn = []
+    undecided_deltafn = []
+
+    # look for implied additivities.
+    pattern_lp.solver_parameter("obj_upper_limit", 0.01)
+    pattern_lp.solver_parameter("primal_v_dual", "GLP_PRIMAL")
+    for deltafn, xypairs in deltafn_dic.items():
+        v = var_delta[deltafn]
+        if pattern_lp.get_max(v) == 0:
+            zero_deltafn.append(deltafn)
+        else:
+            pattern_lp.set_objective(v)
+            if glpk_simplex_exact_solve(pattern_lp) == 0:
+                pattern_lp.set_max(v, 0)
+        if pattern_lp.get_max(v) == 0:
+            for x, y in xypairs:
+                vertices_color[x, y] = 0
+
+    for deltafn, xypairs in deltafn_dic.items():
+        v = var_delta[deltafn]
+        # For deltafn that is not already 0,
+        # if (x,y) in xypairs forms an edge with initial additive points, then deltafn belongs to positive_deltafn,
+        # otherwise deltafn belongs to undecided
+        if pattern_lp.get_max(var_delta[deltafn])!= 0:
+            is_undecided = True
+            for x, y in xypairs:
+                if pattern_will_form_edge(x, y, vertices_color):
+                    is_undecided = False
+                    positive_deltafn.append(deltafn)
+                    break
+            if is_undecided:
+                undecided_deltafn.append(deltafn)
+    # FIXME: sort undecided_deltafn randomly ??
+    return positive_deltafn, zero_deltafn, undecided_deltafn
+
+def pattern_will_form_edge(x, y, vertices_color):
+    # assume 1<= x <=f, x <= y <= q-x
+    for (i, j) in [(-1,0), (-1, 1), (0, 1), (1, 0), (1, 1), (0, -1)]:
+        if vertices_color[x-1, y] == 0:
+            return True
+    return False
+
+def tuple_of_deltafn(n, linfun):
+    t = [0]*n
+    for i,j in linfun.dict().items():
+        if i != -1:
+            t[i] = int(j)
+    d = gcd(t)
+    if d == 0:
+        return tuple(t)
+    return tuple([x/d for x in t])
+
+def pattern_backtrack_polytope(l, k_slopes):
+    """
+    sage: ppl_dim_threshold = 1
+    sage: pattern_backtrack_polytope(1, 6)
+    sage: ppl_dim_threshold = 3
+    sage: pattern_backtrack_polytope(4, 10)
+    """
+    q, f = pattern_q_and_f(l, 0)
+    vertices_color = pattern_vertices_color(l, pattern=0, more_ini_additive=False)
+    fn = pattern_setup_lp(l)
+    positive_deltafn, zero_deltafn, undecided_deltafn = pattern_positive_zero_undecided_deltafn(vertices_color)
+    exp_dim= l+1
+    gen = pattern_branch_on_deltafn(positive_deltafn, zero_deltafn, undecided_deltafn, vertices_color, exp_dim)
+
+    cs_trivial = Constraint_System()
+    cs_trivial.insert(convert_linfun_to_linexp(fn[f]) == 1)
+    for i in range(1, f):
+        cs_trivial.insert(convert_linfun_to_linexp(fn[i]) >= 0)
+        cs_trivial.insert(convert_linfun_to_linexp(fn[i]) <= 1)
+    for deltafn, xypairs in deltafn_dic.items():
+        x, y = xypairs[0]
+        cs_trivial.insert(convert_linfun_to_linexp(fn[x] + fn[y] - fn[x + y]) >= 0)
+
+    for zero_delta_list in gen:
+        #print zero_delta_list
+        polytope = C_Polyhedron(cs_trivial)
+        for zero_delta in zero_delta_list:
+            x, y = deltafn_dic[zero_delta][0]
+            polytope.add_constraint(convert_linfun_to_linexp(fn[x] + fn[y] - fn[x + y]) == 0)
+        #yield polytope
+        max_num_slopes = pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
+                    test_extremality=False, polytope = polytope,
+                    more_ini_additive=False, count_components=False, use_sha1=True)
+        if max_num_slopes > 0:
+            return max_num_slopes
+
+def convert_linfun_to_linexp(linfun):
+    """
+    convert MILP's Linear_Function to PPL's Linear_Eexpression
+    """
+    return sum([ Variable(i)*j for i,j in linfun.dict().items() if i != -1])
+
+def pattern_branch_on_deltafn(positive_deltafn, zero_deltafn, undecided_deltafn, vertices_color, exp_dim):
+    if exp_dim <= ppl_dim_threshold:
+        yield zero_deltafn
+    elif undecided_deltafn:
+        branch_delta = undecided_deltafn[0]
+        # try setting branch_delta = 0
+        # check: no green edge caused by branch_delta = 0
+        is_feasible = True
+        for x, y in deltafn_dic[branch_delta]:
+            vertices_color[x, y] = 0
+            if pattern_will_form_edge(x, y, vertices_color):
+                is_feasible = False
+                break
+        # check: pattern_lp is feasible
+        if is_feasible:
+            pattern_lp.set_max(var_delta[branch_delta], 0)
+            pattern_lp.solver_parameter("simplex_or_intopt", "simplex_only")
+            pattern_lp.solver_parameter("primal_v_dual", "GLP_DUAL")
+            try:
+                pattern_lp.solve(objective_only=True)
+            except MIPSolverException:
+                # If infeasible, stop recursion
+                is_feasible = False
+        # check: none of the positive_deltafn becomes 0
+        if is_feasible:
+            pattern_lp.solver_parameter("primal_v_dual", "GLP_PRIMAL")
+            for pos_delta in positive_deltafn:
+                pattern_lp.set_objective(var_delta[pos_delta])
+                if glpk_simplex_exact_solve(pattern_lp) == 0:
+                    is_feasible = False
+                    break
+        # check: no green edge caused by implied_zero_deltafn
+        implied_zero_deltafn = []
+        still_undecided_deltafn = []
+        if is_feasible:
+            for deltafn in undecided_deltafn[1::]:
+                pattern_lp.set_objective(var_delta[deltafn])
+                if glpk_simplex_exact_solve(pattern_lp) == 0:
+                    implied_zero_deltafn.append(deltafn)
+                else:
+                    still_undecided_deltafn.append(deltafn)
+            for deltafn in implied_zero_deltafn:
+                for x, y in deltafn_dic[deltafn]:
+                    vertices_color[x, y] = 0
+                    pattern_lp.set_max(var_delta[deltafn], 0)
+                    if pattern_will_form_edge(x, y, vertices_color):
+                        is_feasible = False
+                        break
+                if not is_feasible:
+                    break
+        if is_feasible:
+            for result in  pattern_branch_on_deltafn(positive_deltafn, zero_deltafn+[branch_delta], \
+                                            still_undecided_deltafn, vertices_color, exp_dim-1):
+                yield result
+        for deltafn in [branch_delta]+implied_zero_deltafn:
+            pattern_lp.set_max(var_delta[deltafn], None)
+            for x, y in deltafn_dic[deltafn]:
+                vertices_color[x, y] = 1
+        for result in  pattern_branch_on_deltafn(positive_deltafn+[branch_delta], zero_deltafn, \
+                                            undecided_deltafn[1::], vertices_color, exp_dim):
+            yield result
+
+def glpk_simplex_exact_solve(lp):
+    lp.solver_parameter("simplex_or_intopt", "simplex_only")
+    try:
+        optval = lp.solve()
+    except MIPSolverException:
+        return 'Infeasible'
+    lp.solver_parameter("simplex_or_intopt", "exact_simplex_only")
+    optval = lp.solve()
+    return optval
+
+def pattern_glpk_lp(l, more_ini_additive=False, exact_arithmetic=True, simplex_first=True, reconstruct_rational=False, objcoef=None):
+    # pattern=0, guess obj function, solve lp
+    fn = pattern_setup_lp(l, more_ini_additive=more_ini_additive, objcoef=objcoef)
     if exact_arithmetic and not simplex_first:
         lp.solver_parameter("simplex_or_intopt", "exact_simplex_only")
     else:
-        lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
-    lp.solver_parameter("primal_v_dual", "GLP_PRIMAL")  ### ???
+        lp.solver_parameter("simplex_or_intopt", "simplex_only")
+    lp.solver_parameter("primal_v_dual", "GLP_PRIMAL")
     try:
         optval = lp.solve()
     except MIPSolverException:
