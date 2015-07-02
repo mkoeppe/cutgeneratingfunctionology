@@ -17,6 +17,7 @@ load("2q_search.sage")
 load("kslope_ppl_mip.py")
 load("quasi_periodic.sage")
 load("extreme_functions_mlr_cpl3.sage")
+load("kslope_pattern.sage")
 #load("old_walk_and_stability_interval_code.sage")
 
 load("bug_examples.sage")
