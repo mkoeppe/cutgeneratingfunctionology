@@ -73,6 +73,7 @@ def pattern_positive_zero_undecided_deltafn(vertices_color):
     positive_deltafn = []
     zero_deltafn = []
     undecided_deltafn = []
+    global pattern_lp, var_delta, deltafn_dic
 
     # look for implied additivities.
     #pattern_lp.solver_parameter("obj_upper_limit", 0.01)
@@ -132,12 +133,14 @@ def pattern_backtrack_polytope(l, k_slopes):
     sage: ppl_dim_threshold = 3
     sage: pattern_backtrack_polytope(4, 10)
     """
+    global deltafn_dic
+
     q, f = pattern_q_and_f(l, 0)
     vertices_color = pattern_vertices_color(l, pattern=0, more_ini_additive=False)
     fn = pattern_setup_lp(l)
     positive_deltafn, zero_deltafn, undecided_deltafn = pattern_positive_zero_undecided_deltafn(vertices_color)
-    exp_dim= l+1
-    gen = pattern_branch_on_deltafn(positive_deltafn, zero_deltafn, undecided_deltafn, vertices_color, exp_dim)
+    exp_dim_ = l+1
+    gen = pattern_branch_on_deltafn(positive_deltafn, zero_deltafn, undecided_deltafn, vertices_color, exp_dim_)
 
     # Create the ppl polytope (variables = var_slope[0]...var_slope[l+1]).
     # First put in the trivial constraints for minimal.
@@ -173,6 +176,8 @@ def convert_linfun_to_linexp(linfun):
     return sum([ Variable(i)*j for i,j in linfun.dict().items() if i != -1])
 
 def pattern_branch_on_deltafn(positive_deltafn, zero_deltafn, undecided_deltafn, vertices_color, exp_dim):
+    global pattern_lp, var_delta, deltafn_dic
+
     if exp_dim <= ppl_dim_threshold:
         yield zero_deltafn, exp_dim
     elif undecided_deltafn:
@@ -238,7 +243,7 @@ def pattern_branch_on_deltafn(positive_deltafn, zero_deltafn, undecided_deltafn,
                 if not is_feasible:
                     break
         if is_feasible:
-            for result in  pattern_branch_on_deltafn(positive_deltafn, zero_deltafn+[branch_delta], \
+            for result in pattern_branch_on_deltafn(positive_deltafn, zero_deltafn+[branch_delta], \
                                             still_undecided_deltafn, vertices_color, exp_dim-1):
                 yield result
         for deltafn in [branch_delta]+implied_zero_deltafn:
