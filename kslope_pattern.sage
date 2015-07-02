@@ -1,6 +1,6 @@
 # attach kslope_ppl_mip.py
 
-ppl_dim_threshold = 10
+vertex_enumeration_dim_threshold = 10
 
 def pattern_setup_lp(l, more_ini_additive=False, objcoef=None):
     r"""
@@ -15,6 +15,21 @@ def pattern_setup_lp(l, more_ini_additive=False, objcoef=None):
                      controle additive/subadd by pattern_lp.set_max(var_delta[deltafn], 0) or pattern_lp.set_max(var_delta[deltafn], None)      
         - deltafn_dic: a dictionary, key = delta, value = a list [(i,j) such that \delta\pi[i,j]=key]
 
+    EXAMPLES::
+
+        sage: fn = pattern_setup_lp(1, more_ini_additive=False, objcoef=None)
+        sage: fn[28]
+        2*x_0 + 12*x_1 + 14*x_2
+        sage: pattern_lp
+        sage: var_slope
+        MIPVariable of dimension 1.
+        sage: var_delta
+        MIPVariable of dimension 1.
+        Mixed Integer Program  ( minimization, 95 variables, 121 constraints )
+        sage: len(deltafn_dic.items())
+        92
+        sage: deltafn_dic.items()[0]
+        ((2, 10, 13), [(25, 29), (25, 33)])
     """
     global pattern_lp, var_slope, var_delta, deltafn_dic
     q, f = pattern_q_and_f(l, 0)
@@ -68,7 +83,21 @@ def pattern_positive_zero_undecided_deltafn(vertices_color):
     """
     According to the prescribled painting, compute the lists positive_deltafn, zero_deltafn and undecided_deltafn.
     zero_deltafn does not include the implied zero deltafn.
-    pattern_lp, vertices_color will be modified.
+    pattern_lp, vertices_color might be modified.
+
+    EXAMPLES::
+
+        sage: l = 1; q, f = pattern_q_and_f(l, 0);
+        sage: vertices_color = pattern_vertices_color(l, pattern=0, more_ini_additive=False)
+        sage: fn = pattern_setup_lp(l)
+        sage: positive_deltafn, zero_deltafn, undecided_deltafn = pattern_positive_zero_undecided_deltafn(vertices_color)
+        ...
+        sage: positive_deltafn
+        [(1, -1, 0), (1, 0, 1), (1, 0, -1), (1, 1, 0), (0, 1, -1), (1, 0, 0)]
+        sage: zero_deltafn
+        [(0, 0, 0)]
+        sage: undecided_deltafn
+        [(1, 7, 12), (1, 2, 5), (1, 2, -3), (1, 1, -2), (1, 8, 13), (1, 11, 14)]
     """
     positive_deltafn = []
     zero_deltafn = []
@@ -104,12 +133,17 @@ def pattern_positive_zero_undecided_deltafn(vertices_color):
                     is_undecided = False
                     positive_deltafn.append(deltafn)
                     break
-            if is_undecided and glpk_simplex_exact_solve(pattern_lp) == 0: # minimization
-                undecided_deltafn.append(deltafn)
+            if is_undecided:
+                pattern_lp.set_objective(v)
+                if glpk_simplex_exact_solve(pattern_lp) == 0: # minimization
+                    undecided_deltafn.append(deltafn)
     # FIXME: sort undecided_deltafn randomly ??
     return positive_deltafn, zero_deltafn, undecided_deltafn
 
 def pattern_will_form_edge(x, y, vertices_color):
+    r"""
+    
+    """
     # assume 1<= x <=f, x <= y <= q-x
     for (i, j) in [(-1,0), (-1, 1), (0, 1), (1, 0), (1, 1), (0, -1)]:
         if vertices_color[x-1, y] == 0:
@@ -128,9 +162,9 @@ def tuple_of_deltafn(n, linfun):
 
 def pattern_backtrack_polytope(l, k_slopes):
     """
-    sage: ppl_dim_threshold = 1
+    sage: igp.vertex_enumeration_dim_threshold = 1
     sage: pattern_backtrack_polytope(1, 6)
-    sage: ppl_dim_threshold = 3
+    sage: igp.vertex_enumeration_dim_threshold = 3
     sage: pattern_backtrack_polytope(4, 10)
     """
     global deltafn_dic
@@ -178,7 +212,7 @@ def convert_linfun_to_linexp(linfun):
 def pattern_branch_on_deltafn(positive_deltafn, zero_deltafn, undecided_deltafn, vertices_color, exp_dim):
     global pattern_lp, var_delta, deltafn_dic
 
-    if exp_dim <= ppl_dim_threshold:
+    if exp_dim <= vertex_enumeration_dim_threshold:
         yield zero_deltafn, exp_dim
     elif undecided_deltafn:
         branch_delta = undecided_deltafn[0]
