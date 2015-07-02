@@ -137,6 +137,8 @@ def pattern_backtrack_polytope(l, k_slopes):
     exp_dim= l+1
     gen = pattern_branch_on_deltafn(positive_deltafn, zero_deltafn, undecided_deltafn, vertices_color, exp_dim)
 
+    # Create the ppl polytope (variables = var_slope[0]...var_slope[l+1]).
+    # First put in the trivial constraints for minimal.
     cs_trivial = Constraint_System()
     cs_trivial.insert(convert_linfun_to_linexp(fn[f]) == 1)
     for i in range(1, f):
@@ -145,17 +147,18 @@ def pattern_backtrack_polytope(l, k_slopes):
     for deltafn, xypairs in deltafn_dic.items():
         x, y = xypairs[0]
         cs_trivial.insert(convert_linfun_to_linexp(fn[x] + fn[y] - fn[x + y]) >= 0)
-
+    # Then Add more constraints corresponding to deltafn = 0.
     for zero_delta_list in gen:
         #print zero_delta_list
         polytope = C_Polyhedron(cs_trivial)
         for zero_delta in zero_delta_list:
             x, y = deltafn_dic[zero_delta][0]
             polytope.add_constraint(convert_linfun_to_linexp(fn[x] + fn[y] - fn[x + y]) == 0)
-        #yield polytope
+        #Call pattern_extreme() to enumerate the vertices and record >=k slope functions.
         max_num_slopes = pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
                     test_extremality=False, polytope = polytope,
                     more_ini_additive=False, count_components=False, use_sha1=True)
+        #If >=k slope vertex function is found, stop backtracking.
         if max_num_slopes > 0:
             return max_num_slopes
 
