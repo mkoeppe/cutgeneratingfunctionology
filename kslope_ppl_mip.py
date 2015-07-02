@@ -1632,7 +1632,7 @@ to reduce the dimension.
     changed_vertices = [more_additivity[i] for i in range(len(l_seuil)) if l >= l_seuil[i]]
     return changed_vertices
 
-def pattern_vertices_color(l, pattern, more_ini_additive = True):
+def pattern_vertices_color(l, pattern=0, more_ini_additive=False):
     q, f = pattern_q_and_f(l, pattern)
     vertices_color = initial_vertices_color(q, f)
     changed_vertices = pattern_additive_vertices(l, pattern)
@@ -1721,7 +1721,7 @@ def pattern_polytope(vertices_color, fn):
     return polytope
 
 def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
-                    test_extremality=False,
+                    test_extremality=False, polytope = None,
                     more_ini_additive=True, count_components=False, use_sha1=True):
     r"""
     Computes the functions corresponding to the extreme points of the
@@ -1752,9 +1752,10 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
         8
     """
     q, f = pattern_q_and_f(l, pattern)
-    vertices_color = pattern_vertices_color(l, pattern, more_ini_additive=more_ini_additive)
     fn = pattern_fn(l, pattern)
-    polytope = pattern_polytope(vertices_color, fn)
+    if polytope is None:
+        vertices_color = pattern_vertices_color(l, pattern, more_ini_additive=more_ini_additive)
+        polytope = pattern_polytope(vertices_color, fn)
     v_set = set([])
     vv = []
     nn = []
