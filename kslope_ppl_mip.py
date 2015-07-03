@@ -862,23 +862,31 @@ def paint_complex_complete(k_slopes, q, f, vertices_color, last_covered_interval
     for v in picked_vertices:
         vertices_color[v] = 1
 
-def vertex_enumeration(polytope, prep=True, exp_dim=-1, vetime=False):
+def vertex_enumeration(polytope, exp_dim=-1, vetime=False):
     if vetime:
         st = os.times();
-    if not prep or (0 <= exp_dim < exp_dim_prep):
-        # no preprocessing
-        extreme_points = polytope.minimized_generators()
-    elif exp_dim >= exp_dim_lrs:
-        # preprocessing and vertex enumertation using redund + lrs
+    if exp_dim >= exp_dim_prep:
+        # do preprocessing
         cs = polytope.constraints()
-        cs_prep_lrs_str = remove_redundancy_from_cs(cs, return_lrs=True)
-        extreme_points = lrs_lrsinput_pploutput(cs_prep_lrs_str)
+        if exp_dim >= exp_dim_lrs:
+            # preprocessing and vertex enumertation using redund + lrs
+            cs_prep_lrs_str = remove_redundancy_from_cs(cs, return_lrs=True)
+            extreme_points = lrs_lrsinput_pploutput(cs_prep_lrs_str)
+        else:
+            # preprocessing and vertex enumertation using redund + ppl
+            cs_prep = remove_redundancy_from_cs(cs)
+            polytope = C_Polyhedron(cs_prep)
+            extreme_points = polytope.minimized_generators()
     else:
-        # preprocessing and vertex enumertation using redund + ppl
-        cs = polytope.constraints()
-        cs_prep = remove_redundancy_from_cs(cs)
-        polytope = C_Polyhedron(cs_prep)
-        extreme_points = polytope.minimized_generators()
+        # no preprocessing
+        if exp_dim >= exp_dim_prep:
+            # vertex enumertation using lrs
+            cs = polytope.constraints()
+            cs_lrs_str = convert_pplcs_to_lrs(cs)
+            extreme_points = lrs_lrsinput_pploutput(cs_lrs_str) 
+        else:
+            # vertex enumertation using ppl
+            extreme_points = polytope.minimized_generators()
     if vetime:
         et = os.times(); 
         logging.info("user=%s, sys=%s, child user=%s, child sys=%s" %(et[0]-st[0], et[1]-st[1], et[2]-st[2], et[3]-st[3]))
@@ -886,14 +894,14 @@ def vertex_enumeration(polytope, prep=True, exp_dim=-1, vetime=False):
         logging.info("Vertex enumeration time = %s" % t)
     return extreme_points
 
-def generate_vertex_values(k_slopes , q, polytope,  v_set=set([]), prep=True, exp_dim=-1, vetime=False):
+def generate_vertex_values(k_slopes , q, polytope,  v_set=set([]), exp_dim=-1, vetime=False):
     """
     Return vertices of the polytope, whose corresponding 
     piecewise_linear function h has at least  k_slopes.
     """
     if exp_dim == -1:
         exp_dim = int(q / 2) - 1
-    extreme_points = vertex_enumeration(polytope, prep=prep, exp_dim=exp_dim, vetime=vetime)
+    extreme_points = vertex_enumeration(polytope, exp_dim=exp_dim, vetime=vetime)
     for v in extreme_points:
         v_n = v.coefficients()
         num = len(set([v_n[i+1] - v_n[i] for i in range(q)]))
@@ -909,7 +917,7 @@ def h_from_vertex_values(v_n):
     values = [QQ(y) / v_d for y in v_n]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
-def search_kslope_example(k_slopes, q, f, mode='combined', prep=True):
+def search_kslope_example(k_slopes, q, f, mode='combined'):
     """
     Search for extreme functions that have required number of slope values.
 
@@ -984,23 +992,23 @@ def search_kslope_example(k_slopes, q, f, mode='combined', prep=True):
         #filename = open(dir_math + "profiler/dim_threshold/%sslope_q%s_f%s_%sdim.txt" % (k_slopes, q, f, dim_threshold), "w")
         #print >> filename, "k_slope = %s, q = %s, f = %s, dim_threshold = %s" % (k_slopes, q, f, dim_threshold)
         for result_polytope, result_covered_intervals, exp_dim in gen:
-            for values in generate_vertex_values(k_slopes, q, result_polytope, v_set, prep=prep, exp_dim=exp_dim):
+            for values in generate_vertex_values(k_slopes, q, result_polytope, v_set, exp_dim=exp_dim):
                 if all_intervals_covered(q, f, values, result_covered_intervals):
                     yield values
         #filename.close()
     elif mode == 'naive' or mode == 'sym_naive':
-        for values in generate_vertex_values(k_slopes, q, polytope, v_set, prep=prep, vetime=True):
+        for values in generate_vertex_values(k_slopes, q, polytope, v_set, vetime=True):
             if all_intervals_covered(q, f, values, []):
                 yield values
     else:
         for result_polytope in gen:
-            for values in generate_vertex_values(k_slopes, q, result_polytope, v_set, prep=prep):
+            for values in generate_vertex_values(k_slopes, q, result_polytope, v_set):
                 yield values
     if not v_set:
         logging.info("Example function not found. Please try again.")
 
 import time
-def search_kslope(k_slopes, q, f_list=None, mode='naive', prep=True, print_function=False):
+def search_kslope(k_slopes, q, f_list=None, mode='naive', print_function=False):
     """
     EXAMPLES::
 
@@ -1019,7 +1027,7 @@ def search_kslope(k_slopes, q, f_list=None, mode='naive', prep=True, print_funct
     for f in f_list:
         time_start = os.times()
         logging.info( "Search for extreme funtions with q = %s, f = %s, k_slopes >= %s, mode = %s" % (q, f, k_slopes, mode) )
-        for h in search_kslope_example(k_slopes, q, f, mode=mode, prep=prep):
+        for h in search_kslope_example(k_slopes, q, f, mode=mode):
             h_list.append(h)
             n_sol += 1
             if print_function:
@@ -1720,8 +1728,29 @@ def pattern_polytope(vertices_color, fn):
     polytope = C_Polyhedron(cs)
     return polytope
 
+def pattern_polytope_default_exp_dim(l, pattern=0, more_ini_additive=True):
+    if pattern == 0:
+        exp_dim = l + 1
+        if more_ini_additive:
+            if l >= 16: 
+                return exp_dim - 10
+            else:
+                l_seuil = [0, 1, 3, 4, 5, 10, 13, 15, 15, 16]
+                for x in l_seuil:
+                    if l >= x:
+                        exp_dim -= 1
+        return exp_dim
+    elif pattern == 1 or pattern == 4 or pattern == 6 or pattern == 7:
+        return l + 2
+    elif pattern == 2:
+        return 2 * l + 2
+    elif pattern == 3:
+        return l + 1  
+    elif pattern == 5:
+        return l + 4 
+
 def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
-                    test_extremality=False, polytope = None,
+                    test_extremality=False, polytope = None, exp_dim = None,
                     more_ini_additive=True, count_components=False, use_sha1=True):
     r"""
     Computes the functions corresponding to the extreme points of the
@@ -1756,13 +1785,15 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
     if polytope is None:
         vertices_color = pattern_vertices_color(l, pattern, more_ini_additive=more_ini_additive)
         polytope = pattern_polytope(vertices_color, fn)
+    if exp_dim is None:
+        exp_dim = pattern_polytope_default_exp_dim(l, pattern, more_ini_additive)
     v_set = set([])
     vv = []
     nn = []
     destdir = output_dir+"sym_mode_2d_diagrams/"+"patterns_%s/" % pattern
     mkdir_p(destdir)
     logging.disable(logging.info)
-    for v in polytope.minimized_generators():
+    for v in vertex_enumeration(polytope, exp_dim=exp_dim, vetime=False):
         #v.coefficients() is numerator of component's slope value
         v_n = [sum(p*q for p, q in zip(fn[i].coefficients(), v.coefficients())) for i in range(q+1)]
         num = len(set([v_n[i+1] - v_n[i] for i in range(q)]))
@@ -2259,13 +2290,13 @@ def lcdd_rational(in_str, verbose=False):
         print out_str
     return out_str
 
-def measure_stats_detail(q, f, prep=True):
+def measure_stats_detail(q, f):
     vertices_color = initial_vertices_color(q, f);
     cs = initial_cs(q, f, vertices_color)
     polytope = C_Polyhedron(cs)
     exp_dim = int(q / 2) - 1
     time_start = os.times()
-    extreme_points = vertex_enumeration(polytope, prep=prep, exp_dim=exp_dim)
+    extreme_points = vertex_enumeration(polytope, exp_dim=exp_dim)
     time_end = os.times()
     t = sum([time_end[i]-time_start[i] for i in range(4)])
     num = len(extreme_points)
@@ -2292,7 +2323,7 @@ def measure_stats_detail(q, f, prep=True):
         sdenominator.append(ZZ(divisor / gcd_s))
     return t, ZZ(num), slope, extreme, vdenominator, sdenominator     
     
-def write_stats_detail(q, prep=True, destdir=None):
+def write_stats_detail(q, fdestdir=None):
     if destdir is None:
         filename = sys.stdout
     else:
@@ -2310,7 +2341,7 @@ def write_stats_detail(q, prep=True, destdir=None):
     max_denominator_s = []
     
     for f in range(1, int(q/2)+1):
-        t, num, slope, extreme, vdenominator, sdenominator = measure_stats_detail(q, f, prep=prep)
+        t, num, slope, extreme, vdenominator, sdenominator = measure_stats_detail(q, f)
         t_enumeration.append(t)
         n_vertex.append(num)
         n_slope.append(slope)
@@ -2350,7 +2381,7 @@ def write_stats_detail(q, prep=True, destdir=None):
 
 def time_to_find_first_extreme(k, q, f, mode='combined'):
     st = os.times(); 
-    v = search_kslope_example(k, q, f, mode=mode, prep=True).next(); 
+    v = search_kslope_example(k, q, f, mode=mode).next(); 
     et = os.times(); 
     t = sum([et[i]-st[i] for i in range(4)]);
     return t, v
@@ -2360,7 +2391,7 @@ def times_in_naive_search(k, q, f):
     h_list = []
     logging.info( "Naive search for extreme funtions with q = %s, f = %s, k_slopes >= %s" % (q, f, k))
     time_start = os.times()
-    for h in search_kslope_example(k, q, f, mode='naive', prep=True):
+    for h in search_kslope_example(k, q, f, mode='naive'):
         n_sol += 1
         if n_sol == 1:
             time_end = os.times()

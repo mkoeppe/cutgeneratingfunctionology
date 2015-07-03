@@ -193,11 +193,11 @@ def pattern_backtrack_polytope(l, k_slopes):
         for zero_delta in zero_delta_list:
             x, y = deltafn_dic[zero_delta][0]
             polytope.add_constraint(convert_linfun_to_linexp(fn[x] + fn[y] - fn[x + y]) == 0)
-        print polytope
-        print "exp_dim = %s" % exp_dim
+        #print polytope
+        #print "exp_dim = %s" % exp_dim
         #Call pattern_extreme() to enumerate the vertices and record >=k slope functions.
         max_num_slopes = pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
-                    test_extremality=False, polytope = polytope,
+                    test_extremality=False, polytope = polytope, exp_dim = exp_dim,
                     more_ini_additive=False, count_components=False, use_sha1=True)
         #If >=k slope vertex function is found, stop backtracking.
         if max_num_slopes > 0:
