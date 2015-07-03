@@ -1728,27 +1728,6 @@ def pattern_polytope(vertices_color, fn):
     polytope = C_Polyhedron(cs)
     return polytope
 
-def pattern_polytope_default_exp_dim(l, pattern=0, more_ini_additive=True):
-    if pattern == 0:
-        exp_dim = l + 1
-        if more_ini_additive:
-            if l >= 16: 
-                return exp_dim - 10
-            else:
-                l_seuil = [0, 1, 3, 4, 5, 10, 13, 15, 15, 16]
-                for x in l_seuil:
-                    if l >= x:
-                        exp_dim -= 1
-        return exp_dim
-    elif pattern == 1 or pattern == 4 or pattern == 6 or pattern == 7:
-        return l + 2
-    elif pattern == 2:
-        return 2 * l + 2
-    elif pattern == 3:
-        return l + 1  
-    elif pattern == 5:
-        return l + 4 
-
 def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
                     test_extremality=False, polytope = None, exp_dim = None,
                     more_ini_additive=True, count_components=False, use_sha1=True):
@@ -1785,8 +1764,10 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
     if polytope is None:
         vertices_color = pattern_vertices_color(l, pattern, more_ini_additive=more_ini_additive)
         polytope = pattern_polytope(vertices_color, fn)
+        exp_dim = -1 # no preprocessing, ppl vertex enumeration
     if exp_dim is None:
-        exp_dim = pattern_polytope_default_exp_dim(l, pattern, more_ini_additive)
+        # no preprocessing, ppl vertex enumeration
+        exp_dim = -1
     v_set = set([])
     vv = []
     nn = []
