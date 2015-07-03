@@ -1,8 +1,13 @@
-# attach kslope_ppl_mip.py
+# Make sure current directory is in path.
+# That's not true while doctesting (sage -t).
+if '' not in sys.path:
+    sys.path = [''] + sys.path
+
+from igp import *
 
 vertex_enumeration_dim_threshold = 10
 
-def pattern_setup_lp(l, more_ini_additive=False, objcoef=None):
+def pattern_setup_lp(l, more_ini_additive=False, objcoef=None, use_auxiliary_delta=True):
     r"""
     Set up a MixedIntegerLinearProgram() with respect to the prescribled painting (pattern=0, sym=True).
 
@@ -10,25 +15,30 @@ def pattern_setup_lp(l, more_ini_additive=False, objcoef=None):
         - fn: function values at 1/q\Z in terms of s_0, s_1, ... , s_{l+1}
     Global variables:
         - pattern_lp: MixedIntegerLinearProgram()
-        - var_slope: slope variables s_0, s_1, ... , s_{l+1}
+        - : slope variables s_0, s_1, ... , s_{l+1}
+
+        use_auxiliary_delta=True:
         - var_delta: auxiliary variables deltafn;
-                     controle additive/subadd by pattern_lp.set_max(var_delta[deltafn], 0) or pattern_lp.set_max(var_delta[deltafn], None)      
+                     controle additive/subadd by pattern_lp.set_max(var_delta[deltafn], 0)
+                     or pattern_lp.set_max(var_delta[deltafn], None)
         - deltafn_dic: a dictionary, key = delta, value = a list [(i,j) such that \delta\pi[i,j]=key]
 
     EXAMPLES::
 
+        sage: import igp
+        sage: from igp import *
         sage: fn = pattern_setup_lp(1, more_ini_additive=False, objcoef=None)
         sage: fn[28]
         2*x_0 + 12*x_1 + 14*x_2
-        sage: pattern_lp
-        sage: var_slope
+        sage: igp.pattern_lp
+        Mixed Integer Program  ( maximization, 95 variables, 121 constraints )
+        sage: igp.var_slope
         MIPVariable of dimension 1.
-        sage: var_delta
+        sage: igp.var_delta
         MIPVariable of dimension 1.
-        Mixed Integer Program  ( minimization, 95 variables, 121 constraints )
-        sage: len(deltafn_dic.items())
+        sage: len(igp.deltafn_dic.items())
         92
-        sage: deltafn_dic.items()[0]
+        sage: igp.deltafn_dic.items()[0]
         ((2, 10, 13), [(25, 29), (25, 33)])
     """
     global pattern_lp, var_slope, var_delta, deltafn_dic
@@ -54,27 +64,35 @@ def pattern_setup_lp(l, more_ini_additive=False, objcoef=None):
     pattern_lp.add_constraint(fn[f] == 1)
     for i in range(1, f):
         pattern_lp.add_constraint(fn[i], max=1, min=0)
-    var_delta = pattern_lp.new_variable(real=True, nonnegative=True)
-    deltafn_dic = {}
-    for x in range(1, f + 1):
-        for y in range(x, q - x + 1):
-            # cannot use mutable key: deltafn = fn[x] + fn[y] - fn[x + y]
-            deltafn = tuple_of_deltafn(l+2, fn[x] + fn[y] - fn[x + y])
-            if deltafn in deltafn_dic.keys():
-                deltafn_dic[deltafn].append((x,y))
+    if use_auxiliary_delta:
+        var_delta = pattern_lp.new_variable(real=True, nonnegative=True)
+        deltafn_dic = {}
+        for x in range(1, f + 1):
+            for y in range(x, q - x + 1):
+                # cannot use mutable key: deltafn = fn[x] + fn[y] - fn[x + y]
+                deltafn = tuple_of_deltafn(l+2, fn[x] + fn[y] - fn[x + y])
+                if deltafn in deltafn_dic.keys():
+                    deltafn_dic[deltafn].append((x,y))
+                else:
+                    deltafn_dic[deltafn] = [(x,y)]
+                    pattern_lp.add_constraint(fn[x] + fn[y] - fn[x + y] - var_delta[deltafn], min=0, max=0)
+        for deltafn, xypairs in deltafn_dic.items():
+            is_additive = False
+            for x, y in xypairs:
+                if vertices_color[x, y] == 0:
+                    is_additive = True
+                    break
+            if is_additive:
+                pattern_lp.set_max(var_delta[deltafn], 0)
             else:
-                deltafn_dic[deltafn] = [(x,y)]
-                pattern_lp.add_constraint(fn[x] + fn[y] - fn[x + y] - var_delta[deltafn], min=0, max=0)
-    for deltafn, xypairs in deltafn_dic.items():
-        is_additive = False
-        for x, y in xypairs:
-            if vertices_color[x, y] == 0:
-                is_additive = True
-                break
-        if is_additive:
-            pattern_lp.set_max(var_delta[deltafn], 0)
-        else:
-            pattern_lp.set_max(var_delta[deltafn], None)
+                pattern_lp.set_max(var_delta[deltafn], None)
+    else:
+        for x in range(1, f + 1):
+            for y in range(x, q - x + 1):
+                if vertices_color[x, y] == 0:
+                    pattern_lp.add_constraint(fn[x] + fn[y] == fn[x + y])
+                else:
+                    pattern_lp.add_constraint(fn[x] + fn[y] >= fn[x + y])
     pattern_lp.set_objective(objfun)
     pattern_lp.solver_parameter("primal_v_dual", "GLP_PRIMAL")
     return fn
@@ -91,7 +109,9 @@ def pattern_positive_zero_undecided_deltafn(vertices_color):
         sage: vertices_color = pattern_vertices_color(l, pattern=0, more_ini_additive=False)
         sage: fn = pattern_setup_lp(l)
         sage: positive_deltafn, zero_deltafn, undecided_deltafn = pattern_positive_zero_undecided_deltafn(vertices_color)
+        glp_exact: 121 rows, 95 columns, 439 non-zeros
         ...
+        OPTIMAL SOLUTION FOUND
         sage: positive_deltafn
         [(1, -1, 0), (1, 0, 1), (1, 0, -1), (1, 1, 0), (0, 1, -1), (1, 0, 0)]
         sage: zero_deltafn
@@ -142,7 +162,18 @@ def pattern_positive_zero_undecided_deltafn(vertices_color):
 
 def pattern_will_form_edge(x, y, vertices_color):
     r"""
+    Return whether paiting (x, y) green on vertices_color will create a green edge. Assume x <= y.
     
+    EXAMPLES::
+
+        sage: l = 1; q, f = pattern_q_and_f(l, 0);
+        sage: vertices_color = pattern_vertices_color(l, pattern=0, more_ini_additive=False)
+        sage: pattern_will_form_edge(1, 1, vertices_color)
+        True
+        sage: pattern_will_form_edge(2, q, vertices_color)
+        True
+        sage: pattern_will_form_edge(2, q-1, vertices_color)
+        False
     """
     # assume 1<= x <=f, x <= y <= q-x
     for (i, j) in [(-1,0), (-1, 1), (0, 1), (1, 0), (1, 1), (0, -1)]:
@@ -151,6 +182,22 @@ def pattern_will_form_edge(x, y, vertices_color):
     return False
 
 def tuple_of_deltafn(n, linfun):
+    r"""
+    Convert a Linear Function (with variable index < n) to a n-tuple,
+    dividing by the gcd of all elements.
+
+    EXAMPLES::
+
+        sage: fn = pattern_setup_lp(1, more_ini_additive=False, objcoef=None)
+        sage: linfun = fn[5]; linfun
+        x_0 + 3*x_1 + x_2
+        sage: tuple_of_deltafn(3, linfun)
+        (1, 3, 1)
+        sage: linfun = fn[18]+fn[19]-fn[37]; linfun
+        2*x_0 + 8*x_1 + 6*x_2
+        sage: tuple_of_deltafn(3, linfun)
+        (1, 4, 3)
+    """
     t = [0]*n
     for i,j in linfun.dict().items():
         if i != -1:
@@ -161,11 +208,22 @@ def tuple_of_deltafn(n, linfun):
     return tuple([x/d for x in t])
 
 def pattern_backtrack_polytope(l, k_slopes):
-    """
-    sage: igp.vertex_enumeration_dim_threshold = 1
-    sage: pattern_backtrack_polytope(1, 6)
-    sage: igp.vertex_enumeration_dim_threshold = 3
-    sage: pattern_backtrack_polytope(4, 10)
+    r"""
+    (MAIN FUNCTION) Look for >=k_slopes vertex-functoins on prescribed painting with l stars in a chain.
+
+    Backtrack to find some green points such that they don't create new green edge.
+    Start the vertex-enumeration when exp_dim of the polytope is at most vertex_enumeration_dim_threshold.
+    Output the >=k_slopes vertex-functions (write to file), and max_num_slopes.
+
+    EXAMPLES::
+
+        sage: import igp
+        sage: igp.vertex_enumeration_dim_threshold = 1
+        sage: pattern_backtrack_polytope(1, 6) # long time
+        glp_exact: 121 rows, 95 columns, 439 non-zeros
+        ...
+        6
+        sage: pattern_backtrack_polytope(1, 8) # long time
     """
     global deltafn_dic
 
@@ -205,11 +263,26 @@ def pattern_backtrack_polytope(l, k_slopes):
 
 def convert_linfun_to_linexp(linfun):
     """
-    convert MILP's Linear_Function to PPL's Linear_Eexpression
+    convert MILP's Linear_Function to PPL's Linear_Eexpression.
+
+    EXAMPLES::
+
+        sage: fn = pattern_setup_lp(1, more_ini_additive=False, objcoef=None)
+        sage: linfun = fn[5]; linfun
+        x_0 + 3*x_1 + x_2
+        sage: type(linfun)
+        <type 'sage.numerical.linear_functions.LinearFunction'>
+        sage: linexp = convert_linfun_to_linexp(linfun); linexp
+        x0+3*x1+x2
+        sage: type(linexp)
+        <type 'sage.libs.ppl.Linear_Expression'>
     """
     return sum([ Variable(i)*j for i,j in linfun.dict().items() if i != -1])
 
 def pattern_branch_on_deltafn(positive_deltafn, zero_deltafn, undecided_deltafn, vertices_color, exp_dim):
+    r"""
+    Backtracking subroutine of pattern_backtrack_polytope().
+    """
     global pattern_lp, var_delta, deltafn_dic
 
     if exp_dim <= vertex_enumeration_dim_threshold:
@@ -289,6 +362,26 @@ def pattern_branch_on_deltafn(positive_deltafn, zero_deltafn, undecided_deltafn,
             yield result
 
 def glpk_simplex_exact_solve(lp):
+    r"""
+    Solve lp by glp_simplex + glp_exact
+
+    EXAMPLES::
+
+        sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = False)
+        sage: x, y = lp[0], lp[1]
+        doctest:... for details.
+        sage: lp.add_constraint(-2*x + y <= 1)
+        sage: lp.add_constraint(x - y <= 1)
+        sage: lp.add_constraint(x + y >= 2)
+        sage: lp.set_objective(x + y)
+        sage: glpk_simplex_exact_solve(lp)
+        glp_exact: 3 rows, 2 columns, 6 non-zeros
+        GNU MP bignum library is being used
+        *     2:   objval =                      2   (0)
+        *     2:   objval =                      2   (0)
+        OPTIMAL SOLUTION FOUND
+        2.0
+    """
     lp.solver_parameter("simplex_or_intopt", "simplex_only")
     try:
         optval = lp.solve()
@@ -299,29 +392,57 @@ def glpk_simplex_exact_solve(lp):
     return optval
 
 def pattern_glpk_lp(l, more_ini_additive=False, exact_arithmetic=True, simplex_first=True, reconstruct_rational=False, objcoef=None):
+    r"""
+    Find an extreme point of the polytope corresponding to the prescribed painting,
+    by solving the LP (given objective funtion's coefficient) using glp_simplex (+ glp_exact, with or without retrieving rational solution).
+    We hope to obtain many-slope vertex functions by choosing objcoef nicely.
+
+    Returns:
+        - optval: optimal value
+        - optsol: optimal solution s0, s1, ... , s_{l+1}
+        - k_slope: number of slopes of this vertex function
+        - v: vertex function's values at 1/q\Z.
+
+    EXAMPLES::
+
+        sage: optval, optsol, k_slope, v = pattern_glpk_lp(1, objcoef=(12,55,0))
+        glp_exact: ...
+        OPTIMAL SOLUTION FOUND
+        sage: k_slope
+        6
+        sage: optsol
+        {0: 0.23404255319148934, 1: 0.14893617021276595, 2: -0.10638297872340424}
+
+        sage: optval, optsol, k_slope, v = pattern_glpk_lp(1, reconstruct_rational=True,objcoef=(12,55,0))
+        glp_exact: ...
+        OPTIMAL SOLUTION FOUND
+        sage: optsol
+        (11/47, 7/47, -5/47)
+    """
     # pattern=0, guess obj function, solve lp
-    fn = pattern_setup_lp(l, more_ini_additive=more_ini_additive, objcoef=objcoef)
+    fn = pattern_setup_lp(l, more_ini_additive=more_ini_additive, objcoef=objcoef, use_auxiliary_delta=False)
+    q = len(fn) - 1
     if exact_arithmetic and not simplex_first:
-        lp.solver_parameter("simplex_or_intopt", "exact_simplex_only")
+        pattern_lp.solver_parameter("simplex_or_intopt", "exact_simplex_only")
     else:
-        lp.solver_parameter("simplex_or_intopt", "simplex_only")
-    lp.solver_parameter("primal_v_dual", "GLP_PRIMAL")
+        pattern_lp.solver_parameter("simplex_or_intopt", "simplex_only")
+    pattern_lp.solver_parameter("primal_v_dual", "GLP_PRIMAL")
     try:
-        optval = lp.solve()
+        optval = pattern_lp.solve()
     except MIPSolverException:
         return 'NA', 'NA', 'NA', 'NA'
     if exact_arithmetic and simplex_first:
-        lp.solver_parameter("simplex_or_intopt", "exact_simplex_only")
-        optval = lp.solve()
+        pattern_lp.solver_parameter("simplex_or_intopt", "exact_simplex_only")
+        optval = pattern_lp.solve()
     if reconstruct_rational:
-        b = lp.get_backend() 
+        b = pattern_lp.get_backend()
         optsol = exact_optsol(b)
         k_slope = len(set(optsol) | set([-i for i in optsol]))
         optval = 0
         for i in range(b.ncols()):
             optval += QQ(b.objective_coefficient(i)) * optsol[i]
     else:
-        optsol = lp.get_values(var_slope)
+        optsol = pattern_lp.get_values(var_slope)
         slopes = optsol.values()
         k_slope = len(set(slopes) | set([-i for i in slopes]))
     v = [0]
@@ -339,6 +460,28 @@ def pattern_glpk_lp(l, more_ini_additive=False, exact_arithmetic=True, simplex_f
     return optval, optsol, k_slope, v
 
 def exact_optsol(b):
+    r"""
+    Reconstruct exact rational basic solution. (solver = glp_simplex)
+
+    EXAMPLE::
+
+        sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = False)
+        sage: x, y = lp[0], lp[1]
+        sage: lp.add_constraint(-2*x + y <= 1)
+        sage: lp.add_constraint(x - y <= 1)
+        sage: lp.add_constraint(x + y >= 2)
+        sage: lp.set_objective(x + y)
+        sage: lp.solver_parameter("simplex_or_intopt", "simplex_only")
+        sage: lp.solve()
+        2.0
+        sage: lp.get_values(x)
+        1.5
+        sage: lp.get_values(y)
+        0.5
+        sage: b = lp.get_backend()
+        sage: exact_optsol(b)
+        (3/2, 1/2)
+    """
     #sage_input(b)
     ncol = b.ncols()
     nrow = b.nrows()
@@ -383,6 +526,22 @@ def exact_optsol(b):
             
 
 def pattern_ppl_lp(l, more_ini_additive=False, objcoef=None): #TOO SLOW
+    r"""
+    Similar to pattern_glpk_lp(). Uses PPL's MIP_Problem class for solving lp.
+    Exact arithmetics, but too slow.
+
+    EXAMPLE::
+
+        sage: optval, optsol, k_slope, v, v_div = pattern_ppl_lp(1, objcoef=(12,55,0))
+        sage: k_slope
+        6
+        sage: optsol
+        point(11/47, 7/47, -5/47)
+        sage: optval
+        11
+        sage: v_div
+        47
+    """
     pattern = 0
     q, f = pattern_q_and_f(l, pattern)
     vertices_color = pattern_vertices_color(l, pattern, more_ini_additive=more_ini_additive)
@@ -392,7 +551,7 @@ def pattern_ppl_lp(l, more_ini_additive=False, objcoef=None): #TOO SLOW
     #objfun = sum([16^i * s[i] for i in range(len(s))])
     if objcoef is None:
         objcoef = [16^i for i in range(l+2)]
-    objfun = sum([objcoef[i] * var_slope[i] for i in range(l+2)])
+    objfun = sum([objcoef[i] * Variable(i) for i in range(l+2)])
     cs = Constraint_System()
     cs.insert(fn[0] == 0)
     cs.insert(fn[f] == 1)
@@ -418,6 +577,19 @@ def pattern_ppl_lp(l, more_ini_additive=False, objcoef=None): #TOO SLOW
     return optval, optsol, k_slope, v, v_div
 
 def pattern_glpk_test(l_list, more_ini_additive=False, exact_arithmetic=True, simplex_first=True, reconstruct_rational=False):
+    r"""
+    Test the running times for pattern_glpk_lp() with glp_simplex + glp_exact + reconstruction.
+    See table in :ticket:`18735` comment 7.
+
+    Print l, number of slopes for the optimal solution, running time
+    Return a list of numbers of slopes
+
+    EXAMPLE::
+
+        sage: pattern_glpk_test(range(1,4),more_ini_additive=False, exact_arithmetic=False, simplex_first=False, reconstruct_rational=False)
+        1 2 ...
+        [2, 2, 8]
+    """
     slopes = []
     for l in l_list:
         start_cpu_t = time.clock();
@@ -430,6 +602,9 @@ def pattern_glpk_test(l_list, more_ini_additive=False, exact_arithmetic=True, si
     return slopes
 
 def pattern_ppl_test(l_list, more_ini_additive=False):
+    r"""
+    Test the performance of pattern_ppl_lp(). Similar to pattern_glpk_test().
+    """
     slopes = []
     for l in l_list:
         start_cpu_t = time.clock();
@@ -443,11 +618,5 @@ def pattern_ppl_test(l_list, more_ini_additive=False):
             print l, "NA", cpu_t - start_cpu_t
             slopes.append(-1)
     return slopes
-    
-def piecewise_function_from_values_and_evenlyspaced_bkpts(v):
-    q = len(v) - 1
-    bkpt = [i/q for i in range(q + 1)]
-    h = piecewise_function_from_breakpoints_and_values(bkpt, v)
-    return h
 
     
