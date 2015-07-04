@@ -9,13 +9,14 @@ vertex_enumeration_dim_threshold = 10
 
 def pattern_setup_lp(l, more_ini_additive=False, objcoef=None, use_auxiliary_delta=True):
     r"""
-    Set up a MixedIntegerLinearProgram() with respect to the prescribled painting (pattern=0, sym=True).
+    Set up a MixedIntegerLinearProgram() with respect to the prescribled painting,
+    where `pattern`=0, `sym`=True and the size parameter is `l`.
 
     Returns:
-        - fn: function values at 1/q\Z in terms of s_0, s_1, ... , s_{l+1}
+        - fn: a list of LinearFunction in terms of s_0, s_1, ... , s_{l+1}, corresponding to the function values at 1/q\Z.
     Global variables:
         - pattern_lp: MixedIntegerLinearProgram()
-        - : slope variables s_0, s_1, ... , s_{l+1}
+        - var_slope: slope variables s_0, s_1, ... , s_{l+1}
 
         use_auxiliary_delta=True:
         - var_delta: auxiliary variables deltafn;
@@ -209,7 +210,8 @@ def tuple_of_deltafn(n, linfun):
 
 def pattern_backtrack_polytope(l, k_slopes):
     r"""
-    (MAIN FUNCTION) Look for >=k_slopes vertex-functoins on prescribed painting with l stars in a chain.
+    (MAIN FUNCTION) Look for >=`k_slopes` vertex-functoins on prescribed painting
+    according to `pattern`=0 and size parameter `l`.
 
     Backtrack to find some green points such that they don't create new green edge.
     Start the vertex-enumeration when exp_dim of the polytope is at most vertex_enumeration_dim_threshold.
@@ -393,7 +395,7 @@ def glpk_simplex_exact_solve(lp):
 
 def pattern_glpk_lp(l, more_ini_additive=False, exact_arithmetic=True, simplex_first=True, reconstruct_rational=False, objcoef=None):
     r"""
-    Find an extreme point of the polytope corresponding to the prescribed painting,
+    Find an extreme point of the polytope corresponding to the prescribed painting (`pattern`=0 and size parameter `l`),
     by solving the LP (given objective funtion's coefficient) using glp_simplex (+ glp_exact, with or without retrieving rational solution).
     We hope to obtain many-slope vertex functions by choosing objcoef nicely.
 
@@ -619,10 +621,19 @@ def pattern_ppl_test(l_list, more_ini_additive=False):
             slopes.append(-1)
     return slopes
 
+##### The following uses PPL, Variable, Linear_Expression...
+
 def pattern_q_and_f(l, pattern):
-    """
+    r"""
+    Returns the values of q and f for the prescribed pattern.
+
     pattern == 0 corresponds to the pattern described in the paper.
     In the paper, r is what is called l here.
+
+    EXAMPLE::
+
+        sage: pattern_q_and_f(1, pattern=0)
+        (58, 29)
     """
     if pattern <= 3:
         f = 18 * l + 11
@@ -636,7 +647,7 @@ def pattern_q_and_f(l, pattern):
     return q, f
 
 def pattern_additive_vertices(l, pattern):
-    """
+    r"""
     Return a list of pairs (i, j) of integers i <= j
     such that (i, j)/q is a prescribed additivity.
 
@@ -645,6 +656,12 @@ def pattern_additive_vertices(l, pattern):
     pattern == 0 corresponds to the pattern described in the paper.
     Remaining patterns are undocumented.
     In the paper, r is what is called l here.
+
+    EXAMPLE::
+
+        sage: additive_vertices = pattern_additive_vertices(1, pattern=0)
+        sage: len(additive_vertices)
+        31
     """
     q, f = pattern_q_and_f(l, pattern)
     f2 = int(f / 2)
@@ -686,8 +703,8 @@ def pattern_additive_vertices(l, pattern):
 
 def pattern_more_additive_vertices(l, pattern):
     """
-    Extra additive points, to be added to pattern_additive_vertices
-to reduce the dimension.
+    Extra additive points, to be added to pattern_additive_vertices to reduce the dimension.
+    Experimental code.
     """
     q, f = pattern_q_and_f(l, pattern)
     f2 = int(f / 2)
@@ -701,6 +718,10 @@ to reduce the dimension.
     return changed_vertices
 
 def pattern_vertices_color(l, pattern=0, more_ini_additive=False):
+    r"""
+    Returns a (q+1)*(q+1) 0-1 array that describes the color of vertices in the prescribed painting
+    according to `pattern` and size parameter `l`.
+    """
     q, f = pattern_q_and_f(l, pattern)
     vertices_color = initial_vertices_color(q, f)
     changed_vertices = pattern_additive_vertices(l, pattern)
@@ -712,6 +733,21 @@ def pattern_vertices_color(l, pattern=0, more_ini_additive=False):
     return vertices_color
 
 def pattern_s(l, pattern):
+    r"""
+    Suppose the prescribed painting (according to `pattern` and size parameter `l`) has c connected components,
+    with slope values q*Variable(0),..., q*Variable(c-1).
+
+    Returns a list s of length f.
+    s[i] = fn[i+1]-fn[i] is in {Variable(0),..., Variable(c-1)}, for i=0,...,f-1.
+
+    EXAMPLE::
+
+        sage: s = pattern_s(1, pattern=0)
+        sage: s[0]
+        x0
+        sage: len(s)
+        29
+    """
     if pattern <= 1 or pattern == 6 or pattern == 7:
         s = [Variable(0), Variable(1)]
         for k in range(1, l + 1):
@@ -760,6 +796,23 @@ def pattern_s(l, pattern):
     return s + [s[0]] + s[-1::-1]
 
 def pattern_fn(l, pattern):
+    r"""
+    Suppose the prescribed painting (according to `pattern` and size parameter `l`) has c connected components,
+    with slope values q*Variable(0),..., q*Variable(c-1).
+
+    Returns a list fn of length (q+1).
+    fn[i] is a Linear_Expression in terms of Variable(0),..., Variable(c-1), for i=0,...,q.
+
+    EXAMPLE::
+
+        sage: fn = pattern_fn(1, pattern=0)
+        sage: fn[28]
+        2*x0+12*x1+14*x2
+        sage: len(fn)
+        59
+        sage: fn[58]
+        0
+    """
     s = pattern_s(l, pattern)
     f = len(s)
     q = 2 * f
@@ -771,6 +824,19 @@ def pattern_fn(l, pattern):
     return fn
 
 def pattern_polytope(vertices_color, fn):
+    r"""
+    Set up a PPL polytope with respect to the vertices_color.
+
+    fn is a list of Linear_Expressions in terms of Variable(0),..., Variable(c-1), of length (q+1).
+    polytope has variables {Variable(0),..., Variable(c-1)}.
+
+    EXAMPLE::
+
+        sage: vertices_color = pattern_vertices_color(1, pattern=0, more_ini_additive=False)
+        sage: fn = pattern_fn(1, pattern=0)
+        sage: pattern_polytope(vertices_color, fn)
+        A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 6 points
+    """
     q = len(fn) - 1
     f = int(q / 2)
     cs = Constraint_System()
@@ -792,8 +858,9 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
                     test_extremality=False, polytope = None, exp_dim = None,
                     more_ini_additive=True, count_components=False, use_sha1=True):
     r"""
-    Computes the functions corresponding to the extreme points of the
-    polytope corresponding to subadditivities and prescribed additivities,
+    Computes the functions (with >= `k_slopes` slopes) corresponding to the extreme points of the polytope.
+
+    if `polytope` is None, set up a polytope corresponding to subadditivities and prescribed additivities,
     according to `pattern` and size parameter `l` (called r in the paper).
 
     If `test_extremality` is True (default is False), check extremality.
@@ -886,7 +953,11 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
     else:
         return 0
 
-def plot_pattern(l, more_ini_additive = True, show_plots=True):
+def plot_pattern(l, vertices_color=None, more_ini_additive=True, show_plots=True):
+    r"""
+    Plots prescribled painting (`pattern`=0) according to size parameter `l` and `more_ini_additive`.
+    If `vertices_color` is given, use it.
+    """
     f = 18 * l + 11
     q = 2 * f
     s=[0, 1]
@@ -899,7 +970,8 @@ def plot_pattern(l, more_ini_additive = True, show_plots=True):
     nc = max(sk)+1
     sc = [nc - i - 1 for i in sk] + [2*nc - i - 1 for i in sk]
     colors = rainbow(2*nc)
-    vertices_color = pattern_vertices_color(l, pattern=0, more_ini_additive=more_ini_additive)
+    if vertices_color is None:
+        vertices_color = pattern_vertices_color(l, pattern=0, more_ini_additive=more_ini_additive)
     for i in range(q):
         for j in range (i):
             vertices_color[i,j]=vertices_color[j,i]
