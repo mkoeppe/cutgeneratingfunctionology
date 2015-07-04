@@ -5,7 +5,8 @@ if '' not in sys.path:
 
 from igp import *
 
-destdir = "/media/sf_dropbox/2q_mip/" # FIXME: UPDATE THIS
+destdir = output_dir+"2q_mip/"
+mkdir_p(destdir)
 
 def fn_variable(q, x):
     return 'fn_%s' % int(x*q)

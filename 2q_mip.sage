@@ -167,7 +167,7 @@ def investigate_faces_solution_2q(q, f, a, faces):
     EXAMPLES::
 
         sage: faces, fn = painted_faces_and_funciton_from_solution(             # not tested
-        ...     '/media/sf_dropbox/2q_mip/2q_13_9_4.sol', 13, showplots=False)  # not tested
+        ...               destdir + '2q_13_9_4.sol', 13, showplots=False)       # not tested
         sage: investigate_faces_solution_2q(13, 9/13, 4/13, faces)              # not tested
     """
     #FIXME: need to attach 2q_search.sage
