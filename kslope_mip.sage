@@ -908,4 +908,3 @@ def print_no_maximal_faces_0d(filename, q, f, faces_0d):
             # p == 0 only if at least one of h1, h2, v1, v2, d1, d2 is 0
             # i.e. p + 5 >= h1 + h2 + v1 + v2 + d1 + d2
             print >> filename, '%s + %s + %s + %s + %s + %s - %s <= 5' % (h1, h2, v1, v2, d1, d2, p)
- 
