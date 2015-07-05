@@ -389,9 +389,9 @@ def pattern_branch_on_deltafn(positive_deltafn, zero_deltafn, undecided_deltafn,
                     if glpk_simplex_exact_solve(pattern_lp) == 0: # minimization
                         still_undecided_deltafn.append(deltafn)
             for deltafn in implied_zero_deltafn:
+                pattern_lp.set_max(var_delta[deltafn], 0)
                 for x, y in deltafn_dic[deltafn]:
                     vertices_color[x, y] = 0
-                    pattern_lp.set_max(var_delta[deltafn], 0)
                     if pattern_will_form_edge(x, y, vertices_color):
                         is_feasible = False
                         break
