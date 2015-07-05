@@ -7,6 +7,9 @@ from igp import *
 
 vertex_enumeration_dim_threshold = 10
 
+import sys
+sys.setrecursionlimit(50000)
+
 def pattern_setup_lp(l, more_ini_additive=False, objcoef=None, use_auxiliary_delta=True):
     r"""
     Set up a MixedIntegerLinearProgram() with respect to the prescribled painting,
