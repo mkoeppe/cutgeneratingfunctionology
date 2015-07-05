@@ -104,6 +104,8 @@ def pattern_positive_zero_undecided_deltafn(vertices_color):
     zero_deltafn does not include the implied zero deltafn.
     pattern_lp, vertices_color might be modified.
 
+    See also pattern_positive_zero_undecided_deltafn_trivial().
+
     EXAMPLES::
 
         sage: l = 1; q, f = pattern_q_and_f(l, 0);
@@ -158,6 +160,50 @@ def pattern_positive_zero_undecided_deltafn(vertices_color):
                 pattern_lp.set_objective(v)
                 if glpk_simplex_exact_solve(pattern_lp) == 0: # minimization
                     undecided_deltafn.append(deltafn)
+    # FIXME: sort undecided_deltafn randomly ??
+    return positive_deltafn, zero_deltafn, undecided_deltafn
+
+def pattern_positive_zero_undecided_deltafn_trivial(vertices_color):
+    """
+    Compute the list `zero_deltafn` of deltafn that corresponds to green vertices on the prescribled painting.
+    The other deltafn are put in the list `undecided_deltafn`.
+    `positive_deltafn` is an empty list.
+    Modifiy `vertices_color` accordingly.
+
+    Unlike pattern_positive_zero_undecided_deltafn(),
+    this function does not call glpk_simplex_exact_solve() and pattern_will_form_edge()
+    to compute implied green and explicit white vertices.
+    Therefore, when vertex_enumeration_dim_threshold is large enough for given q so that
+    no backtracking is needed in pattern_backtrack_polytope(), it won't waste time on exact_solve.
+    In this case, pattern_backtrack_polytope() should perform as good as pattern_glpk_lp().
+    (Hopefully even better, since same deltafn value is accounded only once in constraints.)
+
+    EXAMPLES::
+
+        sage: l = 1; q, f = pattern_q_and_f(l, 0);
+        sage: vertices_color = pattern_vertices_color(l, pattern=0, more_ini_additive=False)
+        sage: fn = pattern_setup_lp(l)
+        sage: positive_deltafn, zero_deltafn, undecided_deltafn = pattern_positive_zero_undecided_deltafn_trivial(vertices_color)
+        sage: positive_deltafn
+        []
+        sage: zero_deltafn
+        [(0, 0, 0)]
+        sage: len(undecided_deltafn)
+        91
+    """
+    positive_deltafn = []
+    zero_deltafn = []
+    undecided_deltafn = []
+    global pattern_lp, var_delta, deltafn_dic
+
+    for deltafn, xypairs in deltafn_dic.items():
+        v = var_delta[deltafn]
+        if pattern_lp.get_max(v) == 0:
+            zero_deltafn.append(deltafn)
+            for x, y in xypairs:
+                vertices_color[x, y] = 0
+        else:
+            undecided_deltafn.append(deltafn)
     # FIXME: sort undecided_deltafn randomly ??
     return positive_deltafn, zero_deltafn, undecided_deltafn
 
@@ -232,7 +278,7 @@ def pattern_backtrack_polytope(l, k_slopes):
     q, f = pattern_q_and_f(l, 0)
     vertices_color = pattern_vertices_color(l, pattern=0, more_ini_additive=False)
     fn = pattern_setup_lp(l)
-    positive_deltafn, zero_deltafn, undecided_deltafn = pattern_positive_zero_undecided_deltafn(vertices_color)
+    positive_deltafn, zero_deltafn, undecided_deltafn = pattern_positive_zero_undecided_deltafn_trivial(vertices_color)
     exp_dim_ = l+1
     gen = pattern_branch_on_deltafn(positive_deltafn, zero_deltafn, undecided_deltafn, vertices_color, exp_dim_)
 
