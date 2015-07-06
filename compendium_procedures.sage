@@ -338,6 +338,22 @@ def interpolate_to_infinite_group(function, merge=True):
         last_y = fn(last_x)
     return FastPiecewise(pieces, merge=merge)
 
+def continuous_cut_generating_function_from_group_function(fn):
+    """
+    Construct a cut generating function for continuous variables.
+
+    The input is a group function `fn`, which must be continuous;
+    otherwise an error will be signaled.
+    
+    The result, together with `fn`, forms the cut generating function
+    pair for a mixed integer problem.
+    """
+    # unfortunately, we can't represent this function using FastPiecewise because it has unbounded intervals.
+
+    # and it doesn't make sense so much until we make the group functions actually periodic.
+
+    return NotImplementedError
+
 def two_slope_fill_in(function, order=None):
     """
     Extend the given `function` to make it a 2-slope function in the
