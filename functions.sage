@@ -4185,3 +4185,49 @@ def stuff_with_random_irrational_function():
     completion = directed_move_composition_completion(dmoves, max_num_rounds=None)
     plot_directed_moves(completion).show(figsize=40)
     
+def merit_index(fn):
+    r"""
+    Compute Gomory--Johnson's merit index.
+
+    It is defined as twice the area of additive points in the unit square
+    (see [RD, Definition 19.28], which refers to [61]).
+
+    EXAMPLES:
+
+    The merit index for GMIC is 2f^2 - 2f + 1 [RD]::
+
+        sage: def merit_index_gmic(f):
+        ....:     return 2*f^2 - 2*f + 1
+        sage: merit_index(gmic(1/4)) == merit_index_gmic(1/4)
+        True
+        sage: merit_index(gmic(1/2)) == merit_index_gmic(1/2)
+        True
+
+    The merit index for `drlm_2_slope_limit_1_1` is 4 f^2 - 6 f + 3 [40, p. 164]::
+
+        sage: def merit_index_drlm_2_slope_limit_1_1(f):
+        ....:     return 4 * f^2 - 6 * f + 3
+        sage: merit_index(drlm_2_slope_limit_1_1(3/5)) == merit_index_drlm_2_slope_limit_1_1(3/5)
+        True
+        sage: merit_index(drlm_2_slope_limit_1_1(1/2)) == merit_index_drlm_2_slope_limit_1_1(1/2)
+        True
+
+    Reference:
+
+     - [40] S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller, Extreme
+       inequalities for infinite group problems, Mathematical Programming 121
+       (2010), 145-170.
+
+     - [61] R. E. Gomory and E. L. Johnson, T-space and cutting planes,
+       Mathematical Programming 96 (2003), 341–375.
+
+     - [RD] J.-P. P. Richard and S. S. Dey, The group-theoretic approach in mixed
+       integer programming, 50 Years of Integer Programming 1958-2008
+       (M. Juenger, T. M. Liebling, D. Naddef, G. L. Nemhauser, W. R. Pulleyblank,
+       G. Reinelt, G. Rinaldi, and L. A. Wolsey, eds.), Springer Berlin Heidelberg,
+       2010, pp. 727-801, doi:10.1007/978-3-540-68279-0_19, ISBN 978-3-540-68274-5.
+    """
+    return 2 * add(Polyhedron(face.vertices).volume()
+                   for face in generate_maximal_additive_faces(fn)
+                   if face.is_2D())
+
