@@ -219,11 +219,15 @@ def drlm_2_slope_limit_1_1(f=1/2, nb_pieces_left=1, nb_pieces_right=1):
 
 def chen_3_slope_not_extreme(f=1/2, lam=8):
     """
-    A continuous 3-slope function that has non-degenerate intervals with a zero derivative.
-    The paper claims that the function is extreme under conditions. BUT his proof on page 37
+    A continuous 3-slope function, constructed by K. Chen in his Ph.D. thesis [KChen_thesis].
+    The function has non-degenerate intervals with a zero derivative.
+
+    Chen claims that the function is extreme under certain conditions. But his proof on page 37
     made a mistake in setting up the equations:
     -\pi(C ) + \pi(CC) + \pi(D) - \pi(DD) = 0. This relation should not exist in E(\pi).
-    Returned function can be extreme or NOT. Need to use extemality_test() to check.
+    Returned function can be extreme or NOT. Need to use extremality_test() to check.
+
+    See the discussion in [KZh2015b, section 3].
 
     Parameters::
 
@@ -250,9 +254,14 @@ def chen_3_slope_not_extreme(f=1/2, lam=8):
             sage: extremality_test(h, False)
             True
 
-    Reference:
-        [KChen_thesis]:  K. Chen, Topics in group methods for integer programming,
-                            Ph.D. thesis, Georgia Institute of Technology, June 2011.
+    References:
+
+    - [KChen_thesis]:  K. Chen, Topics in group methods for integer programming,
+      Ph.D. thesis, Georgia Institute of Technology, June 2011.
+
+    - [KZh2015b] M. Koeppe and Y. Zhou, An electronic compendium of extreme functions for the
+      Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
+      http://dx.doi.org/10.1016/j.orl.2015.06.004
     """
     if not (bool(0 < f < 1) and (lam > 3*max(1/f, 1 /(1-f)))):
         raise ValueError, "Bad parameters. Unable to construct the function."
