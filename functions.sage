@@ -4219,7 +4219,7 @@ def merit_index(fn):
        (2010), 145-170.
 
      - [61] R. E. Gomory and E. L. Johnson, T-space and cutting planes,
-       Mathematical Programming 96 (2003), 341–375.
+       Mathematical Programming 96 (2003), 341-375.
 
      - [RD] J.-P. P. Richard and S. S. Dey, The group-theoretic approach in mixed
        integer programming, 50 Years of Integer Programming 1958-2008
