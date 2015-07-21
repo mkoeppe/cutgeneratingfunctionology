@@ -1117,6 +1117,9 @@ def number_of_slopes(fn):
     """
     Return the number of different slopes of `fn`.
 
+    If `fn` is discrete, this is defined as the number of different slopes
+    of its piecewise linear continuous interpolation.
+
     EXAMPLES::
 
         sage: logging.disable(logging.WARN)
@@ -1124,7 +1127,11 @@ def number_of_slopes(fn):
         2
         sage: number_of_slopes(gomory_fractional())
         1
+        sage: number_of_slopes(automorphism(restrict_to_finite_group(gmic(10/11)), 3))
+        2
     """
+    if fn.is_discrete():
+        fn = interpolate_to_infinite_group(fn)
     return len(slopes_intervals_dict(fn))
 
 def plot_with_colored_slopes(fn):
