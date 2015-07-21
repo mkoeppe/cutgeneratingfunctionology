@@ -1092,9 +1092,15 @@ def plot_covered_intervals(function, covered_intervals=None, uncovered_color='bl
             delete_one_time_plot_kwds(kwds)
     return graph
 
-def plot_with_colored_slopes(fn):
+def slopes_intervals_dict(fn):
     """
-    Return a plot of `fn`, with pieces of different slopes in different colors.
+    Return a dictionary mapping slope values to a list of intervals of that slope.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: slopes_intervals_dict(gmic(1/2))[2]
+        [(0, 1/2)]
     """
     slopes_dict = dict()
     for i, f in fn.list():
@@ -1105,6 +1111,27 @@ def plot_with_colored_slopes(fn):
                 slopes_dict[f._slope].append((i[0], i[1]))
             except AttributeError:
                 pass
+    return slopes_dict
+
+def number_of_slopes(fn):
+    """
+    Return the number of different slopes of `fn`.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.WARN)
+        sage: number_of_slopes(gmic())
+        2
+        sage: number_of_slopes(gomory_fractional())
+        1
+    """
+    return len(slopes_intervals_dict(fn))
+
+def plot_with_colored_slopes(fn):
+    """
+    Return a plot of `fn`, with pieces of different slopes in different colors.
+    """
+    slopes_dict = slopes_intervals_dict(fn)
     return plot_covered_intervals(fn, slopes_dict.values(), labels=[ "Slope %s" % s for s in slopes_dict.keys() ])
 
 def zero_perturbation_partial_function(function):
