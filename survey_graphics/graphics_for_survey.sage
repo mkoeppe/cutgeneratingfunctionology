@@ -227,7 +227,8 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         for name in [ 'not_extreme_1', 'bhk_irrational_extreme_limit_to_rational_nonextreme', 'zhou_two_sided_discontinuous_cannot_assume_any_continuity']:
             emit_tex_sage_command(name)
             h = eval(name)()
-            extremality_test(h, show_plots=destdir + "%s-%%s.pdf" % name)
+            extremality_test(h, show_all_perturbations=True,
+                             show_plots=destdir + "%s-%%s.pdf" % name)
 
         for name in [ 'bhk_irrational_extreme_limit_to_rational_nonextreme' ]:
             emit_tex_sage_command(name)
