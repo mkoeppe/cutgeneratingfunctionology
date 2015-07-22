@@ -1,8 +1,7 @@
 import igp
 from igp import *
 
-destdir = "/Users/mkoeppe/Dropbox/basu-hildebrand-koeppe-papers-for-yuan/yuan/extreme-notes/"
-#destdir ="/media/sf_yuan/"
+destdir = "survey_graphics/extreme_notes_graphics/"
 
 emitted_names = set()
 
@@ -355,4 +354,4 @@ finally:
         igp.proj_plot_colors = orig_proj_plot_colors
         igp.check_perturbation_plot_three_perturbations = orig_check_perturbation_plot_three_perturbations
 
-#os.system("cd %s && (pdflatex -synctex=1 -src-specials -interaction=nonstopmode igp-survey || pdflatex -synctex=1 -src-specials -interaction=nonstopmode igp-survey)" % (destdir,)) 
+os.system("cd %s && (pdflatex -synctex=1 -src-specials -interaction=nonstopmode extreme_notes_graphics)" % (destdir,)) 

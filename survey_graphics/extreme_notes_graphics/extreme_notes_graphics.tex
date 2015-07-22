@@ -1,0 +1,222 @@
+\documentclass[10pt,reqno]{amsart}
+\usepackage[left=.5in,right=.5in,top=.5in,bottom=.5in]{geometry}
+
+\usepackage{booktabs}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{url}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+
+\usepackage{pgf}
+
+\def\visible<#1>{}  % beamer command not needed here
+
+\usepackage[utf8]{inputenc}
+
+\usepackage[english]{babel}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{latexsym}
+\usepackage{subfigure}
+\usepackage{enumerate}
+
+\usepackage{hyperref}  
+
+\usepackage{ifpdf}
+
+%Math Operators
+\DeclareMathOperator    \aff                    {aff}
+\DeclareMathOperator    \argmin         {arg\,min}
+\DeclareMathOperator    \argmax         {arg\,max}
+\DeclareMathOperator    \bd                     {bd}
+\DeclareMathOperator    \cl                     {cl}
+\DeclareMathOperator    \conv           {conv}
+\DeclareMathOperator    \cone           {cone}
+\DeclareMathOperator    \dist           {dist}
+\DeclareMathOperator    \ep                     {exp}
+\DeclareMathOperator    \et                     {ext}
+\DeclareMathOperator    \ext                    {ext}
+\DeclareMathOperator    \intr                   {int}
+\DeclareMathOperator    \lin                    {lin}
+\DeclareMathOperator    \proj           {proj}
+\DeclareMathOperator    \rec                    {rec}
+\DeclareMathOperator    \rk                     {rk}
+\DeclareMathOperator    \relint         {rel\,int}
+\DeclareMathOperator    \spann          {span}
+\DeclareMathOperator    \verts          {vert}
+\DeclareMathOperator    \vol                    {vol}
+\DeclareMathOperator    \Aff {Aff}  % Grp of invertible affine linear transformations
+
+
+%Mathbb
+\newcommand{\R}{\mathbb R}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\N}{\mathbb N}
+\newcommand{\C}{\mathbb C}
+\newcommand{\T}{\mathbb T}
+\renewcommand{\r}{\bar{r}}
+%\newcommand{\p}{\bar{p}}
+
+%\newcommand{\verts}{\mathrm{vert}}
+%\renewcommand{\intr}{\mathrm{int}}
+
+%Constructed Commands
+\newcommand{\floor}[1]{\lfloor#1\rfloor}
+\newcommand{\ceil}[1]{\lceil #1 \rceil}
+\newcommand\st{\mid}
+\newcommand\bigst{\mathrel{\big|}}
+\newcommand\Bigst{\mathrel{\Big|}}
+
+%% Vectors
+\def\ve#1{\mathchoice{\mbox{\boldmath$\displaystyle\bf#1$}}
+{\mbox{\boldmath$\textstyle\bf#1$}}
+{\mbox{\boldmath$\scriptstyle\bf#1$}}
+{\mbox{\boldmath$\scriptscriptstyle\bf#1$}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%          SPECIFIC COMMANDS FOR THIS PAPER        %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Random new commands
+\newcommand{\bpi}{\bar \pi}
+\newcommand{\setcond}[2]{\left\{\, #1 : #2 \,\right\}}
+% Mathcal 
+\renewcommand{\P}{\mathcal{P}}
+\newcommand{\D}{\mathcal{D}}
+\renewcommand{\S}{\mathcal{S}}
+\newcommand{\Stri}{\S_{q,\tri}}
+\newcommand{\barStri}{\bar\S_{q,\tri}}
+
+\newcommand{\E}{\mathcal{E}}
+\newcommand{\G}{\mathcal{G}}
+
+%
+%% Bold face letters
+\newcommand{\rx}{{\ve r}}
+\newcommand{\x}{{\ve x}}
+\newcommand{\y}{{\ve y}}
+\newcommand{\z}{{\ve z}}
+\renewcommand{\v}{{\ve v}}
+\newcommand{\g}{{\ve g}}
+\newcommand{\e}{{\ve e}}
+\renewcommand{\u}{{\ve u}}
+\renewcommand{\a}{{\ve a}}
+\newcommand{\f}{{\ve f}}
+\newcommand{\0}{{\ve 0}}
+\newcommand{\m}{{\ve m}}
+\newcommand{\p}{{\ve p}}
+\renewcommand{\t}{{\ve t}}
+\newcommand{\w}{{\ve w}}
+\renewcommand{\b}{{\ve b}}
+\renewcommand{\d}{{\ve d}}
+\newcommand{\cve}{{\ve c}}
+\newcommand{\h}{{\ve h}}
+\newcommand{\rr}{{\ve r}}
+\newcommand{\gp}{{\ve {\bar g}}}
+\newcommand{\gt}{{\ve {\tilde g}}}
+\newcommand{\gs}{{\ve  g}}
+
+\newcommand{\Ball}{B}
+% No longer mathcal
+\newcommand{\B}{B}
+
+\def\st{\mid}
+\newenvironment{psmallmatrix}{\left(\smallmatrix}{\endsmallmatrix\right)}
+\newenvironment{psmallmatrixbig}{\bigl(\smallmatrix}{\endsmallmatrix\bigr)}
+
+%%% Redefine \pmod so that it respects \textstyle.
+\makeatletter
+\renewcommand{\pod}[1]%% a helper command used in \pmod.
+{\allowbreak\mathchoice{\mkern18mu}{\mkern8mu}{\mkern8mu}{\mkern8mu}(#1)}
+\makeatother
+
+\chardef\Myunderscore=`\_
+%\let\Myunderscore=\textunderscore
+% from http://texwelt.de/wissen/fragen/565/was-heit-hyperrefs-warnung-token-not-allowed-in-a-pdf-string
+\pdfstringdefDisableCommands{%
+  \def\Myunderscore{\textunderscore}%
+}
+\newcommand\underscore{\Myunderscore\allowbreak}
+
+
+\newcommand\githubsearchurl{https://github.com/mkoeppe/infinite-group-relaxation-code/search}
+\input{../survey_graphics/sage-commands}
+\DeclareRobustCommand\sage[1]{\texttt{#1}}
+\DeclareRobustCommand\sagefunc[1]{\pgfkeys{/sagefunc/#1}}
+
+\usepackage[normalem]{ulem}
+
+\usepackage{verbatim}
+
+  \newcommand\CompendiumGraphics[1]{\includegraphics[width=.8\linewidth]{#1}}
+  \newcommand\CompendiumGridEntry[1]{\CompendiumGraphics{#1}\par{\tiny\sagefunc{#1}\par}\vspace*{-3ex}}
+
+\title[Infinite Group Problem Code: figures test suite]{Infinite Group Problem Code:\\figures test suite}
+
+\begin{document}
+
+\setcounter{section}{1}
+
+\section{Figures from \itshape An electronic compendium
+  of extreme functions for the
+  Gomory--Johnson
+  infinite group problem}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.6\linewidth]{rlm_dpl1_extreme_3a-2d_diagram.pdf}
+  \caption{Diagram of the function \sagefunc{rlm_dpl1_extreme_3a} (\emph{blue
+      graphs on the top and the left}) 
+    and its polyhedral complex $\Delta\P$ (\emph{gray
+      solid lines}).
+    The set $E(\pi)$ is the union of the faces shaded in green.
+    The \emph{heavy diagonal green line} $x + y = 1+f$ 
+    corresponds to the symmetry condition (the line $x+y = f$ appears as an
+    edge of $F_1$).  Vertices of $\Delta\P$ do not
+    necessarily project (\emph{dotted gray lines}) to breakpoints.  At the
+    borders, the projections $p_i(F)$ of two-dimensional additive faces are
+    shown as \emph{gray shadows}: $p_1(F)$ at the top border, $p_2(F)$ at the
+    left border, $p_3(F)$ at the bottom and the right borders.}
+  \label{fig:rlm_dpl1_extreme_3a}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.45\linewidth]{chen_3_slope_not_extreme-covered_intervals}\quad
+  \includegraphics[width=0.45\linewidth]{chen_3_slope_not_extreme-perturbation-1}
+  \caption{The function \sagefunc{chen_3_slope_not_extreme} is 
+    minimal, but not extreme, as proved by
+    \sage{\sagefunc{extremality_test}(h, show\underscore{}plots=True)}.
+    The procedure first shows that
+    for any distinct minimal $\pi^1 = \pi + \bar\pi$ (\emph{blue}), $\pi^2 = \pi
+    - \bar\pi$ (\emph{red}) such that $\pi = \tfrac{1}{2}\pi^1
+    + \tfrac{1}{2} \pi^2$, the functions $\pi^1$ and $\pi^2$ are continuous
+    piecewise linear with the same breakpoints as $\pi$.  A finite-dimensional extremality
+    test then finds a perturbation~$\bar\pi$ (\emph{magenta}), as shown.}
+  \label{fig:chen_3_slope_not_extreme}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.6\linewidth]{drlm_backward_3_slope-2d_diagram.pdf}
+  \caption{The \sagefunc{drlm_backward_3_slope} function}
+  \label{fig:drlm_backward_3_slope}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.8\linewidth]{kf_n_step_mir-lemma5_1.pdf}
+  \caption{The \sagefunc{kf_n_step_mir} function}
+  \label{fig:kf_n_step_mir}
+\end{figure}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

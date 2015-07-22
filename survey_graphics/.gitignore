@@ -1,0 +1,14 @@
+*.aux
+*/*.aux
+*.log
+*/*.log
+*.synctex.gz
+*/*.synctex.gz
+*/*.pdf
+*/sage-commands.tex
+all_graphics.pdf
+!survey_graphics/survey_graphics_good.pdf
+!survey_graphics/compendium_graphics_good.pdf
+!extreme_notes_graphics/extreme_notes_graphics_good.pdf
+auto
+*/auto
