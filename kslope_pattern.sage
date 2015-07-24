@@ -179,7 +179,7 @@ def pattern_positive_zero_undecided_deltafn_trivial(vertices_color):
     Therefore, when vertex_enumeration_dim_threshold is large enough for given q so that
     no backtracking is needed in pattern_backtrack_polytope(), it won't waste time on exact_solve.
     In this case, pattern_backtrack_polytope() should perform as good as pattern_glpk_lp().
-    (Hopefully even better, since same deltafn value is accounded only once in constraints.)
+    (Hopefully even better, since same deltafn value is accounted only once in constraints.)
 
     EXAMPLES::
 
@@ -314,7 +314,7 @@ def pattern_backtrack_polytope(l, k_slopes):
 
 def convert_linfun_to_linexp(linfun):
     """
-    convert MILP's Linear_Function to PPL's Linear_Eexpression.
+    convert MILP's Linear_Function to PPL's Linear_Expression.
 
     EXAMPLES::
 
@@ -950,6 +950,7 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
     destdir = output_dir+"sym_mode_2d_diagrams/"+"patterns_%s/" % pattern
     mkdir_p(destdir)
     logging.disable(logging.info)
+    #print polytope
     for v in vertex_enumeration(polytope, exp_dim=exp_dim, vetime=False):
         #v.coefficients() is numerator of component's slope value
         v_n = [sum(p*q for p, q in zip(fn[i].coefficients(), v.coefficients())) for i in range(q+1)]
@@ -1068,3 +1069,30 @@ def plot_pattern(l, vertices_color=None, more_ini_additive=True, show_plots=True
         g.show(gridlines=[range(q+1),range(q+1)],gridlinesstyle=dict(color="grey", linestyle=":"),figsize=10*l)
     else:
         return g
+
+def check_pattern_polytope_has_full_dim(l):
+    #if l == 0:
+    #    print "l == 0"
+    #    return True
+    vertices_color = pattern_vertices_color(l, pattern=0, more_ini_additive=False)
+    fn = pattern_fn(l, pattern=0)
+    polytope = pattern_polytope(vertices_color, fn)
+    linearity =  [3,12]+[18]*(l-1)+[14]
+    #sumvariables = 100*l*sum([Variable(i) for i in range(l+2)])
+    #p = sage.libs.ppl.point(sumvariables, 100*l*(18*l+11))
+    #if not polytope.relation_with(p).implies(sage.libs.ppl.Poly_Gen_Relation.subsumes()):
+    #    print "gmic(1/2) is not in polytope"
+    #    return False
+    #for i in range(l+1):
+    #    sumvariables += 14*Variable(i) - linearity[i]*Variable(l+1)
+    #    p = sage.libs.ppl.point(sumvariables, 100*l*(18*l+11))
+    #    if not polytope.relation_with(p).implies(sage.libs.ppl.Poly_Gen_Relation.subsumes()):
+    #        print "perturbation %s is not in polytope" % i
+    #        return False
+    for i in range(1,l+3):
+        d = sum(linearity[0:i])
+        p = sage.libs.ppl.point(sum([Variable(j) for j in range(i)]), d)
+        if not polytope.relation_with(p).implies(sage.libs.ppl.Poly_Gen_Relation.subsumes()):
+            print "vector [1]*%s+[0]*%s is not in the polytope" % (i, l+2-i)
+            return False
+    return True
