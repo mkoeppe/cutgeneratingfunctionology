@@ -299,14 +299,11 @@ class Face:
             return point((trip[0][0], \
                           trip[1][0]), rgbcolor = rgbcolor, size = 30, **kwds)
         elif self.is_horizontal():
-            return parametric_plot((y,trip[1][0]),\
-                                   (y,trip[0][0], trip[0][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
+            return line([(trip[0][0],trip[1][0]),(trip[0][1],trip[1][0])], rgbcolor = rgbcolor, thickness=2, **kwds)
         elif self.is_vertical():
-            return parametric_plot((trip[0][0],y),\
-                                   (y,trip[1][0], trip[1][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
+            return line([(trip[0][0],trip[1][0]),(trip[0][0],trip[1][1])], rgbcolor = rgbcolor, thickness=2, **kwds)
         elif self.is_diagonal():
-            return parametric_plot((lambda y: y, lambda y: trip[2][0]-y),\
-                                   (y,trip[0][0],trip[0][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
+            return line([(trip[0][0],trip[2][0]-trip[0][0]),(trip[0][1],trip[2][0]-trip[0][1])], rgbcolor = rgbcolor, thickness=2, **kwds)
         elif self.is_2D():
             ## Sorting is necessary for this example:
             ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("data/dey-richard-not-extreme.txt"))
