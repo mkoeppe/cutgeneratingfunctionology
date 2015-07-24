@@ -1086,10 +1086,14 @@ def plot_covered_intervals(function, covered_intervals=None, uncovered_color='bl
         kwds.update({'legend_label': label})
         plot_kwds_hook(kwds)
         for interval in component:
-            graph += plot(function.which_function((interval[0] + interval[1])/2), interval, color=colors[i], zorder=-1, **kwds)
-            # zorder=-1 puts them below the discontinuity markers,
-            # above the black function.
-            delete_one_time_plot_kwds(kwds)
+            # We do not plot anything if float(interval[0])==float(interval[1]) because
+            # otherwise plot complains that
+            # "start point and endpoint must be different"
+            if float(interval[0])<float(interval[1]):
+                graph += plot(function.which_function((interval[0] + interval[1])/2), interval, color=colors[i], zorder=-1, **kwds)
+                # zorder=-1 puts them below the discontinuity markers,
+                # above the black function.
+                delete_one_time_plot_kwds(kwds)
     return graph
 
 def slopes_intervals_dict(fn):
@@ -2026,8 +2030,8 @@ class FastPiecewise (PiecewisePolynomial):
                         delete_one_time_plot_kwds(point_kwds)
                     last_closed = right_closed
                     last_end_point = [b, f(b)]
-            if a < b:
-                # We do not plot anything if a==b because
+            if float(a) < float(b):
+                # We do not plot anything if float(a)==float(b) because
                 # otherwise plot complains that
                 # "start point and endpoint must be different"
                 g += plot(f, *args, xmin=a, xmax=b, zorder=-1, **kwds)
