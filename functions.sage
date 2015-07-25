@@ -913,7 +913,11 @@ def generate_directly_covered_intervals(function):
         return function._directly_covered_intervals
 
     faces = generate_maximal_additive_faces(function)
-    
+    covered_intervals = generate_directly_covered_intervals_from_faces(faces)
+    function._directly_covered_intervals = covered_intervals
+    return covered_intervals
+
+def generate_directly_covered_intervals_from_faces(faces):
     covered_intervals = []
     for face in faces:
         if face.is_2D():
@@ -935,7 +939,6 @@ def generate_directly_covered_intervals(function):
                 covered_intervals[i] = []
                     
     covered_intervals = remove_empty_comp(covered_intervals)
-    function._directly_covered_intervals = covered_intervals
     return covered_intervals
 
 def generate_covered_intervals(function):
@@ -943,9 +946,14 @@ def generate_covered_intervals(function):
         return function._covered_intervals
 
     logging.info("Computing covered intervals...")
-    covered_intervals = generate_directly_covered_intervals(function)
     faces = generate_maximal_additive_faces(function)
+    covered_intervals = generate_covered_intervals_from_faces(faces)
+    logging.info("Computing covered intervals... done")
+    function._covered_intervals = covered_intervals
+    return covered_intervals
 
+def generate_covered_intervals_from_faces(faces):
+    covered_intervals = generate_directly_covered_intervals_from_faces(faces)
     # debugging plot:
     # show(plot_covered_intervals(function, covered_intervals), \
     #      legend_fancybox=True, \
@@ -974,9 +982,6 @@ def generate_covered_intervals(function):
                 any_change = True
 
     covered_intervals = remove_empty_comp(covered_intervals)
-    logging.info("Computing covered intervals... done")
-
-    function._covered_intervals = covered_intervals
     return covered_intervals
 
 def interval_minus_union_of_intervals(interval, remove_list):
@@ -1619,6 +1624,7 @@ class FastPiecewise (PiecewisePolynomial):
         
             sage: f1(x) = 1
             sage: f2(x) = 1-x
+
             sage: f3(x) = exp(x)
             sage: f4(x) = sin(2*x)
             sage: f = FastPiecewise([[(0,1),f1],
