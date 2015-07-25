@@ -5,9 +5,6 @@ if '' not in sys.path:
 
 from igp import *
 
-destdir = output_dir+"2q_mip/"
-mkdir_p(destdir)
-
 def fn_variable(q, x):
     return 'fn_%s' % int(x*q)
 
@@ -545,11 +542,11 @@ def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None, weights=[]):
     """
     EXAMPLES:
 
-        sage: write_lpfile(22, 10/22, 5, 1, 4) # not tested
+        sage: write_lpfile(37, 25/37, 5, m=12, type_cover='fulldim') # not tested
     """
     if maxstep is None:
         maxstep = q
-    if type_cover == 'no_0d_1d' or type_cover == 'no_transrefl':
+    if type_cover == 'fulldim' or type_cover == 'fulldim_covers':
         maxstep = 1
     else:
        type_cover = 'step%s' % maxstep
@@ -559,14 +556,16 @@ def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None, weights=[]):
     else:
         strw = ''
 
+    destdir = output_dir+"2q_mip/"
+    mkdir_p(destdir)
     filename = open(destdir + "%sslope_q%s_f%s_%s_m%s%s.lp" % (nums, q, int(f*q), type_cover, m, strw), "w")
 
     faces_2d, faces_diag, faces_hor, faces_ver, faces_0d = all_faces(q)
 
     print >> filename, '\ MIP model with q = %s, f = %s, num of slopes = %s, small_m = %s' % (q, f, nums, m)
-    if type_cover == 'no_0d_1d':
+    if type_cover == 'fulldim':
         print >> filename, '\ without non-trivial 0d and 1d maximal faces.'
-    elif type_cover == 'no_transrefl':
+    elif type_cover == 'fulldim_covers':
         print >> filename, '\ without any translation/reflection except for the symmetry reflection.'
     else:
         print >> filename, '\ maximum number of steps in covering = %s.' % maxstep
@@ -595,7 +594,7 @@ def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None, weights=[]):
         if face.minimal_triple[0][0] < face.minimal_triple[1][0]:
             print_xy_swapped_constraints(filename, q, face)
 
-    if type_cover == 'no_0d_1d':
+    if type_cover == 'fulldim':
         # Additive domain is the union of fall-dimensional convex sets,
         # except for the trivial additive points: symmetry reflection and x=0 and y=0.
         print_no_maximal_faces_diag(filename, q, f, faces_diag)
@@ -668,16 +667,19 @@ def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None, weights=[]):
 
 def painted_faces_and_funciton_from_solution(filename, q, showplots=True):
     """
-    Read the solution file, draw 2d complex and plot fn.
+    Read the solution file, return colored faces and the function fn (inexact floating point)
+    if showplots is True, draw 2d complex and plot fn.
     EXAMPLES::
 
-        sage: faces, fn = painted_faces_and_funciton_from_solution( \   # not tested
-        ...            '/media/sf_dropbox/2q_mip/2q_13_9_4.sol', 13)    # not tested
+        sage: faces, fn = painted_faces_and_funciton_from_solution('solution_2q_example_m4.sol', 37)    # not tested
     """
     faces = []
     bkpt = [x/q for x in range(q+1)]
     values = [0 for x in range(q+1)]
-    with open(filename) as sol_file:
+
+    destdir = output_dir+"2q_mip/"
+    mkdir_p(destdir)
+    with open(destdir + filename) as sol_file:
         for line in sol_file:
             i = line.find(' ')
             s = line[0:i]
@@ -697,25 +699,22 @@ def painted_faces_and_funciton_from_solution(filename, q, showplots=True):
         plot_with_colored_slopes(fn).show()
     return faces, fn
 
-def investigate_faces_solution(q, f, faces):
+def refind_function_from_lpsolution(filename, q, f):
     """
-    Check the vertex-function corresponding to given painted faces.
     EXAMPLES::
 
-        sage: faces, fn = painted_faces_and_funciton_from_solution( \           # not tested
-        ...   '/media/sf_dropbox/2q_mip/5slope_22_10_m0_min_add_point.sol',\    # not tested
-        ...   22, showplots=False)                                              # not tested
-        sage: investigate_faces_solution(22, 10/22, faces)                      # not tested
+        sage: h_list = refind_function_from_lpsolution('solution_5slope_fulldim_1.sol', 37, 25/37) # not tested
+        sage: h_list[0]==kzh_5_slope_fulldim_1() # not tested
+        True                                     # not tested
     """
-    #FIXME: need to attach 2q_search.sage
+    
+    faces, fn = painted_faces_and_funciton_from_solution(filename, q, showplots=False)
     components = generate_covered_intervals_from_faces(faces)
-    additive_vertices = generate_additive_vertices_from_faces(q, faces)
+    additive_vertices = generate_additive_vertices_from_faces(q, faces)  
     fn_sym = generate_symbolic_continuous(None, components, field=QQ)
     ff = int(f * q)
     h_list = []
     for h in generate_vertex_function(q, ff, fn_sym, additive_vertices):
-        #print h
-        #extremality_test(h,True)
         h_list.append(h)
     return h_list
 
@@ -888,6 +887,7 @@ def print_no_maximal_faces_0d(filename, q, f, faces_0d):
 
         sage: q = 3; f = 2/3;
         sage: faces_2d, faces_diag, faces_hor, faces_ver, faces_0d = all_faces(q)
+
         sage: print_no_maximal_faces_0d(sys.stdout, q, f, faces_0d)
         h_0_1 + h_1_1 + v_1_0 + v_1_1 + d_0_1 + d_1_0 - p_1_1 <= 5
         h_0_2 + h_1_2 + v_1_1 + v_1_2 + d_0_2 + d_1_1 - p_1_2 <= 5
@@ -909,3 +909,137 @@ def print_no_maximal_faces_0d(filename, q, f, faces_0d):
             # p == 0 only if at least one of h1, h2, v1, v2, d1, d2 is 0
             # i.e. p + 5 >= h1 + h2 + v1 + v2 + d1 + d2
             print >> filename, '%s + %s + %s + %s + %s + %s - %s <= 5' % (h1, h2, v1, v2, d1, d2, p)
+
+
+########### Copy from 2q_search.sage #############
+def plot_painted_faces(q, faces):
+    """
+    Return a plot of the 2d complex of q-grid with green faces.
+    """
+    points = [x/q for x in range(q+1)]
+    values = [0 for x in range(q+1)]
+    function = discrete_function_from_points_and_values(points, values)
+
+    p = Graphics()
+    p.set_legend_options(loc='upper right')
+    p += plot_2d_complex(function)
+
+    kwds = { 'alpha': proj_plot_alpha, 'zorder': -10, 'color': 'grey'}
+    IJK_kwds = [ kwds for i in range(3) ]
+    for face in faces:
+        p += face.plot()
+        p += plot_projections_of_one_face(face, IJK_kwds)
+    return p
+
+def generate_additive_vertices_from_faces(q, faces):
+    """
+    Return the set of points on 2d-grid that are covered by faces.
+    """
+    additive_vertices = set()
+    for face in faces:
+        if face.is_2D():
+            i, j, k = face.minimal_triple
+            for x in range(i[0]*q, i[1]*q + 1):
+                for y in range(j[0]*q, j[1]*q + 1):
+                    if x <= y and k[0] <= (x + y) / q <= k[1]:
+                        additive_vertices.add((x/q, y/q))
+        elif face.is_0D():
+            additive_vertices.add(face.vertices[0])
+        else:
+            i, j, k = face.minimal_triple
+            if face.is_horizontal():
+                for x in range(i[0]*q, i[1]*q + 1):
+                    if x/q <= j[0]:
+                        additive_vertices.add((x/q, j[0]))
+            elif face.is_vertical():
+                for y in range(j[0]*q, j[1]*q + 1):
+                    if i[0] <= y/q:
+                        additive_vertices.add((i[0], y/q))
+            else:
+                for x in range(i[0]*q, i[1]*q + 1):
+                    if 2*x/q <= k[0]:
+                        additive_vertices.add((x/q, k[0] - x/q))   
+    return additive_vertices
+    
+def generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices):
+    """
+    Return the equalities (by additivity) and inequalities (by subadditivity)
+    that the slope variables must satisfy.
+    Inputs:
+        q, ff are integers.
+        fn_sym is the symbolic function generated by considering covered_intervals:
+        intervals in the same component of a function must have the same slope value.
+        Take slope of the i-th component as i-th unit vector. 
+        Then fn_sym maps x (\in [0,1]) to a vector of dim = number of components.
+        additive_vertices are the green points on the 2d-grid, 
+        where additivity is attained by fn_sym.
+    Output:
+        ieqdic, eqndic are dictionaries that maps ieq/eqn to 
+        the 2d-complex-vertices from which it comes;
+        key = ieq or eqn, value = set of 2d-complex-vertices.
+    """
+    ieqdic = {}
+    eqndic = {}
+    for x in range(q):
+        v = fn_sym(x/q)
+        ieq = tuple([0]) + tuple(v)  # fn(x/q) >= 0
+        if not ieq in ieqdic:
+            ieqdic[ieq]=set([])
+        ieq = tuple([1]) + tuple([-w for w in v]) #fn(x/q) <=1
+        if not ieq in ieqdic:
+            ieqdic[ieq]=set([])
+    # fn(0) = 0
+    eqn = tuple([0]) + tuple(fn_sym(0))
+    if not eqn in eqndic:
+        eqndic[eqn] = set([]) # or = [(0,0)]?
+    # fn(1) = 0
+    eqn = tuple([0]) + tuple(fn_sym(1))
+    if not eqn in eqndic:
+        eqndic[eqn] = set([])
+    # fn(f) = 1
+    eqn = tuple([-1]) + tuple(fn_sym(ff/q))
+    if not eqn in eqndic:
+        eqndic[eqn] = set([])
+    # Note: If only do this for bkpts, some implied additive points on the grid
+    # (whose x or y coordinate lies in between two bkpts) will be missing!
+    # FIXME: Use maximal_additive_faces, don't need inside additve_vertices
+    for x in range(q+1):
+        for y in range(x, q+1):
+            v = tuple([0]) + tuple(delta_pi(fn_sym, x/q, y/q))
+            if (x/q, y/q) in additive_vertices:
+                if v in eqndic:
+                    eqndic[v].add((x/q, y/q))
+                else:
+                    eqndic[v] = set([(x/q, y/q)])
+            else:
+                if v in ieqdic:
+                    ieqdic[v].add((x/q, y/q))
+                else:
+                    ieqdic[v] = set([(x/q, y/q)])
+    return ieqdic, eqndic
+
+def generate_vertex_function(q, ff, fn_sym, additive_vertices, k_slope=3):
+    """
+    Generate real valued functions which correspond to vertices 
+    of the polytope defined by [ieqs, eqns] = generate_ieqs_and_eqns(..)
+    """
+    ieqdic, eqndic = generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices)
+    p = Polyhedron(ieqs = ieqdic.keys(), eqns = eqndic.keys())
+    if not p.is_empty():
+        #if p.n_vertices() > 1:
+        #    print p.Vrepresentation()
+        ## print "boundedness is %s" % p.is_compact()
+        for x in p.vertices():
+            k = len(set(x))
+            if k >= k_slope:
+                #print "%s gives a %s-slope function h =" % (x, k)
+                v = vector(QQ,x)
+                yield v * fn_sym
+            ####### debug...
+            #else:
+            #    print "%s gives a %s-slope function. Ignore" % (x, k)
+            #   # this will probably print many lines
+            ####### ...
+    #else:
+    #    # this shouldn't happen!
+    #    print "p.is_empty() is True"
