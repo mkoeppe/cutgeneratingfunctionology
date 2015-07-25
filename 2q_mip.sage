@@ -58,6 +58,9 @@ def write_lpfile_2q(q, f, a, nums, maxstep=None, m=0):
     """
     if maxstep is None:
         maxstep = q
+
+    destdir = output_dir+"2q_mip/"
+    mkdir_p(destdir)
     filename = open(destdir + "mip_q%s_f%s_a%s_%sslope_%smaxstep_m%s.lp" % (q, int(f*q), int(a*q), nums, maxstep, m), "w")
     faces_2d = []
     faces_diag = []
@@ -160,37 +163,6 @@ def write_lpfile_2q(q, f, a, nums, maxstep=None, m=0):
     print >> filename, 'End'
     filename.close()
 
-
-def investigate_faces_solution_2q(q, f, a, faces):
-    """
-    Check if the vertex-function corresponding to given painted faces is a good 2q-example.
-    EXAMPLES::
-
-        sage: faces, fn = painted_faces_and_funciton_from_solution(             # not tested
-        ...               destdir + '2q_13_9_4.sol', 13, showplots=False)       # not tested
-        sage: investigate_faces_solution_2q(13, 9/13, 4/13, faces)              # not tested
-    """
-    #FIXME: need to attach 2q_search.sage
-    covered_intervals = generate_covered_intervals_from_faces(faces)
-    additive_vertices = generate_additive_vertices_from_faces(q, faces)
-    final_uncovered = [[a - 1/q, a], [f - a, f - a + 1 / q]]
-    components = covered_intervals  + [final_uncovered]
-    fn_sym = generate_symbolic_continuous(None, components, field=QQ)
-    ff = int(f * q)
-    h_list = []
-    for h in generate_vertex_function(q, ff, fn_sym, additive_vertices):
-        print h
-        h_list.append(h)
-        if not extremality_test(h): # h is not extreme
-            h_2q = restrict_to_finite_group(h, f=f, oversampling=2, order=None)
-            if extremality_test(h_2q): # but h restricted to 1/2q is extreme
-                print "h is a valid example!"
-            else:
-                print "h restricted to 1/2q is not extreme. Not a good example"
-        else:
-            print "h is extreme. Not a good example"
-    return h_list
-
 def print_slope_constraints_2q(filename, q, f, a, nums, m=0):
     """
     EXAMPLES::
@@ -277,7 +249,26 @@ def print_slope_constraints_2q(filename, q, f, a, nums, m=0):
                 print >> filename, '%s + %s <= 1' % ( interval_slope_variable(ja, k), \
                                                       interval_slope_variable(j, k) )
 
+def refind_function_from_lpsolution_2q(filename, q, f, a):
+    """
+    EXAMPLES::
 
+        sage: h = refind_function_from_lpsolution_2q('solution_2q_example_m4.sol', 37, 25/37, 11/37) # not tested
+    """
+    faces, fn = painted_faces_and_funciton_from_solution(filename, q, showplots=False)
+    covered_intervals = generate_covered_intervals_from_faces(faces)
+    additive_vertices = generate_additive_vertices_from_faces(q, faces)
+    final_uncovered = [[a - 1/q, a], [f - a, f - a + 1 / q]]
+    components = covered_intervals  + [final_uncovered]
+    fn_sym = generate_symbolic_continuous(None, components, field=QQ)
+    ff = int(f * q)
+    for h in generate_vertex_function(q, ff, fn_sym, additive_vertices):
+        if not extremality_test(h): # h is not extreme
+            logging.info("Testing the extremality of pi restricted to 1/2q.")
+            h_2q = restrict_to_finite_group(h, f=f, oversampling=2, order=None)
+            if extremality_test(h_2q): # but h restricted to 1/2q is extreme
+                logging.info("Find a valid 2q_example!")
+                return h
 # Comments:
 # def kzh_2q_example_1() is obtained by
 #    LP model: mip_q37_f25_a11_4slope_2maxstep_m4.lp
@@ -304,7 +295,4 @@ def print_slope_constraints_2q(filename, q, f, a, nums, m=0):
 #    whose restriction to 1/2q is extreme.
 #
 #    This two_q_example is obtained by:
-#    sage: faces, fn = painted_faces_and_funciton_from_solution('.../solution_2q_example_m4.sol', 37) # not tested
-#    sage: h_list = investigate_faces_solution_2q(37, 25/37, 11/37, faces)                            # not tested
-#    sage: h = h_list[0]                                                                              # not tested
-
+#    sage: h = refind_function_from_lpsolution_2q('solution_2q_example_m4.sol', 37, 25/37, 11/37) # not tested
