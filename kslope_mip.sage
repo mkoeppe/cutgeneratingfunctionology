@@ -665,10 +665,9 @@ def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None, weights=[]):
     print >> filename, 'End'
     filename.close()
 
-def painted_faces_and_funciton_from_solution(filename, q, showplots=True):
+def painted_faces_and_funciton_from_solution(filename, q):
     """
     Read the solution file, return colored faces and the function fn (inexact floating point)
-    if showplots is True, draw 2d complex and plot fn.
     EXAMPLES::
 
         sage: faces, fn = painted_faces_and_funciton_from_solution('solution_2q_example_m4.sol', 37)    # not tested
@@ -694,9 +693,6 @@ def painted_faces_and_funciton_from_solution(filename, q, showplots=True):
                 if v == 0:
                     faces.append(face)
     fn = piecewise_function_from_breakpoints_and_values(bkpt, values)
-    if showplots:
-        plot_painted_faces(q, faces).show(show_legend=False)
-        plot_with_colored_slopes(fn).show()
     return faces, fn
 
 def refind_function_from_lpsolution(filename, q, f):
@@ -708,7 +704,7 @@ def refind_function_from_lpsolution(filename, q, f):
         True                                     # not tested
     """
     
-    faces, fn = painted_faces_and_funciton_from_solution(filename, q, showplots=False)
+    faces, fn = painted_faces_and_funciton_from_solution(filename, q)
     components = generate_covered_intervals_from_faces(faces)
     additive_vertices = generate_additive_vertices_from_faces(q, faces)  
     fn_sym = generate_symbolic_continuous(None, components, field=QQ)
@@ -914,6 +910,7 @@ def print_no_maximal_faces_0d(filename, q, f, faces_0d):
 ########### Copy from 2q_search.sage #############
 def plot_painted_faces(q, faces):
     """
+    Ignore please.
     Return a plot of the 2d complex of q-grid with green faces.
     """
     points = [x/q for x in range(q+1)]
@@ -933,7 +930,15 @@ def plot_painted_faces(q, faces):
 
 def generate_additive_vertices_from_faces(q, faces):
     """
-    Return the set of points on 2d-grid that are covered by faces.
+    Return the set of points (x<=y) on q*q 2d-grid that are covered by faces.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: fn = gmic(1/3); q=3;
+        sage: faces = generate_maximal_additive_faces(fn)
+        sage: generate_additive_vertices_from_faces(q, faces)
+        {(0, 0), (0, 1/3), (0, 2/3), (0, 1), (1/3, 1), (2/3, 2/3), (2/3, 1), (1, 1)}
     """
     additive_vertices = set()
     for face in faces:
@@ -977,6 +982,27 @@ def generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices):
         ieqdic, eqndic are dictionaries that maps ieq/eqn to 
         the 2d-complex-vertices from which it comes;
         key = ieq or eqn, value = set of 2d-complex-vertices.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: q=3; ff=1;
+        sage: components=[[[0, 1/3]], [[1/3, 1]]]
+        sage: fn_sym = generate_symbolic_continuous(None, components, field=QQ)
+        sage: additive_vertices = {(0, 0), (0, 1/3), (0, 2/3), (0, 1), (1/3, 1), (2/3, 2/3), (2/3, 1), (1, 1)}
+        sage: ieqdic, eqndic = generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices)
+        sage: ieqdic
+        {(0, 0, 0): set(),
+        (0, 1/3, -1/3): {(1/3, 1/3), (1/3, 2/3)},
+        (0, 1/3, 0): set(),
+        (0, 1/3, 1/3): set(),
+        (1, -1/3, -1/3): set(),
+        (1, -1/3, 0): set(),
+        (1, 0, 0): set()}
+        sage: eqndic
+        {(-1, 1/3, 0): set(),
+        (0, 0, 0): {(0, 0), (0, 1/3), (0, 2/3), (0, 1)},
+        (0, 1/3, 2/3): {(1/3, 1), (2/3, 2/3), (2/3, 1), (1, 1)}}
     """
     ieqdic = {}
     eqndic = {}
@@ -1022,6 +1048,17 @@ def generate_vertex_function(q, ff, fn_sym, additive_vertices, k_slope=3):
     """
     Generate real valued functions which correspond to vertices 
     of the polytope defined by [ieqs, eqns] = generate_ieqs_and_eqns(..)
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: q=3; ff=1;
+        sage: components=[[[0, 1/3]], [[1/3, 1]]]
+        sage: fn_sym = generate_symbolic_continuous(None, components, field=QQ)
+        sage: additive_vertices = {(0, 0), (0, 1/3), (0, 2/3), (0, 1), (1/3, 1), (2/3, 2/3), (2/3, 1), (1, 1)}
+        sage: h = generate_vertex_function(q, ff, fn_sym, additive_vertices, k_slope=2).next()
+        sage: h == gmic(1/3)
+        True
     """
     ieqdic, eqndic = generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices)
     p = Polyhedron(ieqs = ieqdic.keys(), eqns = eqndic.keys())

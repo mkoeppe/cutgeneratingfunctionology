@@ -255,7 +255,7 @@ def refind_function_from_lpsolution_2q(filename, q, f, a):
 
         sage: h = refind_function_from_lpsolution_2q('solution_2q_example_m4.sol', 37, 25/37, 11/37) # not tested
     """
-    faces, fn = painted_faces_and_funciton_from_solution(filename, q, showplots=False)
+    faces, fn = painted_faces_and_funciton_from_solution(filename, q)
     covered_intervals = generate_covered_intervals_from_faces(faces)
     additive_vertices = generate_additive_vertices_from_faces(q, faces)
     final_uncovered = [[a - 1/q, a], [f - a, f - a + 1 / q]]
