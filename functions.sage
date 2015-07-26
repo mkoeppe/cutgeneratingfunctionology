@@ -1704,6 +1704,10 @@ class FastPiecewise (PiecewisePolynomial):
             color = 'blue'
         else:
             color = kwds['rgbcolor']
+        if not 'plot_points' in kwds:
+            plot_pts = 200
+        else:
+            plot_pts = kwds['plot_points']
         ### Code duplication with xmin/xmax code in plot.py.
         n = len(args)
         xmin = None
@@ -1776,9 +1780,9 @@ class FastPiecewise (PiecewisePolynomial):
                         delete_one_time_plot_kwds(point_kwds)
                     last_closed = right_closed
                     last_end_point = [b, f(b)]
-            if float(a) < float(b):
-                # We do not plot anything if float(a)==float(b) because
-                # otherwise plot complains that
+            if a < b and (float(b) - float(a))/(plot_pts-1) != float(0):
+                # We do not plot anything if (float(b) - float(a))/(plot_pts-1) == float(0) because
+                # otherwise the plot method in src/plot/misc.py complains that
                 # "start point and endpoint must be different"
                 g += plot(f, *args, xmin=a, xmax=b, zorder=-1, **kwds)
                 # If it's the first piece, pass all arguments. Otherwise,
@@ -3519,6 +3523,7 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
             for move in moves:
                 moved_interval = move.apply_to_coho_interval(interval)
                 #print "Applying move %s to %s gives %s." % (move, interval, moved_interval)
+
                 moved_seed = move(seed)
                 walk_sign = move.sign()
                 done_intervals.add(moved_interval)
