@@ -272,7 +272,7 @@ def chen_3_slope_not_extreme(f=1/2, lam=8):
     values = [0, 2/3, 2/3, 1/3, 1/3, 1, 2/3, 2/3, 1/3, 1/3, 0]
     return  piecewise_function_from_breakpoints_and_values(bkpts, values)
 
-def dr_projected_sequential_merge_3_slope(f=2/3, lambda_1=1/4, lambda_2=1/4, n=1):
+def dr_projected_sequential_merge_3_slope(f=2/3, lambda_1=1/2, lambda_2=1/2, n=1):
     """
     Construct the one-dimensional projected sequential merge inequality: h = g @_n^1 xi, where
     g = multiplicative_homomorphism(gj_forward_3_slope(f=f, lambda_1=lambda_1, lambda_2=lambda_2),-1);
