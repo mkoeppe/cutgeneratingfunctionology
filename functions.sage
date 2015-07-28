@@ -908,6 +908,26 @@ def plot_covered_intervals(function, covered_intervals=None, uncovered_color='bl
                 delete_one_time_plot_kwds(kwds)
     return graph
 
+def number_of_components(fn):
+    """
+    Return the number of connected components of `fn`.
+
+    This is an upper bound on `number_of_slopes`.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.WARN)
+        sage: number_of_components(gmic())
+        2
+        sage: number_of_components(gomory_fractional())
+        1
+        sage: number_of_slopes(not_extreme_1())
+        3
+        sage: number_of_components(not_extreme_1())
+        4
+    """
+    return len(generate_covered_intervals(fn))
+
 def slopes_intervals_dict(fn):
     """
     Return a dictionary mapping slope values to a list of intervals of that slope.
