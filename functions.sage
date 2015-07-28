@@ -3701,3 +3701,49 @@ def merit_index(fn):
                    for face in generate_maximal_additive_faces(fn)
                    if face.is_2D())
 
+def arithmetic_complexity(fn, f=None, q=None):
+    r"""
+    Compute the arithmetic complexity
+
+    It is defined as the least common denominator of the values fn(i/q) for i=0,1,...,q,
+    where fn is a piecewise linear function with rational breakpoints in (1/q)Z,
+    or a discrete function with its domain contained in (1/q)Z.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = gmic(7/9)
+        sage: arithmetic_complexity(h)
+        14
+        sage: arithmetic_complexity(restrict_to_finite_group(h))
+        14
+        sage: arithmetic_complexity(dg_2_step_mir_limit())
+        24
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
+    """
+    if q is None:
+        q = finite_group_order_from_function_f_oversampling_order(fn, f=None, oversampling=None, order=None)
+    if fn.is_discrete():
+        v = fn.values_at_end_points()
+    elif fn.is_continuous():
+        v = [fn(x/q) for x in range(q+1)]
+    else:
+        v = []
+        for x in range(q+1):
+            for epsilon in [0,1,-1]:
+                try:
+                    y = fn.limit(x/q, epsilon)
+                    v.append(y)
+                except:
+                    pass
+    is_rational_v, v = is_all_QQ(v)
+    if is_rational_v:
+        v_denominator = [denominator(y) for y in v]
+        return lcm(v_denominator)
+    else:
+        raise ValueError, "This is a function has irrational value on (1/%s)Z, so the arithmetic_complexity is not available." % q
