@@ -1,7 +1,7 @@
 import igp
 from igp import *
 
-destdir = "/Users/mkoeppe/Dropbox/basu-hildebrand-koeppe-papers-for-yuan/survey/"
+destdir = "survey_graphics/survey_graphics/"
 
 emitted_names = set()
 
@@ -171,6 +171,7 @@ def plot_something(h):
     return g
 
 def procedure_graph(procedure_name, fn, g=None):
+    print "##", procedure_name
     emit_tex_sage_command(procedure_name)
     plot_something(fn).save(destdir + "%s-from.pdf" % procedure_name, figsize=compendium_figsize)
     if g is None:
@@ -190,6 +191,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
 
         # Graph
         
+        print "## graphics_for_survey_poset"
         load('survey_graphics/graphics_for_survey_poset.sage')
 
         # override function!
@@ -207,6 +209,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         ## Compendium tables
         for name in [ 'll_strong_fractional', 'hildebrand_2_sided_discont_1_slope_1', 'hildebrand_2_sided_discont_2_slope_1', 'hildebrand_discont_3_slope_1', 'dr_projected_sequential_merge_3_slope', 'chen_4_slope', 'gmic', 'gj_2_slope', 'gj_2_slope_repeat', 'dg_2_step_mir', 'kf_n_step_mir', 'gj_forward_3_slope', 'drlm_backward_3_slope', 'drlm_2_slope_limit', 'drlm_2_slope_limit_1_1', 'bhk_irrational', 'bccz_counterexample', 'drlm_3_slope_limit', 'dg_2_step_mir_limit', 'rlm_dpl1_extreme_3a', 'hildebrand_5_slope_22_1', 'hildebrand_5_slope_24_1', 'hildebrand_5_slope_28_1', 'kzh_7_slope_1', 'kzh_28_slope_1' ]:
             emit_tex_sage_command(name)
+            print "##", name
             h = eval(name)()
             g = plot_something(h)
             g.save(destdir + "%s.pdf" % name, figsize=compendium_figsize)
@@ -224,7 +227,8 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         for name in [ 'not_extreme_1', 'bhk_irrational_extreme_limit_to_rational_nonextreme', 'zhou_two_sided_discontinuous_cannot_assume_any_continuity']:
             emit_tex_sage_command(name)
             h = eval(name)()
-            extremality_test(h, show_plots=destdir + "%s-%%s.pdf" % name)
+            extremality_test(h, show_all_perturbations=True,
+                             show_plots=destdir + "%s-%%s.pdf" % name)
 
         for name in [ 'bhk_irrational_extreme_limit_to_rational_nonextreme' ]:
             emit_tex_sage_command(name)
@@ -246,6 +250,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
                 extremality_test(h, show_plots=destdir + "%s_%s-%%s.pdf" % (name, s))
 
         # Bccz figure
+        print "## BCCZ"
         load("survey_graphics/graphics_for_survey_bccz.sage")
 
         # Plot or re-plot some 2d diagrams with a different style
@@ -253,8 +258,9 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         igp.ticks_keywords = survey_ticks_keywords
 
         name = 'gmic'
-        g = plot_2d_diagram(h)
+        print "##", name
         h = eval(name)(2/3)
+        g = plot_2d_diagram(h)
         f = find_f(h)
         g += text("$F_1$", (f/3, f/3), axis_coords=False, vertical_alignment='center',
                   horizontal_alignment='center', color='black', fontsize=15)
@@ -265,6 +271,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         igp.ticks_keywords = no_labels_ticks_keywords
         
         for name in [ 'bhk_irrational', 'gj_forward_3_slope', 'not_minimal_2', 'not_extreme_1' ]:
+            print "##", name
             emit_tex_sage_command(name)
             h = eval(name)()
             plot_2d_diagram(h, True).save(destdir + "%s-2d_diagram.pdf" % name, figsize=6) # figsize??
@@ -272,6 +279,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         igp.ticks_keywords = c7_ticks_keywords
 
         for name in [ 'drlm_not_extreme_1' ]:
+            print "##", name
             emit_tex_sage_command(name)
             h = eval(name)()
             extremality_test(h, show_plots=destdir + "%s-%%s.pdf" % name)
@@ -304,4 +312,4 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         igp.proj_plot_colors = orig_proj_plot_colors
         igp.check_perturbation_plot_three_perturbations = orig_check_perturbation_plot_three_perturbations
 
-os.system("cd %s && (pdflatex -synctex=1 -src-specials -interaction=nonstopmode igp-survey || pdflatex -synctex=1 -src-specials -interaction=nonstopmode igp-survey)" % (destdir,))
+os.system("cd %s && (pdflatex -synctex=1 -src-specials -interaction=nonstopmode survey_graphics; pdflatex -synctex=1 -src-specials -interaction=nonstopmode compendium_graphics)" % (destdir,))

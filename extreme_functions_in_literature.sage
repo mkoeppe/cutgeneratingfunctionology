@@ -363,9 +363,12 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
         1) the function (named pi3(u)) is facet (thus extreme);
         2) can add a perturbation (zigzag) on the third slope as shown in Fig.10;
 
+        An extremality proof for the general (not necessarily rational) case appears in [KZh2015b, section 4].
+
     Examples:
-        Finite group --> Example 3.8 in [8] p.386,
-        Infinite group --> Interpolation using Equation 5 from [40] p.154 ::
+
+        - Finite group --> Example 3.8 in [8] p.386,
+        - Infinite group --> Interpolation using Equation 5 from [40] p.154 ::
 
             sage: h = drlm_backward_3_slope(f=1/12, bkpt=2/12)
             sage: extremality_test(h, False)
@@ -374,14 +377,19 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
             sage: extremality_test(h, False)
             True
 
-    Reference:
-        [8]: J. Araoz, L. Evans, R.E. Gomory, and E.L. Johnson, Cyclic groups and knapsack facets,
-                Mathematical Programming 96 (2003) 377-408.
-                
-        [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
-                Mathematical Programming 121 (2010) 145-170.
+    References:
 
-        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
+    - [8] J. Araoz, L. Evans, R.E. Gomory, and E.L. Johnson, Cyclic groups and knapsack facets,
+      Mathematical Programming 96 (2003) 377-408.
+                
+    - [40] S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
+      Mathematical Programming 121 (2010) 145-170.
+
+    - [61] R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
+
+    - [KZh2015b] M. Koeppe and Y. Zhou, An electronic compendium of extreme functions for the
+      Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
+      http://dx.doi.org/10.1016/j.orl.2015.06.004
     """
     if conditioncheck:
         if not bool(0 < f < bkpt < 1 + f - bkpt < 1):
@@ -562,15 +570,20 @@ def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
 def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
     """
     return function psi, a counterexample to Gomory--Johnson's conjecture
-    constructed by Basu--Conforti--Cornuejols--Zambelli.
+    constructed by Basu--Conforti--Cornuejols--Zambelli [IR1].
 
     psi is a continuous facet (hence extreme), but is not piecewise linear. cf. [IR1]
 
+    It can be considered as an absolutely continuous, measurable, non-piecewise linear
+    "2-slope function".  A separate case with different parameters, which gives rise to
+    a continuous "1-slope function", is discussed in [KZh2015b, section 5].
+
     Parameters:
-        f (real) \in (0,1);
-        q (real), q > 2 : ratio of the geometric series;
-        eta (real), 0 <= eta < 1 : to control the serie sum;
-        maxiter (integer) : maximum number of iterations;
+
+    - f (real) \in (0,1);
+    - q (real), q > 2: ratio of the geometric series;
+    - eta (real), 0 <= eta < 1: to control the series sum;
+    - maxiter (integer): maximum number of iterations;
 
     Note:
         psi is the uniform limit of the sequence of functions psi_n,
@@ -596,9 +609,14 @@ def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
 
             sage: bccz_counterexample(f=2/3, q=4, eta=0, maxiter=10000)(r=9/40) # doctest: +SKIP
 
-    Reference:
-        [IR1]:  A. Basu, M. Conforti, G. Cornuejols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
-                    Mathematical Programming Ser. A 133 (2012), 25-38.
+    References:
+
+    - [IR1]:  A. Basu, M. Conforti, G. Cornuejols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
+      Mathematical Programming Ser. A 133 (2012), 25-38.
+
+    - [KZh2015b] M. Koeppe and Y. Zhou, An electronic compendium of extreme functions for the
+      Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
+      http://dx.doi.org/10.1016/j.orl.2015.06.004
     """
     if not (bool(0 < f < 1) & bool(q > 2) & bool(0 <= eta < 1)):
         raise ValueError, "Bad parameters."
@@ -640,23 +658,30 @@ def generate_example_e_for_psi_n(f=2/3, n=7, q=4, eta=1/1000):
     This can be used in psi_n_in_bccz_counterexample_construction(f, [e[0],...,e[n-1]]), so that the function constructed is extreme.
 
     Parameters:
-        f (real) \in (0,1);
-        n (integer);
-        q (real), q > 2 : ratio of the geometric series;
-        eta (real), 0 <= eta < 1 : to control the serie sum, \sum_{i = 0}^{\infty} {2^i * e[i]} <= (1 - eta)*f.
+
+    - f (real) \in (0,1);
+    - n (integer);
+    - q (real), q > 2: ratio of the geometric series;
+    - eta (real), 0 <= eta < 1: to control the series sum, \sum_{i = 0}^{\infty} {2^i * e[i]} <= (1 - eta)*f.
 
     Note:
         If (eta == 0) and (f >= 1/2), then \sum_{i = 0}^{\infty} {2^i * e[i]} = f.
-        This case is not mentioned in [IR1], but using a similar (or same) proof to [IR1], one can show that:
+        This case is not mentioned in [IR1], but using a similar proof, one can show that:
         1) psi_n still converges uniformly to psi;
         2) The limit funciton psi is a continuous facet (hence extreme);
         3) psi is not piecewise linear. 
         Also notice that:
         4) psi is not in W^{1,1}.
+        See [KZh2015b, section 5].
 
-    Reference: 
-        [IR1]:  A. Basu, M. Conforti, G. Cornuejols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
-                    Mathematical Programming Ser. A 133 (2012), 25-38.
+    References:
+
+    - [IR1] A. Basu, M. Conforti, G. Cornuejols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
+      Mathematical Programming Ser. A 133 (2012), 25-38.
+
+    - [KZh2015b] M. Koeppe and Y. Zhou, An electronic compendium of extreme functions for the
+      Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
+      http://dx.doi.org/10.1016/j.orl.2015.06.004
     """
     if n == 0:
         return []
@@ -1084,6 +1109,8 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
     (specifically, 2 * \pi(f+) = \pi(2f+) and 2* \pi((1+f) / 2 +) = \pi(f+)) that
     the function rlm_dpl1_fig3_lowerleft(f) is a facet (and thus extreme) for any 0 < f < 1/3.
 
+    This is worked out in [KZh2015b, section 2].
+
     Example p.273, Fig.3-lowerleft ::
 
             sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
@@ -1102,6 +1129,10 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
 
     .. [RLM2009] J.-P. P. Richard, Y. Li, and L. A. Miller, Valid inequalities for MIPs and group polyhedra
        from approximate liftings, Mathematical Programming 118 (2009), no. 2, 253-277, doi:10.1007/s10107-007-0190-9
+
+    .. [KZh2015b] M. Koeppe and Y. Zhou, An electronic compendium of extreme functions for the
+       Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
+       http://dx.doi.org/10.1016/j.orl.2015.06.004
     """
     if conditioncheck:
         if not bool(0 < f < 1):

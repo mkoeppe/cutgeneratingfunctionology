@@ -1,8 +1,7 @@
 import igp
 from igp import *
 
-destdir = "/Users/mkoeppe/Dropbox/basu-hildebrand-koeppe-papers-for-yuan/yuan/extreme-notes/"
-#destdir ="/media/sf_yuan/"
+destdir = "survey_graphics/extreme_notes_graphics/"
 
 emitted_names = set()
 
@@ -188,19 +187,6 @@ try:
         igp.plot = plot_no_legend
         igp.plot_kwds_hook = plot_kwds_hook_no_legend
 
-        # override function!
-        #igp.ticks_keywords = compendium_ticks_keywords
-        
-        ## Compendium tables
-        #for name in [ 'll_strong_fractional']: #, 'hildebrand_2_sided_discont_1_slope_1', 'hildebrand_2_sided_discont_2_slope_1', 'hildebrand_discont_3_slope_1', 'dr_projected_sequential_merge_3_slope', 'chen_4_slope', 'gmic', 'gj_2_slope', 'gj_2_slope_repeat', 'dg_2_step_mir', 'kf_n_step_mir', 'gj_forward_3_slope', 'drlm_backward_3_slope', 'drlm_2_slope_limit', 'drlm_2_slope_limit_1_1', 'bhk_irrational', 'bccz_counterexample', 'drlm_3_slope_limit', 'dg_2_step_mir_limit', 'rlm_dpl1_extreme_3a', 'hildebrand_5_slope_22_1', 'hildebrand_5_slope_24_1', 'hildebrand_5_slope_28_1' ]:
-        #    emit_tex_sage_command(name)
-        #    h = eval(name)()
-        #    g = plot_something(h)
-        #    g.save(destdir + "%s.pdf" % name, figsize=compendium_figsize)
-
-        #for f in ['extremality_test', 'plot_2d_diagram', 'generate_example_e_for_psi_n', 'chen_3_slope_not_extreme', 'psi_n_in_bccz_counterexample_construction', 'gomory_fractional']:
-        #    emit_tex_sage_command(f)
-
         ## Other figures.
 
         igp.show_plots_figsize = survey_figsize
@@ -255,23 +241,9 @@ try:
                   horizontal_alignment='right', color='black', fontsize=15)
         g += text("$F_3$", (2*b, 2*b), axis_coords=False, vertical_alignment='bottom', \
                   horizontal_alignment='left', color='black', fontsize=15)
-        #fill_color = 'palegreen'
-        #vert = [(b,b), (b, c), (c,b),(c,c)]
-        #g += polygon(convex_vert_list(vert), color=fill_color)
-        #g += text("$U$", ((b + c)/2, b), axis_coords=False, vertical_alignment='bottom', \
-        #          horizontal_alignment='center', color='black', fontsize=15)
-        #g += text("$V$", (b, (b + c)/2), axis_coords=False, vertical_alignment='center', \
-        #          horizontal_alignment='left', color='black', fontsize=15)
-        #g += line([(c, 0), (c, c)], linestyle=':', color='grey')
-        #g += line([(0, c), (c, c)], linestyle=':', color='grey')
         g.save(destdir + "%s-2d_diagram.pdf" % name, figsize = diagram_figsize)
         
         igp.ticks_keywords = survey_ticks_keywords
-        #name= 'psi_n_in_bccz_counterexample_construction'
-        #h = eval(name)()
-        #g = plot_covered_intervals(h, thickness=3)
-        #g.save(destdir + "%s-covered_intervals.pdf" % name)
-        #plot_2d_diagram(h).save(destdir + "%s-2d_diagram.pdf" % name)
             
         name= 'kf_n_step_mir'
         f = 2/3 
@@ -300,50 +272,6 @@ try:
         g.save(destdir + "%s-lemma5_1.pdf" % name, figsize = 5, fontsize=15)
     
         plot(bccz_counterexample(), color='black').save(destdir + "%s-function.pdf" % "bccz_counterexample")
-        
-
-        #plot_2d_diagram(gj_2_slope()).save(destdir + "%s-2d_diagram.pdf" % "gj_2_slope")
-        #for name in [ 'bhk_irrational_extreme_limit_to_rational_nonextreme' ]:
-        #    emit_tex_sage_command(name)
-        #    for n in [1, 2]:
-        #        h = eval(name)(n)
-        #        extremality_test(h, show_plots=destdir + "%s_%s-%%s.pdf" % (name, n))
-
-        #igp.plot_rescaled_perturbation = dont_plot_rescaled_perturbation
-
-        #for name in [ 'drlm_gj_2_slope_extreme_limit_to_nonextreme' ]:
-        #    emit_tex_sage_command(name)
-        #    h = eval(name)()
-        #    extremality_test(h, show_plots=destdir + "%s-%%s.pdf" % name)
-
-        #for name in [ 'drlm_gj_2_slope_extreme_limit_to_nonextreme' ]:
-        #    emit_tex_sage_command(name)
-        #    for s in [3, 50]:
-        #        h = eval(name)(s)
-        #        extremality_test(h, show_plots=destdir + "%s_%s-%%s.pdf" % (name, s))
-
-        # Bccz figure
-        #load("survey_graphics/graphics_for_survey_bccz.sage")
-
-        # Plot or re-plot some 2d diagrams with a different style
-        #igp.proj_plot_colors = ['grey', 'grey', 'grey']
-        #igp.ticks_keywords = no_labels_ticks_keywords
-        
-        #for name in [ 'bhk_irrational', 'gj_forward_3_slope' ]: #, 'not_minimal_2', 'not_extreme_1' ]:
-        #    emit_tex_sage_command(name)
-        #    h = eval(name)()
-        #    plot_2d_diagram(h, True).save(destdir + "%s-2d_diagram.pdf" % name, figsize=6) # figsize??
-
-        #igp.ticks_keywords = c7_ticks_keywords
-
-        #for name in [ 'drlm_not_extreme_1' ]:
-        #    emit_tex_sage_command(name)
-        #    h = eval(name)()
-        #    extremality_test(h, show_plots=destdir + "%s-%%s.pdf" % name)
-        #for oversampling in [1, 4]:
-        #    hr = restrict_to_finite_group(h, oversampling=oversampling)
-        #    plot_something(hr).save(destdir + "%s-restricted-%s.pdf" % (name, oversampling), figsize=survey_figsize)
-        #    extremality_test(hr, show_plots=destdir + "%s-restricted-%s-%%s.pdf" % (name, oversampling))
 
 finally:
         igp.plot_rescaled_perturbation = orig_plot_rescaled_perturbation
@@ -355,4 +283,4 @@ finally:
         igp.proj_plot_colors = orig_proj_plot_colors
         igp.check_perturbation_plot_three_perturbations = orig_check_perturbation_plot_three_perturbations
 
-#os.system("cd %s && (pdflatex -synctex=1 -src-specials -interaction=nonstopmode igp-survey || pdflatex -synctex=1 -src-specials -interaction=nonstopmode igp-survey)" % (destdir,)) 
+os.system("cd %s && (pdflatex -synctex=1 -src-specials -interaction=nonstopmode extreme_notes_graphics)" % (destdir,)) 

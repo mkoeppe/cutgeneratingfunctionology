@@ -51,144 +51,6 @@ def plot_2d_complex(function):
         p += parametric_plot((bkpt[i],y),(y,0,1), color='grey')
     return p
 
-## 
-## A lightweight representation of closed bounded intervals, possibly empty or degenerate.
-##
-
-def interval_sum(int1, int2):
-    """
-    Return the sum of two intervals.
-    """
-    if len(int1) == 1 and len(int2) == 1:
-        return [int1[0]+int2[0]]
-    elif len(int1) == 2 and len(int2) == 1:
-        return [int1[0]+int2[0],int1[1]+int2[0]]
-    elif len(int1) == 1 and len(int2) == 2:
-        return [int1[0]+int2[0],int1[0]+int2[1]]
-    else:    
-        return [int1[0]+int2[0],int1[1]+int2[1]]
-
-def interval_intersection(int1, int2):
-    """
-    Return the intersection of two intervals.
-
-    EXAMPLES::
-
-        sage: interval_intersection([1], [2])
-        []
-        sage: interval_intersection([1,3], [2,4])
-        [2, 3]
-        sage: interval_intersection([1,3], [2])
-        [2]
-        sage: interval_intersection([2], [2,3])
-        [2]
-        sage: interval_intersection([1,3], [3, 4])
-        [3]
-        sage: interval_intersection([1,3], [4, 5])
-        []
-        sage: interval_intersection([], [4, 5])
-        []
-    """
-    if len(int1) == 0 or len(int2) == 0:
-        return []
-    if len(int1) == 1 and len(int2) == 1:
-        if int1[0] == int2[0]:
-            return [int1[0]]
-        else:
-            return []
-    elif len(int1) == 2 and len(int2) == 1:
-        if int1[0] <= int2[0] <= int1[1]:
-            return [int2[0]]
-        else:
-            return []
-    elif len(int1) == 1 and len(int2) == 2:
-        if int2[0] <= int1[0] <= int2[1]:
-            return [int1[0]]
-        else:
-            return []    
-    else:        
-        max0 = max(int1[0],int2[0])
-        min1 = min(int1[1],int2[1])
-        if max0 > min1:
-            return []
-        elif max0 == min1:
-            return [max0]
-        else:
-            return [max0,min1]
-
-def interval_empty(interval):
-    """
-    Determine whether an interval is empty.            
-    """
-    if len(interval) == 0:
-        return True
-    else:
-        return False
-
-def interval_equal(int1, int2):
-    """
-    Determine whether two intervals are equal.
-    (This ignores whether the intervals are represented as tuples or lists.)
-    """
-    return tuple(int1) == tuple(int2)
-
-def element_of_int(x,int):
-    """
-    Determine whether value `x` is inside the interval `int`.
-
-    EXAMPLES::
-
-        sage: element_of_int(1, [])
-        False
-        sage: element_of_int(1, [1])
-        True
-        sage: element_of_int(1, [2])
-        False
-        sage: element_of_int(1, [0,2])
-        True
-        sage: element_of_int(1, [1,2])
-        True
-        sage: element_of_int(2, [3,4])
-        False
-    """
-    if len(int) == 0:
-        return False
-    elif len(int) == 1:
-        if x == int[0]:
-            return True
-        else:
-            return False
-    elif int[0] <= x <= int[1]:
-        return True
-    else:
-        return False
-
-def interval_to_endpoints(int):
-    """
-    Convert a possibly degenerate interval to a pair (a,b)
-    of its endpoints, suitable for specifying pieces of a `FastPiecewise`.
-
-    EXAMPLES::
-
-        sage: interval_to_endpoints([1])
-        (1, 1)
-        sage: interval_to_endpoints([1,3])
-        (1, 3)
-    """
-    if len(int) == 0:
-        raise ValueError, "An empty interval does not have a pair representation"
-    elif len(int) == 1:
-        return (int[0], int[0])
-    elif len(int) == 2:
-        return (int[0], int[1])
-    else:
-        raise ValueError, "Not an interval: %s" % (int,)
-
-def coho_interval_contained_in_coho_interval(I, J):
-    I = (coho_interval_left_endpoint_with_epsilon(I), coho_interval_right_endpoint_with_epsilon(I))
-    J = (coho_interval_left_endpoint_with_epsilon(J), coho_interval_right_endpoint_with_epsilon(J))
-    return J[0] <= I[0] and I[1] <= J[1]
-
 ##
 ##
 ##
@@ -299,14 +161,11 @@ class Face:
             return point((trip[0][0], \
                           trip[1][0]), rgbcolor = rgbcolor, size = 30, **kwds)
         elif self.is_horizontal():
-            return parametric_plot((y,trip[1][0]),\
-                                   (y,trip[0][0], trip[0][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
+            return line([(trip[0][0],trip[1][0]),(trip[0][1],trip[1][0])], rgbcolor = rgbcolor, thickness=2, **kwds)
         elif self.is_vertical():
-            return parametric_plot((trip[0][0],y),\
-                                   (y,trip[1][0], trip[1][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
+            return line([(trip[0][0],trip[1][0]),(trip[0][0],trip[1][1])], rgbcolor = rgbcolor, thickness=2, **kwds)
         elif self.is_diagonal():
-            return parametric_plot((lambda y: y, lambda y: trip[2][0]-y),\
-                                   (y,trip[0][0],trip[0][1]), rgbcolor = rgbcolor, thickness=2, **kwds)
+            return line([(trip[0][0],trip[2][0]-trip[0][0]),(trip[0][1],trip[2][0]-trip[0][1])], rgbcolor = rgbcolor, thickness=2, **kwds)
         elif self.is_2D():
             ## Sorting is necessary for this example:
             ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("data/dey-richard-not-extreme.txt"))
@@ -843,33 +702,6 @@ def edge_merge(comps,intervals,IJK):
                 any_change = True
     return any_change
     
-# Assume the lists of intervals are sorted.                
-def find_interior_intersection(list1, list2):
-    """
-    Tests whether `list1` and `list2` contain a pair of intervals
-    whose interiors intersect.
-
-    Assumes both lists are sorted.
-    
-    EXAMPLES::
-
-        sage: find_interior_intersection([[1, 2], [3, 4]], [[2, 3], [4, 5]])
-        False
-        sage: find_interior_intersection([[1, 2], [3, 5]], [[2, 4]])
-        True
-    """
-    i=0
-    j=0
-    while i < len(list1) and j < len(list2):
-        if len(interval_intersection(list1[i], list2[j])) == 2:
-            return True
-        else:
-            if list1[i][0] < list2[j][0]:
-                i = i + 1
-            else:
-                j = j + 1
-    return False
-
 def interval_mod_1(interval):
     """
     Represent the given proper interval modulo 1
@@ -984,26 +816,6 @@ def generate_covered_intervals_from_faces(faces):
     covered_intervals = remove_empty_comp(covered_intervals)
     return covered_intervals
 
-def interval_minus_union_of_intervals(interval, remove_list):
-    """Compute a list of intervals that represent the
-    set difference of `interval` and the union of the 
-    intervals in `remove_list`.
-
-    Assumes `remove_list` is sorted (and pairwise essentially
-    disjoint), and returns a sorted list.
-
-    EXAMPLES::
-
-        sage: interval_minus_union_of_intervals([0, 10], [[-1, 0], [2, 3], [9,11]]) 
-        [[0, 2], [3, 9]]
-        sage: interval_minus_union_of_intervals([0, 10], [[-1, 0], [2, 3]]) 
-        [[0, 2], [3, 10]]
-        sage: interval_minus_union_of_intervals([0, 10], [[-1, 0], [2, 3], [9,11], [13, 17]])
-        [[0, 2], [3, 9]]
-    """
-    scan = scan_union_of_coho_intervals_minus_union_of_coho_intervals([[interval]], [remove_list])
-    return list(proper_interval_list_from_scan(scan))
-
 def uncovered_intervals_from_covered_intervals(covered_intervals):
     """Compute a list of uncovered intervals, given the list of components
     of covered intervals.
@@ -1096,15 +908,45 @@ def plot_covered_intervals(function, covered_intervals=None, uncovered_color='bl
         kwds.update({'legend_label': label})
         plot_kwds_hook(kwds)
         for interval in component:
-            graph += plot(function.which_function((interval[0] + interval[1])/2), interval, color=colors[i], zorder=-1, **kwds)
-            # zorder=-1 puts them below the discontinuity markers,
-            # above the black function.
-            delete_one_time_plot_kwds(kwds)
+            # We do not plot anything if float(interval[0])==float(interval[1]) because
+            # otherwise plot complains that
+            # "start point and endpoint must be different"
+            if float(interval[0])<float(interval[1]):
+                graph += plot(function.which_function((interval[0] + interval[1])/2), interval, color=colors[i], zorder=-1, **kwds)
+                # zorder=-1 puts them below the discontinuity markers,
+                # above the black function.
+                delete_one_time_plot_kwds(kwds)
     return graph
 
-def plot_with_colored_slopes(fn):
+def number_of_components(fn):
     """
-    Return a plot of `fn`, with pieces of different slopes in different colors.
+    Return the number of connected components of `fn`.
+
+    This is an upper bound on `number_of_slopes`.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.WARN)
+        sage: number_of_components(gmic())
+        2
+        sage: number_of_components(gomory_fractional())
+        1
+        sage: number_of_slopes(not_extreme_1())
+        3
+        sage: number_of_components(not_extreme_1())
+        4
+    """
+    return len(generate_covered_intervals(fn))
+
+def slopes_intervals_dict(fn):
+    """
+    Return a dictionary mapping slope values to a list of intervals of that slope.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: slopes_intervals_dict(gmic(1/2))[2]
+        [(0, 1/2)]
     """
     slopes_dict = dict()
     for i, f in fn.list():
@@ -1115,6 +957,34 @@ def plot_with_colored_slopes(fn):
                 slopes_dict[f._slope].append((i[0], i[1]))
             except AttributeError:
                 pass
+    return slopes_dict
+
+def number_of_slopes(fn):
+    """
+    Return the number of different slopes of `fn`.
+
+    If `fn` is discrete, this is defined as the number of different slopes
+    of its piecewise linear continuous interpolation.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.WARN)
+        sage: number_of_slopes(gmic())
+        2
+        sage: number_of_slopes(gomory_fractional())
+        1
+        sage: number_of_slopes(automorphism(restrict_to_finite_group(gmic(10/11)), 3))
+        2
+    """
+    if fn.is_discrete():
+        fn = interpolate_to_infinite_group(fn)
+    return len(slopes_intervals_dict(fn))
+
+def plot_with_colored_slopes(fn):
+    """
+    Return a plot of `fn`, with pieces of different slopes in different colors.
+    """
+    slopes_dict = slopes_intervals_dict(fn)
     return plot_covered_intervals(fn, slopes_dict.values(), labels=[ "Slope %s" % s for s in slopes_dict.keys() ])
 
 def zero_perturbation_partial_function(function):
@@ -1243,72 +1113,6 @@ def minimality_test(fn, show_plots=False, f=None):
 
 from sage.functions.piecewise import PiecewisePolynomial
 from bisect import bisect_left
-
-## FIXME: Its __name__ is "Fast..." but nobody so far has timed
-## its performance against the other options. --Matthias
-class FastLinearFunction :
-
-    def __init__(self, slope, intercept):
-        self._slope = slope
-        self._intercept = intercept
-
-    def __call__(self, x):
-        if type(x) == float:
-            # FIXME: There must be a better way.
-            return float(self._slope) * x + float(self._intercept)
-        else:
-            return self._slope * x + self._intercept
-
-
-    def __float__(self):
-        return self
-
-    def __add__(self, other):
-        return FastLinearFunction(self._slope + other._slope,
-                                  self._intercept + other._intercept)
-
-    def __mul__(self, other):
-        # scalar multiplication
-        return FastLinearFunction(self._slope * other,
-                                  self._intercept * other)
-
-
-    def __neg__(self):
-        return FastLinearFunction(-self._slope,
-                                  -self._intercept)
-
-    __rmul__ = __mul__
-
-    def __eq__(self, other):
-        if not isinstance(other, FastLinearFunction):
-            return False
-        return self._slope == other._slope and self._intercept == other._intercept
-
-    def __ne__(self, other):
-        return not (self == other)
-
-    def __repr__(self):
-        # Following the Sage convention of returning a pretty-printed
-        # expression in __repr__ (rather than __str__).
-        try:
-            return '<FastLinearFunction ' + sage.misc.misc.repr_lincomb([('x', self._slope), (1, self._intercept)], strip_one = True) + '>'
-        except TypeError:
-            return '<FastLinearFunction (%s)*x + (%s)>' % (self._slope, self._intercept)
-
-    def _sage_input_(self, sib, coerced):
-        """
-        Produce an expression which will reproduce this value when evaluated.
-        """
-        return sib.name('FastLinearFunction')(sib(self._slope), sib(self._intercept))
-
-    ## FIXME: To be continued.
-
-fast_linear_function = FastLinearFunction
-
-def linear_function_through_points(p, q):
-    slope = (q[1] - p[1]) / (q[0] - p[0])
-    intercept = p[1] - slope * p[0]
-    return FastLinearFunction(slope, intercept) 
 
 class FastPiecewise (PiecewisePolynomial):
     """
@@ -1931,6 +1735,10 @@ class FastPiecewise (PiecewisePolynomial):
             color = 'blue'
         else:
             color = kwds['rgbcolor']
+        if not 'plot_points' in kwds:
+            plot_pts = 200
+        else:
+            plot_pts = kwds['plot_points']
         ### Code duplication with xmin/xmax code in plot.py.
         n = len(args)
         xmin = None
@@ -2003,9 +1811,9 @@ class FastPiecewise (PiecewisePolynomial):
                         delete_one_time_plot_kwds(point_kwds)
                     last_closed = right_closed
                     last_end_point = [b, f(b)]
-            if a < b:
-                # We do not plot anything if a==b because
-                # otherwise plot complains that
+            if a < b and (float(b) - float(a))/(plot_pts-1) != float(0):
+                # We do not plot anything if (float(b) - float(a))/(plot_pts-1) == float(0) because
+                # otherwise the plot method in src/plot/misc.py complains that
                 # "start point and endpoint must be different"
                 g += plot(f, *args, xmin=a, xmax=b, zorder=-1, **kwds)
                 # If it's the first piece, pass all arguments. Otherwise,
@@ -2117,22 +1925,6 @@ def print_sign(epsilon):
         return "-"
     else:
         return ""
-
-def is_pt_in_interval(i, x0):
-    """
-    retrun whether the point x0 is contained in the (ordinary or coho) interval i.
-    """
-    if len(i) == 2:
-        return bool(i[0] <= x0 <= i[1])
-    else:  
-        if i.left_closed and i.right_closed:
-            return bool(i.a <= x0 <= i.b)
-        if i.left_closed and not i.right_closed:
-            return bool(i.a <= x0 < i.b)
-        if not i.left_closed and i.right_closed:
-            return bool(i.a < x0 <= i.b)
-        if not i.left_closed and not i.right_closed:
-            return bool(i.a < x0 < i.b)
 
 default_precision = 53
 
@@ -2708,329 +2500,6 @@ def plot_intervals(intervals, ymin=0, ymax=1, legend_label='not covered'):
     return g
 
 
-
-import collections
-_closed_or_open_or_halfopen_interval = collections.namedtuple('Interval', ['a', 'b', 'left_closed', 'right_closed'])
-
-class closed_or_open_or_halfopen_interval (_closed_or_open_or_halfopen_interval):
-    def __repr__(self):
-        if self.a == self.b and self.left_closed and self.right_closed:
-            r = "{" + repr(self.a) + "}"
-        else:
-            r = ("[" if self.left_closed else "(") \
-                + repr(self.a) + ", " + repr(self.b) \
-                + ("]" if self.right_closed else ")")
-        return "<Int" + r + ">"
-
-    def _sage_input_(self, sib, coerced):
-        """
-        Produce an expression which will reproduce this value when evaluated.
-        """
-        if self.a == self.b and self.left_closed and self.right_closed:
-            return sib.name('singleton_interval')(sib(self.a))
-        else:
-            if self.left_closed and self.right_closed:
-                name = 'closed_interval'
-            elif self.left_closed and not self.right_closed:
-                name = 'right_open_interval'
-            elif not self.left_closed and self.right_closed:
-                name = 'left_open_interval'
-            else:
-                name = 'open_interval'
-            return sib.name(name)(sib(self.a), sib(self.b))
-
-def closed_interval(a, b):
-    return closed_or_open_or_halfopen_interval(a, b, True, True)
-
-def open_interval(a, b):
-    return closed_or_open_or_halfopen_interval(a, b, False, False)
-
-def singleton_interval(a):
-    return closed_or_open_or_halfopen_interval(a, a, True, True)
-
-def left_open_interval(a, b):
-    return closed_or_open_or_halfopen_interval(a, b, False, True)
-
-def right_open_interval(a, b):
-    return closed_or_open_or_halfopen_interval(a, b, True, False)
-
-def coho_interval_from_interval(int):
-    if len(int) == 0:
-        raise ValueError, "An empty interval does not have a coho_interval representation"
-    elif len(int) == 1:
-        return singleton_interval(int[0])
-    elif len(int) == 2:
-        return closed_interval(int[0], int[1])
-    else:
-        raise ValueError, "Not an interval: %s" % (int,)
-
-def interval_length(interval):
-    """
-    Determine the length of the given `interval`.
-
-    `interval` can be old-fashioned or coho.
-    """
-    if len(interval) <= 1:
-        return 0
-    elif interval[1] >= interval[0]:
-        return interval[1] - interval[0]
-    else:
-        return 0
-
-def coho_interval_left_endpoint_with_epsilon(i):
-    """Return (x, epsilon)
-    where x is the left endpoint
-    and epsilon is 0 if the interval is left closed and 1 otherwise.
-    """
-    if len(i) == 0:
-        raise ValueError, "An empty interval does not have a left endpoint."
-    elif len(i) <= 2:
-        # old-fashioned closed interval or singleton
-        return i[0], 0 # Scanning from the left, turn on at left endpoint.
-    else:
-        # coho interval
-        return i.a, 0 if i.left_closed else 1
-
-def coho_interval_right_endpoint_with_epsilon(i):
-    """Return (x, epsilon)
-    where x is the right endpoint
-    and epsilon is 1 if the interval is right closed and 0 otherwise.
-    """
-    if len(i) == 0:
-        raise ValueError, "An empty interval does not have a right endpoint."
-    elif len(i) == 1:
-        # old-fashioned singleton
-        return i[0], 1 # Scanning from the left, turn off at that point plus epsilon
-    elif len(i) == 2:
-        # old-fashioned proper closed interval
-        return i[1], 1 # Scanning from the left, turn off at right endpoint plus epsilon
-    else:
-        # coho interval
-        return i.b, 1 if i.right_closed else 0
-
-def scan_coho_interval_left_endpoints(interval_list, tag=None, delta=-1):
-    """Generate events of the form `(x, epsilon), delta, tag.`
-
-    This assumes that `interval_list` is sorted from left to right,
-    and that the intervals are pairwise disjoint.
-    """
-    for i in interval_list:
-        yield coho_interval_left_endpoint_with_epsilon(i), delta, tag
-
-def scan_coho_interval_right_endpoints(interval_list, tag=None, delta=+1):
-    """Generate events of the form `(x, epsilon), delta, tag.`
-
-    This assumes that `interval_list` is sorted from left to right,
-    and that the intervals are pairwise disjoint.
-    """
-    for i in interval_list:
-        yield coho_interval_right_endpoint_with_epsilon(i), delta, tag
-
-def scan_coho_interval_list(interval_list, tag=None, on_delta=-1, off_delta=+1):
-    """Generate events of the form `(x, epsilon), delta, tag.`
-
-    This assumes that `interval_list` is sorted, and 
-    that the intervals are pairwise disjoint.
-
-    delta is -1 for the beginning of an interval ('on').
-    delta is +1 for the end of an interval ('off'). 
-
-    This is so that the events sort lexicographically in a way that if
-    we have intervals whose closures intersect in one point, such as
-    [a, b) and [b, c], we see first the 'on' event and then the 'off'
-    event.  In this way consumers of the scan can easily implement merging 
-    of such intervals. 
-
-    If merging is not desired, set on_delta=+1, off_delta=-1. 
-
-    EXAMPLES::
-
-        sage: list(scan_coho_interval_list([closed_or_open_or_halfopen_interval(1, 2, True, False), closed_or_open_or_halfopen_interval(2, 3, True, True)]))
-        [((1, 0), -1, None), ((2, 0), -1, None), ((2, 0), 1, None), ((3, 1), 1, None)]
-    """
-    return merge(scan_coho_interval_left_endpoints(interval_list, tag, on_delta), 
-                 scan_coho_interval_right_endpoints(interval_list, tag, off_delta))
-
-## def scan_set_difference(a, b):
-##     """`a` and `b` should be event generators."""
-
-from heapq import *
-
-def scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists):
-    # Following uses the lexicographic comparison of the tuples.
-    scan = merge(merge(*[scan_coho_interval_list(interval_list, True) for interval_list in interval_lists]),
-                 merge(*[scan_coho_interval_list(remove_list, False) for remove_list in remove_lists]))
-    interval_indicator = 0
-    remove_indicator = 0
-    on = False
-    for ((x, epsilon), delta, tag) in scan:
-        was_on = on
-        if tag:                                       # interval event
-            interval_indicator -= delta
-            assert(interval_indicator) >= 0, "interval_indicator should stay non-negative; required sort order must be violated"
-        else:                                           # remove event
-            remove_indicator -= delta
-            assert(remove_indicator) >= 0, "remove_indicator should stay non-negative; required sort order must be violated"
-        now_on = interval_indicator > 0 and remove_indicator == 0
-        if not was_on and now_on: # switched on
-            yield (x, epsilon), -1, None
-        elif was_on and not now_on: # switched off
-            yield (x, epsilon), +1, None
-        on = now_on
-    # No unbounded intervals:
-    assert interval_indicator == 0, "interval_indicator should be zero at the end of the scan"
-    assert remove_indicator == 0, "remove_indicator should be zero at the end of the scan"
-
-def intersection_of_coho_intervals(interval_lists):
-    """Compute the intersection of the union of intervals. 
-    
-    Each interval_list must be sorted, but intervals may overlap.  In
-    this case, the output is broken into non-overlapping intervals at
-    the points where the overlap multiplicity changes.
-    
-    EXAMPLES::
-
-        sage: list(intersection_of_coho_intervals([[[1,2]], [[2,3]]]))
-        [<Int{2}>]
-        sage: list(intersection_of_coho_intervals([[[1,2], [2,3]], [[0,4]]]))
-        [<Int[1, 2)>, <Int{2}>, <Int(2, 3]>]
-        sage: list(intersection_of_coho_intervals([[[1,3], [2,4]], [[0,5]]]))
-        [<Int[1, 2)>, <Int[2, 3]>, <Int(3, 4]>]
-        sage: list(intersection_of_coho_intervals([[[1,2], left_open_interval(2,3)], [[0,4]]]))
-        [<Int[1, 2]>, <Int(2, 3]>]
-        sage: list(intersection_of_coho_intervals([[[1,3]], [[2,4]]]))
-        [<Int[2, 3]>]
-    """
-    scan = merge(*[scan_coho_interval_list(interval_list, tag=index) for index, interval_list in enumerate(interval_lists)])
-    interval_indicators = [ 0 for interval_list in interval_lists ]
-    (on_x, on_epsilon) = (None, None)
-    for ((x, epsilon), delta, index) in scan:
-        was_on = all(on > 0 for on in interval_indicators)
-        interval_indicators[index] -= delta
-        assert interval_indicators[index] >= 0
-        now_on = all(on > 0 for on in interval_indicators)
-        if was_on: 
-            assert on_x is not None
-            assert on_epsilon >= 0
-            assert epsilon >= 0
-            if (on_x, on_epsilon) < (x, epsilon):
-                yield closed_or_open_or_halfopen_interval(on_x, x,
-                                                          on_epsilon == 0, epsilon > 0)
-        if now_on:
-            (on_x, on_epsilon) = (x, epsilon)
-        else:
-            (on_x, on_epsilon) = (None, None)
-    assert all(on == 0 for on in interval_indicators) # no unbounded intervals
-
-def coho_intervals_intersecting(a, b):
-    """
-    Determine if the two intervals intersect in at least 1 point.
-
-    EXAMPLES::
-
-        sage: coho_intervals_intersecting(singleton_interval(1), singleton_interval(1))
-        True
-        sage: coho_intervals_intersecting(singleton_interval(1), singleton_interval(2))
-        False
-        sage: coho_intervals_intersecting(singleton_interval(1), open_interval(1,2))
-        False
-        sage: coho_intervals_intersecting(singleton_interval(1), right_open_interval(1,2))
-        True
-    """
-    intervals = list(intersection_of_coho_intervals([[a], [b]]))
-    assert len(intervals) <= 1
-    return len(intervals) == 1
-
-def coho_intervals_intersecting_full_dimensionally(a, b):
-    """
-    Determine if the two intervals intersect in a proper interval.
-
-    EXAMPLES::
-
-        sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), singleton_interval(1))
-        False
-        sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), singleton_interval(2))
-        False
-        sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), open_interval(1,2))
-        False
-        sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), right_open_interval(1,2))
-        False
-        sage: coho_intervals_intersecting_full_dimensionally(open_interval(0,2), right_open_interval(1,3))
-        True
-    """
-    intervals = list(intersection_of_coho_intervals([[a], [b]]))
-    assert len(intervals) <= 1
-    return len(intervals) == 1 and interval_length(intervals[0]) > 0
-
-def coho_interval_list_from_scan(scan, old_fashioned_closed_intervals=False):
-    """Actually returns a generator."""
-    indicator = 0
-    (on_x, on_epsilon) = (None, None)
-    for ((x, epsilon), delta, tag) in scan:
-        was_on = indicator > 0
-        indicator -= delta
-        assert indicator >= 0
-        now_on = indicator > 0
-        if not was_on and now_on:                        # switched on
-            (on_x, on_epsilon) = (x, epsilon)
-        elif was_on and not now_on:                     # switched off
-            assert on_x is not None
-            assert on_epsilon >= 0
-            assert epsilon >= 0
-            if (on_x, on_epsilon) < (x, epsilon):
-                left_closed = on_epsilon == 0
-                right_closed = epsilon > 0
-                if old_fashioned_closed_intervals and left_closed and right_closed and on_x < x:
-                    yield (on_x, x)
-                else:
-                    yield closed_or_open_or_halfopen_interval(on_x, x, left_closed, right_closed)
-            (on_x, on_epsilon) = (None, None)
-    assert indicator == 0
-
-def union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists, old_fashioned_closed_intervals=False):
-    """Compute a list of closed/open/half-open intervals that represent
-    the set difference of `interval` and the union of the intervals in
-    `remove_list`.
-
-    Assume each of the lists in `interval_lists' and `remove_lists` are sorted (and
-    each pairwise disjoint).  Returns a sorted list.
-
-    EXAMPLES::
-
-        sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0,10]]], [[[2,2], [3,4]]])
-        [<Int[0, 2)>, <Int(2, 3)>, <Int(4, 10]>]
-        sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0, 10]]], [[[1, 7]], [[2, 5]]])
-        [<Int[0, 1)>, <Int(7, 10]>]
-        sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0,10], closed_or_open_or_halfopen_interval(10, 20, False, True)]], [])
-        [<Int[0, 20]>]
-        sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0,10], closed_or_open_or_halfopen_interval(10, 20, False, True)]], [], old_fashioned_closed_intervals=True)
-        [(0, 20)]
-    """
-    gen = coho_interval_list_from_scan(scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists), old_fashioned_closed_intervals)
-    return list(gen)
-
-def proper_interval_list_from_scan(scan):
-    """Return a generator of the proper intervals [a, b], a<b, in the `scan`.
-
-    This ignores whether intervals are open/closed/half-open.
-    """
-    indicator = 0
-    (on_x, on_epsilon) = (None, None)
-    for ((x, epsilon), delta, tag) in scan:
-        was_on = indicator > 0
-        indicator -= delta
-        assert indicator >= 0
-        now_on = indicator > 0
-        if not was_on and now_on:                        # switched on
-            (on_x, on_epsilon) = (x, epsilon)
-        elif was_on and not now_on:                     # switched off
-            assert on_x is not None
-            assert on_epsilon >= 0
-            assert epsilon >= 0
-            if on_x < x:
-                yield [on_x, x]
-            (on_x, on_epsilon) = (None, None)
-    assert indicator == 0
 
 
 # size has to be a positive integer
@@ -4099,6 +3568,7 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
             for move in moves:
                 moved_interval = move.apply_to_coho_interval(interval)
                 #print "Applying move %s to %s gives %s." % (move, interval, moved_interval)
+
                 moved_seed = move(seed)
                 walk_sign = move.sign()
                 done_intervals.add(moved_interval)
@@ -4209,3 +3679,96 @@ def stuff_with_random_irrational_function():
     dmoves = generate_functional_directed_moves(h)
     completion = directed_move_composition_completion(dmoves, max_num_rounds=None)
     plot_directed_moves(completion).show(figsize=40)
+    
+def merit_index(fn):
+    r"""
+    Compute Gomory--Johnson's merit index.
+
+    It is defined as twice the area of additive points in the unit square
+    (see [RD, Definition 19.28], which refers to [61]).
+
+    EXAMPLES:
+
+    The merit index for GMIC is 2f^2 - 2f + 1 [RD]::
+
+        sage: def merit_index_gmic(f):
+        ....:     return 2*f^2 - 2*f + 1
+        sage: merit_index(gmic(1/4)) == merit_index_gmic(1/4)
+        True
+        sage: merit_index(gmic(1/2)) == merit_index_gmic(1/2)
+        True
+
+    The merit index for `drlm_2_slope_limit_1_1` is 4 f^2 - 6 f + 3 [40, p. 164]::
+
+        sage: def merit_index_drlm_2_slope_limit_1_1(f):
+        ....:     return 4 * f^2 - 6 * f + 3
+        sage: merit_index(drlm_2_slope_limit_1_1(3/5)) == merit_index_drlm_2_slope_limit_1_1(3/5)
+        True
+        sage: merit_index(drlm_2_slope_limit_1_1(1/2)) == merit_index_drlm_2_slope_limit_1_1(1/2)
+        True
+
+    Reference:
+
+     - [40] S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller, Extreme
+       inequalities for infinite group problems, Mathematical Programming 121
+       (2010), 145-170.
+
+     - [61] R. E. Gomory and E. L. Johnson, T-space and cutting planes,
+       Mathematical Programming 96 (2003), 341-375.
+
+     - [RD] J.-P. P. Richard and S. S. Dey, The group-theoretic approach in mixed
+       integer programming, 50 Years of Integer Programming 1958-2008
+       (M. Juenger, T. M. Liebling, D. Naddef, G. L. Nemhauser, W. R. Pulleyblank,
+       G. Reinelt, G. Rinaldi, and L. A. Wolsey, eds.), Springer Berlin Heidelberg,
+       2010, pp. 727-801, doi:10.1007/978-3-540-68279-0_19, ISBN 978-3-540-68274-5.
+    """
+    return 2 * add(Polyhedron(face.vertices).volume()
+                   for face in generate_maximal_additive_faces(fn)
+                   if face.is_2D())
+
+def arithmetic_complexity(fn, f=None, q=None):
+    r"""
+    Compute the arithmetic complexity
+
+    It is defined as the least common denominator of the values fn(i/q) for i=0,1,...,q,
+    where fn is a piecewise linear function with rational breakpoints in (1/q)Z,
+    or a discrete function with its domain contained in (1/q)Z.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = gmic(7/9)
+        sage: arithmetic_complexity(h)
+        14
+        sage: arithmetic_complexity(restrict_to_finite_group(h))
+        14
+        sage: arithmetic_complexity(dg_2_step_mir_limit())
+        24
+
+    Reference:
+
+    [KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
+    extreme functions of the Gomory--Johnson infinite group problem, 2015,
+    e-print http://arxiv.org/abs/1506.00017 [math.OC].
+    """
+    if q is None:
+        q = finite_group_order_from_function_f_oversampling_order(fn, f=None, oversampling=None, order=None)
+    if fn.is_discrete():
+        v = fn.values_at_end_points()
+    elif fn.is_continuous():
+        v = [fn(x/q) for x in range(q+1)]
+    else:
+        v = []
+        for x in range(q+1):
+            for epsilon in [0,1,-1]:
+                try:
+                    y = fn.limit(x/q, epsilon)
+                    v.append(y)
+                except:
+                    pass
+    is_rational_v, v = is_all_QQ(v)
+    if is_rational_v:
+        v_denominator = [denominator(y) for y in v]
+        return lcm(v_denominator)
+    else:
+        raise ValueError, "This is a function has irrational value on (1/%s)Z, so the arithmetic_complexity is not available." % q
