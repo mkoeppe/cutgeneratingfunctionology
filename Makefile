@@ -8,6 +8,7 @@ SAGEFILES =					\
 	extreme_functions_in_literature.sage	\
 	extreme_functions_sporadic.sage		\
 	intervals.sage				\
+	real_number_field.sage			\
 	fast_linear.sage			\
 	functions.sage				\
 	simple_extremality_test.sage		\
