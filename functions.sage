@@ -2278,7 +2278,10 @@ def find_largest_epsilon(fn, perturb):
 
 class FunctionalDirectedMove (FastPiecewise):
     # FIXME: At the moment, does not reduce modulo 1, in contrast to old code!
-
+    """
+    Return a pieceweise function to represent a functional directed move
+    from a list of domain intervals and the functional directed move. 
+    """
     def __init__(self, domain_intervals, directed_move):
         function = fast_linear_function(directed_move[0], directed_move[1])
         pieces = [ (interval, function) for interval in domain_intervals ]
@@ -2289,6 +2292,15 @@ class FunctionalDirectedMove (FastPiecewise):
         return "<FunctionalDirectedMove %s with domain %s, range %s>" % (self.directed_move, self.intervals(), self.range_intervals())
 
     def sign(self):
+        """
+        Return the sign of the move
+
+        EXAMPLES::
+
+            sage: h = FunctionalDirectedMove([[0.3, 0.4]], (1,0))
+            sage: h.sign()
+            1
+        """
         return self.directed_move[0]
 
     def is_functional(self):
@@ -2298,6 +2310,17 @@ class FunctionalDirectedMove (FastPiecewise):
         return self.directed_move[item]
 
     def can_apply(self, x):
+        """
+        Determine if self can apply on x
+
+        EXAMPLES::
+
+            sage: h = FunctionalDirectedMove([[0.3, 0.4], [0.58, 0.68]], (1,0))
+            sage: h.can_apply(0.3)
+            True
+            sage: h.can_apply(0.2)
+            False            
+        """
         try:
             self(x)
             return True
@@ -2305,6 +2328,19 @@ class FunctionalDirectedMove (FastPiecewise):
             return False
 
     def apply_ignoring_domain(self, x):
+        """
+        Apply self on x by ignoring the domain (use modulo 1)
+
+        EXAMPLES::
+
+            sage: h = FunctionalDirectedMove([[0.3, 0.4], [0.58, 0.68]], (1,0))
+            sage: h.apply_ignoring_domain(1/10)
+            1/10
+            sage: h = FunctionalDirectedMove([[0.1, 0.6]], (-1,1))
+            sage: h.apply_ignoring_domain(1/2)
+            1/2
+
+        """
         move_sign = self.sign()
         if move_sign == 1:
             next_x = fractional(x + self.directed_move[1])
@@ -2315,6 +2351,21 @@ class FunctionalDirectedMove (FastPiecewise):
     def apply_to_coho_interval(self, interval, inverse=False):
         # This does not do error checking.  Some code depends on this fact!
         # FIXME: This should be made clear in the name of this function.
+        """
+        Return a range inverval from a given interval by applying the move. 
+        If the move sign is 1, the user can take the inverse of the operation,
+        i.e y = x - t_1
+
+        EXAMPLES::
+
+            sage: h = FunctionalDirectedMove([[0.3, 0.4]], (-1, 1))
+            sage: h.apply_to_coho_interval([1/10, 1/2])
+            <Int[1/2, 9/10]>
+            sage: h.apply_to_coho_interval([1/10, 1/2])
+            <Int[1/5, 3/5]>
+            sage: h.apply_to_coho_interval([1/10, 1/2], inverse=True)
+            <Int[0, 2/5]>
+        """
         if len(interval) <= 2:
             interval = coho_interval_from_interval(interval) # FIXME: Can be removed if FastPiecewise exclusively uses coho intervals.
         directed_move = self.directed_move
@@ -2334,9 +2385,24 @@ class FunctionalDirectedMove (FastPiecewise):
         return result
 
     def range_intervals(self):
+        """
+        Return the range intervals of self.
+        """
         return [ self.apply_to_coho_interval(interval) for interval in self.intervals() ] 
 
     def is_identity(self):
+        """
+        Determine if self is a identity function or not
+
+        EXAMPLES::
+
+            sage: h = FunctionalDirectedMove([[0.3, 0.4]], (1, 0))
+            sage: h.is_identity()
+            True
+            sage: sage: h = FunctionalDirectedMove([[0.3, 0.4]], (-1, 1))
+            sage: h.is_identity()
+            False
+        """
         return self.directed_move[0] == 1 and self.directed_move[1] == 0
 
     def minimal_triples(self): # unused
