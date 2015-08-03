@@ -2361,6 +2361,7 @@ class FunctionalDirectedMove (FastPiecewise):
             sage: h = FunctionalDirectedMove([[0.3, 0.4]], (-1, 1))
             sage: h.apply_to_coho_interval([1/10, 1/2])
             <Int[1/2, 9/10]>
+            sage: h = FunctionalDirectedMove([[0.3, 0.4]], (1, 1/10))
             sage: h.apply_to_coho_interval([1/10, 1/2])
             <Int[1/5, 3/5]>
             sage: h.apply_to_coho_interval([1/10, 1/2], inverse=True)
@@ -2396,10 +2397,10 @@ class FunctionalDirectedMove (FastPiecewise):
 
         EXAMPLES::
 
-            sage: h = FunctionalDirectedMove([[0.3, 0.4]], (1, 0))
+            sage: h = FunctionalDirectedMove([[0.3, 0.4]], [1, 0])
             sage: h.is_identity()
             True
-            sage: sage: h = FunctionalDirectedMove([[0.3, 0.4]], (-1, 1))
+            sage: h = FunctionalDirectedMove([[0.3, 0.4]], [-1, 1])
             sage: h.is_identity()
             False
         """
