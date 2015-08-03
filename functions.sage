@@ -2397,10 +2397,10 @@ class FunctionalDirectedMove (FastPiecewise):
 
         EXAMPLES::
 
-            sage: h = FunctionalDirectedMove([[0.3, 0.4]], [1, 0])
+            sage: h = FunctionalDirectedMove([[0.3, 0.4]], (1, 0))
             sage: h.is_identity()
             True
-            sage: h = FunctionalDirectedMove([[0.3, 0.4]], [-1, 1])
+            sage: h = FunctionalDirectedMove([[0.3, 0.4]], (-1, 1))
             sage: h.is_identity()
             False
         """
@@ -3645,6 +3645,9 @@ def generate_generic_seeds_with_completion(fn, show_plots=False, max_num_it=None
             yield (seed, stab_int, walk_dict)
 
 class DenseDirectedMove ():
+    """
+    Return a dense directed move from given interval pairs (first domain interval, then range interval).
+    """
 
     def __init__(self, interval_pairs):
         self._interval_pairs = interval_pairs
@@ -3659,12 +3662,40 @@ class DenseDirectedMove ():
         return sum([polygon(((domain[0], codomain[0]), (domain[1], codomain[0]), (domain[1], codomain[1]), (domain[0], codomain[1])), rgbcolor=kwds.get("rgbcolor", "cyan"), alpha=0.5) + polygon(((domain[0], codomain[0]), (domain[1], codomain[0]), (domain[1], codomain[1]), (domain[0], codomain[1])), color="red", fill=False) for (domain, codomain) in self._interval_pairs])
 
     def intervals(self):
+        """
+        Return the domain interval of self.
+
+        EXAMPLES::
+
+            sage: a = DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]])
+            sage: a.intervals()
+            [[7/20, 1/2]]
+        """
         return [ domain_interval for (domain_interval, range_interval) in self._interval_pairs ]
 
     def range_intervals(self):
+        """
+        Return the range interval of self.
+
+        EXAMPLES::
+
+            sage: a = DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]])
+            sage: a.range_intervals()
+            [[3/10, 1/2]]
+        """
         return [ range_interval for (domain_interval, range_interval) in self._interval_pairs ]
 
     def interval_pairs(self):
+        """
+        Return the interval pairs of self. 
+
+        EXAMPLES::
+
+            sage: a = DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]])
+            sage: a.interval_pairs()
+            [[[7/20, 1/2], [3/10, 1/2]]]
+            sage: #The first interval is the domain interval, and the second is the range interval of self. 
+        """
         return self._interval_pairs
     
 def check_for_dense_move(m1, m2):
