@@ -3316,6 +3316,22 @@ class DirectedMoveCompositionCompletion:
         self.is_complete = False
 
     def reduce_move_dict_with_dense_moves(self, dense_moves):
+        """
+        Reduce moves with dense moves from the move dictionary of self.
+
+        EXAMPLES::
+
+            sage: f = FunctionalDirectedMove([[1/10,7/10]],(1, 1/10))
+            sage: d = [DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]]), DenseDirectedMove([[[6/20,6/10],[4/10,6/10]]])]
+            sage: h = DirectedMoveCompositionCompletion([f])
+            sage: h.move_dict
+            {(1,
+              1/10): <FunctionalDirectedMove (1, 1/10) with domain [(1/10, 7/10)], range [<Int[1/5, 4/5]>]>}
+            sage: h.reduce_move_dict_with_dense_moves(d)
+            sage: h.move_dict
+            {(1,
+              1/10): <FunctionalDirectedMove (1, 1/10) with domain [<Int[1/10, 3/10)>, <Int(1/2, 7/10]>], range [<Int[1/5, 2/5)>, <Int(3/5, 4/5]>]>}
+        """
         new_move_dict = dict()
         for key, move in self.move_dict.items():
             new_move = reduce_with_dense_moves(move, dense_moves)
@@ -3324,6 +3340,32 @@ class DirectedMoveCompositionCompletion:
         self.move_dict = new_move_dict
 
     def upgrade_or_reduce_dense_interval_pair(self, a_domain, a_codomain):
+        """
+        Upgrade or reduce the dense moves of self from a given dense interval pair
+
+        EXAMPLES::
+
+            sage: a = DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]])
+            sage: h = DirectedMoveCompositionCompletion([a])
+            sage: # is dominated by existing rectangle, exit.
+            sage: h.upgrade_or_reduce_dense_interval_pair([7/20,5/10],[3/10,5/10])
+            (None, None)
+
+            sage: h = DirectedMoveCompositionCompletion([a])
+            sage: # simple vertical merge
+            sage: h.upgrade_or_reduce_dense_interval_pair([7/20,5/10],[2/10,5/10])
+            ([7/20, 1/2], [1/5, 1/2])
+
+            sage: h = DirectedMoveCompositionCompletion([a])
+            sage: # simple horizontal merge
+            sage: h.upgrade_or_reduce_dense_interval_pair([6/20,5/10],[3/10,5/10])
+            ([3/10, 1/2], [3/10, 1/2])
+
+            sage: h = DirectedMoveCompositionCompletion([a])
+            sage: # full-dimensional intersection, extend to big rectangle.
+            sage: h.upgrade_or_reduce_dense_interval_pair([6/20,9/20], [2/10,4/10])
+            ((3/10, 1/2), (1/5, 1/2))
+        """
         another_pass = True
         while another_pass:
             another_pass = False
@@ -3357,6 +3399,32 @@ class DirectedMoveCompositionCompletion:
         return a_domain, a_codomain
 
     def add_move(self, c):
+        """
+        Add a move c to self. 
+        Merge functional directed move or upgrade or reduce dense interval pair if necessary.
+
+        EXAMPLES::
+
+            sage: f = FunctionalDirectedMove([(3/10, 7/20), (9/20, 1/2)], (1,0))
+            sage: c = FunctionalDirectedMove([(3/10, 13/40)], (1,0))
+            sage: h = DirectedMoveCompositionCompletion([f])
+            sage: h.move_dict
+            {(1,
+              0): <FunctionalDirectedMove (1, 0) with domain [(3/10, 7/20), (9/20, 1/2)], range [<Int[3/10, 7/20]>, <Int[9/20, 1/2]>]>}
+            sage: h.add_move(c)
+            sage: h.move_dict
+            {(1,
+              0): <FunctionalDirectedMove (1, 0) with domain [(3/10, 7/20), (9/20, 1/2)], range [<Int[3/10, 7/20]>, <Int[9/20, 1/2]>]>}
+
+            sage: a = DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]])
+            sage: h = DirectedMoveCompositionCompletion([a])
+            sage: h.dense_moves
+            {<DenseDirectedMove [([7/20, 1/2], [3/10, 1/2])]>}
+            sage: c = DenseDirectedMove([[[6/20,9/20], [2/10,4/10]]])
+            sage: h.add_move(c)
+            sage: h.dense_moves
+            {<DenseDirectedMove [((3/10, 1/2), (1/5, 1/2))]>}
+        """
         if c.is_functional():
             reduced = reduce_with_dense_moves(c, self.dense_moves)
             if reduced is None:
@@ -3688,13 +3756,13 @@ class DenseDirectedMove ():
     def interval_pairs(self):
         """
         Return the interval pairs of self. 
+        The first interval is the domain interval, and the second is the range interval of self. 
 
         EXAMPLES::
 
             sage: a = DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]])
             sage: a.interval_pairs()
             [[[7/20, 1/2], [3/10, 1/2]]]
-            sage: #The first interval is the domain interval, and the second is the range interval of self. 
         """
         return self._interval_pairs
     
