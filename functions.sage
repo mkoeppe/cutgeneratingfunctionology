@@ -40,10 +40,12 @@ def plot_2d_complex(function):
     ## We now use lambda functions instead of Sage symbolics for plotting, 
     ## as those give strange errors when combined with our RealNumberFieldElement.
     for i in range(1,len(bkpt)):
-        p += plot(lambda x: bkpt[i]-x, (x, 0, bkpt[i]), color='grey', **kwd)
+        #p += plot(lambda x: bkpt[i]-x, (x, 0, bkpt[i]), color='grey', **kwd)
+        p += line([(0,  bkpt[i]), (bkpt[i], 0)], color='grey', **kwd)
         kwd = {}
     for i in range(1,len(bkpt)-1):
-        p += plot(lambda x: (1+bkpt[i]-x), (x, bkpt[i], 1), color='grey')
+        #p += plot(lambda x: (1+bkpt[i]-x), (x, bkpt[i], 1), color='grey')
+        p += line([(bkpt[i], 1), (1, bkpt[i])], color='grey')
     for i in range(len(bkpt)):
         p += plot(bkpt[i], (0, 1), color='grey')
     y=var('y')
