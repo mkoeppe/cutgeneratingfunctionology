@@ -155,3 +155,65 @@ def gmic_disjoint_with_singletons(f=4/5):
               singleton_piece(1, 0)]
     return FastPiecewise(pieces, merge=False)
 
+def bhk_raises_plotting_error():
+    """
+    There were some problems when plotting the 2d-diagram of functions having
+    irrational data coerced into a (non-quadratic) RealNumberField.
+    
+    sage: h = bhk_raises_plotting_error()
+    sage: extremality_test(h,True)
+    ...
+    verbose 0 (2716: plot.py, generate_plot_points) WARNING: When plotting,
+    failed to evaluate function at 200 points.
+    verbose 0 (2716: plot.py, generate_plot_points) Last error message:
+    'unsupported operand parent(s) for '-': 'Number Field in a with defining
+    polynomial y^4 - 4*y^2 + 1' and '<type 'float'>''
+    ...
+    TypeError: unsupported operand parent(s) for '+': 'Number Field in a
+    with defining polynomial y^4 - 4*y^2 + 1' and 'Real Field with 53 bits
+    of precision'
+
+    The problems concern some strange behaviors of RealNumberField_absolute
+    sage: [x]=nice_field_values([2^(1/3)])
+    INFO: ... Coerced into real number field: Number
+    Field in a with defining polynomial y^3 - 2
+    sage: x+float(1)
+    TypeError: unsupported operand parent(s) for '+': 'Number Field in a 
+    with defining polynomial y^3 - 2' and '<type 'float'>'
+    sage: x+RealField(53)(1)
+    TypeError: unsupported operand parent(s) for '+': 'Number Field in a
+    with defining polynomial y^3 - 2' and 'Real Field with 53 bits of precision'
+    sage: RR(x)
+    RuntimeError: maximum recursion depth exceeded while calling a Python object
+    
+    The following operations work for RealNumberField_absolute
+    sage: x+RealIntervalField(53)(1)
+    2.259921049894873?
+    sage: x+1
+    RNF2.259921049894873?
+    sage: x+1/10
+    RNF1.359921049894873?
+    
+    When dealing with RealNumberField_quadratic, everything works well.
+    sage: [y]=nice_field_values([2^(1/2)])
+    INFO: ... Coerced into real number field: Number
+    Field in a with defining polynomial y^2 - 2
+    sage: y+float(1)
+    2.414213562373095
+
+    Related issues:
+    sage: K.<s> = NumberField(x^2 - 2)
+    These operations give error: sage: s+float(1); s+RealField(53)(1); RR(s)
+
+    If we define
+    sage: K.<s> = QuadraticField(2)
+    or
+    sage: K.<s> = NumberField(x^2 - 2, embedding=1.4)
+    then everything goes well.
+
+    However,
+    sage: K.<s> = NumberField(x^2 - 2, embedding=RIF(1.4))
+    ValueError: 1.4000000000000000? is not a root of the defining polynomial
+    of Number Field in s with defining polynomial x^2 - 2    
+    """
+    return bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200, sqrt(3)/200), field=None)
