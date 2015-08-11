@@ -399,12 +399,12 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
                     if (xeps, yeps) == (0, 0):
                         p += point([x, y], color="mediumvioletred", size=20, zorder=5)
                     else:
-                        p += disk([x, y], 0.03, (yeps* pi/2, (1 - xeps) * pi/2), color="mediumvioletred", zorder=5)
+                        p += disk([x, y], 3/100, (yeps* pi/2, (1 - xeps) * pi/2), color="mediumvioletred", zorder=5)
                     if x != y:
                         if (xeps, yeps) == (0, 0):
                             p += point([y, x], color="mediumvioletred", size=20, zorder=5)
                         else:
-                            p += disk([y, x], 0.03, (xeps* pi/2, (1 - yeps) * pi/2), color="mediumvioletred", zorder=5)
+                            p += disk([y, x], 3/100, (xeps* pi/2, (1 - yeps) * pi/2), color="mediumvioletred", zorder=5)
                 if new_legend_label:
                     # add legend_label
                     p += point([(0,0)], color = "mediumvioletred", size = 50, zorder=-10, **kwds)
@@ -435,19 +435,19 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", cover
         y3 = limits[i+1][0]
         y4 = limits[i+1][1]
         if y1 is not None and y2 is not None:
-            p += line([(x1, 0.3*y1 + 1), (x2, 0.3*y2 + 1)], color=color, zorder=-2, **kwds)
+            p += line([(x1, (3/10)*y1 + 1), (x2, (3/10)*y2 + 1)], color=color, zorder=-2, **kwds)
             delete_one_time_plot_kwds(kwds)
-            p += line([(-0.3*y1, x1), (-0.3*y2, x2)], color=color, zorder=-2, **kwds)
+            p += line([(-3/10*y1, x1), (-(3/10)*y2, x2)], color=color, zorder=-2, **kwds)
         if y1 is not None and limits[i][0] != y1:
-            p += point([(x1, 0.3*y1 + 1), (-0.3*y1, x1)], color=color, pointsize=23, zorder=-1)
-            p += point([(x1, 0.3*y1 + 1), (-0.3*y1, x1)], color='white', pointsize=10, zorder=-1)
+            p += point([(x1, (3/10)*y1 + 1), (-(3/10)*y1, x1)], color=color, pointsize=23, zorder=-1)
+            p += point([(x1, (3/10)*y1 + 1), (-(3/10)*y1, x1)], color='white', pointsize=10, zorder=-1)
         if y2 is not None and y2 != y3:
-            p += point([(x2, 0.3*y2 + 1), (-0.3*y2, x2)], color=color, pointsize=23, zorder=-1)
-            p += point([(x2, 0.3*y2 + 1), (-0.3*y2, x2)], color='white', pointsize=10, zorder=-1)
+            p += point([(x2, (3/10)*y2 + 1), (-(3/10)*y2, x2)], color=color, pointsize=23, zorder=-1)
+            p += point([(x2, (3/10)*y2 + 1), (-(3/10)*y2, x2)], color='white', pointsize=10, zorder=-1)
         if y3 is not None and ((y2 != y3) or ((i < len(bkpt) - 2) and (y3 != y4))) and \
                               ((i == len(bkpt)-2) or not (y3 == y4 and y2 is None) and \
                                                      not (y2 == y3 and y4 is None)):
-            p += point([(x2, 0.3*y3 + 1), (-0.3*y3, x2)], color=color, pointsize=23, zorder=-1)
+            p += point([(x2, (3/10)*y3 + 1), (-(3/10)*y3, x2)], color=color, pointsize=23, zorder=-1)
     if not covered_intervals is None:
         colors = rainbow(len(covered_intervals))
         for i, component in enumerate(covered_intervals):
@@ -456,8 +456,8 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", cover
                 x2 = interval[1]
                 y1 = fn.limit(x1, 1)
                 y2 = fn.limit(x2, -1)
-                p += line([(x1, 0.3*y1 + 1), (x2, 0.3*y2 + 1)], color=colors[i], zorder=-2, **kwds)
-                p += line([(-0.3*y1, x1), (-0.3*y2, x2)], color=colors[i], zorder=-2, **kwds)
+                p += line([(x1, (3/10)*y1 + 1), (x2, (3/10)*y2 + 1)], color=colors[i], zorder=-2, **kwds)
+                p += line([(-(3/10)*y1, x1), (-(3/10)*y2, x2)], color=colors[i], zorder=-2, **kwds)
     # add legend_label
     kwds = { 'legend_label': legend_label }
     plot_kwds_hook(kwds)
@@ -470,7 +470,7 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", cover
     # plot function at borders with different colors according to slope values.
     return p
 
-proj_plot_width = 0.02
+proj_plot_width = 2/100
 #proj_plot_colors = ['yellow', 'cyan', 'magenta']            # very clear but ugly
 #proj_plot_colors = ['darkseagreen', 'darkseagreen', 'slategray']
 proj_plot_colors = ['grey', 'grey', 'grey']
