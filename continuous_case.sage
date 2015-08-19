@@ -186,6 +186,7 @@ def find_epsilon_interval_continuous(fn, perturb):
                 a = modified_delta_pi2(perturb, perturb_values, bkpt_refinement2, i, j)
                 if a != 0:
                     b = modified_delta_pi2(fn, fn_values, bkpt_refinement2, i, j) 
+
                     if b == 0:
                         logging.info("Zero epsilon encountered for x = %s, y = %s" % (bkpt_refinement2[i], bkpt_refinement2[j] - bkpt_refinement2[i]))
                         return 0, 0 # See docstring
@@ -207,13 +208,21 @@ def generate_symbolic_continuous(function, components, field=None):
     space. 
     """
     n = len(components)
-    vector_space = VectorSpace(field, n)
+    if field is None:
+        vector_space = VectorSpace(QQ, n)
+    else:
+        vector_space = VectorSpace(field, n)
     unit_vectors = vector_space.basis()    
     intervals_and_slopes = []
     for component, slope in itertools.izip(components, unit_vectors):
         intervals_and_slopes.extend([ (interval, slope) for interval in component ])
     intervals_and_slopes.sort()
-    bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
+    if field is None:
+        bkpt = [ interval[0] for interval, slope in intervals_and_slopes ] + [1]
+        bkpt = nice_field_values(bkpt)
+        field = bkpt[0].parent().fraction_field()
+    else:
+        bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
     slopes = [ slope for interval, slope in intervals_and_slopes ]
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
 
