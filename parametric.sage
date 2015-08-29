@@ -650,11 +650,6 @@ def find_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
     ('is_extreme', [], [f - bkpt, -f + 4*bkpt - 1, -2*f + bkpt, f^2 - f*bkpt - 1])
     """
     # similar to find_region_around_given_point(), but start from constructing K and test point.
-    #st = os.times() # don't plot, but measure running time.
-    d = len(var_name)
-    if d >= 3:
-        #TODO
-        raise NotImplementedError, "More than three parameters. Not implemented."
     default_args = read_default_args(function, **opt_non_default)
     if not var_value:
         var_value = [default_args[v] for v in var_name]
@@ -665,8 +660,6 @@ def find_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
                         is_minimal=None, use_simplified_extremality_test=use_simplified_extremality_test)
     except:
         region_type, leq, lin = 'not_constructible', [], []
-    #et = os.times();
-    #print "cpu time = %s" % sum([et[i]-st[i] for i in range(4)])
     return region_type, leq, lin
 
 ##############################
