@@ -194,6 +194,11 @@ class SymbolicRealNumberField(Field):
         self.monomial_list = []
         # a dictionary that maps each monomial to the index of its corresponding Variable in self.polyhedron
         self.v_dict = {}
+        # record QQ_linearly_independent of pairs. needs simplification
+        self._independent_pairs = set([])
+        self._dependency= []
+        self._independency=[]
+        self._zero_kernel=[]
 
     def __copy__(self):
         logging.warn("copy(%s) is invoked" % self)
@@ -306,6 +311,25 @@ class SymbolicRealNumberField(Field):
             else:
                 logging.info("New constraint: %s == 0" % fac)
                 self._eq_factor.add(fac)
+
+    def record_independence_of_pair(self, numbers, is_independent):
+        if len(numbers) != 2:
+            raise NotImplementedError, "%s has more than two elements. Not implemented." % numbers
+        t1 = affine_linear_form_of_symbolicrnfelement(numbers[0])
+        t2 = affine_linear_form_of_symbolicrnfelement(numbers[1])
+        vector_space = VectorSpace(QQ,len(t1))
+        pair_space = vector_space.subspace([vector_space(t1), vector_space(t2)])
+        if pair_space.dimension() <= 1:
+            if is_independent:
+                raise ValueError, "Contradiction: (%s, %s) are not linearly independent in Q." % (t1, t2)
+        else:
+            if is_independent:
+                self._independent_pairs.add(pair_space)
+            else:
+                self._dependency = update_dependency(self._dependency, pair_space)
+
+    def construct_independency(self):
+        self._independency, self._zero_kernel = construct_independency(self._independent_pairs, self._dependency)
 
 default_symbolic_field = SymbolicRealNumberField()
 
@@ -952,3 +976,76 @@ def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], rando
         fun_name = fun_names[i]
         g.show(title=fun_name+'%s' % var_name)
     return regions, tested_points, last_n_points_were_covered
+
+##############################
+# linearly independent in Q
+##############################
+def affine_linear_form_of_symbolicrnfelement(number):
+    sym_frac_poly = number.sym()
+    if sym_frac_poly.denominator() != 1:
+        raise NotImplementedError, "%s is a fraction of polynomials. Not implemented." % sym_frac_poly
+    poly = sym_frac_poly.numerator()
+    coef = [poly.monomial_coefficient(v) for v in poly.parent().gens()]
+    return coef + [poly.constant_coefficient()]
+
+def update_dependency(dependency, pair_space):
+    parallel_vectors = pair_space
+    new_dependency = []
+    s = None
+    while len(new_dependency) < len(dependency):
+        if not s is None:
+            dependency = new_dependency
+            new_dependency = []
+        for s in dependency:
+            if s.intersection(parallel_vectors).dimension() > 0:
+                parallel_vectors += s
+            else:
+                new_dependency.append(s)
+    new_dependency.append(parallel_vectors)
+    return new_dependency
+
+def update_independency(independency, simultaneously_independency):
+    sim_ind = simultaneously_independency
+    new_independency = []
+    for s in independency:
+        if s.intersection(sim_ind):
+            sim_ind.update(s)
+        else:
+            new_independency.append(s)
+    new_independency.append(sim_ind)
+    return new_independency
+
+def construct_independency(independent_pairs, dependency):
+    independency = []
+    zero_kernel = set([])
+    for ind_pair in independent_pairs:
+        simultaneously_independency, intersections = construct_simultaneously_independency(ind_pair, dependency)
+        independency = update_independency(independency, simultaneously_independency)
+        zero_kernel.update(intersections)
+    return independency, list(zero_kernel)
+
+def construct_simultaneously_independency(ind_pair, dependency):
+    intersecting = []
+    intersections = []
+    for s in dependency:
+        i = s.intersection(ind_pair)
+        if i.dimension() > 0:
+            intersecting.append(s)
+            intersections.append(i.gen(0))
+    #intersecting = [s for s in dependency if s.intersection(ind_pair).dimension() > 0]
+    if len(intersecting) == 0:
+        return set(ind_pair.basis()), set(intersections)
+    elif len(intersecting) == 1:
+        dependent_space = intersecting[0]
+        # find orth_vec in (dependent_space + ind_pair) that is orthogonal to dependent_space
+        orth_vec = find_orthogonal_vector(dependent_space, dependent_space + ind_pair)
+        return set([(dependent_space, orth_vec)]), set(intersections)
+    else:
+        sim_ind_list = [(intersecting[i], intersecting[j]) for i in range(len(intersecting)) for j in range(i, len(intersecting))]
+        return set(sim_ind_list), set(intersections)
+
+def find_orthogonal_vector(s1, s2):
+    s3 = s1.complement()
+    orth_vec = s2.intersection(s3).gen(0)
+    return orth_vec
+

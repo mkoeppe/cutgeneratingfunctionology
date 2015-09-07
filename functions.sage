@@ -3539,7 +3539,9 @@ def is_QQ_linearly_independent(*numbers):
     elif len(numbers) == 1:
         return numbers[0] != 0
     if isinstance(numbers[0], SymbolicRNFElement):
-        return False
+        is_independent = is_QQ_linearly_independent(*(x.val() for x in numbers))
+        numbers[0].parent().record_independence_of_pair(numbers, is_independent)
+        return is_independent
     # fast path for rationals
     all_QQ, numbers = is_all_QQ(numbers)
     if all_QQ:
@@ -4023,7 +4025,7 @@ def check_for_dense_move(m1, m2):
     if m1.sign() == 1 and m2.sign() == 1: 
         t1 = m1[1]
         t2 = m2[1]
-        if is_QQ_linearly_independent(t1, t2) and t1 >= 0 and t2 >= 0:
+        if t1 >= 0 and t2 >= 0 and is_QQ_linearly_independent(t1, t2):
             dense_intervals = []
             for m1i in m1.intervals():
                 for m2i in m2.intervals():
