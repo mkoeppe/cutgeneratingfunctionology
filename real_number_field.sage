@@ -138,6 +138,20 @@ class RealNumberField_absolute(NumberField_absolute):
         True
         sage: hom(field_values[1]) < 2
         True
+        sage: logging.disable(logging.INFO)
+        sage: field = nice_field_values([sqrt(2),sqrt(3)])[0].parent()
+        sage: field
+        Real Number Field in `a` with defining polynomial y^4 - 4*y^2 + 1
+        sage: field1 = NumberField(field.polynomial(),"a")
+        sage: field1
+        Number Field in a with defining polynomial y^4 - 4*y^2 + 1
+        sage: field1 == field or field == field1
+        False
+        sage: field2 = VectorSpace(field, 2).base_field()
+        sage: field2
+        Real Number Field in `a` with defining polynomial y^4 - 4*y^2 + 1
+        sage: field == field2 and field2 == field
+        True
     """
 
     def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None,
@@ -153,6 +167,12 @@ class RealNumberField_absolute(NumberField_absolute):
         self._zero_element = self(0)
         self._one_element =  self(1)
         self._exact_embedding = self.hom([exact_embedding])
+
+    def _repr_(self):
+        return "Real Number Field in `%s` with defining polynomial %s"%(
+                   self.variable_name(), self.polynomial())
+    def __hash__(self):
+        return NumberField_absolute.__hash__(self)
 
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 
@@ -218,7 +238,11 @@ class RealNumberField_quadratic(NumberField_quadratic):
         #### self._zero_element = self(0) 
         #### self._one_element =  self(1)
         self._zero_element = RealNumberFieldElement_quadratic(self, QQ(0)) 
-        self._one_element =  RealNumberFieldElement_quadratic(self, QQ(1))       
+        self._one_element =  RealNumberFieldElement_quadratic(self, QQ(1))
+
+    def _repr_(self):
+        return "Real Number Field in `%s` with defining polynomial %s"%(
+                   self.variable_name(), self.polynomial())
     
 # The factory.
 
