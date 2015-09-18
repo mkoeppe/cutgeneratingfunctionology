@@ -772,7 +772,7 @@ def generate_covered_intervals(function):
         return function._covered_intervals
 
     logging.info("Computing covered intervals...")
-    covered_intervals = generate_directly_covered_intervals(function)
+    covered_intervals = copy(generate_directly_covered_intervals(function))
     faces = generate_maximal_additive_faces(function)
 
     # debugging plot:
