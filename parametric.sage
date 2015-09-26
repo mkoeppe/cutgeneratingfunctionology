@@ -448,7 +448,7 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
         sage: eq_factor =list(K.get_eq_factor())
         sage: lt_factor =list(K.get_lt_factor())
         sage: (eq_factor, lt_factor)
-        ([], [f - 2, -f + 1/2, f - 1, -f - 1, -f])
+        ([], [-f + 1/2, f - 1, -f])
         sage: simplify_eq_lt_poly_via_ppl(eq_factor, lt_factor)
         ([], [f - 1, -2*f + 1])
 
@@ -463,7 +463,14 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
         sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_poly()), list(K.get_lt_poly()))
         ([], [f^2*lam + f^2 - 2*f*lam - f + lam, -2*f*lam + f + 2*lam - 1, -f*lam - 3*f + lam + 2, -lam, lam - 1, f*lam - lam])
         sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_factor()), list(K.get_lt_factor()))
-        ([], [f*lam - 3*f - lam + 2, -f*lam - 3*f + lam + 2, 3*f*lam - f - 3*lam, -3*f*lam - f + 3*lam, -lam, f - 1, 2*lam - 1])
+        ([],
+         [-3*f*lam - f + 3*lam,
+          3*f*lam - f - 3*lam,
+          -f*lam - 3*f + lam + 2,
+          f*lam - 3*f - lam + 2,
+          f - 1,
+          2*lam - 1,
+          -lam])
 
         sage: K.<f,alpha> = SymbolicRealNumberField([4/5, 3/10])             # Bad example! parameter region = {given point}.
         sage: h=dg_2_step_mir(f, alpha, field=K, conditioncheck=False)
@@ -808,9 +815,9 @@ def plot_region_given_dim_and_description(d, region_description, color, alpha=0.
 def plot_region_according_to_literature(function, var_name, default_args=None, level="factor", \
                                         alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000, **opt_non_default):
     """
-    sage: plot_region_according_to_literature(drlm_backward_3_slope, ['f','bkpt'], plot_points=1000)
-    sage: plot_region_according_to_literature(gj_forward_3_slope, ['lambda_1', 'lambda_2'], f = 2/3, plot_points=500)
-    sage: plot_region_according_to_literature(dg_2_step_mir, ['f','alpha'], plot_points=500)
+    sage: plot_region_according_to_literature(drlm_backward_3_slope, ['f','bkpt'], plot_points=1000) # not tested
+    sage: plot_region_according_to_literature(gj_forward_3_slope, ['lambda_1', 'lambda_2'], f = 2/3, plot_points=500)  # not tested
+    sage: plot_region_according_to_literature(dg_2_step_mir, ['f','alpha'], plot_points=500)  # not tested
     """
     if default_args is None:
         default_args = read_default_args(function, **opt_non_default)
@@ -849,28 +856,28 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
                         alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, level="factor", plot_points=1000, **opt_non_default):
 
     """
-    sage: logging.disable(logging.INFO)
-    sage: g, fname, fparam = plot_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12-1/30, 2/12])
-    sage: g.save(fname+".pdf", title=fname+fparam, legend_loc=7)
+    sage: logging.disable(logging.INFO) # not tested
+    sage: g, fname, fparam = plot_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12-1/30, 2/12]) # not tested
+    sage: g.save(fname+".pdf", title=fname+fparam, legend_loc=7) # not tested
 
-    sage: plot_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12+1/30, 2/12], plot_points=500)
-    sage: plot_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/10-1/100, 3/10], plot_points=500)
+    sage: plot_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12+1/30, 2/12], plot_points=500) # not tested
+    sage: plot_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/10-1/100, 3/10], plot_points=500) # not tested
 
-    sage: plot_parameter_region(gj_2_slope, ['f','lambda_1'], plot_points=100)
-    sage: plot_parameter_region(gj_2_slope, ['f','lambda_1'], [4/5, 4/6], plot_points=100)
+    sage: plot_parameter_region(gj_2_slope, ['f','lambda_1'], plot_points=100) # not tested
+    sage: plot_parameter_region(gj_2_slope, ['f','lambda_1'], [4/5, 4/6], plot_points=100) # not tested
 
-    sage: plot_parameter_region(gj_forward_3_slope, ['f','lambda_1'], [9/10, 3/10])
-    sage: plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'])
-    sage: plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'], f=3/4, lambda_1=2/3, lambda_2=3/5)
-    sage: plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'], [3/5, 7/5], f=1/2, lambda_1=4/9, lambda_2=1/3)
-    sage: plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'], [9/10, 3/7], f=1/2, lambda_1=4/9, lambda_2=1/3)
+    sage: plot_parameter_region(gj_forward_3_slope, ['f','lambda_1'], [9/10, 3/10]) # not tested
+    sage: plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2']) # not tested
+    sage: plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'], f=3/4, lambda_1=2/3, lambda_2=3/5) # not tested
+    sage: plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'], [3/5, 7/5], f=1/2, lambda_1=4/9, lambda_2=1/3) # not tested
+    sage: plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'], [9/10, 3/7], f=1/2, lambda_1=4/9, lambda_2=1/3) # not tested
 
-    sage: plot_parameter_region(chen_4_slope, ['lam1', 'lam2'], [1/4, 1/4], plot_points=100)
+    sage: plot_parameter_region(chen_4_slope, ['lam1', 'lam2'], [1/4, 1/4], plot_points=100) # not tested
 
-    sage: plot_parameter_region(dg_2_step_mir, ['f','alpha'], [3/5,2/5-1/23],  plot_points=500)
-    sage: plot_parameter_region(dg_2_step_mir_limit, ['f'], [8/13], d=2, plot_points=500)
+    sage: plot_parameter_region(dg_2_step_mir, ['f','alpha'], [3/5,2/5-1/23],  plot_points=500) # not tested
+    sage: plot_parameter_region(dg_2_step_mir_limit, ['f'], [8/13], d=2, plot_points=500) # not tested
 
-    sage: plot_parameter_region(kf_n_step_mir, ['f'], [1/13], plot_points=100)
+    sage: plot_parameter_region(kf_n_step_mir, ['f'], [1/13], plot_points=100) # not tested
     """
     d = len(var_name)
     if d >= 3:
@@ -925,15 +932,15 @@ def plot_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
 def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], random_points=10, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, \
                             plot_points=0, show_points=2, regions=None, tested_points=None, **opt_non_default):
     """
-    sage: regions, tested_points, last_n_points_was_covered = cover_parameter_region(gmic, ['f'], random_points=10, plot_points=100)
-    sage: _ = cover_parameter_region(drlm_backward_3_slope, ['f','bkpt'], random_points=200, plot_points=500)
-    sage: _ = cover_parameter_region(gj_2_slope, ['f', 'lambda_1'], 300, plot_points=100, show_points=1)
+    sage: regions, tested_points, last_n_points_was_covered = cover_parameter_region(gmic, ['f'], random_points=10, plot_points=100) # not tested
+    sage: _ = cover_parameter_region(drlm_backward_3_slope, ['f','bkpt'], random_points=200, plot_points=500) # not tested
+    sage: _ = cover_parameter_region(gj_2_slope, ['f', 'lambda_1'], 300, plot_points=100, show_points=1) # not tested
 
-    sage: _ = cover_parameter_region(gj_forward_3_slope, ['lambda_1', 'lambda_2'], random_points=500, plot_points=500)
-    sage: _ = cover_parameter_region(gj_forward_3_slope, ['f', 'lambda_1'], random_points=100, plot_points=500)
+    sage: _ = cover_parameter_region(gj_forward_3_slope, ['lambda_1', 'lambda_2'], random_points=500, plot_points=500) # not tested
+    sage: _ = cover_parameter_region(gj_forward_3_slope, ['f', 'lambda_1'], random_points=100, plot_points=500) # not tested
 
-    sage: regions, tested_points, last_n_points_was_covered = cover_parameter_region(chen_4_slope, ['lam1', 'lam2'], 20, plot_points=0)
-    sage: _ = cover_parameter_region(chen_4_slope, ['lam1', 'lam2'], 20, plot_points=500, show_points=1, regions=regions, tested_points=tested_points)
+    sage: regions, tested_points, last_n_points_was_covered = cover_parameter_region(chen_4_slope, ['lam1', 'lam2'], 20, plot_points=0) # not tested
+    sage: _ = cover_parameter_region(chen_4_slope, ['lam1', 'lam2'], 20, plot_points=500, show_points=1, regions=regions, tested_points=tested_points) # not tested
     """
     d = len(var_name)
     if d >= 3:
@@ -1181,12 +1188,12 @@ def construct_independency(independent_pairs, dependency, seen_linear_forms):
 
      With the additional conditions that the following forms have kernel = {0}.
         sage: zero_kernel
-        [(0, 0, 0, 0, 0, 0, 1),
+        {(0, 0, 0, 0, 0, 0, 1),
          (0, 0, 0, 0, 1, 0, 0),
          (0, 0, 0, 1, 0, 0, 0),
          (0, 0, 1, 0, 0, 0, 0),
          (0, 1, -2/3, 0, 0, 0, 0),
-         (1, 0, 0, 0, 0, 0, 0)]
+         (1, 0, 0, 0, 0, 0, 0)}
     """
     independency = []
     zero_kernel = set([]) # zero_kernel = seen_linear_forms?
