@@ -32,7 +32,11 @@ def cpl3_lifting_function(r0=1/6, z1=1/12, o1=1/5, o2=0):
         phi_values = [0, 0, o1, 1-o1, 1]
     bkpts = phi_bkpts + [x+1 for x in phi_bkpts[1::]]
     values = phi_values + [y+1 for y in phi_values[1::]]
-    return piecewise_function_from_breakpoints_and_values(bkpts, values)
+    # Cannot return piecewise_function_from_breakpoints_and_values(bkpts, values)
+    # because we don't want to merge slopes
+    # for arbitrary values of o1, o2 such as 0, 0
+    list_of_pairs = [[(bkpts[i], bkpts[i+1]), linear_function_through_points([bkpts[i], values[i]], [bkpts[i+1], values[i+1]])] for i in range(len(bkpts)-1)]
+    return FastPiecewise(list_of_pairs, periodic_extension=False, merge=False)
 
 def treat_constraint_of_PTheta3(rnf_c):
     """
@@ -229,31 +233,18 @@ def testCPL3(K):
      ([], [3*r0 + 8*z1 - 1, r0 - 2*z1, -r0, -2*r0*z1 - 1])]
 
     Let's try another testpoint.
-    In the following example, the first PTheta3= vertex (theta1, theta2) is extreme point (c).
+    In the following example, the third PTheta3= vertex (theta1, theta2) is extreme point (c).
     The function is extreme in the chambre defined by (-r0*z1<1,) 0<z1, z1<r0, 3*r0 + 4*z1 < 1
     Together with the chambre ext pt (c) in the example above,
     the conditions for extreme function for ext point (c) in the paper are completely recovered
     sage: K.<r0,z1,o1,o2>=SymbolicRealNumberField([1/6, 1/12, 0, 0])
     sage: fields, thetas, chambres, extremality = testCPL3(K)
-    sage: thetas
-    [(((-r0 - z1)/(-r0 - 1))~, ((-z1)/(-r0 - 1))~),
-     (((2*r0*z1 + 2*z1^2)/(-r0^2 - 2*r0*z1 + r0 + 2*z1))~,
-      (2*z1^2/(-r0^2 - 2*r0*z1 + r0 + 2*z1))~),
-     (((-z1)/(r0 - 1))~, ((-z1)/(r0 - 1))~),
-     (((-r0 - 2*z1)/(-2*r0 - 2))~, ((-r0 - 2*z1)/(-2*r0 - 2))~)]
-    sage: extremality
-    [True, False, True, False]
-    sage: chambres
-    [([], [-r0*z1 - 1, -z1, -r0 + z1, 3*r0 + 4*z1 - 1]),
-     ([-r0 + 2*z1],
-      [5*r0 - 1,
-       10000*r0^3 + 20000*r0^2*z1 - 10000*r0^2 - 19998*r0*z1 + 3*z1^2,
-       -r0,
-       40000*r0^2 + 80000*r0*z1 - 79993*r0,
-       -2*r0^2 - r0*z1 + 2*z1^2]),
-     ([], [r0 + 4*z1 - 1, -z1, -r0, 2*r0 - 1]),
-     ([-12*z1 + 1, -6*r0 + 1], [])]
-
+    sage: thetas[2]
+    (((-r0 - z1)/(-r0 - 1))~, ((-z1)/(-r0 - 1))~)
+    sage: extremality[2]
+    True
+    sage: chambres[2]
+    ([], [-r0*z1 - 1, -z1, -r0 + z1, 3*r0 + 4*z1 - 1])
     """
     fields = []
     thetas = []
