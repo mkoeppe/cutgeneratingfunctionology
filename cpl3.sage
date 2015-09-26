@@ -38,18 +38,21 @@ def treat_constraint_of_PTheta3(rnf_c):
     """
     The emaxple follows subcase1 of case 1, section 3.2, CPL3 paper Page 175,
     We assume that 0 < r0 < z1 and 2*r0 + 6*z1 <= 1.
+    sage: logging.disable(logging.WARNING)
     sage: K.<r0,z1,o1,o2>=SymbolicRealNumberField([1/20, 1/12, 1/5, 0])
     sage: phi = cpl3_lifting_function(r0, z1, o1, o2)
+
     Let rnf_c be the second constraint of PTheta3= in section 3.1:
     sage: rnf_c = 2*o1 - phi(2*r0+2*z1)
+
     We look for the coefficients of o1 and o2 in equation(4), and the rhs of eqn(4):
     sage: c_o1, c_o2, c_rhs = treat_constraint_of_PTheta3(rnf_c)
     sage: c_o1
-    (r0 - 4*z1 + 1)~
+    ((-r0 + 4*z1 - 1)/(r0 + 4*z1 - 1))~
     sage: c_o2
-    (3*r0 + 4*z1 - 1)~
+    ((-3*r0 - 4*z1 + 1)/(r0 + 4*z1 - 1))~
     sage: c_rhs
-    (r0)~
+    ((-r0)/(r0 + 4*z1 - 1))~
     """
     sym_c = rnf_c.sym()
     c = sym_c.numerator()
@@ -67,6 +70,7 @@ def treat_constraint_of_PTheta3(rnf_c):
 
 def constraints_PTheta3(r0, z1, o1, o2):
     """
+    sage: logging.disable(logging.WARNING)
     sage: K.<r0,z1,o1,o2>=SymbolicRealNumberField([1/20, 1/12, 1/5, 0])
     sage: constraints_PTheta3(r0, z1, o1, o2)
     [(((-r0 + z1)/z1)~, (-1)~, 0~),
@@ -109,10 +113,10 @@ def copy_magic_field_elements(magic_field, elements):
     
 def find_bases(coeff_o_rhs, K):
     """
+    sage: logging.disable(logging.WARNING)
     sage: K.<r0,z1,o1,o2>=SymbolicRealNumberField([1/20, 1/12, 1/5, 0])
     sage: coeff_o_rhs = constraints_PTheta3(r0, z1, o1, o2)
     sage: theta_and_magic_field = find_bases(coeff_o_rhs, K)
-    sage: theta_and_magic_field
     sage: theta_and_magic_field
     [(((-r0 - z1)/(-r0 - 1))~,
       ((-z1)/(-r0 - 1))~,
@@ -171,6 +175,7 @@ def find_bases(coeff_o_rhs, K):
                 
 def setup_vertex_group_function(theta1, theta2, r0_val, z1_val):
     """
+    sage: logging.disable(logging.WARNING)
     sage: K.<r0,z1,o1,o2>=SymbolicRealNumberField([1/20, 1/12, 1/5, 0])
     sage: coeff_o_rhs = constraints_PTheta3(r0, z1, o1, o2)
     sage: theta_and_magic_field = find_bases(coeff_o_rhs, K)
@@ -188,24 +193,28 @@ def setup_vertex_group_function(theta1, theta2, r0_val, z1_val):
 
 def testCPL3(K):
     """
+    sage: logging.disable(logging.WARNING)
     sage: K.<r0,z1,o1,o2>=SymbolicRealNumberField([1/20, 1/12, 1/5, 0])
     sage: fields, thetas, chambres, extremality = testCPL3(K)
-    # The following four PTheta3= vertices (theta1, theta2) correspond to
-    # extreme points (c), (d), (a), (b) respectively (cf. page 177 table 2)
+
+    The following four PTheta3= vertices (theta1, theta2) correspond to
+    extreme points (c), (d), (a), (b) respectively (cf. page 177 table 2)
     sage: thetas
     [(((-r0 - z1)/(-r0 - 1))~, ((-z1)/(-r0 - 1))~),
      (((r0 + 2*z1)/(-2*r0 + 2))~, ((-r0 + 2*z1)/(-2*r0 + 2))~),
      (((-z1)/(r0 - 1))~, ((-z1)/(r0 - 1))~),
      (((-r0 - 2*z1)/(-2*r0 - 2))~, ((-r0 - 2*z1)/(-2*r0 - 2))~)]
-    # the extremality of the funciton in the chambre around the testpoint
+
+    The extremality of the funciton in the chambre around the testpoint
     sage: extremality
     [True, False, True, True]
-    # page 188, table 5 shows the conditions for extremality for igp. 
-    # compare with chambres around testpoint.  
-    # ext pt (c), expected 3*r0 + 4*z1 <=1, got (-r0*z1<1,) r0<z1, 0<r0, 3*r0 + 4*z1 < 1
-    # ext pt (d), expected r0=2*z1, r0+8*z1<=1, got a chambre where the function is not extreme
-    # ext pt (a), expected 0<r0<1, 0<=z1<1, got r0 + 4*z1 < 1, 0 < z1, 0 < r0 < 1/2
-    # ext pt (b), expected 3*r0 + 8*z1 <=1, got 3*r0 + 8*z1 < 1, r0<2*z1, 0<r0, (-2*r0*z1< 1)
+
+    Compare the returned chambres around testpoint with 
+    the known conditions for extremality [page 188, table 5]
+    Ext pt (c), expected 3*r0 + 4*z1 <=1, got (-r0*z1<1,) r0<z1, 0<r0, 3*r0 + 4*z1 < 1
+    Ext pt (d), expected r0=2*z1, r0+8*z1<=1, got a chambre where the function is not extreme
+    Ext pt (a), expected 0<r0<1, 0<=z1<1, got r0 + 4*z1 < 1, 0 < z1, 0 < r0 < 1/2
+    Ext pt (b), expected 3*r0 + 8*z1 <=1, got 3*r0 + 8*z1 < 1, r0<2*z1, 0<r0, (-2*r0*z1< 1)
     sage: chambres
     [([], [-r0*z1 - 1, r0 - z1, -r0, 3*r0 + 4*z1 - 1]),
      ([-5*r0 + 3*z1],
