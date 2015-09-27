@@ -323,7 +323,7 @@ def find_all_vertex_thetas(sampling=20):
                     vertex_thetas.append(thetas)
     return vertex_thetas
 
-def random_r0z1_chambres_on_diagram_ij(i=1, j=5, random_points=200, plot_points=500, starting_graph=None):
+def random_r0z1_chambres_on_diagram_ij(i=1, j=5, random_points=100, plot_points=500, starting_graph=None):
     """
     0 <= i < j <=8
     sage: diagram15 = random_r0z1_chambres_on_diagram_ij() # not tested
@@ -337,12 +337,14 @@ def random_r0z1_chambres_on_diagram_ij(i=1, j=5, random_points=200, plot_points=
         g = starting_graph
     for num_test_points in range(random_points):
         r0_val = QQ(uniform(0, 1))
-        z1_val = QQ(uniform(0, (1-r0_val)/4))
+        z1_val = QQ(uniform(0, 1))
+        while not z1_val <= (1-r0_val)/4:
+            r0_val = QQ(uniform(0, 1))
+            z1_val = QQ(uniform(0, 1))
         g += draw_r0z1_chambre_on_diagram_ij(r0_val, z1_val, i, j, plot_points)
     return g
 
-def draw_r0z1_chambre_on_diagram_ij(r0_val=1/6, z1_val=1/12, i=1, j=5, plot_points=500):
-    g = Graphics()
+def find_basis_thetas_on_diagram_ij(r0_val=1/6, z1_val=1/12, i=1, j=5):
     K.<r0,z1,o1,o2>=SymbolicRealNumberField([r0_val, z1_val, 0, 0])
     phi = cpl3_lifting_function(r0, z1, o1, o2)
     rnf_constraints = [ -o2 - phi(r0-z1+1) + 1,\
@@ -359,9 +361,7 @@ def draw_r0z1_chambre_on_diagram_ij(r0_val=1/6, z1_val=1/12, i=1, j=5, plot_poin
     a21, a22, b2 = coeff_o_rhs[j]
     d = a11 * a22 - a12 * a21
     if d == 0:
-        # not basis
-        return point([(r0_val, z1_val)], color = 'black', size = 10, zorder=10)
-    g += point([(r0_val, z1_val)], color = 'white', size = 2, zorder=10)
+        return K, (None, None), None
     theta1 = (b1 * a22 - a12 * b2) / d
     theta2 = (a11 * b2 - b1 * a21) / d
     feasibility = True
@@ -369,12 +369,20 @@ def draw_r0z1_chambre_on_diagram_ij(r0_val=1/6, z1_val=1/12, i=1, j=5, plot_poin
         if c_o1 * theta1 + c_o2 * theta2 > c_rhs:
             feasibility = False
             break
+    return K, (theta1, theta2), feasibility
+
+def draw_r0z1_chambre_on_diagram_ij(r0_val=1/6, z1_val=1/12, i=1, j=5, plot_points=500):
+    K, (theta1, theta2), feasibility = find_basis_thetas_on_diagram_ij(r0_val, z1_val, i, j)
+    if feasibility is None:
+        # not basis
+        return point([(r0_val, z1_val)], color = 'black', size = 2, zorder=10)
+    g = point([(r0_val, z1_val)], color = 'white', size = 2, zorder=10)
     if not feasibility:
         g += plot_r0z1_chambre(K, 'orange', plot_points=plot_points)
         return g
     # ?? Cannot use  K2, h = setup_vertex_group_function(theta1, theta2, r0_val, z1_val)
     # because K2 forgest the chambre for getting theta1,theta2 as functions of r0 and z1.
-    h  = cpl3_group_function(r0, z1, theta1, theta2)
+    h  = cpl3_group_function(K.gens()[0], K.gens()[1], theta1, theta2)
     is_extreme =  extremality_test(h)
     if is_extreme:
         g += plot_r0z1_chambre(K, 'blue', plot_points=plot_points)
@@ -388,3 +396,20 @@ def plot_r0z1_chambre(K, color, alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=
     g =region_plot([ lhs(x, y, 0, 0) == 0 for lhs in leq ] + [ lhs(x, y, 0 , 0) < 0 for lhs in lin ], \
         (x, xmin, xmax), (y, ymin, ymax), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
     return g
+
+def save_random_r0z1_chambres_diagrams(random_points=100, plot_points=500):
+    for i in range(9):
+        for j in range(i+1, 9):
+            g = random_r0z1_chambres_on_diagram_ij(i,j,random_points, plot_points)
+            g.save("region_graphics/cpl3_diagram_%s_%s.pdf" %(i,j), title="cpl3 diagram, basis=(%s, %s)" % (i,j))
+    return
+
+def cpl3_r0z1_on_diagram_ij(r0_val=1/6, z1_val=1/12, i=1, j=5):
+    K, (theta1, theta2), feasibility = find_basis_thetas_on_diagram_ij(r0_val, z1_val, i, j)
+    if feasibility is None:
+        print "not a basis!"
+        return
+    o1_val = theta1.val()
+    o2_val = theta2.val()
+    return cpl3_group_function(r0_val, z1_val, o1_val, o2_val)
+    
