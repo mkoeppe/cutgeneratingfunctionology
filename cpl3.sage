@@ -266,6 +266,7 @@ def testCPL3(K):
 
 def find_all_vertex_thetas(sampling=20):
     """
+    Finds too many vertex thetas, to check!
     sage: logging.disable(logging.WARNING)
     sage: vertex_thetas = find_all_vertex_thetas()
     sage: len(vertex_thetas)
@@ -405,6 +406,10 @@ def save_random_r0z1_chambres_diagrams(random_points=100, plot_points=500):
     return
 
 def cpl3_r0z1_on_diagram_ij(r0_val=1/6, z1_val=1/12, i=1, j=5):
+    """
+    h = cpl3_r0z1_on_diagram_ij(r0_val=1/6, z1_val=1/12, i=1, j=5)
+    extremality_test(h)
+    """
     K, (theta1, theta2), feasibility = find_basis_thetas_on_diagram_ij(r0_val, z1_val, i, j)
     if feasibility is None:
         print "not a basis!"
@@ -413,3 +418,53 @@ def cpl3_r0z1_on_diagram_ij(r0_val=1/6, z1_val=1/12, i=1, j=5):
     o2_val = theta2.val()
     return cpl3_group_function(r0_val, z1_val, o1_val, o2_val)
     
+def random_r0z1_chambres_for_fixed_ext_pt(ext_pt='c', random_points=100, plot_points=500, starting_graph=None):
+    logging.disable(logging.WARNING)
+    if starting_graph is None:
+        g = Graphics()
+        g += line([(0,1/4),(1,0)], color='black')
+    else:
+        g = starting_graph
+    for num_test_points in range(random_points):
+        r0_val = QQ(uniform(0, 1))
+        z1_val = QQ(uniform(0, 1))
+        while not z1_val <= (1-r0_val)/4:
+            r0_val = QQ(uniform(0, 1))
+            z1_val = QQ(uniform(0, 1))
+        K.<r0,z1,o1,o2>=SymbolicRealNumberField([r0_val, z1_val, 0, 0])
+        thetas_of_ext_pt = {'a': (z1/(1-r0), z1/(1-r0)), \
+                            'b': ((r0+2*z1)/(2+2*r0), (r0+2*z1)/(2+2*r0)), \
+                            'c': ((r0+z1)/(1+r0), z1/(1+r0)), \
+                            'd': ((r0+2*z1)/(2-2*r0), (2*z1-r0)/(2-2*r0)), \
+                            'e': (z1/(1-2*r0), z1/(1-2*r0)), \
+                            'f': ((-z1-r0+6*z1*r0+r0*r0+4*z1*z1)/(4*z1+8*z1*r0-1-r0*r0), \
+                                  (z1*(2*r0+4*z1-1)/(4*z1+8*z1*r0-1+r0*r0))), \
+                            'g': (z1/(1-3*r0), (z1-r0)/(1-3*r0)), \
+                            'h': (1/4, 1/4),\
+                            'i': ((1-2*r0-5*z1)/(2-4*r0-12*z1), (-z1/(2-4*r0-12*z1))), \
+                            'j': (z1*(2*r0+5*z1-1)/(-1+3*r0+5*z1-2*r0*r0-7*z1*r0), \
+                                  z1*(r0+5*z1-1)/(-1+3*r0+5*z1-2*r0*r0-7*z1*r0)), \
+                            'k': (1/3, 0), \
+                            'l': (z1/(1-2*r0), (2*z1-r0)/(2-4*r0)), \
+                            'm': (r0/(1+r0-4*z1), 0), \
+                            'n': (2*z1/(1-r0), 0), \
+                            'o': (z1/(1-2*r0), (1-2*r0-2*z1)/(2-4*r0)), \
+                            'p': (z1/(1-2*r0), 0), \
+                            'q': (z1/(1-r0-2*z1), 0), \
+                            'r': (1/2, 0), \
+                           }
+        (theta1, theta2) = thetas_of_ext_pt[ext_pt]
+        h  = cpl3_group_function(r0, z1, theta1, theta2)
+        is_extreme =  extremality_test(h)
+        if is_extreme:
+            g += plot_r0z1_chambre(K, 'blue', plot_points=plot_points)
+        else:
+            g += plot_r0z1_chambre(K, 'red', plot_points=plot_points)
+    return g
+
+def save_random_r0z1_for_ext_pts(random_points=100, plot_points=500):
+    for ext_pt in ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r']:
+        g = random_r0z1_chambres_for_fixed_ext_pt(ext_pt, random_points, plot_points)
+        g.save("region_graphics/cpl3_ext_pt_%s.pdf" % ext_pt, title="cpl3 diagram for extreme point (%s)" % ext_pt)
+    return
+
