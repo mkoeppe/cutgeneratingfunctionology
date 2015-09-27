@@ -264,35 +264,127 @@ def testCPL3(K):
         extremality.append(is_extreme)
     return fields, thetas, chambres, extremality
 
-        
+def find_all_vertex_thetas(sampling=20):
+    """
+    sage: logging.disable(logging.WARNING)
+    sage: vertex_thetas = find_all_vertex_thetas()
+    sage: len(vertex_thetas)
+    27
+    sage: vertex_thetas
+    [((-r0 - z1)/(-r0 - 1), (-z1)/(-r0 - 1)),
+     ((r0 + 2*z1)/(-2*r0 + 2), (-r0 + 2*z1)/(-2*r0 + 2)),
+     ((-z1)/(r0 - 1), (-z1)/(r0 - 1)),
+     ((-r0 - 2*z1)/(-2*r0 - 2), (-r0 - 2*z1)/(-2*r0 - 2)),
+     ((4*z1 - 1)/(6*r0 + 24*z1 - 6), (2*r0 + 4*z1 - 1)/(6*r0 + 24*z1 - 6)),
+     ((-r0 - z1)/(3*r0 + 12*z1 - 3), (2*r0 + 5*z1 - 1)/(3*r0 + 12*z1 - 3)),
+     (1/6, 1/6),
+     ((-z1)/(3*r0 - 1), (r0 - z1)/(3*r0 - 1)),
+     (z1/(-2*r0 + 1), z1/(-2*r0 + 1)),
+     ((-r0)/(-r0 + 4*z1 - 1), 0),
+     (2*z1/(-r0 + 1), 0),
+     ((-z1)/(3*r0 + 12*z1 - 3), (r0 + 5*z1 - 1)/(3*r0 + 12*z1 - 3)),
+     (z1/(-r0 + 4*z1), (-r0 + z1)/(-r0 + 4*z1)),
+     ((-z1)/(-r0 - 8*z1 + 1), (-r0 - 5*z1 + 1)/(-r0 - 8*z1 + 1)),
+     (1/4, 1/4),
+     ((-r0^2 - 6*r0*z1 - 4*z1^2 + r0 + z1)/(-r0^2 - 8*r0*z1 - 4*z1 + 1),
+      (-2*r0*z1 - 4*z1^2 + z1)/(-r0^2 - 8*r0*z1 - 4*z1 + 1)),
+     ((-2*r0*z1 - 5*z1^2 + z1)/(2*r0^2 + 7*r0*z1 - 3*r0 - 5*z1 + 1),
+      (-r0*z1 - 5*z1^2 + z1)/(2*r0^2 + 7*r0*z1 - 3*r0 - 5*z1 + 1)),
+     ((2*r0 + 5*z1 - 1)/(4*r0 + 12*z1 - 2), z1/(4*r0 + 12*z1 - 2)),
+     (1/3, 0),
+     ((r0 + 4*z1 - 1)/(7*r0 + 20*z1 - 5), (2*r0 + 4*z1 - 1)/(7*r0 + 20*z1 - 5)),
+     (1/5, 1/5),
+     (z1/(-2*r0 + 1), 0),
+     ((-z1)/(r0 + 2*z1 - 1), 0),
+     ((-2*z1)/(4*r0 - 2), (r0 - 2*z1)/(4*r0 - 2)),
+     (2*z1/(-4*r0 + 2), (-2*r0 - 2*z1 + 1)/(-4*r0 + 2)),
+     (1/3, 1/6),
+     (1/2, 0)]
+    """
+    # cannot use set because of
+    #sage: P.<x,y,z> = QQ[]
+    #sage: (-x)/(-y) in set([x/y])
+    #False
+    vertex_thetas = []
+    for r0_num in range(1, sampling):
+        for z1_num in range(1, ceil((sampling-r0_num)/4)):
+            r0_val = r0_num / sampling
+            z1_val = z1_num / sampling
+            K.<r0,z1,o1,o2>=SymbolicRealNumberField([r0_val, z1_val, 0, 0])
+            coeff_o_rhs = constraints_PTheta3(r0,z1,o1,o2)
+            for theta1, theta2, magic_field in find_bases(coeff_o_rhs, K):
+                thetas = (theta1.sym(), theta2.sym())
+                seen = false
+                for t in vertex_thetas:
+                    if t == thetas:
+                        seen = True
+                        break
+                if not seen:
+                    vertex_thetas.append(thetas)
+    return vertex_thetas
 
-#### case d #####
-# sage: K.<r0,z1,o1,o2>=SymbolicRealNumberField([1/6, 1/12, 1/5, 0])
-# sage: h = cpl3_group_function(r0,z1,o1,o2)
-# sage: leq, lin = read_simplified_leq_lin(K)
-# sage: leq, lin
-# ([],
-#  [2*z1*o1 - r0*o2 - 2*z1*o2 - z1 + o2, -z1, -r0, r0 + 4*z1 - 1, -o1 + o2, -o1])
-# sage: extremality_test(h)
-# True
-# sage: leq2, lin2 = read_simplified_leq_lin(K)
-# WARNING: 2015-09-18 02:19:24,693 equation list [-r0*o1 - r0*o2 - r0 + o1, -2*z1*o1 + r0*o2 + 2*z1*o2 - r0 + o1, -o2, -r0 + 2*z1] is not empty!
-# sage: leq2
-# [-r0*o1 - r0*o2 - r0 + o1,
-#  -2*z1*o1 + r0*o2 + 2*z1*o2 - r0 + o1,
-#  -o2,
-#  -r0 + 2*z1]
-# sage: lin2
-# [5*r0 - 1,
-#  r0 - o1,
-#  -3*r0 + 2*o1,
-#  2*r0*z1 - 8*z1^2 - r0,
-#  2*r0*z1 - 3*r0,
-#  r0^2 - 2*r0 - 1]
-#### after simplification: o1 = r/(1-r); o2 = 0; r = 2*z; 0 < r < 1/5 ####
-#### identique to the known condition for case d in the paper ###
+def random_r0z1_chambres_on_diagram_ij(i=1, j=5, random_points=200, plot_points=500, starting_graph=None):
+    """
+    0 <= i < j <=8
+    sage: diagram15 = random_r0z1_chambres_on_diagram_ij() # not tested
+    sage: diagram15.save("cpl3_diagram_1_5.pdf", title="cpl3 diagram, basis=(1, 5), yellow=not vertex thetas, red = non extreme, blue = extreme") # not tested
+    """
+    logging.disable(logging.WARNING)
+    if starting_graph is None:
+        g = Graphics()
+        g += line([(0,1/4),(1,0)], color='black')
+    else:
+        g = starting_graph
+    for num_test_points in range(random_points):
+        r0_val = QQ(uniform(0, 1))
+        z1_val = QQ(uniform(0, (1-r0_val)/4))
+        g += draw_r0z1_chambre_on_diagram_ij(r0_val, z1_val, i, j, plot_points)
+    return g
 
+def draw_r0z1_chambre_on_diagram_ij(r0_val=1/6, z1_val=1/12, i=1, j=5, plot_points=500):
+    g = Graphics()
+    K.<r0,z1,o1,o2>=SymbolicRealNumberField([r0_val, z1_val, 0, 0])
+    phi = cpl3_lifting_function(r0, z1, o1, o2)
+    rnf_constraints = [ -o2 - phi(r0-z1+1) + 1,\
+                        2*o1 - phi(2*r0 + 2*z1), \
+                        -2*o1 - o2 + phi(r0 + 3*z1), \
+                        2*o1 + o2 - phi(2*r0 + 3*z1), \
+                        -2*o1 - 2*o2 + phi(r0 + 4*z1), \
+                        2*o1 + 2*o2 - phi(2*r0 + 4*z1), \
+                        -o1 + o2, \
+                        -o1, \
+                        -o2 ]
+    coeff_o_rhs = constraints_PTheta3(r0,z1,o1,o2)
+    a11, a12, b1 = coeff_o_rhs[i]
+    a21, a22, b2 = coeff_o_rhs[j]
+    d = a11 * a22 - a12 * a21
+    if d == 0:
+        # not basis
+        return point([(r0_val, z1_val)], color = 'black', size = 10, zorder=10)
+    g += point([(r0_val, z1_val)], color = 'white', size = 2, zorder=10)
+    theta1 = (b1 * a22 - a12 * b2) / d
+    theta2 = (a11 * b2 - b1 * a21) / d
+    feasibility = True
+    for (c_o1, c_o2, c_rhs) in coeff_o_rhs:
+        if c_o1 * theta1 + c_o2 * theta2 > c_rhs:
+            feasibility = False
+            break
+    if not feasibility:
+        g += plot_r0z1_chambre(K, 'orange', plot_points=plot_points)
+        return g
+    # ?? Cannot use  K2, h = setup_vertex_group_function(theta1, theta2, r0_val, z1_val)
+    # because K2 forgest the chambre for getting theta1,theta2 as functions of r0 and z1.
+    h  = cpl3_group_function(r0, z1, theta1, theta2)
+    is_extreme =  extremality_test(h)
+    if is_extreme:
+        g += plot_r0z1_chambre(K, 'blue', plot_points=plot_points)
+    else:
+        g += plot_r0z1_chambre(K, 'red', plot_points=plot_points)
+    return g
 
-
-
-
+def plot_r0z1_chambre(K, color, alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=0.3, plot_points=1000):
+    x, y = var('x, y')
+    leq, lin = read_simplified_leq_lin(K)
+    g =region_plot([ lhs(x, y, 0, 0) == 0 for lhs in leq ] + [ lhs(x, y, 0 , 0) < 0 for lhs in lin ], \
+        (x, xmin, xmax), (y, ymin, ymax), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
+    return g
