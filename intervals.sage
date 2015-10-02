@@ -186,6 +186,42 @@ def interval_minus_union_of_intervals(interval, remove_list):
     scan = scan_union_of_coho_intervals_minus_union_of_coho_intervals([[interval]], [remove_list])
     return list(proper_interval_list_from_scan(scan))
 
+def break_into_subintervals(intervals, bkpts):
+    """
+    sage: intervals = [[2,4],[6,9],[11,13]]
+    sage: bkpts = range(15)
+    sage: break_into_subintervals(intervals, bkpts)
+    [[2, 3], [3, 4], [6, 7], [7, 8], [8, 9], [11, 12], [12, 13]]
+    """
+    if not intervals:
+        return []
+    if not bkpts:
+        return intervals
+    m = len(intervals)
+    n = len(bkpts)
+    i = 0
+    j = 0
+    while (i < m) and (intervals[i][1] <= bkpts[0]):
+        i += 1
+    if i == m:
+        return intervals
+    while (j < n) and (bkpts[j] <= intervals[i][0]):
+        j += 1
+    if j == n:
+        return intervals
+    subintervals = []
+    x = intervals[i][0]
+    while (j < n) and (bkpts[j] < intervals[i][1]):
+        subintervals.append([x, bkpts[j]])
+        x = bkpts[j]
+        j += 1
+    subintervals.append([x, intervals[i][1]])
+    i += 1
+    if (i == m) or (j == n):
+        return subintervals
+    else:
+        return subintervals+break_into_subintervals(intervals[i::], bkpts[j::])
+
 ##
 ## A representation of bounded intervals, closed, open, or half-open
 ##
