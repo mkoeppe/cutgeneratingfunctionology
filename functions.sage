@@ -808,7 +808,7 @@ def generate_covered_intervals(function):
     function._covered_intervals = covered_intervals
     return covered_intervals
 
-def uncovered_intervals_from_covered_intervals(covered_intervals):
+def uncovered_intervals_from_covered_intervals(covered_intervals, bkpts=[]):
     """Compute a list of uncovered intervals, given the list of components
     of covered intervals.
 
@@ -822,7 +822,8 @@ def uncovered_intervals_from_covered_intervals(covered_intervals):
     if not covered_intervals:
         return [[0,1]]
     covered = reduce(merge_two_comp, covered_intervals)
-    return interval_minus_union_of_intervals([0,1], covered)
+    uncovered =  interval_minus_union_of_intervals([0,1], covered)
+    return break_into_subintervals(uncovered, bkpts)
 
 def generate_uncovered_intervals(function):
     """
@@ -831,7 +832,8 @@ def generate_uncovered_intervals(function):
     if hasattr(function, '_uncovered_intervals'):
         return function._uncovered_intervals
     covered_intervals = generate_covered_intervals(function)
-    result = uncovered_intervals_from_covered_intervals(covered_intervals)
+    bkpts = function.end_points()
+    result = uncovered_intervals_from_covered_intervals(covered_intervals, bkpts)
     function._uncovered_intervals = result
     return result
 
