@@ -216,7 +216,9 @@ def generate_symbolic_continuous(function, components, field=None):
     intervals_and_slopes = []
     for component, slope in itertools.izip(components, unit_vectors):
         intervals_and_slopes.extend([ (interval, slope) for interval in component ])
-    intervals_and_slopes.sort()
+    intervals_and_slopes.sort(key=lambda (i, s): coho_interval_left_endpoint_with_epsilon(i))
+    #see FIXME in generate_uncovered_components
+    #was: intervals_and_slopes.sort()
     if field is None:
         bkpt = [ interval[0] for interval, slope in intervals_and_slopes ] + [1]
         bkpt = nice_field_values(bkpt)

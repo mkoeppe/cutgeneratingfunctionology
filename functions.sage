@@ -174,7 +174,7 @@ class Face:
             return polygon(convex_vert_list(vert), color=fill_color, **kwds)
 
     def is_directed_move(self):
-        return self.is_1D() or self.is_0D()
+        return self.is_1D() #or self.is_0D()
         
     def directed_move_with_domain_and_codomain(self):
         """
@@ -186,30 +186,30 @@ class Face:
         """
         # FIXME: In the discontinuous case, what is the right domain as a coho interval?
         (I, J, K) = self.minimal_triple
-        if self.is_0D():
-            x, y, z = I[0], J[0], K[0]
-            # A 0-face corresponds to three moves:
-            # \tau_y:  a translation + y with domain {x}
-            # \tau_x:  a translation + x with domain {y}
-            # \rho_z:  a reflection (x+y) - with domain {x, y}.
-            # Because \tau_x = \tau_y \rho_z, it suffices to output
-            # \tau_y and \rho_z.  We use the fact that with each additive
-            # vertex, also the x_y_swapped vertex appears.
-            ###
-            ### FIXME: This transitivity FAILS if we use restrict=True
-            ### in generate_functional_directed_moves!
-            ###
-            ### FIXME: This should be done relative to zero_perturbation_partial_function.
-            ### Because a move is only valid if the function is fixed to zero on the move element.
-            ###
-            ### FIXME: To be written what this means in the continuous case.
-            if x < y:
-                z_mod_1 = fractional(z)
-                y_adjusted = z_mod_1 - x
-                return (1, y_adjusted), [[x]], [[z_mod_1]]
-            else:
-                return (-1, z), [[x], [y]], [[y], [x]]
-        elif self.is_horizontal():
+        # if self.is_0D():
+        #     x, y, z = I[0], J[0], K[0]
+        #     # A 0-face corresponds to three moves:
+        #     # \tau_y:  a translation + y with domain {x}
+        #     # \tau_x:  a translation + x with domain {y}
+        #     # \rho_z:  a reflection (x+y) - with domain {x, y}.
+        #     # Because \tau_x = \tau_y \rho_z, it suffices to output
+        #     # \tau_y and \rho_z.  We use the fact that with each additive
+        #     # vertex, also the x_y_swapped vertex appears.
+        #     ###
+        #     ### FIXME: This transitivity FAILS if we use restrict=True
+        #     ### in generate_functional_directed_moves!
+        #     ###
+        #     ### FIXME: This should be done relative to zero_perturbation_partial_function.
+        #     ### Because a move is only valid if the function is fixed to zero on the move element.
+        #     ###
+        #     ### FIXME: To be written what this means in the continuous case.
+        #     if x < y:
+        #         z_mod_1 = fractional(z)
+        #         y_adjusted = z_mod_1 - x
+        #         return (1, y_adjusted), [[x]], [[z_mod_1]]
+        #     else:
+        #         return (-1, z), [[x], [y]], [[y], [x]]
+        if self.is_horizontal():
             K_mod_1 = interval_mod_1(K)
             t = K_mod_1[0] - I[0]
             return (1, t), [I], [K_mod_1]
@@ -808,7 +808,7 @@ def generate_covered_intervals(function):
     function._covered_intervals = covered_intervals
     return covered_intervals
 
-def uncovered_intervals_from_covered_intervals(covered_intervals, bkpts=[]):
+def uncovered_intervals_from_covered_intervals(covered_intervals):
     """Compute a list of uncovered intervals, given the list of components
     of covered intervals.
 
@@ -823,7 +823,11 @@ def uncovered_intervals_from_covered_intervals(covered_intervals, bkpts=[]):
         return [[0,1]]
     covered = reduce(merge_two_comp, covered_intervals)
     uncovered =  interval_minus_union_of_intervals([0,1], covered)
-    return break_into_subintervals(uncovered, bkpts)
+    return uncovered
+    # Can we replace the merge_two_comp business by the following?
+    #scan = scan_union_of_coho_intervals_minus_union_of_coho_intervals([[[0,1]]], covered_intervals)
+    #return list(proper_interval_list_from_scan(scan))
+
 
 def generate_uncovered_intervals(function):
     """
@@ -832,8 +836,7 @@ def generate_uncovered_intervals(function):
     if hasattr(function, '_uncovered_intervals'):
         return function._uncovered_intervals
     covered_intervals = generate_covered_intervals(function)
-    bkpts = function.end_points()
-    result = uncovered_intervals_from_covered_intervals(covered_intervals, bkpts)
+    result = uncovered_intervals_from_covered_intervals(covered_intervals)
     function._uncovered_intervals = result
     return result
 
@@ -980,17 +983,6 @@ def plot_with_colored_slopes(fn):
     """
     slopes_dict = slopes_intervals_dict(fn)
     return plot_covered_intervals(fn, slopes_dict.values(), labels=[ "Slope %s" % s for s in slopes_dict.keys() ])
-
-def zero_perturbation_partial_function(function):
-    """
-    Compute the partial function for which the perturbation, modulo
-    perturbations that are interpolations of values at breakpoints, is
-    known to be zero.
-    """
-    zero_function = FastLinearFunction(0, 0)
-    pieces = [ (singleton_interval(x), zero_function) for x in function.end_points() ]
-    pieces += [ (interval, zero_function) for component in generate_covered_intervals(function) for interval in component ]
-    return FastPiecewise(pieces)
 
 ### Minimality check.
 
@@ -2444,7 +2436,7 @@ class FunctionalDirectedMove (FastPiecewise):
         return FastPiecewise.plot(self, *args, **kwds)
 
 @cached_function
-def generate_functional_directed_moves(fn, restrict=False):
+def generate_functional_directed_moves(fn, restrict=True):
     """
     Compute the moves (translations and reflections) relevant for the uncovered interval
     (if restrict is True) or for all intervals (if restrict is False).
@@ -2692,7 +2684,8 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
         ## taken into account.  (No need to warn the user about that,
         ## though.)
         components = copy(covered_intervals)
-        components.extend([int] for int in uncovered_intervals)
+        components += generate_dense_components(function, show_plots=show_plots)
+        components += generate_uncovered_components(function, show_plots=show_plots)
     else:
         components = covered_intervals
     # FIXME: fraction_field() required because parent could be Integer
@@ -3559,7 +3552,7 @@ class DirectedMoveCompositionCompletion:
         ## FIXME: Should return the dense moves somehow as well.
         # if self.dense_moves:
         #     raise UnimplementedError, "Dense moves found, handling them in the following code is not implemented yet."
-        return list(self.move_dict.values())
+        return list(self.move_dict.values()), list(self.dense_moves)
 
 
 def directed_move_composition_completion(directed_moves, show_plots=False, plot_background=None, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
@@ -3577,7 +3570,7 @@ def plot_completion_diagram_background(fn):
 @cached_function
 def generate_directed_move_composition_completion(fn, show_plots=False, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
     completion = getattr(fn, "_completion", None)
-    if not completion:
+    if completion is None:
         functional_directed_moves = generate_functional_directed_moves(fn)
         if show_plots:
             plot_background = plot_completion_diagram_background(fn)
@@ -3599,6 +3592,7 @@ def plot_walk_in_completion_diagram(seed, walk_dict):
 
 def apply_functional_directed_moves(functional_directed_moves, seed):
     """
+    not used
     Return a dictionary whose keys are the reachable orbit of `seed`.
 
     If `functional_directed_moves` is complete under compositions,
@@ -3625,8 +3619,8 @@ def scan_sign_contradiction_point(fdm):
         invariant_point = fdm[1] / 2
         if fdm.can_apply(invariant_point):
             assert fdm(invariant_point) == invariant_point
-        yield ((invariant_point, 0), 0, fdm)
-        yield ((invariant_point, 1), 0, fdm)
+            yield ((invariant_point, 0), 0, fdm)
+            yield ((invariant_point, 1), 0, fdm)
 
 def scan_sign_contradiction_points(functional_directed_moves):
      scans = [ scan_sign_contradiction_point(fdm) for fdm in functional_directed_moves ]
@@ -3644,7 +3638,8 @@ def find_decomposition_into_intervals_with_same_moves(functional_directed_moves,
     moves = set()
     (on_x, on_epsilon) = (None, None)
     for ((x, epsilon), delta, move) in scan:
-        if on_x and (on_x, on_epsilon) < (x, epsilon):
+        # don't add singleton_interval for invariant point.
+        if on_x and on_x < x: #was on_x and (on_x, on_epsilon) < (x, epsilon):
             if moves:
                 int = closed_or_open_or_halfopen_interval(on_x, x,
                                                           on_epsilon == 0, epsilon > 0)
@@ -3661,10 +3656,12 @@ def find_decomposition_into_intervals_with_same_moves(functional_directed_moves,
             raise ValueError, "Bad scan item"
 
 def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=False, max_num_it=None):
+    if hasattr(fn, '_stability_orbits'):
+        return
     fn._stability_orbits = []
-    completion = generate_directed_move_composition_completion(fn, show_plots=show_plots)
+    completion, _ = generate_directed_move_composition_completion(fn, show_plots=show_plots)
 
-    z = zero_perturbation_partial_function(fn)
+    z = zero_perturbation_partial_function(fn, show_plots=show_plots)
     zero_intervals = z.intervals()
     not_fixed_to_zero = union_of_coho_intervals_minus_union_of_coho_intervals([[[0,1]]], [zero_intervals])
     restricted_completion = [ fdm.restricted(not_fixed_to_zero) for fdm in completion ]
@@ -3698,6 +3695,50 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
     logging.info("Total: %s stability orbits, lengths: %s" % (len(fn._stability_orbits), \
                     [ ("%s+" if to_do else "%s") % len(shifted_stability_intervals) \
                       for (shifted_stability_intervals, walk_dict, to_do) in fn._stability_orbits ]))
+@cached_function
+def generate_dense_components(fn, show_plots=False):
+    fdms, dense_moves = generate_directed_move_composition_completion(fn, show_plots=show_plots)
+    #FIXME: intervals of dense move must be written as coho interval or (a, b),
+    #otherwise get TypeError: unhashable type: 'list'
+    #FIXME: DirectedMoveCompositionCompletion.add_move flattens _.dense_moves.
+    #Why not keeping the rectangles that have the same slope in one dense_move?
+    # dense_components = []
+    # dense_components.extend(uniq([domain for (domain, codomain) in move._interval_pairs]) \
+    #                         for move in dense_moves)
+    #uniq doesn't work because coho interval and old fashioned closed interval mix up.
+    seen_intervals = set()
+    for move in dense_moves:
+        for (domain, codomain) in move._interval_pairs:
+            seen_intervals.add( (domain[0], domain[1]) )
+    dense_components = [[interval] for interval in seen_intervals]
+    return dense_components
+
+def zero_perturbation_partial_function(function, show_plots=False):
+    """
+    Compute the partial function for which the perturbation, modulo
+    perturbations that are interpolations of values at breakpoints, is
+    known to be zero.
+    """
+    zero_function = FastLinearFunction(0, 0)
+    zero_perturbation_points = set()
+    for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, reduced=True):
+        zero_perturbation_points.update([x, y, fractional(z)])
+    pieces = [ (singleton_interval(x), zero_function) for x in zero_perturbation_points ]
+    pieces += [ (interval, zero_function) for component in \
+                generate_covered_intervals(function) for interval in component ]
+    pieces += [ (interval, zero_function) for component in \
+                generate_dense_components(function, show_plots=show_plots) for interval in component ]
+    return FastPiecewise(pieces)
+
+def generate_uncovered_components(fn, show_plots=False):
+    if not hasattr(fn, '_stability_orbits'):
+        find_decomposition_into_stability_intervals_with_completion(fn, show_plots=show_plots)
+    #if not fn._stability_orbits:
+    #    return []
+    # FIXME: should convert coho intervals to old_fashioned_closed_interval, and discard singletons.
+    uncovered_components = [ sorted(orbit, key=coho_interval_left_endpoint_with_epsilon) \
+                             for (orbit, _, _) in fn._stability_orbits]
+    return uncovered_components
 
 def stab_int_length(x):
     (orbit, walk_dict, _) = x
@@ -3822,7 +3863,7 @@ def stuff_with_random_irrational_function():
         except ValueError:
             print "... parameters do not describe a function, retrying."
     dmoves = generate_functional_directed_moves(h)
-    completion = directed_move_composition_completion(dmoves, max_num_rounds=None)
+    completion, _ = directed_move_composition_completion(dmoves, max_num_rounds=None)
     plot_directed_moves(completion).show(figsize=40)
     
 def merit_index(fn):

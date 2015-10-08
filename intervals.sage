@@ -188,6 +188,7 @@ def interval_minus_union_of_intervals(interval, remove_list):
 
 def break_into_subintervals(intervals, bkpts):
     """
+    not used
     sage: intervals = [[2,4],[6,9],[11,13]]
     sage: bkpts = range(15)
     sage: break_into_subintervals(intervals, bkpts)
