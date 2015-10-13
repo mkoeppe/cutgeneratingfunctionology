@@ -20,14 +20,16 @@ def generate_nonsymmetric_vertices_continuous(fn, f):
         if fn.values_at_end_points()[i] + fn(y) != 1:
             yield (x, y, 0, 0)
 
-def generate_type_1_vertices_continuous(fn, comparison):
+def generate_type_1_vertices_continuous(fn, comparison, bkpt=None):
     """Output 6-tuples (x, y, z,xeps, yeps, zeps).
     """
-    bkpt = fn.end_points()
+    if bkpt is None:
+        bkpt = fn.end_points()
     return ( (x, y, x+y, 0, 0, 0) for x in bkpt for y in bkpt if x <= y and comparison(delta_pi(fn,x,y), 0) ) # generator comprehension
 
-def generate_type_2_vertices_continuous(fn, comparison):
-    bkpt = fn.end_points()
+def generate_type_2_vertices_continuous(fn, comparison, bkpt=None):
+    if bkpt is None:
+        bkpt = fn.end_points()
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     return ( (x, z-x, z, 0, 0, 0) for x in bkpt for z in bkpt2 if x < z < 1+x and comparison(delta_pi(fn, x, z-x), 0) ) # generator comprehension
 
@@ -216,9 +218,9 @@ def generate_symbolic_continuous(function, components, field=None):
     intervals_and_slopes = []
     for component, slope in itertools.izip(components, unit_vectors):
         intervals_and_slopes.extend([ (interval, slope) for interval in component ])
-    intervals_and_slopes.sort(key=lambda (i, s): coho_interval_left_endpoint_with_epsilon(i))
-    #see FIXME in generate_uncovered_components
+    #intervals in components are coho intervals.
     #was: intervals_and_slopes.sort()
+    intervals_and_slopes.sort(key=lambda (i, s): coho_interval_left_endpoint_with_epsilon(i))
     if field is None:
         bkpt = [ interval[0] for interval, slope in intervals_and_slopes ] + [1]
         bkpt = nice_field_values(bkpt)
@@ -228,11 +230,11 @@ def generate_symbolic_continuous(function, components, field=None):
     slopes = [ slope for interval, slope in intervals_and_slopes ]
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
 
-def generate_additivity_equations_continuous(function, symbolic, field, f=None):
+def generate_additivity_equations_continuous(function, symbolic, field, f=None, bkpt=None):
     if f is None:
         f = find_f(function)
     equations = [delta_pi(symbolic, x, y) \
-                     for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function) ] \
+                     for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, bkpt=bkpt) ] \
                    + [symbolic(f)] \
                    + [symbolic(1)]
     return matrix(field, equations)

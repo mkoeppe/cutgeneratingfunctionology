@@ -101,21 +101,6 @@ def verts(I1, J1, K1):
     if len(temp) > 0:
         return temp
 
-# Remove duplicates in a list.
-# FIXME: use some builtin instead.--Matthias
-def remove_duplicate(myList):
-    if myList:
-        myList.sort()
-        last = myList[-1]
-        for i in range(len(myList)-2, -1, -1):
-            if last == myList[i]:
-                del myList[i]
-            else:
-                last = myList[i]
-
-def triples_equal(a, b):
-    return interval_equal(a[0], b[0]) and interval_equal(a[1], b[1]) and interval_equal(a[2], b[2])
-
 def generate_maximal_additive_faces(fn):
     if hasattr(fn, '_maximal_additive_faces'):
         return fn._maximal_additive_faces
@@ -174,7 +159,7 @@ class Face:
             return polygon(convex_vert_list(vert), color=fill_color, **kwds)
 
     def is_directed_move(self):
-        return self.is_1D() #or self.is_0D()
+        return self.is_1D()
         
     def directed_move_with_domain_and_codomain(self):
         """
@@ -182,54 +167,28 @@ class Face:
         a vertical edge to a backward translation, 
         a diagonal edge to a reflection.
 
-        `domain` and `codomain` are lists of old-fashioned intervals.
+        `domain` and `codomain` are lists of open intervals.
+        Endpoints of `domain` and `codomain` will be taken care of by additive vertices.
         """
-        # FIXME: In the discontinuous case, what is the right domain as a coho interval?
         (I, J, K) = self.minimal_triple
-        # if self.is_0D():
-        #     x, y, z = I[0], J[0], K[0]
-        #     # A 0-face corresponds to three moves:
-        #     # \tau_y:  a translation + y with domain {x}
-        #     # \tau_x:  a translation + x with domain {y}
-        #     # \rho_z:  a reflection (x+y) - with domain {x, y}.
-        #     # Because \tau_x = \tau_y \rho_z, it suffices to output
-        #     # \tau_y and \rho_z.  We use the fact that with each additive
-        #     # vertex, also the x_y_swapped vertex appears.
-        #     ###
-        #     ### FIXME: This transitivity FAILS if we use restrict=True
-        #     ### in generate_functional_directed_moves!
-        #     ###
-        #     ### FIXME: This should be done relative to zero_perturbation_partial_function.
-        #     ### Because a move is only valid if the function is fixed to zero on the move element.
-        #     ###
-        #     ### FIXME: To be written what this means in the continuous case.
-        #     if x < y:
-        #         z_mod_1 = fractional(z)
-        #         y_adjusted = z_mod_1 - x
-        #         return (1, y_adjusted), [[x]], [[z_mod_1]]
-        #     else:
-        #         return (-1, z), [[x], [y]], [[y], [x]]
         if self.is_horizontal():
             K_mod_1 = interval_mod_1(K)
             t = K_mod_1[0] - I[0]
-            return (1, t), [I], [K_mod_1]
+            return (1, t), [open_interval(* I)], [open_interval(* K_mod_1)]
         elif self.is_vertical():
             K_mod_1 = interval_mod_1(K)
             t = K_mod_1[0] - J[0]
-            return (1, -t), [K_mod_1], [J]
+            return (1, -t), [open_interval(* K_mod_1)], [open_interval(* J)]
         elif self.is_diagonal():
-            return (-1, K[0]), [I, J], [J, I]
+            # attention: I, J are not sorted.
+            return (-1, K[0]), [open_interval(* I), open_interval(* J)], [open_interval(* J), open_interval(* I)]
         else:
             raise ValueError, "Face does not correspond to a directed move: %s" % self
 
-    def functional_directed_move(self, intervals=None):
-        """If given, intervals must be sorted, disjoint"""
+    def functional_directed_move(self):
         directed_move, domain, codomain = self.directed_move_with_domain_and_codomain()
         fdm = FunctionalDirectedMove(domain, directed_move)
-        if intervals is None: 
-            return fdm
-        else:
-            return fdm.restricted(intervals)
+        return fdm
 
     def is_0D(self):
         return len(self.vertices) == 1
@@ -343,19 +302,19 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     kwds = { 'legend_label': "Additive face" }
     plot_kwds_hook(kwds)
     if colorful:
-        covered_intervals = generate_covered_intervals(fn)
-        colors = rainbow(len(covered_intervals))
+        covered_components = generate_covered_components(fn)
+        colors = rainbow(len(covered_components))
         interval_color = [(interval[0], i) \
-                          for (i, component) in enumerate(covered_intervals) \
+                          for (i, component) in enumerate(covered_components) \
                           for interval in component]
         interval_color.sort()
     else:
-        covered_intervals = None
+        covered_components = None
     for face in faces:
-        if not covered_intervals is None and face.is_2D():
+        if not covered_components is None and face.is_2D():
             I = face.minimal_triple[0]
             x = (I[0] + I[1]) / 2
-            j = bisect_left(interval_color, (x, len(covered_intervals) + 1)) # should be bisect
+            j = bisect_left(interval_color, (x, len(covered_components) + 1)) # should be bisect
             i = interval_color[j-1][1]
             p += face.plot(fill_color = colors[i], **kwds)
         else:
@@ -412,10 +371,10 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     if show_projections:
         p += plot_projections_at_borders(fn)
     if show_function:
-        p += plot_function_at_borders(fn, covered_intervals = covered_intervals)
+        p += plot_function_at_borders(fn, covered_components = covered_components)
     return p
 
-def plot_function_at_borders(fn, color='blue', legend_label="Function pi", covered_intervals=None, **kwds):
+def plot_function_at_borders(fn, color='blue', legend_label="Function pi", covered_components=None, **kwds):
     """
     Plot the function twice, on the upper and the left border, 
     to decorate 2d diagrams.
@@ -423,7 +382,7 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", cover
     p = Graphics()
     bkpt = fn.end_points()
     limits = fn.limits_at_end_points()
-    if not covered_intervals is None:
+    if not covered_components is None:
         color = 'black'
     if limits[0][0] is not None and limits[0][0] != limits[0][1]:
         p += point([(0,1), (0,0)], color=color, size = 23, zorder=-1)
@@ -448,9 +407,9 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", cover
                               ((i == len(bkpt)-2) or not (y3 == y4 and y2 is None) and \
                                                      not (y2 == y3 and y4 is None)):
             p += point([(x2, (3/10)*y3 + 1), (-(3/10)*y3, x2)], color=color, pointsize=23, zorder=-1)
-    if not covered_intervals is None:
-        colors = rainbow(len(covered_intervals))
-        for i, component in enumerate(covered_intervals):
+    if not covered_components is None:
+        colors = rainbow(len(covered_components))
+        for i, component in enumerate(covered_components):
             for interval in component:
                 x1 = interval[0]
                 x2 = interval[1]
@@ -546,158 +505,6 @@ def plot_projections_of_one_face(face, IJK_kwds):
             raise ValueError, "Bad face: %s" % face
         delete_one_time_plot_kwds(IJK_kwds[2])
     return g
-
-# Assume component is sorted.
-def merge_within_comp(component, one_point_overlap_suffices=False):   
-    for i in range(len(component)-1):
-        if component[i][1] > component[i+1][0]  \
-           or (one_point_overlap_suffices and component[i][1] == component[i+1][0]):
-            component[i+1] = [component[i][0],max(component[i][1],component[i+1][1])]
-            component[i] = []
-    component_new = []
-    for int in component:
-        if len(int) == 2 and max(int) <= 1:
-            component_new.append(int)
-    return component_new
-
-
-# Assume comp1 and comp2 are sorted.    
-def merge_two_comp(comp1,comp2, one_point_overlap_suffices=False):
-    temp = []
-    i = 0
-    j = 0
-    while i < len(comp1) and j < len(comp2):
-        if comp1[i][0] < comp2[j][0]:
-            temp.append(comp1[i])
-            i = i+1
-        else:
-            temp.append(comp2[j])
-            j = j+1
-    if i == len(comp1):
-        temp = temp + comp2[j:len(comp2)]
-    else:
-        temp = temp + comp1[i:len(comp1)]
-    temp = merge_within_comp(temp, one_point_overlap_suffices=one_point_overlap_suffices)
-    return temp
-            
-
-def partial_overlap(interval,component):
-    """
-    Return a list of the intersections of the interiors 
-    of `interval` and the intervals in `component`.
-
-    EXAMPLES::
-
-        sage: partial_overlap([2,3], [[1,2], [3,5]])
-        []
-        sage: partial_overlap([2,6], [[1,3], [5,7], [7,9]])
-        [[2, 3], [5, 6]]
-    """
-    overlap = []
-    for int1 in component:
-        overlapped_int = interval_intersection(interval,int1)
-        if len(overlapped_int) == 2:
-            overlap.append(overlapped_int)
-    return overlap
-
-
-def remove_empty_comp(comps):
-    """
-    Return a new list that includes all non-empty lists of `comps`.
-
-    EXAMPLES::
-
-        sage: remove_empty_comp([[[1,2]], [], [[3,4],[5,6]]])
-        [[[1, 2]], [[3, 4], [5, 6]]]
-    """
-    temp = []
-    for int in comps:
-        if len(int) > 0:
-            temp.append(int)
-    return temp
-    
-
-def partial_edge_merge(comps, partial_overlap_intervals, ijk, ijk2, intervals, i, IJK):
-    """
-    Modifies the list `comps`.
-    Returns whether any change occurred.
-    """
-    any_change = False
-    for int1 in partial_overlap_intervals:
-        front = int1[0] - intervals[ijk][0]
-        back = intervals[ijk][1] - int1[1]
-        
-        # If it is not the pair I and J, then the action is a translation.
-        if IJK != [0,1]:
-            other = [intervals[ijk2][0]+front, intervals[ijk2][1]-back]
-        # I and J implies a reflection
-        else:
-            other = [intervals[ijk2][0]+back, intervals[ijk2][1]-front]
-        other = interval_mod_1(other)
-        #print "other: ", other
-            
-        overlapped_component_indices = []
-        i_included = False
-        all_other_overlaps = []
-        for k in range(len(comps)):
-            other_overlap = partial_overlap(other,comps[k])
-            #print "other_overlap:", other_overlap
-            if other_overlap:
-                #print "overlap with component", k, "is: ", other_overlap
-                all_other_overlaps = merge_two_comp(all_other_overlaps, other_overlap)
-                if k < i:
-                    overlapped_component_indices.append(k)
-                elif k > i and i_included == False:
-                    overlapped_component_indices.append(i)
-                    overlapped_component_indices.append(k)
-                    i_included = True
-                else:
-                    overlapped_component_indices.append(k)
-        if overlapped_component_indices == [i] :
-            ## Only overlap within component i.
-            # print "Self-overlap only"
-            if (partial_overlap(other, comps[i]) == [other]):
-                pass
-            else:
-                comps[overlapped_component_indices[-1]] = merge_two_comp(comps[overlapped_component_indices[-1]], [other])
-                any_change = True
-        elif len(overlapped_component_indices) > 0:
-            ## Overlap with some other components; this will cause some merging.
-            #print "Have overlapped components: ", overlapped_component_indices, "with ", i
-            comps[overlapped_component_indices[-1]] = merge_two_comp(comps[overlapped_component_indices[-1]], [other])
-            for j in range(len(overlapped_component_indices)-1):
-                comps[overlapped_component_indices[j+1]] =  merge_two_comp(comps[overlapped_component_indices[j]],\
-                     comps[overlapped_component_indices[j+1]])
-                comps[overlapped_component_indices[j]] = []
-            any_change = True
-
-        # previous non-covered:
-        #print "other: ", other, "all_other_overlaps: ", all_other_overlaps
-        noncovered_overlap = interval_minus_union_of_intervals(other, all_other_overlaps)
-        if noncovered_overlap:
-            # print "Previously non-covered: ", uncovered_intervals_from_covered_intervals(comps)
-            # print "Newly covered: ", noncovered_overlap
-            any_change = True
-            comps[i] = merge_two_comp(comps[i], noncovered_overlap)
-            # print "Now non-covered: ", uncovered_intervals_from_covered_intervals(comps)
-    return any_change
-                  
-
-def edge_merge(comps,intervals,IJK):
-    #print "edge_merge(%s,%s,%s)" % (comps, intervals, IJK)
-    any_change = False
-    for i in range(len(comps)): 
-        partial_overlap_intervals = partial_overlap(intervals[0],comps[i])
-        # If there is overlapping...
-        if len(partial_overlap_intervals) > 0:
-            if partial_edge_merge(comps, partial_overlap_intervals, 0, 1, intervals, i, IJK):
-                any_change = True
-        # Repeat the same procedure for the other interval.
-        partial_overlap_intervals = partial_overlap(intervals[1],comps[i])
-        if len(partial_overlap_intervals) > 0:
-            if partial_edge_merge(comps, partial_overlap_intervals, 1, 0, intervals, i, IJK):
-                any_change = True
-    return any_change
     
 def interval_mod_1(interval):
     """
@@ -737,109 +544,24 @@ def interval_mod_1(interval):
     else:
         raise ValueError, "Not an interval: %s" % interval
 
-def generate_directly_covered_intervals(function):
-    if hasattr(function, '_directly_covered_intervals'):
-        return function._directly_covered_intervals
+def generate_covered_components(function):
+    fdms, covered_components = generate_directed_move_composition_completion(function)
+    return covered_components
 
-    faces = generate_maximal_additive_faces(function)
-
-    covered_intervals = []      
-    for face in faces:
-        if face.is_2D():
-            component = []
-            for int1 in face.minimal_triple:
-                component.append(interval_mod_1(int1))
-            component.sort()
-            component = merge_within_comp(component)
-            covered_intervals.append(component)
-            
-    remove_duplicate(covered_intervals)
-    
-    #show(plot_covered_intervals(function, covered_intervals), xmax=1.5)
-
-    for i in range(len(covered_intervals)):
-        for j in range(i+1, len(covered_intervals)):
-            if find_interior_intersection(covered_intervals[i], covered_intervals[j]):
-                covered_intervals[j] = merge_two_comp(covered_intervals[i],covered_intervals[j])
-                covered_intervals[i] = []
-                    
-    covered_intervals = remove_empty_comp(covered_intervals)
-    function._directly_covered_intervals = covered_intervals
-    return covered_intervals
-
-def generate_covered_intervals(function):
-    if hasattr(function, '_covered_intervals'):
-        return function._covered_intervals
-
-    logging.info("Computing covered intervals...")
-    covered_intervals = copy(generate_directly_covered_intervals(function))
-    faces = generate_maximal_additive_faces(function)
-
-    # debugging plot:
-    # show(plot_covered_intervals(function, covered_intervals), \
-    #      legend_fancybox=True, \
-    #      legend_title="Directly covered, merged", \
-    #      legend_loc=2) # legend in upper left
-
-    edges = [ face.minimal_triple for face in faces if face.is_1D()]
-
-    any_change = True
-    ## FIXME: Here we saturate the covered interval components
-    ## with the edge relations.  There should be a smarter way
-    ## to avoid this while loop.  Probably by keeping track 
-    ## of a set of non-covered components (connected by edges).
-    ## --Matthias
-    while any_change:
-        any_change = False
-        for edge in edges:
-            intervals = []
-            # 0 stands for I; 1 stands for J; 2 stands for K
-            IJK = []
-            for i in range(len(edge)):
-                if len(edge[i]) == 2:
-                    intervals.append(edge[i])
-                    IJK.append(i)
-            if edge_merge(covered_intervals,intervals,IJK):
-                any_change = True
-
-    covered_intervals = remove_empty_comp(covered_intervals)
-    logging.info("Computing covered intervals... done")
-
-    function._covered_intervals = covered_intervals
-    return covered_intervals
-
-def uncovered_intervals_from_covered_intervals(covered_intervals):
-    """Compute a list of uncovered intervals, given the list of components
-    of covered intervals.
-
-    EXAMPLES::
-
-        sage: uncovered_intervals_from_covered_intervals([[[10/17, 11/17]], [[5/17, 6/17], [7/17, 8/17]]])
-        [[0, 5/17], [6/17, 7/17], [8/17, 10/17], [11/17, 1]]
-        sage: uncovered_intervals_from_covered_intervals([])
-        [[0, 1]]
-    """
-    if not covered_intervals:
-        return [[0,1]]
-    covered = reduce(merge_two_comp, covered_intervals)
-    uncovered =  interval_minus_union_of_intervals([0,1], covered)
-    return uncovered
-    # Can we replace the merge_two_comp business by the following?
-    #scan = scan_union_of_coho_intervals_minus_union_of_coho_intervals([[[0,1]]], covered_intervals)
-    #return list(proper_interval_list_from_scan(scan))
-
+# alias
+generate_covered_intervals = generate_covered_components
 
 def generate_uncovered_intervals(function):
-    """
-    Compute a sorted list of uncovered intervals.
-    """
-    if hasattr(function, '_uncovered_intervals'):
-        return function._uncovered_intervals
-    covered_intervals = generate_covered_intervals(function)
-    result = uncovered_intervals_from_covered_intervals(covered_intervals)
-    function._uncovered_intervals = result
-    return result
+    covered_components = generate_covered_components(function)
+    return uncovered_intervals_from_covered_components(covered_components)
 
+def uncovered_intervals_from_covered_components(covered_components):
+    uncovered_intervals = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(0,1)]], covered_components, remove_closure=True)
+    return uncovered_intervals
+
+# alias
+uncovered_intervals_from_covered_intervals = uncovered_intervals_from_covered_components
+    
 def ticks_keywords(function, y_ticks_for_breakpoints=False):
     """
     Compute `plot` keywords for displaying the ticks.
@@ -873,19 +595,19 @@ def delete_one_time_plot_kwds(kwds):
     if 'tick_formatter' in kwds:
         del kwds['tick_formatter']
 
-def plot_covered_intervals(function, covered_intervals=None, uncovered_color='black', labels=None, **plot_kwds):
+def plot_covered_intervals(function, covered_components=None, uncovered_color='black', labels=None, **plot_kwds):
     """
     Return a plot of the covered and uncovered intervals of `function`.
     """
-    if covered_intervals is None:
-        covered_intervals = generate_covered_intervals(function)
+    if covered_components is None:
+        covered_components = generate_covered_components(function)
         uncovered_intervals = generate_uncovered_intervals(function)
     else:
-        uncovered_intervals = uncovered_intervals_from_covered_intervals(covered_intervals)
+        uncovered_intervals = uncovered_intervals_from_covered_components(covered_components)
     # Plot the function with different colors.
     # Each component has a unique color.
     # The uncovered intervals is by default plotted in black.
-    colors = rainbow(len(covered_intervals))
+    colors = rainbow(len(covered_components))
     graph = Graphics()
     kwds = copy(plot_kwds)
     kwds.update(ticks_keywords(function))
@@ -897,7 +619,7 @@ def plot_covered_intervals(function, covered_intervals=None, uncovered_color='bl
     elif not function.is_continuous(): # to plot the discontinuity markers
         graph += plot(function, color = uncovered_color, **kwds)
         delete_one_time_plot_kwds(kwds)
-    for i, component in enumerate(covered_intervals):
+    for i, component in enumerate(covered_components):
         if labels is None:
             label = "covered component %s" % (i+1)
         else:
@@ -909,11 +631,15 @@ def plot_covered_intervals(function, covered_intervals=None, uncovered_color='bl
             # otherwise plot complains that
             # "start point and endpoint must be different"
             if float(interval[0])<float(interval[1]):
-                graph += plot(function.which_function((interval[0] + interval[1])/2), interval, color=colors[i], zorder=-1, **kwds)
+                graph += plot(function.which_function((interval[0] + interval[1])/2), (interval[0], interval[1]), color=colors[i], zorder=-1, **kwds)
                 # zorder=-1 puts them below the discontinuity markers,
                 # above the black function.
                 delete_one_time_plot_kwds(kwds)
     return graph
+
+def plot_directly_covered_intervals(function, uncovered_color='black', labels=None, **plot_kwds):
+    components = generate_directly_covered_components(function)
+    return plot_covered_intervals(function, components, uncovered_color=uncovered_color, labels=labels, **plot_kwds)
 
 def number_of_components(fn):
     """
@@ -933,7 +659,8 @@ def number_of_components(fn):
         sage: number_of_components(not_extreme_1())
         4
     """
-    return len(generate_covered_intervals(fn))
+    covered_components = generate_covered_components(fn)
+    return len(covered_components)
 
 def slopes_intervals_dict(fn):
     """
@@ -2402,25 +2129,8 @@ class FunctionalDirectedMove (FastPiecewise):
         """
         return self.directed_move[0] == 1 and self.directed_move[1] == 0
 
-    def minimal_triples(self): # unused
-        """
-        Does not output symmetric pairs!  Rather, maps positive translations to horizontal faces
-        and negative translations to vertical faces.
-        """
-        if self.directed_move[0] == 1:                      # translation
-            t = self.directed_move[1]
-            if t >= 0:
-                return [ (interval, [t], (interval[0] + t, interval[1] + t)) for interval in self.intervals() ]
-            else:
-                return [ ([-t], (interval[0] + t, interval[1] + t), interval) for interval in self.intervals() ]
-        elif self.directed_move[0] == -1: 
-            r = self.directed_move[1]
-            return [ (interval, (r - interval[0], r - interval[1]), r) for interval in self.intervals() ]
-        else:
-            raise ValueError, "Move not valid: %s" % list(move)
-
     def restricted(self, intervals):
-        """ 
+        """
         Return a new move that is the restriction of domain and codomain of `self` to `intervals`.
         (The result may have the empty set as its domain.)
         """
@@ -2430,93 +2140,41 @@ class FunctionalDirectedMove (FastPiecewise):
         new_domain = list(intersection_of_coho_intervals([domain, intervals, preimages]))
         return FunctionalDirectedMove(new_domain, self.directed_move)
 
+    def restricting(self, components):
+        """ 
+        Return a new move by removing self.restricted(component) for component in components.
+        (The result may have the empty set as its domain.)
+        """
+
+        domain = self.intervals()                        # sorted.
+        restricting_domain_list = []
+        for component in components:
+            preimages = [ self.apply_to_coho_interval(interval, inverse=True) for interval in component ]
+            preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
+            restricting_domain_list.append(list(intersection_of_coho_intervals([component, preimages])))
+        new_domain = union_of_coho_intervals_minus_union_of_coho_intervals([domain], restricting_domain_list, remove_closure=True )
+        return FunctionalDirectedMove(new_domain, self.directed_move)
+
     def plot(self, *args, **kwds):
         kwds = copy(kwds)
         kwds['discontinuity_markers'] = False
         return FastPiecewise.plot(self, *args, **kwds)
 
 @cached_function
-def generate_functional_directed_moves(fn, restrict=True):
+def generate_functional_directed_moves(fn):
     """
-    Compute the moves (translations and reflections) relevant for the uncovered interval
-    (if restrict is True) or for all intervals (if restrict is False).
+    Compute the moves (translations and reflections).
     """
-    ### FIXME: Do we also have to take care of edges of some
-    ### full-dimensional additive faces sometimes?
-    if restrict:
-        # Default is to generate moves for ALL uncovered intervals
-        intervals = generate_uncovered_intervals(fn)
-    else:
-        intervals = None
     moves = dict()
     for face in generate_maximal_additive_faces(fn):
         if face.is_directed_move():
-            fdm = face.functional_directed_move(intervals)
+            fdm = face.functional_directed_move()
             if fdm.intervals():
                 if fdm.directed_move in moves:
                     moves[fdm.directed_move] = merge_functional_directed_moves(moves[fdm.directed_move], fdm)
                 else:
                     moves[fdm.directed_move] = fdm
     return list(moves.values())
-
-def is_directed_move_possible(x, move):
-    return move.can_apply(x)
-
-def plot_moves(seed, moves, colors=None, ymin=0, ymax=1):
-    if colors is None:
-        colors = rainbow(len(moves))
-    g = Graphics()
-    g += line([(seed,ymin), (seed,ymax)], color="mediumspringgreen", legend_label="seed value")
-    y = 0
-    covered_interval = [0,1]
-    ## If I pass legend_label to arrow, it needs a legend_color key as well on Sage 6.x;
-    ## but in Sage 5.11 that key is unknown, causing repeated warnings. So don't put a legend_label for now. 
-    keys = { 'zorder': 7 #, 'legend_label': "moves" 
-         }
-    for move, color in itertools.izip(moves, colors):
-        if move[0] == 1 and move[1] == 0:
-            continue                                        # don't plot the identity
-        next_x = move.apply_ignoring_domain(seed)
-        arrow_interval = [min(seed, next_x), max(seed, next_x)]
-        if (len(interval_intersection(covered_interval, arrow_interval)) == 2):
-            y += 0.04
-            covered_interval = arrow_interval
-        else:
-            y += 0.002
-            covered_interval[0] = min(covered_interval[0], arrow_interval[0])
-            covered_interval[1] = max(covered_interval[1], arrow_interval[1])
-        midpoint_x = (seed + next_x) / 2
-        if move[0] == -1:
-            # Reflection
-            bezier_y = y + min(0.03, 0.3 * float(abs(move[1]/2 - seed)))
-            g += arrow(path = [[(seed, y), (midpoint_x, bezier_y),
-                                (next_x, y)]],
-                       head = 2, color = color, **keys)
-            ## Plot the invariant point somehow?
-            #g += point((move[1]/2, y + 0.03), color=color)
-        elif move[0] == 1:
-            # Translation
-            g += arrow((seed, y), (next_x, y), color=color, **keys)
-        else:
-            raise ValueError, "Bad move: %s" % list(move)
-        delete_one_time_plot_kwds(keys)
-        g += text("%s" % list(move), (midpoint_x, y), \
-                  vertical_alignment="bottom", \
-                  horizontal_alignment="center", \
-                  color=color, zorder = 7)
-    return g
-
-def plot_possible_directed_moves(seed, directed_moves, fn):
-    possible_moves = [ directed_move for directed_move in directed_moves 
-                       if is_directed_move_possible(seed, directed_move) ]
-    colors = [ "blue" for move in possible_moves ]
-    return plot_moves(seed, possible_moves, colors)
-
-def plot_possible_and_impossible_directed_moves(seed, directed_moves, fn):
-    colors = [ "blue" if is_directed_move_possible(seed, directed_move) \
-               else "red" for directed_move in directed_moves ]
-    return plot_moves(seed, directed_moves, colors)
-
 
 def plot_walk(walk_dict, color="black", ymin=0, ymax=1, **kwds):
     #return point([ (x,0) for x in walk_dict.keys()])
@@ -2527,31 +2185,6 @@ def plot_walk(walk_dict, color="black", ymin=0, ymax=1, **kwds):
         delete_one_time_plot_kwds(kwds)
     return g
 
-def plot_intervals(intervals, ymin=0, ymax=1, legend_label='not covered'):
-    g = Graphics()
-    kwds = { 'legend_label': legend_label }
-    for interval in intervals:
-        g += polygon([(interval[0], ymin), (interval[1], ymin),
-                      (interval[1], ymax), (interval[0], ymax)],
-                     color="yellow", zorder = -8, **kwds)
-        delete_one_time_plot_kwds(kwds)
-    return g
-
-
-
-
-# size has to be a positive integer
-def lattice_plot(A, A0, t1, t2, size):
-    size = size + 1
-    x0 = A + (A0-A)/2
-    p1 = points((x,y) for x in range(size) for y in range(size)) + points((-x,y) for x in range(size) for y in range(size))
-    p2 = points((-x,-y) for x in range(size) for y in range(size)) + points((x,-y) for x in range(size) for y in range(size))
-    p3 = plot((A-x0-x*t1)/t2, (x,-size + 1, size - 1), color = "red")
-    p4 = plot((A0-x0-x*t1)/t2, (x,-size + 1,size - 1), color = "red")
-    return p1+p2+p3+p4
-
-# 
-
 class UnimplementedError (Exception):
     pass
 
@@ -2561,11 +2194,11 @@ def generate_symbolic(fn, components, field=None):
     else:
         return generate_symbolic_general(fn, components, field=field)
 
-def generate_additivity_equations(fn, symbolic, field, f=None):
+def generate_additivity_equations(fn, symbolic, field, f=None, bkpt=None):
     if fn.is_continuous() or fn.is_discrete():
-        return generate_additivity_equations_continuous(fn, symbolic, field, f=f)
+        return generate_additivity_equations_continuous(fn, symbolic, field, f=f, bkpt=bkpt)
     else:
-        return generate_additivity_equations_general(fn, symbolic, field, f=f)
+        return generate_additivity_equations_general(fn, symbolic, field, f=f, bkpt=bkpt)
 
 def rescale_to_amplitude(perturb, amplitude):
     """For plotting purposes, rescale the function `perturb` so that its
@@ -2675,19 +2308,13 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
     """
     Generate (with "yield") perturbations for `finite_dimensional_extremality_test`.
     """
-    covered_intervals = generate_covered_intervals(function)
+    fdms, covered_components = generate_directed_move_composition_completion(function, show_plots=show_plots)
     uncovered_intervals = generate_uncovered_intervals(function)
     if uncovered_intervals:
-        ## Note that in the current implementation, it is not as
-        ## efficient as it could be due to too many slope variables,
-        ## since the relations between non-covered intervals are not
-        ## taken into account.  (No need to warn the user about that,
-        ## though.)
-        components = copy(covered_intervals)
-        components += generate_dense_components(function, show_plots=show_plots)
-        components += generate_uncovered_components(function, show_plots=show_plots)
+        uncovered_components = generate_uncovered_components(function, show_plots=show_plots)
+        components = covered_components + uncovered_components
     else:
-        components = covered_intervals
+        components = copy(covered_components)
     # FIXME: fraction_field() required because parent could be Integer
     # Ring.  This happens, for example, for three_slope_limit().  
     # We really should have a function to retrieve the field of
@@ -2695,7 +2322,8 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
     # FastLinearFunction does not have a .base_ring() method.
     field = function(0).parent().fraction_field()
     symbolic = generate_symbolic(function, components, field=field)
-    equation_matrix = generate_additivity_equations(function, symbolic, field, f=f)
+    bkpt = merge_bkpt(function.end_points(), symbolic.end_points())
+    equation_matrix = generate_additivity_equations(function, symbolic, field, f=f, bkpt=bkpt)
     slope_jump_vects = equation_matrix.right_kernel().basis()
     logging.info("Finite dimensional test: Solution space has dimension %s" % len(slope_jump_vects))
     for basis_index in range(len(slope_jump_vects)):
@@ -2748,20 +2376,19 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn
             logging.info("Thus the function is extreme.")
     return not seen_perturbation
 
-def generate_type_1_vertices(fn, comparison, reduced=True):
+def generate_type_1_vertices(fn, comparison, reduced=True, bkpt=None):
     if fn.is_continuous() or fn.is_discrete():
-        return generate_type_1_vertices_continuous(fn, comparison)
+        return generate_type_1_vertices_continuous(fn, comparison, bkpt=bkpt)
     else:
-        return generate_type_1_vertices_general(fn, comparison, reduced=reduced)
+        return generate_type_1_vertices_general(fn, comparison, reduced=reduced, bkpt=bkpt)
 
-def generate_type_2_vertices(fn, comparison, reduced=True):
+def generate_type_2_vertices(fn, comparison, reduced=True, bkpt=None):
     if fn.is_continuous() or fn.is_discrete():
-        return generate_type_2_vertices_continuous(fn, comparison)
+        return generate_type_2_vertices_continuous(fn, comparison, bkpt=bkpt)
     else:
-        return generate_type_2_vertices_general(fn, comparison, reduced=reduced)
+        return generate_type_2_vertices_general(fn, comparison, reduced=reduced, bkpt=bkpt)
 
-@cached_function
-def generate_additive_vertices(fn, reduced=True):
+def generate_additive_vertices(fn, reduced=True, bkpt=None):
     """
     We are returning a set of 6-tuples (x, y, z, xeps, yeps, zeps),
     so that duplicates are removed, and so the result can be cached for later use.
@@ -2773,8 +2400,8 @@ def generate_additive_vertices(fn, reduced=True):
         outputs all triples satisfying `comparison' relation, for the purpose of plotting additive_limit_vertices.
     """
     return set(itertools.chain( \
-                generate_type_1_vertices(fn, operator.eq, reduced=reduced),\
-                generate_type_2_vertices(fn, operator.eq, reduced=reduced)) )
+                generate_type_1_vertices(fn, operator.eq, reduced=reduced, bkpt=bkpt),\
+                generate_type_2_vertices(fn, operator.eq, reduced=reduced, bkpt=bkpt)) )
 
 @cached_function
 def generate_nonsubadditive_vertices(fn, reduced=True):
@@ -2801,7 +2428,7 @@ def generate_nonsymmetric_vertices(fn, f):
 class MaximumNumberOfIterationsReached(Exception):
     pass
 
-def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True, show_all_perturbations=False):
+def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, show_all_perturbations=False):
     """Check if `fn` is extreme for the group relaxation with the given `f`. 
 
     If `fn` is discrete, it has to be defined on a cyclic subgroup of
@@ -2860,7 +2487,7 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
     if do_phase_1_lifting:
         finite_dimensional_test_first = True
     seen_perturbation = False
-    generator = generate_perturbations(fn, show_plots=show_plots, show_old_moves_diagram=show_old_moves_diagram, f=f, max_num_it=max_num_it, finite_dimensional_test_first=finite_dimensional_test_first, perturbation_style=perturbation_style, use_new_code=use_new_code)
+    generator = generate_perturbations(fn, show_plots=show_plots, f=f, max_num_it=max_num_it, finite_dimensional_test_first=finite_dimensional_test_first, perturbation_style=perturbation_style)
     fn._perturbations = []
     for index, perturbation in enumerate(generator):
         fn._perturbations.append(perturbation)
@@ -2876,26 +2503,26 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
         logging.info("Thus the function is extreme.")
     return not seen_perturbation
 
-def generate_perturbations(fn, show_plots=False, show_old_moves_diagram=False, f=None, max_num_it=1000, perturbation_style=default_perturbation_style, finite_dimensional_test_first = False, use_new_code=True):
+def generate_perturbations(fn, show_plots=False, f=None, max_num_it=1000, perturbation_style=default_perturbation_style, finite_dimensional_test_first = False):
     """
     Generate (with "yield") perturbations for `extremality_test`.
     """
     if fn.is_discrete():
         all = generate_perturbations_simple(fn, show_plots=show_plots, f=f, oversampling=None)
     else:
+        fdms, covered_components= generate_directed_move_composition_completion(fn, show_plots=show_plots)
         finite = generate_perturbations_finite_dimensional(fn, show_plots=show_plots, f=f)
-        covered_intervals = generate_covered_intervals(fn)
         uncovered_intervals = generate_uncovered_intervals(fn)
         if show_plots:
             logging.info("Plotting covered intervals...")
             show_plot(plot_covered_intervals(fn), show_plots, tag='covered_intervals', object=fn)
             logging.info("Plotting covered intervals... done")
         if not uncovered_intervals:
-            logging.info("All intervals are covered (or connected-to-covered). %s components." % len(covered_intervals))
+            logging.info("All intervals are covered (or connected-to-covered). %s components." % number_of_components(fn))
             all = finite
         else:
             logging.info("Uncovered intervals: %s", (uncovered_intervals,))
-            equi = generate_perturbations_equivariant(fn, show_plots=show_plots, show_old_moves_diagram=show_old_moves_diagram, f=f, max_num_it=max_num_it, perturbation_style=perturbation_style, use_new_code=use_new_code)
+            equi = generate_perturbations_equivariant(fn, show_plots=show_plots, f=f, max_num_it=max_num_it, perturbation_style=perturbation_style)
             if finite_dimensional_test_first:
                 all = itertools.chain(finite, equi)
             else:
@@ -2903,16 +2530,11 @@ def generate_perturbations(fn, show_plots=False, show_old_moves_diagram=False, f
     for perturbation in all:
         yield perturbation
 
-def generate_perturbations_equivariant(fn, show_plots=False, show_old_moves_diagram=False, f=None, max_num_it=1000, perturbation_style=default_perturbation_style, use_new_code=True):
+def generate_perturbations_equivariant(fn, show_plots=False, f=None, max_num_it=1000, perturbation_style=default_perturbation_style):
     if not fn.is_continuous():
         logging.warning("Code for detecting perturbations using moves is EXPERIMENTAL in the discontinuous case.")
-    moves = generate_functional_directed_moves(fn)
-    logging.debug("Moves relevant for these intervals: %s" % (moves,))
-    if use_new_code:
-        generator = generate_generic_seeds_with_completion(fn, show_plots=show_plots, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
-    else:
-        generator = generate_generic_seeds(fn, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
-    seen_perturbation = False
+    generator = generate_generic_seeds_with_completion(fn, show_plots=show_plots, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
+    #seen_perturbation = False
     for seed, stab_int, walk_list in generator:
         # for debugging only:
         #global last_seed, last_stab_int, last_walk_list = seed, stab_int, walk_list
@@ -2920,40 +2542,15 @@ def generate_perturbations_equivariant(fn, show_plots=False, show_old_moves_diag
         perturb._seed = seed
         perturb._stab_int = stab_int
         perturb._walk_list = walk_list
-        if show_plots and show_old_moves_diagram:
-            logging.info("Plotting moves and reachable orbit...")
-            g = plot_old_moves_diagram(fn, perturb)
-            show_plot(g, show_plots, tag='moves', object=fn)
-            logging.info("Plotting moves and reachable orbit... done")
         if show_plots:
             logging.info("Plotting completion diagram with perturbation...")
             g = plot_completion_diagram(fn, perturb)        # at this point, the perturbation has not been stored yet
             show_plot(g, show_plots, tag='completion', object=fn._completion, legend_title="Completion of moves, perturbation", legend_loc="upper left")
             logging.info("Plotting completion diagram with perturbation... done")
-        seen_perturbation = True
+        #seen_perturbation = True
         yield perturb
-    if not seen_perturbation:
-        logging.info("Dense orbits in all non-covered intervals.")
-        
-def plot_old_moves_diagram(fn, perturbation=None, seed=None, stab_int=None, walk_list=None):
-    """
-    Return a plot of the 'old' moves diagram, superseded by `plot_completion_diagram`.
-    """
-    if seed is None or stab_int is None or walk_list is None:
-        if perturbation is None:
-           perturbation = 1
-        if isinstance(perturbation, Integer):
-            perturbation = basic_perturbation(fn, perturbation)
-        if perturbation is not None:
-            seed, stab_int, walk_list = perturbation._seed, perturbation._stab_int, perturbation._walk_list
-        if seed is None or stab_int is None or walk_list is None:
-            raise ValueError, "Need one of `perturbation` or the triple `seed`, `stab_int`, `walk_list`."
-    # FIXME: Visualize stability intervals?
-    moves = generate_functional_directed_moves(fn)
-    uncovered_intervals = generate_uncovered_intervals(fn)
-    return (plot_walk(walk_list,thickness=0.7) + 
-            plot_possible_directed_moves(seed, moves, fn) + 
-            plot_intervals(uncovered_intervals) + plot_covered_intervals(fn))
+    #if not seen_perturbation:
+    #    logging.info("Dense orbits in all non-covered intervals.")
 
 def plot_completion_diagram(fn, perturbation=None):
     """
@@ -2966,7 +2563,7 @@ def plot_completion_diagram(fn, perturbation=None):
     if not (hasattr(fn, '_completion') and fn._completion.is_complete):
         extremality_test(fn, show_plots=False)
     if fn._completion.plot_background is None:
-        fn._completion.plot_background = plot_completion_diagram_background(fn)
+        fn._completion.plot_background = plot_completion_diagram_background(fn) + plot_function_at_borders(zero_perturbation_partial_function(fn), color='magenta', legend_label='fixed perturbation (mod interpol)', thickness=3)
     g = fn._completion.plot() 
     if perturbation is None:
         if hasattr(fn, '_perturbations') and fn._perturbations:
@@ -3191,45 +2788,22 @@ def is_QQ_linearly_independent(*numbers):
     coordinate_matrix = matrix(QQ, [x.list() for x in numbers])
     return rank(coordinate_matrix) == len(numbers)
 
-def compose_directed_moves(A, B, show_plots=False):
+def compose_functional_directed_moves(A, B, show_plots=False):
     """
     Compute the directed move that corresponds to the directed move `A` after `B`.
     
     EXAMPLES::
 
-        sage: compose_directed_moves(FunctionalDirectedMove([(5/10,7/10)],(1, 2/10)),FunctionalDirectedMove([(2/10,4/10)],(1,2/10)))
+        sage: compose_functional_directed_moves(FunctionalDirectedMove([(5/10,7/10)],(1, 2/10)),FunctionalDirectedMove([(2/10,4/10)],(1,2/10)))
         <FunctionalDirectedMove (1, 2/5) with domain [(3/10, 2/5)], range [<Int[7/10, 4/5]>]>
     """
-    #print result_domain_intervals
-    if A.is_functional() and B.is_functional():
-        A_domain_preimages = [ B.apply_to_coho_interval(A_domain_interval, inverse=True) \
-                               for A_domain_interval in A.intervals() ]
-        A_domain_preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
-        result_domain_intervals = list(intersection_of_coho_intervals([A_domain_preimages, B.intervals()])) # generator!
-        if result_domain_intervals:
-            result = FunctionalDirectedMove(result_domain_intervals, (A[0] * B[0], A[0] * B[1] + A[1]))
-        else:
-            result = None
-    elif not A.is_functional() and B.is_functional():
-        A_domain_preimages = [ B.apply_to_coho_interval(A_domain_interval, inverse=True) \
-                               for A_domain_interval in A.intervals() ]
-        interval_pairs = []
-        for A_domain_preimage, A_range in itertools.izip(A_domain_preimages, A.range_intervals()):
-            overlapped_ints = intersection_of_coho_intervals([[A_domain_preimage], B.intervals()])
-            interval_pairs += [ (overlapped_int, A_range) for overlapped_int in overlapped_ints ]
-        if interval_pairs:
-            result = DenseDirectedMove(interval_pairs)
-        else:
-            result = None
-    elif A.is_functional() and not B.is_functional():
-        interval_pairs = []
-        for B_domain_interval, B_range_interval in B.interval_pairs():
-            overlapped_ints = intersection_of_coho_intervals([A.intervals(), [B_range_interval]])
-            interval_pairs += [ (B_domain_interval, A.apply_to_coho_interval(overlapped_int)) for overlapped_int in overlapped_ints ]
-        if interval_pairs:
-            result = DenseDirectedMove(interval_pairs)
-        else:
-            result = None
+    assert(A.is_functional() and B.is_functional())
+    A_domain_preimages = [ B.apply_to_coho_interval(A_domain_interval, inverse=True) \
+                           for A_domain_interval in A.intervals() ]
+    A_domain_preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
+    result_domain_intervals = list(intersection_of_coho_intervals([A_domain_preimages, B.intervals()])) # generator!
+    if result_domain_intervals:
+        result = FunctionalDirectedMove(result_domain_intervals, (A[0] * B[0], A[0] * B[1] + A[1]))
     else:
         result = None
     if show_plots:
@@ -3249,7 +2823,6 @@ def merge_functional_directed_moves(A, B, show_plots=False):
     """
     if A.directed_move != B.directed_move:
         raise ValueError, "Cannot merge, moves have different operations"
-    #merge_two_comp(A.intervals(), B.intervals(), one_point_overlap_suffices=True), 
     C = FunctionalDirectedMove(\
                                A.intervals() + B.intervals(),  # constructor takes care of merging
                                A.directed_move)
@@ -3267,209 +2840,109 @@ def plot_directed_moves(dmoves, **kwds):
         delete_one_time_plot_kwds(kwds)
     return g
 
-def reduce_with_dense_moves(functional_directed_move, dense_moves, show_plots=False):
-    """
-    EXAMPLES::
+def plot_dense_moves(component, **kwds):
+    return sum([polygon(((domain[0], domain[0]), (domain[1], domain[0]), (domain[1], domain[1]), (domain[0], domain[1])), rgbcolor=kwds.get("rgbcolor", "cyan"), alpha=0.5) + polygon(((domain[0], domain[0]), (domain[1], domain[0]), (domain[1], domain[1]), (domain[0], domain[1])), color="red", fill=False) for domain in component])
 
-        sage: reduce_with_dense_moves(FunctionalDirectedMove([[3/10,7/10]],(1, 1/10)), [DenseDirectedMove([[[2/10,6/10],[2/10,6/10]]])])
-        <FunctionalDirectedMove (1, 1/10) with domain [<Int(1/2, 7/10]>], range [<Int(3/5, 4/5]>]>
-        sage: reduce_with_dense_moves(FunctionalDirectedMove([[1/10,7/10]],(1, 1/10)), [DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]]), DenseDirectedMove([[[6/20,6/10],[4/10,6/10]]])])
-        <FunctionalDirectedMove (1, 1/10) with domain [<Int[1/10, 3/10)>, <Int(1/2, 7/10]>], range [<Int[1/5, 2/5)>, <Int(3/5, 4/5]>]>
-    """
-    if not dense_moves:
-        return functional_directed_move
-    remove_lists = []
-    for domain, codomain in itertools.chain(*[ dense_move.interval_pairs() for dense_move in dense_moves ]):
-        remove_list = list(intersection_of_coho_intervals([[functional_directed_move.apply_to_coho_interval(codomain, inverse=True)], [domain]]))
-        if remove_list:
-            remove_lists.append(remove_list)  # Each remove_list is sorted because each interval is a subinterval of the domain interval.
-    #print remove_lists
-    if not remove_lists:
-        return functional_directed_move
-    difference = union_of_coho_intervals_minus_union_of_coho_intervals([functional_directed_move.intervals()], remove_lists)
-    if difference:
-        result = FunctionalDirectedMove(difference, functional_directed_move.directed_move)
+def plot_zero_perturbation(covered_components, **kwds):
+    zero_function = FastLinearFunction(0, 0)
+    pieces = [ ((interval[0], interval[1]), zero_function) for component in covered_components for interval in component ]
+    zero_perturbation =  FastPiecewise(pieces)
+    return plot_function_at_borders(zero_perturbation, color='magenta', legend_label='fixed perturbation (mod interpol)', thickness=3)
+
+def reduce_covered_components(covered_components):
+    reduced_components = []
+    remaining_components = covered_components
+    while remaining_components:
+        given_component = remaining_components[0]
+        other_components = remaining_components[1::]
+        given_component, remaining_components = merge_components_with_given_component(given_component, other_components)
+        reduced_components.append(given_component)
+    return reduced_components
+
+def merge_components_with_given_component(given_component, other_components):
+    remaining_components = []
+    for component in other_components:
+        if list(intersection_of_coho_intervals([given_component, component])):
+            # if the two components intersect, the intersection is full-dimensional since intervals are all open intervals.
+            # extend the given_component to the union.
+            given_component = union_of_coho_intervals_minus_union_of_coho_intervals([given_component, component], [])
+        else:
+            # if component is not merged into the given_component, it remains in remaining_components.
+            remaining_components.append(component)
+    return given_component, remaining_components
+
+def check_for_strip_lemma(m1, m2):
+    dense_intervals = []
+    if m1.sign() == 1 and m2.sign() == 1:
+        t1 = m1[1]
+        t2 = m2[1]
+        if is_QQ_linearly_independent(t1, t2) and t1 >= 0 and t2 >= 0:
+            for m1i in m1.intervals():
+                for m2i in m2.intervals():
+                    l1, u1 = m1i[0], m1i[1]
+                    l2, u2 = m2i[0], m2i[1]
+                    L = max(l1, l2)
+                    U = min(u1 + t1, u2 + t2)
+                    if t1 + t2 <= U - L:
+                        dense_intervals.append(open_interval(L, U))
+    if not dense_intervals:
+        return None
     else:
-        result = None
-    if show_plots:
-        p = plot(functional_directed_move, color="yellow", thickness=8)
-        p += plot_directed_moves(dense_moves)
-        if result:
-            p += plot(result)
-        show_plot(p, show_plots, tag='reduce_with_dense_moves')
-    return result
+        # sort the dense intervals and return the union
+        d = union_of_coho_intervals_minus_union_of_coho_intervals([[interval] for interval in dense_intervals], [])
+        return d
 
 class DirectedMoveCompositionCompletion:
 
-    def __init__(self, directed_moves, show_plots=False, plot_background=None):
+    def __init__(self, fdms, covered_components=[], show_plots=False, plot_background=None):
         self.show_plots = show_plots
         self.plot_background = plot_background
         self.move_dict = dict()
-        self.dense_moves = set()
-        self.any_change = False
+        self.entire_moves = dict()
+        self.covered_components = covered_components
+        if covered_components:
+            self.any_change_components = True
+        else:
+            self.any_change_components = False
+        self.any_change_moves = False
+        for fdm in fdms:
+            self.add_move(fdm)
         self.num_rounds = 0
-        for move in directed_moves:
-            self.add_move(move)
         self.is_complete = False
 
-    def reduce_move_dict_with_dense_moves(self, dense_moves):
+    def add_move(self, fdm):
         """
-        Reduce moves with dense moves from the move dictionary of self.
-
-        EXAMPLES::
-
-            sage: f = FunctionalDirectedMove([[1/10,7/10]],(1, 1/10))
-            sage: d = [DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]]), DenseDirectedMove([[[6/20,6/10],[4/10,6/10]]])]
-            sage: h = DirectedMoveCompositionCompletion([f])
-            sage: h.move_dict
-            {(1,
-              1/10): <FunctionalDirectedMove (1, 1/10) with domain [(1/10, 7/10)], range [<Int[1/5, 4/5]>]>}
-            sage: h.reduce_move_dict_with_dense_moves(d)
-            sage: h.move_dict
-            {(1,
-              1/10): <FunctionalDirectedMove (1, 1/10) with domain [<Int[1/10, 3/10)>, <Int(1/2, 7/10]>], range [<Int[1/5, 2/5)>, <Int(3/5, 4/5]>]>}
+        Add a functional_directed_move to self.
+        Merge or restrict functional directed move if necessary.
         """
-        new_move_dict = dict()
-        for key, move in self.move_dict.items():
-            new_move = reduce_with_dense_moves(move, dense_moves)
-            if new_move:
-                new_move_dict[key] = new_move
-        self.move_dict = new_move_dict
-
-    def upgrade_or_reduce_dense_interval_pair(self, a_domain, a_codomain):
-        """
-        Upgrade or reduce the dense moves of self from a given dense interval pair
-
-        EXAMPLES::
-
-            sage: a = DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]])
-            sage: h = DirectedMoveCompositionCompletion([a])
-            sage: # is dominated by existing rectangle, exit.
-            sage: h.upgrade_or_reduce_dense_interval_pair([7/20,5/10],[3/10,5/10])
-            (None, None)
-
-            sage: h = DirectedMoveCompositionCompletion([a])
-            sage: # simple vertical merge
-            sage: h.upgrade_or_reduce_dense_interval_pair([7/20,5/10],[2/10,5/10])
-            ([7/20, 1/2], [1/5, 1/2])
-
-            sage: h = DirectedMoveCompositionCompletion([a])
-            sage: # simple horizontal merge
-            sage: h.upgrade_or_reduce_dense_interval_pair([6/20,5/10],[3/10,5/10])
-            ([3/10, 1/2], [3/10, 1/2])
-
-            sage: h = DirectedMoveCompositionCompletion([a])
-            sage: # full-dimensional intersection, extend to big rectangle.
-            sage: h.upgrade_or_reduce_dense_interval_pair([6/20,9/20], [2/10,4/10])
-            ((3/10, 1/2), (1/5, 1/2))
-        """
-        another_pass = True
-        while another_pass:
-            another_pass = False
-            for b in self.dense_moves:
-                for (b_domain, b_codomain) in b.interval_pairs():
-                    if (b_domain[0] <= a_domain[0] and a_domain[1] <= b_domain[1]
-                        and b_codomain[0] <= a_codomain[0] and a_codomain[1] <= b_codomain[1]):
-                        # is dominated by existing rectangle, exit.
-                        return None, None
-                    elif (a_domain[0] <= b_domain[0] and b_domain[1] <= a_domain[1]
-                        and a_codomain[0] <= b_codomain[0] and b_codomain[1] <= a_codomain[1]):
-                        # dominates existing rectangle, do nothing (we take care of that later).
-                        pass
-                    elif (a_domain[0] == b_domain[0] and a_domain[1] == b_domain[1]
-                          and coho_intervals_intersecting(a_codomain, b_codomain)):
-                          # simple vertical merge
-                        a_codomain = ((min(a_codomain[0], b_codomain[0]), max(a_codomain[1], b_codomain[1])))
-                        another_pass = True
-                    elif (a_codomain[0] == b_codomain[0] and a_codomain[1] == b_codomain[1]
-                          and coho_intervals_intersecting(a_domain, b_domain)):
-                          # simple horizontal merge
-                        a_domain = ((min(a_domain[0], b_domain[0]), max(a_domain[1], b_domain[1])))
-                        another_pass = True
-                    elif (coho_intervals_intersecting_full_dimensionally(a_domain, b_domain)
-                          and coho_intervals_intersecting_full_dimensionally(a_codomain, b_codomain)):
-                        # full-dimensional intersection, extend to big rectangle.
-                        logging.info("Applying rectangle lemma")
-                        a_domain = ((min(a_domain[0], b_domain[0]), max(a_domain[1], b_domain[1])))
-                        a_codomain = ((min(a_codomain[0], b_codomain[0]), max(a_codomain[1], b_codomain[1])))
-                        another_pass = True
-        return a_domain, a_codomain
-
-    def add_move(self, c):
-        """
-        Add a move c to self. 
-        Merge functional directed move or upgrade or reduce dense interval pair if necessary.
-
-        EXAMPLES::
-
-            sage: f = FunctionalDirectedMove([(3/10, 7/20), (9/20, 1/2)], (1,0))
-            sage: c = FunctionalDirectedMove([(3/10, 13/40)], (1,0))
-            sage: h = DirectedMoveCompositionCompletion([f])
-            sage: h.move_dict
-            {(1,
-              0): <FunctionalDirectedMove (1, 0) with domain [(3/10, 7/20), (9/20, 1/2)], range [<Int[3/10, 7/20]>, <Int[9/20, 1/2]>]>}
-            sage: h.add_move(c)
-            sage: h.move_dict
-            {(1,
-              0): <FunctionalDirectedMove (1, 0) with domain [(3/10, 7/20), (9/20, 1/2)], range [<Int[3/10, 7/20]>, <Int[9/20, 1/2]>]>}
-
-            sage: a = DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]])
-            sage: h = DirectedMoveCompositionCompletion([a])
-            sage: h.dense_moves
-            {<DenseDirectedMove [([7/20, 1/2], [3/10, 1/2])]>}
-            sage: c = DenseDirectedMove([[[6/20,9/20], [2/10,4/10]]])
-            sage: h.add_move(c)
-            sage: h.dense_moves
-            {<DenseDirectedMove [((3/10, 1/2), (1/5, 1/2))]>}
-        """
-        if c.is_functional():
-            reduced = reduce_with_dense_moves(c, self.dense_moves)
-            if reduced is None:
-                return
-            cdm = c.directed_move
-            if cdm in self.move_dict:
-                merged = merge_functional_directed_moves(self.move_dict[cdm], reduced, show_plots=False)
-
-                if merged.intervals() != self.move_dict[cdm].intervals():
-                    # Cannot compare the functions themselves because of the "hash" magic of FastPiecewise.
-                    #print "merge: changed from %s to %s" % (self.move_dict[cdm], merged)
-                    self.move_dict[cdm] = merged
-                    self.any_change = True
-                else:
-                    #print "merge: same"
-                    pass
-            # elif is_move_dominated_by_dense_moves(c, self.dense_moves):
-            #     pass
-            else:
-                self.move_dict[cdm] = reduced
-                self.any_change = True
+        reduced_fdm = fdm.restricting(self.covered_components)
+        if reduced_fdm is None:
+            return
+        directed_move = fdm.directed_move
+        if directed_move in self.move_dict:
+            merged = merge_functional_directed_moves(self.move_dict[directed_move], reduced_fdm, show_plots=False)
+            if merged.intervals() != self.move_dict[directed_move].intervals():
+                # Cannot compare the functions themselves because of the "hash" magic of FastPiecewise.
+                self.move_dict[directed_move] = merged
+                self.any_change_moves = True
         else:
-            # dense move.
-            new_dense_moves = []
-            for (c_domain, c_codomain) in c.interval_pairs():
-                c_domain, c_codomain = self.upgrade_or_reduce_dense_interval_pair(c_domain, c_codomain)
-                if c_domain:
-                    new_dense_moves.append(DenseDirectedMove([(c_domain, c_codomain)]))
-            if not new_dense_moves:
-                return 
-            dominated_dense_list = [ move for move in self.dense_moves if is_move_dominated_by_dense_moves(move, new_dense_moves) ]
-            for move in dominated_dense_list:
-                self.dense_moves.remove(move)
-            for m in new_dense_moves:
-                self.dense_moves.add(m)
-            # dominated_functional_key_list = [ key for key, move in self.move_dict.items() if is_move_dominated_by_dense_moves(move, self.dense_moves) ]
-            # for key in dominated_functional_key_list:
-            #     self.move_dict.pop(key)
-            self.reduce_move_dict_with_dense_moves(new_dense_moves)
-            self.any_change = True
+            self.move_dict[directed_move] = reduced_fdm
+            self.any_change_moves = True
+        if directed_move in self.entire_moves:
+            merged = merge_functional_directed_moves(self.entire_moves[directed_move], fdm, show_plots=False)
+            self.entire_moves[directed_move] = merged
+        else:
+            self.entire_moves[directed_move] = fdm
 
     def plot(self, *args, **kwds):
-        g = plot_directed_moves(list(self.dense_moves) + list(self.move_dict.values()), **kwds)
+        g = plot_directed_moves(list(self.move_dict.values()), **kwds)
+        if self.covered_components:
+            g += plot_zero_perturbation(self.covered_components, **kwds)
         if self.plot_background:
             g += self.plot_background
         return g
 
-    def maybe_show_plot(self):
+    def maybe_show_plot(self, current_dense_move_plot=None):
         if self.show_plots:
             logging.info("Plotting...")
             if self.is_complete:
@@ -3481,82 +2954,113 @@ class DirectedMoveCompositionCompletion:
             else:
                 tag = 'completion-%s' % self.num_rounds
                 title = "Moves after %s completion round%s" % (self.num_rounds, "s" if self.num_rounds > 1 else "")
-            show_plot(self.plot(legend_label='moves'), self.show_plots, tag, legend_title=title, legend_loc="upper left", object=self)
+            g = self.plot(legend_label='moves')
+            if current_dense_move_plot:
+                g += current_dense_move_plot
+            show_plot(g, self.show_plots, tag, legend_title=title, legend_loc="upper left", object=self)
             logging.info("Plotting... done")
 
-    def complete_one_round(self):
-        self.maybe_show_plot()
-        logging.info("Completing %d functional directed moves and %d dense directed moves..." % (len(self.move_dict), len(self.dense_moves)))
-        self.any_change = False
-        critical_pairs = ([ (a, b) for a in list(self.dense_moves) for b in list(self.dense_moves) ] 
-                          + [ (a, b) for a in self.move_dict.keys() for b in list(self.dense_moves) + self.move_dict.keys() ] 
-                          + [ (a, b) for a in list(self.dense_moves) for b in  self.move_dict.keys() ])
-        for (a, b) in critical_pairs:
-            # Get the most current versions of the directed moves.
-            # FIXME: We should rather implement a better completion
-            # algorithm.
-            if type(a) == tuple or type(a) == list:
-                a = self.move_dict.get(a, None)
-            if type(b) == tuple or type(b) == list:
-                b = self.move_dict.get(b, None)
+    def extend_components_by_moves(self):
+        """
+        Compose covered_components with fdms of self.
+        """
+        # try extending each component by applying all the moves
+        new_components = []
+        self.any_change_components = False
+        for component in self.covered_components:
+            extended_component = component
+            for dm in self.move_dict.keys():
+                if list(intersection_of_coho_intervals([extended_component, self.move_dict[dm].intervals()])):
+                    #can extend the compnent by self.entire_moves[dm]
+                    self.any_change_components = True
+                    fdm = self.entire_moves[dm]
+                    overlapped_ints = intersection_of_coho_intervals([extended_component, fdm.intervals()]) # generator
+                    moved_intervals = [[fdm.apply_to_coho_interval(overlapped_int)] for overlapped_int in overlapped_ints ]
+                    extended_component = union_of_coho_intervals_minus_union_of_coho_intervals([extended_component] + moved_intervals, [])
+            new_components.append(extended_component)
+        # got a extended component list, now merge components
+        self.covered_components = reduce_covered_components(new_components)
+        # kill moves
+        self.reduce_moves_by_components()
 
-            if not a or not b: 
-                continue                                    # critical pair has been killed
-
-            if not a.is_functional() and not b.is_functional():
-                new_pairs = []
-                for (a_domain, a_codomain) in a.interval_pairs():
-                    for (b_domain, b_codomain) in b.interval_pairs():
-                        if (coho_intervals_intersecting_full_dimensionally(a_domain, b_domain)
-                            and coho_intervals_intersecting_full_dimensionally(a_codomain, b_codomain)):
-                            # full-dimensional intersection, extend to big rectangle;
-                            # but this is taken care of in add_move.
-                            pass
-                        elif coho_intervals_intersecting_full_dimensionally(a_codomain, b_domain):
-                            # composition of dense moves
-                            new_pairs.append((a_domain, b_codomain))
-                if new_pairs:
-                    d = DenseDirectedMove(new_pairs)
-                    if not is_move_dominated_by_dense_moves(d, self.dense_moves):
-                        logging.info("New dense move from dense-dense composition: %s" % d)
-                        self.add_move(d)
-                        # self.maybe_show_plot()
-            else:
-                if a.is_functional() and b.is_functional():
-                    d = check_for_dense_move(a, b)
-                    if d and not is_move_dominated_by_dense_moves(d, self.dense_moves):
-                        logging.info("New dense move from strip lemma: %s" % d)
-                        self.add_move(d)
-                        # self.maybe_show_plot()
-                c = compose_directed_moves(a, b)
+    def extend_moves_by_composition_of_moves(self):
+        self.any_change_moves = False
+        move_keys = self.move_dict.keys()
+        current_dense_move = []
+        for dm_a in move_keys:
+            for dm_b in move_keys:
+                a = self.move_dict.get(dm_a, None)
+                b = self.move_dict.get(dm_b, None)
+                if not a or not b:
+                    continue                        # move has been killed
+                # check if the strip lemma gives new dense intervals
+                d = check_for_strip_lemma(a, b)
+                # d is not dominated by covered_components because we start with reduced moves.
+                if d:
+                    self.any_change_components = True
+                    current_dense_move += d
+                    logging.info("New dense move from strip lemma: %s" % d)
+                    # merge components with d
+                    dense_intervals, self.covered_components = merge_components_with_given_component(d, self.covered_components)
+                    self.covered_components.append(dense_intervals)
+                    # kill moves
+                    self.reduce_moves_by_components(given_components = [dense_intervals])
+                # compose moves a and b, starting from entire_moves
+                a = self.entire_moves[dm_a]
+                b = self.entire_moves[dm_b]
+                c = compose_functional_directed_moves(a, b)
                 if c:
                     self.add_move(c)
+        if current_dense_move:
+            return plot_dense_moves(current_dense_move)
+        else:
+            return None
+
+    def reduce_moves_by_components(self, given_components=None):
+        """
+        Reduce moves with covered_components of self.
+        """
+        new_move_dict = dict()
+        for (dm, fdm) in self.move_dict.items():
+            if not given_components is None:
+                reduced_fdm = fdm.restricting(given_components)
+            else:
+                reduced_fdm = fdm.restricting(self.covered_components)
+            if reduced_fdm.intervals():
+                new_move_dict[dm] = reduced_fdm
+        self.move_dict = new_move_dict
+
+    def complete_one_round(self):
+        logging.info("Completing %d functional directed moves and %d covered components..." % (len(self.move_dict), len(self.covered_components)))
+        if self.any_change_components:
+            self.extend_components_by_moves()
+        current_dense_move_plot = self.extend_moves_by_composition_of_moves()
+        self.num_rounds += 1
+        if self.any_change_components or self.any_change_moves:
+            self.maybe_show_plot(current_dense_move_plot)
 
     def complete(self, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
-        while self.any_change and (max_num_rounds is not None or self.num_rounds < max_num_rounds):
+        if self.num_rounds == 0:
+            self.maybe_show_plot()
+        while (self.any_change_components or self.any_change_moves) and (max_num_rounds is not None or self.num_rounds < max_num_rounds):
             self.complete_one_round()
-            self.num_rounds += 1
         if max_num_rounds is not None and self.num_rounds == max_num_rounds:
             if error_if_max_num_rounds_exceeded:
-                raise MaximumNumberOfIterationsReached, "Reached %d rounds of the completion procedure, found %d directed moves and %d dense directed moves, stopping." % (self.num_rounds, len(self.move_dict), len(self.dense_moves))
+                raise MaximumNumberOfIterationsReached, "Reached %d rounds of the completion procedure, found %d directed moves and %d covered components, stopping." % (self.num_rounds, len(self.move_dict), len(self.covered_components))
             else:
-                logging.info("Reached %d rounds of the completion procedure, found %d directed moves and %d dense directed moves, stopping." % (self.num_rounds, len(self.move_dict), len(self.dense_moves)))
+                logging.info("Reached %d rounds of the completion procedure, found %d directed moves and %d covered components, stopping." % (self.num_rounds, len(self.move_dict), len(self.covered_components)))
         else:
             self.is_complete = True
-            #self.maybe_show_plot()
-            logging.info("Completion finished.  Found %d directed moves and %d dense directed moves." 
-                         % (len(self.move_dict), len(self.dense_moves)))
+            logging.info("Completion finished.  Found %d directed moves and %d covered components."
+                         % (len(self.move_dict), len(self.covered_components)))
 
 
     def results(self):
-        ## FIXME: Should return the dense moves somehow as well.
-        # if self.dense_moves:
-        #     raise UnimplementedError, "Dense moves found, handling them in the following code is not implemented yet."
-        return list(self.move_dict.values()), list(self.dense_moves)
+        return self.move_dict.values(), self.covered_components
 
 
-def directed_move_composition_completion(directed_moves, show_plots=False, plot_background=None, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
-    completion = DirectedMoveCompositionCompletion(directed_moves,
+def directed_move_composition_completion(fdms, covered_components=[], show_plots=False, plot_background=None, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
+    completion = DirectedMoveCompositionCompletion(fdms, covered_components=covered_components, \
                                                    show_plots=show_plots, plot_background=plot_background)
     completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
     return completion.results()
@@ -3564,22 +3068,41 @@ def directed_move_composition_completion(directed_moves, show_plots=False, plot_
 def plot_completion_diagram_background(fn):
     plot_background = plot_function_at_borders(fn, color='black', **ticks_keywords(fn, y_ticks_for_breakpoints=True))
     plot_background += polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
-    plot_background += plot_function_at_borders(zero_perturbation_partial_function(fn), color='magenta', legend_label='fixed perturbation (mod interpol)', thickness=3)
+    # don't have zero_perturbation_partial_function until generate_directed_move_composition_completion has been done.
+    #plot_background += plot_function_at_borders(zero_perturbation_partial_function(fn), color='magenta', legend_label='fixed perturbation (mod interpol)', thickness=3)
     return plot_background
+
+def generate_directly_covered_components(fn):
+    if hasattr(fn, '_directly_covered_components'):
+        return fn._directly_covered_components
+    covered_components = []
+    for face in generate_maximal_additive_faces(fn):
+        if face.is_2D():
+            (I, J, K) = face.minimal_triple
+            K_mod_1 = interval_mod_1(K)
+            component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* K_mod_1)]],[])
+            covered_components.append(component)
+    return reduce_covered_components(covered_components)
+
+# alias
+generate_directly_covered_intervals = generate_directly_covered_components
 
 @cached_function
 def generate_directed_move_composition_completion(fn, show_plots=False, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
+    # FIXME: show_plots
     completion = getattr(fn, "_completion", None)
     if completion is None:
         functional_directed_moves = generate_functional_directed_moves(fn)
+        covered_components = generate_directly_covered_components(fn)
         if show_plots:
             plot_background = plot_completion_diagram_background(fn)
         else:
             plot_background = None
         completion = fn._completion = DirectedMoveCompositionCompletion(functional_directed_moves,
+                                                                        covered_components = covered_components,
                                                                         show_plots=show_plots,
                                                                         plot_background=plot_background)
-    completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
+        completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
     return completion.results()
 
 def plot_walk_in_completion_diagram(seed, walk_dict):
@@ -3589,30 +3112,6 @@ def plot_walk_in_completion_diagram(seed, walk_dict):
         g += line([(0, x), (seed, x)], color="limegreen", linestyle=':', **kwds)
         delete_one_time_plot_kwds(kwds)
     return g
-
-def apply_functional_directed_moves(functional_directed_moves, seed):
-    """
-    not used
-    Return a dictionary whose keys are the reachable orbit of `seed`.
-
-    If `functional_directed_moves` is complete under compositions,
-    then this computes the reachable orbit of `seed`, just like
-    `deterministic_walk` would.
-    """
-    #orbit = set()
-    orbit = dict()
-    for fdm in functional_directed_moves:
-        try:
-            #orbit.add(fdm(seed))
-            element = fdm(seed)
-            if element in orbit:
-                orbit[element].append(fdm)
-            else:
-                orbit[element] = [fdm]
-        except ValueError:
-            pass
-    #return sorted(orbit)
-    return orbit
 
 def scan_sign_contradiction_point(fdm):
     if fdm.sign() == -1:
@@ -3630,16 +3129,31 @@ def scan_domains_of_moves(functional_directed_moves):
      scans = [ scan_coho_interval_list(fdm.intervals(), fdm) for fdm in functional_directed_moves ]
      return merge(*scans)
 
-def find_decomposition_into_intervals_with_same_moves(functional_directed_moves, separate_by_sign_contradiction=True):
-    scan = scan_domains_of_moves(functional_directed_moves)
-    if separate_by_sign_contradiction:
-        scan = merge(scan, \
-                     scan_sign_contradiction_points(functional_directed_moves))
+@cached_function
+def generate_zero_perturbation_points(function):
+    zero_perturbation_points = set()
+    for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, reduced=True):
+        # FIXME: Not sure if one can always set reduce=True in the discontinuous case
+        zero_perturbation_points.update([x, y, fractional(z)])
+    return zero_perturbation_points
+
+def scan_zero_perturbation_point(x):
+    dummy_zero_fdm = FunctionalDirectedMove([[0, 1]], (1,0))
+    yield ((x, 0), 0, dummy_zero_fdm)
+    yield ((x, 1), 0, dummy_zero_fdm)
+
+def scan_zero_perturbation_points(function):
+    scans = [ scan_zero_perturbation_point(x) for x in generate_zero_perturbation_points(function) ]
+    return merge(*scans)
+
+def find_decomposition_into_intervals_with_same_moves(functional_directed_moves, scan_of_zero_perturbation_points=None):
+    scan = merge(scan_domains_of_moves(functional_directed_moves), \
+                 scan_of_zero_perturbation_points, \
+                 scan_sign_contradiction_points(functional_directed_moves))
     moves = set()
     (on_x, on_epsilon) = (None, None)
     for ((x, epsilon), delta, move) in scan:
-        # don't add singleton_interval for invariant point.
-        if on_x and on_x < x: #was on_x and (on_x, on_epsilon) < (x, epsilon):
+        if on_x and on_x < x:
             if moves:
                 int = closed_or_open_or_halfopen_interval(on_x, x,
                                                           on_epsilon == 0, epsilon > 0)
@@ -3659,14 +3173,11 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
     if hasattr(fn, '_stability_orbits'):
         return
     fn._stability_orbits = []
-    completion, _ = generate_directed_move_composition_completion(fn, show_plots=show_plots)
+    fdms, covered_components= generate_directed_move_composition_completion(fn, show_plots=show_plots)
 
-    z = zero_perturbation_partial_function(fn, show_plots=show_plots)
-    zero_intervals = z.intervals()
-    not_fixed_to_zero = union_of_coho_intervals_minus_union_of_coho_intervals([[[0,1]]], [zero_intervals])
-    restricted_completion = [ fdm.restricted(not_fixed_to_zero) for fdm in completion ]
-
-    decomposition = find_decomposition_into_intervals_with_same_moves(restricted_completion)
+    scan_of_zero_perturbation_points = scan_zero_perturbation_points(fn)
+    decomposition = find_decomposition_into_intervals_with_same_moves(fdms,
+                                                                      scan_of_zero_perturbation_points )
     done_intervals = set()
 
     for (interval, moves) in decomposition:
@@ -3695,23 +3206,6 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
     logging.info("Total: %s stability orbits, lengths: %s" % (len(fn._stability_orbits), \
                     [ ("%s+" if to_do else "%s") % len(shifted_stability_intervals) \
                       for (shifted_stability_intervals, walk_dict, to_do) in fn._stability_orbits ]))
-@cached_function
-def generate_dense_components(fn, show_plots=False):
-    fdms, dense_moves = generate_directed_move_composition_completion(fn, show_plots=show_plots)
-    #FIXME: intervals of dense move must be written as coho interval or (a, b),
-    #otherwise get TypeError: unhashable type: 'list'
-    #FIXME: DirectedMoveCompositionCompletion.add_move flattens _.dense_moves.
-    #Why not keeping the rectangles that have the same slope in one dense_move?
-    # dense_components = []
-    # dense_components.extend(uniq([domain for (domain, codomain) in move._interval_pairs]) \
-    #                         for move in dense_moves)
-    #uniq doesn't work because coho interval and old fashioned closed interval mix up.
-    seen_intervals = set()
-    for move in dense_moves:
-        for (domain, codomain) in move._interval_pairs:
-            seen_intervals.add( (domain[0], domain[1]) )
-    dense_components = [[interval] for interval in seen_intervals]
-    return dense_components
 
 def zero_perturbation_partial_function(function, show_plots=False):
     """
@@ -3720,22 +3214,14 @@ def zero_perturbation_partial_function(function, show_plots=False):
     known to be zero.
     """
     zero_function = FastLinearFunction(0, 0)
-    zero_perturbation_points = set()
-    for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, reduced=True):
-        zero_perturbation_points.update([x, y, fractional(z)])
-    pieces = [ (singleton_interval(x), zero_function) for x in zero_perturbation_points ]
+    pieces = [ (singleton_interval(x), zero_function) for x in generate_zero_perturbation_points(function)]
     pieces += [ (interval, zero_function) for component in \
-                generate_covered_intervals(function) for interval in component ]
-    pieces += [ (interval, zero_function) for component in \
-                generate_dense_components(function, show_plots=show_plots) for interval in component ]
+                generate_covered_components(function) for interval in component ]
     return FastPiecewise(pieces)
 
 def generate_uncovered_components(fn, show_plots=False):
     if not hasattr(fn, '_stability_orbits'):
         find_decomposition_into_stability_intervals_with_completion(fn, show_plots=show_plots)
-    #if not fn._stability_orbits:
-    #    return []
-    # FIXME: should convert coho intervals to old_fashioned_closed_interval, and discard singletons.
     uncovered_components = [ sorted(orbit, key=coho_interval_left_endpoint_with_epsilon) \
                              for (orbit, _, _) in fn._stability_orbits]
     return uncovered_components
@@ -3748,109 +3234,12 @@ def stab_int_length(x):
 def generate_generic_seeds_with_completion(fn, show_plots=False, max_num_it=None):
     # Ugly compatibility interface.
     find_decomposition_into_stability_intervals_with_completion(fn, show_plots=show_plots)
-    if not fn._stability_orbits:
-        return
     for (orbit, walk_dict, _) in sorted(fn._stability_orbits, key=stab_int_length, reverse=True):
         int = orbit[0]
         if interval_length(int) > 0:
             seed = (int.a + int.b) / 2
             stab_int = closed_or_open_or_halfopen_interval(int.a - seed, int.b - seed, int.left_closed, int.right_closed)
             yield (seed, stab_int, walk_dict)
-
-class DenseDirectedMove ():
-    """
-    Return a dense directed move from given interval pairs (first domain interval, then range interval).
-    """
-
-    def __init__(self, interval_pairs):
-        self._interval_pairs = interval_pairs
-
-    def __repr__(self):
-        return "<DenseDirectedMove %s>" % self._interval_pairs
-
-    def is_functional(self):
-        return False
-
-    def plot(self, *args, **kwds):
-        return sum([polygon(((domain[0], codomain[0]), (domain[1], codomain[0]), (domain[1], codomain[1]), (domain[0], codomain[1])), rgbcolor=kwds.get("rgbcolor", "cyan"), alpha=0.5) + polygon(((domain[0], codomain[0]), (domain[1], codomain[0]), (domain[1], codomain[1]), (domain[0], codomain[1])), color="red", fill=False) for (domain, codomain) in self._interval_pairs])
-
-    def intervals(self):
-        """
-        Return the domain interval of self.
-
-        EXAMPLES::
-
-            sage: a = DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]])
-            sage: a.intervals()
-            [[7/20, 1/2]]
-        """
-        return [ domain_interval for (domain_interval, range_interval) in self._interval_pairs ]
-
-    def range_intervals(self):
-        """
-        Return the range interval of self.
-
-        EXAMPLES::
-
-            sage: a = DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]])
-            sage: a.range_intervals()
-            [[3/10, 1/2]]
-        """
-        return [ range_interval for (domain_interval, range_interval) in self._interval_pairs ]
-
-    def interval_pairs(self):
-        """
-        Return the interval pairs of self. 
-        The first interval is the domain interval, and the second is the range interval of self. 
-
-        EXAMPLES::
-
-            sage: a = DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]])
-            sage: a.interval_pairs()
-            [[[7/20, 1/2], [3/10, 1/2]]]
-        """
-        return self._interval_pairs
-    
-def check_for_dense_move(m1, m2):
-    # the strip lemma.
-    if m1.sign() == 1 and m2.sign() == 1: 
-        t1 = m1[1]
-        t2 = m2[1]
-        if is_QQ_linearly_independent(t1, t2) and t1 >= 0 and t2 >= 0:
-            dense_intervals = []
-            for m1i in m1.intervals():
-                for m2i in m2.intervals():
-                    l1, u1 = m1i[0], m1i[1]
-                    l2, u2 = m2i[0], m2i[1]
-                    L = max(l1, l2)
-                    U = min(u1 + t1, u2 + t2)
-                    if t1 + t2 <= U - L:
-                        dense_intervals.append((L, U))
-            if dense_intervals:
-                return DenseDirectedMove([(I, I) for I in dense_intervals])
-    return None
-
-def is_interval_pair_dominated_by_dense_move(domain_interval, range_interval, dense_move):
-    for (dense_domain_interval, dense_range_interval) in dense_move.interval_pairs():
-        if coho_interval_contained_in_coho_interval(domain_interval, dense_domain_interval) \
-           and coho_interval_contained_in_coho_interval(range_interval, dense_range_interval):
-            return True
-    return False
-
-def is_interval_pair_dominated_by_dense_moves(domain_interval, range_interval, dense_moves):
-    for dense_move in dense_moves:
-        if is_interval_pair_dominated_by_dense_move(domain_interval, range_interval, dense_move):
-            return True
-    return False
-
-def is_move_dominated_by_dense_moves(move, dense_moves):
-    for (domain_interval, range_interval) in itertools.izip(move.intervals(), move.range_intervals()):
-        if is_interval_pair_dominated_by_dense_moves(domain_interval, range_interval, dense_moves):
-            pass
-        else:
-            return False
-    #print "Dominated: %s" % move
-    return True
 
 def stuff_with_random_irrational_function():
     while True:
@@ -3863,8 +3252,8 @@ def stuff_with_random_irrational_function():
         except ValueError:
             print "... parameters do not describe a function, retrying."
     dmoves = generate_functional_directed_moves(h)
-    completion, _ = directed_move_composition_completion(dmoves, max_num_rounds=None)
-    plot_directed_moves(completion).show(figsize=40)
+    fdms, _ = directed_move_composition_completion(dmoves, max_num_rounds=None)
+    plot_directed_moves(fdms).show(figsize=40)
     
 def merit_index(fn):
     r"""

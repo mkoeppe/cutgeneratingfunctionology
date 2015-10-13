@@ -27,7 +27,7 @@ dic_eps_to_cone = { (-1,-1,-1): [(-1, 0), (0, -1)], \
                     ( 0, 0, 0): [] \
                   }
 
-def generate_type_1_vertices_general(fn, comparison, reduced=True):
+def generate_type_1_vertices_general(fn, comparison, reduced=True, bkpt=None):
     """A generator...
     "...'general' refers to the fact that it outputs 6-tuples (x,y,z,xeps,yeps,zeps).
     When reduced=True:
@@ -35,15 +35,19 @@ def generate_type_1_vertices_general(fn, comparison, reduced=True):
     When reduced=False:
         outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive or additive_limit_vertices.
     """
-    bkpt = fn.end_points()
+    if bkpt is None:
+        bkpt = fn.end_points()
     if not fn.is_continuous():
-        limits = fn.limits_at_end_points()
+        #limits = fn.limits_at_end_points()
+        limits = [fn.limits(x) for x in bkpt] # in case bkpt != fn.end_points()
+    else:
+        limits = [[fn(x)] for x in bkpt]
     for i in range(len(bkpt)):
         for j in range(i,len(bkpt)):
             x = bkpt[i]
             y = bkpt[j]
             z = fractional(x + y)
-            if comparison(fn.values_at_end_points()[i] + fn.values_at_end_points()[j], fn(z)):
+            if comparison(limits[i][0] + limits[j][0], fn(z)):
                 yield (x, y, x+y, 0, 0, 0)
             if not fn.is_continuous():
                 limits_x = limits[i]
@@ -57,7 +61,7 @@ def generate_type_1_vertices_general(fn, comparison, reduced=True):
                     if comparison(limits_x[xeps] + limits_y[yeps] - limits_z[zeps], 0):
                        yield (x, y, x+y, xeps, yeps, zeps)
 
-def generate_type_2_vertices_general(fn, comparison, reduced=True):
+def generate_type_2_vertices_general(fn, comparison, reduced=True, bkpt=None):
     """
     When reduced=True:
         only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_test or setting up equations.
@@ -65,10 +69,14 @@ def generate_type_2_vertices_general(fn, comparison, reduced=True):
     When reduced=False:
         outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive or additive_limit_vertices.
     """
-    bkpt = fn.end_points()
+    if bkpt is None:
+        bkpt = fn.end_points()
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     if not fn.is_continuous():
-        limits = fn.limits_at_end_points()
+        #limits = fn.limits_at_end_points()
+        limits = [fn.limits(x) for x in bkpt] # in case bkpt != fn.end_points()
+    else:
+        limits = [[fn(x)] for x in bkpt]
     for i in range(len(bkpt)):
         for k2 in range(i + 1, i + len(bkpt) - 1):
             # only need to check for 0 < y < 1. and note that bkpt2[i + len(bkpt) - 1] == bkpt[i] + 1.
@@ -79,7 +87,7 @@ def generate_type_2_vertices_general(fn, comparison, reduced=True):
                 k = k2
             else:
                 k = k2 - len(bkpt) + 1
-            if comparison(fn.values_at_end_points()[i] + fn(y), fn.values_at_end_points()[k]):
+            if comparison(limits[i][0] + fn(y), limits[k][0]):
                 yield (x, y, z, 0, 0, 0)
             if not fn.is_continuous():
                 limits_x = limits[i]
@@ -191,7 +199,9 @@ def generate_symbolic_general(function, components, field=None):
     intervals_and_slopes = []
     for component, slope in itertools.izip(components, range(n)):
         intervals_and_slopes.extend([ (interval, slope) for interval in component ])
-    intervals_and_slopes.sort()
+    #intervals in components are coho intervals.
+    #was: intervals_and_slopes.sort()
+    intervals_and_slopes.sort(key=lambda (i, s): coho_interval_left_endpoint_with_epsilon(i))
     bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
     limits = [function.limits(x) for x in bkpt]
     two_sided_discontinuous = limits[0][0] != limits[0][1] and limits[-1][-1] != limits[-1][0]
@@ -221,7 +231,7 @@ def generate_symbolic_general(function, components, field=None):
     pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, current_value)])
     return FastPiecewise(pieces, merge=True)
 
-def generate_additivity_equations_general(function, symbolic, field, f=None):
+def generate_additivity_equations_general(function, symbolic, field, f=None, bkpt=None):
     """
     Using additivity, set up a finite-dimensional system of linear equations
     that must be satisfied by any perturbation.
@@ -234,7 +244,7 @@ def generate_additivity_equations_general(function, symbolic, field, f=None):
     limits_0 = function.limits(field(0))
     limits_1 = function.limits(field(1))
     two_sided_discontinuous = limits_0[0] != limits_0[1] and limits_1[-1] != limits_1[0]
-    for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, reduced = not two_sided_discontinuous):
+    for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, reduced = not two_sided_discontinuous, bkpt=bkpt):
         # FIXME: symbolic has different vector values at 0 and 1.
         # periodic_extension would be set to False if FastPiecewise.__init__ did an error check, which would cause symbolic(0-) to fail.
         # Remove the error check in __init__, or treat 0- and 1+ differently for symbolic.
