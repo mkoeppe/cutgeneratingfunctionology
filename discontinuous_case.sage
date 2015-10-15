@@ -204,8 +204,7 @@ def generate_symbolic_general(function, components, field=None):
     intervals_and_slopes.sort(key=lambda (i, s): coho_interval_left_endpoint_with_epsilon(i))
     bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
     limits = [function.limits(x) for x in bkpt]
-    two_sided_discontinuous = limits[0][0] != limits[0][1] and limits[-1][-1] != limits[-1][0]
-    if two_sided_discontinuous:
+    if function.is_two_sided_discontinuous():
         num_jumps = 2 * len(bkpt) - 2
     else:
         num_jumps = sum([(x[-1] != x[0]) + (x[0] != x[1]) for x in limits[1:-1]]) + \
@@ -220,12 +219,12 @@ def generate_symbolic_general(function, components, field=None):
     j = n
     for i in range(m):
         pieces.append([singleton_interval(bkpt[i]), FastLinearFunction(zeros, current_value)])
-        if two_sided_discontinuous or limits[i][0] != limits[i][1]: # jump at bkpt[i]+
+        if function.is_two_sided_discontinuous() or limits[i][0] != limits[i][1]: # jump at bkpt[i]+
             current_value += unit_vectors[j]
             j += 1
         pieces.append([open_interval(bkpt[i], bkpt[i+1]), FastLinearFunction(slopes[i], current_value - slopes[i]*bkpt[i])])
         current_value += slopes[i] * (bkpt[i+1] - bkpt[i])
-        if two_sided_discontinuous or limits[i+1][-1] != limits[i+1][0]: # jump at bkpt[i+1]-
+        if function.is_two_sided_discontinuous() or limits[i+1][-1] != limits[i+1][0]: # jump at bkpt[i+1]-
             current_value += unit_vectors[j]
             j += 1
     pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, current_value)])
@@ -243,14 +242,13 @@ def generate_additivity_equations_general(function, symbolic, field, f=None, bkp
     equations.append(symbolic(field(1)))
     limits_0 = function.limits(field(0))
     limits_1 = function.limits(field(1))
-    two_sided_discontinuous = limits_0[0] != limits_0[1] and limits_1[-1] != limits_1[0]
-    for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, reduced = not two_sided_discontinuous, bkpt=bkpt):
+    for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, reduced = not function.is_two_sided_discontinuous(), bkpt=bkpt):
         # FIXME: symbolic has different vector values at 0 and 1.
         # periodic_extension would be set to False if FastPiecewise.__init__ did an error check, which would cause symbolic(0-) to fail.
         # Remove the error check in __init__, or treat 0- and 1+ differently for symbolic.
         new_equation = delta_pi_general(symbolic, x, y, (xeps, yeps, zeps))
         equations.append(new_equation)
-    if two_sided_discontinuous:
+    if function.is_two_sided_discontinuous():
         # from symmetric condition. f/2 and (1+f)/2 might not be in bkpt, 
         # so generate_additive_vertices() does not cover these two equations.
         equations.append(symbolic(f/2))

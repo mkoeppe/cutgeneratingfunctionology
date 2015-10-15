@@ -178,7 +178,7 @@ class Face:
         elif self.is_vertical():
             K_mod_1 = interval_mod_1(K)
             t = K_mod_1[0] - J[0]
-            return (1, -t), [open_interval(* K_mod_1)], [open_interval(* J)]
+            return (1, t), [open_interval(* J)], [open_interval(* K_mod_1)]
         elif self.is_diagonal():
             # attention: I, J are not sorted.
             return (-1, K[0]), [open_interval(* I), open_interval(* J)], [open_interval(* J), open_interval(* I)]
@@ -959,6 +959,9 @@ class FastPiecewise (PiecewisePolynomial):
                         is_continuous = False
                         break
         self._is_continuous = is_continuous
+        self._is_two_sided_discontinuous = not ( is_continuous or \
+                                                 limits_at_end_points[0][0] == limits_at_end_points[0][1] or
+                                                 limits_at_end_points[-1][-1] == limits_at_end_points[-1][0] )
 
     # The following makes this class hashable and thus enables caching
     # of the above functions; but we must promise not to modify the
@@ -971,6 +974,12 @@ class FastPiecewise (PiecewisePolynomial):
         return if function is continuous
         """
         return self._is_continuous
+
+    def is_two_sided_discontinuous(self):
+        """
+        return if function is discontinuous at 0+ and at 1-.
+        """
+        return self._is_two_sided_discontinuous
         
     def is_discrete(self):
         """
@@ -2563,7 +2572,7 @@ def plot_completion_diagram(fn, perturbation=None):
     if not (hasattr(fn, '_completion') and fn._completion.is_complete):
         extremality_test(fn, show_plots=False)
     if fn._completion.plot_background is None:
-        fn._completion.plot_background = plot_completion_diagram_background(fn) + plot_function_at_borders(zero_perturbation_partial_function(fn), color='magenta', legend_label='fixed perturbation (mod interpol)', thickness=3)
+        fn._completion.plot_background = plot_completion_diagram_background(fn)
     g = fn._completion.plot() 
     if perturbation is None:
         if hasattr(fn, '_perturbations') and fn._perturbations:
@@ -2843,11 +2852,6 @@ def plot_directed_moves(dmoves, **kwds):
 def plot_dense_moves(component, **kwds):
     return sum([polygon(((domain[0], domain[0]), (domain[1], domain[0]), (domain[1], domain[1]), (domain[0], domain[1])), rgbcolor=kwds.get("rgbcolor", "cyan"), alpha=0.5) + polygon(((domain[0], domain[0]), (domain[1], domain[0]), (domain[1], domain[1]), (domain[0], domain[1])), color="red", fill=False) for domain in component])
 
-def plot_zero_perturbation(covered_components, **kwds):
-    zero_function = FastLinearFunction(0, 0)
-    pieces = [ ((interval[0], interval[1]), zero_function) for component in covered_components for interval in component ]
-    zero_perturbation =  FastPiecewise(pieces)
-    return plot_function_at_borders(zero_perturbation, color='magenta', legend_label='fixed perturbation (mod interpol)', thickness=3)
 
 def reduce_covered_components(covered_components):
     reduced_components = []
@@ -2894,7 +2898,7 @@ def check_for_strip_lemma(m1, m2):
 
 class DirectedMoveCompositionCompletion:
 
-    def __init__(self, fdms, covered_components=[], show_plots=False, plot_background=None):
+    def __init__(self, fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None):
         self.show_plots = show_plots
         self.plot_background = plot_background
         self.move_dict = dict()
@@ -2907,8 +2911,9 @@ class DirectedMoveCompositionCompletion:
         self.any_change_moves = False
         for fdm in fdms:
             self.add_move(fdm)
-        self.num_rounds = 0
+        self.num_rounds = -1
         self.is_complete = False
+        self.proj_add_vert = proj_add_vert
 
     def add_move(self, fdm):
         """
@@ -2934,22 +2939,38 @@ class DirectedMoveCompositionCompletion:
         else:
             self.entire_moves[directed_move] = fdm
 
+    def generate_zero_perturbation_points(self):
+        zero_perturbation_points = copy(self.proj_add_vert)
+        for fdm in self.move_dict.values():
+            moved_projections = [fdm(x) for x in self.proj_add_vert if fdm.can_apply(x)]
+            zero_perturbation_points.update(moved_projections)
+            # sign condiction point
+            if fdm.sign() == -1:
+                invariant_point = fdm[1] / 2
+                if fdm.can_apply(invariant_point):
+                    assert fdm(invariant_point) == invariant_point
+                    zero_perturbation_points.add(invariant_point)
+        #  return a set, unsorted
+        return zero_perturbation_points
+
     def plot(self, *args, **kwds):
         g = plot_directed_moves(list(self.move_dict.values()), **kwds)
-        if self.covered_components:
-            g += plot_zero_perturbation(self.covered_components, **kwds)
+        zero_perturbation =  zero_perturbation_partial_function(self.covered_components, \
+                                                                self.generate_zero_perturbation_points())
+        if zero_perturbation:
+            g += plot_function_at_borders(zero_perturbation, color='magenta', legend_label='fixed perturbation (mod interpol)', thickness=3)
         if self.plot_background:
             g += self.plot_background
         return g
 
     def maybe_show_plot(self, current_dense_move_plot=None):
-        if self.show_plots:
+        if (self.any_change_components or self.any_change_moves) and self.show_plots:
             logging.info("Plotting...")
             if self.is_complete:
                 tag = 'completion'
                 title = "Completion of moves" 
-            elif self.num_rounds == 0:
-                tag = 'completion-0'
+            elif self.num_rounds == -1:
+                tag = 'completion-initial'
                 title = "Initial moves"
             else:
                 tag = 'completion-%s' % self.num_rounds
@@ -3036,12 +3057,27 @@ class DirectedMoveCompositionCompletion:
             self.extend_components_by_moves()
         current_dense_move_plot = self.extend_moves_by_composition_of_moves()
         self.num_rounds += 1
-        if self.any_change_components or self.any_change_moves:
-            self.maybe_show_plot(current_dense_move_plot)
+        self.maybe_show_plot(current_dense_move_plot)
+
+    def add_backward_moves(self):
+        had_any_change_moves = self.any_change_moves
+        self.any_change_moves = False
+        self.num_rounds = 0
+        move_keys = self.move_dict.keys()
+        for dm in move_keys:
+            if dm[0] == 1:
+                forward_fdm = self.move_dict[dm]
+                backward_fdm = FunctionalDirectedMove(forward_fdm.range_intervals(), (1, -dm[1]))
+                self.add_move(backward_fdm)
+        if self.any_change_moves:
+            self.maybe_show_plot()
+        self.any_change_moves = had_any_change_moves
 
     def complete(self, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
-        if self.num_rounds == 0:
+        if self.num_rounds == -1:
             self.maybe_show_plot()
+            self.add_backward_moves()
+
         while (self.any_change_components or self.any_change_moves) and (max_num_rounds is not None or self.num_rounds < max_num_rounds):
             self.complete_one_round()
         if max_num_rounds is not None and self.num_rounds == max_num_rounds:
@@ -3059,8 +3095,9 @@ class DirectedMoveCompositionCompletion:
         return self.move_dict.values(), self.covered_components
 
 
-def directed_move_composition_completion(fdms, covered_components=[], show_plots=False, plot_background=None, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
+def directed_move_composition_completion(fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
     completion = DirectedMoveCompositionCompletion(fdms, covered_components=covered_components, \
+                                                   proj_add_vert = proj_add_vert, \
                                                    show_plots=show_plots, plot_background=plot_background)
     completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
     return completion.results()
@@ -3068,8 +3105,6 @@ def directed_move_composition_completion(fdms, covered_components=[], show_plots
 def plot_completion_diagram_background(fn):
     plot_background = plot_function_at_borders(fn, color='black', **ticks_keywords(fn, y_ticks_for_breakpoints=True))
     plot_background += polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
-    # don't have zero_perturbation_partial_function until generate_directed_move_composition_completion has been done.
-    #plot_background += plot_function_at_borders(zero_perturbation_partial_function(fn), color='magenta', legend_label='fixed perturbation (mod interpol)', thickness=3)
     return plot_background
 
 def generate_directly_covered_components(fn):
@@ -3089,17 +3124,18 @@ generate_directly_covered_intervals = generate_directly_covered_components
 
 @cached_function
 def generate_directed_move_composition_completion(fn, show_plots=False, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
-    # FIXME: show_plots
     completion = getattr(fn, "_completion", None)
     if completion is None:
         functional_directed_moves = generate_functional_directed_moves(fn)
         covered_components = generate_directly_covered_components(fn)
+        proj_add_vert = projections_of_additive_vertices(fn)
         if show_plots:
             plot_background = plot_completion_diagram_background(fn)
         else:
             plot_background = None
         completion = fn._completion = DirectedMoveCompositionCompletion(functional_directed_moves,
                                                                         covered_components = covered_components,
+                                                                        proj_add_vert = proj_add_vert,
                                                                         show_plots=show_plots,
                                                                         plot_background=plot_background)
         completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
@@ -3113,43 +3149,30 @@ def plot_walk_in_completion_diagram(seed, walk_dict):
         delete_one_time_plot_kwds(kwds)
     return g
 
-def scan_sign_contradiction_point(fdm):
-    if fdm.sign() == -1:
-        invariant_point = fdm[1] / 2
-        if fdm.can_apply(invariant_point):
-            assert fdm(invariant_point) == invariant_point
-            yield ((invariant_point, 0), 0, fdm)
-            yield ((invariant_point, 1), 0, fdm)
-
-def scan_sign_contradiction_points(functional_directed_moves):
-     scans = [ scan_sign_contradiction_point(fdm) for fdm in functional_directed_moves ]
-     return merge(*scans)
-
 def scan_domains_of_moves(functional_directed_moves):
      scans = [ scan_coho_interval_list(fdm.intervals(), fdm) for fdm in functional_directed_moves ]
      return merge(*scans)
 
-@cached_function
-def generate_zero_perturbation_points(function):
-    zero_perturbation_points = set()
+def projections_of_additive_vertices(function):
+    proj_add_vert = set()
     for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, reduced=True):
-        # FIXME: Not sure if one can always set reduce=True in the discontinuous case
-        zero_perturbation_points.update([x, y, fractional(z)])
-    return zero_perturbation_points
+        proj_add_vert.update([x, y, fractional(z)])
+    # returns a set, not sorted
+    return proj_add_vert
 
 def scan_zero_perturbation_point(x):
     dummy_zero_fdm = FunctionalDirectedMove([[0, 1]], (1,0))
     yield ((x, 0), 0, dummy_zero_fdm)
     yield ((x, 1), 0, dummy_zero_fdm)
 
-def scan_zero_perturbation_points(function):
-    scans = [ scan_zero_perturbation_point(x) for x in generate_zero_perturbation_points(function) ]
-    return merge(*scans)
+def scan_zero_perturbation_points(zero_perturbation_points):
+    scans = [ scan_zero_perturbation_point(x) for x in zero_perturbation_points ]
+    return  merge(*scans)
 
-def find_decomposition_into_intervals_with_same_moves(functional_directed_moves, scan_of_zero_perturbation_points=None):
+def find_decomposition_into_intervals_with_same_moves(functional_directed_moves, zero_perturbation_points=set()):
+    scan_of_zero_perturbation_points = scan_zero_perturbation_points(zero_perturbation_points)
     scan = merge(scan_domains_of_moves(functional_directed_moves), \
-                 scan_of_zero_perturbation_points, \
-                 scan_sign_contradiction_points(functional_directed_moves))
+                 scan_of_zero_perturbation_points)
     moves = set()
     (on_x, on_epsilon) = (None, None)
     for ((x, epsilon), delta, move) in scan:
@@ -3164,7 +3187,7 @@ def find_decomposition_into_intervals_with_same_moves(functional_directed_moves,
             moves.add(move)
         elif delta == +1:                      # end of interval
             moves.remove(move)
-        elif delta == 0:                       # an invariant point
+        elif delta == 0:                       # a zero perturbation point (including sign contradiction point)
             pass
         else:
             raise ValueError, "Bad scan item"
@@ -3175,9 +3198,8 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
     fn._stability_orbits = []
     fdms, covered_components= generate_directed_move_composition_completion(fn, show_plots=show_plots)
 
-    scan_of_zero_perturbation_points = scan_zero_perturbation_points(fn)
-    decomposition = find_decomposition_into_intervals_with_same_moves(fdms,
-                                                                      scan_of_zero_perturbation_points )
+    zero_perturbation_points = fn._completion.generate_zero_perturbation_points()
+    decomposition = find_decomposition_into_intervals_with_same_moves(fdms, zero_perturbation_points )
     done_intervals = set()
 
     for (interval, moves) in decomposition:
@@ -3186,38 +3208,37 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
             orbit = set()
             walk_dict = dict()
             seed = (interval.a + interval.b) / 2
-            sign_contradiction = False
             for move in moves:
                 moved_interval = move.apply_to_coho_interval(interval)
                 #print "Applying move %s to %s gives %s." % (move, interval, moved_interval)
 
                 moved_seed = move(seed)
-                walk_sign = move.sign()
+                walk_sign= move.sign()
                 done_intervals.add(moved_interval)
                 orbit.add(moved_interval)
-                if moved_seed in walk_dict and walk_dict[moved_seed][0] != walk_sign:
-                    sign_contradiction = True
                 walk_dict[moved_seed] = [walk_sign, None, None] 
-            if sign_contradiction:
-                for y in walk_dict.values():
-                    y[0] = 0
             stability_orbit = (list(orbit), walk_dict, None)
             fn._stability_orbits.append(stability_orbit)
     logging.info("Total: %s stability orbits, lengths: %s" % (len(fn._stability_orbits), \
                     [ ("%s+" if to_do else "%s") % len(shifted_stability_intervals) \
                       for (shifted_stability_intervals, walk_dict, to_do) in fn._stability_orbits ]))
 
-def zero_perturbation_partial_function(function, show_plots=False):
+def zero_perturbation_partial_function(components, zero_perturbation_points):
     """
     Compute the partial function for which the perturbation, modulo
     perturbations that are interpolations of values at breakpoints, is
     known to be zero.
     """
     zero_function = FastLinearFunction(0, 0)
-    pieces = [ (singleton_interval(x), zero_function) for x in generate_zero_perturbation_points(function)]
-    pieces += [ (interval, zero_function) for component in \
-                generate_covered_components(function) for interval in component ]
-    return FastPiecewise(pieces)
+    pieces = []
+    if zero_perturbation_points:
+        pieces += [ (singleton_interval(x), zero_function) for x in zero_perturbation_points]
+    if components:
+        pieces += [ (interval, zero_function) for component in components for interval in component ]
+    if pieces:
+        return FastPiecewise(pieces)
+    else:
+        return None
 
 def generate_uncovered_components(fn, show_plots=False):
     if not hasattr(fn, '_stability_orbits'):
