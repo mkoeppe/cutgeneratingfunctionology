@@ -2902,13 +2902,13 @@ class DirectedMoveCompositionCompletion:
         self.show_plots = show_plots
         self.plot_background = plot_background
         self.move_dict = dict()
-        self.entire_moves = dict()
+        self.sym_init_moves = dict() # updated by self.add_backward_moves() in round 0.
         self.covered_components = covered_components
         if covered_components:
             self.any_change_components = True
         else:
             self.any_change_components = False
-        self.any_change_moves = False
+        self.any_change_moves = set()
         for fdm in fdms:
             self.add_move(fdm)
         self.num_rounds = -1
@@ -2929,15 +2929,10 @@ class DirectedMoveCompositionCompletion:
             if merged.intervals() != self.move_dict[directed_move].intervals():
                 # Cannot compare the functions themselves because of the "hash" magic of FastPiecewise.
                 self.move_dict[directed_move] = merged
-                self.any_change_moves = True
+                self.any_change_moves.add(directed_move)
         else:
             self.move_dict[directed_move] = reduced_fdm
-            self.any_change_moves = True
-        if directed_move in self.entire_moves:
-            merged = merge_functional_directed_moves(self.entire_moves[directed_move], fdm, show_plots=False)
-            self.entire_moves[directed_move] = merged
-        else:
-            self.entire_moves[directed_move] = fdm
+            self.any_change_moves.add(directed_move)
 
     def generate_zero_perturbation_points(self):
         zero_perturbation_points = copy(self.proj_add_vert)
@@ -2991,10 +2986,10 @@ class DirectedMoveCompositionCompletion:
         for component in self.covered_components:
             extended_component = component
             for dm in self.move_dict.keys():
-                if list(intersection_of_coho_intervals([extended_component, self.move_dict[dm].intervals()])):
-                    #can extend the compnent by self.entire_moves[dm]
+                if self.sym_init_moves.has_key(dm) and list(intersection_of_coho_intervals([extended_component, self.move_dict[dm].intervals()])):
+                    #can extend the compnent by self.sym_init_moves[dm]
                     self.any_change_components = True
-                    fdm = self.entire_moves[dm]
+                    fdm = self.sym_init_moves[dm]
                     overlapped_ints = intersection_of_coho_intervals([extended_component, fdm.intervals()]) # generator
                     moved_intervals = [[fdm.apply_to_coho_interval(overlapped_int)] for overlapped_int in overlapped_ints ]
                     extended_component = union_of_coho_intervals_minus_union_of_coho_intervals([extended_component] + moved_intervals, [])
@@ -3004,9 +2999,8 @@ class DirectedMoveCompositionCompletion:
         # kill moves
         self.reduce_moves_by_components()
 
-    def extend_moves_by_composition_of_moves(self):
-        self.any_change_moves = False
-        move_keys = self.move_dict.keys()
+    def extend_components_by_strip_lemma(self):
+        move_keys = self.any_change_moves
         current_dense_move = []
         for dm_a in move_keys:
             for dm_b in move_keys:
@@ -3026,16 +3020,26 @@ class DirectedMoveCompositionCompletion:
                     self.covered_components.append(dense_intervals)
                     # kill moves
                     self.reduce_moves_by_components(given_components = [dense_intervals])
-                # compose moves a and b, starting from entire_moves
-                a = self.entire_moves[dm_a]
-                b = self.entire_moves[dm_b]
-                c = compose_functional_directed_moves(a, b)
-                if c:
-                    self.add_move(c)
         if current_dense_move:
             return plot_dense_moves(current_dense_move)
         else:
             return None
+
+    def extend_moves_by_composition_of_moves(self):
+        move_keys = self.any_change_moves
+        self.any_change_moves = set()
+        current_dense_move = []
+        for dm_a in move_keys:
+            a = self.move_dict.get(dm_a, None)
+            if not a:
+                continue                            # move has been killed
+            # compose move a with b from sym_init_moves
+            for (dm_b, b) in self.sym_init_moves.items():
+                if not self.move_dict.has_key(dm_b):
+                    continue                        # move has been killed
+                c = compose_functional_directed_moves(a, b)
+                if c:
+                    self.add_move(c)
 
     def reduce_moves_by_components(self, given_components=None):
         """
@@ -3055,23 +3059,24 @@ class DirectedMoveCompositionCompletion:
         logging.info("Completing %d functional directed moves and %d covered components..." % (len(self.move_dict), len(self.covered_components)))
         if self.any_change_components:
             self.extend_components_by_moves()
-        current_dense_move_plot = self.extend_moves_by_composition_of_moves()
+        current_dense_move_plot = self.extend_components_by_strip_lemma()
+        self.extend_moves_by_composition_of_moves()
         self.num_rounds += 1
         self.maybe_show_plot(current_dense_move_plot)
 
     def add_backward_moves(self):
-        had_any_change_moves = self.any_change_moves
-        self.any_change_moves = False
         self.num_rounds = 0
-        move_keys = self.move_dict.keys()
+        move_keys = self.any_change_moves
+        self.any_change_moves = set()
         for dm in move_keys:
             if dm[0] == 1:
                 forward_fdm = self.move_dict[dm]
                 backward_fdm = FunctionalDirectedMove(forward_fdm.range_intervals(), (1, -dm[1]))
                 self.add_move(backward_fdm)
-        if self.any_change_moves:
+        if self.any_change_moves: # has new backward moves
             self.maybe_show_plot()
-        self.any_change_moves = had_any_change_moves
+        self.any_change_moves.update(move_keys)
+        self.sym_init_moves = copy(self.move_dict)
 
     def complete(self, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
         if self.num_rounds == -1:
