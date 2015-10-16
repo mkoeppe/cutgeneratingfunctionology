@@ -3096,14 +3096,14 @@ class DirectedMoveCompositionCompletion:
         self.any_change_moves.update(move_keys)
         self.sym_init_moves = copy(self.move_dict)
 
-    def complete(self, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
+    def complete(self, max_num_rounds=None, error_if_max_num_rounds_exceeded=True):
         if self.num_rounds == -1:
             if self.any_change_moves:
                 # do not show move diagram if there is no moves.
                 self.maybe_show_plot()
             self.add_backward_moves()
 
-        while (self.any_change_components or self.any_change_moves) and (max_num_rounds is not None or self.num_rounds < max_num_rounds):
+        while (self.any_change_components or self.any_change_moves) and (max_num_rounds is None or self.num_rounds < max_num_rounds):
             self.complete_one_round()
         if max_num_rounds is not None and self.num_rounds == max_num_rounds:
             if error_if_max_num_rounds_exceeded:
@@ -3120,7 +3120,7 @@ class DirectedMoveCompositionCompletion:
         return self.move_dict.values(), self.covered_components
 
 
-def directed_move_composition_completion(fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
+def directed_move_composition_completion(fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, max_num_rounds=None, error_if_max_num_rounds_exceeded=True):
     completion = DirectedMoveCompositionCompletion(fdms, covered_components=covered_components, \
                                                    proj_add_vert = proj_add_vert, \
                                                    show_plots=show_plots, \
@@ -3150,7 +3150,7 @@ def generate_directly_covered_components(fn):
 generate_directly_covered_intervals = generate_directly_covered_components
 
 @cached_function
-def generate_directed_move_composition_completion(fn, show_plots=False, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
+def generate_directed_move_composition_completion(fn, show_plots=False, max_num_rounds=None, error_if_max_num_rounds_exceeded=True):
     completion = getattr(fn, "_completion", None)
     if completion is None:
         functional_directed_moves = generate_functional_directed_moves(fn)
