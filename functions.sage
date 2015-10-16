@@ -2140,6 +2140,7 @@ class FunctionalDirectedMove (FastPiecewise):
 
     def restricted(self, intervals):
         """
+        Not used.
         Return a new move that is the restriction of domain and codomain of `self` to `intervals`.
         (The result may have the empty set as its domain.)
         """
@@ -2921,7 +2922,7 @@ class DirectedMoveCompositionCompletion:
         Merge or restrict functional directed move if necessary.
         """
         reduced_fdm = fdm.restricting(self.covered_components)
-        if reduced_fdm is None:
+        if not reduced_fdm.intervals():
             return
         directed_move = fdm.directed_move
         if directed_move in self.move_dict:
@@ -3080,7 +3081,9 @@ class DirectedMoveCompositionCompletion:
 
     def complete(self, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
         if self.num_rounds == -1:
-            self.maybe_show_plot()
+            if self.any_change_moves:
+                # do not show move diagram if there is no moves.
+                self.maybe_show_plot()
             self.add_backward_moves()
 
         while (self.any_change_components or self.any_change_moves) and (max_num_rounds is not None or self.num_rounds < max_num_rounds):
