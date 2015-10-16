@@ -374,6 +374,28 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
         p += plot_function_at_borders(fn, covered_components = covered_components)
     return p
 
+def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
+    """
+    Colorful decoration.
+    Plot function on covered intervals with different colors according to slope values,
+    on the upper and the left border of the 2d diagrams.
+    """
+    p = Graphics()
+    if not covered_components is None:
+        bkpt = fn.end_points()
+        limits = fn.limits_at_end_points()
+        colors = rainbow(len(covered_components))
+        delete_one_time_plot_kwds(kwds)
+        for i, component in enumerate(covered_components):
+            for interval in component:
+                x1 = interval[0]
+                x2 = interval[1]
+                y1 = fn.limit(x1, 1)
+                y2 = fn.limit(x2, -1)
+                p += line([(x1, (3/10)*y1 + 1), (x2, (3/10)*y2 + 1)], color=colors[i], zorder=-2, **kwds)
+                p += line([(-(3/10)*y1, x1), (-(3/10)*y2, x2)], color=colors[i], zorder=-2, **kwds)
+    return p
+
 def plot_function_at_borders(fn, color='blue', legend_label="Function pi", covered_components=None, **kwds):
     """
     Plot the function twice, on the upper and the left border, 
@@ -407,16 +429,8 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", cover
                               ((i == len(bkpt)-2) or not (y3 == y4 and y2 is None) and \
                                                      not (y2 == y3 and y4 is None)):
             p += point([(x2, (3/10)*y3 + 1), (-(3/10)*y3, x2)], color=color, pointsize=23, zorder=-1)
-    if not covered_components is None:
-        colors = rainbow(len(covered_components))
-        for i, component in enumerate(covered_components):
-            for interval in component:
-                x1 = interval[0]
-                x2 = interval[1]
-                y1 = fn.limit(x1, 1)
-                y2 = fn.limit(x2, -1)
-                p += line([(x1, (3/10)*y1 + 1), (x2, (3/10)*y2 + 1)], color=colors[i], zorder=-2, **kwds)
-                p += line([(-(3/10)*y1, x1), (-(3/10)*y2, x2)], color=colors[i], zorder=-2, **kwds)
+    # plot function at borders with different colors according to slope values.
+    p += plot_covered_components_at_borders(fn, covered_components, **kwds)
     # add legend_label
     kwds = { 'legend_label': legend_label }
     plot_kwds_hook(kwds)
@@ -426,7 +440,6 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", cover
     else:
         p += line([(0,0), (0,1)], color=color, zorder=-10, **kwds)
         p += line([(0,0), (0,1)], color='white', zorder=-9)
-    # plot function at borders with different colors according to slope values.
     return p
 
 proj_plot_width = 2/100
@@ -2899,9 +2912,11 @@ def check_for_strip_lemma(m1, m2):
 
 class DirectedMoveCompositionCompletion:
 
-    def __init__(self, fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None):
+    def __init__(self, fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None):
         self.show_plots = show_plots
         self.plot_background = plot_background
+        # To show colorful components at borders, need the function. Otherwise set it to default None
+        self.function_at_border = function_at_border
         self.move_dict = dict()
         self.sym_init_moves = dict() # updated by self.add_backward_moves() in round 0.
         self.covered_components = covered_components
@@ -2957,6 +2972,8 @@ class DirectedMoveCompositionCompletion:
             g += plot_function_at_borders(zero_perturbation, color='magenta', legend_label='fixed perturbation (mod interpol)', thickness=3)
         if self.plot_background:
             g += self.plot_background
+        if self.function_at_border and self.covered_components:
+            g +=  plot_covered_components_at_borders(self.function_at_border, self.covered_components, **kwds)
         return g
 
     def maybe_show_plot(self, current_dense_move_plot=None):
@@ -3103,10 +3120,12 @@ class DirectedMoveCompositionCompletion:
         return self.move_dict.values(), self.covered_components
 
 
-def directed_move_composition_completion(fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
+def directed_move_composition_completion(fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, max_num_rounds=8, error_if_max_num_rounds_exceeded=True):
     completion = DirectedMoveCompositionCompletion(fdms, covered_components=covered_components, \
                                                    proj_add_vert = proj_add_vert, \
-                                                   show_plots=show_plots, plot_background=plot_background)
+                                                   show_plots=show_plots, \
+                                                   plot_background=plot_background, \
+                                                   function_at_border=function_at_border)
     completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
     return completion.results()
 
@@ -3145,7 +3164,9 @@ def generate_directed_move_composition_completion(fn, show_plots=False, max_num_
                                                                         covered_components = covered_components,
                                                                         proj_add_vert = proj_add_vert,
                                                                         show_plots=show_plots,
-                                                                        plot_background=plot_background)
+                                                                        plot_background=plot_background,
+                                                                        function_at_border=fn)
+        # To show colorful components at borders, need the function_at_border. Otherwise set it to default None
         completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
     return completion.results()
 
