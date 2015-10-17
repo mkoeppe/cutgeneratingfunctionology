@@ -3018,10 +3018,11 @@ class DirectedMoveCompositionCompletion:
         self.reduce_moves_by_components()
 
     def extend_components_by_strip_lemma(self):
-        move_keys = self.any_change_moves
+        changed_move_keys = self.any_change_moves
+        all_move_keys = self.move_dict.keys()
         current_dense_move = []
-        for dm_a in move_keys:
-            for dm_b in move_keys:
+        for dm_a in changed_move_keys:
+            for dm_b in all_move_keys:
                 a = self.move_dict.get(dm_a, None)
                 b = self.move_dict.get(dm_b, None)
                 if not a or not b:
