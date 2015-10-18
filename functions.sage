@@ -1889,97 +1889,36 @@ def limiting_slopes(fn):
         limit_minus = -limits[-2][0] / (1 - breakpoints[-2])
     return limit_plus, limit_minus
 
-maximal_asymmetric_peaks_around_orbit = 'maximal_asymmetric_peaks_around_orbit'
-maximal_symmetric_peaks_around_orbit = 'maximal_symmetric_peaks_around_orbit'
-narrow_symmetric_peaks_around_orbit = 'narrow_symmetric_peaks_around_orbit'
-recentered_symmetric_peaks = 'recentered_symmetric_peaks'
-recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_positive_epsilon = 'recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_positive_epsilon'
-recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_negative_epsilon = 'recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_negative_epsilon'
-
-default_perturbation_style = maximal_asymmetric_peaks_around_orbit
-
-def approx_discts_function(perturbation_list, stability_interval, field=default_field, \
-                           perturbation_style=default_perturbation_style, function=None):
-    """
-    Construct a function that has peaks of +/- 1 around the points of the orbit.
-    perturbation_list actually is a dictionary.
-    """
+perturbation_template_bkpts = [0, 1/2, 1]
+perturbation_template_values = [0, 1, 0]
+def approx_discts_function(perturbation_list, stability_interval, field=default_field, function=None):
+    assert (stability_interval.a == - stability_interval.b)
     perturb_points = sorted(perturbation_list.keys())
+    pos_pert_bkpts = [(2 * x - 1) * stability_interval.b  for x in perturbation_template_bkpts]
+    pos_pert_values = [x for x in perturbation_template_values]
+    neg_pert_bkpts =  [(1 - 2 * x) * stability_interval.b  for x in perturbation_template_bkpts[::-1]]
+    neg_pert_values = [-x for x in perturbation_template_values[::-1]]
     fn_values = [0]
-    fn_bkpt = [0]
-    # This width is chosen so that the peaks are disjoint, and
-    # so a nice continuous piecewise linear function is constructed.
-    if perturbation_style==maximal_asymmetric_peaks_around_orbit or perturbation_style==maximal_symmetric_peaks_around_orbit or narrow_symmetric_peaks_around_orbit:
-        width = min(abs(stability_interval.a),stability_interval.b)
-        assert width > 0, "Width of stability interval should be positive"
-        assert stability_interval.a < 0 < stability_interval.b, \
-            "Stability interval should contain 0 in it s interior"
+    fn_bkpts = [0]
     for pt in perturb_points:
-        sign = perturbation_list[pt][0] # the "walk_sign" (character) at the point
-        if perturbation_style==maximal_asymmetric_peaks_around_orbit:
-            if sign == 1:
-                left = pt + stability_interval.a
-                right = pt + stability_interval.b
-            else:
-                left = pt - stability_interval.b
-                right = pt - stability_interval.a
-        elif perturbation_style==maximal_symmetric_peaks_around_orbit:
-            left = pt - width
-            right = pt + width
-        elif perturbation_style==narrow_symmetric_peaks_around_orbit:
-            left = pt - width/1000
-            right = pt + width/1000
-        elif perturbation_style==recentered_symmetric_peaks:
-            if sign == 1:
-                left = pt + stability_interval.a
-                right = pt + stability_interval.b
-            else:
-                left = pt - stability_interval.b
-                right = pt - stability_interval.a
-            pt = (left + right) /2
-        elif perturbation_style==recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_positive_epsilon:
-            if function is None:
-                raise ValueError, "This perturbation_style needs to know function"
-            slope_plus, slope_minus = limiting_slopes(function)
-            current_slope = function.which_function(pt + (stability_interval.b + stability_interval.a)/2)._slope 
-            x = (stability_interval.b - stability_interval.a) * (slope_minus - current_slope)/(slope_minus-slope_plus)
-            if sign == 1:
-                left = pt + stability_interval.a
-                right = pt + stability_interval.b
-                pt = left + x
-            else:
-                left = pt - stability_interval.b
-                right = pt - stability_interval.a
-                pt = right - x
-        elif perturbation_style==recentered_peaks_with_slopes_proportional_to_limiting_slopes_for_negative_epsilon:
-            if function is None:
-                raise ValueError, "This perturbation_style needs to know function"
-            slope_plus, slope_minus = limiting_slopes(function)
-            current_slope = function.which_function(pt + (stability_interval.b + stability_interval.a)/2)._slope 
-            x = (stability_interval.b - stability_interval.a) * (slope_plus - current_slope)/(slope_plus-slope_minus)
-            if sign == 1:
-                left = pt + stability_interval.a
-                right = pt + stability_interval.b
-                pt = left + x
-            else:
-                left = pt - stability_interval.b
-                right = pt - stability_interval.a
-                pt = right - x
+        sign = perturbation_list[pt][0]
+        if sign == 1:
+            pert_bkpts = pos_pert_bkpts
+            pert_values = pos_pert_values
         else:
-            raise ValueError, "Unknown perturbation_style: %s" % perturbation_style
-        assert (left >= fn_bkpt[len(fn_bkpt)-1])
-        if (left > fn_bkpt[len(fn_bkpt)-1]):
-            fn_bkpt.append(left)
-            fn_values.append(0)
-        fn_bkpt.append(pt)
-        fn_values.append(sign)
-        fn_bkpt.append(right)
+            pert_bkpts = neg_pert_bkpts
+            pert_values = neg_pert_values
+        assert ( pt + pert_bkpts[0] >= fn_bkpts[len(fn_bkpts)-1])
+        for i in range(len(pert_bkpts)):
+            if i == 0 and pt + pert_bkpts[0] == fn_bkpts[len(fn_bkpts)-1]:
+                continue
+            fn_bkpts.append(pt + pert_bkpts[i])
+            fn_values.append(pert_values[i])
+    assert (1 >= fn_bkpts[len(fn_bkpts)-1])
+    if (1 > fn_bkpts[len(fn_bkpts)-1]):
+        fn_bkpts.append(1)
         fn_values.append(0)
-    assert (1 >= fn_bkpt[len(fn_bkpt)-1])
-    if (1 > fn_bkpt[len(fn_bkpt)-1]):
-        fn_bkpt.append(1)
-        fn_values.append(0)
-    return piecewise_function_from_breakpoints_and_values(fn_bkpt, fn_values, field)
+    return piecewise_function_from_breakpoints_and_values(fn_bkpts, fn_values, field)
 
 def merge_bkpt(bkpt1, bkpt2):
     i = 0
@@ -2451,7 +2390,7 @@ def generate_nonsymmetric_vertices(fn, f):
 class MaximumNumberOfIterationsReached(Exception):
     pass
 
-def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, show_all_perturbations=False):
+def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, phase_1 = False, finite_dimensional_test_first = False, show_all_perturbations=False):
     """Check if `fn` is extreme for the group relaxation with the given `f`. 
 
     If `fn` is discrete, it has to be defined on a cyclic subgroup of
@@ -2510,7 +2449,7 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturba
     if do_phase_1_lifting:
         finite_dimensional_test_first = True
     seen_perturbation = False
-    generator = generate_perturbations(fn, show_plots=show_plots, f=f, max_num_it=max_num_it, finite_dimensional_test_first=finite_dimensional_test_first, perturbation_style=perturbation_style)
+    generator = generate_perturbations(fn, show_plots=show_plots, f=f, max_num_it=max_num_it, finite_dimensional_test_first=finite_dimensional_test_first)
     fn._perturbations = []
     for index, perturbation in enumerate(generator):
         fn._perturbations.append(perturbation)
@@ -2526,7 +2465,7 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, perturba
         logging.info("Thus the function is extreme.")
     return not seen_perturbation
 
-def generate_perturbations(fn, show_plots=False, f=None, max_num_it=1000, perturbation_style=default_perturbation_style, finite_dimensional_test_first = False):
+def generate_perturbations(fn, show_plots=False, f=None, max_num_it=1000, finite_dimensional_test_first = False):
     """
     Generate (with "yield") perturbations for `extremality_test`.
     """
@@ -2545,7 +2484,7 @@ def generate_perturbations(fn, show_plots=False, f=None, max_num_it=1000, pertur
             all = finite
         else:
             logging.info("Uncovered intervals: %s", (uncovered_intervals,))
-            equi = generate_perturbations_equivariant(fn, show_plots=show_plots, f=f, max_num_it=max_num_it, perturbation_style=perturbation_style)
+            equi = generate_perturbations_equivariant(fn, show_plots=show_plots, f=f, max_num_it=max_num_it)
             if finite_dimensional_test_first:
                 all = itertools.chain(finite, equi)
             else:
@@ -2553,7 +2492,7 @@ def generate_perturbations(fn, show_plots=False, f=None, max_num_it=1000, pertur
     for perturbation in all:
         yield perturbation
 
-def generate_perturbations_equivariant(fn, show_plots=False, f=None, max_num_it=1000, perturbation_style=default_perturbation_style):
+def generate_perturbations_equivariant(fn, show_plots=False, f=None, max_num_it=1000):
     if not fn.is_continuous():
         logging.warning("Code for detecting perturbations using moves is EXPERIMENTAL in the discontinuous case.")
     generator = generate_generic_seeds_with_completion(fn, show_plots=show_plots, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
@@ -2561,7 +2500,7 @@ def generate_perturbations_equivariant(fn, show_plots=False, f=None, max_num_it=
     for seed, stab_int, walk_list in generator:
         # for debugging only:
         #global last_seed, last_stab_int, last_walk_list = seed, stab_int, walk_list
-        perturb = approx_discts_function(walk_list, stab_int, perturbation_style=perturbation_style, function=fn)
+        perturb = approx_discts_function(walk_list, stab_int, function=fn)
         perturb._seed = seed
         perturb._stab_int = stab_int
         perturb._walk_list = walk_list
@@ -2955,7 +2894,7 @@ class DirectedMoveCompositionCompletion:
         for fdm in self.move_dict.values():
             moved_projections = [fdm(x) for x in self.proj_add_vert if fdm.can_apply(x)]
             zero_perturbation_points.update(moved_projections)
-            # sign condiction point
+            # sign contradiction point
             if fdm.sign() == -1:
                 invariant_point = fdm[1] / 2
                 if fdm.can_apply(invariant_point):
