@@ -34,7 +34,7 @@ def gmic(f=4/5, field=None, conditioncheck=True):
 
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
     """
-    if conditioncheck and not bool(0 < f < 1):
+    if not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
     gmi_bkpt = [0,f,1]
     gmi_values = [0,1,0]
@@ -76,9 +76,9 @@ def gj_2_slope(f=3/5, lambda_1=1/6, field=None, conditioncheck=True):
 
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
     """
+    if not (bool(0 < f < 1) & bool(0 < lambda_1 < f/(1 - f))):
+        raise ValueError, "Bad parameters. Unable to construct the function."
     if conditioncheck:
-        if not (bool(0 < f < 1) & bool(0 < lambda_1 < f/(1 - f))):
-            raise ValueError, "Bad parameters. Unable to construct the function."
         if not (bool(lambda_1 <= 1)):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -121,9 +121,9 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
 
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
     """
+    if not (bool(0 < f < 1) & (m >= 2) & (n >= 2) & bool (s_positive > 1 / f) & bool(s_negative < 1/(f - 1))):
+        raise ValueError, "Bad parameters. Unable to construct the function."
     if conditioncheck:
-        if not (bool(0 < f < 1) & (m >= 2) & (n >= 2) & bool (s_positive > 1 / f) & bool(s_negative < 1/(f - 1))):
-            raise ValueError, "Bad parameters. Unable to construct the function."
         if not (bool(m >= (s_positive - s_positive*s_negative*f) / (s_positive - s_negative)) & bool(n >= (- s_negative + s_positive*s_negative*(f - 1)) / (s_positive - s_negative))):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -169,10 +169,10 @@ def dg_2_step_mir(f=4/5, alpha=3/10, field=None, conditioncheck=True):
 
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
     """
+    if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
+        raise ValueError, "Bad parameters. Unable to construct the function."
     according_to_literature = None
     if conditioncheck:
-        if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
-            raise ValueError, "Bad parameters. Unable to construct the function."
         if not bool(ceil(f / alpha) <= 1 / alpha):
             logging.info("Conditions for extremality are NOT satisfied.")
             according_to_literature = 'constructible'
@@ -405,13 +405,13 @@ def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditionc
     Reference:
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
     """
-    if conditioncheck and not bool(0 < f < 1):
+    if not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
     a = lambda_1 * f / 2
     a1 = a + lambda_2 * (f - 1) / 2
-    if conditioncheck:
-        if not bool(0 < a1 < a < f / 2):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+    if not bool(0 < a1 < a < f / 2):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if conditioncheck:     
         # note the discrepancy with the published literature
         if not (bool(0 <= lambda_1 <= 1/2) & bool(0 <= lambda_2 <= 1)):
             logging.info("Conditions for extremality are NOT satisfied.")
@@ -467,9 +467,9 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
 
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
     """
-    if conditioncheck:
-        if not bool(0 < f < bkpt < 1 + f - bkpt < 1):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+    if not bool(0 < f < bkpt < 1 + f - bkpt < 1):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if conditioncheck:       
         #if not ((f in QQ) & (bkpt in QQ) & bool(0 < f < bkpt < ((1 + f)/4) < 1)):
         if not bool(0 < f < bkpt < ((1 + f)/4) < 1):
             logging.info("Conditions for extremality are NOT satisfied.")
@@ -533,6 +533,8 @@ class Dg2StepMirLimit(ExtremeFunctionsFactory):
         """     
         if conditioncheck:
             self.check_conditions(f, d)
+        if not (bool(0 < f < 1) & (d >= 1)):
+            raise ValueError, "Bad parameters. Unable to construct the function."
         f = nice_field_values([f], field)[0]
         field = f.parent()
         pieces = []
@@ -579,9 +581,9 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, c
     """
     m = nb_pieces_left
     d = nb_pieces_right
+    if not ((m in ZZ) & (d in ZZ) & (m >= 1) & (d >= 1) & bool(0 < f < 1)):
+        raise ValueError, "Bad parameters. Unable to construct the function."
     if conditioncheck:
-        if not ((m in ZZ) & (d in ZZ) & (m >= 1) & (d >= 1) & bool(0 < f < 1)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
         if not bool(m*(1 - f) <= d*f):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -637,9 +639,9 @@ def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
                 Mathematical Programming 121 (2010) 145–170.
     """
-    if conditioncheck:
-        if not bool(0 < f < 1):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+    if not bool(0 < f < 1):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if conditioncheck:      
         if not bool(0 < f < 1/3):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -802,7 +804,7 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
         [IR1]:  A. Basu, M. Conforti, G. Cornuéjols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
                     Mathematical Programming Ser. A 133 (2012), 25–38.
     """
-    if conditioncheck and not bool(0 < f < 1):
+    if not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
     n = len(e)
     if n == 0:
@@ -811,14 +813,14 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
     a = [1]
     b = [f]
     sum_e = 0
-    if conditioncheck and not bool(0 < e[0]):
+    if not bool(0 < e[0]):
         raise ValueError, "Bad parameters. Unable to construct the function."
     t = bool(e[0] <= 1 - f)
     for i in range(0, n):
         a.append((b[i] + e[i]) / 2)
         b.append((b[i] - e[i]) / 2)
         sum_e = sum_e + (2^i) * e[i]
-        if conditioncheck and not (bool(e[i] > 0) & bool(sum_e < f)):
+        if not (bool(e[i] > 0) & bool(sum_e < f)):
             raise ValueError, "Bad parameters. Unable to construct the function."
         if not (i == 0) | bool(e[i] <= e[i-1]):
             t = False
@@ -1136,10 +1138,10 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
         [KChen_thesis]:  K. Chen, Topics in group methods for integer programming,
                             Ph.D. thesis, Georgia Institute of Technology, June 2011.
     """
+    if not (bool(0 < f < 1) and bool(s_pos > 1/f) and bool(s_neg < 1/(f - 1)) \
+                            and bool(0 < lam1 < 1) and bool(0 < lam2 < 1)):
+        raise ValueError, "Bad parameters. Unable to construct the function."
     if conditioncheck:
-        if not (bool(0 < f < 1) and bool(s_pos > 1/f) and bool(s_neg < 1/(f - 1)) \
-                                and bool(0 < lam1 < 1) and bool(0 < lam2 < 1)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
         if bool(1/2 <= f) and bool(lam1 < 1/2) and bool(lam2 < 1/2) and \
                 bool(1 - f + 1/s_neg < lam1 < (s_pos - s_neg) / s_pos / (1 - s_neg * f)) and \
                 bool (f - 1 / s_pos < lam2 < (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)):
@@ -1194,9 +1196,9 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
     .. [RLM2009] J.-P. P. Richard, Y. Li, and L. A. Miller, Valid inequalities for MIPs and group polyhedra
        from approximate liftings, Mathematical Programming 118 (2009), no. 2, 253–277, doi:10.1007/s10107-007-0190-9
     """
-    if conditioncheck:
-        if not bool(0 < f < 1):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+    if not bool(0 < f < 1):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if conditioncheck:      
         if bool(f < 1/3):
             pass # is the fig3_lowerleft case
         else:
@@ -1286,6 +1288,8 @@ class LlStrongFractional(ExtremeFunctionsFactory):
         """
         if conditioncheck:
             self.check_conditions(f)
+        if not bool(0 < f < 1):
+            raise ValueError, "Bad parameters. Unable to construct the function."
         f = nice_field_values([f], field)[0]
         field = f.parent()
         k = ceil(1/f) -1
