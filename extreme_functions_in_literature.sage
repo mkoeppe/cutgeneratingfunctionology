@@ -248,6 +248,8 @@ class Dg2StepMir(ExtremeFunctionsFactory):
         """
         if conditioncheck:
             self.check_conditions(f, alpha)
+        if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
+            raise ValueError, "Bad parameters. Unable to construct the function."
         rho = f - alpha * floor(f / alpha)
         tau = ceil(f / alpha)
         s_positive = (1 - rho*tau) / (rho*tau*(1 - f))
@@ -257,7 +259,7 @@ class Dg2StepMir(ExtremeFunctionsFactory):
         slopes = [s_positive, s_negative] * tau
         return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
-dg_2_step_mir = Dg2StepMir()
+#dg_2_step_mir = Dg2StepMir()
 
 
 def interval_length_n_step_mir(n, m, a, b):
