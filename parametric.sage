@@ -711,109 +711,24 @@ def find_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
 ##############################
 # Plot regions
 #############################
-
-from sage.plot.contour_plot import equify
-from sage.plot.contour_plot import ContourPlot
-from sage.plot.primitive import GraphicPrimitive
-from sage.misc.decorators import options, suboptions
-from sage.plot.colors import rgbcolor, get_cmap
-from sage.misc.misc import xsrange
-import operator
-
-@options(plot_points=100, incol='blue', outcol=None, bordercol=None, borderstyle=None, borderwidth=None,frame=False,axes=True, legend_label=None, aspect_ratio=1, alpha=1)
-def region_plot_patch(f, xrange, yrange, plot_points, incol, outcol, bordercol, borderstyle, borderwidth, alpha, **options):
-    from sage.plot.all import Graphics
-    from sage.plot.misc import setup_for_eval_on_grid
-    from sage.symbolic.expression import is_Expression
-    import numpy
-
-    if not isinstance(f, (list, tuple)):
-        f = [f]
-
-    feqs = [equify(g) for g in f if is_Expression(g) and g.operator() is operator.eq and not equify(g).is_zero()]
-    f = [equify(g) for g in f if not (is_Expression(g) and g.operator() is operator.eq)]
-    neqs = len(feqs)
-    if neqs > 1:
-        logging.warn("There are at least 2 equations; If the region is degenerated to points, plotting might show nothing.")
-        feqs = [sum([fn**2 for fn in feqs])]
-        neqs = 1
-    if neqs and not bordercol:
-        bordercol = incol
-    if not f:
-        return implicit_plot(feqs[0], xrange, yrange, plot_points=plot_points, fill=False, \
-                             linewidth=borderwidth, linestyle=borderstyle, color=bordercol, **options)
-    f_all, ranges = setup_for_eval_on_grid(feqs + f, [xrange, yrange], plot_points)
-    xrange,yrange=[r[:2] for r in ranges]
-
-    xy_data_arrays = numpy.asarray([[[func(x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
-                                     for y in xsrange(*ranges[1], include_endpoint=True)]
-                                    for func in f_all[neqs::]],dtype=float)
-    xy_data_array=numpy.abs(xy_data_arrays.prod(axis=0))
-    # Now we need to set entries to negative iff all
-    # functions were negative at that point.
-    neg_indices = (xy_data_arrays<0).all(axis=0)
-    xy_data_array[neg_indices]=-xy_data_array[neg_indices]
-
-    from matplotlib.colors import ListedColormap
-    incol = rgbcolor(incol)
-    if outcol:
-        outcol = rgbcolor(outcol)
-        cmap = ListedColormap([incol, outcol])
-        cmap.set_over(outcol, alpha=alpha)
-    else:
-        outcol = rgbcolor('white')
-        cmap = ListedColormap([incol, outcol])
-        cmap.set_over(outcol, alpha=0)
-    cmap.set_under(incol, alpha=alpha)
-
-    g = Graphics()
-
-    # Reset aspect_ratio to 'automatic' in case scale is 'semilog[xy]'.
-    # Otherwise matplotlib complains.
-    scale = options.get('scale', None)
-    if isinstance(scale, (list, tuple)):
-        scale = scale[0]
-    if scale == 'semilogy' or scale == 'semilogx':
-        options['aspect_ratio'] = 'automatic'
-
-    g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
-
-    if neqs == 0:
-        g.add_primitive(ContourPlot(xy_data_array, xrange,yrange,
-                                dict(contours=[-1e-20, 0, 1e-20], cmap=cmap, fill=True, **options)))
-    else:
-        mask = numpy.asarray([[elt > 0 for elt in rows] for rows in xy_data_array], dtype=bool)
-        xy_data_array = numpy.asarray([[f_all[0](x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
-                                        for y in xsrange(*ranges[1], include_endpoint=True)], dtype=float)
-        xy_data_array[mask] = None
-    if bordercol or borderstyle or borderwidth:
-        cmap = [rgbcolor(bordercol)] if bordercol else ['black']
-        linestyles = [borderstyle] if borderstyle else None
-        linewidths = [borderwidth] if borderwidth else None
-        g.add_primitive(ContourPlot(xy_data_array, xrange, yrange,
-                                    dict(linestyles=linestyles, linewidths=linewidths,
-                                         contours=[0], cmap=[bordercol], fill=False, **options)))
-
-    return g
-
 def plot_region_given_dim_and_description(d, region_description, color, alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000):
     x, y = var('x, y')
     if type(region_description) is tuple:
         leq, lin = region_description
         if d == 2:
-            return region_plot_patch([ lhs(x, y) == 0 for lhs in leq ] + [ lhs(x, y) < 0 for lhs in lin ], \
+            return region_plot([ lhs(x, y) == 0 for lhs in leq ] + [ lhs(x, y) < 0 for lhs in lin ], \
                     (x, xmin, xmax), (y, ymin, ymax), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
         else:
-            return region_plot_patch([ lhs(x) == 0 for lhs in leq ] + [ lhs(x) < 0 for lhs in lin ] + [y >= -0.01, y <= 0.01], \
+            return region_plot([ lhs(x) == 0 for lhs in leq ] + [ lhs(x) < 0 for lhs in lin ] + [y >= -0.01, y <= 0.01], \
                     (x, xmin, xmax), (y, -0.1, 0.3), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color, ticks=[None,[]])
     else:
         # region_description is a lambda function,
         # such as find_region_according_to_literature(function from factory classes)
         if d == 2:
-            return region_plot_patch([region_description], (x, xmin, xmax), (y, ymin, ymax), \
+            return region_plot([region_description], (x, xmin, xmax), (y, ymin, ymax), \
                     incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
         else:
-            return region_plot_patch([region_description] + [y >= -0.01, y <= 0.01], (x, xmin, xmax), (y, -0.1, 0.3), \
+            return region_plot([region_description] + [y >= -0.01, y <= 0.01], (x, xmin, xmax), (y, -0.1, 0.3), \
                     incol=color, alpha=alpha, plot_points=plot_points, bordercol=color, ticks=[None,[]])
 
 def plot_region_according_to_literature(function, var_name, default_args=None, level="factor", \
@@ -1029,28 +944,23 @@ class SemialgebraicComplexComponent:
         else:
             bordercolor = innercolor
             ptcolor = 'white'
-        if slice_value:
+        if not slice_value:
+            d = len(self.var_value)
+        else:
             # assert (len(slice_value) == len(self.var_value))
             d = 0
-            parametric_point = []
             non_empty_slice = True
             for (i, z) in enumerate(slice_value):
                 if z is None:
                     d += 1
-                    if d == 1:
-                        parametric_point.append(x)
-                    elif d == 2:
-                        parametric_point.append(y)
-                    else:
-                        raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
-                else:
-                    parametric_point.append(z)
-                    if non_empty_slice and not is_value_in_interval(z, self.bounds[i]):
-                        non_empty_slice = False
-        else:
-            d = len(self.var_value)
-            if d > 2:
-                raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
+                elif non_empty_slice and not is_value_in_interval(z, self.bounds[i]):
+                    non_empty_slice = False
+
+            def currying_point(a, b):
+                c = iter((a,b))
+                return (c.next() if z is None else z for z in slice_value)
+        if d > 2:
+            raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
         if not var_bounds:
             xmin = ymin = -0.1
             xmax = ymax = 1.1
@@ -1061,28 +971,26 @@ class SemialgebraicComplexComponent:
         if d == 2:
             if not slice_value:
                 if self.leq or self.lin:
-                    g += region_plot_patch([ lhs(x, y) == 0 for lhs in self.leq ] + [ lhs(x, y) < 0 for lhs in self.lin ], \
-                                           (x, xmin, xmax), (y, ymin, ymax), \
-                                           incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
+                    g += region_plot([ lhs(x, y) == 0 for lhs in self.leq ] + [ lhs(x, y) < 0 for lhs in self.lin ], \
+                                     (x, xmin, xmax), (y, ymin, ymax), \
+                                     incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
                 g += point(self.var_value, color = ptcolor, size = 2, zorder=10)
             elif non_empty_slice:
-                g += region_plot_patch([(lambda x, y: lhs(parametric_point) == 0) for lhs in self.leq] + \
-                                       [(lambda x, y: lhs(parametric_point) < 0) for lhs in self.lin], \
-                                       (x, xmin, xmax), (y, ymin, ymax), \
-                                       incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
+                g += region_plot(lambda x, y: (all(l(*currying_point(x,y))<0 for l in self.lin)), #and (all(abs(l(*currying_point(x,y))) < 0.000001 for l in c.leq)
+                                (x, xmin, xmax), (y, ymin, ymax), \
+                                incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
         else:
             if not slice_value:
                 if self.leq or self.lin:
-                    g += region_plot_patch([ lhs(x) == 0 for lhs in self.leq ] + [ lhs(x) < 0 for lhs in self.lin ] \
-                                           + [y >= -0.01, y <= 0.01], (x, xmin, xmax), (y, -0.1, 0.3), \
-                                           incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor, ticks=[None,[]])
+                    g += region_plot([ lhs(x) == 0 for lhs in self.leq ] + [ lhs(x) < 0 for lhs in self.lin ] \
+                                     + [y >= -0.01, y <= 0.01], (x, xmin, xmax), (y, -0.1, 0.3), \
+                                     incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor, ticks=[None,[]])
                 g += point([self.var_value[0], 0], color = ptcolor, size = 2, zorder=10)
             elif non_empty_slice:
-                g += region_plot_patch([(lambda x, y: lhs(parametric_point) == 0) for lhs in self.leq] + \
-                                       [(lambda x, y: lhs(parametric_point) < 0) for lhs in self.lin] + \
-                                       [y >= -0.01, y <= 0.01], \
-                                       (x, xmin, xmax), (y, -0.1, 0.3), \
-                                       incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor, ticks=[None,[]])
+                g += region_plot(lambda x, y: (all(l(*currying_point(x,y))<0 for l in self.lin) and \
+                                               y >= -0.01 and y <= 0.01), \
+                                 (x, xmin, xmax), (y, -0.1, 0.3), \
+                                 incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor, ticks=[None,[]])
         return g
 
 class SemialgebraicComplex:
