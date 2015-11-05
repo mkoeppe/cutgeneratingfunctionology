@@ -8,8 +8,9 @@ from igp import *
 import sage.structure.element
 from sage.structure.element import FieldElement
 
-from sage.libs.ppl import Variable, Constraint, Linear_Expression, Constraint_System, NNC_Polyhedron, Poly_Con_Relation
+from sage.libs.ppl import Variable, Constraint, Linear_Expression, Constraint_System, NNC_Polyhedron, Poly_Con_Relation, Poly_Gen_Relation, Generator
 poly_is_included = Poly_Con_Relation.is_included()
+point_is_included = Poly_Gen_Relation.subsumes()
 
 ###############################
 # Symbolic Real Number Field
@@ -659,6 +660,9 @@ def find_region_according_to_literature(function, var_name, var_value, region_le
 
 def find_region_around_given_point(K, h, level="factor", region_level='extreme', is_minimal=None, use_simplified_extremality_test=True):
     ## Note: region_level = 'constructible' / 'minimal'/ 'extreme'. test cases see find_parameter_region()
+    if h is None:
+        leq, lin = read_simplified_leq_lin(K, level=level)
+        return 'not_constructible', leq, lin
     if region_level == 'constructible':
         leq, lin = read_simplified_leq_lin(K, level=level)
         return 'is_constructible', leq, lin
@@ -698,10 +702,10 @@ def find_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_va
     K, test_point = construct_field_and_test_point(function, var_name, var_value, default_args)
     try:
         h = function(**test_point)
-        region_type, leq, lin = find_region_around_given_point(K, h, level=level, region_level=region_level, \
-                        is_minimal=None, use_simplified_extremality_test=use_simplified_extremality_test)
     except:
-        region_type, leq, lin = 'not_constructible', [], []
+        h = None
+    region_type, leq, lin = find_region_around_given_point(K, h, level=level, region_level=region_level, \
+                        is_minimal=None, use_simplified_extremality_test=use_simplified_extremality_test)
     return region_type, leq, lin
 
 ##############################
@@ -994,6 +998,181 @@ def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], rando
         fun_name = fun_names[i]
         g.show(title=fun_name+'%s' % var_name)
     return regions, tested_points, last_n_points_were_covered
+
+
+###########################
+# Super class that stores the computation so far
+###########################
+class SemialgebraicComplexComponent:
+
+    def __init__(self, K, leq, lin, var_value, region_type):
+        self.leq = leq
+        self.lin = lin
+        self.var_value = var_value
+        self.region_type = region_type
+        self.polyhedron = K.polyhedron
+        self.bounds = []
+        for i in range(len(var_value)):
+            v = Variable(i)
+            lowerbound = self.polyhedron.minimize(Linear_Expression(v))
+            upperbound = self.polyhedron.maximize(Linear_Expression(v))
+            self.bounds.append((lowerbound, upperbound))
+
+    def plot(self, alpha=0.5, var_bounds=None, plot_points=1000):
+        x, y = var('x, y')
+        g = Graphics()
+        covered_type_color = {'not_constructible': 'white', 'not_minimal': 'orange', 'not_extreme': 'green', 'is_extreme': 'blue'}
+        innercolor = covered_type_color[self.region_type]
+        if self.region_type == 'not_constructible':
+            bordercolor = 'gray'
+            ptcolor = 'black'
+        else:
+            bordercolor = innercolor
+            ptcolor = 'white'
+        if len(self.var_value) > 2:
+            raise NotImplementedError, "plotting region with dimension > 2 is not implemented."
+        if not var_bounds:
+            xmin = ymin = -0.1
+            xmax = ymax = 1.1
+        else:
+            xmin, xmax = var_bounds[0]
+            ymin, ymax = var_bounds[1]
+        if len(self.var_value) == 2:
+            if self.leq or self.lin:
+                g = region_plot_patch([ lhs(x, y) == 0 for lhs in self.leq ] + [ lhs(x, y) < 0 for lhs in self.lin ], \
+                    (x, xmin, xmax), (y, ymin, ymax), incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
+            g += point(self.var_value, color = ptcolor, size = 2, zorder=10)
+        else:
+            if self.leq or self.lin:
+                g = region_plot_patch([ lhs(x) == 0 for lhs in self.leq ] + [ lhs(x) < 0 for lhs in self.lin ] + [y >= -0.01, y <= 0.01], \
+                    (x, xmin, xmax), (y, -0.1, 0.3), incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor, ticks=[None,[]])
+            g += point([self.var_value[0], 0], color = ptcolor, size = 2, zorder=10)
+        return g
+
+class SemialgebraicComplex:
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.WARN)    # Suppress output in automatic tests.
+        sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])
+        sage: complex.monomial_list
+        [f, bkpt]
+        sage: complex.shoot_random_points(50)  # Got WARNING: The graph is probably all covered after testing 17 random points
+        sage: g = complex.plot()                   # not tested
+        sage: g.save("complex_drlm_backward_3_slope_f_bkpt.pdf") # not tested
+
+        sage: complex = SemialgebraicComplex(gmic, ['f'])
+        sage: complex.shoot_random_points(50)    # Got WARNING: The graph is probably all covered after testing 4 random points
+
+        sage: complex = SemialgebraicComplex(gj_2_slope, ['f', 'lambda_1'])
+        sage: complex.shoot_random_points(50)    # Got WARNING: The graph is probably all covered after testing 18 random points
+    """
+
+    def __init__(self, function, var_name, **opt_non_default):
+        #self.num_components = 0
+        self.components = []
+
+        self.function = function
+        self.d = len(var_name)
+        self.var_name = var_name
+        self.default_args = read_default_args(function, **opt_non_default)
+
+        self.monomial_list = []
+        self.v_dict = {}
+        K = SymbolicRealNumberField([0]*self.d, var_name)
+        for i in range(self.d):
+            v = K.gens()[i].sym()
+            self.monomial_list.append(v)
+            self.v_dict[v] = Variable(i)
+
+    def generate_random_var_value(self, var_bounds=None):
+        var_value = []
+        for i in range(self.d):
+            if not var_bounds:
+                x = QQ(uniform(-0.1, 1.1))
+            else:
+                x = QQ(uniform(var_bounds[i][0], var_bounds[i][1]))
+            var_value.append(x)
+        return var_value
+
+    def is_random_point_covered(self, var_value):
+        monomial_value = [m(var_value) for m in self.monomial_list]
+        # coefficients in ppl point must be integers.
+        lcm_monomial_value = lcm([x.denominator() for x in monomial_value])
+        #print [x * lcm_monomial_value for x in monomial_value]
+        pt = Generator.point(Linear_Expression([x * lcm_monomial_value for x in monomial_value], 0), lcm_monomial_value)
+        for c in self.components:
+            # Check if the random_point is contained in the box.
+            if c.region_type == 'not_constructible' and c.leq == [] and c.lin == []:
+                continue
+            if is_point_in_box(var_value, c.bounds):
+                # Check if all eqns/ineqs are satisfied.
+                if c.polyhedron.relation_with(pt).implies(point_is_included):
+                    return True
+        return False
+        
+    def shoot_one_random_point(self, var_bounds=None, max_failings=200):
+        num_failings = 0
+        found_possible_point = False
+        while (not found_possible_point) and (not max_failings or num_failings < max_failings):
+            var_value = self.generate_random_var_value(var_bounds=var_bounds)
+            # This point is not already covered.
+            if self.is_random_point_covered(var_value):
+                num_failings += 1
+            else:
+                found_possible_point = True
+        if not found_possible_point:
+            #raise ValueError, "Maximum number of failing random points is reached."
+            return False
+        unlifted_space_dim =  len(self.monomial_list)
+        K, test_point = construct_field_and_test_point(self.function, self.var_name, var_value, self.default_args)
+        K.monomial_list = self.monomial_list
+        K.v_dict = self.v_dict
+        K.polyhedron.add_space_dimensions_and_embed(len(K.monomial_list))
+
+        try:
+            h = self.function(**test_point)
+        except:
+            # Function is non-contructible at this random point.
+            h = None
+        region_type, leq, lin =  find_region_around_given_point(K, h, level="factor", region_level='extreme', \
+                                                                is_minimal=None,use_simplified_extremality_test=True)
+        #if see new monomial, lift polyhedrons of the previously computed components.
+        dim_to_add = len(self.monomial_list) - unlifted_space_dim
+        if dim_to_add > 0:
+            for c in self.components:
+                c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
+        new_component = SemialgebraicComplexComponent(K, leq, lin, var_value, region_type)
+        self.components.append(new_component)
+        return True
+
+    def shoot_random_points(self, num, var_bounds=None, max_failings=200):
+        for i in range(num):
+            found_uncovered_random_point = self.shoot_one_random_point(var_bounds=var_bounds, max_failings=max_failings)
+            if not found_uncovered_random_point:
+                logging.warn( "The graph is probably all covered after testing %s random points" % len(self.components))
+                return
+
+    def plot(self, alpha=0.5, var_bounds=None, plot_points=1000):
+        g = Graphics()
+        for c in self.components:
+            g += c.plot(alpha=alpha, var_bounds=var_bounds, plot_points=plot_points)
+        return g
+
+def is_point_in_box(var_value, bounds):
+    for i in range(len(var_value)):
+        v = var_value[i]
+        lb = bounds[i][0]
+        ub = bounds[i][1]
+        if ub['bounded']:
+            upperbound = ub['sup_n']/ub['sup_d']
+            if (upperbound < v) or (ub['maximum']==False and upperbound == v):
+                return False
+        if lb['bounded']:
+            lowerbound = lb['inf_n']/lb['inf_d']
+            if (lowerbound > v) or (lb['minimum']==False and lowerbound == v):
+                return False
+    return True
 
 ##############################
 # linearly independent in Q
