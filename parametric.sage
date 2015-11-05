@@ -1018,7 +1018,7 @@ class SemialgebraicComplexComponent:
             upperbound = self.polyhedron.maximize(Linear_Expression(v))
             self.bounds.append((lowerbound, upperbound))
 
-    def plot(self, alpha=0.5, var_bounds=None, plot_points=1000):
+    def plot(self, alpha=0.5, var_bounds=None, plot_points=1000, slice_value=None):
         x, y = var('x, y')
         g = Graphics()
         covered_type_color = {'not_constructible': 'white', 'not_minimal': 'orange', 'not_extreme': 'green', 'is_extreme': 'blue'}
@@ -1029,24 +1029,60 @@ class SemialgebraicComplexComponent:
         else:
             bordercolor = innercolor
             ptcolor = 'white'
-        if len(self.var_value) > 2:
-            raise NotImplementedError, "plotting region with dimension > 2 is not implemented."
+        if slice_value:
+            # assert (len(slice_value) == len(self.var_value))
+            d = 0
+            parametric_point = []
+            non_empty_slice = True
+            for (i, z) in enumerate(slice_value):
+                if z is None:
+                    d += 1
+                    if d == 1:
+                        parametric_point.append(x)
+                    elif d == 2:
+                        parametric_point.append(y)
+                    else:
+                        raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
+                else:
+                    parametric_point.append(z)
+                    if non_empty_slice and not is_value_in_interval(z, self.bounds[i]):
+                        non_empty_slice = False
+        else:
+            d = len(self.var_value)
+            if d > 2:
+                raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
         if not var_bounds:
             xmin = ymin = -0.1
             xmax = ymax = 1.1
         else:
             xmin, xmax = var_bounds[0]
-            ymin, ymax = var_bounds[1]
-        if len(self.var_value) == 2:
-            if self.leq or self.lin:
-                g = region_plot_patch([ lhs(x, y) == 0 for lhs in self.leq ] + [ lhs(x, y) < 0 for lhs in self.lin ], \
-                    (x, xmin, xmax), (y, ymin, ymax), incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
-            g += point(self.var_value, color = ptcolor, size = 2, zorder=10)
+            if d > 1:
+                ymin, ymax = var_bounds[1]
+        if d == 2:
+            if not slice_value:
+                if self.leq or self.lin:
+                    g += region_plot_patch([ lhs(x, y) == 0 for lhs in self.leq ] + [ lhs(x, y) < 0 for lhs in self.lin ], \
+                                           (x, xmin, xmax), (y, ymin, ymax), \
+                                           incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
+                g += point(self.var_value, color = ptcolor, size = 2, zorder=10)
+            elif non_empty_slice:
+                g += region_plot_patch([(lambda x, y: lhs(parametric_point) == 0) for lhs in self.leq] + \
+                                       [(lambda x, y: lhs(parametric_point) < 0) for lhs in self.lin], \
+                                       (x, xmin, xmax), (y, ymin, ymax), \
+                                       incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
         else:
-            if self.leq or self.lin:
-                g = region_plot_patch([ lhs(x) == 0 for lhs in self.leq ] + [ lhs(x) < 0 for lhs in self.lin ] + [y >= -0.01, y <= 0.01], \
-                    (x, xmin, xmax), (y, -0.1, 0.3), incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor, ticks=[None,[]])
-            g += point([self.var_value[0], 0], color = ptcolor, size = 2, zorder=10)
+            if not slice_value:
+                if self.leq or self.lin:
+                    g += region_plot_patch([ lhs(x) == 0 for lhs in self.leq ] + [ lhs(x) < 0 for lhs in self.lin ] \
+                                           + [y >= -0.01, y <= 0.01], (x, xmin, xmax), (y, -0.1, 0.3), \
+                                           incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor, ticks=[None,[]])
+                g += point([self.var_value[0], 0], color = ptcolor, size = 2, zorder=10)
+            elif non_empty_slice:
+                g += region_plot_patch([(lambda x, y: lhs(parametric_point) == 0) for lhs in self.leq] + \
+                                       [(lambda x, y: lhs(parametric_point) < 0) for lhs in self.lin] + \
+                                       [y >= -0.01, y <= 0.01], \
+                                       (x, xmin, xmax), (y, -0.1, 0.3), \
+                                       incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor, ticks=[None,[]])
         return g
 
 class SemialgebraicComplex:
@@ -1066,6 +1102,9 @@ class SemialgebraicComplex:
 
         sage: complex = SemialgebraicComplex(gj_2_slope, ['f', 'lambda_1'])
         sage: complex.shoot_random_points(50)    # Got WARNING: The graph is probably all covered after testing 18 random points
+
+        sage: sage: complex = SemialgebraicComplex(chen_4_slope, ['lam1', 'lam2'])
+        sage: complex.shoot_random_points(1000, var_bounds=[(0,1),(0,1)], max_failings=1000)  # not tested
     """
 
     def __init__(self, function, var_name, **opt_non_default):
@@ -1084,6 +1123,8 @@ class SemialgebraicComplex:
             v = K.gens()[i].sym()
             self.monomial_list.append(v)
             self.v_dict[v] = Variable(i)
+        self.graph = Graphics()
+        self.num_plotted_components = 0
 
     def generate_random_var_value(self, var_bounds=None):
         var_value = []
@@ -1111,7 +1152,7 @@ class SemialgebraicComplex:
                     return True
         return False
         
-    def shoot_one_random_point(self, var_bounds=None, max_failings=200):
+    def shoot_one_random_point(self, var_bounds=None, max_failings=1000):
         num_failings = 0
         found_possible_point = False
         while (not found_possible_point) and (not max_failings or num_failings < max_failings):
@@ -1146,33 +1187,35 @@ class SemialgebraicComplex:
         self.components.append(new_component)
         return True
 
-    def shoot_random_points(self, num, var_bounds=None, max_failings=200):
+    def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
         for i in range(num):
             found_uncovered_random_point = self.shoot_one_random_point(var_bounds=var_bounds, max_failings=max_failings)
             if not found_uncovered_random_point:
                 logging.warn( "The graph is probably all covered after testing %s random points" % len(self.components))
                 return
 
-    def plot(self, alpha=0.5, var_bounds=None, plot_points=1000):
-        g = Graphics()
-        for c in self.components:
-            g += c.plot(alpha=alpha, var_bounds=var_bounds, plot_points=plot_points)
-        return g
+    def plot(self, alpha=0.5, var_bounds=None, plot_points=1000, slice_value=None, restart=False):
+        if restart:
+            self.graph = Graphics()
+            self.num_plotted_components = 0
+        for c in self.components[self.num_plotted_components::]:
+            self.graph += c.plot(alpha=alpha, var_bounds=var_bounds, plot_points=plot_points, slice_value=slice_value)
+        self.num_plotted_components = len(self.components)
+        return self.graph
+
+def is_value_in_interval(v, (lb, ub)):
+    if ub['bounded']:
+        upperbound = ub['sup_n']/ub['sup_d']
+        if (upperbound < v) or (ub['maximum']==False and upperbound == v):
+            return False
+    if lb['bounded']:
+        lowerbound = lb['inf_n']/lb['inf_d']
+        if (lowerbound > v) or (lb['minimum']==False and lowerbound == v):
+            return False
+    return True
 
 def is_point_in_box(var_value, bounds):
-    for i in range(len(var_value)):
-        v = var_value[i]
-        lb = bounds[i][0]
-        ub = bounds[i][1]
-        if ub['bounded']:
-            upperbound = ub['sup_n']/ub['sup_d']
-            if (upperbound < v) or (ub['maximum']==False and upperbound == v):
-                return False
-        if lb['bounded']:
-            lowerbound = lb['inf_n']/lb['inf_d']
-            if (lowerbound > v) or (lb['minimum']==False and lowerbound == v):
-                return False
-    return True
+    return all(is_value_in_interval(var_value[i], bounds[i]) for i in range(len(var_value)))
 
 ##############################
 # linearly independent in Q
