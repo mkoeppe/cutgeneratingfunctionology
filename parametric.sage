@@ -933,9 +933,49 @@ class SemialgebraicComplexComponent:
             upperbound = self.polyhedron.maximize(Linear_Expression(v))
             self.bounds.append((lowerbound, upperbound))
 
-    def plot(self, alpha=0.5, var_bounds=None, plot_points=1000, slice_value=None):
-        x, y = var('x, y')
+    def plot(self, alpha=0.5, var_bounds=None, plot_points=500, slice_value=None):
         g = Graphics()
+        if not slice_value:
+            d = len(self.var_value)
+            if d > 2:
+                raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
+            leqs = self.leq
+            lins = self.lin
+        else:
+            # assert (len(slice_value) == len(self.var_value))
+            d = 0
+            for (i, z) in enumerate(slice_value):
+                if z is None:
+                    d += 1
+                elif not is_value_in_interval(z, self.bounds[i]):
+                    # empty slice
+                    return g
+
+            if d == 1:
+                P.<unknown_x> = QQ[]
+            elif d == 2:
+                P.<unknown_x, unknown_y> = QQ[]
+            else:
+                raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
+            unknowns=iter(P.gens())
+            parametric_point = [unknowns.next() if z is None else z for z in slice_value]
+            leqs = []
+            for leq in self.leq:
+                l = leq(*parametric_point)
+                if l in QQ:
+                    if l != 0:
+                        return g
+                else:
+                   leqs.append(l)
+            lins = []
+            for lin in self.lin:
+                l = lin(*parametric_point)
+                if l in QQ:
+                    if l >= 0:
+                        return g
+                else:
+                    lins.append(l)
+
         covered_type_color = {'not_constructible': 'white', 'not_minimal': 'orange', 'not_extreme': 'green', 'is_extreme': 'blue'}
         innercolor = covered_type_color[self.region_type]
         if self.region_type == 'not_constructible':
@@ -944,23 +984,7 @@ class SemialgebraicComplexComponent:
         else:
             bordercolor = innercolor
             ptcolor = 'white'
-        if not slice_value:
-            d = len(self.var_value)
-        else:
-            # assert (len(slice_value) == len(self.var_value))
-            d = 0
-            non_empty_slice = True
-            for (i, z) in enumerate(slice_value):
-                if z is None:
-                    d += 1
-                elif non_empty_slice and not is_value_in_interval(z, self.bounds[i]):
-                    non_empty_slice = False
 
-            def currying_point(a, b):
-                c = iter((a,b))
-                return (c.next() if z is None else z for z in slice_value)
-        if d > 2:
-            raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
         if not var_bounds:
             xmin = ymin = -0.1
             xmax = ymax = 1.1
@@ -968,29 +992,23 @@ class SemialgebraicComplexComponent:
             xmin, xmax = var_bounds[0]
             if d > 1:
                 ymin, ymax = var_bounds[1]
+
+        x, y = var('x, y')
+
         if d == 2:
+            if leqs or lins:
+                g += region_plot([l(x, y) == 0 for l in leqs] + [l(x, y) < 0 for l in lins], \
+                                 (x, xmin, xmax), (y, ymin, ymax), \
+                                 incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
             if not slice_value:
-                if self.leq or self.lin:
-                    g += region_plot([ lhs(x, y) == 0 for lhs in self.leq ] + [ lhs(x, y) < 0 for lhs in self.lin ], \
-                                     (x, xmin, xmax), (y, ymin, ymax), \
-                                     incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
                 g += point(self.var_value, color = ptcolor, size = 2, zorder=10)
-            elif non_empty_slice:
-                g += region_plot(lambda x, y: (all(l(*currying_point(x,y))<0 for l in self.lin)), #and (all(abs(l(*currying_point(x,y))) < 0.000001 for l in c.leq)
-                                (x, xmin, xmax), (y, ymin, ymax), \
-                                incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
         else:
-            if not slice_value:
-                if self.leq or self.lin:
-                    g += region_plot([ lhs(x) == 0 for lhs in self.leq ] + [ lhs(x) < 0 for lhs in self.lin ] \
-                                     + [y >= -0.01, y <= 0.01], (x, xmin, xmax), (y, -0.1, 0.3), \
-                                     incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor, ticks=[None,[]])
-                g += point([self.var_value[0], 0], color = ptcolor, size = 2, zorder=10)
-            elif non_empty_slice:
-                g += region_plot(lambda x, y: (all(l(*currying_point(x,y))<0 for l in self.lin) and \
-                                               y >= -0.01 and y <= 0.01), \
+            if leqs or lins:
+                g += region_plot([l(x) == 0 for l in leqs] + [l(x) < 0 for l in lins] + [y >= -0.01, y <= 0.01], \
                                  (x, xmin, xmax), (y, -0.1, 0.3), \
                                  incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor, ticks=[None,[]])
+            if not slice_value:
+                g += point([self.var_value[0], 0], color = ptcolor, size = 2, zorder=10)
         return g
 
 class SemialgebraicComplex:
@@ -1102,7 +1120,7 @@ class SemialgebraicComplex:
                 logging.warn( "The graph is probably all covered after testing %s random points" % len(self.components))
                 return
 
-    def plot(self, alpha=0.5, var_bounds=None, plot_points=1000, slice_value=None, restart=False):
+    def plot(self, alpha=0.5, var_bounds=None, plot_points=500, slice_value=None, restart=False):
         if restart:
             self.graph = Graphics()
             self.num_plotted_components = 0
