@@ -933,7 +933,7 @@ class SemialgebraicComplexComponent:
             upperbound = self.polyhedron.maximize(Linear_Expression(v))
             self.bounds.append((lowerbound, upperbound))
 
-    def plot(self, alpha=0.5, var_bounds=None, plot_points=500, slice_value=None):
+    def plot(self, alpha=0.5, plot_points=300, slice_value=None):
         g = Graphics()
         if not slice_value:
             d = len(self.var_value)
@@ -941,16 +941,18 @@ class SemialgebraicComplexComponent:
                 raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
             leqs = self.leq
             lins = self.lin
+            var_bounds = [bounds_for_plotting(self.bounds[i]) for i in range(d)]
         else:
             # assert (len(slice_value) == len(self.var_value))
             d = 0
+            var_bounds = []
             for (i, z) in enumerate(slice_value):
                 if z is None:
                     d += 1
+                    var_bounds.append(bounds_for_plotting(self.bounds[i]))
                 elif not is_value_in_interval(z, self.bounds[i]):
                     # empty slice
                     return g
-
             if d == 1:
                 P.<unknown_x> = QQ[]
             elif d == 2:
@@ -985,27 +987,19 @@ class SemialgebraicComplexComponent:
             bordercolor = innercolor
             ptcolor = 'white'
 
-        if not var_bounds:
-            xmin = ymin = -0.1
-            xmax = ymax = 1.1
-        else:
-            xmin, xmax = var_bounds[0]
-            if d > 1:
-                ymin, ymax = var_bounds[1]
-
         x, y = var('x, y')
 
         if d == 2:
             if leqs or lins:
                 g += region_plot([l(x, y) == 0 for l in leqs] + [l(x, y) < 0 for l in lins], \
-                                 (x, xmin, xmax), (y, ymin, ymax), \
+                                 (x, var_bounds[0][0], var_bounds[0][1]), (y, var_bounds[1][0], var_bounds[1][1]), \
                                  incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
             if not slice_value:
                 g += point(self.var_value, color = ptcolor, size = 2, zorder=10)
         else:
             if leqs or lins:
                 g += region_plot([l(x) == 0 for l in leqs] + [l(x) < 0 for l in lins] + [y >= -0.01, y <= 0.01], \
-                                 (x, xmin, xmax), (y, -0.1, 0.3), \
+                                 (x, var_bounds[0][0], var_bounds[0][1]), (y, -0.1, 0.3), \
                                  incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor, ticks=[None,[]])
             if not slice_value:
                 g += point([self.var_value[0], 0], color = ptcolor, size = 2, zorder=10)
@@ -1031,6 +1025,31 @@ class SemialgebraicComplex:
 
         sage: sage: complex = SemialgebraicComplex(chen_4_slope, ['lam1', 'lam2'])
         sage: complex.shoot_random_points(1000, var_bounds=[(0,1),(0,1)], max_failings=1000)  # not tested
+
+        Define var_bounds as a lambda function:
+
+        sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])
+        sage: var_bounds=[(0,1),((lambda x: x), (lambda x: 0.5+0.5*x))] # not tested
+        sage: complex.shoot_random_points(50, var_bounds = var_bounds) # not tested
+
+        gj_forward_3_slope, choose the first 2 variables out of 3 as parameters,
+
+        sage: complex = SemialgebraicComplex(gj_forward_3_slope, ['f', 'lambda_1'])
+        sage: complex.shoot_random_points(100, max_failings=1000) # not tested
+        sage: complex.plot(plot_points=500) # not tested
+
+        This can also obtained by specifying random points' var_bounds in 3d complex.
+
+        sage: complex = SemialgebraicComplex(gj_forward_3_slope, ['f', 'lambda_1', 'lambda_2'])
+        sage: complex.shoot_random_points(100, max_failings=1000, var_bounds = [(0,1), (0,1), (2/3, 2/3)]) # not tested
+        sage: complex.plot(slice_value=[None, None, 2/3], restart=True) # not tested
+
+        Compute 3-d complex, then take slice.
+
+        sage: complex = SemialgebraicComplex(gj_forward_3_slope, ['f', 'lambda_1', 'lambda_2'])
+        sage: complex.shoot_random_points(500, max_failings=10000) # not tested
+        sage: complex.plot(slice_value=[None, None, 2/3], restart=True, plot_points=500) # not tested
+        sage: complex.plot(slice_value=[4/5, None, None], restart=True, plot_points=500) # not tested
     """
 
     def __init__(self, function, var_name, **opt_non_default):
@@ -1120,12 +1139,12 @@ class SemialgebraicComplex:
                 logging.warn( "The graph is probably all covered after testing %s random points" % len(self.components))
                 return
 
-    def plot(self, alpha=0.5, var_bounds=None, plot_points=500, slice_value=None, restart=False):
+    def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=False):
         if restart:
             self.graph = Graphics()
             self.num_plotted_components = 0
         for c in self.components[self.num_plotted_components::]:
-            self.graph += c.plot(alpha=alpha, var_bounds=var_bounds, plot_points=plot_points, slice_value=slice_value)
+            self.graph += c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value)
         self.num_plotted_components = len(self.components)
         return self.graph
 
@@ -1143,6 +1162,16 @@ def is_value_in_interval(v, (lb, ub)):
 def is_point_in_box(var_value, bounds):
     return all(is_value_in_interval(var_value[i], bounds[i]) for i in range(len(var_value)))
 
+def bounds_for_plotting((lb, ub)):
+    if lb['bounded']:
+        l = lb['inf_n']/lb['inf_d']-0.01
+    else:
+        l = -0.1
+    if ub['bounded']:
+        u = ub['sup_n']/ub['sup_d']+0.01
+    else:
+        u = 1.1
+    return (l, u)
 ##############################
 # linearly independent in Q
 ##############################
