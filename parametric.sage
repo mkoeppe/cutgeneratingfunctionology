@@ -1077,7 +1077,15 @@ class SemialgebraicComplex:
             if not var_bounds:
                 x = QQ(uniform(-0.1, 1.1))
             else:
-                x = QQ(uniform(var_bounds[i][0], var_bounds[i][1]))
+                if hasattr(var_bounds[i][0], '__call__'):
+                    l =  var_bounds[i][0](*var_value)
+                else:
+                    l = var_bounds[i][0]
+                if hasattr(var_bounds[i][1], '__call__'):
+                    u =  var_bounds[i][1](*var_value)
+                else:
+                    u = var_bounds[i][1]
+                x = QQ(uniform(l, u))
             var_value.append(x)
         return var_value
 
