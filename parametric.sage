@@ -512,9 +512,9 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict):
         # constraint is written with '>', while lt_poly records '<' relation
         t = sum([-x*y for x, y in itertools.izip(coeff, monomial_list)]) - c.inhomogeneous_term()
         if c.is_equality():
-            mineq.append(t)
+            mineq.append(t.numerator())
         else:
-            minlt.append(t)
+            minlt.append(t.numerator())
     # note that polynomials in mineq and minlt can have leading coefficient != 1
     return mineq, minlt
 
@@ -1065,7 +1065,7 @@ class SemialgebraicComplex:
         self.v_dict = {}
         K = SymbolicRealNumberField([0]*self.d, var_name)
         for i in range(self.d):
-            v = K.gens()[i].sym()
+            v = K.gens()[i].sym().numerator()
             self.monomial_list.append(v)
             self.v_dict[v] = Variable(i)
         self.graph = Graphics()
