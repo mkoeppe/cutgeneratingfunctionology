@@ -1005,6 +1005,28 @@ class SemialgebraicComplexComponent:
                 g += point([self.var_value[0], 0], color = ptcolor, size = 2, zorder=10)
         return g
 
+    def generate_one_point_by_flipping_inequality(self, ineq):
+        # When K has only one variable, got AttributeError: 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint' object has no attribute 'gradient'
+        if hasattr(ineq, 'gradient'):
+            grad = ineq.gradient()
+        else:
+            grad = [ineq.derivative()]
+        current_point = vector([RR(x) for x in self.var_value]) # Real numbers, faster than QQ
+        current_value = ineq(*current_point)
+        while current_value <= 0:
+            current_gradient = vector([g(*current_point) for g in grad])
+            step_length = 1/(current_gradient * current_gradient * 100) # current_value increases by 0.01 roughly
+            if step_length > 1:
+                step_length = 1  # ensure that distance of move <= 0.1 in each step
+            current_point += step_length * current_gradient
+            current_value = ineq(*current_point)
+            #print RR(current_value)
+        new_point = tuple(QQ(x) for x in current_point)
+        return new_point #type is tuple
+
+    def generate_neighbour_points(self):
+        return [self.generate_one_point_by_flipping_inequality(ineq) for ineq in self.lin]
+
 class SemialgebraicComplex:
     """
     EXAMPLES::
@@ -1070,6 +1092,7 @@ class SemialgebraicComplex:
             self.v_dict[v] = Variable(i)
         self.graph = Graphics()
         self.num_plotted_components = 0
+        self.points_to_test = set()
 
     def generate_random_var_value(self, var_bounds=None):
         var_value = []
@@ -1089,7 +1112,7 @@ class SemialgebraicComplex:
             var_value.append(x)
         return var_value
 
-    def is_random_point_covered(self, var_value):
+    def is_point_covered(self, var_value):
         monomial_value = [m(var_value) for m in self.monomial_list]
         # coefficients in ppl point must be integers.
         lcm_monomial_value = lcm([x.denominator() for x in monomial_value])
@@ -1105,25 +1128,24 @@ class SemialgebraicComplex:
                     return True
         return False
         
-    def shoot_one_random_point(self, var_bounds=None, max_failings=1000):
+    def find_uncovered_random_point(self, var_bounds=None, max_failings=1000):
         num_failings = 0
-        found_possible_point = False
-        while (not found_possible_point) and (not max_failings or num_failings < max_failings):
+        while not max_failings or num_failings < max_failings:
             var_value = self.generate_random_var_value(var_bounds=var_bounds)
             # This point is not already covered.
-            if self.is_random_point_covered(var_value):
+            if self.is_point_covered(var_value):
                 num_failings += 1
             else:
-                found_possible_point = True
-        if not found_possible_point:
-            #raise ValueError, "Maximum number of failing random points is reached."
-            return False
+                return var_value
+        logging.warn("The graph has %s components. Cannot find one more uncovered point by shooting %s random points" % (len(self.components), max_failings))
+        return False
+
+    def add_new_component(self, var_value, flip_ineq_bfs=False):
         unlifted_space_dim =  len(self.monomial_list)
         K, test_point = construct_field_and_test_point(self.function, self.var_name, var_value, self.default_args)
         K.monomial_list = self.monomial_list
         K.v_dict = self.v_dict
         K.polyhedron.add_space_dimensions_and_embed(len(K.monomial_list))
-
         try:
             h = self.function(**test_point)
         except:
@@ -1138,14 +1160,14 @@ class SemialgebraicComplex:
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
         new_component = SemialgebraicComplexComponent(K, leq, lin, var_value, region_type)
         self.components.append(new_component)
-        return True
+        if flip_ineq_bfs:
+            (self.points_to_test).update(new_component.generate_neighbour_points())
 
     def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
         for i in range(num):
-            found_uncovered_random_point = self.shoot_one_random_point(var_bounds=var_bounds, max_failings=max_failings)
-            if not found_uncovered_random_point:
-                logging.warn( "The graph is probably all covered after testing %s random points" % len(self.components))
-                return
+            var_value = self.find_uncovered_random_point(var_bounds=var_bounds, max_failings=max_failings)
+            if not var_value is False:
+                self.add_new_component(var_value)
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=False):
         if restart:
@@ -1155,6 +1177,34 @@ class SemialgebraicComplex:
             self.graph += c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value)
         self.num_plotted_components = len(self.components)
         return self.graph
+
+    def bfs_completion(self, var_bounds=None): #, max_failings=1000):
+        var_value = self.generate_random_var_value(var_bounds=var_bounds)
+        (self.points_to_test).add(tuple(var_value))
+        while self.points_to_test:
+            var_value = list(self.points_to_test.pop())
+            #print var_value
+            if not self.is_point_covered(var_value) and point_satisfies_var_bounds(var_value, var_bounds):
+                self.add_new_component(var_value, flip_ineq_bfs=True)
+                #self.plot(restart=True, plot_points=50).show()
+
+def point_satisfies_var_bounds(var_value, var_bounds):
+    # for functions involving ceil/floor, might be a good to devide region of search, then glue components together.
+    # var_bounds could be defined as lambda functions, see the testcase dg_2_step_mir in param_graphics.sage.
+    if not var_bounds:
+        return True
+    for i in range(len(var_value)):
+        if hasattr(var_bounds[i][0], '__call__'):
+            l =  var_bounds[i][0](*var_value[0:i:1])
+        else:
+            l = var_bounds[i][0]
+        if hasattr(var_bounds[i][1], '__call__'):
+            u =  var_bounds[i][1](*var_value[0:i:1])
+        else:
+            u = var_bounds[i][1]
+        if not (l <= var_value[i] <= u):
+            return False
+    return True
 
 def is_value_in_interval(v, (lb, ub)):
     if ub['bounded']:
