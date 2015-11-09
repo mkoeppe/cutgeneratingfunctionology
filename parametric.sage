@@ -1005,27 +1005,60 @@ class SemialgebraicComplexComponent:
                 g += point([self.var_value[0], 0], color = ptcolor, size = 2, zorder=10)
         return g
 
-    def generate_one_point_by_flipping_inequality(self, ineq):
-        # When K has only one variable, got AttributeError: 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint' object has no attribute 'gradient'
-        if hasattr(ineq, 'gradient'):
-            grad = ineq.gradient()
-        else:
-            grad = [ineq.derivative()]
+    def generate_one_point_by_flipping_inequality(self, ineq, adjustment=True):
+        ineq_gradient = gradient(ineq)
         current_point = vector([RR(x) for x in self.var_value]) # Real numbers, faster than QQ
-        current_value = ineq(*current_point)
-        while current_value <= 0:
-            current_gradient = vector([g(*current_point) for g in grad])
-            step_length = 1/(current_gradient * current_gradient * 100) # current_value increases by 0.01 roughly
+        ineq_value = ineq(*current_point)
+        while ineq_value <= 0:
+            ineq_direction = vector([g(*current_point) for g in ineq_gradient])
+            step_length = 1/(ineq_direction * ineq_direction * 100) # ineq_value increases by 0.01 roughly
             if step_length > 1:
                 step_length = 1  # ensure that distance of move <= 0.1 in each step
-            current_point += step_length * current_gradient
-            current_value = ineq(*current_point)
-            #print RR(current_value)
+            current_point += step_length * ineq_direction
+            ineq_value = ineq(*current_point)
+            #print current_point, RR(ineq_value)
+        if adjustment:
+            # experimental code, move along ineq=cste when more than one inequality are flipped.
+            for l in self.lin:
+                if l == ineq or l(*current_point) < 0:
+                    continue
+                #print "adjust ineq %s" % l
+                l_gradient = gradient(l)
+                l_value = l(*current_point)
+                while l_value >= 0:
+                    l_direction = vector([-g(*current_point) for g in l_gradient]) #decrease l_value
+                    ineq_direction = vector([g(*current_point) for g in ineq_gradient])
+                    s = (ineq_direction * l_direction) / (ineq_direction * ineq_direction)
+                    if s == 0:
+                        return None
+                    projected_direction = l_direction - s * ineq_direction # want that ineq_value remains the same
+                    step_length = 1/(projected_direction * l_direction * 100) # l_value decreases by 0.01 roughly
+                    # step_length = max(0.01, l_value) /(projected_direction * l_direction) # l_value decreases by 0.01 at least
+                    #if l_direction * l_direction * 100 < 1:
+                    #    step_length = 1 / sqrt(projected_direction * projected_direction * 100) # ensure distance of move < 0.1
+                    if step_length * norm(projected_direction) >= 1:  # move too far
+                        return None
+                    current_point += step_length * projected_direction
+                    l_value = l(*current_point)
+                    #print current_point, RR(l_value)
+            for l in self.lin:
+                if l == ineq:
+                    if ineq(*current_point) <= 0:
+                        return None
+                else:
+                    if l(*current_point) >= 0:
+                        return None
         new_point = tuple(QQ(x) for x in current_point)
         return new_point #type is tuple
 
     def generate_neighbour_points(self):
-        return [self.generate_one_point_by_flipping_inequality(ineq) for ineq in self.lin]
+        #return [self.generate_one_point_by_flipping_inequality(ineq) for ineq in self.lin]
+        neighbour_points = []
+        for ineq in self.lin:
+            new_point = self.generate_one_point_by_flipping_inequality(ineq)
+            if not new_point is None:
+                neighbour_points.append(new_point)
+        return neighbour_points
 
 class SemialgebraicComplex:
     """
@@ -1035,30 +1068,41 @@ class SemialgebraicComplex:
         sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])
         sage: complex.monomial_list
         [f, bkpt]
-        sage: complex.shoot_random_points(50)  # Got WARNING: The graph is probably all covered after testing 17 random points
+
+        First way of completing the graph is to shoot random points
+        sage: complex.shoot_random_points(50)  # Got 17 components
+
+        A better way is to use flipping inequality + bfs
+        sage: complex.bfs_completion()             # not tested
         sage: g = complex.plot()                   # not tested
         sage: g.save("complex_drlm_backward_3_slope_f_bkpt.pdf") # not tested
 
         sage: complex = SemialgebraicComplex(gmic, ['f'])
-        sage: complex.shoot_random_points(50)    # Got WARNING: The graph is probably all covered after testing 4 random points
+        # Shooting random points
+        sage: complex.shoot_random_points(50)    # not tested # Got 4 components
+        # Flipping ineq bfs
+        sage: complex.bfs_completion()           # not tested
 
         sage: complex = SemialgebraicComplex(gj_2_slope, ['f', 'lambda_1'])
-        sage: complex.shoot_random_points(50)    # Got WARNING: The graph is probably all covered after testing 18 random points
+        sage: complex.shoot_random_points(50)    # Got 18 components
 
-        sage: sage: complex = SemialgebraicComplex(chen_4_slope, ['lam1', 'lam2'])
-        sage: complex.shoot_random_points(1000, var_bounds=[(0,1),(0,1)], max_failings=1000)  # not tested
+        sage: complex = SemialgebraicComplex(chen_4_slope, ['lam1', 'lam2'])
+        sage: complex.shoot_random_points(1000, var_bounds=[(0,1),(0,1)], max_failings=1000)  # not tested  #long time
+        sage: complex.bfs_completion()           # not tested #long time
 
         Define var_bounds as a lambda function:
 
         sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])
         sage: var_bounds=[(0,1),((lambda x: x), (lambda x: 0.5+0.5*x))] # not tested
         sage: complex.shoot_random_points(50, var_bounds = var_bounds) # not tested
+        #sage: complex.bfs_completion()           # not tested
 
         gj_forward_3_slope, choose the first 2 variables out of 3 as parameters,
 
         sage: complex = SemialgebraicComplex(gj_forward_3_slope, ['f', 'lambda_1'])
         sage: complex.shoot_random_points(100, max_failings=1000) # not tested
-        sage: complex.plot(plot_points=500) # not tested
+        sage: complex.bfs_completion()           # not tested
+        sage: complex.plot(plot_points=500)      # not tested
 
         This can also obtained by specifying random points' var_bounds in 3d complex.
 
@@ -1069,7 +1113,8 @@ class SemialgebraicComplex:
         Compute 3-d complex, then take slice.
 
         sage: complex = SemialgebraicComplex(gj_forward_3_slope, ['f', 'lambda_1', 'lambda_2'])
-        sage: complex.shoot_random_points(500, max_failings=10000) # not tested
+        #sage: complex.shoot_random_points(500, max_failings=10000) # not tested
+        sage: complex.plot(plot_points=500) # not tested
         sage: complex.plot(slice_value=[None, None, 2/3], restart=True, plot_points=500) # not tested
         sage: complex.plot(slice_value=[4/5, None, None], restart=True, plot_points=500) # not tested
     """
@@ -1178,8 +1223,9 @@ class SemialgebraicComplex:
         self.num_plotted_components = len(self.components)
         return self.graph
 
-    def bfs_completion(self, var_bounds=None): #, max_failings=1000):
-        var_value = self.generate_random_var_value(var_bounds=var_bounds)
+    def bfs_completion(self, var_bounds=None, max_failings=1000):
+        #var_value = self.generate_random_var_value(var_bounds=var_bounds)
+        var_value = self.find_uncovered_random_point(var_bounds=var_bounds, max_failings=max_failings)
         (self.points_to_test).add(tuple(var_value))
         while self.points_to_test:
             var_value = list(self.points_to_test.pop())
@@ -1187,6 +1233,14 @@ class SemialgebraicComplex:
             if not self.is_point_covered(var_value) and point_satisfies_var_bounds(var_value, var_bounds):
                 self.add_new_component(var_value, flip_ineq_bfs=True)
                 #self.plot(restart=True, plot_points=50).show()
+
+def gradient(ineq):
+    # need this function since when K has only one variable,
+    # got AttributeError: 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint' object has no attribute 'gradient'
+    if hasattr(ineq, 'gradient'):
+       return ineq.gradient()
+    else:
+       return [ineq.derivative()]
 
 def point_satisfies_var_bounds(var_value, var_bounds):
     # for functions involving ceil/floor, might be a good to devide region of search, then glue components together.
