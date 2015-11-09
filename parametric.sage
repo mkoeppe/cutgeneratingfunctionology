@@ -1005,15 +1005,15 @@ class SemialgebraicComplexComponent:
                 g += point([self.var_value[0], 0], color = ptcolor, size = 2, zorder=10)
         return g
 
-    def generate_one_point_by_flipping_inequality(self, ineq, adjustment=True):
+    def generate_one_point_by_flipping_inequality(self, ineq, adjustment=True, flip_ineq_step=0.01):
         ineq_gradient = gradient(ineq)
         current_point = vector([RR(x) for x in self.var_value]) # Real numbers, faster than QQ
         ineq_value = ineq(*current_point)
         while ineq_value <= 0:
             ineq_direction = vector([g(*current_point) for g in ineq_gradient])
-            step_length = 1/(ineq_direction * ineq_direction * 100) # ineq_value increases by 0.01 roughly
+            step_length = flip_ineq_step / (ineq_direction * ineq_direction) # ineq_value increases by flip_ineq_step=0.01 roughly
             if step_length > 1:
-                step_length = 1  # ensure that distance of move <= 0.1 in each step
+                step_length = 1  # ensure that distance of move <= sqrt(flip_ineq_step) = 0.1 in each step
             current_point += step_length * ineq_direction
             ineq_value = ineq(*current_point)
             #print current_point, RR(ineq_value)
@@ -1032,11 +1032,11 @@ class SemialgebraicComplexComponent:
                     if s == 0:
                         return None
                     projected_direction = l_direction - s * ineq_direction # want that ineq_value remains the same
-                    step_length = 1/(projected_direction * l_direction * 100) # l_value decreases by 0.01 roughly
+                    step_length = flip_ineq_step / (projected_direction * l_direction) # l_value decreases by 0.01 roughly
                     # step_length = max(0.01, l_value) /(projected_direction * l_direction) # l_value decreases by 0.01 at least
                     #if l_direction * l_direction * 100 < 1:
                     #    step_length = 1 / sqrt(projected_direction * projected_direction * 100) # ensure distance of move < 0.1
-                    if step_length * norm(projected_direction) >= 1:  # move too far
+                    if step_length * norm(projected_direction) >= 1:  # move too far  # is 1 a good value here??
                         return None
                     current_point += step_length * projected_direction
                     l_value = l(*current_point)
@@ -1051,11 +1051,11 @@ class SemialgebraicComplexComponent:
         new_point = tuple(QQ(x) for x in current_point)
         return new_point #type is tuple
 
-    def generate_neighbour_points(self):
+    def generate_neighbour_points(self, flip_ineq_step=0.01):
         #return [self.generate_one_point_by_flipping_inequality(ineq) for ineq in self.lin]
         neighbour_points = []
         for ineq in self.lin:
-            new_point = self.generate_one_point_by_flipping_inequality(ineq)
+            new_point = self.generate_one_point_by_flipping_inequality(ineq, flip_ineq_step=flip_ineq_step)
             if not new_point is None:
                 neighbour_points.append(new_point)
         return neighbour_points
@@ -1117,6 +1117,8 @@ class SemialgebraicComplex:
         sage: complex.plot(plot_points=500) # not tested
         sage: complex.plot(slice_value=[None, None, 2/3], restart=True, plot_points=500) # not tested
         sage: complex.plot(slice_value=[4/5, None, None], restart=True, plot_points=500) # not tested
+
+        # more testcases in param_graphics.sage
     """
 
     def __init__(self, function, var_name, **opt_non_default):
@@ -1185,7 +1187,7 @@ class SemialgebraicComplex:
         logging.warn("The graph has %s components. Cannot find one more uncovered point by shooting %s random points" % (len(self.components), max_failings))
         return False
 
-    def add_new_component(self, var_value, flip_ineq_bfs=False):
+    def add_new_component(self, var_value, flip_ineq_step=0):
         unlifted_space_dim =  len(self.monomial_list)
         K, test_point = construct_field_and_test_point(self.function, self.var_name, var_value, self.default_args)
         K.monomial_list = self.monomial_list
@@ -1205,14 +1207,14 @@ class SemialgebraicComplex:
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
         new_component = SemialgebraicComplexComponent(K, leq, lin, var_value, region_type)
         self.components.append(new_component)
-        if flip_ineq_bfs:
-            (self.points_to_test).update(new_component.generate_neighbour_points())
+        if flip_ineq_step > 0:
+            (self.points_to_test).update(new_component.generate_neighbour_points(flip_ineq_step))
 
     def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
         for i in range(num):
             var_value = self.find_uncovered_random_point(var_bounds=var_bounds, max_failings=max_failings)
             if not var_value is False:
-                self.add_new_component(var_value)
+                self.add_new_component(var_value, flip_ineq_step=0)
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=False):
         if restart:
@@ -1223,7 +1225,7 @@ class SemialgebraicComplex:
         self.num_plotted_components = len(self.components)
         return self.graph
 
-    def bfs_completion(self, var_value=None, var_bounds=None, max_failings=1000):
+    def bfs_completion(self, var_value=None, var_bounds=None, max_failings=1000, flip_ineq_step=0.01):
         # if var_value is provided, starting with this point. Otherwise, randomized the starting point.
         if not var_value:
             #var_value = self.generate_random_var_value(var_bounds=var_bounds)
@@ -1233,7 +1235,7 @@ class SemialgebraicComplex:
             var_value = list(self.points_to_test.pop())
             #print var_value
             if not self.is_point_covered(var_value) and point_satisfies_var_bounds(var_value, var_bounds):
-                self.add_new_component(var_value, flip_ineq_bfs=True)
+                self.add_new_component(var_value, flip_ineq_step=flip_ineq_step)
                 #self.plot(restart=True, plot_points=50).show()
 
 def gradient(ineq):
