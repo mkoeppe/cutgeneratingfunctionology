@@ -1223,9 +1223,11 @@ class SemialgebraicComplex:
         self.num_plotted_components = len(self.components)
         return self.graph
 
-    def bfs_completion(self, var_bounds=None, max_failings=1000):
-        #var_value = self.generate_random_var_value(var_bounds=var_bounds)
-        var_value = self.find_uncovered_random_point(var_bounds=var_bounds, max_failings=max_failings)
+    def bfs_completion(self, var_value=None, var_bounds=None, max_failings=1000):
+        # if var_value is provided, starting with this point. Otherwise, randomized the starting point.
+        if not var_value:
+            #var_value = self.generate_random_var_value(var_bounds=var_bounds)
+            var_value = self.find_uncovered_random_point(var_bounds=var_bounds, max_failings=max_failings)
         (self.points_to_test).add(tuple(var_value))
         while self.points_to_test:
             var_value = list(self.points_to_test.pop())
