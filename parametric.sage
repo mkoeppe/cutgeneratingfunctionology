@@ -12,6 +12,8 @@ from sage.libs.ppl import Variable, Constraint, Linear_Expression, Constraint_Sy
 poly_is_included = Poly_Con_Relation.is_included()
 point_is_included = Poly_Gen_Relation.subsumes()
 
+from sage.structure.sage_object import SageObject
+
 ###############################
 # Symbolic Real Number Field
 ###############################
@@ -918,7 +920,7 @@ def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], rando
 ###########################
 # Super class that stores the computation so far
 ###########################
-class SemialgebraicComplexComponent:
+class SemialgebraicComplexComponent(SageObject):
 
     def __init__(self, K, leq, lin, var_value, region_type):
         self.leq = leq
@@ -1060,7 +1062,7 @@ class SemialgebraicComplexComponent:
                 neighbour_points.append(new_point)
         return neighbour_points
 
-class SemialgebraicComplex:
+class SemialgebraicComplex(SageObject):
     """
     EXAMPLES::
 
