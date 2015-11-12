@@ -492,7 +492,7 @@ def save_random_r0z1_for_ext_pts(random_points=100, plot_points=500):
 
 class Cpl3Complex(SageObject):
 
-    def __init__(self, var_name, basis_i, basis_j):
+    def __init__(self, var_name, theta=None):
         #self.num_components = 0
         self.components = []
         self.d = len(var_name)
@@ -507,9 +507,25 @@ class Cpl3Complex(SageObject):
         self.graph = Graphics()
         self.num_plotted_components = 0
         self.points_to_test = set()
-        self.i = basis_i
-        self.j = basis_j
-        self.thetas={}
+        self.theta = theta
+
+    def generate_random_var_value(self, var_bounds=None):
+        var_value = []
+        for i in range(self.d):
+            if not var_bounds:
+                x = QQ(uniform(-0.1, 1.1))
+            else:
+                if hasattr(var_bounds[i][0], '__call__'):
+                    l =  var_bounds[i][0](*var_value)
+                else:
+                    l = var_bounds[i][0]
+                if hasattr(var_bounds[i][1], '__call__'):
+                    u =  var_bounds[i][1](*var_value)
+                else:
+                    u = var_bounds[i][1]
+                x = QQ(uniform(l, u))
+            var_value.append(x)
+        return var_value
 
     def is_point_covered(self, var_value):
         monomial_value = [m(var_value) for m in self.monomial_list]
@@ -527,57 +543,47 @@ class Cpl3Complex(SageObject):
                     return True
         return False
 
-    def add_new_component(self, var_value, flip_ineq_step=0.01):
+    def find_uncovered_random_point(self, var_bounds=None, max_failings=1000):
+        num_failings = 0
+        while not max_failings or num_failings < max_failings:
+            if self.points_to_test:
+                var_value = list(self.points_to_test.pop())
+            else:
+                var_value = self.generate_random_var_value(var_bounds=var_bounds)
+            # This point is not already covered.
+            if self.is_point_covered(var_value):
+                num_failings += 1
+            else:
+                return var_value
+        logging.warn("The graph has %s components. Cannot find one more uncovered point by shooting %s random points" % (len(self.components), max_failings))
+        return False
+
+    def add_new_component(self, var_value, flip_ineq_step=0):
         unlifted_space_dim =  len(self.monomial_list)
         K = SymbolicRealNumberField(var_value, self.var_name)
         K.monomial_list = self.monomial_list
         K.v_dict = self.v_dict
         K.polyhedron.add_space_dimensions_and_embed(len(K.monomial_list))
-        if self.i is not None:
-            K4, (theta1, theta2), feasibility = find_basis_thetas_on_diagram_ij(var_value[0], var_value[1], self.i, self.j)
-            if feasibility:
-                o1 = theta1.sym()(K.gens()[0], K.gens()[1], 0, 0)
-                o2 = theta2.sym()(K.gens()[0], K.gens()[1], 0, 0)
-                try:
-                    h  = cpl3_group_function(K.gens()[0], K.gens()[1], o1, o2)
-                    is_extreme =  extremality_test(h)
-                    if not is_extreme:
-                        region_type = 'not_constructible'
-                    else:
-                        if o1 in RR:
-                            o1sym = o1
-                        else:
-                            o1sym = o1.sym()
-                        if o2 in RR:
-                            o2sym = o2
-                        else:
-                            o2sym = o2.sym()
-                        o12 = (o1sym, o2sym)
-                        if o12 in self.thetas.keys():
-                            k = self.thetas[o12]
-                        else:
-                            k = len(self.thetas)
-                            self.thetas[o12] = k
-                        region_type = rainbow(10)[k]
-                except:
-                    region_type = 'not_constructible'
-            else:
-                leq4, lin4 = read_simplified_leq_lin(K4)
-                # copy leq and lin of K4 to K.
-                for l in leq4:
-                    if not (l(K.gens()[0], K.gens()[1], 0, 0) == 0):
-                        print "%s=0 is violated at %s" % (l, var_value)
-                for l in lin4:
-                    if not (l(K.gens()[0], K.gens()[1], 0, 0) < 0):
-                        print "%s<0 is violated at %s" % (l, var_value)
-                region_type = 'not_constructible'
-        else:
+        if self.theta is None:
             try:
                 h = cpl3_bkpts(*K.gens())
                 t = subadditivity_test(h) # always True
                 region_type = 'not_minimal'
             except:
                 # Function is non-contructible at this random point.
+                region_type = 'not_constructible'
+        else:
+            o1 = self.theta[0](*K.gens())
+            o2 = self.theta[1](*K.gens())
+            try:
+                h = cpl3_group_function(K.gens()[0], K.gens()[1], o1, o2)
+                # t = minimality_test(h) # no need, since cpl3 satisfies minimality
+                t = extremality_test(h)
+                if t:
+                    region_type = 'is_extreme'
+                else:
+                    region_type = 'not_extreme'
+            except:
                 region_type = 'not_constructible'
         leq, lin = read_simplified_leq_lin(K)
         #if see new monomial, lift polyhedrons of the previously computed components.
@@ -590,6 +596,14 @@ class Cpl3Complex(SageObject):
         if flip_ineq_step > 0:
             (self.points_to_test).update(new_component.generate_neighbour_points(flip_ineq_step))
 
+    def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
+        for i in range(num):
+            var_value = self.find_uncovered_random_point(var_bounds=var_bounds, max_failings=max_failings)
+            if not var_value is False:
+                self.add_new_component(var_value, flip_ineq_step=0)
+            else:
+                return
+
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=False):
         if restart:
             self.graph = Graphics()
@@ -599,8 +613,9 @@ class Cpl3Complex(SageObject):
         self.num_plotted_components = len(self.components)
         return self.graph
 
-    def bfs_completion(self, var_value, var_bounds=None, max_failings=1000, flip_ineq_step=0.01):
-        (self.points_to_test).add(tuple(var_value))
+    def bfs_completion(self, var_value=None, var_bounds=None, max_failings=1000, flip_ineq_step=0.01):
+        if var_value:
+            (self.points_to_test).add(tuple(var_value))
         while self.points_to_test:
             var_value = list(self.points_to_test.pop())
             if not self.is_point_covered(var_value) and point_satisfies_var_bounds(var_value, var_bounds):
