@@ -1215,7 +1215,9 @@ class SemialgebraicComplex(SageObject):
     def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
         for i in range(num):
             var_value = self.find_uncovered_random_point(var_bounds=var_bounds, max_failings=max_failings)
-            if not var_value is False:
+            if var_value is False:
+                return
+            else:
                 self.add_new_component(var_value, flip_ineq_step=0)
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=False):
