@@ -20,6 +20,22 @@ def cpl3_group_function(r0=1/6, z1=1/12, o1=1/5, o2=0):
     values = [(bkpts[i] - phi_values[i])/r0 for i in range(len(bkpts))]
     return piecewise_function_from_breakpoints_and_values(bkpts, values)
 
+def cpl3_bkpts(r0=1/6, z1=1/12):
+    if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    # construct the function on [0, 2]
+    if z1 < (1-r0)/4:
+        bkpts = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
+        values = [0, 0, 0, 0, 0, 0, 0]
+    else:
+        bkpts = [0, r0, r0+z1, 1-z1, 1]
+        values = [0, 0, 0, 0, 0]
+    # Cannot return piecewise_function_from_breakpoints_and_values(bkpts, values)
+    # because we don't want to merge slopes
+    # for arbitrary values of o1, o2 such as 0, 0
+    list_of_pairs = [[(bkpts[i], bkpts[i+1]), linear_function_through_points([bkpts[i], values[i]], [bkpts[i+1], values[i+1]])] for i in range(len(bkpts)-1)]
+    return FastPiecewise(list_of_pairs, periodic_extension=False, merge=False)
+
 def cpl3_lifting_function(r0=1/6, z1=1/12, o1=1/5, o2=0):
     if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
         raise ValueError, "Bad parameters. Unable to construct the function."
@@ -347,7 +363,10 @@ def random_r0z1_chambres_on_diagram_ij(i=1, j=5, random_points=100, plot_points=
 
 def find_basis_thetas_on_diagram_ij(r0_val=1/6, z1_val=1/12, i=1, j=5):
     K.<r0,z1,o1,o2>=SymbolicRealNumberField([r0_val, z1_val, 0, 0])
-    phi = cpl3_lifting_function(r0, z1, o1, o2)
+    try:
+        phi = cpl3_lifting_function(r0, z1, o1, o2)
+    except:
+        return K, (None, None), None
     rnf_constraints = [ -o2 - phi(r0-z1+1) + 1,\
                         2*o1 - phi(2*r0 + 2*z1), \
                         -2*o1 - o2 + phi(r0 + 3*z1), \
@@ -468,3 +487,121 @@ def save_random_r0z1_for_ext_pts(random_points=100, plot_points=500):
         g.save("region_graphics/cpl3_ext_pt_%s.pdf" % ext_pt, title="cpl3 diagram for extreme point (%s)" % ext_pt)
     return
 
+
+
+
+class Cpl3Complex(SageObject):
+
+    def __init__(self, var_name, basis_i, basis_j):
+        #self.num_components = 0
+        self.components = []
+        self.d = len(var_name)
+        self.var_name = var_name
+        self.monomial_list = []
+        self.v_dict = {}
+        K = SymbolicRealNumberField([0]*self.d, var_name)
+        for i in range(self.d):
+            v = K.gens()[i].sym().numerator()
+            self.monomial_list.append(v)
+            self.v_dict[v] = Variable(i)
+        self.graph = Graphics()
+        self.num_plotted_components = 0
+        self.points_to_test = set()
+        self.i = basis_i
+        self.j = basis_j
+        self.thetas={}
+
+    def is_point_covered(self, var_value):
+        monomial_value = [m(var_value) for m in self.monomial_list]
+        # coefficients in ppl point must be integers.
+        lcm_monomial_value = lcm([x.denominator() for x in monomial_value])
+        #print [x * lcm_monomial_value for x in monomial_value]
+        pt = Generator.point(Linear_Expression([x * lcm_monomial_value for x in monomial_value], 0), lcm_monomial_value)
+        for c in self.components:
+            # Check if the random_point is contained in the box.
+            if c.region_type == 'not_constructible' and c.leq == [] and c.lin == []:
+                continue
+            if is_point_in_box(var_value, c.bounds):
+                # Check if all eqns/ineqs are satisfied.
+                if c.polyhedron.relation_with(pt).implies(point_is_included):
+                    return True
+        return False
+
+    def add_new_component(self, var_value, flip_ineq_step=0.01):
+        unlifted_space_dim =  len(self.monomial_list)
+        K = SymbolicRealNumberField(var_value, self.var_name)
+        K.monomial_list = self.monomial_list
+        K.v_dict = self.v_dict
+        K.polyhedron.add_space_dimensions_and_embed(len(K.monomial_list))
+        if self.i is not None:
+            K4, (theta1, theta2), feasibility = find_basis_thetas_on_diagram_ij(var_value[0], var_value[1], self.i, self.j)
+            if feasibility:
+                o1 = theta1.sym()(K.gens()[0], K.gens()[1], 0, 0)
+                o2 = theta2.sym()(K.gens()[0], K.gens()[1], 0, 0)
+                try:
+                    h  = cpl3_group_function(K.gens()[0], K.gens()[1], o1, o2)
+                    is_extreme =  extremality_test(h)
+                    if not is_extreme:
+                        region_type = 'not_constructible'
+                    else:
+                        if o1 in RR:
+                            o1sym = o1
+                        else:
+                            o1sym = o1.sym()
+                        if o2 in RR:
+                            o2sym = o2
+                        else:
+                            o2sym = o2.sym()
+                        o12 = (o1sym, o2sym)
+                        if o12 in self.thetas.keys():
+                            k = self.thetas[o12]
+                        else:
+                            k = len(self.thetas)
+                            self.thetas[o12] = k
+                        region_type = rainbow(10)[k]
+                except:
+                    region_type = 'not_constructible'
+            else:
+                leq4, lin4 = read_simplified_leq_lin(K4)
+                # copy leq and lin of K4 to K.
+                for l in leq4:
+                    if not (l(K.gens()[0], K.gens()[1], 0, 0) == 0):
+                        print "%s=0 is violated at %s" % (l, var_value)
+                for l in lin4:
+                    if not (l(K.gens()[0], K.gens()[1], 0, 0) < 0):
+                        print "%s<0 is violated at %s" % (l, var_value)
+                region_type = 'not_constructible'
+        else:
+            try:
+                h = cpl3_bkpts(*K.gens())
+                t = subadditivity_test(h) # always True
+                region_type = 'not_minimal'
+            except:
+                # Function is non-contructible at this random point.
+                region_type = 'not_constructible'
+        leq, lin = read_simplified_leq_lin(K)
+        #if see new monomial, lift polyhedrons of the previously computed components.
+        dim_to_add = len(self.monomial_list) - unlifted_space_dim
+        if dim_to_add > 0:
+            for c in self.components:
+                c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
+        new_component = SemialgebraicComplexComponent(K, leq, lin, var_value, region_type)
+        self.components.append(new_component)
+        if flip_ineq_step > 0:
+            (self.points_to_test).update(new_component.generate_neighbour_points(flip_ineq_step))
+
+    def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=False):
+        if restart:
+            self.graph = Graphics()
+            self.num_plotted_components = 0
+        for c in self.components[self.num_plotted_components::]:
+            self.graph += c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value)
+        self.num_plotted_components = len(self.components)
+        return self.graph
+
+    def bfs_completion(self, var_value, var_bounds=None, max_failings=1000, flip_ineq_step=0.01):
+        (self.points_to_test).add(tuple(var_value))
+        while self.points_to_test:
+            var_value = list(self.points_to_test.pop())
+            if not self.is_point_covered(var_value) and point_satisfies_var_bounds(var_value, var_bounds):
+                self.add_new_component(var_value, flip_ineq_step=flip_ineq_step)
