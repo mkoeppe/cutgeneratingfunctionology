@@ -984,7 +984,10 @@ class SemialgebraicComplexComponent(SageObject):
                     lins.append(l)
 
         covered_type_color = {'not_constructible': 'white', 'not_minimal': 'orange', 'not_extreme': 'green', 'is_extreme': 'blue'}
-        innercolor = covered_type_color[self.region_type]
+        if self.region_type in covered_type_color.keys():
+            innercolor = covered_type_color[self.region_type]
+        else:
+            innercolor = self.region_type
         if self.region_type == 'not_constructible':
             bordercolor = 'gray'
             ptcolor = 'black'
