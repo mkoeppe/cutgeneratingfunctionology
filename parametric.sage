@@ -511,12 +511,15 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict):
     mincs = p.minimized_constraints()
     for c in mincs:
         coeff = c.coefficients()
+        # observe: coeffients in a constraint of NNC_Polyhedron could have gcd != 1.
+        # take care of this.
+        gcd_c = gcd(gcd(coeff), c.inhomogeneous_term())
         # constraint is written with '>', while lt_poly records '<' relation
-        t = sum([-x*y for x, y in itertools.izip(coeff, monomial_list)]) - c.inhomogeneous_term()
+        t = sum([-(x/gcd_c)*y for x, y in itertools.izip(coeff, monomial_list)]) - c.inhomogeneous_term()/gcd_c
         if c.is_equality():
-            mineq.append(t.numerator())
+            mineq.append(t)
         else:
-            minlt.append(t.numerator())
+            minlt.append(t)
     # note that polynomials in mineq and minlt can have leading coefficient != 1
     return mineq, minlt
 
