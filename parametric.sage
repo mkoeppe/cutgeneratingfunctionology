@@ -1186,7 +1186,10 @@ class SemialgebraicComplex(SageObject):
     def find_uncovered_random_point(self, var_bounds=None, max_failings=1000):
         num_failings = 0
         while not max_failings or num_failings < max_failings:
-            var_value = self.generate_random_var_value(var_bounds=var_bounds)
+            if self.points_to_test:
+                var_value = list(self.points_to_test.pop())
+            else:
+                var_value = self.generate_random_var_value(var_bounds=var_bounds)
             # This point is not already covered.
             if self.is_point_covered(var_value):
                 num_failings += 1
