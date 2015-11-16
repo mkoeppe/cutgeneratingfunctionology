@@ -54,80 +54,6 @@ def cpl3_lifting_function(r0=1/6, z1=1/12, o1=1/5, o2=0):
     list_of_pairs = [[(bkpts[i], bkpts[i+1]), linear_function_through_points([bkpts[i], values[i]], [bkpts[i+1], values[i+1]])] for i in range(len(bkpts)-1)]
     return FastPiecewise(list_of_pairs, periodic_extension=False, merge=False)
 
-def treat_constraint_of_PTheta3(rnf_c):
-    """
-    The emaxple follows subcase1 of case 1, section 3.2, CPL3 paper Page 175,
-    We assume that 0 < r0 < z1 and 2*r0 + 6*z1 <= 1.
-    sage: logging.disable(logging.WARNING)
-    sage: K.<r0,z1,o1,o2>=SymbolicRealNumberField([1/20, 1/12, 1/5, 0])
-    sage: phi = cpl3_lifting_function(r0, z1, o1, o2)
-
-    Let rnf_c be the second constraint of PTheta3= in section 3.1:
-    sage: rnf_c = 2*o1 - phi(2*r0+2*z1)
-
-    We look for the coefficients of o1 and o2 in equation(4), and the rhs of eqn(4):
-    sage: c_o1, c_o2, c_rhs = treat_constraint_of_PTheta3(rnf_c)
-    sage: c_o1
-    ((-r0 + 4*z1 - 1)/(r0 + 4*z1 - 1))~
-    sage: c_o2
-    ((-3*r0 - 4*z1 + 1)/(r0 + 4*z1 - 1))~
-    sage: c_rhs
-    ((-r0)/(r0 + 4*z1 - 1))~
-    """
-    sym_c = rnf_c.sym()
-    c = sym_c.numerator()
-    r0_sym, z1_sym, o1_sym, o2_sym = c.args()
-    c_rhs_sym_numerator = - (c.reduce([o1_sym, o2_sym]))
-    c_rhs_sym = c_rhs_sym_numerator / sym_c.denominator()
-    c_o1_sym = (c + c_rhs_sym_numerator).mod(o2_sym) / o1_sym / sym_c.denominator()
-    c_o2_sym = (c + c_rhs_sym_numerator).mod(o1_sym) / o2_sym / sym_c.denominator()
-    magic_field = rnf_c.parent()
-    v = magic_field._values
-    c_rhs = SymbolicRNFElement(c_rhs_sym(v), c_rhs_sym, magic_field)
-    c_o1 = SymbolicRNFElement(c_o1_sym(v), c_o1_sym, magic_field)
-    c_o2 = SymbolicRNFElement(c_o2_sym(v), c_o2_sym, magic_field)
-    return c_o1, c_o2, c_rhs    
-
-def constraints_PTheta3(r0, z1, o1, o2):
-    """
-    sage: logging.disable(logging.WARNING)
-    sage: K.<r0,z1,o1,o2>=SymbolicRealNumberField([1/20, 1/12, 1/5, 0])
-    sage: constraints_PTheta3(r0, z1, o1, o2)
-    [(((-r0 + z1)/z1)~, (-1)~, 0~),
-     (((-r0 + 4*z1 - 1)/(r0 + 4*z1 - 1))~,
-      ((-3*r0 - 4*z1 + 1)/(r0 + 4*z1 - 1))~,
-      ((-r0)/(r0 + 4*z1 - 1))~),
-     (((-r0 - 2*z1 + 1)/(r0 + 4*z1 - 1))~,
-      (2*z1/(r0 + 4*z1 - 1))~,
-      (z1/(r0 + 4*z1 - 1))~),
-     (((-r0 + 2*z1 - 1)/(r0 + 4*z1 - 1))~,
-      ((-2*r0 - 2*z1)/(r0 + 4*z1 - 1))~,
-      ((-r0 - z1)/(r0 + 4*z1 - 1))~),
-     (((-r0 + 1)/(r0 + 4*z1 - 1))~,
-      ((-r0 + 1)/(r0 + 4*z1 - 1))~,
-      (2*z1/(r0 + 4*z1 - 1))~),
-     (((-r0 - 1)/(r0 + 4*z1 - 1))~,
-      ((-r0 - 1)/(r0 + 4*z1 - 1))~,
-      ((-r0 - 2*z1)/(r0 + 4*z1 - 1))~),
-     ((-1)~, 1~, 0~),
-     ((-1)~, 0~, 0~),
-     (0~, (-1)~, 0~)]
-    """
-    phi = cpl3_lifting_function(r0, z1, o1, o2)
-    # should generate the constraints from the superadditivity of phi
-    # here we copy the constraints from page 175 sec 3.1
-    rnf_constraints = [ -o2 - phi(r0-z1+1) + 1,\
-                        2*o1 - phi(2*r0 + 2*z1), \
-                        -2*o1 - o2 + phi(r0 + 3*z1), \
-                        2*o1 + o2 - phi(2*r0 + 3*z1), \
-                        -2*o1 - 2*o2 + phi(r0 + 4*z1), \
-                        2*o1 + 2*o2 - phi(2*r0 + 4*z1), \
-                        -o1 + o2, \
-                        -o1, \
-                        -o2 ]
-    coeff_o_rhs = [treat_constraint_of_PTheta3(rnf_c) for rnf_c in rnf_constraints]
-    return coeff_o_rhs
-
 class Cpl3Complex(SageObject):
 
     def __init__(self, var_name, theta=None):
@@ -259,15 +185,14 @@ class Cpl3Complex(SageObject):
             if not self.is_point_covered(var_value) and point_satisfies_var_bounds(var_value, var_bounds):
                 self.add_new_component(var_value, flip_ineq_step=flip_ineq_step)
 
-def regions_r0_z1_from_arrangement_of_bkpts():
+def regions_r0_z1_from_arrangement_of_bkpts(show_plots=False):
     """
     sage: logging.disable(logging.INFO)  # not tested
     sage: regions = regions_r0_z1_from_arrangement_of_bkpts() # not tested
     sage: len(regions) #not tested
     30
 
-    Figure clp_30_regions is obtained by:
-    sage: complex.plot().show(xmin=0, xmax=1, ymin=0, ymax=1/4) # not tested
+    Figure clp_30_regions is obtained by setting show_plots=True
     """
     complex=Cpl3Complex(['r0','z1'], None)
     complex.bfs_completion(var_value=[6/10,4/100])
@@ -276,7 +201,87 @@ def regions_r0_z1_from_arrangement_of_bkpts():
         x, y = c.var_value
         if x >= 0 and x <=1 and y>=0 and y<=1/4-x/4:
             regions.append(c)
+    if show_plots:
+        complex.plot().show(xmin=0, xmax=1, ymin=0, ymax=1/4)
     return regions
+
+def treat_constraint_of_PTheta3(rnf_c):
+    """
+    The emaxple follows subcase1 of case 1, section 3.2, CPL3 paper Page 175,
+    We assume that 0 < r0 < z1 and 2*r0 + 6*z1 <= 1.
+    sage: logging.disable(logging.WARNING)
+    sage: K.<r0,z1,o1,o2>=SymbolicRealNumberField([1/20, 1/12, 1/5, 0])
+    sage: phi = cpl3_lifting_function(r0, z1, o1, o2)
+
+    Let rnf_c be the second constraint of PTheta3= in section 3.1:
+    sage: rnf_c = 2*o1 - phi(2*r0+2*z1)
+
+    We look for the coefficients of o1 and o2 in equation(4), and the rhs of eqn(4):
+    sage: c_o1, c_o2, c_rhs = treat_constraint_of_PTheta3(rnf_c)
+    sage: c_o1
+    ((-r0 + 4*z1 - 1)/(r0 + 4*z1 - 1))~
+    sage: c_o2
+    ((-3*r0 - 4*z1 + 1)/(r0 + 4*z1 - 1))~
+    sage: c_rhs
+    ((-r0)/(r0 + 4*z1 - 1))~
+    """
+    sym_c = rnf_c.sym()
+    c = sym_c.numerator()
+    r0_sym, z1_sym, o1_sym, o2_sym = c.args()
+    c_rhs_sym_numerator = - (c.reduce([o1_sym, o2_sym]))
+    c_rhs_sym = c_rhs_sym_numerator / sym_c.denominator()
+    c_o1_sym = (c + c_rhs_sym_numerator).mod(o2_sym) / o1_sym / sym_c.denominator()
+    c_o2_sym = (c + c_rhs_sym_numerator).mod(o1_sym) / o2_sym / sym_c.denominator()
+    magic_field = rnf_c.parent()
+    v = magic_field._values
+    c_rhs = SymbolicRNFElement(c_rhs_sym(v), c_rhs_sym, magic_field)
+    c_o1 = SymbolicRNFElement(c_o1_sym(v), c_o1_sym, magic_field)
+    c_o2 = SymbolicRNFElement(c_o2_sym(v), c_o2_sym, magic_field)
+    return c_o1, c_o2, c_rhs
+
+# Approach that uses simplified description of PTheta3 stated on page 175 sec 3.1 of the paper.
+# This approach allows plotting the colorful diagrams cpl_i_j_thetas.
+
+def constraints_PTheta3(r0, z1, o1, o2):
+    """
+    sage: logging.disable(logging.WARNING)
+    sage: K.<r0,z1,o1,o2>=SymbolicRealNumberField([1/20, 1/12, 1/5, 0])
+    sage: constraints_PTheta3(r0, z1, o1, o2)
+    [(((-r0 + z1)/z1)~, (-1)~, 0~),
+     (((-r0 + 4*z1 - 1)/(r0 + 4*z1 - 1))~,
+      ((-3*r0 - 4*z1 + 1)/(r0 + 4*z1 - 1))~,
+      ((-r0)/(r0 + 4*z1 - 1))~),
+     (((-r0 - 2*z1 + 1)/(r0 + 4*z1 - 1))~,
+      (2*z1/(r0 + 4*z1 - 1))~,
+      (z1/(r0 + 4*z1 - 1))~),
+     (((-r0 + 2*z1 - 1)/(r0 + 4*z1 - 1))~,
+      ((-2*r0 - 2*z1)/(r0 + 4*z1 - 1))~,
+      ((-r0 - z1)/(r0 + 4*z1 - 1))~),
+     (((-r0 + 1)/(r0 + 4*z1 - 1))~,
+      ((-r0 + 1)/(r0 + 4*z1 - 1))~,
+      (2*z1/(r0 + 4*z1 - 1))~),
+     (((-r0 - 1)/(r0 + 4*z1 - 1))~,
+      ((-r0 - 1)/(r0 + 4*z1 - 1))~,
+      ((-r0 - 2*z1)/(r0 + 4*z1 - 1))~),
+     ((-1)~, 1~, 0~),
+     ((-1)~, 0~, 0~),
+     (0~, (-1)~, 0~)]
+    """
+    phi = cpl3_lifting_function(r0, z1, o1, o2)
+    # here we copy the constraints from page 175 sec 3.1
+    # to generate the constraints from the superadditivity of phi,
+    # see generate_regions_and_theta_ext()
+    rnf_constraints = [ -o2 - phi(r0-z1+1) + 1,\
+                        2*o1 - phi(2*r0 + 2*z1), \
+                        -2*o1 - o2 + phi(r0 + 3*z1), \
+                        2*o1 + o2 - phi(2*r0 + 3*z1), \
+                        -2*o1 - 2*o2 + phi(r0 + 4*z1), \
+                        2*o1 + 2*o2 - phi(2*r0 + 4*z1), \
+                        -o1 + o2, \
+                        -o1, \
+                        -o2 ]
+    coeff_o_rhs = [treat_constraint_of_PTheta3(rnf_c) for rnf_c in rnf_constraints]
+    return coeff_o_rhs
 
 def regions_r0_z1_with_thetas_and_feasibility(regions=None):
     """
@@ -294,16 +299,6 @@ def regions_r0_z1_with_thetas_and_feasibility(regions=None):
             for j in range(i+1, 9):
                 r0_val, z1_val = r.var_value
                 K.<r0,z1,o1,o2>=SymbolicRealNumberField([r0_val, z1_val, 0, 0])
-                phi = cpl3_lifting_function(r0, z1, o1, o2)
-                rnf_constraints = [ -o2 - phi(r0-z1+1) + 1,\
-                        2*o1 - phi(2*r0 + 2*z1), \
-                        -2*o1 - o2 + phi(r0 + 3*z1), \
-                        2*o1 + o2 - phi(2*r0 + 3*z1), \
-                        -2*o1 - 2*o2 + phi(r0 + 4*z1), \
-                        2*o1 + 2*o2 - phi(2*r0 + 4*z1), \
-                        -o1 + o2, \
-                        -o1, \
-                        -o2 ]
                 coeff_o_rhs = constraints_PTheta3(r0,z1,o1,o2)
                 a11, a12, b1 = coeff_o_rhs[i]
                 a21, a22, b2 = coeff_o_rhs[j]
@@ -368,10 +363,14 @@ def retrieve_theta_ext_from_regions(regions):
     sage: theta_ext = retrieve_theta_ext_from_regions(regions); # not tested
     sage: len(theta_ext) #not tested
     18
+    sage: theta_ext[0] # not tested
+    (z1/(-r0 - 2*z1 + 1), 0)
     """
     thetaij = uniq([(r.theta_ij[i,j][0].sym(), r.theta_ij[i,j][1].sym()) \
                     for i in range(9) for j in range(i+1,9) for r in regions if r.feas_ij[i,j]])
     theta_ext = []
+    for r in regions:
+        r.thetas = set([])
     K.<r0,z1>=QQ[]
     for (t1, t2) in thetaij:
         d1 = t1(r0, z1, 0, 0)
@@ -384,31 +383,118 @@ def retrieve_theta_ext_from_regions(regions):
                 break
         if to_add:
             theta_ext.append(d)
+            for r in regions:
+                for i in range(9):
+                    for j in range(i+1, 9):
+                        if r.feas_ij[i,j] and (r.theta_ij[i,j][0].sym(), r.theta_ij[i,j][1].sym()) == d:
+                            (r.thetas).add(d)
     return theta_ext
 
+# Approach that does not use simplified description of PTheta3 stated on page 175 sec 3.1 of the paper.
+# Instead, it derives everything starting from the superadditivity of phi.
+def generate_coefficients_of_constraints_PTheta3(r0_val, z1_val):
+    """
+    sage: generate_coefficients_of_constraints_PTheta3(3/5, 1/25) # not tested
+    [(2~, 2~, 1~),
+     (2~, 0~, 1~),
+     ((-1)~, (-1)~, 0~),
+     ((-1)~, 0~, 0~),
+     ((-1)~, 1~, 0~),
+     (0~, 0~, 0~),
+     (((-r0 + 1)/(r0 + 4*z1 - 1))~,
+      ((-r0 + 1)/(r0 + 4*z1 - 1))~,
+      (2*z1/(r0 + 4*z1 - 1))~),
+     (0~, 0~, 1~),
+     (0~, (-1)~, 0~),
+     (((-r0 - 2*z1 + 1)/(r0 + 4*z1 - 1))~,
+      (2*z1/(r0 + 4*z1 - 1))~,
+      (z1/(r0 + 4*z1 - 1))~),
+     (1~, 1~, 1~),
+     (2~, 1~, 1~),
+     (1~, 0~, 1~)]
+    """
+    K.<r0,z1,o1,o2>=SymbolicRealNumberField([r0_val, z1_val, 0, 0])
+    phi = cpl3_lifting_function(r0, z1, o1, o2)
+    rnf_constraints = set([])
+    bkpts = phi.end_points()
+    for x in bkpts:
+        for y in bkpts:
+            if x <= y < 1:
+                rnf_c = phi(x) + phi(y) - phi(x+y)
+                rnf_constraints.add(rnf_c)
+    for x in bkpts:
+        for z in bkpts:
+            if x < 1 and x < z < 1+x:
+                rnf_c = phi(x) + phi(z-x) - phi(z)
+                rnf_constraints.add(rnf_c)
+    coeff_o_rhs = [treat_constraint_of_PTheta3(rnf_c) for rnf_c in rnf_constraints]
+    return coeff_o_rhs
+
+def generate_regions_and_theta_ext():
+    """
+    sage: regions, theta_ext = generate_regions_and_theta_ext() # not tested
+    sage: len(regions) # not tested
+    30
+    sage: len(theta_ext) # not tested
+    18
+    """
+    regions = regions_r0_z1_from_arrangement_of_bkpts()
+    theta_ext = []
+    K.<r0,z1>=QQ[]
+    for r in regions:
+        r.thetas = set([])
+        r0_val, z1_val = r.var_value
+        coeff_o_rhs = generate_coefficients_of_constraints_PTheta3(r0_val, z1_val)
+        n = len(coeff_o_rhs)
+        for i in range(n):
+            for j in range(i+1, n):
+                a11, a12, b1 = coeff_o_rhs[i]
+                a21, a22, b2 = coeff_o_rhs[j]
+                d = a11 * a22 - a12 * a21
+                if d == 0:
+                    continue
+                theta1 = (b1 * a22 - a12 * b2) / d
+                theta2 = (a11 * b2 - b1 * a21) / d
+                feasibility = True
+                for (c_o1, c_o2, c_rhs) in coeff_o_rhs:
+                    if c_o1 * theta1 + c_o2 * theta2 > c_rhs:
+                        feasibility = False
+                        break
+                if not feasibility:
+                    continue
+                d = (theta1.sym()(r0, z1, 0, 0), theta2.sym()(r0, z1, 0, 0))
+                to_add = True
+                for t in theta_ext:
+                    if t == d:
+                        to_add = False
+                        break
+                if to_add:
+                    theta_ext.append(d)
+                    (r.thetas).add(d)
+                else:
+                    (r.thetas).add(t)
+    return regions, theta_ext
+
+# Plotting diagrams
 def plot_cpl_thetas_ext_diagram(regions, t, k):
     """
+    # either approach in paper:
     sage: regions = regions_r0_z1_with_thetas_and_feasibility() # not tested
     sage: theta_ext = retrieve_theta_ext_from_regions(regions); # not tested
+    # or better direct approach:
+    sage: regions, theta_ext = generate_regions_and_theta_ext() # not tested
+
     sage: k = 0; t = theta_ext[k]; # not tested
     sage: g = plot_cpl_thetas_ext_diagram(regions, t, k) # not tested
     sage: g.save("cpl_thetas_ext_%s.pdf" %k) # not tested
     """
     g = Graphics()
-    if k == 5 or k == 17:
+    if len(str(t)) > 100:
         g += text("extreme point %s:\ntheta = (%s,\n %s)" %(k,t[0], t[1]), (0.5, 1/4), color='black')
     else:
         g += text("extreme point %s:  theta = %s" %(k,t), (0.5, 1/4), color='black')
     for r in regions:
-        to_add = False
-        for i in range(9):
-            for j in range(i+1, 9):
-                if r.feas_ij[i,j] and (r.theta_ij[i,j][0].sym(), r.theta_ij[i,j][1].sym()) == t:
-                    to_add = True
-                    break
-            if to_add:
-                break
-        if to_add:
+        if t in r.thetas:
             r.region_type = "red"  #is feasible vertex theta
         else:
             r.region_type = "lightgrey"  #is not feasible vertex theta
@@ -417,22 +503,18 @@ def plot_cpl_thetas_ext_diagram(regions, t, k):
 
 def complex_of_cpl_extreme_case_k(regions, t):
     """
+    # either approach in paper:
     sage: regions = regions_r0_z1_with_thetas_and_feasibility() # not tested
     sage: theta_ext = retrieve_theta_ext_from_regions(regions); # not tested
+    # or better direct approach:
+    sage: regions, theta_ext = generate_regions_and_theta_ext() # not tested
+
     sage: k = 0; t = theta_ext[k]; # not tested
     sage: complex = complex_of_cpl_extreme_case_k(regions, t) # not tested
     """
     complex = Cpl3Complex(['r0','z1'], t)
     for r in regions:
-        possible_region = False
-        for i in range(9):
-            for j in range(i+1, 9):
-                if r.feas_ij[i,j] and (r.theta_ij[i,j][0].sym(), r.theta_ij[i,j][1].sym()) == t:
-                    possible_region = True
-                    break
-            if possible_region:
-                break
-        if possible_region:
+        if t in r.thetas:
             (complex.points_to_test).add(tuple(r.var_value))
         else:
             r.region_type = "lightgrey"  #is not feasible vertex theta
@@ -444,15 +526,19 @@ def complex_of_cpl_extreme_case_k(regions, t):
 
 def plot_cpl_extreme_case_k_diagram(complex, t, k):
     """
+    # either approach in paper:
     sage: regions = regions_r0_z1_with_thetas_and_feasibility() # not tested
     sage: theta_ext = retrieve_theta_ext_from_regions(regions); # not tested
+    # or better direct approach:
+    sage: regions, theta_ext = generate_regions_and_theta_ext() # not tested
+
     sage: k = 0; t = theta_ext[k]; # not tested
     sage: complex = complex_of_cpl_extreme_case_k(regions, t) # not tested
     sage: g = plot_cpl_extreme_case_k_diagram(complex, t, k) # not tested
     sage: g.save("cpl_extreme_case_%s.pdf" %k, xmin=0, xmax=1, ymin=0, ymax=1/4)
     """
     g = Graphics()
-    if k == 5 or k == 17:
+    if len(str(t)) > 100:
         g += text("extreme point %s:\ntheta = (%s,\n %s)" %(k,t[0], t[1]), (0.5, 1/4), color='black')
     else:
         g += text("extreme point %s:  theta = %s" %(k,t), (0.5, 1/4), color='black')
