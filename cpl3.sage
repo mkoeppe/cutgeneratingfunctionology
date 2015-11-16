@@ -67,7 +67,7 @@ class Cpl3Complex(SageObject):
         for i in range(self.d):
             v = K.gens()[i].sym().numerator()
             self.monomial_list.append(v)
-            self.v_dict[v] = Variable(i)
+            self.v_dict[v] = i
         self.graph = Graphics()
         self.num_plotted_components = 0
         self.points_to_test = set()

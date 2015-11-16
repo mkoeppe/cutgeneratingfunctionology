@@ -362,7 +362,7 @@ def polynomial_to_linexpr(t, monomial_list, v_dict):
     sage: monomial_list
     [x^2, y*z]
     sage: v_dict
-    {y*z: x1, x^2: x0}
+    {y*z: 1, x^2: 0}
 
     sage: tt = x + 1/3 * y*z
     sage: polynomial_to_linexpr(tt, monomial_list, v_dict)
@@ -370,7 +370,7 @@ def polynomial_to_linexpr(t, monomial_list, v_dict):
     sage: monomial_list
     [x^2, y*z, x]
     sage: v_dict
-    {x: x2, y*z: x1, x^2: x0}
+    {x: 2, y*z: 1, x^2: 0}
     """
     # coefficients in ppl constraint must be integers.
     lcd = lcm([x.denominator() for x in t.coefficients()])
@@ -380,26 +380,26 @@ def polynomial_to_linexpr(t, monomial_list, v_dict):
         for (k, c) in t.dict().items():
             m = (t.args()[0])^k
             if m in v_dict.keys():
-                v = v_dict[m]
+                v = Variable(v_dict[m])
             elif k == 0:
                 # constant term, don't construct a new Variable for it.
                 v = 1
             else:
                 nv = len(monomial_list)
                 v = Variable(nv)
-                v_dict[m] = v
+                v_dict[m] = nv
                 monomial_list.append(m)
             linexpr += (lcd * c) * v
     else:
         for m in t.monomials():
             if m in v_dict.keys():
-                v = v_dict[m]
+                v = Variable(v_dict[m])
             elif m == 1:
                 v = 1
             else:
                 nv = len(monomial_list)
                 v = Variable(nv)
-                v_dict[m] = v
+                v_dict[m] = nv
                 monomial_list.append(m)
             coeffv = t.monomial_coefficient(m)
             linexpr += (lcd * coeffv) * v
@@ -415,7 +415,7 @@ def cs_of_eq_lt_poly(eq_poly, lt_poly):
     sage: monomial_list
     [f, f^2]
     sage: v_dict
-    {f: x0, f^2: x1}
+    {f: 0, f^2: 1}
     """
     monomial_list = []
     v_dict ={}
@@ -1144,7 +1144,7 @@ class SemialgebraicComplex(SageObject):
         for i in range(self.d):
             v = K.gens()[i].sym().numerator()
             self.monomial_list.append(v)
-            self.v_dict[v] = Variable(i)
+            self.v_dict[v] = i
         self.graph = Graphics()
         self.num_plotted_components = 0
         self.points_to_test = set()
