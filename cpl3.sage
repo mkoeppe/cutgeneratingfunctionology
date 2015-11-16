@@ -128,368 +128,6 @@ def constraints_PTheta3(r0, z1, o1, o2):
     coeff_o_rhs = [treat_constraint_of_PTheta3(rnf_c) for rnf_c in rnf_constraints]
     return coeff_o_rhs
 
-def copy_magic_field_elements(magic_field, elements):
-    return [SymbolicRNFElement(x.val(), x.sym(), magic_field) for x in elements]
-    
-def find_bases(coeff_o_rhs, K):
-    """
-    sage: logging.disable(logging.WARNING)
-    sage: K.<r0,z1,o1,o2>=SymbolicRealNumberField([1/20, 1/12, 1/5, 0])
-    sage: coeff_o_rhs = constraints_PTheta3(r0, z1, o1, o2)
-    sage: theta_and_magic_field = find_bases(coeff_o_rhs, K)
-    sage: theta_and_magic_field
-    [(((-r0 - z1)/(-r0 - 1))~,
-      ((-z1)/(-r0 - 1))~,
-      SymbolicRNF[(r0)~, (z1)~, (o1)~, (o2)~]),
-     (((r0 + 2*z1)/(-2*r0 + 2))~,
-      ((-r0 + 2*z1)/(-2*r0 + 2))~,
-      SymbolicRNF[(r0)~, (z1)~, (o1)~, (o2)~]),
-     (((-z1)/(r0 - 1))~,
-      ((-z1)/(r0 - 1))~,
-      SymbolicRNF[(r0)~, (z1)~, (o1)~, (o2)~]),
-     (((-r0 - 2*z1)/(-2*r0 - 2))~,
-      ((-r0 - 2*z1)/(-2*r0 - 2))~,
-      SymbolicRNF[(r0)~, (z1)~, (o1)~, (o2)~])]
-    """
-    n = len(coeff_o_rhs)
-    theta_and_magic_field = []
-    seen_thetas = []
-    for i in range(n):
-        for j in range(i, n):
-            magic_field = copy(K)
-            a11_K, a12_K, b1_K = coeff_o_rhs[i]
-            a21_K, a22_K, b2_K = coeff_o_rhs[j]
-            [a11, a12, b1, a21, a22, b2] = copy_magic_field_elements(magic_field, \
-                                           [a11_K, a12_K, b1_K, a21_K, a22_K, b2_K])
-            d = a11 * a22 - a12 * a21
-            if d == 0:
-                continue
-            theta1 = (b1 * a22 - a12 * b2) / d
-            theta2 = (a11 * b2 - b1 * a21) / d
-            thetas = (theta1.sym(), theta2.sym())
-            # I tried to use seen_thetas as a set and check if thetas in seen_thetas.
-            # But it didn't work.
-            # Because '(z1/r0_=).sym() == (2*z1/(2*r0)).sym()' but not 'is'?
-            # See also [sage-trac] #16993: Broken fraction field of rational polynomial ring
-            # and [sage-trac] #15297: Elements from a Field of Fractions that compare equal
-            #                         should have equal hashes
-            seen = False
-            for t in seen_thetas:
-                if t == thetas:
-                    seen = True
-                    break
-            if seen:
-                continue
-            seen_thetas.append(thetas)
-            feasibility = True
-            for (c_o1_K, c_o2_K, c_rhs_K) in coeff_o_rhs:
-                [c_o1, c_o2, c_rhs] = copy_magic_field_elements(magic_field, \
-                                      [c_o1_K, c_o2_K, c_rhs_K])
-                if c_o1 * theta1 + c_o2 * theta2 > c_rhs:
-                    feasibility = False
-                    break
-            if feasibility:
-                #print i, j, theta1, theta2
-                theta_and_magic_field.append((theta1, theta2, magic_field))
-    return theta_and_magic_field
-                
-def setup_vertex_group_function(theta1, theta2, r0_val, z1_val):
-    """
-    sage: logging.disable(logging.WARNING)
-    sage: K.<r0,z1,o1,o2>=SymbolicRealNumberField([1/20, 1/12, 1/5, 0])
-    sage: coeff_o_rhs = constraints_PTheta3(r0, z1, o1, o2)
-    sage: theta_and_magic_field = find_bases(coeff_o_rhs, K)
-    sage: theta1, theta2, magic_field = theta_and_magic_field[0]
-    sage: r0_val = 1/20 # = magic_field.gens()[0].val()
-    sage: z1_val = 1/12 # = magic_field.gens()[1].val()
-    sage: K2, h = setup_vertex_group_function(theta1, theta2, r0_val, z1_val)
-    sage: read_simplified_leq_lin(K2)
-    ([], [r0 + 4*z1 - 1, -z1, -r0])
-    """
-    K2.<r0, z1, o1, o2> = SymbolicRealNumberField([r0_val, z1_val, 0, 0])
-    vertex_o1, vertex_o2 = copy_magic_field_elements(K2, [theta1, theta2])
-    h  = cpl3_group_function(r0, z1, vertex_o1, vertex_o2)
-    return K2, h
-
-def testCPL3(K):
-    """
-    sage: logging.disable(logging.WARNING)
-    sage: K.<r0,z1,o1,o2>=SymbolicRealNumberField([1/20, 1/12, 1/5, 0])
-    sage: fields, thetas, chambres, extremality = testCPL3(K)
-
-    The following four PTheta3= vertices (theta1, theta2) correspond to
-    extreme points (c), (d), (a), (b) respectively (cf. page 177 table 2)
-    sage: thetas
-    [(((-r0 - z1)/(-r0 - 1))~, ((-z1)/(-r0 - 1))~),
-     (((r0 + 2*z1)/(-2*r0 + 2))~, ((-r0 + 2*z1)/(-2*r0 + 2))~),
-     (((-z1)/(r0 - 1))~, ((-z1)/(r0 - 1))~),
-     (((-r0 - 2*z1)/(-2*r0 - 2))~, ((-r0 - 2*z1)/(-2*r0 - 2))~)]
-
-    The extremality of the funciton in the chambre around the testpoint
-    sage: extremality
-    [True, False, True, True]
-
-    Compare the returned chambres around testpoint with 
-    the known conditions for extremality [page 188, table 5]
-    Ext pt (c), expected 3*r0 + 4*z1 <=1, got (-r0*z1<1,) r0<z1, 0<r0, 3*r0 + 4*z1 < 1
-    Ext pt (d), expected r0=2*z1, r0+8*z1<=1, got a chambre where the function is not extreme
-    Ext pt (a), expected 0<r0<1, 0<=z1<1, got r0 + 4*z1 < 1, 0 < z1, 0 < r0 < 1/2
-    Ext pt (b), expected 3*r0 + 8*z1 <=1, got 3*r0 + 8*z1 < 1, r0<2*z1, 0<r0, (-2*r0*z1< 1)
-    sage: chambres
-    [([], [-r0*z1 - 1, r0 - z1, -r0, 3*r0 + 4*z1 - 1]),
-     ([-5*r0 + 3*z1],
-      [43*r0 - 3,
-       10*r0^2*z1 - 16*r0*z1^2 + 6*z1^3 + r0^2 - 6*r0*z1 + z1^2,
-       -40000*r0^2*z1 + 40000*r0*z1^2 - r0^2 + 40001*r0*z1 - 39998*z1^2,
-       -2*r0,
-       30*r0*z1 - 18*z1^2 - 28*r0,
-       79990*r0*z1 + 6*z1^2 - 133324*r0,
-       3*r0^2 - 6*r0*z1 - z1^2]),
-     ([], [r0 + 4*z1 - 1, -z1, -r0, 2*r0 - 1]),
-     ([], [3*r0 + 8*z1 - 1, r0 - 2*z1, -r0, -2*r0*z1 - 1])]
-
-    Let's try another testpoint.
-    In the following example, the third PTheta3= vertex (theta1, theta2) is extreme point (c).
-    The function is extreme in the chambre defined by (-r0*z1<1,) 0<z1, z1<r0, 3*r0 + 4*z1 < 1
-    Together with the chambre ext pt (c) in the example above,
-    the conditions for extreme function for ext point (c) in the paper are completely recovered
-    sage: K.<r0,z1,o1,o2>=SymbolicRealNumberField([1/6, 1/12, 0, 0])
-    sage: fields, thetas, chambres, extremality = testCPL3(K)
-    sage: thetas[2]
-    (((-r0 - z1)/(-r0 - 1))~, ((-z1)/(-r0 - 1))~)
-    sage: extremality[2]
-    True
-    sage: chambres[2]
-    ([], [-r0*z1 - 1, -z1, -r0 + z1, 3*r0 + 4*z1 - 1])
-    """
-    fields = []
-    thetas = []
-    chambres = []
-    extremality = []
-    coeff_o_rhs = constraints_PTheta3(K.gens()[0], K.gens()[1], K.gens()[2], K.gens()[3])
-    r0_val = K.gens()[0].val()
-    z1_val = K.gens()[1].val()
-    theta_and_magic_field = find_bases(coeff_o_rhs, K)
-    for theta1, theta2, magic_field in  theta_and_magic_field:
-        K2, h = setup_vertex_group_function(theta1, theta2, r0_val, z1_val)
-        is_extreme =  extremality_test(h)
-        fields.append(K2)
-        thetas.append((theta1, theta2))
-        leq, lin = read_simplified_leq_lin(K2)
-        chambres.append((leq, lin))
-        extremality.append(is_extreme)
-    return fields, thetas, chambres, extremality
-
-def find_all_vertex_thetas(sampling=20):
-    """
-    Finds too many vertex thetas, to check!
-    sage: logging.disable(logging.WARNING)
-    sage: vertex_thetas = find_all_vertex_thetas()
-    sage: len(vertex_thetas)
-    27
-    sage: vertex_thetas
-    [((-r0 - z1)/(-r0 - 1), (-z1)/(-r0 - 1)),
-     ((r0 + 2*z1)/(-2*r0 + 2), (-r0 + 2*z1)/(-2*r0 + 2)),
-     ((-z1)/(r0 - 1), (-z1)/(r0 - 1)),
-     ((-r0 - 2*z1)/(-2*r0 - 2), (-r0 - 2*z1)/(-2*r0 - 2)),
-     ((4*z1 - 1)/(6*r0 + 24*z1 - 6), (2*r0 + 4*z1 - 1)/(6*r0 + 24*z1 - 6)),
-     ((-r0 - z1)/(3*r0 + 12*z1 - 3), (2*r0 + 5*z1 - 1)/(3*r0 + 12*z1 - 3)),
-     (1/6, 1/6),
-     ((-z1)/(3*r0 - 1), (r0 - z1)/(3*r0 - 1)),
-     (z1/(-2*r0 + 1), z1/(-2*r0 + 1)),
-     ((-r0)/(-r0 + 4*z1 - 1), 0),
-     (2*z1/(-r0 + 1), 0),
-     ((-z1)/(3*r0 + 12*z1 - 3), (r0 + 5*z1 - 1)/(3*r0 + 12*z1 - 3)),
-     (z1/(-r0 + 4*z1), (-r0 + z1)/(-r0 + 4*z1)),
-     ((-z1)/(-r0 - 8*z1 + 1), (-r0 - 5*z1 + 1)/(-r0 - 8*z1 + 1)),
-     (1/4, 1/4),
-     ((-r0^2 - 6*r0*z1 - 4*z1^2 + r0 + z1)/(-r0^2 - 8*r0*z1 - 4*z1 + 1),
-      (-2*r0*z1 - 4*z1^2 + z1)/(-r0^2 - 8*r0*z1 - 4*z1 + 1)),
-     ((-2*r0*z1 - 5*z1^2 + z1)/(2*r0^2 + 7*r0*z1 - 3*r0 - 5*z1 + 1),
-      (-r0*z1 - 5*z1^2 + z1)/(2*r0^2 + 7*r0*z1 - 3*r0 - 5*z1 + 1)),
-     ((2*r0 + 5*z1 - 1)/(4*r0 + 12*z1 - 2), z1/(4*r0 + 12*z1 - 2)),
-     (1/3, 0),
-     ((r0 + 4*z1 - 1)/(7*r0 + 20*z1 - 5), (2*r0 + 4*z1 - 1)/(7*r0 + 20*z1 - 5)),
-     (1/5, 1/5),
-     (z1/(-2*r0 + 1), 0),
-     ((-z1)/(r0 + 2*z1 - 1), 0),
-     ((-2*z1)/(4*r0 - 2), (r0 - 2*z1)/(4*r0 - 2)),
-     (2*z1/(-4*r0 + 2), (-2*r0 - 2*z1 + 1)/(-4*r0 + 2)),
-     (1/3, 1/6),
-     (1/2, 0)]
-    """
-    # cannot use set because of
-    #sage: P.<x,y,z> = QQ[]
-    #sage: (-x)/(-y) in set([x/y])
-    #False
-    vertex_thetas = []
-    for r0_num in range(1, sampling):
-        for z1_num in range(1, ceil((sampling-r0_num)/4)):
-            r0_val = r0_num / sampling
-            z1_val = z1_num / sampling
-            K.<r0,z1,o1,o2>=SymbolicRealNumberField([r0_val, z1_val, 0, 0])
-            coeff_o_rhs = constraints_PTheta3(r0,z1,o1,o2)
-            for theta1, theta2, magic_field in find_bases(coeff_o_rhs, K):
-                thetas = (theta1.sym(), theta2.sym())
-                seen = false
-                for t in vertex_thetas:
-                    if t == thetas:
-                        seen = True
-                        break
-                if not seen:
-                    vertex_thetas.append(thetas)
-    return vertex_thetas
-
-def random_r0z1_chambres_on_diagram_ij(i=1, j=5, random_points=100, plot_points=500, starting_graph=None):
-    """
-    0 <= i < j <=8
-    sage: diagram15 = random_r0z1_chambres_on_diagram_ij() # not tested
-    sage: diagram15.save("cpl3_diagram_1_5.pdf", title="cpl3 diagram, basis=(1, 5), yellow=not vertex thetas, red = non extreme, blue = extreme") # not tested
-    """
-    logging.disable(logging.WARNING)
-    if starting_graph is None:
-        g = Graphics()
-        g += line([(0,1/4),(1,0)], color='black')
-    else:
-        g = starting_graph
-    for num_test_points in range(random_points):
-        r0_val = QQ(uniform(0, 1))
-        z1_val = QQ(uniform(0, 1))
-        while not z1_val <= (1-r0_val)/4:
-            r0_val = QQ(uniform(0, 1))
-            z1_val = QQ(uniform(0, 1))
-        g += draw_r0z1_chambre_on_diagram_ij(r0_val, z1_val, i, j, plot_points)
-    return g
-
-def find_basis_thetas_on_diagram_ij(r0_val=1/6, z1_val=1/12, i=1, j=5):
-    K.<r0,z1,o1,o2>=SymbolicRealNumberField([r0_val, z1_val, 0, 0])
-    try:
-        phi = cpl3_lifting_function(r0, z1, o1, o2)
-    except:
-        return K, (None, None), None
-    rnf_constraints = [ -o2 - phi(r0-z1+1) + 1,\
-                        2*o1 - phi(2*r0 + 2*z1), \
-                        -2*o1 - o2 + phi(r0 + 3*z1), \
-                        2*o1 + o2 - phi(2*r0 + 3*z1), \
-                        -2*o1 - 2*o2 + phi(r0 + 4*z1), \
-                        2*o1 + 2*o2 - phi(2*r0 + 4*z1), \
-                        -o1 + o2, \
-                        -o1, \
-                        -o2 ]
-    coeff_o_rhs = constraints_PTheta3(r0,z1,o1,o2)
-    a11, a12, b1 = coeff_o_rhs[i]
-    a21, a22, b2 = coeff_o_rhs[j]
-    d = a11 * a22 - a12 * a21
-    if d == 0:
-        return K, (None, None), None
-    theta1 = (b1 * a22 - a12 * b2) / d
-    theta2 = (a11 * b2 - b1 * a21) / d
-    feasibility = True
-    for (c_o1, c_o2, c_rhs) in coeff_o_rhs:
-        if c_o1 * theta1 + c_o2 * theta2 > c_rhs:
-            feasibility = False
-            break
-    return K, (theta1, theta2), feasibility
-
-def draw_r0z1_chambre_on_diagram_ij(r0_val=1/6, z1_val=1/12, i=1, j=5, plot_points=500):
-    K, (theta1, theta2), feasibility = find_basis_thetas_on_diagram_ij(r0_val, z1_val, i, j)
-    if feasibility is None:
-        # not basis
-        return point([(r0_val, z1_val)], color = 'black', size = 2, zorder=10)
-    g = point([(r0_val, z1_val)], color = 'white', size = 2, zorder=10)
-    if not feasibility:
-        g += plot_r0z1_chambre(K, 'orange', plot_points=plot_points)
-        return g
-    # ?? Cannot use  K2, h = setup_vertex_group_function(theta1, theta2, r0_val, z1_val)
-    # because K2 forgest the chambre for getting theta1,theta2 as functions of r0 and z1.
-    h  = cpl3_group_function(K.gens()[0], K.gens()[1], theta1, theta2)
-    is_extreme =  extremality_test(h)
-    if is_extreme:
-        g += plot_r0z1_chambre(K, 'blue', plot_points=plot_points)
-    else:
-        g += plot_r0z1_chambre(K, 'red', plot_points=plot_points)
-    return g
-
-def plot_r0z1_chambre(K, color, alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=0.3, plot_points=1000):
-    x, y = var('x, y')
-    leq, lin = read_simplified_leq_lin(K)
-    g =region_plot([ lhs(x, y, 0, 0) == 0 for lhs in leq ] + [ lhs(x, y, 0 , 0) < 0 for lhs in lin ], \
-        (x, xmin, xmax), (y, ymin, ymax), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
-    return g
-
-def save_random_r0z1_chambres_diagrams(random_points=100, plot_points=500):
-    for i in range(9):
-        for j in range(i+1, 9):
-            g = random_r0z1_chambres_on_diagram_ij(i,j,random_points, plot_points)
-            g.save("region_graphics/cpl3_diagram_%s_%s.pdf" %(i,j), title="cpl3 diagram, basis=(%s, %s)" % (i,j))
-    return
-
-def cpl3_r0z1_on_diagram_ij(r0_val=1/6, z1_val=1/12, i=1, j=5):
-    """
-    h = cpl3_r0z1_on_diagram_ij(r0_val=1/6, z1_val=1/12, i=1, j=5)
-    extremality_test(h)
-    """
-    K, (theta1, theta2), feasibility = find_basis_thetas_on_diagram_ij(r0_val, z1_val, i, j)
-    if feasibility is None:
-        print "not a basis!"
-        return
-    o1_val = theta1.val()
-    o2_val = theta2.val()
-    return cpl3_group_function(r0_val, z1_val, o1_val, o2_val)
-    
-def random_r0z1_chambres_for_fixed_ext_pt(ext_pt='c', random_points=100, plot_points=500, starting_graph=None):
-    logging.disable(logging.WARNING)
-    if starting_graph is None:
-        g = Graphics()
-        g += line([(0,1/4),(1,0)], color='black')
-    else:
-        g = starting_graph
-    for num_test_points in range(random_points):
-        r0_val = QQ(uniform(0, 1))
-        z1_val = QQ(uniform(0, 1))
-        while not z1_val <= (1-r0_val)/4:
-            r0_val = QQ(uniform(0, 1))
-            z1_val = QQ(uniform(0, 1))
-        K.<r0,z1,o1,o2>=SymbolicRealNumberField([r0_val, z1_val, 0, 0])
-        thetas_of_ext_pt = {'a': (z1/(1-r0), z1/(1-r0)), \
-                            'b': ((r0+2*z1)/(2+2*r0), (r0+2*z1)/(2+2*r0)), \
-                            'c': ((r0+z1)/(1+r0), z1/(1+r0)), \
-                            'd': ((r0+2*z1)/(2-2*r0), (2*z1-r0)/(2-2*r0)), \
-                            'e': (z1/(1-2*r0), z1/(1-2*r0)), \
-                            'f': ((-z1-r0+6*z1*r0+r0*r0+4*z1*z1)/(4*z1+8*z1*r0-1-r0*r0), \
-                                  (z1*(2*r0+4*z1-1)/(4*z1+8*z1*r0-1+r0*r0))), \
-                            'g': (z1/(1-3*r0), (z1-r0)/(1-3*r0)), \
-                            'h': (1/4, 1/4),\
-                            'i': ((1-2*r0-5*z1)/(2-4*r0-12*z1), (-z1/(2-4*r0-12*z1))), \
-                            'j': (z1*(2*r0+5*z1-1)/(-1+3*r0+5*z1-2*r0*r0-7*z1*r0), \
-                                  z1*(r0+5*z1-1)/(-1+3*r0+5*z1-2*r0*r0-7*z1*r0)), \
-                            'k': (1/3, 0), \
-                            'l': (z1/(1-2*r0), (2*z1-r0)/(2-4*r0)), \
-                            'm': (r0/(1+r0-4*z1), 0), \
-                            'n': (2*z1/(1-r0), 0), \
-                            'o': (z1/(1-2*r0), (1-2*r0-2*z1)/(2-4*r0)), \
-                            'p': (z1/(1-2*r0), 0), \
-                            'q': (z1/(1-r0-2*z1), 0), \
-                            'r': (1/2, 0), \
-                           }
-        (theta1, theta2) = thetas_of_ext_pt[ext_pt]
-        h  = cpl3_group_function(r0, z1, theta1, theta2)
-        is_extreme =  extremality_test(h)
-        if is_extreme:
-            g += plot_r0z1_chambre(K, 'blue', plot_points=plot_points)
-        else:
-            g += plot_r0z1_chambre(K, 'red', plot_points=plot_points)
-    return g
-
-def save_random_r0z1_for_ext_pts(random_points=100, plot_points=500):
-    for ext_pt in ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r']:
-        g = random_r0z1_chambres_for_fixed_ext_pt(ext_pt, random_points, plot_points)
-        g.save("region_graphics/cpl3_ext_pt_%s.pdf" % ext_pt, title="cpl3 diagram for extreme point (%s)" % ext_pt)
-    return
-
-
-
-
 class Cpl3Complex(SageObject):
 
     def __init__(self, var_name, theta=None):
@@ -620,3 +258,203 @@ class Cpl3Complex(SageObject):
             var_value = list(self.points_to_test.pop())
             if not self.is_point_covered(var_value) and point_satisfies_var_bounds(var_value, var_bounds):
                 self.add_new_component(var_value, flip_ineq_step=flip_ineq_step)
+
+def regions_r0_z1_from_arrangement_of_bkpts():
+    """
+    sage: logging.disable(logging.INFO)  # not tested
+    sage: regions = regions_r0_z1_from_arrangement_of_bkpts() # not tested
+    sage: len(regions) #not tested
+    30
+
+    Figure clp_30_regions is obtained by:
+    sage: complex.plot().show(xmin=0, xmax=1, ymin=0, ymax=1/4) # not tested
+    """
+    complex=Cpl3Complex(['r0','z1'], None)
+    complex.bfs_completion(var_value=[6/10,4/100])
+    regions=[]
+    for c in complex.components:
+        x, y = c.var_value
+        if x >= 0 and x <=1 and y>=0 and y<=1/4-x/4:
+            regions.append(c)
+    return regions
+
+def regions_r0_z1_with_thetas_and_feasibility(regions=None):
+    """
+    sage: regions = regions_r0_z1_with_thetas_and_feasibility() # not tested
+    # long time
+    sage: len(regions) #not tested
+    30
+    """
+    if regions is None:
+        regions = regions_r0_z1_from_arrangement_of_bkpts()
+    for r in regions:
+        r.theta_ij={}
+        r.feas_ij={}
+        for i in range(9):
+            for j in range(i+1, 9):
+                r0_val, z1_val = r.var_value
+                K.<r0,z1,o1,o2>=SymbolicRealNumberField([r0_val, z1_val, 0, 0])
+                phi = cpl3_lifting_function(r0, z1, o1, o2)
+                rnf_constraints = [ -o2 - phi(r0-z1+1) + 1,\
+                        2*o1 - phi(2*r0 + 2*z1), \
+                        -2*o1 - o2 + phi(r0 + 3*z1), \
+                        2*o1 + o2 - phi(2*r0 + 3*z1), \
+                        -2*o1 - 2*o2 + phi(r0 + 4*z1), \
+                        2*o1 + 2*o2 - phi(2*r0 + 4*z1), \
+                        -o1 + o2, \
+                        -o1, \
+                        -o2 ]
+                coeff_o_rhs = constraints_PTheta3(r0,z1,o1,o2)
+                a11, a12, b1 = coeff_o_rhs[i]
+                a21, a22, b2 = coeff_o_rhs[j]
+                d = a11 * a22 - a12 * a21
+                if d == 0:
+                    r.theta_ij[i,j] = (None, None)
+                    r.feas_ij[i,j] = None
+                    continue
+                theta1 = (b1 * a22 - a12 * b2) / d
+                theta2 = (a11 * b2 - b1 * a21) / d
+                feasibility = True
+                for (c_o1, c_o2, c_rhs) in coeff_o_rhs:
+                    if c_o1 * theta1 + c_o2 * theta2 > c_rhs:
+                        feasibility = False
+                        break
+                r.theta_ij[i,j] = (theta1, theta2)
+                r.feas_ij[i,j] = feasibility
+    return regions
+
+def plot_cpl_i_j_thetas_diagram(regions, i, j):
+    """
+    sage: regions = regions_r0_z1_with_thetas_and_feasibility() # not tested
+    sage: i = 0; j = 1; # not tested
+    sage: g = plot_cpl_i_j_thetas_diagram(regions, i, j) # not tested
+    sage: g.save("cpl_%s_%s_thetas.pdf" %(i,j)) # not tested
+    """
+    assert (0 <= i < j < 9)
+    # uniq doesn't work for the case (i,j) = (1,3), (1,5), (2,4), (2,6), (3,5), (4,6)
+    #for (i,j) in [(1,3), (1,5), (2,4), (2,6), (3,5), (4,6)]:
+    thetaij_dup = uniq([(r.theta_ij[i,j][0].sym(), r.theta_ij[i,j][1].sym()) for r in regions if r.feas_ij[i,j]])
+    thetaij = []
+    for d in thetaij_dup:
+        to_add = True
+        for t in thetaij:
+            if t == d:
+                to_add = False
+                break
+        if to_add:
+            thetaij.append(d)
+    n = len(thetaij)
+    for r in regions:
+        feas = r.feas_ij[i,j]
+        if not feas:
+            r.region_type = 'gray'
+        else:
+            theta1, theta2 = r.theta_ij[i,j][0].sym(), r.theta_ij[i,j][1].sym()
+            for k in range(n):
+                if (theta1, theta2) == thetaij[k]:
+                    break
+            r.region_type=rainbow(n)[k]
+    g = Graphics()
+    for r in regions:
+        g += r.plot()
+    for k in range(n):
+        t =  text(thetaij[k], (0.5, 1/4 + k/25), color = rainbow(n)[k])
+        g += t
+    return g
+
+def retrieve_theta_ext_from_regions(regions):
+    """
+    sage: regions = regions_r0_z1_with_thetas_and_feasibility() # not tested
+    sage: theta_ext = retrieve_theta_ext_from_regions(regions); # not tested
+    sage: len(theta_ext) #not tested
+    18
+    """
+    thetaij = uniq([(r.theta_ij[i,j][0].sym(), r.theta_ij[i,j][1].sym()) \
+                    for i in range(9) for j in range(i+1,9) for r in regions if r.feas_ij[i,j]])
+    theta_ext = []
+    K.<r0,z1>=QQ[]
+    for (t1, t2) in thetaij:
+        d1 = t1(r0, z1, 0, 0)
+        d2 = t2(r0, z1, 0, 0)
+        d = (d1, d2)
+        to_add = True
+        for t in theta_ext:
+            if t == d:
+                to_add = False
+                break
+        if to_add:
+            theta_ext.append(d)
+    return theta_ext
+
+def plot_cpl_thetas_ext_diagram(regions, t, k):
+    """
+    sage: regions = regions_r0_z1_with_thetas_and_feasibility() # not tested
+    sage: theta_ext = retrieve_theta_ext_from_regions(regions); # not tested
+    sage: k = 0; t = theta_ext[k]; # not tested
+    sage: g = plot_cpl_thetas_ext_diagram(regions, t, k) # not tested
+    sage: g.save("cpl_thetas_ext_%s.pdf" %k) # not tested
+    """
+    g = Graphics()
+    if k == 5 or k == 17:
+        g += text("extreme point %s:\ntheta = (%s,\n %s)" %(k,t[0], t[1]), (0.5, 1/4), color='black')
+    else:
+        g += text("extreme point %s:  theta = %s" %(k,t), (0.5, 1/4), color='black')
+    for r in regions:
+        to_add = False
+        for i in range(9):
+            for j in range(i+1, 9):
+                if r.feas_ij[i,j] and (r.theta_ij[i,j][0].sym(), r.theta_ij[i,j][1].sym()) == t:
+                    to_add = True
+                    break
+            if to_add:
+                break
+        if to_add:
+            r.region_type = "red"  #is feasible vertex theta
+        else:
+            r.region_type = "lightgrey"  #is not feasible vertex theta
+        g += r.plot()
+    return g
+
+def complex_of_cpl_extreme_case_k(regions, t):
+    """
+    sage: regions = regions_r0_z1_with_thetas_and_feasibility() # not tested
+    sage: theta_ext = retrieve_theta_ext_from_regions(regions); # not tested
+    sage: k = 0; t = theta_ext[k]; # not tested
+    sage: complex = complex_of_cpl_extreme_case_k(regions, t) # not tested
+    """
+    complex = Cpl3Complex(['r0','z1'], t)
+    for r in regions:
+        possible_region = False
+        for i in range(9):
+            for j in range(i+1, 9):
+                if r.feas_ij[i,j] and (r.theta_ij[i,j][0].sym(), r.theta_ij[i,j][1].sym()) == t:
+                    possible_region = True
+                    break
+            if possible_region:
+                break
+        if possible_region:
+            (complex.points_to_test).add(tuple(r.var_value))
+        else:
+            r.region_type = "lightgrey"  #is not feasible vertex theta
+            complex.components.append(r)
+    #complex.bfs_completion()  # this is much slower than randomly shooting points
+    var_bounds = [(0,1), (0, (lambda x: 1/4-x/4))]
+    complex.shoot_random_points(1000, var_bounds=var_bounds, max_failings=10000)
+    return complex
+
+def plot_cpl_extreme_case_k_diagram(complex, t, k):
+    """
+    sage: regions = regions_r0_z1_with_thetas_and_feasibility() # not tested
+    sage: theta_ext = retrieve_theta_ext_from_regions(regions); # not tested
+    sage: k = 0; t = theta_ext[k]; # not tested
+    sage: complex = complex_of_cpl_extreme_case_k(regions, t) # not tested
+    sage: g = plot_cpl_extreme_case_k_diagram(complex, t, k) # not tested
+    sage: g.save("cpl_extreme_case_%s.pdf" %k, xmin=0, xmax=1, ymin=0, ymax=1/4)
+    """
+    g = Graphics()
+    if k == 5 or k == 17:
+        g += text("extreme point %s:\ntheta = (%s,\n %s)" %(k,t[0], t[1]), (0.5, 1/4), color='black')
+    else:
+        g += text("extreme point %s:  theta = %s" %(k,t), (0.5, 1/4), color='black')
+    g += complex.plot()
+    return g
