@@ -95,6 +95,8 @@ bccz_counterexample?
 bhk_irrational?
 chen_4_slope?
 rlm_dpl1_extreme_3a?
+mlr_cpl3_g_3_slope?
+# Many more mlr_cpl3_... functions.
 not_extreme_1?
 drlm_not_extreme_2?
 hildebrand_5_slope_28_1?
@@ -158,16 +160,16 @@ extremality_test(h, True)
 ## areas of interest.
 
 ## The 2d diagram, showing non-subadditive vertices and additive faces.
-show(plot_2d_diagram(h), xmin=0.15, xmax=0.35, ymin=0.15, ymax=0.35)
+plot_2d_diagram(h).show(xmin=0.15, xmax=0.35, ymin=0.15, ymax=0.35)
 
 ## The diagram of covered intervals.
-show(plot_covered_intervals(h), xmin=0.15, xmax=0.35, ymin=0.22, ymax=0.55)
+plot_covered_intervals(h).show(xmin=0.15, xmax=0.35, ymin=0.22, ymax=0.55)
 
 ## The completion diagram (to be explained in a forthcoming paper).
-show(plot_completion_diagram(h), xmin=0.28, xmax=0.52, ymin=0.25, ymax=0.35)
+plot_completion_diagram(h).show(xmin=0.28, xmax=0.52, ymin=0.25, ymax=0.35)
 
 ## The perturbation diagram.  1 is the index of the perturbation shown.
-show(plot_perturbation_diagram(h, 1), xmin=0.28, xmax=0.35, ymin=0.33, ymax=0.4)
+plot_perturbation_diagram(h, 1).show(xmin=0.28, xmax=0.35, ymin=0.33, ymax=0.4)
 
 ## Approach 2: Increase the plotting figure size (the default is 10).
 igp.show_plots_figsize = 40
@@ -185,6 +187,13 @@ slopes = [10/3,0,10/3,0,10/3,-10/3,0,-10/3,0,-10/3]
 interval_lengths = [1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10,1/10]
 h = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
 extremality_test(h, True, show_all_perturbations=True)
+
+## See the extreme function with the world-record number of different slopes. 
+
+extreme_function_with_world_record_number_of_slopes?
+
+h = extreme_function_with_world_record_number_of_slopes()
+plot_with_colored_slopes(h).show(figsize=70)
 
 ## See extreme_functions_in_literature.sage and survey_examples.sage for many more examples.
 

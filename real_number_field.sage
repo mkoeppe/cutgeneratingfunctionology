@@ -5,48 +5,6 @@ if '' not in sys.path:
 
 from igp import *
 
-### def can_coerce(coercer, values):
-###     try:
-###         coerced_values = [ coercer(value) for value in values ]
-###         return True
-###     except ValueError:
-###         return False
-###     except TypeError:
-###         return False
-
-### def fast_field(values):
-###     "Return a field and a coercing function."
-###     ## If everything is rational, we are happy.
-###     field, coercer = QQ, QQ
-###     if can_coerce(coercer, values):
-###         return field, coercer
-###     ## ## See if we can make do with a quadratic number field
-###     ## radicant_wildcard = SR.wild(0)
-###     ## radicals = set()
-###     ## for value in values:
-###     ##     if parent(value) == SR:
-###     ##         radicals |= set(value.find(sqrt(radicant_wildcard)))
-###     ## logging.info("Set of radicals: %s" % (radicals,))
-###     ## if len(radicals) == 1:
-###     ##     ## 
-###     ##     radicant = radicals[0].op[0]
-###     ##     field.<root> = QuadraticField(radicant, name='sqrt%s' % radicant)
-###     ##     def coercer(x, field=field, root=root, radicant=radicant):
-###     ##         if parent(x) == SR:
-###     ##             return x.subs(sqrt(radicant)==root) 
-###     ##             ## Does not work because we get immediate
-###     ##             ## back-substitution, when sqrt2 is inserted in the
-###     ##             ## symbolic ring.
-###     ##         else
-###     ##     if can_coerce(coercer, values):
-###     ##         return field.values
-###     try:
-###         field, field_values, morphism = number_field_elements_from_algebraics(values)
-###     except ValueError:
-###         pass
-###     except TypeError:
-###         pass
-    
 import sage.rings.number_field.number_field
 from sage.rings.number_field.number_field import NumberField_absolute, NumberField_quadratic
 
@@ -54,12 +12,6 @@ import sage.rings.number_field.number_field_element
 from sage.rings.number_field.number_field_element import NumberFieldElement_absolute
 
 class RealNumberFieldElement(NumberFieldElement_absolute):
-
-    ## def __init__(self, parent, f):
-    ##     NumberFieldElement_absolute.__init__(self, parent, f)
-    ##     self._embedding = parent.coerce_embedding()
-
-    #@logger
 
     def embedded(self):
         e = getattr(self, '_embedded', None)
@@ -69,12 +21,7 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
             self._embedded = e = embedding(self)
         return e
 
-    def __cmp__(left, right):
-    #     return (left)._cmp(right)
-    # def _cmp(left, right):
-        # print "cmp", left, "and", right
-        #return sign(left - right) ## Whoa, sign is defined in "generalized.py"
-
+    def __cmp__(left, right):   # Before trac 17890, need to specialize this function.
         if NumberFieldElement_absolute.__cmp__(left, right) == 0:
             return 0
         result = cmp(left.embedded(), right.embedded())
@@ -82,6 +29,14 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
             raise UnimplementedError, "Precision of real interval field not sufficient to continue"
         return result
 
+    def _cmp_(left, right):    # After trac 17890, need to specialize this function.
+        if NumberFieldElement_absolute._cmp_(left, right) == 0:
+            return 0
+        result = cmp(left.embedded(), right.embedded())
+        if result == 0:
+            raise UnimplementedError, "Precision of real interval field not sufficient to continue"
+        return result
+    
     def __abs__(self):
         if self.sign() >= 0:
             return self
@@ -94,20 +49,8 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
 
     def __float__(self):
         embedded = self.embedded()
-        #print "__float..."
-        #try:
         result = (float(embedded.lower()) + float(embedded.upper())) / 2
-        # except Exception:
-        #     print "ERROR:", self
-        # print "... end, result = %s" %result
         return result
-
-    ## def __richcmp__(left, right, op):
-    ##     print "rich"
-    ##     return left._richcmp(right, op)
-
-    ## def _richcmp(left, right, op):
-    ##     return sign(left - right)
 
     def __repr__(self):
         embedded = self.embedded()
@@ -123,7 +66,6 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
             parent = self.parent()
             embedding = parent._exact_embedding
             symbolic = embedding(self)
-        #print embedding(self), "%s" % (latex(embedding(self)))
         return "%s" % (latex(symbolic))
 
     def _maxima_(self, session=None):
@@ -135,11 +77,6 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
 
     def _add_(self, other):
         result = NumberFieldElement_absolute._add_(self, other)
-        # self_e = getattr(self, '_embedded', None)
-        # if self_e is not None:
-        #     other_e = getattr(other, '_embedded', None)
-        #     if other_e is not None:
-        #         result._embedded = self_e + other_e
         self_e = self.embedded()
         other_e = other.embedded()
         result._embedded = self_e + other_e
@@ -147,11 +84,6 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
 
     def _sub_(self, other):
         result = NumberFieldElement_absolute._sub_(self, other)
-        # self_e = getattr(self, '_embedded', None)
-        # if self_e is not None:
-        #     other_e = getattr(other, '_embedded', None)
-        #     if other_e is not None:
-        #         result._embedded = self_e - other_e
         self_e = self.embedded()
         other_e = other.embedded()
         result._embedded = self_e - other_e
@@ -159,9 +91,6 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
 
     def __neg__(self):
         result = NumberFieldElement_absolute._neg_(self)
-        # self_e = getattr(self, '_embedded', None)
-        # if self_e is not None:
-        #     result._embedded = -self_e
         self_e = self.embedded()
         result._embedded = -self_e
         return result
@@ -180,13 +109,18 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
         result._embedded = self_e / other_e
         return result
 
+    def __hash__(self):
+        if not hasattr(self, '_hash'):
+            self._hash = NumberFieldElement_absolute.__hash__(self)
+        return self._hash
+
 class RealNumberField_absolute(NumberField_absolute):
     """
     A RealNumberField knows its embedding into a RealIntervalField
     and use that for <, > comparisons.
     == comparison is exact, using the underlying numberfield.
     
-    A RealIntervalField also knows an embedding into an exact field (SR)
+    A RealNumberField also knows an embedding into an exact field (SR)
     for the purpose of latexing.
 
     EXAMPLES::
@@ -204,6 +138,20 @@ class RealNumberField_absolute(NumberField_absolute):
         True
         sage: hom(field_values[1]) < 2
         True
+        sage: logging.disable(logging.INFO)
+        sage: field = nice_field_values([sqrt(2),sqrt(3)])[0].parent()
+        sage: field
+        Real Number Field in `a` with defining polynomial y^4 - 4*y^2 + 1
+        sage: field1 = NumberField(field.polynomial(),"a")
+        sage: field1
+        Number Field in a with defining polynomial y^4 - 4*y^2 + 1
+        sage: field1 == field or field == field1
+        False
+        sage: field2 = VectorSpace(field, 2).base_field()
+        sage: field2
+        Real Number Field in `a` with defining polynomial y^4 - 4*y^2 + 1
+        sage: field == field2 and field2 == field
+        True
     """
 
     def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None,
@@ -220,6 +168,12 @@ class RealNumberField_absolute(NumberField_absolute):
         self._one_element =  self(1)
         self._exact_embedding = self.hom([exact_embedding])
 
+    def _repr_(self):
+        return "Real Number Field in `%s` with defining polynomial %s"%(
+                   self.variable_name(), self.polynomial())
+    def __hash__(self):
+        return NumberField_absolute.__hash__(self)
+
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 
 class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
@@ -233,6 +187,11 @@ class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
     def __repr__(self):
         embedded = self.embedded()
         return 'RNF%s' % embedded
+
+    def __hash__(self):
+        if not hasattr(self, '_hash'):
+            self._hash = NumberFieldElement_quadratic.__hash__(self)
+        return self._hash
 
 class RealNumberField_quadratic(NumberField_quadratic):
     def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None,
@@ -279,7 +238,11 @@ class RealNumberField_quadratic(NumberField_quadratic):
         #### self._zero_element = self(0) 
         #### self._one_element =  self(1)
         self._zero_element = RealNumberFieldElement_quadratic(self, QQ(0)) 
-        self._one_element =  RealNumberFieldElement_quadratic(self, QQ(1))       
+        self._one_element =  RealNumberFieldElement_quadratic(self, QQ(1))
+
+    def _repr_(self):
+        return "Real Number Field in `%s` with defining polynomial %s"%(
+                   self.variable_name(), self.polynomial())
     
 # The factory.
 
@@ -299,7 +262,7 @@ def RealNumberField(polynomial, name=None, latex_name=None, check=True, embeddin
 
 def is_real_number_field_element(x):
     try:
-        x.embedded() # FIXME: this is a hack
+        x.embedded # FIXME: this is a hack
         return True
     except AttributeError:
         return False

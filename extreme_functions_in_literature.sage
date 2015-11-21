@@ -30,9 +30,9 @@ def gmic(f=4/5, field=None, conditioncheck=True):
 
         [57]: R.E. Gomory, Some polyhedra related to combinatorial problems, Linear Algebra and its Application 2 (1969) 451-558.
 
-        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
 
-        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
+        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
     if not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
@@ -72,9 +72,9 @@ def gj_2_slope(f=3/5, lambda_1=1/6, field=None, conditioncheck=True):
             True
 
     Reference:
-        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
 
-        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
+        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
     if not (bool(0 < f < 1) & bool(0 < lambda_1 < f/(1 - f))):
         raise ValueError, "Bad parameters. Unable to construct the function."
@@ -117,9 +117,9 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
             True
 
     Reference:
-        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
 
-        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
+        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
     if not (bool(0 < f < 1) & (m >= 2) & (n >= 2) & bool (s_positive > 1 / f) & bool(s_negative < 1/(f - 1))):
         raise ValueError, "Bad parameters. Unable to construct the function."
@@ -140,7 +140,7 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
 def dg_2_step_mir(f=4/5, alpha=3/10, field=None, conditioncheck=True):
     """
     Summary:
-        - Name: 2-Step MIR;
+        - Name: Dash-Gunluk's 2-Step MIR;
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
         - Discovered [33]  p.39 def.8, Fig.5;
         - Proven extreme (for infinite group) [60] p.377, thm.3.3.
@@ -163,13 +163,13 @@ def dg_2_step_mir(f=4/5, alpha=3/10, field=None, conditioncheck=True):
             True
 
     Reference:
-        [33]: S. Dash and O. G¨unl¨uk, Valid inequalities based on simple mixed-integer sets.,
+        [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
                 Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
-                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33–45.
+                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
 
-        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
     """
-    if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
+    if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))): 
         raise ValueError, "Bad parameters. Unable to construct the function."
     according_to_literature = None
     if conditioncheck:
@@ -217,7 +217,7 @@ class Dg2StepMir(ExtremeFunctionsFactory):
     def __call__(self, f=4/5, alpha=3/10, field=None, conditioncheck=True):
         """
         Summary:
-            - Name: 2-Step MIR;
+            - Name: Dash-Gunluk's 2-Step MIR;
             - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
             - Discovered [33]  p.39 def.8, Fig.5;
             - Proven extreme (for infinite group) [60] p.377, thm.3.3.
@@ -240,11 +240,11 @@ class Dg2StepMir(ExtremeFunctionsFactory):
                 True
 
         Reference:
-            [33]: S. Dash and O. G¨unl¨uk, Valid inequalities based on simple mixed-integer sets.,
-                    Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
-                    (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33–45.
+            [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
+                Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
+                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
 
-            [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+            [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
         """
         if conditioncheck:
             self.check_conditions(f, alpha)
@@ -295,7 +295,7 @@ class KfNStepMir(ExtremeFunctionsFactory):
     def __call__(self, f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
         """
         Summary:
-            - Name: n-Step MIR;
+            - Name: Kianfar-Fathi's n-Step MIR;
             - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
             - Discovered [74]  p.328, def.3, thm.2;
             - Proven extreme (for infinite group) [60] p.377, thm.3.3.
@@ -319,7 +319,7 @@ class KfNStepMir(ExtremeFunctionsFactory):
 
         Examples:
             [74] p.333 - p.335, Fig.1 - Fig.6 ::
-        
+
                 sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
                 sage: h = kf_n_step_mir(f=4/5, a=[1])
                 sage: extremality_test(h, False)
@@ -341,10 +341,10 @@ class KfNStepMir(ExtremeFunctionsFactory):
                 True
 
         Reference:
-            [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359–389.
+            [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
 
             [74]: K. Kianfar and Y. Fathi, Generalized mixed integer rounding valid inequalities:
-                    Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313–346.
+                    Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313-346.
         """
         if conditioncheck:
             self.check_conditions(f, a)
@@ -405,7 +405,7 @@ def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditionc
             True
 
     Reference:
-        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
+        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
     if not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
@@ -413,7 +413,7 @@ def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditionc
     a1 = a + lambda_2 * (f - 1) / 2
     if not bool(0 < a1 < a < f / 2):
         raise ValueError, "Bad parameters. Unable to construct the function."
-    if conditioncheck:     
+    if conditioncheck:
         # note the discrepancy with the published literature
         if not (bool(0 <= lambda_1 <= 1/2) & bool(0 <= lambda_2 <= 1)):
             logging.info("Conditions for extremality are NOT satisfied.")
@@ -427,7 +427,7 @@ def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditionc
 def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
     """
     Summary:
-        - Name: drlm's Backward 3-Slope;
+        - Name: Dey--Richard--Li--Miller's Backward 3-Slope;
         - Infinite; Dim = 1; Slopes = 3; Continuous; Group relations method;
         - Discovered [40] p.154 eq.5;
         - Proven [40] p.153 thm.6.
@@ -449,9 +449,12 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
         1) the function (named pi3(u)) is facet (thus extreme);
         2) can add a perturbation (zigzag) on the third slope as shown in Fig.10;
 
+        An extremality proof for the general (not necessarily rational) case appears in [KZh2015b, section 4].
+
     Examples:
-        Finite group --> Example 3.8 in [8] p.386,
-        Infinite group --> Interpolation using Equation 5 from [40] p.154 ::
+
+        - Finite group --> Example 3.8 in [8] p.386,
+        - Infinite group --> Interpolation using Equation 5 from [40] p.154 ::
 
             sage: h = drlm_backward_3_slope(f=1/12, bkpt=2/12)
             sage: extremality_test(h, False)
@@ -460,18 +463,23 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
             sage: extremality_test(h, False)
             True
 
-    Reference:
-        [8]: J. Ar´aoz, L. Evans, R.E. Gomory, and E.L. Johnson, Cyclic groups and knapsack facets,
-                Mathematical Programming 96 (2003) 377–408.
-                
-        [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
-                Mathematical Programming 121 (2010) 145–170.
+    References:
 
-        [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341–375.
+    - [8] J. Araoz, L. Evans, R.E. Gomory, and E.L. Johnson, Cyclic groups and knapsack facets,
+      Mathematical Programming 96 (2003) 377-408.
+                
+    - [40] S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
+      Mathematical Programming 121 (2010) 145-170.
+
+    - [61] R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
+
+    - [KZh2015b] M. Koeppe and Y. Zhou, An electronic compendium of extreme functions for the
+      Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
+      http://dx.doi.org/10.1016/j.orl.2015.06.004
     """
     if not bool(0 < f < bkpt < 1 + f - bkpt < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
-    if conditioncheck:       
+    if conditioncheck:
         #if not ((f in QQ) & (bkpt in QQ) & bool(0 < f < bkpt < ((1 + f)/4) < 1)):
         if not bool(0 < f < bkpt < ((1 + f)/4) < 1):
             logging.info("Conditions for extremality are NOT satisfied.")
@@ -483,7 +491,6 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
     return piecewise_function_from_breakpoints_and_slopes(bkpts, slopes, field=field)
 
 class Dg2StepMirLimit(ExtremeFunctionsFactory):
-
     def __init__(self):
         pass
 
@@ -498,12 +505,11 @@ class Dg2StepMirLimit(ExtremeFunctionsFactory):
     def __call__(self, f=3/5, d=3, field=None, conditioncheck=True):
         """
         Summary:
-            - Name: DG-2-Step MIR Limit;
+            - Name: Dash-Gunluk 2-Step MIR Limit;
             - Infinite; Dim = 1; Slopes = 1; Discontinuous; Simple sets method;
             - Discovered [33] p.41, def.12;
             - Proven extreme [33] p.43, lemma 14.
             - dg_2_step_mir_limit is a facet.
-
         Parameters:
             f (real) \in (0,1);
             d (positive integer): number of slopes on [0,f).
@@ -516,6 +522,7 @@ class Dg2StepMirLimit(ExtremeFunctionsFactory):
             This is the limit function as alpha in dg_2_step_mir()
             tends (from left) to f/d, where d is integer;
             cf. [33] p.42, lemma 13.
+
             It's a special case of drlm_2_slope_limit(),
             dg_2_step_mir_limit(f, d) =
             multiplicative_homomorphism(drlm_2_slope_limit(f=1-f, nb_pieces_left=1, nb_pieces_right=d), -1)
@@ -529,9 +536,9 @@ class Dg2StepMirLimit(ExtremeFunctionsFactory):
                 True
 
         Reference:
-            [33]: S. Dash and O. G¨unl¨uk, Valid inequalities based on simple mixed-integer sets.,
-                    Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
-                    (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33–45.
+                [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
+                        Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
+                        (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
         """     
         if conditioncheck:
             self.check_conditions(f, d)
@@ -555,7 +562,7 @@ dg_2_step_mir_limit = Dg2StepMirLimit()
 def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, conditioncheck=True):
     """
     Summary:
-        - Name: drlm's 2-Slope Limit;
+        - Name: Dey--Richard--Li--Miller's 2-Slope Limit;
         - Infinite; Dim = 1; Slopes = 1; Discontinuous; Group relations method;
         - Discovered [40] p.158 def.10;
         - Proven extreme [40] p.159 thm.8.
@@ -579,7 +586,7 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, c
 
     Reference:
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
-                Mathematical Programming 121 (2010) 145–170.
+                Mathematical Programming 121 (2010) 145-170.
     """
     m = nb_pieces_left
     d = nb_pieces_right
@@ -614,7 +621,7 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, c
 def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
     """
     Summary:
-        - Name: drlm-3-Slope Limit;
+        - Name: Dey--Richard--Li--Miller's 3-Slope Limit;
         - Infinite; Dim = 1; Slopes = 2; Discontinuous; Group relations method;
         - Discovered [40] p.161 def.11;
         - Proven extreme [40] p.161 thm.9.
@@ -639,11 +646,11 @@ def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
 
     Reference:
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
-                Mathematical Programming 121 (2010) 145–170.
+                Mathematical Programming 121 (2010) 145-170.
     """
     if not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
-    if conditioncheck:      
+    if conditioncheck:
         if not bool(0 < f < 1/3):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -658,14 +665,21 @@ def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
 
 def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
     """
-    return function psi, a counterexample to Gomory--Johnson's conjecture;
+    return function psi, a counterexample to Gomory--Johnson's conjecture
+    constructed by Basu--Conforti--Cornuejols--Zambelli [IR1].
+
     psi is a continuous facet (hence extreme), but is not piecewise linear. cf. [IR1]
 
+    It can be considered as an absolutely continuous, measurable, non-piecewise linear
+    "2-slope function".  A separate case with different parameters, which gives rise to
+    a continuous "1-slope function", is discussed in [KZh2015b, section 5].
+
     Parameters:
-        f (real) \in (0,1);
-        q (real), q > 2 : ratio of the geometric series;
-        eta (real), 0 <= eta < 1 : to control the serie sum;
-        maxiter (integer) : maximum number of iterations;
+
+    - f (real) \in (0,1);
+    - q (real), q > 2: ratio of the geometric series;
+    - eta (real), 0 <= eta < 1: to control the series sum;
+    - maxiter (integer): maximum number of iterations;
 
     Note:
         psi is the uniform limit of the sequence of functions psi_n,
@@ -691,9 +705,14 @@ def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
 
             sage: bccz_counterexample(f=2/3, q=4, eta=0, maxiter=10000)(r=9/40) # doctest: +SKIP
 
-    Reference:
-        [IR1]:  A. Basu, M. Conforti, G. Cornuéjols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
-                    Mathematical Programming Ser. A 133 (2012), 25–38.
+    References:
+
+    - [IR1]:  A. Basu, M. Conforti, G. Cornuejols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
+      Mathematical Programming Ser. A 133 (2012), 25-38.
+
+    - [KZh2015b] M. Koeppe and Y. Zhou, An electronic compendium of extreme functions for the
+      Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
+      http://dx.doi.org/10.1016/j.orl.2015.06.004
     """
     if not (bool(0 < f < 1) & bool(q > 2) & bool(0 <= eta < 1)):
         raise ValueError, "Bad parameters."
@@ -735,23 +754,30 @@ def generate_example_e_for_psi_n(f=2/3, n=7, q=4, eta=1/1000):
     This can be used in psi_n_in_bccz_counterexample_construction(f, [e[0],...,e[n-1]]), so that the function constructed is extreme.
 
     Parameters:
-        f (real) \in (0,1);
-        n (integer);
-        q (real), q > 2 : ratio of the geometric series;
-        eta (real), 0 <= eta < 1 : to control the serie sum, \sum_{i = 0}^{\infty} {2^i * e[i]} <= (1 - eta)*f.
+
+    - f (real) \in (0,1);
+    - n (integer);
+    - q (real), q > 2: ratio of the geometric series;
+    - eta (real), 0 <= eta < 1: to control the series sum, \sum_{i = 0}^{\infty} {2^i * e[i]} <= (1 - eta)*f.
 
     Note:
         If (eta == 0) and (f >= 1/2), then \sum_{i = 0}^{\infty} {2^i * e[i]} = f.
-        This case is not mentioned in [IR1], but using a similar (or same) proof to [IR1], one can show that:
+        This case is not mentioned in [IR1], but using a similar proof, one can show that:
         1) psi_n still converges uniformly to psi;
         2) The limit funciton psi is a continuous facet (hence extreme);
         3) psi is not piecewise linear. 
         Also notice that:
         4) psi is not in W^{1,1}.
+        See [KZh2015b, section 5].
 
-    Reference: 
-        [IR1]:  A. Basu, M. Conforti, G. Cornuéjols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
-                    Mathematical Programming Ser. A 133 (2012), 25–38.
+    References:
+
+    - [IR1] A. Basu, M. Conforti, G. Cornuejols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
+      Mathematical Programming Ser. A 133 (2012), 25-38.
+
+    - [KZh2015b] M. Koeppe and Y. Zhou, An electronic compendium of extreme functions for the
+      Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
+      http://dx.doi.org/10.1016/j.orl.2015.06.004
     """
     if n == 0:
         return []
@@ -803,8 +829,8 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
             sage: sum([plot(psi_n_in_bccz_counterexample_construction(e=generate_example_e_for_psi_n(n=n)), color=color, legend_label="psi_%d"%n) for n, color in zip(range(7),rainbow(7))]) # doctest: +SKIP
 
     Reference: 
-        [IR1]:  A. Basu, M. Conforti, G. Cornuéjols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
-                    Mathematical Programming Ser. A 133 (2012), 25–38.
+        [IR1]:  A. Basu, M. Conforti, G. Cornuejols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
+                    Mathematical Programming Ser. A 133 (2012), 25-38.
     """
     if not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
@@ -843,7 +869,7 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
 def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), field=None):
     """
     Summary:
-        - Name: BHK's irrational function.
+        - Name: Basu-Hildebrand-Koeppe's irrational function.
         - Infinite; Dim = 1; Slopes = 3; Continuous;  Covered intervals and equivariant perturbation.
         - Discovered [IR2]  p.33, section.5.2, fig.9-10.
         - Proven extreme [IR2] p.34, thm.5.3.
@@ -893,8 +919,8 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
             True
 
     Reference:
-        [IR2] A. Basu, R. Hildebrand, and M. Köppe, Equivariant perturbation in Gomory and Johnson’s infinite group problem.
-                I. The one-dimensional case, Mathematics of Operations Research (2014), doi:10. 1287/moor.2014.0660
+        [IR2] A. Basu, R. Hildebrand, and M. Koeppe, Equivariant perturbation in Gomory and Johnson's infinite group problem.
+                I. The one-dimensional case, Mathematics of Operations Research (2014), doi:10.1287/moor.2014.0660
     """
     if not (bool(0 < f < 1) and bool(d1 > 0) and bool(d2 > 0) and bool(a0 > 0) 
             and all(bool(deltai > 0) for deltai in delta) and bool(d1 + d2 < f) and (sum(delta) < f/2 - d2/4 - 3*a0/2) ):
@@ -1179,6 +1205,8 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
     (specifically, 2 * \pi(f+) = \pi(2f+) and 2* \pi((1+f) / 2 +) = \pi(f+)) that
     the function rlm_dpl1_fig3_lowerleft(f) is a facet (and thus extreme) for any 0 < f < 1/3.
 
+    This is worked out in [KZh2015b, section 2].
+
     Example p.273, Fig.3-lowerleft ::
 
             sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
@@ -1196,11 +1224,15 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
     Reference:
 
     .. [RLM2009] J.-P. P. Richard, Y. Li, and L. A. Miller, Valid inequalities for MIPs and group polyhedra
-       from approximate liftings, Mathematical Programming 118 (2009), no. 2, 253–277, doi:10.1007/s10107-007-0190-9
+       from approximate liftings, Mathematical Programming 118 (2009), no. 2, 253-277, doi:10.1007/s10107-007-0190-9
+
+    .. [KZh2015b] M. Koeppe and Y. Zhou, An electronic compendium of extreme functions for the
+       Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
+       http://dx.doi.org/10.1016/j.orl.2015.06.004
     """
     if not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
-    if conditioncheck:      
+    if conditioncheck:
         if bool(f < 1/3):
             pass # is the fig3_lowerleft case
         else:
@@ -1214,7 +1246,6 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
               [singleton_interval(field(1)), FastLinearFunction(field(0), 0)]]
     h = FastPiecewise(pieces)
     return h
-
 
 class LlStrongFractional(ExtremeFunctionsFactory):
 
@@ -1247,7 +1278,7 @@ class LlStrongFractional(ExtremeFunctionsFactory):
             [78] Letchford-Lodi (2002) Thm. 2, Fig. 3 (but note this figure shows the wrong function; 
                  see ll_strong_fractional_bad_figure_3 and ll_strong_fractional_bad_figure_3_corrected)
 
-            [33] S. Dash and O. G¨unl¨uk (2004) Thm. 16
+            [33] S. Dash and O. Gunluk (2004) Thm. 16
 
         Remarks::
             Discontinuous, 1-slope;
@@ -1305,3 +1336,104 @@ class LlStrongFractional(ExtremeFunctionsFactory):
         return h
 
 ll_strong_fractional = LlStrongFractional()
+
+def kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19, field=None, conditioncheck=True):
+    """
+    New extreme function discovered by computer based search + parametric search.
+    It has 3 slopes in the general case.
+
+    Parameters: real numbers `f`, `a`, `b`, where `a` is the length of the first interval right to `f` and `b` is the length of interval centered at (1+f)/2.
+
+    Function is known to be extreme under the conditions:
+        0 <= a and  0 <= b <= f and 3*f+4*a-b-1 <= 0
+
+    Examples::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19)
+        sage: extremality_test(h)
+        True
+        sage: h = kzh_3_slope_param_extreme_1(f=1/3, a=1/18, b=1/4)
+        sage: extremality_test(h)
+        True
+    """
+    if not bool(0 < f < f+a < (1+f-b)/2 < (1+f+b)/2 < 1-a < 1):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if conditioncheck:
+        if not bool(0 <= a and  0 <= b <= f and 3*f+4*a-b-1 <= 0):
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
+    v = (f*f+f*a-3*f*b-3*a*b+b)/(f*f+f-3*f*b)
+    bkpts = [0, f, f+a, (1+f-b)/2, (1+f+b)/2, 1-a, 1]
+    values = [0, 1, v, (f-b)/2/f, (f+b)/2/f, 1-v, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
+
+def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=True):
+    """
+    New extreme function discovered by computer based search + parametric search.
+    The function looks like gj_forward_3_slope + drlm_backward_3_slope
+
+    Parameters: real numbers `f`, `a`, `b`, where `a` is the length of interval centered at f/2, and `b` is the length of interval centered at (1+f)/2.
+    Function is known to be extreme under the (sufficient) conditions:
+        0 < b <= a < f < 1;  f <= a + b and f <= (1+a-b)/2
+
+    Examples::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9)
+        True
+        sage: h = kzh_3_slope_param_extreme_2(f=4/9, a=2/9, b=3/9)
+        sage: extremality_test(h) # Claimed conditions for extremality are NOT satisfied.
+        True
+        sage: h = kzh_3_slope_param_extreme_2(5/9, 2/5, 7/20)
+        sage: extremality_test(h)
+        False
+    """
+    if not bool(0 < a < f < 1 and 0 < b < f):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if conditioncheck:
+        if not bool(b <= a and f <= a + b and f <= (1+a-b)/2):
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
+    v = (f*(f-a+b-2)-a*b+2*a)/(f+b-1)/f/4;
+    bkpts = [0, (f-a)/4, (f-a)/2, (f+a)/2, f-(f-a)/4, f, \
+             (1+f-b)/2, (1+f+b)/2, 1]
+    values = [0, v, (f-a)/f/2, (f+a)/f/2, 1-v, 1, (f-b)/f/2, (f+b)/f/2, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
+
+
+def kzh_4_slope_param_extreme_1(f=13/18, a=7/18, b=1/18, field=None, conditioncheck=True):
+    """
+    New extreme function discovered by computer based search + parametric search.
+    The function looks like gj_forward_3_slope + kzh_3_slope_param_extreme_1
+
+    Parameters: real numbers `f`, `a`, `b`, where `a` is the length of interval centered at f/2, and `b` is the first bkpt, which is also the length of interval centered at (1+f)/2.
+    Function is known to be extreme under the (sufficient) conditions:
+        a > max{3*f-2, f/2}; b > 0; a + 3*b > 2*f - 1; 2*a + 3*b < 3*f - 1.
+
+    Examples::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = kzh_4_slope_param_extreme_1(f=13/18, a=7/18, b=1/18)
+        True
+        sage: h = kzh_4_slope_param_extreme_1(f=13/18, a=14/37, b=1/19)
+        True
+    """
+    w = (f+a)/f/4;
+    v = (3*b+1)/f/3;
+    c = (1/4*f - 1/4*a - 1/2*b)
+    if not bool(0 < b < (f-a)/2 < f < (1+f-b)/2-c < (1+f-b)/2 < 1):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if conditioncheck:
+        if not bool(b > 0 and -3*f + 2*a + 3*b + 1 < 0 and  f - 2*a < 0 \
+                    and  2*f - a - 3*b - 1 < 0 and  3*f - a - 2 < 0):
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
+    bkpts = [0, b, (f-a)/2, (f+a)/2, f-b, f,\
+             (1+f-b)/2-c, (1+f-b)/2, (1+f+b)/2, (1+f+b)/2+c, 1]
+    values = [0, v, (f-a)/f/2, (f+a)/f/2, 1-v, 1, \
+              w, (1-v)/2, (1+v)/2, 1-w, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
