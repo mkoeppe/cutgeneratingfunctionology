@@ -458,9 +458,14 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
         sage: K.<f, lam> = SymbolicRealNumberField([4/5, 1/6])
         sage: h = gj_2_slope(f, lam, field=K, conditioncheck=False)
         sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_poly()), list(K.get_lt_poly()))
-        ([], [f - 1, f*lam - lam, f^2*lam + f^2 - 2*f*lam - f + lam, -f*lam - f + lam])
+        ([],
+         [f*lam - lam,
+          f - 1,
+          f^2*lam + f^2 - 2*f*lam - f + lam,
+          -f*lam - f + lam,
+          -lam])
         sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_factor()), list(K.get_lt_factor()))
-        ([], [-f*lam - f + lam, f - 1, -lam])
+        ([], [-f*lam - f + lam, f - 1, -lam, -f])
 
         sage: _ = extremality_test(h)
         sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_poly()), list(K.get_lt_poly()))
@@ -1086,6 +1091,7 @@ class SemialgebraicComplex(SageObject):
         sage: g.save("complex_drlm_backward_3_slope_f_bkpt.pdf") # not tested
 
         sage: complex = SemialgebraicComplex(gmic, ['f'])
+
         # Shooting random points
         sage: complex.shoot_random_points(50)    # not tested # Got 4 components
         # Flipping ineq bfs
@@ -1121,6 +1127,7 @@ class SemialgebraicComplex(SageObject):
         Compute 3-d complex, then take slice.
 
         sage: complex = SemialgebraicComplex(gj_forward_3_slope, ['f', 'lambda_1', 'lambda_2'])
+
         #sage: complex.shoot_random_points(500, max_failings=10000) # not tested
         sage: complex.plot(plot_points=500) # not tested
         sage: complex.plot(slice_value=[None, None, 2/3], restart=True, plot_points=500) # not tested

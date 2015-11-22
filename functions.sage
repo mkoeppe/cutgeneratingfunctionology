@@ -136,7 +136,7 @@ class Face:
         """
         EXAMPLES::
 
-            sage: logging.disable(logging.INFO)
+            sage: logging.disable(logging.WARN)
             sage: f = generate_maximal_additive_faces(bhk_irrational(delta=(23/250,1/125)))
         """
         if not vertices:
