@@ -2048,9 +2048,18 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
     ## slopes = [ canonicalize_number(slope) for slope in slopes ]
     ## intercepts = [ canonicalize_number(intercept) for intercept in intercepts ]
     #print slopes
-    return FastPiecewise([ [(bkpt[i],bkpt[i+1]), 
-                            fast_linear_function(slopes[i], intercepts[i])] for i in range(len(bkpt)-1) ],
-                         merge=merge)
+    pieces = []
+    for i in range(len(bkpt)-1):
+        if bkpt[i] > bkpt[i+1]:
+            raise ValueError("Breakpoints are not sorted in increasing order.")
+        elif bkpt[i] == bkpt[i+1]:
+            logging.warn("Degenerate interval occurs at breakpoint %s" % bkpt[i])
+            if values[i] != values[i+1]:
+                raise ValueError("Degeneration leads to a discontinuous function.")
+        else:
+            pieces.append( [(bkpt[i],bkpt[i+1]),
+                            fast_linear_function(slopes[i], intercepts[i])] )
+    return FastPiecewise(pieces, merge=merge)
 
 def piecewise_function_from_breakpoints_and_values(bkpt, values, field=None, merge=True):
     """
@@ -2064,7 +2073,7 @@ def piecewise_function_from_breakpoints_and_values(bkpt, values, field=None, mer
     """
     if len(bkpt)!=len(values):
         raise ValueError, "Need to have the same number of breakpoints and values."
-    slopes = [ (values[i+1]-values[i])/(bkpt[i+1]-bkpt[i]) for i in range(len(bkpt)-1) ]
+    slopes = [ (values[i+1]-values[i])/(bkpt[i+1]-bkpt[i]) if bkpt[i+1] != bkpt[i] else 0 for i in range(len(bkpt)-1) ]
     return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field, merge=merge)
 
 def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None, merge=True):
