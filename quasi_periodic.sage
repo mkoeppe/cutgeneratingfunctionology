@@ -94,14 +94,16 @@ class PiecewiseQuasiPeriodic(FastPiecewise):
         EXAMPLES::
 
             sage: q = PiecewiseQuasiPeriodic([[(0,1/2), FastLinearFunction(3,0)],[(1/2,3/2), FastLinearFunction(-1,2)]])
-            sage: P = plot(q)
+            sage: p = plot(q)
 
-        The implementation of the plot method is incompatible with the use of the xmin and xmax arguments.
+        The implementation of the plot method in Sage 5.11 piecewise.py
+        is incompatible with the use of the xmin and xmax arguments.  Test that
+        this has been fixed::
 
             sage: p = q.plot(xmin=0, xmax=3)
             sage: p = plot(q, xmin=0, xmax=3)
             sage: p = plot(q, 0, 3)
-            sage: q = plot(q, 0, 3, color='red')
+            sage: p = plot(q, 0, 3, color='red')
 
         Also the following plot syntax should be accepted::
 
