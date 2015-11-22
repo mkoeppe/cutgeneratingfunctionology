@@ -1274,6 +1274,7 @@ def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=
 
         sage: logging.disable(logging.INFO)
         sage: h = kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9)
+        sage: extremality_test(h)
         True
         sage: h = kzh_3_slope_param_extreme_2(f=4/9, a=2/9, b=3/9)
         sage: extremality_test(h) # Claimed conditions for extremality are NOT satisfied.
@@ -1309,8 +1310,10 @@ def kzh_4_slope_param_extreme_1(f=13/18, a=7/18, b=1/18, field=None, conditionch
 
         sage: logging.disable(logging.INFO)
         sage: h = kzh_4_slope_param_extreme_1(f=13/18, a=7/18, b=1/18)
+        sage: extremality_test(h)
         True
         sage: h = kzh_4_slope_param_extreme_1(f=13/18, a=14/37, b=1/19)
+        sage: extremality_test(h)
         True
     """
     w = (f+a)/f/4;
