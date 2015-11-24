@@ -10,7 +10,9 @@ from sage.structure.element import FieldElement
 
 from sage.libs.ppl import Variable, Constraint, Linear_Expression, Constraint_System, NNC_Polyhedron, Poly_Con_Relation, Poly_Gen_Relation, Generator
 poly_is_included = Poly_Con_Relation.is_included()
+#strictly_intersects = Poly_Con_Relation.strictly_intersects()
 point_is_included = Poly_Gen_Relation.subsumes()
+#con_saturates = Poly_Con_Relation.saturates()
 
 from sage.structure.sage_object import SageObject
 
@@ -502,7 +504,7 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
     return read_leq_lin_from_polyhedron(p, monomial_list, v_dict)
 
 
-def read_leq_lin_from_polyhedron(p, monomial_list, v_dict):
+def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_p=None):
     """
     sage: P.<f>=QQ[]
     sage: eq_poly =[]; lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
@@ -515,6 +517,9 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict):
     minlt = []
     mincs = p.minimized_constraints()
     for c in mincs:
+        if tightened_p is not None and not is_tight_constraint_of_nncp(c, tightened_p):
+            # McCormick trash, don't put in minlt.
+            continue
         coeff = c.coefficients()
         # observe: coeffients in a constraint of NNC_Polyhedron could have gcd != 1.
         # take care of this.
@@ -527,6 +532,16 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict):
             minlt.append(t)
     # note that polynomials in mineq and minlt can have leading coefficient != 1
     return mineq, minlt
+
+def is_tight_constraint_of_nncp(c, p):
+    """
+    This function is silly.
+    #What we want is p.relation_with(con).implies(con_saturates),
+    #but for for NNC_polytope, p.relation_with(con) gives is_included but never con_saturates
+    """
+    linexpr = Linear_Expression(c.coefficients(), c.inhomogeneous_term())
+    lb = p.minimize(linexpr)
+    return bool(lb['inf_n'] ==  0)
 
 def read_simplified_leq_lin(K, level="factor"):
     """
@@ -670,30 +685,31 @@ def find_region_according_to_literature(function, var_name, var_value, region_le
 
 def find_region_around_given_point(K, h, level="factor", region_level='extreme', is_minimal=None, use_simplified_extremality_test=True):
     ## Note: region_level = 'constructible' / 'minimal'/ 'extreme'. test cases see find_parameter_region()
+    region_type = find_region_type_around_given_point(K, h, region_level=region_level, is_minimal=is_minimal, use_simplified_extremality_test=use_simplified_extremality_test)
+    leq, lin = read_simplified_leq_lin(K, level=level)
+    return region_type, leq, lin
+
+def find_region_type_around_given_point(K, h, region_level='extreme', is_minimal=None, use_simplified_extremality_test=True):
+    ## Note: region_level = 'constructible' / 'minimal'/ 'extreme'. test cases see find_parameter_region()
     if h is None:
-        leq, lin = read_simplified_leq_lin(K, level=level)
-        return 'not_constructible', leq, lin
+        return 'not_constructible'
     if region_level == 'constructible':
-        leq, lin = read_simplified_leq_lin(K, level=level)
-        return 'is_constructible', leq, lin
+        return 'is_constructible'
     if is_minimal is None:
         is_minimal = minimality_test(h)
     if is_minimal:
         if region_level == 'minimal':
-            leq, lin = read_simplified_leq_lin(K, level=level)
-            return 'is_minimal', leq, lin
+            return 'is_minimal'
         if use_simplified_extremality_test:
             is_extreme = simplified_extremality_test(h)
         else:
             is_extreme = extremality_test(h)
-        leq, lin = read_simplified_leq_lin(K, level=level)
         if is_extreme:
-            return 'is_extreme', leq, lin
+            return 'is_extreme'
         else:
-            return 'not_extreme', leq, lin
+            return 'not_extreme'
     else:
-        leq, lin = read_simplified_leq_lin(K, level=level)
-        return 'not_minimal', leq, lin
+        return 'not_minimal'
 
 def find_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_value=None, use_simplified_extremality_test=True,\
                         level="factor", region_level='extreme', **opt_non_default):
@@ -930,18 +946,98 @@ def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], rando
 ###########################
 class SemialgebraicComplexComponent(SageObject):
 
-    def __init__(self, K, leq, lin, var_value, region_type):
-        self.leq = leq
-        self.lin = lin
+    def __init__(self, parent, K, var_value, region_type):
+        self.parent = parent
         self.var_value = var_value
         self.region_type = region_type
+
+        #note that self.polyhedron and K.polyhedron,
+        # self.parent.monomial_list and K.monomial_list,
+        # self.parent.v_dict and K.v_dict change simultaneously while lifting.
         self.polyhedron = K.polyhedron
-        self.bounds = []
-        for i in range(len(var_value)):
+        orig_polyhedron = copy(K.polyhedron)
+        self.update_lp_bounds()
+        self.update_mccormick_bounds(10)
+        self.leq, self.lin = read_leq_lin_from_polyhedron(orig_polyhedron, \
+                                self.parent.monomial_list, self.parent.v_dict, self.polyhedron)
+
+    def update_lp_bounds(self):
+        # Compute LP bounds first
+        bounds = []
+        for i in range(len(self.parent.monomial_list)):
             v = Variable(i)
             lowerbound = self.polyhedron.minimize(Linear_Expression(v))
+            if lowerbound['bounded']:
+                lb = lowerbound['inf_n']/lowerbound['inf_d']
+            else:
+                lb = None
             upperbound = self.polyhedron.maximize(Linear_Expression(v))
-            self.bounds.append((lowerbound, upperbound))
+            if upperbound['bounded']:
+                ub = upperbound['sup_n']/upperbound['sup_d']
+            else:
+                ub = None
+            bounds.append((lb, ub))
+        self.bounds = bounds
+
+    def update_mccormick_bounds(self, max_iter):
+        if not hasattr(self, 'bounds'):
+            self.update_lp_bounds()
+        bounds = self.bounds
+        bounds_propagation_iter = 0
+        #tightened = True
+        # TODO: single parameter polynomial_rational_flint object needs special treatment. ignore bounds propagation in this case for now.
+        tightened = bool(len(self.var_value) > 1)
+        while bounds_propagation_iter < max_iter and tightened:
+            bounds_propagation_iter += 1
+            tightened = False
+            # upward bounds propagation
+            for i in range(len(self.var_value), len(self.parent.monomial_list)):
+                m = self.parent.monomial_list[i]
+                # TODO: univariant monomial.
+                if m.degree() == 2:
+                    # for now, only consider bilinear monomial m = x*y
+                    # apply McCormoick inequalities and set tightened
+                    v = Variable(i)
+                    degs = m.degrees()
+                    if not m.is_univariate():
+                        i_1 = degs.index(1)
+                        i_2 = degs.index(1, i_1 + 1)
+                        v_1 = Variable(i_1)
+                        v_2 = Variable(i_2)
+                        lb_1, ub_1 = bounds[i_1]
+                        lb_2, ub_2 = bounds[i_2]
+                    else:
+                        # really should treat univariant monomial sperately!
+                        i_1 = degs.index(2)
+                        v_1 = v_2 = Variable(i_1)
+                        lb_2, ub_2 = lb_1, ub_1 = bounds[i_1]
+                    if new_mccormick_bound(self.polyhedron, v, v_1, v_2, lb_2, lb_1, True):
+                        tightened = True
+                    if new_mccormick_bound(self.polyhedron, v, v_1, v_2, ub_2, ub_1, True):
+                        tightened = True
+                    if new_mccormick_bound(self.polyhedron, v, v_1, v_2, lb_2, ub_1, False):
+                        tightened = True
+                    if new_mccormick_bound(self.polyhedron, v, v_1, v_2, ub_2, lb_1, False):
+                        tightened = True
+            if tightened:
+                tightened = False
+                # downward bounds propagation
+                for i in range(len(self.parent.monomial_list)):
+                    v = Variable(i)
+                    (lb, ub) = bounds[i]
+                    lowerbound = self.polyhedron.minimize(Linear_Expression(v))
+                    if lowerbound['bounded'] and ((lb is None) or \
+                       (lowerbound['inf_n']/lowerbound['inf_d'] > lb)):
+                        lb = lowerbound['inf_n']/lowerbound['inf_d']
+                        if i < len(self.var_value):
+                            tightened = True
+                    upperbound = self.polyhedron.maximize(Linear_Expression(v))
+                    if upperbound['bounded'] and ((ub is None) or \
+                       (upperbound['sup_n']/upperbound['sup_d'] < ub)):
+                        ub = upperbound['sup_n']/upperbound['sup_d']
+                        if i < len(self.var_value):
+                            tightened = True
+                    bounds[i] = (lb, ub)
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None):
         g = Graphics()
@@ -1184,7 +1280,7 @@ class SemialgebraicComplex(SageObject):
             # Check if the random_point is contained in the box.
             if c.region_type == 'not_constructible' and c.leq == [] and c.lin == []:
                 continue
-            if is_point_in_box(var_value, c.bounds):
+            if is_point_in_box(monomial_value, c.bounds):
                 # Check if all eqns/ineqs are satisfied.
                 if c.polyhedron.relation_with(pt).implies(point_is_included):
                     return True
@@ -1208,22 +1304,22 @@ class SemialgebraicComplex(SageObject):
     def add_new_component(self, var_value, flip_ineq_step=0):
         unlifted_space_dim =  len(self.monomial_list)
         K, test_point = construct_field_and_test_point(self.function, self.var_name, var_value, self.default_args)
-        K.monomial_list = self.monomial_list
-        K.v_dict = self.v_dict
+        K.monomial_list = self.monomial_list # change simultaneously while lifting
+        K.v_dict = self.v_dict # change simultaneously while lifting
         K.polyhedron.add_space_dimensions_and_embed(len(K.monomial_list))
         try:
             h = self.function(**test_point)
         except:
             # Function is non-contructible at this random point.
             h = None
-        region_type, leq, lin =  find_region_around_given_point(K, h, level="factor", region_level='extreme', \
-                                                                is_minimal=None,use_simplified_extremality_test=True)
+        region_type =  find_region_type_around_given_point(K, h, region_level='extreme',
+                                                           is_minimal=None,use_simplified_extremality_test=True)
         #if see new monomial, lift polyhedrons of the previously computed components.
         dim_to_add = len(self.monomial_list) - unlifted_space_dim
         if dim_to_add > 0:
             for c in self.components:
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
-        new_component = SemialgebraicComplexComponent(K, leq, lin, var_value, region_type)
+        new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         self.components.append(new_component)
         if flip_ineq_step > 0:
             (self.points_to_test).update(new_component.generate_neighbour_points(flip_ineq_step))
@@ -1285,29 +1381,43 @@ def point_satisfies_var_bounds(var_value, var_bounds):
     return True
 
 def is_value_in_interval(v, (lb, ub)):
-    if ub['bounded']:
-        upperbound = ub['sup_n']/ub['sup_d']
-        if (upperbound < v) or (ub['maximum']==False and upperbound == v):
-            return False
-    if lb['bounded']:
-        lowerbound = lb['inf_n']/lb['inf_d']
-        if (lowerbound > v) or (lb['minimum']==False and lowerbound == v):
-            return False
-    return True
+    return ((lb is None) or (lb < v)) and ((ub is None) or (v < ub))
 
-def is_point_in_box(var_value, bounds):
-    return all(is_value_in_interval(var_value[i], bounds[i]) for i in range(len(var_value)))
+def is_point_in_box(monomial_value, bounds):
+    # note: monomial_value can have length bigger than len(bounds),
+    # just ignore the tailing monomial values which come from lifting.
+    return all(is_value_in_interval(monomial_value[i], bounds[i]) for i in range(len(bounds)))
 
 def bounds_for_plotting((lb, ub)):
-    if lb['bounded']:
-        l = lb['inf_n']/lb['inf_d']-0.01
+    if not lb is None:
+        l = lb - 0.01
     else:
         l = -0.1
-    if ub['bounded']:
-        u = ub['sup_n']/ub['sup_d']+0.01
+    if not ub is None:
+        u = ub + 0.01
     else:
         u = 1.1
     return (l, u)
+
+def new_mccormick_bound(p, x3, x1, x2, c1, c2, is_lowerbound):
+    """
+    Try adding x3 > c1*x1 + c2*x2 - c1*c2 (if is_lowerbound, else x3 < c1*x1 + c2*x2 - c1*c2 to the constraints of polytope p. Return True this new constraint is not redundnant.
+    """
+    if c1 is None or c2 is None:
+        # unbounded
+        return False
+    d = c1.denominator() * c2.denominator() #linear expression needs integer coefficients
+    linexpr = Linear_Expression(d*c1*x1 + d*c2*x2 - d*c1*c2)
+    if is_lowerbound:
+        constraint_to_add = (linexpr - d*x3 < 0)
+    else:
+        constraint_to_add = (linexpr - d*x3 > 0)
+    if p.relation_with(constraint_to_add).implies(poly_is_included):
+        return False
+    else:
+        p.add_constraint(constraint_to_add)
+        return True
+
 ##############################
 # linearly independent in Q
 ##############################
