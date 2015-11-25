@@ -955,7 +955,9 @@ class SemialgebraicComplexComponent(SageObject):
         # self.parent.monomial_list and K.monomial_list,
         # self.parent.v_dict and K.v_dict change simultaneously while lifting.
         self.polyhedron = K.polyhedron
-        self.bounds, tightened_polyhedron = self.bounds_propagation(3)
+        self.bounds, tightened_polyhedron = self.bounds_propagation(self.parent.max_iter)
+        if self.parent.max_iter == 0:
+            tightened_polyhedron = None
         self.leq, self.lin = read_leq_lin_from_polyhedron(self.polyhedron, \
                                                           self.parent.monomial_list, self.parent.v_dict, tightened_polyhedron)
 
@@ -1189,7 +1191,7 @@ class SemialgebraicComplex(SageObject):
         # more testcases in param_graphics.sage
     """
 
-    def __init__(self, function, var_name, **opt_non_default):
+    def __init__(self, function, var_name, max_iter=0, **opt_non_default):
         #self.num_components = 0
         self.components = []
 
@@ -1208,6 +1210,7 @@ class SemialgebraicComplex(SageObject):
         self.graph = Graphics()
         self.num_plotted_components = 0
         self.points_to_test = set()
+        self.max_iter = max_iter
 
     def generate_random_var_value(self, var_bounds=None):
         var_value = []
@@ -1426,6 +1429,8 @@ def update_mccormicks_for_monomial(m, tightened_polyhedron, original_polyhedron,
             tightened = True
         if add_mccormick_bound(tightened_polyhedron, v, v_1, v_2, ub_2, lb_1, False):
             tightened = True
+        if m.degree() == 2:
+            break
     if tightened:
         bounds[i] = find_bounds_of_variable(tightened_polyhedron, i)
     return tightened
