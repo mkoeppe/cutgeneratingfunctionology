@@ -955,7 +955,7 @@ class SemialgebraicComplexComponent(SageObject):
         # self.parent.monomial_list and K.monomial_list,
         # self.parent.v_dict and K.v_dict change simultaneously while lifting.
         self.polyhedron = K.polyhedron
-        self.bounds, tightened_polyhedron = self.bounds_propagation(10)
+        self.bounds, tightened_polyhedron = self.bounds_propagation(3)
         self.leq, self.lin = read_leq_lin_from_polyhedron(self.polyhedron, \
                                                           self.parent.monomial_list, self.parent.v_dict, tightened_polyhedron)
 
@@ -985,9 +985,11 @@ class SemialgebraicComplexComponent(SageObject):
                     bounds[i] = find_bounds_of_variable(tightened_polyhedron, i)
                     # Not sure about i < len(self.var_value) condition,
                     # but without it, bounds_propagation_iter >= max_iter is often attained.
-                    if (i < len(self.var_value)) and \
-                       ((lb < bounds[i][0]) or (lb is None) and (bounds[i][0] is not None) or \
-                        (bounds[i][1] < ub) or (ub is None) and (bounds[i][1] is not None)):
+                    #if (i < len(self.var_value)) and \
+                    #   ((lb < bounds[i][0]) or (lb is None) and (bounds[i][0] is not None) or \
+                    #    (bounds[i][1] < ub) or (ub is None) and (bounds[i][1] is not None)):
+                    if (bounds[i][0] is not None) and ((lb is None) or (bounds[i][0] - lb > 0.001)) or \
+                       (bounds[i][1] is not None) and ((ub is None) or (ub - bounds[i][1] > 0.001)):
                         tightened = True
             if bounds_propagation_iter >= max_iter:
                 logging.warn("max number %s of bounds propagation iterations has attained." % max_iter)
