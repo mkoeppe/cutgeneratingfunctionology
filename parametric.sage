@@ -955,89 +955,44 @@ class SemialgebraicComplexComponent(SageObject):
         # self.parent.monomial_list and K.monomial_list,
         # self.parent.v_dict and K.v_dict change simultaneously while lifting.
         self.polyhedron = K.polyhedron
-        orig_polyhedron = copy(K.polyhedron)
-        self.update_lp_bounds()
-        self.update_mccormick_bounds(10)
-        self.leq, self.lin = read_leq_lin_from_polyhedron(orig_polyhedron, \
-                                self.parent.monomial_list, self.parent.v_dict, self.polyhedron)
+        self.bounds, tightened_polyhedron = self.bounds_propagation(10)
+        self.leq, self.lin = read_leq_lin_from_polyhedron(self.polyhedron, \
+                                                          self.parent.monomial_list, self.parent.v_dict, tightened_polyhedron)
 
-    def update_lp_bounds(self):
+    def bounds_propagation(self, max_iter):
+        tightened_polyhedron = copy(self.polyhedron)
         # Compute LP bounds first
-        bounds = []
-        for i in range(len(self.parent.monomial_list)):
-            v = Variable(i)
-            lowerbound = self.polyhedron.minimize(Linear_Expression(v))
-            if lowerbound['bounded']:
-                lb = lowerbound['inf_n']/lowerbound['inf_d']
-            else:
-                lb = None
-            upperbound = self.polyhedron.maximize(Linear_Expression(v))
-            if upperbound['bounded']:
-                ub = upperbound['sup_n']/upperbound['sup_d']
-            else:
-                ub = None
-            bounds.append((lb, ub))
-        self.bounds = bounds
+        bounds = [find_bounds_of_variable(tightened_polyhedron, i) for i in range(len(self.parent.monomial_list))]
 
-    def update_mccormick_bounds(self, max_iter):
-        if not hasattr(self, 'bounds'):
-            self.update_lp_bounds()
-        bounds = self.bounds
         bounds_propagation_iter = 0
-        #tightened = True
-        # TODO: single parameter polynomial_rational_flint object needs special treatment. ignore bounds propagation in this case for now.
+        # TODO: single parameter polynomial_rational_flint object needs special treatment. ignore bounds propagation in this case for now.  #tightened = True
         tightened = bool(len(self.var_value) > 1)
+
         while bounds_propagation_iter < max_iter and tightened:
             bounds_propagation_iter += 1
             tightened = False
             # upward bounds propagation
             for i in range(len(self.var_value), len(self.parent.monomial_list)):
-                m = self.parent.monomial_list[i]
-                # TODO: univariant monomial.
-                if m.degree() == 2:
-                    # for now, only consider bilinear monomial m = x*y
-                    # apply McCormoick inequalities and set tightened
-                    v = Variable(i)
-                    degs = m.degrees()
-                    if not m.is_univariate():
-                        i_1 = degs.index(1)
-                        i_2 = degs.index(1, i_1 + 1)
-                        v_1 = Variable(i_1)
-                        v_2 = Variable(i_2)
-                        lb_1, ub_1 = bounds[i_1]
-                        lb_2, ub_2 = bounds[i_2]
-                    else:
-                        # really should treat univariant monomial sperately!
-                        i_1 = degs.index(2)
-                        v_1 = v_2 = Variable(i_1)
-                        lb_2, ub_2 = lb_1, ub_1 = bounds[i_1]
-                    if new_mccormick_bound(self.polyhedron, v, v_1, v_2, lb_2, lb_1, True):
-                        tightened = True
-                    if new_mccormick_bound(self.polyhedron, v, v_1, v_2, ub_2, ub_1, True):
-                        tightened = True
-                    if new_mccormick_bound(self.polyhedron, v, v_1, v_2, lb_2, ub_1, False):
-                        tightened = True
-                    if new_mccormick_bound(self.polyhedron, v, v_1, v_2, ub_2, lb_1, False):
-                        tightened = True
+                m = self.parent.monomial_list[i] # m has degre >= 2
+                if update_mccormicks_for_monomial(m, tightened_polyhedron, self.polyhedron, \
+                                                  self.parent.monomial_list, self.parent.v_dict, bounds):
+                    tightened = True
             if tightened:
                 tightened = False
                 # downward bounds propagation
                 for i in range(len(self.parent.monomial_list)):
-                    v = Variable(i)
                     (lb, ub) = bounds[i]
-                    lowerbound = self.polyhedron.minimize(Linear_Expression(v))
-                    if lowerbound['bounded'] and ((lb is None) or \
-                       (lowerbound['inf_n']/lowerbound['inf_d'] > lb)):
-                        lb = lowerbound['inf_n']/lowerbound['inf_d']
-                        if i < len(self.var_value):
-                            tightened = True
-                    upperbound = self.polyhedron.maximize(Linear_Expression(v))
-                    if upperbound['bounded'] and ((ub is None) or \
-                       (upperbound['sup_n']/upperbound['sup_d'] < ub)):
-                        ub = upperbound['sup_n']/upperbound['sup_d']
-                        if i < len(self.var_value):
-                            tightened = True
-                    bounds[i] = (lb, ub)
+                    bounds[i] = find_bounds_of_variable(tightened_polyhedron, i)
+                    # Not sure about i < len(self.var_value) condition,
+                    # but without it, bounds_propagation_iter >= max_iter is often attained.
+                    if (i < len(self.var_value)) and \
+                       ((lb < bounds[i][0]) or (lb is None) and (bounds[i][0] is not None) or \
+                        (bounds[i][1] < ub) or (ub is None) and (bounds[i][1] is not None)):
+                        tightened = True
+            if bounds_propagation_iter >= max_iter:
+                logging.warn("max number %s of bounds propagation iterations has attained." % max_iter)
+        #print bounds_propagation_iter
+        return bounds, tightened_polyhedron
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None):
         g = Graphics()
@@ -1314,12 +1269,12 @@ class SemialgebraicComplex(SageObject):
             h = None
         region_type =  find_region_type_around_given_point(K, h, region_level='extreme',
                                                            is_minimal=None,use_simplified_extremality_test=True)
+        new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         #if see new monomial, lift polyhedrons of the previously computed components.
         dim_to_add = len(self.monomial_list) - unlifted_space_dim
         if dim_to_add > 0:
             for c in self.components:
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
-        new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         self.components.append(new_component)
         if flip_ineq_step > 0:
             (self.points_to_test).update(new_component.generate_neighbour_points(flip_ineq_step))
@@ -1399,7 +1354,21 @@ def bounds_for_plotting((lb, ub)):
         u = 1.1
     return (l, u)
 
-def new_mccormick_bound(p, x3, x1, x2, c1, c2, is_lowerbound):
+def find_bounds_of_variable(p, i):
+    v = Variable(i)
+    lowerbound = p.minimize(Linear_Expression(v))
+    if lowerbound['bounded']:
+        lb = lowerbound['inf_n']/lowerbound['inf_d']
+    else:
+        lb = None
+    upperbound = p.maximize(Linear_Expression(v))
+    if upperbound['bounded']:
+        ub = upperbound['sup_n']/upperbound['sup_d']
+    else:
+        ub = None
+    return (lb, ub)
+ 
+def add_mccormick_bound(p, x3, x1, x2, c1, c2, is_lowerbound):
     """
     Try adding x3 > c1*x1 + c2*x2 - c1*c2 (if is_lowerbound, else x3 < c1*x1 + c2*x2 - c1*c2 to the constraints of polytope p. Return True this new constraint is not redundnant.
     """
@@ -1417,6 +1386,47 @@ def new_mccormick_bound(p, x3, x1, x2, c1, c2, is_lowerbound):
     else:
         p.add_constraint(constraint_to_add)
         return True
+
+def update_mccormicks_for_monomial(m, tightened_polyhedron, original_polyhedron, monomial_list, v_dict, bounds):
+    # the argument original_polyhedron is not need if we assume no new monomial added during recursive McCormicks.
+    # Expect that monomials in monomial_list have non-decreasing degrees.
+    if m.degree() < 2:
+        return False
+    i = v_dict[m]
+    v = Variable(i)
+    tightened = False
+    for v1 in m.variables():
+        i_1 = v_dict[v1]
+        v_1 = Variable(i_1)
+        lb_1, ub_1 = bounds[i_1]
+
+        v2 = (m/v1).numerator()
+        if v2 in v_dict.keys():
+            i_2 = v_dict[v2]
+        else:
+            logging.warn("new monomial %s is needed during recursive McCormick" % v2)
+            i_2 = len(monomial_list)
+            v_dict[v2]= i_2
+            monomial_list.append(v2)
+            original_polyhedron.add_space_dimensions_and_embed(1)
+            tightened_polyhedron.add_space_dimensions_and_embed(1)
+            bounds.append((None, None))
+            if update_mccormicks_for_monomial(v2, tightened_polyhedron, original_polyhedron, \
+                                              monomial_list, v_dict, bounds):
+                tightened = True
+        v_2 = Variable(i_2)
+        lb_2, ub_2 = bounds[i_2]
+        if add_mccormick_bound(tightened_polyhedron, v, v_1, v_2, lb_2, lb_1, True):
+            tightened = True
+        if add_mccormick_bound(tightened_polyhedron, v, v_1, v_2, ub_2, ub_1, True):
+            tightened = True
+        if add_mccormick_bound(tightened_polyhedron, v, v_1, v_2, lb_2, ub_1, False):
+            tightened = True
+        if add_mccormick_bound(tightened_polyhedron, v, v_1, v_2, ub_2, lb_1, False):
+            tightened = True
+    if tightened:
+        bounds[i] = find_bounds_of_variable(tightened_polyhedron, i)
+    return tightened
 
 ##############################
 # linearly independent in Q
