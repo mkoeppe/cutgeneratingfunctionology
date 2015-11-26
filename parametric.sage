@@ -8,7 +8,7 @@ from igp import *
 import sage.structure.element
 from sage.structure.element import FieldElement
 
-from sage.libs.ppl import Variable, Constraint, Linear_Expression, Constraint_System, NNC_Polyhedron, Poly_Con_Relation, Poly_Gen_Relation, Generator
+from sage.libs.ppl import Variable, Constraint, Linear_Expression, Constraint_System, NNC_Polyhedron, Poly_Con_Relation, Poly_Gen_Relation, Generator, MIP_Problem
 poly_is_included = Poly_Con_Relation.is_included()
 #strictly_intersects = Poly_Con_Relation.strictly_intersects()
 point_is_included = Poly_Gen_Relation.subsumes()
@@ -504,7 +504,7 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
     return read_leq_lin_from_polyhedron(p, monomial_list, v_dict)
 
 
-def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_p=None):
+def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None):
     """
     sage: P.<f>=QQ[]
     sage: eq_poly =[]; lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
@@ -517,7 +517,7 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_p=None):
     minlt = []
     mincs = p.minimized_constraints()
     for c in mincs:
-        if tightened_p is not None and not is_tight_constraint_of_nncp(c, tightened_p):
+        if tightened_mip is not None and is_not_a_downstairs_wall(c, tightened_mip):
             # McCormick trash, don't put in minlt.
             continue
         coeff = c.coefficients()
@@ -532,16 +532,6 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_p=None):
             minlt.append(t)
     # note that polynomials in mineq and minlt can have leading coefficient != 1
     return mineq, minlt
-
-def is_tight_constraint_of_nncp(c, p):
-    """
-    This function is silly.
-    #What we want is p.relation_with(con).implies(con_saturates),
-    #but for for NNC_polytope, p.relation_with(con) gives is_included but never con_saturates
-    """
-    linexpr = Linear_Expression(c.coefficients(), c.inhomogeneous_term())
-    lb = p.minimize(linexpr)
-    return bool(lb['inf_n'] ==  0)
 
 def read_simplified_leq_lin(K, level="factor"):
     """
@@ -955,16 +945,16 @@ class SemialgebraicComplexComponent(SageObject):
         # self.parent.monomial_list and K.monomial_list,
         # self.parent.v_dict and K.v_dict change simultaneously while lifting.
         self.polyhedron = K.polyhedron
-        self.bounds, tightened_polyhedron = self.bounds_propagation(self.parent.max_iter)
+        self.bounds, tightened_mip = self.bounds_propagation(self.parent.max_iter)
         if self.parent.max_iter == 0:
-            tightened_polyhedron = None
+            tightened_mip = None
         self.leq, self.lin = read_leq_lin_from_polyhedron(self.polyhedron, \
-                                                          self.parent.monomial_list, self.parent.v_dict, tightened_polyhedron)
+                                                          self.parent.monomial_list, self.parent.v_dict, tightened_mip)
 
     def bounds_propagation(self, max_iter):
-        tightened_polyhedron = copy(self.polyhedron)
+        tightened_mip = construct_mip_of_nnc_polyhedron(self.polyhedron)
         # Compute LP bounds first
-        bounds = [find_bounds_of_variable(tightened_polyhedron, i) for i in range(len(self.parent.monomial_list))]
+        bounds = [find_bounds_of_variable(tightened_mip, i) for i in range(len(self.parent.monomial_list))]
 
         bounds_propagation_iter = 0
         # TODO: single parameter polynomial_rational_flint object needs special treatment. ignore bounds propagation in this case for now.  #tightened = True
@@ -976,7 +966,7 @@ class SemialgebraicComplexComponent(SageObject):
             # upward bounds propagation
             for i in range(len(self.var_value), len(self.parent.monomial_list)):
                 m = self.parent.monomial_list[i] # m has degre >= 2
-                if update_mccormicks_for_monomial(m, tightened_polyhedron, self.polyhedron, \
+                if update_mccormicks_for_monomial(m, tightened_mip, self.polyhedron, \
                                                   self.parent.monomial_list, self.parent.v_dict, bounds):
                     tightened = True
             if tightened:
@@ -984,7 +974,7 @@ class SemialgebraicComplexComponent(SageObject):
                 # downward bounds propagation
                 for i in range(len(self.parent.monomial_list)):
                     (lb, ub) = bounds[i]
-                    bounds[i] = find_bounds_of_variable(tightened_polyhedron, i)
+                    bounds[i] = find_bounds_of_variable(tightened_mip, i)
                     # Not sure about i < len(self.var_value) condition,
                     # but without it, bounds_propagation_iter >= max_iter is often attained.
                     #if (i < len(self.var_value)) and \
@@ -996,7 +986,7 @@ class SemialgebraicComplexComponent(SageObject):
             if bounds_propagation_iter >= max_iter:
                 logging.warn("max number %s of bounds propagation iterations has attained." % max_iter)
         #print bounds_propagation_iter
-        return bounds, tightened_polyhedron
+        return bounds, tightened_mip
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None):
         g = Graphics()
@@ -1191,7 +1181,7 @@ class SemialgebraicComplex(SageObject):
         # more testcases in param_graphics.sage
     """
 
-    def __init__(self, function, var_name, max_iter=0, **opt_non_default):
+    def __init__(self, function, var_name, max_iter=8, **opt_non_default):
         #self.num_components = 0
         self.components = []
 
@@ -1359,42 +1349,75 @@ def bounds_for_plotting((lb, ub)):
         u = 1.1
     return (l, u)
 
-def find_bounds_of_variable(p, i):
-    v = Variable(i)
-    lowerbound = p.minimize(Linear_Expression(v))
-    if lowerbound['bounded']:
-        lb = lowerbound['inf_n']/lowerbound['inf_d']
-    else:
-        lb = None
-    upperbound = p.maximize(Linear_Expression(v))
-    if upperbound['bounded']:
-        ub = upperbound['sup_n']/upperbound['sup_d']
-    else:
-        ub = None
+def construct_mip_of_nnc_polyhedron(nncp):
+    strict_cs = nncp.minimized_constraints()
+    cs = Constraint_System([ Linear_Expression(c.coefficients(), c.inhomogeneous_term()) >= 0 \
+                             for c in strict_cs ])
+    mip = MIP_Problem(nncp.space_dimension())
+    mip.add_constraints(cs)
+    mip.set_optimization_mode('minimization')
+    return mip
+
+def find_bounds_of_variable(mip, i):
+    linexpr = Linear_Expression(Variable(i))
+    lb = find_lower_bound_of_linexpr(mip, linexpr)
+    ub = find_upper_bound_of_linexpr(mip, linexpr)
     return (lb, ub)
- 
-def add_mccormick_bound(p, x3, x1, x2, c1, c2, is_lowerbound):
+
+def find_lower_bound_of_linexpr(mip, linexpr):
+    # assume mip.set_optimization_mode('minimization')
+    mip.set_objective_function(linexpr)
+    try:
+        lb = mip.optimal_value()
+    except:
+        # unbounded
+        lb = None
+    return lb
+
+def find_upper_bound_of_linexpr(mip, linexpr):
+    # assume mip.set_optimization_mode('minimization')
+    mip.set_objective_function(-linexpr)
+    try:
+        ub = -mip.optimal_value()
+    except:
+        # unbounded
+        ub = None
+    return ub
+
+def is_not_a_downstairs_wall(c, mip):
+    linexpr = Linear_Expression(c.coefficients(), c.inhomogeneous_term())
+    # we know lb exists and is >= 0
+    lb = find_lower_bound_of_linexpr(mip, linexpr)
+    return bool(lb >  0)
+
+def add_mccormick_bound(mip, x3, x1, x2, c1, c2, is_lowerbound):
     """
-    Try adding x3 > c1*x1 + c2*x2 - c1*c2 (if is_lowerbound, else x3 < c1*x1 + c2*x2 - c1*c2 to the constraints of polytope p. Return True this new constraint is not redundnant.
+    Try adding x3 > c1*x1 + c2*x2 - c1*c2 (if is_lowerbound, else x3 < c1*x1 + c2*x2 - c1*c2 to mip. Return True this new constraint is not redundnant.
     """
     if c1 is None or c2 is None:
         # unbounded
         return False
     d = c1.denominator() * c2.denominator() #linear expression needs integer coefficients
-    linexpr = Linear_Expression(d*c1*x1 + d*c2*x2 - d*c1*c2)
+    linexpr = Linear_Expression(d*x3 - d*c1*x1 - d*c2*x2 + d*c1*c2)
     if is_lowerbound:
-        constraint_to_add = (linexpr - d*x3 < 0)
+        lb = find_lower_bound_of_linexpr(mip, linexpr)
+        if (lb is not None) and (lb >= 0):
+            return False
+        else:
+            mip.add_constraint(linexpr >= 0)
+            return True
     else:
-        constraint_to_add = (linexpr - d*x3 > 0)
-    if p.relation_with(constraint_to_add).implies(poly_is_included):
-        return False
-    else:
-        p.add_constraint(constraint_to_add)
-        return True
+        ub = find_upper_bound_of_linexpr(mip, linexpr)
+        if (ub is not None) and (ub <=0):
+            return False
+        else:
+            mip.add_constraint(linexpr <= 0)
+            return True
 
-def update_mccormicks_for_monomial(m, tightened_polyhedron, original_polyhedron, monomial_list, v_dict, bounds):
-    # the argument original_polyhedron is not need if we assume no new monomial added during recursive McCormicks.
-    # Expect that monomials in monomial_list have non-decreasing degrees.
+def update_mccormicks_for_monomial(m, tightened_mip, original_polyhedron, monomial_list, v_dict, bounds):
+    # the argument original_polyhedron is not needed if we assume that
+    # recursive McCormicks does not create new monomials.
+    # Expect that the monomials in monomial_list have non-decreasing degrees.
     if m.degree() < 2:
         return False
     i = v_dict[m]
@@ -1414,25 +1437,25 @@ def update_mccormicks_for_monomial(m, tightened_polyhedron, original_polyhedron,
             v_dict[v2]= i_2
             monomial_list.append(v2)
             original_polyhedron.add_space_dimensions_and_embed(1)
-            tightened_polyhedron.add_space_dimensions_and_embed(1)
+            tightened_mip.add_space_dimensions_and_embed(1)
             bounds.append((None, None))
-            if update_mccormicks_for_monomial(v2, tightened_polyhedron, original_polyhedron, \
+            if update_mccormicks_for_monomial(v2, tightened_mip, original_polyhedron, \
                                               monomial_list, v_dict, bounds):
                 tightened = True
         v_2 = Variable(i_2)
         lb_2, ub_2 = bounds[i_2]
-        if add_mccormick_bound(tightened_polyhedron, v, v_1, v_2, lb_2, lb_1, True):
+        if add_mccormick_bound(tightened_mip, v, v_1, v_2, lb_2, lb_1, True):
             tightened = True
-        if add_mccormick_bound(tightened_polyhedron, v, v_1, v_2, ub_2, ub_1, True):
+        if add_mccormick_bound(tightened_mip, v, v_1, v_2, ub_2, ub_1, True):
             tightened = True
-        if add_mccormick_bound(tightened_polyhedron, v, v_1, v_2, lb_2, ub_1, False):
+        if add_mccormick_bound(tightened_mip, v, v_1, v_2, lb_2, ub_1, False):
             tightened = True
-        if add_mccormick_bound(tightened_polyhedron, v, v_1, v_2, ub_2, lb_1, False):
+        if add_mccormick_bound(tightened_mip, v, v_1, v_2, ub_2, lb_1, False):
             tightened = True
         if m.degree() == 2:
             break
     if tightened:
-        bounds[i] = find_bounds_of_variable(tightened_polyhedron, i)
+        bounds[i] = find_bounds_of_variable(tightened_mip, i)
     return tightened
 
 ##############################
