@@ -588,15 +588,17 @@ def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
         pi_sym = generate_pi_sym(pi_fill_in)
         if (subadditivity_test(pi_sym) is True) and (find_infinite_norm_distance(function, pi_sym) <= epsilon):
             if show_plots:
-                show_approximations(function, pi_pwl, pi_comb, pi_fill_in, pi_sym).show()
+                g = show_approximations(function, pi_pwl, pi_comb, pi_fill_in, pi_sym)
+                show_plot(g, show_plots, tag='sym_2_slope_fill_in_diagram', object=function)
             #logging.disable(logging.NOTSET)
             return pi_sym
 
 def show_approximations(function, pi_pwl, pi_comb, pi_fill_in, pi_sym):
     if pi_pwl == function:
-        g = pi_pwl.plot(color='black', legend_label='pi=pi_pwl')
+        g = function.plot(color='black', legend_label='pi=pi_pwl', **ticks_keywords(function))
     else:
-        g = function.plot(color='black', legend_label='pi')
+        g = function.plot(color='black', legend_label='pi', **ticks_keywords(function))
+        g = plot_covered_intervals(function, [], uncovered_color='black',legend_label='pi')
         g += pi_pwl.plot(color='gray', legend_label='pi_pwl')
     if not pi_comb == pi_pwl:
         g += pi_comb.plot(color='blue', legend_label='pi_comb')
