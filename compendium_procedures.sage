@@ -413,6 +413,8 @@ def generate_pi_pwl(function, epsilon, f=None, order=None):
         # has irrational breakpoints, do approximation.
         if not f:
             f = find_f(function)
+        if not f in QQ:
+            raise ValueError, "f is not a rational number."
         order = f.denominator()
         smax = max([abs(fn._slope) for (i, fn) in function.list()])
         q = ceil(smax/epsilon/order/2) * order
