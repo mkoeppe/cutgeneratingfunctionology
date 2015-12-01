@@ -387,6 +387,8 @@ def two_slope_fill_in(function, order=None):
 
 def generate_pi_pwl(function, epsilon, f=None, order=None):
     """
+    Subfunction of the procedure symmetric_2_slope_fill_in().
+
     Approximate `function` by a piesewise linear function `pi_pwl` whose breakpoints are all rationals, such that |function(x) - pi_pwl(x)| <= epsilon for x in (0, 1).
 
     Assume that `function' is piecewise linear, and `f` is a rational number.
@@ -424,7 +426,8 @@ def generate_pi_pwl(function, epsilon, f=None, order=None):
 
 def generate_pi_delta(f, delta):
     """
-    [Equation 2]
+    Subfunction of the procedure symmetric_2_slope_fill_in().
+    See Equation 2 in [dense-2-slope]
 
     EXAMPLE::
 
@@ -441,7 +444,8 @@ def generate_pi_delta(f, delta):
 
 def generate_pi_comb(pi_pwl, epsilon, delta, f=None):
     """
-    [Lemma 4]
+    Subfunction of the procedure symmetric_2_slope_fill_in().
+    See Lemma 4 in [dense-2-slope]
 
     EXAMPLE::
 
@@ -463,10 +467,11 @@ def generate_pi_comb(pi_pwl, epsilon, delta, f=None):
 
 def find_gamma(fn):
     """
+    Subfunction of the procedure symmetric_2_slope_fill_in().
     find gamma>0 such that \Delta\pi(x, y) > gamma
     for all (x,y) in [0,1]^2 \setminus (E_\delta \cup E_f \cup E_{1+f}).
 
-    `fn` may be pi_delta in [Lemma 5] or pi_comb in [Lemma 4],
+    `fn` may be pi_delta in Lemma 5 or pi_comb in Lemma 4 [dense-2-slope],
     with sufficiently small delta as described in the proof of the lemma.
 
     EXAMPLE::
@@ -485,9 +490,23 @@ def find_gamma(fn):
                                 generate_type_2_vertices(fn, operator.gt)))
     return gamma
 
+def find_delta(fn, f, q):
+    """
+    Subfunction of the procedure symmetric_2_slope_fill_in().
+    find a small delta that works for lemma 4 [dense-2-slope]
+    """
+    delta = min(f, 1-f)/2 - 1/q
+    if fn.end_points()[1] < delta:
+        delta = fn[1]
+    if 1 - fn.end_points()[-2] < delta:
+        delta = 1 - fn.end_points()[-2]
+    return delta
+
 def generate_pi_fill_in(fn, q):
     """
-    Return the fill-in function pi_fill_in of `fn` with respect to 1/q\Z and the sublinear function g(r) = max(sp*r, sm*r). [Lemma 6, first step]
+    Subfunction of the procedure symmetric_2_slope_fill_in().
+    Return the fill-in function pi_fill_in of `fn` with respect to 1/q\Z and the sublinear function g(r) = max(sp*r, sm*r).
+    See the first phase in the proof of Lemma 6 [dense-2-slope].
 
     EXAMPLE::
 
@@ -507,9 +526,10 @@ def find_infinite_norm_distance(pi_1, pi_2):
 
 def generate_pi_sym(fn, f=None):
     """
+    Subfunction of the procedure symmetric_2_slope_fill_in().
     Return pi_sym that coincides with `fn` on [0,f/2] and [(1+f)/2, 1],
     and satisfies the symmetry condition.
-    [lemma 6, second step]
+    See the second phase in the proof of Lemma 6 [dense-2-slope].
 
     Assume the piecewise linear function `fn` satisfies that fn(f/2) = fn((1+f)/2) = 1/2.
 
@@ -541,9 +561,36 @@ def generate_pi_sym(fn, f=None):
              + [1-y for y in values_right[-2::-1]] + [1/2] + values_right
     return piecewise_function_from_breakpoints_and_values(bkpts, values)
 
+def sym_2_slope_fill_in_given_q(pi_pwl, f, q, epsilon):
+    """
+    Subfunction of the procedure symmetric_2_slope_fill_in().
+    """
+    delta = find_delta(pi_pwl, f, q)
+    pi_comb = generate_pi_comb(pi_pwl, epsilon, delta, f=f)
+    pi_fill_in = generate_pi_fill_in(pi_comb, q)
+    pi_sym = generate_pi_sym(pi_fill_in)
+    return pi_comb, pi_fill_in, pi_sym
+
+def show_approximations(function, pi_pwl, pi_comb, pi_fill_in, pi_sym):
+    """
+    Subfunction of the procedure symmetric_2_slope_fill_in().
+    """
+    if pi_pwl == function:
+        g = function.plot(color='black', legend_label='pi=pi_pwl', **ticks_keywords(function))
+    else:
+        g = function.plot(color='black', legend_label='pi', **ticks_keywords(function))
+        g = plot_covered_intervals(function, [], uncovered_color='black',legend_label='pi')
+        g += pi_pwl.plot(color='gray', legend_label='pi_pwl')
+    if not pi_comb == pi_pwl:
+        g += pi_comb.plot(color='blue', legend_label='pi_comb')
+    g += pi_fill_in.plot(color='orange', legend_label='pi_fill_in')
+    g += pi_sym.plot(color='red', legend_label='pi_sym')
+    return g
+
 def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
     """
-    Given a continuous strong minimal `function` for the Gomory and Johnson infinite group problem with `f` in Q\Z, return an extreme 2-slope function pi_ext that approximates `function` with inifinite norm distance less than epsilon. [Theorem 2].
+    Given a continuous strong minimal `function` for the Gomory and Johnson infinite group problem with `f` in Q\Z, return an extreme 2-slope function pi_ext that approximates `function` with inifinite norm distance less than epsilon. 
+    See Theorem 2 [dense-2-slope]
 
     EXAMPLES::
 
@@ -561,6 +608,9 @@ def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
     Show plots:
         sage: pi_sym = symmetric_2_slope_fill_in(function, 1/8, True) #not tested
         sage: pi_sym = symmetric_2_slope_fill_in(function, 1/10, True) #not tested
+
+    Reference:
+        [dense-2-slope] A. Basu, R. Hildebrand, and M. Molinaro, Minimal cut-generating functions are nearly extreme, 2015, http://www.ams.jhu.edu/~abasu9/papers/dense-2-slope.pdf
     """
     logging.disable(logging.INFO)
     if f is None:
@@ -576,34 +626,35 @@ def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
             show_approximations(function, pi_pwl, pi_pwl, pi_fill_in, pi_sym).show()
         #logging.disable(logging.NOTSET)
         return pi_sym
-    q = 0
     epsilon_1 = find_infinite_norm_distance(function, pi_pwl)
-    while True:
-        q += order
-        delta = min(f, 1-f)/2 - 1/q
-        if pi_pwl.end_points()[1] < delta:
-            delta = pi_pwl[1]
-        if 1 - pi_pwl.end_points()[-2] < delta:
-            delta = 1 - pi_pwl.end_points()[-2]
-        pi_comb = generate_pi_comb(pi_pwl, (epsilon-epsilon_1)/2, delta, f=f)
-        pi_fill_in = generate_pi_fill_in(pi_comb, q)
-        pi_sym = generate_pi_sym(pi_fill_in)
-        if (subadditivity_test(pi_sym) is True) and (find_infinite_norm_distance(function, pi_sym) <= epsilon):
-            if show_plots:
-                g = show_approximations(function, pi_pwl, pi_comb, pi_fill_in, pi_sym)
-                show_plot(g, show_plots, tag='sym_2_slope_fill_in_diagram', object=function)
-            #logging.disable(logging.NOTSET)
-            return pi_sym
 
-def show_approximations(function, pi_pwl, pi_comb, pi_fill_in, pi_sym):
-    if pi_pwl == function:
-        g = function.plot(color='black', legend_label='pi=pi_pwl', **ticks_keywords(function))
-    else:
-        g = function.plot(color='black', legend_label='pi', **ticks_keywords(function))
-        g = plot_covered_intervals(function, [], uncovered_color='black',legend_label='pi')
-        g += pi_pwl.plot(color='gray', legend_label='pi_pwl')
-    if not pi_comb == pi_pwl:
-        g += pi_comb.plot(color='blue', legend_label='pi_comb')
-    g += pi_fill_in.plot(color='orange', legend_label='pi_fill_in')
-    g += pi_sym.plot(color='red', legend_label='pi_sym')
-    return g
+    # estimate upper bound of q = p * order.
+    delta = find_delta(pi_pwl, f, order)
+    pi_comb = generate_pi_comb(pi_pwl, (epsilon-epsilon_1)/2, delta, f=f)
+    gamma = find_gamma(pi_comb)
+    epsilon_2 = find_infinite_norm_distance(function, pi_comb)
+    epsilon_3 = min(epsilon-epsilon_2, gamma/3)
+    sp, sm = limiting_slopes(pi_comb)
+    pmax = ceil(2 * max(sp, -sm) / order / epsilon_3)
+    #i_comb, pi_fill_in, pi_sym = sym_2_slope_fill_in_given_q(pi_pwl, f, pmax*order, (epsilon-epsilon_1)/2)
+    #assert ((subadditivity_test(pi_sym) is True) and (find_infinite_norm_distance(function, pi_sym) <= epsilon))
+    #print pmax
+    #show_approximations(function, pi_pwl, pi_comb, pi_fill_in, pi_sym).show()
+    pmin = 1
+
+    #binary search
+    while pmin < pmax:
+        ##print pmin, pmax
+        p = floor(sqrt(pmin*pmax))
+        q = p*order
+        pi_comb_p, pi_fill_in_p, pi_sym_p = sym_2_slope_fill_in_given_q(pi_pwl, f, q,  (epsilon-epsilon_1)/2)
+        if (subadditivity_test(pi_sym_p) is True) and (find_infinite_norm_distance(function, pi_sym_p) <= epsilon):
+            pmax = p
+            pi_comb, pi_fill_in, pi_sym = pi_comb_p, pi_fill_in_p, pi_sym_p
+        else:
+            pmin = p+1
+    ##print 'q = ', pmax, '*', order
+    if show_plots:
+        g = show_approximations(function, pi_pwl, pi_comb, pi_fill_in, pi_sym)
+        show_plot(g, show_plots, tag='sym_2_slope_fill_in_diagram', object=function)
+    return pi_sym
