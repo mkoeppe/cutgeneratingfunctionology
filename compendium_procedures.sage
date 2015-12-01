@@ -497,7 +497,7 @@ def find_delta(fn, f, q):
     """
     delta = min(f, 1-f)/2 - 1/q
     if fn.end_points()[1] < delta:
-        delta = fn[1]
+        delta = fn.end_points()[1]
     if 1 - fn.end_points()[-2] < delta:
         delta = 1 - fn.end_points()[-2]
     return delta
@@ -587,6 +587,8 @@ def sym_2_slope_fill_in_given_q(pi_pwl, f, q, epsilon):
     Subfunction of the procedure symmetric_2_slope_fill_in().
     """
     delta = find_delta(pi_pwl, f, q)
+    if delta == 0:
+        return None, None, None
     pi_comb = generate_pi_comb(pi_pwl, epsilon, delta, f=f)
     pi_fill_in = generate_pi_fill_in(pi_comb, q, f)
     pi_sym = generate_pi_sym(pi_fill_in)
@@ -651,6 +653,8 @@ def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
 
     # estimate upper bound of q = p * order.
     delta = find_delta(pi_pwl, f, order)
+    if delta == 0:
+        delta = find_delta(pi_pwl, f, 2*order)
     pi_comb = generate_pi_comb(pi_pwl, (epsilon-epsilon_1)/2, delta, f=f)
     gamma = find_gamma(pi_comb)
     epsilon_2 = find_infinite_norm_distance(function, pi_comb)
@@ -669,7 +673,7 @@ def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
         p = floor(sqrt(pmin*pmax))
         q = p*order
         pi_comb_p, pi_fill_in_p, pi_sym_p = sym_2_slope_fill_in_given_q(pi_pwl, f, q,  (epsilon-epsilon_1)/2)
-        if (subadditivity_test(pi_sym_p) is True) and (find_infinite_norm_distance(function, pi_sym_p) <= epsilon):
+        if (pi_sym_p is not None) and (subadditivity_test(pi_sym_p) is True) and (find_infinite_norm_distance(function, pi_sym_p) <= epsilon):
             pmax = p
             pi_comb, pi_fill_in, pi_sym = pi_comb_p, pi_fill_in_p, pi_sym_p
         else:
@@ -695,6 +699,15 @@ def symmetric_2_slope_fill_in_irrational(function, epsilon, show_plots=False, f=
         sage: pi_sym = symmetric_2_slope_fill_in_irrational(function, epsilon)
         sage: find_infinite_norm_distance(function, pi_sym) <= epsilon
         True
+        sage: extremality_test(pi_sym)
+        True
+
+        sage: h = drlm_backward_3_slope(f=1/sqrt(61), bkpt=3/sqrt(61))
+        sage: minimality_test(h)
+        True
+        sage: extremality_test(h)
+        False
+        sage: pi_sym = symmetric_2_slope_fill_in_irrational(h, 1/10)
         sage: extremality_test(pi_sym)
         True
 
