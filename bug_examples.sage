@@ -259,3 +259,51 @@ def minimal_has_uncovered_breakpoints():
     values = [0, 5/8, 5/8, 4/8, 4/8, 3/8, 3/8, 1, 0]
     h = piecewise_function_from_breakpoints_and_values(bkpts, values)
     return h
+
+def discontinuous_bhk_irrational_dense_move_not_affine():
+    """
+    This example shows that when \pi is two sided discontinuous at the origin,
+    the perturbation function \tilde\pi may be not affine linear on the dense intervals from the Strip Lemma.
+
+    Lemma 9.7 implies \pi is affine linear on the intervals (3/10, 7/20) and (9/20, 1/2) where the moves are dense. We also know that \tilde\pi is affine linear over each coset of <t_a, t_b>_Z on these two intervals, where t_a, t_b are irrational translation moves satifying the hypotheses of the Strip Lemma.
+    But as \pi is two-sided discontinuous at 0, Corollary 8.3 (or even Lemma 8.2) doesn't apply, thus \tilde\pi could be discontinuous on the dense intervals.
+    On the 2d diagram, each face is either additive or strictly subadditive (every vertice of the face $F$ is strictly subaddtive). Then the case \delta\pi_F(x,y) > 0 and S != empty never happens in the proof of Lemma 8.5. Hence any bounded \bar\bi is an effective perturbation.
+
+    There exists crazy fat perturbation \tilde\pi in this example:
+    \tilde\pi(x)
+        = epsion if x \in (3/10, 7/20) such that x - 3/10 \in <t_a, t_b>_Z;
+        = epsion if x \in (9/20, 1/2) such that x - 1/2 \in <t_a, t_b>_Z;
+        = 0 otherwise,
+    where epsion is a very small positive number.
+
+    EXAMPLE:
+    sage: logging.disable(logging.INFO)
+    sage: dbhk =  discontinuous_bhk_irrational_dense_move_not_affine()
+    sage: plot_with_colored_slopes(dbhk).show(figsize=20) #not tested
+    sage: plot_2d_diagram(dbhk).show(figsize=20) #not tested
+    """
+    bhk = bhk_irrational()
+    b=bhk.end_points()
+    v=bhk.values_at_end_points()
+    vv = [v[0]+1/500, v[1], v[2]+1/500, v[3], v[4]+1/500, v[5], v[6]+1/500]+\
+v[7:13]+[v[13]-1/500,v[14],v[15]-1/500,v[16],v[17]-1/500,v[18],v[19]-1/500,v[20]+1/500]
+    discp = []
+    for i in range(20):
+        discp.append(singleton_piece(b[i],v[i]))
+        discp.append(open_piece((b[i],vv[i]), (b[i+1],vv[i+1])))
+    discp.append(singleton_piece(b[20],v[20]))
+    dbhk = FastPiecewise(discp)
+    return dbhk
+
+def another_discontinuous_bhk_irrational_dense_move_maybe_not_affine():
+    """
+    Similar to discontinuous_bhk_irrational_dense_move_not_affine().
+    Not sure if crazy fat perturbation \tilde\pi in this example.
+    There are faces on the 2d-diagram which are not additive but have additive limit edges. The case \delta\pi_F(x,y) > 0 and S != empty could happen in the proof of Lemma 8.5, so not sure a crazy bounded \bar\pi is always in \tilde\Pi.
+    """
+    pieces = bhk_irrational().list()
+    discpieces = [singleton_piece(0,0), open_piece((0, 1/100), (4/30, 1/3))]+pieces[1:18]+[open_piece((2/3, 2/3), (4/5, 1-1/100)), singleton_piece(4/5,1), open_piece((4/5, 1-1/100), (1, 1/100)), singleton_piece(1,0)]
+    return FastPiecewise(discpieces)
+
+def minimal_delta_pi_has_additive_limit_vertex():
+    return FastPiecewise([singleton_piece(0,0), open_piece((0,1/2), (1/4, 3/4)), singleton_piece(1/4, 1/2), open_piece((1/4, 1/4), (1/2, 1/2)), singleton_piece(1/2, 1), open_piece((1/2, 1/2), (1, 1/2)), singleton_piece(1,0)])
