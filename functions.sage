@@ -2828,20 +2828,32 @@ def merge_components_with_given_component(given_component, other_components):
             remaining_components.append(component)
     return given_component, remaining_components
 
-def check_for_strip_lemma(m1, m2):
+def check_for_strip_lemma_fastpath(m1, m2):
+    """
+    Given two moves m1 and m2, return the dense interval by trying to apply the strip lemma.
+    Not used, because we want to add covered intervals back to the domains of moves so that L-U is large.
+    """
+    if not check_for_strip_lemma_linear_independence(m1, m2):
+        return None
+    return check_for_strip_lemma_small_translations(m1.intervals(), m2.intervals(), m1[1], m2[1])
+
+def check_for_strip_lemma_linear_independence(m1, m2):
+    return (m1.sign() == 1 and m2.sign() == 1 and \
+            m1[1] >= 0 and m2[1] >= 0 and \
+            is_QQ_linearly_independent(m1[1], m2[1]))
+
+def check_for_strip_lemma_small_translations(domain1, domain2, t1, t2):
     dense_intervals = []
-    if m1.sign() == 1 and m2.sign() == 1:
-        t1 = m1[1]
-        t2 = m2[1]
-        if is_QQ_linearly_independent(t1, t2) and t1 >= 0 and t2 >= 0:
-            for m1i in m1.intervals():
-                for m2i in m2.intervals():
-                    l1, u1 = m1i[0], m1i[1]
-                    l2, u2 = m2i[0], m2i[1]
-                    L = max(l1, l2)
-                    U = min(u1 + t1, u2 + t2)
-                    if t1 + t2 <= U - L:
-                        dense_intervals.append(open_interval(L, U))
+    for i1 in domain1:
+        for i2 in domain2:
+            l1, u1 = i1[0], i1[1]
+            l2, u2 = i2[0], i2[1]
+            L = max(l1, l2)
+            LL = min(l1, l2)
+            U = min(u1 + t1, u2 + t2)
+            UU = max(u1 + t1, u2 + t2)
+            if t1 + t2 <= U - L:
+                dense_intervals.append(open_interval(LL, UU))
     if not dense_intervals:
         return None
     else:
@@ -2849,12 +2861,52 @@ def check_for_strip_lemma(m1, m2):
         d = union_of_coho_intervals_minus_union_of_coho_intervals([[interval] for interval in dense_intervals], [])
         return d
 
+def extend_domain_of_move_by_adding_covered_intervals(fdm, fn, covered_components, known_extended_domains):
+    #TODO
+    if not (fdm.sign() == 1) or fn is None or fn.is_two_sided_discontinuous():
+        return fdm.intervals()
+    t = fdm[1]
+    if known_extended_domains.has_key(t):
+        return known_extended_domains[t]
+    fdm_domain = [interval_including_endpoints_if_continuous(interval, t, fn) for interval in fdm.intervals()]
+    covered_domains = []
+    for component in covered_components:
+        preimages = [ open_interval(i[0] - t, i[1] - t) for i in component ]
+        restricted_domain = intersection_of_coho_intervals([component, preimages])
+        covered_domain = [interval_including_endpoints_if_continuous(interval, t, fn) for interval in restricted_domain]
+        covered_domains.append(covered_domain)
+    union_domains = union_of_coho_intervals_minus_union_of_coho_intervals(covered_domains+[fdm_domain],[])
+    # discard the intervals that do not intersect with fdm_domains
+    extended_domain = []
+    for domain in union_domains:
+        keep = False
+        for i in fdm_domain:
+            if coho_interval_contained_in_coho_interval(i, domain):
+                keep = True
+                break
+        if keep:
+            extended_domain.append(domain)
+    known_extended_domains[t] = extended_domain
+    return extended_domain
+
+def is_continuous_at_point(fn, x):
+    if fn.is_continuous():
+        return True
+    else:
+        limits = fn.limits(x)
+        return limits[-1]==limits[0]==limits[1]
+
+def interval_including_endpoints_if_continuous(interval, t, fn):
+    left_closed = is_continuous_at_point(fn, interval[0]) and is_continuous_at_point(fn, interval[0] + t)
+    right_closed = is_continuous_at_point(fn, interval[1]) and is_continuous_at_point(fn, interval[1] + t)
+    return closed_or_open_or_halfopen_interval(interval[0], interval[1], left_closed, right_closed)
+
 class DirectedMoveCompositionCompletion:
 
     def __init__(self, fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None):
         self.show_plots = show_plots
         self.plot_background = plot_background
-        # To show colorful components at borders, need the function. Otherwise set it to default None
+        # To show colorful components at borders, and in extend_domain_of_move_by_adding_covered_intervals, need the function. Otherwise set it to default None
         self.function_at_border = function_at_border
         self.move_dict = dict()
         self.sym_init_moves = dict() # updated by self.add_backward_moves() in round 0.
@@ -2960,14 +3012,19 @@ class DirectedMoveCompositionCompletion:
         changed_move_keys = self.any_change_moves
         all_move_keys = self.move_dict.keys()
         current_dense_move = []
+        known_extended_domains = dict()
         for dm_a in changed_move_keys:
             for dm_b in all_move_keys:
                 a = self.move_dict.get(dm_a, None)
                 b = self.move_dict.get(dm_b, None)
                 if not a or not b:
                     continue                        # move has been killed
+                if not check_for_strip_lemma_linear_independence(a, b):
+                    continue   # clear obstructions to apply the strip lemma
+                a_domain = extend_domain_of_move_by_adding_covered_intervals(a, self.function_at_border, self.covered_components, known_extended_domains)
+                b_domain = extend_domain_of_move_by_adding_covered_intervals(b, self.function_at_border, self.covered_components, known_extended_domains)
                 # check if the strip lemma gives new dense intervals
-                d = check_for_strip_lemma(a, b)
+                d = check_for_strip_lemma_small_translations(a_domain, b_domain, a[1], b[1])
                 # d is not dominated by covered_components because we start with reduced moves.
                 if d:
                     self.any_change_components = True
@@ -3061,6 +3118,9 @@ class DirectedMoveCompositionCompletion:
 
 
 def directed_move_composition_completion(fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, max_num_rounds=None, error_if_max_num_rounds_exceeded=True):
+    """
+    Only used in def stuff_with_random_irrational_function().
+    """
     completion = DirectedMoveCompositionCompletion(fdms, covered_components=covered_components, \
                                                    proj_add_vert = proj_add_vert, \
                                                    show_plots=show_plots, \
@@ -3106,7 +3166,7 @@ def generate_directed_move_composition_completion(fn, show_plots=False, max_num_
                                                                         show_plots=show_plots,
                                                                         plot_background=plot_background,
                                                                         function_at_border=fn)
-        # To show colorful components at borders, need the function_at_border. Otherwise set it to default None
+        # To show colorful components at borders and in extend_domain_of_move_by_adding_covered_intervals, need the function_at_border. Otherwise set it to default None
         completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
     return completion.results()
 
