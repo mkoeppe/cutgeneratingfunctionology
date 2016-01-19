@@ -2119,6 +2119,7 @@ class FunctionalDirectedMove (FastPiecewise):
 
     def plot(self, *args, **kwds):
         kwds = copy(kwds)
+        # ignore discontinuity markers in the moves diagram
         kwds['discontinuity_markers'] = False
         return FastPiecewise.plot(self, *args, **kwds)
 
@@ -2862,7 +2863,7 @@ def check_for_strip_lemma_small_translations(domain1, domain2, t1, t2):
         return d
 
 def extend_domain_of_move_by_adding_covered_intervals(fdm, fn, covered_components, known_extended_domains):
-    #TODO
+    #TODO reflection moves
     if not (fdm.sign() == 1) or fn is None or fn.is_two_sided_discontinuous():
         return fdm.intervals()
     t = fdm[1]
@@ -2900,6 +2901,26 @@ def interval_including_endpoints_if_continuous(interval, t, fn):
     left_closed = is_continuous_at_point(fn, interval[0]) and is_continuous_at_point(fn, interval[0] + t)
     right_closed = is_continuous_at_point(fn, interval[1]) and is_continuous_at_point(fn, interval[1] + t)
     return closed_or_open_or_halfopen_interval(interval[0], interval[1], left_closed, right_closed)
+
+def extended_initial_move_by_continuity(fdm, fn):
+    if fn is None or fn.is_two_sided_discontinuous():
+        return fdm
+    extended_domain = []
+    # assume domain of fdm is a list of open intervals
+    interval = fdm.intervals()[0]
+    l_last = interval[0]
+    r_last = interval[1]
+    for interval in fdm.intervals()[1::]:
+        l = interval[0]
+        r = interval[1]
+        if (r_last == l) and is_continuous_at_point(fn, l) and is_continuous_at_point(fn, fdm.apply_ignoring_domain(l)):
+            r_last = r
+        else:
+            extended_domain.append(open_interval(l_last, r_last))
+            l_last = l
+            r_last = r
+    extended_domain.append(open_interval(l_last, r_last))
+    return FunctionalDirectedMove(extended_domain, fdm.directed_move)
 
 class DirectedMoveCompositionCompletion:
 
@@ -3081,16 +3102,23 @@ class DirectedMoveCompositionCompletion:
 
     def add_backward_moves(self):
         self.num_rounds = 0
-        move_keys = self.any_change_moves
+        move_keys = list(self.any_change_moves)
         self.any_change_moves = set()
         for dm in move_keys:
             if dm[0] == 1:
                 forward_fdm = self.move_dict[dm]
                 backward_fdm = FunctionalDirectedMove(forward_fdm.range_intervals(), (1, -dm[1]))
                 self.add_move(backward_fdm)
+        # extend initial moves by continuity
+        for dm in self.move_dict.keys():
+           fdm = self.move_dict[dm]
+           self.move_dict[dm] = extended_initial_move_by_continuity(fdm, self.function_at_border)
         if self.any_change_moves: # has new backward moves
+            # to see that unnecessary discontinuity marks have disappeared,
+            # need to set kwds['discontinuity_markers'] = True in FunctionalDirectedMove.plot()
+            # and call the following no matter self.any_change_moves is True or False
             self.maybe_show_plot()
-        self.any_change_moves.update(move_keys)
+        self.any_change_moves = set(self.move_dict.keys())
         self.sym_init_moves = copy(self.move_dict)
 
     def complete(self, max_num_rounds=None, error_if_max_num_rounds_exceeded=True):
