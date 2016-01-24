@@ -2539,13 +2539,17 @@ def plot_completion_diagram(fn, perturbation=None):
         g += plot_walk_in_completion_diagram(perturbation._seed, perturbation._walk_list)
     return g
 
-def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
+def lift(fn, show_plots = False, **kwds):
     # FIXME: Need better interface for perturbation selection.
     if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots=show_plots, **kwds):
         return fn
     else:
         perturbation = fn._perturbations[0]
         epsilon_interval = find_epsilon_interval(fn, perturbation)
+        if abs(epsilon_interval[0]) < abs(epsilon_interval[1]):
+            which_perturbation = 0
+        else:
+            which_perturbation = 1
         perturbed = fn._lifted = fn + epsilon_interval[which_perturbation] * perturbation
         ## Following is strictly experimental: It may change what "f" is.
         if 'phase_1' in kwds and kwds['phase_1']:
