@@ -260,3 +260,74 @@ def minimal_has_uncovered_breakpoints():
     h = piecewise_function_from_breakpoints_and_values(bkpts, values)
     return h
 
+def bhk_discontinuous_not_extreme_crazy_dense_move(f=4/5, d1=3/5, d2=7/110*sqrt(2), a0=15/100, field=None):
+    """
+    This function is two-sided discontinuous at the origin.
+    Extremality test predicts it's extreme, but in fact it is not extreme,
+    because crazy fat perturbation \tilde\pi can exist on the two
+    horizontal slopes where moves are dense by the Strip Lemma.
+
+    EXAMPLE:
+    sage: logging.disable(logging.INFO)
+    sage: h =  bhk_discontinuous_not_extreme_crazy_dense_move()
+    sage: extremality_test(h) # not tested
+    False
+    sage: plot_with_colored_slopes(h).show(figsize=20) #not tested
+    sage: plot_2d_diagram(h).show(figsize=40) #not tested
+    """
+    if not field:
+        [f, d1, d2, a0] = nice_field_values([f, d1, d2, a0])
+        rnf = f.parent().fraction_field()
+    else:
+        rnf = field
+    d3 = f - d1 - d2
+    c2 = rnf(0)
+    c3 = -rnf(1)/(1-f)
+    c1 = (1-d2*c2-d3*c3)/d1
+    d21 = d2 / 2
+    d31 = c1 / (c1 - c3) * d21
+    d11 = a0 - d31
+    d13 = a0 - d21
+    d12 = (d1 - d13)/2 - d11
+    d32 = d3/2 - d31
+    b = d31
+    delta0 = b * c1 / (c1 - c3)
+    delta1 = b - delta0
+    zigzag_lengths = []
+    zigzag_slopes = []
+    delta_positive = 0
+    delta_negative = 0
+    for delta_i in [delta0, delta1]:
+        delta_i_negative = c1 * delta_i / (c1 - c3)
+        delta_i_positive = delta_i - delta_i_negative
+        delta_positive += delta_i_positive
+        delta_negative += delta_i_negative
+        zigzag_lengths = zigzag_lengths + [delta_i_positive, delta_i_negative]
+        zigzag_slopes = zigzag_slopes + [c1, c3]
+        d12new = d12 - delta_positive - b
+        d32new = d32 - delta_negative
+    slopes_left = [c3,c1,c3] + zigzag_slopes+[c1,c3]+zigzag_slopes + [c1,c3,c2]
+    slopes = slopes_left + [c1] + slopes_left[::-1] + [c1,c3,c1]
+    intervals_left = [b,d11-b,d31-b] + zigzag_lengths + [b-delta_positive, b-delta_negative] + zigzag_lengths + [d12new,d32new,d21]
+    interval_lengths = intervals_left + [d13] + intervals_left[::-1] + [b,1-f-2*b,b]
+    h_pwl = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=rnf)
+    j = b*(c1-c3)
+    ymove = d11*c1+d31*c3
+    xmove = [a0, a0+delta0, a0+delta0+delta1]
+    disc_pts =  [rnf(0),b]+ xmove + [f-x for x in xmove[::-1]] + [f-b, f, f+b, rnf(1)-b, rnf(1)]
+    disc_j = [-j, j] + [ymove-h_pwl(x)-j for x in xmove] + [-(ymove-h_pwl(x)-j) for x in xmove[::-1]] + [-j, j, -j, j, -j]
+    discp = []
+    for i in range(len(disc_pts)-1):
+        discp.append(singleton_piece(disc_pts[i],j+disc_j[i]))
+        discp.append(open_piece((disc_pts[i],j), (disc_pts[i+1],j)))
+    discp.append(singleton_piece(disc_pts[-1], j+disc_j[-1]))
+    h_shift = FastPiecewise(discp)
+    h_raw = h_pwl+h_shift
+    # expect: finite dimensional test finds perturbation space has dimension 2.
+    logging.info("Try lifting the function until extreme.")
+    logging.disable(logging.INFO)
+    h_lift = lift_until_extreme(h_raw) # expect to lift twice
+    logging.disable(logging.NOTSET)
+    # return a new function
+    h = FastPiecewise(zip(h_lift.intervals(), h_lift.functions()))
+    return h
