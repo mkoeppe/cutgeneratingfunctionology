@@ -303,74 +303,44 @@ def bhk_discontinuous_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/199
     h_shift = FastPiecewise(discp)
     return h_pwl+h_shift
 
-def bhk_discontinuous_not_extreme_crazy_dense_move(f=4/5, d1=3/5, d2=7/110*sqrt(2), a0=15/100, field=None):
+
+def discontinuous_bhk_irrational_dense_move_not_affine():
     """
-    This function is two-sided discontinuous at the origin.
-    Extremality test predicts it's extreme, but in fact it is not extreme,
-    because crazy fat perturbation \tilde\pi can exist on the two
-    horizontal slopes where moves are dense by the Strip Lemma.
+    This example shows that when \pi is two sided discontinuous at the origin,
+    the perturbation function \tilde\pi may be not affine linear on the dense intervals from the Strip Lemma.
+
+    Lemma 9.7 implies \pi is affine linear on the intervals (3/10, 7/20) and (9/20, 1/2) where the moves are dense. We also know that \tilde\pi is affine linear over each coset of <t_a, t_b>_Z on these two intervals, where t_a, t_b are irrational translation moves satifying the hypotheses of the Strip Lemma.
+    But as \pi is two-sided discontinuous at 0, Corollary 8.3 (or even Lemma 8.2) doesn't apply, thus \tilde\pi could be discontinuous on the dense intervals.
+    On the 2d diagram, each face is either additive or strictly subadditive (every vertice of the face $F$ is strictly subaddtive). Then the case \delta\pi_F(x,y) > 0 and S != empty never happens in the proof of Lemma 8.7. Hence any bounded \bar\bi is an effective perturbation.
+
+    There exists crazy fat perturbation \tilde\pi in this example:
+    \tilde\pi(x)
+        = epsion if x \in (3/10, 7/20) such that x - 3/10 \in <t_a, t_b>_Z;
+        = -epsion if x \in (3/10, 7/20) such that x - 7/20 \in <t_a, t_b>_Z;
+        = epsion if x \in (9/20, 1/2) such that x - 9/20 \in <t_a, t_b>_Z;
+        = -epsion if x \in (9/20, 1/2) such that x - 9/20 \in <t_a, t_b>_Z;
+        = 0 otherwise,
+    where epsion is a very small positive number. 
+    (requires that d2/2 is not in <t_a, t_b>_Z;)
 
     EXAMPLE:
     sage: logging.disable(logging.INFO)
-    sage: h =  bhk_discontinuous_not_extreme_crazy_dense_move()
-    sage: extremality_test(h) # not tested
-    False
-    sage: plot_with_colored_slopes(h).show(figsize=20) #not tested
-    sage: plot_2d_diagram(h).show(figsize=40) #not tested
+    sage: dbhk =  discontinuous_bhk_irrational_dense_move_not_affine()
+    sage: plot_with_colored_slopes(dbhk).show(figsize=20) #not tested
+    sage: plot_2d_diagram(dbhk).show(figsize=20) #not tested
     """
-    if not field:
-        [f, d1, d2, a0] = nice_field_values([f, d1, d2, a0])
-        rnf = f.parent().fraction_field()
-    else:
-        rnf = field
-    d3 = f - d1 - d2
-    c2 = rnf(0)
-    c3 = -rnf(1)/(1-f)
-    c1 = (1-d2*c2-d3*c3)/d1
-    d21 = d2 / 2
-    d31 = c1 / (c1 - c3) * d21
-    d11 = a0 - d31
-    d13 = a0 - d21
-    d12 = (d1 - d13)/2 - d11
-    d32 = d3/2 - d31
-    b = d31
-    delta0 = b * c1 / (c1 - c3)
-    delta1 = b - delta0
-    zigzag_lengths = []
-    zigzag_slopes = []
-    delta_positive = 0
-    delta_negative = 0
-    for delta_i in [delta0, delta1]:
-        delta_i_negative = c1 * delta_i / (c1 - c3)
-        delta_i_positive = delta_i - delta_i_negative
-        delta_positive += delta_i_positive
-        delta_negative += delta_i_negative
-        zigzag_lengths = zigzag_lengths + [delta_i_positive, delta_i_negative]
-        zigzag_slopes = zigzag_slopes + [c1, c3]
-        d12new = d12 - delta_positive - b
-        d32new = d32 - delta_negative
-    slopes_left = [c3,c1,c3] + zigzag_slopes+[c1,c3]+zigzag_slopes + [c1,c3,c2]
-    slopes = slopes_left + [c1] + slopes_left[::-1] + [c1,c3,c1]
-    intervals_left = [b,d11-b,d31-b] + zigzag_lengths + [b-delta_positive, b-delta_negative] + zigzag_lengths + [d12new,d32new,d21]
-    interval_lengths = intervals_left + [d13] + intervals_left[::-1] + [b,1-f-2*b,b]
-    h_pwl = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=rnf)
-    j = b*(c1-c3)
-    ymove = d11*c1+d31*c3
-    xmove = [a0, a0+delta0, a0+delta0+delta1]
-    disc_pts =  [rnf(0),b]+ xmove + [f-x for x in xmove[::-1]] + [f-b, f, f+b, rnf(1)-b, rnf(1)]
-    disc_j = [-j, j] + [ymove-h_pwl(x)-j for x in xmove] + [-(ymove-h_pwl(x)-j) for x in xmove[::-1]] + [-j, j, -j, j, -j]
+    bhk = bhk_irrational(delta=(1/199, sqrt(2)/199))
+    b=bhk.end_points()
+    v=bhk.values_at_end_points()
+    vm = v[0:8]+ [v[8]+1/800, v[9]+1/800, v[10]-1/800, v[11]-1/800] + v[12::]
+    vl = [v[0]+1/500, v[1], v[2]+1/500, v[3]-1/500, v[4]+1/500, v[5]-1/500, v[6]+1/500, v[7], v[8], v[9]+1/800, v[10], v[11]-1/800, v[12], \
+          v[13]-1/500,v[14]+1/500,v[15]-1/500,v[16]+1/500,v[17]-1/500,v[18],v[19]-1/500]
+    vr = [v[1], v[2]+1/500, v[3]-1/500, v[4]+1/500, v[5]-1/500, v[6]+1/500, v[7], v[8]+1/800, v[9], v[10]-1/800, v[11], v[12], \
+          v[13]-1/500,v[14]+1/500,v[15]-1/500,v[16]+1/500,v[17]-1/500,v[18],v[19]-1/500,v[20]+1/500]
     discp = []
-    for i in range(len(disc_pts)-1):
-        discp.append(singleton_piece(disc_pts[i],j+disc_j[i]))
-        discp.append(open_piece((disc_pts[i],j), (disc_pts[i+1],j)))
-    discp.append(singleton_piece(disc_pts[-1], j+disc_j[-1]))
-    h_shift = FastPiecewise(discp)
-    h_raw = h_pwl+h_shift
-    # expect: finite dimensional test finds perturbation space has dimension 2.
-    logging.info("Try lifting the function until extreme.")
-    logging.disable(logging.INFO)
-    h_lift = lift_until_extreme(h_raw) # expect to lift twice
-    logging.disable(logging.NOTSET)
-    # return a new function
-    h = FastPiecewise(zip(h_lift.intervals(), h_lift.functions()))
-    return h
+    for i in range(20):
+        discp.append(singleton_piece(b[i],vm[i]))
+        discp.append(open_piece((b[i],vl[i]), (b[i+1],vr[i])))
+    discp.append(singleton_piece(b[20],vm[20]))
+    dbhk = FastPiecewise(discp)
+    return dbhk
