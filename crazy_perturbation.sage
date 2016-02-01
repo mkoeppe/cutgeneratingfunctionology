@@ -5,6 +5,7 @@ if '' not in sys.path:
 
 from igp import *
 
+# Reminder: need coerce all input to common RNF.
 
 class CrazyPiece:
     def __init__(self, interval, generators=None, cosets=[]):
@@ -12,10 +13,23 @@ class CrazyPiece:
         self.interval = interval
         # assume that generators QQ linearly independent
         self.generators = generators
+        if not is_QQ_linearly_independent(*generators):
+            logging.warn("Generators are not linearly independent over Q.")
+        if len(generators) < 2:
+            logging.warn("The group is not dense.")
+        self.hermite_form_generators = find_hermite_form_generators(generators)
         # cosets is a list of (coset_repr, shift),
-        # assume coset_repr are distinct;
-        # shifts are distinct and non-zero
+        # assume coset_repr represent distinct cosets;
+        # assume shifts are non-zero
         self.cosets = cosets
+        for i in range(len(cosets)):
+            (r, s) = cosets[i]
+            if s == 0:
+                logging.warn("Have shift = 0.")
+            for j in range(i):
+                rr = cosets[j][0]
+                if is_in_group_over_ZZ(r-rr, generators):
+                    logging.warn("Not unique coset representative.")
 
     def __call__(self, x):
         ###assert self.interval[0] < x < self.interval[1]
@@ -28,6 +42,7 @@ class CrazyPerturbation:
     # assume that all inputs are elements from a same RNF.
     def __init__(self, pwl, crazy_pieces):
         self.pwl = pwl
+        # assume that crazy pieces' intervals are disjoint.
         self.crazy_pieces = crazy_pieces
 
     def find_crazy_piece(self, x, xeps=0):
@@ -96,6 +111,10 @@ def is_in_group_over_ZZ(x, generators):
         return all((si in ZZ) for si in s[0])
     except ValueError:
         return False
+
+def find_hermite_form_generators(generators):
+    lgens = [g.list() for g in generators]
+    return (matrix(QQ,lgens).hermite_form())
 
 def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
     """
@@ -167,6 +186,11 @@ def check_move_on_crazy_pieces((move_sign, move_dist), cp1, cp2):
     if (cp1 is None) and (cp2 is not None) or (cp1 is not None) and (cp2 is None):
         return False
     elif (cp1 is not None) and (cp2 is not None):
+        #compare if the groups on cp1 and cp2 are the same
+        # TODO: set up these subgroups in a high-level way in Sage, and compare.
+        if not cp1.hermite_form_generators == cp2.hermite_form_generators:
+            logging.warn("Different groups. Open question.")
+            return False
         if move_sign == 1:
             return (all((s == cp2(r + move_dist)) for (r, s) in cp1.cosets) \
                     and all((s == cp1(r - move_dist)) for (r, s) in cp2.cosets))
