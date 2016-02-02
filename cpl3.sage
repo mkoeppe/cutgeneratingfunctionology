@@ -72,6 +72,7 @@ class Cpl3Complex(SageObject):
         self.num_plotted_components = 0
         self.points_to_test = set()
         self.theta = theta
+        self.max_iter = 0 # linear case, no need for mccormiks
 
     def generate_random_var_value(self, var_bounds=None):
         var_value = []
@@ -101,7 +102,7 @@ class Cpl3Complex(SageObject):
             # Check if the random_point is contained in the box.
             if c.region_type == 'not_constructible' and c.leq == [] and c.lin == []:
                 continue
-            if is_point_in_box(var_value, c.bounds):
+            if is_point_in_box(monomial_value, c.bounds):
                 # Check if all eqns/ineqs are satisfied.
                 if c.polyhedron.relation_with(pt).implies(point_is_included):
                     return True
@@ -125,8 +126,8 @@ class Cpl3Complex(SageObject):
     def add_new_component(self, var_value, flip_ineq_step=0):
         unlifted_space_dim =  len(self.monomial_list)
         K = SymbolicRealNumberField(var_value, self.var_name)
-        K.monomial_list = self.monomial_list
-        K.v_dict = self.v_dict
+        K.monomial_list = self.monomial_list # change simultaneously while lifting
+        K.v_dict = self.v_dict # change simultaneously while lifting
         K.polyhedron.add_space_dimensions_and_embed(len(K.monomial_list))
         if self.theta is None:
             try:
@@ -149,13 +150,12 @@ class Cpl3Complex(SageObject):
                     region_type = 'not_extreme'
             except:
                 region_type = 'not_constructible'
-        leq, lin = read_simplified_leq_lin(K)
+        new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         #if see new monomial, lift polyhedrons of the previously computed components.
         dim_to_add = len(self.monomial_list) - unlifted_space_dim
         if dim_to_add > 0:
             for c in self.components:
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
-        new_component = SemialgebraicComplexComponent(K, leq, lin, var_value, region_type)
         self.components.append(new_component)
         if flip_ineq_step > 0:
             (self.points_to_test).update(new_component.generate_neighbour_points(flip_ineq_step))
@@ -163,10 +163,10 @@ class Cpl3Complex(SageObject):
     def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
         for i in range(num):
             var_value = self.find_uncovered_random_point(var_bounds=var_bounds, max_failings=max_failings)
-            if not var_value is False:
-                self.add_new_component(var_value, flip_ineq_step=0)
-            else:
+            if var_value is False:
                 return
+            else:
+                self.add_new_component(var_value, flip_ineq_step=0)
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=False):
         if restart:
