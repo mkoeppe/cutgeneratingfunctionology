@@ -56,7 +56,7 @@ def cpl3_lifting_function(r0=1/6, z1=1/12, o1=1/5, o2=0):
 
 class Cpl3Complex(SageObject):
 
-    def __init__(self, var_name, theta=None):
+    def __init__(self, var_name, theta=None, max_iter=8):
         #self.num_components = 0
         self.components = []
         self.d = len(var_name)
@@ -72,7 +72,10 @@ class Cpl3Complex(SageObject):
         self.num_plotted_components = 0
         self.points_to_test = set()
         self.theta = theta
-        self.max_iter = 0 # linear case, no need for mccormiks
+        # cpl region graphic looks like linear case,
+        # but higher degree terms appear in monomials during the computation
+        # so let's try mccormiks
+        self.max_iter = max_iter
 
     def generate_random_var_value(self, var_bounds=None):
         var_value = []
@@ -151,6 +154,10 @@ class Cpl3Complex(SageObject):
             except:
                 region_type = 'not_constructible'
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
+        # Temporary code to check if everything is linear:
+        for l in (new_component.lin+new_component.leq):
+            if l.degree() > 1:
+                raise NotImplementedError, "Non-linear term appeared."
         #if see new monomial, lift polyhedrons of the previously computed components.
         dim_to_add = len(self.monomial_list) - unlifted_space_dim
         if dim_to_add > 0:
