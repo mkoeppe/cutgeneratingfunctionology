@@ -504,7 +504,7 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
     return read_leq_lin_from_polyhedron(p, monomial_list, v_dict)
 
 
-def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None):
+def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None, check_variable_elimination=False):
     """
     sage: P.<f>=QQ[]
     sage: eq_poly =[]; lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
@@ -528,6 +528,9 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None):
         t = sum([-(x/gcd_c)*y for x, y in itertools.izip(coeff, monomial_list)]) - c.inhomogeneous_term()/gcd_c
         if c.is_equality():
             mineq.append(t)
+            if check_varialbe_elimination and (not variable_elimination_is_done_for_mincs(mincs)):
+                raise NotImplementedError, "Alas, PPL didn't do its job for eliminating variables in the minimized constraint system %s." % self.polyhedron.minimized_constraints()
+            check_variable_elimination = False
         else:
             minlt.append(t)
     # note that polynomials in mineq and minlt can have leading coefficient != 1
@@ -561,6 +564,23 @@ def read_simplified_leq_lin(K, level="factor"):
         logging.warn("equation list %s is not empty!" % leq)
     return leq, lin
 
+def variable_elimination_is_done_for_mincs(mincs):
+    # check the assumption about minimized_constraints:
+    # Let c_eq be an equation constraint in mincs.
+    # At least one of the variables in c_eq does not appear in any other constraints of mincs.
+    m = len(mincs)
+    n = mincs.space_dimension()
+    coef = [c.coefficients() for c in mincs]
+    for i in range(m):
+        if mincs[i].is_equality():
+            has_eliminated_varialbe = False
+            for k in range(n):
+                if (coef[i][k] != 0) and all(coef[j][k] == 0 for j in range(m) if j != i):
+                    has_eliminated_variable = True
+                    break
+            if not has_eliminated_varialbe:
+                return False
+    return True
 
 ######################################
 # Extreme functions with the magic K
@@ -948,8 +968,9 @@ class SemialgebraicComplexComponent(SageObject):
         self.bounds, tightened_mip = self.bounds_propagation(self.parent.max_iter)
         if self.parent.max_iter == 0:
             tightened_mip = None
+
         self.leq, self.lin = read_leq_lin_from_polyhedron(self.polyhedron, \
-                                                          self.parent.monomial_list, self.parent.v_dict, tightened_mip)
+                                                          self.parent.monomial_list, self.parent.v_dict, tightened_mip, check_variable_elimination=True)
 
     def bounds_propagation(self, max_iter):
         tightened_mip = construct_mip_of_nnc_polyhedron(self.polyhedron)
@@ -1461,4 +1482,4 @@ def update_mccormicks_for_monomial(m, tightened_mip, original_polyhedron, monomi
 ##############################
 # linearly independent in Q
 ##############################
-### Moved from parametric.sage to linearly_independence.sage ###
+### Moved from parametric.sage to parametric_linear_independence.sage ###
