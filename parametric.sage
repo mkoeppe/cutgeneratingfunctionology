@@ -504,7 +504,7 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
     return read_leq_lin_from_polyhedron(p, monomial_list, v_dict)
 
 
-def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None, check_variable_elimination=False):
+def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None): #, check_variable_elimination=False):
     """
     sage: P.<f>=QQ[]
     sage: eq_poly =[]; lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
@@ -528,9 +528,9 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None, c
         t = sum([-(x/gcd_c)*y for x, y in itertools.izip(coeff, monomial_list)]) - c.inhomogeneous_term()/gcd_c
         if c.is_equality():
             mineq.append(t)
-            if check_varialbe_elimination and (not variable_elimination_is_done_for_mincs(mincs)):
-                raise NotImplementedError, "Alas, PPL didn't do its job for eliminating variables in the minimized constraint system %s." % self.polyhedron.minimized_constraints()
-            check_variable_elimination = False
+            #if check_variable_elimination and (not variable_elimination_is_done_for_mincs(mincs)):
+            #    raise NotImplementedError, "Alas, PPL didn't do its job for eliminating variables in the minimized constraint system %s." % self.polyhedron.minimized_constraints()
+            #check_variable_elimination = False
         else:
             minlt.append(t)
     # note that polynomials in mineq and minlt can have leading coefficient != 1
@@ -568,19 +568,56 @@ def variable_elimination_is_done_for_mincs(mincs):
     # check the assumption about minimized_constraints:
     # Let c_eq be an equation constraint in mincs.
     # At least one of the variables in c_eq does not appear in any other constraints of mincs.
+    # This function is not used, as check_variable_elimination=False in read_leq_lin_from_polyhedron(). But we do the check in find_pivot_variables().
     m = len(mincs)
     n = mincs.space_dimension()
     coef = [c.coefficients() for c in mincs]
     for i in range(m):
         if mincs[i].is_equality():
-            has_eliminated_varialbe = False
+            has_eliminated_variable = False
             for k in range(n):
                 if (coef[i][k] != 0) and all(coef[j][k] == 0 for j in range(m) if j != i):
                     has_eliminated_variable = True
                     break
-            if not has_eliminated_varialbe:
+            if not has_eliminated_variable:
                 return False
     return True
+
+def find_pivot_variables(leqs, lins):
+    # FIXME: Polynomial_rational_flint doesn't have .monomials() .monomial_coefficient
+    # assume equations and inequalites are linear.
+    # compute the pivot variable of each leqs.
+    variables = lins[0].args()
+    pivots = []
+    if not leqs:
+        return pivots
+    monomials_not_in_lins = set(variables)
+    for ineq in lins:
+        monomials_not_in_lins -= set(ineq.monomials())
+    n = len(leqs)
+    for i in range(n):
+        found_pivot = False
+        for v in monomials_not_in_lins:
+            if (leqs[i].monomial_coefficient(v) != 0) and \
+               all(leqs[j].monomial_coefficient(v) == 0 for j in range(n) if j != i):
+                pivots.append(v)
+                found_pivot = True
+                break
+        if not found_pivot:
+            raise NotImplementedError, "Alas, PPL didn't do its job for eliminating variables in the system %s == 0, %s < 0." % (leqs, lins)
+    return pivots
+
+def solve_for_pivot_variables(pt, leqs, pivot_variables):
+    if not leqs:
+        return pt #type is vector
+    new_pt = list(pt)
+    variables = leqs[0].args()
+    for (pv, eqn) in izip(pivot_variables, leqs):
+        i = variables.index(pv)
+        coef = eqn.monomial_coefficient(pv)
+        vi = (coef*pv - eqn)(*new_pt) / coef
+        new_pt[i] = vi
+    return vector(new_pt)
 
 ######################################
 # Extreme functions with the magic K
@@ -970,7 +1007,11 @@ class SemialgebraicComplexComponent(SageObject):
             tightened_mip = None
 
         self.leq, self.lin = read_leq_lin_from_polyhedron(self.polyhedron, \
-                                                          self.parent.monomial_list, self.parent.v_dict, tightened_mip, check_variable_elimination=True)
+                                                          self.parent.monomial_list, self.parent.v_dict, tightened_mip) #, check_variable_elimination=False)
+        # self.pivot indicates the pivot variable for each equation of self.leq,
+        # Compute it in self.generate_points_on_and_across_linear_wall()
+        # where all walls are assumed to be linear (flip_ineq_step < 0).
+        self.pivot = None 
 
     def bounds_propagation(self, max_iter):
         tightened_mip = construct_mip_of_nnc_polyhedron(self.polyhedron)
@@ -1130,13 +1171,64 @@ class SemialgebraicComplexComponent(SageObject):
         new_point = tuple(QQ(x) for x in current_point)
         return new_point #type is tuple
 
+    def generate_points_on_and_across_linear_wall(self, ineq, flip_ineq_step=-1/100):
+        variables = ineq.args()
+        ineq_direction = vector(ineq.monomial_coefficient(v) for v in variables)
+        # FIXME: Polynomial_rational_flint doesn't have .monomials() .monomial_coefficient
+        ## ineq_gradient = gradient(ineq)
+        ## # list of type MPolynomial_libsingular, but is constant by assumption.
+        ## assert all((g in QQ) for g in ineq_gradient)
+        ## ineq_direction = vector([QQ(g) for g in ineq_gradient])
+        current_point = vector(self.var_value) # QQ, exact computation
+        step_length =  - ineq(*current_point) / (ineq_direction * ineq_direction)
+        current_point += step_length * ineq_direction
+
+        # adjustment so that no other wall is acrossed.
+        for l in self.lin:
+            if l == ineq or l(*current_point) < 0:
+                continue
+            l_direction = vector(-l.monomial_coefficient(v) for v in variables)
+            s = (ineq_direction * l_direction) / (ineq_direction * ineq_direction)
+            projected_direction = l_direction - s * ineq_direction
+            step_length = (l(*current_point)-flip_ineq_step) / (projected_direction * l_direction)
+            current_point += step_length * projected_direction
+        pt_on_wall = current_point
+
+        step_length = min(-flip_ineq_step / (ineq_direction * ineq_direction), 1)
+        current_point += step_length * ineq_direction
+        for l in self.lin:
+            if l == ineq or l(*current_point) < 0:
+                continue
+            l_direction = vector(-l.monomial_coefficient(v) for v in variables)
+            s = (ineq_direction * l_direction) / (ineq_direction * ineq_direction)
+            projected_direction = l_direction - s * ineq_direction
+            step_length = (l(*current_point)-flip_ineq_step) / (projected_direction * l_direction)
+            current_point += step_length * projected_direction
+        pt_across_wall = current_point
+
+        # find pivot for equations
+        if self.pivot is None:
+            self.pivot = find_pivot_variables(self.leq, self.lin)
+
+        new_pt_on_wall = tuple(solve_for_pivot_variables(pt_on_wall, self.leq, self.pivot))
+        new_pt_across_wall = tuple(solve_for_pivot_variables(pt_across_wall, self.leq, self.pivot))
+
+        return (new_pt_on_wall, new_pt_across_wall) #type is tuple
+
     def generate_neighbour_points(self, flip_ineq_step=0.01):
-        #return [self.generate_one_point_by_flipping_inequality(ineq) for ineq in self.lin]
+        # See remark about flip_ineq_step in def add_new_component().
         neighbour_points = []
         for ineq in self.lin:
-            new_point = self.generate_one_point_by_flipping_inequality(ineq, flip_ineq_step=flip_ineq_step)
-            if not new_point is None:
-                neighbour_points.append(new_point)
+            if flip_ineq_step > 0:
+                new_point = self.generate_one_point_by_flipping_inequality(ineq, flip_ineq_step=flip_ineq_step)
+                if not new_point is None:
+                    neighbour_points.append(new_point)
+            elif flip_ineq_step < 0:
+                # assumption: walls are linear
+                (pt_on_wall, pt_across_wall) = self.generate_points_on_and_across_linear_wall(ineq, flip_ineq_step=flip_ineq_step)
+                # question: always possilbe to across only one (linear) wall?
+                neighbour_points.append(pt_on_wall)
+                neighbour_points.append(pt_across_wall)
         return neighbour_points
 
 class SemialgebraicComplex(SageObject):
@@ -1273,6 +1365,11 @@ class SemialgebraicComplex(SageObject):
         return False
 
     def add_new_component(self, var_value, flip_ineq_step=0):
+        # Remark: the sign of flip_ineq_step indicates how to search for neighbour testpoints:
+        # if flip_ineq_step = 0, don't search for neighbour testpoints. Used in shoot_random_points().
+        # if flip_ineq_step < 0, we assume that the walls of the cell are linear eqn/ineq over original parameters.(So, gradient is constant; easy to find a new testpoint on the wall and another testpoint (-flip_ineq_step away) across the wall.) Used in bfs.
+        # if flip_ineq_step > 0, we don't assume the walls are linear. Apply generate_one_point_by_flipping_inequality() with flip_ineq_step to find new testpoints across the wall only. Used in bfs.
+
         unlifted_space_dim =  len(self.monomial_list)
         K, test_point = construct_field_and_test_point(self.function, self.var_name, var_value, self.default_args)
         K.monomial_list = self.monomial_list # change simultaneously while lifting
@@ -1292,7 +1389,7 @@ class SemialgebraicComplex(SageObject):
             for c in self.components:
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
         self.components.append(new_component)
-        if flip_ineq_step > 0:
+        if (region_type != 'not_constructible') and (flip_ineq_step != 0):
             (self.points_to_test).update(new_component.generate_neighbour_points(flip_ineq_step))
 
     def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
@@ -1313,6 +1410,7 @@ class SemialgebraicComplex(SageObject):
         return self.graph
 
     def bfs_completion(self, var_value=None, var_bounds=None, max_failings=1000, flip_ineq_step=0.01):
+        # See remark about flip_ineq_step in def add_new_component().
         # if var_value is provided, starting with this point. Otherwise, randomized the starting point.
         if not var_value:
             #var_value = self.generate_random_var_value(var_bounds=var_bounds)
@@ -1320,10 +1418,8 @@ class SemialgebraicComplex(SageObject):
         (self.points_to_test).add(tuple(var_value))
         while self.points_to_test:
             var_value = list(self.points_to_test.pop())
-            #print var_value
             if not self.is_point_covered(var_value) and point_satisfies_var_bounds(var_value, var_bounds):
                 self.add_new_component(var_value, flip_ineq_step=flip_ineq_step)
-                #self.plot(restart=True, plot_points=50).show()
 
 def gradient(ineq):
     # need this function since when K has only one variable,
@@ -1352,7 +1448,7 @@ def point_satisfies_var_bounds(var_value, var_bounds):
     return True
 
 def is_value_in_interval(v, (lb, ub)):
-    return ((lb is None) or (lb < v)) and ((ub is None) or (v < ub))
+    return ((lb is None) or (lb <= v)) and ((ub is None) or (v <= ub))
 
 def is_point_in_box(monomial_value, bounds):
     # note: monomial_value can have length bigger than len(bounds),
@@ -1371,9 +1467,13 @@ def bounds_for_plotting((lb, ub)):
     return (l, u)
 
 def construct_mip_of_nnc_polyhedron(nncp):
-    strict_cs = nncp.minimized_constraints()
-    cs = Constraint_System([ Linear_Expression(c.coefficients(), c.inhomogeneous_term()) >= 0 \
-                             for c in strict_cs ])
+    min_cs = nncp.minimized_constraints()
+    cs = Constraint_System()
+    for c in min_cs:
+        if c.is_equality():
+            cs.insert(Linear_Expression(c.coefficients(), c.inhomogeneous_term()) == 0)
+        else:
+            cs.insert(Linear_Expression(c.coefficients(), c.inhomogeneous_term()) >= 0)
     mip = MIP_Problem(nncp.space_dimension())
     mip.add_constraints(cs)
     mip.set_optimization_mode('minimization')

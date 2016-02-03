@@ -127,6 +127,11 @@ class Cpl3Complex(SageObject):
         return False
 
     def add_new_component(self, var_value, flip_ineq_step=0):
+        # Remark: the sign of flip_ineq_step indicates how to search for neighbour testpoints:
+        # if flip_ineq_step = 0, don't search for neighbour testpoints. Used in shoot_random_points().
+        # if flip_ineq_step < 0, we assume that the walls of the cell are linear eqn/ineq over original parameters. (So, gradient is constant; easy to find a new testpoint on the wall and another testpoint (-flip_ineq_step away) across the wall.) Used in bfs.
+        # if flip_ineq_step > 0, we don't assume the walls are linear. Apply generate_one_point_by_flipping_inequality() with flip_ineq_step to find new testpoints across the wall only. Used in bfs.
+
         unlifted_space_dim =  len(self.monomial_list)
         K = SymbolicRealNumberField(var_value, self.var_name)
         K.monomial_list = self.monomial_list # change simultaneously while lifting
@@ -155,17 +160,25 @@ class Cpl3Complex(SageObject):
                 region_type = 'not_constructible'
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         # Temporary code to check if everything is linear:
-        for l in (new_component.lin+new_component.leq):
-            if l.degree() > 1:
-                raise NotImplementedError, "Non-linear term appeared."
+        if flip_ineq_step < 0:
+            for l in (new_component.lin+new_component.leq):
+                if l.degree() > 1:
+                    raise NotImplementedError, "Alas, non-linear term appeared."
         #if see new monomial, lift polyhedrons of the previously computed components.
         dim_to_add = len(self.monomial_list) - unlifted_space_dim
         if dim_to_add > 0:
             for c in self.components:
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
         self.components.append(new_component)
-        if flip_ineq_step > 0:
-            (self.points_to_test).update(new_component.generate_neighbour_points(flip_ineq_step))
+        if (region_type != 'not_constructible') and (flip_ineq_step != 0):
+            #(self.points_to_test).update(new_component.generate_neighbour_points(flip_ineq_step))
+            neighbour_points = new_component.generate_neighbour_points(flip_ineq_step)
+            (self.points_to_test).update(neighbour_points)
+            ## debug
+            #(self.plot()+point(neighbour_points)).show(xmin=0, xmax=1, ymin=0, ymax=1/4)
+            #print new_component.var_value, new_component.region_type
+            #print new_component.lin, new_component.leq
+            
 
     def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
         for i in range(num):
@@ -184,7 +197,8 @@ class Cpl3Complex(SageObject):
         self.num_plotted_components = len(self.components)
         return self.graph
 
-    def bfs_completion(self, var_value=None, var_bounds=None, max_failings=1000, flip_ineq_step=0.01):
+    def bfs_completion(self, var_value=None, var_bounds=None, max_failings=1000, flip_ineq_step=-1/100):
+        # See remark about flip_ineq_step in def add_new_component().
         if var_value:
             (self.points_to_test).add(tuple(var_value))
         while self.points_to_test:
@@ -206,10 +220,11 @@ def regions_r0_z1_from_arrangement_of_bkpts(show_plots=False):
     regions=[]
     for c in complex.components:
         x, y = c.var_value
-        if x >= 0 and x <=1 and y>=0 and y<=1/4-x/4:
+        if x > 0 and x < 1 and y > 0 and y<=1/4-x/4:
             regions.append(c)
     if show_plots:
         complex.plot().show(xmin=0, xmax=1, ymin=0, ymax=1/4)
+    regions.sort(key=lambda r: len(r.leq))
     return regions
 
 def treat_constraint_of_PTheta3(rnf_c):
@@ -441,7 +456,7 @@ def generate_regions_and_theta_ext():
     """
     sage: regions, theta_ext = generate_regions_and_theta_ext() # not tested
     sage: len(regions) # not tested
-    30
+    30  -> 96
     sage: len(theta_ext) # not tested
     18
     """
@@ -470,7 +485,7 @@ def generate_regions_and_theta_ext():
                 if not feasibility:
                     continue
                 d = (theta1.sym()(r0, z1, 0, 0), theta2.sym()(r0, z1, 0, 0))
-                to_add = True
+                to_add = (not r.leq) ### too many theta_ext for lower dim case.
                 for t in theta_ext:
                     if t == d:
                         to_add = False
@@ -526,9 +541,9 @@ def complex_of_cpl_extreme_case_k(regions, t):
         else:
             r.region_type = "lightgrey"  #is not feasible vertex theta
             complex.components.append(r)
-    #complex.bfs_completion()  # this is much slower than randomly shooting points
-    var_bounds = [(0,1), (0, (lambda x: 1/4-x/4))]
-    complex.shoot_random_points(1000, var_bounds=var_bounds, max_failings=10000)
+    complex.bfs_completion()
+    #var_bounds = [(0,1), (0, (lambda x: 1/4-x/4))]
+    #complex.shoot_random_points(1000, var_bounds=var_bounds, max_failings=10000)
     return complex
 
 def plot_cpl_extreme_case_k_diagram(complex, t, k):
