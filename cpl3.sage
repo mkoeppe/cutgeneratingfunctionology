@@ -159,11 +159,28 @@ class Cpl3Complex(SageObject):
             except:
                 region_type = 'not_constructible'
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
-        # Temporary code to check if everything is linear:
+        # FIXME: CLP3 complex has non-linear inequalities, even though they don't appear on diagrams.
+        # Temporary code to check if everything is linear. Ignore non-linear stuffs for now.
+        # For speed, should ignore them in SemialgebraicComplexComponent.__init__
+        # For rigour, should improve bounds propagation etc to achieve this.
         if flip_ineq_step < 0:
-            for l in (new_component.lin+new_component.leq):
+            lin = []
+            leq = []
+            for l in new_component.lin:
                 if l.degree() > 1:
-                    raise NotImplementedError, "Alas, non-linear term appeared."
+                    logging.warn("non-linear term appears in %s < 0" % l)
+                else:
+                    lin.append(l)
+            for l in new_component.leq:
+                if l.degree() > 1:
+                    logging.warn("non-linear term appears in %s == 0" % l)
+                else:
+                    leq.append(l)
+            new_component.lin = lin
+            new_component.leq = leq
+            # for l in (new_component.lin+new_component.leq):
+            #     if l.degree() > 1:
+            #         raise NotImplementedError, "Alas, non-linear term appeared."
         #if see new monomial, lift polyhedrons of the previously computed components.
         dim_to_add = len(self.monomial_list) - unlifted_space_dim
         if dim_to_add > 0:
@@ -197,7 +214,7 @@ class Cpl3Complex(SageObject):
         self.num_plotted_components = len(self.components)
         return self.graph
 
-    def bfs_completion(self, var_value=None, var_bounds=None, max_failings=1000, flip_ineq_step=-1/100):
+    def bfs_completion(self, var_value=None, var_bounds=None, max_failings=1000, flip_ineq_step=-1/1000):
         # See remark about flip_ineq_step in def add_new_component().
         if var_value:
             (self.points_to_test).add(tuple(var_value))
