@@ -3212,7 +3212,7 @@ def is_QQ_linearly_independent(*numbers):
         return numbers[0] != 0
     if isinstance(numbers[0], SymbolicRNFElement):
         is_independent = is_QQ_linearly_independent(*(x.val() for x in numbers))
-        numbers[0].parent().record_independence_of_pair(numbers, is_independent)
+        #numbers[0].parent().record_independence_of_pair(numbers, is_independent)
         return is_independent
     # fast path for rationals
     if is_all_QQ_fastpath(numbers):
