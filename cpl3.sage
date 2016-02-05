@@ -146,13 +146,11 @@ class Cpl3Complex(SageObject):
                 # Function is non-contructible at this random point.
                 region_type = 'not_constructible'
         else:
-            o1 = self.theta[0](*K.gens())
+            o1 = self.theta[0](*K.gens()) # if ZeroDivisionError, then had det=0 when solve for (o1, o2)
             o2 = self.theta[1](*K.gens())
             try:
                 h = cpl3_group_function(K.gens()[0], K.gens()[1], o1, o2)
-                # t = minimality_test(h) # no need, since cpl3 satisfies minimality
-                t = extremality_test(h)
-                if t:
+                if minimality_test(h) and simplified_extremality_test(h):
                     region_type = 'is_extreme'
                 else:
                     region_type = 'not_extreme'
@@ -187,14 +185,8 @@ class Cpl3Complex(SageObject):
             for c in self.components:
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
         self.components.append(new_component)
-        if (region_type != 'not_constructible') and (flip_ineq_step != 0):
-            #(self.points_to_test).update(new_component.generate_neighbour_points(flip_ineq_step))
-            neighbour_points = new_component.generate_neighbour_points(flip_ineq_step)
-            (self.points_to_test).update(neighbour_points)
-            ## debug
-            #(self.plot()+point(neighbour_points)).show(xmin=0, xmax=1, ymin=0, ymax=1/4)
-            #print new_component.var_value, new_component.region_type
-            #print new_component.lin, new_component.leq
+        if (flip_ineq_step != 0) and (region_type != 'not_constructible') and (region_type != 'lightgrey'):
+            (self.points_to_test).update(new_component.generate_neighbour_points(flip_ineq_step))
             
 
     def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
@@ -214,7 +206,7 @@ class Cpl3Complex(SageObject):
         self.num_plotted_components = len(self.components)
         return self.graph
 
-    def bfs_completion(self, var_value=None, var_bounds=None, max_failings=1000, flip_ineq_step=-1/1000):
+    def bfs_completion(self, var_value=None, var_bounds=None, max_failings=1000, flip_ineq_step=-1/100):
         # See remark about flip_ineq_step in def add_new_component().
         if var_value:
             (self.points_to_test).add(tuple(var_value))
@@ -491,6 +483,7 @@ def generate_regions_and_theta_ext():
                 a21, a22, b2 = coeff_o_rhs[j]
                 d = a11 * a22 - a12 * a21
                 if d == 0:
+                    # why? bugexample r0=1/3, z1=1/6, theta1=1/2, theta2=0, case l.
                     continue
                 theta1 = (b1 * a22 - a12 * b2) / d
                 theta2 = (a11 * b2 - b1 * a21) / d
@@ -502,13 +495,14 @@ def generate_regions_and_theta_ext():
                 if not feasibility:
                     continue
                 d = (theta1.sym()(r0, z1, 0, 0), theta2.sym()(r0, z1, 0, 0))
-                to_add = (not r.leq) ### too many theta_ext for lower dim case.
+                to_add = True
                 for t in theta_ext:
                     if t == d:
                         to_add = False
                         break
                 if to_add:
-                    theta_ext.append(d)
+                    if not r.leq: ### too many theta_ext for lower dim case.
+                        theta_ext.append(d)
                     (r.thetas).add(d)
                 else:
                     (r.thetas).add(t)
@@ -553,14 +547,18 @@ def complex_of_cpl_extreme_case_k(regions, t):
     """
     complex = Cpl3Complex(['r0','z1'], t)
     for r in regions:
-        if t in r.thetas:
+        if (t in r.thetas): # ( .. ) or (r.leq)?
             (complex.points_to_test).add(tuple(r.var_value))
         else:
             r.region_type = "lightgrey"  #is not feasible vertex theta
             complex.components.append(r)
-    complex.bfs_completion()
-    #var_bounds = [(0,1), (0, (lambda x: 1/4-x/4))]
-    #complex.shoot_random_points(1000, var_bounds=var_bounds, max_failings=10000)
+    var_bounds = [(0,1), (0, (lambda x: 1/4-x/4))]
+    complex.shoot_random_points(1000, var_bounds=var_bounds, max_failings=10000)
+    # flip_ineq_step = -1/100
+    # for c in complex.components:
+    #     if (c.region_type != 'not_constructible') and (c.region_type != 'lightgrey'):
+    #         (complex.points_to_test).update(c.generate_neighbour_points(flip_ineq_step))
+    # complex.bfs_completion(flip_ineq_step=flip_ineq_step)
     return complex
 
 def plot_cpl_extreme_case_k_diagram(complex, t, k):
@@ -582,4 +580,28 @@ def plot_cpl_extreme_case_k_diagram(complex, t, k):
     else:
         g += text("extreme point %s:  theta = %s" %(k,t), (0.5, 1/4), color='black')
     g += complex.plot()
+    return g
+
+def get_extreme_components(complex):
+    extreme_components = [c for c in complex.components if c.region_type == 'is_extreme']
+    return extreme_components
+
+def plot_cpl_extreme_case_k_extreme_region(extreme_components, t, k):
+    """
+    sage: regions, theta_ext = generate_regions_and_theta_ext()
+    sage: k = 0
+    sage: t = theta_ext[k]
+    sage: complex = complex_of_cpl_extreme_case_k(regions, t)
+    sage: extreme_components = get_extreme_components(complex)
+    sage: len(extreme_components)
+    sage: g = plot_cpl_extreme_case_k_extreme_region(extreme_components, t, k)
+    sage: g.show(xmin=0, xmax=1, ymin=0, ymax=1/4)
+    """
+    g = Graphics()
+    if len(str(t)) > 100:
+        g += text("extreme point %s:\ntheta = (%s,\n %s)" %(k,t[0], t[1]), (0.5, 1/4), color='black')
+    else:
+        g += text("extreme point %s:  theta = %s" %(k,t), (0.5, 1/4), color='black')
+    for c in extreme_components:
+        g += c.plot()
     return g
