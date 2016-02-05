@@ -1040,7 +1040,7 @@ def find_f(fn, no_error_if_not_minimal_anyway=False):
     for x in fn.end_points():
         if fn(x) == 1:
             if not f is None:
-                logging.warn("The given function has more than one breakpoint where the function takes the value 1; using f = %s.  Provide parameter f to minimality_test or extremality_test if you want a different f." % f)
+                logging.info("The given function has more than one breakpoint where the function takes the value 1; using f = %s.  Provide parameter f to minimality_test or extremality_test if you want a different f." % f)
                 return f
             else:
                 f = x

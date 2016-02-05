@@ -1050,7 +1050,7 @@ class SemialgebraicComplexComponent(SageObject):
         #print bounds_propagation_iter
         return bounds, tightened_mip
 
-    def plot(self, alpha=0.5, plot_points=300, slice_value=None):
+    def plot(self, alpha=0.5, plot_points=300, slice_value=None, show_testpoints=True):
         g = Graphics()
         if not slice_value:
             d = len(self.var_value)
@@ -1114,14 +1114,14 @@ class SemialgebraicComplexComponent(SageObject):
                 g += region_plot([l(x, y) == 0 for l in leqs] + [l(x, y) < 0 for l in lins], \
                                  (x, var_bounds[0][0], var_bounds[0][1]), (y, var_bounds[1][0], var_bounds[1][1]), \
                                  incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
-            if not slice_value:
+            if show_testpoints and not slice_value:
                 g += point(self.var_value, color = ptcolor, size = 2, zorder=10)
         else:
             if leqs or lins:
                 g += region_plot([l(x) == 0 for l in leqs] + [l(x) < 0 for l in lins] + [y >= -0.01, y <= 0.01], \
                                  (x, var_bounds[0][0], var_bounds[0][1]), (y, -0.1, 0.3), \
                                  incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor, ticks=[None,[]])
-            if not slice_value:
+            if show_testpoints and not slice_value:
                 g += point([self.var_value[0], 0], color = ptcolor, size = 2, zorder=10)
         return g
 

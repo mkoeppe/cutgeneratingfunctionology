@@ -139,23 +139,25 @@ class Cpl3Complex(SageObject):
         K.polyhedron.add_space_dimensions_and_embed(len(K.monomial_list))
         if self.theta is None:
             try:
-                h = cpl3_bkpts(*K.gens())
-                t = subadditivity_test(h) # always True
+                h_bkpt_arr = cpl3_bkpts(*K.gens())
+                t_bkpt_arr = subadditivity_test(h_bkpt_arr) # always True
                 region_type = 'not_minimal'
             except:
                 # Function is non-contructible at this random point.
                 region_type = 'not_constructible'
         else:
-            o1 = self.theta[0](*K.gens()) # if ZeroDivisionError, then had det=0 when solve for (o1, o2)
-            o2 = self.theta[1](*K.gens())
             try:
+                o1 = self.theta[0](*K.gens()) # if ZeroDivisionError, then had det=0 when solve for (o1, o2)
+                o2 = self.theta[1](*K.gens())
+                # restrict to a cell where 2d-complex stays combinatorially the same.
+                h_bkpt_arr = cpl3_bkpts(*K.gens())
+                t_bkpt_arr = subadditivity_test(h_bkpt_arr)
                 h = cpl3_group_function(K.gens()[0], K.gens()[1], o1, o2)
-                if minimality_test(h) and simplified_extremality_test(h):
-                    region_type = 'is_extreme'
-                else:
-                    region_type = 'not_extreme'
             except:
-                region_type = 'not_constructible'
+                h = None
+            region_type =  find_region_type_around_given_point(K, h, region_level='extreme',\
+                                                               is_minimal=None,\
+                                                               use_simplified_extremality_test=True)
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         # FIXME: CLP3 complex has non-linear inequalities, even though they don't appear on diagrams.
         # Temporary code to check if everything is linear. Ignore non-linear stuffs for now.
@@ -506,6 +508,33 @@ def generate_regions_and_theta_ext():
                     (r.thetas).add(d)
                 else:
                     (r.thetas).add(t)
+    for r in regions:
+        if r.leq:
+            if len(r.leq) == 2:
+                l0 = r.leq[0]; l1 = r.leq[1]
+                assert len(l0.variables())==1 and l0.variables()[0]==z1
+                y = -l0.constant_coefficient()/l0.coefficient(z1)
+                assert len(l1.variables())==1 and l1.variables()[0]==r0
+                x = -l1.constant_coefficient()/l1.coefficient(r0)
+            elif len(r.leq) == 1:
+                l = r.leq[0]
+                coef_r0 = l.coefficient(r0)
+                if coef_r0 != 0:
+                    sol_r0 = r0 - l / coef_r0
+                    (x, y) = (sol_r0, z1)
+                else:
+                    coef_z1 = l.coefficient(z1)
+                    sol_z1 = z1 - l / coef_z1
+                    (x, y) = (r0, sol_z1)
+            r_thetas = set((d[0](x,y), d[1](x,y)) for d in r.thetas)
+            r.thetas = set([])
+            for d in theta_ext:
+                try:
+                    t = (d[0](x,y), d[1](x,y))
+                    if t in r_thetas:
+                        (r.thetas).add(d)
+                except ZeroDivisionError:
+                    pass
     return regions, theta_ext
 
 # Plotting diagrams
@@ -544,6 +573,19 @@ def complex_of_cpl_extreme_case_k(regions, t):
 
     sage: k = 0; t = theta_ext[k]; # not tested
     sage: complex = complex_of_cpl_extreme_case_k(regions, t) # not tested
+
+    # remark:
+    # If use complex.bfs_completion(flip_ineq_step=-1/100) in complex_of_cpl_extreme_case_k(regions, t),
+    # get many WARNING: non-linear term appears in ...  < 0 / == 0, etc when running the following.
+    # Don't get such non-linear term warning if use complex.shoot_random_points().
+    # sage: cxs = []
+    # sage: for k in range(18):
+    # ....:     print k
+    # ....:     t = theta_ext[k]
+    # ....:     complex = complex_of_cpl_extreme_case_k(regions, t)
+    # ....:     cxs.append(complex)
+    # ....:     g = plot_cpl_case_k(complex.components, t, k)
+    # ....:     g.save("cpl_case_%s.png" %k, xmin=0, xmax=1, ymin=0, ymax=1/4)
     """
     complex = Cpl3Complex(['r0','z1'], t)
     for r in regions:
@@ -552,13 +594,9 @@ def complex_of_cpl_extreme_case_k(regions, t):
         else:
             r.region_type = "lightgrey"  #is not feasible vertex theta
             complex.components.append(r)
-    var_bounds = [(0,1), (0, (lambda x: 1/4-x/4))]
-    complex.shoot_random_points(1000, var_bounds=var_bounds, max_failings=10000)
-    # flip_ineq_step = -1/100
-    # for c in complex.components:
-    #     if (c.region_type != 'not_constructible') and (c.region_type != 'lightgrey'):
-    #         (complex.points_to_test).update(c.generate_neighbour_points(flip_ineq_step))
-    # complex.bfs_completion(flip_ineq_step=flip_ineq_step)
+    #var_bounds = [(0,1), (0, (lambda x: 1/4-x/4))]
+    #complex.shoot_random_points(1000, var_bounds=var_bounds, max_failings=1000)
+    complex.bfs_completion(flip_ineq_step=-1/100)
     return complex
 
 def plot_cpl_extreme_case_k_diagram(complex, t, k):
@@ -586,7 +624,7 @@ def get_extreme_components(complex):
     extreme_components = [c for c in complex.components if c.region_type == 'is_extreme']
     return extreme_components
 
-def plot_cpl_extreme_case_k_extreme_region(extreme_components, t, k):
+def plot_cpl_case_k(components, t, k):
     """
     sage: regions, theta_ext = generate_regions_and_theta_ext()
     sage: k = 0
@@ -594,7 +632,7 @@ def plot_cpl_extreme_case_k_extreme_region(extreme_components, t, k):
     sage: complex = complex_of_cpl_extreme_case_k(regions, t)
     sage: extreme_components = get_extreme_components(complex)
     sage: len(extreme_components)
-    sage: g = plot_cpl_extreme_case_k_extreme_region(extreme_components, t, k)
+    sage: g = plot_cpl_case_k(extreme_components, t, k)
     sage: g.show(xmin=0, xmax=1, ymin=0, ymax=1/4)
     """
     g = Graphics()
@@ -602,6 +640,15 @@ def plot_cpl_extreme_case_k_extreme_region(extreme_components, t, k):
         g += text("extreme point %s:\ntheta = (%s,\n %s)" %(k,t[0], t[1]), (0.5, 1/4), color='black')
     else:
         g += text("extreme point %s:  theta = %s" %(k,t), (0.5, 1/4), color='black')
-    for c in extreme_components:
-        g += c.plot()
+    for c in components:
+        if not c.leq:
+            g += c.plot(show_testpoints=False)
+    for c in components:
+        if len(c.leq)==1:
+            g += c.plot(show_testpoints=False)
+    covered_type_color = {'not_constructible': 'white', 'not_minimal': 'orange', 'not_extreme': 'green', 'is_extreme': 'blue', 'lightgrey': 'lightgrey'}
+    for c in components:
+        if len(c.leq)==2:
+            ptcolor = covered_type_color[c.region_type]
+            g += point(c.var_value, color = ptcolor)
     return g
