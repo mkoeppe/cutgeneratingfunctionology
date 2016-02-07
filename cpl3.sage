@@ -166,14 +166,17 @@ class Cpl3Complex(SageObject):
         if flip_ineq_step < 0:
             lin = []
             leq = []
+            new_component.nlin = []; new_component.nleq = []
             for l in new_component.lin:
                 if l.degree() > 1:
                     logging.warn("non-linear term appears in %s < 0" % l)
+                    new_component.nlin.append(l)
                 else:
                     lin.append(l)
             for l in new_component.leq:
                 if l.degree() > 1:
                     logging.warn("non-linear term appears in %s == 0" % l)
+                    new_component.nleq.append(l)
                 else:
                     leq.append(l)
             new_component.lin = lin
