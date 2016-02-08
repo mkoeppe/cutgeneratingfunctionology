@@ -529,7 +529,13 @@ def generate_regions_and_theta_ext():
                     coef_z1 = l.coefficient(z1)
                     sol_z1 = z1 - l / coef_z1
                     (x, y) = (r0, sol_z1)
-            r_thetas = set((d[0](x,y), d[1](x,y)) for d in r.thetas)
+            r_thetas = set([])
+            for d in r.thetas:
+                try:
+                    t = (d[0](x,y), d[1](x,y))
+                    r_thetas.add(t)
+                except ZeroDivisionError:
+                    pass
             r.thetas = set([])
             for d in theta_ext:
                 try:
@@ -653,5 +659,5 @@ def plot_cpl_case_k(components, t, k):
     for c in components:
         if len(c.leq)==2:
             ptcolor = covered_type_color[c.region_type]
-            g += point(c.var_value, color = ptcolor)
+            g += point(c.var_value, color = ptcolor, zorder=10)
     return g
