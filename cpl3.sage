@@ -500,17 +500,19 @@ def generate_regions_and_theta_ext():
                 if not feasibility:
                     continue
                 d = (theta1.sym()(r0, z1, 0, 0), theta2.sym()(r0, z1, 0, 0))
-                to_add = True
-                for t in theta_ext:
-                    if t == d:
-                        to_add = False
-                        break
-                if to_add:
-                    if not r.leq: ### too many theta_ext for lower dim case.
-                        theta_ext.append(d)
+                if r.leq:
                     (r.thetas).add(d)
                 else:
-                    (r.thetas).add(t)
+                    to_add = True
+                    for t in theta_ext:
+                        if t == d:
+                            to_add = False
+                            break
+                    if to_add:
+                        theta_ext.append(d)
+                        (r.thetas).add(d)
+                    else:
+                        (r.thetas).add(t)
     for r in regions:
         if r.leq:
             if len(r.leq) == 2:
@@ -540,7 +542,13 @@ def generate_regions_and_theta_ext():
             for d in theta_ext:
                 try:
                     t = (d[0](x,y), d[1](x,y))
-                    if t in r_thetas:
+                    # if t in r_thetas: Doesn't work due to sage: r0/z1 in set([-r0/(-z1)]) returns False
+                    to_add = False
+                    for r_t in r_thetas:
+                        if t == r_t:
+                            to_add = True
+                            break
+                    if to_add:
                         (r.thetas).add(d)
                 except ZeroDivisionError:
                     pass
