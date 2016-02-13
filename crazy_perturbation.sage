@@ -135,21 +135,21 @@ def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
         sage: find_epsilon_for_crazy_perturbation(h, cp)
         0
     """
-    # assume fn is a subadditive pwl function, cp is a non_zero CrazyPerturbation
+    # assume fn is a subadditive pwl function, cp is a non_zero CrazyPerturbation with cp(0)=cp(f)=0.
     bkpt = uniq(copy(fn.end_points())+cp.end_points())
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
     type_2_vertices = [(x, z-x, z) for x in bkpt for z in bkpt2 if x < z < 1+x]
     vertices = set(type_1_vertices + type_2_vertices)
     g = plot_2d_complex(fn)
-    epsilon = 3
+    m = 3
     for (x, y, z) in vertices:
         for (xeps, yeps, zeps) in [(0,0,0)]+list(nonzero_eps):
             deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
             if deltafn > 0:
                 possible =  True
-                if deltafn < epsilon:
-                    epsilon = deltafn
+                if deltafn < m:
+                    m = deltafn
             elif (xeps, yeps, zeps) == (0, 0, 0): # 0-d face
                 possible = (delta_pi(cp, x, y) == 0)
             elif xeps!= 0 and yeps!=0 and zeps!=0: # 2-d face, 6 cases
@@ -173,11 +173,13 @@ def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
                 if not show_plots:
                     return 0
                 else:
-                    epsilon = 0
+                    m = 0
                     g += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), r=0.01)
                     g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)), r=0.01)
     range_cp = cp.range()
-    epsilon = epsilon / max([abs(range_cp[0]), abs(range_cp[1])]) / 3
+    M = max([abs(range_cp[0]), abs(range_cp[1])]) * 3
+    C = max([abs(fi._slope) for fi in cp.pwl._functions])
+    epsilon = m / max([M, C, 1/1000])
     if epsilon == 0 and show_plots:
         g.show(figsize=40)
     return epsilon
