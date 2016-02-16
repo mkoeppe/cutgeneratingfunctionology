@@ -1200,6 +1200,7 @@ class SemialgebraicComplexComponent(SageObject):
             s = (ineq_direction * l_direction) / (ineq_direction * ineq_direction)
             projected_direction = l_direction - s * ineq_direction
             step_length = (l(*current_point)-flip_ineq_step) / (projected_direction * l_direction)
+            flip_ineq_step = flip_ineq_step / 2
             current_point += step_length * projected_direction
         pt_on_wall = current_point
 
@@ -1212,6 +1213,7 @@ class SemialgebraicComplexComponent(SageObject):
             s = (ineq_direction * l_direction) / (ineq_direction * ineq_direction)
             projected_direction = l_direction - s * ineq_direction
             step_length = (l(*current_point)-flip_ineq_step) / (projected_direction * l_direction)
+            flip_ineq_step = flip_ineq_step/2
             current_point += step_length * projected_direction
         pt_across_wall = current_point
 
@@ -1253,27 +1255,27 @@ class SemialgebraicComplexComponent(SageObject):
                     if pt_on_wall is not None and l(*pt_on_wall) >= 0 or \
                        pt_across_wall is not None and l(*pt_across_wall) >= 0:
                         logging.warn("crossed non-linear wall %s < 0 while flipping %s < 0" % (l,ineq))
-                        self.plot().show(xmin=0, xmax=1, ymin=0, ymax=1/4)
+                        #self.plot().show(xmin=0, xmax=1, ymin=0, ymax=1/4)
                 for l in self.nleq:
                     if pt_on_wall is not None and  l(*pt_on_wall) != 0 or \
-                       pt_across_wall is not Nonen and l(*pt_across_wall) != 0:
+                       pt_across_wall is not None and l(*pt_across_wall) != 0:
                         logging.warn("crossed non-linear wall %s == 0 while flipping %s < 0" % (l,ineq))
-                        self.plot().show(xmin=0, xmax=1, ymin=0, ymax=1/4)
+                        #self.plot().show(xmin=0, xmax=1, ymin=0, ymax=1/4)
                 if pt_on_wall is not None:
                     neighbour_points.append(pt_on_wall)
                 if pt_across_wall is not None:
                     neighbour_points.append(pt_across_wall)
-        
-            for ineq in self.nlin:
-                new_point = self.generate_one_point_by_flipping_inequality(ineq, flip_ineq_step=-flip_ineq_step)
-                if new_point is None:
-                    continue
-                for l in bddlin:
-                    if l(*new_point) >= 0:
-                        new_point = None
-                        break
-                if not new_point is None:
-                    neighbour_points.append(new_point)
+            if not self.leq:
+                for ineq in self.nlin:
+                    new_point = self.generate_one_point_by_flipping_inequality(ineq, flip_ineq_step=-flip_ineq_step)
+                    if new_point is None:
+                        continue
+                    for l in bddlin:
+                        if l(*new_point) >= 0:
+                            new_point = None
+                            break
+                    if not new_point is None:
+                        neighbour_points.append(new_point)
         return neighbour_points
 
 class SemialgebraicComplex(SageObject):

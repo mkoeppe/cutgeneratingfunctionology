@@ -8,8 +8,8 @@ from igp import *
 def cpl3_group_function(r0=1/6, z1=1/12, o1=1/5, o2=0, merge=True):
     if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
         raise ValueError, "Bad parameters. Unable to construct the function."
-    #if not (bool(0 <= o1) & bool(0 <= o2) & bool(o1+o2 <= 1/2)):
-    #    logging.info("Conditions for a CPL-3 function are NOT satisfied.")
+    if not (bool(0 <= o1) & bool(0 <= o2) & bool(o1+o2 <= 1/2)):
+        raise ValueError, "Bad thetas parameters. function value outside [0,1]."
 
     if z1 < (1-r0)/4:
         bkpts = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
@@ -501,22 +501,36 @@ def generate_regions_and_theta_ext():
                 a11, a12, b1 = coeff_o_rhs[i]
                 a21, a22, b2 = coeff_o_rhs[j]
                 determinant = a11 * a22 - a12 * a21
-                if determinant == 0: #determinant.sym() == 0:
+                #if determinant == 0:
+                if determinant.sym() == 0:
                     # why? bugexample r0=1/3, z1=1/6, theta1=1/2, theta2=0, case l.
                     continue
                 # what if determinant.sym() != 0 but determinant.val() == 0?
                 # assume this doesn't happen in general 2d cell.
-                theta1 = (b1 * a22 - a12 * b2) / determinant
-                theta2 = (a11 * b2 - b1 * a21) / determinant
+                # theta1 = (b1 * a22 - a12 * b2) / determinant
+                # theta2 = (a11 * b2 - b1 * a21) / determinant
+                # feasibility = True
+                # for (c_o1, c_o2, c_rhs) in coeff_o_rhs:
+                #     if c_o1 * theta1 + c_o2 * theta2 > c_rhs:
+                #         feasibility = False
+                #         break
+                # if not feasibility:
+                #     # need to check it's infeasible for any (r0,z1) in the cell r.
+                #     continue
+                # d = (theta1.sym()(r0, z1, 0, 0), theta2.sym()(r0, z1, 0, 0))
+                theta1_sym = (b1 * a22 - a12 * b2).sym() / determinant.sym()
+                theta2_sym = (a11 * b2 - b1 * a21).sym() / determinant.sym()
                 feasibility = True
                 for (c_o1, c_o2, c_rhs) in coeff_o_rhs:
-                    if c_o1 * theta1 + c_o2 * theta2 > c_rhs:
+                    ineq_sym = c_o1.sym() * theta1_sym + c_o2.sym() * theta2_sym - c_rhs.sym()
+                    if ineq_sym in QQ and ineq_sym > 0:
                         feasibility = False
                         break
                 if not feasibility:
-                    # need to check it's infeasible for any (r0,z1) in the cell r.
-                    continue
-                d = (theta1.sym()(r0, z1, 0, 0), theta2.sym()(r0, z1, 0, 0))
+                     # need to check it's infeasible for any (r0,z1) in the cell r.
+                     continue
+                d = (theta1_sym(r0, z1, 0, 0), theta2_sym(r0, z1, 0, 0))
+
                 if r.leq:
                     (r.thetas).add(d)
                 else:
@@ -713,3 +727,50 @@ def complex_cpl_case_k(regions, t):
 def bddlin_cpl():
     K.<r0,z1>=QQ[]
     return [-r0, -z1, r0+4*z1-1]
+
+def cpl_extreme_theta_regions(regions):
+    K.<r0,z1>=QQ[]
+    theta_regions = {}
+    n = 0
+    for r in regions: #[0:30]:
+        print n; n += 1
+        for t in r.thetas:
+            bddleq = copy(r.leq)
+            bddlin = copy(r.lin)
+            complex = Cpl3Complex(['r0','z1'], t, 8, bddleq, bddlin)
+            (complex.points_to_test).add(tuple(r.var_value))
+            complex.bfs_completion(flip_ineq_step=-1/100)
+            components = []
+            for c in complex.components:
+                if c.region_type == 'is_extreme':
+                    components.append(c)
+            if not components:
+                continue
+            if len(r.leq) == 2:
+                l0 = r.leq[0]; l1 = r.leq[1]
+                y = -l0.constant_coefficient()/l0.coefficient(z1)
+                x = -l1.constant_coefficient()/l1.coefficient(r0)
+            elif len(r.leq) == 1:
+                l = r.leq[0]
+                coef_r0 = l.coefficient(r0)
+                if coef_r0 != 0:
+                    sol_r0 = r0 - l / coef_r0
+                    (x, y) = (sol_r0, z1)
+                else:
+                    coef_z1 = l.coefficient(z1)
+                    sol_z1 = z1 - l / coef_z1
+                    (x, y) = (r0, sol_z1)
+            else:
+                (x, y) = (r0, z1)
+            theta_to_add = True
+            for d in theta_regions.keys():
+                try:
+                    dd = (d[0](x,y), d[1](x,y))
+                    if t == dd:
+                        theta_to_add = False
+                        theta_regions[d] += components
+                except ZeroDivisionError:
+                    pass
+            if theta_to_add:
+                theta_regions[t] = components
+    return theta_regions
