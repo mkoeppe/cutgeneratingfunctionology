@@ -1058,6 +1058,9 @@ class SemialgebraicComplexComponent(SageObject):
                 raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
             leqs = self.leq
             lins = self.lin
+            if hasattr(self, 'nlin'):
+                lins += self.nlin
+                leqs += self.nleq
             var_bounds = [bounds_for_plotting(self.bounds[i]) for i in range(d)]
         else:
             # assert (len(slice_value) == len(self.var_value))
@@ -1079,7 +1082,13 @@ class SemialgebraicComplexComponent(SageObject):
             unknowns=iter(P.gens())
             parametric_point = [unknowns.next() if z is None else z for z in slice_value]
             leqs = []
-            for leq in self.leq:
+            if hasattr(self, 'nlin'):
+                selfleq = self.leq + self.nleq
+                selflin = self.lin + self.nlin
+            else:
+                selfleq = self.leq
+                selflin = self.lin
+            for leq in selfleq:
                 l = leq(*parametric_point)
                 if l in QQ:
                     if l != 0:
@@ -1087,7 +1096,7 @@ class SemialgebraicComplexComponent(SageObject):
                 else:
                    leqs.append(l)
             lins = []
-            for lin in self.lin:
+            for lin in selflin:
                 l = lin(*parametric_point)
                 if l in QQ:
                     if l >= 0:
@@ -1171,7 +1180,7 @@ class SemialgebraicComplexComponent(SageObject):
         new_point = tuple(QQ(x) for x in current_point)
         return new_point #type is tuple
 
-    def generate_points_on_and_across_linear_wall(self, ineq, flip_ineq_step=-1/100):
+    def generate_points_on_and_across_linear_wall(self, ineq, flip_ineq_step=-1/100, bddlin=[]):
         variables = ineq.args()
         ineq_direction = vector(ineq.monomial_coefficient(v) for v in variables)
         # FIXME: Polynomial_rational_flint doesn't have .monomials() .monomial_coefficient
@@ -1184,7 +1193,7 @@ class SemialgebraicComplexComponent(SageObject):
         current_point += step_length * ineq_direction
 
         # adjustment so that no other wall is acrossed.
-        for l in self.lin:
+        for l in (self.lin + bddlin):
             if l == ineq or l(*current_point) < 0:
                 continue
             l_direction = vector(-l.monomial_coefficient(v) for v in variables)
@@ -1196,7 +1205,7 @@ class SemialgebraicComplexComponent(SageObject):
 
         step_length = min(-flip_ineq_step / (ineq_direction * ineq_direction), 1)
         current_point += step_length * ineq_direction
-        for l in self.lin:
+        for l in (self.lin + bddlin):
             if l == ineq or l(*current_point) < 0:
                 continue
             l_direction = vector(-l.monomial_coefficient(v) for v in variables)
@@ -1215,20 +1224,56 @@ class SemialgebraicComplexComponent(SageObject):
 
         return (new_pt_on_wall, new_pt_across_wall) #type is tuple
 
-    def generate_neighbour_points(self, flip_ineq_step=0.01):
+    def generate_neighbour_points(self, flip_ineq_step=0.01, bddlin=[]):
         # See remark about flip_ineq_step in def add_new_component().
         neighbour_points = []
-        for ineq in self.lin:
-            if flip_ineq_step > 0:
+        if flip_ineq_step > 0:
+            for ineq in self.lin:
                 new_point = self.generate_one_point_by_flipping_inequality(ineq, flip_ineq_step=flip_ineq_step)
                 if not new_point is None:
                     neighbour_points.append(new_point)
-            elif flip_ineq_step < 0:
+        if flip_ineq_step < 0:
+            for ineq in self.lin:
+                if ineq in set(bddlin):
+                    continue
                 # assumption: walls are linear
-                (pt_on_wall, pt_across_wall) = self.generate_points_on_and_across_linear_wall(ineq, flip_ineq_step=flip_ineq_step)
-                # question: always possilbe to across only one (linear) wall?
-                neighbour_points.append(pt_on_wall)
-                neighbour_points.append(pt_across_wall)
+                (pt_on_wall, pt_across_wall) = self.generate_points_on_and_across_linear_wall(ineq, flip_ineq_step=flip_ineq_step, bddlin=bddlin)
+                # question: always possilbe to cross only one (linear) wall?
+                # check that boundary is not crossed.
+                for l in bddlin:
+                    if l(*pt_on_wall) >= 0:
+                        pt_on_wall = None
+                        break
+                for l in bddlin:
+                    if l(*pt_across_wall) >= 0:
+                        pt_across_wall = None
+                        break
+                # check that non-linear walls are not crossed.
+                for l in self.nlin:
+                    if pt_on_wall is not None and l(*pt_on_wall) >= 0 or \
+                       pt_across_wall is not None and l(*pt_across_wall) >= 0:
+                        logging.warn("crossed non-linear wall %s < 0 while flipping %s < 0" % (l,ineq))
+                        self.plot().show(xmin=0, xmax=1, ymin=0, ymax=1/4)
+                for l in self.nleq:
+                    if pt_on_wall is not None and  l(*pt_on_wall) != 0 or \
+                       pt_across_wall is not Nonen and l(*pt_across_wall) != 0:
+                        logging.warn("crossed non-linear wall %s == 0 while flipping %s < 0" % (l,ineq))
+                        self.plot().show(xmin=0, xmax=1, ymin=0, ymax=1/4)
+                if pt_on_wall is not None:
+                    neighbour_points.append(pt_on_wall)
+                if pt_across_wall is not None:
+                    neighbour_points.append(pt_across_wall)
+        
+            for ineq in self.nlin:
+                new_point = self.generate_one_point_by_flipping_inequality(ineq, flip_ineq_step=-flip_ineq_step)
+                if new_point is None:
+                    continue
+                for l in bddlin:
+                    if l(*new_point) >= 0:
+                        new_point = None
+                        break
+                if not new_point is None:
+                    neighbour_points.append(new_point)
         return neighbour_points
 
 class SemialgebraicComplex(SageObject):

@@ -5,7 +5,7 @@ if '' not in sys.path:
 
 from igp import *
 
-def cpl3_group_function(r0=1/6, z1=1/12, o1=1/5, o2=0):
+def cpl3_group_function(r0=1/6, z1=1/12, o1=1/5, o2=0, merge=True):
     if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
         raise ValueError, "Bad parameters. Unable to construct the function."
     #if not (bool(0 <= o1) & bool(0 <= o2) & bool(o1+o2 <= 1/2)):
@@ -18,7 +18,14 @@ def cpl3_group_function(r0=1/6, z1=1/12, o1=1/5, o2=0):
         bkpts = [0, r0, r0+z1, 1-z1, 1]
         phi_values = [0, 0, o1, 1-o1, 1]
     values = [(bkpts[i] - phi_values[i])/r0 for i in range(len(bkpts))]
-    return piecewise_function_from_breakpoints_and_values(bkpts, values)
+    #return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
+    # don't want the comparaison values[i] != values[i+1]
+    # in piecewise_function_from_breakpoints_slopes_and_values and in FastPiecewise(merge=True)
+    slopes = [(values[i+1]-values[i])/(bkpts[i+1]-bkpts[i]) for i in range(len(bkpts)-1)]
+    intercepts = [ values[i] - slopes[i]*bkpts[i] for i in range(len(slopes)) ]
+    list_of_pairs = [ [(bkpts[i], bkpts[i+1]), fast_linear_function(slopes[i], intercepts[i])] \
+                      for i in range(len(bkpts)-1) ]
+    return FastPiecewise(list_of_pairs, periodic_extension=True, merge=merge)
 
 def cpl3_bkpts(r0=1/6, z1=1/12):
     if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
@@ -56,7 +63,7 @@ def cpl3_lifting_function(r0=1/6, z1=1/12, o1=1/5, o2=0):
 
 class Cpl3Complex(SageObject):
 
-    def __init__(self, var_name, theta=None, max_iter=8):
+    def __init__(self, var_name, theta=None, max_iter=8, bddleq=[], bddlin=[]):
         #self.num_components = 0
         self.components = []
         self.d = len(var_name)
@@ -76,24 +83,26 @@ class Cpl3Complex(SageObject):
         # but higher degree terms appear in monomials during the computation
         # so let's try mccormiks
         self.max_iter = max_iter
+        self.bddleq = bddleq
+        self.bddlin = bddlin
 
-    def generate_random_var_value(self, var_bounds=None):
-        var_value = []
-        for i in range(self.d):
-            if not var_bounds:
-                x = QQ(uniform(-0.1, 1.1))
-            else:
-                if hasattr(var_bounds[i][0], '__call__'):
-                    l =  var_bounds[i][0](*var_value)
-                else:
-                    l = var_bounds[i][0]
-                if hasattr(var_bounds[i][1], '__call__'):
-                    u =  var_bounds[i][1](*var_value)
-                else:
-                    u = var_bounds[i][1]
-                x = QQ(uniform(l, u))
-            var_value.append(x)
-        return var_value
+    # def generate_random_var_value(self, var_bounds=None):
+    #     var_value = []
+    #     for i in range(self.d):
+    #         if not var_bounds:
+    #             x = QQ(uniform(-0.1, 1.1))
+    #         else:
+    #             if hasattr(var_bounds[i][0], '__call__'):
+    #                 l =  var_bounds[i][0](*var_value)
+    #             else:
+    #                 l = var_bounds[i][0]
+    #             if hasattr(var_bounds[i][1], '__call__'):
+    #                 u =  var_bounds[i][1](*var_value)
+    #             else:
+    #                 u = var_bounds[i][1]
+    #             x = QQ(uniform(l, u))
+    #         var_value.append(x)
+    #     return var_value
 
     def is_point_covered(self, var_value):
         monomial_value = [m(var_value) for m in self.monomial_list]
@@ -111,20 +120,20 @@ class Cpl3Complex(SageObject):
                     return True
         return False
 
-    def find_uncovered_random_point(self, var_bounds=None, max_failings=1000):
-        num_failings = 0
-        while not max_failings or num_failings < max_failings:
-            if self.points_to_test:
-                var_value = list(self.points_to_test.pop())
-            else:
-                var_value = self.generate_random_var_value(var_bounds=var_bounds)
-            # This point is not already covered.
-            if self.is_point_covered(var_value):
-                num_failings += 1
-            else:
-                return var_value
-        logging.warn("The graph has %s components. Cannot find one more uncovered point by shooting %s random points" % (len(self.components), max_failings))
-        return False
+    # def find_uncovered_random_point(self, var_bounds=None, max_failings=1000):
+    #     num_failings = 0
+    #     while not max_failings or num_failings < max_failings:
+    #         if self.points_to_test:
+    #             var_value = list(self.points_to_test.pop())
+    #         else:
+    #             var_value = self.generate_random_var_value(var_bounds=var_bounds)
+    #         # This point is not already covered.
+    #         if self.is_point_covered(var_value):
+    #             num_failings += 1
+    #         else:
+    #             return var_value
+    #     logging.warn("The graph has %s components. Cannot find one more uncovered point by shooting %s random points" % (len(self.components), max_failings))
+    #     return False
 
     def add_new_component(self, var_value, flip_ineq_step=0):
         # Remark: the sign of flip_ineq_step indicates how to search for neighbour testpoints:
@@ -137,6 +146,10 @@ class Cpl3Complex(SageObject):
         K.monomial_list = self.monomial_list # change simultaneously while lifting
         K.v_dict = self.v_dict # change simultaneously while lifting
         K.polyhedron.add_space_dimensions_and_embed(len(K.monomial_list))
+        for l in self.bddlin:
+            l(*K.gens()) < 0
+        for l in self.bddleq:
+            l(*K.gens()) == 0
         if self.theta is None:
             try:
                 h_bkpt_arr = cpl3_bkpts(*K.gens())
@@ -149,9 +162,9 @@ class Cpl3Complex(SageObject):
             try:
                 o1 = self.theta[0](*K.gens()) # if ZeroDivisionError, then had det=0 when solve for (o1, o2)
                 o2 = self.theta[1](*K.gens())
-                # restrict to a cell where 2d-complex stays combinatorially the same.
-                h_bkpt_arr = cpl3_bkpts(*K.gens())
-                t_bkpt_arr = subadditivity_test(h_bkpt_arr)
+                # # restrict to a cell where 2d-complex stays combinatorially the same.
+                # h_bkpt_arr = cpl3_bkpts(*K.gens())
+                # t_bkpt_arr = subadditivity_test(h_bkpt_arr)
                 h = cpl3_group_function(K.gens()[0], K.gens()[1], o1, o2)
             except:
                 h = None
@@ -169,13 +182,13 @@ class Cpl3Complex(SageObject):
             new_component.nlin = []; new_component.nleq = []
             for l in new_component.lin:
                 if l.degree() > 1:
-                    logging.warn("non-linear term appears in %s < 0" % l)
+                    #logging.warn("non-linear term appears in %s < 0" % l)
                     new_component.nlin.append(l)
                 else:
                     lin.append(l)
             for l in new_component.leq:
                 if l.degree() > 1:
-                    logging.warn("non-linear term appears in %s == 0" % l)
+                    #logging.warn("non-linear term appears in %s == 0" % l)
                     new_component.nleq.append(l)
                 else:
                     leq.append(l)
@@ -191,16 +204,16 @@ class Cpl3Complex(SageObject):
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
         self.components.append(new_component)
         if (flip_ineq_step != 0) and (region_type != 'not_constructible') and (region_type != 'lightgrey'):
-            (self.points_to_test).update(new_component.generate_neighbour_points(flip_ineq_step))
+            (self.points_to_test).update(new_component.generate_neighbour_points(flip_ineq_step, self.bddlin))
             
 
-    def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
-        for i in range(num):
-            var_value = self.find_uncovered_random_point(var_bounds=var_bounds, max_failings=max_failings)
-            if var_value is False:
-                return
-            else:
-                self.add_new_component(var_value, flip_ineq_step=0)
+    # def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
+    #     for i in range(num):
+    #         var_value = self.find_uncovered_random_point(var_bounds=var_bounds, max_failings=max_failings)
+    #         if var_value is False:
+    #             return
+    #         else:
+    #             self.add_new_component(var_value, flip_ineq_step=0)
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=False):
         if restart:
@@ -229,7 +242,7 @@ def regions_r0_z1_from_arrangement_of_bkpts(show_plots=False):
 
     Figure clp_30_regions is obtained by setting show_plots=True
     """
-    complex=Cpl3Complex(['r0','z1'], None)
+    complex=Cpl3Complex(['r0','z1'], None, bddlin=bddlin_cpl())
     complex.bfs_completion(var_value=[6/10,4/100])
     regions=[]
     for c in complex.components:
@@ -475,9 +488,10 @@ def generate_regions_and_theta_ext():
     18
     """
     regions = regions_r0_z1_from_arrangement_of_bkpts()
+    # assume that regions.sort(key=lambda r: len(r.leq)) is done
     theta_ext = []
     K.<r0,z1>=QQ[]
-    for r in regions:
+    for r in regions: #[0:30]:
         r.thetas = set([])
         r0_val, z1_val = r.var_value
         coeff_o_rhs = generate_coefficients_of_constraints_PTheta3(r0_val, z1_val)
@@ -486,18 +500,21 @@ def generate_regions_and_theta_ext():
             for j in range(i+1, n):
                 a11, a12, b1 = coeff_o_rhs[i]
                 a21, a22, b2 = coeff_o_rhs[j]
-                d = a11 * a22 - a12 * a21
-                if d == 0:
+                determinant = a11 * a22 - a12 * a21
+                if determinant == 0: #determinant.sym() == 0:
                     # why? bugexample r0=1/3, z1=1/6, theta1=1/2, theta2=0, case l.
                     continue
-                theta1 = (b1 * a22 - a12 * b2) / d
-                theta2 = (a11 * b2 - b1 * a21) / d
+                # what if determinant.sym() != 0 but determinant.val() == 0?
+                # assume this doesn't happen in general 2d cell.
+                theta1 = (b1 * a22 - a12 * b2) / determinant
+                theta2 = (a11 * b2 - b1 * a21) / determinant
                 feasibility = True
                 for (c_o1, c_o2, c_rhs) in coeff_o_rhs:
                     if c_o1 * theta1 + c_o2 * theta2 > c_rhs:
                         feasibility = False
                         break
                 if not feasibility:
+                    # need to check it's infeasible for any (r0,z1) in the cell r.
                     continue
                 d = (theta1.sym()(r0, z1, 0, 0), theta2.sym()(r0, z1, 0, 0))
                 if r.leq:
@@ -535,23 +552,30 @@ def generate_regions_and_theta_ext():
             for d in r.thetas:
                 try:
                     t = (d[0](x,y), d[1](x,y))
-                    r_thetas.add(t)
-                except ZeroDivisionError:
-                    pass
-            r.thetas = set([])
-            for d in theta_ext:
-                try:
-                    t = (d[0](x,y), d[1](x,y))
-                    # if t in r_thetas: Doesn't work due to sage: r0/z1 in set([-r0/(-z1)]) returns False
-                    to_add = False
-                    for r_t in r_thetas:
-                        if t == r_t:
-                            to_add = True
+                    to_add = True
+                    for tt in r_thetas:
+                        if t == tt:
+                            to_add = False
                             break
                     if to_add:
-                        (r.thetas).add(d)
+                        r_thetas.add(t)
                 except ZeroDivisionError:
                     pass
+            r.thetas = r_thetas
+            # r.thetas = set([])
+            # for d in theta_ext:
+            #     try:
+            #         t = (d[0](x,y), d[1](x,y))
+            #         # if t in r_thetas: Doesn't work due to sage: r0/z1 in set([-r0/(-z1)]) returns False
+            #         to_add = False
+            #         for r_t in r_thetas:
+            #             if t == r_t:
+            #                 to_add = True
+            #                 break
+            #         if to_add:
+            #             (r.thetas).add(d)
+            #     except ZeroDivisionError:
+            #         pass
     return regions, theta_ext
 
 # Plotting diagrams
@@ -579,7 +603,7 @@ def plot_cpl_thetas_ext_diagram(regions, t, k):
             r.region_type = "lightgrey"  #is not feasible vertex theta
         g += r.plot()
     return g
-
+    
 def complex_of_cpl_extreme_case_k(regions, t):
     """
     # either approach in paper:
@@ -669,3 +693,23 @@ def plot_cpl_case_k(components, t, k):
             ptcolor = covered_type_color[c.region_type]
             g += point(c.var_value, color = ptcolor, zorder=10)
     return g
+
+def complex_cpl_case_k(regions, t):
+    # temporary code. doesn't work for lower dim regions.
+    components = []
+    for r in regions:
+        if (t in r.thetas): # ( .. ) or (r.leq)?
+            bddleq = copy(r.leq)
+            bddlin = copy(r.lin)
+            complex = Cpl3Complex(['r0','z1'], t, 8, bddleq, bddlin)
+            (complex.points_to_test).add(tuple(r.var_value))
+            complex.bfs_completion(flip_ineq_step=-1/100)
+            components += complex.components
+        else:
+            r.region_type = "lightgrey"  #is not feasible vertex theta
+            components.append(copy(r)) 
+    return components
+
+def bddlin_cpl():
+    K.<r0,z1>=QQ[]
+    return [-r0, -z1, r0+4*z1-1]
