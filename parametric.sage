@@ -1107,13 +1107,13 @@ class SemialgebraicComplexComponent(SageObject):
         covered_type_color = {'not_constructible': 'white', 'not_minimal': 'orange', 'not_extreme': 'green', 'is_extreme': 'blue'}
         if self.region_type in covered_type_color.keys():
             innercolor = covered_type_color[self.region_type]
+            bordercolor = innercolor
         else:
-            innercolor = self.region_type
-        if self.region_type == 'not_constructible':
-            bordercolor = 'gray'
+            innercolor = 'lightgrey'
+            bordercolor = 'black'
+        if innercolor == 'white':
             ptcolor = 'black'
         else:
-            bordercolor = innercolor
             ptcolor = 'white'
 
         x, y = var('x, y')
@@ -1265,6 +1265,8 @@ class SemialgebraicComplexComponent(SageObject):
                     neighbour_points.append(pt_on_wall)
                 if pt_across_wall is not None:
                     neighbour_points.append(pt_across_wall)
+            # In cpl, though outer walls are linear, inner walls can be non-linear.
+            # lower dim cell has too many useless non-linear walls, don't cross them for now.
             if not self.leq:
                 for ineq in self.nlin:
                     new_point = self.generate_one_point_by_flipping_inequality(ineq, flip_ineq_step=-flip_ineq_step)

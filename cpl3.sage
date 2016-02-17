@@ -6,6 +6,11 @@ if '' not in sys.path:
 from igp import *
 
 def cpl3_group_function(r0=1/6, z1=1/12, o1=1/5, o2=0, merge=True):
+    """
+    sage: h = cpl3_group_function()
+    sage: extremality_test(h)
+    True
+    """
     if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
         raise ValueError, "Bad parameters. Unable to construct the function."
     if not (bool(0 <= o1) & bool(0 <= o2) & bool(o1+o2 <= 1/2)):
@@ -27,44 +32,9 @@ def cpl3_group_function(r0=1/6, z1=1/12, o1=1/5, o2=0, merge=True):
                       for i in range(len(bkpts)-1) ]
     return FastPiecewise(list_of_pairs, periodic_extension=True, merge=merge)
 
-def cpl3_bkpts(r0=1/6, z1=1/12):
-    if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
-        raise ValueError, "Bad parameters. Unable to construct the function."
-    # construct the function on [0, 2]
-    if z1 < (1-r0)/4:
-        bkpts = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
-        values = [0, 0, 0, 0, 0, 0, 0]
-    else:
-        bkpts = [0, r0, r0+z1, 1-z1, 1]
-        values = [0, 0, 0, 0, 0]
-    # Cannot return piecewise_function_from_breakpoints_and_values(bkpts, values)
-    # because we don't want to merge slopes
-    # for arbitrary values of o1, o2 such as 0, 0
-    list_of_pairs = [[(bkpts[i], bkpts[i+1]), linear_function_through_points([bkpts[i], values[i]], [bkpts[i+1], values[i+1]])] for i in range(len(bkpts)-1)]
-    return FastPiecewise(list_of_pairs, periodic_extension=False, merge=False)
-
-def cpl3_lifting_function(r0=1/6, z1=1/12, o1=1/5, o2=0):
-    if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
-        raise ValueError, "Bad parameters. Unable to construct the function."
-    # construct the function on [0, 2]
-    if z1 < (1-r0)/4:
-        phi_bkpts = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
-        phi_values = [0, 0, o1, o1+o2, 1-(o1+o2), 1-o1, 1]
-    else:
-        phi_bkpts = [0, r0, r0+z1, 1-z1, 1]
-        phi_values = [0, 0, o1, 1-o1, 1]
-    bkpts = phi_bkpts + [x+1 for x in phi_bkpts[1::]]
-    values = phi_values + [y+1 for y in phi_values[1::]]
-    # Cannot return piecewise_function_from_breakpoints_and_values(bkpts, values)
-    # because we don't want to merge slopes
-    # for arbitrary values of o1, o2 such as 0, 0
-    list_of_pairs = [[(bkpts[i], bkpts[i+1]), linear_function_through_points([bkpts[i], values[i]], [bkpts[i+1], values[i+1]])] for i in range(len(bkpts)-1)]
-    return FastPiecewise(list_of_pairs, periodic_extension=False, merge=False)
-
 class Cpl3Complex(SageObject):
 
     def __init__(self, var_name, theta=None, max_iter=8, bddleq=[], bddlin=[]):
-        #self.num_components = 0
         self.components = []
         self.d = len(var_name)
         self.var_name = var_name
@@ -79,30 +49,10 @@ class Cpl3Complex(SageObject):
         self.num_plotted_components = 0
         self.points_to_test = set()
         self.theta = theta
-        # cpl region graphic looks like linear case,
-        # but higher degree terms appear in monomials during the computation
-        # so let's try mccormiks
         self.max_iter = max_iter
         self.bddleq = bddleq
         self.bddlin = bddlin
 
-    # def generate_random_var_value(self, var_bounds=None):
-    #     var_value = []
-    #     for i in range(self.d):
-    #         if not var_bounds:
-    #             x = QQ(uniform(-0.1, 1.1))
-    #         else:
-    #             if hasattr(var_bounds[i][0], '__call__'):
-    #                 l =  var_bounds[i][0](*var_value)
-    #             else:
-    #                 l = var_bounds[i][0]
-    #             if hasattr(var_bounds[i][1], '__call__'):
-    #                 u =  var_bounds[i][1](*var_value)
-    #             else:
-    #                 u = var_bounds[i][1]
-    #             x = QQ(uniform(l, u))
-    #         var_value.append(x)
-    #     return var_value
 
     def is_point_covered(self, var_value):
         monomial_value = [m(var_value) for m in self.monomial_list]
@@ -120,100 +70,55 @@ class Cpl3Complex(SageObject):
                     return True
         return False
 
-    # def find_uncovered_random_point(self, var_bounds=None, max_failings=1000):
-    #     num_failings = 0
-    #     while not max_failings or num_failings < max_failings:
-    #         if self.points_to_test:
-    #             var_value = list(self.points_to_test.pop())
-    #         else:
-    #             var_value = self.generate_random_var_value(var_bounds=var_bounds)
-    #         # This point is not already covered.
-    #         if self.is_point_covered(var_value):
-    #             num_failings += 1
-    #         else:
-    #             return var_value
-    #     logging.warn("The graph has %s components. Cannot find one more uncovered point by shooting %s random points" % (len(self.components), max_failings))
-    #     return False
-
-    def add_new_component(self, var_value, flip_ineq_step=0):
+    def add_new_component(self, var_value, flip_ineq_step=-1/100):
         # Remark: the sign of flip_ineq_step indicates how to search for neighbour testpoints:
         # if flip_ineq_step = 0, don't search for neighbour testpoints. Used in shoot_random_points().
         # if flip_ineq_step < 0, we assume that the walls of the cell are linear eqn/ineq over original parameters. (So, gradient is constant; easy to find a new testpoint on the wall and another testpoint (-flip_ineq_step away) across the wall.) Used in bfs.
         # if flip_ineq_step > 0, we don't assume the walls are linear. Apply generate_one_point_by_flipping_inequality() with flip_ineq_step to find new testpoints across the wall only. Used in bfs.
-
         unlifted_space_dim =  len(self.monomial_list)
         K = SymbolicRealNumberField(var_value, self.var_name)
         K.monomial_list = self.monomial_list # change simultaneously while lifting
         K.v_dict = self.v_dict # change simultaneously while lifting
         K.polyhedron.add_space_dimensions_and_embed(len(K.monomial_list))
+        # Are self.bddlin, self.bddleq recorded??
         for l in self.bddlin:
-            l(*K.gens()) < 0
+            if not l(*K.gens()) < 0:
+                return
         for l in self.bddleq:
-            l(*K.gens()) == 0
+            if not l(*K.gens()) == 0:
+                return
         if self.theta is None:
             try:
-                h_bkpt_arr = cpl3_bkpts(*K.gens())
-                t_bkpt_arr = subadditivity_test(h_bkpt_arr) # always True
-                region_type = 'not_minimal'
+                r0, z1 = K.gens()[0], K.gens()[1]
+                o1 = o2 = z1 / (1 - r0)
+                h = cpl3_group_function(r0, z1, o1, o2, merge=False)
+                subadditivity_test(h) # always True
+                region_type = 'is_constructible'
             except:
-                # Function is non-contructible at this random point.
                 region_type = 'not_constructible'
         else:
             try:
-                o1 = self.theta[0](*K.gens()) # if ZeroDivisionError, then had det=0 when solve for (o1, o2)
+                o1 = self.theta[0](*K.gens())
                 o2 = self.theta[1](*K.gens())
-                # # restrict to a cell where 2d-complex stays combinatorially the same.
-                # h_bkpt_arr = cpl3_bkpts(*K.gens())
-                # t_bkpt_arr = subadditivity_test(h_bkpt_arr)
                 h = cpl3_group_function(K.gens()[0], K.gens()[1], o1, o2)
             except:
                 h = None
-            region_type =  find_region_type_around_given_point(K, h, region_level='extreme',\
-                                                               is_minimal=None,\
-                                                               use_simplified_extremality_test=True)
+            region_type =  find_region_type_around_given_point(K, h)
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
-        # FIXME: CLP3 complex has non-linear inequalities, even though they don't appear on diagrams.
-        # Temporary code to check if everything is linear. Ignore non-linear stuffs for now.
-        # For speed, should ignore them in SemialgebraicComplexComponent.__init__
-        # For rigour, should improve bounds propagation etc to achieve this.
+        # put non-linear eq/ineq to somewhere else.
         if flip_ineq_step < 0:
-            lin = []
-            leq = []
-            new_component.nlin = []; new_component.nleq = []
-            for l in new_component.lin:
-                if l.degree() > 1:
-                    #logging.warn("non-linear term appears in %s < 0" % l)
-                    new_component.nlin.append(l)
-                else:
-                    lin.append(l)
-            for l in new_component.leq:
-                if l.degree() > 1:
-                    #logging.warn("non-linear term appears in %s == 0" % l)
-                    new_component.nleq.append(l)
-                else:
-                    leq.append(l)
-            new_component.lin = lin
-            new_component.leq = leq
-            # for l in (new_component.lin+new_component.leq):
-            #     if l.degree() > 1:
-            #         raise NotImplementedError, "Alas, non-linear term appeared."
+            new_component.nleq = [l for l in new_component.leq if l.degree()>1]
+            new_component.leq = [l for l in new_component.leq if l.degree()<=1]
+            new_component.nlin = [l for l in new_component.lin if l.degree()>1]
+            new_component.lin = [l for l in new_component.lin if l.degree()<=1]
         #if see new monomial, lift polyhedrons of the previously computed components.
         dim_to_add = len(self.monomial_list) - unlifted_space_dim
         if dim_to_add > 0:
             for c in self.components:
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
         self.components.append(new_component)
-        if (flip_ineq_step != 0) and (region_type != 'not_constructible') and (region_type != 'lightgrey'):
+        if (flip_ineq_step != 0):
             (self.points_to_test).update(new_component.generate_neighbour_points(flip_ineq_step, self.bddlin))
-            
-
-    # def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
-    #     for i in range(num):
-    #         var_value = self.find_uncovered_random_point(var_bounds=var_bounds, max_failings=max_failings)
-    #         if var_value is False:
-    #             return
-    #         else:
-    #             self.add_new_component(var_value, flip_ineq_step=0)
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=False):
         if restart:
@@ -224,553 +129,349 @@ class Cpl3Complex(SageObject):
         self.num_plotted_components = len(self.components)
         return self.graph
 
-    def bfs_completion(self, var_value=None, var_bounds=None, max_failings=1000, flip_ineq_step=-1/100):
+    def bfs_completion(self, var_value=None, flip_ineq_step=-1/100):
         # See remark about flip_ineq_step in def add_new_component().
         if var_value:
             (self.points_to_test).add(tuple(var_value))
         while self.points_to_test:
             var_value = list(self.points_to_test.pop())
-            if not self.is_point_covered(var_value) and point_satisfies_var_bounds(var_value, var_bounds):
+            if not self.is_point_covered(var_value):
                 self.add_new_component(var_value, flip_ineq_step=flip_ineq_step)
 
-def regions_r0_z1_from_arrangement_of_bkpts(show_plots=False):
+
+def bddlin_cpl():
     """
+    boundary of (r0, z1) in cpl3: r0>0, z1>0, r0+4*z1<1.
+    """
+    K.<r0,z1>=QQ[]
+    return [-r0, -z1, r0+4*z1-1]
+
+def regions_r0_z1_from_arrangement_of_bkpts():
+    """
+    Got regions[0:30]: 2-dim; regions[30:73]: 1-dim; regions[73:87]: 0-dim.
+
     sage: logging.disable(logging.INFO)  # not tested
     sage: regions = regions_r0_z1_from_arrangement_of_bkpts() # not tested
     sage: len(regions) #not tested
-    30
-
-    Figure clp_30_regions is obtained by setting show_plots=True
+    87
     """
-    complex=Cpl3Complex(['r0','z1'], None, bddlin=bddlin_cpl())
-    complex.bfs_completion(var_value=[6/10,4/100])
-    regions=[]
-    for c in complex.components:
-        x, y = c.var_value
-        if x > 0 and x < 1 and y > 0 and y<=1/4-x/4:
-            regions.append(c)
-    if show_plots:
-        complex.plot().show(xmin=0, xmax=1, ymin=0, ymax=1/4)
+    arr_complex=Cpl3Complex(['r0','z1'], theta=None, bddlin=bddlin_cpl())
+    arr_complex.bfs_completion(var_value=[6/10,4/100])
+    regions = arr_complex.components
     regions.sort(key=lambda r: len(r.leq))
     return regions
 
-def treat_constraint_of_PTheta3(rnf_c):
+def mapping_r0_z1_of_regions(r):
     """
-    The emaxple follows subcase1 of case 1, section 3.2, CPL3 paper Page 175,
-    We assume that 0 < r0 < z1 and 2*r0 + 6*z1 <= 1.
-    sage: logging.disable(logging.WARNING)
-    sage: K.<r0,z1,o1,o2>=SymbolicRealNumberField([1/20, 1/12, 1/5, 0])
-    sage: phi = cpl3_lifting_function(r0, z1, o1, o2)
-
-    Let rnf_c be the second constraint of PTheta3= in section 3.1:
-    sage: rnf_c = 2*o1 - phi(2*r0+2*z1)
-
-    We look for the coefficients of o1 and o2 in equation(4), and the rhs of eqn(4):
-    sage: c_o1, c_o2, c_rhs = treat_constraint_of_PTheta3(rnf_c)
-    sage: c_o1
-    ((-r0 + 4*z1 - 1)/(r0 + 4*z1 - 1))~
-    sage: c_o2
-    ((-3*r0 - 4*z1 + 1)/(r0 + 4*z1 - 1))~
-    sage: c_rhs
-    ((-r0)/(r0 + 4*z1 - 1))~
+    sage: regions = regions_r0_z1_from_arrangement_of_bkpts()
+    sage: r = regions[0]
+    sage: r.leq
+    []
+    sage: mapping_r0_z1_of_regions(r)
+    (r0, z1)
+    sage: r = regions[30]
+    sage: r.leq
+    [-2*r0 + 1]
+    sage: mapping_r0_z1_of_regions(r)
+    (1/2, z1)
+    sage: r = regions[31]
+    sage: r.leq
+    [-r0 - 6*z1 + 1]
+    sage: mapping_r0_z1_of_regions(r)
+    (r0, -1/6*r0 + 1/6)
+    sage: r = regions[73]
+    sage: r.leq
+    [-12*z1 + 1, -2*r0 + 1]
+    sage: mapping_r0_z1_of_regions(r)
+    (1/2, 1/12)
     """
-    sym_c = rnf_c.sym()
-    c = sym_c.numerator()
-    r0_sym, z1_sym, o1_sym, o2_sym = c.args()
-    c_rhs_sym_numerator = - (c.reduce([o1_sym, o2_sym]))
-    c_rhs_sym = c_rhs_sym_numerator / sym_c.denominator()
-    c_o1_sym = (c + c_rhs_sym_numerator).mod(o2_sym) / o1_sym / sym_c.denominator()
-    c_o2_sym = (c + c_rhs_sym_numerator).mod(o1_sym) / o2_sym / sym_c.denominator()
-    magic_field = rnf_c.parent()
-    v = magic_field._values
-    c_rhs = SymbolicRNFElement(c_rhs_sym(v), c_rhs_sym, magic_field)
-    c_o1 = SymbolicRNFElement(c_o1_sym(v), c_o1_sym, magic_field)
-    c_o2 = SymbolicRNFElement(c_o2_sym(v), c_o2_sym, magic_field)
-    return c_o1, c_o2, c_rhs
-
-# Approach that uses simplified description of PTheta3 stated on page 175 sec 3.1 of the paper.
-# This approach allows plotting the colorful diagrams cpl_i_j_thetas.
-
-def constraints_PTheta3(r0, z1, o1, o2):
-    """
-    sage: logging.disable(logging.WARNING)
-    sage: K.<r0,z1,o1,o2>=SymbolicRealNumberField([1/20, 1/12, 1/5, 0])
-    sage: constraints_PTheta3(r0, z1, o1, o2)
-    [(((-r0 + z1)/z1)~, (-1)~, 0~),
-     (((-r0 + 4*z1 - 1)/(r0 + 4*z1 - 1))~,
-      ((-3*r0 - 4*z1 + 1)/(r0 + 4*z1 - 1))~,
-      ((-r0)/(r0 + 4*z1 - 1))~),
-     (((-r0 - 2*z1 + 1)/(r0 + 4*z1 - 1))~,
-      (2*z1/(r0 + 4*z1 - 1))~,
-      (z1/(r0 + 4*z1 - 1))~),
-     (((-r0 + 2*z1 - 1)/(r0 + 4*z1 - 1))~,
-      ((-2*r0 - 2*z1)/(r0 + 4*z1 - 1))~,
-      ((-r0 - z1)/(r0 + 4*z1 - 1))~),
-     (((-r0 + 1)/(r0 + 4*z1 - 1))~,
-      ((-r0 + 1)/(r0 + 4*z1 - 1))~,
-      (2*z1/(r0 + 4*z1 - 1))~),
-     (((-r0 - 1)/(r0 + 4*z1 - 1))~,
-      ((-r0 - 1)/(r0 + 4*z1 - 1))~,
-      ((-r0 - 2*z1)/(r0 + 4*z1 - 1))~),
-     ((-1)~, 1~, 0~),
-     ((-1)~, 0~, 0~),
-     (0~, (-1)~, 0~)]
-    """
-    phi = cpl3_lifting_function(r0, z1, o1, o2)
-    # here we copy the constraints from page 175 sec 3.1
-    # to generate the constraints from the superadditivity of phi,
-    # see generate_regions_and_theta_ext()
-    rnf_constraints = [ -o2 - phi(r0-z1+1) + 1,\
-                        2*o1 - phi(2*r0 + 2*z1), \
-                        -2*o1 - o2 + phi(r0 + 3*z1), \
-                        2*o1 + o2 - phi(2*r0 + 3*z1), \
-                        -2*o1 - 2*o2 + phi(r0 + 4*z1), \
-                        2*o1 + 2*o2 - phi(2*r0 + 4*z1), \
-                        -o1 + o2, \
-                        -o1, \
-                        -o2 ]
-    coeff_o_rhs = [treat_constraint_of_PTheta3(rnf_c) for rnf_c in rnf_constraints]
-    return coeff_o_rhs
-
-def regions_r0_z1_with_thetas_and_feasibility(regions=None):
-    """
-    sage: regions = regions_r0_z1_with_thetas_and_feasibility() # not tested
-    # long time
-    sage: len(regions) #not tested
-    30
-    """
-    if regions is None:
-        regions = regions_r0_z1_from_arrangement_of_bkpts()
-    for r in regions:
-        r.theta_ij={}
-        r.feas_ij={}
-        for i in range(9):
-            for j in range(i+1, 9):
-                r0_val, z1_val = r.var_value
-                K.<r0,z1,o1,o2>=SymbolicRealNumberField([r0_val, z1_val, 0, 0])
-                coeff_o_rhs = constraints_PTheta3(r0,z1,o1,o2)
-                a11, a12, b1 = coeff_o_rhs[i]
-                a21, a22, b2 = coeff_o_rhs[j]
-                d = a11 * a22 - a12 * a21
-                if d == 0:
-                    r.theta_ij[i,j] = (None, None)
-                    r.feas_ij[i,j] = None
-                    continue
-                theta1 = (b1 * a22 - a12 * b2) / d
-                theta2 = (a11 * b2 - b1 * a21) / d
-                feasibility = True
-                for (c_o1, c_o2, c_rhs) in coeff_o_rhs:
-                    if c_o1 * theta1 + c_o2 * theta2 > c_rhs:
-                        feasibility = False
-                        break
-                r.theta_ij[i,j] = (theta1, theta2)
-                r.feas_ij[i,j] = feasibility
-    return regions
-
-def plot_cpl_i_j_thetas_diagram(regions, i, j):
-    """
-    sage: regions = regions_r0_z1_with_thetas_and_feasibility() # not tested
-    sage: i = 0; j = 1; # not tested
-    sage: g = plot_cpl_i_j_thetas_diagram(regions, i, j) # not tested
-    sage: g.save("cpl_%s_%s_thetas.pdf" %(i,j)) # not tested
-    """
-    assert (0 <= i < j < 9)
-    # uniq doesn't work for the case (i,j) = (1,3), (1,5), (2,4), (2,6), (3,5), (4,6)
-    #for (i,j) in [(1,3), (1,5), (2,4), (2,6), (3,5), (4,6)]:
-    thetaij_dup = uniq([(r.theta_ij[i,j][0].sym(), r.theta_ij[i,j][1].sym()) for r in regions if r.feas_ij[i,j]])
-    thetaij = []
-    for d in thetaij_dup:
-        to_add = True
-        for t in thetaij:
-            if t == d:
-                to_add = False
-                break
-        if to_add:
-            thetaij.append(d)
-    n = len(thetaij)
-    for r in regions:
-        feas = r.feas_ij[i,j]
-        if not feas:
-            r.region_type = 'gray'
+    PR2.<r0,z1>=QQ[]
+    if not r.leq:
+        return (r0, z1)
+    elif len(r.leq) == 2:
+        r0_val, z1_val = r.var_value
+        return (r0_val * PR2.one(), z1_val * PR2.one())
+    else:
+        l = r.leq[0]
+        c_r0 = l.coefficient(r0)
+        c_z1 = l.coefficient(z1)
+        if c_z1 != 0:
+            return (r0, z1 - l / c_z1)
+        elif c_r0 != 0:
+            return (r0 - l / c_r0, z1)
         else:
-            theta1, theta2 = r.theta_ij[i,j][0].sym(), r.theta_ij[i,j][1].sym()
-            for k in range(n):
-                if (theta1, theta2) == thetaij[k]:
-                    break
-            r.region_type=rainbow(n)[k]
-    g = Graphics()
-    for r in regions:
-        g += r.plot()
-    for k in range(n):
-        t =  text(thetaij[k], (0.5, 1/4 + k/25), color = rainbow(n)[k])
-        g += t
-    return g
+            raise ValueError
 
-def retrieve_theta_ext_from_regions(regions):
+def symbolic_subbadditivity_constraints_of_cpl3_given_region(r):
     """
-    sage: regions = regions_r0_z1_with_thetas_and_feasibility() # not tested
-    sage: theta_ext = retrieve_theta_ext_from_regions(regions); # not tested
-    sage: len(theta_ext) #not tested
-    18
-    sage: theta_ext[0] # not tested
-    (z1/(-r0 - 2*z1 + 1), 0)
+    sage: regions = regions_r0_z1_from_arrangement_of_bkpts()
+    sage: r = regions[0]
+    sage: symbolic_subbadditivity_constraints_of_cpl3_given_region(r)
+    [1/r0,
+     (-o1 + 1)/r0,
+     (-o1 - o2 + 1)/r0,
+     (o1 + o2)/r0,
+     o1/r0,
+     (-2*o1 + 1)/r0,
+     (-2*o1 - o2 + 1)/r0,
+     o2/r0,
+     (-2*o1 - 2*o2 + 1)/r0,
+     (o1 - o2)/r0,
+     (r0*o1 + r0*o2 + 2*z1 - o1 - o2)/(r0^2 + 4*r0*z1 - r0),
+     (r0*o1 + 2*z1*o1 - 2*z1*o2 + z1 - o1)/(r0^2 + 4*r0*z1 - r0)]
     """
-    thetaij = uniq([(r.theta_ij[i,j][0].sym(), r.theta_ij[i,j][1].sym()) \
-                    for i in range(9) for j in range(i+1,9) for r in regions if r.feas_ij[i,j]])
-    theta_ext = []
-    for r in regions:
-        r.thetas = set([])
-    K.<r0,z1>=QQ[]
-    for (t1, t2) in thetaij:
-        d1 = t1(r0, z1, 0, 0)
-        d2 = t2(r0, z1, 0, 0)
-        d = (d1, d2)
-        to_add = True
-        for t in theta_ext:
-            if t == d:
-                to_add = False
-                break
-        if to_add:
-            theta_ext.append(d)
-            for r in regions:
-                for i in range(9):
-                    for j in range(i+1, 9):
-                        if r.feas_ij[i,j] and (r.theta_ij[i,j][0].sym(), r.theta_ij[i,j][1].sym()) == d:
-                            (r.thetas).add(d)
-    return theta_ext
+    if r.region_type == 'not_constructible':
+        return []
+    K.<r0,z1,o1,o2>=SymbolicRealNumberField([r.var_value[0], r.var_value[1], 0, 0])
+    r0s = r0.sym(); z1s = z1.sym(); o1s = o1.sym(); o2s = o2.sym()
+    (r0mapping, z1mapping) = mapping_r0_z1_of_regions(r)
+    r0m = r0mapping(r0s, z1s); z1m = z1mapping(r0s, z1s)
 
-# Approach that does not use simplified description of PTheta3 stated on page 175 sec 3.1 of the paper.
-# Instead, it derives everything starting from the superadditivity of phi.
-def generate_coefficients_of_constraints_PTheta3(r0_val, z1_val):
-    """
-    sage: generate_coefficients_of_constraints_PTheta3(3/5, 1/25) # not tested
-    [(2~, 2~, 1~),
-     (2~, 0~, 1~),
-     ((-1)~, (-1)~, 0~),
-     ((-1)~, 0~, 0~),
-     ((-1)~, 1~, 0~),
-     (0~, 0~, 0~),
-     (((-r0 + 1)/(r0 + 4*z1 - 1))~,
-      ((-r0 + 1)/(r0 + 4*z1 - 1))~,
-      (2*z1/(r0 + 4*z1 - 1))~),
-     (0~, 0~, 1~),
-     (0~, (-1)~, 0~),
-     (((-r0 - 2*z1 + 1)/(r0 + 4*z1 - 1))~,
-      (2*z1/(r0 + 4*z1 - 1))~,
-      (z1/(r0 + 4*z1 - 1))~),
-     (1~, 1~, 1~),
-     (2~, 1~, 1~),
-     (1~, 0~, 1~)]
-    """
-    K.<r0,z1,o1,o2>=SymbolicRealNumberField([r0_val, z1_val, 0, 0])
-    phi = cpl3_lifting_function(r0, z1, o1, o2)
-    rnf_constraints = set([])
-    bkpts = phi.end_points()
+    h = cpl3_group_function(r0, z1, o1, o2, merge=False)
+    bkpts = h.end_points()
+    bkpts2 = bkpts[:-1] + [ x+1 for x in bkpts]
+    constraints = [] # can't use set becasue of the difference between '==' and 'is'
     for x in bkpts:
         for y in bkpts:
-            if x <= y < 1:
-                rnf_c = phi(x) + phi(y) - phi(x+y)
-                rnf_constraints.add(rnf_c)
+            if 0 < x <= y < 1:
+                c = delta_pi(h, x, y).sym()(r0m, z1m, o1s, o2s)
+                if (c not in QQ) and all(c != cc for cc in constraints):
+                    constraints.append(c)
     for x in bkpts:
-        for z in bkpts:
-            if x < 1 and x < z < 1+x:
-                rnf_c = phi(x) + phi(z-x) - phi(z)
-                rnf_constraints.add(rnf_c)
-    coeff_o_rhs = [treat_constraint_of_PTheta3(rnf_c) for rnf_c in rnf_constraints]
-    return coeff_o_rhs
+        for z in bkpts2:
+            if 0 < x < z < 1+x:
+                c = delta_pi(h, x, z-x).sym()(r0m, z1m, o1s, o2s)
+                if (c not in QQ) and all(c != cc for cc in constraints):
+                    constraints.append(c)
+    return constraints
 
-def generate_regions_and_theta_ext():
+def coefficients_of_linear_constraint_in_thetas(c):
     """
-    sage: regions, theta_ext = generate_regions_and_theta_ext() # not tested
-    sage: len(regions) # not tested
-    30  -> 96
-    sage: len(theta_ext) # not tested
-    18
+    sage: PR4.<r0,z1,o1,o2>=QQ[]
+    sage: c = (r0*o1 + r0*o2 + 2*z1 - o1 - o2)/(r0^2 + 4*r0*z1 - r0)
+    sage: coefficients_of_linear_constraint_in_thetas(c)
+    ((r0 - 1)/(r0^2 + 4*r0*z1 - r0),
+     (r0 - 1)/(r0^2 + 4*r0*z1 - r0),
+     (-2*z1)/(r0^2 + 4*r0*z1 - r0))
+    sage: c = (r0*o1 + 2*z1*o1 - 2*z1*o2 + z1 - o1)/(r0^2 + 4*r0*z1 - r0)
+    sage: coefficients_of_linear_constraint_in_thetas(c)
+    ((r0 + 2*z1 - 1)/(r0^2 + 4*r0*z1 - r0),
+     (-2*z1)/(r0^2 + 4*r0*z1 - r0),
+     (-z1)/(r0^2 + 4*r0*z1 - r0))
+    """
+    # assume c.parent() is Fraction Field of Multivariate Polynomial Ring in r0, z1, o1, o2 over Rational Field
+    # assume c is linear wrt o1 and o2.
+    PR4.<r0,z1,o1,o2>=QQ[]
+    cn = c.numerator(); cd = c.denominator()
+    c_o1 = cn.coefficient(o1) / cd
+    c_o2 = cn.coefficient(o2) / cd
+    c_rhs = - cn.mod([o1,o2]) / cd
+    PR2.<r0,z1>=QQ[]
+    return (c_o1(r0, z1, 0, 0), c_o2(r0, z1, 0, 0), c_rhs(r0, z1, 0, 0))
+
+def symbolic_subadditivity_constraint_coefficients_of_thetas_given_region(r):
+    """
+    sage: regions = regions_r0_z1_from_arrangement_of_bkpts()
+    sage: r = regions[0]
+    sage: coefficients_of_thetas = symbolic_subadditivity_constraint_coefficients_of_thetas_given_region(r)
+    sage: coefficients_of_thetas[-1]
+    ((r0 + 2*z1 - 1)/(r0^2 + 4*r0*z1 - r0),
+     (-2*z1)/(r0^2 + 4*r0*z1 - r0),
+     (-z1)/(r0^2 + 4*r0*z1 - r0))
+    """
+    constraints = symbolic_subbadditivity_constraints_of_cpl3_given_region(r)
+    coefficients_of_thetas = []
+    for c in constraints:
+        (c_o1, c_o2, c_rhs) = coefficients_of_linear_constraint_in_thetas(c)
+        if not (c_o1 == c_o2 == 0):
+            coefficients_of_thetas.append((c_o1, c_o2, c_rhs))
+    return coefficients_of_thetas
+
+def get_pretty_fraction_polynomial(fp):
+    """
+    sage: PR2.<r0,z1>=QQ[]
+    sage: fp = (-2*z1)/(-2*r0 + 4*z1 - 6)
+    sage: get_pretty_fraction_polynomial(fp)
+    z1/(r0 - 2*z1 + 3)
+    sage: fp = (r0/4+z1/3)/(1/12)
+    sage: get_pretty_fraction_polynomial(fp)
+    3*r0 + 4*z1
+    """
+    pn = fp.numerator()
+    pd = fp.denominator()
+    if type(pn)==sage.rings.rational.Rational or type(pn)==sage.rings.integer.Integer:
+        gcd_pn = abs(pn)
+    else:
+        gcd_pn = gcd(pn.coefficients())
+    if type(pd)==sage.rings.rational.Rational or type(pd)==sage.rings.integer.Integer:
+        gcd_pd = abs(pd)
+    else:
+        gcd_pd = gcd(pd.coefficients())
+    gcd_n_d = gcd([gcd_pn, gcd_pd])
+    if type(pd)==sage.rings.rational.Rational or type(pd)==sage.rings.integer.Integer:
+        if pd < 0:
+            gcd_n_d = - gcd_n_d
+    elif pd.lc() < 0:
+        gcd_n_d = - gcd_n_d
+    pretty_fp = (pn/gcd_n_d)/(pd/gcd_n_d)
+    assert pretty_fp == fp
+    return pretty_fp
+
+def generate_thetas_of_region(r):
+    """
+    sage: regions = regions_r0_z1_from_arrangement_of_bkpts()
+    sage: r = regions[0]
+    sage: thetas = generate_thetas_of_region(r)
+    sage: len(thetas)
+    24
+    sage: thetas[-1]
+    ((-z1)/(r0 - 1), (-z1)/(r0 - 1))
+    """
+    thetas = []  # can't use set becasue of the difference between '==' and 'is'
+    coefficients_of_thetas = symbolic_subadditivity_constraint_coefficients_of_thetas_given_region(r)
+    n = len(coefficients_of_thetas)
+    for i in range(n):
+        for j in range(i+1, n):
+            a11, a12, b1 = coefficients_of_thetas[i]
+            a21, a22, b2 = coefficients_of_thetas[j]
+            determinant = a11 * a22 - a12 * a21
+            if determinant == 0:
+                continue
+            theta1 = (b1 * a22 - a12 * b2) / determinant
+            theta2 = (a11 * b2 - b1 * a21) / determinant
+            theta = (get_pretty_fraction_polynomial(theta1), get_pretty_fraction_polynomial(theta2))
+            if all(theta != t for t in thetas):
+                thetas.append(theta)
+    return thetas
+
+def fill_region_given_theta(r, theta):
+    """
+    sage: regions = regions_r0_z1_from_arrangement_of_bkpts()
+    sage: r = regions[0]
+    sage: thetas = generate_thetas_of_region(r)
+    sage: theta = thetas[-1]
+    sage: theta
+    ((-z1)/(r0 - 1), (-z1)/(r0 - 1))
+    sage: cpl_complex = fill_region_given_theta(r, theta)
+    sage: len(cpl_complex.components)
+    1
+    sage: cpl_complex.components[0].region_type
+    'is_extreme'
+    """
+    cpl_complex = Cpl3Complex(['r0','z1'], theta=theta, bddleq=copy(r.leq), bddlin=copy(r.lin))
+    (cpl_complex.points_to_test).add(tuple(r.var_value))
+    cpl_complex.bfs_completion(flip_ineq_step=-1/100)
+    return cpl_complex
+
+
+def cpl_regions_with_thetas_and_components():
+    """
+    sage: regions = cpl_regions_with_thetas_and_components()
+    output warning:
+    0 [3/5, 1/25]
+    ...
+    9 [243/520, 6/325]
+    WARNING: 2016-02-17 07:44:25,836 max number 8 of bounds propagation iterations has attained.
+    ...
+    24 [319/2000, 169/1000]
+    WARNING: 2016-02-17 07:46:44,986 crossed non-linear wall 2*r0^2 + 9*r0*z1 + 7*z1^2 - 3*r0 - 6*z1 + 1 < 0 while flipping -4*r0 - 14*z1 + 3 < 0
+    ...
+    86 [1/8, 1/8]
     """
     regions = regions_r0_z1_from_arrangement_of_bkpts()
-    # assume that regions.sort(key=lambda r: len(r.leq)) is done
-    theta_ext = []
-    K.<r0,z1>=QQ[]
-    for r in regions: #[0:30]:
-        r.thetas = set([])
-        r0_val, z1_val = r.var_value
-        coeff_o_rhs = generate_coefficients_of_constraints_PTheta3(r0_val, z1_val)
-        n = len(coeff_o_rhs)
-        for i in range(n):
-            for j in range(i+1, n):
-                a11, a12, b1 = coeff_o_rhs[i]
-                a21, a22, b2 = coeff_o_rhs[j]
-                determinant = a11 * a22 - a12 * a21
-                #if determinant == 0:
-                if determinant.sym() == 0:
-                    # why? bugexample r0=1/3, z1=1/6, theta1=1/2, theta2=0, case l.
-                    continue
-                # what if determinant.sym() != 0 but determinant.val() == 0?
-                # assume this doesn't happen in general 2d cell.
-                # theta1 = (b1 * a22 - a12 * b2) / determinant
-                # theta2 = (a11 * b2 - b1 * a21) / determinant
-                # feasibility = True
-                # for (c_o1, c_o2, c_rhs) in coeff_o_rhs:
-                #     if c_o1 * theta1 + c_o2 * theta2 > c_rhs:
-                #         feasibility = False
-                #         break
-                # if not feasibility:
-                #     # need to check it's infeasible for any (r0,z1) in the cell r.
-                #     continue
-                # d = (theta1.sym()(r0, z1, 0, 0), theta2.sym()(r0, z1, 0, 0))
-                theta1_sym = (b1 * a22 - a12 * b2).sym() / determinant.sym()
-                theta2_sym = (a11 * b2 - b1 * a21).sym() / determinant.sym()
-                feasibility = True
-                for (c_o1, c_o2, c_rhs) in coeff_o_rhs:
-                    ineq_sym = c_o1.sym() * theta1_sym + c_o2.sym() * theta2_sym - c_rhs.sym()
-                    if ineq_sym in QQ and ineq_sym > 0:
-                        feasibility = False
-                        break
-                if not feasibility:
-                     # need to check it's infeasible for any (r0,z1) in the cell r.
-                     continue
-                d = (theta1_sym(r0, z1, 0, 0), theta2_sym(r0, z1, 0, 0))
+    for i in range(len(regions)):
+        r = regions[i]
+        print i, r.var_value
+        r.thetas = {}
+        thetas_of_r = generate_thetas_of_region(r)
+        for theta in thetas_of_r:
+            cpl_complex = fill_region_given_theta(r, theta)
+            r.thetas[theta] = cpl_complex.components
+    return regions
 
-                if r.leq:
-                    (r.thetas).add(d)
-                else:
-                    to_add = True
-                    for t in theta_ext:
-                        if t == d:
-                            to_add = False
-                            break
-                    if to_add:
-                        theta_ext.append(d)
-                        (r.thetas).add(d)
-                    else:
-                        (r.thetas).add(t)
+def cpl_thetas_and_regions_extreme(regions):
+    """
+    sage: regions = cpl_regions_with_thetas_and_components()
+    sage: thetas_and_regions = cpl_thetas_and_regions_extreme(regions)
+    sage: len(thetas_and_regions)
+    9
+    """
+    thetas_and_regions = {}
     for r in regions:
-        if r.leq:
-            if len(r.leq) == 2:
-                l0 = r.leq[0]; l1 = r.leq[1]
-                assert len(l0.variables())==1 and l0.variables()[0]==z1
-                y = -l0.constant_coefficient()/l0.coefficient(z1)
-                assert len(l1.variables())==1 and l1.variables()[0]==r0
-                x = -l1.constant_coefficient()/l1.coefficient(r0)
-            elif len(r.leq) == 1:
-                l = r.leq[0]
-                coef_r0 = l.coefficient(r0)
-                if coef_r0 != 0:
-                    sol_r0 = r0 - l / coef_r0
-                    (x, y) = (sol_r0, z1)
-                else:
-                    coef_z1 = l.coefficient(z1)
-                    sol_z1 = z1 - l / coef_z1
-                    (x, y) = (r0, sol_z1)
-            r_thetas = set([])
-            for d in r.thetas:
+        (r0m, z1m) = mapping_r0_z1_of_regions(r)
+        for (theta, components) in (r.thetas).items():
+            extreme_regions = [c for c in components if c.region_type=='is_extreme']
+            if not extreme_regions:
+                continue
+            new_theta = True
+            for t in thetas_and_regions.keys():
                 try:
-                    t = (d[0](x,y), d[1](x,y))
-                    to_add = True
-                    for tt in r_thetas:
-                        if t == tt:
-                            to_add = False
-                            break
-                    if to_add:
-                        r_thetas.add(t)
+                    if theta == (t[0](r0m, z1m), t[1](r0m, z1m)):
+                        thetas_and_regions[t] += extreme_regions
+                        new_theta = False
                 except ZeroDivisionError:
-                    pass
-            r.thetas = r_thetas
-            # r.thetas = set([])
-            # for d in theta_ext:
-            #     try:
-            #         t = (d[0](x,y), d[1](x,y))
-            #         # if t in r_thetas: Doesn't work due to sage: r0/z1 in set([-r0/(-z1)]) returns False
-            #         to_add = False
-            #         for r_t in r_thetas:
-            #             if t == r_t:
-            #                 to_add = True
-            #                 break
-            #         if to_add:
-            #             (r.thetas).add(d)
-            #     except ZeroDivisionError:
-            #         pass
-    return regions, theta_ext
+                    continue
+            if new_theta:
+                thetas_and_regions[theta] = extreme_regions
+    return thetas_and_regions
 
-# Plotting diagrams
-def plot_cpl_thetas_ext_diagram(regions, t, k):
-    """
-    # either approach in paper:
-    sage: regions = regions_r0_z1_with_thetas_and_feasibility() # not tested
-    sage: theta_ext = retrieve_theta_ext_from_regions(regions); # not tested
-    # or better direct approach:
-    sage: regions, theta_ext = generate_regions_and_theta_ext() # not tested
-
-    sage: k = 0; t = theta_ext[k]; # not tested
-    sage: g = plot_cpl_thetas_ext_diagram(regions, t, k) # not tested
-    sage: g.save("cpl_thetas_ext_%s.pdf" %k) # not tested
-    """
-    g = Graphics()
-    if len(str(t)) > 100:
-        g += text("extreme point %s:\ntheta = (%s,\n %s)" %(k,t[0], t[1]), (0.5, 1/4), color='black')
-    else:
-        g += text("extreme point %s:  theta = %s" %(k,t), (0.5, 1/4), color='black')
+def cpl_regions_fix_theta(regions, theta):
+    components = []
     for r in regions:
-        if t in r.thetas:
-            r.region_type = "red"  #is feasible vertex theta
-        else:
-            r.region_type = "lightgrey"  #is not feasible vertex theta
-        g += r.plot()
-    return g
-    
-def complex_of_cpl_extreme_case_k(regions, t):
-    """
-    # either approach in paper:
-    sage: regions = regions_r0_z1_with_thetas_and_feasibility() # not tested
-    sage: theta_ext = retrieve_theta_ext_from_regions(regions); # not tested
-    # or better direct approach:
-    sage: regions, theta_ext = generate_regions_and_theta_ext() # not tested
+        (r0m, z1m) = mapping_r0_z1_of_regions(r)
+        try:
+            tt =  (theta[0](r0m, z1m), theta[1](r0m, z1m))
+        except ZeroDivisionError:
+            continue
+        for (t, ct) in (r.thetas).items():
+            if t == tt:
+                components += ct
+    return components
 
-    sage: k = 0; t = theta_ext[k]; # not tested
-    sage: complex = complex_of_cpl_extreme_case_k(regions, t) # not tested
-
-    # remark:
-    # If use complex.bfs_completion(flip_ineq_step=-1/100) in complex_of_cpl_extreme_case_k(regions, t),
-    # get many WARNING: non-linear term appears in ...  < 0 / == 0, etc when running the following.
-    # Don't get such non-linear term warning if use complex.shoot_random_points().
-    # sage: cxs = []
-    # sage: for k in range(18):
-    # ....:     print k
-    # ....:     t = theta_ext[k]
-    # ....:     complex = complex_of_cpl_extreme_case_k(regions, t)
-    # ....:     cxs.append(complex)
-    # ....:     g = plot_cpl_case_k(complex.components, t, k)
-    # ....:     g.save("cpl_case_%s.png" %k, xmin=0, xmax=1, ymin=0, ymax=1/4)
+def plot_cpl_components(components, show_testpoints=False):
     """
-    complex = Cpl3Complex(['r0','z1'], t)
-    for r in regions:
-        if (t in r.thetas): # ( .. ) or (r.leq)?
-            (complex.points_to_test).add(tuple(r.var_value))
-        else:
-            r.region_type = "lightgrey"  #is not feasible vertex theta
-            complex.components.append(r)
-    #var_bounds = [(0,1), (0, (lambda x: 1/4-x/4))]
-    #complex.shoot_random_points(1000, var_bounds=var_bounds, max_failings=1000)
-    complex.bfs_completion(flip_ineq_step=-1/100)
-    return complex
-
-def plot_cpl_extreme_case_k_diagram(complex, t, k):
+    sage: regions = regions_r0_z1_from_arrangement_of_bkpts()
+    sage: g = plot_cpl_components(regions)
+    sage: g.show(xmin=0, xmax=1, ymin=0, ymax=1/4) #not tested
     """
-    # either approach in paper:
-    sage: regions = regions_r0_z1_with_thetas_and_feasibility() # not tested
-    sage: theta_ext = retrieve_theta_ext_from_regions(regions); # not tested
-    # or better direct approach:
-    sage: regions, theta_ext = generate_regions_and_theta_ext() # not tested
-
-    sage: k = 0; t = theta_ext[k]; # not tested
-    sage: complex = complex_of_cpl_extreme_case_k(regions, t) # not tested
-    sage: g = plot_cpl_extreme_case_k_diagram(complex, t, k) # not tested
-    sage: g.save("cpl_extreme_case_%s.pdf" %k, xmin=0, xmax=1, ymin=0, ymax=1/4)
-    """
+    covered_type_color = {'is_constructible': 'black', 'not_constructible': 'white', 'not_minimal': 'orange', 'not_extreme': 'green', 'is_extreme': 'blue'}
     g = Graphics()
-    if len(str(t)) > 100:
-        g += text("extreme point %s:\ntheta = (%s,\n %s)" %(k,t[0], t[1]), (0.5, 1/4), color='black')
-    else:
-        g += text("extreme point %s:  theta = %s" %(k,t), (0.5, 1/4), color='black')
-    g += complex.plot()
-    return g
-
-def get_extreme_components(complex):
-    extreme_components = [c for c in complex.components if c.region_type == 'is_extreme']
-    return extreme_components
-
-def plot_cpl_case_k(components, t, k):
-    """
-    sage: regions, theta_ext = generate_regions_and_theta_ext()
-    sage: k = 0
-    sage: t = theta_ext[k]
-    sage: complex = complex_of_cpl_extreme_case_k(regions, t)
-    sage: extreme_components = get_extreme_components(complex)
-    sage: len(extreme_components)
-    sage: g = plot_cpl_case_k(extreme_components, t, k)
-    sage: g.show(xmin=0, xmax=1, ymin=0, ymax=1/4)
-    """
-    g = Graphics()
-    if len(str(t)) > 100:
-        g += text("extreme point %s:\ntheta = (%s,\n %s)" %(k,t[0], t[1]), (0.5, 1/4), color='black')
-    else:
-        g += text("extreme point %s:  theta = %s" %(k,t), (0.5, 1/4), color='black')
     for c in components:
         if not c.leq:
-            g += c.plot(show_testpoints=False)
+            g += c.plot(show_testpoints=show_testpoints)
     for c in components:
         if len(c.leq)==1:
-            g += c.plot(show_testpoints=False)
-    covered_type_color = {'not_constructible': 'white', 'not_minimal': 'orange', 'not_extreme': 'green', 'is_extreme': 'blue', 'lightgrey': 'lightgrey'}
+            g += c.plot(show_testpoints=show_testpoints)
     for c in components:
         if len(c.leq)==2:
             ptcolor = covered_type_color[c.region_type]
             g += point(c.var_value, color = ptcolor, zorder=10)
     return g
 
-def complex_cpl_case_k(regions, t):
-    # temporary code. doesn't work for lower dim regions.
-    components = []
-    for r in regions:
-        if (t in r.thetas): # ( .. ) or (r.leq)?
-            bddleq = copy(r.leq)
-            bddlin = copy(r.lin)
-            complex = Cpl3Complex(['r0','z1'], t, 8, bddleq, bddlin)
-            (complex.points_to_test).add(tuple(r.var_value))
-            complex.bfs_completion(flip_ineq_step=-1/100)
-            components += complex.components
+def save_cpl_extreme_theta_regions(thetas_and_regions):
+    """
+    To plot only blue regions
+    sage: regions = cpl_regions_with_thetas_and_components()
+    sage: thetas_and_regions = cpl_thetas_and_regions_extreme(regions)
+    sage: save_cpl_extreme_theta_regions(thetas_and_regions)
+    sage: len(thetas_and_regions)
+    9
+
+    To plot colorful regions corresponding to each extreme thetas.
+    sage: thetas_and_components = {}
+    sage: for theta in thetas_and_regions.keys():
+    ....:     components = cpl_regions_fix_theta(regions, theta)
+    ....:     thetas_and_components[theta]=components
+    sage: save_cpl_extreme_theta_regions(thetas_and_components)
+    """
+    k = 0
+    for (theta, components) in thetas_and_regions.items():
+        k += 1
+        print (k, theta)
+        if len(str(theta)) < 100:
+            title = "extreme point %s:  theta = %s" % (k, theta)
         else:
-            r.region_type = "lightgrey"  #is not feasible vertex theta
-            components.append(copy(r)) 
-    return components
-
-def bddlin_cpl():
-    K.<r0,z1>=QQ[]
-    return [-r0, -z1, r0+4*z1-1]
-
-def cpl_extreme_theta_regions(regions):
-    K.<r0,z1>=QQ[]
-    theta_regions = {}
-    n = 0
-    for r in regions: #[0:30]:
-        print n; n += 1
-        for t in r.thetas:
-            bddleq = copy(r.leq)
-            bddlin = copy(r.lin)
-            complex = Cpl3Complex(['r0','z1'], t, 8, bddleq, bddlin)
-            (complex.points_to_test).add(tuple(r.var_value))
-            complex.bfs_completion(flip_ineq_step=-1/100)
-            components = []
-            for c in complex.components:
-                if c.region_type == 'is_extreme':
-                    components.append(c)
-            if not components:
-                continue
-            if len(r.leq) == 2:
-                l0 = r.leq[0]; l1 = r.leq[1]
-                y = -l0.constant_coefficient()/l0.coefficient(z1)
-                x = -l1.constant_coefficient()/l1.coefficient(r0)
-            elif len(r.leq) == 1:
-                l = r.leq[0]
-                coef_r0 = l.coefficient(r0)
-                if coef_r0 != 0:
-                    sol_r0 = r0 - l / coef_r0
-                    (x, y) = (sol_r0, z1)
-                else:
-                    coef_z1 = l.coefficient(z1)
-                    sol_z1 = z1 - l / coef_z1
-                    (x, y) = (r0, sol_z1)
-            else:
-                (x, y) = (r0, z1)
-            theta_to_add = True
-            for d in theta_regions.keys():
-                try:
-                    dd = (d[0](x,y), d[1](x,y))
-                    if t == dd:
-                        theta_to_add = False
-                        theta_regions[d] += components
-                except ZeroDivisionError:
-                    pass
-            if theta_to_add:
-                theta_regions[t] = components
-    return theta_regions
+            title = "extreme point %s:\ntheta = (%s,\n %s)" % (k, theta[0], theta[1])
+        g = plot_cpl_components(components)
+        g += text(title, (0.5, 1/4), color='black')
+        g.save("cpl_theta_%s.png" %k, xmin=0, xmax=1, ymin=0, ymax=1/4)
