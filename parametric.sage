@@ -1242,7 +1242,7 @@ class SemialgebraicComplexComponent(SageObject):
                 # assumption: walls are linear
                 (pt_on_wall, pt_across_wall) = self.generate_points_on_and_across_linear_wall(ineq, flip_ineq_step=flip_ineq_step, bddlin=bddlin)
                 # question: always possilbe to cross only one (linear) wall?
-                # check that boundary is not crossed.
+                # check that boundary is not crossed. Temporary.
                 for l in bddlin:
                     if l(*pt_on_wall) >= 0:
                         pt_on_wall = None
@@ -1251,21 +1251,21 @@ class SemialgebraicComplexComponent(SageObject):
                     if l(*pt_across_wall) >= 0:
                         pt_across_wall = None
                         break
-                # check that non-linear walls are not crossed.
+                # check that non-linear walls are not crossed. Temporary.
                 for l in self.nlin:
                     if pt_on_wall is not None and l(*pt_on_wall) >= 0 or \
                        pt_across_wall is not None and l(*pt_across_wall) >= 0:
-                        logging.warn("crossed non-linear wall %s < 0 while flipping %s < 0" % (l,ineq))
+                        logging.warn("crossed non-linear wall %s < 0 while flipping %s < 0 of the cell defined by %s leqs and %s lins with testpoint %s." % (l, ineq, len(self.leq), len(self.lin), self.var_value))
                         #self.plot().show(xmin=0, xmax=1, ymin=0, ymax=1/4)
                 for l in self.nleq:
                     if pt_on_wall is not None and  l(*pt_on_wall) != 0 or \
                        pt_across_wall is not None and l(*pt_across_wall) != 0:
-                        logging.warn("crossed non-linear wall %s == 0 while flipping %s < 0" % (l,ineq))
+                        logging.warn("crossed non-linear wall %s == 0 while flipping %s < 0 in a cell defined by %s leqs and %s lins with testpoint %s" % (l,ineq, len(self.leq), len(self.lin), self.var_value))
                         #self.plot().show(xmin=0, xmax=1, ymin=0, ymax=1/4)
                 if pt_on_wall is not None:
-                    neighbour_points.append(pt_on_wall)
+                    neighbour_points.append((pt_on_wall, [ineq]))
                 if pt_across_wall is not None:
-                    neighbour_points.append(pt_across_wall)
+                    neighbour_points.append((pt_across_wall, []))
             # In cpl, though outer walls are linear, inner walls can be non-linear.
             # lower dim cell has too many useless non-linear walls, don't cross them for now.
             if not self.leq:
@@ -1278,7 +1278,7 @@ class SemialgebraicComplexComponent(SageObject):
                             new_point = None
                             break
                     if not new_point is None:
-                        neighbour_points.append(new_point)
+                        neighbour_points.append((new_point, []))
         return neighbour_points
 
 class SemialgebraicComplex(SageObject):
@@ -1439,8 +1439,13 @@ class SemialgebraicComplex(SageObject):
             for c in self.components:
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
         self.components.append(new_component)
-        if (region_type != 'not_constructible') and (flip_ineq_step != 0):
-            (self.points_to_test).update(new_component.generate_neighbour_points(flip_ineq_step))
+        if (region_type != 'not_constructible'):
+            neighgour_points = new_component.generate_neighbour_points(flip_ineq_step)
+            if (flip_ineq_step > 0):
+                (self.points_to_test).update(neighbour_points)
+            elif (fliq_ineq_step < 0):
+                for (new_point, new_bddleq) in neighbour_points:
+                    (self.points_to_test).add(new_point)
 
     def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
         for i in range(num):

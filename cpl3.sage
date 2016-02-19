@@ -48,6 +48,7 @@ class Cpl3Complex(SageObject):
         self.graph = Graphics()
         self.num_plotted_components = 0
         self.points_to_test = set()
+        self.bddleq_of_testpoint={}
         self.theta = theta
         self.max_iter = max_iter
         self.bddleq = bddleq
@@ -70,7 +71,7 @@ class Cpl3Complex(SageObject):
                     return True
         return False
 
-    def add_new_component(self, var_value, flip_ineq_step=-1/100):
+    def add_new_component(self, var_value, bddleq, flip_ineq_step=-1/100):
         # Remark: the sign of flip_ineq_step indicates how to search for neighbour testpoints:
         # if flip_ineq_step = 0, don't search for neighbour testpoints. Used in shoot_random_points().
         # if flip_ineq_step < 0, we assume that the walls of the cell are linear eqn/ineq over original parameters. (So, gradient is constant; easy to find a new testpoint on the wall and another testpoint (-flip_ineq_step away) across the wall.) Used in bfs.
@@ -80,16 +81,17 @@ class Cpl3Complex(SageObject):
         K.monomial_list = self.monomial_list # change simultaneously while lifting
         K.v_dict = self.v_dict # change simultaneously while lifting
         K.polyhedron.add_space_dimensions_and_embed(len(K.monomial_list))
-        # Are self.bddlin, self.bddleq recorded??
+        r0, z1 = K.gens()[0], K.gens()[1]
         for l in self.bddlin:
             if not l(*K.gens()) < 0:
                 return
-        for l in self.bddleq:
+        for l in bddleq:
             if not l(*K.gens()) == 0:
                 return
+        (r0mapping, z1mapping) = mapping_r0_z1(bddleq)
+        r0m = r0mapping(r0, z1) * K.one(); z1m = z1mapping(r0, z1) * K.one()
         if self.theta is None:
             try:
-                r0, z1 = K.gens()[0], K.gens()[1]
                 o1 = o2 = z1 / (1 - r0)
                 h = cpl3_group_function(r0, z1, o1, o2, merge=False)
                 subadditivity_test(h) # always True
@@ -98,9 +100,9 @@ class Cpl3Complex(SageObject):
                 region_type = 'not_constructible'
         else:
             try:
-                o1 = self.theta[0](*K.gens())
-                o2 = self.theta[1](*K.gens())
-                h = cpl3_group_function(K.gens()[0], K.gens()[1], o1, o2)
+                o1 = self.theta[0](r0m, z1m)
+                o2 = self.theta[1](r0m, z1m)
+                h = cpl3_group_function(r0m, z1m, o1, o2)
             except:
                 h = None
             region_type =  find_region_type_around_given_point(K, h)
@@ -117,8 +119,13 @@ class Cpl3Complex(SageObject):
             for c in self.components:
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
         self.components.append(new_component)
-        if (flip_ineq_step != 0):
-            (self.points_to_test).update(new_component.generate_neighbour_points(flip_ineq_step, self.bddlin))
+        neighbour_points = new_component.generate_neighbour_points(flip_ineq_step, self.bddlin)
+        if (flip_ineq_step > 0):
+            (self.points_to_test).update(neighbour_points)
+        elif (flip_ineq_step < 0):
+            for (new_point, new_bddleq) in neighbour_points:
+                (self.points_to_test).add(new_point)
+                (self.bddleq_of_testpoint)[new_point] = bddleq + new_bddleq
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=False):
         if restart:
@@ -133,10 +140,12 @@ class Cpl3Complex(SageObject):
         # See remark about flip_ineq_step in def add_new_component().
         if var_value:
             (self.points_to_test).add(tuple(var_value))
+            self.bddleq_of_testpoint[tuple(var_value)] = copy(self.bddleq)
         while self.points_to_test:
             var_value = list(self.points_to_test.pop())
+            bddleq = self.bddleq_of_testpoint[tuple(var_value)]
             if not self.is_point_covered(var_value):
-                self.add_new_component(var_value, flip_ineq_step=flip_ineq_step)
+                self.add_new_component(var_value, bddleq, flip_ineq_step=flip_ineq_step)
 
 
 def bddlin_cpl():
@@ -161,46 +170,44 @@ def regions_r0_z1_from_arrangement_of_bkpts():
     regions.sort(key=lambda r: len(r.leq))
     return regions
 
-def mapping_r0_z1_of_regions(r):
+def mapping_r0_z1(leq):
     """
-    sage: regions = regions_r0_z1_from_arrangement_of_bkpts()
-    sage: r = regions[0]
-    sage: r.leq
-    []
-    sage: mapping_r0_z1_of_regions(r)
+    sage: PR2.<r0,z1>=QQ[]
+    sage: mapping_r0_z1([])
     (r0, z1)
-    sage: r = regions[30]
-    sage: r.leq
-    [-2*r0 + 1]
-    sage: mapping_r0_z1_of_regions(r)
+    sage: mapping_r0_z1([-2*r0 + 1])
     (1/2, z1)
-    sage: r = regions[31]
-    sage: r.leq
-    [-r0 - 6*z1 + 1]
-    sage: mapping_r0_z1_of_regions(r)
+    sage: mapping_r0_z1([-r0 - 6*z1 + 1])
     (r0, -1/6*r0 + 1/6)
-    sage: r = regions[73]
-    sage: r.leq
-    [-12*z1 + 1, -2*r0 + 1]
-    sage: mapping_r0_z1_of_regions(r)
+    sage: mapping_r0_z1([-12*z1 + 1, -2*r0 + 1])
     (1/2, 1/12)
     """
     PR2.<r0,z1>=QQ[]
-    if not r.leq:
+    if not leq:
         return (r0, z1)
-    elif len(r.leq) == 2:
-        r0_val, z1_val = r.var_value
-        return (r0_val * PR2.one(), z1_val * PR2.one())
-    else:
-        l = r.leq[0]
-        c_r0 = l.coefficient(r0)
-        c_z1 = l.coefficient(z1)
+    elif len(leq) == 1:
+        l = leq[0]
+        c_r0 = l.monomial_coefficient(r0)
+        c_z1 = l.monomial_coefficient(z1)
         if c_z1 != 0:
             return (r0, z1 - l / c_z1)
         elif c_r0 != 0:
             return (r0 - l / c_r0, z1)
         else:
             raise ValueError
+    elif len(leq) == 2:
+        l1 = leq[0]; l2 = leq[1]
+        (a11, a12, b1) = (l1.monomial_coefficient(r0), l1.monomial_coefficient(z1), -l1.constant_coefficient())
+        (a21, a22, b2) = (l2.monomial_coefficient(r0), l2.monomial_coefficient(z1), -l2.constant_coefficient())
+        determinant = a11 * a22 - a12 * a21
+        if determinant == 0:
+            if not a11 == a12 == 0:
+                return mapping_r0_z1([l1])
+            else:
+                return mapping_r0_z1([l2])
+        r0_val = (b1 * a22 - a12 * b2) / determinant
+        z1_val = (a11 * b2 - b1 * a21) / determinant
+        return (r0_val * PR2.one(), z1_val * PR2.one())
 
 def symbolic_subbadditivity_constraints_of_cpl3_given_region(r):
     """
@@ -224,7 +231,7 @@ def symbolic_subbadditivity_constraints_of_cpl3_given_region(r):
         return []
     K.<r0,z1,o1,o2>=SymbolicRealNumberField([r.var_value[0], r.var_value[1], 0, 0])
     r0s = r0.sym(); z1s = z1.sym(); o1s = o1.sym(); o2s = o2.sym()
-    (r0mapping, z1mapping) = mapping_r0_z1_of_regions(r)
+    (r0mapping, z1mapping) = mapping_r0_z1(r.leq)
     r0m = r0mapping(r0s, z1s); z1m = z1mapping(r0s, z1s)
 
     h = cpl3_group_function(r0, z1, o1, o2, merge=False)
@@ -359,8 +366,7 @@ def fill_region_given_theta(r, theta):
     'is_extreme'
     """
     cpl_complex = Cpl3Complex(['r0','z1'], theta=theta, bddleq=copy(r.leq), bddlin=copy(r.lin))
-    (cpl_complex.points_to_test).add(tuple(r.var_value))
-    cpl_complex.bfs_completion(flip_ineq_step=-1/100)
+    cpl_complex.bfs_completion(var_value=tuple(r.var_value), flip_ineq_step=-1/100)
     return cpl_complex
 
 
@@ -398,7 +404,7 @@ def cpl_thetas_and_regions_extreme(regions):
     """
     thetas_and_regions = {}
     for r in regions:
-        (r0m, z1m) = mapping_r0_z1_of_regions(r)
+        (r0m, z1m) = mapping_r0_z1(r.leq)
         for (theta, components) in (r.thetas).items():
             extreme_regions = [c for c in components if c.region_type=='is_extreme']
             if not extreme_regions:
@@ -418,7 +424,7 @@ def cpl_thetas_and_regions_extreme(regions):
 def cpl_regions_fix_theta(regions, theta):
     components = []
     for r in regions:
-        (r0m, z1m) = mapping_r0_z1_of_regions(r)
+        (r0m, z1m) = mapping_r0_z1(r.leq)
         try:
             tt =  (theta[0](r0m, z1m), theta[1](r0m, z1m))
         except ZeroDivisionError:
