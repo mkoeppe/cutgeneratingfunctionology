@@ -992,32 +992,41 @@ def zero_perturbation_partial_function(function):
 
 ### Minimality check.
 
-def subadditivity_test(fn):
+def subadditivity_test(fn, stop_if_fail=False):
     """
     Check if `fn` is subadditive.
     """
     result = True
     for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices(fn, reduced=True):
         logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
-        result = False
+        if stop_if_fail:
+            return False
+        else:
+            result = False
     if result:
         logging.info("pi is subadditive.")
     else:
         logging.info("Thus pi is not subadditive.")
     return result
 
-def symmetric_test(fn, f):
+def symmetric_test(fn, f, stop_if_fail=False):
     """
     Check if `fn` is symmetric.
     """
     result = True
     if fn(f) != 1:
         logging.info('pi(f) is not equal to 1.')
-        result = False
+        if stop_if_fail:
+            return False
+        else:
+            result = False
     result = True
     for (x, y, xeps, yeps) in generate_nonsymmetric_vertices(fn, f):
         logging.info("pi(%s%s) + pi(%s%s) is not equal to 1" % (x, print_sign(xeps), y, print_sign(yeps)))
-        result = False
+        if stop_if_fail:
+            return False
+        else:
+            result = False
     if result:
         logging.info('pi is symmetric.')
     else:
@@ -1052,7 +1061,7 @@ def find_f(fn, no_error_if_not_minimal_anyway=False):
         return None
     raise ValueError, "The given function has no breakpoint where the function takes value 1, so cannot determine f.  Provide parameter f to minimality_test or extremality_test."
 
-def minimality_test(fn, show_plots=False, f=None):
+def minimality_test(fn, show_plots=False, f=None, stop_if_fail=False):
     """
     Check if `fn` is minimal with respect to the group relaxation with the given `f`. 
 
@@ -1090,12 +1099,16 @@ def minimality_test(fn, show_plots=False, f=None):
             if not ((x[-1] is None or 0 <= x[-1] <=1) and (x[1] is None or 0 <= x[1] <=1)):
                 logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
                 return False
-    if subadditivity_test(fn) and symmetric_test(fn, f):
+    if subadditivity_test(fn, stop_if_fail=stop_if_fail) and \
+       symmetric_test(fn, f, stop_if_fail=stop_if_fail):
         logging.info('Thus pi is minimal.')
         is_minimal = True
     else:
         logging.info('Thus pi is NOT minimal.')
-        is_minimal = False
+        if stop_if_fail:
+            return False
+        else:
+            result = False
     if show_plots:
         logging.info("Plotting 2d diagram...")
         show_plot(plot_2d_diagram(fn, known_minimal=is_minimal, f=f),

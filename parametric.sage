@@ -743,7 +743,7 @@ def find_region_type_around_given_point(K, h, region_level='extreme', is_minimal
     if region_level == 'constructible':
         return 'is_constructible'
     if is_minimal is None:
-        is_minimal = minimality_test(h)
+        is_minimal = minimality_test(h, stop_if_fail=True)
     if is_minimal:
         if region_level == 'minimal':
             return 'is_minimal'
