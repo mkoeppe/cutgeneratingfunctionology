@@ -1056,11 +1056,12 @@ class SemialgebraicComplexComponent(SageObject):
             d = len(self.var_value)
             if d > 2:
                 raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
-            leqs = self.leq
-            lins = self.lin
             if hasattr(self, 'nlin'):
-                lins += self.nlin
-                leqs += self.nleq
+                leqs = self.leq + self.nleq
+                lins = self.lin + self.nlin
+            else:
+                leqs = self.leq
+                lins = self.lin
             var_bounds = [bounds_for_plotting(self.bounds[i]) for i in range(d)]
         else:
             # assert (len(slice_value) == len(self.var_value))
