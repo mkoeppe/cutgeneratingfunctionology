@@ -370,7 +370,7 @@ def fill_region_given_theta(r, theta):
     return cpl_complex
 
 
-def cpl_regions_with_thetas_and_components():
+def cpl_regions_with_thetas_and_components(keep_extreme_only=False):
     """
     sage: regions = cpl_regions_with_thetas_and_components()
     output warning:
@@ -392,7 +392,12 @@ def cpl_regions_with_thetas_and_components():
         thetas_of_r = generate_thetas_of_region(r)
         for theta in thetas_of_r:
             cpl_complex = fill_region_given_theta(r, theta)
-            r.thetas[theta] = cpl_complex.components
+            if keep_extreme_only:
+                components = [c for c in cpl_complex.components if c.region_type=='is_extreme']
+            else:
+                components = cpl_complex.components
+            if components:
+                r.thetas[theta] = components
     return regions
 
 def cpl_thetas_and_regions_extreme(regions):
