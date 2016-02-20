@@ -1236,6 +1236,7 @@ class SemialgebraicComplexComponent(SageObject):
                 if not new_point is None:
                     neighbour_points.append(new_point)
         if flip_ineq_step < 0:
+            crossed_nlin = []
             for ineq in self.lin:
                 if ineq in set(bddlin):
                     continue
@@ -1253,32 +1254,44 @@ class SemialgebraicComplexComponent(SageObject):
                         break
                 # check that non-linear walls are not crossed. Temporary.
                 for l in self.nlin:
-                    if pt_on_wall is not None and l(*pt_on_wall) >= 0 or \
-                       pt_across_wall is not None and l(*pt_across_wall) >= 0:
-                        logging.warn("crossed non-linear wall %s < 0 while flipping %s < 0 of the cell defined by %s leqs and %s lins with testpoint %s." % (l, ineq, len(self.leq), len(self.lin), self.var_value))
-                        #self.plot().show(xmin=0, xmax=1, ymin=0, ymax=1/4)
+                    l_is_crossed = False
+                    if pt_on_wall is not None and l(*pt_on_wall) >= 0:
+                        pt_on_wall = None
+                        l_is_crossed = True
+                    if pt_across_wall is not None and l(*pt_across_wall) >= 0:
+                        pt_across_wall = None
+                        l_is_crossed = True
+                    if l_is_crossed:
+                        crossed_nlin.append(l)
+                        #logging.warn("crossed non-linear wall %s < 0 while flipping %s < 0 of the cell defined by %s leqs and %s lins with testpoint %s." % (l, ineq, len(self.leq), len(self.lin), self.var_value))
                 for l in self.nleq:
-                    if pt_on_wall is not None and  l(*pt_on_wall) != 0 or \
-                       pt_across_wall is not None and l(*pt_across_wall) != 0:
+                    l_is_crossed = False
+                    if pt_on_wall is not None and  l(*pt_on_wall) != 0:
+                        pt_on_wall = None
+                        l_is_crossed = True
+                    if pt_across_wall is not None and l(*pt_across_wall) != 0:
+                        pt_across_wall = None
+                        l_is_crossed = True
+                    if l_is_crossed:
                         logging.warn("crossed non-linear wall %s == 0 while flipping %s < 0 in a cell defined by %s leqs and %s lins with testpoint %s" % (l,ineq, len(self.leq), len(self.lin), self.var_value))
-                        #self.plot().show(xmin=0, xmax=1, ymin=0, ymax=1/4)
                 if pt_on_wall is not None:
                     neighbour_points.append((pt_on_wall, [ineq]))
                 if pt_across_wall is not None:
                     neighbour_points.append((pt_across_wall, []))
             # In cpl, though outer walls are linear, inner walls can be non-linear.
-            # lower dim cell has too many useless non-linear walls, don't cross them for now.
+            # lower dim cell has too many useless non-linear walls. Only consider those non-linear walls that were previously crossed by flipping one of the linear inequalities for now. Temporary
             if not self.leq:
-                for ineq in self.nlin:
-                    new_point = self.generate_one_point_by_flipping_inequality(ineq, flip_ineq_step=-flip_ineq_step)
-                    if new_point is None:
-                        continue
-                    for l in bddlin:
-                        if l(*new_point) >= 0:
-                            new_point = None
-                            break
-                    if not new_point is None:
-                        neighbour_points.append((new_point, []))
+                crossed_nlin = self.nlin
+            for ineq in crossed_nlin:
+                new_point = self.generate_one_point_by_flipping_inequality(ineq, flip_ineq_step=-flip_ineq_step)
+                if new_point is None:
+                    continue
+                for l in bddlin:
+                    if l(*new_point) >= 0:
+                        new_point = None
+                        break
+                if not new_point is None:
+                    neighbour_points.append((new_point, []))
         return neighbour_points
 
 class SemialgebraicComplex(SageObject):
