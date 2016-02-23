@@ -5,19 +5,19 @@ if '' not in sys.path:
 
 from igp import *
 
-def cpl3_group_function(r0=1/6, z1=1/12, o1=1/5, o2=0, merge=True):
+def cpl3_group_function(r0=1/6, z1=1/12, z2=1/12, o1=1/5, o2=0, merge=True):
     """
     sage: h = cpl3_group_function()
     sage: extremality_test(h)
     True
     """
-    if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
+    if not (bool(0 < r0 < 1) & bool(0 < z1) & bool(0 < z2) & bool (z1 + z2 <= (1-r0)/2)):
         raise ValueError, "Bad parameters. Unable to construct the function."
     if not (bool(0 <= o1) & bool(0 <= o2) & bool(o1+o2 <= 1/2)):
         raise ValueError, "Bad thetas parameters. function value outside [0,1]."
 
-    if z1 < (1-r0)/4:
-        bkpts = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
+    if z1+z2 < (1-r0)/2:
+        bkpts = [0, r0, r0+z1, r0+z1+z2, 1-z1-z2, 1-z1, 1]
         phi_values = [0, 0, o1, o1+o2, 1-(o1+o2), 1-o1, 1]
     else:
         bkpts = [0, r0, r0+z1, 1-z1, 1]
@@ -81,28 +81,31 @@ class Cpl3Complex(SageObject):
         K.monomial_list = self.monomial_list # change simultaneously while lifting
         K.v_dict = self.v_dict # change simultaneously while lifting
         K.polyhedron.add_space_dimensions_and_embed(len(K.monomial_list))
-        r0, z1 = K.gens()[0], K.gens()[1]
+        r0, z1, z2 = K.gens()[0], K.gens()[1], K.gens()[2]
         for l in self.bddlin:
             if not l(*K.gens()) < 0:
                 return
         for l in bddleq:
             if not l(*K.gens()) == 0:
                 return
-        (r0mapping, z1mapping) = mapping_r0_z1(bddleq)
-        r0m = r0mapping(r0, z1) * K.one(); z1m = z1mapping(r0, z1) * K.one()
+        (r0mapping, z1mapping, z2mapping) = mapping_r0_z1_z2(bddleq)
+        r0m = r0mapping(*K.gens()) * K.one()
+        z1m = z1mapping(*K.gens()) * K.one()
+        z2m = z2mapping(*K.gens()) * K.one()
         if self.theta is None:
             try:
-                o1 = o2 = z1 / (1 - r0)
-                h = cpl3_group_function(r0, z1, o1, o2, merge=False)
+                o1 = z1 / (1 - r0)
+                o2 = z2 / (1 - r0)
+                h = cpl3_group_function(r0, z1, z2, o1, o2, merge=False)
                 subadditivity_test(h) # always True
                 region_type = 'is_constructible'
             except:
                 region_type = 'not_constructible'
         else:
             try:
-                o1 = self.theta[0](r0m, z1m)
-                o2 = self.theta[1](r0m, z1m)
-                h = cpl3_group_function(r0m, z1m, o1, o2)
+                o1 = self.theta[0](r0m, z1m, z2m)
+                o2 = self.theta[1](r0m, z1m, z2m)
+                h = cpl3_group_function(r0m, z1m, z2m, o1, o2)
             except:
                 h = None
             region_type =  find_region_type_around_given_point(K, h)
@@ -150,68 +153,64 @@ class Cpl3Complex(SageObject):
 
 def bddlin_cpl():
     """
-    boundary of (r0, z1) in cpl3: r0>0, z1>0, r0+4*z1<1.
+    boundary of (r0, z1, z2) in cpl3: r0>0, z1>0, z2>0, r0+2*z1+2*z2<1.
     """
-    K.<r0,z1>=QQ[]
-    return [-r0, -z1, r0+4*z1-1]
+    K.<r0,z1,z2>=QQ[]
+    return [-r0, -z1, -z2, r0+2*z1+2*z2-1]
 
-def regions_r0_z1_from_arrangement_of_bkpts():
+def regions_r0_z1_z2_from_arrangement_of_bkpts():
     """
     Got regions[0:30]: 2-dim; regions[30:73]: 1-dim; regions[73:87]: 0-dim.
 
     sage: logging.disable(logging.INFO)  # not tested
-    sage: regions = regions_r0_z1_from_arrangement_of_bkpts() # not tested
+    sage: regions = regions_r0_z1_z2_from_arrangement_of_bkpts() # not tested
     sage: len(regions) #not tested
-    87
+    607
     """
-    arr_complex=Cpl3Complex(['r0','z1'], theta=None, bddlin=bddlin_cpl())
-    arr_complex.bfs_completion(var_value=[6/10,4/100])
+    arr_complex=Cpl3Complex(['r0','z1','z2'], theta=None, bddlin=bddlin_cpl())
+    arr_complex.bfs_completion(var_value=[6/10,3/200,5/200])
     regions = arr_complex.components
     regions.sort(key=lambda r: len(r.leq))
     return regions
 
-def mapping_r0_z1(leq):
+def mapping_r0_z1_z2(leq):
     """
-    sage: PR2.<r0,z1>=QQ[]
-    sage: mapping_r0_z1([])
-    (r0, z1)
-    sage: mapping_r0_z1([-2*r0 + 1])
-    (1/2, z1)
-    sage: mapping_r0_z1([-r0 - 6*z1 + 1])
-    (r0, -1/6*r0 + 1/6)
-    sage: mapping_r0_z1([-12*z1 + 1, -2*r0 + 1])
-    (1/2, 1/12)
+    sage: PR2.<r0,z1,z2>=QQ[]
+    sage: mapping_r0_z1_z2([])
+    (r0, z1, z2)
+    sage: mapping_r0_z1_z2([-2*r0 + 1])
+    (1/2, z1, z2)
+    sage: mapping_r0_z1_z2([-r0 - 6*z1 + 1])
+    (r0, -1/6*r0 + 1/6, z2)
+    sage: mapping_r0_z1_z2([-12*z1 + 1, -2*r0 + 1])
+    (1/2, 1/12, z2)
+    sage:  mapping_r0_z1_z2([-12*z1 + 1, -2*r0 + 1, r0 + z2 -1])
+    (1/2, 1/12, 1/2)
     """
-    PR2.<r0,z1>=QQ[]
-    if not leq:
-        return (r0, z1)
-    elif len(leq) == 1:
-        l = leq[0]
-        c_r0 = l.monomial_coefficient(r0)
-        c_z1 = l.monomial_coefficient(z1)
-        if c_z1 != 0:
-            return (r0, z1 - l / c_z1)
-        elif c_r0 != 0:
-            return (r0 - l / c_r0, z1)
-        else:
-            raise ValueError
-    elif len(leq) == 2:
-        l1 = leq[0]; l2 = leq[1]
-        (a11, a12, b1) = (l1.monomial_coefficient(r0), l1.monomial_coefficient(z1), -l1.constant_coefficient())
-        (a21, a22, b2) = (l2.monomial_coefficient(r0), l2.monomial_coefficient(z1), -l2.constant_coefficient())
-        determinant = a11 * a22 - a12 * a21
-        if determinant == 0:
-            if not a11 == a12 == 0:
-                return mapping_r0_z1([l1])
+    PR2.<r0,z1,z2>=QQ[]
+    #m = len(leq)
+    n = 3
+    matrix_var = [z2, z1, r0, PR2.one()]  #reordered. want to keep r0 as parameter.
+    matrix_coeff = [[l.monomial_coefficient(z2), l.monomial_coefficient(z1), l.monomial_coefficient(r0),\
+                     l.constant_coefficient()] for l in leq]
+    AQ = matrix(QQ, matrix_coeff)
+    AE = AQ.echelon_form()
+    sol = [r0, z1, z2]
+    for arow in AE[::-1]:
+        for i in range(n+1):
+            if arow[i] != 0: # ==1?
+                break
+        if i == n:
+            if arow[i] == 0:
+                continue
             else:
-                return mapping_r0_z1([l2])
-        r0_val = (b1 * a22 - a12 * b2) / determinant
-        z1_val = (a11 * b2 - b1 * a21) / determinant
-        return (r0_val * PR2.one(), z1_val * PR2.one())
+                raise ValueError, "%s has not solution." % leq
+        sol[n-i-1] = - sum(arow[j]*matrix_var[j] for j in range(i+1,n+1))
+    return tuple(sol)
 
 def symbolic_subbadditivity_constraints_of_cpl3_given_region(r):
     """
-    sage: regions = regions_r0_z1_from_arrangement_of_bkpts()
+    sage: regions = regions_r0_z1_z2_from_arrangement_of_bkpts()
     sage: r = regions[0]
     sage: symbolic_subbadditivity_constraints_of_cpl3_given_region(r)
     [1/r0,
@@ -223,68 +222,69 @@ def symbolic_subbadditivity_constraints_of_cpl3_given_region(r):
      (-2*o1 - o2 + 1)/r0,
      o2/r0,
      (-2*o1 - 2*o2 + 1)/r0,
-     (o1 - o2)/r0,
-     (r0*o1 + r0*o2 + 2*z1 - o1 - o2)/(r0^2 + 4*r0*z1 - r0),
-     (r0*o1 + 2*z1*o1 - 2*z1*o2 + z1 - o1)/(r0^2 + 4*r0*z1 - r0)]
+     (z2*o1 - z1*o2)/(r0*z2),
+     (r0*o1 + r0*o2 + z1 + z2 - o1 - o2)/(r0^2 + 2*r0*z1 + 2*r0*z2 - r0),
+     (r0*o1 + 2*z2*o1 - 2*z1*o2 + z1 - o1)/(r0^2 + 2*r0*z1 + 2*r0*z2 - r0)]
     """
     if r.region_type == 'not_constructible':
         return []
-    K.<r0,z1,o1,o2>=SymbolicRealNumberField([r.var_value[0], r.var_value[1], 0, 0])
-    r0s = r0.sym(); z1s = z1.sym(); o1s = o1.sym(); o2s = o2.sym()
-    (r0mapping, z1mapping) = mapping_r0_z1(r.leq)
-    r0m = r0mapping(r0s, z1s); z1m = z1mapping(r0s, z1s)
+    K.<r0,z1,z2,o1,o2>=SymbolicRealNumberField([r.var_value[0], r.var_value[1], r.var_value[2], 0, 0])
+    r0s = r0.sym(); z1s = z1.sym(); z2s=z2.sym(); o1s = o1.sym(); o2s = o2.sym()
+    (r0mapping, z1mapping, z2mapping) = mapping_r0_z1_z2(r.leq)
+    r0m = r0mapping(r0s, z1s, z2s); z1m = z1mapping(r0s, z1s, z2s); z2m = z2mapping(r0s, z1s, z2s)
 
-    h = cpl3_group_function(r0, z1, o1, o2, merge=False)
+    h = cpl3_group_function(r0, z1, z2, o1, o2, merge=False)
     bkpts = h.end_points()
     bkpts2 = bkpts[:-1] + [ x+1 for x in bkpts]
     constraints = [] # can't use set becasue of the difference between '==' and 'is'
     for x in bkpts:
         for y in bkpts:
             if 0 < x <= y < 1:
-                c = delta_pi(h, x, y).sym()(r0m, z1m, o1s, o2s)
+                c = delta_pi(h, x, y).sym()(r0m, z1m, z2m, o1s, o2s)
                 if (c not in QQ) and all(c != cc for cc in constraints):
                     constraints.append(c)
     for x in bkpts:
         for z in bkpts2:
             if 0 < x < z < 1+x:
-                c = delta_pi(h, x, z-x).sym()(r0m, z1m, o1s, o2s)
+                c = delta_pi(h, x, z-x).sym()(r0m, z1m, z2m, o1s, o2s)
                 if (c not in QQ) and all(c != cc for cc in constraints):
                     constraints.append(c)
     return constraints
 
 def coefficients_of_linear_constraint_in_thetas(c):
     """
-    sage: PR4.<r0,z1,o1,o2>=QQ[]
-    sage: c = (r0*o1 + r0*o2 + 2*z1 - o1 - o2)/(r0^2 + 4*r0*z1 - r0)
+    sage: PR4.<r0,z1,z2, o1,o2>=QQ[]
+    sage: c = (r0*o1 + r0*o2 + z1 + z2 - o1 - o2)/(r0^2 + 2*r0*z1 + 2*r0*z2 - r0)
     sage: coefficients_of_linear_constraint_in_thetas(c)
-    ((r0 - 1)/(r0^2 + 4*r0*z1 - r0),
-     (r0 - 1)/(r0^2 + 4*r0*z1 - r0),
-     (-2*z1)/(r0^2 + 4*r0*z1 - r0))
-    sage: c = (r0*o1 + 2*z1*o1 - 2*z1*o2 + z1 - o1)/(r0^2 + 4*r0*z1 - r0)
+    ((r0 - 1)/(r0^2 + 2*r0*z1 + 2*r0*z2 - r0),
+     (r0 - 1)/(r0^2 + 2*r0*z1 + 2*r0*z2 - r0),
+     (-z1 - z2)/(r0^2 + 2*r0*z1 + 2*r0*z2 - r0))
+    sage: c = (r0*o1 + 2*z2*o1 - 2*z1*o2 + z1 - o1)/(r0^2 + 2*r0*z1 + 2*r0*z2 - r0)
     sage: coefficients_of_linear_constraint_in_thetas(c)
-    ((r0 + 2*z1 - 1)/(r0^2 + 4*r0*z1 - r0),
-     (-2*z1)/(r0^2 + 4*r0*z1 - r0),
-     (-z1)/(r0^2 + 4*r0*z1 - r0))
+    ((r0 + 2*z2 - 1)/(r0^2 + 2*r0*z1 + 2*r0*z2 - r0),
+     (-2*z1)/(r0^2 + 2*r0*z1 + 2*r0*z2 - r0),
+     (-z1)/(r0^2 + 2*r0*z1 + 2*r0*z2 - r0))
     """
-    # assume c.parent() is Fraction Field of Multivariate Polynomial Ring in r0, z1, o1, o2 over Rational Field
+    # assume c.parent() is Fraction Field of Multivariate Polynomial Ring
+    # in r0, z1, z2, o1, o2 over Rational Field
     # assume c is linear wrt o1 and o2.
-    PR4.<r0,z1,o1,o2>=QQ[]
+    PR4.<r0,z1,z2,o1,o2>=QQ[]
     cn = c.numerator(); cd = c.denominator()
     c_o1 = cn.coefficient(o1) / cd
     c_o2 = cn.coefficient(o2) / cd
     c_rhs = - cn.mod([o1,o2]) / cd
-    PR2.<r0,z1>=QQ[]
-    return (c_o1(r0, z1, 0, 0), c_o2(r0, z1, 0, 0), c_rhs(r0, z1, 0, 0))
+    PR2.<r0,z1,z2>=QQ[]
+    return (c_o1(r0, z1, z2, 0, 0), c_o2(r0, z1, z2, 0, 0), c_rhs(r0, z1, z2, 0, 0))
 
 def symbolic_subadditivity_constraint_coefficients_of_thetas_given_region(r):
     """
-    sage: regions = regions_r0_z1_from_arrangement_of_bkpts()
+    sage: regions = regions_r0_z1_z2_from_arrangement_of_bkpts()
     sage: r = regions[0]
     sage: coefficients_of_thetas = symbolic_subadditivity_constraint_coefficients_of_thetas_given_region(r)
     sage: coefficients_of_thetas[-1]
-    ((r0 + 2*z1 - 1)/(r0^2 + 4*r0*z1 - r0),
-     (-2*z1)/(r0^2 + 4*r0*z1 - r0),
-     (-z1)/(r0^2 + 4*r0*z1 - r0))
+    ((r0 + 2*z2 - 1)/(r0^2 + 2*r0*z1 + 2*r0*z2 - r0),
+     (-2*z1)/(r0^2 + 2*r0*z1 + 2*r0*z2 - r0),
+     (-z1)/(r0^2 + 2*r0*z1 + 2*r0*z2 - r0))
     """
     constraints = symbolic_subbadditivity_constraints_of_cpl3_given_region(r)
     coefficients_of_thetas = []
@@ -296,13 +296,13 @@ def symbolic_subadditivity_constraint_coefficients_of_thetas_given_region(r):
 
 def get_pretty_fraction_polynomial(fp):
     """
-    sage: PR2.<r0,z1>=QQ[]
+    sage: PR2.<r0,z1,z2>=QQ[]
     sage: fp = (-2*z1)/(-2*r0 + 4*z1 - 6)
     sage: get_pretty_fraction_polynomial(fp)
     z1/(r0 - 2*z1 + 3)
-    sage: fp = (r0/4+z1/3)/(1/12)
+    sage: fp = (r0/4+z1/3+z2/3)/(1/12)
     sage: get_pretty_fraction_polynomial(fp)
-    3*r0 + 4*z1
+    3*r0 + 4*z1 + 4*z2
     """
     pn = fp.numerator()
     pd = fp.denominator()
@@ -326,13 +326,13 @@ def get_pretty_fraction_polynomial(fp):
 
 def generate_thetas_of_region(r):
     """
-    sage: regions = regions_r0_z1_from_arrangement_of_bkpts()
+    sage: regions = regions_r0_z1_z2_from_arrangement_of_bkpts()
     sage: r = regions[0]
     sage: thetas = generate_thetas_of_region(r)
     sage: len(thetas)
-    24
+    26
     sage: thetas[-1]
-    ((-z1)/(r0 - 1), (-z1)/(r0 - 1))
+    ((-z1)/(r0 - 1), (-z2)/(r0 - 1))
     """
     thetas = []  # can't use set becasue of the difference between '==' and 'is'
     coefficients_of_thetas = symbolic_subadditivity_constraint_coefficients_of_thetas_given_region(r)
@@ -353,41 +353,44 @@ def generate_thetas_of_region(r):
 
 def fill_region_given_theta(r, theta):
     """
-    sage: regions = regions_r0_z1_from_arrangement_of_bkpts()
+    sage: regions = regions_r0_z1_z2_from_arrangement_of_bkpts()
     sage: r = regions[0]
     sage: thetas = generate_thetas_of_region(r)
     sage: theta = thetas[-1]
     sage: theta
-    ((-z1)/(r0 - 1), (-z1)/(r0 - 1))
+    ((-z1)/(r0 - 1), (-z2)/(r0 - 1))
     sage: cpl_complex = fill_region_given_theta(r, theta)
     sage: len(cpl_complex.components)
     1
     sage: cpl_complex.components[0].region_type
     'is_extreme'
     """
-    cpl_complex = Cpl3Complex(['r0','z1'], theta=theta, bddleq=copy(r.leq), bddlin=copy(r.lin))
+    cpl_complex = Cpl3Complex(['r0','z1','z2'], theta=theta, bddleq=copy(r.leq), bddlin=copy(r.lin))
     cpl_complex.bfs_completion(var_value=tuple(r.var_value), flip_ineq_step=-1/100)
     return cpl_complex
 
 
-def cpl_regions_with_thetas_and_components(keep_extreme_only=False):
+def cpl_regions_with_thetas_and_components(keep_extreme_only=False, regions=None):
     """
     sage: regions = cpl_regions_with_thetas_and_components()
     output warning:
     0 [3/5, 1/25]
     ...
     9 [243/520, 6/325]
-    WARNING: 2016-02-17 07:44:25,836 max number 8 of bounds propagation iterations has attained.
+    WARNING: 2016-02-17 07:44:25,836 max number 8 of bounds propagation iterations has attrained.
     ...
     24 [319/2000, 169/1000]
     WARNING: 2016-02-17 07:46:44,986 crossed non-linear wall 2*r0^2 + 9*r0*z1 + 7*z1^2 - 3*r0 - 6*z1 + 1 < 0 while flipping -4*r0 - 14*z1 + 3 < 0
     ...
     86 [1/8, 1/8]
     """
-    regions = regions_r0_z1_from_arrangement_of_bkpts()
+    if not regions:
+        regions = regions_r0_z1_z2_from_arrangement_of_bkpts()
     for i in range(len(regions)):
         r = regions[i]
         print i, r.var_value
+        if hasattr(r, 'thetas') and r.thetas:
+            continue
         r.thetas = {}
         thetas_of_r = generate_thetas_of_region(r)
         for theta in thetas_of_r:
@@ -409,7 +412,7 @@ def cpl_thetas_and_regions_extreme(regions):
     """
     thetas_and_regions = {}
     for r in regions:
-        (r0m, z1m) = mapping_r0_z1(r.leq)
+        (r0m, z1m, z2m) = mapping_r0_z1_z2(r.leq)
         for (theta, components) in (r.thetas).items():
             extreme_regions = [c for c in components if c.region_type=='is_extreme']
             if not extreme_regions:
@@ -417,7 +420,7 @@ def cpl_thetas_and_regions_extreme(regions):
             new_theta = True
             for t in thetas_and_regions.keys():
                 try:
-                    if theta == (t[0](r0m, z1m), t[1](r0m, z1m)):
+                    if theta == (t[0](r0m, z1m, z2m), t[1](r0m, z1m, z2m)):
                         thetas_and_regions[t] += extreme_regions
                         new_theta = False
                 except ZeroDivisionError:
@@ -429,9 +432,9 @@ def cpl_thetas_and_regions_extreme(regions):
 def cpl_regions_fix_theta(regions, theta):
     components = []
     for r in regions:
-        (r0m, z1m) = mapping_r0_z1(r.leq)
+        (r0m, z1m, z2m) = mapping_r0_z1_z2(r.leq)
         try:
-            tt =  (theta[0](r0m, z1m), theta[1](r0m, z1m))
+            tt =  (theta[0](r0m, z1m, z2m), theta[1](r0m, z1m, z2m))
         except ZeroDivisionError:
             continue
         for (t, ct) in (r.thetas).items():
@@ -441,7 +444,7 @@ def cpl_regions_fix_theta(regions, theta):
 
 def plot_cpl_components(components, show_testpoints=False):
     """
-    sage: regions = regions_r0_z1_from_arrangement_of_bkpts()
+    sage: regions = regions_r0_z1_z2_from_arrangement_of_bkpts()
     sage: g = plot_cpl_components(regions)
     sage: g.show(xmin=0, xmax=1, ymin=0, ymax=1/4) #not tested
     """
