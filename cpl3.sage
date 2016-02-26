@@ -4,6 +4,8 @@ if '' not in sys.path:
     sys.path = [''] + sys.path
 
 from igp import *
+from sage.interfaces.qepcad import _qepcad_atoms
+from sage.misc.parser import Parser, Tokenizer
 
 def cpl3_group_function(r0=1/6, z1=1/12, o1=1/5, o2=0, merge=True):
     """
@@ -107,6 +109,12 @@ class Cpl3Complex(SageObject):
                 h = None
             region_type =  find_region_type_around_given_point(K, h)
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
+        if new_component.leq and max([l.degree() for l in new_component.leq]) > 1:
+            logging.warn("The cell around testpoint %s defined by %s leqs and %s lins has higher order equations." % (new_component.var_value, new_component.leq, new_component.lin)) # Might be problem to variable elemination.
+        # TODO: call qepcad to get a minimal discription.
+        # ignore equations for now to keep number of variables small.
+        if new_component.lin and max([l.degree() for l in new_component.lin]) > 1:
+            new_component.lin = remove_redundancy_using_qepcad(new_component.lin)
         # put non-linear eq/ineq to somewhere else.
         if flip_ineq_step < 0:
             new_component.nleq = [l for l in new_component.leq if l.degree()>1]
@@ -147,6 +155,50 @@ class Cpl3Complex(SageObject):
             if not self.is_point_covered(var_value):
                 self.add_new_component(var_value, bddleq, flip_ineq_step=flip_ineq_step)
 
+def remove_redundancy_using_qepcad(lins):
+    """
+    sage: PR2.<r0,z1>=QQ[]
+    sage: lins = [r0 + 8*z1 - 1, -z1, -r0*z1 - z1, r0^2 + r0*z1 - r0 + z1, r0*z1 - r0 - z1, -2*r0 + 1, r0^2*z1 - 2*r0*z1 - z1]
+    sage: remove_redundancy_using_qepcad(lins)
+    [r0 + 8*z1 - 1, -2*r0 + 1, -z1]
+    sage: lins = [r0 + 4*z1 - 1, -r0 - 8*z1 + 1, -2*r0 + 1, 4*r0*z1 - 3*r0 + 4*z1 - 1, -4*r0*z1 + 4*z1 - 1]
+    sage: remove_redundancy_using_qepcad(lins)
+    [-r0 - 8*z1 + 1, -2*r0 + 1, r0 + 4*z1 - 1]
+    """
+    # TODO: check on the qepcad option measure-zero-error
+    # which is supposed to bring huge reduction in time and space.
+    # lins are lists of Multivariate Polynomial. (we ignored leqs)
+    qf = qepcad_formula
+    qe = qepcad([qf.atomic(l, operator.lt) for l in lins], memcells=50000000)
+    # note: type(qe) = <class 'sage.interfaces.interface.AsciiArtString'>
+    # note: with interact=True, call qe.finish() and qe.answer()
+    #qe_interact = qepcad([qf.atomic(l, operator.lt) for l in lins], memcells=50000000, interact=True)
+    #qe_interact.finish()
+    #qe = qe_interact.answer()
+    if ("\\/" in qe):
+        logging.warn("The qepcad output of %s is %s, which has \\/." % (lins, qe))
+    # see how many inequalities qepcad managed to reduce.
+    #if (qe.count("/\\")+1 != len(lins)):
+    #    print len(lins), lins
+    #    print qe.count("/\\")+1, qe
+    # not complete....to parse qe
+    # assume there is no disjuction.
+    atomset = _qepcad_atoms(qe)
+    p = Parser(make_var=var)
+    # assume rhs is 0, operator is either < or >
+    new_lins = []
+    for a in atomset:
+        q = p.p_eqn(Tokenizer(a))
+        if q.operator() == operator.lt:
+            qexpr = q.lhs()-q.rhs()
+        elif q.operator() == operator.gt:
+            qexpr = q.rhs()-q.lhs()
+        else:
+            raise ValueError, "The min description of %s is %s. It has atom %s which is not a strict inequality." % (lins, qe, a)
+        qpoly = QQ['r0, z1'](qexpr)
+        new_lins.append(qpoly)
+    del(qe) # useful?
+    return new_lins
 
 def bddlin_cpl():
     """
@@ -155,7 +207,7 @@ def bddlin_cpl():
     K.<r0,z1>=QQ[]
     return [-r0, -z1, r0+4*z1-1]
 
-def regions_r0_z1_from_arrangement_of_bkpts():
+def regions_r0_z1_from_arrangement_of_bkpts(max_iter=8):
     """
     Got regions[0:30]: 2-dim; regions[30:73]: 1-dim; regions[73:87]: 0-dim.
 
@@ -164,7 +216,7 @@ def regions_r0_z1_from_arrangement_of_bkpts():
     sage: len(regions) #not tested
     87
     """
-    arr_complex=Cpl3Complex(['r0','z1'], theta=None, bddlin=bddlin_cpl())
+    arr_complex=Cpl3Complex(['r0','z1'], theta=None, bddlin=bddlin_cpl(), max_iter=max_iter)
     arr_complex.bfs_completion(var_value=[6/10,4/100])
     regions = arr_complex.components
     regions.sort(key=lambda r: len(r.leq))
@@ -351,7 +403,7 @@ def generate_thetas_of_region(r):
                 thetas.append(theta)
     return thetas
 
-def fill_region_given_theta(r, theta):
+def fill_region_given_theta(r, theta, max_iter=8):
     """
     sage: regions = regions_r0_z1_from_arrangement_of_bkpts()
     sage: r = regions[0]
@@ -365,7 +417,7 @@ def fill_region_given_theta(r, theta):
     sage: cpl_complex.components[0].region_type
     'is_extreme'
     """
-    cpl_complex = Cpl3Complex(['r0','z1'], theta=theta, bddleq=copy(r.leq), bddlin=copy(r.lin))
+    cpl_complex = Cpl3Complex(['r0','z1'], theta=theta, bddleq=copy(r.leq), bddlin=copy(r.lin), max_iter=max_iter)
     cpl_complex.bfs_completion(var_value=tuple(r.var_value), flip_ineq_step=-1/100)
     return cpl_complex
 
