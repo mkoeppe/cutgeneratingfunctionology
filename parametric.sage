@@ -121,6 +121,13 @@ class SymbolicRNFElement(FieldElement):
             other = SymbolicRNFElement(other, parent=self.parent())
         return SymbolicRNFElement(self._val / other._val, self._sym / other._sym, parent=self.parent())
 
+    # New bug in SageMath Version 7.1.beta5.
+    def __hash__(self):
+        # copy from the hash method for Elements in Sage 6.9
+        #return hash(str(self))
+        # copy from the hash method for SageObject in Sage 6.9
+        return hash(self.__repr__())
+
 
 from sage.rings.ring import Field
 import sage.rings.number_field.number_field_base as number_field_base
