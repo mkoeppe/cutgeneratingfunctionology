@@ -172,9 +172,16 @@ def remove_redundancy_using_qepcad(lins):
     qe = qepcad([qf.atomic(l, operator.lt) for l in lins], memcells=50000000)
     # note: type(qe) = <class 'sage.interfaces.interface.AsciiArtString'>
     # note: with interact=True, call qe.finish() and qe.answer()
-    #qe_interact = qepcad([qf.atomic(l, operator.lt) for l in lins], memcells=50000000, interact=True)
-    #qe_interact.finish()
-    #qe = qe_interact.answer()
+    # qe_interact = qepcad([qf.atomic(l, operator.lt) for l in lins], memcells=50000000, interact=True)
+    # PR2.<r0,z1>=QQ[]
+    # vars_in_lins = set(v for l in lins for v in l.variables())
+    # if r0 in vars_in_lins:
+    #     qe_interact.assume(r0 > 0)
+    # if z1 in vars_in_lins:
+    #     qe_interact.assume(z1 > 0)
+    # if (r0 in vars_in_lins) and (z1 in vars_in_lins):
+    #     qe_interact.assume(qf.atomic(r0 + 4*z1 - 1, operator.lt))
+    # qe = qe_interact.finish()
     if ("\\/" in qe):
         logging.warn("The qepcad output of %s is %s, which has \\/." % (lins, qe))
     # see how many inequalities qepcad managed to reduce.
