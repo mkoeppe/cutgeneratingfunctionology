@@ -73,11 +73,11 @@ class Cpl3Complex(SageObject):
                     return True
         return False
 
-    def add_new_component(self, var_value, bddleq, flip_ineq_step=-1/100):
+    def add_new_component(self, var_value, bddleq, flip_ineq_step=1/1000):
         # Remark: the sign of flip_ineq_step indicates how to search for neighbour testpoints:
         # if flip_ineq_step = 0, don't search for neighbour testpoints. Used in shoot_random_points().
         # if flip_ineq_step < 0, we assume that the walls of the cell are linear eqn/ineq over original parameters. (So, gradient is constant; easy to find a new testpoint on the wall and another testpoint (-flip_ineq_step away) across the wall.) Used in bfs.
-        # if flip_ineq_step > 0, we don't assume the walls are linear. Apply generate_one_point_by_flipping_inequality() with flip_ineq_step to find new testpoints across the wall only. Used in bfs.
+        # if flip_ineq_step > 0, use cad of mathematica.
         unlifted_space_dim =  len(self.monomial_list)
         K = SymbolicRealNumberField(var_value, self.var_name)
         K.monomial_list = self.monomial_list # change simultaneously while lifting
@@ -110,30 +110,32 @@ class Cpl3Complex(SageObject):
             region_type =  find_region_type_around_given_point(K, h)
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         if new_component.leq and max([l.degree() for l in new_component.leq]) > 1:
-            logging.warn("The cell around testpoint %s defined by %s leqs and %s lins has higher order equations." % (new_component.var_value, new_component.leq, new_component.lin)) # Might be problem to variable elemination.
-        # TODO: call qepcad to get a minimal discription.
-        # ignore equations for now to keep number of variables small.
-        if new_component.lin and max([l.degree() for l in new_component.lin]) > 1:
-            new_component.lin = remove_redundancy_using_qepcad(new_component.lin)
-        # put non-linear eq/ineq to somewhere else.
-        if flip_ineq_step < 0:
-            new_component.nleq = [l for l in new_component.leq if l.degree()>1]
-            new_component.leq = [l for l in new_component.leq if l.degree()<=1]
-            new_component.nlin = [l for l in new_component.lin if l.degree()>1]
-            new_component.lin = [l for l in new_component.lin if l.degree()<=1]
+            logging.warn("The cell around testpoint %s defined by %s eqns and %s ineqs has higher order equations." % (new_component.var_value, new_component.leq, new_component.lin)) # Might be problem to variable elemination.
+        # assume that variable elimination is done for ineqs so that eqns are not need in cad.
         #if see new monomial, lift polyhedrons of the previously computed components.
         dim_to_add = len(self.monomial_list) - unlifted_space_dim
         if dim_to_add > 0:
             for c in self.components:
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
+        lins = copy(new_component.lin)
+        new_component.lin = []
+        for i in range(len(lins)):
+            l = lins[i]
+            pt_across_wall = find_pt_across_wall(l, new_component.lin+lins[i+1::], flip_ineq_step, bddleq)
+            if pt_across_wall is None:
+                continue
+            (new_component.lin).append(l)
+            if l in set(self.bddlin):
+                continue
+            (self.points_to_test).add(pt_across_wall)
+            (self.bddleq_of_testpoint)[pt_across_wall] = bddleq
+            # ignore cells that has non-linear eqns for now.
+            if l.degree() > 1:
+                continue
+            pt_on_wall = find_pt_on_wall(l, new_component.lin[:-1]+lins[i+1::], bddleq)
+            (self.points_to_test).add(pt_on_wall)
+            (self.bddleq_of_testpoint)[pt_on_wall] = bddleq + [l]
         self.components.append(new_component)
-        neighbour_points = new_component.generate_neighbour_points(flip_ineq_step, self.bddlin)
-        if (flip_ineq_step > 0):
-            (self.points_to_test).update(neighbour_points)
-        elif (flip_ineq_step < 0):
-            for (new_point, new_bddleq) in neighbour_points:
-                (self.points_to_test).add(new_point)
-                (self.bddleq_of_testpoint)[new_point] = bddleq + new_bddleq
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=False):
         if restart:
@@ -144,7 +146,7 @@ class Cpl3Complex(SageObject):
         self.num_plotted_components = len(self.components)
         return self.graph
 
-    def bfs_completion(self, var_value=None, flip_ineq_step=-1/100):
+    def bfs_completion(self, var_value=None, flip_ineq_step=1/1000):
         # See remark about flip_ineq_step in def add_new_component().
         if var_value:
             (self.points_to_test).add(tuple(var_value))
@@ -154,6 +156,107 @@ class Cpl3Complex(SageObject):
             bddleq = self.bddleq_of_testpoint[tuple(var_value)]
             if not self.is_point_covered(var_value):
                 self.add_new_component(var_value, bddleq, flip_ineq_step=flip_ineq_step)
+
+
+def find_pt_across_wall(wall, ineqs, flip_ineq_step, eqs):
+    """
+    sage: PR2.<r0,z1>=QQ[]
+    sage: wall = r0 + 8*z1 - 1
+    sage: ineqs = [-z1, -r0*z1 - z1, r0^2 + r0*z1 - r0 + z1, r0*z1 - r0 - z1, -2*r0 + 1, r0^2*z1 - 2*r0*z1 - z1]
+    sage: find_pt_across_wall(wall, ineqs, 1/1000, [])
+    (3/4, 33/1024)
+    sage: wall(3/4, 33/1024)
+    1/128
+    sage: ineqs = [-2*r0^2 - 14*r0*z1 - 12*z1^2 + 3*r0 + 7*z1 - 1, 2*r0 + z1 - 1, r0 + 4*z1 - 1, -r0 - 5*z1 + 1, -2*r0 - 2*z1 + 1]
+    sage: wall = -2*r0*z1 - 12*z1^2 + r0 + 7*z1 - 1
+    sage: find_pt_across_wall(wall, ineqs, flip_ineq_step, [])
+    (7/16, 1313/10752)
+    sage: wall(7/16, 1313/10752)
+    62767/9633792
+    """
+    condstr = '{'
+    for l in ineqs:
+        condstr += str(l) + '<0, '
+    condstr += '0<'+str(wall)+'<'+str(flip_ineq_step)+ '}'
+    if 'r0' in condstr:
+        if 'z1' in condstr:
+            varstr = '{r0, z1}'
+        else:
+            varstr = '{r0}'
+    else:
+        varstr='{z1}'
+    pt = mathematica.FindInstance(condstr, varstr) #,'Rationals')
+    if len(pt) == 0:
+        return None
+    if not eqs:
+        return tuple(QQ(c[2]) for c in pt[1])
+    eqcondstr = '{'
+    for l in eqs:
+        eqcondstr += str(l) + '==0, '
+    eqcondstr += str(pt[1][1][1].sage() == pt[1][1][2].sage())
+    if len(pt) == 1:
+        eqcondstr += '}'
+    else:
+        eqcondstr += ', '+str(pt[1][2][1].sage() == pt[1][2][2].sage()) + '}'
+    pt_across_wall =  mathematica.Solve(eqcondstr, '{r0,z1}')
+    return tuple(QQ(c[2]) for c in pt_across_wall[1])
+
+def find_pt_on_wall(wall, ineqs, eqs):
+    """
+    sage: PR2.<r0,z1>=QQ[]
+    sage: wall = r0 + 8*z1 - 1
+    sage: ineqs = [-z1, -r0*z1 - z1, r0^2 + r0*z1 - r0 + z1, r0*z1 - r0 - z1, -2*r0 + 1, r0^2*z1 - 2*r0*z1 - z1]
+    sage: find_pt_on_wall(wall, ineqs, [])
+    (3/4, 1/32)
+    sage: wall(3/4, 1/32)
+    0
+    sage: find_pt_on_wall(-z1, [], [r0-1])
+    (1, 0)
+    """
+    # assume wall is linear so that the point found has rational coordinates.
+    condstr = '{'
+    for l in ineqs:
+        condstr += str(l) + '<0, '
+    condstr +=  str(wall)+'== 0}'
+    if 'r0' in condstr:
+        if 'z1' in condstr:
+            varstr = '{r0, z1}'
+        else:
+            varstr = '{r0}'
+    else:
+        varstr='{z1}'
+    pt = mathematica.FindInstance(condstr, varstr)
+    if len(pt) == 0:
+        return None
+    if not eqs:
+        return tuple(QQ(c[2]) for c in pt[1])
+    eqcondstr = '{'
+    for l in eqs:
+        eqcondstr += str(l) + '==0, '
+    eqcondstr += str(pt[1][1][1].sage() == pt[1][1][2].sage())
+    if len(pt[1]) == 1:
+        eqcondstr += '}'
+    else:
+        eqcondstr += ', '+str(pt[1][2][1].sage() == pt[1][2][2].sage()) + '}'
+    pt_on_wall =  mathematica.Solve(eqcondstr, '{r0,z1}')
+    return tuple(QQ(c[2]) for c in pt_on_wall[1])
+
+# def remove_redundancy_using_maple(lins):
+#     maple=Maple(server='logic.math.ucdavis.edu')
+#     condstr = '{'+ str(lins[0]) + '<0'
+#     for l in lins[1::]:
+#         condstr += ', ' + str(l) + '<0'
+#     condstr += '}'
+#     #if 'r0' in condstr:
+#     #    if 'z1' in condstr:
+#     #        varstr = '[r0, z1]'
+#     #    else:
+#     #        varstr = '[r0]'
+#     #else:
+#     #    varstr='[z1]'
+#     s = maple.solve(condstr) #, varstr)
+#     if maple.nops(s)>1:
+#         logging.warn("The Maple output of %s is %s, which ." % (lins, qe))
 
 def remove_redundancy_using_qepcad(lins):
     """
@@ -425,11 +528,11 @@ def fill_region_given_theta(r, theta, max_iter=8):
     'is_extreme'
     """
     cpl_complex = Cpl3Complex(['r0','z1'], theta=theta, bddleq=copy(r.leq), bddlin=copy(r.lin), max_iter=max_iter)
-    cpl_complex.bfs_completion(var_value=tuple(r.var_value), flip_ineq_step=-1/100)
+    cpl_complex.bfs_completion(var_value=tuple(r.var_value), flip_ineq_step=1/1000)
     return cpl_complex
 
 
-def cpl_regions_with_thetas_and_components(keep_extreme_only=False):
+def cpl_regions_with_thetas_and_components(keep_extreme_only=False, max_iter=0):
     """
     sage: regions = cpl_regions_with_thetas_and_components()
     output warning:
@@ -443,14 +546,14 @@ def cpl_regions_with_thetas_and_components(keep_extreme_only=False):
     ...
     86 [1/8, 1/8]
     """
-    regions = regions_r0_z1_from_arrangement_of_bkpts()
+    regions = regions_r0_z1_from_arrangement_of_bkpts(max_iter=max_iter)
     for i in range(len(regions)):
         r = regions[i]
         print i, r.var_value
         r.thetas = {}
         thetas_of_r = generate_thetas_of_region(r)
         for theta in thetas_of_r:
-            cpl_complex = fill_region_given_theta(r, theta)
+            cpl_complex = fill_region_given_theta(r, theta, max_iter=max_iter)
             if keep_extreme_only:
                 components = [c for c in cpl_complex.components if c.region_type=='is_extreme']
             else:
