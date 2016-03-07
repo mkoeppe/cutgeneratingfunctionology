@@ -164,42 +164,26 @@ def find_pt_across_wall(wall, ineqs, flip_ineq_step, eqs):
     sage: wall = r0 + 8*z1 - 1
     sage: ineqs = [-z1, -r0*z1 - z1, r0^2 + r0*z1 - r0 + z1, r0*z1 - r0 - z1, -2*r0 + 1, r0^2*z1 - 2*r0*z1 - z1]
     sage: find_pt_across_wall(wall, ineqs, 1/1000, [])
-    (3/4, 33/1024)
-    sage: wall(3/4, 33/1024)
-    1/128
+    (3/4, 257/8192)
+    sage: wall(3/4, 257/8192)
+    1/1024
     sage: ineqs = [-2*r0^2 - 14*r0*z1 - 12*z1^2 + 3*r0 + 7*z1 - 1, 2*r0 + z1 - 1, r0 + 4*z1 - 1, -r0 - 5*z1 + 1, -2*r0 - 2*z1 + 1]
     sage: wall = -2*r0*z1 - 12*z1^2 + r0 + 7*z1 - 1
     sage: find_pt_across_wall(wall, ineqs, flip_ineq_step, [])
-    (7/16, 1313/10752)
-    sage: wall(7/16, 1313/10752)
-    62767/9633792
+    (901/2048, 10289/86016)
+    sage: wall(901/2048, 10289/86016)
+    48347/154140672
     """
     condstr = '{'
+    for l in eqs:
+        condstr += str(l) + '==0, '
     for l in ineqs:
         condstr += str(l) + '<0, '
     condstr += '0<'+str(wall)+'<'+str(flip_ineq_step)+ '}'
-    if 'r0' in condstr:
-        if 'z1' in condstr:
-            varstr = '{r0, z1}'
-        else:
-            varstr = '{r0}'
-    else:
-        varstr='{z1}'
-    pt = mathematica.FindInstance(condstr, varstr) #,'Rationals')
+    pt = mathematica.FindInstance(condstr, '{r0,z1}') #,'Rationals')
     if len(pt) == 0:
         return None
-    if not eqs:
-        return tuple(QQ(c[2]) for c in pt[1])
-    eqcondstr = '{'
-    for l in eqs:
-        eqcondstr += str(l) + '==0, '
-    eqcondstr += str(pt[1][1][1].sage() == pt[1][1][2].sage())
-    if len(pt) == 1:
-        eqcondstr += '}'
-    else:
-        eqcondstr += ', '+str(pt[1][2][1].sage() == pt[1][2][2].sage()) + '}'
-    pt_across_wall =  mathematica.Solve(eqcondstr, '{r0,z1}')
-    return tuple(QQ(c[2]) for c in pt_across_wall[1])
+    return (QQ(pt[1][1][2]), QQ(pt[1][2][2]))
 
 def find_pt_on_wall(wall, ineqs, eqs):
     """
@@ -215,31 +199,15 @@ def find_pt_on_wall(wall, ineqs, eqs):
     """
     # assume wall is linear so that the point found has rational coordinates.
     condstr = '{'
+    for l in eqs:
+        condstr += str(l) + '==0, '
     for l in ineqs:
         condstr += str(l) + '<0, '
-    condstr +=  str(wall)+'== 0}'
-    if 'r0' in condstr:
-        if 'z1' in condstr:
-            varstr = '{r0, z1}'
-        else:
-            varstr = '{r0}'
-    else:
-        varstr='{z1}'
-    pt = mathematica.FindInstance(condstr, varstr)
+    condstr += str(wall) + '==0}'
+    pt = mathematica.FindInstance(condstr, '{r0,z1}') #,'Rationals')
     if len(pt) == 0:
         return None
-    if not eqs:
-        return tuple(QQ(c[2]) for c in pt[1])
-    eqcondstr = '{'
-    for l in eqs:
-        eqcondstr += str(l) + '==0, '
-    eqcondstr += str(pt[1][1][1].sage() == pt[1][1][2].sage())
-    if len(pt[1]) == 1:
-        eqcondstr += '}'
-    else:
-        eqcondstr += ', '+str(pt[1][2][1].sage() == pt[1][2][2].sage()) + '}'
-    pt_on_wall =  mathematica.Solve(eqcondstr, '{r0,z1}')
-    return tuple(QQ(c[2]) for c in pt_on_wall[1])
+    return (QQ(pt[1][1][2]), QQ(pt[1][2][2]))
 
 # def remove_redundancy_using_maple(lins):
 #     maple=Maple(server='logic.math.ucdavis.edu')
