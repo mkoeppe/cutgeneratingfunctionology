@@ -36,7 +36,7 @@ def cpl3_group_function(r0=1/6, z1=1/12, o1=1/5, o2=0, merge=True):
 
 class Cpl3Complex(SageObject):
 
-    def __init__(self, var_name, theta=None, max_iter=8, bddleq=[], bddlin=[]):
+    def __init__(self, var_name, theta=None, max_iter=0, bddleq=[], bddlin=[]):
         self.components = []
         self.d = len(var_name)
         self.var_name = var_name
@@ -127,7 +127,7 @@ class Cpl3Complex(SageObject):
         new_component.lin = []
         for i in range(len(lins)):
             l = lins[i]
-            pt_across_wall = find_pt_across_wall(l, new_component.lin+lins[i+1::], flip_ineq_step, bddleq)
+            pt_across_wall = find_pt_across_wall(l, lins[:i]+lins[i+1::], flip_ineq_step, bddleq)
             if pt_across_wall is None:
                 continue
             (new_component.lin).append(l)
@@ -138,7 +138,7 @@ class Cpl3Complex(SageObject):
             # ignore cells that has non-linear eqns for now.
             if l.degree() > 1:
                 continue
-            pt_on_wall = find_pt_on_wall(l, new_component.lin[:-1]+lins[i+1::], bddleq)
+            pt_on_wall = find_pt_on_wall(l, lins[:i]+lins[i+1::], bddleq)
             (self.points_to_test).add(pt_on_wall)
             (self.bddleq_of_testpoint)[pt_on_wall] = bddleq + [l]
         self.components.append(new_component)
@@ -291,7 +291,7 @@ def bddlin_cpl():
     K.<r0,z1>=QQ[]
     return [-r0, -z1, r0+4*z1-1]
 
-def regions_r0_z1_from_arrangement_of_bkpts(max_iter=8):
+def regions_r0_z1_from_arrangement_of_bkpts(max_iter=0):
     """
     Got regions[0:30]: 2-dim; regions[30:73]: 1-dim; regions[73:87]: 0-dim.
 
@@ -487,7 +487,7 @@ def generate_thetas_of_region(r):
                 thetas.append(theta)
     return thetas
 
-def fill_region_given_theta(r, theta, max_iter=8):
+def fill_region_given_theta(r, theta, max_iter=0):
     """
     sage: regions = regions_r0_z1_from_arrangement_of_bkpts()
     sage: r = regions[0]
