@@ -215,6 +215,29 @@ def find_pt_on_wall(wall, ineqs, eqs):
         return None
     return (QQ(pt[1][1][2]), QQ(pt[1][2][2]))
 
+def find_uncovered_point(complex):
+    #logging.warn("Check bfs completion.")
+    num_eq = len(complex.bddleq)
+    condstr = ''
+    for l in complex.bddleq:
+        condstr += str(l) + ' == 0 && '
+    for c in complex.components:
+        if len(c.leq) == num_eq:
+            # FIXME: ignore lower dim cells for now, since non-linear wall are not treated.
+            condstr += '!('
+            for l in c.lin[:-1]: #FIXME: possilbe IndexError: list index out of range?
+                condstr += str(l) + ' <= 0 && '
+            condstr += str(c.lin[-1]) + ' <= 0) && '
+    if not complex.bddlin:
+        return None
+    for l in complex.bddlin[:-1]:
+        condstr += str(l) + ' < 0 && '
+    condstr += str(complex.bddlin[-1]) + '< 0'
+    pt = mathematica.FindInstance(condstr, '{r0,z1}') #,'Rationals')
+    if len(pt) == 0:
+        return None
+    return (QQ(pt[1][1][2]), QQ(pt[1][2][2]))
+
 # def remove_redundancy_using_maple(lins):
 #     maple=Maple(server='logic.math.ucdavis.edu')
 #     condstr = '{'+ str(lins[0]) + '<0'
@@ -302,6 +325,9 @@ def regions_r0_z1_from_arrangement_of_bkpts(max_iter=0):
     """
     arr_complex=Cpl3Complex(['r0','z1'], theta=None, bddlin=bddlin_cpl(), max_iter=max_iter)
     arr_complex.bfs_completion(var_value=[6/10,4/100])
+    uncovered_pt = find_uncovered_point(arr_complex)
+    if uncovered_pt is not None:
+        logging.warn("After bfs, the complex has uncovered point %s." % uncovered_pt)
     regions = arr_complex.components
     regions.sort(key=lambda r: len(r.leq))
     return regions
@@ -503,6 +529,9 @@ def fill_region_given_theta(r, theta, max_iter=0):
     """
     cpl_complex = Cpl3Complex(['r0','z1'], theta=theta, bddleq=copy(r.leq), bddlin=copy(r.lin), max_iter=max_iter)
     cpl_complex.bfs_completion(var_value=tuple(r.var_value), flip_ineq_step=1/1000)
+    uncovered_pt = find_uncovered_point(cpl_complex)
+    if uncovered_pt is not None:
+        logging.warn("After bfs, the complex has uncovered point %s." % uncovered_pt)
     return cpl_complex
 
 
