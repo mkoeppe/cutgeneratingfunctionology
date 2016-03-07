@@ -84,14 +84,15 @@ class Cpl3Complex(SageObject):
         K.v_dict = self.v_dict # change simultaneously while lifting
         K.polyhedron.add_space_dimensions_and_embed(len(K.monomial_list))
         r0, z1 = K.gens()[0], K.gens()[1]
-        for l in self.bddlin:
-            if not l(*K.gens()) < 0:
-                return
-        for l in bddleq:
-            if not l(*K.gens()) == 0:
-                return
         (r0mapping, z1mapping) = mapping_r0_z1(bddleq)
         r0m = r0mapping(r0, z1) * K.one(); z1m = z1mapping(r0, z1) * K.one()
+        for l in self.bddlin:
+            if not l(r0m, z1m) < 0:
+                raise ValueError ("Test point %s doesn't satisfy %s < 0." % (var_value, l))
+        bddlin_set = copy(K.get_lt_factor())
+        for l in bddleq:
+            if not l(*K.gens()) == 0:
+                raise ValueError ("Test point %s doesn't satisfy %s == 0." % (var_value, l))
         if self.theta is None:
             try:
                 o1 = o2 = z1 / (1 - r0)
@@ -127,18 +128,21 @@ class Cpl3Complex(SageObject):
         new_component.lin = []
         for i in range(len(lins)):
             l = lins[i]
-            pt_across_wall = find_pt_across_wall(l, lins[:i]+lins[i+1::], flip_ineq_step, bddleq)
+            # FIXME: ll != l doesn't work if l is lower dim, because variables not elimiated in ll.
+            ineqs = new_component.lin + lins[i+1::] + [ll for ll in bddlin_set if ll != l]
+            pt_across_wall = find_pt_across_wall(l, ineqs, flip_ineq_step, bddleq)
             if pt_across_wall is None:
                 continue
             (new_component.lin).append(l)
-            if l in set(self.bddlin):
+            if l in bddlin_set:
                 continue
             (self.points_to_test).add(pt_across_wall)
             (self.bddleq_of_testpoint)[pt_across_wall] = bddleq
             # ignore cells that has non-linear eqns for now.
             if l.degree() > 1:
                 continue
-            pt_on_wall = find_pt_on_wall(l, lins[:i]+lins[i+1::], bddleq)
+            ineqs = new_component.lin[:-1] + lins[i+1::] + list(bddlin_set)
+            pt_on_wall = find_pt_on_wall(l, ineqs, bddleq)
             (self.points_to_test).add(pt_on_wall)
             (self.bddleq_of_testpoint)[pt_on_wall] = bddleq + [l]
         self.components.append(new_component)
@@ -217,6 +221,8 @@ def find_pt_on_wall(wall, ineqs, eqs):
 
 def find_uncovered_point(complex):
     #logging.warn("Check bfs completion.")
+    if not complex.bddlin:
+        return None
     num_eq = len(complex.bddleq)
     condstr = ''
     for l in complex.bddleq:
@@ -224,12 +230,12 @@ def find_uncovered_point(complex):
     for c in complex.components:
         if len(c.leq) == num_eq:
             # FIXME: ignore lower dim cells for now, since non-linear wall are not treated.
+            if not c.lin:
+                continue
             condstr += '!('
-            for l in c.lin[:-1]: #FIXME: possilbe IndexError: list index out of range?
+            for l in c.lin[:-1]:
                 condstr += str(l) + ' <= 0 && '
             condstr += str(c.lin[-1]) + ' <= 0) && '
-    if not complex.bddlin:
-        return None
     for l in complex.bddlin[:-1]:
         condstr += str(l) + ' < 0 && '
     condstr += str(complex.bddlin[-1]) + '< 0'
@@ -552,7 +558,7 @@ def cpl_regions_with_thetas_and_components(keep_extreme_only=False, max_iter=0):
     regions = regions_r0_z1_from_arrangement_of_bkpts(max_iter=max_iter)
     for i in range(len(regions)):
         r = regions[i]
-        print i, r.var_value
+        logging.warn("Cell %s with test point %s." %(i, r.var_value))
         r.thetas = {}
         thetas_of_r = generate_thetas_of_region(r)
         for theta in thetas_of_r:
