@@ -124,8 +124,6 @@ class Cpl3Complex(SageObject):
                 h = None
             region_type =  find_region_type_around_given_point(K, h)
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
-        if new_component.leq and max([l.degree() for l in new_component.leq]) > 1:
-            logging.warn("None linear equation in the cell with type = %s,\n testpoint = %s,\n eqns = %s,,\n ineqs = %s." % (new_component.region_type, new_component.var_value, new_component.leq, new_component.lin)) # Might be problem to variable elemination.
         # assume that variable elimination is done for ineqs so that eqns are not need in cad.
         #if see new monomial, lift polyhedrons of the previously computed components.
         dim_to_add = len(self.monomial_list) - unlifted_space_dim
@@ -147,8 +145,10 @@ class Cpl3Complex(SageObject):
             (self.points_to_test).add(pt_across_wall)
             (self.bddleq_of_testpoint)[pt_across_wall] = bddleq
             ## ignore cells that has non-linear eqns for now.
-            #if l.degree() > 1:
+            #if l.degree() > 1 and (region_type == 'not_constructible' or region_type == 'not_minimal'):
             #    continue
+            if l.degree() > 1 and region_type != 'not_constructible' and region_type != 'not_minimal':
+                logging.warn(" Non-linear equation %s in the cell with type %s." %(l, region_type))
             ineqs = new_component.lin[:-1] + lins[i+1::] + list(bddlin_set)
             pt_on_wall = find_pt_across_or_on_wall(l, ineqs, None, bddleq)
             (self.points_to_test).add(pt_on_wall)
@@ -221,7 +221,6 @@ def find_pt_across_or_on_wall(wall, ineqs, flip_ineq_step, eqs):
     return find_instance_using_mathematica(condstr)
 
 def find_uncovered_point(complex):
-    #logging.warn("Check bfs completion.")
     if not complex.bddlin:
         return None
     num_eq = len(complex.bddleq)
@@ -367,27 +366,28 @@ def mapping_r0_z1(leq):
         return (r0, z1)
     elif len(leq) == 1:
         l = leq[0]
-        c_r0 = l.monomial_coefficient(r0)
-        c_z1 = l.monomial_coefficient(z1)
-        if c_z1 != 0:
+        if l.degree(z1) == 1:
+            c_z1 = l.coefficient(z1)
             return (r0, z1 - l / c_z1)
-        elif c_r0 != 0:
+        elif l.degree(r0) == 1:
+            c_r0 = l.coefficient(r0)
             return (r0 - l / c_r0, z1)
         else:
-            raise ValueError
-    elif len(leq) == 2:
-        l1 = leq[0]; l2 = leq[1]
-        (a11, a12, b1) = (l1.monomial_coefficient(r0), l1.monomial_coefficient(z1), -l1.constant_coefficient())
-        (a21, a22, b2) = (l2.monomial_coefficient(r0), l2.monomial_coefficient(z1), -l2.constant_coefficient())
-        determinant = a11 * a22 - a12 * a21
-        if determinant == 0:
-            if not a11 == a12 == 0:
-                return mapping_r0_z1([l1])
-            else:
-                return mapping_r0_z1([l2])
-        r0_val = (b1 * a22 - a12 * b2) / determinant
-        z1_val = (a11 * b2 - b1 * a21) / determinant
-        return (r0_val * PR2.one(), z1_val * PR2.one())
+            logging.warn("No degree one variable in %s==0, can't eliminate variable." %l)
+            return (r0, z1)
+    else:
+        x, y = var('x, y')
+        eqns = [l(x, y)==0 for l in leq]
+        sols = solve(eqns, x, y, solution_dict=True)
+        if len(sols) != 1:
+            logging.warn("Solution %s to %s is not unique, can't eliminate variable." %(sols, eqns))
+            return (r0, z1)
+        sx = sols[0][x]
+        sy = sols[0][y]
+        if (sx not in QQ) or (sy not in QQ):
+            logging.warn("Solution %s to %s is not rational, can't eliminate variable." %(sols[0], eqns))
+            return (r0, z1)
+        return (PR2(sx), PR2(sy))
 
 def symbolic_subbadditivity_constraints_of_cpl3_given_region(r):
     """
