@@ -350,8 +350,15 @@ def regions_r0_z1_from_arrangement_of_bkpts(max_iter=0, flip_ineq_step=1/1000, c
     87
     """
     arr_complex=Cpl3Complex(['r0','z1'], theta=None, bddlin=bddlin_cpl(), max_iter=max_iter)
-    arr_complex.bfs_completion(var_value=[6/10,4/100],
+    if flip_ineq_step != 0:
+        arr_complex.bfs_completion(var_value=[6/10,4/100],
                                flip_ineq_step=flip_ineq_step, check_completion=check_completion)
+    else:
+        while True:
+            pt = find_uncovered_point(arr_complex)
+            if pt is None:
+                break
+            arr_complex.add_new_component(pt, arr_complex.bddleq, flip_ineq_step=0)
     regions = arr_complex.components
     regions.sort(key=lambda r: len(r.leq))
     return regions
