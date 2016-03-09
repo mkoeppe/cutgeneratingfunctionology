@@ -119,6 +119,10 @@ class Cpl3Complex(SageObject):
                     o2 = self.theta[1](r0m, z1m)
                 else:
                     o2 = self.theta[1] * K.one()
+                if type(o1._val) is sage.interfaces.mathematica.MathematicaElement and repr(mathematica.Simplify(o1._val)) == 'ComplexInfinity':
+                    raise ZeroDivisionError
+                if type(o2._val) is sage.interfaces.mathematica.MathematicaElement and repr(mathematica.Simplify(o2._val)) == 'ComplexInfinity':
+                    raise ZeroDivisionError
                 h = cpl3_group_function(r0m, z1m, o1, o2)
             except:
                 h = None
@@ -177,7 +181,7 @@ class Cpl3Complex(SageObject):
         if check_completion:
             uncovered_pt = find_uncovered_point(self)
             if uncovered_pt is not None:
-                logging.warn("After bfs, the complex has uncovered point %s." % uncovered_pt)
+                logging.warn("After bfs, the complex has uncovered point (%s, %s)." % (uncovered_pt[0].sage(), uncovered_pt[1].sage()))
 
 
 def find_pt_across_or_on_wall(wall, ineqs, flip_ineq_step, eqs):
@@ -251,12 +255,10 @@ def find_instance_using_mathematica(condstr):
         pt1 = QQ(pt[1][1][2])
     except TypeError:
         pt1 = pt[1][1][2]
-        #print pt1
     try:
         pt2 = QQ(pt[1][2][2])
     except TypeError:
         pt2 = pt[1][2][2]
-        #print pt2
     return (pt1, pt2)
 
 # def remove_redundancy_using_maple(lins):
