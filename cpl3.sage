@@ -81,7 +81,7 @@ class Cpl3Complex(SageObject):
 
     def add_new_component(self, var_value, bddleq, flip_ineq_step=1/1000):
         # Remark: the sign of flip_ineq_step indicates how to search for neighbour testpoints:
-        # if flip_ineq_step = 0, don't search for neighbour testpoints. Used in shoot_random_points().
+        # if flip_ineq_step = 0, don't search for neighbour testpoints.
         # if flip_ineq_step < 0, we assume that the walls of the cell are linear eqn/ineq over original parameters. (So, gradient is constant; easy to find a new testpoint on the wall and another testpoint (-flip_ineq_step away) across the wall.) Used in bfs.
         # if flip_ineq_step > 0, use cad of mathematica.
         unlifted_space_dim =  len(self.monomial_list)
@@ -134,29 +134,32 @@ class Cpl3Complex(SageObject):
         if dim_to_add > 0:
             for c in self.components:
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
-        lins = copy(new_component.lin)
-        new_component.lin = []
-        for i in range(len(lins)):
-            l = lins[i]
-            # FIXME: ll != l doesn't work if l is lower dim, because variables not elimiated in ll.
-            ineqs = new_component.lin + lins[i+1::] + [ll for ll in bddlin_set if ll != l]
-            pt_across_wall = find_pt_across_or_on_wall(l, ineqs, flip_ineq_step, bddleq)
-            if pt_across_wall is None:
-                continue
-            (new_component.lin).append(l)
-            if l in bddlin_set:
-                continue
-            (self.points_to_test).add(pt_across_wall)
-            (self.bddleq_of_testpoint)[pt_across_wall] = bddleq
-            ## ignore cells that has non-linear eqns for now.
-            #if l.degree() > 1 and (region_type == 'not_constructible' or region_type == 'not_minimal'):
-            #    continue
-            if l.degree() > 1 and region_type != 'not_constructible' and region_type != 'not_minimal':
-                logging.warn(" Non-linear equation %s in the cell with type %s." %(l, region_type))
-            ineqs = new_component.lin[:-1] + lins[i+1::] + list(bddlin_set)
-            pt_on_wall = find_pt_across_or_on_wall(l, ineqs, None, bddleq)
-            (self.points_to_test).add(pt_on_wall)
-            (self.bddleq_of_testpoint)[pt_on_wall] = bddleq + [l]
+        if flip_ineq_step > 0:
+            lins = copy(new_component.lin)
+            new_component.lin = []
+            for i in range(len(lins)):
+                l = lins[i]
+                # FIXME: ll != l doesn't work if l is lower dim, because variables not elimiated in ll.
+                ineqs = new_component.lin + lins[i+1::] + [ll for ll in bddlin_set if ll != l]
+                pt_across_wall = find_pt_across_or_on_wall(l, ineqs, flip_ineq_step, bddleq)
+                if pt_across_wall is None:
+                    continue
+                (new_component.lin).append(l)
+                if l in bddlin_set:
+                    continue
+                (self.points_to_test).add(pt_across_wall)
+                (self.bddleq_of_testpoint)[pt_across_wall] = bddleq
+                ## ignore cells that has non-linear eqns for now.
+                #if l.degree() > 1 and (region_type == 'not_constructible' or region_type == 'not_minimal'):
+                #    continue
+                if l.degree() > 1 and region_type != 'not_constructible' and region_type != 'not_minimal':
+                    logging.warn(" Non-linear equation %s in the cell with type %s." %(l, region_type))
+                ineqs = new_component.lin[:-1] + lins[i+1::] + list(bddlin_set)
+                pt_on_wall = find_pt_across_or_on_wall(l, ineqs, None, bddleq)
+                (self.points_to_test).add(pt_on_wall)
+                (self.bddleq_of_testpoint)[pt_on_wall] = bddleq + [l]
+        elif flip_ineq_step < 0:
+            raise NotImplementedError("option flip_ineq_step < 0 is not integrated into this version of code")
         self.components.append(new_component)
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=False):
@@ -550,8 +553,15 @@ def fill_region_given_theta(r, theta, max_iter=0, flip_ineq_step=1/1000, check_c
     'is_extreme'
     """
     cpl_complex = Cpl3Complex(['r0','z1'], theta=theta, bddleq=copy(r.leq), bddlin=copy(r.lin), max_iter=max_iter)
-    cpl_complex.bfs_completion(var_value=tuple(r.var_value), \
+    if flip_ineq_step != 0:
+        cpl_complex.bfs_completion(var_value=tuple(r.var_value), \
                                flip_ineq_step=flip_ineq_step, check_completion=check_completion)
+    else:
+        while True:
+            pt = find_uncovered_point(cpl_complex)
+            if pt is None:
+                break
+            cpl_complex.add_new_component(pt, cpl_complex.bddleq, flip_ineq_step=0)
     return cpl_complex
 
 
@@ -571,7 +581,7 @@ def cpl_regions_with_thetas_and_components(keep_extreme_only=False, max_iter=0, 
     86 [1/8, 1/8]
     """
     regions = regions_r0_z1_from_arrangement_of_bkpts(max_iter=max_iter, \
-                        flip_ineq_step=flip_ineq_step, \
+                        flip_ineq_step=1/1000, \
                         check_completion=False) #check_completion)
     for i in range(len(regions)):
         r = regions[i]
