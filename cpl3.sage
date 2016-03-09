@@ -210,9 +210,9 @@ def find_pt_across_or_on_wall(wall, ineqs, flip_ineq_step, eqs):
     <class 'sage.interfaces.mathematica.MathematicaElement'>
     """
     condstr = '{'
-    for l in eqs:
+    for l in set(eqs):
         condstr += str(l) + '==0, '
-    for l in ineqs:
+    for l in set(ineqs):
         condstr += str(l) + '<0, '
     if flip_ineq_step:
         condstr += '0<'+str(wall)+'<'+str(flip_ineq_step)+ '}'
