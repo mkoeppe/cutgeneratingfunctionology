@@ -130,7 +130,7 @@ class Cpl3Complex(SageObject):
             l = lins[i]
             # FIXME: ll != l doesn't work if l is lower dim, because variables not elimiated in ll.
             ineqs = new_component.lin + lins[i+1::] + [ll for ll in bddlin_set if ll != l]
-            pt_across_wall = find_pt_across_wall(l, ineqs, flip_ineq_step, bddleq)
+            pt_across_wall = find_pt_across_or_on_wall(l, ineqs, flip_ineq_step, bddleq)
             if pt_across_wall is None:
                 continue
             (new_component.lin).append(l)
@@ -142,7 +142,7 @@ class Cpl3Complex(SageObject):
             if l.degree() > 1:
                 continue
             ineqs = new_component.lin[:-1] + lins[i+1::] + list(bddlin_set)
-            pt_on_wall = find_pt_on_wall(l, ineqs, bddleq)
+            pt_on_wall = find_pt_across_or_on_wall(l, ineqs, None, bddleq)
             (self.points_to_test).add(pt_on_wall)
             (self.bddleq_of_testpoint)[pt_on_wall] = bddleq + [l]
         self.components.append(new_component)
@@ -156,7 +156,7 @@ class Cpl3Complex(SageObject):
         self.num_plotted_components = len(self.components)
         return self.graph
 
-    def bfs_completion(self, var_value=None, flip_ineq_step=1/1000):
+    def bfs_completion(self, var_value=None, flip_ineq_step=1/1000, check_completion=True):
         # See remark about flip_ineq_step in def add_new_component().
         if var_value:
             (self.points_to_test).add(tuple(var_value))
@@ -320,7 +320,7 @@ def bddlin_cpl():
     K.<r0,z1>=QQ[]
     return [-r0, -z1, r0+4*z1-1]
 
-def regions_r0_z1_from_arrangement_of_bkpts(max_iter=0):
+def regions_r0_z1_from_arrangement_of_bkpts(max_iter=0, flip_ineq_step=1/1000, check_completion=True):
     """
     Got regions[0:30]: 2-dim; regions[30:73]: 1-dim; regions[73:87]: 0-dim.
 
@@ -330,10 +330,8 @@ def regions_r0_z1_from_arrangement_of_bkpts(max_iter=0):
     87
     """
     arr_complex=Cpl3Complex(['r0','z1'], theta=None, bddlin=bddlin_cpl(), max_iter=max_iter)
-    arr_complex.bfs_completion(var_value=[6/10,4/100])
-    uncovered_pt = find_uncovered_point(arr_complex)
-    if uncovered_pt is not None:
-        logging.warn("After bfs, the complex has uncovered point %s." % uncovered_pt)
+    arr_complex.bfs_completion(var_value=[6/10,4/100],
+                               flip_ineq_step=flip_ineq_step, check_completion=check_completion)
     regions = arr_complex.components
     regions.sort(key=lambda r: len(r.leq))
     return regions
@@ -519,7 +517,7 @@ def generate_thetas_of_region(r):
                 thetas.append(theta)
     return thetas
 
-def fill_region_given_theta(r, theta, max_iter=0):
+def fill_region_given_theta(r, theta, max_iter=0, flip_ineq_step=1/1000, check_completion=True):
     """
     sage: regions = regions_r0_z1_from_arrangement_of_bkpts()
     sage: r = regions[0]
@@ -534,14 +532,13 @@ def fill_region_given_theta(r, theta, max_iter=0):
     'is_extreme'
     """
     cpl_complex = Cpl3Complex(['r0','z1'], theta=theta, bddleq=copy(r.leq), bddlin=copy(r.lin), max_iter=max_iter)
-    cpl_complex.bfs_completion(var_value=tuple(r.var_value), flip_ineq_step=1/1000)
-    uncovered_pt = find_uncovered_point(cpl_complex)
-    if uncovered_pt is not None:
-        logging.warn("After bfs, the complex has uncovered point %s." % uncovered_pt)
+    cpl_complex.bfs_completion(var_value=tuple(r.var_value), \
+                               flip_ineq_step=flip_ineq_step, check_completion=check_completion)
     return cpl_complex
 
 
-def cpl_regions_with_thetas_and_components(keep_extreme_only=False, max_iter=0):
+def cpl_regions_with_thetas_and_components(keep_extreme_only=False, max_iter=0, \
+                                           flip_ineq_step=1/1000, check_completion=True):
     """
     sage: regions = cpl_regions_with_thetas_and_components()
     output warning:
@@ -555,14 +552,16 @@ def cpl_regions_with_thetas_and_components(keep_extreme_only=False, max_iter=0):
     ...
     86 [1/8, 1/8]
     """
-    regions = regions_r0_z1_from_arrangement_of_bkpts(max_iter=max_iter)
+    regions = regions_r0_z1_from_arrangement_of_bkpts(max_iter=max_iter, \
+                        flip_ineq_step=flip_ineq_step, check_completion=check_completion)
     for i in range(len(regions)):
         r = regions[i]
         logging.warn("Cell %s with test point %s." %(i, r.var_value))
         r.thetas = {}
         thetas_of_r = generate_thetas_of_region(r)
         for theta in thetas_of_r:
-            cpl_complex = fill_region_given_theta(r, theta, max_iter=max_iter)
+            cpl_complex = fill_region_given_theta(r, theta, max_iter=max_iter,\
+                                flip_ineq_step=flip_ineq_step, check_completion=check_completion)
             if keep_extreme_only:
                 components = [c for c in cpl_complex.components if c.region_type=='is_extreme']
             else:
