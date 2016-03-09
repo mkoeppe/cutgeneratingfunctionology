@@ -58,18 +58,24 @@ class Cpl3Complex(SageObject):
 
 
     def is_point_covered(self, var_value):
-        monomial_value = [m(var_value) for m in self.monomial_list]
-        # coefficients in ppl point must be integers.
-        lcm_monomial_value = lcm([x.denominator() for x in monomial_value])
-        #print [x * lcm_monomial_value for x in monomial_value]
-        pt = Generator.point(Linear_Expression([x * lcm_monomial_value for x in monomial_value], 0), lcm_monomial_value)
-        for c in self.components:
-            # Check if the random_point is contained in the box.
-            if c.region_type == 'not_constructible' and c.leq == [] and c.lin == []:
-                continue
-            if is_point_in_box(monomial_value, c.bounds):
-                # Check if all eqns/ineqs are satisfied.
-                if c.polyhedron.relation_with(pt).implies(point_is_included):
+        if all(x in QQ for x in var_value):
+            #FIXME: is going through ppl the best way?
+            monomial_value = [m(var_value) for m in self.monomial_list]
+            # coefficients in ppl point must be integers.
+            lcm_monomial_value = lcm([x.denominator() for x in monomial_value])
+            #print [x * lcm_monomial_value for x in monomial_value]
+            pt = Generator.point(Linear_Expression([x * lcm_monomial_value for x in monomial_value], 0), lcm_monomial_value)
+            for c in self.components:
+                # Check if the random_point is contained in the box.
+                if c.region_type == 'not_constructible' and c.leq == [] and c.lin == []:
+                    continue
+                if is_point_in_box(monomial_value, c.bounds):
+                    # Check if all eqns/ineqs are satisfied.
+                    if c.polyhedron.relation_with(pt).implies(point_is_included):
+                        return True
+        else:
+            for c in self.components:
+                if all(l(var_value) == 0 for l in c.leq) and all(l(var_value) < 0 for l in c.lin):
                     return True
         return False
 
@@ -88,11 +94,13 @@ class Cpl3Complex(SageObject):
         r0m = r0mapping(r0, z1) * K.one(); z1m = z1mapping(r0, z1) * K.one()
         for l in self.bddlin:
             if not l(r0m, z1m) < 0:
-                raise ValueError ("Test point %s doesn't satisfy %s < 0." % (var_value, l))
+                logging.warn("Test point %s doesn't satisfy %s < 0." % (var_value, l))
+                return
         bddlin_set = copy(K.get_lt_factor())
         for l in bddleq:
             if not l(*K.gens()) == 0:
-                raise ValueError ("Test point %s doesn't satisfy %s == 0." % (var_value, l))
+                logging.warn("Test point %s doesn't satisfy %s == 0." % (var_value, l))
+                return
         if self.theta is None:
             try:
                 o1 = o2 = z1 / (1 - r0)
@@ -117,7 +125,7 @@ class Cpl3Complex(SageObject):
             region_type =  find_region_type_around_given_point(K, h)
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         if new_component.leq and max([l.degree() for l in new_component.leq]) > 1:
-            logging.warn("The cell around testpoint %s defined by %s eqns and %s ineqs has higher order equations." % (new_component.var_value, new_component.leq, new_component.lin)) # Might be problem to variable elemination.
+            logging.warn("None linear equation in the cell with type = %s,\n testpoint = %s,\n eqns = %s,,\n ineqs = %s." % (new_component.region_type, new_component.var_value, new_component.leq, new_component.lin)) # Might be problem to variable elemination.
         # assume that variable elimination is done for ineqs so that eqns are not need in cad.
         #if see new monomial, lift polyhedrons of the previously computed components.
         dim_to_add = len(self.monomial_list) - unlifted_space_dim
@@ -138,9 +146,9 @@ class Cpl3Complex(SageObject):
                 continue
             (self.points_to_test).add(pt_across_wall)
             (self.bddleq_of_testpoint)[pt_across_wall] = bddleq
-            # ignore cells that has non-linear eqns for now.
-            if l.degree() > 1:
-                continue
+            ## ignore cells that has non-linear eqns for now.
+            #if l.degree() > 1:
+            #    continue
             ineqs = new_component.lin[:-1] + lins[i+1::] + list(bddlin_set)
             pt_on_wall = find_pt_across_or_on_wall(l, ineqs, None, bddleq)
             (self.points_to_test).add(pt_on_wall)
@@ -166,58 +174,51 @@ class Cpl3Complex(SageObject):
             bddleq = self.bddleq_of_testpoint[tuple(var_value)]
             if not self.is_point_covered(var_value):
                 self.add_new_component(var_value, bddleq, flip_ineq_step=flip_ineq_step)
+        if check_completion:
+            uncovered_pt = find_uncovered_point(self)
+            if uncovered_pt is not None:
+                logging.warn("After bfs, the complex has uncovered point %s." % uncovered_pt)
 
 
-def find_pt_across_wall(wall, ineqs, flip_ineq_step, eqs):
+def find_pt_across_or_on_wall(wall, ineqs, flip_ineq_step, eqs):
     """
     sage: PR2.<r0,z1>=QQ[]
     sage: wall = r0 + 8*z1 - 1
     sage: ineqs = [-z1, -r0*z1 - z1, r0^2 + r0*z1 - r0 + z1, r0*z1 - r0 - z1, -2*r0 + 1, r0^2*z1 - 2*r0*z1 - z1]
-    sage: find_pt_across_wall(wall, ineqs, 1/1000, [])
+    sage: find_pt_across_or_on_wall(wall, ineqs, 1/1000, [])
     (3/4, 257/8192)
     sage: wall(3/4, 257/8192)
     1/1024
-    sage: ineqs = [-2*r0^2 - 14*r0*z1 - 12*z1^2 + 3*r0 + 7*z1 - 1, 2*r0 + z1 - 1, r0 + 4*z1 - 1, -r0 - 5*z1 + 1, -2*r0 - 2*z1 + 1]
-    sage: wall = -2*r0*z1 - 12*z1^2 + r0 + 7*z1 - 1
-    sage: find_pt_across_wall(wall, ineqs, flip_ineq_step, [])
-    (901/2048, 10289/86016)
-    sage: wall(901/2048, 10289/86016)
-    48347/154140672
-    """
-    condstr = '{'
-    for l in eqs:
-        condstr += str(l) + '==0, '
-    for l in ineqs:
-        condstr += str(l) + '<0, '
-    condstr += '0<'+str(wall)+'<'+str(flip_ineq_step)+ '}'
-    pt = mathematica.FindInstance(condstr, '{r0,z1}') #,'Rationals')
-    if len(pt) == 0:
-        return None
-    return (QQ(pt[1][1][2]), QQ(pt[1][2][2]))
-
-def find_pt_on_wall(wall, ineqs, eqs):
-    """
-    sage: PR2.<r0,z1>=QQ[]
-    sage: wall = r0 + 8*z1 - 1
-    sage: ineqs = [-z1, -r0*z1 - z1, r0^2 + r0*z1 - r0 + z1, r0*z1 - r0 - z1, -2*r0 + 1, r0^2*z1 - 2*r0*z1 - z1]
-    sage: find_pt_on_wall(wall, ineqs, [])
+    sage: find_pt_across_or_on_wall(wall, ineqs, None, [])
     (3/4, 1/32)
     sage: wall(3/4, 1/32)
     0
-    sage: find_pt_on_wall(-z1, [], [r0-1])
+    sage: ineqs = [-2*r0^2 - 14*r0*z1 - 12*z1^2 + 3*r0 + 7*z1 - 1, 2*r0 + z1 - 1, r0 + 4*z1 - 1, -r0 - 5*z1 + 1, -2*r0 - 2*z1 + 1]
+    sage: wall = -2*r0*z1 - 12*z1^2 + r0 + 7*z1 - 1
+    sage: find_pt_across_or_on_wall(wall, ineqs, flip_ineq_step, [])
+    (901/2048, 10289/86016)
+    sage: wall(901/2048, 10289/86016)
+    48347/154140672
+    sage: find_pt_across_or_on_wall(-z1, [], None, [r0-1])
     (1, 0)
+    sage: pt = find_pt_across_or_on_wall(-r0^2+2, [-r0, -z1], None, [z1^2-4])
+    sage: pt
+    (Sqrt[2], 2)
+    sage: type(pt[1])
+    <type 'sage.rings.rational.Rational'>
+    sage: type(pt[0])
+    <class 'sage.interfaces.mathematica.MathematicaElement'>
     """
-    # assume wall is linear so that the point found has rational coordinates.
     condstr = '{'
     for l in eqs:
         condstr += str(l) + '==0, '
     for l in ineqs:
         condstr += str(l) + '<0, '
-    condstr += str(wall) + '==0}'
-    pt = mathematica.FindInstance(condstr, '{r0,z1}') #,'Rationals')
-    if len(pt) == 0:
-        return None
-    return (QQ(pt[1][1][2]), QQ(pt[1][2][2]))
+    if flip_ineq_step:
+        condstr += '0<'+str(wall)+'<'+str(flip_ineq_step)+ '}'
+    else:
+        condstr += str(wall) + '==0}'
+    return find_instance_using_mathematica(condstr)
 
 def find_uncovered_point(complex):
     #logging.warn("Check bfs completion.")
@@ -239,10 +240,23 @@ def find_uncovered_point(complex):
     for l in complex.bddlin[:-1]:
         condstr += str(l) + ' < 0 && '
     condstr += str(complex.bddlin[-1]) + '< 0'
-    pt = mathematica.FindInstance(condstr, '{r0,z1}') #,'Rationals')
+    return find_instance_using_mathematica(condstr)
+
+def find_instance_using_mathematica(condstr):
+    pt = mathematica.FindInstance(condstr, '{r0,z1}')
     if len(pt) == 0:
         return None
-    return (QQ(pt[1][1][2]), QQ(pt[1][2][2]))
+    try:
+        pt1 = QQ(pt[1][1][2])
+    except TypeError:
+        pt1 = pt[1][1][2]
+        #print pt1
+    try:
+        pt2 = QQ(pt[1][2][2])
+    except TypeError:
+        pt2 = pt[1][2][2]
+        #print pt2
+    return (pt1, pt2)
 
 # def remove_redundancy_using_maple(lins):
 #     maple=Maple(server='logic.math.ucdavis.edu')
