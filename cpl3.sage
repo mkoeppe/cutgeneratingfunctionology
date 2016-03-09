@@ -337,7 +337,7 @@ def bddlin_cpl():
     K.<r0,z1>=QQ[]
     return [-r0, -z1, r0+4*z1-1]
 
-def regions_r0_z1_from_arrangement_of_bkpts(max_iter=0, flip_ineq_step=1/1000, check_completion=True):
+def regions_r0_z1_from_arrangement_of_bkpts(max_iter=0, flip_ineq_step=1/1000, check_completion=False):
     """
     Got regions[0:30]: 2-dim; regions[30:73]: 1-dim; regions[73:87]: 0-dim.
 
@@ -571,7 +571,8 @@ def cpl_regions_with_thetas_and_components(keep_extreme_only=False, max_iter=0, 
     86 [1/8, 1/8]
     """
     regions = regions_r0_z1_from_arrangement_of_bkpts(max_iter=max_iter, \
-                        flip_ineq_step=flip_ineq_step, check_completion=check_completion)
+                        flip_ineq_step=flip_ineq_step, \
+                        check_completion=False) #check_completion)
     for i in range(len(regions)):
         r = regions[i]
         logging.warn("Cell %s with test point %s." %(i, r.var_value))
