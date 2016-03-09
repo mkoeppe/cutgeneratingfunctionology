@@ -112,11 +112,11 @@ class Cpl3Complex(SageObject):
         else:
             try:
                 if hasattr(self.theta[0], '__call__'):
-                    o1 = self.theta[0](r0m, z1m)
+                    o1 = self.theta[0](r0m, z1m) * K.one()
                 else:
                     o1 = self.theta[0] * K.one()
                 if hasattr(self.theta[1], '__call__'):
-                    o2 = self.theta[1](r0m, z1m)
+                    o2 = self.theta[1](r0m, z1m) * K.one()
                 else:
                     o2 = self.theta[1] * K.one()
                 if type(o1._val) is sage.interfaces.mathematica.MathematicaElement and repr(mathematica.Simplify(o1._val)) == 'ComplexInfinity':
