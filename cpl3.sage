@@ -379,29 +379,33 @@ def mapping_r0_z1(leq):
     if not leq:
         return (r0, z1)
     elif len(leq) == 1:
-        l = leq[0]
+        return eliminate_degree_one_variable(leq)
+    else:
+        x, y = var('x, y')
+        eqns = [l(x, y)==0 for l in leq]
+        sols = solve(eqns, x, y, solution_dict=True)
+        if len(sols) != 1:
+            # assume there is at least one solution.
+            logging.warn("Solution %s to %s is not unique, try eliminating degree one variable." %(sols, eqns))
+            return eliminate_degree_one_variable(leq)
+        sx = sols[0][x]
+        sy = sols[0][y]
+        if (sx not in QQ) or (sy not in QQ):
+            logging.warn("Solution %s to %s is not rational, try eliminating degree one variable." %(sols[0], eqns))
+            return eliminate_degree_one_variable(leq)
+        return (PR2(sx), PR2(sy))
+
+def eliminate_degree_one_variable(leq):
+    PR2.<r0,z1>=QQ[]
+    for l in leq:
         if l.degree(z1) == 1:
             c_z1 = l.coefficient(z1)
             return (r0, z1 - l / c_z1)
         elif l.degree(r0) == 1:
             c_r0 = l.coefficient(r0)
             return (r0 - l / c_r0, z1)
-        else:
-            logging.warn("No degree one variable in %s==0, can't eliminate variable." %l)
-            return (r0, z1)
-    else:
-        x, y = var('x, y')
-        eqns = [l(x, y)==0 for l in leq]
-        sols = solve(eqns, x, y, solution_dict=True)
-        if len(sols) != 1:
-            logging.warn("Solution %s to %s is not unique, can't eliminate variable." %(sols, eqns))
-            return (r0, z1)
-        sx = sols[0][x]
-        sy = sols[0][y]
-        if (sx not in QQ) or (sy not in QQ):
-            logging.warn("Solution %s to %s is not rational, can't eliminate variable." %(sols[0], eqns))
-            return (r0, z1)
-        return (PR2(sx), PR2(sy))
+    logging.warn("No degree one variable in %s==0, can't eliminate variable." %leq)
+    return (r0, z1)
 
 def symbolic_subbadditivity_constraints_of_cpl3_given_region(r):
     """
