@@ -223,22 +223,24 @@ def find_pt_across_or_on_wall(wall, ineqs, flip_ineq_step, eqs):
 def find_uncovered_point(complex):
     if not complex.bddlin:
         return None
-    num_eq = len(complex.bddleq)
     condstr = ''
     for l in complex.bddleq:
         condstr += str(l) + ' == 0 && '
     for c in complex.components:
-        if len(c.leq) == num_eq:
-            # FIXME: ignore lower dim cells for now, since non-linear wall are not treated.
-            if not c.lin:
-                continue
-            condstr += '!('
+        condstr += '!('
+        if not c.lin:
+            for l in c.leq[:-1]:
+                condstr += str(l) + ' == 0 && '
+            condstr += str(c.leq[-1]) + ' == 0) && '
+        else:
+            for l in c.leq:
+                condstr += str(l) + ' == 0 && '
             for l in c.lin[:-1]:
-                condstr += str(l) + ' <= 0 && '
-            condstr += str(c.lin[-1]) + ' <= 0) && '
+                condstr += str(l) + ' < 0 && '
+            condstr += str(c.lin[-1]) + ' < 0) && '
     for l in complex.bddlin[:-1]:
         condstr += str(l) + ' < 0 && '
-    condstr += str(complex.bddlin[-1]) + '< 0'
+    condstr += str(complex.bddlin[-1]) + ' < 0'
     return find_instance_using_mathematica(condstr)
 
 def find_instance_using_mathematica(condstr):
