@@ -11,6 +11,8 @@ from sage.rings.number_field.number_field import NumberField_absolute, NumberFie
 import sage.rings.number_field.number_field_element
 from sage.rings.number_field.number_field_element import NumberFieldElement_absolute
 
+from sage.structure.sage_object import op_EQ, op_NE, op_LE, op_GE, op_LT
+
 class RealNumberFieldElement(NumberFieldElement_absolute):
 
     def embedded(self):
@@ -21,21 +23,40 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
             self._embedded = e = embedding(self)
         return e
 
-    def __cmp__(left, right):   # Before trac 17890, need to specialize this function.
-        if NumberFieldElement_absolute.__cmp__(left, right) == 0:
-            return 0
-        result = cmp(left.embedded(), right.embedded())
-        if result == 0:
-            raise UnimplementedError, "Precision of real interval field not sufficient to continue"
-        return result
+    ## def __cmp__(left, right):   # Before trac 17890, need to specialize this function.
+    ##     #print "__cmp__", left, right
+    ##     if NumberFieldElement_absolute.__cmp__(left, right) == 0:
+    ##         return 0
+    ##     result = cmp(left.embedded(), right.embedded())
+    ##     if result == 0:
+    ##         raise UnimplementedError, "Precision of real interval field not sufficient to continue"
+    ##     return result
 
     def _cmp_(left, right):    # After trac 17890, need to specialize this function.
+        #print "_cmp_", left, right
         if NumberFieldElement_absolute._cmp_(left, right) == 0:
             return 0
         result = cmp(left.embedded(), right.embedded())
         if result == 0:
             raise UnimplementedError, "Precision of real interval field not sufficient to continue"
         return result
+
+    def _richcmp_(left, right, op):    # In Sage 7.1, need to specialize this function.
+        #print "_richcmp_", left, right, op
+        if NumberFieldElement._richcmp_(left, right, op_EQ):
+            return op == op_EQ or op == op_LE or op == op_GE
+        elif op == op_NE:
+            return True
+        elif op == op_EQ:
+            return False
+
+        result = cmp(left.embedded(), right.embedded())
+        if result == 0:
+            raise UnimplementedError, "Precision of real interval field not sufficient to continue"
+        if op == op_LT or op == op_LE:
+            return result < 0
+        else:
+            return result > 0
     
     def __abs__(self):
         if self.sign() >= 0:
@@ -248,6 +269,22 @@ class RealNumberField_quadratic(NumberField_quadratic):
 
 def RealNumberField(polynomial, name=None, latex_name=None, names=None, check=True, embedding=None,
                     assume_disc_small=False, maximize_at_primes=None, exact_embedding=None):
+    """
+    A numberfield embedded into the real numbers, for which comparisons work according to
+    the embedding.
+
+    This may not be necessary any more in Sage 7.1 after trac #17830; but see #20184.
+
+    Some special tricks for speed and for pretty printing.
+
+    TESTS::
+
+        sage: x=polygen(QQ)
+        sage: K.<cbrt2> = RealNumberField(x^3 - 2, embedding=RIF(AA.polynomial_root(x^3-2, RIF(0,3))), exact_embedding=AA.polynomial_root(x^3-2, RIF(0,3)))
+        sage: 6064/4813 < cbrt2 < 90325/71691
+        True
+    """
+
     if names is not None:
         name = names
     if polynomial.degree() == 2:
