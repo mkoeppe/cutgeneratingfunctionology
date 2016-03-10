@@ -246,8 +246,10 @@ class RealNumberField_quadratic(NumberField_quadratic):
     
 # The factory.
 
-def RealNumberField(polynomial, name=None, latex_name=None, check=True, embedding=None,
+def RealNumberField(polynomial, name=None, latex_name=None, names=None, check=True, embedding=None,
                     assume_disc_small=False, maximize_at_primes=None, exact_embedding=None):
+    if names is not None:
+        name = names
     if polynomial.degree() == 2:
         K = RealNumberField_quadratic(polynomial, name, latex_name, check, embedding,
                                       assume_disc_small=assume_disc_small, 
