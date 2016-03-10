@@ -385,6 +385,12 @@ def two_slope_fill_in(function, order=None):
         last_y = fn(last_x)
     return FastPiecewise(pieces)
 
+###
+### Functions for symmetric_2_slope_fill_in, following the constructions in the paper
+### [dense-2-slope] A. Basu, R. Hildebrand, and M. Molinaro, Minimal cut-generating functions are
+### nearly extreme, 2015, http://www.ams.jhu.edu/~abasu9/papers/dense-2-slope.pdf, to appear in Proceedings of IPCO 2016.
+###
+
 def generate_pi_pwl(function, epsilon, f=None, order=None):
     """
     Subfunction of the procedure symmetric_2_slope_fill_in().
@@ -427,6 +433,7 @@ def generate_pi_pwl(function, epsilon, f=None, order=None):
 def generate_pi_delta(f, delta):
     """
     Subfunction of the procedure symmetric_2_slope_fill_in().
+
     See Equation 2 in [dense-2-slope]
 
     EXAMPLE::
@@ -445,6 +452,7 @@ def generate_pi_delta(f, delta):
 def generate_pi_comb(pi_pwl, epsilon, delta, f=None):
     """
     Subfunction of the procedure symmetric_2_slope_fill_in().
+
     See Lemma 4 in [dense-2-slope]
 
     EXAMPLE::
@@ -542,7 +550,7 @@ def generate_pi_fill_in(fn, q, f=None):
         last_y = fcn(last_x)
     return FastPiecewise(pieces)
 
-def find_infinite_norm_distance(pi_1, pi_2):
+def find_infinity_norm_distance(pi_1, pi_2):
     return max([abs(x) for x in (pi_1 - pi_2).values_at_end_points()])
 
 def generate_pi_sym(fn, f=None):
@@ -565,7 +573,7 @@ def generate_pi_sym(fn, f=None):
         True
         sage: extremality_test(pi_sym)
         True
-        sage: find_infinite_norm_distance (pi_sym, pi_pwl)
+        sage: find_infinity_norm_distance (pi_sym, pi_pwl)
         1/6
     """
     if f is None:
@@ -611,9 +619,12 @@ def show_approximations(function, pi_pwl, pi_comb, pi_fill_in, pi_sym):
     return g
 
 def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
-    """
-    Given a continuous strong minimal `function` for the Gomory and Johnson infinite group problem with `f` in Q\Z, return an extreme 2-slope function pi_ext that approximates `function` with inifinite norm distance less than epsilon. 
-    See Theorem 2 [dense-2-slope]
+    r"""
+    Given a continuous strong minimal `function` for the Gomory and Johnson infinite group problem with `f` in Q\Z, return an extreme 2-slope function pi_ext that approximates `function` with infinity norm distance less than epsilon.
+
+    See Theorem 2 [dense-2-slope].
+
+    See also: `symmetric_2_slope_fill_in_irrational`
 
     EXAMPLES::
 
@@ -623,17 +634,20 @@ def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
         False
         sage: epsilon = 1/10
         sage: pi_sym = symmetric_2_slope_fill_in(function, epsilon)
-        sage: find_infinite_norm_distance(function, pi_sym) <= epsilon
+        sage: find_infinity_norm_distance(function, pi_sym) <= epsilon
         True
+        sage: number_of_slopes(pi_sym)
+        2
         sage: extremality_test(pi_sym)
         True
 
-    Show plots:
+    Show plots::
+
         sage: pi_sym = symmetric_2_slope_fill_in(function, 1/8, True) #not tested
         sage: pi_sym = symmetric_2_slope_fill_in(function, 1/10, True) #not tested
 
     Reference:
-        [dense-2-slope] A. Basu, R. Hildebrand, and M. Molinaro, Minimal cut-generating functions are nearly extreme, 2015, http://www.ams.jhu.edu/~abasu9/papers/dense-2-slope.pdf
+        [dense-2-slope] A. Basu, R. Hildebrand, and M. Molinaro, Minimal cut-generating functions are nearly extreme, 2015, http://www.ams.jhu.edu/~abasu9/papers/dense-2-slope.pdf, to appear in Proceedings of IPCO 2016.
     """
     logging.disable(logging.INFO)
     if f is None:
@@ -644,12 +658,12 @@ def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
         order = order * 2
     pi_fill_in = generate_pi_fill_in(pi_pwl, order, f)
     pi_sym = generate_pi_sym(pi_fill_in)
-    if subadditivity_test(pi_sym) and (find_infinite_norm_distance(function, pi_sym) <= epsilon):
+    if subadditivity_test(pi_sym) and (find_infinity_norm_distance(function, pi_sym) <= epsilon):
         if show_plots:
             show_approximations(function, pi_pwl, pi_pwl, pi_fill_in, pi_sym).show()
         #logging.disable(logging.NOTSET)
         return pi_sym
-    epsilon_1 = find_infinite_norm_distance(function, pi_pwl)
+    epsilon_1 = find_infinity_norm_distance(function, pi_pwl)
 
     # estimate upper bound of q = p * order.
     delta = find_delta(pi_pwl, f, order)
@@ -657,12 +671,12 @@ def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
         delta = find_delta(pi_pwl, f, 2*order)
     pi_comb = generate_pi_comb(pi_pwl, (epsilon-epsilon_1)/2, delta, f=f)
     gamma = find_gamma(pi_comb)
-    epsilon_2 = find_infinite_norm_distance(function, pi_comb)
+    epsilon_2 = find_infinity_norm_distance(function, pi_comb)
     epsilon_3 = min(epsilon-epsilon_2, gamma/3)
     sp, sm = limiting_slopes(pi_comb)
     pmax = ceil(2 * max(sp, -sm) / order / epsilon_3)
     #i_comb, pi_fill_in, pi_sym = sym_2_slope_fill_in_given_q(pi_pwl, f, pmax*order, (epsilon-epsilon_1)/2)
-    #assert ((subadditivity_test(pi_sym) is True) and (find_infinite_norm_distance(function, pi_sym) <= epsilon))
+    #assert ((subadditivity_test(pi_sym) is True) and (find_infinity_norm_distance(function, pi_sym) <= epsilon))
     #print pmax
     #show_approximations(function, pi_pwl, pi_comb, pi_fill_in, pi_sym).show()
     pmin = 1
@@ -673,7 +687,7 @@ def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
         p = floor(sqrt(pmin*pmax))
         q = p*order
         pi_comb_p, pi_fill_in_p, pi_sym_p = sym_2_slope_fill_in_given_q(pi_pwl, f, q,  (epsilon-epsilon_1)/2)
-        if (pi_sym_p is not None) and (subadditivity_test(pi_sym_p) is True) and (find_infinite_norm_distance(function, pi_sym_p) <= epsilon):
+        if (pi_sym_p is not None) and (subadditivity_test(pi_sym_p) is True) and (find_infinity_norm_distance(function, pi_sym_p) <= epsilon):
             pmax = p
             pi_comb, pi_fill_in, pi_sym = pi_comb_p, pi_fill_in_p, pi_sym_p
         else:
@@ -685,9 +699,25 @@ def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
     return pi_sym
 
 def symmetric_2_slope_fill_in_irrational(function, epsilon, show_plots=False, f=None):
-    """
-    Given a continuous piecewise linear strong minimal `function` for the Gomory and Johnson infinite group problem, return an extreme 2-slope function pi_ext that approximates `function` with inifinite norm distance less than epsilon.
-    Variant of Theorem 2 [dense-2-slope]
+    r"""
+    Given a continuous piecewise linear strong minimal `function` for the Gomory and Johnson infinite
+    group problem, return an extreme 2-slope function pi_ext that approximates `function` with infinity
+    norm distance less than epsilon.
+
+    This construction is a variant of Theorem 2 [dense-2-slope] (implemented in `symmetric_2_slope_fill_in`),
+    proposed by Yuan Zhou (2015, unpublished):
+
+    It turns out that if pi is piecewise linear, then in Theorem 2, b
+    doesn't have to be a rational number. This is because when q is
+    large enough (precisely, when 1/q <= delta/2 and max{s+, |s-|}/q
+    <= epsilon/2, where s+ and s- are the most positive and the most
+    negative slopes of pi_comb), doing a 2-slope fill-in on the
+    pi_comb restricted to the grid 1/qZ will give a pi_fill_in that
+    always has pi_fill_in(b)=1, even though b is irrational and thus
+    is not in 1/qZ.  For the same reason, delta and other breakpoints
+    of pi_comb in lemma 6 don't have to be rational numbers either. To
+    ensure pi_sym is well defined, consider U=1/qZ \cup {b/2, (b+1)/2}
+    when constructing pi_fill_in. The proof follows verbatim.
 
     EXAMPLES::
 
@@ -697,8 +727,10 @@ def symmetric_2_slope_fill_in_irrational(function, epsilon, show_plots=False, f=
         True
         sage: epsilon = 1/10
         sage: pi_sym = symmetric_2_slope_fill_in_irrational(function, epsilon)
-        sage: find_infinite_norm_distance(function, pi_sym) <= epsilon
+        sage: find_infinity_norm_distance(function, pi_sym) <= epsilon
         True
+        sage: number_of_slopes(pi_sym)
+        2
         sage: extremality_test(pi_sym)
         True
 
@@ -708,14 +740,20 @@ def symmetric_2_slope_fill_in_irrational(function, epsilon, show_plots=False, f=
         sage: extremality_test(h)
         False
         sage: pi_sym = symmetric_2_slope_fill_in_irrational(h, 1/10)
+        sage: find_infinity_norm_distance(h, pi_sym) <= 1/10
+        True
+        sage: number_of_slopes(pi_sym)
+        2
         sage: extremality_test(pi_sym)
         True
 
-    Show plots:
+    Show plots::
+
         sage: pi_sym = symmetric_2_slope_fill_in_irrational(function, 1/10, True) #not tested
 
     Reference:
-        [dense-2-slope] A. Basu, R. Hildebrand, and M. Molinaro, Minimal cut-generating functions are nearly extreme, 2015, http://www.ams.jhu.edu/~abasu9/papers/dense-2-slope.pdf
+        [dense-2-slope] A. Basu, R. Hildebrand, and M. Molinaro, Minimal cut-generating functions are nearly extreme, 2015, http://www.ams.jhu.edu/~abasu9/papers/dense-2-slope.pdf, to appear in Proceedings of IPCO 2016.
+
     """
     logging.disable(logging.INFO)
     if f is None:
@@ -729,7 +767,7 @@ def symmetric_2_slope_fill_in_irrational(function, epsilon, show_plots=False, f=
                                 generate_type_2_vertices(pi_comb, operator.ge))\
                 if (delta <= x <= 1 - delta) and (delta <= y <= 1-delta) and \
                 not (f-delta < z < f+delta) and not (1+f-delta < z < 1+f+delta))
-    epsilon_2 = find_infinite_norm_distance(function, pi_comb)
+    epsilon_2 = find_infinity_norm_distance(function, pi_comb)
     epsilon_3 = min(epsilon-epsilon_2, gamma/3)
     sp, sm = limiting_slopes(pi_comb)
     qmax = ceil(max(2 * max(sp, -sm) / epsilon_3, 2 / delta)) + 1
@@ -741,7 +779,7 @@ def symmetric_2_slope_fill_in_irrational(function, epsilon, show_plots=False, f=
         q = floor(sqrt(qmin*qmax))
         pi_fill_in_q = generate_pi_fill_in(pi_comb, q, f)
         pi_sym_q = generate_pi_sym(pi_fill_in_q)
-        if (subadditivity_test(pi_sym_q) is True) and (find_infinite_norm_distance(function, pi_sym_q) <= epsilon):
+        if (subadditivity_test(pi_sym_q) is True) and (find_infinity_norm_distance(function, pi_sym_q) <= epsilon):
             qmax = q
             pi_fill_in, pi_sym = pi_fill_in_q, pi_sym_q
         else:
