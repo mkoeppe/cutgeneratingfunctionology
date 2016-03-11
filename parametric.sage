@@ -148,21 +148,41 @@ class SymbolicRealNumberField(Field):
         sage: K.<f> = SymbolicRealNumberField([4/5])
         sage: h = gmic(f, field=K)
         sage: _ = generate_maximal_additive_faces(h);
-        sage: list(K.get_eq_list()), list(K.get_lt_list())
-        ([], [2*f - 2, f - 2, -f, f - 1, -1/f, -f - 1, -2*f, -2*f + 1, -1/(-f^2 + f)])
-        sage: list(K.get_eq_poly()), list(K.get_lt_poly())
-        ([], [2*f - 2, f - 2, f^2 - f, -f, f - 1, -f - 1, -2*f, -2*f + 1])
-        sage: list(K.get_eq_factor()), list(K.get_lt_factor())
-        ([], [-f + 1/2, f - 1, -f])
+        sage: K.get_eq_list()
+        set()
+        sage: K.get_lt_list()
+        {-1/(-f^2 + f), -1/f, -2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2}
+        sage: K.get_eq_poly()
+        set()
+        sage: K.get_lt_poly()
+        {-2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2, f^2 - f}
+        sage: K.get_eq_factor()
+        set()
+        sage: K.get_lt_factor()
+        {-f, -f + 1/2, f - 1}
 
         sage: K.<f, lam> = SymbolicRealNumberField([4/5, 1/6])
         sage: h = gj_2_slope(f, lam, field=K)
-        sage: list(K.get_lt_list())
-        [-1/2*f*lam - 1/2*f + 1/2*lam, lam - 1, f - 1, -lam, (-f*lam - f + lam)/(-f + 1), f*lam - lam, (-1/2)/(-1/2*f^2*lam - 1/2*f^2 + f*lam + 1/2*f - 1/2*lam), -f]
-        sage: list(K.get_lt_poly())
-        [f - 1, -f*lam - f + lam, -1/2*f*lam - 1/2*f + 1/2*lam, 1/2*f^2*lam + 1/2*f^2 - f*lam - 1/2*f + 1/2*lam, -lam, f*lam - lam, -f, lam - 1]
-        sage: list(K.get_lt_factor())
-        [-lam, f - 1, -f*lam - f + lam, -f, lam - 1]
+        sage: K.get_lt_list()
+        {(-1/2)/(-1/2*f^2*lam - 1/2*f^2 + f*lam + 1/2*f - 1/2*lam),
+         (-f*lam - f + lam)/(-f + 1),
+         -lam,
+         lam - 1,
+         -f,
+         f - 1,
+         -1/2*f*lam - 1/2*f + 1/2*lam,
+         f*lam - lam}
+        sage: K.get_lt_poly()
+        {-lam,
+         lam - 1,
+         -f,
+         f - 1,
+         -f*lam - f + lam,
+         -1/2*f*lam - 1/2*f + 1/2*lam,
+         f*lam - lam,
+         1/2*f^2*lam + 1/2*f^2 - f*lam - 1/2*f + 1/2*lam}
+        sage: K.get_lt_factor()
+        {-lam, lam - 1, -f, f - 1, -f*lam - f + lam}
 
         sage: K.<f,alpha> = SymbolicRealNumberField([4/5, 3/10])
         sage: h=dg_2_step_mir(f, alpha, field=K, conditioncheck=False)
@@ -178,8 +198,8 @@ class SymbolicRealNumberField(Field):
         sage: h = drlm_3_slope_limit(f, conditioncheck=False)
         sage: extremality_test(h)
         True
-        sage: list(K.get_lt_factor())
-        [f - 1/2, f - 1/3, f - 1, -f]
+        sage: K.get_lt_factor()
+        {-f, f - 1, f - 1/2, f - 1/3}
     """
 
     def __init__(self, values=[], names=()):
@@ -450,61 +470,68 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
         sage: K.<f> = SymbolicRealNumberField([4/5])
         sage: h = gmic(f, field=K)
         sage: _ = extremality_test(h)
-        sage: eq_poly =list(K.get_eq_poly())
-        sage: lt_poly =list(K.get_lt_poly())
+        sage: eq_poly = K.get_eq_poly()
+        sage: lt_poly = K.get_lt_poly()
         sage: (eq_poly, lt_poly)
-        ([], [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1])
+        (set(), {-2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2, f^2 - f})
         sage: simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly)
         ([], [f - 1, -2*f + 1, f^2 - f])
 
-        sage: eq_factor =list(K.get_eq_factor())
-        sage: lt_factor =list(K.get_lt_factor())
+        sage: eq_factor = K.get_eq_factor()
+        sage: lt_factor = K.get_lt_factor()
         sage: (eq_factor, lt_factor)
-        ([], [-f + 1/2, f - 1, -f])
+        (set(), {-f, -f + 1/2, f - 1})
         sage: simplify_eq_lt_poly_via_ppl(eq_factor, lt_factor)
         ([], [f - 1, -2*f + 1])
 
         sage: K.<f, lam> = SymbolicRealNumberField([4/5, 1/6])
         sage: h = gj_2_slope(f, lam, field=K, conditioncheck=False)
-        sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_poly()), list(K.get_lt_poly()))
-        ([],
-         [f*lam - lam,
-          f - 1,
-          f^2*lam + f^2 - 2*f*lam - f + lam,
-          -f*lam - f + lam,
-          -lam])
-        sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_factor()), list(K.get_lt_factor()))
-        ([], [-f*lam - f + lam, f - 1, -lam, -f])
+        sage: leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_poly(), K.get_lt_poly())
+        sage: set(lin)
+        {-lam, f - 1, -f*lam - f + lam, f*lam - lam, f^2*lam + f^2 - 2*f*lam - f + lam}
+        sage: leq, lin = simplify_eq_lt_poly_via_ppl(list(K.get_eq_factor()), list(K.get_lt_factor()))
+        sage: set(lin)
+        {-lam, -f, f - 1, -f*lam - f + lam}
 
         sage: _ = extremality_test(h)
-        sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_poly()), list(K.get_lt_poly()))
-        ([], [f^2*lam + f^2 - 2*f*lam - f + lam, -2*f*lam + f + 2*lam - 1, -f*lam - 3*f + lam + 2, -lam, lam - 1, f*lam - lam])
-        sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_factor()), list(K.get_lt_factor()))
-        ([],
-         [-3*f*lam - f + 3*lam,
-          3*f*lam - f - 3*lam,
-          -f*lam - 3*f + lam + 2,
-          f*lam - 3*f - lam + 2,
-          f - 1,
-          2*lam - 1,
-          -lam])
+        sage: leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_poly(), K.get_lt_poly())
+        sage: set(lin)
+        {-lam,
+         lam - 1,
+         -2*f*lam + f + 2*lam - 1,
+         -f*lam - 3*f + lam + 2,
+         f*lam - lam,
+         f^2*lam + f^2 - 2*f*lam - f + lam}
+        sage: leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
+        sage: set(lin)
+        {-lam,
+         2*lam - 1,
+         f - 1,
+         -3*f*lam - f + 3*lam,
+         -f*lam - 3*f + lam + 2,
+         f*lam - 3*f - lam + 2,
+         3*f*lam - f - 3*lam}
 
         sage: K.<f,alpha> = SymbolicRealNumberField([4/5, 3/10])             # Bad example! parameter region = {given point}.
         sage: h=dg_2_step_mir(f, alpha, field=K, conditioncheck=False)
         sage: _ = extremality_test(h)
-        sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_poly()), list(K.get_lt_poly()))
-        ([-10*alpha + 3, -5*f + 4], [5*f^2 - 10*f*alpha - 1])
-        sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_factor()), list(K.get_lt_factor()))
-        ([-10*alpha + 3, -5*f + 4], [])
+        sage: leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_poly(), K.get_lt_poly())
+        sage: set(leq), set(lin)
+        ({-10*alpha + 3, -5*f + 4}, {5*f^2 - 10*f*alpha - 1})
+
+        sage: leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
+        sage: set(leq), set(lin)
+        ({-10*alpha + 3, -5*f + 4}, set())
 
         sage: K.<f> = SymbolicRealNumberField([1/5])
         sage: h = drlm_3_slope_limit(f, conditioncheck=False)
         sage: _ = extremality_test(h)
-        sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_poly()), list(K.get_lt_poly()))
-        ([], [3*f - 1, -f^2 - f, -f])
-        sage: simplify_eq_lt_poly_via_ppl(list(K.get_eq_factor()), list(K.get_lt_factor()))
-        ([], [3*f - 1, -f])
-
+        sage: leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_poly(), K.get_lt_poly())
+        sage: set(leq), set(lin)
+        (set(), {-f, 3*f - 1, -f^2 - f})
+        sage: leq, lin = simplify_eq_lt_poly_via_ppl(list(K.get_eq_factor()), list(K.get_lt_factor()))
+        sage: set(leq), set(lin)
+        (set(), {-f, 3*f - 1})
     """
     cs, monomial_list, v_dict = cs_of_eq_lt_poly(eq_poly, lt_poly)
     p = NNC_Polyhedron(cs)
@@ -1452,7 +1479,7 @@ class SemialgebraicComplex(SageObject):
             neighgour_points = new_component.generate_neighbour_points(flip_ineq_step)
             if (flip_ineq_step > 0):
                 (self.points_to_test).update(neighbour_points)
-            elif (fliq_ineq_step < 0):
+            elif (flip_ineq_step < 0):
                 for (new_point, new_bddleq) in neighbour_points:
                     (self.points_to_test).add(new_point)
 

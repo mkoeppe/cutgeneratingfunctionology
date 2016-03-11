@@ -1108,7 +1108,7 @@ def minimality_test(fn, show_plots=False, f=None, stop_if_fail=False):
         if stop_if_fail:
             return False
         else:
-            result = False
+            is_minimal = False
     if show_plots:
         logging.info("Plotting 2d diagram...")
         show_plot(plot_2d_diagram(fn, known_minimal=is_minimal, f=f),
