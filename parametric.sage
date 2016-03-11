@@ -1443,7 +1443,7 @@ class SemialgebraicComplex(SageObject):
             neighgour_points = new_component.generate_neighbour_points(flip_ineq_step)
             if (flip_ineq_step > 0):
                 (self.points_to_test).update(neighbour_points)
-            elif (fliq_ineq_step < 0):
+            elif (flip_ineq_step < 0):
                 for (new_point, new_bddleq) in neighbour_points:
                     (self.points_to_test).add(new_point)
 
