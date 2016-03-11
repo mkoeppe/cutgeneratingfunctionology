@@ -1337,6 +1337,18 @@ class LlStrongFractional(ExtremeFunctionsFactory):
 
 ll_strong_fractional = LlStrongFractional()
 
+def bcdsp_arbitrary_slope(*args, **kwds):
+    """
+    A family of extreme functions with an arbitrary number of slopes.
+
+    Reference:
+         [arbitrary_num_slopes] A. Basu, M. Conforti, M. Di Summa, and J. Paat, Extreme Functions with an Arbitrary Number
+of Slopes, 2015, http://www.ams.jhu.edu/~abasu9/papers/infinite-slopes.pdf, to appear in Proceedings of IPCO 2016.
+    """
+    raise NotImplementedError
+
+extreme_function_with_world_record_number_of_slopes = bcdsp_arbitrary_slope
+
 def kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19, field=None, conditioncheck=True):
     """
     New extreme function discovered by computer based search + parametric search.
