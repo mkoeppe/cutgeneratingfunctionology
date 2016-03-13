@@ -1241,6 +1241,12 @@ def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
     Examples::
 
         sage: logging.disable(logging.INFO)
+        sage: h = bcdsp_arbitrary_slope(f=1/2, k=2)
+        sage: h == gmic(f=1/2)
+        True
+        sage: h = bcdsp_arbitrary_slope(f=1/2, k=3)
+        sage: h == gj_forward_3_slope(f=1/2, lambda_1=1/2, lambda_2=1/4)
+        True
         sage: h = bcdsp_arbitrary_slope(f=1/2, k=4)
         sage: number_of_slopes(h)
         4
