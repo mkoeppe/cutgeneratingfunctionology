@@ -1476,7 +1476,7 @@ class SemialgebraicComplex(SageObject):
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
         self.components.append(new_component)
         if (region_type != 'not_constructible'):
-            neighgour_points = new_component.generate_neighbour_points(flip_ineq_step)
+            neighbour_points = new_component.generate_neighbour_points(flip_ineq_step)
             if (flip_ineq_step > 0):
                 (self.points_to_test).update(neighbour_points)
             elif (flip_ineq_step < 0):
