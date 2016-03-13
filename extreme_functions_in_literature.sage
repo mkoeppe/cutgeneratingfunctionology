@@ -1231,7 +1231,22 @@ def ll_strong_fractional(f=2/3, field=None, conditioncheck=True):
 
 def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
     """
-    A family of extreme functions with an arbitrary number of slopes.
+    A family of extreme functions with an arbitrary number `k` of slopes. (k >= 2)
+
+    Function is known to be extreme under the condition:
+        0 < f <= 1/2.
+
+    Tests show that the function is also extreme when f <= 4/5.
+
+    Examples::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = bcdsp_arbitrary_slope(f=1/2, k=4)
+        sage: extremality_test(h)
+        True
+        sage: h = bcdsp_arbitrary_slope(f=4/5, k=10)
+        sage: extremality_test(h)
+        True
 
     Reference:
          [arbitrary_num_slopes] A. Basu, M. Conforti, M. Di Summa, and J. Paat, Extreme Functions with an Arbitrary Number
