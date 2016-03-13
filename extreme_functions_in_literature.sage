@@ -1242,9 +1242,13 @@ def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
 
         sage: logging.disable(logging.INFO)
         sage: h = bcdsp_arbitrary_slope(f=1/2, k=4)
+        sage: number_of_slopes(h)
+        4
         sage: extremality_test(h)
         True
         sage: h = bcdsp_arbitrary_slope(f=4/5, k=10)
+        sage: number_of_slopes(h)
+        10
         sage: extremality_test(h)
         True
 
