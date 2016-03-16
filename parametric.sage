@@ -31,7 +31,7 @@ class SymbolicRNFElement(FieldElement):
         FieldElement.__init__(self, parent) ## this is so that canonical_coercion works.
         ## Test coercing the value to RR, so that we do not try to build a SymbolicRNFElement
         ## from something like a tuple or something else that does not make any sense.
-        RR(value)
+        #RR(value)
         self._val = value
         if symbolic is None:
             self._sym = value # changed to not coerce into SR. -mkoeppe
@@ -1079,7 +1079,7 @@ class SemialgebraicComplexComponent(SageObject):
                     if (bounds[i][0] is not None) and ((lb is None) or (bounds[i][0] - lb > 0.001)) or \
                        (bounds[i][1] is not None) and ((ub is None) or (ub - bounds[i][1] > 0.001)):
                         tightened = True
-            if bounds_propagation_iter >= max_iter:
+            if max_iter != 0 and bounds_propagation_iter >= max_iter:
                 logging.warn("max number %s of bounds propagation iterations has attained." % max_iter)
         #print bounds_propagation_iter
         return bounds, tightened_mip
@@ -1286,37 +1286,27 @@ class SemialgebraicComplexComponent(SageObject):
                     if l(*pt_across_wall) >= 0:
                         pt_across_wall = None
                         break
-                # check that non-linear walls are not crossed. Temporary.
+
                 for l in self.nlin:
-                    l_is_crossed = False
                     if pt_on_wall is not None and l(*pt_on_wall) >= 0:
                         pt_on_wall = None
-                        l_is_crossed = True
                     if pt_across_wall is not None and l(*pt_across_wall) >= 0:
                         pt_across_wall = None
-                        l_is_crossed = True
-                    if l_is_crossed:
-                        crossed_nlin.append(l)
-                        #logging.warn("crossed non-linear wall %s < 0 while flipping %s < 0 of the cell defined by %s leqs and %s lins with testpoint %s." % (l, ineq, len(self.leq), len(self.lin), self.var_value))
                 for l in self.nleq:
-                    l_is_crossed = False
                     if pt_on_wall is not None and  l(*pt_on_wall) != 0:
                         pt_on_wall = None
-                        l_is_crossed = True
                     if pt_across_wall is not None and l(*pt_across_wall) != 0:
                         pt_across_wall = None
-                        l_is_crossed = True
-                    if l_is_crossed:
-                        logging.warn("crossed non-linear wall %s == 0 while flipping %s < 0 in a cell defined by %s leqs and %s lins with testpoint %s" % (l,ineq, len(self.leq), len(self.lin), self.var_value))
+
                 if pt_on_wall is not None:
                     neighbour_points.append((pt_on_wall, [ineq]))
                 if pt_across_wall is not None:
                     neighbour_points.append((pt_across_wall, []))
             # In cpl, though outer walls are linear, inner walls can be non-linear.
-            # lower dim cell has too many useless non-linear walls. Only consider those non-linear walls that were previously crossed by flipping one of the linear inequalities for now. Temporary
-            if not self.leq:
-                crossed_nlin = self.nlin
-            for ineq in crossed_nlin:
+            # hope that mathematica moved redundant non-linear inequalites.
+            ## lower dim cell has too many useless non-linear walls. Only consider those non-linear walls that were previously crossed by flipping one of the linear inequalities for now. Temporary
+            ##if not self.leq:
+            for ineq in self.nlin:
                 new_point = self.generate_one_point_by_flipping_inequality(ineq, flip_ineq_step=-flip_ineq_step)
                 if new_point is None:
                     continue

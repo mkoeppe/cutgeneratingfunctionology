@@ -4,6 +4,8 @@ if '' not in sys.path:
     sys.path = [''] + sys.path
 
 from igp import *
+from sage.interfaces.qepcad import _qepcad_atoms
+from sage.misc.parser import Parser, Tokenizer
 
 def cpl3_group_function(r0=1/6, z1=1/12, z2=1/12, o1=1/5, o2=0, merge=True):
     """
@@ -34,7 +36,7 @@ def cpl3_group_function(r0=1/6, z1=1/12, z2=1/12, o1=1/5, o2=0, merge=True):
 
 class Cpl3Complex(SageObject):
 
-    def __init__(self, var_name, theta=None, max_iter=8, bddleq=[], bddlin=[]):
+    def __init__(self, var_name, theta=None, max_iter=0, bddleq=[], bddlin=[]):
         self.components = []
         self.d = len(var_name)
         self.var_name = var_name
@@ -56,42 +58,51 @@ class Cpl3Complex(SageObject):
 
 
     def is_point_covered(self, var_value):
-        monomial_value = [m(var_value) for m in self.monomial_list]
-        # coefficients in ppl point must be integers.
-        lcm_monomial_value = lcm([x.denominator() for x in monomial_value])
-        #print [x * lcm_monomial_value for x in monomial_value]
-        pt = Generator.point(Linear_Expression([x * lcm_monomial_value for x in monomial_value], 0), lcm_monomial_value)
-        for c in self.components:
-            # Check if the random_point is contained in the box.
-            if c.region_type == 'not_constructible' and c.leq == [] and c.lin == []:
-                continue
-            if is_point_in_box(monomial_value, c.bounds):
-                # Check if all eqns/ineqs are satisfied.
-                if c.polyhedron.relation_with(pt).implies(point_is_included):
+        if all(x in QQ for x in var_value):
+            #FIXME: is going through ppl the best way?
+            monomial_value = [m(var_value) for m in self.monomial_list]
+            # coefficients in ppl point must be integers.
+            lcm_monomial_value = lcm([x.denominator() for x in monomial_value])
+            #print [x * lcm_monomial_value for x in monomial_value]
+            pt = Generator.point(Linear_Expression([x * lcm_monomial_value for x in monomial_value], 0), lcm_monomial_value)
+            for c in self.components:
+                # Check if the random_point is contained in the box.
+                if c.region_type == 'not_constructible' and c.leq == [] and c.lin == []:
+                    continue
+                if is_point_in_box(monomial_value, c.bounds):
+                    # Check if all eqns/ineqs are satisfied.
+                    if c.polyhedron.relation_with(pt).implies(point_is_included):
+                        return True
+        else:
+            for c in self.components:
+                if all(l(var_value) == 0 for l in c.leq) and all(l(var_value) < 0 for l in c.lin):
                     return True
         return False
 
-    def add_new_component(self, var_value, bddleq, flip_ineq_step=-1/100):
+    def add_new_component(self, var_value, bddleq, flip_ineq_step=1/1000):
         # Remark: the sign of flip_ineq_step indicates how to search for neighbour testpoints:
-        # if flip_ineq_step = 0, don't search for neighbour testpoints. Used in shoot_random_points().
+        # if flip_ineq_step = 0, don't search for neighbour testpoints.
         # if flip_ineq_step < 0, we assume that the walls of the cell are linear eqn/ineq over original parameters. (So, gradient is constant; easy to find a new testpoint on the wall and another testpoint (-flip_ineq_step away) across the wall.) Used in bfs.
-        # if flip_ineq_step > 0, we don't assume the walls are linear. Apply generate_one_point_by_flipping_inequality() with flip_ineq_step to find new testpoints across the wall only. Used in bfs.
+        # if flip_ineq_step > 0, use cad of mathematica.
         unlifted_space_dim =  len(self.monomial_list)
         K = SymbolicRealNumberField(var_value, self.var_name)
         K.monomial_list = self.monomial_list # change simultaneously while lifting
         K.v_dict = self.v_dict # change simultaneously while lifting
         K.polyhedron.add_space_dimensions_and_embed(len(K.monomial_list))
         r0, z1, z2 = K.gens()[0], K.gens()[1], K.gens()[2]
-        for l in self.bddlin:
-            if not l(*K.gens()) < 0:
-                return
-        for l in bddleq:
-            if not l(*K.gens()) == 0:
-                return
         (r0mapping, z1mapping, z2mapping) = mapping_r0_z1_z2(bddleq)
         r0m = r0mapping(*K.gens()) * K.one()
         z1m = z1mapping(*K.gens()) * K.one()
         z2m = z2mapping(*K.gens()) * K.one()
+        for l in self.bddlin:
+            if not l(r0m, z1m, z2m) < 0:
+                logging.warn("Test point %s doesn't satisfy %s < 0." % (var_value, l))
+                return
+        bddlin_set = copy(K.get_lt_factor())
+        for l in bddleq:
+            if not l(*K.gens()) == 0:
+                logging.warn("Test point %s doesn't satisfy %s == 0." % (var_value, l))
+                return
         if self.theta is None:
             try:
                 o1 = z1 / (1 - r0)
@@ -103,32 +114,56 @@ class Cpl3Complex(SageObject):
                 region_type = 'not_constructible'
         else:
             try:
-                o1 = self.theta[0](r0m, z1m, z2m)
-                o2 = self.theta[1](r0m, z1m, z2m)
+                if hasattr(self.theta[0], '__call__'):
+                    o1 = self.theta[0](r0m, z1m, z2m) * K.one()
+                else:
+                    o1 = self.theta[0] * K.one()
+                if hasattr(self.theta[1], '__call__'):
+                    o2 = self.theta[1](r0m, z1m, z2m) * K.one()
+                else:
+                    o2 = self.theta[1] * K.one()
+                if type(o1._val) is sage.interfaces.mathematica.MathematicaElement and repr(mathematica.Simplify(o1._val)) == 'ComplexInfinity':
+                    raise ZeroDivisionError
+                if type(o2._val) is sage.interfaces.mathematica.MathematicaElement and repr(mathematica.Simplify(o2._val)) == 'ComplexInfinity':
+                    raise ZeroDivisionError
                 h = cpl3_group_function(r0m, z1m, z2m, o1, o2)
             except:
                 h = None
             region_type =  find_region_type_around_given_point(K, h)
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
-        # put non-linear eq/ineq to somewhere else.
-        if flip_ineq_step < 0:
-            new_component.nleq = [l for l in new_component.leq if l.degree()>1]
-            new_component.leq = [l for l in new_component.leq if l.degree()<=1]
-            new_component.nlin = [l for l in new_component.lin if l.degree()>1]
-            new_component.lin = [l for l in new_component.lin if l.degree()<=1]
+        # assume that variable elimination is done for ineqs so that eqns are not need in cad.
         #if see new monomial, lift polyhedrons of the previously computed components.
         dim_to_add = len(self.monomial_list) - unlifted_space_dim
         if dim_to_add > 0:
             for c in self.components:
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
+        if flip_ineq_step > 0:
+            lins = copy(new_component.lin)
+            new_component.lin = []
+            for i in range(len(lins)):
+                l = lins[i]
+                # FIXME: ll != l doesn't work if l is lower dim, because variables not elimiated in ll.
+                ineqs = new_component.lin + lins[i+1::] + [ll for ll in bddlin_set if ll != l]
+                pt_across_wall = find_pt_across_or_on_wall(l, ineqs, flip_ineq_step, bddleq)
+                if pt_across_wall is None:
+                    continue
+                (new_component.lin).append(l)
+                if l in bddlin_set:
+                    continue
+                (self.points_to_test).add(pt_across_wall)
+                (self.bddleq_of_testpoint)[pt_across_wall] = bddleq
+                ## ignore cells that has non-linear eqns for now.
+                #if l.degree() > 1 and (region_type == 'not_constructible' or region_type == 'not_minimal'):
+                #    continue
+                if l.degree() > 1 and region_type != 'not_constructible' and region_type != 'not_minimal':
+                    logging.warn(" Non-linear equation %s in the cell with type %s." %(l, region_type))
+                ineqs = new_component.lin[:-1] + lins[i+1::] + list(bddlin_set)
+                pt_on_wall = find_pt_across_or_on_wall(l, ineqs, None, bddleq)
+                (self.points_to_test).add(pt_on_wall)
+                (self.bddleq_of_testpoint)[pt_on_wall] = bddleq + [l]
+        elif flip_ineq_step < 0:
+            raise NotImplementedError("option flip_ineq_step < 0 is not integrated into this version of code")
         self.components.append(new_component)
-        neighbour_points = new_component.generate_neighbour_points(flip_ineq_step, self.bddlin)
-        if (flip_ineq_step > 0):
-            (self.points_to_test).update(neighbour_points)
-        elif (flip_ineq_step < 0):
-            for (new_point, new_bddleq) in neighbour_points:
-                (self.points_to_test).add(new_point)
-                (self.bddleq_of_testpoint)[new_point] = bddleq + new_bddleq
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=False):
         if restart:
@@ -139,7 +174,7 @@ class Cpl3Complex(SageObject):
         self.num_plotted_components = len(self.components)
         return self.graph
 
-    def bfs_completion(self, var_value=None, flip_ineq_step=-1/100):
+    def bfs_completion(self, var_value=None, flip_ineq_step=1/1000, check_completion=True):
         # See remark about flip_ineq_step in def add_new_component().
         if var_value:
             (self.points_to_test).add(tuple(var_value))
@@ -149,7 +184,157 @@ class Cpl3Complex(SageObject):
             bddleq = self.bddleq_of_testpoint[tuple(var_value)]
             if not self.is_point_covered(var_value):
                 self.add_new_component(var_value, bddleq, flip_ineq_step=flip_ineq_step)
+        if check_completion:
+            uncovered_pt = find_uncovered_point(self)
+            if uncovered_pt is not None:
+                logging.warn("After bfs, the complex has uncovered point (%s, %s)." % (uncovered_pt[0].sage(), uncovered_pt[1].sage()))
 
+
+def find_pt_across_or_on_wall(wall, ineqs, flip_ineq_step, eqs):
+    """
+    sage: PR2.<r0,z1>=QQ[]
+    sage: wall = r0 + 8*z1 - 1
+    sage: ineqs = [-z1, -r0*z1 - z1, r0^2 + r0*z1 - r0 + z1, r0*z1 - r0 - z1, -2*r0 + 1, r0^2*z1 - 2*r0*z1 - z1]
+    sage: find_pt_across_or_on_wall(wall, ineqs, 1/1000, [])
+    (3/4, 257/8192)
+    sage: wall(3/4, 257/8192)
+    1/1024
+    sage: find_pt_across_or_on_wall(wall, ineqs, None, [])
+    (3/4, 1/32)
+    sage: wall(3/4, 1/32)
+    0
+    sage: ineqs = [-2*r0^2 - 14*r0*z1 - 12*z1^2 + 3*r0 + 7*z1 - 1, 2*r0 + z1 - 1, r0 + 4*z1 - 1, -r0 - 5*z1 + 1, -2*r0 - 2*z1 + 1]
+    sage: wall = -2*r0*z1 - 12*z1^2 + r0 + 7*z1 - 1
+    sage: find_pt_across_or_on_wall(wall, ineqs, flip_ineq_step, [])
+    (901/2048, 10289/86016)
+    sage: wall(901/2048, 10289/86016)
+    48347/154140672
+    sage: find_pt_across_or_on_wall(-z1, [], None, [r0-1])
+    (1, 0)
+    sage: pt = find_pt_across_or_on_wall(-r0^2+2, [-r0, -z1], None, [z1^2-4])
+    sage: pt
+    (Sqrt[2], 2)
+    sage: type(pt[1])
+    <type 'sage.rings.rational.Rational'>
+    sage: type(pt[0])
+    <class 'sage.interfaces.mathematica.MathematicaElement'>
+    """
+    condstr = '{'
+    for l in set(eqs):
+        condstr += str(l) + '==0, '
+    for l in set(ineqs):
+        condstr += str(l) + '<0, '
+    if flip_ineq_step:
+        condstr += '0<'+str(wall)+'<'+str(flip_ineq_step)+ '}'
+    else:
+        condstr += str(wall) + '==0}'
+    return find_instance_using_mathematica(condstr)
+
+def find_uncovered_point(complex):
+    if not complex.bddlin:
+        return None
+    condstr = ''
+    for l in complex.bddleq:
+        condstr += str(l) + ' == 0 && '
+    for c in complex.components:
+        condstr += '!('
+        if not c.lin:
+            for l in c.leq[:-1]:
+                condstr += str(l) + ' == 0 && '
+            condstr += str(c.leq[-1]) + ' == 0) && '
+        else:
+            for l in c.leq:
+                condstr += str(l) + ' == 0 && '
+            for l in c.lin[:-1]:
+                condstr += str(l) + ' < 0 && '
+            condstr += str(c.lin[-1]) + ' < 0) && '
+    for l in complex.bddlin[:-1]:
+        condstr += str(l) + ' < 0 && '
+    condstr += str(complex.bddlin[-1]) + ' < 0'
+    return find_instance_using_mathematica(condstr)
+
+def find_instance_using_mathematica(condstr):
+    pt = mathematica.FindInstance(condstr, '{r0,z1}')
+    if len(pt) == 0:
+        return None
+    try:
+        pt1 = QQ(pt[1][1][2])
+    except TypeError:
+        pt1 = pt[1][1][2]
+    try:
+        pt2 = QQ(pt[1][2][2])
+    except TypeError:
+        pt2 = pt[1][2][2]
+    return (pt1, pt2)
+
+# def remove_redundancy_using_maple(lins):
+#     maple=Maple(server='logic.math.ucdavis.edu')
+#     condstr = '{'+ str(lins[0]) + '<0'
+#     for l in lins[1::]:
+#         condstr += ', ' + str(l) + '<0'
+#     condstr += '}'
+#     #if 'r0' in condstr:
+#     #    if 'z1' in condstr:
+#     #        varstr = '[r0, z1]'
+#     #    else:
+#     #        varstr = '[r0]'
+#     #else:
+#     #    varstr='[z1]'
+#     s = maple.solve(condstr) #, varstr)
+#     if maple.nops(s)>1:
+#         logging.warn("The Maple output of %s is %s, which ." % (lins, qe))
+
+def remove_redundancy_using_qepcad(lins):
+    """
+    sage: PR2.<r0,z1>=QQ[]
+    sage: lins = [r0 + 8*z1 - 1, -z1, -r0*z1 - z1, r0^2 + r0*z1 - r0 + z1, r0*z1 - r0 - z1, -2*r0 + 1, r0^2*z1 - 2*r0*z1 - z1]
+    sage: remove_redundancy_using_qepcad(lins)
+    [r0 + 8*z1 - 1, -2*r0 + 1, -z1]
+    sage: lins = [r0 + 4*z1 - 1, -r0 - 8*z1 + 1, -2*r0 + 1, 4*r0*z1 - 3*r0 + 4*z1 - 1, -4*r0*z1 + 4*z1 - 1]
+    sage: remove_redundancy_using_qepcad(lins)
+    [-r0 - 8*z1 + 1, -2*r0 + 1, r0 + 4*z1 - 1]
+    """
+    # TODO: check on the qepcad option measure-zero-error
+    # which is supposed to bring huge reduction in time and space.
+    # lins are lists of Multivariate Polynomial. (we ignored leqs)
+    qf = qepcad_formula
+    qe = qepcad([qf.atomic(l, operator.lt) for l in lins], memcells=50000000)
+    # note: type(qe) = <class 'sage.interfaces.interface.AsciiArtString'>
+    # note: with interact=True, call qe.finish() and qe.answer()
+    # qe_interact = qepcad([qf.atomic(l, operator.lt) for l in lins], memcells=50000000, interact=True)
+    # PR2.<r0,z1>=QQ[]
+    # vars_in_lins = set(v for l in lins for v in l.variables())
+    # if r0 in vars_in_lins:
+    #     qe_interact.assume(r0 > 0)
+    # if z1 in vars_in_lins:
+    #     qe_interact.assume(z1 > 0)
+    # if (r0 in vars_in_lins) and (z1 in vars_in_lins):
+    #     qe_interact.assume(qf.atomic(r0 + 4*z1 - 1, operator.lt))
+    # qe = qe_interact.finish()
+    if ("\\/" in qe):
+        logging.warn("The qepcad output of %s is %s, which has \\/." % (lins, qe))
+    # see how many inequalities qepcad managed to reduce.
+    #if (qe.count("/\\")+1 != len(lins)):
+    #    print len(lins), lins
+    #    print qe.count("/\\")+1, qe
+    # not complete....to parse qe
+    # assume there is no disjuction.
+    atomset = _qepcad_atoms(qe)
+    p = Parser(make_var=var)
+    # assume rhs is 0, operator is either < or >
+    new_lins = []
+    for a in atomset:
+        q = p.p_eqn(Tokenizer(a))
+        if q.operator() == operator.lt:
+            qexpr = q.lhs()-q.rhs()
+        elif q.operator() == operator.gt:
+            qexpr = q.rhs()-q.lhs()
+        else:
+            raise ValueError, "The min description of %s is %s. It has atom %s which is not a strict inequality." % (lins, qe, a)
+        qpoly = QQ['r0, z1'](qexpr)
+        new_lins.append(qpoly)
+    del(qe) # useful?
+    return new_lins
 
 def bddlin_cpl():
     """
@@ -158,7 +343,7 @@ def bddlin_cpl():
     K.<r0,z1,z2>=QQ[]
     return [-r0, -z1, -z2, r0+2*z1+2*z2-1]
 
-def regions_r0_z1_z2_from_arrangement_of_bkpts():
+def regions_r0_z1_z2_from_arrangement_of_bkpts(max_iter=0, flip_ineq_step=1/1000, check_completion=False):
     """
     Got regions[0:30]: 2-dim; regions[30:73]: 1-dim; regions[73:87]: 0-dim.
 
@@ -167,8 +352,16 @@ def regions_r0_z1_z2_from_arrangement_of_bkpts():
     sage: len(regions) #not tested
     607
     """
-    arr_complex=Cpl3Complex(['r0','z1','z2'], theta=None, bddlin=bddlin_cpl())
-    arr_complex.bfs_completion(var_value=[6/10,3/200,5/200])
+    arr_complex=Cpl3Complex(['r0','z1','z2'], theta=None, bddlin=bddlin_cpl(), max_iter=max_iter)
+    if flip_ineq_step != 0:
+        arr_complex.bfs_completion(var_value=[6/10,3/200,5/200],
+                               flip_ineq_step=flip_ineq_step, check_completion=check_completion)
+    else:
+        while True:
+            pt = find_uncovered_point(arr_complex)
+            if pt is None:
+                break
+            arr_complex.add_new_component(pt, arr_complex.bddleq, flip_ineq_step=0)
     regions = arr_complex.components
     regions.sort(key=lambda r: len(r.leq))
     return regions
@@ -187,26 +380,48 @@ def mapping_r0_z1_z2(leq):
     sage:  mapping_r0_z1_z2([-12*z1 + 1, -2*r0 + 1, r0 + z2 -1])
     (1/2, 1/12, 1/2)
     """
+    # FIXME: rewrite. what if len(leq)==2? eliminate_degree_one_variable() is not good.
     PR2.<r0,z1,z2>=QQ[]
-    #m = len(leq)
-    n = 3
-    matrix_var = [z2, z1, r0, PR2.one()]  #reordered. want to keep r0 as parameter.
-    matrix_coeff = [[l.monomial_coefficient(z2), l.monomial_coefficient(z1), l.monomial_coefficient(r0),\
-                     l.constant_coefficient()] for l in leq]
-    AQ = matrix(QQ, matrix_coeff)
-    AE = AQ.echelon_form()
-    sol = [r0, z1, z2]
-    for arow in AE[::-1]:
-        for i in range(n+1):
-            if arow[i] != 0: # ==1?
-                break
-        if i == n:
-            if arow[i] == 0:
-                continue
-            else:
-                raise ValueError, "%s has not solution." % leq
-        sol[n-i-1] = - sum(arow[j]*matrix_var[j] for j in range(i+1,n+1))
-    return tuple(sol)
+    if not leq:
+        return (r0, z1, z2)
+    elif len(leq) == 1:
+        return eliminate_degree_one_variable(leq)
+    else:
+        x, y, z = var('x, y, z')
+        eqns = [l(x, y, z)==0 for l in leq]
+        sols = solve(eqns, x, y, z, solution_dict=True)
+        if len(sols) != 1:
+            # assume there is at least one solution.
+            logging.warn("Solution %s to %s is not unique, try eliminating degree one variable." %(sols, eqns))
+            return eliminate_degree_one_variable(leq)
+        if sols[0][x] in QQ:
+            sx = PR2(sols[0][x])
+        else:
+            sx = r0
+        if sols[0][y] in QQ:
+            sy = PR2(sols[0][y])
+        else:
+            sx = z1
+        if sols[0][z] in QQ:
+            sz = PR2(sols[0][z])
+        else:
+            sz = z2
+        return (PR2(sx), PR2(sy), PR2(sz))
+
+def eliminate_degree_one_variable(leq):
+    PR2.<r0,z1,z2>=QQ[]
+    for l in leq:
+        if l.degree(z2) == 1:
+            c_z2 = l.coefficient(z2)
+            return (r0, z1, z2 - l / c_z2)
+        if l.degree(z1) == 1:
+            c_z1 = l.coefficient(z1)
+            return (r0, z1 - l / c_z1, z2)
+        elif l.degree(r0) == 1:
+            c_r0 = l.coefficient(r0)
+            return (r0 - l / c_r0, z1, z2)
+    logging.warn("No degree one variable in %s==0, can't eliminate variable." %leq)
+    return (r0, z1, z2)
 
 def symbolic_subbadditivity_constraints_of_cpl3_given_region(r):
     """
@@ -351,7 +566,7 @@ def generate_thetas_of_region(r):
                 thetas.append(theta)
     return thetas
 
-def fill_region_given_theta(r, theta):
+def fill_region_given_theta(r, theta, max_iter=0, flip_ineq_step=1/1000, check_completion=True):
     """
     sage: regions = regions_r0_z1_z2_from_arrangement_of_bkpts()
     sage: r = regions[0]
@@ -365,12 +580,20 @@ def fill_region_given_theta(r, theta):
     sage: cpl_complex.components[0].region_type
     'is_extreme'
     """
-    cpl_complex = Cpl3Complex(['r0','z1','z2'], theta=theta, bddleq=copy(r.leq), bddlin=copy(r.lin))
-    cpl_complex.bfs_completion(var_value=tuple(r.var_value), flip_ineq_step=-1/100)
+    cpl_complex = Cpl3Complex(['r0','z1','z2'], theta=theta, bddleq=copy(r.leq), bddlin=copy(r.lin), max_iter=max_iter)
+    if flip_ineq_step != 0:
+        cpl_complex.bfs_completion(var_value=tuple(r.var_value), \
+                               flip_ineq_step=flip_ineq_step, check_completion=check_completion)
+    else:
+        while True:
+            pt = find_uncovered_point(cpl_complex)
+            if pt is None:
+                break
+            cpl_complex.add_new_component(pt, cpl_complex.bddleq, flip_ineq_step=0)
     return cpl_complex
 
-
-def cpl_regions_with_thetas_and_components(keep_extreme_only=False, regions=None):
+def cpl_regions_with_thetas_and_components(keep_extreme_only=False, regions=None, max_iter=0, \
+                                           flip_ineq_step=1/1000, check_completion=True):
     """
     sage: regions = cpl_regions_with_thetas_and_components()
     output warning:
@@ -385,16 +608,17 @@ def cpl_regions_with_thetas_and_components(keep_extreme_only=False, regions=None
     86 [1/8, 1/8]
     """
     if not regions:
-        regions = regions_r0_z1_z2_from_arrangement_of_bkpts()
+        regions = regions_r0_z1_z2_from_arrangement_of_bkpts(max_iter=max_iter, \
+                            flip_ineq_step=1/1000, \
+                            check_completion=False) #check_completion)
     for i in range(len(regions)):
         r = regions[i]
-        print i, r.var_value
-        if hasattr(r, 'thetas') and r.thetas:
-            continue
+        logging.warn("Cell %s with test point %s." %(i, r.var_value))
         r.thetas = {}
         thetas_of_r = generate_thetas_of_region(r)
         for theta in thetas_of_r:
-            cpl_complex = fill_region_given_theta(r, theta)
+            cpl_complex = fill_region_given_theta(r, theta, max_iter=max_iter,\
+                                flip_ineq_step=flip_ineq_step, check_completion=check_completion)
             if keep_extreme_only:
                 components = [c for c in cpl_complex.components if c.region_type=='is_extreme']
             else:
