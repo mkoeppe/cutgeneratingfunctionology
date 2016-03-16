@@ -192,32 +192,6 @@ class Cpl3Complex(SageObject):
 
 def find_pt_across_or_on_wall(wall, ineqs, flip_ineq_step, eqs):
     """
-    sage: PR2.<r0,z1>=QQ[]
-    sage: wall = r0 + 8*z1 - 1
-    sage: ineqs = [-z1, -r0*z1 - z1, r0^2 + r0*z1 - r0 + z1, r0*z1 - r0 - z1, -2*r0 + 1, r0^2*z1 - 2*r0*z1 - z1]
-    sage: find_pt_across_or_on_wall(wall, ineqs, 1/1000, [])
-    (3/4, 257/8192)
-    sage: wall(3/4, 257/8192)
-    1/1024
-    sage: find_pt_across_or_on_wall(wall, ineqs, None, [])
-    (3/4, 1/32)
-    sage: wall(3/4, 1/32)
-    0
-    sage: ineqs = [-2*r0^2 - 14*r0*z1 - 12*z1^2 + 3*r0 + 7*z1 - 1, 2*r0 + z1 - 1, r0 + 4*z1 - 1, -r0 - 5*z1 + 1, -2*r0 - 2*z1 + 1]
-    sage: wall = -2*r0*z1 - 12*z1^2 + r0 + 7*z1 - 1
-    sage: find_pt_across_or_on_wall(wall, ineqs, flip_ineq_step, [])
-    (901/2048, 10289/86016)
-    sage: wall(901/2048, 10289/86016)
-    48347/154140672
-    sage: find_pt_across_or_on_wall(-z1, [], None, [r0-1])
-    (1, 0)
-    sage: pt = find_pt_across_or_on_wall(-r0^2+2, [-r0, -z1], None, [z1^2-4])
-    sage: pt
-    (Sqrt[2], 2)
-    sage: type(pt[1])
-    <type 'sage.rings.rational.Rational'>
-    sage: type(pt[0])
-    <class 'sage.interfaces.mathematica.MathematicaElement'>
     """
     condstr = '{'
     for l in set(eqs):
@@ -254,7 +228,7 @@ def find_uncovered_point(complex):
     return find_instance_using_mathematica(condstr)
 
 def find_instance_using_mathematica(condstr):
-    pt = mathematica.FindInstance(condstr, '{r0,z1}')
+    pt = mathematica.FindInstance(condstr, '{r0,z1,z2}')
     if len(pt) == 0:
         return None
     try:
@@ -265,76 +239,11 @@ def find_instance_using_mathematica(condstr):
         pt2 = QQ(pt[1][2][2])
     except TypeError:
         pt2 = pt[1][2][2]
-    return (pt1, pt2)
-
-# def remove_redundancy_using_maple(lins):
-#     maple=Maple(server='logic.math.ucdavis.edu')
-#     condstr = '{'+ str(lins[0]) + '<0'
-#     for l in lins[1::]:
-#         condstr += ', ' + str(l) + '<0'
-#     condstr += '}'
-#     #if 'r0' in condstr:
-#     #    if 'z1' in condstr:
-#     #        varstr = '[r0, z1]'
-#     #    else:
-#     #        varstr = '[r0]'
-#     #else:
-#     #    varstr='[z1]'
-#     s = maple.solve(condstr) #, varstr)
-#     if maple.nops(s)>1:
-#         logging.warn("The Maple output of %s is %s, which ." % (lins, qe))
-
-def remove_redundancy_using_qepcad(lins):
-    """
-    sage: PR2.<r0,z1>=QQ[]
-    sage: lins = [r0 + 8*z1 - 1, -z1, -r0*z1 - z1, r0^2 + r0*z1 - r0 + z1, r0*z1 - r0 - z1, -2*r0 + 1, r0^2*z1 - 2*r0*z1 - z1]
-    sage: remove_redundancy_using_qepcad(lins)
-    [r0 + 8*z1 - 1, -2*r0 + 1, -z1]
-    sage: lins = [r0 + 4*z1 - 1, -r0 - 8*z1 + 1, -2*r0 + 1, 4*r0*z1 - 3*r0 + 4*z1 - 1, -4*r0*z1 + 4*z1 - 1]
-    sage: remove_redundancy_using_qepcad(lins)
-    [-r0 - 8*z1 + 1, -2*r0 + 1, r0 + 4*z1 - 1]
-    """
-    # TODO: check on the qepcad option measure-zero-error
-    # which is supposed to bring huge reduction in time and space.
-    # lins are lists of Multivariate Polynomial. (we ignored leqs)
-    qf = qepcad_formula
-    qe = qepcad([qf.atomic(l, operator.lt) for l in lins], memcells=50000000)
-    # note: type(qe) = <class 'sage.interfaces.interface.AsciiArtString'>
-    # note: with interact=True, call qe.finish() and qe.answer()
-    # qe_interact = qepcad([qf.atomic(l, operator.lt) for l in lins], memcells=50000000, interact=True)
-    # PR2.<r0,z1>=QQ[]
-    # vars_in_lins = set(v for l in lins for v in l.variables())
-    # if r0 in vars_in_lins:
-    #     qe_interact.assume(r0 > 0)
-    # if z1 in vars_in_lins:
-    #     qe_interact.assume(z1 > 0)
-    # if (r0 in vars_in_lins) and (z1 in vars_in_lins):
-    #     qe_interact.assume(qf.atomic(r0 + 4*z1 - 1, operator.lt))
-    # qe = qe_interact.finish()
-    if ("\\/" in qe):
-        logging.warn("The qepcad output of %s is %s, which has \\/." % (lins, qe))
-    # see how many inequalities qepcad managed to reduce.
-    #if (qe.count("/\\")+1 != len(lins)):
-    #    print len(lins), lins
-    #    print qe.count("/\\")+1, qe
-    # not complete....to parse qe
-    # assume there is no disjuction.
-    atomset = _qepcad_atoms(qe)
-    p = Parser(make_var=var)
-    # assume rhs is 0, operator is either < or >
-    new_lins = []
-    for a in atomset:
-        q = p.p_eqn(Tokenizer(a))
-        if q.operator() == operator.lt:
-            qexpr = q.lhs()-q.rhs()
-        elif q.operator() == operator.gt:
-            qexpr = q.rhs()-q.lhs()
-        else:
-            raise ValueError, "The min description of %s is %s. It has atom %s which is not a strict inequality." % (lins, qe, a)
-        qpoly = QQ['r0, z1'](qexpr)
-        new_lins.append(qpoly)
-    del(qe) # useful?
-    return new_lins
+    try:
+        pt3 = QQ(pt[1][3][2])
+    except TypeError:
+        pt3 = pt[1][3][2]
+    return (pt1, pt2, pt3)
 
 def bddlin_cpl():
     """
@@ -401,7 +310,7 @@ def mapping_r0_z1_z2(leq):
         if sols[0][y] in QQ:
             sy = PR2(sols[0][y])
         else:
-            sx = z1
+            sy = z1
         if sols[0][z] in QQ:
             sz = PR2(sols[0][z])
         else:
@@ -596,16 +505,6 @@ def cpl_regions_with_thetas_and_components(keep_extreme_only=False, regions=None
                                            flip_ineq_step=1/1000, check_completion=True):
     """
     sage: regions = cpl_regions_with_thetas_and_components()
-    output warning:
-    0 [3/5, 1/25]
-    ...
-    9 [243/520, 6/325]
-    WARNING: 2016-02-17 07:44:25,836 max number 8 of bounds propagation iterations has attrained.
-    ...
-    24 [319/2000, 169/1000]
-    WARNING: 2016-02-17 07:46:44,986 crossed non-linear wall 2*r0^2 + 9*r0*z1 + 7*z1^2 - 3*r0 - 6*z1 + 1 < 0 while flipping -4*r0 - 14*z1 + 3 < 0
-    ...
-    86 [1/8, 1/8]
     """
     if not regions:
         regions = regions_r0_z1_z2_from_arrangement_of_bkpts(max_iter=max_iter, \
