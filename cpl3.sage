@@ -187,7 +187,10 @@ class Cpl3Complex(SageObject):
         if check_completion:
             uncovered_pt = find_uncovered_point(self)
             if uncovered_pt is not None:
-                logging.warn("After bfs, the complex has uncovered point (%s, %s)." % (uncovered_pt[0].sage(), uncovered_pt[1].sage()))
+                logging.warn("After bfs, the complex has uncovered point (%s, %s, %s)." % (repr(uncovered_pt[0]), repr(uncovered_pt[1]), repr(uncovered_pt[2])))
+                self.bfs_completion(var_value=uncovered_pt, \
+                                    flip_ineq_step=flip_ineq_step, \
+                                    check_completion=True)
 
 
 def find_pt_across_or_on_wall(wall, ineqs, flip_ineq_step, eqs):
@@ -254,7 +257,7 @@ def bddlin_cpl():
 
 def regions_r0_z1_z2_from_arrangement_of_bkpts(max_iter=0, flip_ineq_step=1/1000, check_completion=False):
     """
-    Got regions[0:30]: 2-dim; regions[30:73]: 1-dim; regions[73:87]: 0-dim.
+    Got regions[0:143]: 3-dim; regions[143:420]: 2-dim; regions[420:581]: 1-dim; regions[581:607]: 0-dim.
 
     sage: logging.disable(logging.INFO)  # not tested
     sage: regions = regions_r0_z1_z2_from_arrangement_of_bkpts() # not tested
@@ -494,11 +497,10 @@ def fill_region_given_theta(r, theta, max_iter=0, flip_ineq_step=1/1000, check_c
         cpl_complex.bfs_completion(var_value=tuple(r.var_value), \
                                flip_ineq_step=flip_ineq_step, check_completion=check_completion)
     else:
-        while True:
-            pt = find_uncovered_point(cpl_complex)
-            if pt is None:
-                break
+        pt = tuple(r.var_value)
+        while pt is not None:
             cpl_complex.add_new_component(pt, cpl_complex.bddleq, flip_ineq_step=0)
+            pt = find_uncovered_point(cpl_complex)
     return cpl_complex
 
 def cpl_regions_with_thetas_and_components(keep_extreme_only=False, regions=None, max_iter=0, \
@@ -516,6 +518,7 @@ def cpl_regions_with_thetas_and_components(keep_extreme_only=False, regions=None
         r.thetas = {}
         thetas_of_r = generate_thetas_of_region(r)
         for theta in thetas_of_r:
+            #print theta
             cpl_complex = fill_region_given_theta(r, theta, max_iter=max_iter,\
                                 flip_ineq_step=flip_ineq_step, check_completion=check_completion)
             if keep_extreme_only:
