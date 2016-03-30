@@ -3065,6 +3065,88 @@ def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
             perturbed = rescale_to_amplitude(perturbed, 1)
         return perturbed
 
+def perturbation_mip(fn, perturbs, solver=None):
+    """
+    Given a subadditive pwl function `fn` and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a mip, one dimension for each basic perturbation, with the subadditivities.
+
+    EXAMPLE::
+
+        sage: logging.disable(logging.INFO) # to disable output in automatic tests.
+        sage: h = not_extreme_1()
+        sage: extremality_test(h, show_all_perturbations=True)
+        False
+        sage: len(h._perturbations)
+        2
+        sage: pert_mip = perturbation_mip(fn, h._perturbations,'ppl')
+
+        We set solver='ppl' here. The coefficients in the constraints are rational numbers, rather than 'float' used by the default 'GLPK' solver.
+
+        sage: pert_mip.constraints()
+        [(-1/3, ([0, 1], [-1/15, -1/10]), 1/3),
+         (-1/3, ([0, 1], [1/10, 1/15]), 1/3),
+         (-2/3, ([0, 1], [1/30, -1/30]), 2/3),
+         (-4/3, ([0, 1], [-1/30, 1/30]), 4/3),
+         (-1, ([0, 1], [-1/30, -2/15]), 1),
+         (-4/3, ([0, 1], [1/15, -1/15]), 4/3),
+         (-2/3, ([0, 1], [-1/15, 1/15]), 2/3),
+         (-1/3, ([0], [-1/6]), 1/3),
+         (-1, ([0, 1], [2/15, 1/30]), 1),
+         (-1/3, ([1], [1/6]), 1/3)]
+
+        Since rational coefficients are used in `ppl` solver, we can ask for the polyhedron defined by the Linear Program. This would fail if we set solver='GLPK' and if coefficient are not integers, due to AttributeError: type object 'float' has no attribute 'fraction_field'.
+
+        sage: pert_poly = pert_mip.polyhedron()
+        sage: pert_poly
+        A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+        sage: pert_poly.vertices()
+        (A vertex at (-2, -2),
+         A vertex at (2, 2),
+         A vertex at (-2, 2),
+         A vertex at (2, -2))
+
+        Lift the function by adding a perturbation that corresponds to a vertex of the perturbation polyhedron.
+
+        sage: h_lift = h + 2*h._perturbations[0] - 2*h._perturbations[1]
+        sage: extremality_test(h_lift)
+        True
+    """
+    bkpt = copy(fn.end_points())
+    for pert in perturbs:
+        bkpt += pert.end_points()
+    bkpt = uniq(bkpt)
+    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
+    type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
+    type_2_vertices = [(x, z-x, z) for x in bkpt for z in bkpt2 if x < z < 1+x]
+    vertices = set(type_1_vertices + type_2_vertices)
+    if fn.is_continuous and all(pert.is_continuous for pert in perturbs):
+        limitingeps = []
+    else:
+        limitingeps = list(nonzero_eps) # nonzero_eps is defined in discontinuous_case.sage
+    mip = MixedIntegerLinearProgram(solver=solver)
+    n = len(perturbs)
+    constraints_set = set([])
+    for (x, y, z) in vertices:
+        for (xeps, yeps, zeps) in [(0,0,0)]+limitingeps:
+            deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
+            deltap = [delta_pi_general(pert, x, y, (xeps, yeps, zeps)) for pert in perturbs]
+            if all(coef == 0 for coef in deltap):
+                continue
+            constraint_coef = tuple([deltafn]) + tuple(deltap)
+            constraint_linear_func = sum(deltap[i] * mip[i] for i in range(n))
+            if constraint_coef in constraints_set:
+                # don't add duplicated constraints.
+                # `if constraint_linear_func in mip.constraints:` doesn't work.
+                continue
+            else:
+                constraints_set.add(constraint_coef)
+            mip.add_constraint(constraint_linear_func, min=-deltafn, max=deltafn)
+            # if deltafn > 0:
+            #     mip.add_constraint(-deltafn <= constraint_linear_func <= deltafn)
+            # else:
+            #     mip.add_constraint(constraint_linear_func == 0)
+
+    return mip
+
 def lift_until_extreme(fn, show_plots = False, pause = False, **kwds):
     next, fn = fn, None
     while next != fn:
