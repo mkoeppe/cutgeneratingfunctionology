@@ -3166,6 +3166,34 @@ def lift_given_vertex_perturbation(fn, vertex, perturbs):
         lifted += vertex[i] * perturbs[i]
     return lifted
 
+def perturbation_corresponding_to_mip_solution(perturbs, mip):
+     """
+    EXAMPLE::
+
+        sage: logging.disable(logging.INFO) # to disable output in automatic tests.
+        sage: h = not_extreme_1()
+        sage: extremality_test(h, show_all_perturbations=True)
+        False
+        sage: perturbs = h._perturbations
+        sage: pert_mip = perturbation_mip(fn, h._perturbations, 'ppl')
+        sage: pert_mip.solve()
+        0
+        sage: vertex = pert_mip.get_values([pert_mip[0], pert_mip[1]])
+        sage: vertex
+        [2, -2]
+        sage: perturbation = perturbation_corresponding_to_mip_solution(perturbs, pert_mip)
+        sage: h_lift = h + perturbation
+        sage: extremality_test(h_lift)
+        True
+        sage: h_lift == lift_given_vertex_perturbation(fn, vertex, perturbs)
+        True
+    """
+    n = len(perturbs)
+    perturb = mip.get_values(mip[0]) * perturbs[0]
+    for i in range(1, n):
+        perturb += mip.get_values(mip[i]) * perturbs[i]
+    return perturb
+
 def lift_until_extreme(fn, show_plots = False, pause = False, **kwds):
     next, fn = fn, None
     while next != fn:
