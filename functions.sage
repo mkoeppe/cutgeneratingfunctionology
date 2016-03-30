@@ -2984,6 +2984,74 @@ def plot_completion_diagram(fn, perturbation=None):
         g += plot_walk_in_completion_diagram(perturbation._seed, perturbation._walk_list)
     return g
 
+def perturbation_polyhedron(fn, perturbs):
+    """
+    Given a subadditive pwl function `fn` and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a polyhedron, one dimension for each basic perturbation, with the subadditivities.
+
+    EXAMPLE::
+
+        sage: logging.disable(logging.INFO) # to disable output in automatic tests.
+        sage: h = not_extreme_1()
+        sage: extremality_test(h, show_all_perturbations=True)
+        False
+        sage: h._perturbations
+        [<FastPiecewise with 6 parts, 
+          (0, 1/10)	<FastLinearFunction -2/3*x>	 values: [0, -1/15]
+          (1/10, 1/5)	<FastLinearFunction x - 1/6>	 values: [-1/15, 1/30]
+          (1/5, 3/10)	<FastLinearFunction -2/3*x + 1/6>	 values: [1/30, -1/30]
+          (3/10, 2/5)	<FastLinearFunction x - 1/3>	 values: [-1/30, 1/15]
+          (2/5, 1/2)	<FastLinearFunction -2/3*x + 1/3>	 values: [1/15, 0]
+          (1/2, 1)	<FastLinearFunction 0>	 values: [0, 0]>,
+         <FastPiecewise with 6 parts, 
+          (0, 1/2)	<FastLinearFunction 0>	 values: [0, 0]
+          (1/2, 3/5)	<FastLinearFunction -2/3*x + 1/3>	 values: [0, -1/15]
+          (3/5, 7/10)	<FastLinearFunction x - 2/3>	 values: [-1/15, 1/30]
+          (7/10, 4/5)	<FastLinearFunction -2/3*x + 1/2>	 values: [1/30, -1/30]
+          (4/5, 9/10)	<FastLinearFunction x - 5/6>	 values: [-1/30, 1/15]
+          (9/10, 1)	<FastLinearFunction -2/3*x + 2/3>	 values: [1/15, 0]>]
+        sage: pert_polyhedron = perturbation_polyhedron(fn, h._perturbations)
+        sage: pert_polyhedron
+        A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+        sage: pert_polyhedron.Hrepresentation()
+        (An inequality (1, 0) x + 2 >= 0,
+         An inequality (0, 1) x + 2 >= 0,
+         An inequality (0, -1) x + 2 >= 0,
+         An inequality (-1, 0) x + 2 >= 0)
+        sage: pert_polyhedron.Vrepresentation()
+        (A vertex at (-2, -2),
+         A vertex at (2, 2),
+         A vertex at (-2, 2),
+         A vertex at (2, -2))
+        sage: h_lift = h + 2*h._perturbations[0] - 2*h._perturbations[1]
+        sage: extremality_test(h_lift)
+        True
+    """
+    bkpt = copy(fn.end_points())
+    for pert in perturbs:
+        bkpt += pert.end_points()
+    bkpt = uniq(bkpt)
+    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
+    type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
+    type_2_vertices = [(x, z-x, z) for x in bkpt for z in bkpt2 if x < z < 1+x]
+    vertices = set(type_1_vertices + type_2_vertices)
+    if fn.is_continuous and all(pert.is_continuous for pert in perturbs):
+        limitingeps = []
+    else:
+        limitingeps = list(nonzero_eps) # nonzero_eps is defined in discontinuous_case.sage
+    ieqset = set([])
+    eqnset = set([])
+    for (x, y, z) in vertices:
+        for (xeps, yeps, zeps) in [(0,0,0)]+limitingeps:
+            deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
+            deltap = [delta_pi_general(pert, x, y, (xeps, yeps, zeps)) for pert in perturbs]
+            if deltafn > 0:
+                ieqset.add(tuple([deltafn]) + tuple(deltap))
+                ieqset.add(tuple([deltafn]) + tuple(-v for v in deltap))
+            else:
+                eqnset.add(tuple([deltafn]) + tuple(deltap))
+    pert_polyhedron = Polyhedron(ieqs = list(ieqset), eqns = list(eqnset))   
+    return pert_polyhedron
+
 def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
     # FIXME: Need better interface for perturbation selection.
     if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots=show_plots, **kwds):
