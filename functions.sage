@@ -3065,7 +3065,7 @@ def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
             perturbed = rescale_to_amplitude(perturbed, 1)
         return perturbed
 
-def perturbation_mip(fn, perturbs, solver=None):
+def perturbation_mip(fn, perturbs, solver='ppl'):
     """
     Given a subadditive pwl function `fn` and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a mip, one dimension for each basic perturbation, with the subadditivities.
 
@@ -3147,8 +3147,12 @@ def perturbation_mip(fn, perturbs, solver=None):
 
     return mip
 
-def lift_given_vertex_perturbation(fn, vertex, perturbs):
+def generate_lifted_function(fn, perturbs, solver='ppl'):
     """
+    A generator of lifted functions.
+
+    Set up a mip, one dimension for each basic perturbation, with the subadditivities. Shoot random directions as objective functions. Solve the mip. Lift the function by adding the perturbation that corresponds to the mip solution.
+
     EXAMPLE::
 
         sage: logging.disable(logging.INFO) # to disable output in automatic tests.
@@ -3156,18 +3160,18 @@ def lift_given_vertex_perturbation(fn, vertex, perturbs):
         sage: extremality_test(h, show_all_perturbations=True)
         False
         sage: perturbs = h._perturbations
-        sage: vertex = [2, -2]
-        sage: h_lift = lift_given_vertex_perturbation(h, vertex, perturbs)
+        sage: h_lift = generate_lifted_function(h, perturbs).next()
         sage: extremality_test(h_lift)
         True
     """
-    lifted = fn
-    for i in range(len(vertex)):
-        lifted += vertex[i] * perturbs[i]
-    return lifted
+    pert_mip = perturbation_mip(fn, perturbs, solver=solver)
+    while True:
+        mip_sol = solve_mip_with_random_objective_function(pert_mip)
+        perturb = perturbation_corresponding_to_mip_solution(perturbs, mip_sol)
+        yield fn + perturb
 
-def perturbation_corresponding_to_mip_solution(perturbs, mip):
-     """
+def perturbation_corresponding_to_vertex(perturbs, vertex):
+    """
     EXAMPLE::
 
         sage: logging.disable(logging.INFO) # to disable output in automatic tests.
@@ -3178,21 +3182,27 @@ def perturbation_corresponding_to_mip_solution(perturbs, mip):
         sage: pert_mip = perturbation_mip(fn, h._perturbations, 'ppl')
         sage: pert_mip.solve()
         0
-        sage: vertex = pert_mip.get_values([pert_mip[0], pert_mip[1]])
-        sage: vertex
+        sage: mip_sol = pert_mip.get_values([pert_mip[0], pert_mip[1]])
+        sage: mip_sol
         [2, -2]
-        sage: perturbation = perturbation_corresponding_to_mip_solution(perturbs, pert_mip)
+        sage: perturbation = perturbation_corresponding_to_vertex(perturbs, mip_sol)
         sage: h_lift = h + perturbation
         sage: extremality_test(h_lift)
         True
-        sage: h_lift == lift_given_vertex_perturbation(fn, vertex, perturbs)
-        True
     """
     n = len(perturbs)
-    perturb = mip.get_values(mip[0]) * perturbs[0]
+    perturb = vertex[0] * perturbs[0]
     for i in range(1, n):
-        perturb += mip.get_values(mip[i]) * perturbs[i]
+        perturb += vertex[i] * perturbs[i]
     return perturb
+
+def solve_mip_with_random_objective_function(mip):
+    n = mip.number_of_variables()
+    obj_fun = sum((random() - 1/2) * mip[i] for i in range(n))
+    mip.set_objective(obj_fun)
+    opt_val = mip.solve()
+    opt_sol = mip.get_values([mip[i] for i in range(n)])
+    return opt_sol
 
 def lift_until_extreme(fn, show_plots = False, pause = False, **kwds):
     next, fn = fn, None
