@@ -3147,8 +3147,7 @@ def generate_lifted_function(fn, perturbs=None, solver='ppl'):
             extremality_test(fn, show_all_perturbations=True)
         perturbs = fn._perturbations
     pert_mip = perturbation_mip(fn, perturbs, solver=solver)
-    while True:
-        mip_sol = solve_mip_with_random_objective_function(pert_mip)
+    for mip_sol in generate_random_mip_sol(pert_mip):
         #print mip_sol
         perturb = perturbation_corresponding_to_mip_solution(perturbs, mip_sol)
         yield fn + perturb
@@ -3185,7 +3184,15 @@ def solve_mip_with_random_objective_function(mip):
     mip.set_objective(obj_fun)
     opt_val = mip.solve()
     opt_sol = mip.get_values([mip[i] for i in range(n)])
-    return opt_sol
+    return tuple(opt_sol)
+
+def generate_random_mip_sol(mip):
+    seen_solutions = set([])
+    while True:
+        mip_sol = solve_mip_with_random_objective_function(mip)
+        if not mip_sol in seen_solutions:
+            seen_solutions.add(mip_sol)
+            yield(mip_sol)
 
 def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
     # FIXME: Need better interface for perturbation selection.
