@@ -2994,9 +2994,10 @@ def perturbation_polyhedron(fn, perturbs):
         sage: h = not_extreme_1()
         sage: extremality_test(h, show_all_perturbations=True)
         False
-        sage: len(h._perturbations)
+        sage: perturbs = h._perturbation
+        sage: len(perturbs)
         2
-        sage: pert_polyhedron = perturbation_polyhedron(fn, h._perturbations)
+        sage: pert_polyhedron = perturbation_polyhedron(h, perturbs)
         sage: pert_polyhedron
         A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
         sage: pert_polyhedron.Hrepresentation()
@@ -3009,7 +3010,12 @@ def perturbation_polyhedron(fn, perturbs):
          A vertex at (2, 2),
          A vertex at (2, -2),
          A vertex at (-2, -2))
-        sage: h_lift = h + 2*h._perturbations[0] - 2*h._perturbations[1]
+
+        Lift function by adding a perturbtion that corresponds to the vertex (2, -2), i.e., set h_lift = h + 2*h._perturbations[0] - 2*h._perturbations[1]. The lifted function is extreme.
+
+        sage: vertex = pert_polyhedron.vertices()[2]
+        sage: perturbation = perturbation_corresponding_to_vertex(perturbs, vertex)
+        sage: h_lift = h + perturbation
         sage: extremality_test(h_lift)
         True
     """
@@ -3051,9 +3057,9 @@ def perturbation_mip(fn, perturbs, solver='ppl', field=None):
         False
         sage: len(h._perturbations)
         2
-        sage: pert_mip = perturbation_mip(fn, h._perturbations,'ppl')
+        sage: pert_mip = perturbation_mip(h, h._perturbations,'ppl')
 
-        We set solver='ppl' here. The coefficients in the constraints are rational numbers, rather than 'float' used by the default 'GLPK' solver.
+        We set solver='ppl' here.  Note that we can also set solver='InteractiveLP'. The coefficients in the constraints are rational numbers, rather than 'float' used by the default 'GLPK' solver.
 
         sage: pert_mip.show()
         Maximization:
