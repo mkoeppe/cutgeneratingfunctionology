@@ -3098,17 +3098,23 @@ def perturbation_mip(fn, perturbs, solver='ppl'):
         sage: pert_poly = pert_mip.polyhedron()
         sage: pert_poly
         A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
-        sage: pert_poly.vertices()
+        sage: vertices = pert_poly.vertices()
+        sage: vertices
         (A vertex at (-2, -2),
          A vertex at (2, 2),
          A vertex at (-2, 2),
          A vertex at (2, -2))
 
-        Lift the function by adding a perturbation that corresponds to a vertex of the perturbation polyhedron.
+        Lift the function by adding a perturbation that corresponds to a vertex of the perturbation polyhedron. This is same as sage: h_lift = h + perturbation_corresponding_to_vertex(h._perturbations, vertices[3])
 
         sage: h_lift = h + 2*h._perturbations[0] - 2*h._perturbations[1]
         sage: extremality_test(h_lift)
         True
+
+        BUG: why isn't this one extreme?
+        sage: h_lift = h + perturbation_corresponding_to_vertex(h._perturbations, vertices[2])
+        sage: extremality_test(h_lift)
+        False
     """
     bkpt = copy(fn.end_points())
     for pert in perturbs:
@@ -3147,7 +3153,7 @@ def perturbation_mip(fn, perturbs, solver='ppl'):
 
     return mip
 
-def generate_lifted_function(fn, perturbs, solver='ppl'):
+def generate_lifted_function(fn, perturbs=None, solver='ppl'):
     """
     A generator of lifted functions.
 
@@ -3157,16 +3163,19 @@ def generate_lifted_function(fn, perturbs, solver='ppl'):
 
         sage: logging.disable(logging.INFO) # to disable output in automatic tests.
         sage: h = not_extreme_1()
-        sage: extremality_test(h, show_all_perturbations=True)
-        False
-        sage: perturbs = h._perturbations
-        sage: h_lift = generate_lifted_function(h, perturbs).next()
+        sage: h_lift = generate_lifted_function(h).next()
         sage: extremality_test(h_lift)
         True
     """
+    if perturbs is None:
+        if not hasattr(fn, '_perturbations'):
+            #finite_dimensional_extremality_test or extremality_test?
+            extremality_test(fn, show_all_perturbations=True)
+        perturbs = fn._perturbations
     pert_mip = perturbation_mip(fn, perturbs, solver=solver)
     while True:
         mip_sol = solve_mip_with_random_objective_function(pert_mip)
+        #print mip_sol
         perturb = perturbation_corresponding_to_mip_solution(perturbs, mip_sol)
         yield fn + perturb
 
