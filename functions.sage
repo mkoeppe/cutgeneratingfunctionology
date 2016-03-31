@@ -3039,7 +3039,7 @@ def perturbation_polyhedron(fn, perturbs):
     pert_polyhedron = Polyhedron(ieqs = list(ieqset), eqns = list(eqnset))   
     return pert_polyhedron
 
-def perturbation_mip(fn, perturbs, solver='ppl'):
+def perturbation_mip(fn, perturbs, solver='ppl', field=None):
     """
     Given a subadditive pwl function `fn` and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a mip, one dimension for each basic perturbation, with the subadditivities.
 
@@ -3103,7 +3103,9 @@ def perturbation_mip(fn, perturbs, solver='ppl'):
         limitingeps = []
     else:
         limitingeps = list(nonzero_eps) # nonzero_eps is defined in discontinuous_case.sage
-    mip = MixedIntegerLinearProgram(solver=solver)
+    if field is None:
+        field = bkpt[0].parent().fraction_field()
+    mip = MixedIntegerLinearProgram(solver=solver, base_ring=field)
     n = len(perturbs)
     constraints_set = set([])
     for (x, y, z) in vertices:
@@ -3135,20 +3137,35 @@ def generate_lifted_function(fn, perturbs=None, solver='ppl'):
 
     EXAMPLE::
 
-        sage: logging.disable(logging.INFO) # to disable output in automatic tests.
+        sage: logging.disable(logging.WARN) # to disable output in automatic tests.
         sage: h = not_extreme_1()
         sage: h_lift = generate_lifted_function(h).next()
         sage: extremality_test(h_lift)
         True
+
+    The above mip problem use 'ppl' backend. We can use other backends,
+    such as solver='InteractiveLP'.
+
+        sage: h = not_extreme_1()
+        sage: gen = generate_lifted_function(h, solver='InteractiveLP')
+        sage: h_lift = gen.next()
+        sage: extremality_test(h_lift)
+        True
+
+    The solver='InteractiveLP' can deal with irrational numbers.
+
+        sage: h = chen_tricky_uncovered_intervals()
+        sage: gen = generate_lifted_function(h, solver='InteractiveLP')
     """
     if perturbs is None:
-        if not hasattr(fn, '_perturbations'):
-            #finite_dimensional_extremality_test or extremality_test?
-            extremality_test(fn, show_all_perturbations=True)
+        #if not hasattr(fn, '_perturbations'):
+        # do extremeality test anyway, because if previously show_all_perturbations=False, only one perturbation is stored in fn._perturbations.
+        #finite_dimensional_extremality_test or extremality_test?
+        extremality_test(fn, show_all_perturbations=True)
         perturbs = fn._perturbations
     pert_mip = perturbation_mip(fn, perturbs, solver=solver)
     for mip_sol in generate_random_mip_sol(pert_mip):
-        #print mip_sol
+        logging.info("mip_sol = %s" % str(mip_sol))
         perturb = perturbation_corresponding_to_vertex(perturbs, mip_sol)
         yield fn + perturb
 
@@ -3180,7 +3197,16 @@ def perturbation_corresponding_to_vertex(perturbs, vertex):
 
 def solve_mip_with_random_objective_function(mip):
     n = mip.number_of_variables()
-    obj_fun = sum((random() - 1/2) * mip[i] for i in range(n))
+    obj_fun = 0
+    for i in range(n):
+        random_coeff = QQ(random() - 1/2)
+        # integer coefficient ZZ.random_element() was used, due to a printing error, but this has been solved.
+        # When objective function has zero coefficient, solver='InteractiveLP'
+        # sometimes gives non-vertex optimial solution, which comes from the standard-form back transformation of a vertex.
+        # To avoid such case, we generate another random coefficient.
+        while random_coeff == 0:
+            random_coeff = QQ(random() - 1/2) #ZZ.random_element()
+        obj_fun += random_coeff * mip[i]
     mip.set_objective(obj_fun)
     opt_val = mip.solve()
     opt_sol = mip.get_values([mip[i] for i in range(n)])
