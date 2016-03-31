@@ -3149,7 +3149,7 @@ def generate_lifted_function(fn, perturbs=None, solver='ppl'):
     pert_mip = perturbation_mip(fn, perturbs, solver=solver)
     for mip_sol in generate_random_mip_sol(pert_mip):
         #print mip_sol
-        perturb = perturbation_corresponding_to_mip_solution(perturbs, mip_sol)
+        perturb = perturbation_corresponding_to_vertex(perturbs, mip_sol)
         yield fn + perturb
 
 def perturbation_corresponding_to_vertex(perturbs, vertex):
@@ -3161,7 +3161,7 @@ def perturbation_corresponding_to_vertex(perturbs, vertex):
         sage: extremality_test(h, show_all_perturbations=True)
         False
         sage: perturbs = h._perturbations
-        sage: pert_mip = perturbation_mip(fn, h._perturbations, 'ppl')
+        sage: pert_mip = perturbation_mip(h, perturbs, 'ppl')
         sage: pert_mip.solve()
         0
         sage: mip_sol = pert_mip.get_values([pert_mip[0], pert_mip[1]])
