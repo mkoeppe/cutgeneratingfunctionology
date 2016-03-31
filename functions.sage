@@ -2994,34 +2994,21 @@ def perturbation_polyhedron(fn, perturbs):
         sage: h = not_extreme_1()
         sage: extremality_test(h, show_all_perturbations=True)
         False
-        sage: h._perturbations
-        [<FastPiecewise with 6 parts, 
-          (0, 1/10)	<FastLinearFunction -2/3*x>	 values: [0, -1/15]
-          (1/10, 1/5)	<FastLinearFunction x - 1/6>	 values: [-1/15, 1/30]
-          (1/5, 3/10)	<FastLinearFunction -2/3*x + 1/6>	 values: [1/30, -1/30]
-          (3/10, 2/5)	<FastLinearFunction x - 1/3>	 values: [-1/30, 1/15]
-          (2/5, 1/2)	<FastLinearFunction -2/3*x + 1/3>	 values: [1/15, 0]
-          (1/2, 1)	<FastLinearFunction 0>	 values: [0, 0]>,
-         <FastPiecewise with 6 parts, 
-          (0, 1/2)	<FastLinearFunction 0>	 values: [0, 0]
-          (1/2, 3/5)	<FastLinearFunction -2/3*x + 1/3>	 values: [0, -1/15]
-          (3/5, 7/10)	<FastLinearFunction x - 2/3>	 values: [-1/15, 1/30]
-          (7/10, 4/5)	<FastLinearFunction -2/3*x + 1/2>	 values: [1/30, -1/30]
-          (4/5, 9/10)	<FastLinearFunction x - 5/6>	 values: [-1/30, 1/15]
-          (9/10, 1)	<FastLinearFunction -2/3*x + 2/3>	 values: [1/15, 0]>]
+        sage: len(h._perturbations)
+        2
         sage: pert_polyhedron = perturbation_polyhedron(fn, h._perturbations)
         sage: pert_polyhedron
         A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
         sage: pert_polyhedron.Hrepresentation()
-        (An inequality (1, 0) x + 2 >= 0,
+        (An inequality (3, 2) x + 10 >= 0,
+         An inequality (-2, -3) x + 10 >= 0,
          An inequality (0, 1) x + 2 >= 0,
-         An inequality (0, -1) x + 2 >= 0,
          An inequality (-1, 0) x + 2 >= 0)
         sage: pert_polyhedron.Vrepresentation()
-        (A vertex at (-2, -2),
+        (A vertex at (-10, 10),
          A vertex at (2, 2),
-         A vertex at (-2, 2),
-         A vertex at (2, -2))
+         A vertex at (2, -2),
+         A vertex at (-2, -2))
         sage: h_lift = h + 2*h._perturbations[0] - 2*h._perturbations[1]
         sage: extremality_test(h_lift)
         True
@@ -3044,26 +3031,13 @@ def perturbation_polyhedron(fn, perturbs):
         for (xeps, yeps, zeps) in [(0,0,0)]+limitingeps:
             deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
             deltap = [delta_pi_general(pert, x, y, (xeps, yeps, zeps)) for pert in perturbs]
+            constraint_coef = tuple([deltafn]) + tuple(deltap)
             if deltafn > 0:
-                ieqset.add(tuple([deltafn]) + tuple(deltap))
-                ieqset.add(tuple([deltafn]) + tuple(-v for v in deltap))
+                ieqset.add(constraint_coef)
             else:
-                eqnset.add(tuple([deltafn]) + tuple(deltap))
+                eqnset.add(constraint_coef)
     pert_polyhedron = Polyhedron(ieqs = list(ieqset), eqns = list(eqnset))   
     return pert_polyhedron
-
-def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
-    # FIXME: Need better interface for perturbation selection.
-    if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots=show_plots, **kwds):
-        return fn
-    else:
-        perturbation = fn._perturbations[0]
-        epsilon_interval = find_epsilon_interval(fn, perturbation)
-        perturbed = fn._lifted = fn + epsilon_interval[which_perturbation] * perturbation
-        ## Following is strictly experimental: It may change what "f" is.
-        if 'phase_1' in kwds and kwds['phase_1']:
-            perturbed = rescale_to_amplitude(perturbed, 1)
-        return perturbed
 
 def perturbation_mip(fn, perturbs, solver='ppl'):
     """
@@ -3081,17 +3055,23 @@ def perturbation_mip(fn, perturbs, solver='ppl'):
 
         We set solver='ppl' here. The coefficients in the constraints are rational numbers, rather than 'float' used by the default 'GLPK' solver.
 
-        sage: pert_mip.constraints()
-        [(-1/3, ([0, 1], [-1/15, -1/10]), 1/3),
-         (-1/3, ([0, 1], [1/10, 1/15]), 1/3),
-         (-2/3, ([0, 1], [1/30, -1/30]), 2/3),
-         (-4/3, ([0, 1], [-1/30, 1/30]), 4/3),
-         (-1, ([0, 1], [-1/30, -2/15]), 1),
-         (-4/3, ([0, 1], [1/15, -1/15]), 4/3),
-         (-2/3, ([0, 1], [-1/15, 1/15]), 2/3),
-         (-1/3, ([0], [-1/6]), 1/3),
-         (-1, ([0, 1], [2/15, 1/30]), 1),
-         (-1/3, ([1], [1/6]), 1/3)]
+        sage: pert_mip.show()
+        Maximization:
+
+        Constraints:
+          constraint_0: 1/15 x_0 + 1/10 x_1 <= 1/3
+          constraint_1: -1/10 x_0 - 1/15 x_1 <= 1/3
+          constraint_2: -1/30 x_0 + 1/30 x_1 <= 2/3
+          constraint_3: 1/30 x_0 - 1/30 x_1 <= 4/3
+          constraint_4: 1/30 x_0 + 2/15 x_1 <= 1
+          constraint_5: -1/15 x_0 + 1/15 x_1 <= 4/3
+          constraint_6: 1/15 x_0 - 1/15 x_1 <= 2/3
+          constraint_7: 1/6 x_0 <= 1/3
+          constraint_8: -2/15 x_0 - 1/30 x_1 <= 1
+          constraint_9: -1/6 x_1 <= 1/3
+        Variables:
+          x_0 is a continuous variable (min=-oo, max=+oo)
+          x_1 is a continuous variable (min=-oo, max=+oo)
 
         Since rational coefficients are used in `ppl` solver, we can ask for the polyhedron defined by the Linear Program. This would fail if we set solver='GLPK' and if coefficient are not integers, due to AttributeError: type object 'float' has no attribute 'fraction_field'.
 
@@ -3100,21 +3080,16 @@ def perturbation_mip(fn, perturbs, solver='ppl'):
         A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
         sage: vertices = pert_poly.vertices()
         sage: vertices
-        (A vertex at (-2, -2),
+        (A vertex at (-10, 10),
          A vertex at (2, 2),
-         A vertex at (-2, 2),
-         A vertex at (2, -2))
+         A vertex at (2, -2),
+         A vertex at (-2, -2))
 
-        Lift the function by adding a perturbation that corresponds to a vertex of the perturbation polyhedron. This is same as sage: h_lift = h + perturbation_corresponding_to_vertex(h._perturbations, vertices[3])
+        Lifting the function by adding a perturbation that corresponds to a vertex, we obtain an extreme function.
 
-        sage: h_lift = h + 2*h._perturbations[0] - 2*h._perturbations[1]
-        sage: extremality_test(h_lift)
-        True
-
-        BUG: why isn't this one extreme?
         sage: h_lift = h + perturbation_corresponding_to_vertex(h._perturbations, vertices[2])
         sage: extremality_test(h_lift)
-        False
+        True
     """
     bkpt = copy(fn.end_points())
     for pert in perturbs:
@@ -3145,11 +3120,10 @@ def perturbation_mip(fn, perturbs, solver='ppl'):
                 continue
             else:
                 constraints_set.add(constraint_coef)
-            mip.add_constraint(constraint_linear_func, min=-deltafn, max=deltafn)
-            # if deltafn > 0:
-            #     mip.add_constraint(-deltafn <= constraint_linear_func <= deltafn)
-            # else:
-            #     mip.add_constraint(constraint_linear_func == 0)
+            if deltafn > 0:
+                mip.add_constraint(constraint_linear_func + deltafn >= 0)
+            else: # deltafn == 0
+                mip.add_constraint(constraint_linear_func == 0)
 
     return mip
 
@@ -3212,6 +3186,19 @@ def solve_mip_with_random_objective_function(mip):
     opt_val = mip.solve()
     opt_sol = mip.get_values([mip[i] for i in range(n)])
     return opt_sol
+
+def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
+    # FIXME: Need better interface for perturbation selection.
+    if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots=show_plots, **kwds):
+        return fn
+    else:
+        perturbation = fn._perturbations[0]
+        epsilon_interval = find_epsilon_interval(fn, perturbation)
+        perturbed = fn._lifted = fn + epsilon_interval[which_perturbation] * perturbation
+        ## Following is strictly experimental: It may change what "f" is.
+        if 'phase_1' in kwds and kwds['phase_1']:
+            perturbed = rescale_to_amplitude(perturbed, 1)
+        return perturbed
 
 def lift_until_extreme(fn, show_plots = False, pause = False, **kwds):
     next, fn = fn, None
