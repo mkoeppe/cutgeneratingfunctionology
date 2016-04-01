@@ -77,9 +77,9 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
         embedded = self.embedded()
         symbolic = getattr(self, '_symbolic', None)
         if symbolic is None:
-            return 'RNF%s' % embedded
+            return '%s' % embedded
         else:
-            return '<RNF%s=%s>' % (symbolic, embedded)
+            return '<%s=%s>' % (symbolic, embedded)
 
     def _latex_(self):
         symbolic = getattr(self, '_symbolic', None)
@@ -207,7 +207,7 @@ class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
     
     def __repr__(self):
         embedded = self.embedded()
-        return 'RNF%s' % embedded
+        return '%s' % embedded
 
     def __hash__(self):
         if not hasattr(self, '_hash'):
