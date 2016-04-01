@@ -3027,7 +3027,7 @@ def perturbation_polyhedron(fn, perturbs):
         sage: perturbs = h._perturbations
         sage: pert_polyhedron = perturbation_polyhedron(h, perturbs)
         sage: pert_polyhedron
-A 2-dimensional polyhedron in (Real Number Field in `a` with defining polynomial y^2 - 3)^2 defined as the convex hull of 4 vertices
+        A 2-dimensional polyhedron in (Real Number Field in `a` with defining polynomial y^2 - 3)^2 defined as the convex hull of 4 vertices
         sage: pert_polyhedron.Vrepresentation()
         (A vertex at (1.79481389229748?, 8.46148055896415?),
          A vertex at (-3.61183490350498?, 3.054831763161695?),
@@ -3106,7 +3106,7 @@ def perturbation_mip(fn, perturbs, solver='ppl', field=None):
 
         sage: pert_mip.show()
         Maximization:
-
+        <BLANKLINE>
         Constraints:
           constraint_0: 1/15 x_0 <= 1/3
           constraint_1: -1/30 x_0 <= 1/3
@@ -3261,7 +3261,7 @@ def perturbation_corresponding_to_vertex(perturbs, vertex):
         0
         sage: mip_sol = pert_mip.get_values([pert_mip[0], pert_mip[1]])
         sage: mip_sol
-        [2, -2]
+        [2, 2]
         sage: perturbation = perturbation_corresponding_to_vertex(perturbs, mip_sol)
         sage: h_lift = h + perturbation
         sage: extremality_test(h_lift)
