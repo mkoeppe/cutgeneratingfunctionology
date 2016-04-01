@@ -3088,7 +3088,7 @@ def perturbation_polyhedron(fn, perturbs):
     pert_polyhedron = Polyhedron(ieqs = list(ieqset), eqns = list(eqnset)) 
     return pert_polyhedron
 
-def perturbation_mip(fn, perturbs, solver='ppl', field=None):
+def perturbation_mip(fn, perturbs, solver=None, field=None):
     """
     Given a subadditive pwl function `fn` and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a mip, one dimension for each basic perturbation, with the subadditivities.
 
@@ -3203,7 +3203,7 @@ def perturbation_mip(fn, perturbs, solver='ppl', field=None):
                 # this is always true for basic perturbations coming from finite_dimensional_extremality_test().
     return mip
 
-def generate_lifted_function(fn, perturbs=None, solver='ppl', field=None):
+def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_polyhedron=False):
     """
     A generator of lifted functions.
 
@@ -3213,7 +3213,7 @@ def generate_lifted_function(fn, perturbs=None, solver='ppl', field=None):
 
         sage: logging.disable(logging.WARN) # to disable output in automatic tests.
         sage: h = not_extreme_1()
-        sage: h_lift = generate_lifted_function(h).next()
+        sage: h_lift = generate_lifted_functions(h, solver='ppl').next()
         sage: extremality_test(h_lift)
         True
 
@@ -3221,15 +3221,17 @@ def generate_lifted_function(fn, perturbs=None, solver='ppl', field=None):
     such as solver='InteractiveLP'.
 
         sage: h = not_extreme_1()
-        sage: gen = generate_lifted_function(h, solver='InteractiveLP')
+        sage: gen = generate_lifted_functions(h, solver='InteractiveLP')
         sage: h_lift = gen.next()
         sage: extremality_test(h_lift)
         True
 
+    If the solver argument is not specified, the code can figure it out,
+    using field (base_ring).
     The solver='InteractiveLP' can deal with irrational numbers.
 
         sage: h = chen_tricky_uncovered_intervals()
-        sage: gen = generate_lifted_function(h, perturbs=None, solver='InteractiveLP', field=None)
+        sage: gen = generate_lifted_functions(h, perturbs=None, solver='InteractiveLP', field=None)
         sage: h_lift = gen.next()
         sage: extremality_test(h_lift)
         True
