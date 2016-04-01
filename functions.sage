@@ -3018,6 +3018,16 @@ def perturbation_polyhedron(fn, perturbs):
         sage: h_lift = h + perturbation
         sage: extremality_test(h_lift)
         True
+
+    The following function has irrational data.
+
+        sage: h = chen_tricky_uncovered_intervals()
+        sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
+        False
+        sage: perturbs = h._perturbations
+        sage: pert_polyhedron = perturbation_polyhedron(h, perturbs)
+        sage: pert_polyhedron
+A 2-dimensional polyhedron in (Real Number Field in `a` with defining polynomial y^2 - 3)^2 defined as the convex hull of 4 vertices
     """
     bkpt = copy(fn.end_points())
     for pert in perturbs:
@@ -3165,6 +3175,9 @@ def generate_lifted_function(fn, perturbs=None, solver='ppl', field=None):
         False
         sage: perturbs = h._perturbations
         sage: gen = generate_lifted_function(h, perturbs, solver='InteractiveLP', field=None)
+        sage: h_lift = gen.next()
+        sage: extremality_test(h_lift)
+        True
     """
     if perturbs is None:
         #if not hasattr(fn, '_perturbations'):
