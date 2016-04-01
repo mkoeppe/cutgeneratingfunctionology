@@ -2988,7 +2988,7 @@ def perturbation_polyhedron(fn, perturbs):
     """
     Given a subadditive pwl function `fn` and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a polyhedron, one dimension for each basic perturbation, with the subadditivities.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: logging.disable(logging.INFO) # to disable output in automatic tests.
         sage: h = not_extreme_1()
@@ -3028,6 +3028,26 @@ def perturbation_polyhedron(fn, perturbs):
         sage: pert_polyhedron = perturbation_polyhedron(h, perturbs)
         sage: pert_polyhedron
 A 2-dimensional polyhedron in (Real Number Field in `a` with defining polynomial y^2 - 3)^2 defined as the convex hull of 4 vertices
+        sage: pert_polyhedron.Vrepresentation()
+        (A vertex at (1.79481389229748?, 8.46148055896415?),
+         A vertex at (-3.61183490350498?, 3.054831763161695?),
+         A vertex at (2.797434948471088?, -2.366025403784439?),
+         A vertex at (-2.36220486286011?, -2.366025403784439?))
+
+    The following function is 2-sided discontinous at the origin.
+
+        sage: h = zhou_two_sided_discontinuous_cannot_assume_any_continuity()
+        sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
+        False
+        sage: perturbs = h._perturbations
+        sage: pert_polyhedron = perturbation_polyhedron(h, perturbs)
+        sage: pert_polyhedron
+        A 1-dimensional polyhedron in QQ^1 defined as the convex hull of 2 vertices
+        sage: pert_polyhedron.Vrepresentation()
+        (A vertex at (4/3), A vertex at (-4/9))
+        sage: h_lift = h + perturbation_corresponding_to_vertex(perturbs, pert_polyhedron.vertices()[0])
+        sage: extremality_test(h_lift)
+        True
     """
     bkpt = copy(fn.end_points())
     for pert in perturbs:
@@ -3037,12 +3057,24 @@ A 2-dimensional polyhedron in (Real Number Field in `a` with defining polynomial
     type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
     type_2_vertices = [(x, z-x, z) for x in bkpt for z in bkpt2 if x < z < 1+x]
     vertices = set(type_1_vertices + type_2_vertices)
-    if fn.is_continuous and all(pert.is_continuous for pert in perturbs):
+    if fn.is_continuous() and all(pert.is_continuous() for pert in perturbs):
         limitingeps = []
+        lim_xeps = [0]
     else:
         limitingeps = list(nonzero_eps) # nonzero_eps is defined in discontinuous_case.sage
+        lim_xeps = [0, 1, -1]
     ieqset = set([])
     eqnset = set([])
+    # assume that the basic perturbations come from finite_dimensional_extremality_test(), so that the symmetry constraints and the condition pert(0)=pert(f)=0 are always satisfied.
+    # record the constraints 0 <= fn(x) + pert(x) <= 1 for any breakpoint x.
+    # only need record the side >=0,  the other side is implied by symmetry.
+    for x in bkpt:
+        for xeps in lim_xeps:
+            valuefn = fn.limit(x, xeps)
+            valuep = [pert.limit(x, xeps) for pert in perturbs]
+            constraint_coef = tuple([valuefn]) + tuple(valuep)
+            ieqset.add(constraint_coef)
+    # record the subadditivity constraints
     for (x, y, z) in vertices:
         for (xeps, yeps, zeps) in [(0,0,0)]+limitingeps:
             deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
@@ -3052,14 +3084,15 @@ A 2-dimensional polyhedron in (Real Number Field in `a` with defining polynomial
                 ieqset.add(constraint_coef)
             else:
                 eqnset.add(constraint_coef)
-    pert_polyhedron = Polyhedron(ieqs = list(ieqset), eqns = list(eqnset))   
+                # this is always true for basic perturbations coming from finite_dimensional_extremality_test().
+    pert_polyhedron = Polyhedron(ieqs = list(ieqset), eqns = list(eqnset)) 
     return pert_polyhedron
 
 def perturbation_mip(fn, perturbs, solver='ppl', field=None):
     """
     Given a subadditive pwl function `fn` and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a mip, one dimension for each basic perturbation, with the subadditivities.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: logging.disable(logging.INFO) # to disable output in automatic tests.
         sage: h = not_extreme_1()
@@ -3075,16 +3108,24 @@ def perturbation_mip(fn, perturbs, solver='ppl', field=None):
         Maximization:
 
         Constraints:
-          constraint_0: 1/15 x_0 + 1/10 x_1 <= 1/3
-          constraint_1: -1/10 x_0 - 1/15 x_1 <= 1/3
-          constraint_2: -1/30 x_0 + 1/30 x_1 <= 2/3
-          constraint_3: 1/30 x_0 - 1/30 x_1 <= 4/3
-          constraint_4: 1/30 x_0 + 2/15 x_1 <= 1
-          constraint_5: -1/15 x_0 + 1/15 x_1 <= 4/3
-          constraint_6: 1/15 x_0 - 1/15 x_1 <= 2/3
-          constraint_7: 1/6 x_0 <= 1/3
-          constraint_8: -2/15 x_0 - 1/30 x_1 <= 1
-          constraint_9: -1/6 x_1 <= 1/3
+          constraint_0: 1/15 x_0 <= 1/3
+          constraint_1: -1/30 x_0 <= 1/3
+          constraint_2: 1/30 x_0 <= 2/3
+          constraint_3: -1/15 x_0 <= 2/3
+          constraint_4: 1/15 x_1 <= 2/3
+          constraint_5: -1/30 x_1 <= 2/3
+          constraint_6: 1/30 x_1 <= 1/3
+          constraint_7: -1/15 x_1 <= 1/3
+          constraint_8: 1/15 x_0 + 1/10 x_1 <= 1/3
+          constraint_9: -1/10 x_0 - 1/15 x_1 <= 1/3
+          constraint_10: -1/30 x_0 + 1/30 x_1 <= 2/3
+          constraint_11: 1/30 x_0 - 1/30 x_1 <= 4/3
+          constraint_12: 1/30 x_0 + 2/15 x_1 <= 1
+          constraint_13: -1/15 x_0 + 1/15 x_1 <= 4/3
+          constraint_14: 1/15 x_0 - 1/15 x_1 <= 2/3
+          constraint_15: 1/6 x_0 <= 1/3
+          constraint_16: -2/15 x_0 - 1/30 x_1 <= 1
+          constraint_17: -1/6 x_1 <= 1/3
         Variables:
           x_0 is a continuous variable (min=-oo, max=+oo)
           x_1 is a continuous variable (min=-oo, max=+oo)
@@ -3115,15 +3156,32 @@ def perturbation_mip(fn, perturbs, solver='ppl', field=None):
     type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
     type_2_vertices = [(x, z-x, z) for x in bkpt for z in bkpt2 if x < z < 1+x]
     vertices = set(type_1_vertices + type_2_vertices)
-    if fn.is_continuous and all(pert.is_continuous for pert in perturbs):
+    if fn.is_continuous() and all(pert.is_continuous() for pert in perturbs):
         limitingeps = []
+        lim_xeps = [0]
     else:
         limitingeps = list(nonzero_eps) # nonzero_eps is defined in discontinuous_case.sage
+        lim_xeps = [0, 1, -1]
     if field is None:
         field = bkpt[0].parent().fraction_field()
     mip = MixedIntegerLinearProgram(solver=solver, base_ring=field)
     n = len(perturbs)
     constraints_set = set([])
+    # assume that the basic perturbations come from finite_dimensional_extremality_test(), so that the symmetry constraints and the condition pert(0)=pert(f)=0 are always satisfied.
+    # record the constraints 0 <= fn(x) + pert(x) <= 1 for any breakpoint x.
+    # only need record the side >=0,  the other side is implied by symmetry.
+    for x in bkpt:
+        for xeps in lim_xeps:
+            valuefn = fn.limit(x, xeps)
+            valuep = [pert.limit(x, xeps) for pert in perturbs]
+            if all(coef == 0 for coef in valuep):
+                continue
+            constraint_coef = tuple([valuefn]) + tuple(valuep)
+            if not constraint_coef in constraints_set:
+                constraints_set.add(constraint_coef)
+                constraint_linear_func = sum(valuep[i] * mip[i] for i in range(n))
+                mip.add_constraint(constraint_linear_func + valuefn >= 0)
+    # record the subadditivity constraints
     for (x, y, z) in vertices:
         for (xeps, yeps, zeps) in [(0,0,0)]+limitingeps:
             deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
@@ -3142,7 +3200,7 @@ def perturbation_mip(fn, perturbs, solver='ppl', field=None):
                 mip.add_constraint(constraint_linear_func + deltafn >= 0)
             else: # deltafn == 0
                 mip.add_constraint(constraint_linear_func == 0)
-
+                # this is always true for basic perturbations coming from finite_dimensional_extremality_test().
     return mip
 
 def generate_lifted_function(fn, perturbs=None, solver='ppl', field=None):
@@ -3151,7 +3209,7 @@ def generate_lifted_function(fn, perturbs=None, solver='ppl', field=None):
 
     Set up a mip, one dimension for each basic perturbation, with the subadditivities. Shoot random directions as objective functions. Solve the mip. Lift the function by adding the perturbation that corresponds to the mip solution.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: logging.disable(logging.WARN) # to disable output in automatic tests.
         sage: h = not_extreme_1()
@@ -3171,10 +3229,7 @@ def generate_lifted_function(fn, perturbs=None, solver='ppl', field=None):
     The solver='InteractiveLP' can deal with irrational numbers.
 
         sage: h = chen_tricky_uncovered_intervals()
-        sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
-        False
-        sage: perturbs = h._perturbations
-        sage: gen = generate_lifted_function(h, perturbs, solver='InteractiveLP', field=None)
+        sage: gen = generate_lifted_function(h, perturbs=None, solver='InteractiveLP', field=None)
         sage: h_lift = gen.next()
         sage: extremality_test(h_lift)
         True
@@ -3194,7 +3249,7 @@ def generate_lifted_function(fn, perturbs=None, solver='ppl', field=None):
 
 def perturbation_corresponding_to_vertex(perturbs, vertex):
     """
-    EXAMPLE::
+    EXAMPLES::
 
         sage: logging.disable(logging.INFO) # to disable output in automatic tests.
         sage: h = not_extreme_1()
