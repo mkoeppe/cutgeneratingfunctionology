@@ -3235,6 +3235,13 @@ def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_po
         sage: h_lift = gen.next()
         sage: extremality_test(h_lift)
         True
+
+    By setting `use_polyhedron=True`, we use perturbation_polyhedron() rather than perturbation_mip() to generate lifted functions.
+
+        sage: h = not_extreme_1()
+        sage: gen = generate_lifted_functions(h, use_polyhedron=True)
+        sage: len([h_lift for h_lift in gen])
+        4
     """
     if perturbs is None:
         #if not hasattr(fn, '_perturbations'):
@@ -3243,10 +3250,15 @@ def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_po
         #extremality_test(fn, show_all_perturbations=True)
         finite_dimensional_extremality_test(fn, show_all_perturbations=True)
         perturbs = fn._perturbations
-    pert_mip = perturbation_mip(fn, perturbs, solver=solver, field=field)
-    for mip_sol in generate_random_mip_sol(pert_mip):
-        logging.info("mip_sol = %s" % str(mip_sol))
-        perturb = perturbation_corresponding_to_vertex(perturbs, mip_sol)
+    if use_polyhedron:
+        pert_polyhedron = perturbation_polyhedron(fn, perturbs)
+        vertices = pert_polyhedron.vertices()
+    else:
+        pert_mip = perturbation_mip(fn, perturbs, solver=solver, field=field)
+        vertices = generate_random_mip_sol(pert_mip)
+    for vertex in vertices:
+        logging.info("vertex = %s" % str(vertex))
+        perturb = perturbation_corresponding_to_vertex(perturbs, vertex)
         yield fn + perturb
 
 def perturbation_corresponding_to_vertex(perturbs, vertex):
