@@ -207,7 +207,7 @@ class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
     
     def __repr__(self):
         embedded = self.embedded()
-        return 'RNF%s' % embedded
+        return '%s' % embedded
 
     def __hash__(self):
         if not hasattr(self, '_hash'):
