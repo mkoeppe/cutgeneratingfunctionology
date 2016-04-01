@@ -2992,9 +2992,9 @@ def perturbation_polyhedron(fn, perturbs):
 
         sage: logging.disable(logging.INFO) # to disable output in automatic tests.
         sage: h = not_extreme_1()
-        sage: extremality_test(h, show_all_perturbations=True)
+        sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
         False
-        sage: perturbs = h._perturbation
+        sage: perturbs = h._perturbations
         sage: len(perturbs)
         2
         sage: pert_polyhedron = perturbation_polyhedron(h, perturbs)
@@ -3053,7 +3053,7 @@ def perturbation_mip(fn, perturbs, solver='ppl', field=None):
 
         sage: logging.disable(logging.INFO) # to disable output in automatic tests.
         sage: h = not_extreme_1()
-        sage: extremality_test(h, show_all_perturbations=True)
+        sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
         False
         sage: len(h._perturbations)
         2
@@ -3135,7 +3135,7 @@ def perturbation_mip(fn, perturbs, solver='ppl', field=None):
 
     return mip
 
-def generate_lifted_function(fn, perturbs=None, solver='ppl'):
+def generate_lifted_function(fn, perturbs=None, solver='ppl', field=None):
     """
     A generator of lifted functions.
 
@@ -3161,15 +3161,19 @@ def generate_lifted_function(fn, perturbs=None, solver='ppl'):
     The solver='InteractiveLP' can deal with irrational numbers.
 
         sage: h = chen_tricky_uncovered_intervals()
-        sage: gen = generate_lifted_function(h, solver='InteractiveLP')
+        sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
+        False
+        sage: perturbs = h._perturbations
+        sage: gen = generate_lifted_function(h, perturbs, solver='InteractiveLP', field=None)
     """
     if perturbs is None:
         #if not hasattr(fn, '_perturbations'):
         # do extremeality test anyway, because if previously show_all_perturbations=False, only one perturbation is stored in fn._perturbations.
         #finite_dimensional_extremality_test or extremality_test?
-        extremality_test(fn, show_all_perturbations=True)
+        #extremality_test(fn, show_all_perturbations=True)
+        finite_dimensional_extremality_test(fn, show_all_perturbations=True)
         perturbs = fn._perturbations
-    pert_mip = perturbation_mip(fn, perturbs, solver=solver)
+    pert_mip = perturbation_mip(fn, perturbs, solver=solver, field=field)
     for mip_sol in generate_random_mip_sol(pert_mip):
         logging.info("mip_sol = %s" % str(mip_sol))
         perturb = perturbation_corresponding_to_vertex(perturbs, mip_sol)
@@ -3181,7 +3185,7 @@ def perturbation_corresponding_to_vertex(perturbs, vertex):
 
         sage: logging.disable(logging.INFO) # to disable output in automatic tests.
         sage: h = not_extreme_1()
-        sage: extremality_test(h, show_all_perturbations=True)
+        sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
         False
         sage: perturbs = h._perturbations
         sage: pert_mip = perturbation_mip(h, perturbs, 'ppl')
