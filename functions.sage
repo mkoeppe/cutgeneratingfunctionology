@@ -3001,10 +3001,10 @@ def perturbation_polyhedron(fn, perturbs):
         sage: pert_polyhedron
         A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
         sage: pert_polyhedron.Hrepresentation()
-        (An inequality (3, 2) x + 10 >= 0,
-         An inequality (-2, -3) x + 10 >= 0,
-         An inequality (0, 1) x + 2 >= 0,
-         An inequality (-1, 0) x + 2 >= 0)
+        (An inequality (-2, -3) x + 10 >= 0,
+         An inequality (3, 2) x + 10 >= 0,
+         An inequality (-1, 0) x + 2 >= 0,
+         An inequality (0, 1) x + 2 >= 0)
         sage: pert_polyhedron.Vrepresentation()
         (A vertex at (-10, 10),
          A vertex at (2, 2),
@@ -3080,11 +3080,12 @@ def perturbation_polyhedron(fn, perturbs):
             deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
             deltap = [delta_pi_general(pert, x, y, (xeps, yeps, zeps)) for pert in perturbs]
             constraint_coef = tuple([deltafn]) + tuple(deltap)
-            if deltafn > 0:
-                ieqset.add(constraint_coef)
-            else:
-                eqnset.add(constraint_coef)
-                # this is always true for basic perturbations coming from finite_dimensional_extremality_test().
+            ieqset.add(constraint_coef)
+            # if deltafn > 0:
+            #     ieqset.add(constraint_coef)
+            # else:
+            #     eqnset.add(constraint_coef)
+            #     # this is always true for basic perturbations coming from finite_dimensional_extremality_test().
     pert_polyhedron = Polyhedron(ieqs = list(ieqset), eqns = list(eqnset)) 
     return pert_polyhedron
 
@@ -3196,11 +3197,12 @@ def perturbation_mip(fn, perturbs, solver=None, field=None):
                 continue
             else:
                 constraints_set.add(constraint_coef)
-            if deltafn > 0:
-                mip.add_constraint(constraint_linear_func + deltafn >= 0)
-            else: # deltafn == 0
-                mip.add_constraint(constraint_linear_func == 0)
-                # this is always true for basic perturbations coming from finite_dimensional_extremality_test().
+            mip.add_constraint(constraint_linear_func + deltafn >= 0)
+            # if deltafn > 0:
+            #     mip.add_constraint(constraint_linear_func + deltafn >= 0)
+            # else: # deltafn == 0
+            #     mip.add_constraint(constraint_linear_func == 0)
+            #     # this is always true for basic perturbations coming from finite_dimensional_extremality_test().
     return mip
 
 def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_polyhedron=False):
