@@ -2986,7 +2986,7 @@ def plot_completion_diagram(fn, perturbation=None):
 
 def perturbation_polyhedron(fn, perturbs):
     """
-    Given a subadditive pwl function `fn` and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a polyhedron, one dimension for each basic perturbation, with the subadditivities.
+    Given `fn` and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a polyhedron, one dimension for each basic perturbation, with the subadditivities.
 
     EXAMPLES::
 
@@ -3091,7 +3091,7 @@ def perturbation_polyhedron(fn, perturbs):
 
 def perturbation_mip(fn, perturbs, solver=None, field=None):
     """
-    Given a subadditive pwl function `fn` and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a mip, one dimension for each basic perturbation, with the subadditivities.
+    Given `fn` and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a mip, one dimension for each basic perturbation, with the subadditivities.
 
     EXAMPLES::
 
