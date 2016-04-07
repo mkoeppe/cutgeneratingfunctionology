@@ -2638,7 +2638,7 @@ def plot_perturbation_diagram(fn, perturbation=None, xmin=0, xmax=1):
     if isinstance(perturbation, Integer):
         perturbation = basic_perturbation(fn, perturbation)
     epsilon_interval = find_epsilon_interval(fn, perturbation)
-    epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
+    epsilon = min(abs(epsilon_interval[0]), abs(epsilon_interval[1]))
     p = plot_rescaled_perturbation(perturbation, xmin=xmin, xmax=xmax)
     if check_perturbation_plot_three_perturbations:
         p += plot(fn + epsilon_interval[0] * perturbation, xmin=xmin, xmax=xmax, color='red', legend_label="-perturbed (min)")
@@ -2666,7 +2666,7 @@ def plot_perturbation_diagram(fn, perturbation=None, xmin=0, xmax=1):
 
 def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbation', xmin=0, xmax=1, **show_kwds):
     epsilon_interval = find_epsilon_interval(fn, perturb)
-    epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
+    epsilon = min(abs(epsilon_interval[0]), abs(epsilon_interval[1]))
     #logging.info("Epsilon for constructed perturbation: %s" % epsilon)
     if show_plots:
         logging.info("Plotting perturbation...")
