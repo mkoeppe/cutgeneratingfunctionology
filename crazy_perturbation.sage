@@ -32,6 +32,7 @@ class CrazyPiece:
                     logging.warn("Not unique coset representative.")
 
     def __call__(self, x):
+        x = fractional(x)
         ###assert self.interval[0] < x < self.interval[1]
         for (r,s) in self.cosets:
             if is_in_group_over_ZZ(x-r, self.generators):
