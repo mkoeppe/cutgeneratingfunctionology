@@ -39,6 +39,16 @@ class CrazyPiece:
                 return s
         return x.parent().zero()
 
+    def __mul__(self, other):
+        """
+        Multiply `self` by a scalar.
+        """
+        # assume scalar multiplication
+        new_cosets = [(r, s*other) for (r, s) in self.cosets]
+        return CrazyPiece(self.interval, self.generators, new_cosets)
+
+    __rmul__ = __mul__
+
 class CrazyPerturbation:
     # assume that all inputs are elements from a same RNF.
     def __init__(self, pwl, crazy_pieces):
@@ -58,6 +68,15 @@ class CrazyPerturbation:
                (xeps == -1) and (x == cp.interval[1]):
                 return cp
         return None
+
+    def __mul__(self, other):
+        """
+        Multiply `self` by a scalar.
+        """
+        # assume scalar multiplication
+        return CrazyPerturbation(self.pwl * other, [cp * other for cp in self.crazy_pieces])
+
+    __rmul__ = __mul__
 
     @cached_method
     def __call__(self, x):
