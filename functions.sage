@@ -2626,17 +2626,17 @@ def perturbation_polyhedron(fn, perturbs):
         sage: pert_polyhedron
         A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
         sage: pert_polyhedron.Hrepresentation()
-        (An inequality (-2, -3) x + 10 >= 0,
-         An inequality (3, 2) x + 10 >= 0,
-         An inequality (-1, 0) x + 2 >= 0,
-         An inequality (0, 1) x + 2 >= 0)
+        (An inequality (-9, -6) x + 20 >= 0,
+         An inequality (6, 9) x + 20 >= 0,
+         An inequality (3, 0) x + 4 >= 0,
+         An inequality (0, -3) x + 4 >= 0)
         sage: pert_polyhedron.Vrepresentation()
-        (A vertex at (-10, 10),
-         A vertex at (2, 2),
-         A vertex at (2, -2),
-         A vertex at (-2, -2))
+        (A vertex at (20/3, -20/3),
+         A vertex at (4/3, 4/3),
+         A vertex at (-4/3, 4/3),
+         A vertex at (-4/3, -4/3))
 
-        Lift function by adding a perturbtion that corresponds to the vertex (2, -2), i.e., set h_lift = h + 2*h._perturbations[0] - 2*h._perturbations[1]. The lifted function is extreme.
+        Lift function by adding a perturbtion that corresponds to the vertex (-4/3, 4/3), i.e., set h_lift = h - 4/3**h._perturbations[0] + 4/3*h._perturbations[1]. The lifted function is extreme.
 
         sage: vertex = pert_polyhedron.vertices()[2]
         sage: perturbation = perturbation_corresponding_to_vertex(perturbs, vertex)
@@ -2654,10 +2654,10 @@ def perturbation_polyhedron(fn, perturbs):
         sage: pert_polyhedron
         A 2-dimensional polyhedron in (Real Number Field in `a` with defining polynomial y^2 - 3)^2 defined as the convex hull of 4 vertices
         sage: pert_polyhedron.Vrepresentation()
-        (A vertex at (1.79481389229748?, 8.46148055896415?),
-         A vertex at (-3.61183490350498?, 3.054831763161695?),
-         A vertex at (2.797434948471088?, -2.366025403784439?),
-         A vertex at (-2.36220486286011?, -2.366025403784439?))
+        (A vertex at (2.797434948471088?, 0.967307929548895?),
+         A vertex at (-2.36220486286011?, 0.967307929548895?),
+         A vertex at (-3.61183490350498?, -1.248914311409209?),
+         A vertex at (1.79481389229748?, -3.45932770938056?))
 
     The following function is 2-sided discontinous at the origin.
 
@@ -2734,24 +2734,24 @@ def perturbation_mip(fn, perturbs, solver=None, field=None):
         Maximization:
         <BLANKLINE>
         Constraints:
-          constraint_0: 1/15 x_0 <= 1/3
-          constraint_1: -1/30 x_0 <= 1/3
-          constraint_2: 1/30 x_0 <= 2/3
-          constraint_3: -1/15 x_0 <= 2/3
-          constraint_4: 1/15 x_1 <= 2/3
-          constraint_5: -1/30 x_1 <= 2/3
-          constraint_6: 1/30 x_1 <= 1/3
-          constraint_7: -1/15 x_1 <= 1/3
-          constraint_8: 1/15 x_0 + 1/10 x_1 <= 1/3
-          constraint_9: -1/10 x_0 - 1/15 x_1 <= 1/3
-          constraint_10: -1/30 x_0 + 1/30 x_1 <= 2/3
-          constraint_11: 1/30 x_0 - 1/30 x_1 <= 4/3
-          constraint_12: 1/30 x_0 + 2/15 x_1 <= 1
-          constraint_13: -1/15 x_0 + 1/15 x_1 <= 4/3
-          constraint_14: 1/15 x_0 - 1/15 x_1 <= 2/3
-          constraint_15: 1/6 x_0 <= 1/3
-          constraint_16: -2/15 x_0 - 1/30 x_1 <= 1
-          constraint_17: -1/6 x_1 <= 1/3
+          constraint_0: -1/10 x_0 <= 1/3
+          constraint_1: 1/20 x_0 <= 1/3
+          constraint_2: -1/20 x_0 <= 2/3
+          constraint_3: 1/10 x_0 <= 2/3
+          constraint_4: -1/10 x_1 <= 2/3
+          constraint_5: 1/20 x_1 <= 2/3
+          constraint_6: -1/20 x_1 <= 1/3
+          constraint_7: 1/10 x_1 <= 1/3
+          constraint_8: -1/10 x_0 - 3/20 x_1 <= 1/3
+          constraint_9: 3/20 x_0 + 1/10 x_1 <= 1/3
+          constraint_10: 1/20 x_0 - 1/20 x_1 <= 2/3
+          constraint_11: -1/20 x_0 + 1/20 x_1 <= 4/3
+          constraint_12: -1/20 x_0 - 1/5 x_1 <= 1
+          constraint_13: 1/10 x_0 - 1/10 x_1 <= 4/3
+          constraint_14: -1/10 x_0 + 1/10 x_1 <= 2/3
+          constraint_15: -1/4 x_0 <= 1/3
+          constraint_16: 1/5 x_0 + 1/20 x_1 <= 1
+          constraint_17: 1/4 x_1 <= 1/3
         Variables:
           x_0 is a continuous variable (min=-oo, max=+oo)
           x_1 is a continuous variable (min=-oo, max=+oo)
@@ -2763,10 +2763,10 @@ def perturbation_mip(fn, perturbs, solver=None, field=None):
         A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
         sage: vertices = pert_poly.vertices()
         sage: vertices
-        (A vertex at (-10, 10),
-         A vertex at (2, 2),
-         A vertex at (2, -2),
-         A vertex at (-2, -2))
+        (A vertex at (20/3, -20/3),
+         A vertex at (4/3, 4/3),
+         A vertex at (-4/3, 4/3),
+         A vertex at (-4/3, -4/3))
 
         Lifting the function by adding a perturbation that corresponds to a vertex, we obtain an extreme function.
 
@@ -2902,7 +2902,7 @@ def perturbation_corresponding_to_vertex(perturbs, vertex):
         0
         sage: mip_sol = pert_mip.get_values([pert_mip[0], pert_mip[1]])
         sage: mip_sol
-        [2, 2]
+        [-4/3, -4/3]
         sage: perturbation = perturbation_corresponding_to_vertex(perturbs, mip_sol)
         sage: h_lift = h + perturbation
         sage: extremality_test(h_lift)
