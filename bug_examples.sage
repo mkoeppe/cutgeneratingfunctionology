@@ -260,50 +260,6 @@ def minimal_has_uncovered_breakpoints():
     h = piecewise_function_from_breakpoints_and_values(bkpts, values)
     return h
 
-def bhk_discontinuous_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/199, sqrt(2)/199), shift_scale=1, field=None):
-    """
-    There exists crazy fat perturbation \tilde\pi in this example:
-    \tilde\pi(x)
-        = epsion if x \in (3/10, 7/20) such that x - 3/10 \in <t_a, t_b>_Z;
-        = -epsion if x \in (3/10, 7/20) such that x - 7/20 \in <t_a, t_b>_Z;
-        = epsion if x \in (9/20, 1/2) such that x - 9/20 \in <t_a, t_b>_Z;
-        = -epsion if x \in (9/20, 1/2) such that x - 9/20 \in <t_a, t_b>_Z;
-        = 0 otherwise,
-    where t_a = delta[0], t_b = delta[0]+delta[1] and epsilon is a very small positive number, for example epsilon=0.001.
-    (requires that d2/2 is not in <t_a, t_b>_Z;)
-    """
-    h_pwl = bhk_irrational(f=f, d1=d1, d2=d2, a0=a0, delta=delta, field=field)
-    bkpt = h_pwl.end_points()
-    v = h_pwl.values_at_end_points()
-    f = bkpt[-2]
-    c1= v[1]/bkpt[1]
-    c3= 1/(f-1)
-    n = len(delta)
-    b = min([bkpt[i+2]-bkpt[i+1] for i in range(2*n+2)]) * shift_scale / 2
-    jump = b*(c1-c3)
-    disc_pts = [bkpt[2*i] for i in range(n+2)]+\
-               [bkpt[-2*i] for i in range(n+2,0,-1)]+[bkpt[-1]]
-    discp = []
-    for i in range(len(disc_pts)-1):
-        discp.append(singleton_piece(disc_pts[i],0))
-        if i < n+2:
-            j = jump
-        else:
-            j = -jump
-        discp.append(open_piece((disc_pts[i],j), (disc_pts[i]+b,0)))
-        discp.append(singleton_piece(disc_pts[i]+b,j))
-        discp.append(open_piece((disc_pts[i]+b,0), (disc_pts[i+1]-b,0)))
-        if (i+1 < n+2) or (i+1 == len(disc_pts)-1):
-            j = jump
-        else:
-            j = -jump
-        discp.append(singleton_piece(disc_pts[i+1]-b,j))
-        discp.append(open_piece((disc_pts[i+1]-b,0), (disc_pts[i+1],j)))
-    discp.append(singleton_piece(disc_pts[-1], 0))
-    h_shift = FastPiecewise(discp)
-    return h_pwl+h_shift
-
-
 def discontinuous_bhk_irrational_dense_move_not_affine():
     """
     This example shows that when \pi is two sided discontinuous at the origin,

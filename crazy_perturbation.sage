@@ -150,10 +150,6 @@ def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
         sage: cp = CrazyPerturbation(pwl, [crazy_piece_1, crazy_piece_2])
         sage: find_epsilon_for_crazy_perturbation(fn, cp)
         RNF0.0001237724214802864?
-
-        sage: h = bhk_discontinuous_irrational()
-        sage: find_epsilon_for_crazy_perturbation(h, cp)
-        0
     """
     # assume fn is a subadditive pwl function, cp is a non_zero CrazyPerturbation with cp(0)=cp(f)=0.
     bkpt = uniq(copy(fn.end_points())+cp.end_points())
