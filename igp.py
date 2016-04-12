@@ -19,7 +19,7 @@ load("quasi_periodic.sage")
 load("extreme_functions_mlr_cpl3.sage")
 #load("old_walk_and_stability_interval_code.sage")
 load("crazy_perturbation.sage")
-
+load("crazy_perturbation_examples.sage")
 load("bug_examples.sage")
 
 import extreme_functions
