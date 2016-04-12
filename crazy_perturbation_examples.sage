@@ -7,7 +7,12 @@ from igp import *
 
 def bhk_discontinuous(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=1/1000, c2=0, y1=1/10, y2=1/50, field=None):
     """
-    sage: hmin, (t1,t2), (ucl, ucr) = bhk_discontinuous(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=19/23998, c2=5/11999, y1=185/1846, y2=240/11999, field=None)
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: hmin = bhk_discontinuous(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=19/23998, c2=5/11999, y1=185/1846, y2=240/11999, field=None)
+        sage: minimality_test(hmin)
+        True
     """
     [f, d1, d2, a0, delta_ratio, bb, c2, y1, y2] = nice_field_values([f, d1, d2, a0, delta_ratio, bb, c2, y1, y2])
     rnf = f.parent().fraction_field()
@@ -75,57 +80,69 @@ def bhk_discontinuous(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, 
                    singleton_piece(f-a0, h_below(f-a0)-h_above(f-a0)), \
                    left_open_piece((f-a0, 0), (rnf(1), 0))]
     move_shift = FastPiecewise(move_pieces)
-    return h_temp - h_below + h_above + move_shift, (a1-a0, a2-a0), (bkpts[7], bkpts[8])
+    return h_temp - h_below + h_above + move_shift
 
-def plotting_2d_diagram_bug_example():
-    bkpts = [0, 60147/339800, 19/100, 32802403/150021700, 19837/88300, 38001343/150021700, 22897/88300, 127/400, 157/400, 203/400, 233/400, 56573/88300, 97018187/150021700, 59633/88300, 102217127/150021700, 71/100, 245673/339800, 9/10, 1]
-    values = [0, 17983953/47572000, 6947/28000, 12992378939/42006076000, 6162761/24724000, 13040902379/42006076000, 6191321/24724000, 20983/56000, 21123/56000, 34877/56000, 35017/56000, 18532679/24724000, 28965173621/42006076000, 18561239/24724000, 29013697061/42006076000, 21053/28000, 29588047/47572000, 1, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpts, values)
-
-def has_crazy_perturbation():
+def kzh_minimal_has_only_crazy_perturbation_1():
     """
-    sage: h = has_crazy_perturbation()
+    EXAMPLES::
 
-    Note...
-    This example is obtained by the following code.
+        sage: logging.disable(logging.INFO)
+        sage: h = kzh_minimal_has_only_crazy_perturbation_1()
 
-    sage: hmin, (t1,t2), (ucl, ucr) = bhk_discontinuous(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=19/23998, c2=5/11999, y1=185/1846, y2=240/11999, field=None)
-    sage: h = lift_until_extreme(hmin)
+    On one hand, normal perturbation does not exist.
 
-    hmin is obtained by
-    h_org, (t1,t2), (ucl, ucr) = bhk_discontinuous()
-    hmin = lift(h_org, phase_1=True)
+        sage: extremality_test(h)
+        True
 
-    or by (random)
-    finite_dimensional_extremality_test(h_org,show_all_perturbations=True)
-    perturbs = h_org._perturbations[0:2]
-    gen = generate_lifted_functions(h_org, perturbs=perturbs, use_polyhedron=True)
-    hh = gen.next()
-    This hh could be different than hmin due to randomization,
-    lift_until_extreme(hh) would give (perhaps another) hlift which also has crazy perturbation.
+    On the other hand, there exists crazy perturbation, such as the one we construct below.
 
-    Construct a crazy perturbation as follows.
-    sage: bkpts = h.end_points()
-    sage: t1 = bkpts[10]-bkpts[6]
-    sage: t2 = bkpts[13]-bkpts[6]
-    sage: f = bkpts[37]
-    sage: ucl = bkpts[17]
-    sage: ucr = bkpts[18]
-    sage: generators = [t1, t2]
-    sage: pwl = piecewise_function_from_breakpoints_and_slopes([0,1],[0])
-    sage: crazy_piece_1 = CrazyPiece((ucl, ucr), generators, [(ucl, 1), (ucr, -1)])
-    sage: crazy_piece_2 = CrazyPiece((f-ucr, f-ucl), generators, [(f-ucr, 1), (f-ucl, -1)])
-    sage: cp = CrazyPerturbation(pwl, [crazy_piece_1, crazy_piece_2])
+        sage: bkpts = h.end_points()
+        sage: t1 = bkpts[10]-bkpts[6]
+        sage: t2 = bkpts[13]-bkpts[6]
+        sage: f = bkpts[37]
+        sage: ucl = bkpts[17]
+        sage: ucr = bkpts[18]
+        sage: generators = [t1, t2]
+        sage: pwl = piecewise_function_from_breakpoints_and_slopes([0,1],[0])
+        sage: crazy_piece_1 = CrazyPiece((ucl, ucr), generators, [(ucl, 1), (ucr, -1)])
+        sage: crazy_piece_2 = CrazyPiece((f-ucr, f-ucl), generators, [(f-ucr, 1), (f-ucl, -1)])
+        sage: cp = CrazyPerturbation(pwl, [crazy_piece_1, crazy_piece_2])
 
-    Check the perturbation has eps>0.
-    sage: find_epsilon_for_crazy_perturbation(h, cp)
-    0.0002639108814623441?
-    
-    Therefore, the function is not extreme.
+    This crazy perturbation is valid, since it has positive epsilon.
 
-    On the other side,
-    sage: extremality_test(h)
-    True
+        sage: find_epsilon_for_crazy_perturbation(h, cp)
+        0.0002639108814623441?
+
+    Therefore, the function kzh_minimal_has_only_crazy_perturbation_1() is not extreme.
+
+    .. Note::
+
+        This example is obtained by the following code.
+
+            sage: hmin = bhk_discontinuous(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=19/23998, c2=5/11999, y1=185/1846, y2=240/11999, field=None)
+            sage: hlift = lift_until_extreme(hmin) # long time
+            sage: (h - hlift).list() # long time
+            [[(0, 1), <FastLinearFunction 0>]]
+
+        Without knowing the input values of bhk_discontinuous() that gives a minimal valid `hmin`, one could use the default values to construct a non-minimal discontinuous function, and then lift the function to minimal, as follows.
+
+            sage: h_org = bhk_discontinuous() # long time
+            sage: hmin_from_org = lift(h_org, phase_1=True) # long time
+            sage: (hmin - hmin_from_org).list() # long time
+            [[(0, 1), <FastLinearFunction 0>]]
+
+        `hmin` is minimal but not extreme. The solution space of the finite dimensional test has dimension 5.
+
+            sage: finite_dimensional_extremality_test(hmin,show_all_perturbations=True)
+            False
+            sage: perturbs = hmin._perturbations
+            sage: len(perturbs)
+            5
+
+        A more general way of lifting `hmin` is to call the following generator. (Use Sage Polyhedron if `use_polyhedron` is set to False. Use LP if with random objective function if `use_polyhedron` is set to True.) Unfortunately, this method is too slow. With `use_polyhedron=False`, it takes 15-20 mins to find a lifted function.
+
+            sage: gen = generate_lifted_functions(hmin, perturbs=perturbs, use_polyhedron=False) # not tested
+            sage: h = gen.next() # not tested
     """
     # The following numbers do not correspond to h in docstring. To check.
     [sqrt2, o] = nice_field_values([sqrt(2), 1])
@@ -133,11 +150,11 @@ def has_crazy_perturbation():
     rnf = o.parent().fraction_field()
     bkpt_rat = [0, 101/5000, 60153/369200, 849/5000, 849/5000, 849/5000, 19/100, 281986521/1490645000, 40294/201875, 36999/184600, 19/100, 1051/5000, 1051/5000, 14199/64600, 1051/5000, 342208579/1490645000, 193799/807500, 219/800, 269/800, 371/800, 421/800, 452201/807500, 850307421/1490645000, 2949/5000, 37481/64600, 2949/5000, 2949/5000, 61/100, 110681/184600, 121206/201875, 910529479/1490645000, 61/100, 3151/5000, 3151/5000, 3151/5000, 235207/369200, 3899/5000, 4/5, 4101/5000, 4899/5000, 1]
     bkpt_irr = [0, 0, 0, 0, 1925/298129, 77/7752, 0, 77/22152, 0, 0, 77/7752, 0, 1925/298129, 0, 77/7752, 77/22152, 0, 0, 0, 0, 0, 0, -77/22152, -77/7752, 0, -1925/298129, 0, -77/7752, 0, 0, -77/22152, 0, -77/7752, -1925/298129, 0, 0, 0, 0, 0, 0, 0]
-    value_rat = [0, 2727/13000, 421071/959920, 5943/13000, 4851099/11999000, 4851099/11999000, 18196/59995, 10467633/22933000, 795836841/1937838500, 975607/2399800, 18196/59995, 4291761/11999000, 4291761/11999000, 50943/167960, 4291761/11999000, 122181831/298129000, 187742/524875, 933/2080, 683/2080, 1397/2080, 1147/2080, 337133/524875, 175947169/298129000, 7707239/11999000, 117017/167960, 7707239/11999000, 7707239/11999000, 41799/59995, 1424193/2399800, 1142001659/1937838500, 12465367/22933000, 41799/59995, 7147901/11999000, 7147901/11999000, 7057/13000, 538849/959920, 10273/13000, 1, 9667/13000, 3333/13000, 0]
-    value_irr = [0, 0, 0, 0, 67375/3875677, 2695/100776, 0, -385/22152, 0, 0, 385/93016248, -1925/71994, 67375/3875677, 0, 2695/100776, -385/22152, 0, 0, 0, 0, 0, 0, 385/22152, -2695/100776, 0, -67375/3875677, 1925/71994, -385/93016248, 0, 0, 385/22152, 0, -2695/100776, -67375/3875677, 0, 0, 0, 0, 0, 0, 0]
+    value_rat = [0, 2727/13000, 421071/959920, 4851099/11999000, 4851099/11999000, 4851099/11999000, 18196/59995, 10467633/22933000, 795836841/1937838500, 975607/2399800, 18196/59995, 4291761/11999000, 4291761/11999000, 50943/167960, 4291761/11999000, 122181831/298129000, 187742/524875, 933/2080, 683/2080, 1397/2080, 1147/2080, 337133/524875, 175947169/298129000, 7707239/11999000, 117017/167960, 7707239/11999000, 7707239/11999000, 41799/59995, 1424193/2399800, 1142001659/1937838500, 12465367/22933000, 41799/59995, 7147901/11999000, 7147901/11999000, 7147901/11999000, 538849/959920, 10273/13000, 1, 9667/13000, 3333/13000, 0]
+    value_irr = [0, 0, 0, -1925/71994, 67375/3875677, 2695/100776, 0, -385/22152, 0, 0, 385/93016248, -1925/71994, 67375/3875677, 0, 2695/100776, -385/22152, 0, 0, 0, 0, 0, 0, 385/22152, -2695/100776, 0, -67375/3875677, 1925/71994, -385/93016248, 0, 0, 385/22152, 0, -2695/100776, -67375/3875677, 1925/71994, 0, 0, 0, 0, 0, 0]
     lim_left_rat = [101/650, 707/13000, 421071/959920, 4851099/11999000, 4851099/11999000, 4851099/11999000, 275183/599950, 10467633/22933000, 848837/2099500, 975607/2399800, 275183/599950, 4291761/11999000, 4291761/11999000, 240046061/775135400, 4291761/11999000, 122181831/298129000, 187742/524875, 933/2080, 668809/1919840, 1397/2080, 96237/147680, 337133/524875, 175947169/298129000, 7707239/11999000, 535089339/775135400, 7707239/11999000, 7707239/11999000, 324767/599950, 1424193/2399800, 1250663/2099500, 12465367/22933000, 324767/599950, 7147901/11999000, 7147901/11999000, 7147901/11999000, 538849/959920, 12293/13000, 549/650, 899/1000, 101/1000, 101/650]
     lim_left_irr = [0, 0, 0, 0, 67375/3875677, 385/93016248, -1925/71994, -385/22152, 0, 0, -385/7752, 0, 67375/3875677, 192500/3875677, 385/93016248, -385/22152, 0, 0, 0, 0, 0, 0, 385/22152, -385/93016248, -192500/3875677, -67375/3875677, 0, 385/7752, 0, 0, 385/22152, 1925/71994, -385/93016248, -67375/3875677, 0, 0, 0, 0, 0, 0, 0]
-    lim_right_rat =  [101/650, 707/13000, 421071/959920, 4851099/11999000, 4851099/11999000, 4851099/11999000, 275183/599950, 10467633/22933000, 848837/2099500, 975607/2399800, 275183/599950, 4291761/11999000, 4291761/11999000, 240046061/775135400, 4291761/11999000, 122181831/298129000, 187742/524875, 51443/147680, 683/2080, 1251031/1919840, 1147/2080, 337133/524875, 175947169/298129000, 7707239/11999000, 535089339/775135400, 7707239/11999000, 7707239/11999000, 324767/599950, 1424193/2399800, 1250663/2099500, 12465367/22933000, 324767/599950, 7147901/11999000, 7147901/11999000, 7147901/11999000, 538849/959920, 12293/13000, 549/650, 899/1000, 101/1000, 101/650]
+    lim_right_rat = [101/650, 707/13000, 421071/959920, 4851099/11999000, 4851099/11999000, 4851099/11999000, 275183/599950, 10467633/22933000, 848837/2099500, 975607/2399800, 275183/599950, 4291761/11999000, 4291761/11999000, 240046061/775135400, 4291761/11999000, 122181831/298129000, 187742/524875, 51443/147680, 683/2080, 1251031/1919840, 1147/2080, 337133/524875, 175947169/298129000, 7707239/11999000, 535089339/775135400, 7707239/11999000, 7707239/11999000, 324767/599950, 1424193/2399800, 1250663/2099500, 12465367/22933000, 324767/599950, 7147901/11999000, 7147901/11999000, 7147901/11999000, 538849/959920, 12293/13000, 549/650, 899/1000, 101/1000, 101/650]
     lim_right_irr = [0, 0, 0, 0, 67375/3875677, 385/93016248, -1925/71994, -385/22152, 0, 0, -385/7752, 0, 67375/3875677, 192500/3875677, 385/93016248, -385/22152, 0, 0, 0, 0, 0, 0, 385/22152, -385/93016248, -192500/3875677, -67375/3875677, 0, 385/7752, 0, 0, 385/22152, 1925/71994, -385/93016248, -67375/3875677, 0, 0, 0, 0, 0, 0, 0]
     pieces = [singleton_piece(rnf(0), rnf(0))]
     for i in range(1,n):
