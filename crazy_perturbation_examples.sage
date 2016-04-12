@@ -119,7 +119,7 @@ def kzh_minimal_has_only_crazy_perturbation_1():
 
         This example is obtained by the following code.
 
-            sage: hmin = bhk_discontinuous(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=19/23998, c2=5/11999, y1=185/1846, y2=240/11999, field=None)
+            sage: hmin = bhk_discontinuous(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=19/23998, c2=5/11999, y1=185/1846, y2=240/11999, field=None) # long time
             sage: hlift = lift_until_extreme(hmin) # long time
             sage: (h - hlift).list() # long time
             [[(0, 1), <FastLinearFunction 0>]]
@@ -133,10 +133,10 @@ def kzh_minimal_has_only_crazy_perturbation_1():
 
         `hmin` is minimal but not extreme. The solution space of the finite dimensional test has dimension 5.
 
-            sage: finite_dimensional_extremality_test(hmin,show_all_perturbations=True)
+            sage: finite_dimensional_extremality_test(hmin,show_all_perturbations=True) # long time
             False
-            sage: perturbs = hmin._perturbations
-            sage: len(perturbs)
+            sage: perturbs = hmin._perturbations # long time
+            sage: len(perturbs) # long time
             5
 
         A more general way of lifting `hmin` is to call the following generator. (Use Sage Polyhedron if `use_polyhedron` is set to False. Use LP if with random objective function if `use_polyhedron` is set to True.) Unfortunately, this method is too slow. With `use_polyhedron=False`, it takes 15-20 mins to find a lifted function.
