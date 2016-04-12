@@ -300,3 +300,13 @@ def discontinuous_bhk_irrational_dense_move_not_affine():
     discp.append(singleton_piece(b[20],vm[20]))
     dbhk = FastPiecewise(discp)
     return dbhk
+
+
+def plotting_2d_diagram_bug_example():
+    """
+    This is not a subadditive function. Additivity appears in the interior of some face, but not over the entire face.
+    It caused a trouble in generate_maximal_additive_faces_continuous and in plotting_2d_diagram. Namely, define face = generate_maximal_additive_faces(h)[47]; we observed that face.vertices and face.minimal_triple don't match. The problem is now fixed.
+    """
+    bkpts = [0, 60147/339800, 19/100, 32802403/150021700, 19837/88300, 38001343/150021700, 22897/88300, 127/400, 157/400, 203/400, 233/400, 56573/88300, 97018187/150021700, 59633/88300, 102217127/150021700, 71/100, 245673/339800, 9/10, 1]
+    values = [0, 17983953/47572000, 6947/28000, 12992378939/42006076000, 6162761/24724000, 13040902379/42006076000, 6191321/24724000, 20983/56000, 21123/56000, 34877/56000, 35017/56000, 18532679/24724000, 28965173621/42006076000, 18561239/24724000, 29013697061/42006076000, 21053/28000, 29588047/47572000, 1, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpts, values)
