@@ -376,6 +376,9 @@ class SymbolicRealNumberField(Field):
 
 default_symbolic_field = SymbolicRealNumberField()
 
+# alias
+ParametricRealFieldElement = SymbolicRNFElement
+ParametricRealField = SymbolicRealNumberField
 
 ###############################
 # Simplify polynomials
