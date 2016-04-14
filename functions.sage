@@ -1234,7 +1234,7 @@ class FastPiecewise (PiecewisePolynomial):
         self._values_at_end_points = values_at_end_points
         self._limits_at_end_points = limits_at_end_points
         self._periodic_extension = periodic_extension
-        self._call_cache = dict()
+        #self._call_cache = dict()
 
         is_continuous = True
         if len(end_points) == 1 and end_points[0] is None:
@@ -1493,9 +1493,9 @@ class FastPiecewise (PiecewisePolynomial):
             ValueError: Value not defined at point 3, outside of domain.
         """
         # fast path 
-        result = self._call_cache.get(x0)
-        if result is not None:
-            return result
+        #result = self._call_cache.get(x0)
+        #if result is not None:
+        #    return result
         # Remember that intervals are sorted according to their left endpoints; singleton has priority.
         endpts = self.end_points()
         ith = self._ith_at_end_points
@@ -1505,7 +1505,7 @@ class FastPiecewise (PiecewisePolynomial):
         if x0 == endpts[i]:
             if self._values_at_end_points[i] is not None:
                 result = self._values_at_end_points[i]
-                self._call_cache[x0] = result
+                #self._call_cache[x0] = result
                 return result
             else:
                 raise ValueError,"Value not defined at point %s, outside of domain." % x0
@@ -1513,7 +1513,7 @@ class FastPiecewise (PiecewisePolynomial):
             raise ValueError,"Value not defined at point %s, outside of domain." % x0
         if is_pt_in_interval(self._intervals[ith[i]],x0):
             result = self.functions()[ith[i]](x0)
-            self._call_cache[x0] = result
+            #self._call_cache[x0] = result
             return result
         raise ValueError,"Value not defined at point %s, outside of domain." % x0
 
