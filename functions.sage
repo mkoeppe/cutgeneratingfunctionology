@@ -421,6 +421,40 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
         p += plot_function_at_borders(fn, covered_intervals = covered_intervals)
     return p
 
+def plot_2d_diagram_with_cones(fn, show_function=True, f=None):
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = zhou_two_sided_discontinuous_cannot_assume_any_continuity()
+        sage: g = plot_2d_diagram_with_cones(h)
+        sage: h = not_minimal_2()
+        sage: g = plot_2d_diagram_with_cones(h)
+    """
+    if f is None:
+        f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    g = plot_2d_complex(fn)
+    if show_function:
+        g += plot_function_at_borders(fn)
+    bkpt = uniq(copy(fn.end_points()))
+    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
+    type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
+    type_2_vertices = [(x, z-x, z) for x in bkpt for z in bkpt2 if x < z < 1+x]
+    vertices = set(type_1_vertices + type_2_vertices)
+    for (x, y, z) in vertices:
+        for (xeps, yeps, zeps) in [(0,0,0)]+list(nonzero_eps):
+            deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
+            if deltafn > 0:
+                color = "white"
+            elif deltafn == 0:
+                color = "mediumspringgreen"
+            else:
+                color = "mediumvioletred"
+            g += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), color=color, r=0.03)
+            g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)), color=color, r=0.03)
+    return g
+
+
 def plot_function_at_borders(fn, color='blue', legend_label="Function pi", covered_intervals=None, **kwds):
     """
     Plot the function twice, on the upper and the left border, 
