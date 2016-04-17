@@ -5,12 +5,12 @@ if '' not in sys.path:
 
 from igp import *
 
-def bhk_discontinuous(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=1/1000, c2=0, y1=1/10, y2=1/50, field=None):
+def kzh_discontinuous_bhk_irrational(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=1/1000, c2=0, y1=1/10, y2=1/50, field=None):
     """
     EXAMPLES::
 
         sage: logging.disable(logging.INFO)
-        sage: hmin = bhk_discontinuous(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=19/23998, c2=5/11999, y1=185/1846, y2=240/11999, field=None)
+        sage: hmin = kzh_discontinuous_bhk_irrational(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=19/23998, c2=5/11999, y1=185/1846, y2=240/11999, field=None)
         sage: minimality_test(hmin)
         True
     """
@@ -119,14 +119,14 @@ def kzh_minimal_has_only_crazy_perturbation_1():
 
         This example is obtained by the following code.
 
-            sage: hmin = bhk_discontinuous(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=19/23998, c2=5/11999, y1=185/1846, y2=240/11999, field=None) # long time
+            sage: hmin = kzh_discontinuous_bhk_irrational(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=19/23998, c2=5/11999, y1=185/1846, y2=240/11999, field=None) # long time
             sage: hlift = lift_until_extreme(hmin) # long time
             sage: (h - hlift).list() # long time
             [[(0, 1), <FastLinearFunction 0>]]
 
-        Without knowing the input values of bhk_discontinuous() that gives a minimal valid `hmin`, one could use the default values to construct a non-minimal discontinuous function, and then lift the function to minimal, as follows.
+        Without knowing the input values of kzh_discontinuous_bhk_irrational() that gives a minimal valid `hmin`, one could use the default values to construct a non-minimal discontinuous function, and then lift the function to minimal, as follows.
 
-            sage: h_org = bhk_discontinuous() # long time
+            sage: h_org = kzh_discontinuous_bhk_irrational() # long time
             sage: hmin_from_org = lift(h_org, phase_1=True) # long time
             sage: (hmin - hmin_from_org).list() # long time
             [[(0, 1), <FastLinearFunction 0>]]
