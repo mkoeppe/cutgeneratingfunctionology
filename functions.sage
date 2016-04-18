@@ -2993,7 +2993,7 @@ def plot_completion_diagram(fn, perturbation=None):
 
 def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
     # FIXME: Need better interface for perturbation selection.
-    if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots=show_plots, **kwds):
+    if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots=show_plots, crazy_perturbations=False, **kwds):
         return fn
     else:
         perturbation = fn._perturbations[0]
