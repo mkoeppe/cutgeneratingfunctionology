@@ -3097,7 +3097,7 @@ def random_piecewise_function(xgrid=10, ygrid=10, continuous_proba=1, symmetry=T
         piece1 = [ [singleton_interval(xvalues[i]), FastLinearFunction(0, yvalues[i])] for i in range(xgrid+1) ]
         leftlimits = [0]
         rightlimits = []
-        for i in range(0, ygrid):
+        for i in range(0, xgrid):
             p = random()
             if p > continuous_proba:
                 rightlimits.append(randint(0, ygrid) / ygrid)
