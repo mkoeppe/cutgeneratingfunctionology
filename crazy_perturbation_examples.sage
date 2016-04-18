@@ -91,7 +91,7 @@ def kzh_minimal_has_only_crazy_perturbation_1():
 
     On one hand, normal perturbation does not exist.
 
-        sage: extremality_test(h)
+        sage: extremality_test(h, crazy_perturbations=False)
         True
 
     On the other hand, there exists crazy perturbation, such as the one we construct below.
