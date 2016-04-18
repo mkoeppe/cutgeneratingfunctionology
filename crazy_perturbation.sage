@@ -93,9 +93,12 @@ class CrazyPerturbation:
             a, b = crazy_piece.interval[0], crazy_piece.interval[1]
             pwla = pwl.limit(a, 1)
             pwlb = pwl.limit(b, -1)
-            max_shift = max([s for (r, s) in crazy_piece.cosets])
-            min_shift = min([s for (r, s) in crazy_piece.cosets])
-            g += polygon([(a, pwla+min_shift), (a, pwla+max_shift), (b, pwlb+max_shift), (b, pwlb+min_shift)], color='magenta')
+            shifts = [s for (r, s) in crazy_piece.cosets]
+            max_shift = max(shifts)
+            min_shift = min(shifts)
+            g += polygon([(a, pwla+min_shift), (a, pwla+max_shift), (b, pwlb+max_shift), (b, pwlb+min_shift)], color='magenta', alpha=0.1)
+            for s in shifts:
+                g += line([(a, pwla+s), (b, pwlb+s)], color='magenta')
         return g
 
     def range(self):
