@@ -3434,6 +3434,7 @@ class DirectedMoveCompositionCompletion:
         self.reduce_moves_by_components()
 
     def extend_components_by_strip_lemma(self):
+        global crazy_perturbations_warning
         changed_move_keys = self.any_change_moves
         all_move_keys = self.move_dict.keys()
         current_dense_move = []
@@ -3452,6 +3453,8 @@ class DirectedMoveCompositionCompletion:
                 d = check_for_strip_lemma_small_translations(a_domain, b_domain, a[1], b[1])
                 # d is not dominated by covered_components because we start with reduced moves.
                 if d:
+                    if crazy_perturbations_warning:
+                        logging.warn("This function is two-sided discontinuous at the origin. Crazy perturbations might exist.")
                     self.any_change_components = True
                     current_dense_move += d
                     logging.info("New dense move from strip lemma: %s" % d)
