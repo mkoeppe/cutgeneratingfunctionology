@@ -100,6 +100,7 @@ def generate_maximal_additive_faces_continuous(function):
                                 keep = False
                         else:
                             keep = False
+                            logging.warn("Additivity appears only in the interior for some face. This is not shown on the diagram.")
                     elif len(temp) == 1:
                         if temp[0][0] == I_list[i][0] and temp[0][1] == J_list[j][0] \
                             and temp[0][0] + temp[0][1] != K_list[k][1]:

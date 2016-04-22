@@ -415,6 +415,51 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
         p += plot_function_at_borders(fn, covered_intervals = covered_intervals)
     return p
 
+def plot_2d_diagram_with_cones(fn, show_function=True, f=None):
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = zhou_two_sided_discontinuous_cannot_assume_any_continuity()
+        sage: g = plot_2d_diagram_with_cones(h)
+        sage: h = not_minimal_2()
+        sage: g = plot_2d_diagram_with_cones(h)
+    """
+    if f is None:
+        f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    g = plot_2d_complex(fn)
+    if show_function:
+        g += plot_function_at_borders(fn)
+    bkpt = uniq(copy(fn.end_points()))
+    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
+    type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
+    type_2_vertices = [(x, z-x, z) for x in bkpt for z in bkpt2 if x < z < 1+x]
+    vertices = set(type_1_vertices + type_2_vertices)
+    if fn.is_continuous():
+        for (x, y, z) in vertices:
+            deltafn = delta_pi(fn, x, y)
+            if deltafn > 0:
+                color = "white"
+            elif deltafn == 0:
+                color = "mediumspringgreen"
+            else:
+                color = "red"
+            g += point([(x, y), (y, x)], color=color, size = 200, zorder=-1)
+    else:
+        for (x, y, z) in vertices:
+            for (xeps, yeps, zeps) in [(0,0,0)]+list(nonzero_eps):
+                deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
+                if deltafn > 0:
+                    color = "white"
+                elif deltafn == 0:
+                    color = "mediumspringgreen"
+                else:
+                    color = "red"
+                g += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), color=color, r=0.03)
+                g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)), color=color, r=0.03)
+    return g
+
+
 def plot_function_at_borders(fn, color='blue', legend_label="Function pi", covered_intervals=None, **kwds):
     """
     Plot the function twice, on the upper and the left border, 
@@ -868,7 +913,8 @@ def delete_one_time_plot_kwds(kwds):
     if 'tick_formatter' in kwds:
         del kwds['tick_formatter']
 
-def plot_covered_intervals(function, covered_intervals=None, uncovered_color='black', labels=None, **plot_kwds):
+def plot_covered_intervals(function, covered_intervals=None, uncovered_color='black', labels=None,
+                           show_one_point_overlap_markers=None, **plot_kwds):
     """
     Return a plot of the covered and uncovered intervals of `function`.
     """
@@ -892,6 +938,8 @@ def plot_covered_intervals(function, covered_intervals=None, uncovered_color='bl
     elif not function.is_continuous(): # to plot the discontinuity markers
         graph += plot(function, color = uncovered_color, **kwds)
         delete_one_time_plot_kwds(kwds)
+    if show_one_point_overlap_markers is None:
+        show_one_point_overlap_markers = not function.is_continuous()
     for i, component in enumerate(covered_intervals):
         if labels is None:
             label = "covered component %s" % (i+1)
@@ -899,15 +947,31 @@ def plot_covered_intervals(function, covered_intervals=None, uncovered_color='bl
             label = labels[i]
         kwds.update({'legend_label': label})
         plot_kwds_hook(kwds)
+        last_endpoint = None
         for interval in component:
+            linear = function.which_function((interval[0] + interval[1])/2)
             # We do not plot anything if float(interval[0])==float(interval[1]) because
             # otherwise plot complains that
             # "start point and endpoint must be different"
             if float(interval[0])<float(interval[1]):
-                graph += plot(function.which_function((interval[0] + interval[1])/2), interval, color=colors[i], zorder=-1, **kwds)
+                graph += plot(linear, interval, color=colors[i], zorder=-1, **kwds)
                 # zorder=-1 puts them below the discontinuity markers,
                 # above the black function.
                 delete_one_time_plot_kwds(kwds)
+                # Show a little marker where adjacent intervals of the same component end
+                # if the function is continuous at that point.
+                # For example, in zhou_two_sided_discontinuous_cannot_assume_any_continuity, or
+                # hildebrand_discont_3_slope_1().
+                if show_one_point_overlap_markers and interval[0] == last_endpoint:
+                    limits = function.limits(last_endpoint)
+                    if limits[0] == limits[1] == limits[2]:
+                        slope = linear._slope
+                        scale = 0.01
+                        dx = scale * slope / sqrt(1 + slope**2) # FIXME: this tries to make it orthogonal to the slope
+                        dy = -scale / sqrt(1 + slope**2)        # but fails to take the aspect ratio of the plot into account.
+                        graph += line([(last_endpoint - dx, function(last_endpoint) - dy), (last_endpoint + dx, function(last_endpoint) + dy)],
+                                      color=colors[i], zorder=-1)
+            last_endpoint = interval[1]
     return graph
 
 def number_of_components(fn):
@@ -2806,7 +2870,9 @@ def generate_nonsymmetric_vertices(fn, f):
 class MaximumNumberOfIterationsReached(Exception):
     pass
 
-def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True, show_all_perturbations=False):
+crazy_perturbations_warning = False
+
+def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True, show_all_perturbations=False, crazy_perturbations=True):
     """Check if `fn` is extreme for the group relaxation with the given `f`. 
 
     If `fn` is discrete, it has to be defined on a cyclic subgroup of
@@ -2856,6 +2922,11 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
     do_phase_1_lifting = False
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    global crazy_perturbations_warning
+    if crazy_perturbations and (limiting_slopes(fn) == (+Infinity, -Infinity)):
+        crazy_perturbations_warning = True
+    else:
+        crazy_perturbations_warning = False
     if f is None or not minimality_test(fn, show_plots=show_plots, f=f):
         logging.info("Not minimal, thus NOT extreme.")
         if not phase_1:
@@ -3316,7 +3387,7 @@ def generate_random_mip_sol(mip):
 
 def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
     # FIXME: Need better interface for perturbation selection.
-    if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots=show_plots, **kwds):
+    if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots=show_plots, crazy_perturbations=False, **kwds):
         return fn
     else:
         perturbation = fn._perturbations[0]
@@ -3427,7 +3498,7 @@ def random_piecewise_function(xgrid=10, ygrid=10, continuous_proba=1, symmetry=T
         piece1 = [ [singleton_interval(xvalues[i]), FastLinearFunction(0, yvalues[i])] for i in range(xgrid+1) ]
         leftlimits = [0]
         rightlimits = []
-        for i in range(0, ygrid):
+        for i in range(0, xgrid):
             p = random()
             if p > continuous_proba:
                 rightlimits.append(randint(0, ygrid) / ygrid)
@@ -3860,6 +3931,9 @@ class DirectedMoveCompositionCompletion:
                 if a.is_functional() and b.is_functional():
                     d = check_for_dense_move(a, b)
                     if d and not is_move_dominated_by_dense_moves(d, self.dense_moves):
+                        global crazy_perturbations_warning
+                        if crazy_perturbations_warning:
+                            logging.warn("This function is two-sided discontinuous at the orgin. Crazy perturbations might exist.")
                         logging.info("New dense move from strip lemma: %s" % d)
                         self.add_move(d)
                         # self.maybe_show_plot()
