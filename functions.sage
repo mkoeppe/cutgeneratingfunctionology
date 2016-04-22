@@ -913,7 +913,8 @@ def delete_one_time_plot_kwds(kwds):
     if 'tick_formatter' in kwds:
         del kwds['tick_formatter']
 
-def plot_covered_intervals(function, covered_intervals=None, uncovered_color='black', labels=None, **plot_kwds):
+def plot_covered_intervals(function, covered_intervals=None, uncovered_color='black', labels=None,
+                           show_one_point_overlap_markers=None, **plot_kwds):
     """
     Return a plot of the covered and uncovered intervals of `function`.
     """
@@ -937,6 +938,8 @@ def plot_covered_intervals(function, covered_intervals=None, uncovered_color='bl
     elif not function.is_continuous(): # to plot the discontinuity markers
         graph += plot(function, color = uncovered_color, **kwds)
         delete_one_time_plot_kwds(kwds)
+    if show_one_point_overlap_markers is None:
+        show_one_point_overlap_markers = not function.is_continuous()
     for i, component in enumerate(covered_intervals):
         if labels is None:
             label = "covered component %s" % (i+1)
@@ -959,7 +962,7 @@ def plot_covered_intervals(function, covered_intervals=None, uncovered_color='bl
                 # if the function is continuous at that point.
                 # For example, in zhou_two_sided_discontinuous_cannot_assume_any_continuity, or
                 # hildebrand_discont_3_slope_1().
-                if interval[0] == last_endpoint:
+                if show_one_point_overlap_markers and interval[0] == last_endpoint:
                     limits = function.limits(last_endpoint)
                     if limits[0] == limits[1] == limits[2]:
                         slope = linear._slope
