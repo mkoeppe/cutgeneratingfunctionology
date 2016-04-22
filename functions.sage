@@ -338,38 +338,33 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     """
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    faces = generate_maximal_additive_faces(fn)
     p = plot_2d_complex(fn)
+    kwds = { 'legend_label': "Additive face" }
+    plot_kwds_hook(kwds)
+    if colorful:
+        covered_intervals = generate_covered_intervals(fn)
+        colors = rainbow(len(covered_intervals))
+        interval_color = [(interval[0], i) \
+                          for (i, component) in enumerate(covered_intervals) \
+                          for interval in component]
+        interval_color.sort()
+    else:
+        covered_intervals = None
+    for face in faces:
+        if not covered_intervals is None and face.is_2D():
+            I = face.minimal_triple[0]
+            x = (I[0] + I[1]) / 2
+            j = bisect_left(interval_color, (x, len(covered_intervals) + 1)) # should be bisect
+            i = interval_color[j-1][1]
+            p += face.plot(fill_color = colors[i], **kwds)
+        else:
+            p += face.plot(**kwds)
+        delete_one_time_plot_kwds(kwds)
 
+    ### For non-subadditive functions, show the points where delta_pi is negative.
     if not known_minimal:
         nonsubadditive_vertices = generate_nonsubadditive_vertices(fn, reduced=False)
-    else:
-        nonsubadditive_vertices = set([])
-    if not nonsubadditive_vertices:
-        faces = generate_maximal_additive_faces(fn)
-        kwds = { 'legend_label': "Additive face" }
-        plot_kwds_hook(kwds)
-        if colorful:
-            covered_intervals = generate_covered_intervals(fn)
-            colors = rainbow(len(covered_intervals))
-            interval_color = [(interval[0], i) \
-                              for (i, component) in enumerate(covered_intervals) \
-                              for interval in component]
-            interval_color.sort()
-        else:
-            covered_intervals = None
-        for face in faces:
-            if not covered_intervals is None and face.is_2D():
-                I = face.minimal_triple[0]
-                x = (I[0] + I[1]) / 2
-                j = bisect_left(interval_color, (x, len(covered_intervals) + 1)) # should be bisect
-                i = interval_color[j-1][1]
-                p += face.plot(fill_color = colors[i], **kwds)
-            else:
-                p += face.plot(**kwds)
-            delete_one_time_plot_kwds(kwds)
-    else:
-        ### For non-subadditive functions, show the points where delta_pi is negative.
-        covered_intervals = None
         kwds = { 'legend_label' : "Subadditivity violated" }
         plot_kwds_hook(kwds)
         if fn.is_continuous():
@@ -388,7 +383,6 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
                 # add legend_label
                 p += point([(0,0)], color = "red", size = 50, zorder=-10, **kwds)
                 p += point([(0,0)], color = "white", size = 50, zorder=-9)
-    if not known_minimal:
         if f is not None:
             nonsymmetric_vertices = generate_nonsymmetric_vertices(fn, f)
             kwds = { 'legend_label' : "Symmetry violated" }
