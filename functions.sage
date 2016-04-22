@@ -1889,15 +1889,42 @@ def limiting_slopes(fn):
         limit_minus = -limits[-2][0] / (1 - breakpoints[-2])
     return limit_plus, limit_minus
 
+use_pwl_template = 'use_pwl_template'
+slopes_proportional_to_limiting_slopes_for_positive_epsilon = 'slopes_proportional_to_limiting_slopes_for_positive_epsilon'
+slopes_proportional_to_limiting_slopes_for_negative_epsilon = 'slopes_proportional_to_limiting_slopes_for_negative_epsilon'
+
+perturbation_style = use_pwl_template
 perturbation_template_bkpts = [0, 1/2, 1]
 perturbation_template_values = [0, 1, 0]
+
 def approx_discts_function(perturbation_list, stability_interval, field=default_field, function=None):
     assert (stability_interval.a == - stability_interval.b)
     perturb_points = sorted(perturbation_list.keys())
-    pos_pert_bkpts = [(2 * x - 1) * stability_interval.b  for x in perturbation_template_bkpts]
-    pos_pert_values = [x for x in perturbation_template_values]
-    neg_pert_bkpts =  [(1 - 2 * x) * stability_interval.b  for x in perturbation_template_bkpts[::-1]]
-    neg_pert_values = [-x for x in perturbation_template_values[::-1]]
+    if perturbation_style == use_pwl_template:
+        template_bkpts = copy(perturbation_template_bkpts)
+        template_values = copy(perturbation_template_values)
+    elif perturbation_style == slopes_proportional_to_limiting_slopes_for_positive_epsilon:
+        if function is None:
+            raise ValueError, "This perturbation_style needs to know function"
+        slope_plus, slope_minus = limiting_slopes(function)
+        current_slope = function.which_function(perturb_points[0])._slope
+        template_bkpts = [0, (current_slope - slope_minus)/(slope_plus - slope_minus), 1]
+        print slope_plus, slope_minus, current_slope, template_bkpts
+        template_values = [0, 1, 0]
+    elif perturbation_style == slopes_proportional_to_limiting_slopes_for_negative_epsilon:
+        if function is None:
+            raise ValueError, "This perturbation_style needs to know function"
+        slope_plus, slope_minus = limiting_slopes(function)
+        current_slope = function.which_function(perturb_points[0])._slope
+        template_bkpts = [0, (slope_plus - current_slope)/(slope_plus - slope_minus), 1]
+        print slope_plus, slope_minus, current_slope, template_bkpts
+        template_values = [0, 1, 0]
+    else:
+        raise ValueError, "Unknown perturbation_style: %s" % perturbation_style
+    pos_pert_bkpts = [(2 * x - 1) * stability_interval.b  for x in template_bkpts]
+    pos_pert_values = [x for x in template_values]
+    neg_pert_bkpts =  [(1 - 2 * x) * stability_interval.b  for x in template_bkpts[::-1]]
+    neg_pert_values = [-x for x in template_values[::-1]]
     fn_values = [0]
     fn_bkpts = [0]
     for pt in perturb_points:
