@@ -1384,7 +1384,7 @@ class SemialgebraicComplex(SageObject):
         # more testcases in param_graphics.sage
     """
 
-    def __init__(self, function, var_name, max_iter=8, **opt_non_default):
+    def __init__(self, function, var_name, max_iter=8, find_region_type=None, **opt_non_default):
         #self.num_components = 0
         self.components = []
 
@@ -1404,6 +1404,12 @@ class SemialgebraicComplex(SageObject):
         self.num_plotted_components = 0
         self.points_to_test = set()
         self.max_iter = max_iter
+        if find_region_type is None:
+            def frt(K,h):
+                return find_region_type_around_given_point(K, h, region_level='extreme',
+                                                           is_minimal=None,use_simplified_extremality_test=True)
+            find_region_type = frt
+        self.find_region_type_around_given_point = find_region_type
 
     def generate_random_var_value(self, var_bounds=None):
         var_value = []
@@ -1470,8 +1476,7 @@ class SemialgebraicComplex(SageObject):
         except:
             # Function is non-contructible at this random point.
             h = None
-        region_type =  find_region_type_around_given_point(K, h, region_level='extreme',
-                                                           is_minimal=None,use_simplified_extremality_test=True)
+        region_type = self.find_region_type_around_given_point(K, h)
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         #if see new monomial, lift polyhedrons of the previously computed components.
         dim_to_add = len(self.monomial_list) - unlifted_space_dim
