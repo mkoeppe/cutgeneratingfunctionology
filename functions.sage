@@ -2870,7 +2870,9 @@ def generate_nonsymmetric_vertices(fn, f):
 class MaximumNumberOfIterationsReached(Exception):
     pass
 
-def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True, show_all_perturbations=False):
+crazy_perturbations_warning = False
+
+def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True, show_all_perturbations=False, crazy_perturbations=True):
     """Check if `fn` is extreme for the group relaxation with the given `f`. 
 
     If `fn` is discrete, it has to be defined on a cyclic subgroup of
@@ -2920,6 +2922,11 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
     do_phase_1_lifting = False
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    global crazy_perturbations_warning
+    if crazy_perturbations and (limiting_slopes(fn) == (+Infinity, -Infinity)):
+        crazy_perturbations_warning = True
+    else:
+        crazy_perturbations_warning = False
     if f is None or not minimality_test(fn, show_plots=show_plots, f=f):
         logging.info("Not minimal, thus NOT extreme.")
         if not phase_1:
@@ -3050,7 +3057,7 @@ def plot_completion_diagram(fn, perturbation=None):
 
 def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
     # FIXME: Need better interface for perturbation selection.
-    if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots=show_plots, **kwds):
+    if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots=show_plots, crazy_perturbations=False, **kwds):
         return fn
     else:
         perturbation = fn._perturbations[0]
@@ -3594,6 +3601,9 @@ class DirectedMoveCompositionCompletion:
                 if a.is_functional() and b.is_functional():
                     d = check_for_dense_move(a, b)
                     if d and not is_move_dominated_by_dense_moves(d, self.dense_moves):
+                        global crazy_perturbations_warning
+                        if crazy_perturbations_warning:
+                            logging.warn("This function is two-sided discontinuous at the orgin. Crazy perturbations might exist.")
                         logging.info("New dense move from strip lemma: %s" % d)
                         self.add_move(d)
                         # self.maybe_show_plot()
