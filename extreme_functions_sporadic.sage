@@ -5,7 +5,7 @@ if '' not in sys.path:
 
 from igp import *
 
-## "Sporadic" extreme functions (found by computer search, not part of a parametric family.
+## "Sporadic" extreme functions (found by computer search, not part of a parametric family).
 
 def hildebrand_5_slope_22_1():
     """
@@ -825,10 +825,12 @@ def kzh_28_slope_1():
     """
     A 28-slope extreme function.
 
-    This is the current world record.
-
     This example was found by computer-based search
     described in Koeppe--Zhou [KZh2015a].
+
+    This was briefly the world record, until Basu, Conforti, Di Summa, and Paat gave a
+    construction of a family of functions with an arbitrary number of slopes
+    (see `bcdsp_arbitrary_slope`).
 
     EXAMPLES::
 
@@ -854,10 +856,12 @@ def kzh_28_slope_2():
     """
     A 28-slope extreme function.
 
-    This is the current world record.
-
     This example was found by computer-based search
     described in Koeppe--Zhou [KZh2015a].
+
+    This was briefly the world record, until Basu, Conforti, Di Summa, and Paat gave a
+    construction of a family of functions with an arbitrary number of slopes
+    (see `bcdsp_arbitrary_slope`).
 
     EXAMPLES::
 
@@ -882,6 +886,4 @@ def kzh_28_slope_2():
 ###
 ### Add more functions here
 ###
-
-extreme_function_with_world_record_number_of_slopes = kzh_28_slope_1
 
