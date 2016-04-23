@@ -147,7 +147,17 @@ class PiecewiseCrazyFunction:
             bkpts += [crazy_piece.interval[0], crazy_piece.interval[1]]
         return uniq(bkpts)
 
+<<<<<<< HEAD
 def is_in_ZZ_span(x, generators):
+=======
+    def limit(self,  x0, epsilon):
+        if epsilon != 0:
+            raise NotImplementedError()
+        else:
+            return self(x0)
+
+def is_in_group_over_ZZ(x, generators):
+>>>>>>> minimality_test_randomized
     # assume that all inputs are elements from a same RNF.
     # generators are linearly independent over Q
     lgens = [g.list() for g in generators]
@@ -250,3 +260,100 @@ def check_move_on_crazy_pieces((move_sign, move_dist), cp1, cp2):
                     and all((s == - cp1(move_dist - r)) for (r, s) in cp2.cosets))
     else: # (cp1 is None) and (cp2 is None)
         return True
+
+
+def random_test_number(fn):
+    if randint(0, 5)==0:
+        # Pick f
+        try:
+            return find_f(fn.pwl)
+        except AttributeError:
+            return find_f(fn)
+    breakpoints = fn.end_points()
+    if randint(0, 5) == 0:
+        # Pick a breakpoint
+        return breakpoints[randint(0, len(breakpoints)-1)]
+    # Pick a point from the interior of some interval
+    crazy_pieces = []
+    intervals = []
+    try:
+        crazy_pieces = fn.crazy_pieces
+        intervals = fn.pwl.intervals()
+    except AttributeError:
+        intervals = fn.intervals()
+    if crazy_pieces and randint(0, 1) == 0:
+        # Pick from crazy piece
+        crazy_piece = crazy_pieces[randint(0, len(crazy_pieces)-1)]
+        if randint(0, 0) == 0: # Always...
+            # Pick from support of microperiodic
+            cosets = crazy_piece.cosets
+            coset = cosets[randint(0, len(cosets)-1)][0]
+        else:
+            coset = ZZ(randint(0, 12345678)) / ZZ(randint(1, 1234567))
+        generators = crazy_piece.generators
+        x = coset + sum(randint(0, 12345678) * gen for gen in generators)
+        assert generators[0] < 1
+        x = x - floor(x / generators[0] * generators[0])
+        i = floor((1 - x) / generators[0])
+        x = x + randint(0, i) * generators[0]
+        return x
+    interval = intervals[randint(0, len(intervals)-1)]
+    denom = 12345678
+    x = interval[0] + ZZ(randint(0, denom)) / denom * (interval[1] - interval[0])
+    return x
+
+def random_6_tuple(fn):
+    # FIXME: should do limits!
+    if randint(0, 1) == 0:
+        x = random_test_number(fn)
+        y = random_test_number(fn)
+        z = x + y
+        return x, y, z, 0, 0, 0
+    else:
+        x = random_test_number(fn)
+        z = randint(0, 1) + random_test_number(fn)
+        y = fractional(z - x)
+        return x, y, z, 0, 0, 0
+
+def minimality_test_randomized(fn, orig_function=None, max_iterations=None):
+    """
+    EXAMPLE::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = kzh_minimal_has_only_crazy_perturbation_1()
+        sage: bkpts = h.end_points()
+        sage: t1 = bkpts[10]-bkpts[6]
+        sage: t2 = bkpts[13]-bkpts[6]
+        sage: f = bkpts[37]
+        sage: ucl = bkpts[17]
+        sage: ucr = bkpts[18]
+        sage: generators = [t1, t2]
+        sage: pwl = piecewise_function_from_breakpoints_and_slopes([0,1],[0])
+        sage: crazy_piece_1 = CrazyPiece((ucl, ucr), generators, [(ucl, 1), (ucr, -1)])
+        sage: crazy_piece_2 = CrazyPiece((f-ucr, f-ucl), generators, [(f-ucr, 1), (f-ucl, -1)])
+        sage: cp = CrazyPerturbation(pwl, [crazy_piece_1, crazy_piece_2])
+        sage: eps = find_epsilon_for_crazy_perturbation(h, cp)
+        sage: hcp = CrazyPerturbation(h, [eps*crazy_piece_1, eps*crazy_piece_2])
+        sage: minimality_test_randomized(hcp, h, max_iterations=10)
+        True
+    """
+    smallest_delta = 10
+    num_it = 0
+    while max_iterations is None or num_it < max_iterations:
+        num_it = num_it + 1
+        x, y, z, xeps, yeps, zeps = random_6_tuple(fn)
+        delta = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
+        if delta < 0:
+            logging.warning("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
+            return False
+        if 0 < delta and orig_function is not None:
+            if delta_pi_general(orig_function, x, y, (xeps, yeps, zeps)) == 0:
+                logging.warning("Lost additivity: pi(%s%s) + pi(%s%s) - pi(%s%s) > 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
+                return False
+        if 0 == delta and orig_function is not None:
+            if delta_pi_general(orig_function, x, y, (xeps, yeps, zeps)) != 0:
+                logging.info("New additivity: pi(%s%s) + pi(%s%s) - pi(%s%s) = 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
+        if 0 < delta < smallest_delta:
+            smallest_delta = delta
+            logging.info("After {} tries, smallest Delta pi now: {}".format(num_it, delta))
+    return True
