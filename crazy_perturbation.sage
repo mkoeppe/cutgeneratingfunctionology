@@ -86,9 +86,9 @@ class PiecewiseCrazyFunction:
         else:
             return self.pwl(x) + crazy_piece(x)
 
-    def plot(self):
+    def plot(self, rgbcolor='magenta'):
         pwl = self.pwl
-        g = pwl.plot(color='magenta')
+        g = pwl.plot(rgbcolor=rgbcolor)
         for crazy_piece in self.crazy_pieces:
             a, b = crazy_piece.interval[0], crazy_piece.interval[1]
             pwla = pwl.limit(a, 1)
@@ -96,9 +96,9 @@ class PiecewiseCrazyFunction:
             shifts = [s for (r, s) in crazy_piece.cosets]
             max_shift = max(shifts)
             min_shift = min(shifts)
-            g += polygon([(a, pwla+min_shift), (a, pwla+max_shift), (b, pwlb+max_shift), (b, pwlb+min_shift)], color='magenta', alpha=0.1)
+            g += polygon([(a, pwla+min_shift), (a, pwla+max_shift), (b, pwlb+max_shift), (b, pwlb+min_shift)], color=rgbcolor, alpha=0.1)
             for s in shifts:
-                g += line([(a, pwla+s), (b, pwlb+s)], color='magenta')
+                g += line([(a, pwla+s), (b, pwlb+s)], color=rgbcolor)
         return g
 
     def range(self):
