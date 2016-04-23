@@ -106,7 +106,7 @@ def kzh_minimal_has_only_crazy_perturbation_1():
         sage: pwl = piecewise_function_from_breakpoints_and_slopes([0,1],[0])
         sage: crazy_piece_1 = CrazyPiece((ucl, ucr), generators, [(ucl, 1), (ucr, -1)])
         sage: crazy_piece_2 = CrazyPiece((f-ucr, f-ucl), generators, [(f-ucr, 1), (f-ucl, -1)])
-        sage: cp = CrazyPerturbation(pwl, [crazy_piece_1, crazy_piece_2])
+        sage: cp = PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
 
     This crazy perturbation is valid, since it has positive epsilon.
 

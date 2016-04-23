@@ -49,7 +49,7 @@ class CrazyPiece:
 
     __rmul__ = __mul__
 
-class CrazyPerturbation:
+class PiecewiseCrazyFunction:
     # assume that all inputs are elements from a same RNF.
     def __init__(self, pwl, crazy_pieces):
         self.pwl = pwl
@@ -74,7 +74,7 @@ class CrazyPerturbation:
         Multiply `self` by a scalar.
         """
         # assume scalar multiplication
-        return CrazyPerturbation(self.pwl * other, [cp * other for cp in self.crazy_pieces])
+        return PiecewiseCrazyFunction(self.pwl * other, [cp * other for cp in self.crazy_pieces])
 
     __rmul__ = __mul__
 
@@ -155,11 +155,11 @@ def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
         sage: pwl = piecewise_function_from_breakpoints_and_slopes([0,1],[0])
         sage: crazy_piece_1 = CrazyPiece((ucl, ucr), generators, [(ucl, 1), (ucr, -1)])
         sage: crazy_piece_2 = CrazyPiece((f-ucr, f-ucl), generators, [(f-ucr, 1), (f-ucl, -1)])
-        sage: cp = CrazyPerturbation(pwl, [crazy_piece_1, crazy_piece_2])
+        sage: cp = PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
         sage: find_epsilon_for_crazy_perturbation(h, cp)
         0.0002639108814623441?
     """
-    # assume fn is a subadditive pwl function, cp is a non_zero CrazyPerturbation with cp(0)=cp(f)=0.
+    # assume fn is a subadditive pwl function, cp (crazy perturbation) is a non_zero PiecewiseCrazyFunction with cp(0)=cp(f)=0.
     bkpt = uniq(copy(fn.end_points())+cp.end_points())
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
