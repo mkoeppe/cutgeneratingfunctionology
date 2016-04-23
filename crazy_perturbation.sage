@@ -39,6 +39,10 @@ class CrazyPiece:
                 return s
         return x.parent().zero()
 
+    def __neg__(self):
+        new_cosets = [(r, -s) for (r, s) in self.cosets]
+        return CrazyPiece(self.interval, self.generators, new_cosets)
+
     def __mul__(self, other):
         """
         Multiply `self` by a scalar.
@@ -48,6 +52,10 @@ class CrazyPiece:
         return CrazyPiece(self.interval, self.generators, new_cosets)
 
     __rmul__ = __mul__
+
+    def __div__(self, other):
+        return self * (1 / other)
+
 
 class PiecewiseCrazyFunction:
     # assume that all inputs are elements from a same RNF.
@@ -69,6 +77,17 @@ class PiecewiseCrazyFunction:
                 return cp
         return None
 
+    def __add__(self,other):
+        if isinstance(other, PiecewiseCrazyFunction):
+            # assume that intervals of crazy pieces from self and from other are disjoint.
+            return PiecewiseCrazyFunction(self.pwl + other.pwl, self.crazy_pieces + other.crazy_pieces)
+        else:
+            # assume other is FastPiecewise
+            return PiecewiseCrazyFunction(self.pwl + other, self.crazy_pieces)
+
+    def __neg__(self):
+        return PiecewiseCrazyFunction(-self.pwl, [-cp  for cp in self.crazy_pieces])
+
     def __mul__(self, other):
         """
         Multiply `self` by a scalar.
@@ -77,6 +96,12 @@ class PiecewiseCrazyFunction:
         return PiecewiseCrazyFunction(self.pwl * other, [cp * other for cp in self.crazy_pieces])
 
     __rmul__ = __mul__
+
+    def __div__(self, other):
+        return self * (1 / other)
+
+    def __sub__(self, other):
+        return self + (-other)
 
     @cached_method
     def __call__(self, x):

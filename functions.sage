@@ -1432,6 +1432,8 @@ class FastPiecewise (PiecewisePolynomial):
             sage: (g+j).list()
             [[<Int(0, 1)>, <FastLinearFunction 3>], [(1, 2), <FastLinearFunction 7>]]
         """
+        if isinstance(other, PiecewiseCrazyFunction):
+            return other.__add__(self)
         intervals = intersection_of_coho_intervals([self.intervals(), other.intervals()])
         return FastPiecewise([ (interval, self.which_function_on_interval(interval) + other.which_function_on_interval(interval))
                                for interval in intervals ], merge=True)
