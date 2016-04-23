@@ -260,48 +260,6 @@ def minimal_has_uncovered_breakpoints():
     h = piecewise_function_from_breakpoints_and_values(bkpts, values)
     return h
 
-def discontinuous_bhk_irrational_dense_move_not_affine():
-    """
-    This example shows that when \pi is two sided discontinuous at the origin,
-    the perturbation function \tilde\pi may be not affine linear on the dense intervals from the Strip Lemma.
-
-    Lemma 9.7 implies \pi is affine linear on the intervals (3/10, 7/20) and (9/20, 1/2) where the moves are dense. We also know that \tilde\pi is affine linear over each coset of <t_a, t_b>_Z on these two intervals, where t_a, t_b are irrational translation moves satifying the hypotheses of the Strip Lemma.
-    But as \pi is two-sided discontinuous at 0, Corollary 8.3 (or even Lemma 8.2) doesn't apply, thus \tilde\pi could be discontinuous on the dense intervals.
-    On the 2d diagram, each face is either additive or strictly subadditive (every vertice of the face $F$ is strictly subaddtive). Then the case \delta\pi_F(x,y) > 0 and S != empty never happens in the proof of Lemma 8.7. Hence any bounded \bar\bi is an effective perturbation.
-
-    There exists crazy fat perturbation \tilde\pi in this example:
-    \tilde\pi(x)
-        = epsion if x \in (3/10, 7/20) such that x - 3/10 \in <t_a, t_b>_Z;
-        = -epsion if x \in (3/10, 7/20) such that x - 7/20 \in <t_a, t_b>_Z;
-        = epsion if x \in (9/20, 1/2) such that x - 9/20 \in <t_a, t_b>_Z;
-        = -epsion if x \in (9/20, 1/2) such that x - 9/20 \in <t_a, t_b>_Z;
-        = 0 otherwise,
-    where epsion is a very small positive number. 
-    (requires that d2/2 is not in <t_a, t_b>_Z;)
-
-    EXAMPLE:
-    sage: logging.disable(logging.INFO)
-    sage: dbhk =  discontinuous_bhk_irrational_dense_move_not_affine()
-    sage: plot_with_colored_slopes(dbhk).show(figsize=20) #not tested
-    sage: plot_2d_diagram(dbhk).show(figsize=20) #not tested
-    """
-    bhk = bhk_irrational(delta=(1/199, sqrt(2)/199))
-    b=bhk.end_points()
-    v=bhk.values_at_end_points()
-    vm = v[0:8]+ [v[8]+1/800, v[9]+1/800, v[10]-1/800, v[11]-1/800] + v[12::]
-    vl = [v[0]+1/500, v[1], v[2]+1/500, v[3]-1/500, v[4]+1/500, v[5]-1/500, v[6]+1/500, v[7], v[8], v[9]+1/800, v[10], v[11]-1/800, v[12], \
-          v[13]-1/500,v[14]+1/500,v[15]-1/500,v[16]+1/500,v[17]-1/500,v[18],v[19]-1/500]
-    vr = [v[1], v[2]+1/500, v[3]-1/500, v[4]+1/500, v[5]-1/500, v[6]+1/500, v[7], v[8]+1/800, v[9], v[10]-1/800, v[11], v[12], \
-          v[13]-1/500,v[14]+1/500,v[15]-1/500,v[16]+1/500,v[17]-1/500,v[18],v[19]-1/500,v[20]+1/500]
-    discp = []
-    for i in range(20):
-        discp.append(singleton_piece(b[i],vm[i]))
-        discp.append(open_piece((b[i],vl[i]), (b[i+1],vr[i])))
-    discp.append(singleton_piece(b[20],vm[20]))
-    dbhk = FastPiecewise(discp)
-    return dbhk
-
-
 def plotting_2d_diagram_bug_example():
     """
     This is not a subadditive function. Additivity appears in the interior of some face, but not over the entire face.

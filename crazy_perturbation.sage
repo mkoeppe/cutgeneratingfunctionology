@@ -144,15 +144,20 @@ def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
     EXAMPLE::
 
         sage: logging.disable(logging.INFO)
-        sage: fn = discontinuous_bhk_irrational_dense_move_not_affine()
-        sage: bkpt = fn.end_points()
-        sage: generators = [bkpt[4]-bkpt[2], bkpt[6]-bkpt[4]]
+        sage: h = kzh_minimal_has_only_crazy_perturbation_1()
+        sage: bkpts = h.end_points()
+        sage: t1 = bkpts[10]-bkpts[6]
+        sage: t2 = bkpts[13]-bkpts[6]
+        sage: f = bkpts[37]
+        sage: ucl = bkpts[17]
+        sage: ucr = bkpts[18]
+        sage: generators = [t1, t2]
         sage: pwl = piecewise_function_from_breakpoints_and_slopes([0,1],[0])
-        sage: crazy_piece_1 = CrazyPiece((bkpt[8], bkpt[9]), generators, [(bkpt[8], 1), (bkpt[9], -1)])
-        sage: crazy_piece_2 = CrazyPiece((bkpt[10], bkpt[11]), generators, [(bkpt[10], 1), (bkpt[11], -1)])
+        sage: crazy_piece_1 = CrazyPiece((ucl, ucr), generators, [(ucl, 1), (ucr, -1)])
+        sage: crazy_piece_2 = CrazyPiece((f-ucr, f-ucl), generators, [(f-ucr, 1), (f-ucl, -1)])
         sage: cp = CrazyPerturbation(pwl, [crazy_piece_1, crazy_piece_2])
-        sage: find_epsilon_for_crazy_perturbation(fn, cp)
-        0.0001237724214802864?
+        sage: find_epsilon_for_crazy_perturbation(h, cp)
+        0.0002639108814623441?
     """
     # assume fn is a subadditive pwl function, cp is a non_zero CrazyPerturbation with cp(0)=cp(f)=0.
     bkpt = uniq(copy(fn.end_points())+cp.end_points())
