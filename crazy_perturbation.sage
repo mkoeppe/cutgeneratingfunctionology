@@ -28,14 +28,14 @@ class CrazyPiece:
                 logging.warn("Have shift = 0.")
             for j in range(i):
                 rr = cosets[j][0]
-                if is_in_group_over_ZZ(r-rr, generators):
+                if is_in_ZZ_span(r-rr, generators):
                     logging.warn("Not unique coset representative.")
 
     def __call__(self, x):
         x = fractional(x)
         ###assert self.interval[0] < x < self.interval[1]
         for (r,s) in self.cosets:
-            if is_in_group_over_ZZ(x-r, self.generators):
+            if is_in_ZZ_span(x-r, self.generators):
                 return s
         return x.parent().zero()
 
@@ -122,7 +122,7 @@ class CrazyPerturbation:
             bkpts += [crazy_piece.interval[0], crazy_piece.interval[1]]
         return uniq(bkpts)
 
-def is_in_group_over_ZZ(x, generators):
+def is_in_ZZ_span(x, generators):
     # assume that all inputs are elements from a same RNF.
     # generators are linearly independent over Q
     lgens = [g.list() for g in generators]
