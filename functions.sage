@@ -1887,7 +1887,7 @@ class FastPiecewise (PiecewisePolynomial):
                     # We do not plot anything if (float(b) - float(a))/(plot_pts-1) == float(0) because
                     # otherwise the plot method in src/plot/misc.py complains that
                     # "start point and endpoint must be different"
-                    g += plot(f, *args, xmin=a, xmax=b, zorder=-1, **kwds)g += plot(lambda x: f(x - t * period), *args, xmin=a, xmax=b, zorder=-1, **kwds)
+                    g += plot(lambda x: f(x - t * period), *args, xmin=a, xmax=b, zorder=-1, **kwds)
                     # If it's the first piece, pass all arguments. Otherwise,
                     # filter out 'legend_label' so that we don't add each
                     # piece to the legend separately (trac #12651).
