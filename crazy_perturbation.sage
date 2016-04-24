@@ -147,17 +147,13 @@ class PiecewiseCrazyFunction:
             bkpts += [crazy_piece.interval[0], crazy_piece.interval[1]]
         return uniq(bkpts)
 
-<<<<<<< HEAD
-def is_in_ZZ_span(x, generators):
-=======
     def limit(self,  x0, epsilon):
         if epsilon != 0:
             raise NotImplementedError()
         else:
             return self(x0)
 
-def is_in_group_over_ZZ(x, generators):
->>>>>>> minimality_test_randomized
+def is_in_ZZ_span(x, generators):
     # assume that all inputs are elements from a same RNF.
     # generators are linearly independent over Q
     lgens = [g.list() for g in generators]
@@ -331,9 +327,9 @@ def minimality_test_randomized(fn, orig_function=None, max_iterations=None):
         sage: pwl = piecewise_function_from_breakpoints_and_slopes([0,1],[0])
         sage: crazy_piece_1 = CrazyPiece((ucl, ucr), generators, [(ucl, 1), (ucr, -1)])
         sage: crazy_piece_2 = CrazyPiece((f-ucr, f-ucl), generators, [(f-ucr, 1), (f-ucl, -1)])
-        sage: cp = CrazyPerturbation(pwl, [crazy_piece_1, crazy_piece_2])
+        sage: cp = PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
         sage: eps = find_epsilon_for_crazy_perturbation(h, cp)
-        sage: hcp = CrazyPerturbation(h, [eps*crazy_piece_1, eps*crazy_piece_2])
+        sage: hcp = h + eps * cp
         sage: minimality_test_randomized(hcp, h, max_iterations=10)
         True
     """
