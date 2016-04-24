@@ -302,17 +302,25 @@ def random_test_number(fn):
     return x
 
 def random_6_tuple(fn):
-    # FIXME: should do limits!
-    if randint(0, 1) == 0:
-        x = random_test_number(fn)
-        y = random_test_number(fn)
-        z = x + y
-        return x, y, z, 0, 0, 0
-    else:
-        x = random_test_number(fn)
-        z = randint(0, 1) + random_test_number(fn)
-        y = fractional(z - x)
-        return x, y, z, 0, 0, 0
+    eps_tuples = dic_eps_to_cone.keys() # 13 possibilities.
+    while True:
+        (xeps, yeps, zeps)=eps_tuples[randint(0, 12)]
+        if randint(0, 1) == 0:
+            x = random_test_number(fn)
+            y = random_test_number(fn)
+            z = x + y
+        else:
+            x = random_test_number(fn)
+            z = randint(0, 1) + random_test_number(fn)
+            y = fractional(z - x)
+        try:
+            fn_x = fn.limit(x, xeps)
+            fn_y = fn.limit(y, yeps)
+            fn_z = fn.limit(z, zeps)
+            return x, y, z, xeps, yeps, zeps
+        except ValueError:
+            # if fn is a crazy function such that not all of fn_x, fn_y, fn_z exist, then restart the random generator.
+            pass
 
 def minimality_test_randomized(fn, orig_function=None, max_iterations=None):
     """
