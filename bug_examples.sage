@@ -260,87 +260,11 @@ def minimal_has_uncovered_breakpoints():
     h = piecewise_function_from_breakpoints_and_values(bkpts, values)
     return h
 
-def bhk_discontinuous_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/199, sqrt(2)/199), shift_scale=1, field=None):
+def plotting_2d_diagram_bug_example():
     """
-    There exists crazy fat perturbation \tilde\pi in this example:
-    \tilde\pi(x)
-        = epsion if x \in (3/10, 7/20) such that x - 3/10 \in <t_a, t_b>_Z;
-        = -epsion if x \in (3/10, 7/20) such that x - 7/20 \in <t_a, t_b>_Z;
-        = epsion if x \in (9/20, 1/2) such that x - 9/20 \in <t_a, t_b>_Z;
-        = -epsion if x \in (9/20, 1/2) such that x - 9/20 \in <t_a, t_b>_Z;
-        = 0 otherwise,
-    where t_a = delta[0], t_b = delta[0]+delta[1] and epsilon is a very small positive number, for example epsilon=0.001.
-    (requires that d2/2 is not in <t_a, t_b>_Z;)
+    This is not a subadditive function. Additivity appears in the interior of some face, but not over the entire face.
+    It caused a trouble in generate_maximal_additive_faces_continuous and in plotting_2d_diagram. Namely, define face = generate_maximal_additive_faces(h)[47]; we observed that face.vertices and face.minimal_triple don't match. The problem is now fixed.
     """
-    h_pwl = bhk_irrational(f=f, d1=d1, d2=d2, a0=a0, delta=delta, field=field)
-    bkpt = h_pwl.end_points()
-    v = h_pwl.values_at_end_points()
-    f = bkpt[-2]
-    c1= v[1]/bkpt[1]
-    c3= 1/(f-1)
-    n = len(delta)
-    b = min([bkpt[i+2]-bkpt[i+1] for i in range(2*n+2)]) * shift_scale / 2
-    jump = b*(c1-c3)
-    disc_pts = [bkpt[2*i] for i in range(n+2)]+\
-               [bkpt[-2*i] for i in range(n+2,0,-1)]+[bkpt[-1]]
-    discp = []
-    for i in range(len(disc_pts)-1):
-        discp.append(singleton_piece(disc_pts[i],0))
-        if i < n+2:
-            j = jump
-        else:
-            j = -jump
-        discp.append(open_piece((disc_pts[i],j), (disc_pts[i]+b,0)))
-        discp.append(singleton_piece(disc_pts[i]+b,j))
-        discp.append(open_piece((disc_pts[i]+b,0), (disc_pts[i+1]-b,0)))
-        if (i+1 < n+2) or (i+1 == len(disc_pts)-1):
-            j = jump
-        else:
-            j = -jump
-        discp.append(singleton_piece(disc_pts[i+1]-b,j))
-        discp.append(open_piece((disc_pts[i+1]-b,0), (disc_pts[i+1],j)))
-    discp.append(singleton_piece(disc_pts[-1], 0))
-    h_shift = FastPiecewise(discp)
-    return h_pwl+h_shift
-
-
-def discontinuous_bhk_irrational_dense_move_not_affine():
-    """
-    This example shows that when \pi is two sided discontinuous at the origin,
-    the perturbation function \tilde\pi may be not affine linear on the dense intervals from the Strip Lemma.
-
-    Lemma 9.7 implies \pi is affine linear on the intervals (3/10, 7/20) and (9/20, 1/2) where the moves are dense. We also know that \tilde\pi is affine linear over each coset of <t_a, t_b>_Z on these two intervals, where t_a, t_b are irrational translation moves satifying the hypotheses of the Strip Lemma.
-    But as \pi is two-sided discontinuous at 0, Corollary 8.3 (or even Lemma 8.2) doesn't apply, thus \tilde\pi could be discontinuous on the dense intervals.
-    On the 2d diagram, each face is either additive or strictly subadditive (every vertice of the face $F$ is strictly subaddtive). Then the case \delta\pi_F(x,y) > 0 and S != empty never happens in the proof of Lemma 8.7. Hence any bounded \bar\bi is an effective perturbation.
-
-    There exists crazy fat perturbation \tilde\pi in this example:
-    \tilde\pi(x)
-        = epsion if x \in (3/10, 7/20) such that x - 3/10 \in <t_a, t_b>_Z;
-        = -epsion if x \in (3/10, 7/20) such that x - 7/20 \in <t_a, t_b>_Z;
-        = epsion if x \in (9/20, 1/2) such that x - 9/20 \in <t_a, t_b>_Z;
-        = -epsion if x \in (9/20, 1/2) such that x - 9/20 \in <t_a, t_b>_Z;
-        = 0 otherwise,
-    where epsion is a very small positive number. 
-    (requires that d2/2 is not in <t_a, t_b>_Z;)
-
-    EXAMPLE:
-    sage: logging.disable(logging.INFO)
-    sage: dbhk =  discontinuous_bhk_irrational_dense_move_not_affine()
-    sage: plot_with_colored_slopes(dbhk).show(figsize=20) #not tested
-    sage: plot_2d_diagram(dbhk).show(figsize=20) #not tested
-    """
-    bhk = bhk_irrational(delta=(1/199, sqrt(2)/199))
-    b=bhk.end_points()
-    v=bhk.values_at_end_points()
-    vm = v[0:8]+ [v[8]+1/800, v[9]+1/800, v[10]-1/800, v[11]-1/800] + v[12::]
-    vl = [v[0]+1/500, v[1], v[2]+1/500, v[3]-1/500, v[4]+1/500, v[5]-1/500, v[6]+1/500, v[7], v[8], v[9]+1/800, v[10], v[11]-1/800, v[12], \
-          v[13]-1/500,v[14]+1/500,v[15]-1/500,v[16]+1/500,v[17]-1/500,v[18],v[19]-1/500]
-    vr = [v[1], v[2]+1/500, v[3]-1/500, v[4]+1/500, v[5]-1/500, v[6]+1/500, v[7], v[8]+1/800, v[9], v[10]-1/800, v[11], v[12], \
-          v[13]-1/500,v[14]+1/500,v[15]-1/500,v[16]+1/500,v[17]-1/500,v[18],v[19]-1/500,v[20]+1/500]
-    discp = []
-    for i in range(20):
-        discp.append(singleton_piece(b[i],vm[i]))
-        discp.append(open_piece((b[i],vl[i]), (b[i+1],vr[i])))
-    discp.append(singleton_piece(b[20],vm[20]))
-    dbhk = FastPiecewise(discp)
-    return dbhk
+    bkpts = [0, 60147/339800, 19/100, 32802403/150021700, 19837/88300, 38001343/150021700, 22897/88300, 127/400, 157/400, 203/400, 233/400, 56573/88300, 97018187/150021700, 59633/88300, 102217127/150021700, 71/100, 245673/339800, 9/10, 1]
+    values = [0, 17983953/47572000, 6947/28000, 12992378939/42006076000, 6162761/24724000, 13040902379/42006076000, 6191321/24724000, 20983/56000, 21123/56000, 34877/56000, 35017/56000, 18532679/24724000, 28965173621/42006076000, 18561239/24724000, 29013697061/42006076000, 21053/28000, 29588047/47572000, 1, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpts, values)

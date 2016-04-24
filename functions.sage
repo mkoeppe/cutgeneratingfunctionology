@@ -396,6 +396,50 @@ def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
                 p += line([(-(3/10)*y1, x1), (-(3/10)*y2, x2)], color=colors[i], zorder=-2, **kwds)
     return p
 
+def plot_2d_diagram_with_cones(fn, show_function=True, f=None):
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = zhou_two_sided_discontinuous_cannot_assume_any_continuity()
+        sage: g = plot_2d_diagram_with_cones(h)
+        sage: h = not_minimal_2()
+        sage: g = plot_2d_diagram_with_cones(h)
+    """
+    if f is None:
+        f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    g = plot_2d_complex(fn)
+    if show_function:
+        g += plot_function_at_borders(fn)
+    bkpt = uniq(copy(fn.end_points()))
+    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
+    type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
+    type_2_vertices = [(x, z-x, z) for x in bkpt for z in bkpt2 if x < z < 1+x]
+    vertices = set(type_1_vertices + type_2_vertices)
+    if fn.is_continuous():
+        for (x, y, z) in vertices:
+            deltafn = delta_pi(fn, x, y)
+            if deltafn > 0:
+                color = "white"
+            elif deltafn == 0:
+                color = "mediumspringgreen"
+            else:
+                color = "red"
+            g += point([(x, y), (y, x)], color=color, size = 200, zorder=-1)
+    else:
+        for (x, y, z) in vertices:
+            for (xeps, yeps, zeps) in [(0,0,0)]+list(nonzero_eps):
+                deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
+                if deltafn > 0:
+                    color = "white"
+                elif deltafn == 0:
+                    color = "mediumspringgreen"
+                else:
+                    color = "red"
+                g += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), color=color, r=0.03)
+                g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)), color=color, r=0.03)
+    return g
+
 def plot_function_at_borders(fn, color='blue', legend_label="Function pi", covered_components=None, **kwds):
     """
     Plot the function twice, on the upper and the left border, 
@@ -608,7 +652,8 @@ def delete_one_time_plot_kwds(kwds):
     if 'tick_formatter' in kwds:
         del kwds['tick_formatter']
 
-def plot_covered_intervals(function, covered_components=None, uncovered_color='black', labels=None, **plot_kwds):
+def plot_covered_intervals(function, covered_components=None, uncovered_color='black', labels=None,
+                           show_one_point_overlap_markers=None, **plot_kwds):
     """
     Return a plot of the covered and uncovered intervals of `function`.
     """
@@ -632,6 +677,8 @@ def plot_covered_intervals(function, covered_components=None, uncovered_color='b
     elif not function.is_continuous(): # to plot the discontinuity markers
         graph += plot(function, color = uncovered_color, **kwds)
         delete_one_time_plot_kwds(kwds)
+    if show_one_point_overlap_markers is None:
+        show_one_point_overlap_markers = not function.is_continuous()
     for i, component in enumerate(covered_components):
         if labels is None:
             label = "covered component %s" % (i+1)
@@ -639,15 +686,31 @@ def plot_covered_intervals(function, covered_components=None, uncovered_color='b
             label = labels[i]
         kwds.update({'legend_label': label})
         plot_kwds_hook(kwds)
+        last_endpoint = None
         for interval in component:
+            linear = function.which_function((interval[0] + interval[1])/2)
             # We do not plot anything if float(interval[0])==float(interval[1]) because
             # otherwise plot complains that
             # "start point and endpoint must be different"
             if float(interval[0])<float(interval[1]):
-                graph += plot(function.which_function((interval[0] + interval[1])/2), (interval[0], interval[1]), color=colors[i], zorder=-1, **kwds)
+                graph += plot(linear, (interval[0], interval[1]), color=colors[i], zorder=-1, **kwds)
                 # zorder=-1 puts them below the discontinuity markers,
                 # above the black function.
                 delete_one_time_plot_kwds(kwds)
+                # Show a little marker where adjacent intervals of the same component end
+                # if the function is continuous at that point.
+                # For example, in zhou_two_sided_discontinuous_cannot_assume_any_continuity, or
+                # hildebrand_discont_3_slope_1().
+                if show_one_point_overlap_markers and interval[0] == last_endpoint:
+                    limits = function.limits(last_endpoint)
+                    if limits[0] == limits[1] == limits[2]:
+                        slope = linear._slope
+                        scale = 0.01
+                        dx = scale * slope / sqrt(1 + slope**2) # FIXME: this tries to make it orthogonal to the slope
+                        dy = -scale / sqrt(1 + slope**2)        # but fails to take the aspect ratio of the plot into account.
+                        graph += line([(last_endpoint - dx, function(last_endpoint) - dy), (last_endpoint + dx, function(last_endpoint) + dy)],
+                                      color=colors[i], zorder=-1)
+            last_endpoint = interval[1]
     return graph
 
 def plot_directly_covered_intervals(function, uncovered_color='black', labels=None, **plot_kwds):
@@ -1369,6 +1432,8 @@ class FastPiecewise (PiecewisePolynomial):
             sage: (g+j).list()
             [[<Int(0, 1)>, <FastLinearFunction 3>], [(1, 2), <FastLinearFunction 7>]]
         """
+        if isinstance(other, PiecewiseCrazyFunction):
+            return other.__add__(self)
         intervals = intersection_of_coho_intervals([self.intervals(), other.intervals()])
         return FastPiecewise([ (interval, self.which_function_on_interval(interval) + other.which_function_on_interval(interval))
                                for interval in intervals ], merge=True)
@@ -2255,7 +2320,7 @@ def plot_perturbation_diagram(fn, perturbation=None, xmin=0, xmax=1):
     if isinstance(perturbation, Integer):
         perturbation = basic_perturbation(fn, perturbation)
     epsilon_interval = find_epsilon_interval(fn, perturbation)
-    epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
+    epsilon = min(abs(epsilon_interval[0]), abs(epsilon_interval[1]))
     p = plot_rescaled_perturbation(perturbation, xmin=xmin, xmax=xmax)
     if check_perturbation_plot_three_perturbations:
         p += plot(fn + epsilon_interval[0] * perturbation, xmin=xmin, xmax=xmax, color='red', legend_label="-perturbed (min)")
@@ -2283,7 +2348,7 @@ def plot_perturbation_diagram(fn, perturbation=None, xmin=0, xmax=1):
 
 def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbation', xmin=0, xmax=1, **show_kwds):
     epsilon_interval = find_epsilon_interval(fn, perturb)
-    epsilon = min(abs(epsilon_interval[0]), epsilon_interval[1])
+    epsilon = min(abs(epsilon_interval[0]), abs(epsilon_interval[1]))
     #logging.info("Epsilon for constructed perturbation: %s" % epsilon)
     if show_plots:
         logging.info("Plotting perturbation...")
@@ -2418,7 +2483,9 @@ def generate_nonsymmetric_vertices(fn, f):
 class MaximumNumberOfIterationsReached(Exception):
     pass
 
-def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, phase_1 = False, finite_dimensional_test_first = False, show_all_perturbations=False):
+crazy_perturbations_warning = False
+
+def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, phase_1 = False, finite_dimensional_test_first = False, show_all_perturbations=False, crazy_perturbations=True):
     """Check if `fn` is extreme for the group relaxation with the given `f`. 
 
     If `fn` is discrete, it has to be defined on a cyclic subgroup of
@@ -2468,6 +2535,11 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, phase_1 
     do_phase_1_lifting = False
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    global crazy_perturbations_warning
+    if crazy_perturbations and (limiting_slopes(fn) == (+Infinity, -Infinity)):
+        crazy_perturbations_warning = True
+    else:
+        crazy_perturbations_warning = False
     if f is None or not minimality_test(fn, show_plots=show_plots, f=f):
         logging.info("Not minimal, thus NOT extreme.")
         if not phase_1:
@@ -2566,9 +2638,339 @@ def plot_completion_diagram(fn, perturbation=None):
         g += plot_walk_in_completion_diagram(perturbation._seed, perturbation._walk_list)
     return g
 
+def perturbation_polyhedron(fn, perturbs):
+    """
+    Given `fn` and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a polyhedron, one dimension for each basic perturbation, with the subadditivities.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO) # to disable output in automatic tests.
+        sage: h = not_extreme_1()
+        sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
+        False
+        sage: perturbs = h._perturbations
+        sage: len(perturbs)
+        2
+        sage: pert_polyhedron = perturbation_polyhedron(h, perturbs)
+        sage: pert_polyhedron
+        A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+        sage: pert_polyhedron.Hrepresentation()
+        (An inequality (-9, -6) x + 20 >= 0,
+         An inequality (6, 9) x + 20 >= 0,
+         An inequality (3, 0) x + 4 >= 0,
+         An inequality (0, -3) x + 4 >= 0)
+        sage: pert_polyhedron.Vrepresentation()
+        (A vertex at (20/3, -20/3),
+         A vertex at (4/3, 4/3),
+         A vertex at (-4/3, 4/3),
+         A vertex at (-4/3, -4/3))
+
+        Lift function by adding a perturbtion that corresponds to the vertex (-4/3, 4/3), i.e., set h_lift = h - 4/3**h._perturbations[0] + 4/3*h._perturbations[1]. The lifted function is extreme.
+
+        sage: vertex = pert_polyhedron.vertices()[2]
+        sage: perturbation = perturbation_corresponding_to_vertex(perturbs, vertex)
+        sage: h_lift = h + perturbation
+        sage: extremality_test(h_lift)
+        True
+
+    The following function has irrational data.
+
+        sage: h = chen_tricky_uncovered_intervals()
+        sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
+        False
+        sage: perturbs = h._perturbations
+        sage: pert_polyhedron = perturbation_polyhedron(h, perturbs)
+        sage: pert_polyhedron
+        A 2-dimensional polyhedron in (Real Number Field in `a` with defining polynomial y^2 - 3)^2 defined as the convex hull of 4 vertices
+        sage: pert_polyhedron.Vrepresentation()
+        (A vertex at (2.797434948471088?, 0.967307929548895?),
+         A vertex at (-2.36220486286011?, 0.967307929548895?),
+         A vertex at (-3.61183490350498?, -1.248914311409209?),
+         A vertex at (1.79481389229748?, -3.45932770938056?))
+
+    The following function is 2-sided discontinous at the origin.
+
+        sage: h = zhou_two_sided_discontinuous_cannot_assume_any_continuity()
+        sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
+        False
+        sage: perturbs = h._perturbations
+        sage: pert_polyhedron = perturbation_polyhedron(h, perturbs)
+        sage: pert_polyhedron
+        A 1-dimensional polyhedron in QQ^1 defined as the convex hull of 2 vertices
+        sage: pert_polyhedron.Vrepresentation()
+        (A vertex at (4/3), A vertex at (-4/9))
+        sage: h_lift = h + perturbation_corresponding_to_vertex(perturbs, pert_polyhedron.vertices()[0])
+        sage: extremality_test(h_lift)
+        True
+    """
+    bkpt = copy(fn.end_points())
+    for pert in perturbs:
+        bkpt += pert.end_points()
+    bkpt = uniq(bkpt)
+    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
+    type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
+    type_2_vertices = [(x, z-x, z) for x in bkpt for z in bkpt2 if x < z < 1+x]
+    vertices = set(type_1_vertices + type_2_vertices)
+    if fn.is_continuous() and all(pert.is_continuous() for pert in perturbs):
+        limitingeps = []
+        lim_xeps = [0]
+    else:
+        limitingeps = list(nonzero_eps) # nonzero_eps is defined in discontinuous_case.sage
+        lim_xeps = [0, 1, -1]
+    ieqset = set([])
+    eqnset = set([])
+    # assume that the basic perturbations come from finite_dimensional_extremality_test(), so that the symmetry constraints and the condition pert(0)=pert(f)=0 are always satisfied.
+    # record the constraints 0 <= fn(x) + pert(x) <= 1 for any breakpoint x.
+    # only need record the side >=0,  the other side is implied by symmetry.
+    for x in bkpt:
+        for xeps in lim_xeps:
+            valuefn = fn.limit(x, xeps)
+            valuep = [pert.limit(x, xeps) for pert in perturbs]
+            constraint_coef = tuple([valuefn]) + tuple(valuep)
+            ieqset.add(constraint_coef)
+    # record the subadditivity constraints
+    for (x, y, z) in vertices:
+        for (xeps, yeps, zeps) in [(0,0,0)]+limitingeps:
+            deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
+            deltap = [delta_pi_general(pert, x, y, (xeps, yeps, zeps)) for pert in perturbs]
+            constraint_coef = tuple([deltafn]) + tuple(deltap)
+            ieqset.add(constraint_coef)
+            # if deltafn > 0:
+            #     ieqset.add(constraint_coef)
+            # else:
+            #     eqnset.add(constraint_coef)
+            #     # this is always true for basic perturbations coming from finite_dimensional_extremality_test().
+    pert_polyhedron = Polyhedron(ieqs = list(ieqset), eqns = list(eqnset)) 
+    return pert_polyhedron
+
+def perturbation_mip(fn, perturbs, solver=None, field=None):
+    """
+    Given `fn` and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a mip, one dimension for each basic perturbation, with the subadditivities.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO) # to disable output in automatic tests.
+        sage: h = not_extreme_1()
+        sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
+        False
+        sage: len(h._perturbations)
+        2
+        sage: pert_mip = perturbation_mip(h, h._perturbations,'ppl')
+
+        We set solver='ppl' here.  Note that we can also set solver='InteractiveLP'. The coefficients in the constraints are rational numbers, rather than 'float' used by the default 'GLPK' solver.
+
+        sage: pert_mip.show()
+        Maximization:
+        <BLANKLINE>
+        Constraints:
+          constraint_0: -1/10 x_0 <= 1/3
+          constraint_1: 1/20 x_0 <= 1/3
+          constraint_2: -1/20 x_0 <= 2/3
+          constraint_3: 1/10 x_0 <= 2/3
+          constraint_4: -1/10 x_1 <= 2/3
+          constraint_5: 1/20 x_1 <= 2/3
+          constraint_6: -1/20 x_1 <= 1/3
+          constraint_7: 1/10 x_1 <= 1/3
+          constraint_8: -1/10 x_0 - 3/20 x_1 <= 1/3
+          constraint_9: 3/20 x_0 + 1/10 x_1 <= 1/3
+          constraint_10: 1/20 x_0 - 1/20 x_1 <= 2/3
+          constraint_11: -1/20 x_0 + 1/20 x_1 <= 4/3
+          constraint_12: -1/20 x_0 - 1/5 x_1 <= 1
+          constraint_13: 1/10 x_0 - 1/10 x_1 <= 4/3
+          constraint_14: -1/10 x_0 + 1/10 x_1 <= 2/3
+          constraint_15: -1/4 x_0 <= 1/3
+          constraint_16: 1/5 x_0 + 1/20 x_1 <= 1
+          constraint_17: 1/4 x_1 <= 1/3
+        Variables:
+          x_0 is a continuous variable (min=-oo, max=+oo)
+          x_1 is a continuous variable (min=-oo, max=+oo)
+
+        Since rational coefficients are used in `ppl` solver, we can ask for the polyhedron defined by the Linear Program. This would fail if we set solver='GLPK' and if coefficient are not integers, due to AttributeError: type object 'float' has no attribute 'fraction_field'.
+
+        sage: pert_poly = pert_mip.polyhedron()
+        sage: pert_poly
+        A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+        sage: vertices = pert_poly.vertices()
+        sage: vertices
+        (A vertex at (20/3, -20/3),
+         A vertex at (4/3, 4/3),
+         A vertex at (-4/3, 4/3),
+         A vertex at (-4/3, -4/3))
+
+        Lifting the function by adding a perturbation that corresponds to a vertex, we obtain an extreme function.
+
+        sage: h_lift = h + perturbation_corresponding_to_vertex(h._perturbations, vertices[2])
+        sage: extremality_test(h_lift)
+        True
+    """
+    bkpt = copy(fn.end_points())
+    for pert in perturbs:
+        bkpt += pert.end_points()
+    bkpt = uniq(bkpt)
+    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
+    type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
+    type_2_vertices = [(x, z-x, z) for x in bkpt for z in bkpt2 if x < z < 1+x]
+    vertices = set(type_1_vertices + type_2_vertices)
+    if fn.is_continuous() and all(pert.is_continuous() for pert in perturbs):
+        limitingeps = []
+        lim_xeps = [0]
+    else:
+        limitingeps = list(nonzero_eps) # nonzero_eps is defined in discontinuous_case.sage
+        lim_xeps = [0, 1, -1]
+    if field is None:
+        field = bkpt[0].parent().fraction_field()
+    mip = MixedIntegerLinearProgram(solver=solver, base_ring=field)
+    n = len(perturbs)
+    constraints_set = set([])
+    # assume that the basic perturbations come from finite_dimensional_extremality_test(), so that the symmetry constraints and the condition pert(0)=pert(f)=0 are always satisfied.
+    # record the constraints 0 <= fn(x) + pert(x) <= 1 for any breakpoint x.
+    # only need record the side >=0,  the other side is implied by symmetry.
+    for x in bkpt:
+        for xeps in lim_xeps:
+            valuefn = fn.limit(x, xeps)
+            valuep = [pert.limit(x, xeps) for pert in perturbs]
+            if all(coef == 0 for coef in valuep):
+                continue
+            constraint_coef = tuple([valuefn]) + tuple(valuep)
+            if not constraint_coef in constraints_set:
+                constraints_set.add(constraint_coef)
+                constraint_linear_func = sum(valuep[i] * mip[i] for i in range(n))
+                mip.add_constraint(constraint_linear_func + valuefn >= 0)
+    # record the subadditivity constraints
+    for (x, y, z) in vertices:
+        for (xeps, yeps, zeps) in [(0,0,0)]+limitingeps:
+            deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
+            deltap = [delta_pi_general(pert, x, y, (xeps, yeps, zeps)) for pert in perturbs]
+            if all(coef == 0 for coef in deltap):
+                continue
+            constraint_coef = tuple([deltafn]) + tuple(deltap)
+            constraint_linear_func = sum(deltap[i] * mip[i] for i in range(n))
+            if constraint_coef in constraints_set:
+                # don't add duplicated constraints.
+                # `if constraint_linear_func in mip.constraints:` doesn't work.
+                continue
+            else:
+                constraints_set.add(constraint_coef)
+            mip.add_constraint(constraint_linear_func + deltafn >= 0)
+            # if deltafn > 0:
+            #     mip.add_constraint(constraint_linear_func + deltafn >= 0)
+            # else: # deltafn == 0
+            #     mip.add_constraint(constraint_linear_func == 0)
+            #     # this is always true for basic perturbations coming from finite_dimensional_extremality_test().
+    return mip
+
+def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_polyhedron=False):
+    """
+    A generator of lifted functions.
+
+    Set up a mip, one dimension for each basic perturbation, with the subadditivities. Shoot random directions as objective functions. Solve the mip. Lift the function by adding the perturbation that corresponds to the mip solution.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.WARN) # to disable output in automatic tests.
+        sage: h = not_extreme_1()
+        sage: h_lift = generate_lifted_functions(h, solver='ppl').next()
+        sage: extremality_test(h_lift)
+        True
+
+    The above mip problem use 'ppl' backend. We can use other backends,
+    such as solver='InteractiveLP'.
+
+        sage: h = not_extreme_1()
+        sage: gen = generate_lifted_functions(h, solver='InteractiveLP')
+        sage: h_lift = gen.next()
+        sage: extremality_test(h_lift)
+        True
+
+    If the solver argument is not specified, the code can figure it out,
+    using field (base_ring).
+    The solver='InteractiveLP' can deal with irrational numbers.
+
+        sage: h = chen_tricky_uncovered_intervals()
+        sage: gen = generate_lifted_functions(h, perturbs=None, solver='InteractiveLP', field=None)
+        sage: h_lift = gen.next()
+        sage: extremality_test(h_lift)
+        True
+
+    By setting `use_polyhedron=True`, we use perturbation_polyhedron() rather than perturbation_mip() to generate lifted functions.
+
+        sage: h = not_extreme_1()
+        sage: gen = generate_lifted_functions(h, use_polyhedron=True)
+        sage: len([h_lift for h_lift in gen])
+        4
+    """
+    if perturbs is None:
+        #if not hasattr(fn, '_perturbations'):
+        # do extremeality test anyway, because if previously show_all_perturbations=False, only one perturbation is stored in fn._perturbations.
+        #finite_dimensional_extremality_test or extremality_test?
+        #extremality_test(fn, show_all_perturbations=True)
+        finite_dimensional_extremality_test(fn, show_all_perturbations=True)
+        perturbs = fn._perturbations
+    if use_polyhedron:
+        pert_polyhedron = perturbation_polyhedron(fn, perturbs)
+        vertices = pert_polyhedron.vertices()
+    else:
+        pert_mip = perturbation_mip(fn, perturbs, solver=solver, field=field)
+        vertices = generate_random_mip_sol(pert_mip)
+    for vertex in vertices:
+        logging.info("vertex = %s" % str(vertex))
+        perturb = perturbation_corresponding_to_vertex(perturbs, vertex)
+        yield fn + perturb
+
+def perturbation_corresponding_to_vertex(perturbs, vertex):
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO) # to disable output in automatic tests.
+        sage: h = not_extreme_1()
+        sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
+        False
+        sage: perturbs = h._perturbations
+        sage: pert_mip = perturbation_mip(h, perturbs, 'ppl')
+        sage: pert_mip.solve()
+        0
+        sage: mip_sol = pert_mip.get_values([pert_mip[0], pert_mip[1]])
+        sage: mip_sol
+        [-4/3, -4/3]
+        sage: perturbation = perturbation_corresponding_to_vertex(perturbs, mip_sol)
+        sage: h_lift = h + perturbation
+        sage: extremality_test(h_lift)
+        True
+    """
+    n = len(perturbs)
+    perturb = vertex[0] * perturbs[0]
+    for i in range(1, n):
+        perturb += vertex[i] * perturbs[i]
+    return perturb
+
+def solve_mip_with_random_objective_function(mip):
+    n = mip.number_of_variables()
+    obj_fun = 0
+    for i in range(n):
+        random_coeff = QQ(random() - 1/2)
+        # integer coefficient ZZ.random_element() was used, due to a printing error, but this has been solved.
+        # When objective function has zero coefficient, solver='InteractiveLP'
+        # sometimes gives non-vertex optimial solution, which comes from the standard-form back transformation of a vertex.
+        # To avoid such case, we generate another random coefficient.
+        while random_coeff == 0:
+            random_coeff = QQ(random() - 1/2) #ZZ.random_element()
+        obj_fun += random_coeff * mip[i]
+    mip.set_objective(obj_fun)
+    opt_val = mip.solve()
+    opt_sol = mip.get_values([mip[i] for i in range(n)])
+    return tuple(opt_sol)
+
+def generate_random_mip_sol(mip):
+    seen_solutions = set([])
+    while True:
+        mip_sol = solve_mip_with_random_objective_function(mip)
+        if not mip_sol in seen_solutions:
+            seen_solutions.add(mip_sol)
+            yield(mip_sol)
+
 def lift(fn, show_plots = False, **kwds):
     # FIXME: Need better interface for perturbation selection.
-    if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots=show_plots, **kwds):
+    if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots=show_plots, crazy_perturbations=False, **kwds):
         return fn
     else:
         perturbation = fn._perturbations[0]
@@ -2683,7 +3085,7 @@ def random_piecewise_function(xgrid=10, ygrid=10, continuous_proba=1, symmetry=T
         piece1 = [ [singleton_interval(xvalues[i]), FastLinearFunction(0, yvalues[i])] for i in range(xgrid+1) ]
         leftlimits = [0]
         rightlimits = []
-        for i in range(0, ygrid):
+        for i in range(0, xgrid):
             p = random()
             if p > continuous_proba:
                 rightlimits.append(randint(0, ygrid) / ygrid)
@@ -3061,6 +3463,7 @@ class DirectedMoveCompositionCompletion:
         self.reduce_moves_by_components()
 
     def extend_components_by_strip_lemma(self):
+        global crazy_perturbations_warning
         changed_move_keys = self.any_change_moves
         all_move_keys = self.move_dict.keys()
         current_dense_move = []
@@ -3079,6 +3482,8 @@ class DirectedMoveCompositionCompletion:
                 d = check_for_strip_lemma_small_translations(a_domain, b_domain, a[1], b[1])
                 # d is not dominated by covered_components because we start with reduced moves.
                 if d:
+                    if crazy_perturbations_warning:
+                        logging.warn("This function is two-sided discontinuous at the origin. Crazy perturbations might exist.")
                     self.any_change_components = True
                     current_dense_move += d
                     logging.info("New dense move from strip lemma: %s" % d)

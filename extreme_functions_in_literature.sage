@@ -1228,3 +1228,160 @@ def ll_strong_fractional(f=2/3, field=None, conditioncheck=True):
     pieces.append([singleton_interval(1), FastLinearFunction(0, 0)])
     h = FastPiecewise(pieces)
     return h
+
+def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
+    """
+    A family of extreme functions with an arbitrary number `k` of slopes. (k >= 2)
+
+    Function is known to be extreme under the condition:
+        0 < f <= 1/2.
+
+    Tests show that the function is also extreme when f <= 4/5.
+
+    Examples::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = bcdsp_arbitrary_slope(f=1/2, k=2)
+        sage: h == gmic(f=1/2)
+        True
+        sage: h = bcdsp_arbitrary_slope(f=1/2, k=3)
+        sage: h == gj_forward_3_slope(f=1/2, lambda_1=1/2, lambda_2=1/4)
+        True
+        sage: h = bcdsp_arbitrary_slope(f=1/2, k=4)
+        sage: number_of_slopes(h)
+        4
+        sage: extremality_test(h)
+        True
+        sage: h = bcdsp_arbitrary_slope(f=4/5, k=10)
+        sage: number_of_slopes(h)
+        10
+        sage: extremality_test(h)
+        True
+
+    Reference:
+         [arbitrary_num_slopes] A. Basu, M. Conforti, M. Di Summa, and J. Paat, Extreme Functions with an Arbitrary Number
+of Slopes, 2015, http://www.ams.jhu.edu/~abasu9/papers/infinite-slopes.pdf, to appear in Proceedings of IPCO 2016.
+    """
+    if not bool(0 < f < 1) or k not in ZZ or k < 2:
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if conditioncheck:
+        if not bool(0 < f <= 1/2):
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
+    f = nice_field_values([f], field)[0]
+    field = f.parent()
+    bkpts = [field(0)]
+    slopes = []
+    for i in range(k-2, 0, -1):
+        bkpts += [f/(8^i), 2*f/(8^i)]
+        slopes += [(2^i - f)/f/(1-f), 1/(f-1)]
+    bkpts = bkpts + [f - x for x in bkpts[::-1]] + [field(1)]
+    slopes = slopes + [1/f] + slopes[::-1] + [1/(f-1)]
+    return piecewise_function_from_breakpoints_and_slopes(bkpts, slopes, field=field)
+
+extreme_function_with_world_record_number_of_slopes = bcdsp_arbitrary_slope
+
+def kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19, field=None, conditioncheck=True):
+    """
+    New extreme function discovered by computer based search + parametric search.
+    It has 3 slopes in the general case.
+
+    Parameters: real numbers `f`, `a`, `b`, where `a` is the length of the first interval right to `f` and `b` is the length of interval centered at (1+f)/2.
+
+    Function is known to be extreme under the conditions:
+        0 <= a and  0 <= b <= f and 3*f+4*a-b-1 <= 0
+
+    Examples::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19)
+        sage: extremality_test(h)
+        True
+        sage: h = kzh_3_slope_param_extreme_1(f=1/3, a=1/18, b=1/4)
+        sage: extremality_test(h)
+        True
+    """
+    if not bool(0 < f < f+a < (1+f-b)/2 < (1+f+b)/2 < 1-a < 1):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if conditioncheck:
+        if not bool(0 <= a and  0 <= b <= f and 3*f+4*a-b-1 <= 0):
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
+    v = (f*f+f*a-3*f*b-3*a*b+b)/(f*f+f-3*f*b)
+    bkpts = [0, f, f+a, (1+f-b)/2, (1+f+b)/2, 1-a, 1]
+    values = [0, 1, v, (f-b)/2/f, (f+b)/2/f, 1-v, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
+
+def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=True):
+    """
+    New extreme function discovered by computer based search + parametric search.
+    The function looks like gj_forward_3_slope + drlm_backward_3_slope
+
+    Parameters: real numbers `f`, `a`, `b`, where `a` is the length of interval centered at f/2, and `b` is the length of interval centered at (1+f)/2.
+    Function is known to be extreme under the (sufficient) conditions:
+        0 < b <= a < f < 1;  f <= a + b and f <= (1+a-b)/2
+
+    Examples::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9)
+        sage: extremality_test(h)
+        True
+        sage: h = kzh_3_slope_param_extreme_2(f=4/9, a=2/9, b=3/9)
+        sage: extremality_test(h) # Claimed conditions for extremality are NOT satisfied.
+        True
+        sage: h = kzh_3_slope_param_extreme_2(5/9, 2/5, 7/20)
+        sage: extremality_test(h)
+        False
+    """
+    if not bool(0 < a < f < 1 and 0 < b < f):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if conditioncheck:
+        if not bool(b <= a and f <= a + b and f <= (1+a-b)/2):
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
+    v = (f*(f-a+b-2)-a*b+2*a)/(f+b-1)/f/4;
+    bkpts = [0, (f-a)/4, (f-a)/2, (f+a)/2, f-(f-a)/4, f, \
+             (1+f-b)/2, (1+f+b)/2, 1]
+    values = [0, v, (f-a)/f/2, (f+a)/f/2, 1-v, 1, (f-b)/f/2, (f+b)/f/2, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
+
+
+def kzh_4_slope_param_extreme_1(f=13/18, a=7/18, b=1/18, field=None, conditioncheck=True):
+    """
+    New extreme function discovered by computer based search + parametric search.
+    The function looks like gj_forward_3_slope + kzh_3_slope_param_extreme_1
+
+    Parameters: real numbers `f`, `a`, `b`, where `a` is the length of interval centered at f/2, and `b` is the first bkpt, which is also the length of interval centered at (1+f)/2.
+    Function is known to be extreme under the (sufficient) conditions:
+        a > max{3*f-2, f/2}; b > 0; a + 3*b > 2*f - 1; 2*a + 3*b < 3*f - 1.
+
+    Examples::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = kzh_4_slope_param_extreme_1(f=13/18, a=7/18, b=1/18)
+        sage: extremality_test(h)
+        True
+        sage: h = kzh_4_slope_param_extreme_1(f=13/18, a=14/37, b=1/19)
+        sage: extremality_test(h)
+        True
+    """
+    w = (f+a)/f/4;
+    v = (3*b+1)/f/3;
+    c = (1/4*f - 1/4*a - 1/2*b)
+    if not bool(0 < b < (f-a)/2 < f < (1+f-b)/2-c < (1+f-b)/2 < 1):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if conditioncheck:
+        if not bool(b > 0 and -3*f + 2*a + 3*b + 1 < 0 and  f - 2*a < 0 \
+                    and  2*f - a - 3*b - 1 < 0 and  3*f - a - 2 < 0):
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
+    bkpts = [0, b, (f-a)/2, (f+a)/2, f-b, f,\
+             (1+f-b)/2-c, (1+f-b)/2, (1+f+b)/2, (1+f+b)/2+c, 1]
+    values = [0, v, (f-a)/f/2, (f+a)/f/2, 1-v, 1, \
+              w, (1-v)/2, (1+v)/2, 1-w, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)

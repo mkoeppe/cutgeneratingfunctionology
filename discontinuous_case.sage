@@ -284,14 +284,14 @@ def find_epsilon_interval_general(fn, perturb):
             perturb_z = perturb.limits(z)
             fn_z = fn.limits(z)
             if fn.is_continuous():
-                eps_to_check = {(0, 0, 0)}
+                eps_to_check = [(0, 0, 0)]
             elif fn_x[0] == fn_x[1] == fn_x[-1] and fn_y[0] == fn_y[1] == fn_y[-1] and \
                  perturb_x[0] == perturb_x[1] == perturb_x[-1] and perturb_y[0] == perturb_y[1] == perturb_y[-1]:
                 ## if fn is continuous at x and y, then so is perturb.
                 # both fn and perturb are continuous at x and y. ( needed if two-sided discontinuous at 0)
-                eps_to_check = continuous_xy_eps
+                eps_to_check = [(0, 0, 0)] + list(continuous_xy_eps)
             else:
-                eps_to_check = nonzero_eps
+                eps_to_check = [(0, 0, 0)] + list(nonzero_eps)
             for (xeps, yeps, zeps) in eps_to_check:
                 delta_perturb = perturb_x[xeps] + perturb_y[yeps] - perturb_z[zeps]
                 if delta_perturb != 0:
@@ -323,16 +323,16 @@ def find_epsilon_interval_general(fn, perturb):
             fn_y = fn.limits(y)
 
             if fn.is_continuous():
-                eps_to_check = {(0, 0, 0)}
+                eps_to_check = [(0, 0, 0)]
             elif not (fn_y[0] == fn_y[1] == fn_y[-1]):
                 # then y is a in bkpt. this is done in type1check.
                 # for two_sided_discontinuous, could add (optional)
                 # "or not (perturb_y[0] == perturb_y[1] == perturb_y[-1]):"
-                eps_to_check = {}
+                eps_to_check = []
             else:
                 # consider only y not being in bkpt.
                 # so fn and perturb are both continuous at y. type2_reduced_eps works.
-                eps_to_check = type2_reduced_eps
+                eps_to_check = [(0, 0, 0)] + list(type2_reduced_eps)
 
             for (xeps, yeps, zeps) in eps_to_check:
                 delta_perturb = perturb_x[xeps] + perturb_y[yeps] - perturb_z[zeps]
