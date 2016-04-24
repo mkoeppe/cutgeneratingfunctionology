@@ -147,9 +147,12 @@ class PiecewiseCrazyFunction:
             bkpts += [crazy_piece.interval[0], crazy_piece.interval[1]]
         return uniq(bkpts)
 
-    def limit(self,  x0, epsilon):
+    def limit(self, x0, epsilon):
         if epsilon != 0:
-            raise NotImplementedError()
+            if not (self.find_crazy_piece(x0, epsilon) is None):
+                raise ValueError("The crazy function has no limit at {}{}".format(x0, print_sign(epsilon)))
+            else:
+                return self.pwl.limit(x0, epsilon)
         else:
             return self(x0)
 
