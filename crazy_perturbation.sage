@@ -56,6 +56,10 @@ class CrazyPiece:
     def __div__(self, other):
         return self * (1 / other)
 
+    def range(self):
+        shifts =  [s for (r, s) in self.cosets]
+        return uniq(shifts+[0])
+
 
 class PiecewiseCrazyFunction:
     # assume that all inputs are elements from a same RNF.
@@ -105,6 +109,7 @@ class PiecewiseCrazyFunction:
 
     @cached_method
     def __call__(self, x):
+        x = fractional(x)
         crazy_piece = self.find_crazy_piece(x, 0)
         if crazy_piece is None:
             return self.pwl(x)
@@ -127,19 +132,21 @@ class PiecewiseCrazyFunction:
         return g
 
     def range(self):
-        pwl = self.pwl
-        lb = min(flatten(pwl.limits_at_end_points()))
-        ub = max(flatten(pwl.limits_at_end_points()))
-        for crazy_piece in self.crazy_pieces:
-            pwla = pwl.limit(crazy_piece.interval[0],1)
-            pwlb = pwl.limit(crazy_piece.interval[1],-1)
-            max_shift = max([s for (r, s) in crazy_piece.cosets])
-            min_shift = min([s for (r, s) in crazy_piece.cosets])
-            if min_shift + min(pwla, pwlb) < lb:
-                lb = min_shift + min(pwla, pwlb)
-            if max_shift + max(pwla, pwlb) > ub:
-                ub = max_shift + max(pwla, pwlb)
-        return (lb, ub)
+        raise NotImplementedError()
+        # Wrong Implementation
+        # pwl = self.pwl
+        # lb = min(flatten(pwl.limits_at_end_points()))
+        # ub = max(flatten(pwl.limits_at_end_points()))
+        # for crazy_piece in self.crazy_pieces:
+        #     pwla = pwl.limit(crazy_piece.interval[0],1)
+        #     pwlb = pwl.limit(crazy_piece.interval[1],-1)
+        #     max_shift = max([s for (r, s) in crazy_piece.cosets])
+        #     min_shift = min([s for (r, s) in crazy_piece.cosets])
+        #     if min_shift + min(pwla, pwlb) < lb:
+        #         lb = min_shift + min(pwla, pwlb)
+        #     if max_shift + max(pwla, pwlb) > ub:
+        #         ub = max_shift + max(pwla, pwlb)
+        # return (lb, ub)
 
     def end_points(self):
         bkpts = copy(self.pwl.end_points())
@@ -148,6 +155,7 @@ class PiecewiseCrazyFunction:
         return uniq(bkpts)
 
     def limit(self, x0, epsilon):
+        x0 = fractional(x0)
         if epsilon != 0:
             if not (self.find_crazy_piece(x0, epsilon) is None):
                 raise ValueError("The crazy function has no limit at {}{}".format(x0, print_sign(epsilon)))
@@ -155,6 +163,15 @@ class PiecewiseCrazyFunction:
                 return self.pwl.limit(x0, epsilon)
         else:
             return self(x0)
+
+    def limit_range(self, x0, epsilon):
+        x0 = fractional(x0)
+        crazy_piece = self.find_crazy_piece(x0, epsilon)
+        limit_pwl = self.pwl.limit(x0, epsilon)
+        if crazy_piece is None:
+            return [limit_pwl]
+        else:
+            return [limit_pwl + s for s in crazy_piece.range()]
 
 def is_in_ZZ_span(x, generators):
     # assume that all inputs are elements from a same RNF.
@@ -191,7 +208,7 @@ def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
         sage: crazy_piece_2 = CrazyPiece((f-ucr, f-ucl), generators, [(f-ucr, 1), (f-ucl, -1)])
         sage: cp = PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
         sage: find_epsilon_for_crazy_perturbation(h, cp)
-        0.0002639108814623441?
+        0.0003958663221935161?
     """
     # assume fn is a subadditive pwl function, cp (crazy perturbation) is a non_zero PiecewiseCrazyFunction with cp(0)=cp(f)=0.
     bkpt = uniq(copy(fn.end_points())+cp.end_points())
@@ -201,6 +218,7 @@ def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
     vertices = set(type_1_vertices + type_2_vertices)
     g = plot_2d_complex(fn)
     m = 3
+    M = 0
     for (x, y, z) in vertices:
         for (xeps, yeps, zeps) in [(0,0,0)]+list(nonzero_eps):
             deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
@@ -208,6 +226,14 @@ def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
                 possible =  True
                 if deltafn < m:
                     m = deltafn
+                xcp_range = cp.limit_range(x, xeps)
+                ycp_range = cp.limit_range(y, yeps)
+                zcp_range = cp.limit_range(z, zeps)
+                deltacp_min = min(xcp_range) + min(ycp_range) - max(zcp_range)
+                deltacp_max = max(xcp_range) + max(ycp_range) - min(zcp_range)
+                deltacp_abs = max([abs(deltacp_min), abs(deltacp_max)])
+                if deltacp_abs > M:
+                    M = deltacp_abs
             elif (xeps, yeps, zeps) == (0, 0, 0): # 0-d face
                 possible = (delta_pi(cp, x, y) == 0)
             elif xeps!= 0 and yeps!=0 and zeps!=0: # 2-d face, 6 cases
@@ -234,10 +260,8 @@ def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
                     m = 0
                     g += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), r=0.01)
                     g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)), r=0.01)
-    range_cp = cp.range()
-    M = max([abs(range_cp[0]), abs(range_cp[1])]) * 3
     C = max([abs(fi._slope) for fi in cp.pwl._functions])
-    epsilon = m / max([M, C, 1/1000])
+    epsilon = m / max([M, 8*C]) # not a maximal value.
     if epsilon == 0 and show_plots:
         g.show(figsize=40)
     return epsilon
