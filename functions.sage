@@ -1167,7 +1167,13 @@ def minimality_test(fn, show_plots=False, f=None):
         logging.info("Plotting 2d diagram... done")
     return is_minimal
 
-from sage.functions.piecewise import PiecewisePolynomial
+try:
+    # Sage Trac 14801 replaced the implementation of piecewise functions.
+    # We use the old one, for the time being.
+    from sage.functions.piecewise_old import PiecewisePolynomial
+except:
+    from sage.functions.piecewise import PiecewisePolynomial
+
 from bisect import bisect_left
 
 class FastPiecewise (PiecewisePolynomial):
