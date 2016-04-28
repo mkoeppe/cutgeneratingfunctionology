@@ -3248,6 +3248,8 @@ def reduce_covered_components(covered_components):
         other_components = remaining_components[1::]
         given_component, remaining_components = merge_components_with_given_component(given_component, other_components)
         reduced_components.append(given_component)
+    if covered_components != reduced_components:
+        logging.info("Merge overlapping covered components in {}.\nThe connected covered components are {}".format(covered_components, reduced_components)) #logging.debug
     return reduced_components
 
 def merge_components_with_given_component(given_component, other_components):
@@ -3455,7 +3457,10 @@ class DirectedMoveCompositionCompletion:
                     fdm = self.sym_init_moves[dm]
                     overlapped_ints = intersection_of_coho_intervals([extended_component, fdm.intervals()]) # generator
                     moved_intervals = [[fdm.apply_to_coho_interval(overlapped_int)] for overlapped_int in overlapped_ints ]
+                    old_extended_component = extended_component
                     extended_component = union_of_coho_intervals_minus_union_of_coho_intervals([extended_component] + moved_intervals, [])
+                    if extended_component != old_extended_component:
+                        logging.info("{} is covered by applying move {} to component {}".format(moved_intervals, fdm, component)) # logging.debug
             new_components.append(extended_component)
         # got a extended component list, now merge components
         self.covered_components = reduce_covered_components(new_components)
@@ -3608,6 +3613,7 @@ def generate_directly_covered_components(fn):
             K_mod_1 = interval_mod_1(K)
             component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* K_mod_1)]],[])
             covered_components.append(component)
+            logging.info("{} is directly covered by additive face {}".format(component, face)) #logging.debug
     return reduce_covered_components(covered_components)
 
 # alias
