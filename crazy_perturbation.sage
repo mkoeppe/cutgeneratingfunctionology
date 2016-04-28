@@ -131,23 +131,6 @@ class PiecewiseCrazyFunction:
                 g += line([(a, pwla+s), (b, pwlb+s)], color=rgbcolor)
         return g
 
-    def range(self):
-        raise NotImplementedError()
-        # Wrong Implementation
-        # pwl = self.pwl
-        # lb = min(flatten(pwl.limits_at_end_points()))
-        # ub = max(flatten(pwl.limits_at_end_points()))
-        # for crazy_piece in self.crazy_pieces:
-        #     pwla = pwl.limit(crazy_piece.interval[0],1)
-        #     pwlb = pwl.limit(crazy_piece.interval[1],-1)
-        #     max_shift = max([s for (r, s) in crazy_piece.cosets])
-        #     min_shift = min([s for (r, s) in crazy_piece.cosets])
-        #     if min_shift + min(pwla, pwlb) < lb:
-        #         lb = min_shift + min(pwla, pwlb)
-        #     if max_shift + max(pwla, pwlb) > ub:
-        #         ub = max_shift + max(pwla, pwlb)
-        # return (lb, ub)
-
     def end_points(self):
         bkpts = copy(self.pwl.end_points())
         for crazy_piece in self.crazy_pieces:
