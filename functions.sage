@@ -3609,6 +3609,35 @@ def plot_completion_diagram_background(fn):
     plot_background += polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
     return plot_background
 
+
+def generate_directly_covered_components_strategically(fn):
+    if hasattr(fn, '_directly_covered_components'):
+        return fn._directly_covered_components
+    faces = [ face for face in generate_maximal_additive_faces(fn) if face.is_2D() ]
+    covered_components = []
+    while faces:
+        max_size = -1
+        max_face = None
+        def face_size(face):
+            (I, J, K) = face.minimal_triple
+            K_mod_1 = interval_mod_1(K)
+            newly_covered = union_of_coho_intervals_minus_union_of_coho_intervals([[I], [J], [K_mod_1]], covered_components)
+            return sum(interval_length(i) for i in newly_covered)
+        for face in faces:
+            size = face_size(face)
+            if size > max_size:
+                max_size = size
+                max_face = face
+        logging.info("{} increases covered length by {}".format(max_face, max_size))
+        face = max_face
+        faces.remove(face)
+        (I, J, K) = face.minimal_triple
+        K_mod_1 = interval_mod_1(K)
+        component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* K_mod_1)]],[])
+        covered_components.append(component)
+        logging.info("{} is directly covered by additive face {}".format(component, face)) #logging.debug
+    return reduce_covered_components(covered_components)
+
 def generate_directly_covered_components(fn):
     if hasattr(fn, '_directly_covered_components'):
         return fn._directly_covered_components
