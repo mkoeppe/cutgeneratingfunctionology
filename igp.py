@@ -22,7 +22,7 @@ load("crazy_perturbation.sage")
 load("crazy_perturbation_examples.sage")
 load("bug_examples.sage")
 
-import extreme_functions
+import extreme_functions, procedures
 
 try:
     load("config.sage")
