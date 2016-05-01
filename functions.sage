@@ -3606,10 +3606,14 @@ def plot_completion_diagram_background(fn):
     plot_background += polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
     return plot_background
 
-def generate_covered_components_strategically(fn):
+def generate_covered_components_strategically(fn, show_plots=True):
     # logging.getLogger().setLevel(logging.DEBUG)
     if hasattr(fn, '_strategical_covered_components'):
         return fn._strategical_covered_components
+    step = 0
+    if show_plots:
+        g = plot_2d_diagram(fn)
+        show_plot(g, show_plots, tag=step , object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
     faces = [ face for face in generate_maximal_additive_faces(fn) if face.is_2D() ]
     edges = [ face for face in generate_maximal_additive_faces(fn) if face.is_horizontal() or face.is_diagonal() ] #face.is_1D() ]
     covered_components = []
@@ -3651,19 +3655,29 @@ def generate_covered_components_strategically(fn):
 
         if max_face.is_2D():
             face = max_face
+            step += 1
             faces.remove(face)
             (I, J, K) = face.minimal_triple
             K_mod_1 = interval_mod_1(K)
             component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* K_mod_1)]],[])
-            logging.debug("{} is directly covered by the additive face {}, which increases covered length by {}".format(component, face, max_size))
+            logging.debug("Step {}: The 2d additive {} increases covered length by {}.".format(step, face, max_size))
+            logging.debug("{} is directly covered.".format(component))
+            if show_plots:
+                if fn.is_continuous():
+                    g += face.plot(rgbcolor='red', fill_color='red')
+                else:
+                    g += face.plot(fill_color='red')
+                g += plot_covered_components_at_borders(fn, covered_components=[component])
+                show_plot(g, show_plots, tag=step , object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
             new_component, remaining_components = merge_components_with_given_component(component, covered_components)
             if new_component != component:
-                logging.debug("We obtain a new larger covered component {}, merged with overlapping components".format(new_component))
+                logging.debug("We obtain a new covered component {}, with overlapping components merged in.".format(new_component))
             covered_components = remaining_components + [new_component]
 
         elif max_face.is_1D():
             edge = max_face
-            logging.debug("The additive edge {} increases covered length by {}".format(edge, max_size))
+            step += 1
+            logging.debug("Step {}: The 1d additive {} increases covered length by {}.".format(step, edge, max_size))
             fdm = edge.functional_directed_move()
             sym_fdm = [fdm]
             if fdm.sign() == 1:
@@ -3676,13 +3690,18 @@ def generate_covered_components_strategically(fn):
                     moved_intervals = [[fdm.apply_to_coho_interval(overlapped_int)] for overlapped_int in overlapped_ints ]
                     newly_covered = union_of_coho_intervals_minus_union_of_coho_intervals(moved_intervals, covered_components)
                     if newly_covered:
-                        logging.debug("{} is indirectly covered".format(newly_covered))
+                        logging.debug("{} is indirectly covered.".format(newly_covered))
+                        if show_plots:
+                            g += plot_covered_components_at_borders(fn, covered_components=[newly_covered])
                         component = union_of_coho_intervals_minus_union_of_coho_intervals(moved_intervals + [overlapped_ints] + [component], [])
                 if component:
                     new_component, remaining_components = merge_components_with_given_component(component, covered_components)
                     if new_component != component:
-                       logging.debug("We obtain a new larger covered component {}, merged with overlapping components".format(new_component))
+                       logging.debug("We obtain a new covered component {}, with overlapping components merged in.".format(new_component))
                     covered_components = remaining_components + [new_component]
+            if show_plots:
+                g += edge.plot(rgbcolor='red')
+                show_plot(g, show_plots, tag=step , object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
 
     # There will be no more new covered intervals.
     # But perhaps merging of components will happen.
@@ -3692,9 +3711,9 @@ def generate_covered_components_strategically(fn):
         projections_component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* K_mod_1)]],[])
         overlapping_components, remaining_components = partition_overlapping_components(projections_component, covered_components)
         if len(overlapping_components) > 1:
-            logging.debug("{} is directly covered by additive face {}".format(projections_component, face))
             new_component = union_of_coho_intervals_minus_union_of_coho_intervals(overlapping_components,[])
-            logging.debug("We obtain a new larger covered component {}, merged with overlapping components".format(new_component))
+            step += 1
+            logging.debug("Step {}: By merging components that overlap with projections of the 2d additive {}, we obtain a larger covered component {}".format(step, face, new_component))
             covered_components = remaining_components + [new_component]
 
     for edge in edges:
@@ -3703,7 +3722,8 @@ def generate_covered_components_strategically(fn):
         overlapping_components, remaining_components = partition_overlapping_components(projections_component, covered_components)
         if len(overlapping_components) > 1:
             new_component = union_of_coho_intervals_minus_union_of_coho_intervals(overlapping_components,[])
-            logging.debug("We obtain a new larger covered component {}, by merging components connected by {}".format(new_component, edge))
+            step += 1
+            logging.debug("Step {}: By merging components that are connected by the 1d additive {}, we obtain a larger covered component {}.".format(step, edge, new_component))
             covered_components = remaining_components + [new_component]
     fn._strategical_covered_components = covered_components
     return covered_components
