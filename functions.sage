@@ -3608,6 +3608,108 @@ def plot_completion_diagram_background(fn):
     plot_background += polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
     return plot_background
 
+def generate_covered_components_strategically(fn):
+    # logging.getLogger().setLevel(logging.DEBUG)
+    if hasattr(fn, '_strategical_covered_components'):
+        return fn._strategical_covered_components
+    faces = [ face for face in generate_maximal_additive_faces(fn) if face.is_2D() ]
+    edges = [ face for face in generate_maximal_additive_faces(fn) if face.is_horizontal() or face.is_diagonal() ] #face.is_1D() ]
+    covered_components = []
+    max_size = 1
+    while max_size > 0:
+        max_size = -1
+        max_face = None
+        def face_size(face):
+            (I, J, K) = face.minimal_triple
+            K_mod_1 = interval_mod_1(K)
+            newly_covered = union_of_coho_intervals_minus_union_of_coho_intervals([[I], [J], [K_mod_1]], covered_components)
+            return sum(interval_length(i) for i in newly_covered)
+        def edge_size(edge):
+            fdm = edge.functional_directed_move()
+            sym_fdm = [fdm]
+            if fdm.sign() == 1:
+                backward_fdm = FunctionalDirectedMove(fdm.range_intervals(), (1, -fdm[1]))
+                sym_fdm.append(backward_fdm)
+            moved_intervals = []
+            for covered_component in covered_components:
+                for fdm in sym_fdm:
+                    overlapped_ints = intersection_of_coho_intervals([covered_component, fdm.intervals()]) # generator
+                    moved_intervals += [ [fdm.apply_to_coho_interval(overlapped_int)] for overlapped_int in overlapped_ints ]
+            newly_covered = union_of_coho_intervals_minus_union_of_coho_intervals(moved_intervals, covered_components)
+            return sum(interval_length(i) for i in newly_covered)
+
+        for face in faces:
+            size = face_size(face)
+            if size > max_size:
+                max_size = size
+                max_face = face
+        for edge in edges:
+            size = edge_size(edge)
+            if size > max_size:
+                max_size = size
+                max_face = edge
+        if max_size <= 0:
+            break
+
+        if max_face.is_2D():
+            face = max_face
+            faces.remove(face)
+            (I, J, K) = face.minimal_triple
+            K_mod_1 = interval_mod_1(K)
+            component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* K_mod_1)]],[])
+            logging.debug("{} is directly covered by the additive face {}, which increases covered length by {}".format(component, face, max_size))
+            new_component, remaining_components = merge_components_with_given_component(component, covered_components)
+            if new_component != component:
+                logging.debug("We obtain a new larger covered component {}, merged with overlapping components".format(new_component))
+            covered_components = remaining_components + [new_component]
+
+        elif max_face.is_1D():
+            edge = max_face
+            logging.debug("The additive edge {} increases covered length by {}".format(edge, max_size))
+            fdm = edge.functional_directed_move()
+            sym_fdm = [fdm]
+            if fdm.sign() == 1:
+                backward_fdm = FunctionalDirectedMove(fdm.range_intervals(), (1, -fdm[1]))
+                sym_fdm.append(backward_fdm)
+            for covered_component in covered_components:
+                component = []
+                for fdm in sym_fdm:
+                    overlapped_ints = list(intersection_of_coho_intervals([covered_component, fdm.intervals()]))
+                    moved_intervals = [[fdm.apply_to_coho_interval(overlapped_int)] for overlapped_int in overlapped_ints ]
+                    newly_covered = union_of_coho_intervals_minus_union_of_coho_intervals(moved_intervals, covered_components)
+                    if newly_covered:
+                        logging.debug("{} is indirectly covered".format(newly_covered))
+                        component = union_of_coho_intervals_minus_union_of_coho_intervals(moved_intervals + [overlapped_ints] + [component], [])
+                if component:
+                    new_component, remaining_components = merge_components_with_given_component(component, covered_components)
+                    if new_component != component:
+                       logging.debug("We obtain a new larger covered component {}, merged with overlapping components".format(new_component))
+                    covered_components = remaining_components + [new_component]
+
+    # There will be no more new covered intervals.
+    # But perhaps merging of components will happen.
+    for face in faces:
+        (I, J, K) = face.minimal_triple
+        K_mod_1 = interval_mod_1(K)
+        projections_component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* K_mod_1)]],[])
+        overlapping_components, remaining_components = partition_overlapping_components(projections_component, covered_components)
+        if len(overlapping_components) > 1:
+            logging.debug("{} is directly covered by additive face {}".format(projections_component, face))
+            new_component = union_of_coho_intervals_minus_union_of_coho_intervals(overlapping_components,[])
+            logging.debug("We obtain a new larger covered component {}, merged with overlapping components".format(new_component))
+            covered_components = remaining_components + [new_component]
+
+    for edge in edges:
+        fdm = edge.functional_directed_move()
+        projections_component = union_of_coho_intervals_minus_union_of_coho_intervals([fdm.intervals(), fdm.range_intervals()],[])
+        overlapping_components, remaining_components = partition_overlapping_components(projections_component, covered_components)
+        if len(overlapping_components) > 1:
+            new_component = union_of_coho_intervals_minus_union_of_coho_intervals(overlapping_components,[])
+            logging.debug("We obtain a new larger covered component {}, by merging components connected by {}".format(new_component, edge))
+            covered_components = remaining_components + [new_component]
+    fn._strategical_covered_components = covered_components
+    return covered_components
+
 
 def generate_directly_covered_components_strategically(fn):
     if hasattr(fn, '_directly_covered_components'):
