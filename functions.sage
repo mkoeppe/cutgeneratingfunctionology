@@ -382,8 +382,6 @@ def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
     """
     p = Graphics()
     if not covered_components is None:
-        bkpt = fn.end_points()
-        limits = fn.limits_at_end_points()
         colors = rainbow(len(covered_components))
         delete_one_time_plot_kwds(kwds)
         for i, component in enumerate(covered_components):
