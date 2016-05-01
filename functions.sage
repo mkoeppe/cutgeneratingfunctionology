@@ -3758,7 +3758,10 @@ def generate_directed_move_composition_completion(fn, show_plots=False, max_num_
     completion = getattr(fn, "_completion", None)
     if completion is None:
         functional_directed_moves = generate_functional_directed_moves(fn)
-        covered_components = generate_directly_covered_components(fn)
+        if hasattr(fn, '_strategical_covered_components'):
+            covered_components = fn._strategical_covered_components
+        else:
+            covered_components = generate_directly_covered_components(fn)
         proj_add_vert = projections_of_additive_vertices(fn)
         if show_plots:
             plot_background = plot_completion_diagram_background(fn)
