@@ -2368,9 +2368,11 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
     Generate (with "yield") perturbations for `finite_dimensional_extremality_test`.
     """
     fdms, covered_components = generate_directed_move_composition_completion(function, show_plots=show_plots)
+    logging.debug("The covered components are {}.".format(covered_components))
     uncovered_intervals = generate_uncovered_intervals(function)
     if uncovered_intervals:
         uncovered_components = generate_uncovered_components(function, show_plots=show_plots)
+        logging.debug("The uncovered components are {}.".format(uncovered_components))
         components = covered_components + uncovered_components
     else:
         components = copy(covered_components)
