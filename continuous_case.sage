@@ -231,7 +231,9 @@ def generate_symbolic_continuous(function, components, field=None):
     else:
         bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
     slopes = [ slope for interval, slope in intervals_and_slopes ]
-    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
+    symbolic_function = piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
+    logging.debug("Let v in R^{}.\n The i-th entry of v represents the slope parameter on the i-th component of {}.\n Set up the symbolic function sym: [0,1] -> R^{}, so that pert(x) = sym(x) * v.\n The symbolic function sym is {}.".format(n, components, n, symbolic_function))
+    return symbolic_function
 
 def generate_additivity_equations_continuous(function, symbolic, field, f=None, bkpt=None):
     if f is None:

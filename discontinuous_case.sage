@@ -228,7 +228,9 @@ def generate_symbolic_general(function, components, field=None):
             current_value += unit_vectors[j]
             j += 1
     pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, current_value)])
-    return FastPiecewise(pieces, merge=True)
+    symbolic_function = FastPiecewise(pieces, merge=True)
+    logging.debug("Let v in R^{}.\n The i-th entry of v represents the slope parameter on the i-th component of {} if i<={}, or the function value jump parameter at breakpoint if i>{}.\n Set up the symbolic function sym: [0,1] -> R^{}, so that pert(x) = sym(x) * v.\n The symbolic function sym is {}.".format(n + num_jumps, components, n, n, n + num_jumps,  symbolic_function))
+    return symbolic_function
 
 def generate_additivity_equations_general(function, symbolic, field, f=None, bkpt=None):
     """
