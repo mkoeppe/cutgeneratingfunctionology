@@ -3611,8 +3611,15 @@ def plot_completion_diagram_background(fn):
     plot_background += polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
     return plot_background
 
+# Global variable `strategical_covered_components` to control whether generate_covered_components_strategically() is used in place of generate_covered_components.
+strategical_covered_components = False
+
 def generate_covered_components_strategically(fn, show_plots=False):
-    # logging.getLogger().setLevel(logging.DEBUG)
+    """
+    Return both directly and indirectly covered components.
+    Set logging.getLogger().setLevel(logging.DEBUG) to see proof of covered components.
+    Set show_plots=True to visualize the proof.
+    """
     if hasattr(fn, '_strategical_covered_components'):
         return fn._strategical_covered_components
     step = 0
@@ -3781,8 +3788,10 @@ def generate_directed_move_composition_completion(fn, show_plots=False, max_num_
     completion = getattr(fn, "_completion", None)
     if completion is None:
         functional_directed_moves = generate_functional_directed_moves(fn)
-        if hasattr(fn, '_strategical_covered_components'):
-            covered_components = fn._strategical_covered_components
+        global strategical_covered_components
+        if strategical_covered_components:
+            # compute both directly and indirectly covered components.
+            covered_components = generate_covered_components_strategically(fn)
         else:
             covered_components = generate_directly_covered_components(fn)
         proj_add_vert = projections_of_additive_vertices(fn)
