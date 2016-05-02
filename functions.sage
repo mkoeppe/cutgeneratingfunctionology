@@ -3609,7 +3609,7 @@ def plot_completion_diagram_background(fn):
     plot_background += polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
     return plot_background
 
-def generate_covered_components_strategically(fn, show_plots=True):
+def generate_covered_components_strategically(fn, show_plots=False):
     # logging.getLogger().setLevel(logging.DEBUG)
     if hasattr(fn, '_strategical_covered_components'):
         return fn._strategical_covered_components
