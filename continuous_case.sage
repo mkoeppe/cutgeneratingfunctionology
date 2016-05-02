@@ -238,9 +238,17 @@ def generate_symbolic_continuous(function, components, field=None):
 def generate_additivity_equations_continuous(function, symbolic, field, f=None, bkpt=None):
     if f is None:
         f = find_f(function)
-    equations = [delta_pi(symbolic, x, y) \
-                     for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, bkpt=bkpt) ] \
-                   + [symbolic(f)] \
-                   + [symbolic(1)]
-    return matrix(field, equations)
+    v = symbolic(f)
+    logging.debug("Condition pert(f) = 0 gives the equation\n {} * v = 0.".format(v))
+    M = matrix(field, v)
+    v = symbolic(1)
+    if not (v in M.row_space()):
+        logging.debug("Condition pert(1) = 0 gives the equation\n {} * v = 0.".format(v))
+        M = M.stack(v)
+    for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, bkpt=bkpt):
+        v = delta_pi(symbolic, x, y)
+        if not (v in M.row_space()):
+            logging.debug("Condition pert({}) + pert({}) = pert({}) gives the equation\n {} * v = 0.".format(x, y, z, v))
+            M = M.stack(v)
+    return M
 

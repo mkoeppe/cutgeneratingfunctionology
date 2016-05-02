@@ -237,25 +237,21 @@ def generate_additivity_equations_general(function, symbolic, field, f=None, bkp
     Using additivity, set up a finite-dimensional system of linear equations
     that must be satisfied by any perturbation.
     """
-    equations = []
     if f is None:
         f = find_f(function)
-    equations.append(symbolic(f))
-    equations.append(symbolic(field(1)))
-    limits_0 = function.limits(field(0))
-    limits_1 = function.limits(field(1))
+    v = symbolic(f)
+    logging.debug("Condition pert(f) = 0 gives the equation\n {} * v = 0.".format(v))
+    M = matrix(field, v)
+    v = symbolic(field(1))
+    if not (v in M.row_space()):
+        logging.debug("Condition pert(1) = 0 gives the equation\n {} * v = 0.".format(v))
+        M = M.stack(v)
     for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, reduced = not function.is_two_sided_discontinuous(), bkpt=bkpt):
-        # FIXME: symbolic has different vector values at 0 and 1.
-        # periodic_extension would be set to False if FastPiecewise.__init__ did an error check, which would cause symbolic(0-) to fail.
-        # Remove the error check in __init__, or treat 0- and 1+ differently for symbolic.
-        new_equation = delta_pi_general(symbolic, x, y, (xeps, yeps, zeps))
-        equations.append(new_equation)
-    if function.is_two_sided_discontinuous():
-        # from symmetric condition. f/2 and (1+f)/2 might not be in bkpt, 
-        # so generate_additive_vertices() does not cover these two equations.
-        equations.append(symbolic(f/2))
-        equations.append(symbolic((1 + f) / 2))
-    return  matrix(field, equations)
+        v = delta_pi_general(symbolic, x, y, (xeps, yeps, zeps))
+        if not (v in M.row_space()):
+            logging.debug("Condition pert({}{}) + pert({}{}) = pert({}{}) gives the equation\n {} * v = 0.".format(x, print_sign(xeps),  y, print_sign(yeps), z, print_sign(zeps), v))
+            M = M.stack(v)
+    return M
 
 def find_epsilon_interval_general(fn, perturb):
     """Compute the interval [minus_epsilon, plus_epsilon] such that
