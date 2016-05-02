@@ -232,23 +232,23 @@ def generate_symbolic_continuous(function, components, field=None, f=None):
         bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
     slopes = [ slope for interval, slope in intervals_and_slopes ]
     symbolic_function = piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
-    logging.debug("Let v in R^{}.\n The i-th entry of v represents the slope parameter on the i-th component of {}.\n Set up the symbolic function sym: [0,1] -> R^{}, so that pert(x) = sym(x) * v.\n The symbolic function sym is {}.".format(n, components, n, symbolic_function))
+    logging.debug("Let v in R^{}.\nThe i-th entry of v represents the slope parameter on the i-th component of {}.\nSet up the symbolic function sym: [0,1] -> R^{}, so that pert(x) = sym(x) * v.\nThe symbolic function sym is {}.".format(n, components, n, symbolic_function))
     return symbolic_function
 
 def generate_additivity_equations_continuous(function, symbolic, field, f=None, bkpt=None):
     if f is None:
         f = find_f(function)
     v = symbolic(f)
-    logging.debug("Condition pert(f) = 0 gives the equation\n {} * v = 0.".format(v))
+    logging.debug("Condition pert(f) = 0 gives the equation\n{} * v = 0.".format(v))
     M = matrix(field, v)
     v = symbolic(1)
     if not (v in M.row_space()):
-        logging.debug("Condition pert(1) = 0 gives the equation\n {} * v = 0.".format(v))
+        logging.debug("Condition pert(1) = 0 gives the equation\n{} * v = 0.".format(v))
         M = M.stack(v)
     for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, bkpt=bkpt):
         v = delta_pi(symbolic, x, y)
         if not (v in M.row_space()):
-            logging.debug("Condition pert({}) + pert({}) = pert({}) gives the equation\n {} * v = 0.".format(x, y, z, v))
+            logging.debug("Condition pert({}) + pert({}) = pert({}) gives the equation\n{} * v = 0.".format(x, y, z, v))
             M = M.stack(v)
     return M
 

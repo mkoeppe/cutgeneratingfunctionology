@@ -235,7 +235,7 @@ def generate_symbolic_general(function, components, field=None, f=None):
             j += 1
     pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, current_value)])
     symbolic_function = FastPiecewise(pieces, merge=True)
-    logging.debug("Let v in R^{}.\n The i-th entry of v represents the slope parameter on the i-th component of {} if i<={}, or the function value jump parameter at breakpoint if i>{}. (The symmetry condition is considered so as to reduce the number of jump parameters).\n Set up the symbolic function sym: [0,1] -> R^{}, so that pert(x) = sym(x) * v.\n The symbolic function sym is {}.".format(n + num_jumps, components, n, n, n + num_jumps,  symbolic_function))
+    logging.debug("Let v in R^{}.\nThe i-th entry of v represents the slope parameter on the i-th component of {} if i<={}, or the function value jump parameter at breakpoint if i>{}. (The symmetry condition is considered so as to reduce the number of jump parameters).\nSet up the symbolic function sym: [0,1] -> R^{}, so that pert(x) = sym(x) * v.\nThe symbolic function sym is {}.".format(n + num_jumps, components, n, n, n + num_jumps,  symbolic_function))
     return symbolic_function
 
 def generate_additivity_equations_general(function, symbolic, field, f=None, bkpt=None):
@@ -246,16 +246,16 @@ def generate_additivity_equations_general(function, symbolic, field, f=None, bkp
     if f is None:
         f = find_f(function)
     v = symbolic(f)
-    logging.debug("Condition pert(f) = 0 gives the equation\n {} * v = 0.".format(v))
+    logging.debug("Condition pert(f) = 0 gives the equation\n{} * v = 0.".format(v))
     M = matrix(field, v)
     v = symbolic(field(1))
     if not (v in M.row_space()):
-        logging.debug("Condition pert(1) = 0 gives the equation\n {} * v = 0.".format(v))
+        logging.debug("Condition pert(1) = 0 gives the equation\n{} * v = 0.".format(v))
         M = M.stack(v)
     for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, reduced = not function.is_two_sided_discontinuous(), bkpt=bkpt):
         v = delta_pi_general(symbolic, x, y, (xeps, yeps, zeps))
         if not (v in M.row_space()):
-            logging.debug("Condition pert({}{}) + pert({}{}) = pert({}{}) gives the equation\n {} * v = 0.".format(x, print_sign(xeps),  y, print_sign(yeps), z, print_sign(zeps), v))
+            logging.debug("Condition pert({}{}) + pert({}{}) = pert({}{}) gives the equation\n{} * v = 0.".format(x, print_sign(xeps),  y, print_sign(yeps), z, print_sign(zeps), v))
             M = M.stack(v)
     return M
 
