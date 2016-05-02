@@ -205,7 +205,7 @@ def find_epsilon_interval_continuous(fn, perturb):
     logging.info("Finding epsilon interval for perturbation... done.  Interval is %s", [best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound])
     return best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound
 
-def generate_symbolic_continuous(function, components, field=None):
+def generate_symbolic_continuous(function, components, field=None, f=None):
     """
     Construct a vector-space-valued piecewise linear function
     compatible with the given `function`.  Each of the components of

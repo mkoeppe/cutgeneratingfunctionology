@@ -2247,11 +2247,11 @@ def plot_walk(walk_dict, color="black", ymin=0, ymax=1, **kwds):
 class UnimplementedError (Exception):
     pass
 
-def generate_symbolic(fn, components, field=None):
+def generate_symbolic(fn, components, field=None, f=None):
     if fn.is_continuous() or fn.is_discrete():
-        return generate_symbolic_continuous(fn, components, field=field)
+        return generate_symbolic_continuous(fn, components, field=field, f=f)
     else:
-        return generate_symbolic_general(fn, components, field=field)
+        return generate_symbolic_general(fn, components, field=field, f=f)
 
 def generate_additivity_equations(fn, symbolic, field, f=None, bkpt=None):
     if fn.is_continuous() or fn.is_discrete():
@@ -2380,7 +2380,7 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
     # a FastPiecewise.  But now even .base_ring() fails because
     # FastLinearFunction does not have a .base_ring() method.
     field = function(0).parent().fraction_field()
-    symbolic = generate_symbolic(function, components, field=field)
+    symbolic = generate_symbolic(function, components, field=field, f=f)
     bkpt = merge_bkpt(function.end_points(), symbolic.end_points())
     equation_matrix = generate_additivity_equations(function, symbolic, field, f=f, bkpt=bkpt)
     logging.debug("Solve the linear system of equations:\n {} * v = 0.".format(equation_matrix))
