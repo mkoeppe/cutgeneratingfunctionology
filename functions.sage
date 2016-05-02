@@ -2383,11 +2383,14 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
     symbolic = generate_symbolic(function, components, field=field)
     bkpt = merge_bkpt(function.end_points(), symbolic.end_points())
     equation_matrix = generate_additivity_equations(function, symbolic, field, f=f, bkpt=bkpt)
+    logging.debug("Solve the linear system of equations:\n {} * v = 0.".format(equation_matrix))
     slope_jump_vects = equation_matrix.right_kernel().basis()
-    logging.info("Finite dimensional test: Solution space has dimension %s" % len(slope_jump_vects))
+    logging.info("Finite dimensional test: Solution space has dimension=%s." % len(slope_jump_vects))
     for basis_index in range(len(slope_jump_vects)):
         slope_jump = slope_jump_vects[basis_index]
+        logging.debug("The {}-th solution is\n v = {}.".format(basis_index+1, slope_jump))
         perturbation = slope_jump * symbolic
+        logging.debug("The corresponding perturbation function pert(x) is:\n {}.".format(perturbation))
         yield perturbation
 
 def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn_about_uncovered_intervals=True, 
