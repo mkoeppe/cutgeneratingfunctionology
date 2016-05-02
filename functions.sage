@@ -3763,7 +3763,7 @@ def generate_directed_move_composition_completion(fn, show_plots=False, max_num_
         global strategical_covered_components
         if strategical_covered_components:
             # compute both directly and indirectly covered components.
-            covered_components = generate_covered_components_strategically(fn)
+            covered_components = generate_covered_components_strategically(fn, show_plots=show_plots)
         else:
             covered_components = generate_directly_covered_components(fn)
         proj_add_vert = projections_of_additive_vertices(fn)
