@@ -3672,8 +3672,7 @@ def generate_covered_components_strategically(fn, show_plots=False):
             (I, J, K) = face.minimal_triple
             K_mod_1 = interval_mod_1(K)
             component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* K_mod_1)]],[])
-            logging.debug("Step {}: The 2d additive {} increases covered length by {}.".format(step, face, max_size))
-            logging.debug("{} is directly covered.".format(component))
+            logging.debug("Step {}: Consider he 2d additive {}.\n{} is directly covered.".format(step, face, component))
             if show_plots:
                 if fn.is_continuous():
                     g += face.plot(rgbcolor='red', fill_color='red')
@@ -3689,7 +3688,7 @@ def generate_covered_components_strategically(fn, show_plots=False):
         elif max_face.is_1D():
             edge = max_face
             step += 1
-            logging.debug("Step {}: The 1d additive {} increases covered length by {}.".format(step, edge, max_size))
+            logging.debug("Step {}: Consider the 1d additive {}.".format(step, edge))
             fdm = edge.functional_directed_move()
             sym_fdm = [fdm]
             if fdm.sign() == 1:
