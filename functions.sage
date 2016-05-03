@@ -2690,7 +2690,7 @@ def perturbation_polyhedron(fn, perturbs):
         sage: perturbs = h._perturbations
         sage: pert_polyhedron = perturbation_polyhedron(h, perturbs)
         sage: pert_polyhedron
-        A 2-dimensional polyhedron in (Real Number Field in `a` with defining polynomial y^2 - 3)^2 defined as the convex hull of 4 vertices
+        A 2-dimensional polyhedron in (Real Number Field in `a` as the root of the defining polynomial y^2 - 3 near 1.732050807568878?)^2 defined as the convex hull of 4 vertices
         sage: pert_polyhedron.Vrepresentation()
         (A vertex at (2.797434948471088?, 0.967307929548895?),
          A vertex at (-2.36220486286011?, 0.967307929548895?),
