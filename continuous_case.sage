@@ -238,17 +238,21 @@ def generate_symbolic_continuous(function, components, field=None, f=None):
 def generate_additivity_equations_continuous(function, symbolic, field, f=None, bkpt=None):
     if f is None:
         f = find_f(function)
-    v = symbolic(f)
-    logging.debug("Condition pert(f) = 0 gives the equation\n{} * v = 0.".format(v))
-    M = matrix(field, v)
-    v = symbolic(1)
-    if not (v in M.row_space()):
-        logging.debug("Condition pert(1) = 0 gives the equation\n{} * v = 0.".format(v))
-        M = M.stack(v)
-    for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function, bkpt=bkpt):
-        v = delta_pi(symbolic, x, y)
-        if not (v in M.row_space()):
-            logging.debug("Condition pert({}) + pert({}) = pert({}) gives the equation\n{} * v = 0.".format(x, y, z, v))
-            M = M.stack(v)
-    return M
-
+    vs = list(generate_additive_vertices(function, bkpt=bkpt))
+    equations = [symbolic(f), symbolic(field(1))]+[delta_pi(symbolic, x, y) for (x, y, z, xeps, yeps, zeps) in vs]
+    M = matrix(field, equations)
+    # global strategical_covered_components
+    # if not strategical_covered_components:
+    #     return M
+    # else:
+    pivot_r =  list(M.pivot_rows())
+    for i in pivot_r:
+        if i == 0:
+            logging.debug("Condition pert(f) = 0 gives the equation\n{} * v = 0.".format(symbolic(f)))
+        elif i == 1:
+            logging.debug("Condition pert(1) = 0 gives the equation\n{} * v = 0.".format(symbolic(1)))
+        else:
+            (x, y, z, xeps, yeps, zeps) = vs[i-2]
+            eqn = equations[i]
+            logging.debug("Condition pert({}) + pert({}) = pert({}) gives the equation\n{} * v = 0.".format(x, y, z, eqn))
+    return M[pivot_r]
