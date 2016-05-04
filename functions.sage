@@ -1177,6 +1177,9 @@ except:
 
 from bisect import bisect_left
 
+# Global variable to contole repr of FastPiecewise.
+show_values_of_fastpiecewise =  True
+
 class FastPiecewise (PiecewisePolynomial):
     """
     Returns a piecewise function from a list of (interval, function)
@@ -1921,10 +1924,12 @@ class FastPiecewise (PiecewisePolynomial):
         return True
 
     def __repr__(self):
+        global show_values_of_fastpiecewise
         rep = "<FastPiecewise with %s parts, " % len(self._functions)
         for interval, function in itertools.izip(self._intervals, self._functions):
-            rep += "\n " + repr(interval) + "\t" + repr(function) \
-                   + "\t values: " + repr([function(interval[0]), function(interval[1])])
+            rep += "\n " + repr(interval) + "\t" + repr(function)
+            if show_values_of_fastpiecewise:
+                rep += "\t values: " + repr([function(interval[0]), function(interval[1])])
         rep += ">"
         return rep
 
