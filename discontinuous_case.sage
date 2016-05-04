@@ -235,7 +235,8 @@ def generate_symbolic_general(function, components, field=None, f=None):
             j += 1
     pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, current_value)])
     symbolic_function = FastPiecewise(pieces, merge=True)
-    logging.debug("Let v in R^{}.\nThe i-th entry of v represents the slope parameter on the i-th component of {} if i<={}, or the function value jump parameter at breakpoint if i>{}. (The symmetry condition is considered so as to reduce the number of jump parameters).\nSet up the symbolic function sym: [0,1] -> R^{}, so that pert(x) = sym(x) * v.\nThe symbolic function sym is {}.".format(n + num_jumps, components, n, n, n + num_jumps,  symbolic_function))
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+        logging.debug("Let v in R^%s.\nThe i-th entry of v represents the slope parameter on the i-th component of %s if i<=%s, or the function value jump parameter at breakpoint if i>%s. (The symmetry condition is considered so as to reduce the number of jump parameters).\nSet up the symbolic function sym: [0,1] -> R^%s, so that pert(x) = sym(x) * v.\nThe symbolic function sym is %s." % (n + num_jumps, components, n, n, n + num_jumps,  symbolic_function))
     return symbolic_function
 
 def generate_additivity_equations_general(function, symbolic, field, f=None, bkpt=None):
@@ -248,20 +249,18 @@ def generate_additivity_equations_general(function, symbolic, field, f=None, bkp
     vs = list(generate_additive_vertices(function, reduced = not function.is_two_sided_discontinuous(), bkpt=bkpt))
     equations = [symbolic(f), symbolic(field(1))]+[delta_pi_general(symbolic, x, y, (xeps, yeps, zeps)) for (x, y, z, xeps, yeps, zeps) in vs]
     M = matrix(field, equations)
-    # global strategical_covered_components
-    # if not strategical_covered_components:
-    #     return M
-    # else:
+    if not logging.getLogger().isEnabledFor(logging.DEBUG):
+        return M
     pivot_r =  list(M.pivot_rows())
     for i in pivot_r:
         if i == 0:
-            logging.debug("Condition pert(f) = 0 gives the equation\n{} * v = 0.".format(symbolic(f)))
+            logging.debug("Condition pert(f) = 0 gives the equation\n%s * v = 0." % (symbolic(f)))
         elif i == 1:
-            logging.debug("Condition pert(1) = 0 gives the equation\n{} * v = 0.".format(symbolic(field(1))))
+            logging.debug("Condition pert(1) = 0 gives the equation\n%s * v = 0." % (symbolic(field(1))))
         else:
             (x, y, z, xeps, yeps, zeps) = vs[i-2]
             eqn = equations[i]
-            logging.debug("Condition pert({}{}) + pert({}{}) = pert({}{}) gives the equation\n{} * v = 0.".format(x, print_sign(xeps),  y, print_sign(yeps), z, print_sign(zeps), eqn))
+            logging.debug("Condition pert(%s%s) + pert(%s%s) = pert(%s%s) gives the equation\n%s * v = 0." % (x, print_sign(xeps),  y, print_sign(yeps), z, print_sign(zeps), eqn))
     return M[pivot_r]
 
 def find_epsilon_interval_general(fn, perturb):

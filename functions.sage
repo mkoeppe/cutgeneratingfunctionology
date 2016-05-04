@@ -2368,11 +2368,13 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
     Generate (with "yield") perturbations for `finite_dimensional_extremality_test`.
     """
     fdms, covered_components = generate_directed_move_composition_completion(function, show_plots=show_plots)
-    logging.debug("The covered components are {}.".format(covered_components))
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+        logging.debug("The covered components are %s." % (covered_components))
     uncovered_intervals = generate_uncovered_intervals(function)
     if uncovered_intervals:
         uncovered_components = generate_uncovered_components(function, show_plots=show_plots)
-        logging.debug("The uncovered components are {}.".format(uncovered_components))
+        if logging.getLogger().isEnabledFor(logging.DEBUG):
+            logging.debug("The uncovered components are %s." % (uncovered_components))
         components = covered_components + uncovered_components
     else:
         components = copy(covered_components)
@@ -2385,14 +2387,17 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
     symbolic = generate_symbolic(function, components, field=field, f=f)
     bkpt = merge_bkpt(function.end_points(), symbolic.end_points())
     equation_matrix = generate_additivity_equations(function, symbolic, field, f=f, bkpt=bkpt)
-    logging.debug("Solve the linear system of equations:\n{} * v = 0.".format(equation_matrix))
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+        logging.debug("Solve the linear system of equations:\n%s * v = 0." % (equation_matrix))
     slope_jump_vects = equation_matrix.right_kernel().basis()
     logging.info("Finite dimensional test: Solution space has dimension %s." % len(slope_jump_vects))
     for basis_index in range(len(slope_jump_vects)):
         slope_jump = slope_jump_vects[basis_index]
         logging.debug("The {}-th solution is\nv = {}.".format(basis_index+1, slope_jump))
         perturbation = slope_jump * symbolic
-        logging.debug("The corresponding perturbation function pert(x) is:\n{}.".format(perturbation))
+        if logging.getLogger().isEnabledFor(logging.DEBUG):
+            logging.debug("The %s-th solution is\nv = %s." % (basis_index+1, slope_jump))
+            logging.debug("The corresponding perturbation function pert(x) is:\n%s." % (perturbation))
         yield perturbation
 
 def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn_about_uncovered_intervals=True, 
@@ -3672,7 +3677,8 @@ def generate_covered_components_strategically(fn, show_plots=False):
             (I, J, K) = face.minimal_triple
             K_mod_1 = interval_mod_1(K)
             component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* K_mod_1)]],[])
-            logging.debug("Step {}: Consider he 2d additive {}.\n{} is directly covered.".format(step, face, component))
+            if logging.getLogger().isEnabledFor(logging.DEBUG):
+                logging.debug("Step %s: Consider he 2d additive %s.\n%s is directly covered." % (step, face, component))
             if show_plots:
                 if fn.is_continuous():
                     g += face.plot(rgbcolor='red', fill_color='red')
@@ -3681,14 +3687,15 @@ def generate_covered_components_strategically(fn, show_plots=False):
                 g += plot_covered_components_at_borders(fn, covered_components=[component])
                 show_plot(g, show_plots, tag=step , object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
             new_component, remaining_components = merge_components_with_given_component(component, covered_components)
-            if new_component != component:
-                logging.debug("We obtain a new covered component {}, with overlapping components merged in.".format(new_component))
+            if new_component != component and logging.getLogger().isEnabledFor(logging.DEBUG):
+                logging.debug("We obtain a new covered component %s, with overlapping components merged in." % (new_component))
             covered_components = remaining_components + [new_component]
 
         elif max_face.is_1D():
             edge = max_face
             step += 1
-            logging.debug("Step {}: Consider the 1d additive {}.".format(step, edge))
+            if logging.getLogger().isEnabledFor(logging.DEBUG):
+                logging.debug("Step %s: Consider the 1d additive %s." % (step, edge))
             fdm = edge.functional_directed_move()
             sym_fdm = [fdm]
             if fdm.sign() == 1:
@@ -3700,15 +3707,15 @@ def generate_covered_components_strategically(fn, show_plots=False):
                     overlapped_ints = list(intersection_of_coho_intervals([covered_component, fdm.intervals()]))
                     moved_intervals = [[fdm.apply_to_coho_interval(overlapped_int)] for overlapped_int in overlapped_ints ]
                     newly_covered = union_of_coho_intervals_minus_union_of_coho_intervals(moved_intervals, covered_components)
-                    if newly_covered:
-                        logging.debug("{} is indirectly covered.".format(newly_covered))
+                    if newly_covered and logging.getLogger().isEnabledFor(logging.DEBUG):
+                        logging.debug("%s is indirectly covered." % (newly_covered))
                         if show_plots:
                             g += plot_covered_components_at_borders(fn, covered_components=[newly_covered])
                         component = union_of_coho_intervals_minus_union_of_coho_intervals(moved_intervals + [overlapped_ints] + [component], [])
                 if component:
                     new_component, remaining_components = merge_components_with_given_component(component, covered_components)
-                    if new_component != component:
-                       logging.debug("We obtain a new covered component {}, with overlapping components merged in.".format(new_component))
+                    if new_component != component and logging.getLogger().isEnabledFor(logging.DEBUG):
+                       logging.debug("We obtain a new covered component %s, with overlapping components merged in." % (new_component))
                     covered_components = remaining_components + [new_component]
             if show_plots:
                 g += edge.plot(rgbcolor='red')
@@ -3724,7 +3731,8 @@ def generate_covered_components_strategically(fn, show_plots=False):
         if len(overlapping_components) > 1:
             new_component = union_of_coho_intervals_minus_union_of_coho_intervals(overlapping_components,[])
             step += 1
-            logging.debug("Step {}: By merging components that overlap with projections of the 2d additive {}, we obtain a larger covered component {}".format(step, face, new_component))
+            if logging.getLogger().isEnabledFor(logging.DEBUG):
+                logging.debug("Step %s: By merging components that overlap with projections of the 2d additive %s, we obtain a larger covered component %s" % (step, face, new_component))
             covered_components = remaining_components + [new_component]
 
     for edge in edges:
@@ -3734,7 +3742,8 @@ def generate_covered_components_strategically(fn, show_plots=False):
         if len(overlapping_components) > 1:
             new_component = union_of_coho_intervals_minus_union_of_coho_intervals(overlapping_components,[])
             step += 1
-            logging.debug("Step {}: By merging components that are connected by the 1d additive {}, we obtain a larger covered component {}.".format(step, edge, new_component))
+            if logging.getLogger().isEnabledFor(logging.DEBUG):
+                logging.debug("Step %s: By merging components that are connected by the 1d additive %s, we obtain a larger covered component %s." % (step, edge, new_component))
             covered_components = remaining_components + [new_component]
     fn._strategical_covered_components = covered_components
     return covered_components

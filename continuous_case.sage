@@ -232,7 +232,8 @@ def generate_symbolic_continuous(function, components, field=None, f=None):
         bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
     slopes = [ slope for interval, slope in intervals_and_slopes ]
     symbolic_function = piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
-    logging.debug("Let v in R^{}.\nThe i-th entry of v represents the slope parameter on the i-th component of {}.\nSet up the symbolic function sym: [0,1] -> R^{}, so that pert(x) = sym(x) * v.\nThe symbolic function sym is {}.".format(n, components, n, symbolic_function))
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+        logging.debug("Let v in R^%s.\nThe i-th entry of v represents the slope parameter on the i-th component of %s.\nSet up the symbolic function sym: [0,1] -> R^%s, so that pert(x) = sym(x) * v.\nThe symbolic function sym is %s." % (n, components, n, symbolic_function))
     return symbolic_function
 
 def generate_additivity_equations_continuous(function, symbolic, field, f=None, bkpt=None):
@@ -241,18 +242,16 @@ def generate_additivity_equations_continuous(function, symbolic, field, f=None, 
     vs = list(generate_additive_vertices(function, bkpt=bkpt))
     equations = [symbolic(f), symbolic(field(1))]+[delta_pi(symbolic, x, y) for (x, y, z, xeps, yeps, zeps) in vs]
     M = matrix(field, equations)
-    # global strategical_covered_components
-    # if not strategical_covered_components:
-    #     return M
-    # else:
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+        return M
     pivot_r =  list(M.pivot_rows())
     for i in pivot_r:
         if i == 0:
-            logging.debug("Condition pert(f) = 0 gives the equation\n{} * v = 0.".format(symbolic(f)))
+            logging.debug("Condition pert(f) = 0 gives the equation\n%s * v = 0." % (symbolic(f)))
         elif i == 1:
-            logging.debug("Condition pert(1) = 0 gives the equation\n{} * v = 0.".format(symbolic(1)))
+            logging.debug("Condition pert(1) = 0 gives the equation\n%s * v = 0." % (symbolic(1)))
         else:
             (x, y, z, xeps, yeps, zeps) = vs[i-2]
             eqn = equations[i]
-            logging.debug("Condition pert({}) + pert({}) = pert({}) gives the equation\n{} * v = 0.".format(x, y, z, eqn))
+            logging.debug("Condition pert(%s) + pert(%s) = pert(%s) gives the equation\n{} * v = 0." % (x, y, z, eqn))
     return M[pivot_r]
