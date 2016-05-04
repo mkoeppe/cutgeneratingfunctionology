@@ -3684,7 +3684,7 @@ def generate_covered_components_strategically(fn, show_plots=False):
             K_mod_1 = interval_mod_1(K)
             component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* K_mod_1)]],[])
             if logging.getLogger().isEnabledFor(logging.DEBUG):
-                logging.debug("Step %s: Consider he 2d additive %s.\n%s is directly covered." % (step, face, component))
+                logging.debug("Step %s: Consider the 2d additive %s.\n%s is directly covered." % (step, face, component))
             if show_plots:
                 if fn.is_continuous():
                     g += face.plot(rgbcolor='red', fill_color='red')
