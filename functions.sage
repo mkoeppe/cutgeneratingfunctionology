@@ -298,7 +298,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
     faces = generate_maximal_additive_faces(fn)
-    p = plot_2d_complex(fn)
+    p = Graphics()
     kwds = { 'legend_label': "Additive face" }
     plot_kwds_hook(kwds)
     if colorful:
@@ -368,6 +368,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
                     # add legend_label
                     p += point([(0,0)], color = "mediumvioletred", size = 50, zorder=-10, **kwds)
                     p += point([(0,0)], color = "white", size = 50, zorder=-9)
+    p += plot_2d_complex(fn)
     if show_projections:
         p += plot_projections_at_borders(fn)
     if show_function:
@@ -906,6 +907,9 @@ except:
     from sage.functions.piecewise import PiecewisePolynomial
 
 from bisect import bisect_left
+
+# Global variable to contole repr of FastPiecewise.
+show_values_of_fastpiecewise =  True
 
 class FastPiecewise (PiecewisePolynomial):
     """
@@ -1662,10 +1666,12 @@ class FastPiecewise (PiecewisePolynomial):
         return True
 
     def __repr__(self):
+        global show_values_of_fastpiecewise
         rep = "<FastPiecewise with %s parts, " % len(self._functions)
         for interval, function in itertools.izip(self._intervals, self._functions):
-            rep += "\n " + repr(interval) + "\t" + repr(function) \
-                   + "\t values: " + repr([function(interval[0]), function(interval[1])])
+            rep += "\n " + repr(interval) + "\t" + repr(function)
+            if show_values_of_fastpiecewise:
+                rep += "\t values: " + repr([function(interval[0]), function(interval[1])])
         rep += ">"
         return rep
 
