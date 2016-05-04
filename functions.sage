@@ -339,7 +339,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
     faces = generate_maximal_additive_faces(fn)
-    p = plot_2d_complex(fn)
+    p = Graphics()
     kwds = { 'legend_label': "Additive face" }
     plot_kwds_hook(kwds)
     if colorful:
@@ -409,6 +409,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
                     # add legend_label
                     p += point([(0,0)], color = "mediumvioletred", size = 50, zorder=-10, **kwds)
                     p += point([(0,0)], color = "white", size = 50, zorder=-9)
+    p += plot_2d_complex(fn)
     if show_projections:
         p += plot_projections_at_borders(fn)
     if show_function:
