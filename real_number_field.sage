@@ -74,12 +74,16 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
         return result
 
     def __repr__(self):
-        embedded = self.embedded()
-        symbolic = getattr(self, '_symbolic', None)
-        if symbolic is None:
-            return '%s' % embedded
+        global show_RNFElement_by_embedding
+        if show_RNFElement_by_embedding:
+            embedded = self.embedded()
+            symbolic = getattr(self, '_symbolic', None)
+            if symbolic is None:
+                return '%s' % embedded
+            else:
+                return '<%s=%s>' % (symbolic, embedded)
         else:
-            return '<%s=%s>' % (symbolic, embedded)
+            return NumberFieldElement_absolute._repr_(self)
 
     def _latex_(self):
         symbolic = getattr(self, '_symbolic', None)
@@ -197,6 +201,9 @@ class RealNumberField_absolute(NumberField_absolute):
 
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 
+# global variable to controle the format of repr(RealNumberFieldElement_quadratic)
+show_RNFElement_by_embedding = True
+
 class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
     
     def embedded(self):
@@ -206,8 +213,13 @@ class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
         return e
     
     def __repr__(self):
-        embedded = self.embedded()
-        return '%s' % embedded
+        global show_RNFElement_by_embedding
+        if show_RNFElement_by_embedding:
+            embedded = self.embedded()
+            return '%s' % embedded
+        else:
+            return NumberFieldElement_quadratic._repr_(self)
+
 
     def __hash__(self):
         if not hasattr(self, '_hash'):
