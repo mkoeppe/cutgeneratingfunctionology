@@ -1969,6 +1969,44 @@ class FastPiecewise (PiecewisePolynomial):
         stable_str = str(data)
         return sha1(stable_str).hexdigest()
 
+    def _latex_(self, table=False, labels={}):
+        if not table:
+            return super(FastPiecewise, self)._latex_()
+        from sage.misc.latex import latex
+        def labeled_latex(x):
+            return labels.get(x, latex(x))
+        latex.add_package_to_preamble_if_available("booktabs")
+        s = []
+        num_columns = 6
+        s += [r'\begin{array}{*%sc}' % num_columns]
+        s += [r'  \toprule']
+        s += ['  ' + ' & '.join(['i',
+                                 'x_i',
+                                 r'\pi(x_i^-)',
+                                 r'\pi(x_i)',
+                                 r'\pi(x_i^+)',
+                                 r'\text{slope}']) + r'\\']
+        s += ['  \\midrule']
+        end_points = self.end_points()
+        for index, (bkpt, limits) in enumerate(itertools.izip(end_points, self.limits_at_end_points())):
+            latex_limits = [ labeled_latex(x) for x in limits ]
+            for eps in [-1, +1]:
+                if limits[eps] == limits[0]:
+                    latex_limits[eps] = ''
+            slope = ''
+            if index < len(end_points) - 1:
+                slope = self.which_function((end_points[index] + end_points[index+1])/ 2)._slope
+                slope = labeled_latex(slope)
+            s += ['  ' + ' & '.join([labeled_latex(index),
+                                     labeled_latex(bkpt),
+                                     latex_limits[-1],
+                                     latex_limits[0],
+                                     latex_limits[1],
+                                     r'\smash{\raisebox{-1.5ex}{$%s$}}' % slope]) + r'\\']
+        s += [r'  \bottomrule']
+        s += [r'\end{array}']
+        return '\n'.join(s)
+
 def singleton_piece(x, y):
     return (singleton_interval(x), FastLinearFunction(0, y))
 
