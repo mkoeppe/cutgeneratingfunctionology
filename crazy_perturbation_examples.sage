@@ -111,7 +111,7 @@ def kzh_minimal_has_only_crazy_perturbation_1():
     This crazy perturbation is valid, since it has positive epsilon.
 
         sage: find_epsilon_for_crazy_perturbation(h, cp)
-        0.0002639108814623441?
+        0.0003958663221935161?
 
     Therefore, the function kzh_minimal_has_only_crazy_perturbation_1() is not extreme.
 
