@@ -243,8 +243,9 @@ def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
                     m = 0
                     g += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), r=0.01)
                     g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)), r=0.01)
-    C = max([abs(fi._slope) for fi in cp.pwl._functions])
-    epsilon = m / max([M, 8*C]) # not a maximal value.
+    if M == 0:
+        return 1
+    epsilon = m / M # not a maximal value.
     if epsilon == 0 and show_plots:
         g.show(figsize=40)
     return epsilon
