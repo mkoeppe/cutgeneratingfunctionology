@@ -3271,9 +3271,16 @@ def reduce_covered_components(covered_components):
     return reduced_components
 
 def merge_components_with_given_component(given_component, other_components):
-    overlapping_components, remaining_components = partition_overlapping_components(given_component, other_components)
-    new_component = union_of_coho_intervals_minus_union_of_coho_intervals([given_component]+overlapping_components, [])
-    return new_component, remaining_components
+    remaining_components = []
+    for component in other_components:
+        if list(intersection_of_coho_intervals([given_component, component])):
+            # if the two components intersect, the intersection is full-dimensional since intervals are all open intervals.
+            # extend the given_component to the union.
+            given_component = union_of_coho_intervals_minus_union_of_coho_intervals([given_component, component], [])
+        else:
+            # if component is not merged into the given_component, it remains in remaining_components.
+            remaining_components.append(component)
+    return given_component, remaining_components
 
 def partition_overlapping_components(given_component, components):
     overlapping_components = []

@@ -242,7 +242,7 @@ def generate_additivity_equations_continuous(function, symbolic, field, f=None, 
     vs = list(generate_additive_vertices(function, bkpt=bkpt))
     equations = [symbolic(f), symbolic(field(1))]+[delta_pi(symbolic, x, y) for (x, y, z, xeps, yeps, zeps) in vs]
     M = matrix(field, equations)
-    if logging.getLogger().isEnabledFor(logging.DEBUG):
+    if not logging.getLogger().isEnabledFor(logging.DEBUG):
         return M
     pivot_r =  list(M.pivot_rows())
     for i in pivot_r:

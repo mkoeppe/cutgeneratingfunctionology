@@ -210,8 +210,7 @@ def generate_symbolic_general(function, components, field=None, f=None):
         num_jumps = len(bkpt) - 1
         num_left_jumps = bkpt.index(f)
     else:
-        num_jumps = sum([(x[-1] != x[0]) + (x[0] != x[1]) for x in limits[1:-1]]) + \
-                    (limits[0][0] != limits[0][1]) + (limits[-1][-1] != limits[-1][0]) # don't count 0- and 1+
+        num_jumps = sum([x[0] != x[1] for x in limits[0:-1]])
         num_left_jumps = sum([(function.limit(x,-1) != function(x)) for x in bkpt if x > 0 and x <= f/2]) + \
                          sum([(function.limit(x,1) != function(x)) for x in bkpt if x < f/2])
     vector_space = VectorSpace(field, n + num_jumps)
