@@ -348,7 +348,7 @@ def minimality_test_randomized(fn, orig_function=None, max_iterations=None):
         sage: crazy_piece_2 = CrazyPiece((f-ucr, f-ucl), generators, [(f-ucr, 1), (f-ucl, -1)])
         sage: cp = PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
         sage: eps = find_epsilon_for_crazy_perturbation(h, cp)
-        sage: hcp = h + eps * cp
+        sage: hcp = PiecewiseCrazyFunction(h+eps*pwl, [eps*crazy_piece_1, eps*crazy_piece_2]) # In fact, hcp = h + eps * cp, but it fails in doctest.
         sage: minimality_test_randomized(hcp, h, max_iterations=10)
         True
     """
