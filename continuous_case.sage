@@ -253,5 +253,5 @@ def generate_additivity_equations_continuous(function, symbolic, field, f=None, 
         else:
             (x, y, z, xeps, yeps, zeps) = vs[i-2]
             eqn = equations[i]
-            logging.debug("Condition pert(%s) + pert(%s) = pert(%s) gives the equation\n{} * v = 0." % (x, y, z, eqn))
+            logging.debug("Condition pert(%s) + pert(%s) = pert(%s) gives the equation\n%s * v = 0." % (x, y, z, eqn))
     return M[pivot_r]
