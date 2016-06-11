@@ -439,13 +439,13 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None):
                 g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)), color=color, r=0.03)
     return g
 
-def plot_2d_diagram_simple_additive_domain(fn, show_function=True, f=None):
+def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None):
     """
     EXAMPLES::
 
         sage: logging.disable(logging.INFO)
         sage: h = hildebrand_discont_3_slope_1()
-        sage: g = plot_2d_diagram_simple_additive_domain(h)
+        sage: g = plot_2d_diagram_additive_domain_sans_limits(h)
     """
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
