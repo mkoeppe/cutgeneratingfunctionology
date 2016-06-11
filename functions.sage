@@ -478,6 +478,31 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None):
     return g
 
 
+def plot_2d_diagram_simple_additive_domain(fn, show_function=True, f=None):
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = hildebrand_discont_3_slope_1()
+        sage: g = plot_2d_diagram_simple_additive_domain(h)
+    """
+    if f is None:
+        f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    g = Graphics()
+    faces = generate_maximal_additive_faces(fn)
+    for face in faces:
+        ver = face.vertices
+        n = len(ver)
+        mx, my = sum([x for (x,y) in ver])/n, sum([y for (x,y) in ver])/n
+        if  delta_pi(fn, mx, my) == 0:
+            g += face.plot()
+        else:
+            g += face.plot(rgbcolor='white', fill_color='white')
+    g += plot_2d_complex(fn)
+    if show_function:
+        g += plot_function_at_borders(fn)
+    return g
+
 def plot_function_at_borders(fn, color='blue', legend_label="Function pi", covered_intervals=None, **kwds):
     """
     Plot the function twice, on the upper and the left border, 
