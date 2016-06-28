@@ -23,7 +23,7 @@ load("extreme_functions_mlr_cpl3.sage")
 
 load("bug_examples.sage")
 
-import extreme_functions
+import extreme_functions, procedures
 
 try:
     load("config.sage")

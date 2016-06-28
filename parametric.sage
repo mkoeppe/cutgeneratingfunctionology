@@ -126,13 +126,38 @@ class SymbolicRNFElement(FieldElement):
             other = SymbolicRNFElement(other, parent=self.parent())
         return SymbolicRNFElement(self._val / other._val, self._sym / other._sym, parent=self.parent())
 
-    # New bug in SageMath Version 7.1.beta5.
     def __hash__(self):
-        # copy from the hash method for Elements in Sage 6.9
-        #return hash(str(self))
-        # copy from the hash method for SageObject in Sage 6.9
-        return hash(self.__repr__())
+        """
+        The hash function of these elements must be so that 
+        elements that would compare equal have the same hash value. 
 
+        The constant hash function would do the job.  Instead we use the
+        hash of the ._val (because equality implies equality of _val).
+        It is not correct to use the hash of the ._sym, or to compare
+        the __repr__, because then the user could check for equality
+        (for example, by testing the cardinality of a set, as in the
+        tests below) without the equality being recorded in the field.
+
+        The correctness of this implementation depends on the guarantee
+        of the that equal _val elements have the same hash value.  If in
+        doubt, make sure that the _val elements all come from the same
+        field, by `nice_field_values`.
+
+        TESTS::
+
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<f> = SymbolicRealNumberField([1])
+            sage: s = {f, K(1)}
+            sage: len(s)
+            1
+            sage: s
+            {1~}
+            sage: K.<f> = SymbolicRealNumberField([1])
+            sage: s = {f, K(2)}
+            sage: len(s)
+            2
+        """
+        return hash(self._val)
 
 from sage.rings.ring import Field
 import sage.rings.number_field.number_field_base as number_field_base
