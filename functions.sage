@@ -3013,7 +3013,10 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
     global crazy_perturbations_warning
-    if crazy_perturbations and (limiting_slopes(fn) == (+Infinity, -Infinity)):
+    if crazy_perturbations and \
+       limiting_slopes(fn)[0] is +Infinity and \
+       limiting_slopes(fn)[1] is -Infinity:
+        # this needs checking that it does the right thing for parametric functions.
         crazy_perturbations_warning = True
     else:
         crazy_perturbations_warning = False
