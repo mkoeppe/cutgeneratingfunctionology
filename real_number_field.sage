@@ -74,12 +74,16 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
         return result
 
     def __repr__(self):
-        embedded = self.embedded()
-        symbolic = getattr(self, '_symbolic', None)
-        if symbolic is None:
-            return 'RNF%s' % embedded
+        global show_RNFElement_by_embedding
+        if show_RNFElement_by_embedding:
+            embedded = self.embedded()
+            symbolic = getattr(self, '_symbolic', None)
+            if symbolic is None:
+                return '%s' % embedded
+            else:
+                return '<%s=%s>' % (symbolic, embedded)
         else:
-            return '<RNF%s=%s>' % (symbolic, embedded)
+            return NumberFieldElement_absolute._repr_(self)
 
     def _latex_(self):
         symbolic = getattr(self, '_symbolic', None)
@@ -162,7 +166,7 @@ class RealNumberField_absolute(NumberField_absolute):
         sage: logging.disable(logging.INFO)
         sage: field = nice_field_values([sqrt(2),sqrt(3)])[0].parent()
         sage: field
-        Real Number Field in `a` with defining polynomial y^4 - 4*y^2 + 1
+        Real Number Field in `a` as the root of the defining polynomial y^4 - 4*y^2 + 1 near 0.5176380902050415?
         sage: field1 = NumberField(field.polynomial(),"a")
         sage: field1
         Number Field in a with defining polynomial y^4 - 4*y^2 + 1
@@ -170,7 +174,7 @@ class RealNumberField_absolute(NumberField_absolute):
         False
         sage: field2 = VectorSpace(field, 2).base_field()
         sage: field2
-        Real Number Field in `a` with defining polynomial y^4 - 4*y^2 + 1
+        Real Number Field in `a` as the root of the defining polynomial y^4 - 4*y^2 + 1 near 0.5176380902050415?
         sage: field == field2 and field2 == field
         True
     """
@@ -190,12 +194,15 @@ class RealNumberField_absolute(NumberField_absolute):
         self._exact_embedding = self.hom([exact_embedding])
 
     def _repr_(self):
-        return "Real Number Field in `%s` with defining polynomial %s"%(
-                   self.variable_name(), self.polynomial())
+        return "Real Number Field in `%s` as the root of the defining polynomial %s near %s"%(
+                   self.variable_name(), self.polynomial(), self.gen(0).embedded())
     def __hash__(self):
         return NumberField_absolute.__hash__(self)
 
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
+
+# global variable to controle the format of repr(RealNumberFieldElement_quadratic)
+show_RNFElement_by_embedding = True
 
 class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
     
@@ -206,8 +213,13 @@ class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
         return e
     
     def __repr__(self):
-        embedded = self.embedded()
-        return 'RNF%s' % embedded
+        global show_RNFElement_by_embedding
+        if show_RNFElement_by_embedding:
+            embedded = self.embedded()
+            return '%s' % embedded
+        else:
+            return NumberFieldElement_quadratic._repr_(self)
+
 
     def __hash__(self):
         if not hasattr(self, '_hash'):
@@ -262,8 +274,8 @@ class RealNumberField_quadratic(NumberField_quadratic):
         self._one_element =  RealNumberFieldElement_quadratic(self, QQ(1))
 
     def _repr_(self):
-        return "Real Number Field in `%s` with defining polynomial %s"%(
-                   self.variable_name(), self.polynomial())
+        return "Real Number Field in `%s` as the root of the defining polynomial %s near %s"%(
+                   self.variable_name(), self.polynomial(), self.gen(0).embedded())
     
 # The factory.
 

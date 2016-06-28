@@ -1337,15 +1337,56 @@ class LlStrongFractional(ExtremeFunctionsFactory):
 
 ll_strong_fractional = LlStrongFractional()
 
-def bcdsp_arbitrary_slope(*args, **kwds):
+def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
     """
-    A family of extreme functions with an arbitrary number of slopes.
+    A family of extreme functions with an arbitrary number `k` of slopes. (k >= 2)
+
+    Function is known to be extreme under the condition:
+        0 < f <= 1/2.
+
+    Tests show that the function is also extreme when f <= 4/5.
+
+    Examples::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = bcdsp_arbitrary_slope(f=1/2, k=2)
+        sage: h == gmic(f=1/2)
+        True
+        sage: h = bcdsp_arbitrary_slope(f=1/2, k=3)
+        sage: h == gj_forward_3_slope(f=1/2, lambda_1=1/2, lambda_2=1/4)
+        True
+        sage: h = bcdsp_arbitrary_slope(f=1/2, k=4)
+        sage: number_of_slopes(h)
+        4
+        sage: extremality_test(h)
+        True
+        sage: h = bcdsp_arbitrary_slope(f=4/5, k=10)
+        sage: number_of_slopes(h)
+        10
+        sage: extremality_test(h)
+        True
 
     Reference:
          [arbitrary_num_slopes] A. Basu, M. Conforti, M. Di Summa, and J. Paat, Extreme Functions with an Arbitrary Number
 of Slopes, 2015, http://www.ams.jhu.edu/~abasu9/papers/infinite-slopes.pdf, to appear in Proceedings of IPCO 2016.
     """
-    raise NotImplementedError
+    if not bool(0 < f < 1) or k not in ZZ or k < 2:
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    if conditioncheck:
+        if not bool(0 < f <= 1/2):
+            logging.info("Conditions for extremality are NOT satisfied.")
+        else:
+            logging.info("Conditions for extremality are satisfied.")
+    f = nice_field_values([f], field)[0]
+    field = f.parent()
+    bkpts = [field(0)]
+    slopes = []
+    for i in range(k-2, 0, -1):
+        bkpts += [f/(8^i), 2*f/(8^i)]
+        slopes += [(2^i - f)/f/(1-f), 1/(f-1)]
+    bkpts = bkpts + [f - x for x in bkpts[::-1]] + [field(1)]
+    slopes = slopes + [1/f] + slopes[::-1] + [1/(f-1)]
+    return piecewise_function_from_breakpoints_and_slopes(bkpts, slopes, field=field)
 
 extreme_function_with_world_record_number_of_slopes = bcdsp_arbitrary_slope
 
