@@ -682,7 +682,7 @@ def solve_for_pivot_variables(pt, leqs, pivot_variables):
     return vector(new_pt)
 
 ######################################
-# Extreme functions with the magic K
+# Functions with the magic K
 ######################################
 
 from sage.misc.sageinspect import sage_getargspec, sage_getvariablename
@@ -696,8 +696,9 @@ def read_default_args(function, **opt_non_default):
     """
     args, varargs, keywords, defaults = sage_getargspec(function)
     default_args = {}
-    for i in range(len(defaults)):
-        default_args[args[-i-1]]=defaults[-i-1]
+    if defaults is not None:
+        for i in range(len(defaults)):
+            default_args[args[-i-1]]=defaults[-i-1]
     for (opt_name, opt_value) in opt_non_default.items():
         if opt_name in default_args:
             default_args[opt_name] = opt_value
@@ -717,8 +718,11 @@ def construct_field_and_test_point(function, var_name, var_value, default_args):
     test_point = copy(default_args)
     for i in range(len(var_name)):
         test_point[var_name[i]] = K.gens()[i]
-    test_point['field'] = K
-    test_point['conditioncheck'] = False
+    args_set = set(sage_getargspec(function)[0])
+    if 'field' in args_set:
+        test_point['field'] = K
+    if 'conditioncheck' in args_set:
+        test_point['conditioncheck'] = False
     return K, test_point
 
 def simplified_extremality_test(function):
@@ -1118,13 +1122,9 @@ class SemialgebraicComplexComponent(SageObject):
             d = len(self.var_value)
             if d > 2:
                 raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
-            if hasattr(self, 'nlin'):
-                leqs = self.leq + self.nleq
-                lins = self.lin + self.nlin
-            else:
-                leqs = self.leq
-                lins = self.lin
-            var_bounds = [bounds_for_plotting(self.bounds[i]) for i in range(d)]
+            leqs = self.leq
+            lins = self.lin
+            var_bounds = [bounds_for_plotting(self.bounds[i], self.parent.default_var_bound) for i in range(d)]
         else:
             # assert (len(slice_value) == len(self.var_value))
             d = 0
@@ -1132,7 +1132,7 @@ class SemialgebraicComplexComponent(SageObject):
             for (i, z) in enumerate(slice_value):
                 if z is None:
                     d += 1
-                    var_bounds.append(bounds_for_plotting(self.bounds[i]))
+                    var_bounds.append(bounds_for_plotting(self.bounds[i], self.parent.default_var_bound))
                 elif not is_value_in_interval(z, self.bounds[i]):
                     # empty slice
                     return g
@@ -1145,13 +1145,7 @@ class SemialgebraicComplexComponent(SageObject):
             unknowns=iter(P.gens())
             parametric_point = [unknowns.next() if z is None else z for z in slice_value]
             leqs = []
-            if hasattr(self, 'nlin'):
-                selfleq = self.leq + self.nleq
-                selflin = self.lin + self.nlin
-            else:
-                selfleq = self.leq
-                selflin = self.lin
-            for leq in selfleq:
+            for leq in self.leq:
                 l = leq(*parametric_point)
                 if l in QQ:
                     if l != 0:
@@ -1159,7 +1153,7 @@ class SemialgebraicComplexComponent(SageObject):
                 else:
                    leqs.append(l)
             lins = []
-            for lin in selflin:
+            for lin in self.lin:
                 l = lin(*parametric_point)
                 if l in QQ:
                     if l >= 0:
@@ -1314,36 +1308,11 @@ class SemialgebraicComplexComponent(SageObject):
                     if l(*pt_across_wall) >= 0:
                         pt_across_wall = None
                         break
-
-                for l in self.nlin:
-                    if pt_on_wall is not None and l(*pt_on_wall) >= 0:
-                        pt_on_wall = None
-                    if pt_across_wall is not None and l(*pt_across_wall) >= 0:
-                        pt_across_wall = None
-                for l in self.nleq:
-                    if pt_on_wall is not None and  l(*pt_on_wall) != 0:
-                        pt_on_wall = None
-                    if pt_across_wall is not None and l(*pt_across_wall) != 0:
-                        pt_across_wall = None
-
                 if pt_on_wall is not None:
                     neighbour_points.append((pt_on_wall, [ineq]))
                 if pt_across_wall is not None:
                     neighbour_points.append((pt_across_wall, []))
-            # In cpl, though outer walls are linear, inner walls can be non-linear.
-            # hope that mathematica moved redundant non-linear inequalites.
-            ## lower dim cell has too many useless non-linear walls. Only consider those non-linear walls that were previously crossed by flipping one of the linear inequalities for now. Temporary
-            ##if not self.leq:
-            for ineq in self.nlin:
-                new_point = self.generate_one_point_by_flipping_inequality(ineq, flip_ineq_step=-flip_ineq_step)
-                if new_point is None:
-                    continue
-                for l in bddlin:
-                    if l(*new_point) >= 0:
-                        new_point = None
-                        break
-                if not new_point is None:
-                    neighbour_points.append((new_point, []))
+
         return neighbour_points
 
 class SemialgebraicComplex(SageObject):
@@ -1409,7 +1378,7 @@ class SemialgebraicComplex(SageObject):
         # more testcases in param_graphics.sage
     """
 
-    def __init__(self, function, var_name, max_iter=8, find_region_type=None, **opt_non_default):
+    def __init__(self, function, var_name, max_iter=8, find_region_type=None, default_var_bound=(-0.1,1.1), **opt_non_default):
         #self.num_components = 0
         self.components = []
 
@@ -1435,12 +1404,13 @@ class SemialgebraicComplex(SageObject):
                                                            is_minimal=None,use_simplified_extremality_test=True)
             find_region_type = frt
         self.find_region_type_around_given_point = find_region_type
+        self.default_var_bound = default_var_bound
 
     def generate_random_var_value(self, var_bounds=None):
         var_value = []
         for i in range(self.d):
             if not var_bounds:
-                x = QQ(uniform(-0.1, 1.1))
+                x = QQ(uniform(self.default_var_bound[0], self.default_var_bound[1]))
             else:
                 if hasattr(var_bounds[i][0], '__call__'):
                     l =  var_bounds[i][0](*var_value)
@@ -1580,15 +1550,15 @@ def is_point_in_box(monomial_value, bounds):
     # just ignore the tailing monomial values which come from lifting.
     return all(is_value_in_interval(monomial_value[i], bounds[i]) for i in range(len(bounds)))
 
-def bounds_for_plotting((lb, ub)):
+def bounds_for_plotting((lb, ub), default_var_bound):
     if not lb is None:
         l = lb - 0.01
     else:
-        l = -0.1
+        l = default_var_bound[0]
     if not ub is None:
         u = ub + 0.01
     else:
-        u = 1.1
+        u = default_var_bound[1]
     return (l, u)
 
 def construct_mip_of_nnc_polyhedron(nncp):
