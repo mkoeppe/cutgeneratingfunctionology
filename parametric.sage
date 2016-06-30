@@ -750,310 +750,6 @@ def simplified_extremality_test(function):
         logging.info("The function is extreme.")
         return True
 
-##############################
-# Find regions
-#############################
-
-def find_region_according_to_literature(function, var_name, var_value, region_level, default_args=None, \
-                                        level="factor", non_algrebraic_warn=True, **opt_non_default):
-    """
-    sage: find_region_according_to_literature(gmic, ['f'], [4/5], 'constructible')
-    ([], [f - 1, -f])
-    sage: find_region_according_to_literature(drlm_backward_3_slope, ['f','bkpt'], [1/12, 2/12], 'extreme')
-    ([], [f - bkpt, -f + 4*bkpt - 1, -f])
-    """
-    ## Note: region_level = 'constructible' / 'extreme'
-    if default_args is None:
-        default_args = read_default_args(function, **opt_non_default)
-    if not isinstance(function, ExtremeFunctionsFactory):
-        K, test_point = construct_field_and_test_point(function, var_name, var_value, default_args)
-        if region_level == 'extreme':
-            test_point['conditioncheck'] = True
-        h = function(**test_point)
-        leq, lin =  read_simplified_leq_lin(K, level=level)
-        if leq:
-            logging.warn("Bad default arguments!")
-        return leq, lin
-    else:
-        if non_algrebraic_warn:
-            logging.warn("This function involves non-algebraic operations. Parameter region according to literature was plotted separately.")
-        test_point = copy(default_args)
-        del test_point['field']
-        del test_point['conditioncheck']
-        for v in var_name:
-            del test_point[v]
-        x, y = var('x, y')
-        if region_level == 'constructible':
-            if len(var_name) == 2:
-                return lambda x, y: function.claimed_parameter_attributes(**dict({var_name[0]: x, var_name[1]: y}, **test_point)) != 'not_constructible'
-            else:
-                return lambda x, y: function.claimed_parameter_attributes(**dict({var_name[0]: x}, **test_point )) != 'not_constructible'
-        elif region_level == 'extreme':
-            if len(var_name) == 2:
-                return lambda x, y: function.claimed_parameter_attributes(**dict({var_name[0]: x, var_name[1]: y}, **test_point)) == 'extreme'
-            else:
-                return lambda x, y: function.claimed_parameter_attributes(**dict({var_name[0]: x}, **test_point )) == 'extreme'
-        else:
-            raise ValueError, "Bad argument region_level = %s" % region_level
-
-def find_region_around_given_point(K, h, level="factor", region_level='extreme', is_minimal=None, use_simplified_extremality_test=True):
-    ## Note: region_level = 'constructible' / 'minimal'/ 'extreme'. test cases see find_parameter_region()
-    region_type = find_region_type_around_given_point(K, h, region_level=region_level, is_minimal=is_minimal, use_simplified_extremality_test=use_simplified_extremality_test)
-    leq, lin = read_simplified_leq_lin(K, level=level)
-    return region_type, leq, lin
-
-def find_region_type_around_given_point(K, h, region_level='extreme', is_minimal=None, use_simplified_extremality_test=True):
-    ## Note: region_level = 'constructible' / 'minimal'/ 'extreme'. test cases see find_parameter_region()
-    if h is None:
-        return 'not_constructible'
-    if region_level == 'constructible':
-        return 'is_constructible'
-    if is_minimal is None:
-        is_minimal = minimality_test(h, stop_if_fail=True)
-    if is_minimal:
-        if region_level == 'minimal':
-            return 'is_minimal'
-        if use_simplified_extremality_test:
-            is_extreme = simplified_extremality_test(h)
-        else:
-            is_extreme = extremality_test(h)
-        if is_extreme:
-            return 'is_extreme'
-        else:
-            return 'not_extreme'
-    else:
-        return 'not_minimal'
-
-def find_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_value=None, use_simplified_extremality_test=True,\
-                        level="factor", region_level='extreme', **opt_non_default):
-    """
-    sage: find_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12+1/30, 2/12], region_level='constructible')
-    ('is_constructible', [], [f - bkpt, -f + 2*bkpt - 1, -f])
-    sage: find_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12+1/30, 2/12], region_level='minimal')
-    ('is_minimal', [], [f - bkpt, -f + 3*bkpt - 1, -2*f + bkpt])
-    sage: find_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12+1/30, 2/12], region_level='extreme')
-    ('is_extreme', [], [f - bkpt, -f + 4*bkpt - 1, -2*f + bkpt, f^2 - f*bkpt - 1])
-    """
-    # similar to find_region_around_given_point(), but start from constructing K and test point.
-    default_args = read_default_args(function, **opt_non_default)
-    if not var_value:
-        var_value = [default_args[v] for v in var_name]
-    K, test_point = construct_field_and_test_point(function, var_name, var_value, default_args)
-    try:
-        h = function(**test_point)
-    except:
-        h = None
-    region_type, leq, lin = find_region_around_given_point(K, h, level=level, region_level=region_level, \
-                        is_minimal=None, use_simplified_extremality_test=use_simplified_extremality_test)
-    return region_type, leq, lin
-
-##############################
-# Plot regions
-#############################
-def plot_region_given_dim_and_description(d, region_description, color, alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000):
-    x, y = var('x, y')
-    if type(region_description) is tuple:
-        leq, lin = region_description
-        if d == 2:
-            return region_plot([ lhs(x, y) == 0 for lhs in leq ] + [ lhs(x, y) < 0 for lhs in lin ], \
-                    (x, xmin, xmax), (y, ymin, ymax), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
-        else:
-            return region_plot([ lhs(x) == 0 for lhs in leq ] + [ lhs(x) < 0 for lhs in lin ] + [y >= -0.01, y <= 0.01], \
-                    (x, xmin, xmax), (y, -0.1, 0.3), incol=color, alpha=alpha, plot_points=plot_points, bordercol=color, ticks=[None,[]])
-    else:
-        # region_description is a lambda function,
-        # such as find_region_according_to_literature(function from factory classes)
-        if d == 2:
-            return region_plot([region_description], (x, xmin, xmax), (y, ymin, ymax), \
-                    incol=color, alpha=alpha, plot_points=plot_points, bordercol=color)
-        else:
-            return region_plot([region_description] + [y >= -0.01, y <= 0.01], (x, xmin, xmax), (y, -0.1, 0.3), \
-                    incol=color, alpha=alpha, plot_points=plot_points, bordercol=color, ticks=[None,[]])
-
-def plot_region_according_to_literature(function, var_name, default_args=None, level="factor", \
-                                        alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000, **opt_non_default):
-    """
-    sage: plot_region_according_to_literature(drlm_backward_3_slope, ['f','bkpt'], plot_points=1000) # not tested
-    sage: plot_region_according_to_literature(gj_forward_3_slope, ['lambda_1', 'lambda_2'], f = 2/3, plot_points=500)  # not tested
-    sage: plot_region_according_to_literature(dg_2_step_mir, ['f','alpha'], plot_points=500)  # not tested
-    """
-    if default_args is None:
-        default_args = read_default_args(function, **opt_non_default)
-    var_value = [default_args[v] for v in var_name]
-    g = Graphics()
-    d = len(var_name)
-    region_constructible = find_region_according_to_literature(function, var_name, var_value, 'constructible', default_args, level=level)
-    g += plot_region_given_dim_and_description(d, region_constructible, "orange", \
-                    alpha=alpha, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
-    g += line([(0,0),(0,0.01)], color = "orange", legend_label="constructible", zorder=-10)
-    region_extreme = find_region_according_to_literature(function, var_name, var_value, 'extreme', default_args, level=level, non_algrebraic_warn=False)
-    g += plot_region_given_dim_and_description(d, region_extreme, "red", \
-                    alpha=alpha, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
-    g += line([(0,0),(0,0.01)], color ="red", legend_label="claimed_extreme", zorder=-10)
-    return g
-
-def plot_covered_regions(regions, tested_points, d, alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, plot_points=1000, show_points=2):
-    covered_type_color = {'not_minimal': 'orange', 'not_extreme': 'green', 'is_extreme': 'blue'}
-    g = Graphics()
-    for (covered_type, leq, lin) in regions:
-        g += plot_region_given_dim_and_description(d, (leq, lin), color=covered_type_color[covered_type], \
-                            alpha=alpha, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
-    # show_points: 0 -- don't show points, 1 -- show white points; 2 -- show all points
-    if show_points:
-        for (p_val, p_col) in tested_points:
-            if show_points == 1 and p_col == 'black':
-                # don't plot black points out of the constructible region.
-                continue
-            if d == 2:
-                g += point([p_val], color = p_col, size = 2, zorder=10)
-            else:
-                g += point([(p_val[0], 0)], color = p_col, size = 2, zorder=10)
-    return g
-
-def plot_parameter_region(function=drlm_backward_3_slope, var_name=['f'], var_value=None, use_simplified_extremality_test=True,\
-                        alpha=0.5, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, level="factor", plot_points=1000, **opt_non_default):
-
-    """
-    sage: logging.disable(logging.INFO) # not tested
-    sage: g, fname, fparam = plot_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12-1/30, 2/12]) # not tested
-    sage: g.save(fname+".pdf", title=fname+fparam, legend_loc=7) # not tested
-
-    sage: plot_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/12+1/30, 2/12], plot_points=500) # not tested
-    sage: plot_parameter_region(drlm_backward_3_slope, ['f','bkpt'], [1/10-1/100, 3/10], plot_points=500) # not tested
-
-    sage: plot_parameter_region(gj_2_slope, ['f','lambda_1'], plot_points=100) # not tested
-    sage: plot_parameter_region(gj_2_slope, ['f','lambda_1'], [4/5, 4/6], plot_points=100) # not tested
-
-    sage: plot_parameter_region(gj_forward_3_slope, ['f','lambda_1'], [9/10, 3/10]) # not tested
-    sage: plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2']) # not tested
-    sage: plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'], f=3/4, lambda_1=2/3, lambda_2=3/5) # not tested
-    sage: plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'], [3/5, 7/5], f=1/2, lambda_1=4/9, lambda_2=1/3) # not tested
-    sage: plot_parameter_region(gj_forward_3_slope, ['lambda_1','lambda_2'], [9/10, 3/7], f=1/2, lambda_1=4/9, lambda_2=1/3) # not tested
-
-    sage: plot_parameter_region(chen_4_slope, ['lam1', 'lam2'], [1/4, 1/4], plot_points=100) # not tested
-
-    sage: plot_parameter_region(dg_2_step_mir, ['f','alpha'], [3/5,2/5-1/23],  plot_points=500) # not tested
-    sage: plot_parameter_region(dg_2_step_mir_limit, ['f'], [8/13], d=2, plot_points=500) # not tested
-
-    sage: plot_parameter_region(kf_n_step_mir, ['f'], [1/13], plot_points=100) # not tested
-    """
-    d = len(var_name)
-    if d >= 3:
-        #TODO
-        raise NotImplementedError, "More than three parameters. Not implemented."
-    region_type_color = {'is_minimal': 'green', 'not_minimal': 'darkslategrey', 'is_extreme': 'blue', 'not_extreme': 'cyan'}
-    default_args = read_default_args(function, **opt_non_default)
-    g = plot_region_according_to_literature(function, var_name, default_args, level=level, \
-                                alpha=alpha, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
-    if not var_value:
-        var_value = [default_args[v] for v in var_name]
-    K, test_point = construct_field_and_test_point(function, var_name, var_value, default_args)
-    try:
-        h = function(**test_point)
-        color_p = "white"
-        region_type, leq, lin = find_region_around_given_point(K, h, level=level, region_level='minimal', \
-                        is_minimal=None, use_simplified_extremality_test=use_simplified_extremality_test)
-        g += plot_region_given_dim_and_description(d, (leq, lin), color=region_type_color[region_type], alpha=alpha, \
-                        xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
-        g += line([(0,0),(0,0.01)], color=region_type_color[region_type], legend_label=region_type, zorder=-10)
-        if region_type == 'is_minimal':
-            region_type, leq, lin = find_region_around_given_point(K, h, level=level, region_level='extreme', \
-                            is_minimal=True, use_simplified_extremality_test=use_simplified_extremality_test)
-            g += plot_region_given_dim_and_description(d, (leq, lin), color=region_type_color[region_type], alpha=alpha, \
-                            xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points)
-            g += line([(0,0),(0,0.01)], color=region_type_color[region_type], legend_label=region_type, zorder=-10)
-    except:
-        logging.warn("%s = %s is out of the constructible region." % (var_name, var_value))
-        color_p = "black"
-    if d == 2:
-        p = point([var_value], color = color_p, size = 10, zorder=10)
-        fun_param = "(%s=%s, %s=%s)" % (var_name[0], var_value[0], var_name[1], var_value[1])
-    else:
-        p = point([(var_value[0], 0)], color = color_p, size = 10, zorder=10)
-        fun_param = "(%s=%s)" % (var_name[0], var_value[0])
-    g += p
-
-    fun_names = sage_getvariablename(function)
-    i = 0
-    while fun_names[i] == 'function':
-        i += 1
-    fun_name = fun_names[i]
-
-    g.show(title=fun_name+fun_param) #show_legend=False, axes_labels=var_name)
-    return g, fun_name, fun_param
-
-###########################
-# Randomly pick some points.
-# Can their parameter regions cover the extreme region according to literature?
-###########################
-
-def cover_parameter_region(function=drlm_backward_3_slope, var_name=['f'], random_points=10, xmin=-0.1, xmax=1.1, ymin=-0.1, ymax=1.1, \
-                            plot_points=0, show_points=2, regions=None, tested_points=None, **opt_non_default):
-    """
-    sage: regions, tested_points, last_n_points_was_covered = cover_parameter_region(gmic, ['f'], random_points=10, plot_points=100) # not tested
-    sage: _ = cover_parameter_region(drlm_backward_3_slope, ['f','bkpt'], random_points=200, plot_points=500) # not tested
-    sage: _ = cover_parameter_region(gj_2_slope, ['f', 'lambda_1'], 300, plot_points=100, show_points=1) # not tested
-
-    sage: _ = cover_parameter_region(gj_forward_3_slope, ['lambda_1', 'lambda_2'], random_points=500, plot_points=500) # not tested
-    sage: _ = cover_parameter_region(gj_forward_3_slope, ['f', 'lambda_1'], random_points=100, plot_points=500) # not tested
-
-    sage: regions, tested_points, last_n_points_was_covered = cover_parameter_region(chen_4_slope, ['lam1', 'lam2'], 20, plot_points=0) # not tested
-    sage: _ = cover_parameter_region(chen_4_slope, ['lam1', 'lam2'], 20, plot_points=500, show_points=1, regions=regions, tested_points=tested_points) # not tested
-    """
-    d = len(var_name)
-    if d >= 3:
-        #TODO
-        raise NotImplementedError, "More than three parameters. Not implemented."
-    default_args = read_default_args(function, **opt_non_default)
-    if regions is None:
-        regions = []
-    if tested_points is None:
-        tested_points = []
-    last_n_points_were_covered = 0
-    while random_points > 0:
-        x, y = QQ(uniform(xmin, xmax)), QQ(uniform(ymin, ymax))
-        if d == 2:
-            var_value = [x, y]
-        else:
-            var_value = [x]
-        # NOTE: When the function is not_constructible on this point,
-        # it's costly to go through all the previously found regions and then return "point_is_covered=False"
-        # So, first test if it's constructible
-        K, test_point = construct_field_and_test_point(function, var_name, var_value, default_args)
-        try:
-            h = function(**test_point)
-            # Function is contructible at this random point.
-            tested_points.append((var_value, 'white'))
-            random_points -= 1
-            # Test if this point is already covered.
-            point_is_covered = False
-            for (region_type, leq, lin) in regions:
-                if (d == 2) and all(l(x, y) == 0 for l in leq) and all(l(x, y) < 0 for l in lin) or \
-                   (d == 1) and all(l(x) == 0 for l in leq) and all(l(x) < 0 for l in lin):
-                    point_is_covered = True
-                    break
-            if point_is_covered:
-                last_n_points_were_covered += 1
-            else:
-                region_type, leq, lin =  find_region_around_given_point(K, h, level="factor", region_level='extreme', \
-                                                                is_minimal=None,use_simplified_extremality_test=True)
-                regions.append((region_type, leq, lin))
-                last_n_points_were_covered = 0
-        except:
-            # Function is not constructible at this random point.
-            tested_points.append((var_value, 'black'))
-    if plot_points > 0:
-        g = plot_covered_regions(regions, tested_points, d=d, alpha=0.5, \
-            xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_points=plot_points, show_points=show_points)
-        fun_names = sage_getvariablename(function)
-        i = 0
-        while fun_names[i] == 'function':
-            i += 1
-        fun_name = fun_names[i]
-        g.show(title=fun_name+'%s' % var_name)
-    return regions, tested_points, last_n_points_were_covered
-
-
 ###########################
 # Super class that stores the computation so far
 ###########################
@@ -1675,6 +1371,35 @@ def update_mccormicks_for_monomial(m, tightened_mip, original_polyhedron, monomi
     return tightened
 
 ##############################
-# linearly independent in Q
+# TO refector
 ##############################
-### Moved from parametric.sage to parametric_linear_independence.sage ###
+
+def find_region_type_around_given_point(K, h, region_level='extreme', is_minimal=None, use_simplified_extremality_test=True):
+    ## Note: region_level = 'constructible' / 'minimal'/ 'extreme'. test cases see find_parameter_region()
+    if h is None:
+        return 'not_constructible'
+    if region_level == 'constructible':
+        return 'is_constructible'
+    if is_minimal is None:
+        is_minimal = minimality_test(h, stop_if_fail=True)
+    if is_minimal:
+        if region_level == 'minimal':
+            return 'is_minimal'
+        if use_simplified_extremality_test:
+            is_extreme = simplified_extremality_test(h)
+        else:
+            is_extreme = extremality_test(h)
+        if is_extreme:
+            return 'is_extreme'
+        else:
+            return 'not_extreme'
+    else:
+        return 'not_minimal'
+
+def find_region_type(field, result):
+    # Return these label because that's what the plotting code expects.
+    # TODO: Make mapping customizable
+    if result:
+        return 'is_extreme'
+    else:
+        return 'not_extreme'
