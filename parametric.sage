@@ -831,12 +831,13 @@ class SemialgebraicComplexComponent(SageObject):
         if self.region_type in covered_type_color.keys():
             innercolor = covered_type_color[self.region_type]
             bordercolor = innercolor
-        elif self.region_type in colors:
+        #elif self.region_type in colors:
+        else:
             innercolor = self.region_type
             bordercolor = self.region_type
-        else:
-            innercolor = 'lightgrey'
-            bordercolor = 'black'
+        #else:
+        #    innercolor = 'lightgrey'
+        #    bordercolor = 'black'
         if innercolor == 'white':
             ptcolor = 'black'
         else:
