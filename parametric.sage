@@ -626,33 +626,16 @@ def read_simplified_leq_lin(K, level="factor"):
         logging.warn("equation list %s is not empty!" % leq)
     return leq, lin
 
-def variable_elimination_is_done_for_mincs(mincs):
-    # check the assumption about minimized_constraints:
-    # Let c_eq be an equation constraint in mincs.
-    # At least one of the variables in c_eq does not appear in any other constraints of mincs.
-    # This function is not used, as check_variable_elimination=False in read_leq_lin_from_polyhedron(). But we do the check in find_pivot_variables().
-    m = len(mincs)
-    n = mincs.space_dimension()
-    coef = [c.coefficients() for c in mincs]
-    for i in range(m):
-        if mincs[i].is_equality():
-            has_eliminated_variable = False
-            for k in range(n):
-                if (coef[i][k] != 0) and all(coef[j][k] == 0 for j in range(m) if j != i):
-                    has_eliminated_variable = True
-                    break
-            if not has_eliminated_variable:
-                return False
-    return True
-
-def find_pivot_variables(leqs, lins):
-    # FIXME: Polynomial_rational_flint doesn't have .monomials() .monomial_coefficient
-    # assume equations and inequalites are linear.
-    # compute the pivot variable of each leqs.
-    variables = lins[0].args()
-    pivots = []
+def find_variable_mapping(leqs, lins):
+    if leqs:
+        variables = leqs[0].args()
+    else:
+        variables = lins[0].args()
+    var_map = {}
+    for v in variables:
+        var_map[v] = v
     if not leqs:
-        return pivots
+        return var_map
     monomials_not_in_lins = set(variables)
     for ineq in lins:
         monomials_not_in_lins -= set(ineq.monomials())
@@ -660,26 +643,14 @@ def find_pivot_variables(leqs, lins):
     for i in range(n):
         found_pivot = False
         for v in monomials_not_in_lins:
-            if (leqs[i].monomial_coefficient(v) != 0) and \
-               all(leqs[j].monomial_coefficient(v) == 0 for j in range(n) if j != i):
-                pivots.append(v)
+            coef = leqs[i].monomial_coefficient(v)
+            if (coef != 0) and all(leqs[j].monomial_coefficient(v) == 0 for j in range(n) if j != i):
                 found_pivot = True
+                var_map[v] = v - leqs[i] / coef
                 break
         if not found_pivot:
-            raise NotImplementedError, "Alas, PPL didn't do its job for eliminating variables in the system %s == 0, %s < 0." % (leqs, lins)
-    return pivots
-
-def solve_for_pivot_variables(pt, leqs, pivot_variables):
-    if not leqs:
-        return pt #type is vector
-    new_pt = list(pt)
-    variables = leqs[0].args()
-    for (pv, eqn) in izip(pivot_variables, leqs):
-        i = variables.index(pv)
-        coef = eqn.monomial_coefficient(pv)
-        vi = (coef*pv - eqn)(*new_pt) / coef
-        new_pt[i] = vi
-    return vector(new_pt)
+            logging.warn("PPL didn't eliminate variable in %s == 0 in the system %s == 0, %s < 0. Heurist wall crossing may fail." % (leqs[i], leqs, lins))
+    return var_map
 
 ######################################
 # Functions with the magic K
@@ -768,12 +739,11 @@ class SemialgebraicComplexComponent(SageObject):
         if self.parent.max_iter == 0:
             tightened_mip = None
 
-        self.leq, self.lin = read_leq_lin_from_polyhedron(self.polyhedron, \
+        leqs, lins = read_leq_lin_from_polyhedron(self.polyhedron, \
                                                           self.parent.monomial_list, self.parent.v_dict, tightened_mip) #, check_variable_elimination=False)
-        # self.pivot indicates the pivot variable for each equation of self.leq,
-        # Compute it in self.generate_points_on_and_across_linear_wall()
-        # where all walls are assumed to be linear (flip_ineq_step < 0).
-        self.pivot = None 
+        self.var_map = find_variable_mapping(leqs, lins)
+        self.leq = leqs
+        self.lin = [l.subs(self.var_map) for l in lins]
 
     def bounds_propagation(self, max_iter):
         tightened_mip = construct_mip_of_nnc_polyhedron(self.polyhedron)
@@ -819,7 +789,7 @@ class SemialgebraicComplexComponent(SageObject):
             if d > 2:
                 raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
             leqs = self.leq
-            lins = self.lin
+            lins = self.lin + self.parent.bddlin
             var_bounds = [bounds_for_plotting(self.bounds[i], self.parent.default_var_bound) for i in range(d)]
         else:
             # assert (len(slice_value) == len(self.var_value))
@@ -849,7 +819,7 @@ class SemialgebraicComplexComponent(SageObject):
                 else:
                    leqs.append(l)
             lins = []
-            for lin in self.lin:
+            for lin in self.lin + self.parent.bddlin:
                 l = lin(*parametric_point)
                 if l in QQ:
                     if l >= 0:
@@ -861,6 +831,9 @@ class SemialgebraicComplexComponent(SageObject):
         if self.region_type in covered_type_color.keys():
             innercolor = covered_type_color[self.region_type]
             bordercolor = innercolor
+        elif self.region_type in colors:
+            innercolor = self.region_type
+            bordercolor = self.region_type
         else:
             innercolor = 'lightgrey'
             bordercolor = 'black'
@@ -887,129 +860,47 @@ class SemialgebraicComplexComponent(SageObject):
                 g += point([self.var_value[0], 0], color = ptcolor, size = 2, zorder=10)
         return g
 
-    def generate_one_point_by_flipping_inequality(self, ineq, adjustment=True, flip_ineq_step=0.01):
-        ineq_gradient = gradient(ineq)
-        current_point = vector([RR(x) for x in self.var_value]) # Real numbers, faster than QQ
-        ineq_value = ineq(*current_point)
-        while ineq_value <= 0:
-            ineq_direction = vector([g(*current_point) for g in ineq_gradient])
-            step_length = flip_ineq_step / (ineq_direction * ineq_direction) # ineq_value increases by flip_ineq_step=0.01 roughly
-            if step_length > 1:
-                step_length = 1  # ensure that distance of move <= sqrt(flip_ineq_step) = 0.1 in each step
-            current_point += step_length * ineq_direction
-            ineq_value = ineq(*current_point)
-            #print current_point, RR(ineq_value)
-        if adjustment:
-            # experimental code, move along ineq=cste when more than one inequality are flipped.
-            for l in self.lin:
-                if l == ineq or l(*current_point) < 0:
-                    continue
-                #print "adjust ineq %s" % l
-                l_gradient = gradient(l)
-                l_value = l(*current_point)
-                while l_value >= 0:
-                    l_direction = vector([-g(*current_point) for g in l_gradient]) #decrease l_value
-                    ineq_direction = vector([g(*current_point) for g in ineq_gradient])
-                    s = (ineq_direction * l_direction) / (ineq_direction * ineq_direction)
-                    if s == 0:
-                        return None
-                    projected_direction = l_direction - s * ineq_direction # want that ineq_value remains the same
-                    step_length = flip_ineq_step / (projected_direction * l_direction) # l_value decreases by 0.01 roughly
-                    # step_length = max(0.01, l_value) /(projected_direction * l_direction) # l_value decreases by 0.01 at least
-                    #if l_direction * l_direction * 100 < 1:
-                    #    step_length = 1 / sqrt(projected_direction * projected_direction * 100) # ensure distance of move < 0.1
-                    if step_length * norm(projected_direction) >= 1:  # move too far  # is 1 a good value here??
-                        return None
-                    current_point += step_length * projected_direction
-                    l_value = l(*current_point)
-                    #print current_point, RR(l_value)
-            for l in self.lin:
-                if l == ineq:
-                    if ineq(*current_point) <= 0:
-                        return None
+    def find_walls_and_new_points(self, flip_ineq_step, wall_crossing_method, goto_lower_dim=True):
+        #self.lin self.leq, self.parent.bddlin
+        walls = []
+        new_points = {}
+        # decide which inequalities among self.lin are walls (irredundant).
+        for i in range(len(self.lin)):
+            ineq = self.lin[i]
+            ineqs = walls + self.lin[i+1::] + self.parent.bddlin
+            if wall_crossing_method == 'mathematica':
+                condstr_others = write_mathematica_constraints(self.leq, ineqs)
+                # maybe shouldn't put self.leq into FindInstance, but solve using var_map later.
+                condstr_ineq = '0<'+str(ineq)+'<'+str(flip_ineq_step)
+                pt_across_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.parent.var_name)
+            else:
+                pt = find_point_flip_ineq_heuristic(self.var_value, ineq, ineqs, flip_ineq_step)
+                if pt is None:
+                    pt_across_wall = None
                 else:
-                    if l(*current_point) >= 0:
-                        return None
-        new_point = tuple(QQ(x) for x in current_point)
-        return new_point #type is tuple
-
-    def generate_points_on_and_across_linear_wall(self, ineq, flip_ineq_step=-1/100, bddlin=[]):
-        variables = ineq.args()
-        ineq_direction = vector(ineq.monomial_coefficient(v) for v in variables)
-        # FIXME: Polynomial_rational_flint doesn't have .monomials() .monomial_coefficient
-        ## ineq_gradient = gradient(ineq)
-        ## # list of type MPolynomial_libsingular, but is constant by assumption.
-        ## assert all((g in QQ) for g in ineq_gradient)
-        ## ineq_direction = vector([QQ(g) for g in ineq_gradient])
-        current_point = vector(self.var_value) # QQ, exact computation
-        step_length =  - ineq(*current_point) / (ineq_direction * ineq_direction)
-        current_point += step_length * ineq_direction
-
-        # adjustment so that no other wall is acrossed.
-        for l in (self.lin + bddlin):
-            if l == ineq or l(*current_point) < 0:
+                    pt_across_wall = tuple(self.var_map[v](pt) for v in ineq.args())
+            if pt_across_wall is None:
+                # ineq is not an wall
                 continue
-            l_direction = vector(-l.monomial_coefficient(v) for v in variables)
-            s = (ineq_direction * l_direction) / (ineq_direction * ineq_direction)
-            projected_direction = l_direction - s * ineq_direction
-            step_length = (l(*current_point)-flip_ineq_step) / (projected_direction * l_direction)
-            flip_ineq_step = flip_ineq_step / 2
-            current_point += step_length * projected_direction
-        pt_on_wall = current_point
-
-        step_length = min(-flip_ineq_step / (ineq_direction * ineq_direction), 1)
-        current_point += step_length * ineq_direction
-        for l in (self.lin + bddlin):
-            if l == ineq or l(*current_point) < 0:
-                continue
-            l_direction = vector(-l.monomial_coefficient(v) for v in variables)
-            s = (ineq_direction * l_direction) / (ineq_direction * ineq_direction)
-            projected_direction = l_direction - s * ineq_direction
-            step_length = (l(*current_point)-flip_ineq_step) / (projected_direction * l_direction)
-            flip_ineq_step = flip_ineq_step/2
-            current_point += step_length * projected_direction
-        pt_across_wall = current_point
-
-        # find pivot for equations
-        if self.pivot is None:
-            self.pivot = find_pivot_variables(self.leq, self.lin)
-
-        new_pt_on_wall = tuple(solve_for_pivot_variables(pt_on_wall, self.leq, self.pivot))
-        new_pt_across_wall = tuple(solve_for_pivot_variables(pt_across_wall, self.leq, self.pivot))
-
-        return (new_pt_on_wall, new_pt_across_wall) #type is tuple
-
-    def generate_neighbour_points(self, flip_ineq_step=0.01, bddlin=[]):
-        # See remark about flip_ineq_step in def add_new_component().
-        neighbour_points = []
-        if flip_ineq_step > 0:
-            for ineq in self.lin:
-                new_point = self.generate_one_point_by_flipping_inequality(ineq, flip_ineq_step=flip_ineq_step)
-                if not new_point is None:
-                    neighbour_points.append(new_point)
-        if flip_ineq_step < 0:
-            crossed_nlin = []
-            for ineq in self.lin:
-                if ineq in set(bddlin):
-                    continue
-                # assumption: walls are linear
-                (pt_on_wall, pt_across_wall) = self.generate_points_on_and_across_linear_wall(ineq, flip_ineq_step=flip_ineq_step, bddlin=bddlin)
-                # question: always possilbe to cross only one (linear) wall?
-                # check that boundary is not crossed. Temporary.
-                for l in bddlin:
-                    if l(*pt_on_wall) >= 0:
+            walls.append(ineq)
+            new_points[pt_across_wall] = copy(self.leq) # assume all linear equations.
+            # or maybe new_points[pt_across_wall] = copy(self.parent.bddleq)?
+            if goto_lower_dim is True:
+                pt_on_wall = None
+                if wall_crossing_method == 'mathematica':
+                    # wall could be non-linear, contrasting the assumption above. 
+                    condstr_ineq = str(ineq) + '==0'
+                    pt_on_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.parent.var_name)
+                elif ineq.degree() == 1:
+                    # is linear wall. try to find a point on the wall using heuristic gradient descent method.
+                    pt = find_point_on_ineq_heuristic(pt_across_wall, ineq, ineqs, flip_ineq_step)
+                    if pt is None:
                         pt_on_wall = None
-                        break
-                for l in bddlin:
-                    if l(*pt_across_wall) >= 0:
-                        pt_across_wall = None
-                        break
-                if pt_on_wall is not None:
-                    neighbour_points.append((pt_on_wall, [ineq]))
-                if pt_across_wall is not None:
-                    neighbour_points.append((pt_across_wall, []))
-
-        return neighbour_points
+                    else:
+                        pt_on_wall = tuple(self.var_map[v](pt) for v in ineq.args())
+                if not pt_on_wall is None:
+                    new_points[pt_on_wall] = copy(self.leq) + [ineq]
+        return walls, new_points
 
 class SemialgebraicComplex(SageObject):
     """
@@ -1024,8 +915,8 @@ class SemialgebraicComplex(SageObject):
         sage: complex.shoot_random_points(50)  # Got 17 components
 
         A better way is to use flipping inequality + bfs
-        sage: complex.bfs_completion()             # not tested
-        sage: g = complex.plot()                   # not tested
+        sage: complex.bfs_completion(var_value=(1/23,1/7))       # not tested
+        sage: g = complex.plot()                                 # not tested
         sage: g.save("complex_drlm_backward_3_slope_f_bkpt.pdf") # not tested
 
         sage: complex = SemialgebraicComplex(gmic, ['f'])
@@ -1074,7 +965,7 @@ class SemialgebraicComplex(SageObject):
         # more testcases in param_graphics.sage
     """
 
-    def __init__(self, function, var_name, max_iter=8, find_region_type=None, default_var_bound=(-0.1,1.1), **opt_non_default):
+    def __init__(self, function, var_name, max_iter=8, find_region_type=None, default_var_bound=(-0.1,1.1), bddleq=[], bddlin=[], **opt_non_default):
         #self.num_components = 0
         self.components = []
 
@@ -1092,47 +983,60 @@ class SemialgebraicComplex(SageObject):
             self.v_dict[v] = i
         self.graph = Graphics()
         self.num_plotted_components = 0
-        self.points_to_test = set()
+        self.points_to_test = {} # a dictionary of the form {testpoint: bddleq}
         self.max_iter = max_iter
         if find_region_type is None:
             def frt(K,h):
                 return find_region_type_around_given_point(K, h, region_level='extreme',
                                                            is_minimal=None,use_simplified_extremality_test=True)
             find_region_type = frt
-        self.find_region_type_around_given_point = find_region_type
+        self.find_region_type = find_region_type
         self.default_var_bound = default_var_bound
+        self.bddleq = bddleq
+        self.bddlin = bddlin
 
     def generate_random_var_value(self, var_bounds=None):
-        var_value = []
-        for i in range(self.d):
-            if not var_bounds:
-                x = QQ(uniform(self.default_var_bound[0], self.default_var_bound[1]))
-            else:
-                if hasattr(var_bounds[i][0], '__call__'):
-                    l =  var_bounds[i][0](*var_value)
+        # var_bounds could be defined as lambda functions, see the testcase dg_2_step_mir in param_graphics.sage.
+        # FIXME: if self.bddleq is not empty, it never ends.
+        while True:
+            var_value = []
+            for i in range(self.d):
+                if not var_bounds:
+                    x = QQ(uniform(self.default_var_bound[0], self.default_var_bound[1]))
                 else:
-                    l = var_bounds[i][0]
-                if hasattr(var_bounds[i][1], '__call__'):
-                    u =  var_bounds[i][1](*var_value)
-                else:
-                    u = var_bounds[i][1]
-                x = QQ(uniform(l, u))
-            var_value.append(x)
-        return var_value
+                    if hasattr(var_bounds[i][0], '__call__'):
+                        l =  var_bounds[i][0](*var_value)
+                    else:
+                        l = var_bounds[i][0]
+                    if hasattr(var_bounds[i][1], '__call__'):
+                        u =  var_bounds[i][1](*var_value)
+                    else:
+                        u = var_bounds[i][1]
+                    x = QQ(uniform(l, u))
+                var_value.append(x)
+            # if random point doesn't satisfy self.bddleq or self.bddlin, continue while.
+            if point_satisfies_bddleq_bddlin(var_value, self.bddleq, self.bddlin, strict=False):
+                return var_value
 
     def is_point_covered(self, var_value):
-        monomial_value = [m(var_value) for m in self.monomial_list]
-        # coefficients in ppl point must be integers.
-        lcm_monomial_value = lcm([x.denominator() for x in monomial_value])
-        #print [x * lcm_monomial_value for x in monomial_value]
-        pt = Generator.point(Linear_Expression([x * lcm_monomial_value for x in monomial_value], 0), lcm_monomial_value)
-        for c in self.components:
-            # Check if the random_point is contained in the box.
-            if c.region_type == 'not_constructible' and c.leq == [] and c.lin == []:
-                continue
-            if is_point_in_box(monomial_value, c.bounds):
-                # Check if all eqns/ineqs are satisfied.
-                if c.polyhedron.relation_with(pt).implies(point_is_included):
+        if all(x in QQ for x in var_value):
+            #FIXME: is going through ppl the best way?
+            monomial_value = [m(var_value) for m in self.monomial_list]
+            # coefficients in ppl point must be integers.
+            lcm_monomial_value = lcm([x.denominator() for x in monomial_value])
+            #print [x * lcm_monomial_value for x in monomial_value]
+            pt = Generator.point(Linear_Expression([x * lcm_monomial_value for x in monomial_value], 0), lcm_monomial_value)
+            for c in self.components:
+                # Check if the random_point is contained in the box.
+                if c.region_type == 'not_constructible' and c.leq == [] and c.lin == []:
+                    continue
+                if is_point_in_box(monomial_value, c.bounds):
+                    # Check if all eqns/ineqs are satisfied.
+                    if c.polyhedron.relation_with(pt).implies(point_is_included):
+                        return True
+        else:
+            for c in self.components:
+                if point_satisfies_bddleq_bddlin(var_value, c.leq, c.lin, strict=True):
                     return True
         return False
         
@@ -1140,7 +1044,7 @@ class SemialgebraicComplex(SageObject):
         num_failings = 0
         while not max_failings or num_failings < max_failings:
             if self.points_to_test:
-                var_value = list(self.points_to_test.pop())
+                var_value = list(self.points_to_test.popitem()[0])
             else:
                 var_value = self.generate_random_var_value(var_bounds=var_bounds)
             # This point is not already covered.
@@ -1151,7 +1055,17 @@ class SemialgebraicComplex(SageObject):
         logging.warn("The graph has %s components. Cannot find one more uncovered point by shooting %s random points" % (len(self.components), max_failings))
         return False
 
-    def add_new_component(self, var_value, flip_ineq_step=0):
+    def find_uncovered_point_mathematica(self, strict=True):
+        condstr = write_mathematica_constraints(self.bddleq, self.bddlin, strict=True) #why strict = strict doesn't work when goto_lower_dim=False?
+        for c in self.components:
+            condstr_c = write_mathematica_constraints(c.leq, c.lin, strict=strict)
+            if condstr_c:
+                condstr += '!(' + condstr_c[:-4] + ') && '
+        if not condstr:
+            return tuple([0]*len(self.var_name))
+        return find_instance_mathematica(condstr[:-4], self.var_name)
+
+    def add_new_component(self, var_value, bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=True):
         # Remark: the sign of flip_ineq_step indicates how to search for neighbour testpoints:
         # if flip_ineq_step = 0, don't search for neighbour testpoints. Used in shoot_random_points().
         # if flip_ineq_step < 0, we assume that the walls of the cell are linear eqn/ineq over original parameters.(So, gradient is constant; easy to find a new testpoint on the wall and another testpoint (-flip_ineq_step away) across the wall.) Used in bfs.
@@ -1162,26 +1076,29 @@ class SemialgebraicComplex(SageObject):
         K.monomial_list = self.monomial_list # change simultaneously while lifting
         K.v_dict = self.v_dict # change simultaneously while lifting
         K.polyhedron.add_space_dimensions_and_embed(len(K.monomial_list))
+        for l in bddleq:
+            # need to put these equations in K, so call comparaison.
+            if not l(*K.gens()) == 0:
+                logging.warn("Test point %s doesn't satisfy %s == 0." % (var_value, l))
+                return
         try:
             h = self.function(**test_point)
         except:
             # Function is non-contructible at this random point.
             h = None
-        region_type = self.find_region_type_around_given_point(K, h)
+        region_type = self.find_region_type(K, h)
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         #if see new monomial, lift polyhedrons of the previously computed components.
         dim_to_add = len(self.monomial_list) - unlifted_space_dim
         if dim_to_add > 0:
             for c in self.components:
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
+        if flip_ineq_step != 0:
+            # when using random shooting, don't generate neighbour points; don't remove redundant walls.
+            walls, new_points = new_component.find_walls_and_new_points(flip_ineq_step, wall_crossing_method, goto_lower_dim)
+            new_component.lin = walls
+            self.points_to_test.update(new_points)
         self.components.append(new_component)
-        if (region_type != 'not_constructible'):
-            neighbour_points = new_component.generate_neighbour_points(flip_ineq_step)
-            if (flip_ineq_step > 0):
-                (self.points_to_test).update(neighbour_points)
-            elif (flip_ineq_step < 0):
-                for (new_point, new_bddleq) in neighbour_points:
-                    (self.points_to_test).add(new_point)
 
     def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
         for i in range(num):
@@ -1189,7 +1106,7 @@ class SemialgebraicComplex(SageObject):
             if var_value is False:
                 return
             else:
-                self.add_new_component(var_value, flip_ineq_step=0)
+                self.add_new_component(var_value, bddleq=[], flip_ineq_step=0, goto_lower_dim=False)
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=False):
         if restart:
@@ -1200,17 +1117,23 @@ class SemialgebraicComplex(SageObject):
         self.num_plotted_components = len(self.components)
         return self.graph
 
-    def bfs_completion(self, var_value=None, var_bounds=None, max_failings=1000, flip_ineq_step=0.01):
-        # See remark about flip_ineq_step in def add_new_component().
-        # if var_value is provided, starting with this point. Otherwise, randomized the starting point.
-        if not var_value:
-            #var_value = self.generate_random_var_value(var_bounds=var_bounds)
-            var_value = self.find_uncovered_random_point(var_bounds=var_bounds, max_failings=max_failings)
-        (self.points_to_test).add(tuple(var_value))
+    def bfs_completion(self, var_value=None, flip_ineq_step=1/100, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=False):
+        if not self.components and not self.points_to_test and not var_value:
+            var_value = self.find_uncovered_random_point()
+        if var_value and not tuple(var_value) in self.points_to_test:
+            self.points_to_test[tuple(var_value)] = copy(self.bddleq)
         while self.points_to_test:
-            var_value = list(self.points_to_test.pop())
-            if not self.is_point_covered(var_value) and point_satisfies_var_bounds(var_value, var_bounds):
-                self.add_new_component(var_value, flip_ineq_step=flip_ineq_step)
+            var_value, bddleq = self.points_to_test.popitem()
+            var_value = list(var_value)
+            if not self.is_point_covered(var_value):
+                self.add_new_component(var_value, flip_ineq_step=flip_ineq_step, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim)
+        if check_completion:
+            uncovered_pt = self.find_uncovered_point_mathematica(strict=goto_lower_dim)
+            if uncovered_pt is not None:
+                logging.warn("After bfs, the complex has uncovered point %s." % (uncovered_pt,))
+                self.bfs_completion(var_value=uncovered_pt, \
+                                    flip_ineq_step=flip_ineq_step, \
+                                    check_completion=check_completion)
 
 def gradient(ineq):
     # need this function since when K has only one variable,
@@ -1220,21 +1143,13 @@ def gradient(ineq):
     else:
        return [ineq.derivative()]
 
-def point_satisfies_var_bounds(var_value, var_bounds):
+def point_satisfies_bddleq_bddlin(var_value, bddleq, bddlin, strict=True):
     # for functions involving ceil/floor, might be a good to devide region of search, then glue components together.
-    # var_bounds could be defined as lambda functions, see the testcase dg_2_step_mir in param_graphics.sage.
-    if not var_bounds:
-        return True
-    for i in range(len(var_value)):
-        if hasattr(var_bounds[i][0], '__call__'):
-            l =  var_bounds[i][0](*var_value[0:i:1])
-        else:
-            l = var_bounds[i][0]
-        if hasattr(var_bounds[i][1], '__call__'):
-            u =  var_bounds[i][1](*var_value[0:i:1])
-        else:
-            u = var_bounds[i][1]
-        if not (l <= var_value[i] <= u):
+    for l in bddleq:
+        if not l(var_value) == 0:
+            return False
+    for l in bddlin:
+        if l(var_value) > 0 or (strict and l(var_value)==0):
             return False
     return True
 
@@ -1400,6 +1315,94 @@ def find_region_type(field, result):
     # Return these label because that's what the plotting code expects.
     # TODO: Make mapping customizable
     if result:
-        return 'is_extreme'
+        return 'blue'
     else:
-        return 'not_extreme'
+        return 'red'
+
+def write_mathematica_constraints(eqs, ineqs, strict=True):
+    condstr = ''
+    for l in set(eqs):
+        condstr += str(l) + '==0 && '
+    for l in set(ineqs):
+        if strict:
+            condstr += str(l) + '<0 && '
+        else:
+            condstr += str(l) + '<=0 && '
+    return condstr
+
+def write_mathematica_variables(var_name):
+    varstr = var_name[0]
+    for v in var_name[1::]:
+        varstr = varstr + ',' + v
+    return '{' + varstr + '}'
+
+def find_instance_mathematica(condstr, var_name):
+    varstr =  write_mathematica_variables(var_name)
+    pt_math = mathematica.FindInstance(condstr, varstr)
+    if len(pt_math) == 0:
+        return None
+    n = len(var_name)
+    pt = []
+    for i in range(n):
+        try:
+            pt_i = QQ(pt_math[1][i+1][2])
+        except TypeError:
+            pt_i = pt_math[1][i+1][2]
+        pt.append(pt_i)
+    return tuple(pt)
+
+def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step):
+    # heuristic method.
+    ineq_gradient = gradient(ineq)
+    current_point = vector([RR(x) for x in current_var_value]) # Real numbers, faster than QQ
+    ineq_value = ineq(*current_point)
+    while ineq_value <= 0:
+        ineq_direction = vector([g(*current_point) for g in ineq_gradient])
+        if ineq.degree() == 1:
+            step_length = (-ineq(*current_point)+flip_ineq_step) / (ineq_direction * ineq_direction)
+        else:
+            step_length = flip_ineq_step / (ineq_direction * ineq_direction) # ineq_value increases by flip_ineq_step=0.01 roughly
+            if step_length > 1:
+                step_length = 1  # ensure that distance of move <= sqrt(flip_ineq_step) = 0.1 in each step
+        current_point += step_length * ineq_direction
+        ineq_value = ineq(*current_point)
+        #print current_point, RR(ineq_value)
+    new_point = adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_step)
+    return new_point #type is tuple
+
+
+def find_point_on_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step):
+    ineq_gradient = gradient(ineq)
+    current_point = vector(current_var_value)
+    ineq_direction = vector([g(*current_point) for g in ineq_gradient])
+    step_length = -ineq(*current_point) / (ineq_direction * ineq_direction)
+    current_point += step_length * ineq_direction
+    ineq_value = ineq(*current_point)
+    new_point = adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_step)
+    return new_point #type is tuple
+
+def adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_step):
+    #current_point is a vector
+    for l in ineqs:
+        l_gradient = gradient(l)
+        l_value = l(*current_point)
+        while l_value >= 0:
+            l_direction = vector([-g(*current_point) for g in l_gradient]) #decrease l_value
+            ineq_direction = vector([g(*current_point) for g in ineq_gradient])
+            s = (ineq_direction * l_direction) / (ineq_direction * ineq_direction)
+            if s == 0:
+                return None
+            projected_direction = l_direction - s * ineq_direction # want that ineq_value remains the same
+            if l.degree() == 1:
+                step_length = (l_value+flip_ineq_step) / (projected_direction * l_direction)
+            else:
+                step_length = flip_ineq_step / (projected_direction * l_direction) # l_value decreases by 0.01 roughly
+                if step_length * norm(projected_direction) >= 1:  # move too far  # is 1 a good value here?? why this if?
+                    return None
+            current_point += step_length * projected_direction
+            l_value = l(*current_point)
+            #print current_point, RR(l_value)
+    for l in ineqs:
+        if l(*current_point) >= 0:
+            return None
+    return tuple(QQ(x) for x in current_point)

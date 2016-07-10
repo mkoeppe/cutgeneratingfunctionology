@@ -37,26 +37,14 @@ def is_positive_definite(self):
         msg = "cannot convert computations from {0} into real numbers"
         raise TypeError(msg.format(universe))
     return posdef
-    
 
-def find_region_type(field, result):
-    # Return these label because that's what the plotting code expects.
-    # TODO: Make mapping customizable
-    if result:
-        return 'is_extreme'
-    else:
-        return 'not_extreme'
-    
 complex = SemialgebraicComplex(test_posdef, ['a', 'b'], find_region_type=find_region_type, default_var_bound=(-2,2))
 
 complex.shoot_random_points(10)
-# or sage: complex.bfs_completion(flip_ineq_step=1/100)
+#complex.bfs_completion(var_value=[-1,1], check_completion=True, goto_lower_dim=False)  # 3 components
+#complex.bfs_completion(var_value=[-1,1], check_completion=False, goto_lower_dim=True)  # 4 components
+#complex.bfs_completion(var_value=[-1,1], check_completion=True, goto_lower_dim=True)   # 5 components
+#complex.bfs_completion(var_value=[-1,1], wall_crossing_method='mathematica', check_completion=True, goto_lower_dim=False)  # 3 components
+#complex.bfs_completion(var_value=[-1,1], wall_crossing_method='mathematica', check_completion=False, goto_lower_dim=True)  # 5 components
+#complex.bfs_completion(var_value=[-1,1], wall_crossing_method='mathematica', check_completion=True, goto_lower_dim=True)   # 5 components
 plot(complex)
-
-
-# TODO:
-# customize find_region_type mapping, more examples with bfs,
-# flip_ineq_step should always >0, but choose shooting, mathematic, gradient, linear...
-# it should be user-friendly; not specific to gomory-johnson; have cool examples; including examples where the output are different formulas (rather than just truth values) in different cells; ...
-# For example a formula for the square of the smallest eigenvalue.
-# example, number of positive eigenvalues?
