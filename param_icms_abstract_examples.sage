@@ -49,11 +49,8 @@ complex.shoot_random_points(10)
 #complex.bfs_completion(var_value=[-1,1], wall_crossing_method='mathematica', check_completion=True, goto_lower_dim=True)   # 5 components
 plot(complex)
 
-
-A=[[1,0],[-1,0],[0,1],[0,-1]];
-b=[2, -1, 2, -1]
-
-def opt_sol_to_varying_obj_func(c0, c1, A=A, b=b):
+def opt_sol_to_varying_obj_func(c0, c1):
+    global A, b
     K = c0.parent()
     p = MixedIntegerLinearProgram(maximization=True, base_ring=K)
     v = p.new_variable(real=True, nonnegative=True)
@@ -64,7 +61,8 @@ def opt_sol_to_varying_obj_func(c0, c1, A=A, b=b):
     opt_sol = p.get_values(v).values()
     return opt_sol
 
-def find_opt_sol_color(K, opt_sol, A=A, b=b):
+def find_opt_sol_color(K, opt_sol):
+    global A, b
     p = MixedIntegerLinearProgram(maximization=True, solver = "InteractiveLP")
     v = p.new_variable(real=True, nonnegative=True)
     for i in range(len(A)):
@@ -77,8 +75,40 @@ def find_opt_sol_color(K, opt_sol, A=A, b=b):
     return vertices_colors[i]
 
 
-complex = SemialgebraicComplex(opt_sol_to_varying_obj_func, ['c0', 'c1'], find_region_type=find_opt_sol_color, default_var_bound=(-2,2))
+A = [[1,0],[-1,0],[0,1],[0,-1]];
+b = [2, -1, 2, -1]
+complex = SemialgebraicComplex(opt_sol_to_varying_obj_func, ['c0', 'c1'], find_region_type=find_opt_sol_color, default_var_bound=(-4,4))
+complex.bfs_completion(var_value=[2, -3], flip_ineq_step=1/2, wall_crossing_method='mathematica')
+plot(complex)
 
-#copmlex.bfs_completion(var_value=[1/2, 1/3])
-#sage: complex.bfs_completion(var_value=[1/2, 1/3],goto_lower_dim=True)
-#sage: complex.bfs_completion(var_value=[1/2, 1/3], wall_crossing_method='mathematica')
+#copmlex.bfs_completion(var_value=[2, 3])
+#sage: complex.bfs_completion(var_value=[2, 3],goto_lower_dim=True)
+#sage: complex.bfs_completion(var_value=[2, 3], wall_crossing_method='mathematica')
+
+
+
+#sage: A = [[1,-3],[-3,1],[1,1]]
+#sage: b = [0,0,4]
+
+
+A = [[0,-1],[-4,1],[-1,2],[4,1]]
+b = [0,0,5,16]
+complex = SemialgebraicComplex(opt_sol_to_varying_obj_func, ['c0', 'c1'], find_region_type=find_opt_sol_color, default_var_bound=(-10,10))
+complex.bfs_completion(var_value=[-2, -3], flip_ineq_step=1/3, wall_crossing_method='mathematica')
+plot(complex)
+
+
+# sage: neighbours = []
+# sage: for c in complex.components:
+#     walls, new_points = c.find_walls_and_new_points(1/3, 'mathematica', False)
+#     neighbours.append(new_points.keys())
+
+# g = points([(-2,-3)],size=10, color='grey',zorder=-10, alpha=0.5)
+# for i in range(19):
+#     c = complex.components[i]
+#     g += plot(c)
+#     g1 = g+points(neighbours[i], color='black',zorder=10)+points([c.var_value], color='red',zorder=10)
+#     #g1.show(aspect_ratio=1, xmin=-10, xmax=10, ymin=-10, ymax=10)
+#     name = "ex2_cell-%s.png" % i
+#     g1.save(name,aspect_ratio=1, xmin=-10, xmax=10, ymin=-10, ymax=10)
+#     g += points(neighbours[i], size=10, color='grey',zorder=-10, alpha=0.5)
