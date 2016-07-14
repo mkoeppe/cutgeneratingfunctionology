@@ -1320,14 +1320,22 @@ def find_region_type(field, result):
     # at most 7 different types.
     field.recording = False # turn off recording comparisons in the magic field.
     global region_type_color_map
-    if result in region_type_color_map:
-        i = region_type_color_map.index(result)
-    else:
-        i = len(region_type_color_map)
+    n = len(region_type_color_map)
+    i = 0
+    while (i < n) and (result != region_type_color_map[i]):
+        # It doesn't work if I write (region_type_color_map[i] != result)
+        # nor with region_type_color_map.index(result) 
+        # while running with result = [1~, 1~] and region_type_color_map =[[2~, 1~]],
+        # it calls __cmp__ with left=2~ and right=(1~)~, which ends up with error. strange!!
+        i += 1
+    if i == n:
         region_type_color_map.append(result)
-    n = (2 * i) % 7
-    c = rainbow(7)[n]
     field.recording = True
+    return color_of_ith_region_type(i)
+
+def color_of_ith_region_type(i):
+    j = (2 * i) % 7
+    c = rainbow(7)[j]
     return c
 
 def write_mathematica_constraints(eqs, ineqs, strict=True):
