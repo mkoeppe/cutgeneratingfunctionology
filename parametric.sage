@@ -50,12 +50,13 @@ class SymbolicRNFElement(FieldElement):
 
     def __cmp__(left, right):
         result = cmp(left._val, right._val)
-        if result == 0:
-            left.parent().record_to_eq_list(left.sym() - right.sym())
-        elif result == -1:
-            left.parent().record_to_lt_list(left.sym() - right.sym())
-        elif result == 1:
-            left.parent().record_to_lt_list(right.sym() - left.sym())
+        if left.parent().recording:
+            if result == 0:
+                left.parent().record_to_eq_list(left.sym() - right.sym())
+            elif result == -1:
+                left.parent().record_to_lt_list(left.sym() - right.sym())
+            elif result == 1:
+                left.parent().record_to_lt_list(right.sym() - left.sym())
         return result
 
     def __richcmp__(left, right, op):
@@ -256,6 +257,7 @@ class SymbolicRealNumberField(Field):
         self._dependency= []
         self._independency=[]
         self._zero_kernel=set([])
+        self.recording=True
 
     def __copy__(self):
         logging.warn("copy(%s) is invoked" % self)
@@ -1312,13 +1314,21 @@ def find_region_type_around_given_point(K, h, region_level='extreme', is_minimal
     else:
         return 'not_minimal'
 
+region_type_color_map = []
+# Don't use dictionary because otherwise key=result must be immutable
 def find_region_type(field, result):
-    # Return these label because that's what the plotting code expects.
-    # TODO: Make mapping customizable
-    if result:
-        return 'blue'
+    # at most 7 different types.
+    field.recording = False # turn off recording comparisons in the magic field.
+    global region_type_color_map
+    if result in region_type_color_map:
+        i = region_type_color_map.index(result)
     else:
-        return 'red'
+        i = len(region_type_color_map)
+        region_type_color_map.append(result)
+    n = (2 * i) % 7
+    c = rainbow(7)[n]
+    field.recording = True
+    return c
 
 def write_mathematica_constraints(eqs, ineqs, strict=True):
     condstr = ''

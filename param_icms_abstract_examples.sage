@@ -77,7 +77,8 @@ def find_opt_sol_color(K, opt_sol):
 
 A = [[1,0],[-1,0],[0,1],[0,-1]];
 b = [2, -1, 2, -1]
-complex = SemialgebraicComplex(opt_sol_to_varying_obj_func, ['c0', 'c1'], find_region_type=find_opt_sol_color, default_var_bound=(-4,4))
+#complex = SemialgebraicComplex(opt_sol_to_varying_obj_func, ['c0', 'c1'], find_region_type=find_opt_sol_color, default_var_bound=(-4,4))
+complex = SemialgebraicComplex(opt_sol_to_varying_obj_func, ['c0', 'c1'], find_region_type=find_region_type, default_var_bound=(-4,4))
 complex.bfs_completion(var_value=[2, -3], flip_ineq_step=1/2, wall_crossing_method='mathematica')
 plot(complex)
 
@@ -94,6 +95,8 @@ plot(complex)
 A = [[0,-1],[-4,1],[-1,2],[4,1]]
 b = [0,0,5,16]
 complex = SemialgebraicComplex(opt_sol_to_varying_obj_func, ['c0', 'c1'], find_region_type=find_opt_sol_color, default_var_bound=(-10,10))
+
+complex = SemialgebraicComplex(opt_sol_to_varying_obj_func, ['c0', 'c1'], find_region_type=find_region_type, default_var_bound=(-10,10))
 complex.bfs_completion(var_value=[-2, -3], flip_ineq_step=1/3, wall_crossing_method='mathematica')
 plot(complex)
 
