@@ -7,7 +7,7 @@ if '' not in sys.path:
 
 from igp import *
 
-def gmic(f=4/5, field=None, conditioncheck=True):
+def gmic(f=QQ('4/5'), field=None, conditioncheck=True):
     """
     Summary:
         - Name: GMIC (Gomory mixed integer cut);
@@ -43,7 +43,7 @@ def gmic(f=4/5, field=None, conditioncheck=True):
     return piecewise_function_from_breakpoints_and_values(gmi_bkpt, gmi_values, field=field)
 
 
-def gj_2_slope(f=3/5, lambda_1=1/6, field=None, conditioncheck=True):
+def gj_2_slope(f=QQ('3/5'), lambda_1=QQ('1/6'), field=None, conditioncheck=True):
     """
     Summary:
         - Name: Gomory--Johnson's 2-Slope;
@@ -90,7 +90,7 @@ def gj_2_slope(f=3/5, lambda_1=1/6, field=None, conditioncheck=True):
     return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
 
 
-def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, conditioncheck=True):
+def gj_2_slope_repeat(f=QQ('3/5'), s_positive=4, s_negative=-5, m=4, n=3, field=None, conditioncheck=True):
     """
     Summary:
         - Name: Gomory--Johnson's 2-Slope-repeat;
@@ -130,16 +130,16 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
-    len1_positive = (1 - s_negative*f) / (s_positive - s_negative) / m
-    len1_negative = (f - m*len1_positive) / (m - 1)
-    len2_negative = (1 - s_positive*(f - 1)) / (s_positive - s_negative) / n
-    len2_positive = (1 - f - n*len2_negative) / (n - 1)
+    len1_positive = (1 - s_negative*f) / ZZ(s_positive - s_negative) / m
+    len1_negative = (f - m*len1_positive) / ZZ(m - 1)
+    len2_negative = (1 - s_positive*(f - 1)) / ZZ(s_positive - s_negative) / n
+    len2_positive = (1 - f - n*len2_negative) / ZZ(n - 1)
     interval_lengths = [len1_positive, len1_negative] * (m - 1) + [len1_positive, len2_negative] + [len2_positive, len2_negative]*(n - 1)
     slopes = [s_positive, s_negative]*(m + n - 1)
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
 
-def dg_2_step_mir(f=4/5, alpha=3/10, field=None, conditioncheck=True):
+def dg_2_step_mir(f=QQ('4/5'), alpha=QQ('3/10'), field=None, conditioncheck=True):
     """
     Summary:
         - Name: Dash-Gunluk's 2-Step MIR;
@@ -198,7 +198,7 @@ def interval_length_n_step_mir(n, m, a, b):
         return result
 
 
-def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
+def kf_n_step_mir(f=QQ('4/5'), a=[1, QQ('3/10'), QQ('8/100')], field=None, conditioncheck=True):
     """
     Summary:
         - Name: Kianfar-Fathi's n-Step MIR;
@@ -280,7 +280,7 @@ def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
 
-def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditioncheck=True):
+def gj_forward_3_slope(f=QQ('4/5'), lambda_1=QQ('4/9'), lambda_2=QQ('2/3'), field=None, conditioncheck=True):
     """
     Summary: 
         - Name: Gomory--Johnson' Forward 3-Slope;
@@ -340,7 +340,7 @@ def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditionc
     return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
 
 
-def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
+def drlm_backward_3_slope(f=QQ('1/12'), bkpt=QQ('2/12'), field=None, conditioncheck=True):
     """
     Summary:
         - Name: Dey--Richard--Li--Miller's Backward 3-Slope;
@@ -406,7 +406,7 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
     slopes = [1/f, (1 + f - bkpt)/(1 + f)/(f - bkpt), 1/(1 + f), (1 + f - bkpt)/(1 + f)/(f - bkpt)]
     return piecewise_function_from_breakpoints_and_slopes(bkpts, slopes, field=field)
 
-def dg_2_step_mir_limit(f=3/5, d=3, field=None, conditioncheck=True):
+def dg_2_step_mir_limit(f=QQ('3/5'), d=3, field=None, conditioncheck=True):
     """
     Summary:
         - Name: Dash-Gunluk 2-Step MIR Limit;
@@ -452,20 +452,19 @@ def dg_2_step_mir_limit(f=3/5, d=3, field=None, conditioncheck=True):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
-    f = nice_field_values([f], field)[0]
-    field = f.parent()
+    f, zero, one = nice_field_values([f, 0, 1], field)
     pieces = []
     for k in range(d):
         left_x = f * k / d
         right_x = f * (k + 1) / d
         pieces = pieces + \
-                 [[singleton_interval(left_x), FastLinearFunction(field(0), left_x / f)], \
+                 [[singleton_interval(left_x), FastLinearFunction(zero, left_x / f)], \
                   [open_interval(left_x, right_x), FastLinearFunction(1 / (f - 1), (k + 1)/(d + 1)/(1 - f))]]
-    pieces.append([closed_interval(f, field(1)), FastLinearFunction(1 / (f - 1), 1 /(1 - f))])
+    pieces.append([closed_interval(f, one), FastLinearFunction(1 / (f - 1), 1 /(1 - f))])
     h = FastPiecewise(pieces)
     return h
 
-def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, conditioncheck=True):
+def drlm_2_slope_limit(f=QQ('3/5'), nb_pieces_left=3, nb_pieces_right=4, field=None, conditioncheck=True):
     """
     Summary:
         - Name: Dey--Richard--Li--Miller's 2-Slope Limit;
@@ -524,7 +523,7 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, c
     psi = FastPiecewise(pieces)    
     return psi
 
-def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
+def drlm_3_slope_limit(f=QQ('1/5'), field=None, conditioncheck=True):
     """
     Summary:
         - Name: Dey--Richard--Li--Miller's 3-Slope Limit;
@@ -561,15 +560,14 @@ def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
-    f = nice_field_values([f], field)[0]
-    field = f.parent()
-    pieces = [[closed_interval(0, f), FastLinearFunction(1/f, 0)], \
-              [open_interval(f, 1), FastLinearFunction(1/(f + 1), 0)], \
-              [singleton_interval(field(1)), FastLinearFunction(field(0), 0)]]
+    f, zero, one = nice_field_values([f, 0, 1], field)
+    pieces = [[closed_interval(zero, f), FastLinearFunction(one/f, zero)], \
+              [open_interval(f, one), FastLinearFunction(one/(f + one), zero)], \
+              [singleton_interval(one), FastLinearFunction(zero, zero)]]
     kappa = FastPiecewise(pieces)
     return kappa
 
-def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
+def bccz_counterexample(f=QQ('2/3'), q=QQ(4), eta=QQ('1/1000'), maxiter=10000):
     """
     return function psi, a counterexample to Gomory--Johnson's conjecture
     constructed by Basu--Conforti--Cornuejols--Zambelli [IR1].
@@ -653,7 +651,7 @@ def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
     return evaluate_psi_at_r
 
 
-def generate_example_e_for_psi_n(f=2/3, n=7, q=4, eta=1/1000):
+def generate_example_e_for_psi_n(f=QQ('2/3'), n=7, q=4, eta=QQ('1/1000')):
     """
     return the first n terms of a geometric series e that satisfies 
     0 < ... < e[n] <= e[n - 1] <= ... <= e[1] <= e[0] <= 1 - f and \sum_{i = 0}^{\infty} {2^i * e[i]} <= f.
@@ -691,11 +689,11 @@ def generate_example_e_for_psi_n(f=2/3, n=7, q=4, eta=1/1000):
         raise ValueError, "Bad parameters."
     x = (1 - eta)*(q - 2) / q * min(f, 1 - f)
     # or take x = min((1 - eta)*(q - 2)*f / q , 1 - f) 
-    e = [x / q^i for i in range(n)]
+    e = [x / q**i for i in range(n)]
     return e
 
 
-def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None, conditioncheck=True):
+def psi_n_in_bccz_counterexample_construction(f=QQ('2/3'), e=[QQ('1/12'), QQ('1/24')], field=None, conditioncheck=True):
     """
     Summary: 
         - Name: psi_n in the construction of BCCZ's counterexample to GJ's conjecture;
@@ -753,7 +751,7 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
     for i in range(0, n):
         a.append((b[i] + e[i]) / 2)
         b.append((b[i] - e[i]) / 2)
-        sum_e = sum_e + (2^i) * e[i]
+        sum_e = sum_e + (2**i) * e[i]
         if conditioncheck and not (bool(e[i] > 0) & bool(sum_e < f)):
             raise ValueError, "Bad parameters. Unable to construct the function."
         if not (i == 0) | bool(e[i] <= e[i-1]):
@@ -772,7 +770,7 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
     slopes = [s_positive, s_negative] * (nb_interval // 2)
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
-def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), field=None):
+def bhk_irrational(f=QQ('4/5'), d1=QQ('3/5'), d2=QQ('1/10'), a0=QQ('15/100'), delta=(QQ('1/200'), sqrt(ZZ(2))/200), field=None):
     """
     Summary:
         - Name: Basu-Hildebrand-Koeppe's irrational function.
@@ -870,7 +868,7 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
     interval_lengths = intervals_left + [d13] + intervals_left[::-1] + [1-f]
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
-def bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), c2=0, field=None):
+def bhk_slant_irrational(f=QQ('4/5'), d1=QQ('3/5'), d2=QQ('1/10'), a0=QQ('15/100'), delta=(QQ('1/200'), sqrt(ZZ(2))/200), c2=0, field=None):
     """
     A version of the irrational function with non-zero second slope
 
@@ -972,7 +970,7 @@ def bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2
     interval_lengths = intervals_left + [d13] + intervals_left[::-1] + [1-f]
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
-def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), alpha=95/100, field=None):
+def bhk_gmi_irrational(f=QQ('4/5'), d1=QQ('3/5'), d2=QQ('1/10'), a0=QQ('15/100'), delta=(QQ('1/200'), sqrt(ZZ(2))/200), alpha=QQ('95/100'), field=None):
     """
     A version of the irrational function with non-zero second slope,
     obtained by forming a convex combination of a modified version of the irrational function with the GMI cut.
@@ -1022,7 +1020,7 @@ def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/
     gmi = gmic(f, field=field)
     return alpha * bhk + (1 - alpha) * gmi
 
-def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, conditioncheck=True):
+def chen_4_slope(f=QQ('7/10'), s_pos=2, s_neg=-4, lam1=QQ('1/4'), lam2=QQ('1/4'), field=None, conditioncheck=True):
     """
     This 4-slope function is shown [KChen_thesis] to be a facet.
 
@@ -1083,17 +1081,17 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
         else:
             logging.info("Conditions for extremality are NOT satisfied.")
     slopes = [s_pos, s_neg, 1/f, s_neg, s_pos, s_neg, s_pos, 1/(f-1), s_pos, s_neg]
-    aa = lam1 * (1 - s_neg * f) / 2 / (s_pos - s_neg)
-    a = lam1 * f / 2
+    aa = lam1 * (1 - s_neg * f) / ZZ(2) / (s_pos - s_neg)
+    a = lam1 * f / ZZ(2)
     b = f - a
     bb = f - aa
-    c = 1 + lam2 * (f - 1) / 2
+    c = 1 + lam2 * (f - 1) / ZZ(2)
     d = 1 + f - c
-    cc = 1 + (s_pos * lam2 * (f - 1) - lam2) / 2 / (s_pos - s_neg)
+    cc = 1 + (s_pos * lam2 * (f - 1) - lam2) / ZZ(2) / (s_pos - s_neg)
     dd = 1 + f - cc
     return piecewise_function_from_breakpoints_and_slopes([0, aa, a, b, bb, f, dd, d, c, cc, 1], slopes, field=field)
 
-def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
+def rlm_dpl1_extreme_3a(f=QQ('1/4'), field=None, conditioncheck=True):
     """
     From Richard--Li--Miller [RLM2009].
 
@@ -1143,17 +1141,16 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
             pass # is the fig3_lowerleft case
         else:
             pass # is not the fig3_lowerleft case
-    f = nice_field_values([f], field)[0]
-    field = f.parent()
-    pieces = [[closed_interval(field(0), f), FastLinearFunction(1/f, 0)], \
+    f, zero, one = nice_field_values([f, 0, 1], field)
+    pieces = [[closed_interval(zero, f), FastLinearFunction(1/f, 0)], \
               [open_interval(f, (1 + f)/2), FastLinearFunction(2/(1 + 2*f), 0)], \
-              [singleton_interval((1 + f)/2), FastLinearFunction(field(0), 1/2)], \
+              [singleton_interval((1 + f)/2), FastLinearFunction(zero, 1/2)], \
               [open_interval((1 + f)/2, 1), FastLinearFunction(2/(1 + 2*f), -1/(1 + 2*f))], \
-              [singleton_interval(field(1)), FastLinearFunction(field(0), 0)]]
+              [singleton_interval(one), FastLinearFunction(zero, 0)]]
     h = FastPiecewise(pieces)
     return h
 
-def ll_strong_fractional(f=2/3, field=None, conditioncheck=True):
+def ll_strong_fractional(f=QQ('2/3'), field=None, conditioncheck=True):
     """
     Letchford--Lodi's strong fractional cut.
 
@@ -1219,19 +1216,18 @@ def ll_strong_fractional(f=2/3, field=None, conditioncheck=True):
             logging.info("The function is NOT minimal.")
         else:
             logging.info("Conditions for extremality are satisfied.")
-    f = nice_field_values([f], field)[0]
-    field = f.parent()
-    k = ceil(1/f) -1
-    pieces = [[closed_interval(0,f), FastLinearFunction(1/f, 0)]]
+    f, zero, one = nice_field_values([f, 0, 1], field)
+    k = ceil(one/f) -one
+    pieces = [[closed_interval(zero,f), FastLinearFunction(one/f, zero)]]
     for p in range(k-1):
-        pieces.append([left_open_interval(f + (1 - f)* p / k, f + (1 - f)*(p + 1)/k), FastLinearFunction(1/f, -(p + 1)/f/(k + 1))])
-    p = k - 1
-    pieces.append([open_interval(f + (1 - f)* p / k, f + (1 - f)*(p + 1)/k), FastLinearFunction(1/f, -(p + 1)/f/(k + 1))])
-    pieces.append([singleton_interval(1), FastLinearFunction(0, 0)])
+        pieces.append([left_open_interval(f + (one - f)* p / k, f + (one - f)*(p + one)/k), FastLinearFunction(one/f, -(p + one)/f/(k + one))])
+    p = k - one
+    pieces.append([open_interval(f + (one - f)* p / k, f + (one - f)*(p + one)/k), FastLinearFunction(one/f, -(p + one)/f/(k + one))])
+    pieces.append([singleton_interval(one), FastLinearFunction(zero, zero)])
     h = FastPiecewise(pieces)
     return h
 
-def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
+def bcdsp_arbitrary_slope(f=QQ('1/2'), k=4, field=None, conditioncheck=True):
     """
     A family of extreme functions with an arbitrary number `k` of slopes. (k >= 2)
 
@@ -1271,20 +1267,19 @@ of Slopes, 2015, http://www.ams.jhu.edu/~abasu9/papers/infinite-slopes.pdf, to a
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
-    f = nice_field_values([f], field)[0]
-    field = f.parent()
-    bkpts = [field(0)]
+    f, zero, one = nice_field_values([f, 0, 1], field)
+    bkpts = [zero]
     slopes = []
     for i in range(k-2, 0, -1):
-        bkpts += [f/(8^i), 2*f/(8^i)]
-        slopes += [(2^i - f)/f/(1-f), 1/(f-1)]
-    bkpts = bkpts + [f - x for x in bkpts[::-1]] + [field(1)]
+        bkpts += [f/(8**i), 2*f/(8**i)]
+        slopes += [(2**i - f)/f/(1-f), 1/(f-1)]
+    bkpts = bkpts + [f - x for x in bkpts[::-1]] + [one]
     slopes = slopes + [1/f] + slopes[::-1] + [1/(f-1)]
     return piecewise_function_from_breakpoints_and_slopes(bkpts, slopes, field=field)
 
 extreme_function_with_world_record_number_of_slopes = bcdsp_arbitrary_slope
 
-def kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19, field=None, conditioncheck=True):
+def kzh_3_slope_param_extreme_1(f=QQ('6/19'), a=QQ('1/19'), b=QQ('5/19'), field=None, conditioncheck=True):
     """
     New extreme function discovered by computer based search + parametric search.
     It has 3 slopes in the general case.
@@ -1316,7 +1311,7 @@ def kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19, field=None, conditionche
     values = [0, 1, v, (f-b)/2/f, (f+b)/2/f, 1-v, 0]
     return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
 
-def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=True):
+def kzh_3_slope_param_extreme_2(f=QQ('5/9'), a=QQ('3/9'), b=QQ('2/9'), field=None, conditioncheck=True):
     """
     New extreme function discovered by computer based search + parametric search.
     The function looks like gj_forward_3_slope + drlm_backward_3_slope
@@ -1352,7 +1347,7 @@ def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=
     return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
 
 
-def kzh_4_slope_param_extreme_1(f=13/18, a=7/18, b=1/18, field=None, conditioncheck=True):
+def kzh_4_slope_param_extreme_1(f=QQ('13/18'), a=QQ('7/18'), b=QQ('1/18'), field=None, conditioncheck=True):
     """
     New extreme function discovered by computer based search + parametric search.
     The function looks like gj_forward_3_slope + kzh_3_slope_param_extreme_1
