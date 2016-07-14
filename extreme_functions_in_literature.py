@@ -1,3 +1,5 @@
+from __future__ import division
+
 # Make sure current directory is in path.  
 # That's not true while doctesting (sage -t).
 if '' not in sys.path:
@@ -555,7 +557,7 @@ def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
     if conditioncheck:
         if not bool(0 < f < 1):
             raise ValueError, "Bad parameters. Unable to construct the function."
-        if not bool(0 < f < 1/3):
+        if not bool(0 < f < QQ(1)/3):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")

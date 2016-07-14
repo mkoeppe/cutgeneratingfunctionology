@@ -5,7 +5,7 @@ SAGEFILES =					\
 	compendium_procedures.sage		\
 	continuous_case.sage			\
 	discontinuous_case.sage			\
-	extreme_functions_in_literature.sage	\
+	extreme_functions_in_literature.py	\
 	extreme_functions_sporadic.sage		\
 	intervals.sage				\
 	real_number_field.sage			\
