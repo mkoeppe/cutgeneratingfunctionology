@@ -11,6 +11,8 @@ from sage.rings.number_field.number_field import NumberField_absolute, NumberFie
 import sage.rings.number_field.number_field_element
 from sage.rings.number_field.number_field_element import NumberFieldElement_absolute
 
+from sage.structure.sage_object import op_EQ, op_NE, op_LE, op_GE, op_LT
+
 class RealNumberFieldElement(NumberFieldElement_absolute):
 
     def embedded(self):
@@ -21,21 +23,40 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
             self._embedded = e = embedding(self)
         return e
 
-    def __cmp__(left, right):   # Before trac 17890, need to specialize this function.
-        if NumberFieldElement_absolute.__cmp__(left, right) == 0:
-            return 0
-        result = cmp(left.embedded(), right.embedded())
-        if result == 0:
-            raise UnimplementedError, "Precision of real interval field not sufficient to continue"
-        return result
+    ## def __cmp__(left, right):   # Before trac 17890, need to specialize this function.
+    ##     #print "__cmp__", left, right
+    ##     if NumberFieldElement_absolute.__cmp__(left, right) == 0:
+    ##         return 0
+    ##     result = cmp(left.embedded(), right.embedded())
+    ##     if result == 0:
+    ##         raise UnimplementedError, "Precision of real interval field not sufficient to continue"
+    ##     return result
 
     def _cmp_(left, right):    # After trac 17890, need to specialize this function.
+        #print "_cmp_", left, right
         if NumberFieldElement_absolute._cmp_(left, right) == 0:
             return 0
         result = cmp(left.embedded(), right.embedded())
         if result == 0:
             raise UnimplementedError, "Precision of real interval field not sufficient to continue"
         return result
+
+    def _richcmp_(left, right, op):    # In Sage 7.1, need to specialize this function.
+        #print "_richcmp_", left, right, op
+        if NumberFieldElement._richcmp_(left, right, op_EQ):
+            return op == op_EQ or op == op_LE or op == op_GE
+        elif op == op_NE:
+            return True
+        elif op == op_EQ:
+            return False
+
+        result = cmp(left.embedded(), right.embedded())
+        if result == 0:
+            raise UnimplementedError, "Precision of real interval field not sufficient to continue"
+        if op == op_LT or op == op_LE:
+            return result < 0
+        else:
+            return result > 0
     
     def __abs__(self):
         if self.sign() >= 0:
@@ -53,12 +74,16 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
         return result
 
     def __repr__(self):
-        embedded = self.embedded()
-        symbolic = getattr(self, '_symbolic', None)
-        if symbolic is None:
-            return 'RNF%s' % embedded
+        global show_RNFElement_by_embedding
+        if show_RNFElement_by_embedding:
+            embedded = self.embedded()
+            symbolic = getattr(self, '_symbolic', None)
+            if symbolic is None:
+                return '%s' % embedded
+            else:
+                return '<%s=%s>' % (symbolic, embedded)
         else:
-            return '<RNF%s=%s>' % (symbolic, embedded)
+            return NumberFieldElement_absolute._repr_(self)
 
     def _latex_(self):
         symbolic = getattr(self, '_symbolic', None)
@@ -138,6 +163,20 @@ class RealNumberField_absolute(NumberField_absolute):
         True
         sage: hom(field_values[1]) < 2
         True
+        sage: logging.disable(logging.INFO)
+        sage: field = nice_field_values([sqrt(2),sqrt(3)])[0].parent()
+        sage: field
+        Real Number Field in `a` as the root of the defining polynomial y^4 - 4*y^2 + 1 near 0.5176380902050415?
+        sage: field1 = NumberField(field.polynomial(),"a")
+        sage: field1
+        Number Field in a with defining polynomial y^4 - 4*y^2 + 1
+        sage: field1 == field or field == field1
+        False
+        sage: field2 = VectorSpace(field, 2).base_field()
+        sage: field2
+        Real Number Field in `a` as the root of the defining polynomial y^4 - 4*y^2 + 1 near 0.5176380902050415?
+        sage: field == field2 and field2 == field
+        True
     """
 
     def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None,
@@ -154,7 +193,16 @@ class RealNumberField_absolute(NumberField_absolute):
         self._one_element =  self(1)
         self._exact_embedding = self.hom([exact_embedding])
 
+    def _repr_(self):
+        return "Real Number Field in `%s` as the root of the defining polynomial %s near %s"%(
+                   self.variable_name(), self.polynomial(), self.gen(0).embedded())
+    def __hash__(self):
+        return NumberField_absolute.__hash__(self)
+
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
+
+# global variable to controle the format of repr(RealNumberFieldElement_quadratic)
+show_RNFElement_by_embedding = True
 
 class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
     
@@ -165,8 +213,13 @@ class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
         return e
     
     def __repr__(self):
-        embedded = self.embedded()
-        return 'RNF%s' % embedded
+        global show_RNFElement_by_embedding
+        if show_RNFElement_by_embedding:
+            embedded = self.embedded()
+            return '%s' % embedded
+        else:
+            return NumberFieldElement_quadratic._repr_(self)
+
 
     def __hash__(self):
         if not hasattr(self, '_hash'):
@@ -218,12 +271,34 @@ class RealNumberField_quadratic(NumberField_quadratic):
         #### self._zero_element = self(0) 
         #### self._one_element =  self(1)
         self._zero_element = RealNumberFieldElement_quadratic(self, QQ(0)) 
-        self._one_element =  RealNumberFieldElement_quadratic(self, QQ(1))       
+        self._one_element =  RealNumberFieldElement_quadratic(self, QQ(1))
+
+    def _repr_(self):
+        return "Real Number Field in `%s` as the root of the defining polynomial %s near %s"%(
+                   self.variable_name(), self.polynomial(), self.gen(0).embedded())
     
 # The factory.
 
-def RealNumberField(polynomial, name=None, latex_name=None, check=True, embedding=None,
+def RealNumberField(polynomial, name=None, latex_name=None, names=None, check=True, embedding=None,
                     assume_disc_small=False, maximize_at_primes=None, exact_embedding=None):
+    """
+    A numberfield embedded into the real numbers, for which comparisons work according to
+    the embedding.
+
+    This may not be necessary any more in Sage 7.1 after trac #17830; but see #20184.
+
+    Some special tricks for speed and for pretty printing.
+
+    TESTS::
+
+        sage: x=polygen(QQ)
+        sage: K.<cbrt2> = RealNumberField(x^3 - 2, embedding=RIF(AA.polynomial_root(x^3-2, RIF(0,3))), exact_embedding=AA.polynomial_root(x^3-2, RIF(0,3)))
+        sage: 6064/4813 < cbrt2 < 90325/71691
+        True
+    """
+
+    if names is not None:
+        name = names
     if polynomial.degree() == 2:
         K = RealNumberField_quadratic(polynomial, name, latex_name, check, embedding,
                                       assume_disc_small=assume_disc_small, 

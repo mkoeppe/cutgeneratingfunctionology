@@ -40,10 +40,12 @@ def plot_2d_complex(function):
     ## We now use lambda functions instead of Sage symbolics for plotting, 
     ## as those give strange errors when combined with our RealNumberFieldElement.
     for i in range(1,len(bkpt)):
-        p += plot(lambda x: bkpt[i]-x, (x, 0, bkpt[i]), color='grey', **kwd)
+        #p += plot(lambda x: bkpt[i]-x, (x, 0, bkpt[i]), color='grey', **kwd)
+        p += line([(0,  bkpt[i]), (bkpt[i], 0)], color='grey', **kwd)
         kwd = {}
     for i in range(1,len(bkpt)-1):
-        p += plot(lambda x: (1+bkpt[i]-x), (x, bkpt[i], 1), color='grey')
+        #p += plot(lambda x: (1+bkpt[i]-x), (x, bkpt[i], 1), color='grey')
+        p += line([(bkpt[i], 1), (1, bkpt[i])], color='grey')
     for i in range(len(bkpt)):
         p += plot(bkpt[i], (0, 1), color='grey')
     y=var('y')
@@ -342,7 +344,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
     faces = generate_maximal_additive_faces(fn)
-    p = plot_2d_complex(fn)
+    p = Graphics()
     kwds = { 'legend_label': "Additive face" }
     plot_kwds_hook(kwds)
     if colorful:
@@ -402,21 +404,67 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
                     if (xeps, yeps) == (0, 0):
                         p += point([x, y], color="mediumvioletred", size=20, zorder=5)
                     else:
-                        p += disk([x, y], 0.03, (yeps* pi/2, (1 - xeps) * pi/2), color="mediumvioletred", zorder=5)
+                        p += disk([x, y], 3/100, (yeps* pi/2, (1 - xeps) * pi/2), color="mediumvioletred", zorder=5)
                     if x != y:
                         if (xeps, yeps) == (0, 0):
                             p += point([y, x], color="mediumvioletred", size=20, zorder=5)
                         else:
-                            p += disk([y, x], 0.03, (xeps* pi/2, (1 - yeps) * pi/2), color="mediumvioletred", zorder=5)
+                            p += disk([y, x], 3/100, (xeps* pi/2, (1 - yeps) * pi/2), color="mediumvioletred", zorder=5)
                 if new_legend_label:
                     # add legend_label
                     p += point([(0,0)], color = "mediumvioletred", size = 50, zorder=-10, **kwds)
                     p += point([(0,0)], color = "white", size = 50, zorder=-9)
+    p += plot_2d_complex(fn)
     if show_projections:
         p += plot_projections_at_borders(fn)
     if show_function:
         p += plot_function_at_borders(fn, covered_intervals = covered_intervals)
     return p
+
+def plot_2d_diagram_with_cones(fn, show_function=True, f=None):
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = zhou_two_sided_discontinuous_cannot_assume_any_continuity()
+        sage: g = plot_2d_diagram_with_cones(h)
+        sage: h = not_minimal_2()
+        sage: g = plot_2d_diagram_with_cones(h)
+    """
+    if f is None:
+        f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    g = plot_2d_complex(fn)
+    if show_function:
+        g += plot_function_at_borders(fn)
+    bkpt = uniq(copy(fn.end_points()))
+    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
+    type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
+    type_2_vertices = [(x, z-x, z) for x in bkpt for z in bkpt2 if x < z < 1+x]
+    vertices = set(type_1_vertices + type_2_vertices)
+    if fn.is_continuous():
+        for (x, y, z) in vertices:
+            deltafn = delta_pi(fn, x, y)
+            if deltafn > 0:
+                color = "white"
+            elif deltafn == 0:
+                color = "mediumspringgreen"
+            else:
+                color = "red"
+            g += point([(x, y), (y, x)], color=color, size = 200, zorder=-1)
+    else:
+        for (x, y, z) in vertices:
+            for (xeps, yeps, zeps) in [(0,0,0)]+list(nonzero_eps):
+                deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
+                if deltafn > 0:
+                    color = "white"
+                elif deltafn == 0:
+                    color = "mediumspringgreen"
+                else:
+                    color = "red"
+                g += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), color=color, r=0.03)
+                g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)), color=color, r=0.03)
+    return g
+
 
 def plot_function_at_borders(fn, color='blue', legend_label="Function pi", covered_intervals=None, **kwds):
     """
@@ -438,19 +486,19 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", cover
         y3 = limits[i+1][0]
         y4 = limits[i+1][1]
         if y1 is not None and y2 is not None:
-            p += line([(x1, 0.3*y1 + 1), (x2, 0.3*y2 + 1)], color=color, zorder=-2, **kwds)
+            p += line([(x1, (3/10)*y1 + 1), (x2, (3/10)*y2 + 1)], color=color, zorder=-2, **kwds)
             delete_one_time_plot_kwds(kwds)
-            p += line([(-0.3*y1, x1), (-0.3*y2, x2)], color=color, zorder=-2, **kwds)
+            p += line([(-3/10*y1, x1), (-(3/10)*y2, x2)], color=color, zorder=-2, **kwds)
         if y1 is not None and limits[i][0] != y1:
-            p += point([(x1, 0.3*y1 + 1), (-0.3*y1, x1)], color=color, pointsize=23, zorder=-1)
-            p += point([(x1, 0.3*y1 + 1), (-0.3*y1, x1)], color='white', pointsize=10, zorder=-1)
+            p += point([(x1, (3/10)*y1 + 1), (-(3/10)*y1, x1)], color=color, pointsize=23, zorder=-1)
+            p += point([(x1, (3/10)*y1 + 1), (-(3/10)*y1, x1)], color='white', pointsize=10, zorder=-1)
         if y2 is not None and y2 != y3:
-            p += point([(x2, 0.3*y2 + 1), (-0.3*y2, x2)], color=color, pointsize=23, zorder=-1)
-            p += point([(x2, 0.3*y2 + 1), (-0.3*y2, x2)], color='white', pointsize=10, zorder=-1)
+            p += point([(x2, (3/10)*y2 + 1), (-(3/10)*y2, x2)], color=color, pointsize=23, zorder=-1)
+            p += point([(x2, (3/10)*y2 + 1), (-(3/10)*y2, x2)], color='white', pointsize=10, zorder=-1)
         if y3 is not None and ((y2 != y3) or ((i < len(bkpt) - 2) and (y3 != y4))) and \
                               ((i == len(bkpt)-2) or not (y3 == y4 and y2 is None) and \
                                                      not (y2 == y3 and y4 is None)):
-            p += point([(x2, 0.3*y3 + 1), (-0.3*y3, x2)], color=color, pointsize=23, zorder=-1)
+            p += point([(x2, (3/10)*y3 + 1), (-(3/10)*y3, x2)], color=color, pointsize=23, zorder=-1)
     if not covered_intervals is None:
         colors = rainbow(len(covered_intervals))
         for i, component in enumerate(covered_intervals):
@@ -459,8 +507,8 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", cover
                 x2 = interval[1]
                 y1 = fn.limit(x1, 1)
                 y2 = fn.limit(x2, -1)
-                p += line([(x1, 0.3*y1 + 1), (x2, 0.3*y2 + 1)], color=colors[i], zorder=-2, **kwds)
-                p += line([(-0.3*y1, x1), (-0.3*y2, x2)], color=colors[i], zorder=-2, **kwds)
+                p += line([(x1, (3/10)*y1 + 1), (x2, (3/10)*y2 + 1)], color=colors[i], zorder=-2, **kwds)
+                p += line([(-(3/10)*y1, x1), (-(3/10)*y2, x2)], color=colors[i], zorder=-2, **kwds)
     # add legend_label
     kwds = { 'legend_label': legend_label }
     plot_kwds_hook(kwds)
@@ -473,7 +521,7 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", cover
     # plot function at borders with different colors according to slope values.
     return p
 
-proj_plot_width = 0.02
+proj_plot_width = 2/100
 #proj_plot_colors = ['yellow', 'cyan', 'magenta']            # very clear but ugly
 #proj_plot_colors = ['darkseagreen', 'darkseagreen', 'slategray']
 proj_plot_colors = ['grey', 'grey', 'grey']
@@ -876,7 +924,8 @@ def delete_one_time_plot_kwds(kwds):
     if 'tick_formatter' in kwds:
         del kwds['tick_formatter']
 
-def plot_covered_intervals(function, covered_intervals=None, uncovered_color='black', labels=None, **plot_kwds):
+def plot_covered_intervals(function, covered_intervals=None, uncovered_color='black', labels=None,
+                           show_one_point_overlap_markers=None, **plot_kwds):
     """
     Return a plot of the covered and uncovered intervals of `function`.
     """
@@ -900,6 +949,8 @@ def plot_covered_intervals(function, covered_intervals=None, uncovered_color='bl
     elif not function.is_continuous(): # to plot the discontinuity markers
         graph += plot(function, color = uncovered_color, **kwds)
         delete_one_time_plot_kwds(kwds)
+    if show_one_point_overlap_markers is None:
+        show_one_point_overlap_markers = not function.is_continuous()
     for i, component in enumerate(covered_intervals):
         if labels is None:
             label = "covered component %s" % (i+1)
@@ -907,15 +958,31 @@ def plot_covered_intervals(function, covered_intervals=None, uncovered_color='bl
             label = labels[i]
         kwds.update({'legend_label': label})
         plot_kwds_hook(kwds)
+        last_endpoint = None
         for interval in component:
+            linear = function.which_function((interval[0] + interval[1])/2)
             # We do not plot anything if float(interval[0])==float(interval[1]) because
             # otherwise plot complains that
             # "start point and endpoint must be different"
             if float(interval[0])<float(interval[1]):
-                graph += plot(function.which_function((interval[0] + interval[1])/2), interval, color=colors[i], zorder=-1, **kwds)
+                graph += plot(linear, interval, color=colors[i], zorder=-1, **kwds)
                 # zorder=-1 puts them below the discontinuity markers,
                 # above the black function.
                 delete_one_time_plot_kwds(kwds)
+                # Show a little marker where adjacent intervals of the same component end
+                # if the function is continuous at that point.
+                # For example, in zhou_two_sided_discontinuous_cannot_assume_any_continuity, or
+                # hildebrand_discont_3_slope_1().
+                if show_one_point_overlap_markers and interval[0] == last_endpoint:
+                    limits = function.limits(last_endpoint)
+                    if limits[0] == limits[1] == limits[2]:
+                        slope = linear._slope
+                        scale = 0.01
+                        dx = scale * slope / sqrt(1 + slope**2) # FIXME: this tries to make it orthogonal to the slope
+                        dy = -scale / sqrt(1 + slope**2)        # but fails to take the aspect ratio of the plot into account.
+                        graph += line([(last_endpoint - dx, function(last_endpoint) - dy), (last_endpoint + dx, function(last_endpoint) + dy)],
+                                      color=colors[i], zorder=-1)
+            last_endpoint = interval[1]
     return graph
 
 def number_of_components(fn):
@@ -1111,8 +1178,17 @@ def minimality_test(fn, show_plots=False, f=None):
         logging.info("Plotting 2d diagram... done")
     return is_minimal
 
-from sage.functions.piecewise import PiecewisePolynomial
+try:
+    # Sage Trac 14801 replaced the implementation of piecewise functions.
+    # We use the old one, for the time being.
+    from sage.functions.piecewise_old import PiecewisePolynomial
+except:
+    from sage.functions.piecewise import PiecewisePolynomial
+
 from bisect import bisect_left
+
+# Global variable to contole repr of FastPiecewise.
+show_values_of_fastpiecewise =  True
 
 class FastPiecewise (PiecewisePolynomial):
     """
@@ -1859,10 +1935,12 @@ class FastPiecewise (PiecewisePolynomial):
         return True
 
     def __repr__(self):
+        global show_values_of_fastpiecewise
         rep = "<FastPiecewise with %s parts, " % len(self._functions)
         for interval, function in itertools.izip(self._intervals, self._functions):
-            rep += "\n " + repr(interval) + "\t" + repr(function) \
-                   + "\t values: " + repr([function(interval[0]), function(interval[1])])
+            rep += "\n " + repr(interval) + "\t" + repr(function)
+            if show_values_of_fastpiecewise:
+                rep += "\t values: " + repr([function(interval[0]), function(interval[1])])
         rep += ">"
         return rep
 
@@ -1901,6 +1979,44 @@ class FastPiecewise (PiecewisePolynomial):
             logging.warn("For functions with non-rational data, cannot guarantee a stable SHA-1 hash.")
         stable_str = str(data)
         return sha1(stable_str).hexdigest()
+
+    def _latex_(self, table=False, labels={}):
+        if not table:
+            return super(FastPiecewise, self)._latex_()
+        from sage.misc.latex import latex
+        def labeled_latex(x):
+            return labels.get(x, latex(x))
+        latex.add_package_to_preamble_if_available("booktabs")
+        s = []
+        num_columns = 6
+        s += [r'\begin{array}{*%sc}' % num_columns]
+        s += [r'  \toprule']
+        s += ['  ' + ' & '.join(['i',
+                                 'x_i',
+                                 r'\pi(x_i^-)',
+                                 r'\pi(x_i)',
+                                 r'\pi(x_i^+)',
+                                 r'\text{slope}']) + r'\\']
+        s += ['  \\midrule']
+        end_points = self.end_points()
+        for index, (bkpt, limits) in enumerate(itertools.izip(end_points, self.limits_at_end_points())):
+            latex_limits = [ labeled_latex(x) for x in limits ]
+            for eps in [-1, +1]:
+                if limits[eps] == limits[0]:
+                    latex_limits[eps] = ''
+            slope = ''
+            if index < len(end_points) - 1:
+                slope = self.which_function((end_points[index] + end_points[index+1])/ 2)._slope
+                slope = labeled_latex(slope)
+            s += ['  ' + ' & '.join([labeled_latex(index),
+                                     labeled_latex(bkpt),
+                                     latex_limits[-1],
+                                     latex_limits[0],
+                                     latex_limits[1],
+                                     r'\smash{\raisebox{-1.5ex}{$%s$}}' % slope]) + r'\\']
+        s += [r'  \bottomrule']
+        s += [r'\end{array}']
+        return '\n'.join(s)
 
 def singleton_piece(x, y):
     return (singleton_interval(x), FastLinearFunction(0, y))
@@ -2303,7 +2419,10 @@ def find_largest_epsilon(fn, perturb):
 
 class FunctionalDirectedMove (FastPiecewise):
     # FIXME: At the moment, does not reduce modulo 1, in contrast to old code!
-
+    """
+    Return a pieceweise function to represent a functional directed move
+    from a list of domain intervals and the functional directed move. 
+    """
     def __init__(self, domain_intervals, directed_move):
         function = fast_linear_function(directed_move[0], directed_move[1])
         pieces = [ (interval, function) for interval in domain_intervals ]
@@ -2314,6 +2433,15 @@ class FunctionalDirectedMove (FastPiecewise):
         return "<FunctionalDirectedMove %s with domain %s, range %s>" % (self.directed_move, self.intervals(), self.range_intervals())
 
     def sign(self):
+        """
+        Return the sign of the move
+
+        EXAMPLES::
+
+            sage: h = FunctionalDirectedMove([[0.3, 0.4]], (1,0))
+            sage: h.sign()
+            1
+        """
         return self.directed_move[0]
 
     def is_functional(self):
@@ -2323,6 +2451,17 @@ class FunctionalDirectedMove (FastPiecewise):
         return self.directed_move[item]
 
     def can_apply(self, x):
+        """
+        Determine if self can apply on x
+
+        EXAMPLES::
+
+            sage: h = FunctionalDirectedMove([[0.3, 0.4], [0.58, 0.68]], (1,0))
+            sage: h.can_apply(0.3)
+            True
+            sage: h.can_apply(0.2)
+            False            
+        """
         try:
             self(x)
             return True
@@ -2330,6 +2469,19 @@ class FunctionalDirectedMove (FastPiecewise):
             return False
 
     def apply_ignoring_domain(self, x):
+        """
+        Apply self on x by ignoring the domain (use modulo 1)
+
+        EXAMPLES::
+
+            sage: h = FunctionalDirectedMove([[0.3, 0.4], [0.58, 0.68]], (1,0))
+            sage: h.apply_ignoring_domain(1/10)
+            1/10
+            sage: h = FunctionalDirectedMove([[0.1, 0.6]], (-1,1))
+            sage: h.apply_ignoring_domain(1/2)
+            1/2
+
+        """
         move_sign = self.sign()
         if move_sign == 1:
             next_x = fractional(x + self.directed_move[1])
@@ -2340,6 +2492,22 @@ class FunctionalDirectedMove (FastPiecewise):
     def apply_to_coho_interval(self, interval, inverse=False):
         # This does not do error checking.  Some code depends on this fact!
         # FIXME: This should be made clear in the name of this function.
+        """
+        Return a range inverval from a given interval by applying the move. 
+        If the move sign is 1, the user can take the inverse of the operation,
+        i.e y = x - t_1
+
+        EXAMPLES::
+
+            sage: h = FunctionalDirectedMove([[0.3, 0.4]], (-1, 1))
+            sage: h.apply_to_coho_interval([1/10, 1/2])
+            <Int[1/2, 9/10]>
+            sage: h = FunctionalDirectedMove([[0.3, 0.4]], (1, 1/10))
+            sage: h.apply_to_coho_interval([1/10, 1/2])
+            <Int[1/5, 3/5]>
+            sage: h.apply_to_coho_interval([1/10, 1/2], inverse=True)
+            <Int[0, 2/5]>
+        """
         if len(interval) <= 2:
             interval = coho_interval_from_interval(interval) # FIXME: Can be removed if FastPiecewise exclusively uses coho intervals.
         directed_move = self.directed_move
@@ -2359,9 +2527,24 @@ class FunctionalDirectedMove (FastPiecewise):
         return result
 
     def range_intervals(self):
+        """
+        Return the range intervals of self.
+        """
         return [ self.apply_to_coho_interval(interval) for interval in self.intervals() ] 
 
     def is_identity(self):
+        """
+        Determine if self is a identity function or not
+
+        EXAMPLES::
+
+            sage: h = FunctionalDirectedMove([[0.3, 0.4]], (1, 0))
+            sage: h.is_identity()
+            True
+            sage: h = FunctionalDirectedMove([[0.3, 0.4]], (-1, 1))
+            sage: h.is_identity()
+            False
+        """
         return self.directed_move[0] == 1 and self.directed_move[1] == 0
 
     def minimal_triples(self): # unused
@@ -2762,7 +2945,9 @@ def generate_nonsymmetric_vertices(fn, f):
 class MaximumNumberOfIterationsReached(Exception):
     pass
 
-def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True, show_all_perturbations=False):
+crazy_perturbations_warning = False
+
+def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=None, max_num_it = 1000, perturbation_style=default_perturbation_style, phase_1 = False, finite_dimensional_test_first = False, use_new_code=True, show_all_perturbations=False, crazy_perturbations=True):
     """Check if `fn` is extreme for the group relaxation with the given `f`. 
 
     If `fn` is discrete, it has to be defined on a cyclic subgroup of
@@ -2812,6 +2997,11 @@ def extremality_test(fn, show_plots = False, show_old_moves_diagram=False, f=Non
     do_phase_1_lifting = False
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    global crazy_perturbations_warning
+    if crazy_perturbations and (limiting_slopes(fn) == (+Infinity, -Infinity)):
+        crazy_perturbations_warning = True
+    else:
+        crazy_perturbations_warning = False
     if f is None or not minimality_test(fn, show_plots=show_plots, f=f):
         logging.info("Not minimal, thus NOT extreme.")
         if not phase_1:
@@ -2942,7 +3132,7 @@ def plot_completion_diagram(fn, perturbation=None):
 
 def lift(fn, show_plots = False, which_perturbation = 1, **kwds):
     # FIXME: Need better interface for perturbation selection.
-    if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots=show_plots, **kwds):
+    if not hasattr(fn, '_perturbations') and extremality_test(fn, show_plots=show_plots, crazy_perturbations=False, **kwds):
         return fn
     else:
         perturbation = fn._perturbations[0]
@@ -3053,7 +3243,7 @@ def random_piecewise_function(xgrid=10, ygrid=10, continuous_proba=1, symmetry=T
         piece1 = [ [singleton_interval(xvalues[i]), FastLinearFunction(0, yvalues[i])] for i in range(xgrid+1) ]
         leftlimits = [0]
         rightlimits = []
-        for i in range(0, ygrid):
+        for i in range(0, xgrid):
             p = random()
             if p > continuous_proba:
                 rightlimits.append(randint(0, ygrid) / ygrid)
@@ -3274,6 +3464,22 @@ class DirectedMoveCompositionCompletion:
         self.is_complete = False
 
     def reduce_move_dict_with_dense_moves(self, dense_moves):
+        """
+        Reduce moves with dense moves from the move dictionary of self.
+
+        EXAMPLES::
+
+            sage: f = FunctionalDirectedMove([[1/10,7/10]],(1, 1/10))
+            sage: d = [DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]]), DenseDirectedMove([[[6/20,6/10],[4/10,6/10]]])]
+            sage: h = DirectedMoveCompositionCompletion([f])
+            sage: h.move_dict
+            {(1,
+              1/10): <FunctionalDirectedMove (1, 1/10) with domain [(1/10, 7/10)], range [<Int[1/5, 4/5]>]>}
+            sage: h.reduce_move_dict_with_dense_moves(d)
+            sage: h.move_dict
+            {(1,
+              1/10): <FunctionalDirectedMove (1, 1/10) with domain [<Int[1/10, 3/10)>, <Int(1/2, 7/10]>], range [<Int[1/5, 2/5)>, <Int(3/5, 4/5]>]>}
+        """
         new_move_dict = dict()
         for key, move in self.move_dict.items():
             new_move = reduce_with_dense_moves(move, dense_moves)
@@ -3282,6 +3488,32 @@ class DirectedMoveCompositionCompletion:
         self.move_dict = new_move_dict
 
     def upgrade_or_reduce_dense_interval_pair(self, a_domain, a_codomain):
+        """
+        Upgrade or reduce the dense moves of self from a given dense interval pair
+
+        EXAMPLES::
+
+            sage: a = DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]])
+            sage: h = DirectedMoveCompositionCompletion([a])
+            sage: # is dominated by existing rectangle, exit.
+            sage: h.upgrade_or_reduce_dense_interval_pair([7/20,5/10],[3/10,5/10])
+            (None, None)
+
+            sage: h = DirectedMoveCompositionCompletion([a])
+            sage: # simple vertical merge
+            sage: h.upgrade_or_reduce_dense_interval_pair([7/20,5/10],[2/10,5/10])
+            ([7/20, 1/2], [1/5, 1/2])
+
+            sage: h = DirectedMoveCompositionCompletion([a])
+            sage: # simple horizontal merge
+            sage: h.upgrade_or_reduce_dense_interval_pair([6/20,5/10],[3/10,5/10])
+            ([3/10, 1/2], [3/10, 1/2])
+
+            sage: h = DirectedMoveCompositionCompletion([a])
+            sage: # full-dimensional intersection, extend to big rectangle.
+            sage: h.upgrade_or_reduce_dense_interval_pair([6/20,9/20], [2/10,4/10])
+            ((3/10, 1/2), (1/5, 1/2))
+        """
         another_pass = True
         while another_pass:
             another_pass = False
@@ -3315,6 +3547,32 @@ class DirectedMoveCompositionCompletion:
         return a_domain, a_codomain
 
     def add_move(self, c):
+        """
+        Add a move c to self. 
+        Merge functional directed move or upgrade or reduce dense interval pair if necessary.
+
+        EXAMPLES::
+
+            sage: f = FunctionalDirectedMove([(3/10, 7/20), (9/20, 1/2)], (1,0))
+            sage: c = FunctionalDirectedMove([(3/10, 13/40)], (1,0))
+            sage: h = DirectedMoveCompositionCompletion([f])
+            sage: h.move_dict
+            {(1,
+              0): <FunctionalDirectedMove (1, 0) with domain [(3/10, 7/20), (9/20, 1/2)], range [<Int[3/10, 7/20]>, <Int[9/20, 1/2]>]>}
+            sage: h.add_move(c)
+            sage: h.move_dict
+            {(1,
+              0): <FunctionalDirectedMove (1, 0) with domain [(3/10, 7/20), (9/20, 1/2)], range [<Int[3/10, 7/20]>, <Int[9/20, 1/2]>]>}
+
+            sage: a = DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]])
+            sage: h = DirectedMoveCompositionCompletion([a])
+            sage: h.dense_moves
+            {<DenseDirectedMove [([7/20, 1/2], [3/10, 1/2])]>}
+            sage: c = DenseDirectedMove([[[6/20,9/20], [2/10,4/10]]])
+            sage: h.add_move(c)
+            sage: h.dense_moves
+            {<DenseDirectedMove [((3/10, 1/2), (1/5, 1/2))]>}
+        """
         if c.is_functional():
             reduced = reduce_with_dense_moves(c, self.dense_moves)
             if reduced is None:
@@ -3418,6 +3676,9 @@ class DirectedMoveCompositionCompletion:
                 if a.is_functional() and b.is_functional():
                     d = check_for_dense_move(a, b)
                     if d and not is_move_dominated_by_dense_moves(d, self.dense_moves):
+                        global crazy_perturbations_warning
+                        if crazy_perturbations_warning:
+                            logging.warn("This function is two-sided discontinuous at the orgin. Crazy perturbations might exist.")
                         logging.info("New dense move from strip lemma: %s" % d)
                         self.add_move(d)
                         # self.maybe_show_plot()
@@ -3603,6 +3864,9 @@ def generate_generic_seeds_with_completion(fn, show_plots=False, max_num_it=None
             yield (seed, stab_int, walk_dict)
 
 class DenseDirectedMove ():
+    """
+    Return a dense directed move from given interval pairs (first domain interval, then range interval).
+    """
 
     def __init__(self, interval_pairs):
         self._interval_pairs = interval_pairs
@@ -3617,12 +3881,40 @@ class DenseDirectedMove ():
         return sum([polygon(((domain[0], codomain[0]), (domain[1], codomain[0]), (domain[1], codomain[1]), (domain[0], codomain[1])), rgbcolor=kwds.get("rgbcolor", "cyan"), alpha=0.5) + polygon(((domain[0], codomain[0]), (domain[1], codomain[0]), (domain[1], codomain[1]), (domain[0], codomain[1])), color="red", fill=False) for (domain, codomain) in self._interval_pairs])
 
     def intervals(self):
+        """
+        Return the domain interval of self.
+
+        EXAMPLES::
+
+            sage: a = DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]])
+            sage: a.intervals()
+            [[7/20, 1/2]]
+        """
         return [ domain_interval for (domain_interval, range_interval) in self._interval_pairs ]
 
     def range_intervals(self):
+        """
+        Return the range interval of self.
+
+        EXAMPLES::
+
+            sage: a = DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]])
+            sage: a.range_intervals()
+            [[3/10, 1/2]]
+        """
         return [ range_interval for (domain_interval, range_interval) in self._interval_pairs ]
 
     def interval_pairs(self):
+        """
+        Return the interval pairs of self. 
+        The first interval is the domain interval, and the second is the range interval of self. 
+
+        EXAMPLES::
+
+            sage: a = DenseDirectedMove([[[7/20,5/10],[3/10,5/10]]])
+            sage: a.interval_pairs()
+            [[[7/20, 1/2], [3/10, 1/2]]]
+        """
         return self._interval_pairs
     
 def check_for_dense_move(m1, m2):
