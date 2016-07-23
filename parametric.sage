@@ -30,14 +30,15 @@ class SymbolicRNFElement(FieldElement):
             parent = default_symbolic_field
         FieldElement.__init__(self, parent) ## this is so that canonical_coercion works.
         ## Test coercing the value to RR, so that we do not try to build a SymbolicRNFElement
-        ## from something like a tuple or something else that does not make any sense.
-        #RR(value)
+        ## from something like a tuple or vector or list or variable of a polynomial ring
+        ## or something else that does not make any sense.
+        # Question: what happens if value is a mathematica object sqrt(2)?
+        RR(value)
         self._val = value
         if symbolic is None:
             self._sym = value # changed to not coerce into SR. -mkoeppe
         else:
             self._sym = symbolic
-        self._parent = parent ## this is so that .parent() works.
 
     def sym(self):
         return self._sym
@@ -45,19 +46,19 @@ class SymbolicRNFElement(FieldElement):
     def val(self):
         return self._val
 
-    def parent(self):
-        return self._parent
-
-    def __cmp__(left, right):
+    def _cmp_(left, right):
+        if not left.parent() is right.parent():
+            raise TypeError, "comparing elements from different fields"
         result = cmp(left._val, right._val)
-        if left.parent().recording:
-            if result == 0:
-                left.parent().record_to_eq_list(left.sym() - right.sym())
-            elif result == -1:
-                left.parent().record_to_lt_list(left.sym() - right.sym())
-            elif result == 1:
-                left.parent().record_to_lt_list(right.sym() - left.sym())
+        if result == 0:
+            left.parent().record_to_eq_list(left.sym() - right.sym())
+        elif result == -1:
+            left.parent().record_to_lt_list(left.sym() - right.sym())
+        elif result == 1:
+            left.parent().record_to_lt_list(right.sym() - left.sym())
         return result
+
+    __cmp__ = _cmp_
 
     def __richcmp__(left, right, op):
         result = left._val.__richcmp__(right._val, op)
@@ -86,8 +87,11 @@ class SymbolicRNFElement(FieldElement):
     def __float__(self):
         return float(self._val)
 
-    def __repr__(self):
-        r = repr(self._sym)
+    def _repr_(self):
+        s = self._sym
+        r = repr(s)
+        if s in RR:
+            return r
         if len(r) > 1:
             return '('+r+')~'
         else:
@@ -96,16 +100,12 @@ class SymbolicRNFElement(FieldElement):
     def _latex_(self):
         return "%s" % (latex(self._sym))
 
-    def __add__(self, other):
-        if not isinstance(other, SymbolicRNFElement):
-            other = SymbolicRNFElement(other, parent=self.parent())
-        return SymbolicRNFElement(self._val + other._val, self._sym + other._sym, parent=self.parent())
     def _add_(self, other):
         if not isinstance(other, SymbolicRNFElement):
             other = SymbolicRNFElement(other, parent=self.parent())
         return SymbolicRNFElement(self._val + other._val, self._sym + other._sym, parent=self.parent())
 
-    def __sub__(self, other):
+    def _sub_(self, other):
         if not isinstance(other, SymbolicRNFElement):
             other = SymbolicRNFElement(other, parent=self.parent())
         return SymbolicRNFElement(self._val - other._val, self._sym - other._sym, parent=self.parent())
@@ -113,16 +113,16 @@ class SymbolicRNFElement(FieldElement):
     def __neg__(self):
         return SymbolicRNFElement(-self._val, -self._sym, parent=self.parent())
 
-    def __mul__(self, other):
-        if not isinstance(other, SymbolicRNFElement):
-            other = SymbolicRNFElement(other, parent=self.parent())
-        return SymbolicRNFElement(self._val * other._val, self._sym * other._sym, parent=self.parent())
     def _mul_(self, other):
         if not isinstance(other, SymbolicRNFElement):
-            other = SymbolicRNFElement(other, parent=self.parent())
+            try:
+                other = SymbolicRNFElement(other, parent=self.parent())
+            except TypeError:
+                # For example when other is a vector
+                return other * self
         return SymbolicRNFElement(self._val * other._val, self._sym * other._sym, parent=self.parent())
 
-    def __div__(self, other):
+    def _div_(self, other):
         if not isinstance(other, SymbolicRNFElement):
             other = SymbolicRNFElement(other, parent=self.parent())
         return SymbolicRNFElement(self._val / other._val, self._sym / other._sym, parent=self.parent())
@@ -227,10 +227,10 @@ class SymbolicRealNumberField(Field):
         sage: K.get_lt_factor()
         {-f, f - 1, f - 1/2, f - 1/3}
     """
+    Element = SymbolicRNFElement
 
     def __init__(self, values=[], names=()):
-        NumberField.__init__(self)
-        self._element_class = SymbolicRNFElement
+        Field.__init__(self, self)
         self._zero_element = SymbolicRNFElement(0, parent=self)
         self._one_element =  SymbolicRNFElement(1, parent=self)
         self._eq = set([])
@@ -257,7 +257,6 @@ class SymbolicRealNumberField(Field):
         self._dependency= []
         self._independency=[]
         self._zero_kernel=set([])
-        self.recording=True
 
     def __copy__(self):
         logging.warn("copy(%s) is invoked" % self)
@@ -278,20 +277,23 @@ class SymbolicRealNumberField(Field):
     def _an_element_impl(self):
         return SymbolicRNFElement(1, parent=self)
     def _coerce_map_from_(self, S):
+        if isinstance(S, SymbolicRealNumberField) and self is not S:
+            return None
         return CallableConvertMap(S, self, lambda s: SymbolicRNFElement(s, parent=self), parent_as_first_arg=False)
     def __repr__(self):
         return 'SymbolicRNF%s' %repr(self.gens())
-    def __call__(self, elt):
+    def _element_constructor_(self, elt):
         if parent(elt) == self:
             return elt
         try: 
             QQ_elt = QQ(elt)
             return SymbolicRNFElement(QQ_elt, parent=self)
+            #return self.element_class(self, QQ_elt)
         except:
-            raise ValueError, "SymbolicRealNumberField called with element", elt
+            raise TypeError, "SymbolicRealNumberField called with element %s" % elt
 
     def _coerce_impl(self, x):
-        return self(x)
+        return self._element_constructor_(x)
     def get_eq_list(self):
         return self._eq
     def get_lt_list(self):
@@ -305,7 +307,7 @@ class SymbolicRealNumberField(Field):
     def get_lt_factor(self):
         return self._lt_factor
     def record_to_eq_list(self, comparison):
-        if not comparison.is_zero() and not comparison in QQ and not comparison in self._eq:
+        if not comparison in QQ and not comparison in self._eq:
             logging.debug("New element in %s._eq: %s" % (repr(self), comparison))
             self._eq.add(comparison)
             self.record_poly(comparison.numerator())
@@ -631,8 +633,10 @@ def read_simplified_leq_lin(K, level="factor"):
 def find_variable_mapping(leqs, lins):
     if leqs:
         variables = leqs[0].args()
-    else:
+    elif lins:
         variables = lins[0].args()
+    else:
+        raise ValueError, "constraints are not provided."
     var_map = {}
     for v in variables:
         var_map[v] = v
@@ -1084,9 +1088,10 @@ class SemialgebraicComplex(SageObject):
             if not l(*K.gens()) == 0:
                 logging.warn("Test point %s doesn't satisfy %s == 0." % (var_value, l))
                 return
+        #h = self.function(**test_point)
         try:
             h = self.function(**test_point)
-        except:
+        except: # Dangerous!!
             # Function is non-contructible at this random point.
             h = None
         region_type = self.find_region_type(K, h)
@@ -1322,11 +1327,7 @@ def find_region_type(field, result):
     global region_type_color_map
     n = len(region_type_color_map)
     i = 0
-    while (i < n) and (result != region_type_color_map[i]):
-        # It doesn't work if I write (region_type_color_map[i] != result)
-        # nor with region_type_color_map.index(result) 
-        # while running with result = [1~, 1~] and region_type_color_map =[[2~, 1~]],
-        # it calls __cmp__ with left=2~ and right=(1~)~, which ends up with error. strange!!
+    while (i < n) and cmp(result, region_type_color_map[i]) != 0:
         i += 1
     if i == n:
         region_type_color_map.append(result)
