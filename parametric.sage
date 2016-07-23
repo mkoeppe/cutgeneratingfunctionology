@@ -32,8 +32,8 @@ class SymbolicRNFElement(FieldElement):
         ## Test coercing the value to RR, so that we do not try to build a SymbolicRNFElement
         ## from something like a tuple or vector or list or variable of a polynomial ring
         ## or something else that does not make any sense.
-        # Question: what happens if value is a mathematica object sqrt(2)?
-        RR(value)
+        if not isinstance(value, sage.interfaces.mathematica.MathematicaElement):
+            RR(value)
         self._val = value
         if symbolic is None:
             self._sym = value # changed to not coerce into SR. -mkoeppe
