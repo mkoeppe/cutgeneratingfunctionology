@@ -1319,23 +1319,23 @@ def find_region_type_around_given_point(K, h, region_level='extreme', is_minimal
     else:
         return 'not_minimal'
 
-region_type_color_map = []
-# Don't use dictionary because otherwise key=result must be immutable
+region_type_color_map = {}
 def find_region_type(field, result):
     # at most 7 different types.
-    field.recording = False # turn off recording comparisons in the magic field.
+    # result may be a SymbolicRNFElement or a list of SymbolicRNFElements.
+    # result may have different parent than previous elements in region_type_color_map,
+    # which makes  == meaningless, so we extract result_val.
+    result_val = tuple(elt._val if hasattr(elt, '_val') else elt for elt in flatten([result]))
     global region_type_color_map
-    n = len(region_type_color_map)
-    i = 0
-    while (i < n) and cmp(result, region_type_color_map[i]) != 0:
-        i += 1
-    if i == n:
-        region_type_color_map.append(result)
-    field.recording = True
-    return color_of_ith_region_type(i)
+    region_color = region_type_color_map.get(result_val, None)
+    if region_color is None:
+        n = len(region_type_color_map)
+        region_color = color_of_ith_region_type(n)
+        region_type_color_map[result_val] = region_color
+    return region_color
 
 def color_of_ith_region_type(i):
-    j = (2 * i) % 7
+    j = (4 * i) % 7
     c = rainbow(7)[j]
     return c
 
