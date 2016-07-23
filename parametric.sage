@@ -152,7 +152,7 @@ class SymbolicRNFElement(FieldElement):
             sage: len(s)
             1
             sage: s
-            {1~}
+            1
             sage: K.<f> = SymbolicRealNumberField([1])
             sage: s = {f, K(2)}
             sage: len(s)
@@ -922,7 +922,7 @@ class SemialgebraicComplex(SageObject):
         sage: complex.shoot_random_points(50)  # Got 17 components
 
         A better way is to use flipping inequality + bfs
-        sage: complex.bfs_completion(var_value=(1/23,1/7))       # not tested
+        sage: complex.bfs_completion(var_value=(1/23,1/7),flip_ineq_step=1/1000)   # not tested
         sage: g = complex.plot()                                 # not tested
         sage: g.save("complex_drlm_backward_3_slope_f_bkpt.pdf") # not tested
 
