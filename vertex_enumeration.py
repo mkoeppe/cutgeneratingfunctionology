@@ -441,3 +441,50 @@ def lcdd_rational(in_str, verbose=False):
     return out_str
 
 
+def write_normaliz_in(q, f, destdir=None):
+    vertices_color = initial_vertices_color(q, f);
+    cs = initial_cs(q, f, vertices_color)
+    if destdir is None:
+        fname = None
+    else:
+        dir = output_dir+"profiler/normaliz/"
+        mkdir_p(dir)
+        fname = dir + "normaliz_q%sf%s.in" % (q, f)
+    write_normaliz_format_cs(cs, fname=fname)
+    return
+
+def write_normaliz_remove_redund_in(q, f):
+    infname = output_dir+"profiler/lrs/lrs_remove_redund_q%sf%s.ine" % (q, f)
+    cs = read_lrs_to_cs_or_gs(infname)
+    fname = output_dir+"profiler/normaliz/normaliz_remove_redund_q%sf%s.in" % (q, f)
+    write_normaliz_format_cs(cs, fname=fname)
+    return
+
+def write_normaliz_format_cs(cs, fname=None):
+    if fname:
+        filename = open(fname, "w")
+    else:
+        filename = sys.stdout
+    normaliz_string = convert_pplcs_to_normaliz(cs)
+    print >> filename, normaliz_string
+    if fname:
+        filename.close()
+    return
+
+def convert_pplcs_to_normaliz(cs):
+    m = len(cs)
+    n = cs.space_dimension() + 1
+    s = 'amb_space %s\n' % n
+    s += 'hom_constraints %s\n' % m
+    for c in cs:
+        for x in c.coefficients():
+            s += repr(x) + ' '
+        if c.is_equality():
+            s += '= '
+        else:
+            s += '>= '
+        s += '%s\n' % -c.inhomogeneous_term()
+    s += 'grading\n'
+    s += 'unit_vector %s\n' % n
+    s += 'ExtremeRays\n'
+    return s
