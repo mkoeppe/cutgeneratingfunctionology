@@ -50,7 +50,7 @@ def print_trivial_additive_points_2q(filename, q, f, a):
     print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a - 1/q))
     print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a))
 
-def write_lpfile_2q(q, f, a, nums, maxstep=None, m=0):
+def write_lpfile_2q(q, f, a, kslopes, maxstep=None, m=0):
     """
     EXAMPLES:
 
@@ -61,7 +61,7 @@ def write_lpfile_2q(q, f, a, nums, maxstep=None, m=0):
 
     destdir = output_dir+"2q_mip/"
     mkdir_p(destdir)
-    filename = open(destdir + "mip_q%s_f%s_a%s_%sslope_%smaxstep_m%s.lp" % (q, int(f*q), int(a*q), nums, maxstep, m), "w")
+    filename = open(destdir + "mip_q%s_f%s_a%s_%sslope_%smaxstep_m%s.lp" % (q, int(f*q), int(a*q), kslopes, maxstep, m), "w")
     faces_2d = []
     faces_diag = []
     faces_hor = []
@@ -82,11 +82,11 @@ def write_lpfile_2q(q, f, a, nums, maxstep=None, m=0):
         for yy in range(q+1):
             faces_0d.append( Face(([xx/q], [yy/q], [(xx+yy)/q])) )
 
-    print >> filename, '\ MIP model with q = %s, f = %s, a = %s, num of slopes = %s, maxstep of tran/refl = %s, small_m = %s' % (q, f, a, nums, maxstep, m)
+    print >> filename, '\ MIP model with q = %s, f = %s, a = %s, num of slopes = %s, maxstep of tran/refl = %s, small_m = %s' % (q, f, a, kslopes, maxstep, m)
 
     print >> filename, 'Maximize'
     #print >> filename, 0
-    print_obj_max_slope_slack(filename, nums)
+    print_obj_max_slope_slack(filename, kslopes)
     #print_obj_max_subadd_slack(filename, q) # is a constant!
     #print_obj_min_directly_covered_times(filename, q)
     #print_obj_min_undirectly_covered_times(filename, q)
@@ -133,11 +133,11 @@ def write_lpfile_2q(q, f, a, nums, maxstep=None, m=0):
         else:
             print >> filename, '%s = 1' % covered_i_variable(q, z, maxstep - 1)
 
-    print_slope_constraints_2q(filename, q, f, a, nums, m)
+    print_slope_constraints_2q(filename, q, f, a, kslopes, m)
           
     print >> filename, 'Bounds'
     print_fn_bounds(filename, q)
-    print_slope_bounds(filename, q, nums)
+    print_slope_bounds(filename, q, kslopes)
 
     print >> filename, 'Binary'
     for face in faces_2d + faces_diag + faces_hor + faces_ver + faces_0d :
@@ -155,7 +155,7 @@ def write_lpfile_2q(q, f, a, nums, maxstep=None, m=0):
                     print >> filename, 't_%s_%s_%s' % (x, z, step),
                     print >> filename, 'r_%s_%s_%s' % (x, z, step),
 
-    for k in range(nums):
+    for k in range(kslopes):
         for j in range(q):
             print >> filename, '%s' % interval_slope_variable(j, k),
 
@@ -163,7 +163,7 @@ def write_lpfile_2q(q, f, a, nums, maxstep=None, m=0):
     print >> filename, 'End'
     filename.close()
 
-def print_slope_constraints_2q(filename, q, f, a, nums, m=0):
+def print_slope_constraints_2q(filename, q, f, a, kslopes, m=0):
     """
     EXAMPLES::
 
@@ -206,8 +206,8 @@ def print_slope_constraints_2q(filename, q, f, a, nums, m=0):
         i_1_s_2 + i_2_s_2 <= 1
         i_1_s_2 + i_3_s_2 <= 1
     """
-    # s_0 > s_1 > ... > s_nums-1
-    for k in range(0, nums - 1):
+    # s_0 > s_1 > ... > s_kslopes-1
+    for k in range(0, kslopes - 1):
         if m == 0:
             print >> filename, '%s - %s >= 0' % (slope_variable(k), slope_variable(k+1))
         else:
@@ -216,23 +216,23 @@ def print_slope_constraints_2q(filename, q, f, a, nums, m=0):
     # first interval has the largest positive slope s_0
     print >> filename, 's_0 - %s fn_1 = 0' % q
     print >> filename, 'i_0_s_0 = 1'
-    # last interval has slope s_nums-1
-    print >> filename, 's_%s + %s fn_%s = 0' % (nums - 1, q, q - 1)
-    print >> filename, 'i_%s_s_%s = 1' % (q - 1, nums - 1)
+    # last interval has slope s_kslopes-1
+    print >> filename, 's_%s + %s fn_%s = 0' % (kslopes - 1, q, q - 1)
+    print >> filename, 'i_%s_s_%s = 1' % (q - 1, kslopes - 1)
     # Condition: s_k + q(fn_j - fn_(j+1)) = 0 iff i_j_s_k = 1
     # ==> 1) s_k + q * fn_j - q * fn_(j+1) <= 2*q * (1 - i_j_s_k)
     # ==> 2) s_k + q * fn_j - q * fn_(j+1) >= - 2*q * (1 - i_j_s_k)
     # ==> 3) sum i_j_s_k over k = 1
     for j in range(1, q-1):
-        for k in range(nums):
+        for k in range(kslopes):
             print >> filename, 's_%s + %s fn_%s - %s fn_%s + %s %s <= %s' % (k, q, j, q, j + 1, 2*q, interval_slope_variable(j, k), 2*q)
             print >> filename, 's_%s + %s fn_%s - %s fn_%s - %s %s >= %s' % (k, q, j, q, j + 1, 2*q, interval_slope_variable(j, k), -2*q)
     for j in range(q):
-        for k in range(nums):
+        for k in range(kslopes):
             print >> filename, '+ %s' % interval_slope_variable(j, k),
         print >> filename, '= 1'
     # Condition: sum i_j_s_k over j >= 1
-    for k in range(nums):
+    for k in range(kslopes):
         for j in range(q):
             print >> filename, '+ %s' % interval_slope_variable(j, k),
         print >> filename, '>= 1'
@@ -240,7 +240,7 @@ def print_slope_constraints_2q(filename, q, f, a, nums, m=0):
     # which is different from the slope values of other intervals
     ja = int(a * q) - 1
     jb = int((f - a) * q)
-    for k in range(nums):
+    for k in range(kslopes):
         for j in range(q):
             if j == jb:
                 print >> filename, '%s - %s = 0' % ( interval_slope_variable(ja, k), \

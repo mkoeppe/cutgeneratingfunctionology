@@ -412,20 +412,20 @@ def print_undirectly_covered_i_constraints(filename, q, z, i):
          print >> filename, '- %s' % v,
     print >> filename, '>= %s' % (2 - 2 * q)     
 
-def print_obj_max_slope_slack(filename, nums):
+def print_obj_max_slope_slack(filename, kslopes):
     """
-    slope_slack = s_0 - s_(nums-1)
+    slope_slack = s_0 - s_(kslopes-1)
 
     EXAMPLES::
 
         sage: print_obj_max_slope_slack(sys.stdout, 5)
         s_0 - s_4
     """
-    print >> filename, 's_0 - s_%s' % (nums - 1),
+    print >> filename, 's_0 - s_%s' % (kslopes - 1),
 
-def print_obj_max_slope_slack_with_weights(filename, nums, weights):
+def print_obj_max_slope_slack_with_weights(filename, kslopes, weights):
     """
-    slope_slack_with_weights = \sum_{0 <= i <= nums-2} {weights[i] * (s_i - s_(i+1))}
+    slope_slack_with_weights = \sum_{0 <= i <= kslopes-2} {weights[i] * (s_i - s_(i+1))}
 
     EXAMPLES::
 
@@ -435,9 +435,9 @@ def print_obj_max_slope_slack_with_weights(filename, nums, weights):
         + 1 s_0 - 1 s_1 + 2 s_1 - 2 s_2 + 2 s_2 - 2 s_3 + 1 s_3 - 1 s_4
     """
     if not weights:
-        print >> filename, 's_0 - s_%s' % (nums - 1),
+        print >> filename, 's_0 - s_%s' % (kslopes - 1),
     else:
-        for i in range(nums - 1):
+        for i in range(kslopes - 1):
             print >> filename, '+ %s s_%s - %s s_%s' % (weights[i], i, weights[i], i+1),
 
 def print_obj_max_subadd_slack(filename, q, weight=1): #is a constant!
@@ -538,7 +538,7 @@ def all_faces(q):
             faces_0d.append( Face(([xx/q], [yy/q], [(xx+yy)/q])) )
     return faces_2d, faces_diag, faces_hor, faces_ver, faces_0d
 
-def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None, weights=[]):
+def write_lpfile(q, f, kslopes, maxstep=None, m=0, type_cover=None, weights=[]):
     """
     EXAMPLES:
 
@@ -558,11 +558,11 @@ def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None, weights=[]):
 
     destdir = output_dir+"2q_mip/"
     mkdir_p(destdir)
-    filename = open(destdir + "%sslope_q%s_f%s_%s_m%s%s.lp" % (nums, q, int(f*q), type_cover, m, strw), "w")
+    filename = open(destdir + "%sslope_q%s_f%s_%s_m%s%s.lp" % (kslopes, q, int(f*q), type_cover, m, strw), "w")
 
     faces_2d, faces_diag, faces_hor, faces_ver, faces_0d = all_faces(q)
 
-    print >> filename, '\ MIP model with q = %s, f = %s, num of slopes = %s, small_m = %s' % (q, f, nums, m)
+    print >> filename, '\ MIP model with q = %s, f = %s, num of slopes = %s, small_m = %s' % (q, f, kslopes, m)
     if type_cover == 'fulldim':
         print >> filename, '\ without non-trivial 0d and 1d maximal faces.'
     elif type_cover == 'fulldim_covers':
@@ -575,8 +575,8 @@ def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None, weights=[]):
 
     print >> filename, 'Maximize'
     #print >> filename, 0
-    print_obj_max_slope_slack_with_weights(filename, nums, weights)
-    #print_obj_max_slope_slack(filename, nums)
+    print_obj_max_slope_slack_with_weights(filename, kslopes, weights)
+    #print_obj_max_slope_slack(filename, kslopes)
     #print_obj_max_subadd_slack(filename, q) # is a constant!
     #print_obj_min_directly_covered_times(filename, q)
     #print_obj_min_undirectly_covered_times(filename, q)
@@ -635,11 +635,11 @@ def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None, weights=[]):
                                              covered_i_variable(q, 1 + f - z - 1/q, maxstep - 1))
         z += 1/q
 
-    print_slope_constraints(filename, q, nums, m)
+    print_slope_constraints(filename, q, kslopes, m)
           
     print >> filename, 'Bounds'
     print_fn_bounds(filename, q)
-    print_slope_bounds(filename, q, nums)
+    print_slope_bounds(filename, q, kslopes)
 
     print >> filename, 'Binary'
     for face in faces_2d + faces_diag + faces_hor + faces_ver + faces_0d :
@@ -657,7 +657,7 @@ def write_lpfile(q, f, nums, maxstep=None, m=0, type_cover=None, weights=[]):
                     print >> filename, 't_%s_%s_%s' % (x, z, step),
                     print >> filename, 'r_%s_%s_%s' % (x, z, step),
 
-    for k in range(nums):
+    for k in range(kslopes):
         for j in range(q):
             print >> filename, '%s' % interval_slope_variable(j, k),
         
@@ -732,7 +732,7 @@ def interval_slope_variable(j, k):
     """
     return 'i_%s_s_%s' % (j, k)
 
-def print_slope_constraints(filename, q, nums, m=0):
+def print_slope_constraints(filename, q, kslopes, m=0):
     """
     EXAMPLES::
 
@@ -756,8 +756,8 @@ def print_slope_constraints(filename, q, nums, m=0):
         + i_0_s_1 + i_1_s_1 + i_2_s_1 >= 1
         + i_0_s_2 + i_1_s_2 + i_2_s_2 >= 1
     """
-    # s_0 > s_1 > ... > s_nums-1
-    for k in range(0, nums - 1):
+    # s_0 > s_1 > ... > s_kslopes-1
+    for k in range(0, kslopes - 1):
         if m == 0:
             print >> filename, '%s - %s >= 0' % (slope_variable(k), slope_variable(k+1))
         else:
@@ -766,28 +766,28 @@ def print_slope_constraints(filename, q, nums, m=0):
     # first interval has the largest positive slope s_0
     print >> filename, 's_0 - %s fn_1 = 0' % q
     print >> filename, 'i_0_s_0 = 1'
-    # last interval has slope s_nums-1
-    print >> filename, 's_%s + %s fn_%s = 0' % (nums - 1, q, q - 1)
-    print >> filename, 'i_%s_s_%s = 1' % (q - 1, nums - 1)
+    # last interval has slope s_kslopes-1
+    print >> filename, 's_%s + %s fn_%s = 0' % (kslopes - 1, q, q - 1)
+    print >> filename, 'i_%s_s_%s = 1' % (q - 1, kslopes - 1)
     # Condition: s_k + q(fn_j - fn_(j+1)) = 0 iff i_j_s_k = 1
     # ==> 1) s_k + q * fn_j - q * fn_(j+1) <= 2*q * (1 - i_j_s_k)
     # ==> 2) s_k + q * fn_j - q * fn_(j+1) >= - 2*q * (1 - i_j_s_k)
     # ==> 3) sum i_j_s_k over k = 1
     for j in range(1, q-1):
-        for k in range(nums):       
+        for k in range(kslopes):
             print >> filename, 's_%s + %s fn_%s - %s fn_%s + %s %s <= %s' % (k, q, j, q, j + 1, 2*q, interval_slope_variable(j, k), 2*q)
             print >> filename, 's_%s + %s fn_%s - %s fn_%s - %s %s >= %s' % (k, q, j, q, j + 1, 2*q, interval_slope_variable(j, k), -2*q)
     for j in range(q):
-        for k in range(nums):
+        for k in range(kslopes):
             print >> filename, '+ %s' % interval_slope_variable(j, k),
         print >> filename, '= 1'
     # Condition: sum i_j_s_k over j >= 1
-    for k in range(nums):
+    for k in range(kslopes):
         for j in range(q):
             print >> filename, '+ %s' % interval_slope_variable(j, k),
         print >> filename, '>= 1'
 
-def print_slope_bounds(filename, q, nums):
+def print_slope_bounds(filename, q, kslopes):
     """
     EXAMPLES::
 
@@ -796,7 +796,7 @@ def print_slope_bounds(filename, q, nums):
         -3 <= s_1 <= 3
         -3 <= s_2 <= 3
     """
-    for k in range(nums):
+    for k in range(kslopes):
         print >> filename, '%s <= %s <= %s' % (-q, slope_variable(k), q)
 
 def print_no_maximal_faces_diag(filename, q, f, faces_diag):
@@ -1044,7 +1044,7 @@ def generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices):
                     ieqdic[v] = set([(x/q, y/q)])
     return ieqdic, eqndic
 
-def generate_vertex_function(q, ff, fn_sym, additive_vertices, k_slope=3):
+def generate_vertex_function(q, ff, fn_sym, additive_vertices, kslopes=3):
     """
     Generate real valued functions which correspond to vertices 
     of the polytope defined by [ieqs, eqns] = generate_ieqs_and_eqns(..)
@@ -1056,7 +1056,7 @@ def generate_vertex_function(q, ff, fn_sym, additive_vertices, k_slope=3):
         sage: components=[[[0, 1/3]], [[1/3, 1]]]
         sage: fn_sym = generate_symbolic_continuous(None, components, field=QQ)
         sage: additive_vertices = {(0, 0), (0, 1/3), (0, 2/3), (0, 1), (1/3, 1), (2/3, 2/3), (2/3, 1), (1, 1)}
-        sage: h = generate_vertex_function(q, ff, fn_sym, additive_vertices, k_slope=2).next()
+        sage: h = generate_vertex_function(q, ff, fn_sym, additive_vertices, kslopes=2).next()
         sage: h == gmic(1/3)
         True
     """
@@ -1068,7 +1068,7 @@ def generate_vertex_function(q, ff, fn_sym, additive_vertices, k_slope=3):
         ## print "boundedness is %s" % p.is_compact()
         for x in p.vertices():
             k = len(set(x))
-            if k >= k_slope:
+            if k >= kslopes:
                 #print "%s gives a %s-slope function h =" % (x, k)
                 v = vector(QQ,x)
                 yield v * fn_sym
