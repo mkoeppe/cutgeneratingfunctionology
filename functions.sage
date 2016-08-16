@@ -2203,6 +2203,51 @@ def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes
         bkpt.append(bkpt[i]+interval_lengths[i])
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field, merge=merge)
 
+def piecewise_function_from_breakpoints_and_limits(bkpt, limits, field=None, merge=True):
+    """
+    Create a continuous piecewise function from `bkpt` and `limits`.
+
+    `bkpt` and `limits` are two parallel lists.
+    Assume that `bkpt` is a sorted (increasing).
+    `limits` is a list of tuple of 3 numbers (mid, right, left).
+
+    The data are coerced into a common convenient field via `nice_field_values`.
+
+    If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
+    """
+    if len(bkpt)!=len(limits):
+        raise ValueError, "Need to have the same number of breakpoints and limits."
+    n = len(bkpt)
+    mid, right, left = [limit[0] for limit in limits], [limit[1] for limit in limits], [limit[-1] for limit in limits]
+    symb_values = bkpt + mid + right + left
+    field_values = nice_field_values(symb_values, field)
+    bkpt, mid, right, left = field_values[0:n], field_values[n:2*n], field_values[2*n:3*n], field_values[3*n:4*n]
+    pieces = []
+    for i in range(n-1):
+        pieces += [ singleton_piece(bkpt[i], mid[i]), \
+                    open_piece((bkpt[i], right[i]), (bkpt[i+1], left[i+1])) ]
+    pieces += [ singleton_piece(bkpt[n-1], mid[n-1]) ]
+    return FastPiecewise(pieces, merge=merge)
+
+def piecewise_function_from_breakpoints_slopes_and_jumps(bkpt, slopes, jumps, field=None, merge=True):
+    n = len(bkpt)
+    if n != len(slopes)+1:
+        raise ValueError, "Need to have one breakpoint more than slopes."
+    if 2*(n-1) != len(jumps):
+        raise ValueError, "Need to have number of jumps = 2 * number of slopes."
+    symb_values = bkpt + slopes + jumps
+    field_values = nice_field_values(symb_values, field)
+    bkpt, slopes, jumps = field_values[0:n], field_values[n:2*n-1], field_values[2*n-1:]
+    current_value = 0
+    pieces = []
+    for i in range(n-1):
+        pieces.append([singleton_interval(bkpt[i]), FastLinearFunction(0, current_value)])
+        current_value += jumps[2*i]
+        pieces.append([open_interval(bkpt[i], bkpt[i+1]), FastLinearFunction(slopes[i], current_value - slopes[i]*bkpt[i])])
+        current_value += slopes[i] * (bkpt[i+1] - bkpt[i]) + jumps[2*i+1]
+    pieces.append([singleton_interval(bkpt[n-1]), FastLinearFunction(0, current_value)])
+    return FastPiecewise(pieces, merge=merge)
+
 def discrete_function_from_points_and_values(points, values, field=None):
     """
     Create a function defined on a finite list of `points`. 
