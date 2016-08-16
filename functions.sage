@@ -2205,7 +2205,7 @@ def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes
 
 def piecewise_function_from_breakpoints_and_limits(bkpt, limits, field=None, merge=True):
     """
-    Create a continuous piecewise function from `bkpt` and `limits`.
+    Create a continuous or discontinuous piecewise function from `bkpt` and `limits`.
 
     `bkpt` and `limits` are two parallel lists.
     Assume that `bkpt` is a sorted (increasing).
@@ -2214,6 +2214,13 @@ def piecewise_function_from_breakpoints_and_limits(bkpt, limits, field=None, mer
     The data are coerced into a common convenient field via `nice_field_values`.
 
     If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.WARN) # Suppress output in automatic tests.
+        sage: bkpt = [0, 1/8, 3/8, 1/2, 5/8, 7/8, 1]
+        sage: limits = [(0, 0, 1/2), (1/4, 1/4, 3/4), (3/4, 1/4, 3/4), (1, 1/2, 1), (3/4, 3/4, 3/4), (1/4, 1/4, 1/4), (0, 0, 1/2)]
+        sage: h = piecewise_function_from_breakpoints_and_limits(bkpt, limits)
     """
     if len(bkpt)!=len(limits):
         raise ValueError, "Need to have the same number of breakpoints and limits."
@@ -2230,6 +2237,22 @@ def piecewise_function_from_breakpoints_and_limits(bkpt, limits, field=None, mer
     return FastPiecewise(pieces, merge=merge)
 
 def piecewise_function_from_breakpoints_slopes_and_jumps(bkpt, slopes, jumps, field=None, merge=True):
+    """
+    Create a continuous or discontinuous piecewise function from `bkpt`, `slopes` and `jumps`.
+
+    The function always has value 0 on the first breakpoint 0. The list `jumps` describles the function value jumps on the left and the right endpoints of each slope.
+    The data are coerced into a common convenient field via `nice_field_values`.
+
+    If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.WARN) # Suppress output in automatic tests.
+        sage: bkpt = [0, 1/8, 3/8, 1/2, 5/8, 7/8, 1]
+        sage: slopes = [6, 2, 6, 2, -2, 2]
+        sage: jumps = [0, -1/2, 0, 0, -1/2, 0, -1/2, 0, 0, 0, 0, -1/2]
+        sage: h = piecewise_function_from_breakpoints_slopes_and_jumps(bkpt, slopes, jumps)
+    """
     n = len(bkpt)
     if n != len(slopes)+1:
         raise ValueError, "Need to have one breakpoint more than slopes."
