@@ -252,11 +252,6 @@ class ParametricRealField(Field):
         self.monomial_list = []
         # a dictionary that maps each monomial to the index of its corresponding Variable in self.polyhedron
         self.v_dict = {}
-        # record QQ_linearly_independent of pairs. needs simplification
-        self._independent_pairs = set([])
-        self._dependency= []
-        self._independency=[]
-        self._zero_kernel=set([])
 
     def __copy__(self):
         logging.warn("copy(%s) is invoked" % self)
@@ -880,63 +875,12 @@ class SemialgebraicComplex(SageObject):
     """
     EXAMPLES::
 
-        sage: logging.disable(logging.WARN)    # Suppress output in automatic tests.
-        sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])
-        sage: complex.monomial_list
-        [f, bkpt]
+        sage: logging.disable(logging.WARN)
+        sage: def vol(a,b):
+        ....:     P = Polyhedron(ieqs=[(1,0,-1),(0,0,1),(1,-1,0),(0,1,0),(1,-a,-b)])
+        ....:     return P.volume()
+        sage: K.<a,b>=ParametricRealField([2,3])
 
-        First way of completing the graph is to shoot random points
-        sage: complex.shoot_random_points(50)  # Got 17 components
-
-        A better way is to use flipping inequality + bfs
-        sage: complex.bfs_completion(var_value=(1/23,1/7),flip_ineq_step=1/1000)   # not tested
-        sage: g = complex.plot()                                 # not tested
-        sage: g.save("complex_drlm_backward_3_slope_f_bkpt.pdf") # not tested
-
-        sage: complex = SemialgebraicComplex(gmic, ['f'])
-
-        # Shooting random points
-        sage: complex.shoot_random_points(50)    # not tested # Got 4 components
-        # Flipping ineq bfs
-        sage: complex.bfs_completion()           # not tested
-
-        sage: complex = SemialgebraicComplex(gj_2_slope, ['f', 'lambda_1'])
-        sage: complex.shoot_random_points(50)    # Got 18 components
-
-        sage: complex = SemialgebraicComplex(chen_4_slope, ['lam1', 'lam2'])
-        sage: complex.shoot_random_points(1000, var_bounds=[(0,1),(0,1)], max_failings=1000)  # not tested  #long time
-        sage: complex.bfs_completion()           # not tested #long time
-
-        Define var_bounds as a lambda function:
-
-        sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])
-        sage: var_bounds=[(0,1),((lambda x: x), (lambda x: 0.5+0.5*x))] # not tested
-        sage: complex.shoot_random_points(50, var_bounds = var_bounds) # not tested
-        #sage: complex.bfs_completion()           # not tested
-
-        gj_forward_3_slope, choose the first 2 variables out of 3 as parameters,
-
-        sage: complex = SemialgebraicComplex(gj_forward_3_slope, ['f', 'lambda_1'])
-        sage: complex.shoot_random_points(100, max_failings=1000) # not tested
-        sage: complex.bfs_completion()           # not tested
-        sage: complex.plot(plot_points=500)      # not tested
-
-        This can also obtained by specifying random points' var_bounds in 3d complex.
-
-        sage: complex = SemialgebraicComplex(gj_forward_3_slope, ['f', 'lambda_1', 'lambda_2'])
-        sage: complex.shoot_random_points(100, max_failings=1000, var_bounds = [(0,1), (0,1), (2/3, 2/3)]) # not tested
-        sage: complex.plot(slice_value=[None, None, 2/3], restart=True) # not tested
-
-        Compute 3-d complex, then take slice.
-
-        sage: complex = SemialgebraicComplex(gj_forward_3_slope, ['f', 'lambda_1', 'lambda_2'])
-
-        #sage: complex.shoot_random_points(500, max_failings=10000) # not tested
-        sage: complex.plot(plot_points=500) # not tested
-        sage: complex.plot(slice_value=[None, None, 2/3], restart=True, plot_points=500) # not tested
-        sage: complex.plot(slice_value=[4/5, None, None], restart=True, plot_points=500) # not tested
-
-        # more testcases in param_graphics.sage
     """
 
     def __init__(self, function, var_name, max_iter=8, find_region_type=None, default_var_bound=(-0.1,1.1), bddleq=[], bddlin=[], **opt_non_default):
