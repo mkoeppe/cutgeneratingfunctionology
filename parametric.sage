@@ -593,6 +593,29 @@ def read_simplified_leq_lin(K, level="factor"):
     return leq, lin
 
 def find_variable_mapping(leqs, lins):
+    """
+    Assume that leqs, lins are the results from read_leq_lin_from_polyhedron(),
+so that gaussian elimination has been performed by PPL on the list of equations. If an equation has a linear variable that does not appear in other equations, then eliminate this variable.
+    FIXME: This function is bad; it assumes too many things.
+
+    EXAMPLE::
+
+    sage: logging.disable(logging.WARN)
+    sage: P.<a,b,c>=QQ[]
+    sage: leqs = [a+2*b+1]; lins=[a+b+c, b+2*c-3]
+    sage: find_variable_mapping(leqs, lins)
+    {c: c, b: b, a: -2*b - 1}
+    sage: leqs = [2*a+b, b+c-1/2]; lins=[a+b+c]
+    sage: find_variable_mapping(leqs, lins)
+    {c: -b + 1/2, b: b, a: -1/2*b}
+    sage: leqs = [a*a-b, b*b-c*c]; lins=[a+b+c]
+    sage: find_variable_mapping(leqs, lins)
+    {c: c, b: b, a: a}
+    sage: P.<d>=QQ[]
+    sage: leqs = [1-d^3]; lins = []
+    sage: find_variable_mapping(leqs, lins)
+    {d: d}
+    """
     if leqs:
         variables = leqs[0].args()
     elif lins:
@@ -604,20 +627,26 @@ def find_variable_mapping(leqs, lins):
         var_map[v] = v
     if not leqs:
         return var_map
-    monomials_not_in_lins = set(variables)
-    for ineq in lins:
-        monomials_not_in_lins -= set(ineq.monomials())
     n = len(leqs)
+    if len(variables) == 1: # workaround for single variable 'Polynomial_rational_flint'
+        v = variables[0]
+        for i in range(n):
+            if leqs[i].degree() == 1:
+                var_map[v] = -leqs[i].list()[0]/leqs[i].list()[1]
+                return var_map
+        logging.warn("Can't solve for %s in the system %s == 0, %s < 0. Heurist wall crossing may fail." % (v, leqs, lins))
+        return var_map
     for i in range(n):
         found_pivot = False
-        for v in monomials_not_in_lins:
-            coef = leqs[i].monomial_coefficient(v)
-            if (coef != 0) and all(leqs[j].monomial_coefficient(v) == 0 for j in range(n) if j != i):
-                found_pivot = True
-                var_map[v] = v - leqs[i] / coef
-                break
+        for v in variables:
+            if leqs[i].coefficient(v).degree() == 0: # v is a linear variable in leqs[i].
+                coef = leqs[i].monomial_coefficient(v) # type is rational
+                if all((v not in leqs[j].variables()) for j in range(n) if j != i):
+                    found_pivot = True
+                    var_map[v] = v - leqs[i] / coef # eliminate v
+                    break
         if not found_pivot:
-            logging.warn("PPL didn't eliminate variable in %s == 0 in the system %s == 0, %s < 0. Heurist wall crossing may fail." % (leqs[i], leqs, lins))
+            logging.warn("Can't find linear variable in %s == 0 to eliminate in the system %s == 0, %s < 0. Heurist wall crossing may fail." % (leqs[i], leqs, lins))
     return var_map
 
 ######################################
