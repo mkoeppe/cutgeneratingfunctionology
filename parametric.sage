@@ -17,19 +17,19 @@ point_is_included = Poly_Gen_Relation.subsumes()
 from sage.structure.sage_object import SageObject
 
 ###############################
-# Symbolic Real Number Field
+# Parametric Real Number Field
 ###############################
 
-default_symbolic_field = None
+default_parametric_field = None
 
-class SymbolicRNFElement(FieldElement):
+class ParametricRealFieldElement(FieldElement):
 
     def __init__(self, value, symbolic=None, parent=None):
         if parent is None:
-            raise ValueError, "SymbolicRNFElement invoked with parent=None. That's asking for trouble"
-            parent = default_symbolic_field
+            raise ValueError, "ParametricRealFieldElement invoked with parent=None. That's asking for trouble"
+            parent = default_parametric_field
         FieldElement.__init__(self, parent) ## this is so that canonical_coercion works.
-        ## Test coercing the value to RR, so that we do not try to build a SymbolicRNFElement
+        ## Test coercing the value to RR, so that we do not try to build a ParametricRealFieldElement
         ## from something like a tuple or vector or list or variable of a polynomial ring
         ## or something else that does not make any sense.
         if not isinstance(value, sage.interfaces.mathematica.MathematicaElement):
@@ -101,31 +101,31 @@ class SymbolicRNFElement(FieldElement):
         return "%s" % (latex(self._sym))
 
     def _add_(self, other):
-        if not isinstance(other, SymbolicRNFElement):
-            other = SymbolicRNFElement(other, parent=self.parent())
-        return SymbolicRNFElement(self._val + other._val, self._sym + other._sym, parent=self.parent())
+        if not isinstance(other, ParametricRealFieldElement):
+            other = ParametricRealFieldElement(other, parent=self.parent())
+        return ParametricRealFieldElement(self._val + other._val, self._sym + other._sym, parent=self.parent())
 
     def _sub_(self, other):
-        if not isinstance(other, SymbolicRNFElement):
-            other = SymbolicRNFElement(other, parent=self.parent())
-        return SymbolicRNFElement(self._val - other._val, self._sym - other._sym, parent=self.parent())
+        if not isinstance(other, ParametricRealFieldElement):
+            other = ParametricRealFieldElement(other, parent=self.parent())
+        return ParametricRealFieldElement(self._val - other._val, self._sym - other._sym, parent=self.parent())
 
     def __neg__(self):
-        return SymbolicRNFElement(-self._val, -self._sym, parent=self.parent())
+        return ParametricRealFieldElement(-self._val, -self._sym, parent=self.parent())
 
     def _mul_(self, other):
-        if not isinstance(other, SymbolicRNFElement):
+        if not isinstance(other, ParametricRealFieldElement):
             try:
-                other = SymbolicRNFElement(other, parent=self.parent())
+                other = ParametricRealFieldElement(other, parent=self.parent())
             except TypeError:
                 # For example when other is a vector
                 return other * self
-        return SymbolicRNFElement(self._val * other._val, self._sym * other._sym, parent=self.parent())
+        return ParametricRealFieldElement(self._val * other._val, self._sym * other._sym, parent=self.parent())
 
     def _div_(self, other):
-        if not isinstance(other, SymbolicRNFElement):
-            other = SymbolicRNFElement(other, parent=self.parent())
-        return SymbolicRNFElement(self._val / other._val, self._sym / other._sym, parent=self.parent())
+        if not isinstance(other, ParametricRealFieldElement):
+            other = ParametricRealFieldElement(other, parent=self.parent())
+        return ParametricRealFieldElement(self._val / other._val, self._sym / other._sym, parent=self.parent())
 
     def __hash__(self):
         """
@@ -147,13 +147,13 @@ class SymbolicRNFElement(FieldElement):
         TESTS::
 
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-            sage: K.<f> = SymbolicRealNumberField([1])
+            sage: K.<f> = ParametricRealField([1])
             sage: s = {f, K(1)}
             sage: len(s)
             1
             sage: s
-            1
-            sage: K.<f> = SymbolicRealNumberField([1])
+            {1}
+            sage: K.<f> = ParametricRealField([1])
             sage: s = {f, K(2)}
             sage: len(s)
             2
@@ -165,13 +165,13 @@ import sage.rings.number_field.number_field_base as number_field_base
 from sage.structure.coerce_maps import CallableConvertMap
 from itertools import izip
 
-class SymbolicRealNumberField(Field):
+class ParametricRealField(Field):
     """
     Parametric search:
     EXAMPLES::
 
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-        sage: K.<f> = SymbolicRealNumberField([4/5])
+        sage: K.<f> = ParametricRealField([4/5])
         sage: h = gmic(f, field=K)
         sage: _ = generate_maximal_additive_faces(h);
         sage: K.get_eq_list()
@@ -187,7 +187,7 @@ class SymbolicRealNumberField(Field):
         sage: K.get_lt_factor()
         {-f, -f + 1/2, f - 1}
 
-        sage: K.<f, lam> = SymbolicRealNumberField([4/5, 1/6])
+        sage: K.<f, lam> = ParametricRealField([4/5, 1/6])
         sage: h = gj_2_slope(f, lam, field=K)
         sage: K.get_lt_list()
         {(-1/2)/(-1/2*f^2*lam - 1/2*f^2 + f*lam + 1/2*f - 1/2*lam),
@@ -210,29 +210,29 @@ class SymbolicRealNumberField(Field):
         sage: K.get_lt_factor()
         {-lam, lam - 1, -f, f - 1, -f*lam - f + lam}
 
-        sage: K.<f,alpha> = SymbolicRealNumberField([4/5, 3/10])
+        sage: K.<f,alpha> = ParametricRealField([4/5, 3/10])
         sage: h=dg_2_step_mir(f, alpha, field=K, conditioncheck=False)
         sage: extremality_test(h)
         True
 
-        sage: K.<f,a1,a2,a3> = SymbolicRealNumberField([4/5, 1, 3/10, 2/25])
+        sage: K.<f,a1,a2,a3> = ParametricRealField([4/5, 1, 3/10, 2/25])
         sage: h = kf_n_step_mir(f, (a1, a2, a3), conditioncheck=False)
         sage: extremality_test(h)
         True
 
-        sage: K.<f> = SymbolicRealNumberField([1/5])
+        sage: K.<f> = ParametricRealField([1/5])
         sage: h = drlm_3_slope_limit(f, conditioncheck=False)
         sage: extremality_test(h)
         True
         sage: K.get_lt_factor()
         {-f, f - 1, f - 1/2, f - 1/3}
     """
-    Element = SymbolicRNFElement
+    Element = ParametricRealFieldElement
 
     def __init__(self, values=[], names=()):
         Field.__init__(self, self)
-        self._zero_element = SymbolicRNFElement(0, parent=self)
-        self._one_element =  SymbolicRNFElement(1, parent=self)
+        self._zero_element = ParametricRealFieldElement(0, parent=self)
+        self._one_element =  ParametricRealFieldElement(1, parent=self)
         self._eq = set([])
         self._lt = set([])
         self._eq_poly = set([])
@@ -240,7 +240,7 @@ class SymbolicRealNumberField(Field):
         self._eq_factor = set([])
         self._lt_factor = set([])
         vnames = PolynomialRing(QQ, names).fraction_field().gens();
-        self._gens = [ SymbolicRNFElement(value, name, parent=self) for (value, name) in izip(values, vnames) ]
+        self._gens = [ ParametricRealFieldElement(value, name, parent=self) for (value, name) in izip(values, vnames) ]
         self._names = names
         self._values = values
 
@@ -275,22 +275,22 @@ class SymbolicRealNumberField(Field):
     def ngens(self):
         return len(self._gens)
     def _an_element_impl(self):
-        return SymbolicRNFElement(1, parent=self)
+        return ParametricRealFieldElement(1, parent=self)
     def _coerce_map_from_(self, S):
-        if isinstance(S, SymbolicRealNumberField) and self is not S:
+        if isinstance(S, ParametricRealField) and self is not S:
             return None
-        return CallableConvertMap(S, self, lambda s: SymbolicRNFElement(s, parent=self), parent_as_first_arg=False)
+        return CallableConvertMap(S, self, lambda s: ParametricRealFieldElement(s, parent=self), parent_as_first_arg=False)
     def __repr__(self):
-        return 'SymbolicRNF%s' %repr(self.gens())
+        return 'ParametricRealField%s' %repr(self.gens())
     def _element_constructor_(self, elt):
         if parent(elt) == self:
             return elt
         try: 
             QQ_elt = QQ(elt)
-            return SymbolicRNFElement(QQ_elt, parent=self)
+            return ParametricRealFieldElement(QQ_elt, parent=self)
             #return self.element_class(self, QQ_elt)
         except:
-            raise TypeError, "SymbolicRealNumberField called with element %s" % elt
+            raise TypeError, "ParametricRealField called with element %s" % elt
 
     def _coerce_impl(self, x):
         return self._element_constructor_(x)
@@ -373,41 +373,8 @@ class SymbolicRealNumberField(Field):
                 logging.info("New constraint: %s == 0" % fac)
                 self._eq_factor.add(fac)
 
-    def record_independence_of_pair(self, numbers, is_independent):
-        if len(numbers) != 2:
-            raise NotImplementedError, "%s has more than two elements. Not implemented." % numbers
-        t1 = affine_linear_form_of_symbolicrnfelement(numbers[0])
-        t2 = affine_linear_form_of_symbolicrnfelement(numbers[1])
-        vector_space = VectorSpace(QQ,len(t1))
-        t1 = vector_space(t1)
-        t2 = vector_space(t2)
-        pair_space = vector_space.subspace([t1, t2])
-        if pair_space.dimension() <= 1:
-            if is_independent:
-                raise ValueError, "Contradiction: (%s, %s) are not linearly independent in Q." % (t1, t2)
-        else:
-            if is_independent:
-                self._independent_pairs.add(pair_space)
-                self._zero_kernel.add(vector_space.subspace([t1]).gen(0))
-                self._zero_kernel.add(vector_space.subspace([t2]).gen(0))
-            else:
-                self._dependency = update_dependency(self._dependency, pair_space)
 
-    def construct_independency(self):
-        self._independency, self._zero_kernel = construct_independency(self._independent_pairs, self._dependency, self._zero_kernel)
-
-    def get_reduced_independent_pairs(self):
-        if not self._independency:
-            self._independency, self._zero_kernel = construct_independency(\
-                self._independent_pairs, self._dependency, self._zero_kernel)
-        reduced_independent_pairs = get_independent_pairs_from_independency(self._independency)
-        return reduced_independent_pairs
-
-default_symbolic_field = SymbolicRealNumberField()
-
-# alias
-ParametricRealFieldElement = SymbolicRNFElement
-ParametricRealField = SymbolicRealNumberField
+default_parametric_field = ParametricRealField()
 
 ###############################
 # Simplify polynomials
@@ -499,7 +466,7 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
     EXAMPLES::
 
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-        sage: K.<f> = SymbolicRealNumberField([4/5])
+        sage: K.<f> = ParametricRealField([4/5])
         sage: h = gmic(f, field=K)
         sage: _ = extremality_test(h)
         sage: eq_poly = K.get_eq_poly()
@@ -516,7 +483,7 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
         sage: simplify_eq_lt_poly_via_ppl(eq_factor, lt_factor)
         ([], [f - 1, -2*f + 1])
 
-        sage: K.<f, lam> = SymbolicRealNumberField([4/5, 1/6])
+        sage: K.<f, lam> = ParametricRealField([4/5, 1/6])
         sage: h = gj_2_slope(f, lam, field=K, conditioncheck=False)
         sage: leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_poly(), K.get_lt_poly())
         sage: set(lin)
@@ -544,7 +511,7 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
          f*lam - 3*f - lam + 2,
          3*f*lam - f - 3*lam}
 
-        sage: K.<f,alpha> = SymbolicRealNumberField([4/5, 3/10])             # Bad example! parameter region = {given point}.
+        sage: K.<f,alpha> = ParametricRealField([4/5, 3/10])             # Bad example! parameter region = {given point}.
         sage: h=dg_2_step_mir(f, alpha, field=K, conditioncheck=False)
         sage: _ = extremality_test(h)
         sage: leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_poly(), K.get_lt_poly())
@@ -555,7 +522,7 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
         sage: set(leq), set(lin)
         ({-10*alpha + 3, -5*f + 4}, set())
 
-        sage: K.<f> = SymbolicRealNumberField([1/5])
+        sage: K.<f> = ParametricRealField([1/5])
         sage: h = drlm_3_slope_limit(f, conditioncheck=False)
         sage: _ = extremality_test(h)
         sage: leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_poly(), K.get_lt_poly())
@@ -604,13 +571,13 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None): 
 
 def read_simplified_leq_lin(K, level="factor"):
     """
-    sage: K.<f> = SymbolicRealNumberField([4/5])
+    sage: K.<f> = ParametricRealField([4/5])
     sage: h = gmic(f, field=K)
     sage: _ = extremality_test(h)
     sage: read_simplified_leq_lin(K)
     ([], [f - 1, -2*f + 1])
 
-    sage: K.<f> = SymbolicRealNumberField([1/5])
+    sage: K.<f> = ParametricRealField([1/5])
     sage: h = drlm_3_slope_limit(f, conditioncheck=False)
     sage: _ = extremality_test(h)
     sage: read_simplified_leq_lin(K)
@@ -687,11 +654,11 @@ def construct_field_and_test_point(function, var_name, var_value, default_args):
     sage: default_args = read_default_args(function)
     sage: K, test_point = construct_field_and_test_point(function, var_name, var_value, default_args)
     sage: K
-    SymbolicRNF[f~]
+    ParametricRealField[f~]
     sage: test_point
-    {'conditioncheck': False, 'f': f~, 'field': SymbolicRNF[f~]}
+    {'conditioncheck': False, 'f': f~, 'field': ParametricRealField[f~]}
     """
-    K = SymbolicRealNumberField(var_value, var_name)
+    K = ParametricRealField(var_value, var_name)
     test_point = copy(default_args)
     for i in range(len(var_name)):
         test_point[var_name[i]] = K.gens()[i]
@@ -983,7 +950,7 @@ class SemialgebraicComplex(SageObject):
 
         self.monomial_list = []
         self.v_dict = {}
-        K = SymbolicRealNumberField([0]*self.d, var_name)
+        K = ParametricRealField([0]*self.d, var_name)
         for i in range(self.d):
             v = K.gens()[i].sym().numerator()
             self.monomial_list.append(v)

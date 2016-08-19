@@ -2090,18 +2090,18 @@ def nice_field_values(symb_values, field=None):
     if field is False:
         # do nothing
         return symb_values
-    if isinstance(field, SymbolicRealNumberField):
+    if isinstance(field, ParametricRealField):
         syms = []
         vals = []
         for element in symb_values:
-            if isinstance(element,SymbolicRNFElement):
+            if isinstance(element,ParametricRealFieldElement):
                 syms.append(element.sym())
                 vals.append(element.val())
             else:
                 syms.append(element)  # changed to not do SR. -mkoeppe
                 vals.append(element)
         vals = nice_field_values(vals) #, field=RealNumberField)
-        field_values = [SymbolicRNFElement(vals[i],syms[i], parent=field) for i in range(len(symb_values))]
+        field_values = [ParametricRealFieldElement(vals[i],syms[i], parent=field) for i in range(len(symb_values))]
         return field_values
 
     if field is None:
@@ -3347,7 +3347,7 @@ def is_QQ_linearly_independent(*numbers):
         return True
     elif len(numbers) == 1:
         return numbers[0] != 0
-    if isinstance(numbers[0], SymbolicRNFElement):
+    if isinstance(numbers[0], ParametricRealFieldElement):
         is_independent = is_QQ_linearly_independent(*(x.val() for x in numbers))
         #numbers[0].parent().record_independence_of_pair(numbers, is_independent)
         return is_independent
