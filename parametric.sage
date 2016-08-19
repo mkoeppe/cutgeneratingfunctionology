@@ -824,17 +824,8 @@ class SemialgebraicComplexComponent(SageObject):
                 else:
                     lins.append(l)
 
-        covered_type_color = {'not_constructible': 'white', 'not_minimal': 'orange', 'not_extreme': 'green', 'is_extreme': 'blue'}
-        if self.region_type in covered_type_color.keys():
-            innercolor = covered_type_color[self.region_type]
-            bordercolor = innercolor
-        #elif self.region_type in colors:
-        else:
-            innercolor = self.region_type
-            bordercolor = self.region_type
-        #else:
-        #    innercolor = 'lightgrey'
-        #    bordercolor = 'black'
+        innercolor = find_region_color(self.region_type)
+        bordercolor = innercolor
         if innercolor == 'white':
             ptcolor = 'black'
         else:
@@ -933,11 +924,9 @@ class SemialgebraicComplex(SageObject):
         self.points_to_test = {} # a dictionary of the form {testpoint: bddleq}
         self.max_iter = max_iter
         if find_region_type is None:
-            def frt(K,h):
-                return find_region_type_around_given_point(K, h, region_level='extreme',
-                                                           is_minimal=None,use_simplified_extremality_test=True)
-            find_region_type = frt
-        self.find_region_type = find_region_type
+            self.find_region_type = find_region_type_igp
+        else:
+            self.find_region_type = find_region_type
         self.default_var_bound = default_var_bound
         self.bddleq = bddleq
         self.bddlin = bddlin
@@ -1028,7 +1017,6 @@ class SemialgebraicComplex(SageObject):
             if not l(*K.gens()) == 0:
                 logging.warn("Test point %s doesn't satisfy %s == 0." % (var_value, l))
                 return
-        #h = self.function(**test_point)
         try:
             h = self.function(**test_point)
         except: # Dangerous!!
@@ -1233,11 +1221,34 @@ def update_mccormicks_for_monomial(m, tightened_mip, original_polyhedron, monomi
         bounds[i] = find_bounds_of_variable(tightened_mip, i)
     return tightened
 
-##############################
-# TO refector
-##############################
+####################################
+# Find region type and region color
+####################################
 
-def find_region_type_around_given_point(K, h, region_level='extreme', is_minimal=None, use_simplified_extremality_test=True):
+def find_region_type_igp(K, h, region_level='extreme', is_minimal=None, use_simplified_extremality_test=True):
+    """
+    sage: logging.disable(logging.INFO)
+    sage: K.<f> = ParametricRealField([4/5])
+    sage: h = gmic(f, field=K)
+    sage: find_region_type_igp(K, h)
+    'is_extreme'
+    sage: K._lt_factor
+    {-f, -f + 1/2, f - 1}
+
+    sage: K.<f,bkpt>=ParametricRealField([1/7,3/7])
+    sage: h = drlm_backward_3_slope(f, bkpt, field=K)
+    sage: find_region_type_igp(K, h)
+    'not_extreme'
+    sage: sage: K._lt_factor
+    {2*bkpt - 1,
+     -f,
+     -f + 2*bkpt - 1,
+     f - 4*bkpt + 1,
+     f - 3*bkpt + 1,
+     f - bkpt,
+     2*f - 1,
+     2*f - bkpt}
+    """
     ## Note: region_level = 'constructible' / 'minimal'/ 'extreme'. test cases see find_parameter_region()
     if h is None:
         return 'not_constructible'
@@ -1259,25 +1270,95 @@ def find_region_type_around_given_point(K, h, region_level='extreme', is_minimal
     else:
         return 'not_minimal'
 
-region_type_color_map = {}
-def find_region_type(field, result):
-    # at most 7 different types.
-    # result may be a SymbolicRNFElement or a list of SymbolicRNFElements.
-    # result may have different parent than previous elements in region_type_color_map,
-    # which makes  == meaningless, so we extract result_val.
-    result_val = tuple(elt._val if hasattr(elt, '_val') else elt for elt in flatten([result]))
+
+def result_concrete_value(field, result):
+    """
+    Return the concrete values in result as a tuple. See also result_symbolic_expression()
+ 
+    This function can provided to find_region_type when setting up SemialgebraicComplex. 
+    In this way, one can compare result of type ParametricRealFieldElement or list of ParametricRealFieldElements
+    with the previous elements in region_type_color_map which do not necessairy have the same parent.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.WARN)
+        sage: def vol(a,b):
+        ....:     P = Polyhedron(ieqs=[(1,0,-1),(0,0,1),(1,-1,0),(0,1,0),(1,-a,-b)])
+        ....:     return P.volume()
+        sage: K.<a,b>=ParametricRealField([2,3])
+        sage: result = vol(a,b)
+        sage: result_concrete_value(K, result)
+        (1/12,)
+    """
+    concrete_value = tuple(elt._val if hasattr(elt, '_val') else elt for elt in flatten([result]))
+    return concrete_value
+
+def result_symbolic_expression(field, result):
+    """
+    Return the symbolic expressions in result as a tuple
+ 
+    This function can provided to find_region_type when setting up SemialgebraicComplex. 
+    In this way, one can compare result of type ParametricRealFieldElement or list of ParametricRealFieldElements
+    with the previous elements in region_type_color_map which do not necessairy have the same parent.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.WARN)
+        sage: def vol(a,b):
+        ....:     P = Polyhedron(ieqs=[(1,0,-1),(0,0,1),(1,-1,0),(0,1,0),(1,-a,-b)])
+        ....:     return P.volume()
+        sage: K1.<a,b>=ParametricRealField([2,3])
+        sage: vol1 = vol(a,b)
+        sage: sym_exp1 = result_symbolic_expression(K1, vol1)
+        sage: sym_exp1
+        (1/(2*a*b),)
+        sage: K2.<a,b>=ParametricRealField([5,4])
+        sage: vol2 = vol(a,b)
+        sage: sym_exp2 = result_symbolic_expression(K2, vol2)
+        sage: sym_exp2
+        (1/(2*a*b),)
+        sage: vol1 == vol2
+        False
+        sage: sym_exp1 == sym_exp2
+        True    
+    """
+    symbolic_expression = tuple(elt._sym if hasattr(elt, '_sym') else elt for elt in flatten([result]))
+    return symbolic_expression
+
+region_type_color_map = {'not_constructible': 'white', 'not_minimal': 'orange', 'not_extreme': 'green', 'is_extreme': 'blue', True: 'blue', False: 'red'}
+
+def find_region_color(region_type):
+    """
+    sage: find_region_color('is_extreme')
+    'blue'
+    sage: find_region_color(False)
+    'red'
+    sage: find_region_color(4)
+    '#ff0000'
+    sage: find_region_color(10)
+    '#0091ff'
+    """
+    # at most 7 different types other than the ones like 'is_extreme' that were in region_type_color_map.
     global region_type_color_map
-    region_color = region_type_color_map.get(result_val, None)
+    region_color = region_type_color_map.get(region_type, None)
     if region_color is None:
-        n = len(region_type_color_map)
+        n = len(region_type_color_map) - 6 # the initial map includes 4 igp region types and True and False.
         region_color = color_of_ith_region_type(n)
-        region_type_color_map[result_val] = region_color
+        region_type_color_map[region_type] = region_color
     return region_color
 
 def color_of_ith_region_type(i):
+    """
+    Return a color in the rainbow.
+    """
     j = (4 * i) % 7
     c = rainbow(7)[j]
     return c
+
+
+#######################
+# interface mathematica
+#######################
 
 def write_mathematica_constraints(eqs, ineqs, strict=True):
     condstr = ''
@@ -1310,6 +1391,10 @@ def find_instance_mathematica(condstr, var_name):
             pt_i = pt_math[1][i+1][2]
         pt.append(pt_i)
     return tuple(pt)
+
+#######################
+# wall crossing
+#######################
 
 def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step):
     # heuristic method.
