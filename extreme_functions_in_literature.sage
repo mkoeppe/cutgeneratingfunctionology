@@ -442,7 +442,7 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
     Note:
         In [40], they require that f, bkpt are rational numbers.
         The proof is based on interpolation of finite cyclic group extreme functions(cf. [8]), so it needs rational numbers.
-        But in fact, by analysing covered intervals and using the condition f < bkpt < (1+f)/4 < 1,
+        But in fact, by analysing covered intervals and using the condition f < bkpt <= (1+f)/4 < 1,
         one can prove that the function is extreme without assuming f, bkpt being rational numbers.
         
         In [61] p.374, Appendix C, p.360. Fig.10, they consider real number f, bkpt, and claim (without proof) that:
@@ -481,7 +481,7 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
         raise ValueError, "Bad parameters. Unable to construct the function."
     if conditioncheck:
         #if not ((f in QQ) & (bkpt in QQ) & bool(0 < f < bkpt < ((1 + f)/4) < 1)):
-        if not bool(0 < f < bkpt < ((1 + f)/4) < 1):
+        if not bool(0 < f < bkpt <= ((1 + f)/4) < 1):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
