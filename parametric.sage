@@ -144,7 +144,7 @@ class ParametricRealFieldElement(FieldElement):
         doubt, make sure that the _val elements all come from the same
         field, by `nice_field_values`.
 
-        TESTS::
+        EXAMPLES::
 
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: K.<f> = ParametricRealField([1])
@@ -377,23 +377,27 @@ default_parametric_field = ParametricRealField()
 
 def polynomial_to_linexpr(t, monomial_list, v_dict):
     """
-    sage: P.<x,y,z> = QQ[]
-    sage: monomial_list = []; v_dict = {};
-    sage: t = 27/113 * x^2 + y*z + 1/2
-    sage: polynomial_to_linexpr(t, monomial_list, v_dict)
-    54*x0+226*x1+113
-    sage: monomial_list
-    [x^2, y*z]
-    sage: v_dict
-    {y*z: 1, x^2: 0}
+    Reformulation–linearization: Expand the polynomial in the standard monomial basis and replace each monomial by a new variable. Record monomials in monomial_list and their corresponding variables in v_dict. The resulting linear expression in the extended space will be provided as inequality or equation in the linear system that describes a PPL not-necessarily-closed polyhedron.
 
-    sage: tt = x + 1/3 * y*z
-    sage: polynomial_to_linexpr(tt, monomial_list, v_dict)
-    x1+3*x2
-    sage: monomial_list
-    [x^2, y*z, x]
-    sage: v_dict
-    {x: 2, y*z: 1, x^2: 0}
+    EXAMPLES::
+
+        sage: P.<x,y,z> = QQ[]
+        sage: monomial_list = []; v_dict = {};
+        sage: t = 27/113 * x^2 + y*z + 1/2
+        sage: polynomial_to_linexpr(t, monomial_list, v_dict)
+        54*x0+226*x1+113
+        sage: monomial_list
+        [x^2, y*z]
+        sage: v_dict
+        {y*z: 1, x^2: 0}
+
+        sage: tt = x + 1/3 * y*z
+        sage: polynomial_to_linexpr(tt, monomial_list, v_dict)
+        x1+3*x2
+        sage: monomial_list
+        [x^2, y*z, x]
+        sage: v_dict
+        {x: 2, y*z: 1, x^2: 0}
     """
     # coefficients in ppl constraint must be integers.
     lcd = lcm([x.denominator() for x in t.coefficients()])
@@ -430,15 +434,19 @@ def polynomial_to_linexpr(t, monomial_list, v_dict):
 
 def cs_of_eq_lt_poly(eq_poly, lt_poly):
     """
-    sage: P.<f>=QQ[]
-    sage: eq_poly =[]; lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
-    sage: cs, monomial_list, v_dict = cs_of_eq_lt_poly(eq_poly, lt_poly)
-    sage: cs
-    Constraint_System {-x0+1>0, -x0+2>0, x0-x1>0, x0>0, -x0+1>0, x0+1>0, x0>0, 2*x0-1>0}
-    sage: monomial_list
-    [f, f^2]
-    sage: v_dict
-    {f: 0, f^2: 1}
+    Reformulation–linearization: Expand the polynomials in the standard monomial basis and replace each monomial by a new variable. Construct a linear constraint system in the extended space, which describes a PPL not-necessarily-closed polyhedron. Record monomials in monomial_list and their corresponding variables in v_dict.
+
+    EXAMPLES::
+
+        sage: P.<f>=QQ[]
+        sage: eq_poly =[]; lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
+        sage: cs, monomial_list, v_dict = cs_of_eq_lt_poly(eq_poly, lt_poly)
+        sage: cs
+        Constraint_System {-x0+1>0, -x0+2>0, x0-x1>0, x0>0, -x0+1>0, x0+1>0, x0>0, 2*x0-1>0}
+        sage: monomial_list
+        [f, f^2]
+        sage: v_dict
+        {f: 0, f^2: 1}
     """
     monomial_list = []
     v_dict ={}
@@ -532,14 +540,18 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
     return read_leq_lin_from_polyhedron(p, monomial_list, v_dict)
 
 
-def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None): #, check_variable_elimination=False):
+def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None):
     """
-    sage: P.<f>=QQ[]
-    sage: eq_poly =[]; lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
-    sage: cs, monomial_list, v_dict = cs_of_eq_lt_poly(eq_poly, lt_poly)
-    sage: p = NNC_Polyhedron(cs)
-    sage: read_leq_lin_from_polyhedron(p, monomial_list, v_dict)
-    ([], [f - 1, -2*f + 1, f^2 - f])
+    Given a PPL polyhedron p, map the minimal constraints system of p back to polynomial equations and inequalities in the orginal space. If a constraint in the minimal constraint system of p is not tight for the tightened_mip, then this constraint is discarded.
+
+    EXAMPLES::
+
+        sage: P.<f>=QQ[]
+        sage: eq_poly =[]; lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
+        sage: cs, monomial_list, v_dict = cs_of_eq_lt_poly(eq_poly, lt_poly)
+        sage: p = NNC_Polyhedron(cs)
+        sage: read_leq_lin_from_polyhedron(p, monomial_list, v_dict)
+        ([], [f - 1, -2*f + 1, f^2 - f])
     """
     mineq = []
     minlt = []
@@ -556,9 +568,6 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None): 
         t = sum([-(x/gcd_c)*y for x, y in itertools.izip(coeff, monomial_list)]) - c.inhomogeneous_term()/gcd_c
         if c.is_equality():
             mineq.append(t)
-            #if check_variable_elimination and (not variable_elimination_is_done_for_mincs(mincs)):
-            #    raise NotImplementedError, "Alas, PPL didn't do its job for eliminating variables in the minimized constraint system %s." % self.polyhedron.minimized_constraints()
-            #check_variable_elimination = False
         else:
             minlt.append(t)
     # note that polynomials in mineq and minlt can have leading coefficient != 1
@@ -566,17 +575,21 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None): 
 
 def read_simplified_leq_lin(K, level="factor"):
     """
-    sage: K.<f> = ParametricRealField([4/5])
-    sage: h = gmic(f, field=K)
-    sage: _ = extremality_test(h)
-    sage: read_simplified_leq_lin(K)
-    ([], [f - 1, -2*f + 1])
+    Use the reformulation–linearization techinque to remove redundant inequalties and equations recorded in ParametricRealField K.
 
-    sage: K.<f> = ParametricRealField([1/5])
-    sage: h = drlm_3_slope_limit(f, conditioncheck=False)
-    sage: _ = extremality_test(h)
-    sage: read_simplified_leq_lin(K)
-    ([], [3*f - 1, -f])
+    EXAMPLES::
+
+        sage: K.<f> = ParametricRealField([4/5])
+        sage: h = gmic(f, field=K)
+        sage: _ = extremality_test(h)
+        sage: read_simplified_leq_lin(K)
+        ([], [f - 1, -2*f + 1])
+
+        sage: K.<f> = ParametricRealField([1/5])
+        sage: h = drlm_3_slope_limit(f, conditioncheck=False)
+        sage: _ = extremality_test(h)
+        sage: read_simplified_leq_lin(K)
+        ([], [3*f - 1, -f])
     """
     if level == "factor":
         #leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
@@ -598,23 +611,23 @@ def find_variable_mapping(leqs, lins):
 so that gaussian elimination has been performed by PPL on the list of equations. If an equation has a linear variable that does not appear in other equations, then eliminate this variable.
     FIXME: This function is bad; it assumes too many things.
 
-    EXAMPLE::
+    EXAMPLES::
 
-    sage: logging.disable(logging.WARN)
-    sage: P.<a,b,c>=QQ[]
-    sage: leqs = [a+2*b+1]; lins=[a+b+c, b+2*c-3]
-    sage: find_variable_mapping(leqs, lins)
-    {c: c, b: b, a: -2*b - 1}
-    sage: leqs = [2*a+b, b+c-1/2]; lins=[a+b+c]
-    sage: find_variable_mapping(leqs, lins)
-    {c: -b + 1/2, b: b, a: -1/2*b}
-    sage: leqs = [a*a-b, b*b-c*c]; lins=[a+b+c]
-    sage: find_variable_mapping(leqs, lins)
-    {c: c, b: b, a: a}
-    sage: P.<d>=QQ[]
-    sage: leqs = [1-d^3]; lins = []
-    sage: find_variable_mapping(leqs, lins)
-    {d: d}
+        sage: logging.disable(logging.WARN)
+        sage: P.<a,b,c>=QQ[]
+        sage: leqs = [a+2*b+1]; lins=[a+b+c, b+2*c-3]
+        sage: find_variable_mapping(leqs, lins)
+        {c: c, b: b, a: -2*b - 1}
+        sage: leqs = [2*a+b, b+c-1/2]; lins=[a+b+c]
+        sage: find_variable_mapping(leqs, lins)
+        {c: -b + 1/2, b: b, a: -1/2*b}
+        sage: leqs = [a*a-b, b*b-c*c]; lins=[a+b+c]
+        sage: find_variable_mapping(leqs, lins)
+        {c: c, b: b, a: a}
+        sage: P.<d>=QQ[]
+        sage: leqs = [1-d^3]; lins = []
+        sage: find_variable_mapping(leqs, lins)
+        {d: d}
     """
     if leqs:
         variables = leqs[0].args()
@@ -650,17 +663,22 @@ so that gaussian elimination has been performed by PPL on the list of equations.
     return var_map
 
 ######################################
-# Functions with the magic K
+# Functions with ParametricRealField K
 ######################################
 
 from sage.misc.sageinspect import sage_getargspec, sage_getvariablename
 
 def read_default_args(function, **opt_non_default):
     """
-    sage: read_default_args(gmic)
-    {'conditioncheck': True, 'f': 4/5, 'field': None}
-    sage: read_default_args(drlm_backward_3_slope, **{'bkpt': 1/5})
-    {'bkpt': 1/5, 'conditioncheck': True, 'f': 1/12, 'field': None}
+    Return the default values of arguments of the function.
+    Override the default values if opt_non_default is given.
+
+    EXAMPLES::
+
+        sage: read_default_args(gmic)
+        {'conditioncheck': True, 'f': 4/5, 'field': None}
+        sage: read_default_args(drlm_backward_3_slope, **{'bkpt': 1/5})
+        {'bkpt': 1/5, 'conditioncheck': True, 'f': 1/12, 'field': None}
     """
     args, varargs, keywords, defaults = sage_getargspec(function)
     default_args = {}
@@ -674,13 +692,19 @@ def read_default_args(function, **opt_non_default):
 
 def construct_field_and_test_point(function, var_name, var_value, default_args):
     """
-    sage: function=gmic; var_name=['f']; var_value=[1/2];
-    sage: default_args = read_default_args(function)
-    sage: K, test_point = construct_field_and_test_point(function, var_name, var_value, default_args)
-    sage: K
-    ParametricRealField[f~]
-    sage: test_point
-    {'conditioncheck': False, 'f': f~, 'field': ParametricRealField[f~]}
+    Construct a ParametricRealField K using var_name and var_value.
+    var_name and var_value are two parallel lists.
+    Construct a test_point of type dictionary, which maps each parameter of the function to the corresponding ParametricRealFieldElement if this is a parameter of K, otherwise maps to the default argument value.
+
+    EXAMPLES::
+
+        sage: function=gmic; var_name=['f']; var_value=[1/2];
+        sage: default_args = read_default_args(function)
+        sage: K, test_point = construct_field_and_test_point(function, var_name, var_value, default_args)
+        sage: K
+        ParametricRealField[f~]
+        sage: test_point
+        {'conditioncheck': False, 'f': f~, 'field': ParametricRealField[f~]}
     """
     K = ParametricRealField(var_value, var_name)
     test_point = copy(default_args)
@@ -695,7 +719,9 @@ def construct_field_and_test_point(function, var_name, var_value, default_args):
 
 def simplified_extremality_test(function):
     """
-    function has rational bkpts; function is known to be minimal.
+    A simplified version of the extremality test, which assumes that
+    the given function is minimal valid and has rational bkpts.
+    Return True or False, without computing the perturbations.
     """
     f = find_f(function, no_error_if_not_minimal_anyway=True)
     covered_intervals = generate_covered_intervals(function)
@@ -737,7 +763,7 @@ class SemialgebraicComplexComponent(SageObject):
             tightened_mip = None
 
         leqs, lins = read_leq_lin_from_polyhedron(self.polyhedron, \
-                                                          self.parent.monomial_list, self.parent.v_dict, tightened_mip) #, check_variable_elimination=False)
+                                                          self.parent.monomial_list, self.parent.v_dict, tightened_mip)
         self.var_map = find_variable_mapping(leqs, lins)
         self.leq = leqs
         self.lin = [l.subs(self.var_map) for l in lins]
@@ -1227,27 +1253,33 @@ def update_mccormicks_for_monomial(m, tightened_mip, original_polyhedron, monomi
 
 def find_region_type_igp(K, h, region_level='extreme', is_minimal=None, use_simplified_extremality_test=True):
     """
-    sage: logging.disable(logging.INFO)
-    sage: K.<f> = ParametricRealField([4/5])
-    sage: h = gmic(f, field=K)
-    sage: find_region_type_igp(K, h)
-    'is_extreme'
-    sage: K._lt_factor
-    {-f, -f + 1/2, f - 1}
+    Find the type of a igp function h in the ParametricRealField K;
+    (is it constructible? is it minimal? is it extreme?)
+    Record the comparisons in K.
 
-    sage: K.<f,bkpt>=ParametricRealField([1/7,3/7])
-    sage: h = drlm_backward_3_slope(f, bkpt, field=K)
-    sage: find_region_type_igp(K, h)
-    'not_extreme'
-    sage: sage: K._lt_factor
-    {2*bkpt - 1,
-     -f,
-     -f + 2*bkpt - 1,
-     f - 4*bkpt + 1,
-     f - 3*bkpt + 1,
-     f - bkpt,
-     2*f - 1,
-     2*f - bkpt}
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: K.<f> = ParametricRealField([4/5])
+        sage: h = gmic(f, field=K)
+        sage: find_region_type_igp(K, h)
+        'is_extreme'
+        sage: K._lt_factor
+        {-f, -f + 1/2, f - 1}
+
+        sage: K.<f,bkpt>=ParametricRealField([1/7,3/7])
+        sage: h = drlm_backward_3_slope(f, bkpt, field=K)
+        sage: find_region_type_igp(K, h)
+        'not_extreme'
+        sage: K._lt_factor
+        {2*bkpt - 1,
+         -f,
+         -f + 2*bkpt - 1,
+         f - 4*bkpt + 1,
+         f - 3*bkpt + 1,
+         f - bkpt,
+         2*f - 1,
+         2*f - bkpt}
     """
     ## Note: region_level = 'constructible' / 'minimal'/ 'extreme'. test cases see find_parameter_region()
     if h is None:
@@ -1329,14 +1361,18 @@ region_type_color_map = {'not_constructible': 'white', 'not_minimal': 'orange', 
 
 def find_region_color(region_type):
     """
-    sage: find_region_color('is_extreme')
-    'blue'
-    sage: find_region_color(False)
-    'red'
-    sage: find_region_color(4)
-    '#ff0000'
-    sage: find_region_color(10)
-    '#0091ff'
+    Return the color of the region according to the global dictionary region_type_color_map.
+
+    EXAMPLES::
+
+        sage: find_region_color('is_extreme')
+        'blue'
+        sage: find_region_color(False)
+        'red'
+        sage: find_region_color(4)
+        '#ff0000'
+        sage: find_region_color(10)
+        '#0091ff'
     """
     # at most 7 different types other than the ones like 'is_extreme' that were in region_type_color_map.
     global region_type_color_map
@@ -1361,23 +1397,56 @@ def color_of_ith_region_type(i):
 #######################
 
 def write_mathematica_constraints(eqs, ineqs, strict=True):
+    """
+    Write polynomial constraints in the mathematica format. 
+    Notice that the string ends with ' && '; in practice, often take condstr[:-4]
+
+    EXAMPLES::
+
+        sage: P.<x,y,z>=QQ[]
+        sage: eqs = [z]
+        sage: ineqs = [-x, x-1, -y, y-1]
+        sage: write_mathematica_constraints(eqs, ineqs, strict=True)
+        'z == 0 && -x < 0 && x - 1 < 0 && y - 1 < 0 && -y < 0 && '
+        sage: write_mathematica_constraints(eqs, ineqs, strict=False)
+        'z == 0 && -x <= 0 && x - 1 <= 0 && y - 1 <= 0 && -y <= 0 && '
+    """
     condstr = ''
     for l in set(eqs):
-        condstr += str(l) + '==0 && '
+        condstr += str(l) + ' == 0 && '
     for l in set(ineqs):
         if strict:
-            condstr += str(l) + '<0 && '
+            condstr += str(l) + ' < 0 && '
         else:
-            condstr += str(l) + '<=0 && '
+            condstr += str(l) + ' <= 0 && '
     return condstr
 
 def write_mathematica_variables(var_name):
+    """
+    Write the variables in the mathematica format.
+
+    EXAMPLES::
+
+        sage: var_name = ['x','y','z']
+        sage: write_mathematica_variables(var_name)
+        '{x, y, z}'
+    """
     varstr = var_name[0]
     for v in var_name[1::]:
-        varstr = varstr + ',' + v
+        varstr = varstr + ', ' + v
     return '{' + varstr + '}'
 
 def find_instance_mathematica(condstr, var_name):
+    """
+    Call the Mathematica's FindInstance to get a point that satisfies the given conditions.
+
+    EXAMPLES::
+
+        sage: condstr = 'z == 0 && -x < 0 && x - 1 < 0 && y - 1 < 0 && -y < 0'
+        sage: var_name = ['x','y','z']
+        sage: find_instance_mathematica(condstr, var_name)
+        (1/2, 1/2, 0)
+    """
     varstr =  write_mathematica_variables(var_name)
     pt_math = mathematica.FindInstance(condstr, varstr)
     if len(pt_math) == 0:
@@ -1392,9 +1461,9 @@ def find_instance_mathematica(condstr, var_name):
         pt.append(pt_i)
     return tuple(pt)
 
-#######################
-# wall crossing
-#######################
+##########################
+# wall crossing heuristic
+##########################
 
 def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step):
     # heuristic method.
