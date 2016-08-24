@@ -766,7 +766,11 @@ class SemialgebraicComplexComponent(SageObject):
                                                           self.parent.monomial_list, self.parent.v_dict, tightened_mip)
         self.var_map = find_variable_mapping(leqs, lins)
         self.leq = leqs
-        self.lin = [l.subs(self.var_map) for l in lins]
+        self.lin = []
+        for l in lins:
+            ineq = l.subs(self.var_map)
+            if ineq.degree() > 0:
+                self.lin.append(ineq)
 
     def bounds_propagation(self, max_iter):
         tightened_mip = construct_mip_of_nnc_polyhedron(self.polyhedron)
@@ -1511,9 +1515,9 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_st
             l_direction = vector([-g(*current_point) for g in l_gradient]) #decrease l_value
             ineq_direction = vector([g(*current_point) for g in ineq_gradient])
             s = (ineq_direction * l_direction) / (ineq_direction * ineq_direction)
-            if s == 0:
-                return None
             projected_direction = l_direction - s * ineq_direction # want that ineq_value remains the same
+            if projected_direction == 0:
+                return None
             if l.degree() == 1:
                 step_length = (l_value+flip_ineq_step) / (projected_direction * l_direction)
             else:
