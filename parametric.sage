@@ -882,7 +882,7 @@ class SemialgebraicComplexComponent(SageObject):
                     g += point([self.var_value[0], 0], color = ptcolor, size = 2, zorder=10)
         return g
 
-    def find_walls_and_new_points(self, flip_ineq_step, wall_crossing_method, goto_lower_dim=True):
+    def find_walls_and_new_points(self, flip_ineq_step, wall_crossing_method, goto_lower_dim=False):
         #self.lin self.leq, self.parent.bddlin
         walls = []
         new_points = {}
@@ -926,15 +926,17 @@ class SemialgebraicComplexComponent(SageObject):
 
 class SemialgebraicComplex(SageObject):
     """
-    EXAMPLES::
-
-        sage: logging.disable(logging.WARN)
-        sage: def vol(a,b):
-        ....:     P = Polyhedron(ieqs=[(1,0,-1),(0,0,1),(1,-1,0),(0,1,0),(1,-a,-b)])
-        ....:     return P.volume()
-        sage: K.<a,b>=ParametricRealField([2,3])
-
     """
+    # EXAMPLES::
+
+    #     sage: logging.disable(logging.WARN)
+
+    #     sage: def vol(a,b):
+    #     ....:     P = Polyhedron(ieqs=[(0,0,1),(0,1,0),(1,-1,0),(1,0,-1),(a,-1,0),(b,0,-1)])
+    #     ....:     return P.volume()
+    #     sage: #complex1 = SemialgebraicComplex(vol, ['a','b'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-1,3))
+    #     sage: #complex1.bfs_completion(var_value=[2, 3],  wall_crossing_method='mathematica')
+
 
     def __init__(self, function, var_name, max_iter=8, find_region_type=None, default_var_bound=(-0.1,1.1), bddleq=[], bddlin=[], **opt_non_default):
         #self.num_components = 0
@@ -1034,11 +1036,11 @@ class SemialgebraicComplex(SageObject):
             return tuple([0]*len(self.var_name))
         return find_instance_mathematica(condstr[:-4], self.var_name)
 
-    def add_new_component(self, var_value, bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=True):
-        # Remark: the sign of flip_ineq_step indicates how to search for neighbour testpoints:
-        # if flip_ineq_step = 0, don't search for neighbour testpoints. Used in shoot_random_points().
-        # if flip_ineq_step < 0, we assume that the walls of the cell are linear eqn/ineq over original parameters.(So, gradient is constant; easy to find a new testpoint on the wall and another testpoint (-flip_ineq_step away) across the wall.) Used in bfs.
-        # if flip_ineq_step > 0, we don't assume the walls are linear. Apply generate_one_point_by_flipping_inequality() with flip_ineq_step to find new testpoints across the wall only. Used in bfs.
+    def add_new_component(self, var_value, bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False):
+        """
+        # If flip_ineq_step = 0, don't search for neighbour testpoints. Used in shoot_random_points(). wall_crossing_method=None in this case.
+        # If flip_ineq_step > 0, search for neighbour testpoints using wall_crossing_method='mathematica' or 'heuristic'. Used in bfs. If goto_lower_dim=False or (goto_lower_dim=True and wall_crossing method='heuristic' but wall is non-linear) then find new testpoints across the wall only.
+        """
 
         unlifted_space_dim =  len(self.monomial_list)
         K, test_point = construct_field_and_test_point(self.function, self.var_name, var_value, self.default_args)
@@ -1087,6 +1089,10 @@ class SemialgebraicComplex(SageObject):
         return self.graph
 
     def bfs_completion(self, var_value=None, flip_ineq_step=1/100, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=False):
+        """
+        wall_crossing_method='mathematica' or 'heuristic'. Used in bfs. 
+        If goto_lower_dim=False or (goto_lower_dim=True and wall_crossing method='heuristic' but wall is non-linear) then find new testpoints across the wall only.
+        """
         if not self.components and not self.points_to_test and not var_value:
             var_value = self.find_uncovered_random_point()
         if var_value and not tuple(var_value) in self.points_to_test:
@@ -1095,7 +1101,7 @@ class SemialgebraicComplex(SageObject):
             var_value, bddleq = self.points_to_test.popitem()
             var_value = list(var_value)
             if not self.is_point_covered(var_value):
-                self.add_new_component(var_value, flip_ineq_step=flip_ineq_step, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim)
+                self.add_new_component(var_value, bddleq=bddleq, flip_ineq_step=flip_ineq_step, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim)
         if check_completion:
             uncovered_pt = self.find_uncovered_point_mathematica(strict=goto_lower_dim)
             if uncovered_pt is not None:
@@ -1477,11 +1483,36 @@ def find_instance_mathematica(condstr, var_name):
 ##########################
 
 def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step):
+    """
+    The current_var_value satisfies that l(current_var_value)<0 for l=ineq or l in ineqs,
+    where ineq is a polynomial and ineqs is a list of polynomials.
+    Use heuristic method (gradient descent method with given step length flip_ineq_step)
+    to find a new_point (type is tuple) such that
+    ineq(new_point) > 0 and l(new_point) < 0 for all l in ineqs.
+    Return new_point, or None if it fails to find one.
+
+    EXAMPLES::
+
+        sage: P.<a,b>=QQ[]
+        sage: find_point_flip_ineq_heuristic([1,1/2], a+b-2, [-a+b^2], 1/4)
+        (11/8, 7/8)
+
+        After walking towards ineq==0, ineqs < 0 is violated. Need to adjust.
+        sage: find_point_flip_ineq_heuristic([1,9/10], a+b-2, [-a+b^2], 1/2)
+        (123/85, 179/170)
+        sage: find_point_flip_ineq_heuristic([11/40,1/2], a+b-2, [-a+b^2], 1/4)
+        (39295901/31739294, 125037049/123564610)
+
+        Ineq is a redundant inequality, it's impossible to cross it without crossing any other ineqs.
+        Thus, return None.
+        sage: find_point_flip_ineq_heuristic([1,1/2], a+b-2, [-a+b^2, a-1], 1/4)
+    """
     # heuristic method.
     ineq_gradient = gradient(ineq)
     current_point = vector([RR(x) for x in current_var_value]) # Real numbers, faster than QQ
     ineq_value = ineq(*current_point)
-    while ineq_value <= 0:
+    #try_before_fail = floor(ineq_value * 2 / flip_ineq_step) # define maximum number of walks.
+    while (ineq_value <= 0): # and (try_before_fail < 0):
         ineq_direction = vector([g(*current_point) for g in ineq_gradient])
         if ineq.degree() == 1:
             step_length = (-ineq(*current_point)+flip_ineq_step) / (ineq_direction * ineq_direction)
@@ -1490,13 +1521,36 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
             if step_length > 1:
                 step_length = 1  # ensure that distance of move <= sqrt(flip_ineq_step) = 0.1 in each step
         current_point += step_length * ineq_direction
-        ineq_value = ineq(*current_point)
+        new_ineq_value = ineq(*current_point)
+        if new_ineq_value <= ineq_value:
+            return None
+        ineq_value = new_ineq_value
+        #try_before_fail += 1
         #print current_point, RR(ineq_value)
+    #if ineq_value <= 0:
+    #    return None
     new_point = adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_step)
     return new_point #type is tuple
 
 
 def find_point_on_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step):
+    """
+    The current_var_value satisfies that l(current_var_value)<0 for l=ineq or l in ineqs,
+    where ineq is a polynomial and ineqs is a list of polynomials.
+    Assume that ineq is linear.
+    Use heuristic method (gradient descent method with given step length flip_ineq_step)
+    to find a new_point (type is tuple) such that
+    ineq(new_point) == 0 and l(new_point) < 0 for all l in ineqs.
+    Return new_point, or None if it fails to find one.
+
+    EXAMPLES::
+
+        sage: P.<a,b>=QQ[]
+        sage: find_point_on_ineq_heuristic([1,1/2], a+b-2, [-a+b^2], 1/4)
+        (5/4, 3/4)
+        sage: find_point_on_ineq_heuristic([11/40,1/2], a+b-2, [-a+b^2], 1/4)
+        (171073319/163479120, 155884921/163479120)
+    """
     ineq_gradient = gradient(ineq)
     current_point = vector(current_var_value)
     ineq_direction = vector([g(*current_point) for g in ineq_gradient])
@@ -1507,6 +1561,26 @@ def find_point_on_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step)
     return new_point #type is tuple
 
 def adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_step):
+    """
+    Walk from current_point (type=vector) in the direction perpendicular to ineq_gradient with step length flip_ineq_step, until get a new point such that l(new point)<0 for any l in ineqs.
+    Return new_point, or None if it fails to find one.
+
+        sage: P.<a,b>=QQ[]
+        sage: find_point_flip_ineq_heuristic([1,1/2], a+b-2, [-a+b^2], 1/4)
+        (11/8, 7/8)
+
+    EXAMPLES::
+
+        sage: P.<a,b>=QQ[]
+        sage: ineq_gradient = gradient(a+b-2)
+        sage: adjust_pt_to_satisfy_ineqs(vector([13/10,12/10]), ineq_gradient, [-a+b^2], 1/2)
+        (123/85, 179/170)
+        sage: adjust_pt_to_satisfy_ineqs(vector([71/80, 89/80]), ineq_gradient, [-a+b^2], 1/4)
+        (171073319/163479120, 155884921/163479120)
+
+        If impossible, return None.
+        sage: adjust_pt_to_satisfy_ineqs(vector([11/8, 7/8]), ineq_gradient,[-a+b^2, a-1], 1/4)
+    """
     #current_point is a vector
     for l in ineqs:
         l_gradient = gradient(l)
