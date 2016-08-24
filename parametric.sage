@@ -1360,7 +1360,7 @@ def result_symbolic_expression(field, result):
     symbolic_expression = tuple(elt._sym if hasattr(elt, '_sym') else elt for elt in flatten([result]))
     return symbolic_expression
 
-region_type_color_map = {'not_constructible': 'white', 'not_minimal': 'orange', 'not_extreme': 'green', 'is_extreme': 'blue', True: 'blue', False: 'red'}
+region_type_color_map = [('not_constructible', 'white'), ('not_minimal', 'orange'), ('not_extreme', 'green'), ('is_extreme', 'blue'), (True, 'blue'), (False, 'red')]
 
 def find_region_color(region_type):
     """
@@ -1379,11 +1379,15 @@ def find_region_color(region_type):
     """
     # at most 7 different types other than the ones like 'is_extreme' that were in region_type_color_map.
     global region_type_color_map
-    region_color = region_type_color_map.get(region_type, None)
-    if region_color is None:
-        n = len(region_type_color_map) - 6 # the initial map includes 4 igp region types and True and False.
-        region_color = color_of_ith_region_type(n)
-        region_type_color_map[region_type] = region_color
+    n = len(region_type_color_map)
+    i = 0
+    while (i < n) and (region_type != region_type_color_map[i][0]):
+        i += 1
+    if i == n:
+        region_color = color_of_ith_region_type(n - 6)  # the initial map includes 4 igp region types and True and False.
+        region_type_color_map.append((region_type, region_color))
+    else:
+        region_color = region_type_color_map[i][1]
     return region_color
 
 def color_of_ith_region_type(i):
