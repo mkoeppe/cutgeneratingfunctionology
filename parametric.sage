@@ -23,6 +23,10 @@ from sage.structure.sage_object import SageObject
 default_parametric_field = None
 
 class ParametricRealFieldElement(FieldElement):
+    """
+    A `ParametricRealFieldElement` stores a symbolic expression of the parameters in the problem and a concrete value, which is the evaluation of this expression on the given parameter tuple.
+    When a comparison takes place on elements of the class, their concrete values are compared to compute the Boolean return value of the comparison. The constraint on the parameters that gives the same Boolean return value is recorded.
+    """
 
     def __init__(self, value, symbolic=None, parent=None):
         if parent is None:
@@ -167,7 +171,8 @@ from itertools import izip
 
 class ParametricRealField(Field):
     """
-    Parametric search:
+    A Metaprogramming trick for parameter space analysis.
+
     EXAMPLES::
 
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
@@ -671,6 +676,7 @@ from sage.misc.sageinspect import sage_getargspec, sage_getvariablename
 def read_default_args(function, **opt_non_default):
     """
     Return the default values of arguments of the function.
+
     Override the default values if opt_non_default is given.
 
     EXAMPLES::
@@ -693,6 +699,7 @@ def read_default_args(function, **opt_non_default):
 def construct_field_and_test_point(function, var_name, var_value, default_args):
     """
     Construct a ParametricRealField K using var_name and var_value.
+
     var_name and var_value are two parallel lists.
     Construct a test_point of type dictionary, which maps each parameter of the function to the corresponding ParametricRealFieldElement if this is a parameter of K, otherwise maps to the default argument value.
 
@@ -748,6 +755,9 @@ def simplified_extremality_test(function):
 # Super class that stores the computation so far
 ###########################
 class SemialgebraicComplexComponent(SageObject):
+    """
+    A proof cell for parameter space analysis.
+    """
 
     def __init__(self, parent, K, var_value, region_type):
         self.parent = parent
@@ -926,19 +936,71 @@ class SemialgebraicComplexComponent(SageObject):
 
 class SemialgebraicComplex(SageObject):
     """
+    A proof complex for parameter space analysis.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.WARN)
+
+        sage: def vol(a,b):
+        ....:     P = Polyhedron(ieqs=[(0,0,1),(0,1,0),(1,-1,0),(1,0,-1),(a,-1,0),(b,0,-1)])
+        ....:     return P.volume()
+        sage: complex = SemialgebraicComplex(vol, ['a','b'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-1,3))
+
+        Breadth-first-search to complete the complex, starting at the point (a,b)=(2,1/2), using heuristic wall-crossing, considering full-dimensional cells only.
+        sage: complex.bfs_completion(var_value=[2, 1/2], flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=False)
+        sage: complex.plot()                                  # not tested
+
+        Instead of heuristic method, we can use Mathematica's FindInstance to look for uncovered points in wall-crossing.
+        sage: complex = SemialgebraicComplex(vol, ['a','b'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-1,3))                         # optional - mathematica
+        sage: complex.bfs_completion(var_value=[2, 1/2], flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='mathematica', goto_lower_dim=True)        # optional - mathematica
+        sage: len(complex.components)                         # optional - mathematica
+        25
+
+        The entire parameter space is covered by cells.      
+        sage: complex.is_complete(strict=True)                # optional - mathematica
+        True
+        
+        Example with non-linear wall.
+        sage: complex = SemialgebraicComplex(lambda x,y: max(x,y^2), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))    # optional - mathematica
+        sage: complex.bfs_completion(var_value=[1,1/2], check_completion=True, wall_crossing_method='mathematica', goto_lower_dim=True)                                 # optional - mathematica
+        sage: complex.plot()                                  # not tested
+
+
+        Analyse the extreme/minimal/valid regions of a function in the Gomory-Johnson infinite group problem.
+        Use random shooting method to complete the complex. See more options in the method shoot_random_points.
+        sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])
+        sage: complex.shoot_random_points(50)
+
+        Use breadth-first-search to complete the complex. See more options in the method bfs_completion
+        sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])
+        sage: complex.bfs_completion()
     """
-    # EXAMPLES::
-
-    #     sage: logging.disable(logging.WARN)
-
-    #     sage: def vol(a,b):
-    #     ....:     P = Polyhedron(ieqs=[(0,0,1),(0,1,0),(1,-1,0),(1,0,-1),(a,-1,0),(b,0,-1)])
-    #     ....:     return P.volume()
-    #     sage: #complex1 = SemialgebraicComplex(vol, ['a','b'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-1,3))
-    #     sage: #complex1.bfs_completion(var_value=[2, 3],  wall_crossing_method='mathematica')
-
-
     def __init__(self, function, var_name, max_iter=8, find_region_type=None, default_var_bound=(-0.1,1.1), bddleq=[], bddlin=[], **opt_non_default):
+        """
+        Construct a SemialgebraicComplex.
+
+        `function`: we are interested in analysing how the output of this function varies with its parameters
+        `var_name`: a subset of the parameters of the function that we study
+        `max_iter`: the max number of iterations in updating McCormick inequalites
+        `find_region_type`: maps the output of `function` to a type of the parameter region;
+            set to None for functions in Gomory-Johnson model; 
+            often set to result_symbolic_expression or result_concrete_value for other functions;
+        `default_var_bound`: need if we use random shooting method to complete the complex; If given, the bound is also used in plotting
+
+        The following two arguments are used to define the boundary of the SemialgebraicComplex, so that bfs won't go beyond the region. They might be useful in the CPL3 examples.
+        `bddleq`: a list that tells the equations that are satisfied by the points in the complex;
+        `bddlin`: a list that tells the inequalities that are satisfied by the points in the complex;
+
+        EXAMPLES::
+
+            sage: logging.disable(logging.WARN)
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
+            sage: complex.monomial_list
+            [x, y]
+            sage: complex.v_dict
+            {y: 1, x: 0}
+        """
         #self.num_components = 0
         self.components = []
 
@@ -957,6 +1019,7 @@ class SemialgebraicComplex(SageObject):
         self.graph = Graphics()
         self.num_plotted_components = 0
         self.points_to_test = {} # a dictionary of the form {testpoint: bddleq}
+        # we record bddleq for each testpoiont, since we want to restrict to lower dimensional cells when  goto_lower_dim is set to True.
         self.max_iter = max_iter
         if find_region_type is None:
             self.find_region_type = find_region_type_igp
@@ -967,8 +1030,27 @@ class SemialgebraicComplex(SageObject):
         self.bddlin = bddlin
 
     def generate_random_var_value(self, var_bounds=None):
-        # var_bounds could be defined as lambda functions, see the testcase dg_2_step_mir in param_graphics.sage.
-        # FIXME: if self.bddleq is not empty, it never ends.
+        """
+        Return a random point that satisfies var_bounds and self.bddleq, self.bddlin.
+
+        If `var_bounds` is not specified, self.default_var_bound is taken. 
+        `var_bounds` can be a list of 2-tuples whose length equals to the number of parameters, or lambda functions.
+        It is used in random shooting method for functions like dg_2_step_mir, which involve floor/ceil operations. We try to plot one layer for each n = floor(...) and superimpose the layers at the end to get the whole picture.
+
+        Notice that if self.bddleq is not empty, it never ends.
+
+        EXAMPLES::
+
+            sage: logging.disable(logging.WARN)
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
+            sage: random_point = complex.generate_random_var_value()
+            sage: all(complex.default_var_bound[0] < random_point[i] < complex.default_var_bound[1] for i in [0,1])
+            True
+            sage: var_bounds=[(0,1),((lambda x: x/2), (lambda x: x))]
+            sage: random_point = complex.generate_random_var_value(var_bounds=var_bounds)
+            sage: (0 < random_point[0] < 1) and (random_point[0]/2 < random_point[1] < random_point[0])
+            True
+        """
         while True:
             var_value = []
             for i in range(self.d):
@@ -990,6 +1072,24 @@ class SemialgebraicComplex(SageObject):
                 return var_value
 
     def is_point_covered(self, var_value):
+        """
+        Return whether the given point var_value is contained in any cell of the complex.
+        Inequalities are considered strict.
+
+        EXAMPLES::
+
+            sage: logging.disable(logging.WARN)
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
+            sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y}
+            sage: complex.is_point_covered([2,3])
+            True
+            sage: complex.is_point_covered([3,2])
+            False
+            sage: complex.is_point_covered([2,2])
+            False
+            sage: complex.is_point_covered([sqrt(2), sqrt(3)])
+            True
+        """
         if all(x in QQ for x in var_value):
             #FIXME: is going through ppl the best way?
             monomial_value = [m(var_value) for m in self.monomial_list]
@@ -999,8 +1099,6 @@ class SemialgebraicComplex(SageObject):
             pt = Generator.point(Linear_Expression([x * lcm_monomial_value for x in monomial_value], 0), lcm_monomial_value)
             for c in self.components:
                 # Check if the random_point is contained in the box.
-                if c.region_type == 'not_constructible' and c.leq == [] and c.lin == []:
-                    continue
                 if is_point_in_box(monomial_value, c.bounds):
                     # Check if all eqns/ineqs are satisfied.
                     if c.polyhedron.relation_with(pt).implies(point_is_included):
@@ -1012,6 +1110,19 @@ class SemialgebraicComplex(SageObject):
         return False
         
     def find_uncovered_random_point(self, var_bounds=None, max_failings=1000):
+        """
+        Return a random point that satisfies the bounds and is uncovered by any cells in the complex.
+        Return False if the number of attemps > max_failings.
+ 
+        EXAMPLES::
+
+            sage: logging.disable(logging.WARN)
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
+            sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y}
+            sage: var_value = complex.find_uncovered_random_point(max_failings=100)
+            sage: complex.is_point_covered(var_value)
+            False
+        """
         num_failings = 0
         while not max_failings or num_failings < max_failings:
             if self.points_to_test:
@@ -1027,6 +1138,22 @@ class SemialgebraicComplex(SageObject):
         return False
 
     def find_uncovered_point_mathematica(self, strict=True):
+        """
+        Call Mathematica's FindInstance to get a point that satisfies the bounds
+        and is uncovered by any cells in the complex.
+
+        The argument `strict` controles whehter inequalities are treated as <= 0 or as < 0.
+        If such point doesn't exist, return None
+ 
+        EXAMPLES::
+
+            sage: logging.disable(logging.WARN)
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))            # optional - mathematica
+            sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y}                          # optional - mathematica
+            sage: var_value = complex.find_uncovered_point_mathematica(strict=False)  # optional - mathematica
+            sage: complex.is_point_covered(var_value)                   # optional - mathematica
+            False
+        """
         condstr = write_mathematica_constraints(self.bddleq, self.bddlin, strict=True) #why strict = strict doesn't work when goto_lower_dim=False?
         for c in self.components:
             condstr_c = write_mathematica_constraints(c.leq, c.lin, strict=strict)
@@ -1038,8 +1165,28 @@ class SemialgebraicComplex(SageObject):
 
     def add_new_component(self, var_value, bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False):
         """
-        # If flip_ineq_step = 0, don't search for neighbour testpoints. Used in shoot_random_points(). wall_crossing_method=None in this case.
-        # If flip_ineq_step > 0, search for neighbour testpoints using wall_crossing_method='mathematica' or 'heuristic'. Used in bfs. If goto_lower_dim=False or (goto_lower_dim=True and wall_crossing method='heuristic' but wall is non-linear) then find new testpoints across the wall only.
+        Compute one proof cell around `var_value`. Append this cell to the complex.
+
+        `bddleq` defines the boundary equalities satisfied by the cell.
+        If `flip_ineq_step` = 0, don't search for neighbour testpoints. Used in shoot_random_points(). `wall_crossing_method`=None in this case.
+        If `flip_ineq_step` > 0, search for neighbour testpoints using `wall_crossing_method`='mathematica' or 'heuristic'. Used in bfs. If `goto_lower_dim` is False or (`goto_lower_dim` is True and `wall_crossing method`='heuristic' but wall is non-linear), then find new testpoints across the wall only.
+
+        EXAMPLES::
+
+            sage: logging.disable(logging.WARN)
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
+            sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=1/10, wall_crossing_method='heuristic', goto_lower_dim=True) # the cell {(x,y): x<y}
+            sage: complex.components[0].lin
+            [x - y]
+            sage: complex.points_to_test
+            {(3/2, 3/2): [x - y], (31/20, 29/20): []}
+
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y^2), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))        # optional - mathematica
+            sage: complex.add_new_component([1,1/2], bddleq=[], flip_ineq_step=1/10, wall_crossing_method='mathematica', goto_lower_dim=False) # the cell {(x,y): x > y^2}      # optional - mathematica
+            sage: complex.components[0].lin                           # optional - mathematica
+            [y^2 - x]
+            sage: complex.points_to_test                              # optional - mathematica
+            {(19/20, 1): []}
         """
 
         unlifted_space_dim =  len(self.monomial_list)
@@ -1072,6 +1219,26 @@ class SemialgebraicComplex(SageObject):
         self.components.append(new_component)
 
     def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
+        """
+        Complete the complex by randomly shooting points.
+
+        EXAMPLES::
+
+            sage: logging.disable(logging.WARN)
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
+            sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=1/10, wall_crossing_method='heuristic', goto_lower_dim=True) # the cell {(x,y): x<y}
+            sage: complex.components[0].lin
+            [x - y]
+            sage: complex.points_to_test
+            {(3/2, 3/2): [x - y], (31/20, 29/20): []}
+
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y^2), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
+            sage: complex.add_new_component([1,1/2], bddleq=[], flip_ineq_step=1/10, wall_crossing_method='mathematica', goto_lower_dim=False) # the cell {(x,y): x > y^2}
+            sage: complex.components[0].lin
+            [y^2 - x]
+            sage: complex.points_to_test
+            {(19/20, 1): []}
+        """
         for i in range(num):
             var_value = self.find_uncovered_random_point(var_bounds=var_bounds, max_failings=max_failings)
             if var_value is False:
@@ -1080,6 +1247,26 @@ class SemialgebraicComplex(SageObject):
                 self.add_new_component(var_value, bddleq=[], flip_ineq_step=0, goto_lower_dim=False)
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=False):
+        """
+        Plot the complex and store the graph.
+
+        If `restart` is False, plot the newly added cells on top of the last graph;
+        otherwise, start a new graph.
+        If `slice_value` is given, plot the slice of the complex according to the parameter values in `slice_value` that are not None.
+        'plot_points' controls the quality of the plotting.
+
+        EXAMPLES::
+
+            sage: logging.disable(logging.WARN)
+            sage: complex = SemialgebraicComplex(lambda x,y,z: min(x^2,y^2,z), ['x','y','z'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))        # not tested
+            sage: complex.bfs_completion()                                      # not tested
+
+            Plot the slice in (x,y)-space with z=4.
+            sage: complex.plot(slice_value=[None, None, 4])                     # not tested
+
+            Plot the slice in (y,z)-space with x=4.
+            sage: sage: complex.plot(slice_value=[4, None, None], restart=True) # not tested
+        """
         if restart:
             self.graph = Graphics()
             self.num_plotted_components = 0
@@ -1090,8 +1277,30 @@ class SemialgebraicComplex(SageObject):
 
     def bfs_completion(self, var_value=None, flip_ineq_step=1/100, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=False):
         """
-        wall_crossing_method='mathematica' or 'heuristic'. Used in bfs. 
-        If goto_lower_dim=False or (goto_lower_dim=True and wall_crossing method='heuristic' but wall is non-linear) then find new testpoints across the wall only.
+        Breadth-first-search to complete the complex.
+
+        `var_value`: the starting point. If not given, start with a random point.
+        `flip_ineq_step`: a small positive number that controls the step length in wall-crossing.
+        `check_completion`: after bfs terminates, call Mathematica's FindInstance to check whether the entire parameter space is covered by cells. If not, restart the bfs from an uncovered point.
+        `wall_crossing_method`: 'mathematica' or 'heuristic'.
+        `goto_lower_dim`: whether lower dimensional cells are considered. If `goto_lower_dim` is False or if `goto_lower_dim` is True and `wall_crossing method` is 'heuristic' but the wall is non-linear, then find new testpoint across the wall only.
+
+        EXAMPLES::
+
+            sage: logging.disable(logging.WARN)
+            sage: complex = SemialgebraicComplex(lambda x,y: min(x^2+ 4*y^2, 4), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-3,3))    # optional - mathematica
+            sage: complex.bfs_completion(check_completion=True, wall_crossing_method='mathematica', goto_lower_dim=True)                                                          # optional - mathematica
+            sage: len(complex.components)                               # optional - mathematica
+            3
+            sage: complex.plot()                                        # not tested
+
+            sage: complex = SemialgebraicComplex(lambda x,y: min(x+ 4*y, 4), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-5,5))
+            sage: complex.bfs_completion(var_value=[1,1])
+            sage: len(complex.components)
+            2
+            sage: complex.plot()                                        # not tested
+
+        See more examples in the docstring of the class SemialgebraicComplex.
         """
         if not self.components and not self.points_to_test and not var_value:
             var_value = self.find_uncovered_random_point()
@@ -1109,6 +1318,24 @@ class SemialgebraicComplex(SageObject):
                 self.bfs_completion(var_value=uncovered_pt, \
                                     flip_ineq_step=flip_ineq_step, \
                                     check_completion=check_completion)
+    def is_complete(self, strict=False):
+        """
+        Return whether the entire parameter space is covered by cells.
+
+        EXAMPLES::
+
+            sage: logging.disable(logging.WARN)
+            sage: complex = SemialgebraicComplex(lambda x,y: min(x+ 4*y, 4), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-5,5))    # optional - mathematica
+            sage: complex.bfs_completion(var_value=[1,1])           # optional - mathematica
+            sage: complex.is_complete()                             # optional - mathematica
+            True
+            sage: complex.is_complete(strict=True)                  # optional - mathematica
+            False
+        """
+        if self.find_uncovered_point_mathematica(strict=strict) is None:
+            return True
+        else:
+            return False
 
 def gradient(ineq):
     # need this function since when K has only one variable,
@@ -1461,7 +1688,7 @@ def find_instance_mathematica(condstr, var_name):
 
         sage: condstr = 'z == 0 && -x < 0 && x - 1 < 0 && y - 1 < 0 && -y < 0'
         sage: var_name = ['x','y','z']
-        sage: find_instance_mathematica(condstr, var_name)
+        sage: find_instance_mathematica(condstr, var_name)     # optional - mathematica
         (1/2, 1/2, 0)
     """
     varstr =  write_mathematica_variables(var_name)
@@ -1486,8 +1713,8 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
     """
     The current_var_value satisfies that l(current_var_value)<0 for l=ineq or l in ineqs,
     where ineq is a polynomial and ineqs is a list of polynomials.
-    Use heuristic method (gradient descent method with given step length flip_ineq_step)
-    to find a new_point (type is tuple) such that
+    Use heuristic method (gradient descent method with given small positive step length flip_ineq_step)
+    to find a new_point (type is tuple) such that 
     ineq(new_point) > 0 and l(new_point) < 0 for all l in ineqs.
     Return new_point, or None if it fails to find one.
 
@@ -1538,7 +1765,7 @@ def find_point_on_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step)
     The current_var_value satisfies that l(current_var_value)<0 for l=ineq or l in ineqs,
     where ineq is a polynomial and ineqs is a list of polynomials.
     Assume that ineq is linear.
-    Use heuristic method (gradient descent method with given step length flip_ineq_step)
+    Use heuristic method (gradient descent method with given small positive step length flip_ineq_step)
     to find a new_point (type is tuple) such that
     ineq(new_point) == 0 and l(new_point) < 0 for all l in ineqs.
     Return new_point, or None if it fails to find one.
@@ -1562,7 +1789,9 @@ def find_point_on_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step)
 
 def adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_step):
     """
-    Walk from current_point (type=vector) in the direction perpendicular to ineq_gradient with step length flip_ineq_step, until get a new point such that l(new point)<0 for any l in ineqs.
+    Walk from current_point (type=vector) in the direction perpendicular to ineq_gradient with 
+    small positive step length flip_ineq_step, 
+    until get a new point such that l(new point)<0 for any l in ineqs.
     Return new_point, or None if it fails to find one.
 
         sage: P.<a,b>=QQ[]
