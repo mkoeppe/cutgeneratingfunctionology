@@ -863,10 +863,9 @@ class SemialgebraicComplexComponent(SageObject):
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, show_testpoints=True):
         """
-        Plot the complex and store the graph.
+        Plot the cell.
 
-        otherwise, start a new graph.
-        If `slice_value` is given, plot the slice of the complex according to the parameter values in `slice_value` that are not None. See examples in SemialgebraicComplex.plot()
+        If `slice_value` is given, plot the slice of the cell according to the parameter values in `slice_value` that are not None. See examples in SemialgebraicComplex.plot()
         `show_testpoint` controls whether to plot the testpoint in this cell.
         `plot_points` controls the quality of the plotting.
         """
@@ -1281,20 +1280,13 @@ class SemialgebraicComplex(SageObject):
 
         EXAMPLES::
 
-            sage: logging.disable(logging.WARN)
-            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
-            sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=1/10, wall_crossing_method='heuristic', goto_lower_dim=True) # the cell {(x,y): x<y}
-            sage: complex.components[0].lin
-            [x - y]
-            sage: complex.points_to_test
-            {(3/2, 3/2): [x - y], (31/20, 29/20): []}
+            sage: logging.disable(logging.WARN)                   # not tested
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))      # not tested
+            sage: complex.shoot_random_points(100)                # not tested
+            sage: complex.plot()                                  # not tested
 
             sage: complex = SemialgebraicComplex(lambda x,y: max(x,y^2), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
-            sage: complex.add_new_component([1,1/2], bddleq=[], flip_ineq_step=1/10, wall_crossing_method='mathematica', goto_lower_dim=False) # the cell {(x,y): x > y^2}
-            sage: complex.components[0].lin
-            [y^2 - x]
-            sage: complex.points_to_test
-            {(19/20, 1): []}
+            sage: complex.shoot_random_points(100)                # not tested
         """
         for i in range(num):
             var_value = self.find_uncovered_random_point(var_bounds=var_bounds, max_failings=max_failings)
@@ -1744,7 +1736,7 @@ def result_symbolic_expression(field, result):
     symbolic_expression = tuple(elt._sym if hasattr(elt, '_sym') else elt for elt in flatten([result]))
     return symbolic_expression
 
-region_type_color_map = [('not_constructible', 'white'), ('not_minimal', 'orange'), ('not_extreme', 'green'), ('is_extreme', 'blue'), (True, 'blue'), (False, 'red')]
+region_type_color_map = [('not_constructible', 'white'), ('is_constructible', 'black'), ('not_minimal', 'orange'), ('is_minimal', 'darkgrey'),('not_extreme', 'green'), ('is_extreme', 'blue'), (True, 'blue'), (False, 'red')]
 
 def find_region_color(region_type):
     """
@@ -1768,7 +1760,7 @@ def find_region_color(region_type):
     while (i < n) and (region_type != region_type_color_map[i][0]):
         i += 1
     if i == n:
-        region_color = color_of_ith_region_type(n - 6)  # the initial map includes 4 igp region types and True and False.
+        region_color = color_of_ith_region_type(n - 8)  # the initial map includes 4 igp region types and True and False.
         region_type_color_map.append((region_type, region_color))
     else:
         region_color = region_type_color_map[i][1]
