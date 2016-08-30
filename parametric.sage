@@ -715,8 +715,21 @@ def construct_field_and_test_point(function, var_name, var_value, default_args):
     """
     K = ParametricRealField(var_value, var_name)
     test_point = copy(default_args)
-    for i in range(len(var_name)):
-        test_point[var_name[i]] = K.gens()[i]
+    if isinstance(function, CPLFunctionsFactory):
+        # Remark: special case. Parameters are f and z=(z1, z2, ... z(n-1))
+        # group variables into f and z-tuple.
+        # The constructor of cpl will call function._theta to get o-tuple,
+        # when o is set to None (default value).
+        param_name = ['f', 'z']
+        if function._cpleq:
+            param_value = [K.gens()[0], tuple([K.gens()[1]] * (function._n - 1))]
+        else:
+            param_value = [K.gens()[0], tuple(K.gens()[1::])]
+    else:
+        param_name = var_name
+        param_value = K.gens()
+    for i in range(len(param_name)):
+        test_point[param_name[i]] = param_value[i]
     args_set = set(sage_getargspec(function)[0])
     if 'field' in args_set:
         test_point['field'] = K
