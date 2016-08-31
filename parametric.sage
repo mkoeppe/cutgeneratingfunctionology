@@ -652,7 +652,7 @@ so that gaussian elimination has been performed by PPL on the list of equations.
             if leqs[i].degree() == 1:
                 var_map[v] = -leqs[i].list()[0]/leqs[i].list()[1]
                 return var_map
-        logging.warn("Can't solve for %s in the system %s == 0, %s < 0. Heurist wall crossing may fail." % (v, leqs, lins))
+        #logging.warn("Can't solve for %s in the system %s == 0, %s < 0. Heurist wall crossing may fail." % (v, leqs, lins))
         return var_map
     for i in range(n):
         found_pivot = False
@@ -663,8 +663,8 @@ so that gaussian elimination has been performed by PPL on the list of equations.
                     found_pivot = True
                     var_map[v] = v - leqs[i] / coef # eliminate v
                     break
-        if not found_pivot:
-            logging.warn("Can't find linear variable in %s == 0 to eliminate in the system %s == 0, %s < 0. Heurist wall crossing may fail." % (leqs[i], leqs, lins))
+        # if not found_pivot:
+        #     logging.warn("Can't find linear variable in %s == 0 to eliminate in the system %s == 0, %s < 0. Heurist wall crossing may fail." % (leqs[i], leqs, lins))
     return var_map
 
 ######################################
@@ -721,10 +721,7 @@ def construct_field_and_test_point(function, var_name, var_value, default_args):
         # The constructor of cpl will call function._theta to get o-tuple,
         # when o is set to None (default value).
         param_name = ['f', 'z']
-        if function._cpleq:
-            param_value = [K.gens()[0], tuple([K.gens()[1]] * (function._n - 1))]
-        else:
-            param_value = [K.gens()[0], tuple(K.gens()[1::])]
+        param_value = [K.gens()[0], tuple(K.gens()[1::])]
     else:
         param_name = var_name
         param_value = K.gens()
@@ -825,7 +822,11 @@ class SemialgebraicComplexComponent(SageObject):
 
         leqs, lins = read_leq_lin_from_polyhedron(self.polyhedron, \
                                                           self.parent.monomial_list, self.parent.v_dict, tightened_mip)
-        self.var_map = find_variable_mapping(leqs, lins)
+        if (leqs == []) and (lins == []):
+            P = PolynomialRing(QQ, parent.var_name)
+            self.var_map = {g:g for g in P.gens()}
+        else:
+            self.var_map = find_variable_mapping(leqs, lins)
         self.leq = leqs
         self.lin = []
         for l in lins:
@@ -1228,6 +1229,9 @@ class SemialgebraicComplex(SageObject):
             condstr_c = write_mathematica_constraints(c.leq, c.lin, strict=strict)
             if condstr_c:
                 condstr += '!(' + condstr_c[:-4] + ') && '
+            else:
+                # c.lin == [] and c.leq == [], cell covers the whole space.
+                return None
         if not condstr:
             return tuple([0]*len(self.var_name))
         return find_instance_mathematica(condstr[:-4], self.var_name)
@@ -1890,8 +1894,8 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
     ineq_gradient = gradient(ineq)
     current_point = vector([RR(x) for x in current_var_value]) # Real numbers, faster than QQ
     ineq_value = ineq(*current_point)
-    #try_before_fail = floor(ineq_value * 2 / flip_ineq_step) # define maximum number of walks.
-    while (ineq_value <= 0): # and (try_before_fail < 0):
+    try_before_fail = 10000 # define maximum number of walks.
+    while (ineq_value <= 0) and (try_before_fail > 0):
         ineq_direction = vector([g(*current_point) for g in ineq_gradient])
         if ineq.degree() == 1:
             step_length = (-ineq(*current_point)+flip_ineq_step) / (ineq_direction * ineq_direction)
@@ -1904,10 +1908,10 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
         if new_ineq_value <= ineq_value:
             return None
         ineq_value = new_ineq_value
-        #try_before_fail += 1
+        try_before_fail -= 1
         #print current_point, RR(ineq_value)
-    #if ineq_value <= 0:
-    #    return None
+    if ineq_value <= 0:
+        return None
     new_point = adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_step)
     return new_point #type is tuple
 
@@ -1966,7 +1970,8 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_st
     for l in ineqs:
         l_gradient = gradient(l)
         l_value = l(*current_point)
-        while l_value >= 0:
+        try_before_fail = 10000 # define maximum number of walks.
+        while (l_value >= 0) and (try_before_fail > 0):
             l_direction = vector([-g(*current_point) for g in l_gradient]) #decrease l_value
             ineq_direction = vector([g(*current_point) for g in ineq_gradient])
             s = (ineq_direction * l_direction) / (ineq_direction * ineq_direction)
@@ -1981,7 +1986,10 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_st
                     return None
             current_point += step_length * projected_direction
             l_value = l(*current_point)
+            try_before_fail -= 1
             #print current_point, RR(l_value)
+        if l_value >= 0:
+            return None
     for l in ineqs:
         if l(*current_point) >= 0:
             return None
