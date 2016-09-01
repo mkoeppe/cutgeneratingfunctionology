@@ -61,7 +61,7 @@ class CPLFunctionsFactory:
         values = [(bkpts[i] - phi_values[i])/f for i in range(len(bkpts))]
         return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field, merge=self._merge)
 
-def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, max_iter=0, flip_ineq_step=1/3000, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=True):
+def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, max_iter=0, flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=True):
     """
     Got regions[0:30]: 2-dim; regions[30:78]: 1-dim; regions[78:96]: 0-dim.
 
@@ -269,7 +269,7 @@ def generate_thetas_of_region(r):
             thetas.append(theta)
     return thetas
 
-def cpl_fill_region_given_theta(r, theta, max_iter=0, flip_ineq_step=1/3000, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=True):
+def cpl_fill_region_given_theta(r, theta, max_iter=0, flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=True):
     """
     sage: logging.disable(logging.INFO)                                  # not tested
     sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True) # not tested
@@ -298,11 +298,11 @@ def cpl_fill_region_given_theta(r, theta, max_iter=0, flip_ineq_step=1/3000, che
 def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=False,\
                                            max_iter=0, flip_ineq_step=1/1000, \
                                            check_completion=False, \
-                                           wall_crossing_method='mathematica', \
+                                           wall_crossing_method='heuristic', \
                                            goto_lower_dim=True):
     """
-    sage: regions = cpl_regions_with_thetas_and_components(3, True, False, 0, 1/1000, False, 'mathematica', True)   # not tested  # 25 mins
-    sage: regions = cpl_regions_with_thetas_and_components(3, True, False, 0, 1/3000, False, 'heuristic', True)     # not tested  # 20 mins
+    sage: regions = cpl_regions_with_thetas_and_components(3, True, False, 0, 1/1000, False, 'mathematica', True)   # not tested  # 25-30 mins
+    sage: regions = cpl_regions_with_thetas_and_components(3, True, False, 0, 1/1000, False, 'heuristic', True)     # not tested  # 20 mins, 15 mins
     """
     regions = cpl_regions_from_arrangement_of_bkpts(n, cpleq, max_iter, flip_ineq_step, False, wall_crossing_method, goto_lower_dim) # Remark: check_completion=False for arr_complex.
     for i in range(len(regions)):
@@ -315,7 +315,7 @@ def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=Fa
             if keep_extreme_only:
                 components = [c for c in cpl_complex.components if c.region_type=='is_extreme']
             else:
-                components = cpl_complex.components
+                components = copy(cpl_complex.components)
             if components:
                 r.thetas[theta] = components
     return regions
@@ -371,6 +371,26 @@ def save_cpl_extreme_theta_regions(thetas_and_regions):
     ....:     components = cpl_regions_fix_theta(regions, theta)         # not tested
     ....:     thetas_and_components[theta]=components                    # not tested
     sage: save_cpl_extreme_theta_regions(thetas_and_components)          # not tested
+    (1, (z/(15*z - 2), (6*z - 1)/(15*z - 2)))
+    (2, ((-2*z)/(f - 1), 0))
+    (3, (1/4, 1/4))
+    (4, ((f + z)/(f + 1), z/(f + 1)))
+    (5, ((-z)/(f + 2*z - 1), 0))
+    (6, (2*z/(12*z - 1), (z - 1/6)/(2*z - 1/6)))
+    (7, (1/2, 0))
+    (8, ((f + 2*z)/(2*f + 2), (f + 2*z)/(2*f + 2)))
+    (9, ((-z)/(f - 1), (-z)/(f - 1)))
+
+    If wall_crossing_mehtod='mathematica' in cpl_regions_with_thetas_and_components(), then the output is
+    (1, (z/(15*z - 2), (6*z - 1)/(15*z - 2)))
+    (2, ((-2*z)/(f - 1), 0))
+    (3, (1/4, 1/4))
+    (4, ((f + z)/(f + 1), z/(f + 1)))
+    (5, ((-z)/(f + 2*z - 1), 0))
+    (6, (2*z/(12*z - 1), (z - 1/6)/(2*z - 1/6)))
+    (7, ((f + 2*z)/(2*f + 2), (f + 2*z)/(2*f + 2)))
+    (8, (1/2, 0))
+    (9, ((-z)/(f - 1), (-z)/(f - 1)))
     """
     k = 0
     for (theta, components) in thetas_and_regions.items():

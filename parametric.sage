@@ -966,10 +966,17 @@ class SemialgebraicComplexComponent(SageObject):
         """
         walls = []
         new_points = {}
+        bddlin = []
+        for l in self.parent.bddlin:
+            ineq = l.subs(self.var_map)
+            if ineq.degree() > 0:
+                bddlin.append(ineq)
         # decide which inequalities among self.lin are walls (irredundant).
         for i in range(len(self.lin)):
             ineq = self.lin[i]
-            ineqs = walls + self.lin[i+1::] + self.parent.bddlin
+            ineqs = walls + self.lin[i+1::] + bddlin
+            if ineq in ineqs:
+                continue
             if wall_crossing_method == 'mathematica':
                 condstr_others = write_mathematica_constraints(self.leq, ineqs)
                 # maybe shouldn't put self.leq into FindInstance, but solve using var_map later.
@@ -1949,10 +1956,6 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_st
     small positive step length flip_ineq_step, 
     until get a new point such that l(new point)<0 for any l in ineqs.
     Return new_point, or None if it fails to find one.
-
-        sage: P.<a,b>=QQ[]
-        sage: find_point_flip_ineq_heuristic([1,1/2], a+b-2, [-a+b^2], 1/4)
-        (11/8, 7/8)
 
     EXAMPLES::
 
