@@ -2240,7 +2240,9 @@ def piecewise_function_from_breakpoints_slopes_and_jumps(bkpt, slopes, jumps, fi
     """
     Create a continuous or discontinuous piecewise function from `bkpt`, `slopes` and `jumps`.
 
-    The function always has value 0 on the first breakpoint 0. The list `jumps` describles the function value jumps on the left and the right endpoints of each slope.
+    The function always has value 0 on the first breakpoint 0. The list `jumps` describes
+    the function value jumps on the left and the right endpoints of each slope.
+
     The data are coerced into a common convenient field via `nice_field_values`.
 
     If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
