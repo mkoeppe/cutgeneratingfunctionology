@@ -86,4 +86,48 @@ plot(complex)
 
 
 
+###################
 
+def subdetmip(a, delta=None, subsystem=False, base_ring=QQ, solver=None, integer=True):
+    "If delta is None, optimize for it"
+    m = MixedIntegerLinearProgram(maximization=False, base_ring=base_ring, solver=solver)
+    x = m.new_variable(integer=integer)
+    n = len(a)
+    # create variables:
+    [ x[i] for i, ai in enumerate(a) ]
+    if delta is None:
+        delta = m.new_variable()[0]
+        m.add_constraint(sum(x[i] for i, ai in enumerate(a)) >= 1)
+        m.set_objective(delta)
+    if subsystem:
+        m.add_constraint(-delta <= x[n-1] <= delta)
+        for i, ai in enumerate(a):
+            if i < n-1:
+                m.add_constraint(-delta <= x[n-1] * ai - x[i] * a[n-1] <= delta)
+    else:
+        for i, ai in enumerate(a):
+            m.add_constraint(-delta <= x[i] <= delta)
+        for i, ai in enumerate(a):
+            for j, aj in enumerate(a):
+                if i < j:
+                    # matrix([[ai, aj], [x[i], x[j]]]).det() gives "unable to find a common ring for all elements"
+                    m.add_constraint(-delta <= x[j] * ai - x[i] * aj <= delta)
+    return m
+
+volume_engine='lrs'
+
+def subdetpoly(a, delta, subsystem=False, base_ring=QQ, integer=False):
+    return subdetmip(a, delta, subsystem=subsystem, base_ring=base_ring, integer=integer).polyhedron()
+
+def volsubdetpoly(a1=1, a2=1, a3=1):
+    if not bool(1 <= a1 <= a2 <= a3):
+        raise ValueError ("Assumption 1 <= a1 <= a2 <= a3 is not satisfied")
+    K = a1.parent()
+    P = subdetpoly([a1, a2, a3], 1, base_ring=K, integer=False)
+    return P.volume()
+
+
+sage: complex = SemialgebraicComplex(volsubdetpoly, ['a1','a2','a3'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(0,10))
+
+K.<a1,a2,a3>=ParametricRealField([1,2,3])
+volsubdetpoly(a1, a2, a3)
