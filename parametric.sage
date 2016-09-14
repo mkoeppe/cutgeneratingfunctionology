@@ -974,15 +974,18 @@ class SemialgebraicComplexComponent(SageObject):
         # decide which inequalities among self.lin are walls (irredundant).
         for i in range(len(self.lin)):
             ineq = self.lin[i]
-            ineqs = walls + self.lin[i+1::] + bddlin
+            ineqs = self.lin[i+1::] + bddlin
             if ineq in ineqs:
                 continue
             if wall_crossing_method == 'mathematica':
+                ineqs = walls + ineqs
                 condstr_others = write_mathematica_constraints(self.leq, ineqs)
                 # maybe shouldn't put self.leq into FindInstance, but solve using var_map later.
                 condstr_ineq = '0<'+str(ineq)+'<'+str(flip_ineq_step)
                 pt_across_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.parent.var_name)
             else:
+                #less clever, more careful
+                ineqs = self.lin[:i] + ineqs
                 pt = find_point_flip_ineq_heuristic(self.var_value, ineq, ineqs, flip_ineq_step)
                 if pt is None:
                     pt_across_wall = None
@@ -1285,6 +1288,9 @@ class SemialgebraicComplex(SageObject):
             # Function is non-contructible at this random point.
             h = None
         region_type = self.find_region_type(K, h)
+        # shortcut for extreme region search. assume start with testpoint in extreme cell; assume extreme cells have face-to-face property.
+        #if region_type != 'is_extreme':
+        #     return
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         #if see new monomial, lift polyhedrons of the previously computed components.
         dim_to_add = len(self.monomial_list) - unlifted_space_dim
@@ -1294,7 +1300,8 @@ class SemialgebraicComplex(SageObject):
         if flip_ineq_step != 0:
             # when using random shooting, don't generate neighbour points; don't remove redundant walls.
             walls, new_points = new_component.find_walls_and_new_points(flip_ineq_step, wall_crossing_method, goto_lower_dim)
-            new_component.lin = walls
+            if wall_crossing_method == 'mathematica':
+                new_component.lin = walls
             self.points_to_test.update(new_points)
         self.components.append(new_component)
 
@@ -1985,8 +1992,9 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_st
                 step_length = (l_value+flip_ineq_step) / (projected_direction * l_direction)
             else:
                 step_length = flip_ineq_step / (projected_direction * l_direction) # l_value decreases by 0.01 roughly
-                if step_length * norm(projected_direction) >= 1:  # move too far  # is 1 a good value here?? why this if?
-                    return None
+                # if step_length * norm(projected_direction) >= 1:  # move too far  # is 1 a good value here?? why this if?
+                #     return None
+            #flip_ineq_step = flip_ineq_step / 2
             current_point += step_length * projected_direction
             l_value = l(*current_point)
             try_before_fail -= 1
