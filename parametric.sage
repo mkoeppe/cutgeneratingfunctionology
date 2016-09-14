@@ -1170,6 +1170,27 @@ class SemialgebraicComplex(SageObject):
             sage: complex.is_point_covered([sqrt(2), sqrt(3)])
             True
         """
+        for c in self.cells_containing_point(var_value):
+            return True
+        return False
+
+    def cells_containing_point(self, var_value):
+        """
+        yield the cells of the complex that contain the given point var_value.
+        Inequalities are considered strict.
+
+        EXAMPLES::
+
+            sage: logging.disable(logging.WARN)
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
+            sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y}
+            sage: cell = complex.cells_containing_point([2,3]).next()
+            sage: cell.var_value
+            [1, 2]
+            sage: cell = complex.cells_containing_point([sqrt(2), sqrt(3)]).next()
+            sage: cell.var_value
+            [1, 2]
+        """
         if all(x in QQ for x in var_value):
             #FIXME: is going through ppl the best way?
             monomial_value = [m(var_value) for m in self.monomial_list]
@@ -1182,12 +1203,11 @@ class SemialgebraicComplex(SageObject):
                 if is_point_in_box(monomial_value, c.bounds):
                     # Check if all eqns/ineqs are satisfied.
                     if c.polyhedron.relation_with(pt).implies(point_is_included):
-                        return True
+                        yield c
         else:
             for c in self.components:
                 if point_satisfies_bddleq_bddlin(var_value, c.leq, c.lin, strict=True):
-                    return True
-        return False
+                    yield c
         
     def find_uncovered_random_point(self, var_bounds=None, max_failings=1000):
         """
