@@ -301,6 +301,9 @@ def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=Fa
                                            wall_crossing_method='heuristic', \
                                            goto_lower_dim=True):
     """
+    Divide the space into cells where the arrangement of breakpoints of \pi is combinatorially the same.
+    For each region, find theta solutions, then subdivide into smaller components by running bfs with parametric field.
+
     sage: regions = cpl_regions_with_thetas_and_components(3, True, False, 0, 1/1000, False, 'mathematica', True)   # not tested  # 25-30 mins
     sage: regions = cpl_regions_with_thetas_and_components(3, True, False, 0, 1/1000, False, 'heuristic', True)     # not tested  # 20 mins, 15 mins
     """
@@ -323,6 +326,8 @@ def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=Fa
 
 def cpl_thetas_and_regions_extreme(regions):
     """
+    Gather the blue components that correspond to the same expression of theta together.
+
     sage: regions = cpl_regions_with_thetas_and_components()             # not tested
     sage: thetas_and_regions = cpl_thetas_and_regions_extreme(regions)   # not tested
     sage: len(thetas_and_regions)                                        # not tested
@@ -358,19 +363,33 @@ def cpl_regions_fix_theta(regions, theta):
                 components += ct
     return components
 
-def save_cpl_extreme_theta_regions(thetas_and_regions):
+def cpl_thetas_and_regions(thetas_and_regions):
     """
-    To plot only blue regions
+    Gather colorful components that correspond to the same expression of theta together.
+
     sage: regions = cpl_regions_with_thetas_and_components()             # not tested
     sage: thetas_and_regions = cpl_thetas_and_regions_extreme(regions)   # not tested
-    sage: save_cpl_extreme_theta_regions(thetas_and_regions)             # not tested
+    sage: thetas_and_components = cpl_thetas_and_regions(thetas_and_regions) # not tested
+    """
+    thetas_and_components = {}
+    for theta in thetas_and_regions.keys():
+        components = cpl_regions_fix_theta(regions, theta)
+        thetas_and_components[theta]=components
+    return thetas_and_components
+
+def save_cpl_extreme_theta_regions(thetas_and_regions, name="cpl_theta"):
+    """
+    To plot only blue regions.
+    Get diagrams "cpl_ext_theta_i" that show only blue regions.
+    sage: regions = cpl_regions_with_thetas_and_components()             # not tested
+    sage: thetas_and_regions = cpl_thetas_and_regions_extreme(regions)   # not tested
+    sage: save_cpl_extreme_theta_regions(thetas_and_regions, name="cpl_ext_theta")  # not tested
 
     To plot colorful regions corresponding to each extreme thetas.
-    sage: thetas_and_components = {}                                     # not tested
-    sage: for theta in thetas_and_regions.keys():                        # not tested
-    ....:     components = cpl_regions_fix_theta(regions, theta)         # not tested
-    ....:     thetas_and_components[theta]=components                    # not tested
-    sage: save_cpl_extreme_theta_regions(thetas_and_components)          # not tested
+    Get diagrams "cpl_theta_i", that show a bit more.
+    sage: thetas_and_components = cpl_thetas_and_regions(thetas_and_regions) # not tested
+    sage: save_cpl_extreme_theta_regions(thetas_and_components, name="cpl_theta")
+
     (1, (z/(15*z - 2), (6*z - 1)/(15*z - 2)))
     (2, ((-2*z)/(f - 1), 0))
     (3, (1/4, 1/4))
@@ -405,4 +424,4 @@ def save_cpl_extreme_theta_regions(thetas_and_regions):
                 title += "theta_%s = %s \n" % (i+1, theta[i])
         g = plot_cpl_components(components)
         g += text(title, (0.5, 1/4), color='black')
-        g.save("cpl_theta_%s.png" %k, xmin=0, xmax=1, ymin=0, ymax=1/4)
+        g.save(name+"_%s.png" %k, xmin=0, xmax=1, ymin=0, ymax=1/4)
