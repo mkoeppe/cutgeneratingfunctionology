@@ -1320,6 +1320,9 @@ class SemialgebraicComplex(SageObject):
         #if region_type != 'is_extreme':
         #     return
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
+        if len(new_component.leq) != len(bddleq):
+            logging.warn("Didn't record the cell around %s defined by %s ==0 and %s <0, because it has more equations than %s" %(new_component.var_value, new_component.leq, new_component.lin, bddleq))
+            return
         #if see new monomial, lift polyhedrons of the previously computed components.
         dim_to_add = len(self.monomial_list) - unlifted_space_dim
         if dim_to_add > 0:
@@ -1956,6 +1959,9 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
     if ineq_value <= 0:
         return None
     new_point = adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_step)
+    if new_point is not None and ineq(*new_point) <= 0:
+        logging.warn("Didn't add %s because it violates ineq > 0" % new_point)
+        return None
     return new_point #type is tuple
 
 
@@ -1983,7 +1989,12 @@ def find_point_on_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step)
     step_length = -ineq(*current_point) / (ineq_direction * ineq_direction)
     current_point += step_length * ineq_direction
     ineq_value = ineq(*current_point)
+    if ineq_value != 0:
+        return None
     new_point = adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_step)
+    if new_point is not None and ineq(*new_point) != 0:
+        logging.warn("Didn't add %s because it violates ineq == 0" % new_point)
+        return None
     return new_point #type is tuple
 
 def adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_step):
