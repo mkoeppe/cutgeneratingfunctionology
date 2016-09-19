@@ -961,7 +961,7 @@ class SemialgebraicComplexComponent(SageObject):
 
         Discard the wall if it is impossible to do so, as the wall is redundant.
         `flip_ineq_step` defines the step length
-        `wall_crossing_method` is 'heuristic' or 'mathematica'
+        `wall_crossing_method` is 'heuristic' or 'mathematica' or 'heuristic_with_check'
         `goto_lower_dim` tells whether it also finds new testpoints on the walls.
         """
         walls = []
@@ -984,19 +984,27 @@ class SemialgebraicComplexComponent(SageObject):
                 condstr_ineq = '0<'+str(ineq)+'<'+str(flip_ineq_step)
                 pt_across_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.parent.var_name)
             else:
-                #less clever, more careful
-                ineqs = self.lin[:i] + ineqs
+                if wall_crossing_method == 'heuristic_with_check':
+                    ineqs = walls + ineqs
+                else:
+                    #less clever, more careful, for 'heuristic'
+                    ineqs = self.lin[:i] + ineqs
                 pt = find_point_flip_ineq_heuristic(self.var_value, ineq, ineqs, flip_ineq_step)
                 if pt is None:
-                    pt_across_wall = None
+                    if wall_crossing_method == 'heuristic_with_check':
+                        condstr = write_mathematica_constraints(self.leq, ineqs) + '0<'+str(ineq)
+                        pt_across_wall = find_instance_mathematica(condstr, self.parent.var_name)
+                    else:
+                        pt_across_wall = None
                 else:
                     pt_across_wall = tuple(self.var_map[v](pt) for v in ineq.args())
             if pt_across_wall is None:
                 # ineq is not an wall
                 continue
             walls.append(ineq)
-            # Hope that the new pt_across_wall is in a general position, so that running the function on it does not generate new equations. Otherwise bfs got stuck in low dimension. Two solutions: take smaller flip_ineq_step, or do bfs with check_completion=True.
-            new_points[pt_across_wall] = copy(self.leq)
+            if not ((wall_crossing_method == 'heuristic_with_check') and (pt is None)):
+                # Hope that the new pt_across_wall is in a general position, so that running the function on it does not generate new equations. Otherwise bfs got stuck in low dimension. Two solutions: take smaller flip_ineq_step, or do bfs with check_completion=True.
+                new_points[pt_across_wall] = copy(self.leq)
             if goto_lower_dim is True:
                 pt_on_wall = None
                 if wall_crossing_method == 'mathematica':
@@ -1272,7 +1280,7 @@ class SemialgebraicComplex(SageObject):
 
         `bddleq` defines the boundary equalities satisfied by the cell.
         If `flip_ineq_step` = 0, don't search for neighbour testpoints. Used in shoot_random_points(). `wall_crossing_method`=None in this case.
-        If `flip_ineq_step` > 0, search for neighbour testpoints using `wall_crossing_method`='mathematica' or 'heuristic'. Used in bfs. If `goto_lower_dim` is False or (`goto_lower_dim` is True and `wall_crossing method`='heuristic' but wall is non-linear), then find new testpoints across the wall only.
+        If `flip_ineq_step` > 0, search for neighbour testpoints using `wall_crossing_method`='mathematica' or 'heuristic' or 'heuristic_with_check'. Used in bfs. If `goto_lower_dim` is False or (`goto_lower_dim` is True and `wall_crossing method`='heuristic' but wall is non-linear), then find new testpoints across the wall only.
 
         EXAMPLES::
 
@@ -1320,7 +1328,8 @@ class SemialgebraicComplex(SageObject):
         if flip_ineq_step != 0:
             # when using random shooting, don't generate neighbour points; don't remove redundant walls.
             walls, new_points = new_component.find_walls_and_new_points(flip_ineq_step, wall_crossing_method, goto_lower_dim)
-            if wall_crossing_method == 'mathematica':
+            if (wall_crossing_method == 'mathematica') or \
+                (wall_crossing_method == 'heuristic_with_check'):
                 new_component.lin = walls
             self.points_to_test.update(new_points)
         self.components.append(new_component)
@@ -1382,7 +1391,7 @@ class SemialgebraicComplex(SageObject):
         `var_value`: the starting point. If not given, start with a random point.
         `flip_ineq_step`: a small positive number that controls the step length in wall-crossing.
         `check_completion`: after bfs terminates, call Mathematica's FindInstance to check whether the entire parameter space is covered by cells. If not, restart the bfs from an uncovered point.
-        `wall_crossing_method`: 'mathematica' or 'heuristic'.
+        `wall_crossing_method`: 'mathematica' or 'heuristic' or 'heuristic_with_check' ('heuristic_with_check': if heuristic wall-crossing doesn't find a new testpoint, then use mathematica to check if the ineq is not a wall).
         `goto_lower_dim`: whether lower dimensional cells are considered. If `goto_lower_dim` is False or if `goto_lower_dim` is True and `wall_crossing method` is 'heuristic' but the wall is non-linear, then find new testpoint across the wall only.
 
         EXAMPLES::
