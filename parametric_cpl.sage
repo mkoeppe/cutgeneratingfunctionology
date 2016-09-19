@@ -363,13 +363,13 @@ def cpl_regions_fix_theta(regions, theta):
                 components += ct
     return components
 
-def cpl_thetas_and_regions(thetas_and_regions):
+def cpl_thetas_and_regions(regions, thetas_and_regions):
     """
     Gather colorful components that correspond to the same expression of theta together.
 
     sage: regions = cpl_regions_with_thetas_and_components()             # not tested
     sage: thetas_and_regions = cpl_thetas_and_regions_extreme(regions)   # not tested
-    sage: thetas_and_components = cpl_thetas_and_regions(thetas_and_regions) # not tested
+    sage: thetas_and_components = cpl_thetas_and_regions(regions, thetas_and_regions) # not tested
     """
     thetas_and_components = {}
     for theta in thetas_and_regions.keys():
@@ -387,7 +387,7 @@ def save_cpl_extreme_theta_regions(thetas_and_regions, name="cpl_theta"):
 
     To plot colorful regions corresponding to each extreme thetas.
     Get diagrams "cpl_theta_i", that show a bit more.
-    sage: thetas_and_components = cpl_thetas_and_regions(thetas_and_regions) # not tested
+    sage: thetas_and_components = cpl_thetas_and_regions(regions, thetas_and_regions) # not tested
     sage: save_cpl_extreme_theta_regions(thetas_and_components, name="cpl_theta")
 
     (1, (z/(15*z - 2), (6*z - 1)/(15*z - 2)))
