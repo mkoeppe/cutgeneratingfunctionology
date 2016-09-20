@@ -55,11 +55,11 @@ class ParametricRealFieldElement(FieldElement):
             raise TypeError, "comparing elements from different fields"
         result = cmp(left._val, right._val)
         if result == 0:
-            left.parent().record_to_eq_list(left.sym() - right.sym())
+            left.parent().record_to_eq(left.sym() - right.sym())
         elif result == -1:
-            left.parent().record_to_lt_list(left.sym() - right.sym())
+            left.parent().record_to_lt(left.sym() - right.sym())
         elif result == 1:
-            left.parent().record_to_lt_list(right.sym() - left.sym())
+            left.parent().record_to_lt(right.sym() - left.sym())
         return result
 
     __cmp__ = _cmp_
@@ -179,9 +179,9 @@ class ParametricRealField(Field):
         sage: K.<f> = ParametricRealField([4/5])
         sage: h = gmic(f, field=K)
         sage: _ = generate_maximal_additive_faces(h);
-        sage: K.get_eq_list()
+        sage: K.get_eq()
         set()
-        sage: K.get_lt_list()
+        sage: K.get_lt()
         {-1/(-f^2 + f), -1/f, -2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2}
         sage: K.get_eq_poly()
         set()
@@ -194,7 +194,7 @@ class ParametricRealField(Field):
 
         sage: K.<f, lam> = ParametricRealField([4/5, 1/6])
         sage: h = gj_2_slope(f, lam, field=K)
-        sage: K.get_lt_list()
+        sage: K.get_lt()
         {(-1/2)/(-1/2*f^2*lam - 1/2*f^2 + f*lam + 1/2*f - 1/2*lam),
          (-f*lam - f + lam)/(-f + 1),
          -lam,
@@ -294,9 +294,9 @@ class ParametricRealField(Field):
 
     def _coerce_impl(self, x):
         return self._element_constructor_(x)
-    def get_eq_list(self):
+    def get_eq(self):
         return self._eq
-    def get_lt_list(self):
+    def get_lt(self):
         return self._lt
     def get_eq_poly(self):
         return self._eq_poly
@@ -306,13 +306,13 @@ class ParametricRealField(Field):
         return self._eq_factor
     def get_lt_factor(self):
         return self._lt_factor
-    def record_to_eq_list(self, comparison):
+    def record_to_eq(self, comparison):
         if not comparison in QQ and not comparison in self._eq:
             logging.debug("New element in %s._eq: %s" % (repr(self), comparison))
             self._eq.add(comparison)
             self.record_poly(comparison.numerator())
             self.record_poly(comparison.denominator())
-    def record_to_lt_list(self, comparison):
+    def record_to_lt(self, comparison):
         if not comparison in QQ and not comparison in self._lt:
             logging.debug("New element in %s._lt: %s" % (repr(self), comparison))
             self._lt.add(comparison)
@@ -604,8 +604,8 @@ def read_simplified_leq_lin(K, level="factor"):
     elif level == "poly":
         leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_poly(), K.get_lt_poly())
     else:
-        leq = list(K.get_eq_list())
-        lin = list(K.get_lt_list())
+        leq = list(K.get_eq())
+        lin = list(K.get_lt())
     if leq:
         logging.warn("equation list %s is not empty!" % leq)
     return leq, lin
