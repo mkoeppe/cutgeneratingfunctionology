@@ -382,7 +382,7 @@ default_parametric_field = ParametricRealField()
 
 def polynomial_to_linexpr(t, monomial_list, v_dict):
     """
-    Reformulation–linearization: Expand the polynomial in the standard monomial basis and replace each monomial by a new variable. Record monomials in monomial_list and their corresponding variables in v_dict. The resulting linear expression in the extended space will be provided as inequality or equation in the linear system that describes a PPL not-necessarily-closed polyhedron.
+    Reformulation-linearization: Expand the polynomial in the standard monomial basis and replace each monomial by a new variable. Record monomials in monomial_list and their corresponding variables in v_dict. The resulting linear expression in the extended space will be provided as inequality or equation in the linear system that describes a PPL not-necessarily-closed polyhedron.
 
     EXAMPLES::
 
@@ -439,7 +439,7 @@ def polynomial_to_linexpr(t, monomial_list, v_dict):
 
 def cs_of_eq_lt_poly(eq_poly, lt_poly):
     """
-    Reformulation–linearization: Expand the polynomials in the standard monomial basis and replace each monomial by a new variable. Construct a linear constraint system in the extended space, which describes a PPL not-necessarily-closed polyhedron. Record monomials in monomial_list and their corresponding variables in v_dict.
+    Reformulation-linearization: Expand the polynomials in the standard monomial basis and replace each monomial by a new variable. Construct a linear constraint system in the extended space, which describes a PPL not-necessarily-closed polyhedron. Record monomials in monomial_list and their corresponding variables in v_dict.
 
     EXAMPLES::
 
@@ -580,7 +580,7 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None):
 
 def read_simplified_leq_lin(K, level="factor"):
     """
-    Use the reformulation–linearization techinque to remove redundant inequalties and equations recorded in ParametricRealField K.
+    Use the reformulation-linearization techinque to remove redundant inequalties and equations recorded in ParametricRealField K.
 
     EXAMPLES::
 
