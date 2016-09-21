@@ -8,6 +8,18 @@ from igp import *
 
 import itertools
 
+def unique_list(iterator):
+    """
+    Return the list of the elements in the iterator without repetition.
+    """
+    l = []
+    s = set()
+    for i in iterator:
+        if i not in s:
+            s.add(i)
+            l.append(i)
+    return l
+
 def fractional(num):
     """
     Reduce a number modulo 1.
@@ -368,8 +380,8 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
         kwds = { 'legend_label' : "Subadditivity violated" }
         plot_kwds_hook(kwds)
         if fn.is_continuous():
-            nonsubadditive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices}
-            p += point(list(nonsubadditive_vertices),
+            nonsubadditive_vertices = [(x,y) for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices]
+            p += point(nonsubadditive_vertices,
                        color = "red", size = 50, zorder=-1, **kwds)
             p += point([ (y,x) for (x,y) in nonsubadditive_vertices ], color = "red", size = 50, zorder=-1)
         else:
@@ -388,8 +400,8 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
             kwds = { 'legend_label' : "Symmetry violated" }
             plot_kwds_hook(kwds)
             if fn.is_continuous():
-                nonsymmetric_vertices = {(x,y) for (x, y, xeps, yeps) in nonsymmetric_vertices}
-                p += point(list(nonsymmetric_vertices),
+                nonsymmetric_vertices = unique_list([(x,y) for (x, y, xeps, yeps) in nonsymmetric_vertices])
+                p += point(nonsymmetric_vertices,
                            color = "mediumvioletred", size = 50, zorder=5, **kwds)
                 p += point([ (y,x) for (x,y) in nonsymmetric_vertices], color = "mediumvioletred", size = 50, zorder=5)
             else:
@@ -2961,7 +2973,7 @@ def generate_additive_vertices(fn, reduced=True):
     When reduced=False:
         outputs all triples satisfying `comparison' relation, for the purpose of plotting additive_limit_vertices.
     """
-    return set(itertools.chain( \
+    return unique_list(itertools.chain( \
                 generate_type_1_vertices(fn, operator.eq, reduced=reduced),\
                 generate_type_2_vertices(fn, operator.eq, reduced=reduced)) )
 
@@ -2977,7 +2989,7 @@ def generate_nonsubadditive_vertices(fn, reduced=True):
     When reduced=False:
         outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive_limit_vertices.
     """
-    return set(itertools.chain( \
+    return unique_list(itertools.chain( \
                 generate_type_1_vertices(fn, operator.lt, reduced=reduced),\
                 generate_type_2_vertices(fn, operator.lt, reduced=reduced))  )
 
