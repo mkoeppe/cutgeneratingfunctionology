@@ -1316,9 +1316,8 @@ class SemialgebraicComplex(SageObject):
             # Function is non-contructible at this random point.
             h = None
         region_type = self.find_region_type(K, h)
-        # shortcut for extreme region search. assume start with testpoint in extreme cell; assume extreme cells have face-to-face property.
-        #if region_type != 'is_extreme':
-        #     return
+        if region_type == 'stop':
+             return
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         if len(new_component.leq) != len(bddleq):
             logging.warn("Didn't record the cell around %s defined by %s ==0 and %s <0, because it has more equations than %s" %(new_component.var_value, new_component.leq, new_component.lin, bddleq))
@@ -1746,6 +1745,11 @@ def find_region_type_igp(K, h, region_level='extreme', is_minimal=None, use_simp
     else:
         return 'not_minimal'
 
+def find_region_type_igp_extreme(K, h):
+    if find_region_type_igp(K, h) == 'is_extreme':
+        return 'is_extreme'
+    else:
+        return 'stop'
 
 def result_concrete_value(field, result):
     """
