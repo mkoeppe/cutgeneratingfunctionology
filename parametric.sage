@@ -1962,7 +1962,7 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
         return None
     new_point = adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_step)
     if new_point is not None and ineq(*new_point) <= 0:
-        logging.warn("Didn't add %s because it violates ineq > 0" % new_point)
+        #logging.info("Didn't add %s because it violates %s > 0" % (new_point, ineq))
         return None
     return new_point #type is tuple
 
@@ -1995,7 +1995,7 @@ def find_point_on_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step)
         return None
     new_point = adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_step)
     if new_point is not None and ineq(*new_point) != 0:
-        logging.warn("Didn't add %s because it violates ineq == 0" % new_point)
+        #logging.info("Didn't add %s because it violates %s == 0" % (new_point, ineq))
         return None
     return new_point #type is tuple
 
