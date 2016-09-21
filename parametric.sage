@@ -1510,6 +1510,8 @@ def bounds_for_plotting((lb, ub), default_var_bound):
         u = ub + 0.01
     else:
         u = default_var_bound[1]
+    if l >= u:
+        return default_var_bound
     return (l, u)
 
 def construct_mip_of_nnc_polyhedron(nncp):
