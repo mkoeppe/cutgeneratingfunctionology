@@ -8,6 +8,18 @@ from igp import *
 
 import itertools
 
+def unique_list(iterator):
+    """
+    Return the list of the elements in the iterator without repetition.
+    """
+    l = []
+    s = set()
+    for i in iterator:
+        if i not in s:
+            s.add(i)
+            l.append(i)
+    return l
+
 def fractional(num):
     """
     Reduce a number modulo 1.
@@ -327,8 +339,8 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
         kwds = { 'legend_label' : "Subadditivity violated" }
         plot_kwds_hook(kwds)
         if fn.is_continuous():
-            nonsubadditive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices}
-            p += point(list(nonsubadditive_vertices),
+            nonsubadditive_vertices = unique_list((x,y) for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices)
+            p += point(nonsubadditive_vertices,
                        color = "red", size = 50, zorder=-1, **kwds)
             p += point([ (y,x) for (x,y) in nonsubadditive_vertices ], color = "red", size = 50, zorder=-1)
         else:
@@ -347,8 +359,8 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
             kwds = { 'legend_label' : "Symmetry violated" }
             plot_kwds_hook(kwds)
             if fn.is_continuous():
-                nonsymmetric_vertices = {(x,y) for (x, y, xeps, yeps) in nonsymmetric_vertices}
-                p += point(list(nonsymmetric_vertices),
+                nonsymmetric_vertices = unique_list((x,y) for (x, y, xeps, yeps) in nonsymmetric_vertices)
+                p += point(nonsymmetric_vertices,
                            color = "mediumvioletred", size = 50, zorder=5, **kwds)
                 p += point([ (y,x) for (x,y) in nonsymmetric_vertices], color = "mediumvioletred", size = 50, zorder=5)
             else:
@@ -1970,6 +1982,76 @@ def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes
         bkpt.append(bkpt[i]+interval_lengths[i])
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field, merge=merge)
 
+def piecewise_function_from_breakpoints_and_limits(bkpt, limits, field=None, merge=True):
+    """
+    Create a continuous or discontinuous piecewise function from `bkpt` and `limits`.
+
+    `bkpt` and `limits` are two parallel lists.
+    Assume that `bkpt` is a sorted (increasing).
+    `limits` is a list of tuple of 3 numbers (mid, right, left).
+
+    The data are coerced into a common convenient field via `nice_field_values`.
+
+    If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.WARN) # Suppress output in automatic tests.
+        sage: bkpt = [0, 1/8, 3/8, 1/2, 5/8, 7/8, 1]
+        sage: limits = [(0, 0, 1/2), (1/4, 1/4, 3/4), (3/4, 1/4, 3/4), (1, 1/2, 1), (3/4, 3/4, 3/4), (1/4, 1/4, 1/4), (0, 0, 1/2)]
+        sage: h = piecewise_function_from_breakpoints_and_limits(bkpt, limits)
+    """
+    if len(bkpt)!=len(limits):
+        raise ValueError, "Need to have the same number of breakpoints and limits."
+    n = len(bkpt)
+    mid, right, left = [limit[0] for limit in limits], [limit[1] for limit in limits], [limit[-1] for limit in limits]
+    symb_values = bkpt + mid + right + left
+    field_values = nice_field_values(symb_values, field)
+    bkpt, mid, right, left = field_values[0:n], field_values[n:2*n], field_values[2*n:3*n], field_values[3*n:4*n]
+    pieces = []
+    for i in range(n-1):
+        pieces += [ singleton_piece(bkpt[i], mid[i]), \
+                    open_piece((bkpt[i], right[i]), (bkpt[i+1], left[i+1])) ]
+    pieces += [ singleton_piece(bkpt[n-1], mid[n-1]) ]
+    return FastPiecewise(pieces, merge=merge)
+
+def piecewise_function_from_breakpoints_slopes_and_jumps(bkpt, slopes, jumps, field=None, merge=True):
+    """
+    Create a continuous or discontinuous piecewise function from `bkpt`, `slopes` and `jumps`.
+
+    The function always has value 0 on the first breakpoint 0. The list `jumps` describes
+    the function value jumps on the left and the right endpoints of each slope.
+
+    The data are coerced into a common convenient field via `nice_field_values`.
+
+    If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.WARN) # Suppress output in automatic tests.
+        sage: bkpt = [0, 1/8, 3/8, 1/2, 5/8, 7/8, 1]
+        sage: slopes = [6, 2, 6, 2, -2, 2]
+        sage: jumps = [0, -1/2, 0, 0, -1/2, 0, -1/2, 0, 0, 0, 0, -1/2]
+        sage: h = piecewise_function_from_breakpoints_slopes_and_jumps(bkpt, slopes, jumps)
+    """
+    n = len(bkpt)
+    if n != len(slopes)+1:
+        raise ValueError, "Need to have one breakpoint more than slopes."
+    if 2*(n-1) != len(jumps):
+        raise ValueError, "Need to have number of jumps = 2 * number of slopes."
+    symb_values = bkpt + slopes + jumps
+    field_values = nice_field_values(symb_values, field)
+    bkpt, slopes, jumps = field_values[0:n], field_values[n:2*n-1], field_values[2*n-1:]
+    current_value = 0
+    pieces = []
+    for i in range(n-1):
+        pieces.append([singleton_interval(bkpt[i]), FastLinearFunction(0, current_value)])
+        current_value += jumps[2*i]
+        pieces.append([open_interval(bkpt[i], bkpt[i+1]), FastLinearFunction(slopes[i], current_value - slopes[i]*bkpt[i])])
+        current_value += slopes[i] * (bkpt[i+1] - bkpt[i]) + jumps[2*i+1]
+    pieces.append([singleton_interval(bkpt[n-1]), FastLinearFunction(0, current_value)])
+    return FastPiecewise(pieces, merge=merge)
+
 def discrete_function_from_points_and_values(points, values, field=None):
     """
     Create a function defined on a finite list of `points`. 
@@ -2537,7 +2619,7 @@ def generate_additive_vertices(fn, reduced=True, bkpt=None):
     When reduced=False:
         outputs all triples satisfying `comparison' relation, for the purpose of plotting additive_limit_vertices.
     """
-    return set(itertools.chain( \
+    return unique_list(itertools.chain( \
                 generate_type_1_vertices(fn, operator.eq, reduced=reduced, bkpt=bkpt),\
                 generate_type_2_vertices(fn, operator.eq, reduced=reduced, bkpt=bkpt)) )
 
@@ -2553,7 +2635,7 @@ def generate_nonsubadditive_vertices(fn, reduced=True):
     When reduced=False:
         outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive_limit_vertices.
     """
-    return set(itertools.chain( \
+    return unique_list(itertools.chain( \
                 generate_type_1_vertices(fn, operator.lt, reduced=reduced),\
                 generate_type_2_vertices(fn, operator.lt, reduced=reduced))  )
 
