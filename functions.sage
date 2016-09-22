@@ -2848,8 +2848,8 @@ def perturbation_polyhedron(fn, perturbs):
         sage: pert_polyhedron
         A 2-dimensional polyhedron in (Real Number Field in `a` as the root of the defining polynomial y^2 - 3 near 1.732050807568878?)^2 defined as the convex hull of 4 vertices
         sage: pert_polyhedron.Vrepresentation()
-        (A vertex at (2.797434948471088?, 0.967307929548895?),
-         A vertex at (-2.36220486286011?, 0.967307929548895?),
+        (A vertex at (-2.36220486286011?, 0.967307929548895?),
+         A vertex at (2.797434948471088?, 0.967307929548895?),
          A vertex at (-3.61183490350498?, -1.248914311409209?),
          A vertex at (1.79481389229748?, -3.45932770938056?))
 
@@ -2871,19 +2871,19 @@ def perturbation_polyhedron(fn, perturbs):
     bkpt = copy(fn.end_points())
     for pert in perturbs:
         bkpt += pert.end_points()
-    bkpt = uniq(bkpt)
+    bkpt = unique_list(bkpt)
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
-    type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
-    type_2_vertices = [(x, z-x, z) for x in bkpt for z in bkpt2 if x < z < 1+x]
-    vertices = set(type_1_vertices + type_2_vertices)
+    type_1_vertices = ((x, y, x+y) for x in bkpt for y in bkpt if x <= y)
+    type_2_vertices = ((x, z-x, z) for x in bkpt for z in bkpt2 if x < z < 1+x)
+    vertices = unique_list(itertools.chain(type_1_vertices,type_2_vertices))
     if fn.is_continuous() and all(pert.is_continuous() for pert in perturbs):
         limitingeps = []
         lim_xeps = [0]
     else:
         limitingeps = list(nonzero_eps) # nonzero_eps is defined in discontinuous_case.sage
         lim_xeps = [0, 1, -1]
-    ieqset = set([])
-    eqnset = set([])
+    ieqset = []
+    eqnset = []
     # assume that the basic perturbations come from finite_dimensional_extremality_test(), so that the symmetry constraints and the condition pert(0)=pert(f)=0 are always satisfied.
     # record the constraints 0 <= fn(x) + pert(x) <= 1 for any breakpoint x.
     # only need record the side >=0,  the other side is implied by symmetry.
@@ -2892,20 +2892,20 @@ def perturbation_polyhedron(fn, perturbs):
             valuefn = fn.limit(x, xeps)
             valuep = [pert.limit(x, xeps) for pert in perturbs]
             constraint_coef = tuple([valuefn]) + tuple(valuep)
-            ieqset.add(constraint_coef)
+            ieqset.append(constraint_coef)
     # record the subadditivity constraints
     for (x, y, z) in vertices:
         for (xeps, yeps, zeps) in [(0,0,0)]+limitingeps:
             deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
             deltap = [delta_pi_general(pert, x, y, (xeps, yeps, zeps)) for pert in perturbs]
             constraint_coef = tuple([deltafn]) + tuple(deltap)
-            ieqset.add(constraint_coef)
+            ieqset.append(constraint_coef)
             # if deltafn > 0:
-            #     ieqset.add(constraint_coef)
+            #     ieqset.append(constraint_coef)
             # else:
-            #     eqnset.add(constraint_coef)
+            #     eqnset.append(constraint_coef)
             #     # this is always true for basic perturbations coming from finite_dimensional_extremality_test().
-    pert_polyhedron = Polyhedron(ieqs = list(ieqset), eqns = list(eqnset)) 
+    pert_polyhedron = Polyhedron(ieqs = unique_list(ieqset), eqns = unique_list(eqnset))
     return pert_polyhedron
 
 def perturbation_mip(fn, perturbs, solver=None, field=None):
@@ -2936,15 +2936,15 @@ def perturbation_mip(fn, perturbs, solver=None, field=None):
           constraint_5: 1/20 x_1 <= 2/3
           constraint_6: -1/20 x_1 <= 1/3
           constraint_7: 1/10 x_1 <= 1/3
-          constraint_8: -1/10 x_0 - 3/20 x_1 <= 1/3
-          constraint_9: 3/20 x_0 + 1/10 x_1 <= 1/3
-          constraint_10: 1/20 x_0 - 1/20 x_1 <= 2/3
-          constraint_11: -1/20 x_0 + 1/20 x_1 <= 4/3
-          constraint_12: -1/20 x_0 - 1/5 x_1 <= 1
-          constraint_13: 1/10 x_0 - 1/10 x_1 <= 4/3
-          constraint_14: -1/10 x_0 + 1/10 x_1 <= 2/3
-          constraint_15: -1/4 x_0 <= 1/3
-          constraint_16: 1/5 x_0 + 1/20 x_1 <= 1
+          constraint_8: -1/4 x_0 <= 1/3
+          constraint_9: -1/10 x_0 + 1/10 x_1 <= 2/3
+          constraint_10: -1/10 x_0 - 3/20 x_1 <= 1/3
+          constraint_11: 3/20 x_0 + 1/10 x_1 <= 1/3
+          constraint_12: 1/20 x_0 - 1/20 x_1 <= 2/3
+          constraint_13: -1/20 x_0 + 1/20 x_1 <= 4/3
+          constraint_14: -1/20 x_0 - 1/5 x_1 <= 1
+          constraint_15: 1/5 x_0 + 1/20 x_1 <= 1
+          constraint_16: 1/10 x_0 - 1/10 x_1 <= 4/3
           constraint_17: 1/4 x_1 <= 1/3
         Variables:
           x_0 is a continuous variable (min=-oo, max=+oo)
@@ -2971,11 +2971,11 @@ def perturbation_mip(fn, perturbs, solver=None, field=None):
     bkpt = copy(fn.end_points())
     for pert in perturbs:
         bkpt += pert.end_points()
-    bkpt = uniq(bkpt)
+    bkpt = unique_list(bkpt)
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
-    type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
-    type_2_vertices = [(x, z-x, z) for x in bkpt for z in bkpt2 if x < z < 1+x]
-    vertices = set(type_1_vertices + type_2_vertices)
+    type_1_vertices = ((x, y, x+y) for x in bkpt for y in bkpt if x <= y)
+    type_2_vertices = ((x, z-x, z) for x in bkpt for z in bkpt2 if x < z < 1+x)
+    vertices = unique_list(itertools.chain(type_1_vertices,type_2_vertices))
     if fn.is_continuous() and all(pert.is_continuous() for pert in perturbs):
         limitingeps = []
         lim_xeps = [0]
