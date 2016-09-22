@@ -380,7 +380,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
         kwds = { 'legend_label' : "Subadditivity violated" }
         plot_kwds_hook(kwds)
         if fn.is_continuous():
-            nonsubadditive_vertices = [(x,y) for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices]
+            nonsubadditive_vertices = unique_list((x,y) for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices)
             p += point(nonsubadditive_vertices,
                        color = "red", size = 50, zorder=-1, **kwds)
             p += point([ (y,x) for (x,y) in nonsubadditive_vertices ], color = "red", size = 50, zorder=-1)
@@ -400,7 +400,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
             kwds = { 'legend_label' : "Symmetry violated" }
             plot_kwds_hook(kwds)
             if fn.is_continuous():
-                nonsymmetric_vertices = unique_list([(x,y) for (x, y, xeps, yeps) in nonsymmetric_vertices])
+                nonsymmetric_vertices = unique_list((x,y) for (x, y, xeps, yeps) in nonsymmetric_vertices)
                 p += point(nonsymmetric_vertices,
                            color = "mediumvioletred", size = 50, zorder=5, **kwds)
                 p += point([ (y,x) for (x,y) in nonsymmetric_vertices], color = "mediumvioletred", size = 50, zorder=5)
