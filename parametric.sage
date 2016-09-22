@@ -1316,18 +1316,17 @@ class SemialgebraicComplex(SageObject):
             # Function is non-contructible at this random point.
             h = None
         region_type = self.find_region_type(K, h)
-        if region_type == 'stop':
-             return
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         if len(new_component.leq) != len(bddleq):
             logging.warn("Didn't record the cell around %s defined by %s ==0 and %s <0, because it has more equations than %s" %(new_component.var_value, new_component.leq, new_component.lin, bddleq))
             return
-        #if see new monomial, lift polyhedrons of the previously computed components.
+        #if see new monomial, lift polyhedrons of the previously computed components. WHY?
         dim_to_add = len(self.monomial_list) - unlifted_space_dim
         if dim_to_add > 0:
             for c in self.components:
                 c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
-        if flip_ineq_step != 0:
+        #print len(self.components), var_value, region_type
+        if (flip_ineq_step != 0) and (region_type != 'stop'):
             # when using random shooting, don't generate neighbour points; don't remove redundant walls.
             walls, new_points = new_component.find_walls_and_new_points(flip_ineq_step, wall_crossing_method, goto_lower_dim)
             if (wall_crossing_method == 'mathematica') or \
@@ -1805,7 +1804,7 @@ def result_symbolic_expression(field, result):
     symbolic_expression = tuple(elt._sym if hasattr(elt, '_sym') else elt for elt in flatten([result]))
     return symbolic_expression
 
-region_type_color_map = [('not_constructible', 'white'), ('is_constructible', 'black'), ('not_minimal', 'orange'), ('is_minimal', 'darkgrey'),('not_extreme', 'green'), ('is_extreme', 'blue'), (True, 'blue'), (False, 'red')]
+region_type_color_map = [('not_constructible', 'white'), ('is_constructible', 'black'), ('not_minimal', 'orange'), ('is_minimal', 'darkgrey'),('not_extreme', 'green'), ('is_extreme', 'blue'), ('stop', 'grey'), (True, 'blue'), (False, 'red')]
 
 def find_region_color(region_type):
     """
@@ -1822,14 +1821,14 @@ def find_region_color(region_type):
         sage: find_region_color(10)
         '#0091ff'
     """
-    # at most 7 different types other than the ones like 'is_extreme' that were in region_type_color_map.
+    # at most 9 different types other than the ones like 'is_extreme' that were in region_type_color_map.
     global region_type_color_map
     n = len(region_type_color_map)
     i = 0
     while (i < n) and (region_type != region_type_color_map[i][0]):
         i += 1
     if i == n:
-        region_color = color_of_ith_region_type(n - 8)  # the initial map includes 4 igp region types and True and False.
+        region_color = color_of_ith_region_type(n - 9)  # the initial map includes 9 igp region types.
         region_type_color_map.append((region_type, region_color))
     else:
         region_color = region_type_color_map[i][1]
