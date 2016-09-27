@@ -1943,11 +1943,11 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
     """
     # heuristic method.
     ineq_gradient = gradient(ineq)
-    current_point = vector([RR(x) for x in current_var_value]) # Real numbers, faster than QQ
+    current_point = vector(RR(x) for x in current_var_value) # Real numbers, faster than QQ
     ineq_value = ineq(*current_point)
     try_before_fail = 10000 # define maximum number of walks.
     while (ineq_value <= 0) and (try_before_fail > 0):
-        ineq_direction = vector([g(*current_point) for g in ineq_gradient])
+        ineq_direction = vector(g(*current_point) for g in ineq_gradient)
         if ineq.degree() == 1:
             step_length = (-ineq(*current_point)+flip_ineq_step) / (ineq_direction * ineq_direction)
         else:
@@ -1990,7 +1990,7 @@ def find_point_on_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step)
     """
     ineq_gradient = gradient(ineq)
     current_point = vector(current_var_value)
-    ineq_direction = vector([g(*current_point) for g in ineq_gradient])
+    ineq_direction = vector(g(*current_point) for g in ineq_gradient)
     step_length = -ineq(*current_point) / (ineq_direction * ineq_direction)
     current_point += step_length * ineq_direction
     ineq_value = ineq(*current_point)
@@ -2027,8 +2027,8 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_st
         l_value = l(*current_point)
         try_before_fail = 10000 # define maximum number of walks.
         while (l_value >= 0) and (try_before_fail > 0):
-            l_direction = vector([-g(*current_point) for g in l_gradient]) #decrease l_value
-            ineq_direction = vector([g(*current_point) for g in ineq_gradient])
+            l_direction = vector(-g(*current_point) for g in l_gradient) #decrease l_value
+            ineq_direction = vector(g(*current_point) for g in ineq_gradient)
             s = (ineq_direction * l_direction) / (ineq_direction * ineq_direction)
             projected_direction = l_direction - s * ineq_direction # want that ineq_value remains the same
             if projected_direction == 0:
