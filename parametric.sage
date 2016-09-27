@@ -1963,10 +1963,10 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
         #print current_point, RR(ineq_value)
     if ineq_value <= 0:
         return None
-    new_point = adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_step)
-    if new_point is not None and ineq(*new_point) <= 0:
-        #logging.info("Didn't add %s because it violates %s > 0" % (new_point, ineq))
-        return None
+    new_point = adjust_pt_to_satisfy_ineqs(current_point, ineq, ineqs, flip_ineq_step)
+    # if new_point is not None and ineq(*new_point) <= 0:
+    #     #logging.info("Didn't add %s because it violates %s > 0" % (new_point, ineq))
+    #     return None
     return new_point #type is tuple
 
 
@@ -1996,36 +1996,39 @@ def find_point_on_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step)
     ineq_value = ineq(*current_point)
     if ineq_value != 0:
         return None
-    new_point = adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_step)
+    new_point = adjust_pt_to_satisfy_ineqs(current_point, ineq, ineqs, flip_ineq_step)
     if new_point is not None and ineq(*new_point) != 0:
         #logging.info("Didn't add %s because it violates %s == 0" % (new_point, ineq))
         return None
     return new_point #type is tuple
 
-def adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_step):
+def adjust_pt_to_satisfy_ineqs(current_point, ineq, ineqs, flip_ineq_step):
     """
-    Walk from current_point (type=vector) in the direction perpendicular to ineq_gradient with 
-    small positive step length flip_ineq_step, 
+    Walk from current_point (type=vector) in the direction perpendicular to 
+    the gradient of ineq with small positive step length flip_ineq_step, 
+    while maintaining ineq(*current_point) >= 0
     until get a new point such that l(new point)<0 for any l in ineqs.
     Return new_point, or None if it fails to find one.
 
     EXAMPLES::
 
         sage: P.<a,b>=QQ[]
-        sage: ineq_gradient = gradient(a+b-2)
-        sage: adjust_pt_to_satisfy_ineqs(vector([13/10,12/10]), ineq_gradient, [-a+b^2], 1/2)
+        sage: ineq = a+b-2
+        sage: adjust_pt_to_satisfy_ineqs(vector([13/10,12/10]), ineq, [-a+b^2], 1/2)
         (123/85, 179/170)
-        sage: adjust_pt_to_satisfy_ineqs(vector([71/80, 89/80]), ineq_gradient, [-a+b^2], 1/4)
+        sage: adjust_pt_to_satisfy_ineqs(vector([71/80, 89/80]), ineq, [-a+b^2], 1/4)
         (171073319/163479120, 155884921/163479120)
 
         If impossible, return None.
-        sage: adjust_pt_to_satisfy_ineqs(vector([11/8, 7/8]), ineq_gradient,[-a+b^2, a-1], 1/4)
+        sage: adjust_pt_to_satisfy_ineqs(vector([11/8, 7/8]), ineq,[-a+b^2, a-1], 1/4)
     """
     #current_point is a vector
+    ineq_gradient = gradient(ineq)
+    max_walks = min(ceil(2/flip_ineq_step), 1000) # define maximum number of walks.
     for l in ineqs:
         l_gradient = gradient(l)
         l_value = l(*current_point)
-        try_before_fail = 10000 # define maximum number of walks.
+        try_before_fail = max_walks
         while (l_value >= 0) and (try_before_fail > 0):
             l_direction = vector(-g(*current_point) for g in l_gradient) #decrease l_value
             ineq_direction = vector(g(*current_point) for g in ineq_gradient)
@@ -2044,7 +2047,7 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq_gradient, ineqs, flip_ineq_st
             l_value = l(*current_point)
             try_before_fail -= 1
             #print current_point, RR(l_value)
-        if l_value >= 0:
+        if (l_value >= 0) or (ineq(*current_point) < 0):
             return None
     for l in ineqs:
         if l(*current_point) >= 0:
