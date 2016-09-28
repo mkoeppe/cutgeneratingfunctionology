@@ -16,6 +16,8 @@ point_is_included = Poly_Gen_Relation.subsumes()
 
 from sage.structure.sage_object import SageObject
 
+import time
+
 ###############################
 # Parametric Real Number Field
 ###############################
@@ -411,28 +413,28 @@ def polynomial_to_linexpr(t, monomial_list, v_dict):
         # sage.rings.polynomial.polynomial_rational_flint object has no attribute 'monomials'
         for (k, c) in t.dict().items():
             m = (t.args()[0])^k
-            if m in v_dict.keys():
-                v = Variable(v_dict[m])
-            elif k == 0:
+            if k == 0:
                 # constant term, don't construct a new Variable for it.
                 v = 1
             else:
-                nv = len(monomial_list)
+                nv = v_dict.get(m, None)
+                if nv is None:
+                    nv = len(monomial_list)
+                    v_dict[m] = nv
+                    monomial_list.append(m)
                 v = Variable(nv)
-                v_dict[m] = nv
-                monomial_list.append(m)
             linexpr += (lcd * c) * v
     else:
         for m in t.monomials():
-            if m in v_dict.keys():
-                v = Variable(v_dict[m])
-            elif m == 1:
+            if m == 1:
                 v = 1
             else:
-                nv = len(monomial_list)
+                nv = v_dict.get(m, None)
+                if nv is None:
+                    nv = len(monomial_list)
+                    v_dict[m] = nv
+                    monomial_list.append(m)
                 v = Variable(nv)
-                v_dict[m] = nv
-                monomial_list.append(m)
             coeffv = t.monomial_coefficient(m)
             linexpr += (lcd * coeffv) * v
     return linexpr
@@ -811,39 +813,40 @@ class SemialgebraicComplexComponent(SageObject):
         self.parent = parent
         self.var_value = var_value
         self.region_type = region_type
-
-        #note that self.polyhedron and K.polyhedron,
-        # self.parent.monomial_list and K.monomial_list,
-        # self.parent.v_dict and K.v_dict change simultaneously while lifting.
-        self.polyhedron = K.polyhedron
-        self.bounds, tightened_mip = self.bounds_propagation(self.parent.max_iter)
+        self.monomial_list = K.monomial_list
+        self.v_dict = K.v_dict
+        #space_dim_old = len(self.monomial_list)
+        self.bounds, tightened_mip = self.bounds_propagation(K.polyhedron, self.parent.max_iter)
+        # Unimplemented
+        # dim_to_add =  len(self.monomial_list) - space_dim_old:
+        # if dim_to_add > 0:
+        #     # this could happen if we allow McCormicks to add new monomials.
+        #     K.polyhedron.add_space_dimensions_and_embed(dim_to_add)
         if self.parent.max_iter == 0:
             tightened_mip = None
-
-        leqs, lins = read_leq_lin_from_polyhedron(self.polyhedron, \
-                                                          self.parent.monomial_list, self.parent.v_dict, tightened_mip)
-        if (leqs == []) and (lins == []):
+        self.leq, lins = read_leq_lin_from_polyhedron(K.polyhedron, K.monomial_list, K.v_dict, tightened_mip)
+        if (self.leq == []):
             P = PolynomialRing(QQ, parent.var_name)
             self.var_map = {g:g for g in P.gens()}
+            self.lin = lins
         else:
-            self.var_map = find_variable_mapping(leqs, lins)
-        self.leq = leqs
-        self.lin = []
-        for l in lins:
-            ineq = l.subs(self.var_map)
-            # Shall we factorize ineq?
-            if ineq.degree() > 0:
-                self.lin.append(ineq)
+            self.var_map = find_variable_mapping(self.leq, lins)
+            self.lin = []
+            for l in lins:
+                ineq = l.subs(self.var_map)
+                # Shall we factorize ineq?
+                if ineq.degree() > 0:
+                    self.lin.append(ineq)
 
-    def bounds_propagation(self, max_iter):
+    def bounds_propagation(self, polyhedron, max_iter):
         """
         Compute LP bounds for variables and then do upward and downward bounds propagation until
         max_iter is attained or no more changes of bounds occur.
         See examples in def update_mccormicks_for_monomial()
         """
-        tightened_mip = construct_mip_of_nnc_polyhedron(self.polyhedron)
+        tightened_mip = construct_mip_of_nnc_polyhedron(polyhedron)
         # Compute LP bounds first
-        bounds = [find_bounds_of_variable(tightened_mip, i) for i in range(len(self.parent.monomial_list))]
+        bounds = [find_bounds_of_variable(tightened_mip, i) for i in range(len(self.monomial_list))]
 
         bounds_propagation_iter = 0
         # TODO: single parameter polynomial_rational_flint object needs special treatment. ignore bounds propagation in this case for now.  #tightened = True
@@ -852,18 +855,16 @@ class SemialgebraicComplexComponent(SageObject):
         while bounds_propagation_iter < max_iter and tightened:
             tightened = False
             # upward bounds propagation
-            for i in range(len(self.var_value), len(self.parent.monomial_list)):
-                m = self.parent.monomial_list[i] # m has degre >= 2
-                if update_mccormicks_for_monomial(m, tightened_mip, self.parent.monomial_list, \
-                                                  self.parent.v_dict, bounds, lift_polyhedron=None):
+            for m in self.monomial_list:
+                if update_mccormicks_for_monomial(m, tightened_mip, self.monomial_list, self.v_dict, bounds, new_monomials_allowed=False):
                     # If we allow update_mccormicks_for_monomial to create new monomials and
                     # hence lift the extended space, try with optional argument
-                    # lift_polyhedron=self.polyhedron
+                    # new_monomials_allowed=True
                     tightened = True
             if tightened:
                 tightened = False
                 # downward bounds propagation
-                for i in range(len(self.parent.monomial_list)):
+                for i in range(len(self.monomial_list)):
                     (lb, ub) = bounds[i]
                     bounds[i] = find_bounds_of_variable(tightened_mip, i)
                     if (bounds[i][0] is not None) and ((lb is None) or (bounds[i][0] - lb > 0.001)) or \
@@ -883,76 +884,73 @@ class SemialgebraicComplexComponent(SageObject):
         `show_testpoint` controls whether to plot the testpoint in this cell.
         `plot_points` controls the quality of the plotting.
         """
+        ## FIXME
         g = Graphics()
+        x, y = var('x, y')
+        var_bounds = []
+        P = PolynomialRing(QQ, self.parent.var_name)
+        for m in P.gens():
+            i = self.v_dict.get(m, None)
+            if i is None:
+                var_bounds.append((None, None))
+            else:
+                var_bounds.append(self.bounds[i])
+        bounds_y = (y, -0.1, 0.3)
         if not slice_value:
             d = len(self.var_value)
-            if d > 2:
+            if d == 1:
+                var_pt = x
+                if not (var_bounds[0][0] <= var_bounds[0][1]):
+                     return g
+                bounds_x = bounds_for_plotting(x, var_bounds[0], self.parent.default_var_bound)
+            elif d == 2:
+                var_pt = [x, y]
+                if not (var_bounds[0][0] <= var_bounds[0][1] and var_bounds[1][0] <= var_bounds[1][1]):
+                    return g
+                bounds_x = bounds_for_plotting(x, var_bounds[0], self.parent.default_var_bound)
+                bounds_y = bounds_for_plotting(y, var_bounds[1], self.parent.default_var_bound)
+            else:
                 raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
-            leqs = self.leq
-            lins = self.lin + self.parent.bddlin
-            var_bounds = [bounds_for_plotting(self.bounds[i], self.parent.default_var_bound) for i in range(d)]
         else:
-            # assert (len(slice_value) == len(self.var_value))
             d = 0
-            var_bounds = []
+            var_pt = []
             for (i, z) in enumerate(slice_value):
                 if z is None:
                     d += 1
-                    var_bounds.append(bounds_for_plotting(self.bounds[i], self.parent.default_var_bound))
-                elif not is_value_in_interval(z, self.bounds[i]):
-                    # empty slice
-                    return g
-            if d == 1:
-                P.<unknown_x> = QQ[]
-            elif d == 2:
-                P.<unknown_x, unknown_y> = QQ[]
-            else:
-                raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
-            unknowns=iter(P.gens())
-            parametric_point = [unknowns.next() if z is None else z for z in slice_value]
-            leqs = []
-            for leq in self.leq:
-                l = leq(*parametric_point)
-                if l in QQ:
-                    if l != 0:
-                        return g
+                    if d == 1:
+                        var_pt.append(x)
+                        bounds_x = bounds_for_plotting(x, var_bounds[i], self.parent.default_var_bound)
+                    elif d == 2:
+                        var_pt.append(y)
+                        bounds_y = bounds_for_plotting(y, var_bounds[i], self.parent.default_var_bound)
+                    else:
+                        raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
                 else:
-                   leqs.append(l)
-            lins = []
-            for lin in self.lin + self.parent.bddlin:
-                l = lin(*parametric_point)
-                if l in QQ:
-                    if l >= 0:
+                    if not is_value_in_interval(z, var_bounds[i]):
                         return g
-                else:
-                    lins.append(l)
-
+                    var_pt.append(z)
+            
+        leqs = [l(var_pt) == 0 for l in self.leq]
+        lins = [l(var_pt) < 0 for l in self.lin + self.parent.bddlin]
+        constraints = [l for l in leqs + lins if type(l) is sage.symbolic.expression.Expression]
+        if not constraints:
+            return g
         innercolor = find_region_color(self.region_type)
         bordercolor = innercolor
         if innercolor == 'white':
             ptcolor = 'black'
         else:
             ptcolor = 'white'
-
-        x, y = var('x, y')
-
-        if d == 2:
-            if leqs or lins:
-                g += region_plot([l(x, y) == 0 for l in leqs] + [l(x, y) < 0 for l in lins], \
-                                 (x, var_bounds[0][0], var_bounds[0][1]), (y, var_bounds[1][0], var_bounds[1][1]), \
-                                 incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
-            if show_testpoints and not slice_value:
-                if (var_bounds[0][0] <= self.var_value[0] <= var_bounds[0][1]) and \
-                   (var_bounds[1][0] <= self.var_value[1] <= var_bounds[1][1]):
-                    g += point(self.var_value, color = ptcolor, size = 2, zorder=10)
-        else:
-            if leqs or lins:
-                g += region_plot([l(x) == 0 for l in leqs] + [l(x) < 0 for l in lins] + [y >= -0.01, y <= 0.01], \
-                                 (x, var_bounds[0][0], var_bounds[0][1]), (y, -0.1, 0.3), \
-                                 incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor, ticks=[None,[]])
-            if show_testpoints and not slice_value:
-                if (var_bounds[0][0] <= self.var_value[0] <= var_bounds[0][1]):
-                    g += point([self.var_value[0], 0], color = ptcolor, size = 2, zorder=10)
+            g += region_plot(constraints, bounds_x, bounds_y, \
+                             incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
+        if show_testpoints and not slice_value:
+            if d == 1:
+                pt = (self.var_value[0], 0)
+            else:
+                pt = self.var_value
+            if (bounds_x[1] <= pt[0] <= bounds_x[2] and \
+                bounds_y[1] <= pt[1] <= bounds_y[2]):
+                g += point(pt, color = ptcolor, size = 2, zorder=10)
         return g
 
     def find_walls_and_new_points(self, flip_ineq_step, wall_crossing_method, goto_lower_dim=False):
@@ -968,9 +966,12 @@ class SemialgebraicComplexComponent(SageObject):
         new_points = {}
         bddlin = []
         for l in self.parent.bddlin:
-            ineq = l.subs(self.var_map)
-            if ineq.degree() > 0:
-                bddlin.append(ineq)
+            if self.leq:
+                ineq = l.subs(self.var_map)
+                if ineq.degree() > 0:
+                    bddlin.append(ineq)
+            else:
+                bddlin.append(l)
         # decide which inequalities among self.lin are walls (irredundant).
         for i in range(len(self.lin)):
             ineq = self.lin[i]
@@ -997,7 +998,10 @@ class SemialgebraicComplexComponent(SageObject):
                     else:
                         pt_across_wall = None
                 else:
-                    pt_across_wall = tuple(self.var_map[v](pt) for v in ineq.args())
+                    if self.leq:
+                        pt_across_wall = tuple(self.var_map[v](pt) for v in ineq.args())
+                    else:
+                        pt_across_wall = pt
             if pt_across_wall is None:
                 # ineq is not an wall
                 continue
@@ -1016,8 +1020,10 @@ class SemialgebraicComplexComponent(SageObject):
                     pt = find_point_on_ineq_heuristic(pt_across_wall, ineq, ineqs, flip_ineq_step)
                     if pt is None:
                         pt_on_wall = None
-                    else:
+                    elif self.leq:
                         pt_on_wall = tuple(self.var_map[v](pt) for v in ineq.args())
+                    else:
+                        pt_on_wall = pt
                 if not pt_on_wall is None:
                     new_points[pt_on_wall] = copy(self.leq) + [ineq]
         return walls, new_points
@@ -1084,10 +1090,6 @@ class SemialgebraicComplex(SageObject):
 
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
-            sage: complex.monomial_list
-            [x, y]
-            sage: complex.v_dict
-            {y: 1, x: 0}
         """
         #self.num_components = 0
         self.components = []
@@ -1096,14 +1098,7 @@ class SemialgebraicComplex(SageObject):
         self.d = len(var_name)
         self.var_name = var_name
         self.default_args = read_default_args(function, **opt_non_default)
-
-        self.monomial_list = []
-        self.v_dict = {}
         K = ParametricRealField([0]*self.d, var_name)
-        for i in range(self.d):
-            v = K.gens()[i].sym().numerator()
-            self.monomial_list.append(v)
-            self.v_dict[v] = i
         self.graph = Graphics()
         self.num_plotted_components = 0
         self.points_to_test = {} # a dictionary of the form {testpoint: bddleq}
@@ -1153,10 +1148,16 @@ class SemialgebraicComplex(SageObject):
                         u =  var_bounds[i][1](*var_value)
                     else:
                         u = var_bounds[i][1]
-                    x = QQ(uniform(l, u))
+                    if l > u:
+                        x = None
+                    else:
+                        x = QQ(uniform(l, u))
+                if x is None:
+                    break
                 var_value.append(x)
             # if random point doesn't satisfy self.bddleq or self.bddlin, continue while.
-            if point_satisfies_bddleq_bddlin(var_value, self.bddleq, self.bddlin, strict=False):
+            if (x is not None) and \
+               point_satisfies_bddleq_bddlin(var_value, self.bddleq, self.bddlin, strict=False):
                 return var_value
 
     def is_point_covered(self, var_value):
@@ -1199,25 +1200,11 @@ class SemialgebraicComplex(SageObject):
             sage: cell.var_value
             [1, 2]
         """
-        if all(x in QQ for x in var_value):
-            #FIXME: is going through ppl the best way?
-            monomial_value = [m(var_value) for m in self.monomial_list]
-            # coefficients in ppl point must be integers.
-            lcm_monomial_value = lcm([x.denominator() for x in monomial_value])
-            #print [x * lcm_monomial_value for x in monomial_value]
-            pt = Generator.point(Linear_Expression([x * lcm_monomial_value for x in monomial_value], 0), lcm_monomial_value)
-            for c in self.components:
-                # Check if the random_point is contained in the box.
-                if is_point_in_box(monomial_value, c.bounds):
-                    # Check if all eqns/ineqs are satisfied.
-                    if c.polyhedron.relation_with(pt).implies(point_is_included):
-                        yield c
-        else:
-            for c in self.components:
-                if point_satisfies_bddleq_bddlin(var_value, c.leq, c.lin, strict=True):
-                    yield c
+        for c in self.components:
+            if point_satisfies_bddleq_bddlin(var_value, c.leq, c.lin, strict=True):
+                yield c
         
-    def find_uncovered_random_point(self, var_bounds=None, max_failings=1000):
+    def find_uncovered_random_point(self, var_bounds=None, max_failings=10000):
         """
         Return a random point that satisfies the bounds and is uncovered by any cells in the complex.
         Return False if the number of attemps > max_failings.
@@ -1299,12 +1286,8 @@ class SemialgebraicComplex(SageObject):
             sage: complex.points_to_test                              # optional - mathematica
             {(19/20, 1): []}
         """
-
-        unlifted_space_dim =  len(self.monomial_list)
+        start_time=time.clock()
         K, test_point = construct_field_and_test_point(self.function, self.var_name, var_value, self.default_args)
-        K.monomial_list = self.monomial_list # change simultaneously while lifting
-        K.v_dict = self.v_dict # change simultaneously while lifting
-        K.polyhedron.add_space_dimensions_and_embed(len(K.monomial_list))
         for l in bddleq:
             # need to put these equations in K, so call comparaison.
             if not l(*K.gens()) == 0:
@@ -1316,16 +1299,12 @@ class SemialgebraicComplex(SageObject):
             # Function is non-contructible at this random point.
             h = None
         region_type = self.find_region_type(K, h)
+        second_time=time.clock()
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         if len(new_component.leq) != len(bddleq):
             logging.warn("Didn't record the cell around %s defined by %s ==0 and %s <0, because it has more equations than %s" %(new_component.var_value, new_component.leq, new_component.lin, bddleq))
             return
-        #if see new monomial, lift polyhedrons of the previously computed components. WHY?
-        dim_to_add = len(self.monomial_list) - unlifted_space_dim
-        if dim_to_add > 0:
-            for c in self.components:
-                c.polyhedron.add_space_dimensions_and_embed(dim_to_add)
-        #print len(self.components), var_value, region_type
+        third_time=time.clock()
         if (flip_ineq_step != 0) and (region_type != 'stop'):
             # when using random shooting, don't generate neighbour points; don't remove redundant walls.
             walls, new_points = new_component.find_walls_and_new_points(flip_ineq_step, wall_crossing_method, goto_lower_dim)
@@ -1333,6 +1312,10 @@ class SemialgebraicComplex(SageObject):
                 (wall_crossing_method == 'heuristic_with_check'):
                 new_component.lin = walls
             self.points_to_test.update(new_points)
+        end_time = time.clock()
+        #print len(self.components)
+        #print var_value
+        #print region_type, second_time - start_time, third_time-second_time, end_time-third_time
         self.components.append(new_component)
 
     def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
@@ -1414,9 +1397,9 @@ class SemialgebraicComplex(SageObject):
         """
         if not self.components and not self.points_to_test and not var_value:
             var_value = self.find_uncovered_random_point()
-        if var_value and not tuple(var_value) in self.points_to_test:
+        if var_value:
             self.points_to_test[tuple(var_value)] = copy(self.bddleq)
-        while self.points_to_test:
+        while self.points_to_test: # and len(self.components)<10: #FIXME
             var_value, bddleq = self.points_to_test.popitem()
             var_value = list(var_value)
             if not self.is_point_covered(var_value):
@@ -1488,15 +1471,7 @@ def is_value_in_interval(v, (lb, ub)):
     """
     return ((lb is None) or (lb <= v)) and ((ub is None) or (v <= ub))
 
-def is_point_in_box(monomial_value, bounds):
-    """
-    Return whether the value of each variable satisfies its lower and upper bounds.
-    """
-    # note: monomial_value can have length bigger than len(bounds),
-    # just ignore the tailing monomial values which come from lifting.
-    return all(is_value_in_interval(monomial_value[i], bounds[i]) for i in range(len(bounds)))
-
-def bounds_for_plotting((lb, ub), default_var_bound):
+def bounds_for_plotting(v, (lb, ub), default_var_bound):
     """
     If lower and upper exist, then return them; otherwise return default variable bounds.
     """
@@ -1509,8 +1484,8 @@ def bounds_for_plotting((lb, ub), default_var_bound):
     else:
         u = default_var_bound[1]
     if l >= u:
-        return default_var_bound
-    return (l, u)
+        return (v, default_var_bound[0], default_var_bound[1])
+    return (v, l, u)
 
 def construct_mip_of_nnc_polyhedron(nncp):
     """
@@ -1600,7 +1575,7 @@ def add_mccormick_bound(mip, x3, x1, x2, c1, c2, is_lowerbound):
             mip.add_constraint(linexpr <= 0)
             return True
 
-def update_mccormicks_for_monomial(m, tightened_mip, monomial_list, v_dict, bounds, lift_polyhedron=None):
+def update_mccormicks_for_monomial(m, tightened_mip, monomial_list, v_dict, bounds, new_monomials_allowed=False):
     """
     Do recursive McCormicks on the monomial `m`.
     If `bounds` is modified, update `tightened_mip` of the cell and return True, otherwise return False
@@ -1651,28 +1626,19 @@ def update_mccormicks_for_monomial(m, tightened_mip, monomial_list, v_dict, boun
     i = v_dict[m]
     v = Variable(i)
     tightened = False
-    for v1 in m.variables():
-        i_1 = v_dict[v1]
-        v_1 = Variable(i_1)
-        lb_1, ub_1 = bounds[i_1]
-
-        v2 = (m/v1).numerator()
-        if v2 in v_dict.keys():
-            i_2 = v_dict[v2]
-        elif lift_polyhedron:
-            logging.warn("new monomial %s is needed during recursive McCormick" % v2)
-            i_2 = len(monomial_list)
-            v_dict[v2]= i_2
-            monomial_list.append(v2)
-            lift_polyhedron.add_space_dimensions_and_embed(1)
-            tightened_mip.add_space_dimensions_and_embed(1)
-            bounds.append((None, None))
-            if update_mccormicks_for_monomial(v2, tightened_mip, monomial_list, v_dict,\
-                                              bounds, lift_polyhedron):
-                tightened = True
-        else: # don't want the recursive McCormicks to create a new monomial.
+    for v1 in monomial_list:
+        (v2, rem) = m.quo_rem(v1)
+        if rem != 0 or v1 > v2:
+            # don't want the recursive McCormicks to create a new monomial.
+            # v1, v2 symmetric
             continue
+        i_1 = v_dict[v1]
+        i_2 = v_dict.get(v2, None)
+        if (i_2 is None):
+            continue
+        v_1 = Variable(i_1)
         v_2 = Variable(i_2)
+        lb_1, ub_1 = bounds[i_1]
         lb_2, ub_2 = bounds[i_2]
         if add_mccormick_bound(tightened_mip, v, v_1, v_2, lb_2, lb_1, True):
             tightened = True
@@ -1682,9 +1648,6 @@ def update_mccormicks_for_monomial(m, tightened_mip, monomial_list, v_dict, boun
             tightened = True
         if add_mccormick_bound(tightened_mip, v, v_1, v_2, ub_2, lb_1, False):
             tightened = True
-        if m.degree() == 2:
-            # m=xy, x and y are both in v_dict, break after doing (x,y), no need for (y,x)
-            break
     if tightened:
         bounds[i] = find_bounds_of_variable(tightened_mip, i)
     return tightened
