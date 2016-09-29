@@ -884,7 +884,6 @@ class SemialgebraicComplexComponent(SageObject):
         `show_testpoint` controls whether to plot the testpoint in this cell.
         `plot_points` controls the quality of the plotting.
         """
-        ## FIXME
         g = Graphics()
         x, y = var('x, y')
         var_bounds = []
@@ -895,17 +894,17 @@ class SemialgebraicComplexComponent(SageObject):
                 var_bounds.append((None, None))
             else:
                 var_bounds.append(self.bounds[i])
-        bounds_y = (y, -0.1, 0.3)
+        bounds_y = (y, -0.01, 0.01)
         if not slice_value:
             d = len(self.var_value)
             if d == 1:
                 var_pt = x
-                if not (var_bounds[0][0] <= var_bounds[0][1]):
+                if not is_value_in_interval(None, var_bounds[0]):
                      return g
                 bounds_x = bounds_for_plotting(x, var_bounds[0], self.parent.default_var_bound)
             elif d == 2:
                 var_pt = [x, y]
-                if not (var_bounds[0][0] <= var_bounds[0][1] and var_bounds[1][0] <= var_bounds[1][1]):
+                if not is_value_in_interval(None, var_bounds[0]) and is_value_in_interval(None, var_bounds[1]):
                     return g
                 bounds_x = bounds_for_plotting(x, var_bounds[0], self.parent.default_var_bound)
                 bounds_y = bounds_for_plotting(y, var_bounds[1], self.parent.default_var_bound)
@@ -932,7 +931,12 @@ class SemialgebraicComplexComponent(SageObject):
             
         leqs = [l(var_pt) == 0 for l in self.leq]
         lins = [l(var_pt) < 0 for l in self.lin + self.parent.bddlin]
-        constraints = [l for l in leqs + lins if type(l) is sage.symbolic.expression.Expression]
+        constraints = []
+        for sym_l in leqs + lins:
+            if sym_l is False:
+                return g
+            if type(sym_l) is sage.symbolic.expression.Expression:
+                constraints.append(sym_l)
         if not constraints:
             return g
         innercolor = find_region_color(self.region_type)
@@ -1339,7 +1343,7 @@ class SemialgebraicComplex(SageObject):
             else:
                 self.add_new_component(var_value, bddleq=[], flip_ineq_step=0, goto_lower_dim=False)
 
-    def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=False):
+    def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=True):
         """
         Plot the complex and store the graph.
 
@@ -1469,6 +1473,8 @@ def is_value_in_interval(v, (lb, ub)):
     Return whether lb <= v <= ub.
     None is considered as -Infinity and +Infinity for lb and ub, respectively. 
     """
+    if v is None:
+        return (lb is None) or (ub is None) or (lb <= ub)
     return ((lb is None) or (lb <= v)) and ((ub is None) or (v <= ub))
 
 def bounds_for_plotting(v, (lb, ub), default_var_bound):
