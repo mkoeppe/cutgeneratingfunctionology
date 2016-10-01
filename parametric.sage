@@ -1719,6 +1719,31 @@ def find_region_type_igp_extreme(K, h):
     else:
         return 'stop'
 
+def claimed_region_type(igp_function=gmic, **kwds):
+    """
+    sage: complex = SemialgebraicComplex(claimed_region_type, ['f','bkpt'], find_region_type=return_result, igp_function=drlm_backward_3_slope)
+    sage: complex.bfs_completion(var_value=[4/5,1/2])
+
+    sage: complex = SemialgebraicComplex(claimed_region_type,['f','alpha'],find_region_type=return_result, igp_function=dg_2_step_mir)
+    sage: complex.bfs_completion(var_value=[4/5,3/10]) #not tested #infinite many cells.
+    """
+    test_point = read_default_args(igp_function)
+    test_point.update(kwds)
+    if not isinstance(igp_function, ExtremeFunctionsFactory):
+        try:
+            h = igp_function(**test_point)
+            return h._claimed_parameter_attribute
+        except: # Dangerous!!
+            # Function is non-contructible at this random point.
+            return 'not_constructible'
+    else:
+        claimed_parameter_attribute = igp_function.claimed_parameter_attributes
+        parameter_values = read_default_args(claimed_parameter_attribute, **test_point)
+        return claimed_parameter_attribute(**parameter_values)
+
+def return_result(field, result):
+    return result
+
 def result_concrete_value(field, result):
     """
     Return the concrete values in result as a tuple. See also result_symbolic_expression()
@@ -1773,7 +1798,7 @@ def result_symbolic_expression(field, result):
     symbolic_expression = tuple(elt._sym if hasattr(elt, '_sym') else elt for elt in flatten([result]))
     return symbolic_expression
 
-region_type_color_map = [('not_constructible', 'white'), ('is_constructible', 'black'), ('not_minimal', 'orange'), ('is_minimal', 'darkgrey'),('not_extreme', 'green'), ('is_extreme', 'blue'), ('stop', 'grey'), (True, 'blue'), (False, 'red')]
+region_type_color_map = [('not_constructible', 'white'), ('is_constructible', 'black'), ('not_minimal', 'orange'), ('is_minimal', 'darkgrey'),('not_extreme', 'green'), ('is_extreme', 'blue'), ('stop', 'grey'), (True, 'blue'), (False, 'red'), ('constructible', 'darkgrey'), ('extreme', 'red')]
 
 def find_region_color(region_type):
     """
@@ -1790,7 +1815,10 @@ def find_region_color(region_type):
         sage: find_region_color(10)
         '#0091ff'
     """
-    # at most 9 different types other than the ones like 'is_extreme' that were in region_type_color_map.
+    # if region_type is a color, return directly.
+    if region_type in colors:
+        return region_type
+    # Assume that there will be at most 7 different types other than the ones like 'is_extreme' that were in region_type_color_map.
     global region_type_color_map
     n = len(region_type_color_map)
     i = 0
