@@ -1074,7 +1074,7 @@ class SemialgebraicComplex(SageObject):
         sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])
         sage: complex.bfs_completion()
     """
-    def __init__(self, function, var_name, max_iter=2, find_region_type=None, default_var_bound=(-0.1,1.1), bddleq=[], bddlin=[], **opt_non_default):
+    def __init__(self, function, var_name, max_iter=2, find_region_type=None, default_var_bound=(-0.1,1.1), bddleq=[], bddlin=[], kwds_dict={}, **opt_non_default):
         """
         Construct a SemialgebraicComplex.
 
@@ -1102,6 +1102,7 @@ class SemialgebraicComplex(SageObject):
         self.d = len(var_name)
         self.var_name = var_name
         self.default_args = read_default_args(function, **opt_non_default)
+        self.default_args.update(kwds_dict)
         K = ParametricRealField([0]*self.d, var_name)
         self.graph = Graphics()
         self.num_plotted_components = 0
