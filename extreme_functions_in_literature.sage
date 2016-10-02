@@ -1166,11 +1166,12 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
         s_pos, s_neg (real): positive slope and negative slope
         lam1, lam2 (real).
 
-    Requirement:
+    Function is claimed to be extreme under the following conditions,
+    according to literature [KChen_thesis]:
         1/2 <= f <= 1;
         s_pos > 1/f;
         s_neg < 1/(f - 1);
-        1 - f + 1/s_neg < lam1 < min(1/2, (s_pos - s_neg) / s_pos / (1 - s_neg * f));
+        0 < lam1 < min(1/2, (s_pos - s_neg) / s_pos / (1 - s_neg * f));
         f - 1 / s_pos < lam2 < min(1/2, (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)).
 
     Note:
@@ -1179,9 +1180,27 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
         however it violates the subadditivity, and thus is not an extreme function::
 
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-            sage: h = chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/100, lam2=49/100)
+            sage: h = chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/100, lam2=49/100, condition_according_to_literature=True)
+            sage: h._claimed_parameter_attribute
+            'extreme'
             sage: extremality_test(h, False)
             False
+
+        On the other hand, the hypotheses stated by Chen are also not necessary for extremality.
+        For example, the following function does not satisfy the hypotheses, however it is extreme.
+
+            sage: h = chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/10, lam2=1/10, condition_according_to_literature=True)
+            sage: h._claimed_parameter_attribute
+            'constructible'
+            sage: extremality_test(h, False)
+            True
+
+    We propose to revised the conditions for extremality, as follows.
+        s_pos > 1/f;
+        s_neg < 1/(f - 1);
+        0 < lam1 <= 1/2;
+        0 < lam2 <= 1/2;
+        ((f-1)*s_neg-1) * (1+(1-f)*s_pos) / (s_pos-s_neg) < lam1 / lam2 < (s_pos-s_neg) / ((f*s_pos-1) * (1-f*s_neg)).
 
     Examples:
         [KChen_thesis]  p.38, fig.8::
@@ -1206,22 +1225,26 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
     Reference:
         [KChen_thesis]:  K. Chen, Topics in group methods for integer programming,
                             Ph.D. thesis, Georgia Institute of Technology, June 2011.
-    """
+    """     
     if not (bool(0 < f < 1) and bool(s_pos > 1/f) and bool(s_neg < 1/(f - 1)) \
                             and bool(0 < lam1 < 1) and bool(0 < lam2 < 1)):
         raise ValueError, "Bad parameters. Unable to construct the function."
     claimed_parameter_attribute = None
     if conditioncheck:
-        claimed_parameter_attribute = 'extreme'
-        if not (bool(1/2 <= f) and bool(lam1 < 1/2) and bool(lam2 < 1/2) and \
-                bool(lam1  < (s_pos - s_neg) / s_pos / (1 - s_neg * f)) and \
-                bool (f - 1 / s_pos < lam2 < (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1))):
-            claimed_parameter_attribute = 'constructible'
         if condition_according_to_literature:
-            if not bool(0 < lam1):
+            if bool(1/2 <= f) and bool(lam1 < 1/2) and bool(lam2 < 1/2) and \
+               bool(0 < lam1  < (s_pos - s_neg) / s_pos / (1 - s_neg * f)) and \
+               bool (f - 1 / s_pos < lam2 < (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)):
+                claimed_parameter_attribute = 'extreme'
+            else:
                 claimed_parameter_attribute = 'constructible'
-        elif not bool(1 - f + 1/s_neg < lam1):
-            claimed_parameter_attribute = 'constructible'
+        else:
+            if bool(lam1 <= 1/2) and bool(lam2 <= 1/2) \
+           and bool(-f^2*s_pos*s_neg*lam2 + 2*f*s_pos*s_neg*lam2 + f*s_pos*lam2 + f*s_neg*lam2 - s_pos*s_neg*lam2 - s_pos*lam1 + s_neg*lam1 - s_pos*lam2 - s_neg*lam2 - lam2 <= 0) \
+           and bool(-f^2*s_pos*s_neg*lam1 + f*s_pos*lam1 + f*s_neg*lam1 - s_pos*lam2 + s_neg*lam2 - lam1 <= 0):
+                claimed_parameter_attribute = 'extreme'
+            else:
+                claimed_parameter_attribute = 'constructible'
         if claimed_parameter_attribute == 'extreme':
             logging.info("Conditions for extremality are satisfied.")
         else:
