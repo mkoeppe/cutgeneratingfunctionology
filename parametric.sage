@@ -1720,16 +1720,41 @@ def find_region_type_igp_extreme(K, h):
     else:
         return 'stop'
 
-def claimed_region_type(igp_function=gmic, **kwds):
+def claimed_region_type(igp_function=gmic, condition_according_to_literature=True, **kwds):
     """
+    sage: claimed_region_type(igp_function=chen_4_slope)
+    'extreme'
+    sage: claimed_region_type(igp_function=chen_4_slope, condition_according_to_literature=True, f=1/2, s_pos=5, s_neg=-5, lam1=1/5, lam2=1/5)
+    'constructible'
+    sage: claimed_region_type(igp_function=chen_4_slope, condition_according_to_literature=True, f=7/10, s_pos=2, s_neg=-4, lam1=1/100, lam2=49/100)
+    'extreme'
+    sage: claimed_region_type(igp_function=chen_4_slope, condition_according_to_literature=False, f=7/10, s_pos=2, s_neg=-4, lam1=1/100, lam2=49/100)
+    'constructible'
+
+    Use claimed_region_type to computing the complex of cells whose types are 'extreme' or 'constructible' according to their claimed extremality conditions.
+
     sage: complex = SemialgebraicComplex(claimed_region_type, ['f','bkpt'], find_region_type=return_result, igp_function=drlm_backward_3_slope)
     sage: complex.bfs_completion(var_value=[4/5,1/2])
+
+    sage: complex = SemialgebraicComplex(claimed_region_type, ['lam1', 'lam2'], find_region_type=return_result, igp_function=chen_4_slope, condition_according_to_literature=True)
+    sage: complex.bfs_completion(var_value=[3/10, 45/101])
+
+    sage: complex = SemialgebraicComplex(claimed_region_type, ['lam1', 'lam2'], find_region_type=return_result, igp_function=chen_4_slope, condition_according_to_literature=False)
+    sage: complex.bfs_completion(var_value=[3/10, 45/101])
+
+    sage: complex = SemialgebraicComplex(claimed_region_type, ['lam1', 'lam2'], find_region_type=return_result, igp_function=chen_4_slope, condition_according_to_literature=False, kwds_dict={'f':1/2, 's_pos':5, 's_neg':-5})
+    sage: complex.bfs_completion(var_value=[1/5, 1/4])
 
     sage: complex = SemialgebraicComplex(claimed_region_type,['f','alpha'],find_region_type=return_result, igp_function=dg_2_step_mir)
     sage: complex.bfs_completion(var_value=[4/5,3/10]) #not tested #infinite many cells.
     """
     test_point = read_default_args(igp_function)
     test_point.update(kwds)
+    # make condition_according_to_literature a keyword argument of the function claimed_region_type,
+    # update its value in test_point.
+    # in particular, use condition_according_to_literature=True to obtain the (false) claimed region of chen_4_slope according to literature.
+    if test_point.has_key('condition_according_to_literature'):
+        test_point['condition_according_to_literature'] = condition_according_to_literature
     if not isinstance(igp_function, ExtremeFunctionsFactory):
         try:
             h = igp_function(**test_point)
