@@ -1157,7 +1157,7 @@ def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/
     gmi = gmic(f, field=field)
     return alpha * bhk + (1 - alpha) * gmi
 
-def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, conditioncheck=True):
+def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, conditioncheck=True, condition_according_to_literature=False):
     """
     This 4-slope function is shown [KChen_thesis] to be a facet.
 
@@ -1212,14 +1212,20 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
         raise ValueError, "Bad parameters. Unable to construct the function."
     claimed_parameter_attribute = None
     if conditioncheck:
-        if bool(1/2 <= f) and bool(lam1 < 1/2) and bool(lam2 < 1/2) and \
-                bool(1 - f + 1/s_neg < lam1 < (s_pos - s_neg) / s_pos / (1 - s_neg * f)) and \
-                bool (f - 1 / s_pos < lam2 < (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)):
+        claimed_parameter_attribute = 'extreme'
+        if not (bool(1/2 <= f) and bool(lam1 < 1/2) and bool(lam2 < 1/2) and \
+                bool(lam1  < (s_pos - s_neg) / s_pos / (1 - s_neg * f)) and \
+                bool (f - 1 / s_pos < lam2 < (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1))):
+            claimed_parameter_attribute = 'constructible'
+        if condition_according_to_literature:
+            if not bool(0 < lam1):
+                claimed_parameter_attribute = 'constructible'
+        elif not bool(1 - f + 1/s_neg < lam1):
+            claimed_parameter_attribute = 'constructible'
+        if claimed_parameter_attribute == 'extreme':
             logging.info("Conditions for extremality are satisfied.")
-            claimed_parameter_attribute = 'extreme'
         else:
             logging.info("Conditions for extremality are NOT satisfied.")
-            claimed_parameter_attribute = 'constructible'
     slopes = [s_pos, s_neg, 1/f, s_neg, s_pos, s_neg, s_pos, 1/(f-1), s_pos, s_neg]
     aa = lam1 * (1 - s_neg * f) / 2 / (s_pos - s_neg)
     a = lam1 * f / 2
