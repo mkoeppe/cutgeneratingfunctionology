@@ -837,6 +837,7 @@ class SemialgebraicComplexComponent(SageObject):
                 # Shall we factorize ineq?
                 if ineq.degree() > 0:
                     self.lin.append(ineq)
+        self.neighbor_points = []
 
     def bounds_propagation(self, polyhedron, max_iter):
         """
@@ -1317,6 +1318,7 @@ class SemialgebraicComplex(SageObject):
                 (wall_crossing_method == 'heuristic_with_check'):
                 new_component.lin = walls
             self.points_to_test.update(new_points)
+            new_component.neighbor_points = new_points.keys()
         end_time = time.clock()
         #print len(self.components)
         #print var_value
@@ -2089,3 +2091,21 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, ineqs, flip_ineq_step):
         if l(*current_point) >= 0:
             return None
     return tuple(QQ(x) for x in current_point)
+
+##########################
+# Plot bfs tree 2d case
+#########################
+def plot_bfs_tree(complex):
+    g = complex.plot()
+    for i in range(len(complex.components)):
+        c = complex.components[i]
+        var_value = c.var_value
+        for pt in c.neighbor_points:
+            g += line([var_value, pt],color='black',linestyle=":")
+            g += point([pt], color='black', size=5)
+        for j in range(i):
+            if tuple(var_value) in complex.components[j].neighbor_points:
+                g += line([var_value, complex.components[j].var_value],color='red',linestyle="-")
+                break
+        g += point([var_value], color='red', size=15, zorder=20)
+    return g
