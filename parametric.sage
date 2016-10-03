@@ -896,15 +896,16 @@ class SemialgebraicComplexComponent(SageObject):
             else:
                 var_bounds.append(self.bounds[i])
         bounds_y = (y, -0.01, 0.01)
+        Q.<xx, yy> = QQ[]
         if not slice_value:
             d = len(self.var_value)
             if d == 1:
-                var_pt = x
+                var_pt = xx
                 if not is_value_in_interval(None, var_bounds[0]):
                      return g
                 bounds_x = bounds_for_plotting(x, var_bounds[0], self.parent.default_var_bound)
             elif d == 2:
-                var_pt = [x, y]
+                var_pt = [xx, yy]
                 if not is_value_in_interval(None, var_bounds[0]) and is_value_in_interval(None, var_bounds[1]):
                     return g
                 bounds_x = bounds_for_plotting(x, var_bounds[0], self.parent.default_var_bound)
@@ -918,10 +919,10 @@ class SemialgebraicComplexComponent(SageObject):
                 if z is None:
                     d += 1
                     if d == 1:
-                        var_pt.append(x)
+                        var_pt.append(xx)
                         bounds_x = bounds_for_plotting(x, var_bounds[i], self.parent.default_var_bound)
                     elif d == 2:
-                        var_pt.append(y)
+                        var_pt.append(yy)
                         bounds_y = bounds_for_plotting(y, var_bounds[i], self.parent.default_var_bound)
                     else:
                         raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
@@ -929,16 +930,27 @@ class SemialgebraicComplexComponent(SageObject):
                     if not is_value_in_interval(z, var_bounds[i]):
                         return g
                     var_pt.append(z)
-            
-        leqs = [l(var_pt) == 0 for l in self.leq]
-        lins = [l(var_pt) < 0 for l in self.lin + self.parent.bddlin]
-        constraints = []
-        for sym_l in leqs + lins:
-            if sym_l is False:
-                return g
-            if type(sym_l) is sage.symbolic.expression.Expression:
-                constraints.append(sym_l)
-        if not constraints:
+        leqs = []
+        for leq in self.leq:
+            l = leq(var_pt)
+            if l in QQ:
+                if l != 0:
+                    return g
+            else:
+                leqs.append(l)
+        lins = []
+        for lin in self.lin + self.parent.bddlin:
+            l = lin(var_pt)
+            if l in QQ:
+                if l >= 0:
+                    return g
+            else:
+                lins.append(l)
+        if slice_value:
+            leqs, lins = simplify_eq_lt_poly_via_ppl(leqs, lins)
+        constraints = [l(x, y) == 0 for l in leqs] + [l(x, y) < 0 for l in lins]
+        if (not constraints) or (constraints == [False]):
+            # empty polytope
             return g
         innercolor = find_region_color(self.region_type)
         bordercolor = innercolor
