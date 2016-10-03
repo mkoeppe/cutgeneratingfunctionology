@@ -1304,7 +1304,6 @@ class SemialgebraicComplex(SageObject):
             sage: complex.points_to_test                              # optional - mathematica
             {(19/20, 1): []}
         """
-        start_time=time.clock()
         K, test_point = construct_field_and_test_point(self.function, self.var_name, var_value, self.default_args)
         for l in bddleq:
             # need to put these equations in K, so call comparaison.
@@ -1317,13 +1316,10 @@ class SemialgebraicComplex(SageObject):
             # Function is non-contructible at this random point.
             h = None
         region_type = self.find_region_type(K, h)
-        second_time=time.clock()
-        num_contraints = len(K.polyhedron.minimized_constraints())
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         if len(new_component.leq) != len(bddleq):
             logging.warn("Didn't record the cell around %s defined by %s ==0 and %s <0, because it has more equations than %s" %(new_component.var_value, new_component.leq, new_component.lin, bddleq))
             return
-        third_time=time.clock()
         if (flip_ineq_step != 0) and (region_type != 'stop'):
             # when using random shooting, don't generate neighbour points; don't remove redundant walls.
             walls, new_points = new_component.find_walls_and_new_points(flip_ineq_step, wall_crossing_method, goto_lower_dim)
@@ -1332,10 +1328,6 @@ class SemialgebraicComplex(SageObject):
                 new_component.lin = walls
             self.points_to_test.update(new_points)
             new_component.neighbor_points = new_points.keys()
-        end_time = time.clock()
-        print len(self.components)
-        print region_type, num_contraints, len(new_component.lin), len(new_component.monomial_list), second_time - start_time, third_time-second_time, end_time-third_time
-        print var_value
         self.components.append(new_component)
 
     def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
