@@ -1950,7 +1950,9 @@ def find_instance_mathematica(condstr, var_name):
         (1/2, 1/2, 0)
     """
     varstr =  write_mathematica_variables(var_name)
-    pt_math = mathematica.FindInstance(condstr, varstr)
+    newvarstr = varstr.replace("_", "")
+    newcondstr = condstr.replace("_", "")
+    pt_math = mathematica.FindInstance(newcondstr, newvarstr)
     if len(pt_math) == 0:
         return None
     n = len(var_name)
