@@ -1864,10 +1864,6 @@ def find_region_color(region_type):
         'blue'
         sage: find_region_color(False)
         'red'
-        sage: find_region_color(4)
-        '#ff0000'
-        sage: find_region_color(10)
-        '#0091ff'
     """
     # if region_type is a color, return directly.
     if region_type in colors:
