@@ -1318,6 +1318,7 @@ class SemialgebraicComplex(SageObject):
             h = None
         region_type = self.find_region_type(K, h)
         second_time=time.clock()
+        num_contraints = len(K.polyhedron.minimized_constraints())
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         if len(new_component.leq) != len(bddleq):
             logging.warn("Didn't record the cell around %s defined by %s ==0 and %s <0, because it has more equations than %s" %(new_component.var_value, new_component.leq, new_component.lin, bddleq))
@@ -1332,9 +1333,9 @@ class SemialgebraicComplex(SageObject):
             self.points_to_test.update(new_points)
             new_component.neighbor_points = new_points.keys()
         end_time = time.clock()
-        #print len(self.components)
-        #print var_value
-        #print region_type, second_time - start_time, third_time-second_time, end_time-third_time
+        print len(self.components)
+        print region_type, num_contraints, len(new_component.lin), len(new_component.monomial_list), second_time - start_time, third_time-second_time, end_time-third_time
+        print var_value
         self.components.append(new_component)
 
     def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
