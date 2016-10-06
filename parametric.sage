@@ -631,6 +631,9 @@ so that gaussian elimination has been performed by PPL on the list of equations.
         sage: leqs = [a*a-b, b*b-c*c]; lins=[a+b+c]
         sage: find_variable_mapping(leqs, lins)
         {c: c, b: b, a: a}
+        sage: leqs = [a^2+4*a+1]; lins = []
+        sage: find_variable_mapping(leqs, lins)
+        sage: {c: c, b: b, a: a}
         sage: P.<d>=QQ[]
         sage: leqs = [1-d^3]; lins = []
         sage: find_variable_mapping(leqs, lins)
@@ -649,6 +652,7 @@ so that gaussian elimination has been performed by PPL on the list of equations.
         return var_map
     n = len(leqs)
     if len(variables) == 1: # workaround for single variable 'Polynomial_rational_flint'
+        # FIXME: R.<x>=PolynomialRing(QQ,1,order="lex") is considered as Multivariate Polynomial Ring.
         v = variables[0]
         for i in range(n):
             if leqs[i].degree() == 1:
@@ -659,7 +663,7 @@ so that gaussian elimination has been performed by PPL on the list of equations.
     for i in range(n):
         found_pivot = False
         for v in variables:
-            if leqs[i].coefficient(v).degree() == 0: # v is a linear variable in leqs[i].
+            if (leqs[i]//v).degree() == 0: # v is a linear variable in leqs[i].
                 coef = leqs[i].monomial_coefficient(v) # type is rational
                 if all((v not in leqs[j].variables()) for j in range(n) if j != i):
                     found_pivot = True
