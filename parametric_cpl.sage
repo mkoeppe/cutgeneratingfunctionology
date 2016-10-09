@@ -61,7 +61,7 @@ class CPLFunctionsFactory:
         values = [(bkpts[i] - phi_values[i])/f for i in range(len(bkpts))]
         return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field, merge=self._merge)
 
-def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, max_iter=0, flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=True):
+def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, max_iter=0, flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=True, max_failings=0):
     """
     Got regions[0:30]: 2-dim; regions[30:78]: 1-dim; regions[78:96]: 0-dim.
 
@@ -89,9 +89,10 @@ def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, max_iter=0, flip_ineq
                                    flip_ineq_step=flip_ineq_step, \
                                    check_completion=check_completion, \
                                    wall_crossing_method=wall_crossing_method, \
-                                   goto_lower_dim=goto_lower_dim)
+                                   goto_lower_dim=goto_lower_dim, \
+                                   max_failings = max_failings)
     else:
-        arr_complex.shoot_random_points(1000)
+        arr_complex.shoot_random_points(max_failings)
     regions = [c for c in arr_complex.components if c.region_type != 'not_constructible']
     regions.sort(key=lambda r: len(r.leq))
     return regions

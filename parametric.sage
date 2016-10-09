@@ -1229,7 +1229,7 @@ class SemialgebraicComplex(SageObject):
     def find_uncovered_random_point(self, var_bounds=None, max_failings=10000):
         """
         Return a random point that satisfies the bounds and is uncovered by any cells in the complex.
-        Return False if the number of attemps > max_failings.
+        Return None if the number of attemps > max_failings.
  
         EXAMPLES::
 
@@ -1251,8 +1251,8 @@ class SemialgebraicComplex(SageObject):
                 num_failings += 1
             else:
                 return var_value
-        logging.warn("The graph has %s components. Cannot find one more uncovered point by shooting %s random points" % (len(self.components), max_failings))
-        return False
+        logging.warn("The complex has %s cells. Cannot find one more uncovered point by shooting %s random points" % (len(self.components), max_failings))
+        return None
 
     def find_uncovered_point_mathematica(self, strict=True):
         """
@@ -1350,7 +1350,7 @@ class SemialgebraicComplex(SageObject):
         """
         for i in range(num):
             var_value = self.find_uncovered_random_point(var_bounds=var_bounds, max_failings=max_failings)
-            if var_value is False:
+            if var_value is None:
                 return
             else:
                 self.add_new_component(var_value, bddleq=[], flip_ineq_step=0, goto_lower_dim=False)
@@ -1384,13 +1384,13 @@ class SemialgebraicComplex(SageObject):
         self.num_plotted_components = len(self.components)
         return self.graph
 
-    def bfs_completion(self, var_value=None, flip_ineq_step=1/100, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=False):
+    def bfs_completion(self, var_value=None, flip_ineq_step=1/100, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=False, max_failings=0):
         """
         Breadth-first-search to complete the complex.
 
         `var_value`: the starting point. If not given, start with a random point.
         `flip_ineq_step`: a small positive number that controls the step length in wall-crossing.
-        `check_completion`: after bfs terminates, call Mathematica's FindInstance to check whether the entire parameter space is covered by cells. If not, restart the bfs from an uncovered point.
+        `check_completion`: When `check_completion is True, after bfs terminates, check whether the entire parameter space is covered by cells, using Mathematica's FindInstance (if max_failings=0) or random shooting (if max_failings>0). If an uncovered point has been found, restart the bfs from this point.
         `wall_crossing_method`: 'mathematica' or 'heuristic' or 'heuristic_with_check' ('heuristic_with_check': if heuristic wall-crossing doesn't find a new testpoint, then use mathematica to check if the ineq is not a wall).
         `goto_lower_dim`: whether lower dimensional cells are considered. If `goto_lower_dim` is False or if `goto_lower_dim` is True and `wall_crossing method` is 'heuristic' but the wall is non-linear, then find new testpoint across the wall only.
 
@@ -1421,7 +1421,10 @@ class SemialgebraicComplex(SageObject):
             if not self.is_point_covered(var_value):
                 self.add_new_component(var_value, bddleq=bddleq, flip_ineq_step=flip_ineq_step, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim)
         if check_completion:
-            uncovered_pt = self.find_uncovered_point_mathematica(strict=goto_lower_dim)
+            if max_failings == 0:
+                uncovered_pt = self.find_uncovered_point_mathematica(strict=goto_lower_dim)
+            else: # assume that check_completion is an integer.
+                uncovered_pt = self.find_uncovered_random_point(max_failings=max_failings)
             if uncovered_pt is not None:
                 logging.warn("After bfs, the complex has uncovered point %s." % (uncovered_pt,))
                 self.bfs_completion(var_value=uncovered_pt, \
