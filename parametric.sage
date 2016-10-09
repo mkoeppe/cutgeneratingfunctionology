@@ -910,7 +910,7 @@ class SemialgebraicComplexComponent(SageObject):
                 bounds_x = bounds_for_plotting(x, var_bounds[0], self.parent.default_var_bound)
             elif d == 2:
                 var_pt = [xx, yy]
-                if not is_value_in_interval(None, var_bounds[0]) and is_value_in_interval(None, var_bounds[1]):
+                if not (is_value_in_interval(None, var_bounds[0]) and is_value_in_interval(None, var_bounds[1])):
                     return g
                 bounds_x = bounds_for_plotting(x, var_bounds[0], self.parent.default_var_bound)
                 bounds_y = bounds_for_plotting(y, var_bounds[1], self.parent.default_var_bound)
@@ -1411,7 +1411,7 @@ class SemialgebraicComplex(SageObject):
 
         See more examples in the docstring of the class SemialgebraicComplex.
         """
-        if not self.components and not self.points_to_test and not var_value:
+        if not self.points_to_test and not var_value:
             var_value = self.find_uncovered_random_point()
         if var_value:
             self.points_to_test[tuple(var_value)] = copy(self.bddleq)
@@ -1426,7 +1426,10 @@ class SemialgebraicComplex(SageObject):
                 logging.warn("After bfs, the complex has uncovered point %s." % (uncovered_pt,))
                 self.bfs_completion(var_value=uncovered_pt, \
                                     flip_ineq_step=flip_ineq_step, \
-                                    check_completion=check_completion)
+                                    check_completion=check_completion, \
+                                    wall_crossing_method=wall_crossing_method, \
+                                    goto_lower_dim=goto_lower_dim)
+
     def is_complete(self, strict=False):
         """
         Return whether the entire parameter space is covered by cells.
