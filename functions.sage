@@ -2230,7 +2230,7 @@ def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None, mer
     if len(bkpt)!=len(slopes)+1:
         raise ValueError, "Need to have one breakpoint more than slopes."
     values = [0]
-    for i in range(1,len(bkpt)-1):
+    for i in range(1, len(bkpt)):
         values.append(values[i-1] + slopes[i - 1] * (bkpt[i] - bkpt[i-1]))
     return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field, merge=merge)
 
