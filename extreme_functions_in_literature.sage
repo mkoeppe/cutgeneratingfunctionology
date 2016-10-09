@@ -1196,11 +1196,12 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
             True
 
     We propose to revised the conditions for extremality, as follows.
-        s_pos > 1/f;
-        s_neg < 1/(f - 1);
-        0 < lam1 <= 1/2;
-        0 < lam2 <= 1/2;
-        ((f-1)*s_neg-1) * (1+(1-f)*s_pos) / (s_pos-s_neg) < lam1 / lam2 < (s_pos-s_neg) / ((f*s_pos-1) * (1-f*s_neg)).
+        s_pos >= 1/f;
+        s_neg <= 1/(f - 1);
+        lam1 <= 1/2;
+        lam2 <= 1/2;
+        ((f*s_pos-1) * (1-f*s_neg)) * lam1 <= (s_pos-s_neg) * lam2;
+        ((f-1)*s_neg-1) * (1+(1-f)*s_pos) * lam2 <= (s_pos-s_neg) * lam1.
 
     Examples:
         [KChen_thesis]  p.38, fig.8::
