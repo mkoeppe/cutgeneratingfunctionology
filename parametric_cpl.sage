@@ -299,7 +299,8 @@ def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=Fa
                                            max_iter=0, flip_ineq_step=1/1000, \
                                            check_completion=False, \
                                            wall_crossing_method='heuristic', \
-                                           goto_lower_dim=True):
+                                           goto_lower_dim=True, \
+                                           regions = None):
     """
     Divide the space into cells where the arrangement of breakpoints of \pi is combinatorially the same.
     For each region, find theta solutions, then subdivide into smaller components by running bfs with parametric field.
@@ -307,7 +308,8 @@ def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=Fa
     sage: regions = cpl_regions_with_thetas_and_components(3, True, False, 0, 1/1000, False, 'mathematica', True)   # not tested  # 25-30 mins
     sage: regions = cpl_regions_with_thetas_and_components(3, True, False, 0, 1/1000, False, 'heuristic', True)     # not tested  # 20 mins, 15 mins
     """
-    regions = cpl_regions_from_arrangement_of_bkpts(n, cpleq, max_iter, flip_ineq_step, False, wall_crossing_method, goto_lower_dim) # Remark: check_completion=False for arr_complex.
+    if regions is None:
+        regions = cpl_regions_from_arrangement_of_bkpts(n, cpleq, max_iter, flip_ineq_step, False, wall_crossing_method, goto_lower_dim) # Remark: check_completion=False for arr_complex.
     for i in range(len(regions)):
         r = regions[i]
         logging.warn("Cell %s with test point %s." %(i, r.var_value))
