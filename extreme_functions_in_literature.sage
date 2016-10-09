@@ -1168,10 +1168,10 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
 
     Function is claimed to be extreme under the following conditions,
     according to literature [KChen_thesis]:
-        1/2 <= f <= 1;
-        s_pos > 1/f;
-        s_neg < 1/(f - 1);
-        0 < lam1 < min(1/2, (s_pos - s_neg) / s_pos / (1 - s_neg * f));
+        1/2 <= f < 1;
+        s_pos >= 1/f;
+        s_neg <= 1/(f - 1);
+        0 <= lam1 < min(1/2, (s_pos - s_neg) / s_pos / (1 - s_neg * f));
         f - 1 / s_pos < lam2 < min(1/2, (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)).
 
     Note:
@@ -1226,14 +1226,14 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
         [KChen_thesis]:  K. Chen, Topics in group methods for integer programming,
                             Ph.D. thesis, Georgia Institute of Technology, June 2011.
     """     
-    if not (bool(0 < f < 1) and bool(s_pos > 1/f) and bool(s_neg < 1/(f - 1)) \
-                            and bool(0 < lam1 < 1) and bool(0 < lam2 < 1)):
+    if not (bool(0 < f < 1) and bool(s_pos >= 1/f) and bool(s_neg <= 1/(f - 1)) \
+                            and bool(0 <= lam1 <= 1) and bool(0 <= lam2 <= 1)):
         raise ValueError, "Bad parameters. Unable to construct the function."
     claimed_parameter_attribute = None
     if conditioncheck:
         if condition_according_to_literature:
             if bool(1/2 <= f) and bool(lam1 < 1/2) and bool(lam2 < 1/2) and \
-               bool(0 < lam1  < (s_pos - s_neg) / s_pos / (1 - s_neg * f)) and \
+               bool(0 <= lam1  < (s_pos - s_neg) / s_pos / (1 - s_neg * f)) and \
                bool (f - 1 / s_pos < lam2 < (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)):
                 claimed_parameter_attribute = 'extreme'
             else:
