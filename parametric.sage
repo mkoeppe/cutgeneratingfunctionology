@@ -612,7 +612,7 @@ def read_simplified_leq_lin(K, level="factor"):
         logging.warn("equation list %s is not empty!" % leq)
     return leq, lin
 
-def find_variable_mapping(leqs, lins):
+def find_variable_mapping(leqs):
     """
     Assume that leqs, lins are the results from read_leq_lin_from_polyhedron(),
 so that gaussian elimination has been performed by PPL on the list of equations. If an equation has a linear variable that does not appear in other equations, then eliminate this variable.
@@ -622,34 +622,29 @@ so that gaussian elimination has been performed by PPL on the list of equations.
 
         sage: logging.disable(logging.WARN)
         sage: P.<a,b,c>=QQ[]
-        sage: leqs = [a+2*b+1]; lins=[a+b+c, b+2*c-3]
-        sage: find_variable_mapping(leqs, lins)
+        sage: leqs = [a+2*b+1]
+        sage: find_variable_mapping(leqs)
         {c: c, b: b, a: -2*b - 1}
-        sage: leqs = [2*a+b, b+c-1/2]; lins=[a+b+c]
-        sage: find_variable_mapping(leqs, lins)
+        sage: leqs = [2*a+b, b+c-1/2]
+        sage: find_variable_mapping(leqs)
         {c: -b + 1/2, b: b, a: -1/2*b}
-        sage: leqs = [a*a-b, b*b-c*c]; lins=[a+b+c]
-        sage: find_variable_mapping(leqs, lins)
+        sage: leqs = [a*a-b, b*b-c*c]
+        sage: find_variable_mapping(leqs)
         {c: c, b: b, a: a}
-        sage: leqs = [a^2+4*a+1]; lins = []
-        sage: find_variable_mapping(leqs, lins)
-        sage: {c: c, b: b, a: a}
+        sage: leqs = [a^2+4*a+1]
+        sage: find_variable_mapping(leqs)
+        {c: c, b: b, a: a}
         sage: P.<d>=QQ[]
-        sage: leqs = [1-d^3]; lins = []
-        sage: find_variable_mapping(leqs, lins)
+        sage: leqs = [1-d^3]
+        sage: find_variable_mapping(leqs)
         {d: d}
     """
-    if leqs:
-        variables = leqs[0].args()
-    elif lins:
-        variables = lins[0].args()
-    else:
-        raise ValueError, "constraints are not provided."
+    if not leqs:
+        raise ValueError, "equations are not provided."
+    variables = leqs[0].args()
     var_map = {}
     for v in variables:
         var_map[v] = v
-    if not leqs:
-        return var_map
     n = len(leqs)
     if len(variables) == 1: # workaround for single variable 'Polynomial_rational_flint'
         # FIXME: R.<x>=PolynomialRing(QQ,1,order="lex") is considered as Multivariate Polynomial Ring.
@@ -834,7 +829,7 @@ class SemialgebraicComplexComponent(SageObject):
             self.var_map = {g:g for g in P.gens()}
             self.lin = lins
         else:
-            self.var_map = find_variable_mapping(self.leq, lins)
+            self.var_map = find_variable_mapping(self.leq)
             self.lin = []
             for l in lins:
                 ineq = l.subs(self.var_map)
