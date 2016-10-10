@@ -974,6 +974,37 @@ class SemialgebraicComplexComponent(SageObject):
                 g += point(pt, color = ptcolor, size = 2, zorder=10)
         return g
 
+    def plot2dslice(self, slice_value, bounds_x=None, bounds_y=None, alpha=0.5, plot_points=300):
+        """
+        slice_value is a list of symbolic expressions in var('x, y'). slice_value has the same length as self.var_value.
+        """
+        g = Graphics()
+        constraints = []
+        for leq in self.leq:
+            l = leq(slice_value)
+            if l in QQ:
+                if l != 0:
+                    return g
+            else:
+                constraints.append(l == 0)
+        for lin in self.lin + self.parent.bddlin:
+            l = lin(slice_value)
+            if l in QQ:
+                if l >= 0:
+                    return g
+            else:
+                constraints.append(l < 0)
+        innercolor = find_region_color(self.region_type)
+        bordercolor = innercolor
+        if bounds_x is None:
+            bounds_x = self.parent.default_var_bound
+        if bounds_y is None:
+            bounds_y = self.parent.default_var_bound
+        x, y = var('x, y')
+        if innercolor != 'white':
+            g += region_plot(constraints, (x, bounds_x[0], bounds_x[1]), (y, bounds_y[0], bounds_y[1]), incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
+        return g
+
     def find_walls_and_new_points(self, flip_ineq_step, wall_crossing_method, goto_lower_dim=False):
         """
         Try flipping exactly one inequality at one time, to reach a new textpoint in a neighbour cell.
@@ -1367,14 +1398,14 @@ class SemialgebraicComplex(SageObject):
         EXAMPLES::
 
             sage: logging.disable(logging.WARN)
-            sage: complex = SemialgebraicComplex(lambda x,y,z: min(x^2,y^2,z), ['x','y','z'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))        # not tested
-            sage: complex.bfs_completion()                                      # not tested
+            sage: complex = SemialgebraicComplex(lambda x,y,z: min(x^2,y^2,z), ['x','y','z'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))    # not tested
+            sage: complex.bfs_completion()                           # not tested
 
             Plot the slice in (x,y)-space with z=4.
-            sage: complex.plot(slice_value=[None, None, 4])                     # not tested
+            sage: complex.plot(slice_value=[None, None, 4])          # not tested
 
             Plot the slice in (y,z)-space with x=4.
-            sage: sage: complex.plot(slice_value=[4, None, None], restart=True) # not tested
+            sage: complex.plot(slice_value=[4, None, None])          # not tested
         """
         if restart:
             self.graph = Graphics()
@@ -1383,6 +1414,34 @@ class SemialgebraicComplex(SageObject):
             self.graph += c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value)
         self.num_plotted_components = len(self.components)
         return self.graph
+
+    def plot2dslice(self, slice_value, bounds_x=None, bounds_y=None, alpha=0.5, plot_points=300):
+        """
+        slice_value is a list of symbolic expressions in var('x, y'). slice_value has the same length as self.var_value.
+
+        EXAMPLES::
+
+            sage: logging.disable(logging.WARN)
+            sage: complex = SemialgebraicComplex(lambda x,y,z: min(x^2,y^2,z), ['x','y','z'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))    # not tested
+            sage: complex.bfs_completion(goto_lower_dim=True)        # not tested
+            sage: x, y = var('x, y')                                 # not tested
+
+            Plot the slice in (x,y)-space with z=4.
+            sage: complex.plot2dslice(slice_value=[x, y, 4])         # not tested
+
+            Plot the slice in (y,z)-space with x=4.
+            sage: complex.plot2dslice(slice_value=[4, x, y])         # not tested
+
+            Plot the slice in (x,y)-space with z=y.
+            sage: complex.plot2dslice(slice_value=[x, y, y])         # not tested
+
+            Plot the slice in (x,z)-space with y=x/2.
+            sage: complex.plot2dslice(slice_value=[x, x/2, y])       # not tested
+        """
+        g = Graphics()
+        for c in self.components:
+            g += c.plot2dslice(slice_value, bounds_x=bounds_x, bounds_y=bounds_y, alpha=alpha, plot_points=plot_points)
+        return g
 
     def bfs_completion(self, var_value=None, flip_ineq_step=1/100, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=False, max_failings=0):
         """
