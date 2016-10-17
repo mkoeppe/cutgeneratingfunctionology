@@ -986,3 +986,91 @@ def cpl3_9(f=20489/330000, z1=61603/660000, z2=72581/660000, field=None, conditi
     h = cpl_n_group_function(3,False)(f, (z1,z2), theta, field=field)
     h._claimed_parameter_attribute = claimed_parameter_attribute
     return h
+
+##### One linear equation on f, z1, z2 #####
+
+def cpl3_10(f=14/33, z1=17/264, z2=None, field=None, conditioncheck=True):
+    # 2-slope, new?
+    if z2 is None:
+        z2 = f / 2
+    claimed_parameter_attribute = None
+    if conditioncheck:
+        if bool(-f + 2*z2 == 0) and all(bool(l < 0) for l in [2*f + 2*z1 - 1, -2*f - 3*z1 + 1, -f]):
+            logging.info("Conditions for extremality are satisfied.")
+            claimed_parameter_attribute = 'extreme'
+        else:
+            logging.info("Conditions for extremality are NOT satisfied.")
+            claimed_parameter_attribute = 'not_extreme'
+    theta = ((-z1)/(2*f - 1), 0)
+    h = cpl_n_group_function(3,False)(f, (z1,z2), theta, field=field)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h
+
+def cpl3_11(f=73/160, z1=None, z2=27/160, field=None, conditioncheck=True):
+    # 2-slope, is multipicative_homomorphism(gmic(f), 2)
+    if z1 is None:
+        z1 = -f + 1/2
+    claimed_parameter_attribute = None
+    if conditioncheck:
+        if bool(-2*f - 2*z1 + 1 == 0) and all(bool(l < 0) for l in [-f + 2*z2, 2*f - 1, -z2]):
+            logging.info("Conditions for extremality are satisfied.")
+            claimed_parameter_attribute = 'extreme'
+        else:
+            logging.info("Conditions for extremality are NOT satisfied.")
+            claimed_parameter_attribute = 'not_extreme'
+    theta = (1/2, 0)
+    h = cpl_n_group_function(3,False)(f, (z1,z2), theta, field=field)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h
+
+def cpl3_12(f=5/42, z1=61/336, z2=None, field=None, conditioncheck=True):
+    # 3-slope, new?
+    if z2 is None:
+        z2 = -2*f - 3*z1 + 1
+    claimed_parameter_attribute = None
+    if conditioncheck:
+        if bool(-2*f - 3*z1 - z2 + 1 == 0) and all(bool(l < 0) for l in [-f, -3*f - 4*z1 + 1, 3*f + 3*z1 - 1]):
+            logging.info("Conditions for extremality are satisfied.")
+            claimed_parameter_attribute = 'extreme'
+        else:
+            logging.info("Conditions for extremality are NOT satisfied.")
+            claimed_parameter_attribute = 'not_extreme'
+    theta = (2*z1/(9*z1 + 3*z2 - 1), (3*z1 + 3*z2 - 1)/(9*z1 + 3*z2 - 1))
+    h = cpl_n_group_function(3,False)(f, (z1,z2), theta, field=field)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h
+
+
+def cpl3_13(f=1/14, z1=5/28, z2=None, field=None, conditioncheck=True):
+    # 3-slope, is automorphism(gj_forward_3_slope(1-f, 2*(z1+z2)/(1-f), 2*z2/f))
+    if z2 is None:
+        z2 = f/2
+    claimed_parameter_attribute = None
+    if conditioncheck:
+        if bool(-f + 2*z2 == 0) and all(bool(l < 0) for l in [-f, 3*f + 4*z1 - 1, -z1]):
+            logging.info("Conditions for extremality are satisfied.")
+            claimed_parameter_attribute = 'extreme'
+        else:
+            logging.info("Conditions for extremality are NOT satisfied.")
+            claimed_parameter_attribute = 'not_extreme'
+    theta = ((-f - 2*z1)/(2*f - 2), 0)
+    h = cpl_n_group_function(3,False)(f, (z1,z2), theta, field=field)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h
+
+def cpl3_14(f=1/24, z1=9/40, z2=None, field=None, conditioncheck=True):
+    # 3-slope, new?
+    if z2 is None:
+        z2 = (-f - 3*z1 + 1) / 2
+    claimed_parameter_attribute = None
+    if conditioncheck:
+        if bool(-f - 3*z1 - 2*z2 + 1 == 0) and all(bool(l < 0) for l in [-f, -3*f - 5*z1 + 1, 3*f + 3*z1 - 1]):
+            logging.info("Conditions for extremality are satisfied.")
+            claimed_parameter_attribute = 'extreme'
+        else:
+            logging.info("Conditions for extremality are NOT satisfied.")
+            claimed_parameter_attribute = 'not_extreme'
+    theta = (z1/(9*z1 + 6*z2 - 2), (3*z1 + 3*z2 - 1)/(9*z1 + 6*z2 - 2))
+    h = cpl_n_group_function(3,False)(f, (z1,z2), theta, field=field)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h
