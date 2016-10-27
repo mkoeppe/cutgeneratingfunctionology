@@ -26,6 +26,9 @@ load("kslope_mip.sage")
 load("crazy_perturbation.sage")
 load("crazy_perturbation_examples.sage")
 load("bug_examples.sage")
+#load("dff_functions.sage")
+#load("dff_test_plot.sage")
+#load("discontinuous_dff.sage")
 
 import extreme_functions, procedures
 
