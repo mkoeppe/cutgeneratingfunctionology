@@ -2083,20 +2083,6 @@ def nice_field_values(symb_values, field=None):
     Otherwise, the given numbers are returned as is.
     """
     ### Add tests!
-    if isinstance(field, SymbolicRealNumberField):
-        syms = []
-        vals = []
-        for element in symb_values:
-            if isinstance(element,SymbolicRNFElement):
-                syms.append(element.sym())
-                vals.append(element.val())
-            else:
-                syms.append(element)  # changed to not do SR. -mkoeppe
-                vals.append(element)
-        vals = nice_field_values(vals) #, field=RealNumberField)
-        field_values = [SymbolicRNFElement(vals[i],syms[i], parent=field) for i in range(len(symb_values))]
-        return field_values
-
     if field is None:
         field = default_field
     is_rational, field_values = is_all_QQ(symb_values)
