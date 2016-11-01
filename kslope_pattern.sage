@@ -37,9 +37,9 @@ def pattern_setup_lp(l, more_ini_additive=False, objcoef=None, use_auxiliary_del
         sage: igp.pattern_lp
         Mixed Integer Program  ( maximization, 95 variables, 121 constraints )
         sage: igp.var_slope
-        MIPVariable of dimension 1.
+        MIPVariable ...
         sage: igp.var_delta
-        MIPVariable of dimension 1.
+        MIPVariable ...
         sage: len(igp.deltafn_dic.items())
         92
         sage: igp.deltafn_dic.items()[0]
@@ -420,7 +420,6 @@ def glpk_simplex_exact_solve(lp):
 
         sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = False)
         sage: x, y = lp[0], lp[1]
-        doctest:... for details.
         sage: lp.add_constraint(-2*x + y <= 1)
         sage: lp.add_constraint(x - y <= 1)
         sage: lp.add_constraint(x + y >= 2)
