@@ -261,7 +261,12 @@ class Face:
     def is_diagonal(self):
         return self.is_1D() and \
                self.vertices[0][0] + self.vertices[0][1] == self.vertices[1][0] + self.vertices[1][1]
-    
+    def __hash__(self):
+        return sum([hash(x) for i in self.minimal_triple for x in i])
+    def __cmp__(left, right):
+        return cmp(left.minimal_triple, right.minimal_triple)
+
+
 def plot_faces(faces, **kwds):
     p = Graphics()
     for f in faces:
@@ -800,8 +805,12 @@ def generate_directly_covered_intervals(function):
         return function._directly_covered_intervals
 
     faces = generate_maximal_additive_faces(function)
+    covered_intervals = generate_directly_covered_intervals_from_faces(faces)
+    function._directly_covered_intervals = covered_intervals
+    return covered_intervals
 
-    covered_intervals = []      
+def generate_directly_covered_intervals_from_faces(faces):
+    covered_intervals = []
     for face in faces:
         if face.is_2D():
             component = []
@@ -822,7 +831,6 @@ def generate_directly_covered_intervals(function):
                 covered_intervals[i] = []
                     
     covered_intervals = remove_empty_comp(covered_intervals)
-    function._directly_covered_intervals = covered_intervals
     return covered_intervals
 
 def generate_covered_intervals(function):
@@ -830,9 +838,14 @@ def generate_covered_intervals(function):
         return function._covered_intervals
 
     logging.info("Computing covered intervals...")
-    covered_intervals = copy(generate_directly_covered_intervals(function))
     faces = generate_maximal_additive_faces(function)
+    covered_intervals = generate_covered_intervals_from_faces(faces)
+    logging.info("Computing covered intervals... done")
+    function._covered_intervals = covered_intervals
+    return covered_intervals
 
+def generate_covered_intervals_from_faces(faces):
+    covered_intervals = generate_directly_covered_intervals_from_faces(faces)
     # debugging plot:
     # show(plot_covered_intervals(function, covered_intervals), \
     #      legend_fancybox=True, \
@@ -861,9 +874,6 @@ def generate_covered_intervals(function):
                 any_change = True
 
     covered_intervals = remove_empty_comp(covered_intervals)
-    logging.info("Computing covered intervals... done")
-
-    function._covered_intervals = covered_intervals
     return covered_intervals
 
 def uncovered_intervals_from_covered_intervals(covered_intervals):
@@ -1506,6 +1516,7 @@ class FastPiecewise (PiecewisePolynomial):
         
             sage: f1(x) = 1
             sage: f2(x) = 1-x
+
             sage: f3(x) = exp(x)
             sage: f4(x) = sin(2*x)
             sage: f = FastPiecewise([[(0,1),f1],
