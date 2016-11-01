@@ -12,9 +12,14 @@ SAGEFILES =					\
 	fast_linear.sage			\
 	functions.sage				\
 	simple_extremality_test.sage		\
-	survey_examples.sage 			\
+	survey_examples.sage			\
 	extreme_functions_mlr_cpl3.sage		\
-	quasi_periodic.sage
+	quasi_periodic.sage			\
+	kslope_ppl_mip.py			\
+	vertex_enumeration.py			\
+	kslope_pattern.sage			\
+	2q_mip.sage				\
+	kslope_mip.sage
 
 all:
 	@echo "No need to 'make' anything. Just run it in Sage; see README.rst"
