@@ -55,6 +55,25 @@ def find_epsilon_interval_continuous_dff(fn, perturb):
     logging.info("Finding epsilon interval for perturbation... done.  Interval is %s", [best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound])
     return best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound
 
+def generate_perturbations_finite_dimensional_continuous_dff(f):
+    covered_intervals=generate_covered_intervals(f)
+    uncovered_intervals=generate_uncovered_intervals(f)
+    if uncovered_intervals:
+        components = copy(covered_intervals)
+        components.extend([int] for int in uncovered_intervals)
+    else:
+        components=covered_intervals
+    field = f(0).parent().fraction_field()
+    symbolic=generate_symbolic_continuous(f,components)
+    equation_matrix = generate_additivity_equations_dff_continuous(f, symbolic, field)
+    slope_jump_vects = equation_matrix.right_kernel().basis()
+    logging.info("Finite dimensional test: Solution space has dimension %s" % len(slope_jump_vects))
+    for basis_index in range(len(slope_jump_vects)):
+        slope_jump = slope_jump_vects[basis_index]
+        perturbation = slope_jump * symbolic
+        yield perturbation
+
+
 def generate_perturbations_equivariant_continuous_dff(fn):
     generator = generate_generic_seeds_with_completion(fn) 
     for seed, stab_int, walk_list in generator:
@@ -79,23 +98,7 @@ def generate_additivity_equations_dff_continuous(function, symbolic, field):
                    + [symbolic(1)]
     return matrix(field, equations)
 
-def generate_perturbations_finite_dimensional_dff(f):
-    covered_intervals=generate_covered_intervals(f)
-    uncovered_intervals=generate_uncovered_intervals(f)
-    if uncovered_intervals:
-        components = copy(covered_intervals)
-        components.extend([int] for int in uncovered_intervals)
-    else:
-        components=covered_intervals
-    field = f(0).parent().fraction_field()
-    symbolic=generate_symbolic_continuous(f,components,field)
-    equation_matrix = generate_additivity_equations_dff_continuous(f, symbolic, field)
-    slope_jump_vects = equation_matrix.right_kernel().basis()
-    logging.info("Finite dimensional test: Solution space has dimension %s" % len(slope_jump_vects))
-    for basis_index in range(len(slope_jump_vects)):
-        slope_jump = slope_jump_vects[basis_index]
-        perturbation = slope_jump * symbolic
-        yield perturbation
+
 
 def extremality_test_continuous_dff(fn):
     """Still in progress
@@ -261,7 +264,7 @@ def plot_2d_diagram_dff(fn, show_function=True, known_minimal=False, colorful=Fa
             p += point([ (y,x) for (x,y) in nonsuperadditive_vertices ], color = "red", size = 50, zorder=-1)
         else:
             new_legend_label = False
-            for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices:
+            for (x, y, z, xeps, yeps, zeps) in nonsuperadditive_vertices:
                 new_legend_label = True
                 p += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)))
                 if x != y:

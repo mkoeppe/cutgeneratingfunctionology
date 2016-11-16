@@ -29,6 +29,7 @@ load("bug_examples.sage")
 load("dff_functions.sage")
 load("dff_test_plot.sage")
 load("discontinuous_dff.sage")
+load("computer_based_search_naive_dff.sage")
 
 import extreme_functions, procedures
 
