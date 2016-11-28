@@ -1350,6 +1350,7 @@ class SemialgebraicComplex(SageObject):
         if len(new_component.leq) != len(bddleq):
             logging.warn("The cell around %s defined by %s ==0 and %s <0  has more equations than bddleq %s" %(new_component.var_value, new_component.leq, new_component.lin, bddleq))
             if not goto_lower_dim:
+                # FIXME: bug example in gj_2_slope complex with goto_lower_dim=True: WARNING: 2016-10-25 21:51:46,421 The cell around [1/2, 1/3] defined by [-6*f*lambda_1 + 1, -3*lambda_1 + 1, -2*f + 1] ==0 and [] <0  has more equations than bddleq [-2*f + 1, -3*lambda_1 + 1]
                 return
         if (flip_ineq_step != 0) and (region_type != 'stop'):
             # when using random shooting, don't generate neighbour points; don't remove redundant walls.
