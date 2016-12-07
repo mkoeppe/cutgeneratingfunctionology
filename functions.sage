@@ -1844,10 +1844,12 @@ class FastPiecewise (PiecewisePolynomial):
         from sage.plot.all import plot, Graphics
 
         g = Graphics()
-        if not 'rgbcolor' in kwds:
-            color = 'blue'
+        if 'rgbcolor' in kwds:
+            color=kwds['rgbcolor']
+        elif 'color' in kwds:
+            color=kwds['color']
         else:
-            color = kwds['rgbcolor']
+            color = 'blue'
         if not 'plot_points' in kwds:
             plot_pts = 200
         else:
