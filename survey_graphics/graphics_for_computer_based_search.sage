@@ -90,77 +90,6 @@ def plotfig9():
      g2d = plot_2d_diagram(h, show_function=False,colorful=True)
      g2d.save(destdir+"kzh_5_slope_fulldim-2d_diagram.pdf",figsize=6, show_legend =False, ticks=[[0,25/37,1],[0,1]], tick_formatter=[["$%s$" % latex(x) for x in [0,25/37,1]], ["$%s$" % latex(x) for x in [0,1]]])
 
-def plot_prescribed_faces_partial_painting(q, face_colors):
-    # face_colors is a list of length q^2+q, describing the colors {-1:grey, 0:darkgreen, 1:white} of the faces above the diagonal.
-    xticks = [i/q for i in range(q+1)]
-    xtick_formatter = [ "$%s$" % latex(x) for x in xticks ]
-    kwds = {'ticks': [xticks, xticks], \
-            'gridlines': False, \
-            'tick_formatter': [xtick_formatter, xtick_formatter]}
-    g = Graphics()
-    for i in range(q+1):
-        g += line([(0,  i/q), (1, i/q)], color='black', linestyle=':', **kwds)
-        g += line([(i/q, 0), (i/q, 1)], color='black',linestyle=':', **kwds)
-    for i in range(1, q):
-        g += line([(0,  i/q), (i/q, 0)], color='black', linestyle=':', **kwds)
-        g += line([(i/q, 1), (1, i/q)], color='black', linestyle=':', **kwds)
-    g += line([(0, 1), (1, 0)], color='black',linestyle=':', **kwds)
-    n = 0
-    for i in range(q):
-        for j in range(i,q):
-            for k in range(2):
-                face = Face([[i/q,(i+1)/q],[j/q, (j+1)/q],[(i+j+k)/q,(i+j+k+1)/q]])
-                face_color = {-1:'lightgrey',0:'darkgreen',1:'white'}[face_colors[n]] 
-                g += face.plot(fill_color = face_color)
-                if i != j:
-                    face = Face([[j/q,(j+1)/q],[i/q, (i+1)/q],[(i+j+k)/q,(i+j+k+1)/q]])
-                    g += face.plot(fill_color = face_color)
-                n += 1
-    return g
-
-def plotfig10():
-    q = 2
-    face_colors = [-1]*6
-    g = plot_prescribed_faces_partial_painting(q, face_colors)
-    g.save(destdir+'partial_painting-init.png',figsize=2,ticks=[[],[]],tick_formatter=[[],[]])
-    face_colors = [0,-1,-1,-1,-1,-1]
-    g = plot_prescribed_faces_partial_painting(q, face_colors)
-    g.save(destdir+'partial_painting-0.png',figsize=2,ticks=[[],[]],tick_formatter=[[],[]])
-    face_colors = [1,-1,-1,-1,-1,-1]
-    g = plot_prescribed_faces_partial_painting(q, face_colors)
-    g.save(destdir+'partial_painting-1.png',figsize=2,ticks=[[],[]],tick_formatter=[[],[]])
-    face_colors = [0,0,-1,-1,-1,-1]
-    g = plot_prescribed_faces_partial_painting(q, face_colors)
-    g.save(destdir+'partial_painting-00.png',figsize=2,ticks=[[],[]],tick_formatter=[[],[]])
-    face_colors = [0,1,-1,-1,-1,-1]
-    g = plot_prescribed_faces_partial_painting(q, face_colors)
-    g.save(destdir+'partial_painting-01.png',figsize=2,ticks=[[],[]],tick_formatter=[[],[]])
-    face_colors = [0,1,0,-1,-1,-1]
-    g = plot_prescribed_faces_partial_painting(q, face_colors)
-    g.save(destdir+'partial_painting-010.png',figsize=2,ticks=[[],[]],tick_formatter=[[],[]])
-    face_colors = [0,1,1,-1,-1,-1]
-    g = plot_prescribed_faces_partial_painting(q, face_colors)
-    g.save(destdir+'partial_painting-011.png',figsize=2,ticks=[[],[]],tick_formatter=[[],[]])
-    face_colors = [0,1,1,0,-1,-1]
-    g = plot_prescribed_faces_partial_painting(q, face_colors)
-    g.save(destdir+'partial_painting-0110.png',figsize=2,ticks=[[],[]],tick_formatter=[[],[]])
-    face_colors = [0,1,1,1,-1,-1]
-    g = plot_prescribed_faces_partial_painting(q, face_colors)
-    g.save('partial_painting-0111.png',figsize=2,ticks=[[],[]],tick_formatter=[[],[]])
-    face_colors = [0,1,1,1,0,-1]
-    g = plot_prescribed_faces_partial_painting(q, face_colors)
-    g.save('partial_painting-01110.png',figsize=2,ticks=[[],[]],tick_formatter=[[],[]])
-    face_colors = [0,1,1,1,1,-1]
-    g = plot_prescribed_faces_partial_painting(q, face_colors)
-    g.save(destdir+'partial_painting-01111.png',figsize=2,ticks=[[],[]],tick_formatter=[[],[]])
-    face_colors = [0,1,1,1,1,0]
-    g = plot_prescribed_faces_partial_painting(q, face_colors)
-    g.save(destdir+'partial_painting-011110.png',figsize=2,ticks=[[],[]],tick_formatter=[[],[]])
-    face_colors = [0,1,1,1,1,1]
-    g = plot_prescribed_faces_partial_painting(q, face_colors)
-    g.save(destdir+'partial_painting-011111.png',figsize=2,ticks=[[],[]],tick_formatter=[[],[]])
-
-
 def plotfig11():
     q=58;
     h1 = kzh_6_slope_1()
@@ -186,7 +115,9 @@ plotfig3()
 plotfig4()
 plotfig7()
 plotfig9()
-plotfig10()
+#plotfig10()
 plotfig11()
 
+### THE TEX FILE ###
+os.system("cd %s && (pdflatex -synctex=1 -src-specials -interaction=nonstopmode mip_notes_graphics)" % (destdir,))
 
