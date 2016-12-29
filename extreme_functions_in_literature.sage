@@ -1518,7 +1518,7 @@ def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=
 
     Parameters: real numbers `f`, `a`, `b`, where `a` is the length of interval centered at f/2, and `b` is the length of interval centered at (1+f)/2.
     Function is known to be extreme under the (sufficient) conditions:
-        0 < b <= a < f < 1;  f <= a + b and f <= (1+a-b)/2
+        0 < a < f < 1; 2*b - a <= f <= a + b and f <= (1+a-b)/2
 
     Examples::
 
@@ -1533,11 +1533,11 @@ def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=
         sage: extremality_test(h)
         False
     """
-    if not bool(0 < a < f < 1 and 0 < b < f):
+    if not bool(0 < a < f < 1 and 0 < b < 1-f):
         raise ValueError, "Bad parameters. Unable to construct the function."
     claimed_parameter_attribute = None
     if conditioncheck:
-        if not bool(b <= a and f <= a + b and f <= (1+a-b)/2):
+        if not bool(2*b - a <= f <= a + b and f <= (1+a-b)/2):
             logging.info("Conditions for extremality are NOT satisfied.")
             claimed_parameter_attribute = 'constructible'
         else:
