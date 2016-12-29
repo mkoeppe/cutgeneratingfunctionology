@@ -428,3 +428,8 @@ def save_cpl_extreme_theta_regions(thetas_and_regions, name="cpl_theta"):
         g = plot_cpl_components(components)
         g += text(title, (0.5, 1/4), color='black')
         g.save(name+"_%s.png" %k, xmin=0, xmax=1, ymin=0, ymax=1/4)
+
+def collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_theta"):
+    thetas_and_regions = cpl_thetas_and_regions_extreme(regions)
+    thetas_and_components = cpl_thetas_and_regions(regions, thetas_and_regions)
+    save_cpl_extreme_theta_regions(thetas_and_components, name=name)
