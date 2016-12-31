@@ -1454,6 +1454,30 @@ class SemialgebraicComplex(SageObject):
             g += c.plot2dslice(slice_value, alpha=alpha, plot_points=plot_points, **kwds)
         return g
 
+    def plot_bfs_tree(self, **kwds):
+        """
+        Plot the bfs tree provided that the complex is 2-dimensional.
+        EXAMPLES::
+
+            sage: logging.disable(logging.WARN)
+            sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])
+            sage: complex.bfs_completion(var_value=[4/5,1/2],flip_ineq_step=1/20)    #long time
+            sage: g = complex.plot_bfs_tree()
+        """
+        g = self.plot(**kwds)
+        for i in range(len(self.components)):
+            c = self.components[i]
+            var_value = c.var_value
+            for pt in c.neighbor_points:
+                g += line([var_value, pt],color='black',linestyle=":")
+                g += point([pt], color='black', size=5)
+            for j in range(i):
+                if tuple(var_value) in self.components[j].neighbor_points:
+                    g += line([var_value, self.components[j].var_value],color='red',linestyle="-")
+                    break
+            g += point([var_value], color='red', size=15, zorder=20)
+        return g
+
     def bfs_completion(self, var_value=None, flip_ineq_step=1/100, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=False, max_failings=0):
         """
         Breadth-first-search to complete the complex.
@@ -2174,21 +2198,3 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, ineqs, flip_ineq_step):
         if l(*current_point) >= 0:
             return None
     return tuple(QQ(x) for x in current_point)
-
-##########################
-# Plot bfs tree 2d case
-#########################
-def plot_bfs_tree(complex):
-    g = complex.plot()
-    for i in range(len(complex.components)):
-        c = complex.components[i]
-        var_value = c.var_value
-        for pt in c.neighbor_points:
-            g += line([var_value, pt],color='black',linestyle=":")
-            g += point([pt], color='black', size=5)
-        for j in range(i):
-            if tuple(var_value) in complex.components[j].neighbor_points:
-                g += line([var_value, complex.components[j].var_value],color='red',linestyle="-")
-                break
-        g += point([var_value], color='red', size=15, zorder=20)
-    return g
