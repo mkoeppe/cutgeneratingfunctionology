@@ -876,7 +876,7 @@ class SemialgebraicComplexComponent(SageObject):
         #print bounds_propagation_iter
         return bounds, tightened_mip
 
-    def plot(self, alpha=0.5, plot_points=300, slice_value=None, show_testpoints=True):
+    def plot(self, alpha=0.5, plot_points=300, slice_value=None, show_testpoints=True, **kwds):
         """
         Plot the cell.
 
@@ -951,7 +951,14 @@ class SemialgebraicComplexComponent(SageObject):
         if (not constraints) or (constraints == [False]):
             # empty polytope
             return g
-        innercolor = find_region_color(self.region_type)
+        if ('xmin' in kwds) and ('xmax' in kwds):
+            bounds_x = (x, kwds['xmin'], kwds['xmax'])
+        if ('ymin' in kwds) and ('ymax' in kwds):
+            bounds_y = (y, kwds['ymin'], kwds['ymax'])
+        if 'color'  in kwds:
+            innercolor = kwds['color']
+        else:
+            innercolor = find_region_color(self.region_type)
         bordercolor = innercolor
         if innercolor == 'white':
             ptcolor = 'black'
@@ -969,7 +976,7 @@ class SemialgebraicComplexComponent(SageObject):
                 g += point(pt, color = ptcolor, size = 2, zorder=10)
         return g
 
-    def plot2dslice(self, slice_value, bounds_x=None, bounds_y=None, alpha=0.5, plot_points=300):
+    def plot2dslice(self, slice_value, alpha=0.5, plot_points=300, **kwds):
         """
         slice_value is a list of symbolic expressions in var('x, y'). slice_value has the same length as self.var_value.
         """
@@ -989,12 +996,19 @@ class SemialgebraicComplexComponent(SageObject):
                     return g
             else:
                 constraints.append(l < 0)
-        innercolor = find_region_color(self.region_type)
-        bordercolor = innercolor
-        if bounds_x is None:
+        if ('xmin' in kwds) and ('xmax' in kwds):
+            bounds_x = (kwds['xmin'], kwds['xmax'])
+        else:
             bounds_x = self.parent.default_var_bound
-        if bounds_y is None:
+        if ('ymin' in kwds) and ('ymax' in kwds):
+            bounds_y = (y, kwds['ymin'], kwds['ymax'])
+        else:
             bounds_y = self.parent.default_var_bound
+        if 'color' in kwds:
+            innercolor = kwds['color']
+        else:
+            innercolor = find_region_color(self.region_type)
+        bordercolor = innercolor
         x, y = var('x, y')
         if innercolor != 'white':
             g += region_plot(constraints, (x, bounds_x[0], bounds_x[1]), (y, bounds_y[0], bounds_y[1]), incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
@@ -1383,7 +1397,7 @@ class SemialgebraicComplex(SageObject):
             else:
                 self.add_new_component(var_value, bddleq=[], flip_ineq_step=0, goto_lower_dim=False)
 
-    def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=True):
+    def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=True, **kwds):
         """
         Plot the complex and store the graph.
 
@@ -1408,11 +1422,11 @@ class SemialgebraicComplex(SageObject):
             self.graph = Graphics()
             self.num_plotted_components = 0
         for c in self.components[self.num_plotted_components::]:
-            self.graph += c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value)
+            self.graph += c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, **kwds)
         self.num_plotted_components = len(self.components)
         return self.graph
 
-    def plot2dslice(self, slice_value, bounds_x=None, bounds_y=None, alpha=0.5, plot_points=300):
+    def plot2dslice(self, slice_value, alpha=0.5, plot_points=300, **kwds):
         """
         slice_value is a list of symbolic expressions in var('x, y'). slice_value has the same length as self.var_value.
 
@@ -1437,7 +1451,7 @@ class SemialgebraicComplex(SageObject):
         """
         g = Graphics()
         for c in self.components:
-            g += c.plot2dslice(slice_value, bounds_x=bounds_x, bounds_y=bounds_y, alpha=alpha, plot_points=plot_points)
+            g += c.plot2dslice(slice_value, alpha=alpha, plot_points=plot_points, **kwds)
         return g
 
     def bfs_completion(self, var_value=None, flip_ineq_step=1/100, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=False, max_failings=0):
