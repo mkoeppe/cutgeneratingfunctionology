@@ -1105,6 +1105,44 @@ class SemialgebraicComplexComponent(SageObject):
                     new_points[pt_on_wall] = copy(self.leq) + [ineq]
         return walls, new_points
 
+    def discard_redundant_walls(self, flip_ineq_step=0):
+        """
+        Use Mathematica's FindInstance to discard redundant inequalities in the cell description.
+        """
+        walls = []
+        bddlin = []
+        for l in self.parent.bddlin:
+            if self.leq:
+                ineq = l.subs(self.var_map)
+                if ineq.degree() > 0:
+                    bddlin.append(ineq)
+            else:
+                bddlin.append(l)
+        # decide which inequalities among self.lin are walls (irredundant).
+        for i in range(len(self.lin)):
+            ineq = self.lin[i]
+            ineqs = self.lin[i+1::] + bddlin
+            if ineq in ineqs:
+                continue
+            ineqs = walls + ineqs
+            condstr_others = write_mathematica_constraints(self.leq, ineqs)
+            # maybe shouldn't put self.leq into FindInstance, but solve using var_map later.
+            condstr_ineq = '0<'+str(ineq)
+            if flip_ineq_step > 0:  # see hyperbole example where wall x=1/2 is not unique; discard it in this case.
+                condstr_ineq += '<'+str(flip_ineq_step)
+            pt_across_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.parent.var_name)
+            if pt_across_wall is None:
+                # ineq is not an wall
+                continue
+            walls.append(ineq)
+        self.lin = walls
+
+    def is_polyhedral(self):
+        for l in self.leq + self.lin:
+            if l.degree() > 1:
+                return False
+        return True
+
 class SemialgebraicComplex(SageObject):
     """
     A proof complex for parameter space analysis.
@@ -1310,9 +1348,9 @@ class SemialgebraicComplex(SageObject):
         logging.warn("The complex has %s cells. Cannot find one more uncovered point by shooting %s random points" % (len(self.components), max_failings))
         return None
 
-    def find_uncovered_point_mathematica(self, strict=True):
+    def find_uncovered_point_mathematica(self, strict=True, bddleq=[], bddlin=[], bddstrict=True):
         """
-        Call Mathematica's FindInstance to get a point that satisfies the bounds
+        Call Mathematica's FindInstance to get a point that satisfies the bddleq and bddlin
         and is uncovered by any cells in the complex.
 
         The argument `strict` controles whehter inequalities are treated as <= 0 or as < 0.
@@ -1327,7 +1365,10 @@ class SemialgebraicComplex(SageObject):
             sage: complex.is_point_covered(var_value)                   # optional - mathematica
             False
         """
-        condstr = write_mathematica_constraints(self.bddleq, self.bddlin, strict=True) #why strict = strict doesn't work when goto_lower_dim=False?
+        if not bddleq and not bddlin:
+            condstr = write_mathematica_constraints(self.bddleq, self.bddlin, strict=True) #why strict = strict doesn't work when goto_lower_dim=False?
+        else:
+            condstr = write_mathematica_constraints(bddleq, bddlin, strict=bddstrict)
         for c in self.components:
             condstr_c = write_mathematica_constraints(c.leq, c.lin, strict=strict)
             if condstr_c:
@@ -1566,9 +1607,9 @@ class SemialgebraicComplex(SageObject):
                                     wall_crossing_method=wall_crossing_method, \
                                     goto_lower_dim=goto_lower_dim)
 
-    def is_complete(self, strict=False):
+    def is_complete(self, strict=False, bddleq=[], bddlin=[], bddstrict=True):
         """
-        Return whether the entire parameter space is covered by cells.
+        Return whether the entire parameter space satisfying bddleq and bddlin is covered by cells.
 
         EXAMPLES::
 
@@ -1580,10 +1621,29 @@ class SemialgebraicComplex(SageObject):
             sage: complex.is_complete(strict=True)                  # optional - mathematica
             False
         """
-        if self.find_uncovered_point_mathematica(strict=strict) is None:
+        if self.find_uncovered_point_mathematica(strict=strict, bddleq=bddleq, bddlin=bddlin, bddstrict=bddstrict) is None:
             return True
         else:
             return False
+
+    def is_polyhedral(self):
+        for c in self.components:
+            if not c.is_polyhedral():
+                return False
+        return True
+
+    def subcomplex_of_cells_with_given_region_types(self, given_region_types={'is_extreme'}):
+        subcomplex = copy(self)
+        subset_components = [c for c in self.components if bool(c.region_type in given_region_types)]
+        subcomplex.components = subset_components
+        subcomplex.graph = Graphics()
+        subcomplex.num_plotted_components = 0
+        return subcomplex
+
+    def guess_boundary(self):
+        extlin = [l for c in self.components if c.leq==[] for l in c.lin]
+        boundaries = set(extlin).difference(set([-l for l in extlin]))
+        return list(boundaries)
 
 ###########################################
 # Helper functions for SemialgebraicComplex
