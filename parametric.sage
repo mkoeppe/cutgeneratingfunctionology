@@ -885,6 +885,14 @@ class SemialgebraicComplexComponent(SageObject):
         `plot_points` controls the quality of the plotting.
         """
         g = Graphics()
+        if 'xmin' in kwds:
+            g.xmin(kwds['xmin'])
+        if 'xmax' in kwds:
+            g.xmax(kwds['xmax'])
+        if 'ymin' in kwds:
+            g.ymin(kwds['ymin'])
+        if 'ymax' in kwds:
+            g.ymax(kwds['ymax'])
         x, y = var('x, y')
         var_bounds = []
         P = PolynomialRing(QQ, self.parent.var_name)
@@ -981,6 +989,14 @@ class SemialgebraicComplexComponent(SageObject):
         slice_value is a list of symbolic expressions in var('x, y'). slice_value has the same length as self.var_value.
         """
         g = Graphics()
+        if 'xmin' in kwds:
+            g.xmin(kwds['xmin'])
+        if 'xmax' in kwds:
+            g.xmax(kwds['xmax'])
+        if 'ymin' in kwds:
+            g.ymin(kwds['ymin'])
+        if 'ymax' in kwds:
+            g.ymax(kwds['ymax'])
         constraints = []
         for leq in self.leq:
             l = leq(slice_value)
@@ -1421,8 +1437,19 @@ class SemialgebraicComplex(SageObject):
         if restart:
             self.graph = Graphics()
             self.num_plotted_components = 0
+        self.graph.set_aspect_ratio(1)
+        if 'xmin' in kwds:
+            self.graph.xmin(kwds['xmin'])
+        if 'xmax' in kwds:
+            self.graph.xmax(kwds['xmax'])
+        if 'ymin' in kwds:
+            self.graph.ymin(kwds['ymin'])
+        if 'ymax' in kwds:
+            self.graph.ymax(kwds['ymax'])
         for c in self.components[self.num_plotted_components::]:
-            self.graph += c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, **kwds)
+            gc = c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, **kwds)
+            if gc: # need this because (empty g + empty gc) forgets about xmin xmax ymin ymax.
+                self.graph += gc
         self.num_plotted_components = len(self.components)
         return self.graph
 
@@ -1450,8 +1477,20 @@ class SemialgebraicComplex(SageObject):
             sage: complex.plot2dslice(slice_value=[x, x/2, y])       # not tested
         """
         g = Graphics()
+        g.set_aspect_ratio(1)
+        if 'xmin' in kwds:
+            g.xmin(kwds['xmin'])
+        if 'xmax' in kwds:
+            g.xmax(kwds['xmax'])
+        if 'ymin' in kwds:
+            g.ymin(kwds['ymin'])
+        if 'ymax' in kwds:
+            g.ymax(kwds['ymax'])
+        x, y = var('x, y')
         for c in self.components:
-            g += c.plot2dslice(slice_value, alpha=alpha, plot_points=plot_points, **kwds)
+            gc = c.plot2dslice(slice_value, alpha=alpha, plot_points=plot_points, **kwds)
+            if gc: # need this because (empty g + empty gc) forgets about xmin xmax ymin ymax.
+                g += gc
         return g
 
     def plot_bfs_tree(self, **kwds):
