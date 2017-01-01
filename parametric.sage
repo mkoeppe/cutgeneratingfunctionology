@@ -375,6 +375,43 @@ class ParametricRealField(Field):
                 logging.info("New constraint: %s == 0" % fac)
                 self._eq_factor.add(fac)
 
+    def make_proof_cell(self, **opt):
+        """
+        Make a SemialgebraiComplexComponent from a ParametricRealField.
+        
+        In **opt, one can provide: region_type, complex (parent of the cell), function, max_iter, find_region_type, default_var_bound, bddleq, bddlin, kwds_dict.
+
+        EXAMPLES::
+
+            sage: logging.disable(logging.INFO)
+
+            sage: def foo(x,y):
+            ....:     return (x+y < 2) and (y^2 < x)
+            sage: K.<x,y> = ParametricRealField([1,1/2])
+            sage: region_type = foo(*K.gens())
+            sage: c = K.make_proof_cell(region_type=region_type)
+            sage: c.lin
+            [x + y - 2, y^2 - x]
+            sage: c.plot()    #not tested
+
+            sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])
+            sage: K.<f,bkpt> = ParametricRealField([1/5,3/7])
+            sage: h = drlm_backward_3_slope(f, bkpt)
+            sage: region_type = find_region_type_igp(K, h)
+            sage: c1 = K.make_proof_cell(complex=complex,region_type=region_type)
+            sage: c1.plot()  # not tested
+            sage: c1.lin
+            [2*f - bkpt, f - 3*bkpt + 1, -2*f + 3*bkpt - 1]
+            sage: c2 = K.make_proof_cell(region_type=region_type, function=h, find_region_type=None)
+        """
+        complex = opt.pop('complex', None)
+        function = opt.pop('function', None)
+        find_region_type = opt.pop('find_region_type', return_result)
+        region_type = opt.pop('region_type', True)
+        if not complex:
+            complex = SemialgebraicComplex(function, self._names, find_region_type=find_region_type, **opt)
+        component = SemialgebraicComplexComponent(complex, self, self._values, region_type)
+        return component
 
 default_parametric_field = ParametricRealField()
 
@@ -687,6 +724,8 @@ def read_default_args(function, **opt_non_default):
         sage: read_default_args(drlm_backward_3_slope, **{'bkpt': 1/5})
         {'bkpt': 1/5, 'conditioncheck': True, 'f': 1/12, 'field': None}
     """
+    if function is None:
+        return {}
     args, varargs, keywords, defaults = sage_getargspec(function)
     default_args = {}
     if defaults is not None:
@@ -779,8 +818,6 @@ class SemialgebraicComplexComponent(SageObject):
         sage: complex = SemialgebraicComplex(foo, ['x','y'], max_iter=2, find_region_type=lambda r:r, default_var_bound=(-5,5))
         sage: K.<x,y> = ParametricRealField([1,1/2])
         sage: region_type = foo(*K.gens())
-        sage: complex.v_dict=K.v_dict
-        sage: complex.monomial_list=K.monomial_list
         sage: component = SemialgebraicComplexComponent(complex, K, [1,1/2], region_type)
         sage: component.leq, component.lin
         ([], [x + y - 2, y^2 - x])
@@ -788,7 +825,7 @@ class SemialgebraicComplexComponent(SageObject):
         sage: component.find_walls_and_new_points(1/4, 'heuristic', goto_lower_dim=False)
         ([x + y - 2, y^2 - x],
          {(19959383/28510088, 24590405/28510088): [], (11/8, 7/8): []})
-        sage: component.find_walls_and_new_points(1/4, 'mathematica', goto_lower_dim=True)
+        sage: component.find_walls_and_new_points(1/4, 'mathematica', goto_lower_dim=True)  # optional - mathematica
         ([x + y - 2, y^2 - x],
          {(0, 0): [y^2 - x],
           (2, 0): [x + y - 2],
@@ -801,8 +838,6 @@ class SemialgebraicComplexComponent(SageObject):
         sage: region_type = foo(*K.gens())
         sage: x == 2*y
         True
-        sage: complex.v_dict=K.v_dict
-        sage: complex.monomial_list=K.monomial_list
         sage: component = SemialgebraicComplexComponent(complex, K, [1,1/2], region_type)
         sage: component.leq, component.lin
         ([-x + 2*y], [y^2 - 2*y, 6*y - 4])
