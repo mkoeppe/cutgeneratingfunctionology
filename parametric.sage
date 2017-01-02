@@ -898,7 +898,26 @@ class SemialgebraicComplexComponent(SageObject):
         """
         Compute LP bounds for variables and then do upward and downward bounds propagation until
         max_iter is attained or no more changes of bounds occur.
-        See examples in def update_mccormicks_for_monomial()
+        See examples in def update_mccormicks_for_monomial().
+
+        The following example comes from chen_4_slope. It shows that the non-linear inequality is discarded from the description of the (polyhedral) cell after max_iter=2 rounds of bounds_propagation.
+
+        EXAMPLES::
+
+            sage: logging.disable(logging.INFO)
+            sage: K.<lam1,lam2>=ParametricRealField([3/10, 45/101])
+            sage: h = chen_4_slope(K(7/10), K(2), K(-4), lam1, lam2)
+            sage: region_type = find_region_type_igp(K, h)
+            sage: leq, lin = read_leq_lin_from_polyhedron(K.polyhedron, K.monomial_list, K.v_dict)
+            sage: lin
+            [21*lam1 - 8,
+             19*lam1 - 75*lam2,
+             lam1*lam2 + 79*lam1 - 60,
+             2*lam2 - 1,
+             -2*lam1 + lam2]
+            sage: c = K.make_proof_cell(region_type=region_type, function=h, find_region_type=None)
+            sage: c.lin
+            [21*lam1 - 8, 19*lam1 - 75*lam2, 2*lam2 - 1, -2*lam1 + lam2]
         """
         tightened_mip = construct_mip_of_nnc_polyhedron(polyhedron)
         # Compute LP bounds first
