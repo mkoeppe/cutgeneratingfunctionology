@@ -1145,7 +1145,8 @@ class SemialgebraicComplexComponent(SageObject):
                 pt = find_point_flip_ineq_heuristic(self.var_value, ineq, ineqs, flip_ineq_step)
                 if pt is None:
                     if wall_crossing_method == 'heuristic_with_check':
-                        condstr = write_mathematica_constraints(self.leq, ineqs) + '0<'+str(ineq)
+                        condstr = write_mathematica_constraints(self.leq, ineqs) + \
+                                  '0<'+str(ineq)+'<'+str(flip_ineq_step) # Need the last inequality? see hyperbole ex.
                         pt_across_wall = find_instance_mathematica(condstr, self.parent.var_name)
                     else:
                         pt_across_wall = None
