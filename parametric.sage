@@ -705,6 +705,32 @@ so that gaussian elimination has been performed by PPL on the list of equations.
         #     logging.warn("Can't find linear variable in %s == 0 to eliminate in the system %s == 0, %s < 0. Heurist wall crossing may fail." % (leqs[i], leqs, lins))
     return var_map
 
+def substitute_lins(lins, var_map, var_name, var_value):
+    """
+    Return a list of inequalities,
+    after substitution using var_map and simplification using the Reformulation-linearization trick.
+
+    Used in SemialgebraicComplexComponent.__init__
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: P.<x,y>=QQ[]
+        sage: var_map = {y: y, x: 75/19*y}
+        sage: lins = [21*x - 8, -x, 950*x^2 - 3700*x*y - 225*y^2 - 133*x]
+        sage: substitute_lins(lins, var_map, ['x','y'], [38/100, 96/1000])
+        [1575*y - 152, -y]
+    """
+    # Shall we factorize ineq in lins after substitution using var_map?
+    # Yes, otherwise, got -525/19*lam2^2 - 525*lam2 in chen's 4 slope
+    # at (lam1, lam2) = [20015786415699825/52611587391975857, 5070665891977289/52611587391975857]
+    K = ParametricRealField(var_value, var_name)
+    for l in lins:
+        ineq = l.subs(var_map)
+        ineq(K.gens())< 0 #always True
+    leq, lin = read_simplified_leq_lin(K)
+    return lin
+
 ######################################
 # Functions with ParametricRealField K
 ######################################
@@ -840,7 +866,7 @@ class SemialgebraicComplexComponent(SageObject):
         True
         sage: component = SemialgebraicComplexComponent(complex, K, [1,1/2], region_type)
         sage: component.leq, component.lin
-        ([-x + 2*y], [y^2 - 2*y, 6*y - 4])
+        ([-x + 2*y], [3*y - 2, -y])
     """
 
     def __init__(self, parent, K, var_value, region_type):
@@ -865,12 +891,7 @@ class SemialgebraicComplexComponent(SageObject):
             self.lin = lins
         else:
             self.var_map = find_variable_mapping(self.leq)
-            self.lin = []
-            for l in lins:
-                ineq = l.subs(self.var_map)
-                # Shall we factorize ineq?
-                if ineq.degree() > 0:
-                    self.lin.append(ineq)
+            self.lin = substitute_lins(lins, self.var_map, self.parent.var_name, self.var_value)
         self.neighbor_points = []
 
     def bounds_propagation(self, polyhedron, max_iter):
