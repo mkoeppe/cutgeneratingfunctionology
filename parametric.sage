@@ -875,6 +875,7 @@ class SemialgebraicComplexComponent(SageObject):
         self.region_type = region_type
         self.monomial_list = K.monomial_list
         self.v_dict = K.v_dict
+        #self.polyhedron = K.polyhedron
         #space_dim_old = len(self.monomial_list)
         self.bounds, tightened_mip = self.bounds_propagation(K.polyhedron, self.parent.max_iter)
         # Unimplemented
@@ -1218,6 +1219,13 @@ class SemialgebraicComplexComponent(SageObject):
             if l.degree() > 1:
                 return False
         return True
+
+    def sage_polyhedron(self):
+        if not self.is_polyhedral():
+            raise NotImplementedError, "The cell is not polyhedral. Construct the polyhedron in the lifted space."
+        ieqs = [ [-l.constant_coefficient()]+[-l.monomial_coefficient(m) for m in l.args()] for l in self.lin ]
+        eqns = [ [-l.constant_coefficient()]+[-l.monomial_coefficient(m) for m in l.args()] for l in self.leq ]
+        return Polyhedron(ieqs=ieqs, eqns=eqns)
 
 class SemialgebraicComplex(SageObject):
     """
@@ -1721,6 +1729,33 @@ class SemialgebraicComplex(SageObject):
         boundaries = set(extlin).difference(set([-l for l in extlin]))
         return list(boundaries)
 
+    def is_face_to_face(self):
+        sagepolyhedra = []
+        for c in self.components:
+            #p1 = construct_sage_polyhedron_from_nnc_polyhedron(c.polyhedron)
+            p1 = c.sage_polyhedron()
+            for p2 in sagepolyhedra:
+                p = p1.intersection(p2)
+                d = p.dimension()
+                if d == -1: # empty
+                    continue
+                is_a_face = False
+                for f in p1.faces(d):
+                    if p == f.as_polyhedron():
+                        is_a_face = True
+                        break
+                if not is_a_face:
+                    return False
+                is_a_face = False
+                for f in p2.faces(d):
+                    if p == f.as_polyhedron():
+                        is_a_face = True
+                        break
+                if not is_a_face:
+                    return False
+            sagepolyhedra.append(p1)
+        return True
+
 ###########################################
 # Helper functions for SemialgebraicComplex
 ###########################################
@@ -1795,6 +1830,15 @@ def construct_mip_of_nnc_polyhedron(nncp):
     mip.add_constraints(cs)
     mip.set_optimization_mode('minimization')
     return mip
+
+def construct_sage_polyhedron_from_nnc_polyhedron(nncp):
+    """
+    Construct a Sage's (closed) Polyhedron from PPL's NNC_Polyhedron.
+    """
+    min_cs = nncp.minimized_constraints()
+    ieqs = [ ([c.inhomogeneous_term()]+list(c.coefficients())) for c in min_cs if not c.is_equality()]
+    eqns = [ ([c.inhomogeneous_term()]+list(c.coefficients())) for c in min_cs if c.is_equality()]
+    return Polyhedron(ieqs=ieqs, eqns=eqns)
 
 def find_bounds_of_variable(mip, i):
     """
