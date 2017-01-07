@@ -675,6 +675,12 @@ so that gaussian elimination has been performed by PPL on the list of equations.
         sage: leqs = [1-d^3]
         sage: find_variable_mapping(leqs)
         {d: d}
+
+    BUGEXAMPLE:
+        sage: P.<f,a,b> = QQ[]
+        sage: find_variable_mapping([-f*a + 3*a^2 + 3*f*b - 9*a*b, -11*b + 2, -11*f + 3, -11*a + 1])
+        {b: b, a: a, f: f}
+
     """
     if not leqs:
         raise ValueError, "equations are not provided."
@@ -1118,13 +1124,10 @@ class SemialgebraicComplexComponent(SageObject):
         walls = []
         new_points = {}
         bddlin = []
-        for l in self.parent.bddlin:
-            if self.leq:
-                ineq = l.subs(self.var_map)
-                if ineq.degree() > 0:
-                    bddlin.append(ineq)
-            else:
-                bddlin.append(l)
+        if self.leq:
+            bddlin = substitute_lins(self.parent.bddlin, self.var_map, self.parent.var_name, self.var_value)
+        else:
+            bddlin = copy(self.parent.bddlin)
         # decide which inequalities among self.lin are walls (irredundant).
         for i in range(len(self.lin)):
             ineq = self.lin[i]
@@ -1182,19 +1185,16 @@ class SemialgebraicComplexComponent(SageObject):
                     new_points[pt_on_wall] = copy(self.leq) + [ineq]
         return walls, new_points
 
-    def discard_redundant_walls(self, flip_ineq_step=0):
+    def discard_redundant_inequalities(self, flip_ineq_step=0):
         """
         Use Mathematica's FindInstance to discard redundant inequalities in the cell description.
         """
         walls = []
         bddlin = []
-        for l in self.parent.bddlin:
-            if self.leq:
-                ineq = l.subs(self.var_map)
-                if ineq.degree() > 0:
-                    bddlin.append(ineq)
-            else:
-                bddlin.append(l)
+        if self.leq:
+            bddlin = substitute_lins(self.parent.bddlin, self.var_map, self.parent.var_name, self.var_value)
+        else:
+            bddlin = copy(self.parent.bddlin)
         # decide which inequalities among self.lin are walls (irredundant).
         for i in range(len(self.lin)):
             ineq = self.lin[i]
