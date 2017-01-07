@@ -1202,16 +1202,20 @@ class SemialgebraicComplexComponent(SageObject):
             if ineq in ineqs:
                 continue
             ineqs = walls + ineqs
-            condstr_others = write_mathematica_constraints(self.leq, ineqs)
-            # maybe shouldn't put self.leq into FindInstance, but solve using var_map later.
-            condstr_ineq = '0<'+str(ineq)
-            if flip_ineq_step > 0:  # see hyperbole example where wall x=1/2 is not unique; discard it in this case.
-                condstr_ineq += '<'+str(flip_ineq_step)
-            pt_across_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.parent.var_name)
+            pt_across_wall = None
+            for pt in self.neighbor_points:
+                if (ineq(pt) > 0) and all(l(pt) < 0 for l in ineqs):
+                    pt_across_wall = pt
+                    break
             if pt_across_wall is None:
-                # ineq is not an wall
-                continue
-            walls.append(ineq)
+                condstr_others = write_mathematica_constraints(self.leq, ineqs)
+                # maybe shouldn't put self.leq into FindInstance, but solve using var_map later.
+                condstr_ineq = '0<'+str(ineq)
+                if flip_ineq_step > 0:  # experimental. see hyperbole example where wall x=1/2 is not unique; discard it in this case.
+                    condstr_ineq += '<'+str(flip_ineq_step)
+                pt_across_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.parent.var_name)
+            if not (pt_across_wall is None):
+                walls.append(ineq)
         self.lin = walls
 
     def is_polyhedral(self):
@@ -1755,6 +1759,17 @@ class SemialgebraicComplex(SageObject):
                     return False
             sagepolyhedra.append(p1)
         return True
+
+    def discard_redundant_inequalities(self, flip_ineq_step=0):
+        for c in self.components:
+            c.discard_redundant_inequalities(flip_ineq_step=flip_ineq_step)
+
+    def polyhedral_complex(self):
+        """
+        Assume that the cells in the SemialgebraicComplex are polyhedral and face-to-face.
+        Return the PolyhedralComplex.
+        """
+        return PolyhedralComplex([c.sage_polyhedron() for c in self.components])
 
 ###########################################
 # Helper functions for SemialgebraicComplex
