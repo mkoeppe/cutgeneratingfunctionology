@@ -651,35 +651,29 @@ def read_simplified_leq_lin(K, level="factor"):
 
 def find_variable_mapping(leqs):
     """
+    Return the list of equations after variables elimination and return the map.
     Assume that leqs, lins are the results from read_leq_lin_from_polyhedron(),
-so that gaussian elimination has been performed by PPL on the list of equations. If an equation has a linear variable that does not appear in other equations, then eliminate this variable.
+so that gaussian elimination has been performed by PPL on the list of equations. If an equation has a linear variable, then eliminate it.
     FIXME: This function is bad; it assumes too many things.
 
     EXAMPLES::
 
         sage: logging.disable(logging.WARN)
         sage: P.<a,b,c>=QQ[]
-        sage: leqs = [a+2*b+1]
-        sage: find_variable_mapping(leqs)
-        {c: c, b: b, a: -2*b - 1}
-        sage: leqs = [2*a+b, b+c-1/2]
-        sage: find_variable_mapping(leqs)
-        {c: -b + 1/2, b: b, a: -1/2*b}
-        sage: leqs = [a*a-b, b*b-c*c]
-        sage: find_variable_mapping(leqs)
-        {c: c, b: b, a: a}
-        sage: leqs = [a^2+4*a+1]
-        sage: find_variable_mapping(leqs)
-        {c: c, b: b, a: a}
+        sage: find_variable_mapping([a+2*b+1])
+        ([a + 2*b + 1], {c: c, b: b, a: -2*b - 1})
+        sage: find_variable_mapping([2*a+b, b+c-1/2])
+        ([2*a - c + 1/2, b + c - 1/2], {c: c, b: -c + 1/2, a: 1/2*c - 1/4})
+        sage: find_variable_mapping([a*a-b, b*b-c*c])
+        ([a^2 - b, a^4 - c^2], {c: c, b: a^2, a: a})
+        sage: find_variable_mapping([a^2+4*a+1])
+        ([a^2 + 4*a + 1], {c: c, b: b, a: a})
         sage: P.<d>=QQ[]
-        sage: leqs = [1-d^3]
-        sage: find_variable_mapping(leqs)
-        {d: d}
-
-    BUGEXAMPLE:
+        sage: find_variable_mapping([1-d^3])
+        ([-d^3 + 1], {d: d})
         sage: P.<f,a,b> = QQ[]
         sage: find_variable_mapping([-f*a + 3*a^2 + 3*f*b - 9*a*b, -11*b + 2, -11*f + 3, -11*a + 1])
-        {b: b, a: a, f: f}
+        ([-11*b + 2, -11*f + 3, -11*a + 1], {b: 2/11, a: 1/11, f: 3/11})
 
     """
     if not leqs:
@@ -695,21 +689,26 @@ so that gaussian elimination has been performed by PPL on the list of equations.
         for i in range(n):
             if leqs[i].degree() == 1:
                 var_map[v] = -leqs[i].list()[0]/leqs[i].list()[1]
-                return var_map
+                for j in range(n):
+                    if j != i:
+                        leqs[j] = leqs[j].subs(var_map)
+                break
         #logging.warn("Can't solve for %s in the system %s == 0, %s < 0. Heurist wall crossing may fail." % (v, leqs, lins))
-        return var_map
-    for i in range(n):
-        found_pivot = False
-        for v in variables:
+        return [l for l in leqs if l != 0], var_map
+    for i in range(n): #range(n-1, -1, -1):
+        for v in variables:     
             if (leqs[i]//v).degree() == 0: # v is a linear variable in leqs[i].
                 coef = leqs[i].monomial_coefficient(v) # type is rational
-                if all((v not in leqs[j].variables()) for j in range(n) if j != i):
-                    found_pivot = True
-                    var_map[v] = v - leqs[i] / coef # eliminate v
-                    break
-        # if not found_pivot:
-        #     logging.warn("Can't find linear variable in %s == 0 to eliminate in the system %s == 0, %s < 0. Heurist wall crossing may fail." % (leqs[i], leqs, lins))
-    return var_map
+                v_mapped_to = v - leqs[i] / coef # eliminate v
+                var_map[v] = v_mapped_to
+                for w in variables:
+                    if w != v:
+                        var_map[w] = var_map[w].subs({v:v_mapped_to})
+                for j in range(n):
+                    if j != i:
+                        leqs[j] = leqs[j].subs({v:v_mapped_to})
+                break
+    return [l for l in leqs if l != 0], var_map
 
 def substitute_lins(lins, var_map, var_name, var_value):
     """
@@ -891,13 +890,14 @@ class SemialgebraicComplexComponent(SageObject):
         #     K.polyhedron.add_space_dimensions_and_embed(dim_to_add)
         if self.parent.max_iter == 0:
             tightened_mip = None
-        self.leq, lins = read_leq_lin_from_polyhedron(K.polyhedron, K.monomial_list, K.v_dict, tightened_mip)
-        if (self.leq == []):
+        leqs, lins = read_leq_lin_from_polyhedron(K.polyhedron, K.monomial_list, K.v_dict, tightened_mip)
+        if (leqs == []):
             P = PolynomialRing(QQ, parent.var_name)
             self.var_map = {g:g for g in P.gens()}
+            self.leq = leqs
             self.lin = lins
         else:
-            self.var_map = find_variable_mapping(self.leq)
+            self.leq, self.var_map = find_variable_mapping(leqs)
             self.lin = substitute_lins(lins, self.var_map, self.parent.var_name, self.var_value)
         self.neighbor_points = []
 
@@ -1302,7 +1302,6 @@ class SemialgebraicComplex(SageObject):
         self.var_name = var_name
         self.default_args = read_default_args(function, **opt_non_default)
         self.default_args.update(kwds_dict)
-        K = ParametricRealField([0]*self.d, var_name)
         self.graph = Graphics()
         self.num_plotted_components = 0
         self.points_to_test = {} # a dictionary of the form {testpoint: bddleq}
@@ -1508,8 +1507,7 @@ class SemialgebraicComplex(SageObject):
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         if len(new_component.leq) != len(bddleq):
             logging.warn("The cell around %s defined by %s ==0 and %s <0  has more equations than bddleq %s" %(new_component.var_value, new_component.leq, new_component.lin, bddleq))
-            if not goto_lower_dim:
-                # FIXME: bug example in gj_2_slope complex with goto_lower_dim=True: WARNING: 2016-10-25 21:51:46,421 The cell around [1/2, 1/3] defined by [-6*f*lambda_1 + 1, -3*lambda_1 + 1, -2*f + 1] ==0 and [] <0  has more equations than bddleq [-2*f + 1, -3*lambda_1 + 1]
+            if not goto_lower_dim: # happens to be a lower dim cell, stop.
                 return
         if (flip_ineq_step != 0) and (region_type != 'stop'):
             # when using random shooting, don't generate neighbour points; don't remove redundant walls.
