@@ -413,6 +413,16 @@ class ParametricRealField(Field):
         component = SemialgebraicComplexComponent(complex, self, self._values, region_type)
         return component
 
+    def add_initial_space_dim(self):
+        if self.monomial_list:
+            # the ParametricRealField already has monomials recorded. Not brand-new.
+            return
+        n = len(self._names)
+        P = PolynomialRing(QQ, self._names)
+        self.monomial_list = list(P.gens())
+        self.v_dict = {P.gens()[i]:i for i in range(n)}
+        self.polyhedron = NNC_Polyhedron(n,'universe')
+
 default_parametric_field = ParametricRealField()
 
 ###############################
@@ -730,6 +740,7 @@ def substitute_lins(lins, var_map, var_name, var_value):
     # Yes, otherwise, got -525/19*lam2^2 - 525*lam2 in chen's 4 slope
     # at (lam1, lam2) = [20015786415699825/52611587391975857, 5070665891977289/52611587391975857]
     K = ParametricRealField(var_value, var_name)
+    K.add_initial_space_dim() # needed?
     for l in lins:
         ineq = l.subs(var_map)
         ineq(K.gens())< 0 #always True
@@ -1493,6 +1504,7 @@ class SemialgebraicComplex(SageObject):
             {(19/20, 1): []}
         """
         K, test_point = construct_field_and_test_point(self.function, self.var_name, var_value, self.default_args)
+        K.add_initial_space_dim() #so that the parameters self.var_name are the first ones in the monomial list. Needed for variable elimination.
         for l in bddleq:
             # need to put these equations in K, so call comparaison.
             if not l(*K.gens()) == 0:
