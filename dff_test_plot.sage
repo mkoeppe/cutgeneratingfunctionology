@@ -187,6 +187,9 @@ def superadditivity_test_continuous(fn):
 def delta_pi_for_nonmodule_one(fn,x,y):
     return fn(x)+fn(y)-fn(x+y)
 
+def delta_pi_general_dff(fn, x, y, (xeps, yeps, zeps)=(0,0,0)):
+    return fn.limit(x, xeps) + fn.limit(y, yeps) - fn.limit(x + y, zeps)
+
 def modified_delta_pi_dff(fn, fn_values, pts, i, j):
     return fn_values[i] + fn_values[j] - fn(pts[i]+pts[j]) 
 
@@ -203,6 +206,36 @@ def generate_type_1_vertices_for_nonmodule_one(fn, comparison):
 def generate_type_2_vertices_for_nonmodule_one(fn, comparison):
     bkpt = fn.end_points()
     return ( (x, z-x, z, 0, 0, 0) for x in bkpt for z in bkpt if x <= z and comparison(delta_pi_for_nonmodule_one(fn, x, z-x), 0) ) 
+
+def generate_nonsymmetric_vertices_dff(fn):
+    if fn.is_continuous():
+        return generate_nonsymmetric_vertices_continuous_dff(fn)
+    else:
+        return generate_nonsymmetric_vertices_general_dff(fn)
+
+def generate_nonsymmetric_vertices_continuous_dff(fn):
+    bkpt=fn.end_points()
+    for i in range(len(bkpt)):
+        x=bkpt[i]
+        y=1-x
+        if fn(x)+fn(y) !=1:
+            yield(x,y,0,0)
+
+def generate_nonsymmetric_vertices_general_dff(fn):
+    bkpt = fn.end_points()
+    limits = fn.limits_at_end_points()
+    for i in range(len(bkpt)):
+        x=bkpt[i]
+        y=1-x
+        if limits[i][0] + fn(y) != 1:
+            yield (x, y, 0, 0)
+        if not fn.is_continuous():
+            limits_x = limits[i]
+            limits_y = fn.limits(y)
+            if limits_x[-1] + limits_y[1] != 1:
+                yield (x, y, -1, 1)
+            if limits_x[1] + limits_y[-1] != 1:
+                yield (x, y, 1, -1)
 
 def plot_2d_complex_dff(function):
     """
@@ -227,7 +260,7 @@ def plot_2d_complex_dff(function):
         p += parametric_plot((bkpt[i],y),(y,0,1-bkpt[i]), color='grey')
     return p
 
-def plot_2d_diagram_dff(fn, show_function=True, known_minimal=False, colorful=False):
+def plot_2d_diagram_dff(fn, show_function=True, known_maximal=False, colorful=False):
     faces = generate_maximal_additive_faces_continuous_dff(fn)
     p = Graphics()
     kwds = { 'legend_label': "Additive face" }
@@ -252,8 +285,8 @@ def plot_2d_diagram_dff(fn, show_function=True, known_minimal=False, colorful=Fa
             p += face.plot(**kwds)
         delete_one_time_plot_kwds(kwds)
 
-    ### For non-subadditive functions, show the points where delta_pi is negative.
-    if not known_minimal:
+    ### For non-superadditive functions, show the points where nabla_fn is negative.
+    if not known_maximal:
         nonsuperadditive_vertices = generate_nonsuperadditive_vertices(fn)
         kwds = { 'legend_label' : "Superadditivity violated" }
         plot_kwds_hook(kwds)
@@ -272,11 +305,89 @@ def plot_2d_diagram_dff(fn, show_function=True, known_minimal=False, colorful=Fa
             if new_legend_label:
                 # add legend_label
                 p += point([(0,0)], color = "red", size = 50, zorder=-10, **kwds)
-                p += point([(0,0)], color = "white", size = 50, zorder=-9)        
+                p += point([(0,0)], color = "white", size = 50, zorder=-9)   
+        nonsymmetric_vertices = generate_nonsymmetric_vertices_dff(fn)
+        kwds = { 'legend_label' : "Symmetry violated" }
+        plot_kwds_hook(kwds)
+        if fn.is_continuous():
+            nonsymmetric_vertices = unique_list((x,y) for (x, y, xeps, yeps) in nonsymmetric_vertices)
+            p += point(nonsymmetric_vertices, color = "mediumvioletred", size = 50, zorder=5, **kwds)
+            p += point([ (y,x) for (x,y) in nonsymmetric_vertices], color = "mediumvioletred", size = 50, zorder=5)
+        else:
+            new_legend_label = False
+            for (x, y, xeps, yeps) in nonsymmetric_vertices:
+                new_legend_label = True
+                if (xeps, yeps) == (0, 0):
+                    p += point([x, y], color="mediumvioletred", size=20, zorder=5)
+                else:
+                    p += disk([x, y], 3/100, (yeps* pi/2, (1 - xeps) * pi/2), color="mediumvioletred", zorder=5)
+                if x != y:
+                    if (xeps, yeps) == (0, 0):
+                        p += point([y, x], color="mediumvioletred", size=20, zorder=5)
+                    else:
+                        p += disk([y, x], 3/100, (xeps* pi/2, (1 - yeps) * pi/2), color="mediumvioletred", zorder=5)
+            if new_legend_label:
+                # add legend_label
+                p += point([(0,0)], color = "mediumvioletred", size = 50, zorder=-10, **kwds)
+                p += point([(0,0)], color = "white", size = 50, zorder=-9)     
     p += plot_2d_complex_dff(fn)
     if show_function:
         p += plot_function_at_borders(fn, covered_components = covered_intervals)
     return p
+
+def plot_2d_diagram_with_cones_dff(fn, show_function=True):
+    g=plot_2d_complex_dff(fn)
+    if show_function:
+        g += plot_function_at_borders(fn)
+    bkpt = uniq(copy(fn.end_points()))
+    kwds = { 'legend_label' : "Superadditivity violated" }
+    plot_kwds_hook(kwds)
+    type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y and x+y<=1]
+    type_2_vertices = [(x, z-x, z) for x in bkpt for z in bkpt if x < z]
+    vertices = set(type_1_vertices + type_2_vertices)
+    if fn.is_continuous():
+        for (x, y, z) in vertices:
+            deltafn = delta_pi_for_nonmodule_one(fn, x, y)
+            if deltafn < 0:
+                color = "white"
+            elif deltafn == 0:
+                color = "mediumspringgreen"
+            else:
+                color = "red"
+            g += point([(x, y), (y, x)], color=color, size = 200, zorder=-1, **kwds)
+    else:
+        for (x, y, z) in vertices:
+            for (xeps, yeps, zeps) in [(0,0,0)]+list(nonzero_eps):
+                if (x==0 and xeps==-1) or (y==0 and yeps==-1) or (z==0 and zeps==-1):
+                    continue
+                if (x==1 and xeps==1) or (y==1 and yeps==1) or (z==1 and zeps==1):
+                    continue
+                deltafn = delta_pi_general_dff(fn, x, y, (xeps, yeps, zeps))
+                if deltafn < 0:
+                    color = "white"
+                elif deltafn == 0:
+                    color = "mediumspringgreen"
+                else:
+                    color = "red"
+                g += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), color=color, r=0.03)
+                g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)), color=color, r=0.03)
+    kwds = { 'legend_label' : "Symmetry violated" }
+    plot_kwds_hook(kwds)
+    for i in range(len(bkpt)):
+        x=bkpt[i]
+        y=1-x
+        if fn(x)+fn(y) !=1:
+            g += point([(x, y), (y, x)], color="mediumvioletred", size = 200, zorder=-1, **kwds) 
+        if not fn.is_continuous():
+            limits_x = fn.limits(x)
+            limits_y = fn.limits(y)
+            if limits_x[-1] + limits_y[1] != 1:
+                g += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((-1, 1, 0)), color="mediumvioletred", r=0.03)
+                g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((1, -1, 0)), color="mediumvioletred", r=0.03)
+            if limits_x[1] + limits_y[-1] != 1:
+                g += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((1, -1, 0)), color="mediumvioletred", r=0.03)
+                g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((-1, 1, 0)), color="mediumvioletred", r=0.03)
+    return g
 
 
 def generate_maximal_additive_faces_continuous_dff(function):

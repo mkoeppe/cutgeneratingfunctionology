@@ -1,3 +1,58 @@
+def search_example_continuous_dff(q):
+    lp = MixedIntegerLinearProgram(base_ring=QQ)
+    x = lp.new_variable()
+    for i in range(q+1):
+        lp.add_constraint(x[i]>=0)
+    lp.add_constraint(x[0]==0)
+    lp.add_constraint(x[q]==1)
+    for i in range(1,q):
+        for j in range(i,q):
+            if (i+j)<q:
+                lp.add_constraint(x[i]+x[j]-x[i+j]<=0)
+            if (i+j)==q:
+                lp.add_constraint(x[i]+x[j]-1==0)    
+    p = lp.polyhedron(backend='normaliz')
+    v=p.vertices()
+    for k in range(len(v)):
+        h=h_from_vertex_values(v[k])
+        uncovered_intervals=generate_uncovered_intervals(h)
+        if not uncovered_intervals:
+            yield h
+
+def search_example_general_dff(q): 
+    lp = MixedIntegerLinearProgram(base_ring=QQ)
+    fn = lp.new_variable()
+    for i in range(3*q-1):
+        lp.add_constraint(fn[i]>=0)
+    lp.add_constraint(fn[0] == 0)
+    lp.add_constraint(fn[3*q-2] == 1)
+    for i in range(1,q):
+        for j in range(i,q):
+            k=i+j
+            x=3*i-1
+            y=3*j-1
+            z=3*k-1
+            if k<q:
+                lp.add_constraint(fn[x]+fn[y]-fn[z]<=0)
+            if k==q:
+                lp.add_constraint(fn[x]+fn[y]-1==0)
+            for (xeps, yeps, zeps) in nonzero_eps:
+                if k<q:
+                    lp.add_constraint(fn[x+xeps]+fn[y+yeps]-fn[z+zeps]<=0)	            
+                if k==q:
+                    if zeps==-1:
+                        lp.add_constraint(fn[x+xeps]+fn[y+yeps]-1<=0)
+                    if zeps==0:
+                        lp.add_constraint(fn[x+xeps]+fn[y+yeps]-1==0)
+    p = lp.polyhedron(backend='normaliz')
+    v=p.vertices()
+    for k in range(len(v)):
+        h=h_from_vertex_values_general(v[k])
+        uncovered_intervals=generate_uncovered_intervals(h)
+        if not uncovered_intervals:
+            yield h
+
+
 def initial_cs_dff(q):
     cs=Constraint_System()
     fn=[Variable(i) for i in range(q+1)]
