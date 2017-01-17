@@ -15,3 +15,6 @@ animation/*
 region_graphics/*
 
 docs/build
+
+/.travis_ci_gh_pages_deploy_key
+/.travis_ci_gh_pages_deploy_key.pub
