@@ -1518,9 +1518,18 @@ class SemialgebraicComplex(SageObject):
         region_type = self.find_region_type(K, h)
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
         if len(new_component.leq) != len(bddleq):
-            logging.warn("The cell around %s defined by %s ==0 and %s <0  has more equations than bddleq %s" %(new_component.var_value, new_component.leq, new_component.lin, bddleq))
-            if not goto_lower_dim: # happens to be a lower dim cell, stop.
-                return
+            for l in new_component.leq:
+                if not l in bddleq:
+                    pert_value = [var_value[i] + gradient(l)[i](var_value) / 1000 for i in range(len(var_value))]
+                    if not self.is_point_covered(pert_value):
+                        self.add_new_component(pert_value, bddleq=bddleq, flip_ineq_step=flip_ineq_step, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim)
+                    else:
+                        pert_value = [var_value[i] - gradient(l)[i](var_value) / 1000 for i in range(len(var_value))]
+                        if not self.is_point_covered(pert_value):
+                            self.add_new_component(pert_value, bddleq=bddleq, flip_ineq_step=flip_ineq_step, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim)
+                        else:
+                            logging.warn("The cell around %s defined by %s ==0 and %s <0  has more equations than bddleq %s" %(new_component.var_value, new_component.leq, new_component.lin, bddleq))
+                    return
         if (flip_ineq_step != 0) and (region_type != 'stop'):
             # when using random shooting, don't generate neighbour points; don't remove redundant walls.
             walls, new_points = new_component.find_walls_and_new_points(flip_ineq_step, wall_crossing_method, goto_lower_dim)
