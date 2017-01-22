@@ -1,3 +1,44 @@
+def pwl_compose(f,g):
+    bkpt1=f.end_points()
+    bkpt2=g.end_points()
+    bkpt=[g.end_points()[0]]
+    for i in range(len(bkpt2)-1):
+        x=bkpt2[i]
+        y=bkpt2[i+1]
+        gx=g.limits(x)[1]
+        gy=g.limits(y)[-1]
+        if gx<gy:
+            for j in range(len(bkpt1)):
+                if gx<bkpt1[j]<gy:
+                    bkpt.append(x+(y-x)*(bkpt1[j]-gx)/(gy-gx))
+        if gx>gy:
+            for j in range(len(bkpt1)):
+                if gx>bkpt1[j]>gy:
+                    bkpt.append(x+(y-x)*(bkpt1[j]-gx)/(gy-gx))
+        bkpt.append(y)
+    pieces=[]
+    for i in range(len(bkpt)-1):
+        a=bkpt[i]
+        b=bkpt[i+1]
+        pieces.append([singleton_interval(a),FastLinearFunction(0,f(g(a)))])
+        ga=g.limits(a)[1]
+        gb=g.limits(b)[-1]
+        if ga<gb:
+            fga=f.limits(ga)[1]
+            fgb=f.limits(gb)[-1]
+        if ga>gb:
+            fga=f.limits(ga)[-1]
+            fgb=f.limits(gb)[1]
+        if ga==gb:
+            fga=f(ga)
+            fgb=fga
+        slope=(fgb-fga)/(b-a)
+        intercept=fga-slope*a
+        pieces.append([open_interval(a,b), FastLinearFunction(slope,intercept)])
+    pieces.append([singleton_interval(b),FastLinearFunction(0,f(g(b)))])    
+    return FastPiecewise(pieces)    
+
+
 def find_epsilon_interval_continuous_dff(fn, perturb):
     """Compute the interval [minus_epsilon, plus_epsilon] such that 
     (fn + epsilon * perturb) is superadditive for epsilon in this interval.
@@ -116,7 +157,7 @@ def extremality_test_continuous_dff(fn):
             if epsilon>0:
                 logging.info("Not extreme")
                 return False
-    gen=generate_perturbations_finite_dimensional_dff(fn)
+    gen=generate_perturbations_finite_dimensional_continuous_dff(fn)
     for perturbation in gen:
         epsilon_interval = find_epsilon_interval_continuous_dff(fn, perturbation)
         epsilon = min(abs(epsilon_interval[0]), abs(epsilon_interval[1]))
@@ -244,15 +285,13 @@ def plot_2d_complex_dff(function):
     bkpt = function.end_points()
     x = var('x')
     p = Graphics()
-    ##kwd = ticks_keywords(function, True)
-    ##kwd['legend_label'] = "Complex Delta pi"
-    ##plot_kwds_hook(kwd)
-    ## We now use lambda functions instead of Sage symbolics for plotting, 
-    ## as those give strange errors when combined with our RealNumberFieldElement.
+    kwd = ticks_keywords(function, True)
+    kwd['legend_label'] = "Complex Delta pi"
+    plot_kwds_hook(kwd)
     for i in range(1,len(bkpt)):
         #p += plot(lambda x: bkpt[i]-x, (x, 0, bkpt[i]), color='grey', **kwd)
-        p += line([(0,  bkpt[i]), (bkpt[i], 0)], color='grey')
-        ##kwd = {}
+        p += line([(0,  bkpt[i]), (bkpt[i], 0)], color='grey', **kwd)
+        kwd = {}
     for i in range(len(bkpt)-1):
         p += plot(bkpt[i], (0, 1-bkpt[i]), color='grey')
     y=var('y')

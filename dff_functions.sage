@@ -1,4 +1,4 @@
-def f_bj_1(c):
+def phi_bj_1(c):
     """
     Summary:
         - Name: FBJ;
@@ -10,7 +10,7 @@ def f_bj_1(c):
 
     Examples:
         [1] p.25, Fig 2.4 ::
-            sage: h=f_bj_1(3/2))
+            sage: h=phi_bj_1(3/2))
             sage: superadditive_test(h)
             True
 
@@ -27,7 +27,7 @@ def f_bj_1(c):
     slope=[0,1/n/b]*n+[0]
     return piecewise_function_from_interval_lengths_and_slopes(interval, slope)
 
-def f_simple(c):
+def phi_simple(c):
     n=floor(c)
     l=1/c
     pieces=[]
@@ -38,7 +38,7 @@ def f_simple(c):
     pieces.append([closed_interval(n/c,1), FastLinearFunction(0,1)])
     return FastPiecewise(pieces)
 
-def f_ccm_1(c):
+def phi_ccm_1(c):
     n=floor(c)
     l=1/c
     m=floor(1/2/l)
@@ -56,7 +56,7 @@ def f_ccm_1(c):
                  [[left_open_interval(left_x,left_x+l), FastLinearFunction(0,1-(m-k-1)/n)]]
     return FastPiecewise(pieces)
 
-def f_fs_1(k):
+def phi_fs_1(k):
     pieces=[]
     pieces.append([singleton_interval(0),FastLinearFunction(0,0)])
     for i in range(k+1):
@@ -65,7 +65,7 @@ def f_fs_1(k):
                  [singleton_interval((i+1)/(k+1)),FastLinearFunction(0,(i+1)/(k+1))]]
     return FastPiecewise(pieces)
 
-def f_vb_2(k):
+def phi_vb_2(k):
     l=1/k
     if mod(k,2)==1:
         pieces=[]
@@ -92,7 +92,7 @@ def f_vb_2(k):
         pieces.append([singleton_interval(1),FastLinearFunction(0,1)])
         return FastPiecewise(pieces)
 
-def f_ll_1(c,k):
+def phi_ll_1(c,k):
     n=floor(c)
     beta=c-n
     l1=beta/c
@@ -108,7 +108,7 @@ def f_ll_1(c,k):
     pieces.append([closed_interval(n/c,1), FastLinearFunction(0,1)])
     return FastPiecewise(pieces)
 
-def f_ll_2(c,k):
+def phi_ll_2(c,k):
     n=floor(c)
     beta=c-n
     l1=beta/c
@@ -155,7 +155,7 @@ def f_ll_2(c,k):
         pieces.append([closed_interval(1-(m-i-1)/c-l1,1-(m-i-1)/c), FastLinearFunction(0,1-(m-1-i)/n)])    
     return FastPiecewise(pieces)
 
-def f_dg_1(c,k):
+def phi_dg_1(c,k):
     n=floor(c)
     beta=c-n
     l1=beta/c
