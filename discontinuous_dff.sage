@@ -18,6 +18,57 @@ dic_eps_to_cone = { (-1,-1,-1): [(-1, 0), (0, -1)], \
                     ( 0, 0, 0): [] \
                   }
 
+def generate_maximal_additive_faces_general_dff(function):
+    logging.info("Computing maximal additive faces...")
+    bkpt = function.end_points()
+    n = len(bkpt) - 1
+    I_list = J_list = K_list = [ (bkpt[i], bkpt[i+1]) for i in range(n) ]
+    faces = []
+    # 2D faces
+    for i in range(n):
+        for j in range(i, n):
+            for k in range(n):
+                # Check if int(I+J) intersects int(K) is non-empty.
+                if len(interval_intersection(interval_sum(I_list[i],J_list[j]),K_list[k])) == 2:
+                    face = Face( (I_list[i], J_list[j], K_list[k]) )
+                    if is_additive_face(function, face): 
+                        faces.append(face)
+                        if i != j:
+                            faces.append(x_y_swapped_face(face))
+    # 1D horizontal and vertical faces
+    for i in range(n):
+        for j in range(n):
+            for k in range(n):
+                if len(interval_intersection((bkpt[i] + bkpt[j], bkpt[i] + bkpt[j+1]), K_list[k])) == 2:
+                    face = Face( ([bkpt[i]], J_list[j], K_list[k]) )
+                    if is_additive_face(function, face): 
+                        faces.append(face)
+                        faces.append(x_y_swapped_face(face))
+    # 1D diagonal faces
+    for k in range(n+1):
+        for i in range(n):
+            for j in range(i, n):
+                interval_K = interval_sum(I_list[i],J_list[j])
+                if interval_K[0] < bkpt[k] < interval_K[1]:
+                    face = Face( (I_list[i], J_list[j], [bkpt[k]]) )
+                    if is_additive_face(function, face): 
+                        faces.append(face)
+                        if i != j:
+                            faces.append(x_y_swapped_face(face))
+    # 0D faces
+    additive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices_general_dff(function) if x != 1 and y != 1}
+    additive_vertices_seen = {vertex for face in faces for vertex in face.vertices}
+    additive_vertices_new = additive_vertices.difference(additive_vertices_seen)
+    for (x, y) in additive_vertices_new:
+        face = Face(([x], [y], [x+y]))
+        faces.append(face)
+        if x != y:
+            face = Face(([y], [x], [x+y]))
+            faces.append(face)
+
+    logging.info("Computing maximal additive faces... done")
+    return faces
+
 def generate_type_1_vertices_general_dff(fn, comparison):
     bkpt=fn.end_points()
     limits=[fn.limits(x) for x in bkpt]
@@ -81,16 +132,21 @@ def generate_nonsymmetric_vertices_general_dff(fn):
     bkpt = fn.end_points()
     limits = fn.limits_at_end_points()
     for i in range(len(bkpt)):
-        x = bkpt[i]
+        x=bkpt[i]
         y=1-x
         if limits[i][0] + fn(y) != 1:
             yield (x, y, 0, 0)
-        limits_x = limits[i]
-        limits_y = fn.limits(y)
-        if x!=0 and y!=1:
+        if not fn.is_continuous():
+            limits_x = limits[i]
+            limits_y = fn.limits(y)
+            if x==0:
+                limits_x[-1]=0
+                limits_y[1]=1
+            if x==1:
+                limits_x[1]=1
+                limits_y[-1]=0
             if limits_x[-1] + limits_y[1] != 1:
                 yield (x, y, -1, 1)
-        if x!=1 and y!=0:
             if limits_x[1] + limits_y[-1] != 1:
                 yield (x, y, 1, -1)
 

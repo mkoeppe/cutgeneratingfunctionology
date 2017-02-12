@@ -1,3 +1,20 @@
+def is_bj(f):
+    if not f.is_continuous():
+        return False
+    bkpt=f.end_points()
+    if bkpt[0]==0 and bkpt[1]==1 and f(0)==0 and f(1)==1: 
+        logging.info("The function is x")
+        return True    
+    c=1/bkpt[2]
+    g=phi_bj_1(c)
+    bkpt1=g.end_points()
+    if bkpt!=bkpt1 or f.values_at_end_points()!=g.values_at_end_points():
+        return False
+    logging.info("The function is phi_bj_1(%s)", c)     
+    return True
+
+
+
 def pwl_compose(f,g):
     bkpt1=f.end_points()
     bkpt2=g.end_points()
@@ -168,10 +185,16 @@ def extremality_test_continuous_dff(fn):
     return True
     
 
-def generate_additive_vertices_dff(fn):
+def generate_additive_vertices_continuous_dff(fn):
     return set(itertools.chain( \
                 generate_type_1_vertices_for_nonmodule_one(fn, operator.eq),\
                 generate_type_2_vertices_for_nonmodule_one(fn, operator.eq)))
+
+def generate_additive_vertices_dff(fn):
+    if fn.is_continuous():
+        return generate_additive_vertices_continuous_dff(fn)
+    else:
+        return generate_additive_vertices_general_dff(fn)
 
 
 def maximality_test_continuous_dff(fn):
@@ -194,6 +217,12 @@ def maximality_test_continuous_dff(fn):
 
 
 def symmetry_test_dff(fn):
+    if fn.is_continuous():
+        return symmetry_test_continuous_dff(fn)
+    else:
+        return symmetry_test_general_dff(fn)
+
+def symmetry_test_continuous_dff(fn):
     bkpt = fn.end_points()
     result=True
     for x in bkpt:
@@ -206,7 +235,14 @@ def symmetry_test_dff(fn):
         logging.info("f is not symmetric")
     return result
 
-def generate_nonsuperadditive_vertices(fn, reduced=True):
+def generate_nonsuperadditive_vertices(fn):
+    if fn.is_continuous():
+        return generate_nonsuperadditive_vertices_continuous(fn)
+    else:
+        return generate_nonsuperadditive_vertices_general(fn)
+
+
+def generate_nonsuperadditive_vertices_continuous(fn, reduced=True):
     return set(itertools.chain( \
                 generate_type_1_vertices_for_nonmodule_one(fn, operator.gt),\
                 generate_type_2_vertices_for_nonmodule_one(fn, operator.gt)))
@@ -216,7 +252,7 @@ def superadditivity_test_continuous(fn):
     Check if `fn` is superadditive.
     """
     result = True
-    for (x, y, z, xeps, yeps, zeps) in generate_nonsuperadditive_vertices(fn, reduced=True):
+    for (x, y, z, xeps, yeps, zeps) in generate_nonsuperadditive_vertices_continuous(fn, reduced=True):
         logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) > 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
         result = False
     if result:
@@ -262,21 +298,6 @@ def generate_nonsymmetric_vertices_continuous_dff(fn):
         if fn(x)+fn(y) !=1:
             yield(x,y,0,0)
 
-def generate_nonsymmetric_vertices_general_dff(fn):
-    bkpt = fn.end_points()
-    limits = fn.limits_at_end_points()
-    for i in range(len(bkpt)):
-        x=bkpt[i]
-        y=1-x
-        if limits[i][0] + fn(y) != 1:
-            yield (x, y, 0, 0)
-        if not fn.is_continuous():
-            limits_x = limits[i]
-            limits_y = fn.limits(y)
-            if limits_x[-1] + limits_y[1] != 1:
-                yield (x, y, -1, 1)
-            if limits_x[1] + limits_y[-1] != 1:
-                yield (x, y, 1, -1)
 
 def plot_2d_complex_dff(function):
     """
@@ -299,8 +320,8 @@ def plot_2d_complex_dff(function):
         p += parametric_plot((bkpt[i],y),(y,0,1-bkpt[i]), color='grey')
     return p
 
-def plot_2d_diagram_dff(fn, show_function=True, known_maximal=False, colorful=False):
-    faces = generate_maximal_additive_faces_continuous_dff(fn)
+def plot_2d_diagram_dff(fn, show_function=True, show_projections=True, known_maximal=False, colorful=False):
+    faces = generate_maximal_additive_faces_dff(fn)
     p = Graphics()
     kwds = { 'legend_label': "Additive face" }
     plot_kwds_hook(kwds)
@@ -370,6 +391,8 @@ def plot_2d_diagram_dff(fn, show_function=True, known_maximal=False, colorful=Fa
                 p += point([(0,0)], color = "mediumvioletred", size = 50, zorder=-10, **kwds)
                 p += point([(0,0)], color = "white", size = 50, zorder=-9)     
     p += plot_2d_complex_dff(fn)
+    if show_projections:
+        p += plot_projections_at_borders(fn)
     if show_function:
         p += plot_function_at_borders(fn, covered_components = covered_intervals)
     return p
@@ -427,6 +450,14 @@ def plot_2d_diagram_with_cones_dff(fn, show_function=True):
                 g += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((1, -1, 0)), color="mediumvioletred", r=0.03)
                 g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((-1, 1, 0)), color="mediumvioletred", r=0.03)
     return g
+
+def generate_maximal_additive_faces_dff(fn):
+    if fn.is_continuous():
+        result = generate_maximal_additive_faces_continuous_dff(fn)
+    else:
+        result = generate_maximal_additive_faces_general_dff(fn)
+    fn._maximal_additive_faces = result
+    return result
 
 
 def generate_maximal_additive_faces_continuous_dff(function):
