@@ -2899,6 +2899,11 @@ def perturbation_polyhedron(fn, perturbs):
         sage: extremality_test(h_lift)
         True
     """
+    (ieqs, eqns) = perturbation_polyhedron_ieqs_eqns(fn, perturbs)
+    pert_polyhedron = Polyhedron(ieqs = ieqs, eqns = eqns)
+    return pert_polyhedron
+
+def perturbation_polyhedron_ieqs_eqns(fn, perturbs):
     bkpt = copy(fn.end_points())
     for pert in perturbs:
         bkpt += pert.end_points()
@@ -2936,8 +2941,7 @@ def perturbation_polyhedron(fn, perturbs):
             # else:
             #     eqnset.append(constraint_coef)
             #     # this is always true for basic perturbations coming from finite_dimensional_extremality_test().
-    pert_polyhedron = Polyhedron(ieqs = unique_list(ieqset), eqns = unique_list(eqnset))
-    return pert_polyhedron
+    return unique_list(ieqset), unique_list(eqnset)
 
 def perturbation_mip(fn, perturbs, solver=None, field=None):
     """
