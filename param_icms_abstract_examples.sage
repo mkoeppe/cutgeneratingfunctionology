@@ -38,7 +38,7 @@ def is_positive_definite(self):
         raise TypeError(msg.format(universe))
     return posdef
 
-complex = SemialgebraicComplex(test_posdef, ['a', 'b'], find_region_type=find_region_type, default_var_bound=(-2,2))
+complex = SemialgebraicComplex(test_posdef, ['a', 'b'], find_region_type=return_result, default_var_bound=(-2,2))
 
 complex.shoot_random_points(10)
 #complex.bfs_completion(var_value=[-1,1], check_completion=True, goto_lower_dim=False)  # 3 components
