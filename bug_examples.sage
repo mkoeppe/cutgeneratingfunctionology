@@ -121,8 +121,8 @@ def example7slopecoarse2():
 def example7slopecoarse2_lifted():
     """
     obtained via: 
-    h = example7slopecoarse2(); lift_until_extreme(h, finite_dimensional_test_first=True); 
-    hl = last_lifted(h).
+    h = example7slopecoarse2(); hl = lift_until_extreme(h, use_all_perturbations=False, use_largest_absolute_epsilon=True);
+    example7slopecoarse2_lifted() == h._lifted._lifted
 
     sage: logging.disable(logging.INFO)
     sage: h = example7slopecoarse2_lifted()

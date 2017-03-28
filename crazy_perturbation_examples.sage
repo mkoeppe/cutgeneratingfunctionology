@@ -120,14 +120,14 @@ def kzh_minimal_has_only_crazy_perturbation_1():
         This example is obtained by the following code.
 
             sage: hmin = kzh_discontinuous_bhk_irrational(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=19/23998, c2=5/11999, y1=185/1846, y2=240/11999, field=None) # long time
-            sage: hlift = lift_until_extreme(hmin) # long time
+            sage: hlift = lift_until_extreme(hmin, use_all_perturbations=False, use_largest_absolute_epsilon=False) # long time
             sage: (h - hlift).list() # long time
             [[(0, 1), <FastLinearFunction 0>]]
 
         Without knowing the input values of kzh_discontinuous_bhk_irrational() that gives a minimal valid `hmin`, one could use the default values to construct a non-minimal discontinuous function, and then lift the function to minimal, as follows.
 
             sage: h_org = kzh_discontinuous_bhk_irrational() # long time
-            sage: hmin_from_org = lift(h_org, phase_1=True) # long time
+            sage: hmin_from_org = lift(h_org, phase_1=True, use_all_perturbations=False, use_largest_absolute_epsilon=False) # long time
             sage: (hmin - hmin_from_org).list() # long time
             [[(0, 1), <FastLinearFunction 0>]]
 
