@@ -2900,7 +2900,7 @@ def perturbation_polyhedron(fn, perturbs):
         True
     """
     (ieqs, eqns) = perturbation_polyhedron_ieqs_eqns(fn, perturbs)
-    pert_polyhedron = Polyhedron(ieqs = ieqs, eqns = eqns)
+    pert_polyhedron = Polyhedron(ieqs = ieqs, eqns = eqns, backend='polymake')
     return pert_polyhedron
 
 def perturbation_polyhedron_ieqs_eqns(fn, perturbs):
