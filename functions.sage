@@ -2160,7 +2160,7 @@ def approx_discts_function(perturbation_list, stability_interval, field=default_
         slope_plus, slope_minus = limiting_slopes(function)
         current_slope = function.which_function(perturb_points[0])._slope
         template_bkpts = [0, (current_slope - slope_minus)/(slope_plus - slope_minus), 1]
-        print slope_plus, slope_minus, current_slope, template_bkpts
+        #print slope_plus, slope_minus, current_slope, template_bkpts
         template_values = [0, 1, 0]
     elif perturbation_style == slopes_proportional_to_limiting_slopes_for_negative_epsilon:
         if function is None:
@@ -2168,7 +2168,7 @@ def approx_discts_function(perturbation_list, stability_interval, field=default_
         slope_plus, slope_minus = limiting_slopes(function)
         current_slope = function.which_function(perturb_points[0])._slope
         template_bkpts = [0, (slope_plus - current_slope)/(slope_plus - slope_minus), 1]
-        print slope_plus, slope_minus, current_slope, template_bkpts
+        #print slope_plus, slope_minus, current_slope, template_bkpts
         template_values = [0, 1, 0]
     else:
         raise ValueError, "Unknown perturbation_style: %s" % perturbation_style
