@@ -2834,7 +2834,7 @@ def plot_completion_diagram(fn, perturbation=None):
         g += plot_walk_in_completion_diagram(perturbation._seed, perturbation._walk_list)
     return g
 
-def perturbation_polyhedron(fn, perturbs):
+def perturbation_polyhedron(fn, perturbs, **kwds):
     """
     Given `fn` and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a polyhedron, one dimension for each basic perturbation, with the subadditivities.
 
@@ -2900,7 +2900,7 @@ def perturbation_polyhedron(fn, perturbs):
         True
     """
     (ieqs, eqns) = perturbation_polyhedron_ieqs_eqns(fn, perturbs)
-    pert_polyhedron = Polyhedron(ieqs = ieqs, eqns = eqns, backend='polymake')
+    pert_polyhedron = Polyhedron(ieqs = ieqs, eqns = eqns, **kwds)
     return pert_polyhedron
 
 def perturbation_polyhedron_ieqs_eqns(fn, perturbs):
