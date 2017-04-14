@@ -1,3 +1,30 @@
+def maximality_test_dff(f):
+    if f.is_continuous():
+        return maximality_test_continuous_dff(f)
+    else:
+        return maximality_test_general_dff(f)
+
+def extremality_test_dff(f):
+    if f.is_continuous():
+        return extremality_test_continuous_dff(f)
+    else:
+        return extremality_test_general_dff(f)
+
+def superadditive_test(f):
+    if f.is_continuous():
+        return superadditivity_test_continuous(f)
+    else:
+        return superadditivity_test_general(f)
+
+
+
+def is_equal(f,h):
+    bkpt1=f.end_points()
+    bkpt2=h.end_points()
+    if bkpt1!=bkpt2 or f.limits_at_end_points()!=h.limits_at_end_points():
+        return False
+    return True
+
 def is_bj(f):
     if not f.is_continuous():
         return False
@@ -299,7 +326,7 @@ def generate_nonsymmetric_vertices_continuous_dff(fn):
             yield(x,y,0,0)
 
 
-def plot_2d_complex_dff(function):
+def plot_2d_complex_dff(function,show_tag=True):
     """
     Return a plot of the horizonal lines, vertical lines, and diagonal lines of the complex.
     """
@@ -307,7 +334,8 @@ def plot_2d_complex_dff(function):
     x = var('x')
     p = Graphics()
     kwd = ticks_keywords(function, True)
-    kwd['legend_label'] = "Complex Delta pi"
+    if show_tag:
+        kwd['legend_label'] = "Complex Delta pi"
     plot_kwds_hook(kwd)
     for i in range(1,len(bkpt)):
         #p += plot(lambda x: bkpt[i]-x, (x, 0, bkpt[i]), color='grey', **kwd)
@@ -395,6 +423,167 @@ def plot_2d_diagram_dff(fn, show_function=True, show_projections=True, known_max
         p += plot_projections_at_borders(fn)
     if show_function:
         p += plot_function_at_borders(fn, covered_components = covered_intervals)
+    return p
+
+def plot_2d_diagram_dff_no_lable(fn, show_function=True, show_projections=True, known_maximal=False, colorful=False):
+    faces = generate_maximal_additive_faces_dff(fn)
+    p = Graphics()
+    if colorful:
+        covered_intervals = generate_covered_intervals(fn)
+        colors = rainbow(len(covered_intervals))
+        interval_color = [(interval[0], i) \
+                          for (i, component) in enumerate(covered_intervals) \
+                          for interval in component]
+        interval_color.sort()
+    else:
+        covered_intervals = None
+    for face in faces:
+        if not covered_intervals is None and face.is_2D():
+            I = face.minimal_triple[0]
+            x = (I[0] + I[1]) / 2
+            j = bisect_left(interval_color, (x, len(covered_intervals) + 1)) # should be bisect
+            i = interval_color[j-1][1]
+            p += face.plot(fill_color = colors[i])
+        else:
+            p += face.plot()
+
+    ### For non-superadditive functions, show the points where nabla_fn is negative.
+    if not known_maximal:
+        nonsuperadditive_vertices = generate_nonsuperadditive_vertices(fn)
+        if fn.is_continuous():
+            nonsuperadditive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in nonsuperadditive_vertices}
+            p += point(list(nonsuperadditive_vertices),
+                       color = "red", size = 50, zorder=-1)
+            p += point([ (y,x) for (x,y) in nonsuperadditive_vertices ], color = "red", size = 50, zorder=-1)
+        else:
+            new_legend_label = False
+            for (x, y, z, xeps, yeps, zeps) in nonsuperadditive_vertices:
+                new_legend_label = True
+                p += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)))
+                if x != y:
+                    p += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)))
+            if new_legend_label:
+                # add legend_label
+                p += point([(0,0)], color = "red", size = 50, zorder=-10)
+                p += point([(0,0)], color = "white", size = 50, zorder=-9)   
+        nonsymmetric_vertices = generate_nonsymmetric_vertices_dff(fn)
+        if fn.is_continuous():
+            nonsymmetric_vertices = unique_list((x,y) for (x, y, xeps, yeps) in nonsymmetric_vertices)
+            p += point(nonsymmetric_vertices, color = "mediumvioletred", size = 50, zorder=5)
+            p += point([ (y,x) for (x,y) in nonsymmetric_vertices], color = "mediumvioletred", size = 50, zorder=5)
+        else:
+            new_legend_label = False
+            for (x, y, xeps, yeps) in nonsymmetric_vertices:
+                new_legend_label = True
+                if (xeps, yeps) == (0, 0):
+                    p += point([x, y], color="mediumvioletred", size=20, zorder=5)
+                else:
+                    p += disk([x, y], 3/100, (yeps* pi/2, (1 - xeps) * pi/2), color="mediumvioletred", zorder=5)
+                if x != y:
+                    if (xeps, yeps) == (0, 0):
+                        p += point([y, x], color="mediumvioletred", size=20, zorder=5)
+                    else:
+                        p += disk([y, x], 3/100, (xeps* pi/2, (1 - yeps) * pi/2), color="mediumvioletred", zorder=5)
+            if new_legend_label:
+                # add legend_label
+                p += point([(0,0)], color = "mediumvioletred", size = 50, zorder=-10)
+                p += point([(0,0)], color = "white", size = 50, zorder=-9)     
+    p += plot_2d_complex_dff(fn,show_tag=False)
+    if show_projections:
+        p += plot_projections_at_borders_no_lable(fn)
+    if show_function:
+        p += plot_function_at_borders_no_lable(fn, covered_components = covered_intervals)
+    return p
+
+
+def plot_projections_at_borders_no_lable(fn):
+    """
+    Plot the projections p1(F), p2(F), p3(F) of all full-dimensional
+    additive faces F of `fn` as gray shadows: p1(F) at the top border,
+    p2(F) at the left border, p3(F) at the bottom and the right
+    borders.
+    """
+    g = Graphics()
+    I_J_verts = set()
+    K_verts = set()
+    kwds = { 'alpha': proj_plot_alpha, 'zorder': -10 }
+    if proj_plot_colors[0] == proj_plot_colors[1] == proj_plot_colors[2]:
+        IJK_kwds = [ kwds for i in range(3) ]
+    elif proj_plot_colors[0] == proj_plot_colors[1]:
+        IJK_kwds = [ kwds, kwds, copy(kwds) ]
+    else:
+        IJK_kwds = [ copy(kwds) for i in range(3) ]
+    for i in range(3):
+        #IJK_kwds[i]['legend_color'] = proj_plot_colors[i] # does not work in Sage 5.11
+        IJK_kwds[i]['color'] = proj_plot_colors[i]
+        plot_kwds_hook(IJK_kwds[i])
+    for face in generate_maximal_additive_faces(fn):
+        I, J, K = face.minimal_triple
+        I_J_verts.update(I) # no need for J because the x-y swapped face will also be processed
+        K_verts.update(K)
+        g += plot_projections_of_one_face(face, IJK_kwds)
+    for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices(fn):
+        I_J_verts.add(x)
+        I_J_verts.add(y)
+        K_verts.add(z)
+    # plot dashed help lines corresponding to non-breakpoint projections. 
+    # (plot_2d_complex already draws solid lines for the breakpoints.)
+    I_J_verts.difference_update(fn.end_points())
+    for x in I_J_verts:
+        g += line([(x, 0), (x, 1)], linestyle=':', color='grey')
+        g += line([(0, x), (1, x)], linestyle=':', color='grey')
+    K_verts.difference_update(fn.end_points())
+    K_verts.difference_update(1 + x for x in fn.end_points())
+    for z in K_verts:
+        if z <= 1:
+            g += line([(0, z), (z, 0)], linestyle=':', color='grey')
+        else:
+            g += line([(1, z-1), (z-1, 1)], linestyle=':', color='grey')
+    return g
+
+
+def plot_function_at_borders_no_lable(fn, color='blue', covered_components=None):
+    """
+    Plot the function twice, on the upper and the left border, 
+    to decorate 2d diagrams.
+    """
+    p = Graphics()
+    bkpt = fn.end_points()
+    limits = fn.limits_at_end_points()
+    if not covered_components is None:
+        color = 'black'
+    if limits[0][0] is not None and limits[0][0] != limits[0][1]:
+        p += point([(0,1), (0,0)], color=color, size = 23, zorder=-1)
+    for i in range(len(bkpt) - 1):
+        x1 = bkpt[i]
+        y1 = limits[i][1]
+        x2 = bkpt[i+1]
+        y2 = limits[i+1][-1]
+        y3 = limits[i+1][0]
+        y4 = limits[i+1][1]
+        if y1 is not None and y2 is not None:
+            p += line([(x1, (3/10)*y1 + 1), (x2, (3/10)*y2 + 1)], color=color, zorder=-2)
+           
+            p += line([(-3/10*y1, x1), (-(3/10)*y2, x2)], color=color, zorder=-2)
+        if y1 is not None and limits[i][0] != y1:
+            p += point([(x1, (3/10)*y1 + 1), (-(3/10)*y1, x1)], color=color, pointsize=23, zorder=-1)
+            p += point([(x1, (3/10)*y1 + 1), (-(3/10)*y1, x1)], color='white', pointsize=10, zorder=-1)
+        if y2 is not None and y2 != y3:
+            p += point([(x2, (3/10)*y2 + 1), (-(3/10)*y2, x2)], color=color, pointsize=23, zorder=-1)
+            p += point([(x2, (3/10)*y2 + 1), (-(3/10)*y2, x2)], color='white', pointsize=10, zorder=-1)
+        if y3 is not None and ((y2 != y3) or ((i < len(bkpt) - 2) and (y3 != y4))) and \
+                              ((i == len(bkpt)-2) or not (y3 == y4 and y2 is None) and \
+                                                     not (y2 == y3 and y4 is None)):
+            p += point([(x2, (3/10)*y3 + 1), (-(3/10)*y3, x2)], color=color, pointsize=23, zorder=-1)
+    # plot function at borders with different colors according to slope values.
+    p += plot_covered_components_at_borders(fn, covered_components)
+    # add legend_label
+    if fn.is_discrete():
+        p += point([(0,0)], color=color, pointsize=23, zorder=-10)
+        p += point([(0,0)], color='white', pointsize=23, zorder=-9)
+    else:
+        p += line([(0,0), (0,1)], color=color, zorder=-10)
+        p += line([(0,0), (0,1)], color='white', zorder=-9)
     return p
 
 def plot_2d_diagram_with_cones_dff(fn, show_function=True):

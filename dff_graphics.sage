@@ -108,5 +108,11 @@ g=plot_2d_diagram_with_cones_dff(f)
 g.save("/Users/arsenalcrown/Dropbox/jiawei-bhk-papers/jiawei/dff-paper/dff_paper_graphics/discontinuous_function_example.png")
 
 f=phi_bj_1(5/2)
-g=plot_2d_diagram_dff(f)
-g.save("/Users/arsenalcrown/Dropbox/jiawei-bhk-papers/jiawei/dff-paper/dff_paper_graphics/extremality_test_example.png")
+g=plot_2d_diagram_dff_no_lable(f,show_projections=False)
+g.save("/Users/arsenalcrown/Dropbox/jiawei-bhk-papers/jiawei/dff-paper/dff_paper_graphics/maximality_test_example.png")
+
+f=w_2slope_3covered()
+g=plot_2d_diagram_dff_no_lable(f, colorful=True)
+g.save("/Users/arsenalcrown/Dropbox/jiawei-bhk-papers/jiawei/dff-paper/dff_paper_graphics/continuous_2slope_3covered.png")
+
+
