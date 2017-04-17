@@ -175,12 +175,26 @@ class Face:
         
     def directed_move_with_domain_and_codomain(self):
         """
-        Maps a horizontal edge to a forward translation,
-        a vertical edge to a backward translation, 
-        a diagonal edge to a reflection.
+        Maps a horizontal/vertical edge to a forward translation move.
+        (Backward translation moves will be added to DirectedMoveCompositionCompletion by add_backward_moves() in round 0.)
+        Maps a diagonal edge to a reflection move.
 
         `domain` and `codomain` are lists of open intervals.
         Endpoints of `domain` and `codomain` will be taken care of by additive vertices.
+
+        EXAMPLES::
+
+            sage: face_hor = Face([[2/5, 3/5],[4/5],[6/5,7/5]])
+            sage: face_hor.directed_move_with_domain_and_codomain()
+            ((1, -1/5), [<Int(2/5, 3/5)>], [<Int(1/5, 2/5)>])
+            sage: face_ver = Face([[4/5],[2/5, 3/5],[6/5,7/5]])
+            sage: face_ver.directed_move_with_domain_and_codomain() == face_hor.directed_move_with_domain_and_codomain()
+            True
+            sage: face_dia = Face([[2/5, 3/5],[2/5, 1/5],[4/5]])
+            sage: face_dia.directed_move_with_domain_and_codomain()
+            ((-1, 4/5),
+             [<Int(2/5, 3/5)>, <Int(1/5, 2/5)>],
+             [<Int(1/5, 2/5)>, <Int(2/5, 3/5)>])
         """
         (I, J, K) = self.minimal_triple
         if self.is_horizontal():
@@ -198,8 +212,46 @@ class Face:
             raise ValueError, "Face does not correspond to a directed move: %s" % self
 
     def functional_directed_move(self):
+        """
+        Return the (forward) translation move if given a horizontal/vertical edge, or the reflection move if given a diagonal edge.
+
+        EXAMPLES::
+
+            sage: face_hor = Face([[2/5, 3/5],[4/5],[6/5,7/5]])
+            sage: face_hor.functional_directed_move()
+            <FunctionalDirectedMove (1, -1/5) with domain [<Int(2/5, 3/5)>], range [<Int(1/5, 2/5)>]>
+            sage: face_ver = Face([[4/5],[2/5, 3/5],[6/5,7/5]])
+            sage: face_ver.functional_directed_move() == face_hor.functional_directed_move()
+            True
+            sage: face_dia = Face([[2/5, 3/5],[2/5, 1/5],[4/5]])
+            sage: face_dia.functional_directed_move()
+            <FunctionalDirectedMove (-1, 4/5) with domain [<Int(1/5, 2/5)>, <Int(2/5, 3/5)>], range [<Int(2/5, 3/5)>, <Int(1/5, 2/5)>]>
+
+        """
         directed_move, domain, codomain = self.directed_move_with_domain_and_codomain()
         fdm = FunctionalDirectedMove(domain, directed_move)
+        return fdm
+
+    def backward_functional_directed_move(self):
+        """
+        Return the (backward) translation move if given a horizontal/vertical edge, or the reflection move if given a diagonal edge.
+        This function is not used. Backward translation moves will be computed from forward_fdm and will be added to DirectedMoveCompositionCompletion by calling add_backward_moves() in its round 0.
+
+        EXAMPLES::
+
+            sage: face_hor = Face([[2/5, 3/5],[4/5],[6/5,7/5]])
+            sage: face_hor.backward_functional_directed_move()
+            <FunctionalDirectedMove (1, 1/5) with domain [<Int(1/5, 2/5)>], range [<Int(2/5, 3/5)>]>
+            sage: face_ver = Face([[4/5],[2/5, 3/5],[6/5,7/5]])
+            sage: face_ver.backward_functional_directed_move() == face_hor.backward_functional_directed_move()
+            True
+            sage: face_dia = Face([[2/5, 3/5],[2/5, 1/5],[4/5]])
+            sage: face_dia.backward_functional_directed_move()
+            <FunctionalDirectedMove (-1, 4/5) with domain [<Int(1/5, 2/5)>, <Int(2/5, 3/5)>], range [<Int(2/5, 3/5)>, <Int(1/5, 2/5)>]>
+
+        """
+        directed_move, domain, codomain = self.directed_move_with_domain_and_codomain()
+        fdm = FunctionalDirectedMove(codomain, (directed_move[0], -directed_move[0]*directed_move[1]))
         return fdm
 
     def is_0D(self):
