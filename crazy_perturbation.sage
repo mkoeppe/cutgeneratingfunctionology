@@ -159,6 +159,15 @@ class PiecewiseCrazyFunction:
 def is_in_ZZ_span(x, generators):
     # assume that all inputs are elements from a same RNF.
     # generators are linearly independent over Q
+    numbers = [x]+generators
+    if not is_all_the_same_number_field_fastpath(numbers):
+        numbers = nice_field_values(numbers, RealNumberField)
+        if not is_NumberFieldElement(numbers[0]):
+            if is_all_QQ(numbers):
+                raise ValueError, "generators are not Q-linear independent"
+            raise ValueError, "Q-linear independence test only implemented for algebraic numbers"
+    x = numbers[0]
+    generators = numbers[1::]
     lgens = [g.list() for g in generators]
     lx = x.list()
     #if rank(matrix(QQ,lgens+[lx])) != len(generators):
