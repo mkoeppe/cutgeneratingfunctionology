@@ -2307,6 +2307,51 @@ class FunctionalDirectedMove (FastPiecewise):
     def is_functional(self):
         return True
 
+    def additive_faces(self, is_backward_translation=False):
+        """
+        Map FunctionalDirectedMove back to one-dimensional additive face(s) in the 2d-diagram.
+        EXAMPLES::
+
+            sage: face_hor = Face([[2/5, 3/5],[4/5],[6/5,7/5]])
+            sage: face_ver = Face([[4/5],[2/5, 3/5],[6/5,7/5]])
+            sage: fdm_f = face_hor.functional_directed_move()
+            sage: fdm_b = face_hor.functional_directed_move(is_backward_translation=True)
+            sage: fdm_f.additive_faces() == [face_hor, face_ver]
+            True
+            sage: fdm_b.additive_faces(is_backward_translation=True) == [face_hor, face_ver] 
+            True   
+            sage: face_dia = Face([[2/5, 3/5],[2/5, 1/5],[4/5]])
+            sage: fdm_d = face_dia.functional_directed_move()
+            sage: fdm_d.additive_faces()
+            [<Face ([1/5, 2/5], [2/5, 3/5], [4/5])>,
+             <Face ([2/5, 3/5], [1/5, 2/5], [4/5])>]
+        """
+        directed_move = self.directed_move
+        domain = self.intervals()
+        codomain = self.range_intervals()
+        n = len(domain)
+        faces = []
+        if directed_move[0] == 1:
+            if not is_backward_translation:
+                # forward translation
+                t = fractional(directed_move[1])
+                for i in range(n):
+                    a, b = domain[i][0], domain[i][1]
+                    faces += [Face([[a, b],[t],[a+t, b+t]]),Face([[t],[a, b],[a+t, b+t]])]
+            else:
+                # backward translation
+                t = fractional(-directed_move[1])
+                for i in range(n):
+                    a, b = codomain[i][0], codomain[i][1]
+                    faces += [Face([[a, b],[t],[a+t, b+t]]),Face([[t],[a, b],[a+t, b+t]])]
+        else:
+            # reflection
+            r = directed_move[1]
+            for i in range(n):
+                a, b = domain[i][0], domain[i][1]
+                faces.append(Face([[a, b],[r-b, r-a],[r]]))
+        return faces
+
     def __getitem__(self, item):
         return self.directed_move[item]
 
