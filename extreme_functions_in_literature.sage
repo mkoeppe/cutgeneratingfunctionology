@@ -832,7 +832,7 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
     if len(delta) < 2:
         logging.info("Conditions for extremality are NOT satisfied.")
     elif len(delta) == 2:
-        if is_QQ_linearly_independent(delta) and  2*delta[0] + delta[1] < d2 / 2:
+        if is_QQ_linearly_independent(*delta) and  2*delta[0] + delta[1] < d2 / 2:
             logging.info("Conditions for extremality are satisfied if it is a minimal function.")
         else:
             logging.info("Conditions for extremality are NOT satisfied.")
@@ -943,7 +943,7 @@ def bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2
     elif len(delta) < 2:
         logging.info("Conditions for extremality are NOT satisfied.")
     elif len(delta) == 2:
-        if is_QQ_linearly_independent(delta) and  2*delta[0] + delta[1] < d2 / 2:
+        if is_QQ_linearly_independent(*delta) and  2*delta[0] + delta[1] < d2 / 2:
             logging.info("Conditions for extremality are satisfied if it is a minimal function.")
         else:
             logging.info("Conditions for extremality are NOT satisfied.")
