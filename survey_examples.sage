@@ -457,7 +457,11 @@ def equiv7_example_1():
 
 def equiv7_example_2_crazy_perturbation():
     """
-    An effective perturbation function for the two-sided discontinuous function \pi2 = minimal_no_covered_interval() that appears in Equiv VII example 7.9. This perturabtion is bounded, but is not Lipschitz continuous on the interval (0, 1/2). In fact, it is a highly discontinuous “locally microperiodic” perturbation, which does not have a limit at any point in (0, 1/2).
+    An effective perturbation function for the two-sided discontinuous function
+    \pi2 = minimal_no_covered_interval() that appears in Equiv VII example 7.9.
+    This perturbation is bounded, but is not Lipschitz continuous on the interval
+    (0, 1/2). In fact, it is a highly discontinuous "locally microperiodic"
+    perturbation, which does not have a limit at any point in (0, 1/2).
 
     EXAMPLES::
 
