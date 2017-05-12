@@ -300,6 +300,15 @@ def RealNumberField(polynomial, name=None, latex_name=None, names=None, check=Tr
     if names is not None:
         name = names
     if polynomial.degree() == 2:
+        if embedding is not None:
+            # In Sage 7.5, need to replace given embedding by exact root
+            # before calling the constructors.
+            try:
+                from sage.rings.number_field.number_field_morphisms import root_from_approx
+                embedding = root_from_approx(polynomial, embedding)
+            except ImportError:
+                pass
+
         K = RealNumberField_quadratic(polynomial, name, latex_name, check, embedding,
                                       assume_disc_small=assume_disc_small, 
                                       maximize_at_primes=maximize_at_primes, 
