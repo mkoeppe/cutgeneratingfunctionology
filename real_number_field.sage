@@ -235,10 +235,23 @@ class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
             sage: x, = nice_field_values([2^(1/2)])
             sage: sage_input(x)
             R.<y> = QQ[]
-            RealNumberField(y^2 - 2, embedding=RR(1.4142135623730949), name='a')([QQ(0), QQ(1)])
+            RealNumberField(y^2 - 2, embedding=RR(1.4142135623730949), name='a')([0, 1])
+            sage: sage_input((x, x))
+            R.<y> = QQ[]
+            K = RealNumberField(y^2 - 2, embedding=RR(1.4142135623730949), name='a')
+            (K([0, 1]), K([0, 1]))
 
         """
-        return sib(self.parent())(self.list())
+        def maybe_ZZ(x):
+            try:
+                return ZZ(x)
+            except TypeError, ValueError:
+                return x
+
+        try:
+            return sib(self.parent())(maybe_ZZ(QQ(self)))
+        except TypeError, ValueError:
+            return sib(self.parent())([maybe_ZZ(x) for x in self.list()])
 
 class RealNumberField_quadratic(NumberField_quadratic):
     def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None,
