@@ -41,3 +41,15 @@ check-graphics:
 
 tags: $(SAGEFILES)
 	etags $(SAGEFILES)
+
+doc:
+	cd docs && $(SAGE) -sh -c "make html"
+
+doc-pdf:
+	cd docs && $(SAGE) -sh -c "make latexpdf"
+
+clean: clean-doc
+
+clean-doc:
+	cd docs && $(SAGE) -sh -c "make clean"
+

@@ -338,6 +338,38 @@ def interpolate_to_infinite_group(function, merge=True):
         last_y = fn(last_x)
     return FastPiecewise(pieces, merge=merge)
 
+def continuous_cut_generating_function_from_group_function(fn):
+    """
+    Construct a cut generating function for continuous variables.
+
+    The input is a group function `fn`, which must be continuous;
+    otherwise an error will be signaled.
+    
+    The result, together with `fn`, forms the cut generating function
+    pair for a mixed integer problem.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: continuous_cut_generating_function_from_group_function(gmic(4/5))
+        piecewise(x|-->-5*x on (-oo, 0), x|-->0 on {0}, x|-->5/4*x on (0, +oo); x)
+        sage: continuous_cut_generating_function_from_group_function(gomory_fractional(4/5))
+        piecewise(x|-->0 on {0}, x|-->5/4*x on (0, +oo); x)
+        sage: continuous_cut_generating_function_from_group_function(automorphism(gomory_fractional(4/5)))
+        piecewise(x|-->-5/4*x on (-oo, 0), x|-->0 on {0}; x)
+    """
+    # TODO: Make the group functions actually periodic, so they pair well with the continuous function.
+    # Note: Cannot seem to mix FastLinear with the new piecewise.  So we use symbolic linear functions from SR.
+    pieces = []
+    x = SR.var('x')
+    right_slope, left_slope = limiting_slopes(fn)
+    if left_slope is not -Infinity:
+        pieces.append([RealSet.unbounded_below_open(0), left_slope * x])
+    pieces.append([RealSet.point(0), 0])
+    if right_slope is not Infinity:
+        pieces.append([RealSet.unbounded_above_open(0), right_slope * x])
+    return piecewise(pieces, var=x)
+
 def two_slope_fill_in(function, order=None):
     """
     Extend the given `function` to make it a 2-slope function in the

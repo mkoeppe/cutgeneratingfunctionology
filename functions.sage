@@ -5,6 +5,10 @@ if '' not in sys.path:
 
 from igp import *
 
+"""
+    sage: import warnings
+    sage: warnings.filterwarnings('ignore', 'Matplotlib is building the font cache using fc-list. This may take a moment.')
+"""
 
 import itertools
 
@@ -1645,10 +1649,12 @@ class FastPiecewise (PiecewisePolynomial):
         from sage.plot.all import plot, Graphics
 
         g = Graphics()
-        if not 'rgbcolor' in kwds:
-            color = 'blue'
+        if 'rgbcolor' in kwds:
+            color=kwds['rgbcolor']
+        elif 'color' in kwds:
+            color=kwds['color']
         else:
-            color = kwds['rgbcolor']
+            color = 'blue'
         if not 'plot_points' in kwds:
             plot_pts = 200
         else:
