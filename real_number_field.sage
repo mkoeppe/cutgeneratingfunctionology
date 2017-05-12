@@ -226,6 +226,20 @@ class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
             self._hash = NumberFieldElement_quadratic.__hash__(self)
         return self._hash
 
+    def _sage_input_(self, sib, coerced):
+        """
+        Produce an expression which will reproduce this value when evaluated.
+
+        TESTS::
+
+            sage: x, = nice_field_values([2^(1/2)])
+            sage: sage_input(x)
+            R.<y> = QQ[]
+            RealNumberField(y^2 - 2, embedding=RR(1.4142135623730949), name='a')([QQ(0), QQ(1)])
+
+        """
+        return sib(self.parent())(self.list())
+
 class RealNumberField_quadratic(NumberField_quadratic):
     def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None,
                  assume_disc_small=False, maximize_at_primes=None, exact_embedding=None):
@@ -276,7 +290,15 @@ class RealNumberField_quadratic(NumberField_quadratic):
     def _repr_(self):
         return "Real Number Field in `%s` as the root of the defining polynomial %s near %s"%(
                    self.variable_name(), self.polynomial(), self.gen(0).embedded())
-    
+
+    def _sage_input_(self, sib, coerced):
+        """
+        Produce an expression which will reproduce this value when evaluated.
+        """
+        p = sib.name('RealNumberField')(self.polynomial(), embedding=RR(self.gen(0)), name='a')
+        sib.id_cache(self, p, 'K')
+        return p
+
 # The factory.
 
 def RealNumberField(polynomial, name=None, latex_name=None, names=None, check=True, embedding=None,
