@@ -819,7 +819,7 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
 
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, 6* sqrt(2)/200, 1/500))
-            sage: extremality_test(h, False) # not tested
+            sage: extremality_test(h, False) # long time
             False
 
         Verify that p constructed below is an effective perurbation of h:
