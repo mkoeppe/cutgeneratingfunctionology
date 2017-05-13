@@ -271,8 +271,7 @@ def pattern_backtrack_polytope(l, k_slopes):
         sage: import igp
         sage: igp.vertex_enumeration_dim_threshold = 1
         sage: pattern_backtrack_polytope(1, 6) # long time
-        glp_exact: 121 rows, 95 columns, 439 non-zeros
-        ...
+        #####  ...
         6
         sage: pattern_backtrack_polytope(1, 8) # long time
     """
@@ -636,9 +635,9 @@ def pattern_glpk_test(l_list, more_ini_additive=False, exact_arithmetic=True, si
 
     EXAMPLE::
 
-        sage: pattern_glpk_test(range(1,4),more_ini_additive=False, exact_arithmetic=False, simplex_first=False, reconstruct_rational=False)
+        sage: pattern_glpk_test(range(1,4),more_ini_additive=False, exact_arithmetic=False, simplex_first=False, reconstruct_rational=True)
         1 2 ...
-        [2, 2, 8]
+        [2, 2, 2]
     """
     slopes = []
     for l in l_list:
