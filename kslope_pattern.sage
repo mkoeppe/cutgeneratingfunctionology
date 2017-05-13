@@ -271,8 +271,7 @@ def pattern_backtrack_polytope(l, k_slopes):
         sage: import igp
         sage: igp.vertex_enumeration_dim_threshold = 1
         sage: pattern_backtrack_polytope(1, 6) # long time
-        glp_exact: 121 rows, 95 columns, 439 non-zeros
-        ...
+        #####  ...
         6
         sage: pattern_backtrack_polytope(1, 8) # long time
     """
