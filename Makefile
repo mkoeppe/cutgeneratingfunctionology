@@ -34,7 +34,7 @@ check: check-encoding
 
 check-long: check-encoding
 	cp .check-long-timings.json .tmp_check-long-timings.json
-	$(SAGE) -tp 4 --long --stats-path .tmp_check-long-timings.json $(SAGEFILES)
+	$(SAGE) -tp 4 --long --stats-path .tmp_check-long-timings.json $(SAGE_TEST_FLAGS) $(SAGEFILES)
 	rm .tmp_check-long-timings.json
 
 check-encoding:
