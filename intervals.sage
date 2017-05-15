@@ -274,7 +274,7 @@ def is_pt_in_interval(i, x0):
         if not i.left_closed and not i.right_closed:
             return bool(i.a < x0 < i.b)
 
-def coho_interval_left_endpoint_with_epsilon(i):
+def coho_interval_left_endpoint_with_epsilon(i, closure=False):
     """Return (x, epsilon)
     where x is the left endpoint
     and epsilon is 0 if the interval is left closed and 1 otherwise.
@@ -286,9 +286,9 @@ def coho_interval_left_endpoint_with_epsilon(i):
         return i[0], 0 # Scanning from the left, turn on at left endpoint.
     else:
         # coho interval
-        return i.a, 0 if i.left_closed else 1
+        return i.a, 0 if (i.left_closed or closure) else 1
 
-def coho_interval_right_endpoint_with_epsilon(i):
+def coho_interval_right_endpoint_with_epsilon(i, closure=False):
     """Return (x, epsilon)
     where x is the right endpoint
     and epsilon is 1 if the interval is right closed and 0 otherwise.
@@ -303,36 +303,36 @@ def coho_interval_right_endpoint_with_epsilon(i):
         return i[1], 1 # Scanning from the left, turn off at right endpoint plus epsilon
     else:
         # coho interval
-        return i.b, 1 if i.right_closed else 0
+        return i.b, 1 if (i.right_closed or closure) else 0
 
 def coho_interval_contained_in_coho_interval(I, J):
     I = (coho_interval_left_endpoint_with_epsilon(I), coho_interval_right_endpoint_with_epsilon(I))
     J = (coho_interval_left_endpoint_with_epsilon(J), coho_interval_right_endpoint_with_epsilon(J))
     return J[0] <= I[0] and I[1] <= J[1]
 
-def scan_coho_interval_left_endpoints(interval_list, tag=None, delta=-1):
-    """Generate events of the form `(x, epsilon), delta, tag.`
+def scan_coho_interval_left_endpoints(interval_list, tag=None, closure=False):
+    """Generate events of the form `(x, epsilon), delta=-1, tag.`
 
     This assumes that `interval_list` is sorted from left to right,
     and that the intervals are pairwise disjoint.
     """
     for i in interval_list:
-        yield coho_interval_left_endpoint_with_epsilon(i), delta, tag
+        yield coho_interval_left_endpoint_with_epsilon(i, closure), -1, tag
 
-def scan_coho_interval_right_endpoints(interval_list, tag=None, delta=+1):
-    """Generate events of the form `(x, epsilon), delta, tag.`
+def scan_coho_interval_right_endpoints(interval_list, tag=None, closure=False):
+    """Generate events of the form `(x, epsilon), delta=+1, tag.`
 
     This assumes that `interval_list` is sorted from left to right,
     and that the intervals are pairwise disjoint.
     """
     for i in interval_list:
-        yield coho_interval_right_endpoint_with_epsilon(i), delta, tag
+        yield coho_interval_right_endpoint_with_epsilon(i, closure), +1, tag
 
-def scan_coho_interval_list(interval_list, tag=None, on_delta=-1, off_delta=+1):
+def scan_coho_interval_list(interval_list, tag=None, closure=False):
     """Generate events of the form `(x, epsilon), delta, tag.`
 
     This assumes that `interval_list` is sorted, and 
-    that the intervals are pairwise disjoint.
+    that the intervals are pairwise disjoint. (disjoint needed?)
 
     delta is -1 for the beginning of an interval ('on').
     delta is +1 for the end of an interval ('off'). 
@@ -343,25 +343,25 @@ def scan_coho_interval_list(interval_list, tag=None, on_delta=-1, off_delta=+1):
     event.  In this way consumers of the scan can easily implement merging 
     of such intervals. 
 
-    If merging is not desired, set on_delta=+1, off_delta=-1. 
+    if closure is True, considers intervals as closed.
 
     EXAMPLES::
 
         sage: list(scan_coho_interval_list([closed_or_open_or_halfopen_interval(1, 2, True, False), closed_or_open_or_halfopen_interval(2, 3, True, True)]))
         [((1, 0), -1, None), ((2, 0), -1, None), ((2, 0), 1, None), ((3, 1), 1, None)]
     """
-    return merge(scan_coho_interval_left_endpoints(interval_list, tag, on_delta), 
-                 scan_coho_interval_right_endpoints(interval_list, tag, off_delta))
+    return merge(scan_coho_interval_left_endpoints(interval_list, tag, closure),
+                 scan_coho_interval_right_endpoints(interval_list, tag, closure))
 
 ## def scan_set_difference(a, b):
 ##     """`a` and `b` should be event generators."""
 
 from heapq import *
 
-def scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists):
+def scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists, remove_closure=False):
     # Following uses the lexicographic comparison of the tuples.
     scan = merge(merge(*[scan_coho_interval_list(interval_list, True) for interval_list in interval_lists]),
-                 merge(*[scan_coho_interval_list(remove_list, False) for remove_list in remove_lists]))
+                 merge(*[scan_coho_interval_list(remove_list, False, remove_closure) for remove_list in remove_lists]))
     interval_indicator = 0
     remove_indicator = 0
     on = False
@@ -489,7 +489,7 @@ def coho_interval_list_from_scan(scan, old_fashioned_closed_intervals=False):
             (on_x, on_epsilon) = (None, None)
     assert indicator == 0
 
-def union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists, old_fashioned_closed_intervals=False):
+def union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists, old_fashioned_closed_intervals=False, remove_closure=False):
     """Compute a list of closed/open/half-open intervals that represent
     the set difference of `interval` and the union of the intervals in
     `remove_list`.
@@ -508,7 +508,7 @@ def union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove
         sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0,10], closed_or_open_or_halfopen_interval(10, 20, False, True)]], [], old_fashioned_closed_intervals=True)
         [(0, 20)]
     """
-    gen = coho_interval_list_from_scan(scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists), old_fashioned_closed_intervals)
+    gen = coho_interval_list_from_scan(scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists, remove_closure), old_fashioned_closed_intervals)
     return list(gen)
 
 def proper_interval_list_from_scan(scan):

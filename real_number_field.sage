@@ -226,6 +226,33 @@ class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
             self._hash = NumberFieldElement_quadratic.__hash__(self)
         return self._hash
 
+    def _sage_input_(self, sib, coerced):
+        """
+        Produce an expression which will reproduce this value when evaluated.
+
+        TESTS::
+
+            sage: x, = nice_field_values([2^(1/2)])
+            sage: sage_input(x)
+            R.<y> = QQ[]
+            RealNumberField(y^2 - 2, embedding=RR(1.4142135623730949), name='a')([0, 1])
+            sage: sage_input((x, x))
+            R.<y> = QQ[]
+            K = RealNumberField(y^2 - 2, embedding=RR(1.4142135623730949), name='a')
+            (K([0, 1]), K([0, 1]))
+
+        """
+        def maybe_ZZ(x):
+            try:
+                return ZZ(x)
+            except TypeError, ValueError:
+                return x
+
+        try:
+            return sib(self.parent())(maybe_ZZ(QQ(self)))
+        except TypeError, ValueError:
+            return sib(self.parent())([maybe_ZZ(x) for x in self.list()])
+
 class RealNumberField_quadratic(NumberField_quadratic):
     def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None,
                  assume_disc_small=False, maximize_at_primes=None, exact_embedding=None):
@@ -276,7 +303,15 @@ class RealNumberField_quadratic(NumberField_quadratic):
     def _repr_(self):
         return "Real Number Field in `%s` as the root of the defining polynomial %s near %s"%(
                    self.variable_name(), self.polynomial(), self.gen(0).embedded())
-    
+
+    def _sage_input_(self, sib, coerced):
+        """
+        Produce an expression which will reproduce this value when evaluated.
+        """
+        p = sib.name('RealNumberField')(self.polynomial(), embedding=RR(self.gen(0)), name='a')
+        sib.id_cache(self, p, 'K')
+        return p
+
 # The factory.
 
 def RealNumberField(polynomial, name=None, latex_name=None, names=None, check=True, embedding=None,
@@ -300,6 +335,15 @@ def RealNumberField(polynomial, name=None, latex_name=None, names=None, check=Tr
     if names is not None:
         name = names
     if polynomial.degree() == 2:
+        if embedding is not None:
+            # In Sage 7.5, need to replace given embedding by exact root
+            # before calling the constructors.
+            try:
+                from sage.rings.number_field.number_field_morphisms import root_from_approx
+                embedding = root_from_approx(polynomial, embedding)
+            except ImportError:
+                pass
+
         K = RealNumberField_quadratic(polynomial, name, latex_name, check, embedding,
                                       assume_disc_small=assume_disc_small, 
                                       maximize_at_primes=maximize_at_primes, 

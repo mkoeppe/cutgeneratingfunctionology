@@ -436,3 +436,45 @@ def zhou_two_sided_discontinuous_cannot_assume_any_continuity():
 
 ### The sporadic extreme functions have been moved to 'extreme_functions_sporadic.sage'
 
+
+## Example functions that appear in the paper Equivariant perturbation VII.
+def equiv7_example_1():
+    """
+    One-sided discontinuous minimal valid function that appears in Equiv VII example 7.8.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: h1 = equiv7_example_1()
+        sage: generate_uncovered_components(h1)
+        [[<Int(0, 1/4)>, <Int(1/4, 1/2)>]]
+        sage: finite_dimensional_extremality_test(h1)
+        False
+        sage: len(h1._perturbations)
+        1
+    """
+    return FastPiecewise([singleton_piece(0, 0),open_piece((0, 1/2), (1/2, 1/2)),closed_piece((1/2, 1),(1,0))])
+
+def equiv7_example_2_crazy_perturbation():
+    """
+    An effective perturbation function for the two-sided discontinuous function
+    \pi2 = minimal_no_covered_interval() that appears in Equiv VII example 7.9.
+    This perturbation is bounded, but is not Lipschitz continuous on the interval
+    (0, 1/2). In fact, it is a highly discontinuous "locally microperiodic"
+    perturbation, which does not have a limit at any point in (0, 1/2).
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = minimal_no_covered_interval()
+        sage: cp = equiv7_example_2_crazy_perturbation()
+        sage: find_epsilon_for_crazy_perturbation(h, cp)
+        1/6
+    """
+    t1, t2 = nice_field_values([1, sqrt(2)])
+    generators = [t1, t2]
+    pwl = piecewise_function_from_breakpoints_and_slopes([0,1],[0])
+    crazy_piece_1 = CrazyPiece((0, 1/4), generators, [(0, 1), (1/4, -1)])
+    crazy_piece_2 = CrazyPiece((1/4, 1/2), generators, [(1/4, 1), (1/2, -1)])
+    cp = PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
+    return cp

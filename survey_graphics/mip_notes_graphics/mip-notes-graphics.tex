@@ -1,0 +1,134 @@
+\documentclass[10pt,reqno]{amsart}
+\usepackage[left=.5in,right=.5in,top=.5in,bottom=.5in]{geometry}
+
+%%\input{bhk-style}
+\usepackage{pgf}
+\usepackage[norelsize,ruled]{algorithm2e}   %%% without norelsize, arXiv chokes
+\usepackage{booktabs,array,ragged2e}
+\usepackage{pdflscape}
+\usepackage{blkarray}% http://ctan.org/pkg/blkarray
+\usepackage{etoolbox}
+
+\newcommand{\matindex}[1]{\mbox{\scriptsize#1}}% Matrix index
+\definecolor{mediumspringgreen}{rgb}{0.0, 0.98039215, 0.60392156}
+\definecolor{darkgreen}{rgb}{0.0, 0.39215686274509803, 0.0}
+
+\usepackage{hyperref}  
+
+\newcommand{\R}{\mathbb R}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\N}{\mathbb N}
+\renewcommand{\P}{\mathcal{P}}
+
+\newcommand\CPL{\mathrm{CPL}}
+\newcommand\DPL{\mathrm{DPL}}
+
+\AtBeginDocument{ % no "subsubsubsection"
+\let\subsectionautorefname\sectionautorefname
+\let\subsubsectionautorefname\sectionautorefname
+}
+
+\chardef\Myunderscore=`\_
+\newcommand\underscore{\Myunderscore\allowbreak}
+
+\newcommand\githubsearchurl{https://github.com/mkoeppe/infinite-group-relaxation-code/search}
+\input{../survey_graphics/sage-commands}
+\input{sage-commands-mip-notes}
+\DeclareRobustCommand\sage[1]{\texttt{#1}}
+\DeclareRobustCommand\sagefunc[1]{\pgfkeys{/sagefunc/#1}}
+
+%%%%
+
+\title[Infinite Group Problem Code: figures test suite]{Infinite Group Problem Code:\\figures test suite}
+
+\thanks{The authors acknowledge partial support from the National Science
+  Foundation through grant DMS-1320051 awarded to M.~K\"oppe.}
+
+\begin{document}
+
+\setcounter{page}{10}
+\setcounter{section}{3}
+
+\section{Figures from \itshape New computer-based search strategies for
+  extreme functions\\ of the Gomory--Johnson infinite group problem}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=.4\linewidth]{gj2s_restriction.pdf}
+\quad
+\includegraphics[width=.4\linewidth]{gj2s_interpolation.pdf}
+\caption{The 2-slope extreme function
+  \sagefunc{gj_2_slope}, discovered by Gomory and Johnson. \textit{Left},
+  \sagefunc{gj_2_slope} for the finite group 
+  problem with $q=5$ and $f=\frac{3}{5}$, obtained by \sage{\sagefunc{restrict_to_finite_group}(\sagefunc{gj_2_slope}())}. It is a discrete function whose interpolation is the right subfigure. \textit{Right}, \sagefunc{gj_2_slope} for the infinite group problem with $f=\frac{3}{5}$. It is a continuous piecewise linear function with two slopes, although it has four pieces. Its restriction to $\frac{1}{5}\Z$ is the left subfigure.}
+\label{fig:gj2s_restriction_interpolation}
+\end{figure}%
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=.6\linewidth]{q_v_grid.pdf}
+\caption{The $q \times v$ grid discretization of the space of   continuous piecewise linear functions with rational data. Here $q=8$ and $v=6$.
+%The continuous piecewise linear function $\pi$ has breakpoints in $\frac{1}{q}\Z$. 
+%The function value at $\frac{i}{q}$ and the slope value on $[\frac{i-1}{q}, \frac{i}{q}]$ are denoted by $\pi_i$ and $q s_i$ respectively. The $\pi_i$'s and $s_i$'s can be discretized in $\{0, \frac{1}{v}, \dots, \frac{v-1}{v}, 1\}$.
+}
+\label{fig:q_v_grid}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{kzh_28_slope.pdf}
+\caption{A 28-slope extreme function \sagefunc{kzh_28_slope_1} found by our search code. Each color in the plotting corresponds to a different slope value.}
+\label{fig:kzh_28_slope}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{kzh_2q_move.pdf}
+\caption{The example \sagefunc{kzh_2q_example_1}, showing that an oversampling factor of $m=3$ is best possible.}
+\label{fig:kzh_2q_move}
+\end{figure}
+
+\addtocounter{figure}{4}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=.42\linewidth]{kzh_5_slope_fulldim.pdf}
+\quad
+\includegraphics[width=.49\linewidth]{kzh_5_slope_fulldim-2d_diagram.pdf}
+\caption{The 5-slope extreme function
+  \sagefunc{kzh_5_slope_fulldim_1}
+  found by our search code (\textit{left}). Its two-dimensional polyhedral
+  complex $\Delta\P$ (\textit{right}), as plotted by the command
+  \sage{\sagefunc{plot_2d_diagram}(h,colorful=True)}, does not have any
+  lower-dimensional maximal additive faces except for the symmetry reflection
+  or $x=0$ or $y=0$.} 
+\label{fig:kzh_5_slope_fulldim}
+\end{figure}
+
+\addtocounter{figure}{1}
+
+\begin{figure}[h]%
+\includegraphics[width=.49\linewidth]{pattern_s6_q58.pdf}
+\includegraphics[width=.49\linewidth]{pattern_s10_q166.pdf}
+\caption{Special patterns on the two-dimensional polyhedral complex $\Delta\P_{\frac1q\Z}$. 
+\textit{Left,} the $\Delta\P_{\frac1q\Z}$ of the $6$-slope extreme function
+\sagefunc{kzh_6_slope_1} with $q=58$. We observe that the additive triangles
+are located in the lower left and upper right corners. The function has the
+same slopes on the intervals that are projections of the same color additive
+triangles. The 6-pointed star patterns appear several times. \textit{Right,} the
+lower-left corner of $\Delta\P_{\frac1q\Z}$ of the $10$-slope extreme function
+\sagefunc{kzh_10_slope_1} with $q=166$, where we see that the 6-pointed stars
+are actually the result of additivity patterns within certain intersecting
+quadrilaterals (\emph{black}), which connect like
+links of three chains.}
+\label{fig:special_patterns}%
+\end{figure}%
+%
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
