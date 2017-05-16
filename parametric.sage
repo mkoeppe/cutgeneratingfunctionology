@@ -158,7 +158,7 @@ class ParametricRealFieldElement(FieldElement):
             sage: len(s)
             1
             sage: s
-            {1}
+            {f~}
             sage: K.<f> = ParametricRealField([1])
             sage: s = {f, K(2)}
             sage: len(s)
@@ -928,11 +928,7 @@ class SemialgebraicComplexComponent(SageObject):
             sage: region_type = find_region_type_igp(K, h)
             sage: leq, lin = read_leq_lin_from_polyhedron(K.polyhedron, K.monomial_list, K.v_dict)
             sage: lin
-            [21*lam1 - 8,
-             19*lam1 - 75*lam2,
-             lam1*lam2 + 79*lam1 - 60,
-             2*lam2 - 1,
-             -2*lam1 + lam2]
+            [21*lam1 - 8, 19*lam1 - 75*lam2, -2*lam1 + lam2, 2*lam2 - 1]
             sage: c = K.make_proof_cell(region_type=region_type, function=h, find_region_type=None)
             sage: c.lin
             [21*lam1 - 8, 19*lam1 - 75*lam2, 2*lam2 - 1, -2*lam1 + lam2]
