@@ -146,7 +146,7 @@ class ParametricRealFieldElement(FieldElement):
         tests below) without the equality being recorded in the field.
 
         The correctness of this implementation depends on the guarantee
-        of the that equal _val elements have the same hash value.  If in
+        of equal _val elements having the same hash value.  If in
         doubt, make sure that the _val elements all come from the same
         field, by `nice_field_values`.
 
