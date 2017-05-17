@@ -1251,32 +1251,50 @@ class SemialgebraicComplex(SageObject):
         ....:     return P.volume()
         sage: complex = SemialgebraicComplex(vol, ['a','b'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-1,3))
 
-        Breadth-first-search to complete the complex, starting at the point (a,b)=(2,1/2), using heuristic wall-crossing, considering full-dimensional cells only.
+    Breadth-first-search to complete the complex, starting at the point (a,b)=(2,1/2), using heuristic wall-crossing, considering full-dimensional cells only::
+
         sage: complex.bfs_completion(var_value=[2, 1/2], flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=False)
+        sage: len(complex.components)
+        9
+        sage: complex.components[0].region_type
+        (b,)
+        sage: complex.components[1].region_type
+        (a*b,)
         sage: complex.plot()                                  # not tested
 
-        Instead of heuristic method, we can use Mathematica's FindInstance to look for uncovered points in wall-crossing.
+    Instead of heuristic method, we can use Mathematica's FindInstance to look for uncovered points in wall-crossing::
+
         sage: complex = SemialgebraicComplex(vol, ['a','b'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-1,3))                         # optional - mathematica
         sage: complex.bfs_completion(var_value=[2, 1/2], flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='mathematica', goto_lower_dim=True)        # optional - mathematica
         sage: len(complex.components)                         # optional - mathematica
         25
 
-        The entire parameter space is covered by cells.      
+    The entire parameter space is covered by cells::
+
         sage: complex.is_complete(strict=True)                # optional - mathematica
         True
         
-        Example with non-linear wall.
-        sage: complex = SemialgebraicComplex(lambda x,y: max(x,y^2), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-3,3))    # optional - mathematica
-        sage: complex.bfs_completion(var_value=[1,1/2], check_completion=True, wall_crossing_method='mathematica', goto_lower_dim=True)                                 # optional - mathematica
+    Example with non-linear wall::
+
+        sage: complex = SemialgebraicComplex(lambda x,y: max(x,y^2), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-3,3))  # optional - mathematica
+        sage: complex.bfs_completion(var_value=[1,1/2], check_completion=True, wall_crossing_method='mathematica', goto_lower_dim=True)                             # optional - mathematica
+        sage: len(complex.components)                         # optional - mathematica
+        3
+        sage: complex.components[0].region_type               # optional - mathematica
+        (x,)
+        sage: complex.components[1].region_type               # optional - mathematica
+        (y^2,)
         sage: complex.plot()                                  # not tested
 
 
-        Analyse the extreme/minimal/valid regions of a function in the Gomory-Johnson infinite group problem.
-        Use random shooting method to complete the complex. See more options in the method shoot_random_points.
+    Analyse the extreme/minimal/valid regions of a function in the Gomory-Johnson infinite group problem.
+    Use random shooting method to complete the complex. See more options in the method shoot_random_points::
+
         sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])
         sage: complex.shoot_random_points(50)
 
-        Use breadth-first-search to complete the complex. See more options in the method bfs_completion
+    Use breadth-first-search to complete the complex. See more options in the method bfs_completion::
+
         sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])
         sage: complex.bfs_completion()
     """
