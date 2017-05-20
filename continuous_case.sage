@@ -208,7 +208,7 @@ def find_epsilon_interval_continuous(fn, perturb):
 def generate_symbolic_continuous(function, components, field=None, f=None):
     """
     Construct a vector-space-valued piecewise linear function
-    compatible with the given `function`.  Each of the components of
+    compatible with the given function.  Each of the components of
     the function has a slope that is a basis vector of the vector
     space. 
     """

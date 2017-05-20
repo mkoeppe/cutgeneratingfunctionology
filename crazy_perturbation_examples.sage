@@ -89,12 +89,12 @@ def kzh_minimal_has_only_crazy_perturbation_1():
         sage: logging.disable(logging.INFO)
         sage: h = kzh_minimal_has_only_crazy_perturbation_1()
 
-    On one hand, normal perturbation does not exist.
+    On one hand, normal perturbation does not exist::
 
         sage: extremality_test(h, crazy_perturbations=False)
         True
 
-    On the other hand, there exists crazy perturbation, such as the one we construct below.
+    On the other hand, there exists crazy perturbation, such as the one we construct below::
 
         sage: bkpts = h.end_points()
         sage: t1 = bkpts[10]-bkpts[6]
@@ -108,30 +108,30 @@ def kzh_minimal_has_only_crazy_perturbation_1():
         sage: crazy_piece_2 = CrazyPiece((f-ucr, f-ucl), generators, [(f-ucr, 1), (f-ucl, -1)])
         sage: cp = PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
 
-    This crazy perturbation is valid, since it has positive epsilon.
+    This crazy perturbation is valid, since it has positive epsilon::
 
         sage: find_epsilon_for_crazy_perturbation(h, cp)
         0.0003958663221935161?
 
-    Therefore, the function kzh_minimal_has_only_crazy_perturbation_1() is not extreme.
+    Therefore, the function ``kzh_minimal_has_only_crazy_perturbation_1()`` is not extreme.
 
-    .. Note::
+    Note:
 
-        This example is obtained by the following code.
+        This example is obtained by the following code::
 
             sage: hmin = kzh_discontinuous_bhk_irrational(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=19/23998, c2=5/11999, y1=185/1846, y2=240/11999, field=None) # long time
             sage: hlift = lift_until_extreme(hmin, use_all_perturbations=False, use_largest_absolute_epsilon=False) # long time
             sage: (h - hlift).list() # long time
             [[(0, 1), <FastLinearFunction 0>]]
 
-        Without knowing the input values of kzh_discontinuous_bhk_irrational() that gives a minimal valid `hmin`, one could use the default values to construct a non-minimal discontinuous function, and then lift the function to minimal, as follows.
+        Without knowing the input values of ``kzh_discontinuous_bhk_irrational()`` that gives a minimal valid 'hmin', one could use the default values to construct a non-minimal discontinuous function, and then lift the function to minimal, as follows::
 
             sage: h_org = kzh_discontinuous_bhk_irrational() # long time
             sage: hmin_from_org = lift(h_org, phase_1=True, use_all_perturbations=False, use_largest_absolute_epsilon=False) # long time
             sage: (hmin - hmin_from_org).list() # long time
             [[(0, 1), <FastLinearFunction 0>]]
 
-        `hmin` is minimal but not extreme. The solution space of the finite dimensional test has dimension 5.
+        'hmin' is minimal but not extreme. The solution space of the finite dimensional test has dimension 5::
 
             sage: finite_dimensional_extremality_test(hmin,show_all_perturbations=True) # long time
             False
@@ -139,7 +139,7 @@ def kzh_minimal_has_only_crazy_perturbation_1():
             sage: len(perturbs) # long time
             5
 
-        A more general way of lifting `hmin` is to call the following generator. (Use Sage Polyhedron if `use_polyhedron` is set to False. Use LP if with random objective function if `use_polyhedron` is set to True.) Unfortunately, this method is too slow. With `use_polyhedron=False`, it takes 15-20 mins to find a lifted function.
+        A more general way of lifting 'hmin' is to call the following generator. (Use Sage Polyhedron if 'use_polyhedron' is set to ``False``. Use LP if with random objective function if 'use_polyhedron' is set to ``True``.) Unfortunately, this method is too slow. With ``use_polyhedron=False``, it takes 15-20 mins to find a lifted function::
 
             sage: gen = generate_lifted_functions(hmin, perturbs=perturbs, use_polyhedron=False) # not tested
             sage: h = gen.next() # not tested

@@ -89,7 +89,7 @@ def interval_equal(int1, int2):
 
 def element_of_int(x,int):
     """
-    Determine whether value `x` is inside the interval `int`.
+    Determine whether value `x` is inside the interval int.
 
     EXAMPLES::
 
@@ -121,7 +121,7 @@ def element_of_int(x,int):
 def interval_to_endpoints(int):
     """
     Convert a possibly degenerate interval to a pair (a,b)
-    of its endpoints, suitable for specifying pieces of a `FastPiecewise`.
+    of its endpoints, suitable for specifying pieces of a ``FastPiecewise``.
 
     EXAMPLES::
 
@@ -142,7 +142,7 @@ def interval_to_endpoints(int):
 # Assume the lists of intervals are sorted.                
 def find_interior_intersection(list1, list2):
     """
-    Tests whether `list1` and `list2` contain a pair of intervals
+    Tests whether list1 and list2 contain a pair of intervals
     whose interiors intersect.
 
     Assumes both lists are sorted.
@@ -168,10 +168,10 @@ def find_interior_intersection(list1, list2):
 
 def interval_minus_union_of_intervals(interval, remove_list):
     """Compute a list of intervals that represent the
-    set difference of `interval` and the union of the 
-    intervals in `remove_list`.
+    set difference of interval and the union of the 
+    intervals in remove_list.
 
-    Assumes `remove_list` is sorted (and pairwise essentially
+    Assumes remove_list is sorted (and pairwise essentially
     disjoint), and returns a sorted list.
 
     EXAMPLES::
@@ -247,9 +247,9 @@ def coho_interval_from_interval(int):
 
 def interval_length(interval):
     """
-    Determine the length of the given `interval`.
+    Determine the length of the given interval.
 
-    `interval` can be old-fashioned or coho.
+    interval can be old-fashioned or coho.
     """
     if len(interval) <= 1:
         return 0
@@ -311,27 +311,27 @@ def coho_interval_contained_in_coho_interval(I, J):
     return J[0] <= I[0] and I[1] <= J[1]
 
 def scan_coho_interval_left_endpoints(interval_list, tag=None, closure=False):
-    """Generate events of the form `(x, epsilon), delta=-1, tag.`
+    """Generate events of the form ``(x, epsilon), delta=-1, tag``.
 
-    This assumes that `interval_list` is sorted from left to right,
+    This assumes that interval_list is sorted from left to right,
     and that the intervals are pairwise disjoint.
     """
     for i in interval_list:
         yield coho_interval_left_endpoint_with_epsilon(i, closure), -1, tag
 
 def scan_coho_interval_right_endpoints(interval_list, tag=None, closure=False):
-    """Generate events of the form `(x, epsilon), delta=+1, tag.`
+    """Generate events of the form ``(x, epsilon), delta=+1, tag``.
 
-    This assumes that `interval_list` is sorted from left to right,
+    This assumes that interval_list is sorted from left to right,
     and that the intervals are pairwise disjoint.
     """
     for i in interval_list:
         yield coho_interval_right_endpoint_with_epsilon(i, closure), +1, tag
 
 def scan_coho_interval_list(interval_list, tag=None, closure=False):
-    """Generate events of the form `(x, epsilon), delta, tag.`
+    """Generate events of the form ``(x, epsilon), delta, tag``.
 
-    This assumes that `interval_list` is sorted, and 
+    This assumes that interval_list is sorted, and 
     that the intervals are pairwise disjoint. (disjoint needed?)
 
     delta is -1 for the beginning of an interval ('on').
@@ -343,7 +343,7 @@ def scan_coho_interval_list(interval_list, tag=None, closure=False):
     event.  In this way consumers of the scan can easily implement merging 
     of such intervals. 
 
-    if closure is True, considers intervals as closed.
+    if closure is ``True``, considers intervals as closed.
 
     EXAMPLES::
 
@@ -491,10 +491,10 @@ def coho_interval_list_from_scan(scan, old_fashioned_closed_intervals=False):
 
 def union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists, old_fashioned_closed_intervals=False, remove_closure=False):
     """Compute a list of closed/open/half-open intervals that represent
-    the set difference of `interval` and the union of the intervals in
-    `remove_list`.
+    the set difference of interval and the union of the intervals in
+    remove_lists.
 
-    Assume each of the lists in `interval_lists' and `remove_lists` are sorted (and
+    Assume each of the lists in interval_lists and remove_lists are sorted (and
     each pairwise disjoint).  Returns a sorted list.
 
     EXAMPLES::
@@ -512,7 +512,7 @@ def union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove
     return list(gen)
 
 def proper_interval_list_from_scan(scan):
-    """Return a generator of the proper intervals [a, b], a<b, in the `scan`.
+    """Return a generator of the proper intervals [a, b], a<b, in the scan.
 
     This ignores whether intervals are open/closed/half-open.
     """

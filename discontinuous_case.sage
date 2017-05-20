@@ -28,12 +28,14 @@ dic_eps_to_cone = { (-1,-1,-1): [(-1, 0), (0, -1)], \
                   }
 
 def generate_type_1_vertices_general(fn, comparison, reduced=True, bkpt=None):
-    """A generator...
-    "...'general' refers to the fact that it outputs 6-tuples (x,y,z,xeps,yeps,zeps).
-    When reduced=True:
-        only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_test or setting up system of equations.
-    When reduced=False:
-        outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive or additive_limit_vertices.
+    """A generator of vertieces.
+
+    ``..._general`` refers to the fact that it outputs 6-tuples (x,y,z,xeps,yeps,zeps).
+    
+    When reduced is:
+
+    - ``True``: only outputs fewer triples satisfying ``comparison`` relation, for the purpose of ``minimality_test`` or setting up system of equations.
+    - ``False``: outputs all triples satisfying ``comparison`` relation, for the purpose of plotting nonsubadditive or ``additive_limit_vertices``.
     """
     if bkpt is None:
         bkpt = fn.end_points()
@@ -63,11 +65,12 @@ def generate_type_1_vertices_general(fn, comparison, reduced=True, bkpt=None):
 
 def generate_type_2_vertices_general(fn, comparison, reduced=True, bkpt=None):
     """
-    When reduced=True:
-        only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_test or setting up equations.
-        Note: if fn is continuous at y, then fn(y-) = fn(y) = fn(y+)
-    When reduced=False:
-        outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive or additive_limit_vertices.
+    A generator of vertices.
+
+    When reduced is:
+
+    - ``True``: only outputs fewer triples satisfying ``comparison`` relation, for the purpose of ``minimality_test`` or setting up system of equations. Note: if `fn` is continuous at `y`, then use `fn(y^-) = fn(y) = fn(y^+)`.
+    - ``False``: outputs all triples satisfying ``comparison`` relation, for the purpose of plotting nonsubadditive or ``additive_limit_vertices``.
     """
     if bkpt is None:
         bkpt = fn.end_points()
@@ -107,7 +110,7 @@ def generate_type_2_vertices_general(fn, comparison, reduced=True, bkpt=None):
 
 def generate_nonsymmetric_vertices_general(fn, f):
     """
-    Generate vertices (x, y, xeps, yeps) that violate symmetric_test
+    Generate vertices (x, y, xeps, yeps) that violate ``symmetric_test``.
     """
     bkpt = fn.end_points()
     limits = fn.limits_at_end_points()
@@ -132,7 +135,8 @@ def generate_nonsymmetric_vertices_general(fn, f):
 def epstriple_to_cone(epstriple):
     """
     Convert (xeps, yeps, zeps) to the corresponding cone.
-    13 cases, see dic_eps_to_cone
+
+    13 cases, see ``dic_eps_to_cone``.
     """
     try:
         return dic_eps_to_cone[epstriple]
@@ -190,7 +194,9 @@ def plot_2d_additive_limit_vertices(fn):
 def generate_symbolic_general(function, components, field=None, f=None):
     """
     Construct a vector-space-valued piecewise linear function
-    compatible with the given `function`.  Each of the components of
+    compatible with the given function.  
+
+    Each of the components of
     the function has a slope that is a basis vector of the vector
     space. Each discontinuous point has a left or/and right jump
     that is a basis vector of the vector space.
@@ -359,18 +365,37 @@ def find_epsilon_interval_general(fn, perturb):
     return best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound
 
 def delta_pi_general(fn, x, y, (xeps, yeps, zeps)=(0,0,0)):
-    """
-    return delta_pi = fn(x, xeps) + fn(y, yeps) - fn(z, zeps)
+    r"""
+    return delta_pi = fn(x, xeps) + fn(y, yeps) - fn(z, zeps).
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = piecewise_function_from_breakpoints_and_limits(
+        ....:       bkpt=[0, 1/5, 2/5, 3/5, 4/5, 1], 
+        ....:       limits = [{-1:0, 0:0, 1:0},{-1:1, 0:1, 1:1}, 
+        ....:                 {-1:0, 0:2/5, 1:2/5}, {-1:2/5, 0:1/2, 1:3/5},
+        ....:                 {-1:3/5, 0:3/5, 1:1}, {-1:0, 0:0, 1:0}])
+        sage: delta_pi_general(h, 2/5, 4/5, (-1, 1, -1))
+        0
+        sage: delta_pi_general(h, 2/5, 4/5, (-1, 0, -1))
+        -2/5
     """
     return fn.limit(fractional(x), xeps) + fn.limit(fractional(y), yeps) - fn.limit(fractional(x + y), zeps)
 
 def containing_eps_1d(x, interval):
     """
-    Input:  x -- the projection of vertex v (of face F),
-            interval -- the projection of face F,
-    The projection direction is I/J/K. Note that x is in interval.
-    Return: the projection of approching limits (\subseteq {x-, x, x+})
-        that need to be considered at v for testing the additivity of F.
+    Input:  
+
+    - `x`: the projection of vertex `v` (of a face `F`), 
+
+    - interval: the projection of the face `F`. 
+
+    The projection direction is I/J/K. Note that `x` is in `interval`.
+
+    Return: 
+
+    - The projection of approching limits (`\subseteq \{x^-, x, x^+\}`) that need to be considered at `v` for testing the additivity of `F`.
     """
     if len(interval) == 1:
         return [0, 1, -1]
@@ -383,10 +408,10 @@ def containing_eps_1d(x, interval):
 
 def generate_containing_eps_triple(vertex, triple):
     """
-    Given vertex v of face F, and the 3-projection-interval triple of F.
+    Given vertex `v` of face `F`, and the 3-projection-interval triple of `F`.
     Return the approching limits {(xeps, yeps, zeps)}
-    pointing inwards at v from containning faces of F,
-    that should be considered for testing the additivity of F.
+    pointing inwards at `v` from containning faces of `F`,
+    that should be considered for testing the additivity of `F`.
     """
     xeps_list = containing_eps_1d(vertex[0], triple[0])
     yeps_list = containing_eps_1d(vertex[1], triple[1])

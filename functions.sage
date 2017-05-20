@@ -14,7 +14,7 @@ import itertools
 
 def unique_list(iterator):
     """
-    Return the list of the elements in the iterator without repetition.
+    Returns the list of the elements in the iterator without repetition.
     """
     l = []
     s = set()
@@ -26,7 +26,7 @@ def unique_list(iterator):
 
 def fractional(num):
     """
-    Reduce a number modulo 1.
+    Reduces a number modulo `1`.
     """
     parent = num.parent()
     one = parent._one_element
@@ -39,13 +39,20 @@ def fractional(num):
 
 def delta_pi(fn,x,y):
     """
-    Compute the slack in subaddivity.
+    Computes the slack in subaddivity. See also ``delta_pi_general`` for discontinuous case.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: fn = not_minimal_2()
+        sage: delta_pi(fn, 1/5, 3/5)
+        0
     """
     return fn(fractional(x))+fn(fractional(y))-fn(fractional(x+y))
 
 def plot_2d_complex(function):
     """
-    Return a plot of the horizonal lines, vertical lines, and diagonal lines of the complex.
+    Returns a plot of the horizonal lines, vertical lines, and diagonal lines of the complex.
     """
     bkpt = function.end_points()
     x = var('x')
@@ -75,12 +82,17 @@ def plot_2d_complex(function):
 
 def projection(vertices,linear_form):
     """
-    Compute the projection of vertices based on the linear form.
-    vertices is a list of vertices (2-tuples)
-    linear_form is a 2-element list.
-    Projection on x: [1,0]
-    Projection on y: [0,1]
-    Projection on x + y: [1,1]
+    Computes the projection of vertices based on the linear form.
+
+    vertices is a list of vertices (2-tuples).
+    
+    linear_form is a 2-element list:
+    
+    - Projection on `x`: `[1,0]`
+
+    - Projection on `y`: `[0,1]`
+
+    - Projection on `x + y`: `[1,1]`
     """
     temp = []
     for i in vertices:
@@ -92,13 +104,13 @@ def projection(vertices,linear_form):
 
 def projections(vertices):
     """
-    Compute F(I,J,K)            
+    Computes `F(I,J,K)`.
     """
     return [projection(vertices, [1,0]),projection(vertices, [0,1]),projection(vertices, [1,1])]    
 
 def verts(I1, J1, K1):
     """
-    Compute the vertices based on I, J, and K.        
+    Computes the vertices based on `I, J` and `K`.
     """
     temp = []
     for i in I1:
@@ -133,13 +145,16 @@ def generate_maximal_additive_faces(fn):
 ### vertices, minimal triple, whether it's a translation/reflection,
 ### etc.; whether it's solid or dense).
 class Face:
-    def __init__(self, triple, vertices=None, is_known_to_be_minimal=False):
-        """
-        EXAMPLES::
+    """
+    EXAMPLES::
 
-            sage: logging.disable(logging.INFO)
-            sage: f = generate_maximal_additive_faces(bhk_irrational(delta=(23/250,1/125)))
-        """
+        sage: F = Face([[1/5, 3/10], [3/4, 17/20], [1, 6/5]])
+        sage: F.vertices
+        [(1/5, 17/20), (3/10, 3/4), (3/10, 17/20), (1/5, 4/5), (1/4, 3/4)]
+        sage: F.minimal_triple
+        ([1/5, 3/10], [3/4, 17/20], [1, 23/20])
+    """
+    def __init__(self, triple, vertices=None, is_known_to_be_minimal=False):
         if not vertices:
             vertices = verts(triple[0], triple[1], triple[2])
             if not vertices:
@@ -179,12 +194,13 @@ class Face:
         
     def directed_move_with_domain_and_codomain(self):
         """
-        Maps a horizontal/vertical edge to a forward translation move.
-        (Backward translation moves will be added to DirectedMoveCompositionCompletion by add_backward_moves() in round 0.)
-        Maps a diagonal edge to a reflection move.
+        Maps a horizontal or vertical edge to a forward translation move.  Maps a diagonal edge to a reflection move.
 
-        `domain` and `codomain` are lists of open intervals.
-        Endpoints of `domain` and `codomain` will be taken care of by additive vertices.
+        .. NOTE::
+
+            Backward translation moves will be added to ``DirectedMoveCompositionCompletion`` by ``add_backward_moves`` in round 0.
+
+            The domain and codomain are lists of open intervals. Their endpoints will be considered when treating the additive vertices.
 
         EXAMPLES::
 
@@ -217,7 +233,7 @@ class Face:
 
     def functional_directed_move(self, is_backward_translation=False):
         """
-        Return the (forward by default or backward if is_backward_translation=True) translation move if given a horizontal/vertical edge, or the reflection move if given a diagonal edge.
+        Returns the (forward by default or backward if ``is_backward_translation=True``) translation move if given a horizontal/vertical edge, or the reflection move if given a diagonal edge.
 
         EXAMPLES::
 
@@ -279,8 +295,10 @@ def plot_faces(faces, **kwds):
 
 def plot_trivial_2d_diagram_with_grid(function, xgrid=None, ygrid=None): 
     """
-    Return a plot of the 2d complex with vertices marked that 
-    have delta_pi == 0.  Does not use any complicated code.
+    Returns a plot of the 2d complex with vertices marked that 
+    have `\Delta \pi = 0`.  
+
+    Does not use any complicated code.
     Mainly used for visually double-checking the computation of 
     maximal additive faces.
     """
@@ -324,17 +342,16 @@ def plot_kwds_hook(kwds):
 
 def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal=False, f=None, colorful=False):
     """
-    Return a plot of the 2d complex (Delta P) of `fn` with shaded
-    additive faces, i.e., faces where delta pi is 0.
+    Returns a plot of the 2d complex (`\\Delta P`) of fn with shaded
+    additive faces, i.e., faces where `\\Delta \\pi = 0`.
     
-    If `known_minimal` is False (the default), highlight
+    - If known_minimal is ``False`` (the default), highlight
     non-subadditive or non-symmetric vertices of the 2d complex.
 
-    If `show_function` is True (the default), plot the function at the left and top borders 
-    of the diagram via `plot_function_at_borders`. 
+    - If show_function is ``True`` (the default), plot the function at the left and top borders of the diagram via ``plot_function_at_borders``. 
 
-    If `show_projections` is True (the default), plot the projections p1(F), p2(F), p3(F) of 
-    all full-dimensional additive faces via `plot_projections_at_borders`.
+    - If show_projections is ``True`` (the default), plot the projections `p_1(F), p_2(F), p_3(F)` of 
+    all full-dimensional additive faces via ``plot_projections_at_borders``.
 
     To show only a part of the diagram, use::
 
@@ -438,7 +455,8 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
 def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
     """
     Colorful decoration.
-    Plot function on covered intervals with different colors according to slope values,
+
+    Plot fn on covered intervals with different colors according to slope values,
     on the upper and the left border of the 2d diagrams.
     """
     p = Graphics()
@@ -604,10 +622,12 @@ proj_plot_alpha = 0.35
 
 def plot_projections_at_borders(fn):
     """
-    Plot the projections p1(F), p2(F), p3(F) of all full-dimensional
-    additive faces F of `fn` as gray shadows: p1(F) at the top border,
-    p2(F) at the left border, p3(F) at the bottom and the right
-    borders.
+    Plot the projections `p_1(F), p_2(F), p_3(F)` of all full-dimensional
+    additive faces `F` of fn as gray shadows:
+
+    - `p_1(F)` at the top border,
+    - `p_2(F)` at the left border, 
+    - `p_3(F)` at the bottom and the right borders.
     """
     g = Graphics()
     I_J_verts = set()
@@ -674,8 +694,7 @@ def plot_projections_of_one_face(face, IJK_kwds):
     
 def interval_mod_1(interval):
     """
-    Represent the given proper interval modulo 1
-    as a subinterval of [0,1].
+    Represent the given proper interval modulo `1` as a subinterval of `[0,1]`.
 
     EXAMPLES::
 
@@ -711,6 +730,16 @@ def interval_mod_1(interval):
         raise ValueError, "Not an interval: %s" % interval
 
 def generate_covered_components(function):
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = hildebrand_discont_3_slope_1()
+        sage: generate_covered_components(h)
+        [[<Int(0, 1/8)>, <Int(3/8, 1/2)>],
+         [<Int(1/8, 1/4)>, <Int(1/4, 3/8)>, <Int(1/2, 5/8)>, <Int(7/8, 1)>],
+         [<Int(5/8, 3/4)>, <Int(3/4, 7/8)>]]    
+    """
     fdms, covered_components = generate_directed_move_composition_completion(function)
     return covered_components
 
@@ -730,7 +759,7 @@ uncovered_intervals_from_covered_intervals = uncovered_intervals_from_covered_co
     
 def ticks_keywords(function, y_ticks_for_breakpoints=False):
     """
-    Compute `plot` keywords for displaying the ticks.
+    Compute ``plot`` keywords for displaying the ticks.
     """
     xticks = function.end_points()
     f = find_f(function, no_error_if_not_minimal_anyway=True)
@@ -764,7 +793,7 @@ def delete_one_time_plot_kwds(kwds):
 def plot_covered_intervals(function, covered_components=None, uncovered_color='black', labels=None,
                            show_one_point_overlap_markers=None, **plot_kwds):
     """
-    Return a plot of the covered and uncovered intervals of `function`.
+    Returns a plot of the covered and uncovered intervals of the function.
     """
     if covered_components is None:
         covered_components = generate_covered_components(function)
@@ -828,9 +857,9 @@ def plot_directly_covered_intervals(function, uncovered_color='black', labels=No
 
 def number_of_components(fn):
     """
-    Return the number of connected components of `fn`.
+    Returns the number of connected components of fn.
 
-    This is an upper bound on `number_of_slopes`.
+    This is an upper bound on ``number_of_slopes``.
 
     EXAMPLES::
 
@@ -849,7 +878,7 @@ def number_of_components(fn):
 
 def slopes_intervals_dict(fn):
     """
-    Return a dictionary mapping slope values to a list of intervals of that slope.
+    Returns a dictionary that maps a slope value to a list of intervals with that slope.
 
     EXAMPLES::
 
@@ -870,9 +899,9 @@ def slopes_intervals_dict(fn):
 
 def number_of_slopes(fn):
     """
-    Return the number of different slopes of `fn`.
+    Returns the number of different slopes of fn.
 
-    If `fn` is discrete, this is defined as the number of different slopes
+    If fn is discrete, this is defined as the number of different slopes
     of its piecewise linear continuous interpolation.
 
     EXAMPLES::
@@ -891,7 +920,7 @@ def number_of_slopes(fn):
 
 def plot_with_colored_slopes(fn):
     """
-    Return a plot of `fn`, with pieces of different slopes in different colors.
+    Returns a plot of fn, with pieces of different slopes in different colors.
     """
     slopes_dict = slopes_intervals_dict(fn)
     return plot_covered_intervals(fn, slopes_dict.values(), labels=[ "Slope %s" % s for s in slopes_dict.keys() ])
@@ -900,7 +929,7 @@ def plot_with_colored_slopes(fn):
 
 def subadditivity_test(fn):
     """
-    Check if `fn` is subadditive.
+    Check if fn is subadditive.
     """
     result = True
     for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices(fn, reduced=True):
@@ -914,7 +943,7 @@ def subadditivity_test(fn):
 
 def symmetric_test(fn, f):
     """
-    Check if `fn` is symmetric.
+    Check if fn is symmetric.
     """
     result = True
     if fn(f) != 1:
@@ -932,7 +961,7 @@ def symmetric_test(fn, f):
 
 def find_f(fn, no_error_if_not_minimal_anyway=False):
     """
-    Find the value of `f' for the given function `fn'.
+    Find the value of `f` for the given function .
     """
     if hasattr(fn, '_f'):
         return fn._f
@@ -960,14 +989,13 @@ def find_f(fn, no_error_if_not_minimal_anyway=False):
 
 def minimality_test(fn, show_plots=False, f=None):
     """
-    Check if `fn` is minimal with respect to the group relaxation with the given `f`. 
+    Checks if fn is minimal with respect to the group relaxation with the given `f`.  
 
-    If `f` is not provided, use the one found by `find_f`.
+    Assume that `0 \leq fn \leq 1`. This function calls ``subadditivity_test`` and ``symmetric_test``.
 
-    If `show_plots` is True (default: False), show an illustrating diagram.
+    If `f` is not provided, use the one found by ``find_f``.
 
-    This function verifies that function values stay between 0 and 1 and
-    calls `subadditivity_test` and `symmetric_test`.
+    If show_plots is ``True`` (default: ``False``), show an illustrating diagram.
 
     EXAMPLES::
 
@@ -1027,23 +1055,24 @@ class FastPiecewise (PiecewisePolynomial):
     pairs.
 
     Uses binary search to allow for faster function evaluations
-    than the standard class PiecewisePolynomial.
+    than the standard class ``PiecewisePolynomial``.
+
+    EXAMPLES::
+
+        sage: h = FastPiecewise([[(3/10, 15/40), FastLinearFunction(1, 0)], [(13/40, 14/40), FastLinearFunction(1, 0)]], merge=True)
+        sage: len(h.intervals())
+        1
+        sage: h.intervals()[0][0], h.intervals()[0][1]
+        (3/10, 3/8)
+        sage: h = FastPiecewise([[(3/10, 15/40), FastLinearFunction(1, 0)],
+        ....:                    [(13/40, 14/40), FastLinearFunction(1, 0)],
+        ....:                    [(17,18), FastLinearFunction(77,78)]], merge=True)
+        sage: len(h.intervals())
+        2
+        sage: h.intervals()[0][0], h.intervals()[0][1]
+        (3/10, 3/8)
     """
     def __init__(self, list_of_pairs, var=None, periodic_extension=True, merge=True):
-        """
-        EXAMPLES::
-
-            sage: h = FastPiecewise([[(3/10, 15/40), FastLinearFunction(1, 0)], [(13/40, 14/40), FastLinearFunction(1, 0)]], merge=True)
-            sage: len(h.intervals())
-            1
-            sage: h.intervals()[0][0], h.intervals()[0][1]
-            (3/10, 3/8)
-            sage: h = FastPiecewise([[(3/10, 15/40), FastLinearFunction(1, 0)], [(13/40, 14/40), FastLinearFunction(1, 0)], [(17,18), FastLinearFunction(77,78)]], merge=True)
-            sage: len(h.intervals())
-            2
-            sage: h.intervals()[0][0], h.intervals()[0][1]
-            (3/10, 3/8)
-        """
         # Sort intervals according to their left endpoints; In case of equality, place single point before interval. 
         list_of_pairs = sorted(list_of_pairs, key = lambda (i, f): coho_interval_left_endpoint_with_epsilon(i))
         if merge:
@@ -1165,13 +1194,13 @@ class FastPiecewise (PiecewisePolynomial):
 
     def is_continuous(self):
         """
-        return if function is continuous
+        return if the function is continuous
         """
         return self._is_continuous
 
     def is_two_sided_discontinuous(self):
         """
-        return if function is discontinuous at 0+ and at 1-.
+        return if the function is discontinuous at 0+ and at 1-.
         """
         return self._is_two_sided_discontinuous
         
@@ -1213,12 +1242,12 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f5(x) = sin(2*x)
             sage: f6(x) = x-3
             sage: f7(x) = 7
-            sage: f = FastPiecewise([[right_open_interval(0,1),f1], \
-            ...                      [right_open_interval(1,2),f2],\
-            ...                      [open_interval(2,3),f3],\
-            ...                      [singleton_interval(3),f4],\
-            ...                      [left_open_interval(3,6),f5],\
-            ...                      [open_interval(6,7),f6],\
+            sage: f = FastPiecewise([[right_open_interval(0,1),f1],
+            ...                      [right_open_interval(1,2),f2],
+            ...                      [open_interval(2,3),f3],
+            ...                      [singleton_interval(3),f4],
+            ...                      [left_open_interval(3,6),f5],
+            ...                      [open_interval(6,7),f6],
             ...                      [(9,10),f7]])
             sage: f.values_at_end_points()
             [1, 0, None, 4, sin(12), None, 7, 7]
@@ -1227,7 +1256,7 @@ class FastPiecewise (PiecewisePolynomial):
 
     def limits_at_end_points(self):
         """
-        Returns a list of 3-tuples [function value, right_limit, left_limit] at all endpoints for this function.
+        Returns a list of 3-tuples [function value, right limit, left limit] at all endpoints for this function.
 
         EXAMPLES::
 
@@ -1238,12 +1267,12 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f5(x) = sin(2*x)
             sage: f6(x) = x-3
             sage: f7(x) = 7
-            sage: f = FastPiecewise([[right_open_interval(0,1),f1], \
-            ...                      [right_open_interval(1,2),f2],\
-            ...                      [open_interval(2,3),f3],\
-            ...                      [singleton_interval(3),f4],\
-            ...                      [left_open_interval(3,6),f5],\
-            ...                      [open_interval(6,7),f6],\
+            sage: f = FastPiecewise([[right_open_interval(0,1),f1],
+            ...                      [right_open_interval(1,2),f2],
+            ...                      [open_interval(2,3),f3],
+            ...                      [singleton_interval(3),f4],
+            ...                      [left_open_interval(3,6),f5],
+            ...                      [open_interval(6,7),f6],
             ...                      [(9,10),f7]], periodic_extension= False)
             sage: f.limits_at_end_points()
             [[1, 1, None], [0, 0, 1], [None, e^2, -1], [4, sin(6), e^3], [sin(12), 3, sin(12)], [None, None, 4], [7, 7, None], [7, None, 7]]
@@ -1252,7 +1281,7 @@ class FastPiecewise (PiecewisePolynomial):
 
     def which_function(self, x0):
         """
-        Returns the function piece used to evaluate self at x0.
+        Returns the function piece used to evaluate self at `x_0`.
         
         EXAMPLES::
         
@@ -1338,7 +1367,7 @@ class FastPiecewise (PiecewisePolynomial):
 
     def __call__(self,x0):
         """
-        Evaluates self at x0. 
+        Evaluates self at `x_0`. 
         
         EXAMPLES::
         
@@ -1431,7 +1460,7 @@ class FastPiecewise (PiecewisePolynomial):
 
     def limits(self, x0):
         """
-        return [function value at x0, function value at x0+, function value at x0-].
+        returns [function value at `x_0`, function value at `x_0^+`, function value at `x_0^-`].
 
         EXAMPLES::
 
@@ -1442,12 +1471,12 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f5(x) = sin(2*x)
             sage: f6(x) = x-3
             sage: f7(x) = 7
-            sage: f = FastPiecewise([[right_open_interval(0,1),f1], \
-            ...                      [right_open_interval(1,2),f2],\
-            ...                      [open_interval(2,3),f3],\
-            ...                      [singleton_interval(3),f4],\
-            ...                      [left_open_interval(3,6),f5],\
-            ...                      [open_interval(6,7),f6],\
+            sage: f = FastPiecewise([[right_open_interval(0,1),f1],
+            ...                      [right_open_interval(1,2),f2],
+            ...                      [open_interval(2,3),f3],
+            ...                      [singleton_interval(3),f4],
+            ...                      [left_open_interval(3,6),f5],
+            ...                      [open_interval(6,7),f6],
             ...                      [(9,10),f7]], periodic_extension=False)
             sage: f.limits(1/2)
             [1, 1, 1]
@@ -1482,8 +1511,8 @@ class FastPiecewise (PiecewisePolynomial):
 
     def limit(self, x0, epsilon):
         """
-        return limit (from right if epsilon > 0, from left if epsilon < 0) value at x0;
-        if epsilon == 0, return value at x0.
+        returns limit (from right if `\epsilon > 0`, from left if `\epsilon < 0`) value at `x_0`;
+        if `\epsilon = 0`, returns value at `x_0`.
 
         EXAMPLES::
 
@@ -1494,13 +1523,13 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f5(x) = sin(2*x)
             sage: f6(x) = x-3
             sage: f7(x) = 7
-            sage: f = FastPiecewise([[right_open_interval(0,1),f1], \
-            ...                      [right_open_interval(1,2),f2],\
-            ...                      [open_interval(2,3),f3],\
-            ...                      [singleton_interval(3),f4],\
-            ...                      [left_open_interval(3,6),f5],\
-            ...                      [open_interval(6,7),f6],\
-            ...                      [(9,10),f7]], periodic_extension=False)
+            sage: f = FastPiecewise([[right_open_interval(0,1),f1],
+            ....:                    [right_open_interval(1,2),f2],
+            ....:                    [open_interval(2,3),f3],
+            ....:                    [singleton_interval(3),f4],
+            ....:                    [left_open_interval(3,6),f5],
+            ....:                    [open_interval(6,7),f6],
+            ....:                    [(9,10),f7]], periodic_extension=False)
             sage: f.limit(1,0)
             0
             sage: f.limit(1,1)
@@ -1527,15 +1556,15 @@ class FastPiecewise (PiecewisePolynomial):
 
     def which_function_on_interval(self, interval):
         x = (interval[0] + interval[1]) / 2
-        # FIXME: This should check that the given `interval` is contained in the defining interval!
+        # FIXME: This should check that the given interval is contained in the defining interval!
         # This could be implemented by refactoring which_function using new function which_function_index.
         return self.which_function(x)
 
     def __add__(self,other):
         """
-        Add `self` and another piecewise function.
+        Add self and another piecewise function.
 
-        In contrast to PiecewisePolynomial.__add__, this does not do zero extension of domains.
+        In contrast to ``PiecewisePolynomial.__add__``, this does not do zero extension of domains.
         Rather, the result is only defined on the intersection of the domains.
 
         EXAMPLES::
@@ -1562,9 +1591,9 @@ class FastPiecewise (PiecewisePolynomial):
         
     def __mul__(self,other):
         """
-        Multiply `self` by a scalar or another piecewise function.
+        Multiply self by a scalar or another piecewise function.
 
-        In contrast to PiecewisePolynomial.__mul__, this does not do zero extension of domains.
+        In contrast to ``PiecewisePolynomial.__mul__``, this does not do zero extension of domains.
         Rather, the result is only defined on the intersection of the domains.
         """
         if not isinstance(other, FastPiecewise):
@@ -1591,7 +1620,7 @@ class FastPiecewise (PiecewisePolynomial):
         Returns the plot of self.
         
         Keyword arguments are passed onto the plot command for each piece
-        of the function. E.g., the plot_points keyword affects each
+        of the function. E.g., the ``plot_points`` keyword affects each
         segment of the plot.
         
         EXAMPLES::
@@ -1605,7 +1634,7 @@ class FastPiecewise (PiecewisePolynomial):
             sage: P
             Graphics object...
         
-        Remember: to view this, type show(P) or P.save("path/myplot.png")
+        Remember: to view this, type ``show(P)`` or ``P.save("path/myplot.png")``
         and then open it in a graphics viewer such as GIMP.
 
         TESTS:
@@ -1753,7 +1782,7 @@ class FastPiecewise (PiecewisePolynomial):
 
     def is_continuous_defined(self, xmin=0, xmax=1):
         """
-        return True if self is defined on [xmin,xmax] and is continuous on [xmin,xmax]
+        return ``True`` if self is defined on [xmin, xmax] and is continuous on [xmin, xmax].
         """
         bkpt = self._end_points
         if xmin < bkpt[0] or xmax > bkpt[-1]:
@@ -1913,16 +1942,16 @@ def is_all_QQ(values):
 
 def nice_field_values(symb_values, field=None):
     """
-    Coerce the real numbers in the list `symb_values` into a convenient common field
-    and return a list, parallel to `symb_values`, of the coerced values.
+    Coerce the real numbers in the list symb_values into a convenient common field
+    and return a list, parallel to symb_values, of the coerced values.
 
     If all given numbers are rational, the field will be the rational
-    field (`QQ`).  
+    field (``QQ``).  
 
     Otherwise, if the numbers are algebraic, the field
     will be a suitable algebraic field extension of the rational
     numbers, embedded into the real numbers, in the form of a
-    `RealNumberField`.  
+    ``RealNumberField``.  
 
     Otherwise, the given numbers are returned as is.
     """
@@ -1973,19 +2002,17 @@ def nice_field_values(symb_values, field=None):
 #@logger
 def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field=None, merge=True):
     """
-    Create a continuous piecewise function from `bkpt`, `slopes`, and `values`.
+    Create a continuous piecewise function from bkpt, slopes, and values.
 
-    `bkpt` and `values` are two parallel lists; it is assumed that `bkpt` is 
-    sorted in increasing order. 
+    - bkpt and values are two parallel lists; it is assumed that bkpt is sorted in increasing order. 
 
-    `slopes` is one element shorter and represents the slopes of the interpolation.
+    - slopes is one element shorter and represents the slopes of the interpolation.
 
-    The function is overdetermined by these data.  The consistency of the data is 
-    currently not checked.
+    - The function is overdetermined by these data.  The consistency of the data is currently not checked.
 
-    The data are coerced into a common convenient field via `nice_field_values`.
+    - The data are coerced into a common convenient field via ``nice_field_values``.
 
-    If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
+    - If merge is ``True`` (the default), adjacent pieces of equal slopes are merged into one.
     """
     if field is None:
         field = default_field
@@ -2004,13 +2031,13 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
 
 def piecewise_function_from_breakpoints_and_values(bkpt, values, field=None, merge=True):
     """
-    Create a continuous piecewise function from `bkpt` and `values`.
+    Create a continuous piecewise function from bkpt and values.
 
-    `bkpt` and `values` are two parallel lists; assuming `bpkt` is sorted (increasing).
+    - bkpt and values are two parallel lists; assuming bpkt is sorted (increasing).
 
-    The data are coerced into a common convenient field via `nice_field_values`.
+    - The data are coerced into a common convenient field via ``nice_field_values``.
 
-    If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
+    - If merge is ``True`` (the default), adjacent pieces of equal slopes are merged into one.
     """
     if len(bkpt)!=len(values):
         raise ValueError, "Need to have the same number of breakpoints and values."
@@ -2019,15 +2046,13 @@ def piecewise_function_from_breakpoints_and_values(bkpt, values, field=None, mer
 
 def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None, merge=True):
     """
-    Create a continuous piecewise function from `bkpt` and `slopes`.
+    Create a continuous piecewise function from bkpt and slopes.
 
-    `bkpt` and `slopes` are two parallel lists (except that `bkpt` is
-    one element longer); assuming `bpkt` is sorted (increasing).  The
-    function always has value 0 on bkpt[0].  
+    - bkpt and slopes are two parallel lists (except that bkpt is one element longer); assuming bpkt is sorted (increasing).  The function always has value `0` on ``bkpt[0]``.  
 
-    The data are coerced into a common convenient field via `nice_field_values`.
+    - The data are coerced into a common convenient field via ``nice_field_values``.
 
-    If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
+    - If merge is ``True`` (the default), adjacent pieces of equal slopes are merged into one.
     """
     if len(bkpt)!=len(slopes)+1:
         raise ValueError, "Need to have one breakpoint more than slopes."
@@ -2038,15 +2063,13 @@ def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None, mer
 
 def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=None, merge=True):
     """
-    Create a continuous piecewise function from `interval_lengths` and `slopes`.
+    Create a continuous piecewise function from interval_lengths and slopes.
 
-    The function always has value 0 on 0. `interval_lengths` and
-    `slopes` are two parallel lists that define the function values to
-    the right of 0.
+    - The function always has value 0 on 0. interval_lengths and slopes are two parallel lists that define the function values to the right of 0.
 
-    The data are coerced into a common convenient field via `nice_field_values`.
+    - The data are coerced into a common convenient field via ``nice_field_values``.
 
-    If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
+    - If merge is ``True`` (the default), adjacent pieces of equal slopes are merged into one.
     """
     if len(interval_lengths)!=len(slopes):
         raise ValueError, "Number of given interval_lengths and slopes needs to be equal."
@@ -2060,15 +2083,13 @@ def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes
 
 def piecewise_function_from_breakpoints_and_limits(bkpt, limits, field=None, merge=True):
     """
-    Create a continuous or discontinuous piecewise function from `bkpt` and `limits`.
+    Create a continuous or discontinuous piecewise function from bkpt and limits.
 
-    `bkpt` and `limits` are two parallel lists.
-    Assume that `bkpt` is a sorted (increasing).
-    `limits` is a list of tuple of 3 numbers (mid, right, left).
+    - bkpt and limits are two parallel lists.  Assume that bkpt is a sorted (increasing). limits is a list of tuple of 3 numbers (mid, right, left).
 
-    The data are coerced into a common convenient field via `nice_field_values`.
+    - The data are coerced into a common convenient field via ``nice_field_values``.
 
-    If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
+    - If merge is True (the default), adjacent pieces of equal slopes are merged into one.
 
     EXAMPLES::
 
@@ -2076,6 +2097,15 @@ def piecewise_function_from_breakpoints_and_limits(bkpt, limits, field=None, mer
         sage: bkpt = [0, 1/8, 3/8, 1/2, 5/8, 7/8, 1]
         sage: limits = [(0, 0, 1/2), (1/4, 1/4, 3/4), (3/4, 1/4, 3/4), (1, 1/2, 1), (3/4, 3/4, 3/4), (1/4, 1/4, 1/4), (0, 0, 1/2)]
         sage: h = piecewise_function_from_breakpoints_and_limits(bkpt, limits)
+        sage: (h - hildebrand_discont_3_slope_1()).list()
+        [[(0, 1), <FastLinearFunction 0>]]
+        sage: h = piecewise_function_from_breakpoints_and_limits(bkpt=[0, 1/5, 2/5, 3/5, 4/5, 1], limits = [{-1:0, 0:0, 1:0},{-1:1, 0:1, 1:1}, {-1:0, 0:2/5, 1:2/5}, {-1:2/5, 0:1/2, 1:3/5}, {-1:3/5, 0:3/5, 1:1}, {-1:0, 0:0, 1:0}])
+        sage: h.limit(3/5, 1)
+        3/5
+        sage: h.limit(3/5, 0)
+        1/2
+        sage: h.limit(3/5, -1)
+        2/5
     """
     if len(bkpt)!=len(limits):
         raise ValueError, "Need to have the same number of breakpoints and limits."
@@ -2093,14 +2123,13 @@ def piecewise_function_from_breakpoints_and_limits(bkpt, limits, field=None, mer
 
 def piecewise_function_from_breakpoints_slopes_and_jumps(bkpt, slopes, jumps, field=None, merge=True):
     """
-    Create a continuous or discontinuous piecewise function from `bkpt`, `slopes` and `jumps`.
+    Create a continuous or discontinuous piecewise function from bkpt, slopes and jumps.
 
-    The function always has value 0 on the first breakpoint 0. The list `jumps` describes
-    the function value jumps on the left and the right endpoints of each slope.
+    - The function always has value 0 on the first breakpoint `0`. The list jumps describes the function value jumps on the left and the right endpoints of each slope.
 
-    The data are coerced into a common convenient field via `nice_field_values`.
+    - The data are coerced into a common convenient field via ``nice_field_values``.
 
-    If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
+    - If merge is ``True`` (the default), adjacent pieces of equal slopes are merged into one.
 
     EXAMPLES::
 
@@ -2130,11 +2159,11 @@ def piecewise_function_from_breakpoints_slopes_and_jumps(bkpt, slopes, jumps, fi
 
 def discrete_function_from_points_and_values(points, values, field=None):
     """
-    Create a function defined on a finite list of `points`. 
+    Create a function defined on a finite list of points. 
 
-    `points` and `values` are two parallel lists.
+    points and values are two parallel lists.
 
-    The data are coerced into a common convenient field via `nice_field_values`.
+    The data are coerced into a common convenient field via ``nice_field_values``.
     """
     if field is None:
         field = default_field
@@ -2148,10 +2177,10 @@ def discrete_function_from_points_and_values(points, values, field=None):
 
 def limiting_slopes(fn):
     """
-    Compute the limiting slopes on the right and the left side of the
+    Computes the limiting slopes on the right and the left side of the
     origin.
     
-    The function `fn` is assumed minimal.
+    The function fn is assumed minimal.
 
     EXAMPLES::
 
@@ -2274,6 +2303,7 @@ def find_epsilon_interval(fn, perturb):
 def find_largest_epsilon(fn, perturb):
     """
     Compute the proper rescaling of a given perturbation function.
+
     If the largest epsilon is zero, we should try a different perturbation instead.
     """
     minus_epsilon, plus_epsilon = find_epsilon_interval(fn, perturb)
@@ -2315,7 +2345,8 @@ class FunctionalDirectedMove (FastPiecewise):
 
     def additive_faces(self, is_backward_translation=False):
         """
-        Map FunctionalDirectedMove back to one-dimensional additive face(s) in the 2d-diagram.
+        Map ``FunctionalDirectedMove`` back to one-dimensional additive face(s) in the 2d-diagram.
+
         EXAMPLES::
 
             sage: face_hor = Face([[2/5, 3/5],[4/5],[6/5,7/5]])
@@ -2363,7 +2394,7 @@ class FunctionalDirectedMove (FastPiecewise):
 
     def can_apply(self, x):
         """
-        Determine if self can apply on x
+        Determine if self can apply on `x`.
 
         EXAMPLES::
 
@@ -2404,9 +2435,10 @@ class FunctionalDirectedMove (FastPiecewise):
         # This does not do error checking.  Some code depends on this fact!
         # FIXME: This should be made clear in the name of this function.
         """
-        Return a range inverval from a given interval by applying the move. 
+        Returns a range inverval from a given interval by applying the move.
+ 
         If the move sign is 1, the user can take the inverse of the operation,
-        i.e y = x - t_1
+        i.e `y = x - t_1`.
 
         EXAMPLES::
 
@@ -2445,7 +2477,7 @@ class FunctionalDirectedMove (FastPiecewise):
 
     def is_identity(self):
         """
-        Determine if self is a identity function or not
+        Determine whether self is a identity function or not.
 
         EXAMPLES::
 
@@ -2461,7 +2493,7 @@ class FunctionalDirectedMove (FastPiecewise):
     def restricted(self, intervals):
         """
         Not used.
-        Return a new move that is the restriction of domain and codomain of `self` to `intervals`.
+        Return a new move that is the restriction of domain and codomain of self to intervals.
         (The result may have the empty set as its domain.)
         """
         domain = self.intervals()                        # sorted.
@@ -2472,7 +2504,7 @@ class FunctionalDirectedMove (FastPiecewise):
 
     def restricting(self, components):
         """ 
-        Return a new move by removing self.restricted(component) for component in components.
+        Returns a new move by removing ``self.restricted(component)`` for component in components.
         (The result may have the empty set as its domain.)
         """
 
@@ -2494,7 +2526,7 @@ class FunctionalDirectedMove (FastPiecewise):
 @cached_function
 def generate_functional_directed_moves(fn):
     """
-    Compute the moves (translations and reflections).
+    Compute the (translations and reflections) moves.
     """
     moves = dict()
     for face in generate_maximal_additive_faces(fn):
@@ -2516,10 +2548,24 @@ def plot_walk(walk_dict, color="black", ymin=0, ymax=1, **kwds):
         delete_one_time_plot_kwds(kwds)
     return g
 
-class UnimplementedError (Exception):
-    pass
-
 def generate_symbolic(fn, components, field=None, f=None):
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = hildebrand_discont_3_slope_1()
+        sage: components =  generate_covered_intervals(h)
+        sage: g = generate_symbolic(h, components, field=QQ)
+        sage: g.list()
+        [[<Int[0, 1/8)>, <FastLinearFunction ((1,0,0,0,0))*x>],
+         [(1/8, 3/8), <FastLinearFunction ((0,1,0,0,0))*x + ((1/8,-1/8,0,1,0))>],
+         [<Int(3/8, 1/2]>, <FastLinearFunction ((1,0,0,0,0))*x - ((1/4,-1/4,0,-2,0))>],
+         [<Int(1/2, 5/8]>, <FastLinearFunction ((0,1,0,0,0))*x + ((1/4,-1/4,0,2,1))>],
+         [<Int(5/8, 7/8]>,
+          <FastLinearFunction ((0,0,1,0,0))*x + ((1/4,3/8,-5/8,2,1))>],
+         [<Int(7/8, 1)>, <FastLinearFunction ((0,1,0,0,0))*x + ((1/4,-1/2,1/4,2,1))>],
+         [<Int{1}>, <FastLinearFunction ((1/4,1/2,1/4,2,2))>]]   
+    """
     if fn.is_continuous() or fn.is_discrete():
         return generate_symbolic_continuous(fn, components, field=field, f=f)
     else:
@@ -2532,8 +2578,8 @@ def generate_additivity_equations(fn, symbolic, field, f=None, bkpt=None):
         return generate_additivity_equations_general(fn, symbolic, field, f=f, bkpt=bkpt)
 
 def rescale_to_amplitude(perturb, amplitude):
-    """For plotting purposes, rescale the function `perturb` so that its
-    maximum (supremum) absolute function value is `amplitude`.
+    """For plotting purposes, rescale the function perturb so that its
+    maximum (supremum) absolute function value is amplitude.
     """
     current_amplitude = max([ abs(x) for limits in perturb.limits_at_end_points() for x in limits if x is not None])
     if current_amplitude != 0:
@@ -2546,12 +2592,13 @@ show_plots_figsize = 10
 
 def show_plot(graphics, show_plots, tag, object=None, **show_kwds):
     """
-    Display or save `graphics`.
+    Display or save graphics.
 
-    `show_plots` can be one of: `False` (do nothing), 
-    `True` (use `show` to display on screen),
-    a string (file name format such as "FILENAME-%s.pdf", 
-    where %s is replaced by `tag`.
+    show_plots can be one of: 
+
+    - ``False`` (do nothing), 
+    - ``True`` (use ``show`` to display on screen), 
+    - a string (file name format such as "FILENAME-%s.pdf", where %s is replaced by tag.
     """
     plot_kwds_hook(show_kwds)
     if isinstance(show_plots, str):
@@ -2567,7 +2614,7 @@ check_perturbation_plot_three_perturbations = True
 
 def basic_perturbation(fn, index):
     """
-    Get a basic perturbation of `fn`.  `index` counts from 1 (to match the labels in the diagrams). 
+    Get a basic perturbation of fn.  index counts from 1 (to match the labels in the diagrams). 
     """
     if not hasattr(fn, '_perturbations'):
         extremality_test(fn, show_plots=False)
@@ -2580,12 +2627,9 @@ def basic_perturbation(fn, index):
 
 def plot_perturbation_diagram(fn, perturbation=None, xmin=0, xmax=1):
     """
-    Plot a perturbation of `fn`.
+    Plot a perturbation of fn.
     
-    `perturbation` is either a perturbation function, or an integer
-    (which designates a basic perturbation of `fn` via
-    `basic_perturbation`).  If `perturbation` is not provided, it
-    defaults to the perturbation indexed 1.
+    perturbation is either a perturbation function, or an integer (which designates a basic perturbation of fn via ``basic_perturbation``).  If perturbation is not provided, it defaults to the perturbation indexed 1.
 
     To show only a part of the diagram, use::
 
@@ -2635,9 +2679,9 @@ def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbatio
     #logging.info("Thus the function is not extreme.")  ## Now printed by caller.
 
 def generate_perturbations_finite_dimensional(function, show_plots=False, f=None):
-    ## FIXME: Perhaps we want an `oversampling` parameter as in generate_perturbations_simple??
+    ## FIXME: Perhaps we want an oversampling parameter as in generate_perturbations_simple??
     """
-    Generate (with "yield") perturbations for `finite_dimensional_extremality_test`.
+    Generate (with ``yield``) perturbations for ``finite_dimensional_extremality_test``.
     """
     fdms, covered_components = generate_directed_move_composition_completion(function, show_plots=show_plots)
     if logging.getLogger().isEnabledFor(logging.DEBUG):
@@ -2690,6 +2734,13 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn
         sage: h2 = drlm_3_slope_limit()
         sage: finite_dimensional_extremality_test(h2, show_plots=True)
         True
+        sage: h = equiv7_example_1()
+        sage: finite_dimensional_extremality_test(h)
+        False
+        sage: h._perturbations[0].list()
+        [[<Int{0}>, <FastLinearFunction 0>],
+         [<Int(0, 1/2)>, <FastLinearFunction x - 1/4>],
+         [(1/2, 1), <FastLinearFunction 0>]]
     """
     if show_all_perturbations is None:
         show_all_perturbations = show_plots
@@ -2731,14 +2782,13 @@ def generate_type_2_vertices(fn, comparison, reduced=True, bkpt=None):
 
 def generate_additive_vertices(fn, reduced=True, bkpt=None):
     """
-    We are returning a set of 6-tuples (x, y, z, xeps, yeps, zeps),
+    We are returning a set of 6-tuples `(x, y, z, xeps, yeps, zeps)`,
     so that duplicates are removed, and so the result can be cached for later use.
 
-    When reduced=True:
-        only outputs fewer triples satisfying `comparison' relation, for the purpose of setting up the system of equations.
+    When reduced is: 
 
-    When reduced=False:
-        outputs all triples satisfying `comparison' relation, for the purpose of plotting additive_limit_vertices.
+    - ``True``: only outputs fewer triples satisfying ``comparison`` relation, for the purpose of setting up the system of equations.
+    - ``False``: outputs all triples satisfying ``comparison`` relation, for the purpose of plotting ``additive_limit_vertices``.
     """
     return unique_list(itertools.chain( \
                 generate_type_1_vertices(fn, operator.eq, reduced=reduced, bkpt=bkpt),\
@@ -2747,14 +2797,13 @@ def generate_additive_vertices(fn, reduced=True, bkpt=None):
 @cached_function
 def generate_nonsubadditive_vertices(fn, reduced=True):
     """
-    We are returning a set of 6-tuples (x, y, z, xeps, yeps, zeps),
+    We are returning a set of 6-tuples `(x, y, z, xeps, yeps, zeps)`,
     so that duplicates are removed, and so the result can be cached for later use.
 
-    When reduced=True:
-        only outputs fewer triples satisfying `comparison' relation, for the purpose of minimality_test.
+    When reduced is:
 
-    When reduced=False:
-        outputs all triples satisfying `comparison' relation, for the purpose of plotting nonsubadditive_limit_vertices.
+    - ``True``: only outputs fewer triples satisfying ``comparison`` relation, for the purpose of ``minimality_test``.
+    - ``False``: outputs all triples satisfying ``comparison`` relation, for the purpose of plotting ``nonsubadditive_limit_vertices``.
     """
     return unique_list(itertools.chain( \
                 generate_type_1_vertices(fn, operator.lt, reduced=reduced),\
@@ -2772,24 +2821,24 @@ class MaximumNumberOfIterationsReached(Exception):
 crazy_perturbations_warning = False
 
 def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, phase_1 = False, finite_dimensional_test_first = False, show_all_perturbations=False, crazy_perturbations=True):
-    """Check if `fn` is extreme for the group relaxation with the given `f`. 
+    """Check if fn is extreme for the group relaxation with the given `f`. 
 
-    If `fn` is discrete, it has to be defined on a cyclic subgroup of
-    the reals containing 1, restricted to [0, 1].  The group
+    If fn is discrete, it has to be defined on a cyclic subgroup of
+    the reals containing `1`, restricted to `[0, 1]`.  The group
     relaxation is the corresponding cyclic group relaxation.
 
-    Otherwise `fn` needs to be defined on the interval [0, 1], and the
+    Otherwise fn needs to be defined on the interval `[0, 1]`, and the
     group relaxation is the infinite group relaxation.
 
-    If `f` is not provided, uses the one found by `find_f()`.
+    If `f` is not provided, uses the one found by ``find_f()``.
 
-    If `show_plots` is True (default: False), show many illustrating diagrams.
+    If show_plots is ``True`` (default: ``False``), show many illustrating diagrams.
 
-    The function first runs `minimality_test`.
+    The function first runs ``minimality_test``.
     
-    In the infinite group case, if `finite_dimensional_test_first` is
-    True (default: False), after testing minimality of `fn`, we first
-    check if the `finite_dimensional_extremality_test` finds a
+    In the infinite group case, if ``finite_dimensional_test_first`` is
+    ``True`` (default: ``False``), after testing minimality of fn, we first
+    check if the ``finite_dimensional_extremality_test`` finds a
     perturbation; otherwise (default) we first check for an
     equivariant perturbation.
 
@@ -2853,7 +2902,7 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, phase_1 
 
 def generate_perturbations(fn, show_plots=False, f=None, max_num_it=1000, finite_dimensional_test_first = False):
     """
-    Generate (with "yield") perturbations for `extremality_test`.
+    Generate (with ``yield``) perturbations for ``extremality_test``.
     """
     if fn.is_discrete():
         all = generate_perturbations_simple(fn, show_plots=show_plots, f=f, oversampling=None)
@@ -2926,7 +2975,7 @@ def plot_completion_diagram(fn, perturbation=None):
 
 def perturbation_polyhedron(fn, perturbs):
     """
-    Given `fn` and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a polyhedron, one dimension for each basic perturbation, with the subadditivities.
+    Given fn  and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a polyhedron, one dimension for each basic perturbation, with the subadditivities.
 
     EXAMPLES::
 
@@ -2951,7 +3000,7 @@ def perturbation_polyhedron(fn, perturbs):
          A vertex at (-4/3, 4/3),
          A vertex at (-4/3, -4/3))
 
-        Lift function by adding a perturbtion that corresponds to the vertex (-4/3, 4/3), i.e., set h_lift = h - 4/3**h._perturbations[0] + 4/3*h._perturbations[1]. The lifted function is extreme.
+    Lift function by adding a perturbtion that corresponds to the vertex (-4/3, 4/3), i.e., set ``h_lift = h - 4/3*h._perturbations[0] + 4/3*h._perturbations[1]``. The lifted function is extreme::
 
         sage: vertex = pert_polyhedron.vertices()[2]
         sage: perturbation = perturbation_corresponding_to_vertex(perturbs, vertex)
@@ -2959,7 +3008,7 @@ def perturbation_polyhedron(fn, perturbs):
         sage: extremality_test(h_lift)
         True
 
-    The following function has irrational data.
+    The following function has irrational data::
 
         sage: h = chen_tricky_uncovered_intervals()
         sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
@@ -2974,7 +3023,7 @@ def perturbation_polyhedron(fn, perturbs):
          A vertex at (-3.61183490350498?, -1.248914311409209?),
          A vertex at (1.79481389229748?, -3.45932770938056?))
 
-    The following function is 2-sided discontinous at the origin.
+    The following function is 2-sided discontinous at the origin::
 
         sage: h = zhou_two_sided_discontinuous_cannot_assume_any_continuity()
         sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
@@ -3031,7 +3080,7 @@ def perturbation_polyhedron(fn, perturbs):
 
 def perturbation_mip(fn, perturbs, solver=None, field=None):
     """
-    Given `fn` and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a mip, one dimension for each basic perturbation, with the subadditivities.
+    Given fn and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a mip, one dimension for each basic perturbation, with the subadditivities.
 
     EXAMPLES::
 
@@ -3043,7 +3092,7 @@ def perturbation_mip(fn, perturbs, solver=None, field=None):
         2
         sage: pert_mip = perturbation_mip(h, h._perturbations,'ppl')
 
-        We set solver='ppl' here.  Note that we can also set solver='InteractiveLP'. The coefficients in the constraints are rational numbers, rather than 'float' used by the default 'GLPK' solver.
+    We set ``solver=ppl`` here.  Note that we can also set ``solver=InteractiveLP``. The coefficients in the constraints are rational numbers, rather than ``float`` used by the default GLPK solver::
 
         sage: pert_mip.show()
         Maximization:
@@ -3071,7 +3120,7 @@ def perturbation_mip(fn, perturbs, solver=None, field=None):
           x_0 is a continuous variable (min=-oo, max=+oo)
           x_1 is a continuous variable (min=-oo, max=+oo)
 
-        Since rational coefficients are used in `ppl` solver, we can ask for the polyhedron defined by the Linear Program. This would fail if we set solver='GLPK' and if coefficient are not integers, due to AttributeError: type object 'float' has no attribute 'fraction_field'.
+    Since rational coefficients are used in ``ppl`` solver, we can ask for the polyhedron defined by the Linear Program. This would fail if we set ``solver=GLPK`` and if coefficient are not integers, due to ``AttributeError: type object 'float' has no attribute 'fraction_field'``::
 
         sage: pert_poly = pert_mip.polyhedron()
         sage: pert_poly
@@ -3083,7 +3132,7 @@ def perturbation_mip(fn, perturbs, solver=None, field=None):
          A vertex at (-4/3, 4/3),
          A vertex at (-4/3, -4/3))
 
-        Lifting the function by adding a perturbation that corresponds to a vertex, we obtain an extreme function.
+    Lifting the function by adding a perturbation that corresponds to a vertex, we obtain an extreme function::
 
         sage: h_lift = h + perturbation_corresponding_to_vertex(h._perturbations, vertices[2])
         sage: extremality_test(h_lift)
@@ -3159,8 +3208,8 @@ def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_po
         sage: extremality_test(h_lift)
         True
 
-    The above mip problem use 'ppl' backend. We can use other backends,
-    such as solver='InteractiveLP'.
+    The above mip problem use ``ppl`` backend. We can use other backends,
+    such as ``solver=InteractiveLP``::
 
         sage: h = not_extreme_1()
         sage: gen = generate_lifted_functions(h, solver='InteractiveLP')
@@ -3170,7 +3219,8 @@ def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_po
 
     If the solver argument is not specified, the code can figure it out,
     using field (base_ring).
-    The solver='InteractiveLP' can deal with irrational numbers.
+
+    The option ``solver=InteractiveLP`` is able to deal with irrational numbers::
 
         sage: h = chen_tricky_uncovered_intervals()
         sage: gen = generate_lifted_functions(h, perturbs=None, solver='InteractiveLP', field=None)
@@ -3178,7 +3228,7 @@ def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_po
         sage: extremality_test(h_lift)
         True
 
-    By setting `use_polyhedron=True`, we use perturbation_polyhedron() rather than perturbation_mip() to generate lifted functions.
+    By setting ``use_polyhedron=True``, we use ``perturbation_polyhedron()`` rather than ``perturbation_mip()`` to generate lifted functions::
 
         sage: h = not_extreme_1()
         sage: gen = generate_lifted_functions(h, use_polyhedron=True)
@@ -3301,14 +3351,18 @@ def last_lifted(fn):
 
 def piecewise_function_from_robert_txt_file(filename):
     """The .txt files have 4 rows.  
-    1st row = Y values
-    2nd row = X values (I don't use these, but I included them in case you want them)
-    3rd row = f   (the x coordinate for which I use as f)
-    4th row = value at f  (I don't normalize this to 1.  This allows the Y values to range from 0 to this values)
+    
+    - 1st row = `Y` values
 
-    Also, I don't include the last value (pi(1)) ever because this is
-    the same as pi(0) due to periodicity.  So, if you need this last
-    value, please attach a 0 to the end of the Y values and an extra x
+    - 2nd row = `X` values (I do not use these, but I included them in case you want them)
+
+    - 3rd row = `f` (the `x` coordinate for which I use as `f`)
+    
+    - 4th row = value at `f`  (I do not normalize this to 1.  This allows the `Y` values to range from 0 to this values)
+
+    Also, I do not include the last value (`\pi(1)`) ever because this is
+    the same as `\pi(0)` due to periodicity.  So, if you need this last
+    value, please attach a 0 to the end of the `Y` values and an extra `x`
     value.
     """
     with open(filename) as f:
@@ -3325,13 +3379,13 @@ def piecewise_function_from_robert_txt_file(filename):
 
 def random_piecewise_function(xgrid=10, ygrid=10, continuous_proba=1, symmetry=True):
     """
-    Return a random, continuous or discontinuous piecewise linear function defined on [0, 1]
-    with breakpoints that are multiples of 1/`xgrid` and values that are multiples of 1/`ygrid`.
+    Return a random, continuous or discontinuous piecewise linear function defined on `[0, 1]` with breakpoints that are multiples of `\\frac{1}{xgrid}` and values that are multiples of `\\frac{1}{ygrid}`.
 
-    `continuous_proba` (a real number in [0,1]) indicates the probability that the function is (left/right) continuous at a breakpoint. 
-    Use continuous_proba = 1 (the default) to get a continuous piecewise linear function.
+    - continuous_proba (a real number in `[0,1]`) indicates the probability that the function is (left/right) continuous at a breakpoint. 
+    
+    - Use ``continuous_proba = 1`` (the default) to get a continuous piecewise linear function.
 
-    Use symmetry=True (the default) to get a symmetric function. 
+    - Use ``symmetry = True`` (the default) to get a symmetric function. 
 
     EXAMPLES::
 
@@ -3395,8 +3449,8 @@ def random_piecewise_function(xgrid=10, ygrid=10, continuous_proba=1, symmetry=T
 
 def is_all_QQ_fastpath(values):
     """
-    This version does not do the full check whether it can be coerced to QQ,
-    which is slow for RealNumberField.
+    This version does not do the full check whether it can be coerced to ``QQ``,
+    which is slow for ``RealNumberField``.
     """
     for x in values:
         if not isinstance(x, (int, long, Rational, Integer)):
@@ -3407,7 +3461,7 @@ from sage.rings.number_field.number_field_element import is_NumberFieldElement
 
 def is_all_the_same_number_field_fastpath(values):
     """
-    This version does not try coercions and compares fields using 'is', rather than their comparison operator.
+    This version does not try coercions and compares fields using ``is``, rather than their comparison operator.
     """
     number_field_seen = None
     for x in values:
@@ -3423,7 +3477,7 @@ def is_all_the_same_number_field_fastpath(values):
 
 def is_QQ_linearly_independent(*numbers):
     """
-    Test if `numbers` are linearly independent over `QQ`.
+    Test if numbers are linearly independent over ``QQ``.
 
     EXAMPLES::
 
@@ -3489,7 +3543,9 @@ def merge_functional_directed_moves(A, B, show_plots=False):
     """
     EXAMPLES::
 
-        sage: merge_functional_directed_moves(FunctionalDirectedMove([(3/10, 7/20), (9/20, 1/2)], (1,0)),FunctionalDirectedMove([(3/10, 13/40)], (1,0)))
+        sage: merge_functional_directed_moves(
+        ....:    FunctionalDirectedMove([(3/10, 7/20), (9/20, 1/2)], (1,0)),
+        ....:    FunctionalDirectedMove([(3/10, 13/40)], (1,0)))
         <FunctionalDirectedMove (1, 0) with domain [(3/10, 7/20), (9/20, 1/2)], range [<Int[3/10, 7/20]>, <Int[9/20, 1/2]>]>
     """
     if A.directed_move != B.directed_move:
@@ -3550,19 +3606,54 @@ def partition_overlapping_components(given_component, components):
 
 def check_for_strip_lemma_fastpath(m1, m2):
     """
-    Given two moves m1 and m2, return the dense interval by trying to apply the strip lemma.
+    Given two moves `m_1` and `m_2`, return the dense interval by trying to apply the strip lemma.
     Not used, because we want to add covered intervals back to the domains of moves so that L-U is large.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: t1 = 2/15; t2 = sqrt(2)/15; 
+        sage: l1 = 4/15; u1 = 3/4 - t1; l2 = 1/3; u2 = 14/15-t2
+        sage: m1 = FunctionalDirectedMove([open_interval(l1, u1)], (1, t1))
+        sage: m2 = FunctionalDirectedMove([open_interval(l2, u2)], (1, t2))
+        sage: check_for_strip_lemma_fastpath(m1, m2)
+        [<Int(4/15, 14/15)>]
     """
     if not check_for_strip_lemma_linear_independence(m1, m2):
         return None
     return check_for_strip_lemma_small_translations(m1.intervals(), m2.intervals(), m1[1], m2[1])
 
 def check_for_strip_lemma_linear_independence(m1, m2):
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: t1 = 2/15; t2 = sqrt(2)/15; t3 = 3/15;
+        sage: l1 = 4/15; u1 = 3/4 - t1; l2 = 1/3; u2 = 14/15-t2
+        sage: m1 = FunctionalDirectedMove([open_interval(l1, u1)], (1, t1))
+        sage: m2 = FunctionalDirectedMove([open_interval(l2, u2)], (1, t2))
+        sage: m3 = FunctionalDirectedMove([open_interval(l2, u2)], (1, t3))
+        sage: check_for_strip_lemma_linear_independence(m1, m2)
+        True
+        sage: check_for_strip_lemma_linear_independence(m1, m3)
+        False
+    """
     return (m1.sign() == 1 and m2.sign() == 1 and \
             m1[1] >= 0 and m2[1] >= 0 and \
             is_QQ_linearly_independent(m1[1], m2[1]))
 
 def check_for_strip_lemma_small_translations(domain1, domain2, t1, t2):
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: t1 = 2/15; t2 = sqrt(2)/15;
+        sage: l1 = 4/15; u1 = 3/4 - t1; l2 = 1/3; u2 = 14/15-t2
+        sage: m1 = FunctionalDirectedMove([open_interval(l1, u1)], (1, t1))
+        sage: m2 = FunctionalDirectedMove([open_interval(l2, u2)], (1, t2))
+        sage: check_for_strip_lemma_small_translations(m1.intervals(), m2.intervals(), m1[1], m2[1])
+        [<Int(4/15, 14/15)>]
+    """
     dense_intervals = []
     for i1 in domain1:
         for i2 in domain2:
@@ -3664,7 +3755,7 @@ class DirectedMoveCompositionCompletion:
 
     def add_move(self, fdm):
         """
-        Add a functional_directed_move to self.
+        Add a functional directed move to self.
         Merge or restrict functional directed move if necessary.
         """
         reduced_fdm = fdm.restricting(self.covered_components)
@@ -3727,7 +3818,7 @@ class DirectedMoveCompositionCompletion:
 
     def extend_components_by_moves(self):
         """
-        Compose covered_components with fdms of self.
+        Compose ``self.covered_components`` with the functional directed moves.
         """
         # try extending each component by applying all the moves
         new_components = []
@@ -3801,7 +3892,7 @@ class DirectedMoveCompositionCompletion:
 
     def reduce_moves_by_components(self, given_components=None):
         """
-        Reduce moves with covered_components of self.
+        Reduce moves with ``self.covered_components``.
         """
         new_move_dict = dict()
         for (dm, fdm) in self.move_dict.items():
@@ -3869,7 +3960,7 @@ class DirectedMoveCompositionCompletion:
 
 def directed_move_composition_completion(fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, max_num_rounds=None, error_if_max_num_rounds_exceeded=True):
     """
-    Only used in def stuff_with_random_irrational_function().
+    Only used in ``stuff_with_random_irrational_function()``.
     """
     completion = DirectedMoveCompositionCompletion(fdms, covered_components=covered_components, \
                                                    proj_add_vert = proj_add_vert, \
@@ -3884,14 +3975,15 @@ def plot_completion_diagram_background(fn):
     plot_background += polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
     return plot_background
 
-# Global variable `strategical_covered_components` to control whether generate_covered_components_strategically() is used in place of generate_covered_components.
+# Global variable ``strategical_covered_components`` to control whether generate_covered_components_strategically() is used in place of generate_covered_components.
 strategical_covered_components = False
 
 def generate_covered_components_strategically(fn, show_plots=False):
     """
     Return both directly and indirectly covered components.
-    Set logging.getLogger().setLevel(logging.DEBUG) to see proof of covered components.
-    Set show_plots=True to visualize the proof.
+
+    Set ``logging.getLogger().setLevel(logging.DEBUG)`` to see proof of covered components.
+    Set ``show_plots=True`` to visualize the proof.
     """
     if hasattr(fn, '_strategical_covered_components'):
         return fn._strategical_covered_components
@@ -4017,6 +4109,14 @@ def generate_covered_components_strategically(fn, show_plots=False):
     return covered_components
 
 def generate_directly_covered_components(fn):
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = gj_2_slope(3/5,1/3)
+        sage: generate_directly_covered_components(h)
+        [[<Int(0, 7/30)>, <Int(11/30, 3/5)>], [<Int(7/30, 11/30)>, <Int(3/5, 1)>]]
+    """
     if hasattr(fn, '_directly_covered_components'):
         return fn._directly_covered_components
     covered_components = []
@@ -4157,6 +4257,17 @@ def zero_perturbation_partial_function(components, zero_perturbation_points):
         return None
 
 def generate_uncovered_components(fn, show_plots=False):
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: h = equiv7_example_1()
+        sage: generate_uncovered_components(h)
+        [[<Int(0, 1/4)>, <Int(1/4, 1/2)>]]
+        sage: h = minimal_no_covered_interval()
+        sage: generate_uncovered_components(h)
+        [[<Int(0, 1/4)>, <Int(1/4, 1/2)>], [<Int(1/2, 3/4)>, <Int(3/4, 1)>]]
+    """
     if not hasattr(fn, '_stability_orbits'):
         find_decomposition_into_stability_intervals_with_completion(fn, show_plots=show_plots)
     uncovered_components = [ sorted(orbit, key=coho_interval_left_endpoint_with_epsilon) \
@@ -4201,7 +4312,7 @@ def merit_index(fn):
 
     EXAMPLES:
 
-    The merit index for GMIC is 2f^2 - 2f + 1 [RD]::
+    The merit index for GMIC is `2f^2 - 2f + 1` [RD]::
 
         sage: def merit_index_gmic(f):
         ....:     return 2*f^2 - 2*f + 1
@@ -4210,7 +4321,7 @@ def merit_index(fn):
         sage: merit_index(gmic(1/2)) == merit_index_gmic(1/2)
         True
 
-    The merit index for `drlm_2_slope_limit_1_1` is 4 f^2 - 6 f + 3 [40, p. 164]::
+    The merit index for ``drlm_2_slope_limit_1_1`` is `4 f^2 - 6 f + 3` [40, p. 164]::
 
         sage: def merit_index_drlm_2_slope_limit_1_1(f):
         ....:     return 4 * f^2 - 6 * f + 3
@@ -4240,9 +4351,9 @@ def merit_index(fn):
 
 def arithmetic_complexity(fn, f=None, q=None):
     r"""
-    Compute the arithmetic complexity
+    Compute the arithmetic complexity.
 
-    It is defined as the least common denominator of the values fn(i/q) for i=0,1,...,q,
+    It is defined as the least common denominator of the values fn(i/q) for i=0,1, ... ,q,
     where fn is a piecewise linear function with rational breakpoints in (1/q)Z,
     or a discrete function with its domain contained in (1/q)Z.
 
