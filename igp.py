@@ -1,6 +1,15 @@
 ## Module
 
 from sage.all import *
+del SetPartitionsAk
+del SetPartitionsBk
+del SetPartitionsIk
+del SetPartitionsPRk
+del SetPartitionsPk
+del SetPartitionsRk
+del SetPartitionsSk
+del SetPartitionsTk
+
 
 igp_dir = os.path.dirname(__file__)
 if igp_dir:

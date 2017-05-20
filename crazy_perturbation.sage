@@ -45,7 +45,7 @@ class CrazyPiece:
 
     def __mul__(self, other):
         """
-        Multiply `self` by a scalar.
+        Multiply self by a scalar.
         """
         # assume scalar multiplication
         new_cosets = [(r, s*other) for (r, s) in self.cosets]
@@ -94,7 +94,7 @@ class PiecewiseCrazyFunction:
 
     def __mul__(self, other):
         """
-        Multiply `self` by a scalar.
+        Multiply self by a scalar.
         """
         # assume scalar multiplication
         return PiecewiseCrazyFunction(self.pwl * other, [cp * other for cp in self.crazy_pieces])
@@ -184,7 +184,7 @@ def find_hermite_form_generators(generators):
 
 def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
     """
-    EXAMPLE::
+    EXAMPLES::
 
         sage: logging.disable(logging.INFO)
         sage: h = kzh_minimal_has_only_crazy_perturbation_1()
@@ -201,6 +201,11 @@ def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
         sage: cp = PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
         sage: find_epsilon_for_crazy_perturbation(h, cp)
         0.0003958663221935161?
+
+        sage: h = minimal_no_covered_interval()
+        sage: cp = equiv7_example_2_crazy_perturbation()
+        sage: find_epsilon_for_crazy_perturbation(h, cp)
+        1/6
     """
     # assume fn is a subadditive pwl function, cp (crazy perturbation) is a non_zero PiecewiseCrazyFunction with cp(0)=cp(f)=0.
     bkpt = uniq(copy(fn.end_points())+cp.end_points())
@@ -341,7 +346,7 @@ def random_6_tuple(fn):
 
 def minimality_test_randomized(fn, orig_function=None, max_iterations=None):
     """
-    EXAMPLE::
+    EXAMPLES::
 
         sage: logging.disable(logging.INFO)
         sage: h = kzh_minimal_has_only_crazy_perturbation_1()
