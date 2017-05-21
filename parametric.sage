@@ -26,7 +26,8 @@ default_parametric_field = None
 
 class ParametricRealFieldElement(FieldElement):
     """
-    A `ParametricRealFieldElement` stores a symbolic expression of the parameters in the problem and a concrete value, which is the evaluation of this expression on the given parameter tuple.
+    A :class:`ParametricRealFieldElement` stores a symbolic expression of the parameters in the problem and a concrete value, which is the evaluation of this expression on the given parameter tuple.
+
     When a comparison takes place on elements of the class, their concrete values are compared to compute the Boolean return value of the comparison. The constraint on the parameters that gives the same Boolean return value is recorded.
     """
 
@@ -148,7 +149,7 @@ class ParametricRealFieldElement(FieldElement):
         The correctness of this implementation depends on the guarantee
         of equal _val elements having the same hash value.  If in
         doubt, make sure that the _val elements all come from the same
-        field, by `nice_field_values`.
+        field, by ``nice_field_values``.
 
         EXAMPLES::
 
@@ -376,8 +377,8 @@ class ParametricRealField(Field):
                 self._eq_factor.add(fac)
 
     def make_proof_cell(self, **opt):
-        """
-        Make a SemialgebraiComplexComponent from a ParametricRealField.
+        r"""
+        Make a :class:`SemialgebraiComplexComponent` from a :class:`ParametricRealField`.
         
         In **opt, one can provide: region_type, complex (parent of the cell), function, max_iter, find_region_type, default_var_bound, bddleq, bddlin, kwds_dict.
 
@@ -629,7 +630,7 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None):
 
 def read_simplified_leq_lin(K, level="factor"):
     """
-    Use the reformulation-linearization techinque to remove redundant inequalties and equations recorded in ParametricRealField K.
+    Use the reformulation-linearization techinque to remove redundant inequalties and equations recorded in :class:`ParametricRealField` K.
 
     EXAMPLES::
 
@@ -662,8 +663,10 @@ def read_simplified_leq_lin(K, level="factor"):
 def find_variable_mapping(leqs):
     """
     Return the list of equations after variables elimination and return the map.
-    Assume that leqs, lins are the results from read_leq_lin_from_polyhedron(),
-so that gaussian elimination has been performed by PPL on the list of equations. If an equation has a linear variable, then eliminate it.
+    Assume that leqs, lins are the results from ``read_leq_lin_from_polyhedron()``,
+    so that gaussian elimination has been performed by PPL on the list of equations. 
+    If an equation has a linear variable, then eliminate it.
+
     FIXME: This function is bad; it assumes too many things.
 
     EXAMPLES::
@@ -725,7 +728,7 @@ def substitute_lins(lins, var_map, var_name, var_value):
     Return a list of inequalities,
     after substitution using var_map and simplification using the Reformulation-linearization trick.
 
-    Used in SemialgebraicComplexComponent.__init__
+    Used in ``SemialgebraicComplexComponent.__init__``
 
     EXAMPLES::
 
@@ -780,10 +783,10 @@ def read_default_args(function, **opt_non_default):
 
 def construct_field_and_test_point(function, var_name, var_value, default_args):
     """
-    Construct a ParametricRealField K using var_name and var_value.
+    Construct a :class:`ParametricRealField` K using var_name and var_value.
 
     var_name and var_value are two parallel lists.
-    Construct a test_point of type dictionary, which maps each parameter of the function to the corresponding ParametricRealFieldElement if this is a parameter of K, otherwise maps to the default argument value.
+    Construct a test_point of type dictionary, which maps each parameter of the function to the corresponding :class:`ParametricRealFieldElement` if this is a parameter of K, otherwise maps to the default argument value.
 
     EXAMPLES::
 
@@ -874,7 +877,8 @@ class SemialgebraicComplexComponent(SageObject):
           (17/8, 0): [],
           (2065/512, -33/16): []})
 
-        Test variable elimination.
+    Test variable elimination::
+
         sage: complex = SemialgebraicComplex(foo, ['x','y'], max_iter=2, find_region_type=lambda r:r, default_var_bound=(-5,5))
         sage: K.<x,y> = ParametricRealField([1,1/2])
         sage: region_type = foo(*K.gens())
@@ -916,9 +920,9 @@ class SemialgebraicComplexComponent(SageObject):
         """
         Compute LP bounds for variables and then do upward and downward bounds propagation until
         max_iter is attained or no more changes of bounds occur.
-        See examples in def update_mccormicks_for_monomial().
+        See examples in ``update_mccormicks_for_monomial()``.
 
-        The following example comes from chen_4_slope. It shows that the non-linear inequality is discarded from the description of the (polyhedral) cell after max_iter=2 rounds of bounds_propagation.
+        The following example comes from ``chen_4_slope``. It shows that the non-linear inequality is discarded from the description of the (polyhedral) cell after max_iter=2 rounds of bounds_propagation.
 
         EXAMPLES::
 
@@ -969,9 +973,9 @@ class SemialgebraicComplexComponent(SageObject):
         """
         Plot the cell.
 
-        If `slice_value` is given, plot the slice of the cell according to the parameter values in `slice_value` that are not None. See examples in SemialgebraicComplex.plot()
-        `show_testpoint` controls whether to plot the testpoint in this cell.
-        `plot_points` controls the quality of the plotting.
+        - If slice_value is given, plot the slice of the cell according to the parameter values in slice_value that are not None. See examples in ``SemialgebraicComplex.plot()``.
+        - show_testpoint controls whether to plot the testpoint in this cell.
+        - plot_points controls the quality of the plotting.
         """
         g = Graphics()
         if 'xmin' in kwds:
@@ -1075,7 +1079,8 @@ class SemialgebraicComplexComponent(SageObject):
 
     def plot2dslice(self, slice_value, alpha=0.5, plot_points=300, **kwds):
         """
-        slice_value is a list of symbolic expressions in var('x, y'). slice_value has the same length as self.var_value.
+        slice_value is a list of symbolic expressions in var('x, y'). 
+        slice_value has the same length as self.var_value.
         """
         g = Graphics()
         if 'xmin' in kwds:
@@ -1124,9 +1129,10 @@ class SemialgebraicComplexComponent(SageObject):
         Try flipping exactly one inequality at one time, to reach a new textpoint in a neighbour cell.
 
         Discard the wall if it is impossible to do so, as the wall is redundant.
-        `flip_ineq_step` defines the step length
-        `wall_crossing_method` is 'heuristic' or 'mathematica' or 'heuristic_with_check'
-        `goto_lower_dim` tells whether it also finds new testpoints on the walls.
+
+        - flip_ineq_step defines the step length
+        - wall_crossing_method is 'heuristic' or 'mathematica' or 'heuristic_with_check'
+        - goto_lower_dim tells whether it also finds new testpoints on the walls.
         """
         walls = []
         new_points = {}
@@ -1194,7 +1200,7 @@ class SemialgebraicComplexComponent(SageObject):
 
     def discard_redundant_inequalities(self, flip_ineq_step=0):
         """
-        Use Mathematica's FindInstance to discard redundant inequalities in the cell description.
+        Use Mathematica's ``FindInstance`` to discard redundant inequalities in the cell description.
         """
         walls = []
         bddlin = []
@@ -1262,7 +1268,7 @@ class SemialgebraicComplex(SageObject):
         (a*b,)
         sage: complex.plot()                                  # not tested
 
-    Instead of heuristic method, we can use Mathematica's FindInstance to look for uncovered points in wall-crossing::
+    Instead of heuristic method, we can use Mathematica's ``FindInstance`` to look for uncovered points in wall-crossing::
 
         sage: complex = SemialgebraicComplex(vol, ['a','b'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-1,3))                         # optional - mathematica
         sage: complex.bfs_completion(var_value=[2, 1/2], flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='mathematica', goto_lower_dim=True)        # optional - mathematica
@@ -1288,12 +1294,13 @@ class SemialgebraicComplex(SageObject):
 
 
     Analyse the extreme/minimal/valid regions of a function in the Gomory-Johnson infinite group problem.
-    Use random shooting method to complete the complex. See more options in the method shoot_random_points::
+
+    Use random shooting method to complete the complex. See more options in the method ``shoot_random_points``::
 
         sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])
         sage: complex.shoot_random_points(50)
 
-    Use breadth-first-search to complete the complex. See more options in the method bfs_completion::
+    Use breadth-first-search to complete the complex. See more options in the method ``bfs_completion``::
 
         sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])
         sage: complex.bfs_completion()
@@ -1302,17 +1309,18 @@ class SemialgebraicComplex(SageObject):
         """
         Construct a SemialgebraicComplex.
 
-        `function`: we are interested in analysing how the output of this function varies with its parameters
-        `var_name`: a subset of the parameters of the function that we study
-        `max_iter`: the max number of iterations in updating McCormick inequalites
-        `find_region_type`: maps the output of `function` to a type of the parameter region;
-            set to None for functions in Gomory-Johnson model; 
-            often set to result_symbolic_expression or result_concrete_value for other functions;
-        `default_var_bound`: need if we use random shooting method to complete the complex; If given, the bound is also used in plotting
+        - function: we are interested in analysing how the output of this function varies with its parameters
+        - var_name: a subset of the parameters of the function that we study
+        - max_iter: the max number of iterations in updating McCormick inequalites
+        - find_region_type: maps the output of function to a type of the parameter region;
+            - set to ``None`` for functions in Gomory-Johnson model; 
+            - often set to ``result_symbolic_expression`` or ``result_concrete_value`` for other functions;
+        - default_var_bound: need if we use random shooting method to complete the complex; If given, the bound is also used in plotting
 
         The following two arguments are used to define the boundary of the SemialgebraicComplex, so that bfs won't go beyond the region. They might be useful in the CPL3 examples.
-        `bddleq`: a list that tells the equations that are satisfied by the points in the complex;
-        `bddlin`: a list that tells the inequalities that are satisfied by the points in the complex;
+
+        - bddleq: a list that tells the equations that are satisfied by the points in the complex;
+        - bddlin: a list that tells the inequalities that are satisfied by the points in the complex;
 
         EXAMPLES::
 
@@ -1344,9 +1352,9 @@ class SemialgebraicComplex(SageObject):
         """
         Return a random point that satisfies var_bounds and self.bddleq, self.bddlin.
 
-        If `var_bounds` is not specified, self.default_var_bound is taken. 
-        `var_bounds` can be a list of 2-tuples whose length equals to the number of parameters, or lambda functions.
-        It is used in random shooting method for functions like dg_2_step_mir, which involve floor/ceil operations. We try to plot one layer for each n = floor(...) and superimpose the layers at the end to get the whole picture.
+        - If var_bounds is not specified, self.default_var_bound is taken. 
+        - var_bounds can be a list of 2-tuples whose length equals to the number of parameters, or lambda functions.
+        - It is used in random shooting method for functions like ``dg_2_step_mir``, which involve floor/ceil operations. We try to plot one layer for each n = floor(...) and superimpose the layers at the end to get the whole picture.
 
         Notice that if self.bddleq is not empty, it never ends.
 
@@ -1391,6 +1399,7 @@ class SemialgebraicComplex(SageObject):
     def is_point_covered(self, var_value):
         """
         Return whether the given point var_value is contained in any cell of the complex.
+
         Inequalities are considered strict.
 
         EXAMPLES::
@@ -1413,7 +1422,8 @@ class SemialgebraicComplex(SageObject):
 
     def cells_containing_point(self, var_value):
         """
-        yield the cells of the complex that contain the given point var_value.
+        Yield the cells of the complex that contain the given point var_value.
+
         Inequalities are considered strict.
 
         EXAMPLES::
@@ -1435,7 +1445,7 @@ class SemialgebraicComplex(SageObject):
     def find_uncovered_random_point(self, var_bounds=None, max_failings=10000):
         """
         Return a random point that satisfies the bounds and is uncovered by any cells in the complex.
-        Return None if the number of attemps > max_failings.
+        Return ``None`` if the number of attemps > max_failings.
  
         EXAMPLES::
 
@@ -1462,11 +1472,11 @@ class SemialgebraicComplex(SageObject):
 
     def find_uncovered_point_mathematica(self, strict=True, bddleq=[], bddlin=[], bddstrict=True):
         """
-        Call Mathematica's FindInstance to get a point that satisfies the bddleq and bddlin
+        Call Mathematica's ``FindInstance`` to get a point that satisfies the bddleq and bddlin
         and is uncovered by any cells in the complex.
 
-        The argument `strict` controles whehter inequalities are treated as <= 0 or as < 0.
-        If such point doesn't exist, return None
+        The argument strict controles whehter inequalities are treated as <= 0 or as < 0.
+        If such point does not exist, return ``None``.
  
         EXAMPLES::
 
@@ -1494,11 +1504,11 @@ class SemialgebraicComplex(SageObject):
 
     def add_new_component(self, var_value, bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False):
         """
-        Compute one proof cell around `var_value`. Append this cell to the complex.
+        Compute one proof cell around var_value. Append this cell to the complex.
 
-        `bddleq` defines the boundary equalities satisfied by the cell.
-        If `flip_ineq_step` = 0, don't search for neighbour testpoints. Used in shoot_random_points(). `wall_crossing_method`=None in this case.
-        If `flip_ineq_step` > 0, search for neighbour testpoints using `wall_crossing_method`='mathematica' or 'heuristic' or 'heuristic_with_check'. Used in bfs. If `goto_lower_dim` is False or (`goto_lower_dim` is True and `wall_crossing method`='heuristic' but wall is non-linear), then find new testpoints across the wall only.
+        - bddleq defines the boundary equalities satisfied by the cell.
+        - If flip_ineq_step = 0, do not search for neighbour testpoints. Used in ``shoot_random_points()``. wall_crossing_method = ``None`` in this case.
+        - If flip_ineq_step > 0, search for neighbour testpoints using wall_crossing_method = 'mathematica' or 'heuristic' or 'heuristic_with_check'. Used in bfs. If goto_lower_dim is ``False`` or (goto_lower_dim is ``True`` and wall_crossing method = 'heuristic' but wall is non-linear), then find new testpoints across the wall only.
 
         EXAMPLES::
 
@@ -1579,10 +1589,9 @@ class SemialgebraicComplex(SageObject):
         """
         Plot the complex and store the graph.
 
-        If `restart` is False, plot the newly added cells on top of the last graph;
-        otherwise, start a new graph.
-        If `slice_value` is given, plot the slice of the complex according to the parameter values in `slice_value` that are not None.
-        `plot_points` controls the quality of the plotting.
+        - If restart is ``False``, plot the newly added cells on top of the last graph; otherwise, start a new graph.
+        - If slice_value is given, plot the slice of the complex according to the parameter values in slice_value that are not ``None``.
+        - plot_points controls the quality of the plotting.
 
         EXAMPLES::
 
@@ -1590,10 +1599,12 @@ class SemialgebraicComplex(SageObject):
             sage: complex = SemialgebraicComplex(lambda x,y,z: min(x^2,y^2,z), ['x','y','z'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))    # not tested
             sage: complex.bfs_completion()                           # not tested
 
-            Plot the slice in (x,y)-space with z=4.
+        Plot the slice in (x,y)-space with z=4::
+
             sage: complex.plot(slice_value=[None, None, 4])          # not tested
 
-            Plot the slice in (y,z)-space with x=4.
+        Plot the slice in (y,z)-space with x=4::
+
             sage: complex.plot(slice_value=[4, None, None])          # not tested
         """
         if restart:
@@ -1626,16 +1637,20 @@ class SemialgebraicComplex(SageObject):
             sage: complex.bfs_completion(goto_lower_dim=True)        # not tested
             sage: x, y = var('x, y')                                 # not tested
 
-            Plot the slice in (x,y)-space with z=4.
+        Plot the slice in (x,y)-space with z=4::
+
             sage: complex.plot2dslice(slice_value=[x, y, 4])         # not tested
 
-            Plot the slice in (y,z)-space with x=4.
+        Plot the slice in (y,z)-space with x=4::
+
             sage: complex.plot2dslice(slice_value=[4, x, y])         # not tested
 
-            Plot the slice in (x,y)-space with z=y.
+        Plot the slice in (x,y)-space with z=y::
+
             sage: complex.plot2dslice(slice_value=[x, y, y])         # not tested
 
-            Plot the slice in (x,z)-space with y=x/2.
+        Plot the slice in (x,z)-space with y=x/2::
+
             sage: complex.plot2dslice(slice_value=[x, x/2, y])       # not tested
         """
         g = Graphics()
@@ -1658,6 +1673,7 @@ class SemialgebraicComplex(SageObject):
     def plot_bfs_tree(self, **kwds):
         """
         Plot the bfs tree provided that the complex is 2-dimensional.
+
         EXAMPLES::
 
             sage: logging.disable(logging.WARN)
@@ -1683,11 +1699,12 @@ class SemialgebraicComplex(SageObject):
         """
         Breadth-first-search to complete the complex.
 
-        `var_value`: the starting point. If not given, start with a random point.
-        `flip_ineq_step`: a small positive number that controls the step length in wall-crossing.
-        `check_completion`: When `check_completion is True, after bfs terminates, check whether the entire parameter space is covered by cells, using Mathematica's FindInstance (if max_failings=0) or random shooting (if max_failings>0). If an uncovered point has been found, restart the bfs from this point.
-        `wall_crossing_method`: 'mathematica' or 'heuristic' or 'heuristic_with_check' ('heuristic_with_check': if heuristic wall-crossing doesn't find a new testpoint, then use mathematica to check if the ineq is not a wall).
-        `goto_lower_dim`: whether lower dimensional cells are considered. If `goto_lower_dim` is False or if `goto_lower_dim` is True and `wall_crossing method` is 'heuristic' but the wall is non-linear, then find new testpoint across the wall only.
+        - var_value: the starting point. If not given, start with a random point.
+        - flip_ineq_step: a small positive number that controls the step length in wall-crossing.
+        - check_completion: When check_completion is ``True``, after bfs terminates, check whether the entire parameter space is covered by cells, using Mathematica's ``FindInstance`` (if max_failings=0) or random shooting (if max_failings>0). If an uncovered point has been found, restart the bfs from this point.
+        - wall_crossing_method: 'mathematica' or 'heuristic' or 'heuristic_with_check' 
+              - wall_crossing_method='heuristic_with_check': if heuristic wall-crossing does not find a new testpoint, then use Mathematica to check if the ineq is not a wall).
+        - goto_lower_dim: whether lower dimensional cells are considered. If goto_lower_dim is ``False`` or if goto_lower_dim is ``True`` and wall_crossing method is 'heuristic' but the wall is non-linear, then find new testpoint across the wall only.
 
         EXAMPLES::
 
@@ -1704,7 +1721,7 @@ class SemialgebraicComplex(SageObject):
             2
             sage: complex.plot()                                        # not tested
 
-        See more examples in the docstring of the class SemialgebraicComplex.
+        See more examples in the docstring of the class :class:`SemialgebraicComplex`.
         """
         if not self.points_to_test and not var_value:
             var_value = self.find_uncovered_random_point()
@@ -1799,8 +1816,8 @@ class SemialgebraicComplex(SageObject):
 
     def polyhedral_complex(self):
         """
-        Assume that the cells in the SemialgebraicComplex are polyhedral and face-to-face.
-        Return the PolyhedralComplex.
+        Assume that the cells in the :class:`SemialgebraicComplex` are polyhedral and face-to-face.
+        Return the :class:`PolyhedralComplex`.
         """
         return PolyhedralComplex([c.sage_polyhedron() for c in self.components])
 
@@ -1809,7 +1826,7 @@ class SemialgebraicComplex(SageObject):
 ###########################################
 def gradient(ineq):
     """
-    Return the gradient of the polynomial `ineq`.
+    Return the gradient of the polynomial ineq.
 
     EXAMPLES::
 
@@ -1828,7 +1845,8 @@ def gradient(ineq):
 def point_satisfies_bddleq_bddlin(var_value, bddleq, bddlin, strict=True):
     """
     Return whether var_value satisfies bddleq and bddlin.
-    Strict inequalities are considered if `strict` is True.
+
+    Strict inequalities are considered if strict is set to ``True``.
     """
     for l in bddleq:
         if not l(var_value) == 0:
@@ -1841,7 +1859,8 @@ def point_satisfies_bddleq_bddlin(var_value, bddleq, bddlin, strict=True):
 def is_value_in_interval(v, (lb, ub)):
     """
     Return whether lb <= v <= ub.
-    None is considered as -Infinity and +Infinity for lb and ub, respectively. 
+
+    ``None`` is considered as -Infinity and +Infinity for lb and ub, respectively. 
     """
     if v is None:
         return (lb is None) or (ub is None) or (lb <= ub)
@@ -1865,7 +1884,7 @@ def bounds_for_plotting(v, (lb, ub), default_var_bound):
 
 def construct_mip_of_nnc_polyhedron(nncp):
     """
-    Construct a PPL's MIP_Problem with non-strict inequalities from the NNC_Polyhedron.
+    Construct a PPL's :class:`MIP_Problem` with non-strict inequalities from the :class:`NNC_Polyhedron`.
     """
     min_cs = nncp.minimized_constraints()
     cs = Constraint_System()
@@ -1881,7 +1900,7 @@ def construct_mip_of_nnc_polyhedron(nncp):
 
 def construct_sage_polyhedron_from_nnc_polyhedron(nncp):
     """
-    Construct a Sage's (closed) Polyhedron from PPL's NNC_Polyhedron.
+    Construct a Sage's (closed) Polyhedron from PPL's :class:`NNC_Polyhedron`.
     """
     min_cs = nncp.minimized_constraints()
     ieqs = [ ([c.inhomogeneous_term()]+list(c.coefficients())) for c in min_cs if not c.is_equality()]
@@ -1891,7 +1910,8 @@ def construct_sage_polyhedron_from_nnc_polyhedron(nncp):
 def find_bounds_of_variable(mip, i):
     """
     Return the lower and upper bounds of the i-th variable in the MIP.
-    None stands for unbounded.
+
+    ``None`` stands for unbounded.
     """
     linexpr = Linear_Expression(Variable(i))
     lb = find_lower_bound_of_linexpr(mip, linexpr)
@@ -1900,9 +1920,10 @@ def find_bounds_of_variable(mip, i):
 
 def find_lower_bound_of_linexpr(mip, linexpr):
     """
-    Return the minimal value of `linexpr` subject to `mip`.
-    Return None if unbounded.
-    Assume that mip.set_optimization_mode('minimization') was called
+    Return the minimal value of linexpr subject to mip.
+
+    Return ``None`` if unbounded.
+    Assume that ``mip.set_optimization_mode('minimization')`` was called
     """
     mip.set_objective_function(linexpr)
     try:
@@ -1914,9 +1935,10 @@ def find_lower_bound_of_linexpr(mip, linexpr):
 
 def find_upper_bound_of_linexpr(mip, linexpr):
     """
-    Return the maximal value of `linexpr` subject to `mip`. 
-    Return None if unbounded.
-    Assume that mip.set_optimization_mode('minimization') was called
+    Return the maximal value of linexpr subject to mip.
+ 
+    Return ``None`` if unbounded.
+    Assume that ``mip.set_optimization_mode('minimization')`` was called
     """
     mip.set_objective_function(-linexpr)
     try:
@@ -1928,7 +1950,7 @@ def find_upper_bound_of_linexpr(mip, linexpr):
 
 def is_not_a_downstairs_wall(c, mip):
     """
-    Return whether a PPL constraint `c` is always strictly positive in `mip`.
+    Return whether a PPL constraint c is always strictly positive in mip.
     """
     linexpr = Linear_Expression(c.coefficients(), c.inhomogeneous_term())
     # we know lb exists and is >= 0
@@ -1937,7 +1959,7 @@ def is_not_a_downstairs_wall(c, mip):
 
 def add_mccormick_bound(mip, x3, x1, x2, c1, c2, is_lowerbound):
     """
-    Try adding x3 > c1*x1 + c2*x2 - c1*c2 (if is_lowerbound, else x3 < c1*x1 + c2*x2 - c1*c2) to `mip`.
+    Try adding x3 > c1*x1 + c2*x2 - c1*c2 (if is_lowerbound, else x3 < c1*x1 + c2*x2 - c1*c2) to mip.
     Return True this new constraint is not redundnant.
     """
     if c1 is None or c2 is None:
@@ -1962,10 +1984,11 @@ def add_mccormick_bound(mip, x3, x1, x2, c1, c2, is_lowerbound):
 
 def update_mccormicks_for_monomial(m, tightened_mip, monomial_list, v_dict, bounds, new_monomials_allowed=False):
     """
-    Do recursive McCormicks on the monomial `m`.
-    If `bounds` is modified, update `tightened_mip` of the cell and return True, otherwise return False
+    Do recursive McCormicks on the monomial m.
 
-    If `lift_polyhedron` is None, recursive McCormicks is not allowed to create new monomials,
+    If bounds is modified, update tightened_mip of the cell and return ``True``, otherwise return ``False``.
+
+    If lift_polyhedron is ``None``, recursive McCormicks is not allowed to create new monomials,
     otherwise, lift the dimension of the polyhedron and tightened_mip, etc. of the cell when new monomials are created.
 
     Expect that the monomials in monomial_list have non-decreasing degrees.
@@ -1981,7 +2004,8 @@ def update_mccormicks_for_monomial(m, tightened_mip, monomial_list, v_dict, boun
         sage: monomial_list = [x, y, x*y]; v_dict = {x:0, y:1, x*y:2}
         sage: bounds = [(0, 1), (1, 2), (None, None)]
 
-        Upward bounds propagation
+    Upward bounds propagation::
+
         sage: update_mccormicks_for_monomial(x*y, mip, monomial_list, v_dict, bounds)
         True
         sage: bounds
@@ -2001,7 +2025,8 @@ def update_mccormicks_for_monomial(m, tightened_mip, monomial_list, v_dict, boun
         sage: bounds
         [(0, 1), (1, 2), (0, 2), (1/2, 4)]
 
-        Downward bounds propagation
+    Downward bounds propagation::
+
         sage: bounds = [find_bounds_of_variable(mip,i) for i in range(4)]
         sage: bounds
         [(1/8, 1), (1, 2), (1/4, 2), (1/2, 4)]
@@ -2043,7 +2068,7 @@ def update_mccormicks_for_monomial(m, tightened_mip, monomial_list, v_dict, boun
 
 def find_region_type_igp(K, h, region_level='extreme', is_minimal=None, use_simplified_extremality_test=True):
     """
-    Find the type of a igp function h in the ParametricRealField K;
+    Find the type of a igp function h in the :class:`ParametricRealField` K;
     (is it constructible? is it minimal? is it extreme?)
     Record the comparisons in K.
 
@@ -2100,7 +2125,7 @@ def find_region_type_igp_extreme(K, h):
 
 def claimed_region_type(igp_function=gmic, condition_according_to_literature=True, **kwds):
     """
-    Return if `igp_function` is 'not_constructible' or 'constructible' or 'extreme' for the values of parameters given by `kwds` (use default values if `kwds` is not provided).
+    Return if igp_function is 'not_constructible' or 'constructible' or 'extreme' for the values of parameters given by kwds (use default values if kwds is not provided).
 
     EXAMPLES::
 
@@ -2114,7 +2139,7 @@ def claimed_region_type(igp_function=gmic, condition_according_to_literature=Tru
         sage: claimed_region_type(igp_function=chen_4_slope, condition_according_to_literature=False, f=7/10, s_pos=2, s_neg=-4, lam1=1/100, lam2=49/100)
         'constructible'
 
-    The following examples show how claimed_region_type can be used in computing the complex of `igp_function`. The cells of the complex represent the regions where `igp_function` is 'extreme', 'constructible' or 'not_constructible' according to the claimed extremality conditions for `igp_function`.
+    The following examples show how claimed_region_type can be used in computing the complex of igp_function. The cells of the complex represent the regions where igp_function is 'extreme', 'constructible' or 'not_constructible' according to the claimed extremality conditions for igp_function::
 
         sage: complex = SemialgebraicComplex(claimed_region_type, ['f','bkpt'], find_region_type=return_result, igp_function=drlm_backward_3_slope)
         sage: complex.bfs_completion(var_value=[4/5,1/2])
@@ -2163,11 +2188,11 @@ def return_result(field, result):
 
 def result_concrete_value(field, result):
     """
-    Return the concrete values in result as a tuple. See also result_symbolic_expression()
+    Return the concrete values in result as a tuple. See also ``result_symbolic_expression()``.
  
-    This function can provided to find_region_type when setting up SemialgebraicComplex. 
-    In this way, one can compare result of type ParametricRealFieldElement or list of ParametricRealFieldElements
-    with the previous elements in region_type_color_map which do not necessairy have the same parent.
+    This function can provided to ``find_region_type`` when setting up a :class:`SemialgebraicComplex`. 
+    In this way, one can compare result of type :class:`ParametricRealFieldElement` or list of :class:`ParametricRealFieldElement`
+    with the previous elements in ``region_type_color_map`` which do not necessairy have the same parent.
 
     EXAMPLES::
 
@@ -2187,9 +2212,9 @@ def result_symbolic_expression(field, result):
     """
     Return the symbolic expressions in result as a tuple
  
-    This function can provided to find_region_type when setting up SemialgebraicComplex. 
-    In this way, one can compare result of type ParametricRealFieldElement or list of ParametricRealFieldElements
-    with the previous elements in region_type_color_map which do not necessairy have the same parent.
+    This function can provided to ``find_region_type`` when setting up a :class:`SemialgebraicComplex`. 
+    In this way, one can compare result of type :class:`ParametricRealFieldElement` or list of :class:`ParametricRealFieldElement`
+    with the previous elements in ``region_type_color_map`` which do not necessairy have the same parent.
 
     EXAMPLES::
 
@@ -2219,7 +2244,7 @@ region_type_color_map = [('not_constructible', 'white'), ('is_constructible', 'b
 
 def find_region_color(region_type):
     """
-    Return the color of the region according to the global dictionary region_type_color_map.
+    Return the color of the region according to the global dictionary ``region_type_color_map``.
 
     EXAMPLES::
 
@@ -2259,7 +2284,7 @@ def color_of_ith_region_type(i):
 
 def write_mathematica_constraints(eqs, ineqs, strict=True):
     """
-    Write polynomial constraints in the mathematica format. 
+    Write polynomial constraints in the mathematica format.
     Notice that the string ends with ' && '; in practice, often take condstr[:-4]
 
     EXAMPLES::
@@ -2284,7 +2309,7 @@ def write_mathematica_constraints(eqs, ineqs, strict=True):
 
 def write_mathematica_variables(var_name):
     """
-    Write the variables in the mathematica format.
+    Write the variables in the Mathematica format.
 
     EXAMPLES::
 
@@ -2299,7 +2324,7 @@ def write_mathematica_variables(var_name):
 
 def find_instance_mathematica(condstr, var_name):
     """
-    Call the Mathematica's FindInstance to get a point that satisfies the given conditions.
+    Call the Mathematica's ``FindInstance`` to get a point that satisfies the given conditions.
 
     EXAMPLES::
 
@@ -2332,10 +2357,11 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
     """
     The current_var_value satisfies that l(current_var_value)<0 for l=ineq or l in ineqs,
     where ineq is a polynomial and ineqs is a list of polynomials.
+
     Use heuristic method (gradient descent method with given small positive step length flip_ineq_step)
     to find a new_point (type is tuple) such that 
     ineq(new_point) > 0 and l(new_point) < 0 for all l in ineqs.
-    Return new_point, or None if it fails to find one.
+    Return new_point, or ``None`` if it fails to find one.
 
     EXAMPLES::
 
@@ -2343,14 +2369,16 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
         sage: find_point_flip_ineq_heuristic([1,1/2], a+b-2, [-a+b^2], 1/4)
         (11/8, 7/8)
 
-        After walking towards ineq==0, ineqs < 0 is violated. Need to adjust.
+    After walking towards ineq==0, ineqs < 0 is violated. Need to adjust::
+
         sage: find_point_flip_ineq_heuristic([1,9/10], a+b-2, [-a+b^2], 1/2)
         (123/85, 179/170)
         sage: find_point_flip_ineq_heuristic([11/40,1/2], a+b-2, [-a+b^2], 1/4)
         (39295901/31739294, 125037049/123564610)
 
-        Ineq is a redundant inequality, it's impossible to cross it without crossing any other ineqs.
-        Thus, return None.
+    Ineq is a redundant inequality, it's impossible to cross it without crossing any other ineqs.
+    Thus, return ``None``::
+
         sage: find_point_flip_ineq_heuristic([1,1/2], a+b-2, [-a+b^2, a-1], 1/4)
     """
     # heuristic method.
@@ -2386,11 +2414,13 @@ def find_point_on_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step)
     """
     The current_var_value satisfies that l(current_var_value)<0 for l=ineq or l in ineqs,
     where ineq is a polynomial and ineqs is a list of polynomials.
+
     Assume that ineq is linear.
+
     Use heuristic method (gradient descent method with given small positive step length flip_ineq_step)
     to find a new_point (type is tuple) such that
     ineq(new_point) == 0 and l(new_point) < 0 for all l in ineqs.
-    Return new_point, or None if it fails to find one.
+    Return new_point, or ``None`` if it fails to find one.
 
     EXAMPLES::
 
@@ -2420,7 +2450,8 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, ineqs, flip_ineq_step):
     the gradient of ineq with small positive step length flip_ineq_step, 
     while maintaining ineq(*current_point) >= 0
     until get a new point such that l(new point)<0 for any l in ineqs.
-    Return new_point, or None if it fails to find one.
+
+    Return new_point, or ``None`` if it fails to find one.
 
     EXAMPLES::
 
@@ -2431,7 +2462,8 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, ineqs, flip_ineq_step):
         sage: adjust_pt_to_satisfy_ineqs(vector([71/80, 89/80]), ineq, [-a+b^2], 1/4)
         (171073319/163479120, 155884921/163479120)
 
-        If impossible, return None.
+    If impossible, return ``None``::
+
         sage: adjust_pt_to_satisfy_ineqs(vector([11/8, 7/8]), ineq,[-a+b^2, a-1], 1/4)
     """
     #current_point is a vector
@@ -2480,12 +2512,12 @@ class PolyhedralComplex(GenericCellComplex):
         """
         INPUT:
 
-        - ``maximal_cells`` -- a list, a tuple, or a dictionary (indexed by dimension) of cells of the Complex. Each cell is of :class:`Polyhedron` of the same ambient dimension. To set up a PolyhedralComplex, it is sufficient to provide the maximal faces. To set up a partial PolyhedralComplex, which is a subset of the faces (viewed as relatively open) of a polyhedral complex that is not necessarily closed under taking faces, one passes the keyword argument partial=True.
-        - ``maximality_check`` -- boolean; default False; if is ``True``, check that each given maximal cells are indeed maximal. In this case, when producing the internal representation of the polyheral complex, omit those that are not (move them from self._maximal_cells to self._non_maximal_cells_given).
+        - ``maximal_cells`` -- a list, a tuple, or a dictionary (indexed by dimension) of cells of the Complex. Each cell is of class :class:`Polyhedron` of the same ambient dimension. To set up a :class:PolyhedralComplex, it is sufficient to provide the maximal faces. Use keyword argument partial=``True`` to set up a partial polyhedral complex, which is a subset of the faces (viewed as relatively open) of a polyhedral complex that is not necessarily closed under taking faces.
+        - ``maximality_check`` -- boolean; default ``False``; if is ``True``, check that each given maximal cells are indeed maximal. In this case, when producing the internal representation of the polyheral complex, omit those that are not (move them from ``self._maximal_cells`` to ``self._non_maximal_cells_given``).
 
-        - ``partial`` -- boolean; default False;
+        - ``partial`` -- boolean; default ``False``;
 
-        - ``check_face_to_face`` -- boolean; default False;
+        - ``check_face_to_face`` -- boolean; default ``False``;
         """
         if isinstance(maximal_cells, (list, tuple)):
             cells_dict = {}
@@ -2596,7 +2628,7 @@ class PolyhedralComplex(GenericCellComplex):
 
     def boundary_cells(self):
         """
-        return a list of co-dimension one cells on the boundary.
+        Returns a list of co-dimension one cells on the boundary.
         """
         if not self.is_pure():
             raise NotImplementedError
