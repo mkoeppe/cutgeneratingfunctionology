@@ -1,3 +1,11 @@
+if '' not in sys.path:
+    sys.path = [''] + sys.path
+
+from igp import *
+
+
+
+
 def phi_forward_3_slope(b=4/5, lambda_1=4/9, lambda_2=2/3, field=None):
     """
     Summary:
@@ -8,7 +16,7 @@ def phi_forward_3_slope(b=4/5, lambda_1=4/9, lambda_2=2/3, field=None):
         lambda_1, lambda_2 (real) in (0,1].
 
     Function is known to be extreme under the conditions:
-        0 <= lambda_1 <= 1/2, 0 <= lambda_2 <= 1, b>3.
+        0 <= lambda_1 <= 1/2, 0 <= lambda_2 <= 1, b>3, 0 < lambda_1 * f + lambda_2 * (f - 1) < lambda_1 * f, f=frac(b).
 
     Examples:
         sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
