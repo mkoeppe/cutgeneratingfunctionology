@@ -38,7 +38,7 @@ def search_example_general_dff(q):
                 lp.add_constraint(fn[x]+fn[y]-1==0)
             for (xeps, yeps, zeps) in nonzero_eps:
                 if k<q:
-                    lp.add_constraint(fn[x+xeps]+fn[y+yeps]-fn[z+zeps]<=0)	            
+                    lp.add_constraint(fn[x+xeps]+fn[y+yeps]-fn[z+zeps]<=0)              
                 if k==q:
                     if zeps==-1:
                         lp.add_constraint(fn[x+xeps]+fn[y+yeps]-1<=0)
@@ -95,7 +95,7 @@ def initial_cs_general_dff(q):
                 cs.insert(fn[x]+fn[y]-1==0)
             for (xeps, yeps, zeps) in nonzero_eps:
                 if k<q:
-                    cs.insert(fn[x+xeps]+fn[y+yeps]-fn[z+zeps]<=0)	            
+                    cs.insert(fn[x+xeps]+fn[y+yeps]-fn[z+zeps]<=0)              
                 if k==q:
                     if zeps==-1:
                         cs.insert(fn[x+xeps]+fn[y+yeps]-1<=0)
@@ -128,5 +128,3 @@ def h_from_vertex_values_general(l):
     int=1-slope
     pieces.append([left_open_interval(1-1/q,1),FastLinearFunction(slope,int)])  
     return FastPiecewise(pieces)
-   
-    
