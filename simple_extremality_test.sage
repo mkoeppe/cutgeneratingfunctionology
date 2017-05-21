@@ -7,7 +7,7 @@ from igp import *
 
 def generate_perturbations_simple(fn, show_plots=False, f=None, oversampling=3, order=None):
     """
-    Generate (with "yield") perturbations for `simple_finite_dimensional_extremality_test`. 
+    Generate (with "yield") perturbations for ``simple_finite_dimensional_extremality_test``. 
     """
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
@@ -135,15 +135,15 @@ def discontinuous_interpolation(pts, mid, right, left):
 
 def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, oversampling=3, order=None, show_all_perturbations=False):
     """
-    Simple finite dimensional extremality test for `fn` that does not go
+    Simple finite dimensional extremality test for fn that does not go
     through the whole machinery of covered intervals etc., but rather
     sets up a grid 1/mq, where q is the lcm of the breakpoint
-    denominator and m is the `oversampling` factor. We prove in
+    denominator and m is the oversampling factor. We prove in
     Equivariant I that m = 4 always is enough for continuous functions; 
     in the survey we prove that, in fact, m = 3 (the default) suffices.
 
-    Instead of the `oversampling` factor, the code also allows to
-    specify a different grid using parameter `order`; this is particularly 
+    Instead of the oversampling factor, the code also allows to
+    specify a different grid using parameter order; this is particularly 
     useful for the irrational case.
 
     EXAMPLES::

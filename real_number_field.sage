@@ -29,7 +29,7 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
     ##         return 0
     ##     result = cmp(left.embedded(), right.embedded())
     ##     if result == 0:
-    ##         raise UnimplementedError, "Precision of real interval field not sufficient to continue"
+    ##         raise NotImplementedError, "Precision of real interval field not sufficient to continue"
     ##     return result
 
     def _cmp_(left, right):    # After trac 17890, need to specialize this function.
@@ -38,7 +38,7 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
             return 0
         result = cmp(left.embedded(), right.embedded())
         if result == 0:
-            raise UnimplementedError, "Precision of real interval field not sufficient to continue"
+            raise NotImplementedError, "Precision of real interval field not sufficient to continue"
         return result
 
     def _richcmp_(left, right, op):    # In Sage 7.1, need to specialize this function.
@@ -52,7 +52,7 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
 
         result = cmp(left.embedded(), right.embedded())
         if result == 0:
-            raise UnimplementedError, "Precision of real interval field not sufficient to continue"
+            raise NotImplementedError, "Precision of real interval field not sufficient to continue"
         if op == op_LT or op == op_LE:
             return result < 0
         else:
@@ -96,7 +96,7 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
     def _maxima_(self, session=None):
         symbolic = getattr(self, '_symbolic', None)
         if symbolic is None:
-            raise UnimplementedError, "Cannot make %s a Maxima number" % self
+            raise NotImplementedError, "Cannot make %s a Maxima number" % self
         else:
             return symbolic._maxima_()
 
@@ -141,17 +141,19 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
 
 class RealNumberField_absolute(NumberField_absolute):
     """
-    A RealNumberField knows its embedding into a RealIntervalField
-    and use that for <, > comparisons.
-    == comparison is exact, using the underlying numberfield.
+    A ``RealNumberField`` knows its embedding into a ``RealIntervalField``
+    and use that for ``<``, ``>`` comparisons.
+    ``==`` comparison is exact, using the underlying numberfield.
     
-    A RealNumberField also knows an embedding into an exact field (SR)
+    A ``RealNumberField`` also knows an embedding into an exact field (``SR``)
     for the purpose of latexing.
 
     EXAMPLES::
 
         sage: field, field_values, morphism = number_field_elements_from_algebraics((sqrt(2), sqrt(3)))
-        sage: emb_field = RealNumberField(field.polynomial(), 'a', embedding=morphism(field.gen(0)), exact_embedding=SR(morphism(field.gen(0))))
+        sage: emb_field = RealNumberField(field.polynomial(), 'a', 
+        ....:                 embedding=morphism(field.gen(0)),
+        ....:                 exact_embedding=SR(morphism(field.gen(0))))
         sage: hom = field.hom([emb_field.gen(0)])
         sage: Integer(7)/5 < hom(field_values[0])
         True
@@ -226,6 +228,33 @@ class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
             self._hash = NumberFieldElement_quadratic.__hash__(self)
         return self._hash
 
+    def _sage_input_(self, sib, coerced):
+        """
+        Produce an expression which will reproduce this value when evaluated.
+
+        EXAMPLES::
+
+            sage: x, = nice_field_values([2^(1/2)])
+            sage: sage_input(x)
+            R.<y> = QQ[]
+            RealNumberField(y^2 - 2, embedding=RR(1.4142135623730949), name='a')([0, 1])
+            sage: sage_input((x, x))
+            R.<y> = QQ[]
+            K = RealNumberField(y^2 - 2, embedding=RR(1.4142135623730949), name='a')
+            (K([0, 1]), K([0, 1]))
+
+        """
+        def maybe_ZZ(x):
+            try:
+                return ZZ(x)
+            except TypeError, ValueError:
+                return x
+
+        try:
+            return sib(self.parent())(maybe_ZZ(QQ(self)))
+        except TypeError, ValueError:
+            return sib(self.parent())([maybe_ZZ(x) for x in self.list()])
+
 class RealNumberField_quadratic(NumberField_quadratic):
     def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None,
                  assume_disc_small=False, maximize_at_primes=None, exact_embedding=None):
@@ -276,20 +305,27 @@ class RealNumberField_quadratic(NumberField_quadratic):
     def _repr_(self):
         return "Real Number Field in `%s` as the root of the defining polynomial %s near %s"%(
                    self.variable_name(), self.polynomial(), self.gen(0).embedded())
-    
+
+    def _sage_input_(self, sib, coerced):
+        """
+        Produce an expression which will reproduce this value when evaluated.
+        """
+        p = sib.name('RealNumberField')(self.polynomial(), embedding=RR(self.gen(0)), name='a')
+        sib.id_cache(self, p, 'K')
+        return p
+
 # The factory.
 
 def RealNumberField(polynomial, name=None, latex_name=None, names=None, check=True, embedding=None,
                     assume_disc_small=False, maximize_at_primes=None, exact_embedding=None):
     """
-    A numberfield embedded into the real numbers, for which comparisons work according to
-    the embedding.
+    A ``NumberField`` embedded into the real numbers, for which comparisons work according tothe embedding.
 
-    This may not be necessary any more in Sage 7.1 after trac #17830; but see #20184.
+    This may not be necessary any more in Sage 7.1 after :trac:`17830`; but see :trac:`20184`.
 
     Some special tricks for speed and for pretty printing.
 
-    TESTS::
+    EXAMPLES::
 
         sage: x=polygen(QQ)
         sage: K.<cbrt2> = RealNumberField(x^3 - 2, embedding=RIF(AA.polynomial_root(x^3-2, RIF(0,3))), exact_embedding=AA.polynomial_root(x^3-2, RIF(0,3)))
@@ -300,6 +336,15 @@ def RealNumberField(polynomial, name=None, latex_name=None, names=None, check=Tr
     if names is not None:
         name = names
     if polynomial.degree() == 2:
+        if embedding is not None:
+            # In Sage 7.5, need to replace given embedding by exact root
+            # before calling the constructors.
+            try:
+                from sage.rings.number_field.number_field_morphisms import root_from_approx
+                embedding = root_from_approx(polynomial, embedding)
+            except ImportError:
+                pass
+
         K = RealNumberField_quadratic(polynomial, name, latex_name, check, embedding,
                                       assume_disc_small=assume_disc_small, 
                                       maximize_at_primes=maximize_at_primes, 

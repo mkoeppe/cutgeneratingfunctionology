@@ -295,7 +295,7 @@ def kzh_5_slope_fulldim_covers_1(): #renamed from extreme_5slope_no_transrefl or
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
 
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
+    This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
     requires to translate and reflect covered intervals.
 
     This example was found by computer-based search
@@ -326,7 +326,7 @@ def kzh_5_slope_fulldim_covers_2(): # renamed from fulldim_covers_5slope_q22_1()
     """
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
+    This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
     requires to translate and reflect covered intervals.
 
     This example was found by computer-based search
@@ -357,7 +357,7 @@ def kzh_5_slope_fulldim_covers_3(): # renamed from fulldim_covers_5slope_q22_2()
     """
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
+    This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
     requires to translate and reflect covered intervals.
     This example was found by computer-based search
     described in Koeppe--Zhou [KZh2015a].
@@ -387,7 +387,7 @@ def kzh_5_slope_fulldim_covers_4(): # renamed from fulldim_covers_5slope_q22_3()
     """
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
+    This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
     requires to translate and reflect covered intervals.
     This example was found by computer-based search
     described in Koeppe--Zhou [KZh2015a].
@@ -417,7 +417,7 @@ def kzh_5_slope_fulldim_covers_5(): # renamed from fulldim_covers_5slope_q22_4()
     """
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
+    This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
     requires to translate and reflect covered intervals.
     This example was found by computer-based search
     described in Koeppe--Zhou [KZh2015a].
@@ -447,7 +447,7 @@ def kzh_5_slope_fulldim_covers_6(): # renamed from fulldim_covers_5slope_q22_5()
     """
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
+    This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
     requires to translate and reflect covered intervals.
     This example was found by computer-based search
     described in Koeppe--Zhou [KZh2015a].
@@ -471,7 +471,7 @@ def kzh_6_slope_fulldim_covers_1(): # renamed from fulldim_covers_6slope_q25_1()
     """
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
+    This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
     requires to translate and reflect covered intervals.
     This example was found by computer-based search
     described in Koeppe--Zhou [KZh2015a].
@@ -501,7 +501,7 @@ def kzh_6_slope_fulldim_covers_2(): # renamed from fulldim_covers_6slope_q26_1()
     """
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
+    This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
     requires to translate and reflect covered intervals.
     This example was found by computer-based search
     described in Koeppe--Zhou [KZh2015a].
@@ -531,7 +531,7 @@ def kzh_6_slope_fulldim_covers_3(): # renamed from fulldim_covers_6slope_q38_1()
     """
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
+    This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
     requires to translate and reflect covered intervals.
     This example has a similar 2d-diagram as that of kzh_6_slope_fulldim_covers_2()
     This example was found by computer-based search
@@ -562,7 +562,7 @@ def kzh_6_slope_fulldim_covers_4():
     """
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
+    This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
     requires to translate and reflect covered intervals.
     This example has a similar 2d-diagram as that of kzh_6_slope_fulldim_covers_2()
     This example was found by computer-based search
@@ -591,7 +591,7 @@ def kzh_6_slope_fulldim_covers_5():
     """
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
-    This is in contrast to `hildebrand_5_slope_22_1` etc., whose extremality proof
+    This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
     requires to translate and reflect covered intervals.
     This example has a similar 2d-diagram as that of kzh_6_slope_fulldim_covers_2()
     This example was found by computer-based search
@@ -830,7 +830,7 @@ def kzh_28_slope_1():
 
     This was briefly the world record, until Basu, Conforti, Di Summa, and Paat gave a
     construction of a family of functions with an arbitrary number of slopes
-    (see `bcdsp_arbitrary_slope`).
+    (see ``bcdsp_arbitrary_slope``).
 
     EXAMPLES::
 
@@ -861,7 +861,7 @@ def kzh_28_slope_2():
 
     This was briefly the world record, until Basu, Conforti, Di Summa, and Paat gave a
     construction of a family of functions with an arbitrary number of slopes
-    (see `bcdsp_arbitrary_slope`).
+    (see ``bcdsp_arbitrary_slope``).
 
     EXAMPLES::
 

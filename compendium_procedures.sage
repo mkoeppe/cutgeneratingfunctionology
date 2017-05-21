@@ -6,17 +6,18 @@ if '' not in sys.path:
 from igp import *
 
 def transform_coho_interval(interval, shift, divisor):
-    """Shift `interval` by `shift` and then divide it by `divisor`.
+    """Shift interval by shift and then divide it by divisor.
 
-    EXAMPLES:
-    sage: transform_coho_interval([1, 3], 1, 2)
-    [1, 2]
-    sage: transform_coho_interval([1, 3], 1, -1)
-    [-4, -2]
-    sage: transform_coho_interval(right_open_interval(-1,1), 1, 2)==right_open_interval(0, 1)
-    True
-    sage: transform_coho_interval(right_open_interval(-1,1), 1, -1)==left_open_interval(-2, 0)
-    True
+    EXAMPLES::
+
+        sage: transform_coho_interval([1, 3], 1, 2)
+        [1, 2]
+        sage: transform_coho_interval([1, 3], 1, -1)
+        [-4, -2]
+        sage: transform_coho_interval(right_open_interval(-1,1), 1, 2)==right_open_interval(0, 1)
+        True
+        sage: transform_coho_interval(right_open_interval(-1,1), 1, -1)==left_open_interval(-2, 0)
+        True
     """
     # This really wants to be in a compose method of FastPiecewise.
     x, y = (interval[0 ] + shift) / divisor, (interval[1 ] + shift) / divisor
@@ -32,9 +33,9 @@ def transform_coho_interval(interval, shift, divisor):
             return closed_or_open_or_halfopen_interval(y, x, interval.right_closed, interval.left_closed)
 
 def transform_piece(piece, shift, divisor):
-    """Transform the `piece` = (interval, function) of a piecewise
-    function by shifting `interval` by `shift` and then dividing it by
-    `divisor`.
+    """Transform piece = (interval, function) of a piecewise
+    function by shifting interval by shift and then dividing it by
+    divisor.
     """
     (interval, function) = piece
     try: 
@@ -57,7 +58,7 @@ def multiplicative_homomorphism(function, multiplier):
     """
     Construct the function x -> function(multiplier * x). 
 
-    `multiplier` must be a nonzero integer.
+    multiplier must be a nonzero integer.
 
     EXAMPLES::
 
@@ -86,7 +87,7 @@ def automorphism(function, factor=-1):
 
     For the infinite group problem, apply the only nontrivial
     automorphism of the 1-dimensional infinite group problem to the
-    given `function`, i.e., construct the function x -> function(-x).
+    given function, i.e., construct the function x -> function(-x).
     See Johnson (1974) for a discussion of the automorphisms.
 
     In the finite group case, factor must be an integer coprime with
@@ -116,27 +117,29 @@ def automorphism(function, factor=-1):
 
 def projected_sequential_merge(g, n=1):
     """
-    construct the one-dimensional projected sequential merge inequality: h = g(with f = nr) @_n^1 gmic(f = r).
+    construct the one-dimensional projected sequential merge inequality: "h = g @_n^1 gmic" with `f = n r` in the first function `g` and `f = r` in the second function ``gmic``.
 
-    The notation "@_n^1" is given in [39] p.305, def.12 & eq.25 :
-        h(x) = (xi(x) + n * g(fractional((n + 1) * x - r * xi(x)))) / (n + 1), where xi = gmic(r)
+    The notation `\\lozenge_n^1` is given in [39] p.305, def.12 & eq.25 :
+        `h(x) = \\frac{1}{n+1}\\xi(x) + n g(\\lfloor(n + 1)  x - r \\xi(x)\\rfloor)`, where `\\xi =` ``gmic(r)``.
 
     Parameters:
-        g (real) a valid inequality;
-        n (integer).
+        
+    - `g` (real) a valid inequality;
+
+    - `n` (integer).
 
     Function is known to be extreme under the conditions: c.f. [39] p.309, Lemma 1
-        (1) g is a facet-defining inequality, with f=nr ;
-        (2) E(g) is unique up to scaling, c.f.[39] p.289, def.6 & def.7 ;
-        (3) [g]_{nr} is nondecreasing, c.f.[39] p.290, def.8 (where m=1).
+        (1) `g` is a facet-defining inequality, with `f=nr` ;
+        (2) `E(g)` is unique up to scaling, c.f.[39] p.289, def.6 & def.7 ;
+        (3) `[g]_{nr}` is nondecreasing, c.f.[39] p.290, def.8 (where `m=1`).
 
     Note:
-        g = gj_forward_3_slope() does not satisfy condition(3), but
+        
+    - ``g = gj_forward_3_slope()`` does not satisfy condition (3), but
 
-        g = multiplicative_homomorphism(gj_forward_3_slope(),-1) satisfies (3).
+    - ``g = multiplicative_homomorphism(gj_forward_3_slope(), -1)`` satisfies (3).
 
-    Examples:
-        [39]  p.311, fig.5 ::
+    Examples: [39]  p.311, fig.5 ::
 
             sage: logging.disable(logging.INFO)
             sage: g = multiplicative_homomorphism(gj_forward_3_slope(f=2/3, lambda_1=1/4, lambda_2=1/4), -1)
@@ -173,20 +176,21 @@ def finite_group_order_from_function_f_oversampling_order(fn, f=None, oversampli
     Determine a finite group order to use, based on the given parameters.
 
     EXAMPLES::
-    sage: logging.disable(logging.INFO)
-    sage: finite_group_order_from_function_f_oversampling_order(gmic(f=4/5), order=17)
-    17
-    sage: finite_group_order_from_function_f_oversampling_order(gmic(f=4/5))
-    5
-    sage: finite_group_order_from_function_f_oversampling_order(gj_forward_3_slope())
-    45
-    sage: finite_group_order_from_function_f_oversampling_order(gmic(f=4/5), oversampling=3)
-    15
+
+        sage: logging.disable(logging.INFO)
+        sage: finite_group_order_from_function_f_oversampling_order(gmic(f=4/5), order=17)
+        17
+        sage: finite_group_order_from_function_f_oversampling_order(gmic(f=4/5))
+        5
+        sage: finite_group_order_from_function_f_oversampling_order(gj_forward_3_slope())
+        45
+        sage: finite_group_order_from_function_f_oversampling_order(gmic(f=4/5), oversampling=3)
+        15
     """
     if not order is None:
         return order
     if not order is None and not oversampling is None:
-        raise ValueError, "Only one of the `order` and `oversampling` parameters may be provided."
+        raise ValueError, "Only one of the order and oversampling parameters may be provided."
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
     bkpt_f = fn.end_points()
@@ -207,33 +211,33 @@ def finite_group_order_from_function_f_oversampling_order(fn, f=None, oversampli
                 logging.info("This is a continuous function; because oversampling factor is >= 3, the extremality test on the restricted function will be equivalent to the extremality test on the original function.")
             return grid_nb
     else:
-        raise ValueError, "This is a function with irrational breakpoints or f, so no natural finite group order is available; need to provide an `order` parameter."
+        raise ValueError, "This is a function with irrational breakpoints or f, so no natural finite group order is available; need to provide an order parameter."
 
 def restrict_to_finite_group(function, f=None, oversampling=None, order=None):
-    """Restrict the given `function` to the cyclic group of given `order`.
+    """Restrict the given function to the cyclic group of given order.
     
-    If `order` is not given, it defaults to the group generated by the
-    breakpoints of `function` and `f` if these data are rational.
-    However, if `oversampling` is given, it must be a positive
-    integer; then the group generated by the breakpoints of `function`
+    If order is not given, it defaults to the group generated by the
+    breakpoints of function and `f` if these data are rational.
+    However, if oversampling is given, it must be a positive
+    integer; then the group generated by the breakpoints of function
     and `f` will be refined by that factor.
 
-    If `f` is not provided, uses the one found by `find_f`.
+    If `f` is not provided, uses the one found by ``find_f``.
 
-    Assume in the following that `f` and all breakpoints of `function`
-    lie in the cyclic group and that `function` is continuous.
+    Assume in the following that `f` and all breakpoints of function
+    lie in the cyclic group and that function is continuous.
 
-    Then the restriction is valid if and only if `function` is valid.
-    The restriction is minimal if and only if `function` is minimal.
-    The restriction is extreme if `function` is extreme. 
+    Then the restriction is valid if and only if function is valid.
+    The restriction is minimal if and only if function is minimal.
+    The restriction is extreme if function is extreme. 
     FIXME: Add reference.
 
-    If, in addition `oversampling` >= 3, then the following holds:
-    The restriction is extreme if and only if `function` is extreme.
+    If, in addition oversampling >= 3, then the following holds:
+    The restriction is extreme if and only if function is extreme.
     This is Theorem 1.5 in [IR2].
 
-    This `oversampling` factor of 3 is best possible, as demonstrated
-    by function `kzh_2q_example_1` from [KZh2015a].
+    This oversampling factor of 3 is best possible, as demonstrated
+    by function ``kzh_2q_example_1`` from [KZh2015a].
     
     EXAMPLES::
 
@@ -285,22 +289,22 @@ def restrict_to_finite_group(function, f=None, oversampling=None, order=None):
     return FastPiecewise(pieces)
 
 def interpolate_to_infinite_group(function, merge=True):
-    """Interpolate the given `function` to make it a function in the
+    """Interpolate the given function to make it a function in the
     infinite group problem.  
 
-    `function` may be a function of a finite (cyclic) group problem, 
-    represented as a `FastPiecewise` with singleton intervals within [0,1] as its parts.
+    function may be a function of a finite (cyclic) group problem, 
+    represented as a ``FastPiecewise`` with singleton intervals within [0,1] as its parts.
 
-    (`function` is actually allowed, however, to be more general; it can be any `FastPiecewise`.)
+    (function is actually allowed, however, to be more general; it can be any ``FastPiecewise``.)
     
-    See `restrict_to_finite_group` for a discussion of the relation of
+    See ``restrict_to_finite_group`` for a discussion of the relation of
     the finite and infinite group problem.
 
-    If `merge` is True (the default), adjacent pieces of equal slopes are merged into one.
+    If merge is ``True`` (the default), adjacent pieces of equal slopes are merged into one.
 
     EXAMPLES::
     
-    The same as restrict_to_finite_group(drlm_not_extreme_1())::
+    The same as ``restrict_to_finite_group(drlm_not_extreme_1())``::
 
         sage: logging.disable(logging.WARN)
         sage: h7 = discrete_function_from_points_and_values([0/7, 1/7, 2/7, 3/7, 4/7, 5/7, 6/7, 7/7], [0/10, 4/10, 8/10, 5/10, 2/10, 6/10, 10/10, 0/10])
@@ -320,11 +324,11 @@ def interpolate_to_infinite_group(function, merge=True):
         False
 
     """
-    # TODO: Allow `function` to be just a list of (x, y) pairs.
+    # TODO: Allow function to be just a list of (x, y) pairs.
     last_x, last_y = None, None
     pieces = []
     # We are not using
-    # `piecewise_function_from_breakpoints_and_values` to allow to
+    # ``piecewise_function_from_breakpoints_and_values`` to allow to
     # interpolate some partially interpolated functions.
     # FIXME: Actually implement that.
     for (interval, fn) in function.list():
@@ -338,17 +342,49 @@ def interpolate_to_infinite_group(function, merge=True):
         last_y = fn(last_x)
     return FastPiecewise(pieces, merge=merge)
 
+def continuous_cut_generating_function_from_group_function(fn):
+    """
+    Construct a cut generating function for continuous variables.
+
+    The input is a group function fn, which must be continuous;
+    otherwise an error will be signaled.
+    
+    The result, together with fn, forms the cut generating function
+    pair for a mixed integer problem.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: continuous_cut_generating_function_from_group_function(gmic(4/5))
+        piecewise(x|-->-5*x on (-oo, 0), x|-->0 on {0}, x|-->5/4*x on (0, +oo); x)
+        sage: continuous_cut_generating_function_from_group_function(gomory_fractional(4/5))
+        piecewise(x|-->0 on {0}, x|-->5/4*x on (0, +oo); x)
+        sage: continuous_cut_generating_function_from_group_function(automorphism(gomory_fractional(4/5)))
+        piecewise(x|-->-5/4*x on (-oo, 0), x|-->0 on {0}; x)
+    """
+    # TODO: Make the group functions actually periodic, so they pair well with the continuous function.
+    # Note: Cannot seem to mix FastLinear with the new piecewise.  So we use symbolic linear functions from SR.
+    pieces = []
+    x = SR.var('x')
+    right_slope, left_slope = limiting_slopes(fn)
+    if left_slope is not -Infinity:
+        pieces.append([RealSet.unbounded_below_open(0), left_slope * x])
+    pieces.append([RealSet.point(0), 0])
+    if right_slope is not Infinity:
+        pieces.append([RealSet.unbounded_above_open(0), right_slope * x])
+    return piecewise(pieces, var=x)
+
 def two_slope_fill_in(function, order=None):
     """
-    Extend the given `function` to make it a 2-slope function in the
+    Extend the given function to make it a 2-slope function in the
     infinite group problem.
 
-    `function` may be a function of a finite (cyclic) group problem,
-    represented as a `FastPiecewise` with singleton intervals within [0,1] as its parts.
+    function may be a function of a finite (cyclic) group problem,
+    represented as a ``FastPiecewise`` with singleton intervals within [0,1] as its parts.
 
-    (`function` is actually allowed, however, to be more general; it can be any `FastPiecewise`. When the given `function` is a function for the infinite group problem, its `restrict_to_finite_group` with order=`order` would be considered.)
+    (function is actually allowed, however, to be more general; it can be any ``FastPiecewise``. When the given function is a function for the infinite group problem, its ``restrict_to_finite_group`` with order=order would be considered.)
 
-    [Johnson (1974), section 7; see also Gomory--Johnson (1972, I, II)] If `function` is a subadditive valid function for the finite group problem, then its 2-slope fill-in is a subadditive valid function for the infinite group problem.
+    [Johnson (1974), section 7; see also Gomory--Johnson (1972, I, II)] If function is a subadditive valid function for the finite group problem, then its 2-slope fill-in is a subadditive valid function for the infinite group problem.
 
     EXAMPLES::
 
@@ -393,13 +429,13 @@ def two_slope_fill_in(function, order=None):
 
 def generate_pi_pwl(function, epsilon, f=None, order=None):
     """
-    Subfunction of the procedure symmetric_2_slope_fill_in().
+    Subfunction of the procedure ``symmetric_2_slope_fill_in()``.
 
-    Approximate `function` by a piesewise linear function `pi_pwl` whose breakpoints are all rationals, such that |function(x) - pi_pwl(x)| <= epsilon for x in (0, 1).
+    Approximate function by a piesewise linear function pi_pwl whose breakpoints are all rationals, such that abs(function(x) - pi_pwl(x)) <= epsilon for x in (0, 1).
 
-    Assume that `function' is piecewise linear, and `f` is a rational number.
+    Assume that function is piecewise linear, and `f` is a rational number.
 
-    Output `pi_pwl` and the order `q`.
+    Output pi_pwl and the order `q`.
 
     EXAMPLE::
     
@@ -432,7 +468,7 @@ def generate_pi_pwl(function, epsilon, f=None, order=None):
 
 def generate_pi_delta(f, delta):
     """
-    Subfunction of the procedure symmetric_2_slope_fill_in().
+    Subfunction of the procedure ``symmetric_2_slope_fill_in()``.
 
     See Equation 2 in [dense-2-slope]
 
@@ -475,11 +511,11 @@ def generate_pi_comb(pi_pwl, epsilon, delta, f=None):
 
 def find_gamma(fn):
     """
-    Subfunction of the procedure symmetric_2_slope_fill_in().
-    find gamma>0 such that \Delta\pi(x, y) > gamma
-    for all (x,y) in [0,1]^2 \setminus (E_\delta \cup E_f \cup E_{1+f}).
+    Subfunction of the procedure ``symmetric_2_slope_fill_in()``.
+    find gamma>0 such that `\\Delta\\pi(x, y) > \\gamma`
+    for all `(x,y)` in `[0,1]^2 \\setminus (E_{\\delta} \\cup E_f \\cup E_{1+f})`.
 
-    `fn` may be pi_delta in Lemma 5 or pi_comb in Lemma 4 [dense-2-slope],
+    `fn` may be `\\pi_\\delta` in Lemma 5 or `\\pi_{comb}` in Lemma 4 [dense-2-slope],
     with sufficiently small delta as described in the proof of the lemma.
 
     EXAMPLE::
@@ -512,8 +548,8 @@ def find_delta(fn, f, q):
 
 def generate_pi_fill_in(fn, q, f=None):
     """
-    Subfunction of the procedure symmetric_2_slope_fill_in().
-    Return the fill-in function pi_fill_in of `fn` with respect to 1/q\Z and the sublinear function g(r) = max(sp*r, sm*r).
+    Subfunction of the procedure ``symmetric_2_slope_fill_in()``.
+    Return the fill-in function pi_fill_in of fn with respect to (1/q)Z and the sublinear function `g(r) = \\max(s_p r, s_m r)`.
     See the first phase in the proof of Lemma 6 [dense-2-slope].
 
     EXAMPLE::
@@ -555,12 +591,12 @@ def find_infinity_norm_distance(pi_1, pi_2):
 
 def generate_pi_sym(fn, f=None):
     """
-    Subfunction of the procedure symmetric_2_slope_fill_in().
-    Return pi_sym that coincides with `fn` on [0,f/2] and [(1+f)/2, 1],
+    Subfunction of the procedure ``symmetric_2_slope_fill_in()``.
+    Return pi_sym that coincides with fn on `[0,f/2]` and `[(1+f)/2, 1]`,
     and satisfies the symmetry condition.
     See the second phase in the proof of Lemma 6 [dense-2-slope].
 
-    Assume the piecewise linear function `fn` satisfies that fn(f/2) = fn((1+f)/2) = 1/2.
+    Assume the piecewise linear function fn satisfies that fn(f/2) = fn((1+f)/2) = 1/2.
 
     EXAMPLE::
 
@@ -592,7 +628,7 @@ def generate_pi_sym(fn, f=None):
 
 def sym_2_slope_fill_in_given_q(pi_pwl, f, q, epsilon):
     """
-    Subfunction of the procedure symmetric_2_slope_fill_in().
+    Subfunction of the procedure ``symmetric_2_slope_fill_in()``.
     """
     delta = find_delta(pi_pwl, f, q)
     if delta == 0:
@@ -604,7 +640,7 @@ def sym_2_slope_fill_in_given_q(pi_pwl, f, q, epsilon):
 
 def show_approximations(function, pi_pwl, pi_comb, pi_fill_in, pi_sym):
     """
-    Subfunction of the procedure symmetric_2_slope_fill_in().
+    Subfunction of the procedure ``symmetric_2_slope_fill_in()``.
     """
     if pi_pwl == function:
         g = function.plot(color='black', legend_label='pi=pi_pwl', **ticks_keywords(function))
@@ -619,12 +655,12 @@ def show_approximations(function, pi_pwl, pi_comb, pi_fill_in, pi_sym):
     return g
 
 def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
-    r"""
-    Given a continuous strong minimal `function` for the Gomory and Johnson infinite group problem with `f` in Q\Z, return an extreme 2-slope function pi_ext that approximates `function` with infinity norm distance less than epsilon.
+    """
+    Given a continuous strong minimal function for the Gomory and Johnson infinite group problem with `f` in Q\Z, return an extreme 2-slope function pi_ext that approximates function with infinity norm distance less than epsilon.
 
     See Theorem 2 [dense-2-slope].
 
-    See also: `symmetric_2_slope_fill_in_irrational`
+    See also: ``symmetric_2_slope_fill_in_irrational``.
 
     EXAMPLES::
 
@@ -699,24 +735,25 @@ def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
     return pi_sym
 
 def symmetric_2_slope_fill_in_irrational(function, epsilon, show_plots=False, f=None):
-    r"""
-    Given a continuous piecewise linear strong minimal `function` for the Gomory and Johnson infinite
-    group problem, return an extreme 2-slope function pi_ext that approximates `function` with infinity
+    """
+    Given a continuous piecewise linear strong minimal function for the Gomory and Johnson infinite
+    group problem, return an extreme 2-slope function pi_ext that approximates function with infinity
     norm distance less than epsilon.
 
-    This construction is a variant of Theorem 2 [dense-2-slope] (implemented in `symmetric_2_slope_fill_in`),
+    This construction is a variant of Theorem 2 [dense-2-slope] (implemented in ``symmetric_2_slope_fill_in``),
     proposed by Yuan Zhou (2015, unpublished):
 
-    It turns out that if pi is piecewise linear, then in Theorem 2, b
-    doesn't have to be a rational number. This is because when q is
-    large enough (precisely, when 1/q <= delta/2 and max{s+, |s-|}/q
-    <= epsilon/2, where s+ and s- are the most positive and the most
+    It turns out that if `\\pi` is piecewise linear, then in Theorem 2, `b`
+    does not have to be a rational number. This is because when `q` is
+    large enough (precisely, when `1/q \leq \\delta/2` and 
+    `\\max\\{s^+, |s^-|\\}/q \leq \\epsilon/2`, 
+    where `s^+` and `s^-` are the most positive and the most
     negative slopes of pi_comb), doing a 2-slope fill-in on the
-    pi_comb restricted to the grid 1/qZ will give a pi_fill_in that
-    always has pi_fill_in(b)=1, even though b is irrational and thus
-    is not in 1/qZ.  For the same reason, delta and other breakpoints
-    of pi_comb in lemma 6 don't have to be rational numbers either. To
-    ensure pi_sym is well defined, consider U=1/qZ \cup {b/2, (b+1)/2}
+    pi_comb restricted to the grid (1/q)Z will give a pi_fill_in that
+    always has pi_fill_in(`b`)=1, even though `b` is irrational and thus
+    is not in (1/q)Z.  For the same reason, `\\delta` and other breakpoints
+    of pi_comb in lemma 6 do not have to be rational numbers either. To
+    ensure pi_sym is well defined, consider `U=(1/q)Z \\cup \\{b/2, (b+1)/2\\}`
     when constructing pi_fill_in. The proof follows verbatim.
 
     EXAMPLES::

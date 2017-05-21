@@ -15,7 +15,7 @@ class PiecewiseQuasiPeriodic(FastPiecewise):
 
     def __init__(self, list_of_pairs, quasiperiodic_extension=True):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: logging.disable(logging.INFO) # to disable output in automatic tests.
             sage: q = PiecewiseQuasiPeriodic([[(0,1/2), FastLinearFunction(3,0)],[(1/2,3/2), FastLinearFunction(-1,2)]])
@@ -51,7 +51,7 @@ class PiecewiseQuasiPeriodic(FastPiecewise):
         """
         Evaluats self at x0.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: logging.disable(logging.INFO) # to disable output in automatic tests.
             sage: q = PiecewiseQuasiPeriodic([[(0,1/2), FastLinearFunction(3,0)],[(1/2,3/2), FastLinearFunction(-1,2)]])

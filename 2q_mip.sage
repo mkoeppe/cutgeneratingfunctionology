@@ -52,7 +52,7 @@ def print_trivial_additive_points_2q(filename, q, f, a):
 
 def write_lpfile_2q(q, f, a, kslopes, maxstep=None, m=0):
     """
-    EXAMPLES:
+    EXAMPLES::
 
         sage: write_lpfile_2q(37, 25/37, 11/37, 4, maxstep=2, m=4) # not tested
     """
