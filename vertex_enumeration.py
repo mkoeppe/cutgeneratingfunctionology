@@ -9,11 +9,10 @@ def vertex_enumeration(polytope, exp_dim=-1, vetime=False):
     """
     Returns the vertices of the polytope.
 
-    Do preprocessing if exp_dim >= igp.exp_dim_prep,
-    i.e., call the function redund provided by lrslib to remove redundant inequalities.
-    Use lrs vertex enumeration if exp_dim >= exp_dim_lrs,
-    use ppl vertex enumeration otherwise.
-    Print the vertex enumeration running time if `vetime` is True.
+    - Do preprocessing if exp_dim >= igp.exp_dim_prep, i.e., call the function redund provided by lrslib to remove redundant inequalities.
+    - Use lrs vertex enumeration if exp_dim >= exp_dim_lrs.
+    - Use ppl vertex enumeration otherwise.
+    - Print the vertex enumeration running time if vetime is ``True``.
     
     EXAMPLE::
 
@@ -241,8 +240,8 @@ def convert_lrs_to_ppl(lrs_string):
     Convert lrs format H-representation to ppl cs;
     or lrs format V-representation (of a polytope) to ppl gs.
 
-    COPY from src/geometry/polyhedron/backend_cdd.py and edit
-    Polyhedron_cdd._init_from_cdd_output(self, cdd_output_string)
+    COPY from src/geometry/polyhedron/backend_cdd.py and edit the function
+    ``Polyhedron_cdd._init_from_cdd_output(self, cdd_output_string)``
     """
     cddout=lrs_string.splitlines()
 
@@ -352,7 +351,7 @@ def lrs_redund(in_str, verbose=False):
 
     Input: lrs format in_str; Output: lrs format out_str;
 
-    Copy and edit from def _volume_lrs(self, verbose=False),
+    Copy and edit from ``def _volume_lrs(self, verbose=False)``,
     http://www.sagenb.org/src/geometry/polyhedron/base.py
     """
     #if is_package_installed('lrslib') != True:
@@ -386,7 +385,7 @@ def remove_redundancy_from_cs(cs, verbose=False, return_lrs=False):
 
 def lrs_lrs(in_str, verbose=False):
     """
-    use the command 'lrs' from lrslib.
+    Use the command 'lrs' from lrslib.
     Input: lrs format in_str; Output: lrs format out_str;
     """
     #if is_package_installed('lrslib') != True:
@@ -406,9 +405,14 @@ def lrs_lrs(in_str, verbose=False):
     return out_str
 
 def lrs_lrsinput_pploutput(in_str):
-    """
-    Use the command 'lrs' from lrslib.
-    Input: lrs format in_str; Output: ppl format extreme_points;
+    r"""
+    Use the command lrs from lrslib.
+
+    Input: 
+        lrs format in_str; 
+
+    Output: 
+        ppl format extreme_points;
     
     EXAMPLES::
 
@@ -425,7 +429,8 @@ def lrs_lrsinput_pploutput(in_str):
    
 def lcdd_rational(in_str, verbose=False):
     """
-    Use the command 'lcdd_gmp' from cddlib.
+    Use the command ``lcdd_gmp`` from cddlib.
+
     Input: cdd format in_str; Output: cdd format out_str;
     """
     in_filename = tmp_filename()

@@ -51,25 +51,25 @@ def gj_2_slope(f=3/5, lambda_1=1/6, field=None, conditioncheck=True):
         - gj_2_slope is a facet.
 
     Parameters:
-        f (real) \in (0,1);
-        lambda_1 (real) in (0,1].
+        * f (real) \in (0,1);      
+        * lambda_1 (real) in (0,1].
 
     Function is known to be extreme under the conditions:
-        0 < lambda_1 <=1, lambda_1 < f/(1 - f).
+        * 0 < lambda_1 <=1, 
+        * lambda_1 < f/(1 - f).
 
-    Examples:
-        [61] p.354, Fig.6 ::
+    Examples: [61] p.354, Fig.6 ::
 
-            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-            sage: h = gj_2_slope(f=3/5, lambda_1=1/6)
-            sage: extremality_test(h, False)
-            True
-            sage: h = gj_2_slope(f=3/5, lambda_1=1/2)
-            sage: extremality_test(h, False)
-            True
-            sage: h = gj_2_slope(f=3/5, lambda_1=1)
-            sage: extremality_test(h, False, f=3/5)         # Provide f to suppress warning
-            True
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = gj_2_slope(f=3/5, lambda_1=1/6)
+        sage: extremality_test(h, False)
+        True
+        sage: h = gj_2_slope(f=3/5, lambda_1=1/2)
+        sage: extremality_test(h, False)
+        True
+        sage: h = gj_2_slope(f=3/5, lambda_1=1)
+        sage: extremality_test(h, False, f=3/5)         # Provide f to suppress warning
+        True
 
     Reference:
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
@@ -98,23 +98,22 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
         - gj_2_slope_repeat is a facet.
 
     Parameters:
-        f (real) \in (0,1);
-        s_positive, s_negative (real);
-        m, n >= 2 (integer).
+        * f (real) \in (0,1);       
+        * s_positive, s_negative (real);
+        * m, n >= 2 (integer).
 
     Function is known to be extreme under the conditions:
-        0 < f < 1;
-        s_positive > 1/f;  s_negative < 1/(f - 1);
-        m >= (s_positive - s_positive*s_negative*f) / (s_positive - s_negative);
-        n >= (- s_negative + s_positive*s_negative*(f - 1)) / (s_positive - s_negative).
+        * 0 < f < 1;
+        * s_positive > 1/f;  s_negative < 1/(f - 1);
+        * m >= (s_positive - s_positive*s_negative*f) / (s_positive - s_negative);
+        * n >= (- s_negative + s_positive*s_negative*(f - 1)) / (s_positive - s_negative).
 
-    Examples:
-        [61] p.354, Fig.7 ::
+    Examples: [61] p.354, Fig.7 ::
 
-            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-            sage: h = gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3)
-            sage: extremality_test(h, False)
-            True
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3)
+        sage: extremality_test(h, False)
+        True
 
     Reference:
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
@@ -147,20 +146,19 @@ def dg_2_step_mir(f=4/5, alpha=3/10, field=None, conditioncheck=True):
         - dg_2_step_mir is a facet.
 
     Parameters:
-        f (real) \in (0,1);
-        alpha (real) \in (0,f).
+        * f (real) \in (0,1);
+        * alpha (real) \in (0,f).
 
     Function is known to be extreme under the conditions:
-        0 < alpha < f < 1;
-        f / alpha < ceil(f / alpha) <= 1 / alpha.
+        * 0 < alpha < f < 1;
+        * f / alpha < ceil(f / alpha) <= 1 / alpha.
 
-    Examples:
-        [33] p.40, Fig.5 ::
+    Examples: [33] p.40, Fig.5 ::
 
-            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-            sage: h = dg_2_step_mir(f=4/5, alpha=3/10)
-            sage: extremality_test(h, False)
-            True
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = dg_2_step_mir(f=4/5, alpha=3/10)
+        sage: extremality_test(h, False)
+        True
 
     Reference:
         [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
@@ -203,46 +201,45 @@ def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
         - Discovered [74]  p.328, def.3, thm.2;
         - Proven extreme (for infinite group) [60] p.377, thm.3.3.
-        - (Although only extremality has been established in literature, the same proof shows that) kf_n_step_mir is a facet.
+        - (Although only extremality has been established in literature, the same proof shows that) ``kf_n_step_mir`` is a facet.
 
     Parameters:
-        f (real) \in (0,1);
-        a (list of reals, with length = n) \in (0,f).
+        * f (real) \in (0,1);
+        * a (list of reals, with length = n) \in (0,f).
 
     Function is known to be extreme under the conditions:
-        0 < a[1] < f < 1 == a[0];
-        a[i] > 0, for i = 0, 1, ... , n-1;
-        b[i - 1] / a[i] < ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i],  for i = 1, 2, ... , n-1;
-        where,
-        b[0] = f;
-        b[i] = b[i - 1] - a[i] * floor(b[i - 1] / a[i]),  for i = 1, 2, ... , n-1.
+        * 0 < a[1] < f < 1 == a[0];
+        * a[i] > 0, for i = 0, 1, ... , n-1;
+        * b[i - 1] / a[i] < ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i],  for i = 1, 2, ... , n-1;
+    where,
+        * b[0] = f;
+        * b[i] = b[i - 1] - a[i] * floor(b[i - 1] / a[i]),  for i = 1, 2, ... , n-1.
 
     Note:
         if a[i] > b[i-1] for some i, then the kf_n_step_mir function degenerates, i.e.
         kf_n_step_mir(f, [a[0], .. , a[n - 1]]) = kf_n_step_mir(f, [a[0], .. a[i - 1], a[i + 1], ... , a[n - 1]])
 
-    Examples:
-        [74] p.333 - p.335, Fig.1 - Fig.6 ::
+    Examples: [74] p.333 - p.335, Fig.1 - Fig.6 ::
         
-            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-            sage: h = kf_n_step_mir(f=4/5, a=[1])
-            sage: extremality_test(h, False)
-            True
-            sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10])
-            sage: extremality_test(h, False)
-            True
-            sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100])
-            sage: extremality_test(h, False)
-            True
-            sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100, 3/100])
-            sage: extremality_test(h, False)
-            True
-            sage: h = kf_n_step_mir(f=4/5, a=[1, 45/100, 2/10, 558/10000, 11/1000])
-            sage: extremality_test(h, False)
-            True
-            sage: h = kf_n_step_mir(f=4/5, a=[1, 48/100, 19/100, 8/100, 32/1000, 12/1000])
-            sage: extremality_test(h, False)
-            True
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = kf_n_step_mir(f=4/5, a=[1])
+        sage: extremality_test(h, False)
+        True
+        sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10])
+        sage: extremality_test(h, False)
+        True
+        sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100])
+        sage: extremality_test(h, False)
+        True
+        sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100, 3/100])
+        sage: extremality_test(h, False)
+        True
+        sage: h = kf_n_step_mir(f=4/5, a=[1, 45/100, 2/10, 558/10000, 11/1000])
+        sage: extremality_test(h, False)
+        True
+        sage: h = kf_n_step_mir(f=4/5, a=[1, 48/100, 19/100, 8/100, 32/1000, 12/1000])
+        sage: extremality_test(h, False)
+        True
 
     Reference:
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
@@ -288,35 +285,36 @@ def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditionc
         - gj_forward_3_slope is a facet.
 
     Parameters:
-        f (real) \in (0,1);
-        lambda_1, lambda_2 (real) \in (0,1).
+        * f (real) \in (0,1);
+        * lambda_1, lambda_2 (real) \in (0,1).
 
     Function is known to be extreme under the conditions:
-        0 <= lambda_1 <= 1/2;
-        0 <= lambda_2 <= 1  (in literature).
+        * 0 <= lambda_1 <= 1/2;
+        * 0 <= lambda_2 <= 1  (in literature).
 
     Note: 
         Since the domain and range are in [0,1], I think the conditions for a three-slope extreme function should be:
+
         (0 <= lambda_1 <= 1/2)  &  (0 <= lambda_2 <= 1) & (0 < lambda_1 * f + lambda_2 * (f - 1) < lambda_1 * f).
 
     Examples:
         [61] p.360, Fig.8 ::
 
-            sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=1/3)
-            sage: extremality_test(h, False)
-            True
-            sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3)
-            sage: extremality_test(h, False)
-            True
-            sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=1)
-            sage: extremality_test(h, False)
-            True
+        sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=1/3)
+        sage: extremality_test(h, False)
+        True
+        sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3)
+        sage: extremality_test(h, False)
+        True
+        sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=1)
+        sage: extremality_test(h, False)
+        True
 
         Try irrational case ::
 
-            sage: h = gj_forward_3_slope(f=sqrt(17)/5, lambda_1=2*sqrt(5)/9, lambda_2=2/sqrt(10))
-            sage: extremality_test(h, False)
-            True
+        sage: h = gj_forward_3_slope(f=sqrt(17)/5, lambda_1=2*sqrt(5)/9, lambda_2=2/sqrt(10))
+        sage: extremality_test(h, False)
+        True
 
     Reference:
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
@@ -360,13 +358,13 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
         one can prove that the function is extreme without assuming f, bkpt being rational numbers.
         
         In [61] p.374, Appendix C, p.360. Fig.10, they consider real number f, bkpt, and claim (without proof) that:
-        1) the function (named pi3(u)) is facet (thus extreme);
-        2) can add a perturbation (zigzag) on the third slope as shown in Fig.10;
+
+        (1) the function (named pi3(u)) is facet (thus extreme);
+        (2) can add a perturbation (zigzag) on the third slope as shown in Fig.10;
 
         An extremality proof for the general (not necessarily rational) case appears in [KZh2015b, section 4].
 
     Examples:
-
         - Finite group --> Example 3.8 in [8] p.386,
         - Infinite group --> Interpolation using Equation 5 from [40] p.154 ::
 
@@ -414,29 +412,28 @@ def dg_2_step_mir_limit(f=3/5, d=3, field=None, conditioncheck=True):
         - dg_2_step_mir_limit is a facet.
 
     Parameters:
-        f (real) \in (0,1);
-        d (positive integer): number of slopes on [0,f).
+        * f (real) \in (0,1);
+        * d (positive integer): number of slopes on [0,f).
 
     Function is known to be extreme under the conditions:
-        0 < f < 1;
-        d >= ceil(1 / (1 - f)) - 1.
+        * 0 < f < 1;
+        * d >= ceil(1 / (1 - f)) - 1.
 
     Note:
         This is the limit function as alpha in dg_2_step_mir()
         tends (from left) to f/d, where d is integer;
         cf. [33] p.42, lemma 13.
 
-        It's a special case of drlm_2_slope_limit(),
-        dg_2_step_mir_limit(f, d) =
-        multiplicative_homomorphism(drlm_2_slope_limit(f=1-f, nb_pieces_left=1, nb_pieces_right=d), -1)
+        It's a special case of ``drlm_2_slope_limit()``:
 
-    Examples:
-        [33] p.42, Fig.6 ::
+        ``dg_2_step_mir_limit(f, d) = multiplicative_homomorphism(drlm_2_slope_limit(f=1-f, nb_pieces_left=1, nb_pieces_right=d), -1)``.
 
-            sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
-            sage: h = dg_2_step_mir_limit(f=3/5, d=3)
-            sage: extremality_test(h, False)
-            True
+    Examples: [33] p.42, Fig.6 ::
+
+        sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
+        sage: h = dg_2_step_mir_limit(f=3/5, d=3)
+        sage: extremality_test(h, False)
+        True
 
     Reference:
         [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
@@ -473,9 +470,9 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, c
         - (Although only extremality has been established in literature, the same proof shows that) drlm_2_slope_limit is a facet.
 
     Parameters:
-        f (real) \in (0,1);
-        nb_pieces_left (positive integer) : number of linear pieces to the left of f;
-        nb_pieces_right (positive integer) : number of linear pieces to the right of f.
+        * f (real) \in (0,1);
+        * nb_pieces_left (positive integer) : number of linear pieces to the left of f;
+        * nb_pieces_right (positive integer) : number of linear pieces to the right of f.
 
     Function is known to be extreme under the conditions:
         nb_pieces_left * (1-f) <= nb_pieces_right * f.
@@ -653,26 +650,26 @@ def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
 
 def generate_example_e_for_psi_n(f=2/3, n=7, q=4, eta=1/1000):
     """
-    return the first n terms of a geometric series e that satisfies 
+    Return the first n terms of a geometric series e that satisfies 
     0 < ... < e[n] <= e[n - 1] <= ... <= e[1] <= e[0] <= 1 - f and \sum_{i = 0}^{\infty} {2^i * e[i]} <= f.
+
     This can be used in psi_n_in_bccz_counterexample_construction(f, [e[0],...,e[n-1]]), so that the function constructed is extreme.
 
     Parameters:
-
-    - f (real) \in (0,1);
-    - n (integer);
-    - q (real), q > 2: ratio of the geometric series;
-    - eta (real), 0 <= eta < 1: to control the series sum, \sum_{i = 0}^{\infty} {2^i * e[i]} <= (1 - eta)*f.
+        - f (real) \in (0,1);
+        - n (integer);
+        - q (real), q > 2: ratio of the geometric series;
+        - eta (real), 0 <= eta < 1: to control the series sum, \sum_{i = 0}^{\infty} {2^i * e[i]} <= (1 - eta)*f.
 
     Note:
         If (eta == 0) and (f >= 1/2), then \sum_{i = 0}^{\infty} {2^i * e[i]} = f.
-        This case is not mentioned in [IR1], but using a similar proof, one can show that:
-        1) psi_n still converges uniformly to psi;
-        2) The limit funciton psi is a continuous facet (hence extreme);
-        3) psi is not piecewise linear. 
-        Also notice that:
-        4) psi is not in W^{1,1}.
-        See [KZh2015b, section 5].
+
+    This case is not mentioned in [IR1], but using a similar proof, one can show that:
+        (1) psi_n still converges uniformly to psi;
+        (2) The limit funciton psi is a continuous facet (hence extreme);
+        (3) psi is not piecewise linear. 
+
+    Also notice that: psi is not in W^{1,1}. See [KZh2015b, section 5].
 
     References:
 
@@ -703,19 +700,21 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
 
     Note:
         The (uniform) limit \psi = \lim_{n to \infty} \psi_n is well defined if \sum_{i = 0}^{\infty} {2^i * e[i]} < f.
+
         The (uniform) limit \psi is a continuous facet, but is not piecewise linear. A counterexample of GJ's conjecture.
+
         Could use the function generate_example_e_for_psi_n(f, n, q) to generate a sequence e that satisfies the conditions for extremality.
-        psi_n_in_bccz_counterexample_construction() is a special case of kf_n_step_mir(),
-        with f=f, a = [1, (f + e[0])/2, (f - e[0] + 2*e[1])/4, ...]
+
+        psi_n_in_bccz_counterexample_construction() is a special case of kf_n_step_mir(), with f=f, a = [1, (f + e[0])/2, (f - e[0] + 2*e[1])/4, ...]
 
     Parameters:
-        f (real) \in (0,1);
-        e (list of reals, with length = n) \in (0,f).
+        * f (real) \in (0,1);
+        * e (list of reals, with length = n) \in (0,f).
 
     Function is known to be extreme under the conditions:
-        0 < f < 1;
-        0 < e[n - 1] <= e[n - 2] <= ... <= e[1] <= e[0] <= 1 - f;
-        \sum_{i = 0}^{n - 1} 2^i * e[i] < f.
+        * 0 < f < 1;
+        * 0 < e[n - 1] <= e[n - 2] <= ... <= e[1] <= e[0] <= 1 - f;
+        * \sum_{i = 0}^{n - 1} 2^i * e[i] < f.
 
     Examples:
         [IR1]  p.30, fig.1::
@@ -727,10 +726,10 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
             sage: h = psi_n_in_bccz_counterexample_construction(f=4/5, e=[1/5, 1/20, 1/80, 1/320, 1/1280])
             sage: extremality_test(h, False, f=4/5)         # Suppress warning about non-unique f
             True
-            sage: h = psi_n_in_bccz_counterexample_construction(f=4/5, e=generate_example_e_for_psi_n(f=4/5, n=7, q=3, eta=0)) # extremality_test takes long for this example; don't test!
-            sage: extremality_test(h, False)                # doctest: +SKIP
+            sage: h = psi_n_in_bccz_counterexample_construction(f=4/5, e=generate_example_e_for_psi_n(f=4/5, n=7, q=3, eta=0))
+            sage: extremality_test(h, False)
             True
-            sage: sum([plot(psi_n_in_bccz_counterexample_construction(e=generate_example_e_for_psi_n(n=n)), color=color, legend_label="psi_%d"%n) for n, color in zip(range(7),rainbow(7))]) # doctest: +SKIP
+            sage: sum([plot(psi_n_in_bccz_counterexample_construction(e=generate_example_e_for_psi_n(n=n)), color=color, legend_label="psi_%d"%n) for n, color in zip(range(7),rainbow(7))]) # not tested
 
     Reference: 
         [IR1]:  A. Basu, M. Conforti, G. Cornuejols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
@@ -780,46 +779,69 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
         - (Although only extremality has been established in literature, the same proof shows that), bhk_irrational is a facet.
 
     Parameters:
-        f (real) \in (0,1);
-        d1 (real): length of the positive slope;
-        d2 (real): length of the zero slopes;
-        a0 (real): length of the first zig-zag;
-        delta (n-tuple of reals): length of the extra zig-zags.
+        * f (real) \in (0,1);
+        * d1 (real): length of the positive slope;
+        * d2 (real): length of the zero slopes;
+        * a0 (real): length of the first zig-zag;
+        * delta (n-tuple of reals): length of the extra zig-zags.
 
     Function is known to be extreme under the conditions:
-        0 < f < 1;
-        d1, d2, a0, delta > 0;
-        d1 + d2 < f;
-        len(delta) == 2
-        sum(delta) <  d2 / 4; Weaker condition: 2*delta[0] + delta[1] < d2 / 2;
-        the two components of delta are linearly independent over \Q.
+        * 0 < f < 1;
+        * d1, d2, a0, delta > 0;
+        * d1 + d2 < f;
+        * len(delta) == 2
+        * sum(delta) <  d2 / 4; Weaker condition: 2*delta[0] + delta[1] < d2 / 2;
+        * the two components of delta are linearly independent over \Q.
 
     Relation between the code parameters and the paper parameters:
-        t1 = delta[0], t2 = delta[0] + delta[1], ...
-        a1 = a0 + t1, a2 = a0 + t2, ...
-        A = f/2 - a0/2 - d2/4,
-        A0 = f/2 - a0/2 + d2/4.
+        * t1 = delta[0], t2 = delta[0] + delta[1], ...
+        * a1 = a0 + t1, a2 = a0 + t2, ...
+        * A = f/2 - a0/2 - d2/4,
+        * A0 = f/2 - a0/2 + d2/4.
 
     Examples:
         [IR2]  p.34, thm.5.3::
 
-            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: logging.disable(logging.NOTSET) # enable INFO messages disabled by other doctests
             sage: h = bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200))
+            INFO: ...
             sage: extremality_test(h, False)
+            INFO: ...
             True
 
-        [IR2]  thm 5.4: Not extreme for rational data:: 
+        [IR2]  thm 5.4: Not extreme for rational data::
 
-            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = bhk_irrational(delta=[1/200, 3/200])
+            INFO: ...
             sage: extremality_test(h, False)
+            INFO: ...
+            INFO: ... Total: 1 stability orbit...
             False
 
         A generalization with 3 zigzags instead of 2 as in [IR2]::
 
-            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, 6* sqrt(2)/200, 1/500))
-            sage: extremality_test(h, False) # long time
+            INFO: ...
+            sage: extremality_test(h, False) # not tested - takes 20min on Macbook Pro 2.7Ghz Core i7
+            INFO: ...
+            INFO: ... Total: 3 stability orbits...
+            False
+
+        Verify that p constructed below is an effective perturbation of h::
+
+            sage: sqrt2 = h.end_points()[0].parent().gen()
+            sage: pb = ((0, 0), (343/1000, -3/100), (1331/4000, -9/400), (1249/4000, -3/400), (151/500, 0), (303/1000, 0), (1171/4000, 3/400), (1089/4000, 9/400), (131/500, 3/100), (87/250, -3/100), (1351/4000, -9/400), (1269/4000, -3/400), (307/1000, 0), (77/250, 0), (1191/4000, 3/400), (1109/4000, 9/400), (267/1000, 3/100), (353/1000, -3/100), (1371/4000, -9/400), (1289/4000, -3/400), (39/125, 0), (313/1000, 0), (1211/4000, 3/400), (1129/4000, 9/400), (34/125, 3/100), (179/500, -3/100), (1391/4000, -9/400), (1309/4000, -3/400), (317/1000, 0), (159/500, 0), (1231/4000, 3/400), (1149/4000, 9/400), (277/1000, 3/100), (363/1000, -3/100), (1411/4000, -9/400), (1329/4000, -3/400), (161/500, 0), (323/1000, 0), (1251/4000, 3/400), (1169/4000, 9/400), (141/500, 3/100), (46/125, -3/100), (1431/4000, -9/400), (1349/4000, -3/400), (327/1000, 0), (41/125, 0), (1271/4000, 3/400), (1189/4000, 9/400), (287/1000, 3/100), (373/1000, -3/100), (1451/4000, -9/400), (1369/4000, -3/400), (83/250, 0), (333/1000, 0), (1291/4000, 3/400), (1209/4000, 9/400), (73/250, 3/100), (189/500, -3/100), (1471/4000, -9/400), (1389/4000, -3/400), (337/1000, 0), (169/500, 0), (1311/4000, 3/400), (1229/4000, 9/400), (297/1000, 3/100), (383/1000, -3/100), (1491/4000, -9/400), (1409/4000, -3/400), (171/500, 0), (343/1000, 0), (1331/4000, 3/400), (1249/4000, 9/400), (151/500, 3/100), (97/250, -3/100), (1511/4000, -9/400), (1429/4000, -3/400), (347/1000, 0), (87/250, 0), (1351/4000, 3/400), (1269/4000, 9/400), (307/1000, 3/100), (493/1000, -3/100), (1931/4000, -9/400), (1849/4000, -3/400), (113/250, 0), (453/1000, 0), (1771/4000, 3/400), (1689/4000, 9/400), (103/250, 3/100), (249/500, -3/100), (1951/4000, -9/400), (1869/4000, -3/400), (457/1000, 0), (229/500, 0), (1791/4000, 3/400), (1709/4000, 9/400), (417/1000, 3/100), (503/1000, -3/100), (1971/4000, -9/400), (1889/4000, -3/400), (231/500, 0), (463/1000, 0), (1811/4000, 3/400), (1729/4000, 9/400), (211/500, 3/100), (127/250, -3/100), (1991/4000, -9/400), (1909/4000, -3/400), (467/1000, 0), (117/250, 0), (1831/4000, 3/400), (1749/4000, 9/400), (427/1000, 3/100), (513/1000, -3/100), (2011/4000, -9/400), (1929/4000, -3/400), (59/125, 0), (473/1000, 0), (1851/4000, 3/400), (1769/4000, 9/400), (54/125, 3/100), (259/500, -3/100), (2031/4000, -9/400), (1949/4000, -3/400), (477/1000, 0), (239/500, 0), (1871/4000, 3/400), (1789/4000, 9/400), (437/1000, 3/100), (523/1000, -3/100), (2051/4000, -9/400), (1969/4000, -3/400), (241/500, 0), (483/1000, 0), (1891/4000, 3/400), (1809/4000, 9/400), (221/500, 3/100), (66/125, -3/100), (2071/4000, -9/400), (1989/4000, -3/400), (487/1000, 0), (61/125, 0), (1911/4000, 3/400), (1829/4000, 9/400), (447/1000, 3/100), (533/1000, -3/100), (2091/4000, -9/400), (2009/4000, -3/400), (123/250, 0), (493/1000, 0), (1931/4000, 3/400), (1849/4000, 9/400), (113/250, 3/100), (269/500, -3/100), (2111/4000, -9/400), (2029/4000, -3/400), (497/1000, 0), (249/500, 0), (1951/4000, 3/400), (1869/4000, 9/400), (457/1000, 3/100), (1, 0))
+            sage: pv = ((0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0), (1, 0), (-1, 0), (0, 0), (0, 0))
+            sage: bkpts = [b[0]+b[1]*sqrt2 for b in pb]
+            sage: values = [v[0]+v[1]*sqrt2 for v in pv]
+            sage: p = piecewise_function_from_breakpoints_and_values(bkpts, values)
+            sage: h1 = h + 8/10000*p
+            sage: minimality_test(h1)
+            INFO: ...
+            True
+            sage: h2 = h - 8/10000*p
+            sage: minimality_test(h2)
+            INFO: ...
             True
 
     Reference:
@@ -832,7 +854,7 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
     if len(delta) < 2:
         logging.info("Conditions for extremality are NOT satisfied.")
     elif len(delta) == 2:
-        if is_QQ_linearly_independent(delta) and  2*delta[0] + delta[1] < d2 / 2:
+        if is_QQ_linearly_independent(*delta) and  2*delta[0] + delta[1] < d2 / 2:
             logging.info("Conditions for extremality are satisfied if it is a minimal function.")
         else:
             logging.info("Conditions for extremality are NOT satisfied.")
@@ -873,39 +895,47 @@ def bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2
     A version of the irrational function with non-zero second slope
 
     Parameters:
-        f (real) \in (0,1);
-        d1 (real): length of the positive slopes;
-        d2 (real): length of the slant (c2) slopes;
-        a0 (real): length of the first zig-zag;
-        delta (n-tuple of reals): length of the extra zig-zags.
-        c2 (real): slant slope, c2 = 0 in bhk_irrational() 
+        * f (real) \in (0,1);
+        * d1 (real): length of the positive slopes;
+        * d2 (real): length of the slant (c2) slopes;
+        * a0 (real): length of the first zig-zag;
+        * delta (n-tuple of reals): length of the extra zig-zags.
+        * c2 (real): slant slope, c2 = 0 in bhk_irrational() 
 
     Function is known to be extreme under the conditions:
-        0 < f < 1;
-        d1, d2, a0, delta > 0;
-        d1 + d2 < f;
-        len(delta) == 2
-        sum(delta) <  d2 / 4; Weaker condition: 2*delta[0] + delta[1] < d2 / 2;
-        the two components of delta are linearly independent over \Q.
-        (?? sufficient ??) -1 / (1 - f) <= c2 <= (1 - d1 - d2) / (d1 + d2) / (1 - f);
-        Also needs:
-            sum(delta) < (f/2 - d2/4 - 3*a0/2) * c1 / (c1-c2);
-            5*a0 > 2*(c1-c2)/(c1-c3) * d2 + d2 / 2 + d1.
-            d?? > 0
-            ...
+        * 0 < f < 1;
+        * d1, d2, a0, delta > 0;
+        * d1 + d2 < f;
+        * len(delta) == 2
+        * sum(delta) <  d2 / 4; Weaker condition: 2*delta[0] + delta[1] < d2 / 2;
+        * the two components of delta are linearly independent over \Q.
+        * (?? sufficient ??) -1 / (1 - f) <= c2 <= (1 - d1 - d2) / (d1 + d2) / (1 - f);
+        
+    Also needs:
+        * sum(delta) < (f/2 - d2/4 - 3*a0/2) * c1 / (c1-c2);
+        * 5*a0 > 2*(c1-c2)/(c1-c3) * d2 + d2 / 2 + d1.
+        * d?? > 0
+        * ...
 
     Relation between the code parameters and the paper parameters:
-        t1 = delta[0], t2 = delta[0] + delta[1], ...
-        a1 = a0 + t1, a2 = a0 + t2, ...
-        A = f/2 - a0/2 - d2/4,
-        A0 = f/2 - a0/2 + d2/4.
+        * t1 = delta[0], t2 = delta[0] + delta[1], ...
+        * a1 = a0 + t1, a2 = a0 + t2, ...
+        * A = f/2 - a0/2 - d2/4,
+        * A0 = f/2 - a0/2 + d2/4.
 
-    Example:
-        h = bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), c2=1/16)
-        # is the same as bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), alpha=95/100)
+    Examples::
 
-    Bug example (function is not minimal):
-        h = bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=40/180, delta=(1/400, sqrt(2)/400))
+        sage: logging.disable(logging.INFO)
+        sage: h = bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), c2=1/16)
+        sage: h2 = bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), alpha=95/100)
+        sage: (h - h2).list()
+        [[(0, 1), <FastLinearFunction 0>]]
+
+    Bug example (function is not minimal)::
+
+        sage: h3 = bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=40/180, delta=(1/400, sqrt(2)/400))
+        sage: minimality_test(h3)
+        False
     """
     if not (bool(0 < f < 1) and bool(d1 > 0) and bool(d2 > 0) and bool(a0 > 0)
             and all(bool(deltai > 0) for deltai in delta) and bool(d1 + d2 < f)):
@@ -943,7 +973,7 @@ def bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2
     elif len(delta) < 2:
         logging.info("Conditions for extremality are NOT satisfied.")
     elif len(delta) == 2:
-        if is_QQ_linearly_independent(delta) and  2*delta[0] + delta[1] < d2 / 2:
+        if is_QQ_linearly_independent(*delta) and  2*delta[0] + delta[1] < d2 / 2:
             logging.info("Conditions for extremality are satisfied if it is a minimal function.")
         else:
             logging.info("Conditions for extremality are NOT satisfied.")
@@ -1025,16 +1055,16 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
     This 4-slope function is shown [KChen_thesis] to be a facet.
 
     Parameters:
-        f (real) \in (0,1);
-        s_pos, s_neg (real): positive slope and negative slope
-        lam1, lam2 (real).
+        * f (real) \in (0,1);
+        * s_pos, s_neg (real): positive slope and negative slope
+        * lam1, lam2 (real).
 
     Requirement:
-        1/2 <= f <= 1;
-        s_pos > 1/f;
-        s_neg < 1/(f - 1);
-        1 - f + 1/s_neg < lam1 < min(1/2, (s_pos - s_neg) / s_pos / (1 - s_neg * f));
-        f - 1 / s_pos < lam2 < min(1/2, (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)).
+        * 1/2 <= f <= 1;
+        * s_pos > 1/f;
+        * s_neg < 1/(f - 1);
+        * 1 - f + 1/s_neg < lam1 < min(1/2, (s_pos - s_neg) / s_pos / (1 - s_neg * f));
+        * f - 1 / s_pos < lam2 < min(1/2, (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)).
 
     Note:
         The lower bound 0 < lam1 claimed in [KChen_thesis] is not sufficient for extremality.
@@ -1092,38 +1122,32 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
     return piecewise_function_from_breakpoints_and_slopes([0, aa, a, b, bb, f, dd, d, c, cc, 1], slopes, field=field)
 
 def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
-    """
+    r"""
     From Richard--Li--Miller [RLM2009].
 
-    For 0 < f < 1/3, by thm.28, the DPL1 function \phi (whose corresponding h is shown on p.273, Fig.3-lowerleft)
-    is "extreme". <-- not the usual definition.
+    For 0 < f < 1/3, by Thm.28, the DPL1 function \phi (whose corresponding h is shown on p.273, Fig.3-lowerleft) is "extreme" (not the usual definition).
 
-    See def.19 for the definition of DPLn. (It's a special family of discontinuous piecewise linear functions.)
-    See Prop.18 and Fig 1 for relation between \phi (DPLn representation) and h (group representation).
-    (h(u) is called f(u), and f is called r0 in this paper).
+    See def.19 for the definition of DPLn, which is a special family of discontinuous piecewise linear functions.
+    See Prop.18 and Fig 1 for relation between the DPLn representation `\\phi` and the group representation `\\pi`, where `\\pi(u)` is called `f(u)`, and `f` is called `r_0` throughout this paper.
 
-    All we know from the paper is that h on p.273, Fig.3-lowerleft is subadditive.
-    It does not say whether this h is extreme. (See discussion after thm.28 p.272.)
+    All we know from the paper is that `\\pi` on p.273, Fig.3-lowerleft is subadditive. However, the extremality is unknown (see discussion after thm.28 p.272).
 
-    Indeed, it can be verified using covered_intervals and by setting up equations
-    (specifically, 2 * \pi(f+) = \pi(2f+) and 2* \pi((1+f) / 2 +) = \pi(f+)) that
-    the function rlm_dpl1_fig3_lowerleft(f) is a facet (and thus extreme) for any 0 < f < 1/3.
+    Indeed, the function rlm_dpl1_fig3_lowerleft(f) is a facet (and thus extreme) for any 0 < f < 1/3. This can be verified using the covered components and the additivity equations. (Specifically, 2 * \pi(f+) = \pi(2f+) and 2* \pi((1+f) / 2 +) = \pi(f+))
 
     This is worked out in [KZh2015b, section 2].
 
-    Example p.273, Fig.3-lowerleft ::
+    Example: p.273, Fig.3-lowerleft ::
 
-            sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
-            sage: h = rlm_dpl1_extreme_3a(f=1/4)
-            sage: extremality_test(h, False)
-            True
+        sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
+        sage: h = rlm_dpl1_extreme_3a(f=1/4)
+        sage: extremality_test(h, False)
+        True
 
     All other 3 functions (corresponding to \phi from the DPL1 family) shown in Fig.3 are proven to be extreme.
-    They are covered by drlm_3_slope_limit() and drlm_2_slope_limit() classes::
-
-        upper-left:  drlm_3_slope_limit(1/3)
-        upper-right: drlm_2_slope_limit(f=3/5, nb_pieces_left=1, nb_pieces_right=1)
-        lower-right: drlm_2_slope_limit(f=3/5, nb_pieces_left=1, nb_pieces_right=2)
+    They are covered by ``drlm_3_slope_limit`` and ``drlm_2_slope_limit`` classes:
+        * upper-left:  drlm_3_slope_limit(1/3)
+        * upper-right: drlm_2_slope_limit(f=3/5, nb_pieces_left=1, nb_pieces_right=1)
+        * lower-right: drlm_2_slope_limit(f=3/5, nb_pieces_left=1, nb_pieces_right=2)
 
     Reference:
 
@@ -1165,9 +1189,9 @@ def ll_strong_fractional(f=2/3, field=None, conditioncheck=True):
         sage: minimality_test(h, False)
         False
 
-    Reference::
+    Reference:
         [78] Letchford-Lodi (2002) Thm. 2, Fig. 3 (but note this figure shows the wrong function; 
-             see ll_strong_fractional_bad_figure_3 and ll_strong_fractional_bad_figure_3_corrected)
+             see ``ll_strong_fractional_bad_figure_3`` and ``ll_strong_fractional_bad_figure_3_corrected``)
 
         [33] S. Dash and O. Gunluk (2004) Thm. 16
 
@@ -1175,7 +1199,7 @@ def ll_strong_fractional(f=2/3, field=None, conditioncheck=True):
         Discontinuous, 1-slope;
 
         For f >= 1/2, this function is facet (extreme), and is identical to
-        drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=1).
+        ``drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=1)``.
 
     EXAMPLES::
 
@@ -1190,9 +1214,9 @@ def ll_strong_fractional(f=2/3, field=None, conditioncheck=True):
         sage: l == d == dg
         True
 
-    Remarks::
+    Remarks:
         The function is NOT minimal for 0 < f < 1/2.  It equals
-        drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1),
+        ``drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)``,
         except for limits at breakpoints.
 
     EXAMPLES::
@@ -1259,8 +1283,7 @@ def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
         True
 
     Reference:
-         [arbitrary_num_slopes] A. Basu, M. Conforti, M. Di Summa, and J. Paat, Extreme Functions with an Arbitrary Number
-of Slopes, 2015, http://www.ams.jhu.edu/~abasu9/papers/infinite-slopes.pdf, to appear in Proceedings of IPCO 2016.
+         [arbitrary_num_slopes] A. Basu, M. Conforti, M. Di Summa, and J. Paat, Extreme Functions with an Arbitrary Number of Slopes, 2015, http://www.ams.jhu.edu/~abasu9/papers/infinite-slopes.pdf, to appear in Proceedings of IPCO 2016.
     """
     if not bool(0 < f < 1) or k not in ZZ or k < 2:
         raise ValueError, "Bad parameters. Unable to construct the function."
@@ -1284,10 +1307,10 @@ extreme_function_with_world_record_number_of_slopes = bcdsp_arbitrary_slope
 
 def kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19, field=None, conditioncheck=True):
     """
-    New extreme function discovered by computer based search + parametric search.
+    New extreme function discovered by computer based search followed by parametric search.
     It has 3 slopes in the general case.
 
-    Parameters: real numbers `f`, `a`, `b`, where `a` is the length of the first interval right to `f` and `b` is the length of interval centered at (1+f)/2.
+    Parameters: real numbers `f`, `a`, `b`, where `a` is the length of the first interval right to `f` and `b` is the length of interval centered at `(1+f)/2`.
 
     Function is known to be extreme under the conditions:
         0 <= a and  0 <= b <= f and 3*f+4*a-b-1 <= 0
@@ -1316,10 +1339,11 @@ def kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19, field=None, conditionche
 
 def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=True):
     """
-    New extreme function discovered by computer based search + parametric search.
-    The function looks like gj_forward_3_slope + drlm_backward_3_slope
+    New extreme function discovered by computer based search followed by parametric search.
+    The function looks like ``gj_forward_3_slope`` + ``drlm_backward_3_slope``.
 
-    Parameters: real numbers `f`, `a`, `b`, where `a` is the length of interval centered at f/2, and `b` is the length of interval centered at (1+f)/2.
+    Parameters: real numbers `f`, `a`, `b`, where `a` is the length of interval centered at `f/2`, and `b` is the length of interval centered at `(1+f)/2`.
+
     Function is known to be extreme under the (sufficient) conditions:
         0 < b <= a < f < 1;  f <= a + b and f <= (1+a-b)/2
 
@@ -1352,10 +1376,11 @@ def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=
 
 def kzh_4_slope_param_extreme_1(f=13/18, a=7/18, b=1/18, field=None, conditioncheck=True):
     """
-    New extreme function discovered by computer based search + parametric search.
-    The function looks like gj_forward_3_slope + kzh_3_slope_param_extreme_1
+    New extreme function discovered by computer based search followed by parametric search.
+    The function looks like ``gj_forward_3_slope`` + ``kzh_3_slope_param_extreme_1``.
 
-    Parameters: real numbers `f`, `a`, `b`, where `a` is the length of interval centered at f/2, and `b` is the first bkpt, which is also the length of interval centered at (1+f)/2.
+    Parameters: real numbers `f`, `a`, `b`, where `a` is the length of interval centered at `f/2`, and `b` is the first bkpt, which is also the length of interval centered at `(1+f)/2`.
+
     Function is known to be extreme under the (sufficient) conditions:
         a > max{3*f-2, f/2}; b > 0; a + 3*b > 2*f - 1; 2*a + 3*b < 3*f - 1.
 

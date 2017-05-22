@@ -298,7 +298,7 @@ def find_epsilon_interval_general_dff(fn, perturb):
                             logging.info("Zero epsilon encountered for x = %s%s, y = %s%s, z=%s%s" % (bkpt[i], print_sign(xeps), \
                                     bkpt[j], print_sign(yeps), z, print_sign(zeps)) )
                             return 0, 0 # See docstring
-			if delta_fn <0:
+                        if delta_fn <0:
                             epsilon_upper_bound = -delta_fn / abs(delta_perturb)
                             if delta_perturb > 0:
                                 if -epsilon_upper_bound > best_minus_epsilon_lower_bound:
@@ -337,7 +337,7 @@ def find_epsilon_interval_general_dff(fn, perturb):
                     if delta_fn == 0:
                         logging.info("Zero epsilon encountered for x = %s, y = %s" % (bkpt[i], y) )
                         return 0, 0 # See docstring
-	            if delta_fn<0:
+                    if delta_fn<0:
                         epsilon_upper_bound = -delta_fn / abs(delta_perturb)
                         if delta_perturb > 0:
                             if -epsilon_upper_bound > best_minus_epsilon_lower_bound:
