@@ -1303,7 +1303,58 @@ class SemialgebraicComplex(SageObject):
     Use breadth-first-search to complete the complex. See more options in the method ``bfs_completion``::
 
         sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])
-        sage: complex.bfs_completion()
+        sage: complex.bfs_completion(var_value=[4/5,1/2])
+        sage: len(complex.components)
+        17
+        sage: complex.is_polyhedral()
+        True
+        sage: complex.is_face_to_face()
+        False
+        sage: complex2 = complex.subcomplex_of_cells_with_given_region_types({'is_extreme','not_extreme','not_minimal'})
+        sage: complex2.is_face_to_face()
+        True
+        sage: extc = complex.subcomplex_of_cells_with_given_region_types()
+        sage: len(extc.components)
+        2
+        sage: extc.is_polyhedral()
+        True
+        sage: extc.is_face_to_face()
+        True
+        sage: boundary = extc.guess_boundary()
+        sage: boundary
+        [f - bkpt, -f + 4*bkpt - 1, -f]
+        sage: extc.is_complete(bddlin=boundary,strict=True)
+        False
+        sage: extc.is_complete(bddlin=boundary,strict=False)
+        True
+        sage: pc = extc.polyhedral_complex()
+        sage: [sage_input(pol) for pol in pc.cells_list()]
+        [Polyhedron(base_ring=QQ, vertices=[(QQ(0), 1/4)]),
+         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0))]),
+         Polyhedron(base_ring=QQ, vertices=[(1/3, 1/3)]),
+         Polyhedron(base_ring=QQ, vertices=[(1/7, 2/7)]),
+         Polyhedron(base_ring=QQ, vertices=[(1/3, 1/3), (1/7, 2/7)]),
+         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0)), (QQ(0), 1/4)]),
+         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0)), (1/7, 2/7)]),
+         Polyhedron(base_ring=QQ, vertices=[(QQ(0), 1/4), (1/7, 2/7)]),
+         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0)), (1/3, 1/3)]),
+         Polyhedron(base_ring=QQ, vertices=[(1/7, 2/7), (QQ(0), QQ(0)), (QQ(0), 1/4)]),
+         Polyhedron(base_ring=QQ, vertices=[(1/3, 1/3), (QQ(0), QQ(0)), (1/7, 2/7)])]
+
+    Consider low-dimensional cells in the polyhedral case::
+
+        sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])   #long time
+        sage: complex.bfs_completion(var_value=[4/5,1/2],goto_lower_dim=True)       #long time
+        sage: len(complex.components)                                               #long time
+        46
+        sage: extc = complex.subcomplex_of_cells_with_given_region_types()          #long time
+        sage: len(extc.components)                                                  #long time
+        6
+        sage: boundary = extc.guess_boundary()                                      #long time
+        sage: boundary                                                              #long time
+        [f - bkpt, -f + 4*bkpt - 1, -f]
+        sage: extc.is_complete(bddlin=boundary,strict=True)                         #long time
+        True
     """
     def __init__(self, function, var_name, max_iter=2, find_region_type=None, default_var_bound=(-0.1,1.1), bddleq=[], bddlin=[], kwds_dict={}, **opt_non_default):
         """
@@ -2507,6 +2558,29 @@ from sage.homology.cell_complex import GenericCellComplex
 class PolyhedralComplex(GenericCellComplex):
     """
     Define a PolyhedralComplex.
+
+    EXAMPLES::
+
+        sage: pc = PolyhedralComplex([Polyhedron(base_ring=QQ, vertices=[(1/3, 1/3), (QQ(0), QQ(0)), (1/7, 2/7)]), Polyhedron(base_ring=QQ, vertices=[(1/7, 2/7), (QQ(0), QQ(0)), (QQ(0), 1/4)])])
+        sage: [sage_input(pol) for pol in pc.cells_list()]
+        [Polyhedron(base_ring=QQ, vertices=[(1/3, 1/3)]),
+         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0))]),
+         Polyhedron(base_ring=QQ, vertices=[(QQ(0), 1/4)]),
+         Polyhedron(base_ring=QQ, vertices=[(1/7, 2/7)]),
+         Polyhedron(base_ring=QQ, vertices=[(QQ(0), 1/4), (1/7, 2/7)]),
+         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0)), (1/7, 2/7)]),
+         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0)), (1/3, 1/3)]),
+         Polyhedron(base_ring=QQ, vertices=[(1/3, 1/3), (1/7, 2/7)]),
+         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0)), (QQ(0), 1/4)]),
+         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0)), (1/3, 1/3), (1/7, 2/7)]),
+         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0)), (QQ(0), 1/4), (1/7, 2/7)])]
+        sage: pc.is_convex()
+        True
+        sage: p = pc.union_as_polyhedron()
+        sage: p.Hrepresentation()
+        (An inequality (1, -4) x + 1 >= 0,
+         An inequality (-1, 1) x + 0 >= 0,
+         An inequality (1, 0) x + 0 >= 0)
     """
     def __init__(self, maximal_cells, maximality_check=True, **kwds):
         """
