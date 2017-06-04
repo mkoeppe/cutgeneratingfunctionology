@@ -740,8 +740,30 @@ def generate_covered_components(function):
          [<Int(1/8, 1/4)>, <Int(1/4, 3/8)>, <Int(1/2, 5/8)>, <Int(7/8, 1)>],
          [<Int(5/8, 3/4)>, <Int(3/4, 7/8)>]]    
     """
-    fdms, covered_components = generate_directed_move_composition_completion(function)
-    return covered_components
+    if hasattr(function,  "_completion"):
+        return function._completion.covered_components
+    bkpts = function.end_points()
+    field = bkpts[0].parent()
+    bkpts_are_rational = is_all_QQ_fastpath(bkpts)
+    if not bkpts_are_rational:
+        fdms, covered_components = generate_directed_move_composition_completion(function)
+        return covered_components
+    global strategical_covered_components
+    if strategical_covered_components:
+        covered_components = generate_covered_components_strategically(function)
+        return covered_components
+    functional_directed_moves = generate_functional_directed_moves(function)
+    covered_components = generate_directly_covered_components(function)
+    completion = DirectedMoveCompositionCompletion(functional_directed_moves,
+                                                   covered_components = covered_components)
+    completion.add_backward_moves()
+    while completion.any_change_components:
+        completion.extend_components_by_moves()
+        completion.num_rounds += 1
+    completion.is_complete = True
+    logging.info("Completion finished.  Found %d covered components."
+                 % len(completion.covered_components))
+    return completion.covered_components
 
 # alias
 generate_covered_intervals = generate_covered_components
@@ -797,9 +819,7 @@ def plot_covered_intervals(function, covered_components=None, uncovered_color='b
     """
     if covered_components is None:
         covered_components = generate_covered_components(function)
-        uncovered_intervals = generate_uncovered_intervals(function)
-    else:
-        uncovered_intervals = uncovered_intervals_from_covered_components(covered_components)
+    uncovered_intervals = uncovered_intervals_from_covered_components(covered_components)
     # Plot the function with different colors.
     # Each component has a unique color.
     # The uncovered intervals is by default plotted in black.
