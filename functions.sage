@@ -744,7 +744,10 @@ def generate_covered_components(function):
         return function._completion.covered_components
     bkpts = function.end_points()
     field = bkpts[0].parent()
-    bkpts_are_rational = is_all_QQ_fastpath(bkpts)
+    if isinstance(field, ParametricRealField):
+        bkpts_are_rational = is_all_QQ_fastpath(result_concrete_value(field, bkpts))
+    else:
+        bkpts_are_rational = is_all_QQ_fastpath(bkpts)
     if not bkpts_are_rational:
         fdms, covered_components = generate_directed_move_composition_completion(function)
         return covered_components
