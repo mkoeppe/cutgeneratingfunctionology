@@ -158,8 +158,8 @@ class ParametricRealFieldElement(FieldElement):
             sage: s = {f, K(1)}
             sage: len(s)
             1
-            sage: s
-            {f~}
+            sage: K._eq
+            {f - 1}
             sage: K.<f> = ParametricRealField([1])
             sage: s = {f, K(2)}
             sage: len(s)
