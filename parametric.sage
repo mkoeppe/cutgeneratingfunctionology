@@ -2174,6 +2174,15 @@ def find_region_type_igp_extreme(K, h):
     else:
         return 'stop'
 
+def coarse_regions_from_arrangement_of_bkpts(K, h):
+    if h is None:
+        return 'not_constructible'
+    comparison = lambda a, b: True
+    grid_vertices = unique_list(itertools.chain(generate_type_1_vertices(h, comparison), generate_type_2_vertices(h, comparison)))
+    for (x, y, z, xeps, yeps, zeps) in grid_vertices:
+        d = delta_pi_general(h, x, y, (xeps, yeps, zeps))
+    return 'is_constructible'
+
 def claimed_region_type(igp_function=gmic, condition_according_to_literature=True, **kwds):
     """
     Return if igp_function is 'not_constructible' or 'constructible' or 'extreme' for the values of parameters given by kwds (use default values if kwds is not provided).
