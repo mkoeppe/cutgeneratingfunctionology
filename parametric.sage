@@ -817,6 +817,8 @@ def construct_field_and_test_point(function, var_name, var_value, default_args):
         test_point['field'] = K
     if 'conditioncheck' in args_set:
         test_point['conditioncheck'] = False
+    if 'merge' in args_set:
+        test_point['merge'] = False
     return K, test_point
 
 def simplified_extremality_test(function):

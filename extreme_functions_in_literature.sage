@@ -1178,7 +1178,7 @@ def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/
     gmi = gmic(f, field=field)
     return alpha * bhk + (1 - alpha) * gmi
 
-def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, conditioncheck=True, condition_according_to_literature=False):
+def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, conditioncheck=True, condition_according_to_literature=False, merge=True):
     """
     This 4-slope function is shown [KChen_thesis] to be a facet.
 
@@ -1280,7 +1280,46 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
     d = 1 + f - c
     cc = 1 + (s_pos * lam2 * (f - 1) - lam2) / 2 / (s_pos - s_neg)
     dd = 1 + f - cc
-    h = piecewise_function_from_breakpoints_and_slopes([0, aa, a, b, bb, f, dd, d, c, cc, 1], slopes, field=field)
+    h = piecewise_function_from_breakpoints_and_slopes([0, aa, a, b, bb, f, dd, d, c, cc, 1], slopes, field=field, merge=merge)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h
+
+def chen_4_slope_reworded(f=7/10, aa=19/240, a=7/80, c=77/80, cc=29/30,field=None, conditioncheck=True, condition_according_to_literature=False, merge=False):
+    if not (bool(0 < aa < a < f/2) and bool((1+f)/2 < c < cc < 1)):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    claimed_parameter_attribute = None
+    v = (a*aa*cc - a*aa - (a*aa*cc - aa^2 - (a*aa - aa^2)*c)*f)/(((a - aa)*c - a*cc + aa)*f^2 - ((a - aa)*c - a*cc + aa)*f)
+    w = (a*cc^2 + a*c - (a*c + a)*cc - (a*cc^2 + (a - aa)*c - ((a - aa)*c + a + aa)*cc + aa)*f)/(((a - aa)*c - a*cc + aa)*f^2 - ((a - aa)*c - a*cc + aa)*f)
+    lam1 = 2*a/f
+    lam2 = 2*(1-c)/(1-f)
+    s_pos = v/aa
+    s_neg = -w/(1-cc)
+    if conditioncheck:
+        if condition_according_to_literature:
+            if bool(1/2 <= f) and bool(lam1 < 1/2) and bool(lam2 < 1/2) and \
+               bool(0 <= lam1  < (s_pos - s_neg) / s_pos / (1 - s_neg * f)) and \
+               bool (f - 1 / s_pos < lam2 < (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)):
+                claimed_parameter_attribute = 'extreme'
+            else:
+                claimed_parameter_attribute = 'constructible'
+        else:
+            if bool(lam1 <= 1/2) and bool(lam2 <= 1/2) \
+           and bool(-f^2*s_pos*s_neg*lam2 + 2*f*s_pos*s_neg*lam2 + f*s_pos*lam2 + f*s_neg*lam2 - s_pos*s_neg*lam2 - s_pos*lam1 + s_neg*lam1 - s_pos*lam2 - s_neg*lam2 - lam2 <= 0) \
+           and bool(-f^2*s_pos*s_neg*lam1 + f*s_pos*lam1 + f*s_neg*lam1 - s_pos*lam2 + s_neg*lam2 - lam1 <= 0):
+                claimed_parameter_attribute = 'extreme'
+            else:
+                claimed_parameter_attribute = 'constructible'
+        if claimed_parameter_attribute == 'extreme':
+            logging.info("Conditions for extremality are satisfied.")
+        else:
+            logging.info("Conditions for extremality are NOT satisfied.")
+    slopes = [s_pos, s_neg, 1/f, s_neg, s_pos, s_neg, s_pos, 1/(f-1), s_pos, s_neg]
+    values = [0, v, a/f, 1-a/f, 1-v, 1, 1-w, 1-(1-c)/(1-f), (1-c)/(1-f), w, 0]
+    b = f - a
+    bb = f - aa
+    d = 1 + f - c
+    dd = 1 + f - cc
+    h = piecewise_function_from_breakpoints_and_values([0, aa, a, b, bb, f, dd, d, c, cc, 1], values, merge=merge, field=field)
     h._claimed_parameter_attribute = claimed_parameter_attribute
     return h
 
