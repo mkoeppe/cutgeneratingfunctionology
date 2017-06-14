@@ -1056,8 +1056,8 @@ def bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2
         sage: logging.disable(logging.INFO)
         sage: h = bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), c2=1/16)
         sage: h2 = bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), alpha=95/100)
-        sage: (h - h2).list()
-        [[(0, 1), <FastLinearFunction 0>]]
+        sage: h == h2
+        True
 
     Bug example (function is not minimal)::
 
