@@ -1187,6 +1187,31 @@ class FastPiecewise (PiecewisePolynomial):
     def __hash__(self):
         return id(self)
 
+    def __eq__(self, other):
+        """
+        EXAMPLES::
+
+            sage: logging.disable(logging.WARN) # Suppress output in automatic tests.
+            sage: f = FastPiecewise([[open_interval(1,3), FastLinearFunction(0,3)]])
+            sage: g =  FastPiecewise([[open_interval(1,2), FastLinearFunction(0,3)], [right_open_interval(2,3), FastLinearFunction(0,3)]], merge=False)
+            sage: f == g
+            True
+            sage: g == f
+            True
+            sage: bkpt = [0, 1/8, 3/8, 1/2, 5/8, 7/8, 1]
+            sage: limits = [(0, 0, 1/2), (1/4, 1/4, 3/4), (3/4, 1/4, 3/4), (1, 1/2, 1), (3/4, 3/4, 3/4), (1/4, 1/4, 1/4), (0, 0, 1/2)]
+            sage: h = piecewise_function_from_breakpoints_and_limits(bkpt, limits)
+            sage: h == hildebrand_discont_3_slope_1()
+            True
+        """
+        if self._periodic_extension != other._periodic_extension:
+            return False
+        domain = union_of_coho_intervals_minus_union_of_coho_intervals([self.intervals()], [], old_fashioned_closed_intervals=True)
+        if union_of_coho_intervals_minus_union_of_coho_intervals([other.intervals()],[], old_fashioned_closed_intervals=True) != domain:
+            return False
+        difference = self - other
+        return (difference.intervals() == domain) and (difference.functions() == [FastLinearFunction(0,0)])
+
     def is_continuous(self):
         """
         return if the function is continuous
@@ -2092,8 +2117,8 @@ def piecewise_function_from_breakpoints_and_limits(bkpt, limits, field=None, mer
         sage: bkpt = [0, 1/8, 3/8, 1/2, 5/8, 7/8, 1]
         sage: limits = [(0, 0, 1/2), (1/4, 1/4, 3/4), (3/4, 1/4, 3/4), (1, 1/2, 1), (3/4, 3/4, 3/4), (1/4, 1/4, 1/4), (0, 0, 1/2)]
         sage: h = piecewise_function_from_breakpoints_and_limits(bkpt, limits)
-        sage: (h - hildebrand_discont_3_slope_1()).list()
-        [[(0, 1), <FastLinearFunction 0>]]
+        sage: h  == hildebrand_discont_3_slope_1()
+        True
         sage: h = piecewise_function_from_breakpoints_and_limits(bkpt=[0, 1/5, 2/5, 3/5, 4/5, 1], limits = [{-1:0, 0:0, 1:0},{-1:1, 0:1, 1:1}, {-1:0, 0:2/5, 1:2/5}, {-1:2/5, 0:1/2, 1:3/5}, {-1:3/5, 0:3/5, 1:1}, {-1:0, 0:0, 1:0}])
         sage: h.limit(3/5, 1)
         3/5
