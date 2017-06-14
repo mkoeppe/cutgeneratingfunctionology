@@ -745,7 +745,7 @@ def substitute_lins(lins, var_map, var_name, var_value):
     K = ParametricRealField(var_value, var_name)
     K.add_initial_space_dim() # needed?
     for l in lins:
-        ineq = l.subs(var_map)
+        ineq = l.parent()(l.subs(var_map))
         ineq(K.gens())< 0 #always True
     leq, lin = read_simplified_leq_lin(K)
     return lin
@@ -1555,7 +1555,7 @@ class SemialgebraicComplex(SageObject):
             return tuple([0]*len(self.var_name))
         return find_instance_mathematica(condstr[:-4], self.var_name)
 
-    def add_new_component(self, var_value, bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False):
+    def add_new_component(self, var_value, bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False, allow_dim_degeneracy=False):
         """
         Compute one proof cell around var_value. Append this cell to the complex.
 
@@ -1594,19 +1594,17 @@ class SemialgebraicComplex(SageObject):
             h = None
         region_type = self.find_region_type(K, h)
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
-        if len(new_component.leq) != len(bddleq):
+        if not allow_dim_degeneracy and len(new_component.leq) != len(bddleq):
             for l in new_component.leq:
                 if not l in bddleq:
-                    pert_value = [var_value[i] + gradient(l)[i](var_value) / 1000 for i in range(len(var_value))]
-                    if not self.is_point_covered(pert_value):
-                        self.add_new_component(pert_value, bddleq=bddleq, flip_ineq_step=flip_ineq_step, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim)
-                    else:
-                        pert_value = [var_value[i] - gradient(l)[i](var_value) / 1000 for i in range(len(var_value))]
-                        if not self.is_point_covered(pert_value):
-                            self.add_new_component(pert_value, bddleq=bddleq, flip_ineq_step=flip_ineq_step, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim)
-                        else:
-                            logging.warn("The cell around %s defined by %s ==0 and %s <0  has more equations than bddleq %s" %(new_component.var_value, new_component.leq, new_component.lin, bddleq))
-                    return
+                    pert_value = tuple(var_value[i] + gradient(l)[i](var_value) / 1000 for i in range(len(var_value)))
+                    if not pert_value in self.points_to_test:
+                        self.points_to_test[pert_value] = copy(bddleq)
+                    pert_value = tuple(var_value[i] - gradient(l)[i](var_value) / 1000 for i in range(len(var_value)))
+                    if not pert_value in self.points_to_test:
+                        self.points_to_test[pert_value] = copy(bddleq)
+            logging.warn("The cell around %s defined by %s ==0 and %s <0  has more equations than bddleq %s" %(new_component.var_value, new_component.leq, new_component.lin, bddleq))
+            return
         if (flip_ineq_step != 0) and (region_type != 'stop'):
             # when using random shooting, don't generate neighbour points; don't remove redundant walls.
             walls, new_points = new_component.find_walls_and_new_points(flip_ineq_step, wall_crossing_method, goto_lower_dim)
@@ -2559,7 +2557,6 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, ineqs, flip_ineq_step):
         if l(*current_point) >= 0:
             return None
     return tuple(QQ(x) for x in current_point)
-
 
 ################################
 #  PolyhedralComplex
