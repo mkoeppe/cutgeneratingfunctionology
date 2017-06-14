@@ -2785,3 +2785,75 @@ class PolyhedralComplex(GenericCellComplex):
         if c in self._non_maximal_cells_given[d]:
             return True
         return False
+
+################################################
+#  Is the given function contained in a family?
+################################################
+
+def embed_function_into_family(given_function, parametirc_family, check_completion=False, **opt):
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.WARN)
+        sage: embed_function_into_family(gmic(3/13), mlr_cpl3_a_2_slope)
+        {'r0': 3/13, 'z1': 3/26}
+        sage: given_function = drlm_backward_3_slope(1/12-1/100, 1/6+1/100)
+        sage: embed_function_into_family(given_function, drlm_backward_3_slope)
+        {'bkpt': 53/300, 'f': 11/150}
+        sage: embed_function_into_family(gmic(4/13), mlr_cpl3_a_2_slope)
+        {'r0': 4/13, 'z1': 3/26}
+        sage: embed_function_into_family(gmic(4/13), drlm_backward_3_slope)
+        {}
+        sage: embed_function_into_family(gmic(4/13), drlm_backward_3_slope, check_completion=True)  # optional - mathematica
+        {}
+
+        sage: given_function = mlr_cpl3_b_3_slope(r0=3/26, z1=1/13)
+        sage: parametric_family = drlm_backward_3_slope
+        sage: param_values = embed_function_into_family(given_function, parametric_family)
+        sage: param_values
+        {'bkpt': 7/26, 'f': 3/26}
+        sage: given_function == parametric_family(**param_values)
+        True
+    """
+    default_args = read_default_args(parametirc_family)
+    var_name = []
+    var_value = []
+    for (name, value) in default_args.items():
+        if not isinstance(value, bool) and not value is None:
+            try:
+                RR(value)
+                var_name.append(name)
+                var_value.append(value)
+            except:
+                pass
+    def frt(K, h):
+        if h is None:
+            return False
+        else:
+            return h == given_function
+    complex = SemialgebraicComplex(parametirc_family, var_name, find_region_type=frt)
+    # terminate complex.bfs_completion(var_value=var_value, goto_lower_dim=True) immediately when a cell has region_type == True.
+    complex.points_to_test[tuple(var_value)] = []
+    flip_ineq_step = opt.pop('flip_ineq_step', 1/1000)
+    is_complete = False
+    allow_dim_degeneracy = False
+    while not is_complete:
+        while complex.points_to_test:
+            var_value, bddleq = complex.points_to_test.popitem()
+            var_value = list(var_value)
+            if not complex.is_point_covered(var_value):
+                complex.add_new_component(var_value, bddleq=bddleq, goto_lower_dim=True, flip_ineq_step=flip_ineq_step, allow_dim_degeneracy=allow_dim_degeneracy, **opt)
+                if complex.components and complex.components[-1].region_type is True:
+                    dic = {var_name[i]:var_value[i] for i in range(len(var_name))}
+                    return dic
+        if check_completion:
+            var_value = complex.find_uncovered_point_mathematica(strict=True)
+            if not var_value:
+                is_complete = True
+            else:
+                complex.points_to_test[var_value]=[]
+                allow_dim_degeneracy = True
+        else:
+            is_complete = True
+    # plot_cpl_components(complex.components)
+    return {}
