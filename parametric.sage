@@ -1746,7 +1746,7 @@ class SemialgebraicComplex(SageObject):
             g += point([var_value], color='red', size=15, zorder=20)
         return g
 
-    def bfs_completion(self, var_value=None, flip_ineq_step=1/100, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=False, max_failings=0):
+    def bfs_completion(self, var_value=None, flip_ineq_step=1/100, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=False, allow_dim_degeneracy=False, max_failings=0):
         """
         Breadth-first-search to complete the complex.
 
@@ -1782,7 +1782,7 @@ class SemialgebraicComplex(SageObject):
             var_value, bddleq = self.points_to_test.popitem()
             var_value = list(var_value)
             if not self.is_point_covered(var_value):
-                self.add_new_component(var_value, bddleq=bddleq, flip_ineq_step=flip_ineq_step, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim)
+                self.add_new_component(var_value, bddleq=bddleq, flip_ineq_step=flip_ineq_step, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim, allow_dim_degeneracy=allow_dim_degeneracy)
         if check_completion:
             if max_failings == 0:
                 uncovered_pt = self.find_uncovered_point_mathematica(strict=goto_lower_dim)
@@ -1790,11 +1790,13 @@ class SemialgebraicComplex(SageObject):
                 uncovered_pt = self.find_uncovered_random_point(max_failings=max_failings)
             if uncovered_pt is not None:
                 logging.warn("After bfs, the complex has uncovered point %s." % (uncovered_pt,))
+                allow_dim_degeneracy = allow_dim_degeneracy and goto_lower_dim
                 self.bfs_completion(var_value=uncovered_pt, \
                                     flip_ineq_step=flip_ineq_step, \
                                     check_completion=check_completion, \
                                     wall_crossing_method=wall_crossing_method, \
-                                    goto_lower_dim=goto_lower_dim)
+                                    goto_lower_dim=goto_lower_dim, \
+                                    allow_dim_degeneracy=allow_dim_degeneracy)
 
     def is_complete(self, strict=False, bddleq=[], bddlin=[], bddstrict=True):
         """
@@ -2790,7 +2792,7 @@ class PolyhedralComplex(GenericCellComplex):
 #  Is the given function contained in a family?
 ################################################
 
-def embed_function_into_family(given_function, parametirc_family, check_completion=False, **opt):
+def embed_function_into_family(given_function, parametric_family, check_completion=False, **opt):
     """
     EXAMPLES::
 
@@ -2814,8 +2816,13 @@ def embed_function_into_family(given_function, parametirc_family, check_completi
         {'bkpt': 7/26, 'f': 3/26}
         sage: given_function == parametric_family(**param_values)
         True
+
+        sage: given_function = automorphism(cpl3_8(f=3/5, z1=1/25, z2=1/125))
+        sage: parametric_family = gj_forward_3_slope
+        sage: embed_function_into_family(given_function, parametric_family, check_completion=True) # optional - mathematica
+        {'f': 2/5, 'lambda_1': 6/25, 'lambda_2': 2/75}
     """
-    default_args = read_default_args(parametirc_family)
+    default_args = read_default_args(parametric_family)
     var_name = []
     var_value = []
     for (name, value) in default_args.items():
@@ -2831,18 +2838,17 @@ def embed_function_into_family(given_function, parametirc_family, check_completi
             return False
         else:
             return h == given_function
-    complex = SemialgebraicComplex(parametirc_family, var_name, find_region_type=frt)
+    complex = SemialgebraicComplex(parametric_family, var_name, find_region_type=frt)
     # terminate complex.bfs_completion(var_value=var_value, goto_lower_dim=True) immediately when a cell has region_type == True.
     complex.points_to_test[tuple(var_value)] = []
     flip_ineq_step = opt.pop('flip_ineq_step', 1/1000)
     is_complete = False
-    allow_dim_degeneracy = False
     while not is_complete:
         while complex.points_to_test:
             var_value, bddleq = complex.points_to_test.popitem()
             var_value = list(var_value)
             if not complex.is_point_covered(var_value):
-                complex.add_new_component(var_value, bddleq=bddleq, goto_lower_dim=True, flip_ineq_step=flip_ineq_step, allow_dim_degeneracy=allow_dim_degeneracy, **opt)
+                complex.add_new_component(var_value, bddleq=bddleq, goto_lower_dim=True, flip_ineq_step=flip_ineq_step, **opt)
                 if complex.components and complex.components[-1].region_type is True:
                     dic = {var_name[i]:var_value[i] for i in range(len(var_name))}
                     return dic
@@ -2852,7 +2858,7 @@ def embed_function_into_family(given_function, parametirc_family, check_completi
                 is_complete = True
             else:
                 complex.points_to_test[var_value]=[]
-                allow_dim_degeneracy = True
+                opt[allow_dim_degeneracy] = True
         else:
             is_complete = True
     # plot_cpl_components(complex.components)
