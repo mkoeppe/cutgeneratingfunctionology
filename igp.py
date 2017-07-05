@@ -42,6 +42,13 @@ load(igp_dir + "crazy_perturbation.sage")
 load(igp_dir + "crazy_perturbation_examples.sage")
 load(igp_dir + "bug_examples.sage")
 
+# Dual feasible functions
+load(igp_dir + "dff_functions.sage")
+load(igp_dir + "dff_test_plot.sage")
+load(igp_dir + "discontinuous_dff.sage")
+load(igp_dir + "computer_based_search_naive_dff.sage")
+#load(igp_dir + "Gomory_conversion.sage")
+
 import extreme_functions, procedures
 
 try:

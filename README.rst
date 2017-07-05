@@ -1,9 +1,12 @@
-infinite-group-relaxation-code
-==============================
+cutgeneratingfunctionology
+==========================
 
-This is Sage code for computation and experimentation with the
-(1-dimensional) Gomory-Johnson infinite group problem, including an
-electronic compendium of extreme functions.
+This is Sage code for computation and experimentation with
+cut-generating functions.
+
+Most of the code is for the 1-dimensional Gomory-Johnson infinite
+group problem, including an electronic compendium of extreme
+functions.
 
 See the survey "Light on the Infinite Group Relaxation" 
 (http://www.optimization-online.org/DB_HTML/2014/10/4620.html)
@@ -33,9 +36,9 @@ How to run the code in a local copy of Sage
 1. Install Sage from http://www.sagemath.org/
 
 2. Download the code from
-   https://github.com/mkoeppe/infinite-group-relaxation-code.git
+   https://github.com/mkoeppe/cutgeneratingfunctionology.git
 
-3. From the directory of the infinite-group-relaxation-code, start
+3. From the directory cutgeneratingfunctionology, start
    Sage.  You can either use the terminal or the worksheet.
 
 4. At the Sage prompt, type::
@@ -57,7 +60,7 @@ How to run the code online via cloud.sagemath.com
 4. Open the project
 
 5. Create a directory: 
-   Paste in the weblink: https://github.com/mkoeppe/infinite-group-relaxation-code.git
+   Paste in the weblink: https://github.com/mkoeppe/cutgeneratingfunctionology.git
    and hit enter
 
 6. Enter that directory
@@ -75,7 +78,7 @@ How to run the code online via cloud.sagemath.com
 
 To update the code to the latest version:
 
-1. In the project "Group relaxation", open the directory "infinite-group-relaxation-code".
+1. In the project "Group relaxation", open the directory "cutgeneratingfunctionology".
    
 2. In the line "Terminal command...", enter::
      
