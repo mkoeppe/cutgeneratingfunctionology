@@ -51,7 +51,7 @@ def plot_2d_complex(function):
     x = var('x')
     p = Graphics()
     kwd = ticks_keywords(function, True)
-    kwd['legend_label'] = "Complex Delta pi"
+    kwd['legend_label'] = "Complex Delta P"
     plot_kwds_hook(kwd)
     ## We now use lambda functions instead of Sage symbolics for plotting, 
     ## as those give strange errors when combined with our RealNumberFieldElement.
