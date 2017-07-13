@@ -12,8 +12,9 @@ M7 = Polyhedron(vertices=[[0, 0, 0], [4, 0, 0], [1, 2, 0], [2, 0, 4]])
 M8 = Polyhedron(vertices=[[2, 0, 0], [-2, 0, 0], [0, 2, 0], [0, -2, 0], [1, 1, 2]]) # pyramid
 M9 = Polyhedron(vertices=[[-1, 0, 0], [0, -1, 0], [2, 0, 0], [0, 2, 0], [1, 1, 3]]) # pyramid
 M10 = Polyhedron(vertices=[[1, 0, 0], [0, 1, 0], [-1, -1, 0], [2, 2, 3], [1, 3, 3], [0, 1, 3]]) # prism
-M11 = Polyhedron(vertices=[[1, 0, 0], [-1, 0, 0], [2, 0, 0], [2, 0, 2], [0, 0, 2], [3, 0, 2]]) # prism
-
+#M11 = Polyhedron(vertices=[[1, 0, 0], [-1, 0, 0], [2, 0, 0], [2, 0, 2], [0, 0, 2], [3, 0, 2]]) # prism
+M11 = Polyhedron(vertices=[[-1, 0, 0], [0, 0, 2], [0, 2, 0], [1, 0, 0], [1, 2, 2], [2, 0, 2]])
+M12 = Polyhedron(vertices=[[-1, 1, 0], [0, 0, 0], [0, 2, 0], [0, 2, 2], [1, 1, 0], [1, 1, 2], [1, 3, 2], [2, 2, 2]])
 
 triangle = Polyhedron(vertices=[[-3/13, 21/13], [1 - 4/10, 3], [3/2, 3/4]])
 not_square = Polyhedron(vertices=[[-1/5, 1/2], [2/5, 2], [13/10, 1/2], [2/5, -2/5]])

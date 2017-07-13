@@ -17,3 +17,5 @@ lifting_graphics(not_maximal)
 lifting_graphics(not_maximal_1)
 lifting_graphics(maximal)
 
+# pyramid whose base has 10 lattice points.
+B = Polyhedron(vertices=((-37/24, 1/2, 0),(1/8, -7/6, 0),(1/8, 13/6, 0),(83/24, 1/2, 0),(13/24, 1/2, 2)))
