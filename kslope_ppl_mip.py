@@ -1424,3 +1424,15 @@ def times_in_naive_search(k, q, f):
     logging.info("Total time of naive search = %s" % t)
     logging.info("Numer of k-slope functions = %s" % n_sol)
     return h_list
+
+
+def generate_extreme_functions_for_finite_group(q, f):
+    vertices_color = initial_vertices_color(q, f)
+    cs = initial_cs(q, f, vertices_color)
+    polytope = C_Polyhedron(cs)
+    exp_dim = int(q / 2) - 1
+    extreme_points = vertex_enumeration(polytope, exp_dim=exp_dim)
+    for v in extreme_points:
+        v_n = v.coefficients()
+        h = h_from_vertex_values(v_n)
+        yield h

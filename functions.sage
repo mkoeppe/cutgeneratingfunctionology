@@ -3354,6 +3354,107 @@ def lift(fn, show_plots = False, use_all_perturbations=True, use_largest_absolut
             logging.info("Lifting fails. Try generate_lifted_functions() via polyhedron of perturbation space.")
         return perturbed
 
+def lift_extreme_function_for_finite_group_to_infinite_group(fn, show_plots = False, show_all_lifting=True):
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.info)
+        sage: h = drlm_not_extreme_1()
+        sage: hh = lift_extreme_function_for_finite_group_to_infinite_group(h)
+        sage: len(hh)
+        2
+        sage: h = example7slopecoarse2()
+        sage: hh = lift_extreme_function_for_finite_group_to_infinite_group(h)
+        sage: len(hh)
+        12
+        sage: bkpts = [0, 1/13, 3/13, 7/26, 4/13,5/13,21/52,23/52,6/13,8/13,33/52,35/52,9/13,10/13,21/26,11/13,1]
+        sage: values = [0,1,3/14,5/7,3/4,5/14,55/112,33/112,3/7,4/7,79/112,57/112,9/14,1/4,2/7,11/14,0]
+        sage: h = piecewise_function_from_breakpoints_and_values(bkpts, values)
+        sage: hh = lift_extreme_function_for_finite_group_to_infinite_group(h)
+        sage: len(hh)
+        2
+        sage: extremality_test(hh[0])
+        True
+
+    BUG EXAMPLES:
+        sage: h = FastPiecewise([[(QQ(0), 1/18), FastLinearFunction(QQ(18), QQ(0))], [(1/18, 1/9), FastLinearFunction(-126/11, 18/11)], [(1/9, 1/6), FastLinearFunction(18/55, 18/55)], [(1/6, 2/9), FastLinearFunction(342/55, -36/55)], [(2/9, 5/18), FastLinearFunction(-126/11, 36/11)], [(5/18, 1/3), FastLinearFunction(666/55, -36/11)], [(1/3, 7/18), FastLinearFunction(-306/55, 144/55)], [(7/18, 4/9), FastLinearFunction(18/55, 18/55)], [(4/9, 1/2), FastLinearFunction(342/55, -126/55)], [(1/2, 5/9), FastLinearFunction(-126/11, 72/11)], [(5/9, 11/18), FastLinearFunction(342/55, -36/11)], [(11/18, 2/3), FastLinearFunction(18/55, 18/55)], [(2/3, 13/18), FastLinearFunction(-306/55, 234/55)], [(13/18, 7/9), FastLinearFunction(666/55, -468/55)], [(7/9, 5/6), FastLinearFunction(-126/11, 108/11)], [(5/6, 8/9), FastLinearFunction(342/55, -54/11)], [(8/9, 17/18), FastLinearFunction(18/55, 18/55)], [(17/18, QQ(1)), FastLinearFunction(-126/11, 126/11)]])
+        sage: lift_extreme_function_for_finite_group_to_infinite_group(h)
+        []
+    """
+    bkpts = fn.end_points()
+    values = fn.values_at_end_points()
+    assert is_all_QQ_fastpath(bkpts + values) == True
+    q = lcm([denominator(x) for x in bkpts])
+    v = lcm([denominator(x) for x in values])
+    f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    fdms, covered_components= generate_directed_move_composition_completion(fn, show_plots=show_plots)
+    for pert_fin in  generate_perturbations_finite_dimensional(fn, show_plots=show_plots, f=f):
+        raise ValueError, "The given function is not extreme for the finite group (1/%s)Z" % q
+    uncovered_intervals = generate_uncovered_intervals(fn)
+    if show_plots:
+        logging.info("Plotting covered intervals...")
+        show_plot(plot_covered_intervals(fn), show_plots, tag='covered_intervals', object=fn)
+        logging.info("Plotting covered intervals... done")
+    if not uncovered_intervals:
+        logging.info("All intervals are covered (or connected-to-covered). %s components." % number_of_components(fn))
+        return [fn]
+    logging.info("Uncovered intervals: %s", (uncovered_intervals,))
+    all_lifting = [fn]
+    global perturbation_template_bkpts
+    global perturbation_template_values
+    generator = generate_generic_seeds_with_completion(fn)
+    for seed, stab_int, walk_list in generator:
+        lifted_functions = []
+        for perturbed in all_lifting:
+            perturbation_template_values = [0, 1, 0]
+            perturbation_template_bkpts = [0, 1/(4*q*v), 1]
+            perturb_1 = approx_discts_function(walk_list, stab_int, function=fn)
+            epsilon_interval_1 = find_epsilon_interval(perturbed, perturb_1)
+            perturbation_template_bkpts = [0, 1-1/(4*q*v), 1]
+            perturb_2 = approx_discts_function(walk_list, stab_int, function=fn)
+            epsilon_interval_2 = find_epsilon_interval(perturbed, perturb_2)
+            if epsilon_interval_1[1] != 10000 and epsilon_interval_2[1] != 10000:
+                s_left = 4*q*v * epsilon_interval_1[1]
+                s_right = - 4*q*v * epsilon_interval_2[1]
+                if s_left == s_right == 0:
+                    lifted_functions.append(perturbed)
+                else:
+                    perturbation_template_bkpts = [0, s_right/(s_right - s_left), 1]
+                    perturbation_template_values = [0, s_left*s_right/(s_right - s_left), 0]
+                    perturbation = approx_discts_function(walk_list, stab_int, function=fn)
+                    epsilon_interval = find_epsilon_interval(perturbed, perturbation)
+                    #assert epsilon_interval[1] == 1
+                    if epsilon_interval[1] == 1:
+                        lifted_functions.append(perturbed + perturbation)
+            if (show_all_lifting or not lifted_functions) and (epsilon_interval_1[0] != -10000 and epsilon_interval_2[0] != -10000):
+                s_left = 4*q*v * epsilon_interval_1[0]
+                s_right = - 4*q*v * epsilon_interval_2[0]
+                if s_left == s_right == 0:
+                    if not perturbed == lifted_functions[-1]:
+                        lifted_functions.append(perturbed)
+                else:
+                    perturbation_template_bkpts = [0, s_right/(s_right - s_left), 1]
+                    perturbation_template_values = [0, s_left*s_right/(s_right - s_left), 0]
+                    perturbation = approx_discts_function(walk_list, stab_int, function=fn)
+                    epsilon_interval = find_epsilon_interval(perturbed, perturbation)
+                    #assert epsilon_interval[1] == 1
+                    if epsilon_interval[1] == 1:
+                        lifted_functions.append(perturbed + perturbation)
+        if not lifted_functions:
+                raise ValueError, "can not find continuous perturbation"
+        all_lifting = lifted_functions
+    lifted_functions = []
+    for h in all_lifting:
+        if not generate_uncovered_components(h): #extremality_test(h):
+            lifted_functions.append(h)
+            if show_plots:
+                perturbation = h - fn
+                p = plot_rescaled_perturbation(perturbation)
+                p += plot(perturbed, color='black')
+                p += plot_with_colored_slopes(h)
+                p.show()
+    return lifted_functions
+
 def lift_until_extreme(fn, show_plots = False, pause = False, **kwds):
     next, fn = fn, None
     while next != fn:
