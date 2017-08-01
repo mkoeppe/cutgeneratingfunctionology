@@ -39,6 +39,7 @@ load(igp_dir + "kslope_mip.sage")
 load(igp_dir + "crazy_perturbation.sage")
 load(igp_dir + "crazy_perturbation_examples.sage")
 load(igp_dir + "bug_examples.sage")
+load(igp_dir + "lifting_project.sage")
 
 # Dual feasible functions
 load(igp_dir + "dff_functions.sage")
