@@ -20,6 +20,11 @@ def generate_extreme_lifted_function_equiv(fn, show_plots=False, use_polyhedron=
                 #print sage_input(perturbation)
                 continue
             lifted = fn + perturbation
+            if generate_uncovered_components(lifted):
+                #print "The lifted function has uncovered intervals"
+                #print sage_input(fn)
+                #print sage_input(perturbation)
+                continue
             if not extremality_test(lifted):
                 print "This perturbation does not give extreme lifted function"
                 print sage_input(fn)
