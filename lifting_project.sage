@@ -16,12 +16,14 @@ def generate_extreme_lifted_function_equiv(fn, show_plots=False, use_polyhedron=
             epsilon_interval = find_epsilon_interval(fn, perturbation)
             if not epsilon_interval[1] == 1:
                 #print "epsilon interval = (%s, %s) is not 1." % epsilon_interval
+                #print sage_input(fn)
                 #print sage_input(perturbation)
                 continue
             lifted = fn + perturbation
-            if generate_uncovered_components(lifted):
-                #print "This perturbation does not give extreme lifted function"
-                #print sage_input(perturbation)
+            if not extremality_test(lifted):
+                print "This perturbation does not give extreme lifted function"
+                print sage_input(fn)
+                print sage_input(perturbation)
                 continue
             if show_plots:
                 p = plot(perturbation, color='magenta')
@@ -190,9 +192,6 @@ def perturbation_lim_slopes_mip(fn, perturbation_components=None, solver=None):
 #         except:
 #             print "can not lift the function", sage_input(h)
 #             raise ValueError
-#         if not extremality_test(hl):
-#             print "lifted function is not extreme", sage_input(h)
-#             raise ValueError
 
 
 # Bug example 2017-8-14 [lifting 4dc8d6e]: generate_extreme_lifted_function_equiv() can not lift the following function h with "if sa * sb < 0." Solved by changing to  "sa * sb != 0".
@@ -212,5 +211,12 @@ def perturbation_lim_slopes_mip(fn, perturbation_components=None, solver=None):
 
 #lift_extreme_function_for_finite_group_to_infinite_group() fails.
 
-# fix the bug example by checking "sa * sb != 0" only. 
+# [lifting fcc6896] fix the bug example by checking "sa * sb != 0" only.
+
+# Bug example 2017-8-14 [lifting 21b1551]
+
+#This perturbation does not give extreme lifted function
+#h = FastPiecewise([[(QQ(0), 1/18), FastLinearFunction(QQ(18), QQ(0))], [(1/18, 1/9), FastLinearFunction(-414/31, 54/31)], [(1/9, 1/6), FastLinearFunction(234/31, -18/31)], [(1/6, 2/9), FastLinearFunction(-90/31, 36/31)], [(2/9, 1/3), FastLinearFunction(72/31, QQ(0))], [(1/3, 1/2), FastLinearFunction(-90/31, 54/31)], [(1/2, 5/9), FastLinearFunction(234/31, -108/31)], [(5/9, 13/18), FastLinearFunction(-90/31, 72/31)], [(13/18, 5/6), FastLinearFunction(72/31, -45/31)], [(5/6, 8/9), FastLinearFunction(-90/31, 90/31)], [(8/9, 17/18), FastLinearFunction(234/31, -198/31)], [(17/18, QQ(1)), FastLinearFunction(-414/31, 414/31)]])
+# perturbation = FastPiecewise([[(0, 1/9), FastLinearFunction(QQ(0), QQ(0))], [left_open_interval(1/9, 5/36), FastLinearFunction(324/31, -36/31)], [left_open_interval(5/36, 1/6), FastLinearFunction(-324/31, 54/31)], [left_open_interval(1/6, 1/2), FastLinearFunction(QQ(0), QQ(0))], [left_open_interval(1/2, 55/108), FastLinearFunction(324/31, -162/31)], [left_open_interval(55/108, 14/27), FastLinearFunction(-648/31, 333/31)], [left_open_interval(14/27, 29/54), FastLinearFunction(324/31, -171/31)], [left_open_interval(29/54, 59/108), FastLinearFunction(-648/31, 351/31)], [left_open_interval(59/108, 5/9), FastLinearFunction(324/31, -180/31)], [left_open_interval(5/9, 8/9), FastLinearFunction(QQ(0), QQ(0))], [left_open_interval(8/9, 11/12), FastLinearFunction(-324/31, 288/31)], [left_open_interval(11/12, 17/18), FastLinearFunction(324/31, -306/31)], [left_open_interval(17/18, QQ(1)), FastLinearFunction(QQ(0), QQ(0))]])
+
 
