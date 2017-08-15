@@ -169,7 +169,8 @@ def perturbation_lim_slopes_mip(fn, perturbation_components=None, solver=None):
 
 
 
-# However, new bug example appears: h is not extreme, it has pert, but this pert is not a vertex of perturbation_lim_slopes_mip.  <--- Bug example solved.
+# However, new bug example appears: h is not extreme, it has pert, but this pert is not a vertex of perturbation_lim_slopes_mip.  <--- Bug example solved by setting for example perturbation_components = [fn._stability_orbits[0], fn._stability_orbits[3], fn._stability_orbits[5]]. When perturbing all uncovered intervals (perturbation_components = fn._stability_orbits), setting n>1 and "if (sa == 0 and sb != 0) or (sa != 0 and sb == 0):" fails to give subadditive function, because not only slope values but also slope lengths are related, maybe another MIP for lengths?
+
 
 # h = FastPiecewise([[(QQ(0), 1/18), FastLinearFunction(QQ(18), QQ(0))], [(1/18, 1/9), FastLinearFunction(-QQ(14), 16/9)], [(1/9, 2/9), FastLinearFunction(QQ(2), QQ(0))], [(2/9, 5/18), FastLinearFunction(-QQ(2), 8/9)], [(5/18, 1/3), FastLinearFunction(QQ(6), -4/3)], [(1/3, 7/18), FastLinearFunction(-QQ(6), 8/3)], [(7/18, 4/9), FastLinearFunction(QQ(6), -QQ(2))], [(4/9, 1/2), FastLinearFunction(-QQ(6), 10/3)], [(1/2, 5/9), FastLinearFunction(QQ(6), -8/3)], [(5/9, 11/18), FastLinearFunction(-QQ(6), QQ(4))], [(11/18, 2/3), FastLinearFunction(QQ(6), -10/3)], [(2/3, 13/18), FastLinearFunction(-QQ(6), 14/3)], [(13/18, 7/9), FastLinearFunction(QQ(6), -QQ(4))], [(7/9, 5/6), FastLinearFunction(-QQ(2), 20/9)], [(5/6, 17/18), FastLinearFunction(QQ(2), -10/9)], [(17/18, QQ(1)), FastLinearFunction(-QQ(14), QQ(14))]])
 
@@ -191,3 +192,8 @@ def perturbation_lim_slopes_mip(fn, perturbation_components=None, solver=None):
 #         if not extremality_test(hl):
 #             print "lifted function is not extreme", sage_input(h)
 #             raise ValueError
+
+
+# Bug example 2017-8-14 [lifting 4dc8d6e]: can not lift the function
+
+# h = FastPiecewise([[(QQ(0), 1/18), FastLinearFunction(QQ(18), QQ(0))], [(1/18, 1/6), FastLinearFunction(-414/67, 90/67)], [(1/6, 2/9), FastLinearFunction(-90/67, 36/67)], [(2/9, 1/3), FastLinearFunction(234/67, -36/67)], [(1/3, 7/18), FastLinearFunction(-414/67, 180/67)], [(7/18, 1/2), FastLinearFunction(234/67, -72/67)], [(1/2, 5/9), FastLinearFunction(-414/67, 252/67)], [(5/9, 2/3), FastLinearFunction(234/67, -108/67)], [(2/3, 13/18), FastLinearFunction(-414/67, 324/67)], [(13/18, 5/6), FastLinearFunction(234/67, -144/67)], [(5/6, 8/9), FastLinearFunction(-90/67, 126/67)], [(8/9, QQ(1)), FastLinearFunction(-414/67, 414/67)]])
