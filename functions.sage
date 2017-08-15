@@ -3456,11 +3456,18 @@ def lift_extreme_function_for_finite_group_to_infinite_group(fn, show_plots = Fa
                 p.show()
     return lifted_functions
 
-def lift_until_extreme(fn, show_plots = False, pause = False, **kwds):
+def lift_until_extreme(fn, show_plots = False, pause = False, covered_length=True, **kwds):
     next, fn = fn, None
     while next != fn:
+        if covered_length:
+            covered_components = generate_covered_components(next)
+            covered_intervals = union_of_coho_intervals_minus_union_of_coho_intervals(covered_components, [])
+            covered_length = sum(interval_length(i) for i in covered_intervals)
+            if show_plots:
+                plot_covered_intervals(next).show(title = 'covered length = %s' % covered_length)
+            print covered_length
         fn = next
-        next = lift(fn, show_plots=show_plots, **kwds)
+        next = lift(fn, show_plots=False , **kwds)  #show_plots=show_plots
         if pause and next != fn:
             raw_input("Press enter to continue")
     return next
