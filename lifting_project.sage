@@ -5,37 +5,60 @@ from igp import *
 
 
 def lift_on_uncovered_components(fn, show_plots=False):
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.info)
+        sage: h = drlm_not_extreme_1()
+        sage: hh = lift_on_uncovered_components(h)
+        sage: len(hh)
+        4
+        sage: h = example7slopecoarse2()
+        sage: hh = lift_on_uncovered_components(h)
+        sage: len(hh)
+        12
+        sage: bkpts = [0, 1/13, 3/13, 7/26, 4/13,5/13,21/52,23/52,6/13,8/13,33/52,35/52,9/13,10/13,21/26,11/13,1]
+        sage: values = [0,1,3/14,5/7,3/4,5/14,55/112,33/112,3/7,4/7,79/112,57/112,9/14,1/4,2/7,11/14,0]
+        sage: h = piecewise_function_from_breakpoints_and_values(bkpts, values)
+        sage: hh = lift_on_uncovered_components(h)   # long time. 30 mins?
+        sage: len(hh)                                # long time
+        128
+        sage: extremality_test(hh[0])
+        True
+    """
     return list(generate_extreme_lifted_function_equiv(fn, show_plots=show_plots, use_polyhedron=True))
 
 def generate_extreme_lifted_function_equiv(fn, show_plots=False, use_polyhedron=True):
     find_decomposition_into_stability_intervals_with_completion(fn)
-    stability_orbits_gen = list(powerset(fn._stability_orbits))
-    for perturbation_components in stability_orbits_gen[:0:-1]: # card descreasing order, discard empty set.
-        gen_pert = generate_perturbation_on_perturbation_components(fn, perturbation_components=perturbation_components, use_polyhedron=use_polyhedron)
-        for perturbation in gen_pert:
-            epsilon_interval = find_epsilon_interval(fn, perturbation)
-            if not epsilon_interval[1] == 1:
-                #print "epsilon interval = (%s, %s) is not 1." % epsilon_interval
-                #print sage_input(fn)
-                #print sage_input(perturbation)
-                continue
-            lifted = fn + perturbation
-            if generate_uncovered_components(lifted):
-                #print "The lifted function has uncovered intervals"
-                #print sage_input(fn)
-                #print sage_input(perturbation)
-                continue
-            if not extremality_test(lifted):
-                print "This perturbation does not give extreme lifted function"
-                print sage_input(fn)
-                print sage_input(perturbation)
-                continue
-            if show_plots:
-                p = plot(perturbation, color='magenta')
-                p += plot(fn, color='black')
-                p += plot_covered_intervals(lifted)
-                p.show()
-            yield(lifted)
+    #stability_orbits_gen = list(powerset(fn._stability_orbits))
+    #for perturbation_components in stability_orbits_gen[:0:-1]: # card descreasing order, discard empty set.
+    for k in range(len(fn._stability_orbits) + 1,0,-1):
+        for perturbation_components in itertools.combinations(fn._stability_orbits, k):
+            gen_pert = generate_perturbation_on_perturbation_components(fn, perturbation_components=perturbation_components, use_polyhedron=use_polyhedron)
+            for perturbation in gen_pert:
+                epsilon_interval = find_epsilon_interval(fn, perturbation)
+                if not epsilon_interval[1] == 1:
+                    #print "epsilon interval = (%s, %s) is not 1." % epsilon_interval
+                    #print sage_input(fn)
+                    #print sage_input(perturbation)
+                    continue
+                lifted = fn + perturbation
+                if generate_uncovered_components(lifted):
+                    #print "The lifted function has uncovered intervals"
+                    #print sage_input(fn)
+                    #print sage_input(perturbation)
+                    continue
+                if not extremality_test(lifted):
+                    print "This perturbation does not give extreme lifted function"
+                    print sage_input(fn)
+                    print sage_input(perturbation)
+                    continue
+                if show_plots:
+                    p = plot(perturbation, color='magenta')
+                    p += plot(fn, color='black')
+                    p += plot_covered_intervals(lifted)
+                    p.show()
+                yield(lifted)
 
 def generate_perturbation_on_perturbation_components(fn, perturbation_components=None, use_polyhedron=True, n=1):
     if perturbation_components is None:
