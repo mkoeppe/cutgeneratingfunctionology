@@ -275,3 +275,12 @@ def plotting_2d_diagram_bug_example():
     bkpts = [0, 60147/339800, 19/100, 32802403/150021700, 19837/88300, 38001343/150021700, 22897/88300, 127/400, 157/400, 203/400, 233/400, 56573/88300, 97018187/150021700, 59633/88300, 102217127/150021700, 71/100, 245673/339800, 9/10, 1]
     values = [0, 17983953/47572000, 6947/28000, 12992378939/42006076000, 6162761/24724000, 13040902379/42006076000, 6191321/24724000, 20983/56000, 21123/56000, 34877/56000, 35017/56000, 18532679/24724000, 28965173621/42006076000, 18561239/24724000, 29013697061/42006076000, 21053/28000, 29588047/47572000, 1, 0]
     return piecewise_function_from_breakpoints_and_values(bkpts, values)
+
+def lift_until_extreme_default_style_bug_example():
+    bkpts = [0, 1/13, 3/13, 7/26, 4/13,5/13,21/52,23/52,6/13,8/13,33/52,35/52,9/13,10/13,21/26,11/13,1]
+    values = [0,1,3/14,5/7,3/4,5/14,55/112,33/112,3/7,4/7,79/112,57/112,9/14,1/4,2/7,11/14,0]
+    return piecewise_function_from_breakpoints_and_values(bkpts, values)
+
+def lift_until_extreme_bug_example():
+    h = FastPiecewise([[(QQ(0), 1/18), FastLinearFunction(QQ(18), QQ(0))], [(1/18, 1/9), FastLinearFunction(-126/11, 18/11)], [(1/9, 1/6), FastLinearFunction(18/55, 18/55)], [(1/6, 2/9), FastLinearFunction(342/55, -36/55)], [(2/9, 5/18), FastLinearFunction(-126/11, 36/11)], [(5/18, 1/3), FastLinearFunction(666/55, -36/11)], [(1/3, 7/18), FastLinearFunction(-306/55, 144/55)], [(7/18, 4/9), FastLinearFunction(18/55, 18/55)], [(4/9, 1/2), FastLinearFunction(342/55, -126/55)], [(1/2, 5/9), FastLinearFunction(-126/11, 72/11)], [(5/9, 11/18), FastLinearFunction(342/55, -36/11)], [(11/18, 2/3), FastLinearFunction(18/55, 18/55)], [(2/3, 13/18), FastLinearFunction(-306/55, 234/55)], [(13/18, 7/9), FastLinearFunction(666/55, -468/55)], [(7/9, 5/6), FastLinearFunction(-126/11, 108/11)], [(5/6, 8/9), FastLinearFunction(342/55, -54/11)], [(8/9, 17/18), FastLinearFunction(18/55, 18/55)], [(17/18, QQ(1)), FastLinearFunction(-126/11, 126/11)]])
+    return h
