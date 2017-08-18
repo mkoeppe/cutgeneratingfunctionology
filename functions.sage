@@ -473,7 +473,7 @@ def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
                 p += line([(-(3/10)*y1, x1), (-(3/10)*y2, x2)], color=colors[i], zorder=-2, **kwds)
     return p
 
-def plot_2d_diagram_with_cones(fn, show_function=True, f=None):
+def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200):
     """
     EXAMPLES::
 
@@ -502,7 +502,7 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None):
                 color = "mediumspringgreen"
             else:
                 color = "red"
-            g += point([(x, y), (y, x)], color=color, size = 200, zorder=-1)
+            g += point([(x, y), (y, x)], color=color, size=conesize, zorder=-1)
     else:
         for (x, y, z) in vertices:
             for (xeps, yeps, zeps) in [(0,0,0)]+list(nonzero_eps):
