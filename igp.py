@@ -27,6 +27,7 @@ load(igp_dir + "kslope_pattern.sage")
 load(igp_dir + "2q_mip.sage")
 load(igp_dir + "kslope_mip.sage")
 #load("old_walk_and_stability_interval_code.sage")
+load(igp_dir + "animation_2d_diagram.sage")
 
 load(igp_dir + "bug_examples.sage")
 
