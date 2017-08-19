@@ -838,6 +838,8 @@ def generate_directly_covered_intervals(function):
     function._directly_covered_intervals = covered_intervals
     return covered_intervals
 
+remove_duplicate_or_empty_components = True
+
 def generate_directly_covered_intervals_from_faces(faces):
     covered_intervals = []
     for face in faces:
@@ -848,8 +850,9 @@ def generate_directly_covered_intervals_from_faces(faces):
             component.sort()
             component = merge_within_comp(component)
             covered_intervals.append(component)
-            
-    remove_duplicate(covered_intervals)
+    global remove_duplicate_or_empty_components
+    if remove_duplicate_or_empty_components:
+        remove_duplicate(covered_intervals)
     
     #show(plot_covered_intervals(function, covered_intervals), xmax=1.5)
 
@@ -858,8 +861,8 @@ def generate_directly_covered_intervals_from_faces(faces):
             if find_interior_intersection(covered_intervals[i], covered_intervals[j]):
                 covered_intervals[j] = merge_two_comp(covered_intervals[i],covered_intervals[j])
                 covered_intervals[i] = []
-                    
-    covered_intervals = remove_empty_comp(covered_intervals)
+    if remove_duplicate_or_empty_components:
+        covered_intervals = remove_empty_comp(covered_intervals)
     return covered_intervals
 
 def generate_covered_intervals(function):
@@ -901,8 +904,9 @@ def generate_covered_intervals_from_faces(faces):
                     IJK.append(i)
             if edge_merge(covered_intervals,intervals,IJK):
                 any_change = True
-
-    covered_intervals = remove_empty_comp(covered_intervals)
+    global remove_duplicate_or_empty_components
+    if remove_duplicate_or_empty_components:
+        covered_intervals = remove_empty_comp(covered_intervals)
     return covered_intervals
 
 def uncovered_intervals_from_covered_intervals(covered_intervals):
