@@ -3456,7 +3456,7 @@ def lift_extreme_function_for_finite_group_to_infinite_group(fn, show_plots = Fa
                 p.show()
     return lifted_functions
 
-def lift_until_extreme(fn, show_plots = False, pause = False, covered_length=True, **kwds):
+def lift_until_extreme(fn, show_plots = False, pause = False, covered_length=True, use_all_perturbations=True, **kwds):
     next, fn = fn, None
     while next != fn:
         if covered_length:
@@ -3467,7 +3467,7 @@ def lift_until_extreme(fn, show_plots = False, pause = False, covered_length=Tru
                 plot_covered_intervals(next).show(title = 'covered length = %s' % covered_length)
             print covered_length
         fn = next
-        next = lift(fn, show_plots=False , **kwds)  #show_plots=show_plots
+        next = lift(fn, show_plots=False , use_all_perturbations=use_all_perturbations, **kwds)  #show_plots=show_plots
         if pause and next != fn:
             raw_input("Press enter to continue")
     return next
