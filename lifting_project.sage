@@ -128,8 +128,6 @@ def generate_perturbation_on_perturbation_components(fn, perturbation_components
             pert_i = approx_discts_function(walk_dict, stab_int, function=fn)
             #print pert_i
             perturbation = pert_i + perturbation
-        if lim_slope == (-4, 4, -8, -8, 12, -8):
-            raise ValueError
         yield perturbation
     
 def generate_lim_slopes_on_perturbation_components(fn, perturbation_components=None, solver=None, use_polyhedron=True):
