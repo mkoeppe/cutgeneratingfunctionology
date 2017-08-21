@@ -4,7 +4,7 @@ if '' not in sys.path:
 from igp import *
 
 
-def lift_on_uncovered_components(fn, show_plots=False):
+def lift_on_uncovered_components(fn, show_plots=False, L=[]):
     """
     EXAMPLES::
 
@@ -26,39 +26,58 @@ def lift_on_uncovered_components(fn, show_plots=False):
         sage: extremality_test(hh[0])
         True
     """
-    return list(generate_extreme_lifted_function_equiv(fn, show_plots=show_plots, use_polyhedron=True))
+    return list(generate_extreme_lifted_function_equiv(fn, show_plots=show_plots, L=L, use_polyhedron=True))
 
-def generate_extreme_lifted_function_equiv(fn, show_plots=False, use_polyhedron=True):
+def generate_extreme_lifted_function_equiv(fn, show_plots=False, L=[], use_polyhedron=True):
     find_decomposition_into_stability_intervals_with_completion(fn)
-    #stability_orbits_gen = list(powerset(fn._stability_orbits))
-    #for perturbation_components in stability_orbits_gen[:0:-1]: # card descreasing order, discard empty set.
-    for k in range(len(fn._stability_orbits) + 1,0,-1):
-        for perturbation_components in itertools.combinations(fn._stability_orbits, k):
-            gen_pert = generate_perturbation_on_perturbation_components(fn, perturbation_components=perturbation_components, use_polyhedron=use_polyhedron)
-            for perturbation in gen_pert:
-                epsilon_interval = find_epsilon_interval(fn, perturbation)
-                if not epsilon_interval[1] == 1:
-                    #print "epsilon interval = (%s, %s) is not 1." % epsilon_interval
-                    #print sage_input(fn)
-                    #print sage_input(perturbation)
-                    continue
-                lifted = fn + perturbation
-                if generate_uncovered_components(lifted):
-                    #print "The lifted function has uncovered intervals"
-                    #print sage_input(fn)
-                    #print sage_input(perturbation)
-                    continue
-                if not extremality_test(lifted):
-                    print "This perturbation does not give extreme lifted function"
-                    print sage_input(fn)
-                    print sage_input(perturbation)
-                    continue
+    if L:
+        perturbation_components = [fn._stability_orbits[i] for i in L]
+        gen_pert = generate_perturbation_on_perturbation_components(fn, perturbation_components=perturbation_components, use_polyhedron=use_polyhedron)
+        for perturbation in gen_pert:
+            lifted = fn + perturbation
+            if extremality_test(lifted):
                 if show_plots:
                     p = plot(perturbation, color='magenta')
                     p += plot(fn, color='black')
                     p += plot_covered_intervals(lifted)
                     p.show()
                 yield(lifted)
+    else:
+        ### Loop over all subsets L.
+        #stability_orbits_gen = list(powerset(fn._stability_orbits))
+        #for perturbation_components in stability_orbits_gen[:0:-1]: # card descreasing order, discard empty set.
+        for k in range(len(fn._stability_orbits) + 1,0,-1):
+            for perturbation_components in itertools.combinations(fn._stability_orbits, k):
+                gen_pert = generate_perturbation_on_perturbation_components(fn, perturbation_components=perturbation_components, use_polyhedron=use_polyhedron)
+                for perturbation in gen_pert:
+                    lifted = fn + perturbation
+                    if extremality_test(lifted):
+                        if show_plots:
+                            p = plot(perturbation, color='magenta')
+                            p += plot(fn, color='black')
+                            p += plot_covered_intervals(lifted)
+                            p.show()
+                        yield(lifted)
+
+# def check_lifted_function_is_extreme(fn, perturbation):
+#     lifted = fn + perturbation
+#     # epsilon_interval = find_epsilon_interval(fn, perturbation)
+#     # if not epsilon_interval[1] == 1:
+#     #     #print "epsilon interval = (%s, %s) is not 1." % epsilon_interval
+#     #     #print sage_input(fn)
+#     #     #print sage_input(perturbation)
+#     #     return False
+#     # if generate_uncovered_components(lifted):
+#     #     #print "The lifted function has uncovered intervals"
+#     #     #print sage_input(fn)
+#     #     #print sage_input(perturbation)
+#     #     return False
+#     if not extremality_test(lifted):
+#         # print "This perturbation does not give extreme lifted function"
+#         # print sage_input(fn)
+#         # print sage_input(perturbation)
+#         return False
+#     return True
 
 def generate_perturbation_on_perturbation_components(fn, perturbation_components=None, use_polyhedron=True, n=1):
     if perturbation_components is None:
