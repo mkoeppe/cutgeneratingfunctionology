@@ -6,7 +6,7 @@
 import igp
 from igp import *
 
-destdir = "software_paper_graphics/"
+destdir = "survey_graphics/software_paper_graphics/"
 ftype = ".pdf"
 
 logging.disable(logging.INFO)
@@ -138,3 +138,5 @@ plot_figure_6()
 plot_figure_7()
 plot_figures_in_table_3()
 plot_figures_in_table_4()
+
+os.system("cd %s && (pdflatex -synctex=1 -src-specials -interaction=nonstopmode software_paper_graphics)" % (destdir,)) 
