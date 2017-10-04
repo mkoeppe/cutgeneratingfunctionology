@@ -19,15 +19,15 @@ M12 = Polyhedron(vertices=[[-1, 1, 0], [0, 0, 0], [0, 2, 0], [0, 2, 2], [1, 1, 0
 triangle = Polyhedron(vertices=[[-3/13, 21/13], [1 - 4/10, 3], [3/2, 3/4]])
 not_square = Polyhedron(vertices=[[-1/5, 1/2], [2/5, 2], [13/10, 1/2], [2/5, -2/5]])
 
-def volume_is_affine_of_f(p, tests=5):
+def volume_is_affine_of_f(B, tests=5):
     for test_i in range(tests):
         f_list = []
         volume_list = []   
-        for i in range(p.ambient_dim() + 1):
-            # needs p.ambient_dim() + 1 points to construct the hyperplane
-            f = pick_f(p)
+        for i in range(B.ambient_dim() + 1):
+            # needs B.ambient_dim() + 1 points to construct the hyperplane
+            f = pick_f(B)
             f_list.append(f)
-            volume_list.append([find_volme_of_B_with_f(p, f)])
+            volume_list.append([find_volme_of_B_with_f(B, f)])
             print i
         pts_list = [f + volume for f, volume in zip(f_list, volume_list)]
         print pts_list
@@ -35,8 +35,8 @@ def volume_is_affine_of_f(p, tests=5):
         # take the equations from the polyhedron to construct the hyperplane
         print Polyhedron(vertices=pts_list).equations()
         h = Polyhedron(eqns=eqns)
-        new_f = pick_f(p)
-        new_f_volume = new_f + [find_volme_of_B_with_f(p, new_f)]
+        new_f = pick_f(B)
+        new_f_volume = new_f + [find_volme_of_B_with_f(B, new_f)]
         if not h.contains(new_f_volume):
             print "not affine!"
             return False

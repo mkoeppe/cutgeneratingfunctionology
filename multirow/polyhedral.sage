@@ -1711,7 +1711,9 @@ def is_maximal_lattice_free(B):
 
 def inclusion_exclusion_on_full_dim_volumes(polys):
     r"""
-    Use inclusion and exclusion property to calcualtes the sum of the
+    Compute the volume of the union of polyhedra.
+
+    Use inclusion and exclusion property to calculates the sum of the
     full dimension volumes for each polyhedron in ``polys``.
 
     sage: p1 = Polyhedron(vertices=[[0, 4], [0, 3], [1, 4], [1, 3]])
