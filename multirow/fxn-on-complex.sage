@@ -749,7 +749,7 @@ class function_on_complex :
                 #make sure that the width is not too large
                 calculatedWidth = min(stripWidth_upper_bound_given_edge(key[0],key[1],pair[0]),width)
                 #normalize v
-                v = value.vector() / value.vector().norm(2)
+                v = value.vector() / RR(value.vector().norm(2))
                 
                 if v[2] == 0 and v[1] > 0: #edge is vertical, goes right
                     stripVector = [v[0]-calculatedWidth*v[1],v[1],0]
@@ -1353,7 +1353,7 @@ def stripWidth_upper_bound_given_edge(v1,v2,polyhedra):
         dis = distance_from_point_to_line(v,v1,v2)
         if dis != 0:
             disList.append(dis)
-    return min(disList)/3
+    return RR(min(disList)/3)
 
 def stripWidth_upper_bound_given_point(p,polyhedra):
     """
@@ -1364,7 +1364,7 @@ def stripWidth_upper_bound_given_point(p,polyhedra):
     edgeList = [e for e in polyhedra.bounded_edges()]
     disList = [distance_from_point_to_line(p,tuple(e[0]),tuple(e[1])) for e in edgeList]
 
-    return min(disList)/3
+    return RR(min(disList)/3)
 
 def distance_from_point_to_line(p,v1,v2):
     """
@@ -1376,7 +1376,7 @@ def distance_from_point_to_line(p,v1,v2):
     if dis_denomiator == 0 or dis_numerator == 0:
         return 0;
 
-    return dis_numerator/dis_denomiator
+    return RR(dis_numerator/dis_denomiator)
 
 def point_on_line_from_percentage(p,v1,v2):
     """
@@ -1433,7 +1433,7 @@ def shiftDistance(edge1,edge2,width):
     elif alpha > (pi/2) :
         alpha = pi - alpha
 
-    return width/sin(alpha)
+    return RR(width/sin(alpha))
 
 def findPointFrom(orig,mid_angle,width):
     """
