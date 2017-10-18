@@ -58,7 +58,7 @@ def plot_2d_complex(function):
     x = var('x')
     p = Graphics()
     kwd = ticks_keywords(function, True)
-    kwd['legend_label'] = "Complex Delta pi"
+    kwd['legend_label'] = "Complex Delta P"
     plot_kwds_hook(kwd)
     ## We now use lambda functions instead of Sage symbolics for plotting, 
     ## as those give strange errors when combined with our RealNumberFieldElement.
@@ -473,7 +473,7 @@ def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
                 p += line([(-(3/10)*y1, x1), (-(3/10)*y2, x2)], color=colors[i], zorder=-2, **kwds)
     return p
 
-def plot_2d_diagram_with_cones(fn, show_function=True, f=None):
+def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200):
     """
     EXAMPLES::
 
@@ -502,7 +502,7 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None):
                 color = "mediumspringgreen"
             else:
                 color = "red"
-            g += point([(x, y), (y, x)], color=color, size = 200, zorder=-1)
+            g += point([(x, y), (y, x)], color=color, size=conesize, zorder=-1)
     else:
         for (x, y, z) in vertices:
             for (xeps, yeps, zeps) in [(0,0,0)]+list(nonzero_eps):
@@ -1186,6 +1186,31 @@ class FastPiecewise (PiecewisePolynomial):
     # contents of the instance.
     def __hash__(self):
         return id(self)
+
+    def __eq__(self, other):
+        """
+        EXAMPLES::
+
+            sage: logging.disable(logging.WARN) # Suppress output in automatic tests.
+            sage: f = FastPiecewise([[open_interval(1,3), FastLinearFunction(0,3)]])
+            sage: g =  FastPiecewise([[open_interval(1,2), FastLinearFunction(0,3)], [right_open_interval(2,3), FastLinearFunction(0,3)]], merge=False)
+            sage: f == g
+            True
+            sage: g == f
+            True
+            sage: bkpt = [0, 1/8, 3/8, 1/2, 5/8, 7/8, 1]
+            sage: limits = [(0, 0, 1/2), (1/4, 1/4, 3/4), (3/4, 1/4, 3/4), (1, 1/2, 1), (3/4, 3/4, 3/4), (1/4, 1/4, 1/4), (0, 0, 1/2)]
+            sage: h = piecewise_function_from_breakpoints_and_limits(bkpt, limits)
+            sage: h == hildebrand_discont_3_slope_1()
+            True
+        """
+        if self._periodic_extension != other._periodic_extension:
+            return False
+        domain = union_of_coho_intervals_minus_union_of_coho_intervals([self.intervals()], [], old_fashioned_closed_intervals=True)
+        if union_of_coho_intervals_minus_union_of_coho_intervals([other.intervals()],[], old_fashioned_closed_intervals=True) != domain:
+            return False
+        difference = self - other
+        return (difference.intervals() == domain) and (difference.functions() == [FastLinearFunction(0,0)])
 
     def is_continuous(self):
         """
@@ -2092,8 +2117,8 @@ def piecewise_function_from_breakpoints_and_limits(bkpt, limits, field=None, mer
         sage: bkpt = [0, 1/8, 3/8, 1/2, 5/8, 7/8, 1]
         sage: limits = [(0, 0, 1/2), (1/4, 1/4, 3/4), (3/4, 1/4, 3/4), (1, 1/2, 1), (3/4, 3/4, 3/4), (1/4, 1/4, 1/4), (0, 0, 1/2)]
         sage: h = piecewise_function_from_breakpoints_and_limits(bkpt, limits)
-        sage: (h - hildebrand_discont_3_slope_1()).list()
-        [[(0, 1), <FastLinearFunction 0>]]
+        sage: h  == hildebrand_discont_3_slope_1()
+        True
         sage: h = piecewise_function_from_breakpoints_and_limits(bkpt=[0, 1/5, 2/5, 3/5, 4/5, 1], limits = [{-1:0, 0:0, 1:0},{-1:1, 0:1, 1:1}, {-1:0, 0:2/5, 1:2/5}, {-1:2/5, 0:1/2, 1:3/5}, {-1:3/5, 0:3/5, 1:1}, {-1:0, 0:0, 1:0}])
         sage: h.limit(3/5, 1)
         3/5
