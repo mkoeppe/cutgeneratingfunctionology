@@ -2544,6 +2544,38 @@ class FunctionalDirectedMove (FastPiecewise):
         kwds['discontinuity_markers'] = False
         return FastPiecewise.plot(self, *args, **kwds)
 
+    def __invert__(self):
+        """
+        Returns the (pseudo-)inverse of ``self``.
+
+        EXAMPLES::
+
+            sage: h = FunctionalDirectedMove([[3/5, 4/5]], (1, 1/5))
+            sage: ~h
+            <FunctionalDirectedMove (1, -1/5) with domain [(4/5, 1)], range [<Int[3/5, 4/5]>]>
+            sage: ~~h == h
+            True
+            sage: h = FunctionalDirectedMove([[3/5, 4/5]], (-1, 1))
+            sage: ~h == h
+            True
+        """
+        if self.sign() == 1:
+            return FunctionalDirectedMove(self.range_intervals(), (1, -self[1]))
+        else:
+            return self
+
+    def __mul__(self, other):
+        """
+        Compute the directed move that corresponds to the directed move ``self`` after ``other``. 
+
+        EXAMPLES::
+
+            sage: FunctionalDirectedMove([(5/10,7/10)],(1, 2/10)) * FunctionalDirectedMove([(2/10,4/10)],(1,2/10))
+            <FunctionalDirectedMove (1, 2/5) with domain [(3/10, 2/5)], range [<Int[7/10, 4/5]>]>
+
+        """
+        return compose_functional_directed_moves(self, other)
+
 @cached_function
 def generate_functional_directed_moves(fn):
     """
@@ -3941,7 +3973,7 @@ class DirectedMoveCompositionCompletion:
         for dm in move_keys:
             if dm[0] == 1:
                 forward_fdm = self.move_dict[dm]
-                backward_fdm = FunctionalDirectedMove(forward_fdm.range_intervals(), (1, -dm[1]))
+                backward_fdm = ~forward_fdm
                 self.add_move(backward_fdm)
         # extend initial moves by continuity
         for dm in self.move_dict.keys():
