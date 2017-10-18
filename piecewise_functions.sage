@@ -39,11 +39,10 @@ class PiecewisePolynomial_polyhedral(SageObject):
         True
 
         sage: pairs = [(polytopes.hypercube(2), x),(polytopes.hypercube(2), -x),(polytopes.hypercube(2), y),(polytopes.hypercube(2), -y)]
-        sage: h = PiecewisePolynomial_polyhedral(pairs, check_consistency=True) #not tested. Doctest error due to <BLANKLINE>
+        sage: h = PiecewisePolynomial_polyhedral(pairs, check_consistency=True) # compare to g = PiecewisePolynomial_polyhedral(pairs, check_consistency=False).plot()
         Traceback (most recent call last):
         ...
         ValueError: Cannot define the PiecewisePolynomial_polyhedral due to inconsistent polyhedron function pairs
-        # compare to g = PiecewisePolynomial_polyhedral(pairs, check_consistency=False).plot()
 
         sage: hxp = PiecewisePolynomial_polyhedral([(polytopes.hypercube(2), x)])
         sage: hxn = PiecewisePolynomial_polyhedral([(polytopes.hypercube(2), -x)])
