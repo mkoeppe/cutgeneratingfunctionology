@@ -117,7 +117,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
                 shift_vectors = rectangular_box_points(list(shift_min), list(shift_max), None)
                 for v in shift_vectors:
                     shift_p = p + v # cannot take intersection here. bug example hildebrand_2_sided_discont_2_slope_1()
-                    if not intersection_of_two_polyhedra(shift_p, box).is_empty():
+                    if not shift_p.intersection(box).is_empty():
                         shift_f = f(tuple(vector(self._polynomial_ring.gens())-v))
                         shift_f = self._polynomial_ring(shift_f)
                         d_p = shift_p.dim()
@@ -137,7 +137,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
                 if check_consistency:
                     for j in range(i, len(pf_list)):
                         pj, fj = pf_list[j]
-                        intersection = intersection_of_two_polyhedra(p, pj)
+                        intersection = p.intersection(pj)
                         d = intersection.dim()
                         if d < 0:
                             continue # empty intersection
@@ -169,10 +169,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
                     else:
                         self._stratification[d] = set([(intersection, f)])
             self._pairs = list(itertools.chain.from_iterable(list(v) for v in self._stratification.values()))
-        if is_continuous is None:
-            is_continuous = self.is_continuous()
-        else:
-            self._is_continuous = is_continuous
+        self._is_continuous = is_continuous
         if is_continuous:
             d = self._pairs[-1][0].dim()
             # delete all pieces defined on lower-dimensional polyhedra.
@@ -213,7 +210,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         """
         return if the function is continuous.
         """
-        if hasattr(self, '_is_continuous'):
+        if not self._is_continuous is None:
             return self._is_continuous
         polyhedra = intersection_of_two_lists_of_polyhedra(self.polyhedra(), self.polyhedra())
         for intersection in polyhedra:
@@ -678,7 +675,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
                     x = QQ(i)/q
                     y = QQ(j)/q
                     g += text(pwl(x,y), (x,y), fontsize=16, color='black', zorder=6, background_color='white')
-        elif show_values_on_vertices and self.is_continuous():
+        elif show_values_on_vertices and not (self.is_continuous() is False) :
             for (p, f) in self.pairs():
                 for v in p.vertices_list():
                     g += text(pwl(v), v, fontsize=16, color='black', zorder=6, background_color='white')         
@@ -891,10 +888,6 @@ def intersection_of_two_lists_of_polyhedra(polyhedra_1, polyhedra_2):
         polyhedra += list(ps)
     return polyhedra
 
-@cached_function
-def intersection_of_two_polyhedra(p1, p2):
-    return p1.intersection(p2)
-
 def affine_map_for_affine_hull(p):
         """
         Return the an affine map x -> A*x+b that maps the affine space of p to the ambient space of p.
@@ -1068,7 +1061,7 @@ def minimality_test_multirow(fn, f=None) :
         sage: minimality_test_multirow(h_vert_strip, f=[1/3,2/3])
         False
         sage: h_diag_strip = fn.affine_linear_embedding(matrix([(1,1)]))
-        sage: minimality_test_multirow(h_diag_strip, f=[1/3,1/3])  # long time. 4 minutes
+        sage: minimality_test_multirow(h_diag_strip, f=[1/3,1/3])
         True
 
         sage: h = hildebrand_discont_3_slope_1()
@@ -1078,7 +1071,7 @@ def minimality_test_multirow(fn, f=None) :
         True
         sage: M = matrix([[0,1/4,1/2],[1/4,1/2,3/4],[1/2,3/4,1]])  # q=3
         sage: fn = PiecewisePolynomial_polyhedral.from_values_on_group_triangulation(M)
-        sage: minimality_test_multirow(fn)  # long time
+        sage: minimality_test_multirow(fn)  # long time # 5 minutes
         True
         sage: PR.<x0,x1>=PolynomialRing(QQ)
         sage: fn = PiecewisePolynomial_polyhedral([(Polyhedron(vertices=[(0,0),(2/3,0),(2/3,2/3),(0,2/3)]), (x0+x1)*3/4), (Polyhedron(vertices=[(1,1),(2/3,1),(2/3,2/3),(1,2/3)]), (2-x0-x1)*3/2), (Polyhedron(vertices=[(1,0),(2/3,0),(2/3,2/3),(1,2/3)]), -3/2*x0 + 3/4*x1 + 3/2), (Polyhedron(vertices=[(0,1),(2/3,1),(2/3,2/3),(0,2/3)]), 3/4*x0 - 3/2*x1 + 3/2)], periodic_extension=True)
