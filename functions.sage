@@ -2539,6 +2539,7 @@ class FunctionalDirectedMove (FastPiecewise):
 
     def plot(self, *args, **kwds):
         kwds = copy(kwds)
+        kwds['aspect_ratio'] = 1.0
         # ignore discontinuity markers in the moves diagram
         kwds['discontinuity_markers'] = False
         return FastPiecewise.plot(self, *args, **kwds)
