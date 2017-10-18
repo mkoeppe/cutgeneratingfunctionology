@@ -4009,7 +4009,12 @@ class DirectedMoveCompositionCompletion:
 
     def results(self):
         return self.move_dict.values(), self.covered_components
-
+    
+    def __repr__(self):
+        if self.is_complete:
+            return "<DirectedMoveCompositionCompletion (complete) with {} directed moves and {} covered components>".format(len(self.move_dict), len(self.covered_components))
+        else:
+            return "<DirectedMoveCompositionCompletion (incomplete, {} rounds) with {} directed moves and {} covered components>".format(self.num_rounds, len(self.move_dict), len(self.covered_components))
 
 def directed_move_composition_completion(fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, max_num_rounds=None, error_if_max_num_rounds_exceeded=True):
     """
