@@ -6,6 +6,7 @@ if '' not in sys.path:
 from igp import *
 from sage.geometry.integral_points import rectangular_box_points
 from sage.geometry.polyhedron.plot import cyclic_sort_vertices_2d
+from sage.geometry.polyhedron.parent import Polyhedra
 
 
 class PiecewisePolynomial_polyhedral(SageObject):
@@ -199,32 +200,37 @@ class PiecewisePolynomial_polyhedral(SageObject):
                 return False
         return True
 
-    def is_continuous(self):
+    def is_continuous(self, is_continuous=None):
         """
         return if the function is continuous.
         """
         if not self._is_continuous is None:
             return self._is_continuous
-        pairs = self.pairs()
-        for i in range(len(pairs)):
-            for j in range(i+1, len(pairs)):
-                (p1, f1) = pairs[i]
-                (p2, f2) = pairs[j]
-                p = p1.intersection(p2)
-                if p.is_empty():
-                    continue
-                d = p.dim()
-                if d == 0:
-                    z = p.vertices()[0]
-                else:
-                    A, b = affine_map_for_affine_hull(p)
-                    z = A * (vector(PolynomialRing(A.base_ring(),d,'z').gens())) + b
-                if f1(*z) != f2(*z):
-                    self._is_continuous = False
-                    return False 
-        self._is_continuous = True
+        if not is_continuous is None:
+            self._is_continuous = is_continuous
+            if is_continuous is False:
+                return False
+        else:
+            pairs = self.pairs()
+            for i in range(len(pairs)):
+                for j in range(i+1, len(pairs)):
+                    (p1, f1) = pairs[i]
+                    (p2, f2) = pairs[j]
+                    p = p1.intersection(p2)
+                    if p.is_empty():
+                        continue
+                    d = p.dim()
+                    if d == 0:
+                        z = p.vertices()[0]
+                    else:
+                        A, b = affine_map_for_affine_hull(p)
+                        z = A * (vector(PolynomialRing(A.base_ring(),d,'z').gens())) + b
+                    if f1(*z) != f2(*z):
+                        self._is_continuous = False
+                        return False 
+            self._is_continuous = True
+        # in the continuous case, delete all pieces defined on lower-dimensional polyhedra.
         d = self._pairs[-1][0].dim()
-        # delete all pieces defined on lower-dimensional polyhedra.
         self._stratification =  {d: self._stratification[d]}
         # caveat: self._stratification is not updated in hz in subadditivity slack delta
         self._pairs = list(self._stratification[d])
@@ -948,11 +954,61 @@ def sublinear_function_from_slopes(slopes):
     d = len(slopes[0])
     PR = PolynomialRing(QQ, d, 'x')
     linear_functions = []
-    p = sage.geometry.polyhedron.parent.Polyhedra(QQ,d).universe()
+    p = Polyhedra(QQ,d).universe()
     for s in slopes:
         f = sum(PR.gens()[i] * s[i] for i in range(d))
         linear_functions.append(PiecewisePolynomial_polyhedral([(p,f)],is_continuous=True, check_consistency=False))
     sublin_function = PiecewisePolynomial_polyhedral.max(*linear_functions)
+    return sublin_function
+
+def sublinear_function_from_polyhedron_and_point(polyhedron, pt):
+    """
+    Construct sublinear function phi given a full-dimensional polyhedron and an interior point f.
+    Notice that the vector f for the group relaxation problem equals to (- pt) mod Z.
+
+    EXAMPLES:
+    [2012-Basu-Cornuejols-Koeppe] Unique Minimal Liftings for Simplicial Polytopes - Figure 1-b::
+
+        sage: polyhedron = Polyhedron(vertices=[(0,0),(0,2),(2,0)])
+        sage: pt = (1/2, 1/2)
+        sage: sublin_function = sublinear_function_from_polyhedron_and_point(polyhedron, pt)
+        sage: sublin_function.plot(polyhedron - vector(pt)) # not tested
+        sage: sublin_function((1-1/2, 1-1/2))
+        1
+        sage: subadd_function = subadditive_function_from_sublinear_function(sublin_function)
+        sage: subadd_function == subadditive_function_from_slopes(subadd_function.limiting_slopes())
+        True
+        sage: subadd_function.plot() #not tested
+        sage: g = subadd_function.plot_projection(show_values_on_vertices=True)
+
+    [2012-Basu-Cornuejols-Koeppe] Unique Minimal Liftings for Simplicial Polytopes - Figure 1-a::
+
+        sage: polyhedron = Polyhedron(vertices=[[-3/13, 21/13], [1 - 4/10, 3], [3/2, 3/4]])
+        sage: pt = (1/2, 2)
+        sage: sublin_function = sublinear_function_from_polyhedron_and_point(polyhedron, pt)
+        sage: subadd_function = subadditive_function_from_sublinear_function(sublin_function)
+    """
+    pt = vector(pt)
+    if not polyhedron.interior_contains(pt):
+        raise ValueError, "The point pt is not in the interior of the polyhedron."
+    d = polyhedron.dim() # == polyhedron.ambient_dim()
+    PR = PolynomialRing(QQ, d, 'x')
+    pairs = []
+    for l in polyhedron.Hrepresentation():
+        rgen=[]; lgen=[];
+        for v in l.incident():
+            if v.is_vertex():
+                rgen.append(vector(v)-pt)
+                vv = v
+            elif v.is_ray():
+                rgen.append(vector(v))
+            else: # v.is_line()
+                lgen.append(vector(v))
+        c = Polyhedron(vertices=[[0]*d], rays=rgen, lines=lgen) # cone
+        dotprod = (vector(vv) - pt) * l[1::]
+        f = sum(PR.gens()[i]*l[i+1]/dotprod for i in range(d))
+        pairs.append((c, f))
+    sublin_function = PiecewisePolynomial_polyhedral(pairs, is_continuous=True, check_consistency=False)
     return sublin_function
 
     
@@ -1032,6 +1088,8 @@ def subadditivity_slack_delta(h):
         sage: delta(1/5, 1/5)
         0
     """
+    if hasattr(h, '_delta'):
+        return h._delta
     n = h.dim()
     Ax = matrix(QQ, n, 2*n, [[1 if j==i else 0 for j in range(2*n)] for i in range(n)])
     Ay = matrix(QQ, n, 2*n,  [[1 if j==i+n else 0 for j in range(2*n)] for i in range(n)])
@@ -1050,6 +1108,7 @@ def subadditivity_slack_delta(h):
     delta = hx + hy - hz  # number of pieces in delta = 2 * (number of pieces in h)^3
     h._periodic_extension = periodic_extension  # avoid repetition. to fix.
     delta._periodic_extension = periodic_extension  # avoid repetition. to fix.
+    h._delta = delta
     return delta
 
 def minimality_test_multirow(fn, f=None) :
@@ -1089,6 +1148,35 @@ def minimality_test_multirow(fn, f=None) :
         sage: fn = PiecewisePolynomial_polyhedral([(Polyhedron(vertices=[(0,0),(2/3,0),(2/3,2/3),(0,2/3)]), (x0+x1)*3/4), (Polyhedron(vertices=[(1,1),(2/3,1),(2/3,2/3),(1,2/3)]), (2-x0-x1)*3/2), (Polyhedron(vertices=[(1,0),(2/3,0),(2/3,2/3),(1,2/3)]), -3/2*x0 + 3/4*x1 + 3/2), (Polyhedron(vertices=[(0,1),(2/3,1),(2/3,2/3),(0,2/3)]), 3/4*x0 - 3/2*x1 + 3/2)], periodic_extension=True)
         sage: minimality_test_multirow(fn)   # same function as before, minimality test is much faster when it has less pieces.
         True
+
+    [2012-Basu-Cornuejols-Koeppe] Unique Minimal Liftings for Simplicial Polytopes - Figure 1-b::
+
+        sage: slopes = [[0, -2], [-2, 0], [1, 1]]
+        sage: subadd_function = subadditive_function_from_slopes(slopes)
+        sage: minimality_test_multirow(subadd_function, f = [1-1/2, 1-1/2]) 
+        True
+        sage: #volume_of_additive_domain(subadd_function)
+        sage: additive_faces = subadd_function._delta.preimage(0)
+        sage: len(additive_faces)
+        69
+        sage: sum(face.volume() for face in additive_faces)
+        731/15552
+
+
+    [2012-Basu-Cornuejols-Koeppe] Unique Minimal Liftings for Simplicial Polytopes - Figure 1-a.
+    Unique minimal lifiting property is not satisfied. See "multirow/lifting_region_yuan.sage",
+    volume_of_lifting_region(polyhedron, pt, True) returns 41/60, which is less than 1.
+
+        sage: polyhedron = Polyhedron(vertices=[[-3/13, 21/13], [1 - 4/10, 3], [3/2, 3/4]])
+        sage: pt = (1/2, 2)
+        sage: sublin_function = sublinear_function_from_polyhedron_and_point(polyhedron, pt)
+        sage: subadd_function = subadditive_function_from_sublinear_function(sublin_function)
+        sage: f = (1/2, 0)
+        sage: minimality_test_multirow(subadd_function, f=f)  #long time # violate the symmetry condition.
+        False
+        sage: delta = subadd_function._delta #long time
+        sage: delta.is_non_negative()  # long time
+        True
     """
     if not fn._periodic_extension:
         logging.info('The function is periodic.')
@@ -1119,11 +1207,7 @@ def minimality_test_multirow(fn, f=None) :
     if not fn(f) == 1:  # quick check, before constructing delta function.
         logging.info('The function does not have value 1 at f.')
         return False
-    if hasattr(fn, '_delta'):
-        delta = fn._delta
-    else:
-        delta = subadditivity_slack_delta(fn)
-        fn._delta = delta
+    delta = subadditivity_slack_delta(fn)
     domain_z_equals_f = Polyhedron(vertices=[[0]*d+f, [1]*d+[x-1 for x in f]]) # should be a line, but PiecewisePolynomial_polyhedral.restricted_to_domain() can only take bounded domain. We construct a line segment and extend it by periodicity.
     delta_restricted = delta.restricted_to_domain(domain_z_equals_f)
     if not delta_restricted.is_constantly_equal_to(0):  # symmetric condition
@@ -1134,3 +1218,21 @@ def minimality_test_multirow(fn, f=None) :
         return False
     logging.info('The function is a minimal function.')
     return True
+
+def volume_of_additive_domain(h):
+    """
+    Return the volume of x * y \in [0,1]^(2d) such that h(x) + h(y) = h((x+y) mod Z^d)
+    For d=1, the result = (merit index of h) / 2.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: fn = gmic()
+        sage: h = piecewise_polynomial_polyhedral_from_fast_piecewise(fn)
+        sage: volume_of_additive_domain(h)
+        17/50
+    """
+    delta = subadditivity_slack_delta(h)
+    additive_faces = delta.preimage(0)
+    result = sum(face.volume() for face in additive_faces)
+    return result
