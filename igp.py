@@ -49,6 +49,7 @@ load(igp_dir + "computer_based_search_naive_dff.sage")
 
 # multirow
 load(igp_dir + "piecewise_functions.sage")
+load(igp_dir + "lifting_region.sage")
 
 import extreme_functions, procedures
 

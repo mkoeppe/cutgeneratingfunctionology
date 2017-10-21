@@ -1164,7 +1164,7 @@ def minimality_test_multirow(fn, f=None) :
 
 
     [2012-Basu-Cornuejols-Koeppe] Unique Minimal Liftings for Simplicial Polytopes - Figure 1-a.
-    Unique minimal lifiting property is not satisfied. See "multirow/lifting_region_yuan.sage",
+    Unique minimal lifiting property is not satisfied. See "lifting_region.sage",
     volume_of_lifting_region(polyhedron, pt, True) returns 41/60, which is less than 1.
 
         sage: polyhedron = Polyhedron(vertices=[[-3/13, 21/13], [1 - 4/10, 3], [3/2, 3/4]])
