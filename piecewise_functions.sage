@@ -460,7 +460,6 @@ class PiecewisePolynomial_polyhedral(SageObject):
         if not arg:
             return result
         return result.max(arg[0], *arg[1::])
-            
 
     def min(self, other, *arg):
         """
@@ -1168,15 +1167,25 @@ def minimality_test_multirow(fn, f=None) :
     volume_of_lifting_region(polyhedron, pt, True) returns 41/60, which is less than 1.
 
         sage: polyhedron = Polyhedron(vertices=[[-3/13, 21/13], [1 - 4/10, 3], [3/2, 3/4]])
-        sage: pt = (1/2, 2)
+        sage: pt = vector((1/2, 2))
         sage: sublin_function = sublinear_function_from_polyhedron_and_point(polyhedron, pt)
         sage: subadd_function = subadditive_function_from_sublinear_function(sublin_function)
-        sage: f = (1/2, 0)
+        sage: f = mod_Zk(-pt)
         sage: minimality_test_multirow(subadd_function, f=f)  #long time # violate the symmetry condition.
         False
         sage: delta = subadd_function._delta #long time
         sage: delta.is_non_negative()  # long time
         True
+
+    3-d example::
+
+        sage: M1 =Polyhedron(vertices=[[0, 0, 0] ,[2, 0, 0],[0, 3, 0],[0, 0, 6]])
+        sage: pt = vector((1/4, 1/2, 3))
+        sage: sublin_function = sublinear_function_from_polyhedron_and_point(M1, pt)
+        sage: subadd_function = subadditive_function_from_sublinear_function(sublin_function)
+        sage: f = mod_Zk(-pt)
+        sage: minimality_test_multirow(subadd_function, f=f) #subadd_function exceeds 1. WHY???
+        False
     """
     if not fn._periodic_extension:
         logging.info('The function is periodic.')
