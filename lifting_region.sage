@@ -161,4 +161,25 @@ def is_volume_affine_in_f(B, num_tests=10):
         if not vector(f+(1,)) * X == vol:
             return False
     return True
-    
+
+def plot_polyhedron_and_f(B,f):
+    d = B.dim()
+    box = B.bounding_box(integral=True)
+    lattices = [tuple(pt) for pt in rectangular_box_points(list(box[0]), list(box[1]), None)]
+    if d < 3:
+        gb = B.plot(alpha=0.5, color='yellow') + point(f, color='red', size=30,zorder=1)
+        gb += points(lattices, color='blue', size=30, zorder=1)
+        #gb.show(figsize=4)
+    elif d == 3:
+        gb = point3d(f, color='red', size=15)
+        gb += B.plot(point=False, line='orange', polygon=False)
+        #gb += sum(p.plot(alpha=0.4, color='red') for p in regions)
+        # workaround. polygon plot forgets about keyword argument opacity. 
+        for facet in B.faces(2):
+            vertices = [list(v) for v in facet.vertices()]
+            face = polygon3d(vertices, color='yellow')
+            face._extra_kwds['opacity'] = 0.5
+            gb += face
+        gb += points(lattices, color='blue', size=15)
+        #gb.show(viewer='threejs')
+    return gb

@@ -91,7 +91,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
                 if f in QQ:
                     polyhedron_function_pairs[i] = (p, self._polynomial_ring(f)) # make it callable
                 else:
-                    raise ValueError, "Not all the functions are defined on the same PolynomialRing."
+                    raise ValueError("Not all the functions are defined on the same PolynomialRing.")
         self._dim = len(self._polynomial_ring.gens())
         self._stratification = {}
         self._periodic_extension = periodic_extension
@@ -157,8 +157,9 @@ class PiecewisePolynomial_polyhedral(SageObject):
                                 found_p = True
                                 break
                         if not found_p:
-                            raise ValueError, "Cannot define the PiecewisePolynomial_polyhedral due to inconsistent polyhedron function pairs"
+                            raise ValueError("Cannot define the PiecewisePolynomial_polyhedral due to inconsistent polyhedron function pairs.")
             self._pairs += pf_list
+        # TODO: Should probably allow other lattices than just Z^k for periodicity.
         if periodic_extension: #represent using cover of [0,1]^k. cannot do half open [0,1)^k
             self._stratification = {}
             for (p, f) in self._pairs:
@@ -251,7 +252,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
     def __add__(self, other):
         """
         Add self and another piecewise function.
-        The sum is a function defined on the intersetion of the domain of self and the domain of other.
+        The sum is a function defined on the intersection of the domain of self and the domain of other.
         """
         if self._periodic_extension != other._periodic_extension:
             raise NotImplementedError
@@ -263,20 +264,24 @@ class PiecewisePolynomial_polyhedral(SageObject):
         for (p, f_self, f_other) in self.intersection_of_domains(other):
             pairs.append((p, f_self + f_other))
         result = PiecewisePolynomial_polyhedral(pairs, is_continuous=is_continuous, check_consistency=False)
-        # We avoided transaltions and checks in construction of PiecewisePolynomial_polyhedral by setting periodic_extension=False.
+        # We avoided translations and checks in construction of PiecewisePolynomial_polyhedral by setting periodic_extension=False.
         # Set it back to self._periodic_extension now.
-        result._periodic_extension = self._periodic_extension 
+        ## Is it perhaps better to provide some extra "check_..." parameters to do this? --mkoeppe
+        ## Will need this when more general periodicity than Z^k is developed.
+        result._periodic_extension = self._periodic_extension
+        result._fundamental_domain = self._fundamental_domain
         return result
 
     def __neg__(self):
         result = PiecewisePolynomial_polyhedral([(p, -f) for (p, f) in self.pairs()], is_continuous=self._is_continuous, check_consistency=False)
         result._periodic_extension = self._periodic_extension
+        result._fundamental_domain = self._fundamental_domain
         return result
 
     def __mul__(self, other):
         """
         Multiply self by a scalar or another piecewise function.
-        The product is a function defined on the intersetion of the domain of self and the domain of other.
+        The product is a function defined on the intersection of the domain of self and the domain of other.
         """
         if self._periodic_extension != other._periodic_extension:
             raise NotImplementedError
@@ -288,6 +293,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
             # assume scalar multiplication
             result = PiecewisePolynomial_polyhedral([(p, other*f) for (p, f) in self.pairs()], is_continuous=is_continuous, check_consistency=False)
             result._periodic_extension = self._periodic_extension
+            result._fundamental_domain = self._fundamental_domain
             return result
         else:
             pairs = []
@@ -295,6 +301,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
                 pairs.append((p, f_self * f_other))
             result = PiecewisePolynomial_polyhedral(pairs, is_continuous=is_continuous, check_consistency=False)
             result._periodic_extension = self._periodic_extension
+            result._fundamental_domain = self._fundamental_domain
             return result
         
     __rmul__ = __mul__
@@ -329,37 +336,37 @@ class PiecewisePolynomial_polyhedral(SageObject):
         for (p, f) in self.pairs():
             if x in p:
                 return f(tuple(x))
-        raise ValueError, "Point x is outside the domain of the function."
+        raise ValueError("Point x is outside the domain of the function.")
 
     def limit(self, x, polyhedron=None):
         """
-        Return the limit of self at x approchaing from the relative interior of polyhedron,
+        Return the limit of self at x approaching from the relative interior of polyhedron,
         where the input polyhedron is contained in the domain of some piece of the function.
         if polyhedron=None, then return the function value at x.
         """
         f = self.which_function(x, polyhedron)
         if (not polyhedron is None) and (not x in polyhedron):
-            raise ValueError, "The given point x is not contained in the polyhedron."
+            raise ValueError("The given point x is not contained in the polyhedron.")
         return f(tuple(x))
 
     def which_function(self, x=None, polyhedron=None):
         """
-        Return the function of the (first) piece whose domain containts x, if polyhedron=None;
-        return the function of the (first) piece whose domain containts polyhedron, otherwise.
+        Return the function of the (first) piece whose domain contains x, if polyhedron=None;
+        return the function of the (first) piece whose domain contains polyhedron, otherwise.
         """
         if (x is not None) and (polyhedron is not None) and (not x in polyhedron):
-            raise ValueError, "Polyhedron does not contain the point x."
+            raise ValueError("Polyhedron does not contain the point x.")
         if not self._periodic_extension:
             if polyhedron is None:
                 for (p, f) in self.pairs():
                     if x in p:
                         return f
-                raise ValueError, "The function is not defined on the point x."
+                raise ValueError("The function is not defined on the point x.")
             else:
                 for (p, f) in self.pairs():
                     if polyhedron._is_subpolyhedron(p):
                         return f
-                raise ValueError, "The given polyhedron is not contained in any of the polyhedra where the function is defined."
+                raise ValueError("The given polyhedron is not contained in any of the polyhedra where the function is defined.")
         else:
             x0 = list(mod_Zk(x))
             z = vector(self._polynomial_ring.gens()) - vector(x) + vector(x0)
@@ -373,7 +380,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
                 for (p, f) in self.pairs():
                     if x0 in p:
                         return self._polynomial_ring(f(tuple(z)))
-                raise ValueError, "The function is not defined on the point x."
+                raise ValueError("The function is not defined on the point x.")
             else:
                 for shift in shifts:
                     polyhedron_shift = (polyhedron - shift).intersection(self._fundamental_domain)
@@ -383,7 +390,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
                 for (p, f) in self.pairs():
                     if polyhedron_shift._is_subpolyhedron(p):
                         return self._polynomial_ring(f(tuple(z)))
-                raise ValueError, "The given polyhedron is not contained in any of the polyhedra where the function is defined."
+                raise ValueError("The given polyhedron is not contained in any of the polyhedra where the function is defined.")
 
     def restricted_to_domain(self, domain):
         """
@@ -437,7 +444,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
              function: -x - y>
         """
         if not (self._is_piecewise_linear and other._is_piecewise_linear):
-            raise NotImplementedError, "Not implemented for non-linear PiecewisePolynomial_polyhedral functions."
+            raise NotImplementedError("Not implemented for non-linear PiecewisePolynomial_polyhedral functions.")
         if self._periodic_extension != other._periodic_extension:
             raise NotImplementedError
         if self._is_continuous and other._is_continuous:
@@ -457,6 +464,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
                 pairs.append((p_max_other, f_other))
         result = PiecewisePolynomial_polyhedral(pairs, is_continuous=is_continuous, check_consistency=False)
         result._periodic_extension = self._periodic_extension
+        result._fundamental_domain = self._fundamental_domain
         if not arg:
             return result
         return result.max(arg[0], *arg[1::])
@@ -476,7 +484,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
              function: -x - y>
         """
         if not (self._is_piecewise_linear and other._is_piecewise_linear):
-            raise NotImplementedError, "Not implemented for non-linear PiecewisePolynomial_polyhedral functions."
+            raise NotImplementedError("Not implemented for non-linear PiecewisePolynomial_polyhedral functions.")
         if self._periodic_extension != other._periodic_extension:
             raise NotImplementedError
         if self._is_continuous and other._is_continuous:
@@ -496,27 +504,32 @@ class PiecewisePolynomial_polyhedral(SageObject):
                 pairs.append((p_min_other, f_other))
         result = PiecewisePolynomial_polyhedral(pairs, is_continuous=is_continuous, check_consistency=False)
         result._periodic_extension = self._periodic_extension
+        result._fundamental_domain = self._fundamental_domain
         if not arg:
             return result
         return result.min(arg[0], *arg[1::])
             
 
-    def plot(self, domain=None, opacity=0.5):
-        """     
+    def plot(self, domain=None, alpha=0.5, projection=False, **kwds):
+        """
         EXAMPLES::
         
             sage: logging.disable(logging.INFO)
             sage: fn = hildebrand_discont_3_slope_1()
             sage: h = piecewise_polynomial_polyhedral_from_fast_piecewise(fn)
             sage: h_diag_strip = h.affine_linear_embedding(matrix([(1,1)]))
-            sage: h_diag_strip.plot() #not tested
+            sage: g = h_diag_strip.plot()
+            sage: show(g, viewer='threejs') #not tested
+            sage: g = plot(h_diag_strip, projection=True, width=1/60)
 
             sage: M = matrix([[0,1/4,1/2],[1/4,1/2,3/4],[1/2,3/4,1]])  # q=3
             sage: h = PiecewisePolynomial_polyhedral.from_values_on_group_triangulation(M) # grid=(1/qZ)^2
-            sage: h.plot() #not tested
+            sage: g = h.plot()
         """
+        if projection is True:
+            return self.plot_projection(domain=domain, **kwds)
         if self.dim() > 2 or not self._is_piecewise_linear:
-            raise NotImplementedError, "plot is not implemented."
+            raise NotImplementedError("plot is not implemented.")
         if domain is None:
             pwl = self
         else:
@@ -529,7 +542,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
             g = Graphics()
             for (p, f) in pwl.pairs()[::-1]:
                 if not p.is_compact():
-                    raise ValueError, "The function has unbounded domain. Please provide the domain for plotting.\nFor example, domain=polytopes.hypercube(%s)" % self.dim()
+                    raise ValueError("The function has unbounded domain. Please provide the domain for plotting.\nFor example, domain=polytopes.hypercube(%s)" % self.dim())
                 if p.dim() == 1:
                     s = tuple(f.monomial_coefficient(xi) for xi in pwl._polynomial_ring.gens())
                     color = slope_color[s]
@@ -547,7 +560,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         g = polygon3d([])
         for (p, f) in pwl.pairs()[::-1]:
             if not p.is_compact():
-                raise ValueError, "The function has unbounded domain. Please provide the domain for plotting.\nFor example, domain=polytopes.hypercube(%s)" % self.dim()
+                raise ValueError("The function has unbounded domain. Please provide the domain for plotting.\nFor example, domain=polytopes.hypercube(%s)" % self.dim())
             s = tuple(f.monomial_coefficient(xi) for xi in pwl._polynomial_ring.gens())
             color = slope_color[s]
             p_vertices = cyclic_sort_vertices_2d(p.vertices())
@@ -555,17 +568,16 @@ class PiecewisePolynomial_polyhedral(SageObject):
             if p.dim() == 2:
                 face = polygon3d(vertices, color=color)
                 # workaround. polygon plot forgets about keyword argument opacity. 
-                face._extra_kwds['opacity'] = opacity
+                face._extra_kwds['opacity'] = alpha
             elif p.dim() == 1:
                 face = line3d(vertices, color=color)
-                #face._extra_kwds['opacity'] = opacity
             else:
                 face = point3d(vertices, color='black')
             g += face
-        show(g, viewer='threejs')
-        # return g
+        # show(g, viewer='threejs')
+        return g
 
-    def plot_projection(self, domain=None, group_triangulation=False, show_values_on_vertices=False):
+    def plot_projection(self, domain=None, group_triangulation=False, show_values_on_vertices=False, **kwds):
         """     
         EXAMPLES::
         
@@ -594,7 +606,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
             sage: g = h.plot_projection()
         """
         if self.dim() != 2 or not self._is_piecewise_linear:
-            raise NotImplementedError, "plot is not implemented."
+            raise NotImplementedError("plot is not implemented.")
         if domain is None:
             pwl = self
         else:
@@ -606,10 +618,11 @@ class PiecewisePolynomial_polyhedral(SageObject):
         g = Graphics()
         n = len(pwl.pairs())  #pairs are ordered according to the decreasing order on the dim of polyhedral domains.
         colors_on_domains = [None] * n
+        width = kwds.get('width', 1/60) # width of the white strip for discontinuity.
         for i in range(n-1, -1, -1):
             (p, f) = pwl.pairs()[i]
             if not p.is_compact():
-                raise ValueError, "The function has unbounded domain. Please provide the domain for plotting."
+                raise ValueError("The function has unbounded domain. Please provide the domain for plotting.")
             s = tuple(f.monomial_coefficient(xi) for xi in pwl._polynomial_ring.gens())
             color = slope_color[s]
             if p.dim() == 2:
@@ -619,7 +632,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
                 v0 = vector(p.vertices()[0])
                 v1 = vector(p.vertices()[1]) #p is bounded, so dim-1 p is a line segment.
                 l = v1-v0
-                l_orth = vector([-l[1]/RR(l.norm())/60, l[0]/RR(l.norm())/60])
+                l_orth = vector([-l[1]/RR(l.norm()) * width, l[0]/RR(l.norm()) * width])
                 L = Polyhedron(vertices = [v0 + l_orth, v0 - l_orth], lines = [l])
                 discontinuity = False
                 for j in range(n-1, i, -1):
@@ -636,8 +649,8 @@ class PiecewisePolynomial_polyhedral(SageObject):
                 colors_on_domains[i] = color
             else: #p.dim() == 0"
                 v = vector(p.vertices()[0])
-                # C is a disk of radius 1/60 centered at v.
-                C = v + Polyhedron(vertices = [(RR(sin(pi*k/36))/60, RR(cos(pi*k/36))/60) for k in range(73)])
+                # C is a disk of radius width (default =1/60) centered at v.
+                C = v + Polyhedron(vertices = [(RR(sin(pi*k/36)) * width, RR(cos(pi*k/36)) * width) for k in range(73)])
                 discontinuity = False
                 for j in range(n-1, i, -1):
                     (pj, fj) = pwl.pairs()[j]
@@ -680,13 +693,13 @@ class PiecewisePolynomial_polyhedral(SageObject):
         Return the gradients of the affine functions on the full-dim polyhedron whose closure contains x.
         """
         if not self._is_piecewise_linear:
-            raise NotImplementedError, "Not implemented for non-linear PiecewisePolynomial_polyhedral functions."
+            raise NotImplementedError("Not implemented for non-linear PiecewisePolynomial_polyhedral functions.")
         if x is None:
             x = [0] * self.dim()
         if self._periodic_extension:
             x0 = list(mod_Zk(x))
             x_translate = [x0]
-            # compoute the translations of x by Zk.
+            # compute the translations of x by Zk.
             for i in range(self.dim()):
                 if x0[i] == 0:
                     x_translate += [[xt[j] if j != i else 1 for j in range(self.dim())] for xt in x_translate]
@@ -747,7 +760,8 @@ class PiecewisePolynomial_polyhedral(SageObject):
             pairs.append((q, g))
         result = PiecewisePolynomial_polyhedral(pairs, periodic_extension=False, is_continuous=self._is_continuous, check_consistency=False)
         if self._periodic_extension: # FIXME.
-            result = result.restricted_to_domain(Polyhedron(vertices = itertools.product([0, 1], repeat=n)))
+            result._fundamental_domain = Polyhedron(vertices = itertools.product([0, 1], repeat=n))
+            result = result.restricted_to_domain(result._fundamental_domain)
             result._periodic_extension = True
         return result
 
@@ -783,6 +797,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         result = PiecewisePolynomial_polyhedral(pairs, is_continuous=True) #, check_consistency=False)
         result._periodic_extension = True
         result._q = q
+        result._fundamental_domain = Polyhedron(vertices = itertools.product([0, 1], repeat=2))
         return result
 
     def is_non_negative(self):
@@ -796,7 +811,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         Return True if self >= x everywhere.
         """
         if not self._is_piecewise_linear:
-            raise NotImplementedError, "Not implemented for non-linear PiecewisePolynomial_polyhedral functions."
+            raise NotImplementedError("Not implemented for non-linear PiecewisePolynomial_polyhedral functions.")
         for (p, f) in self.pairs():
             if not (all(f(v) >= x for v in p.vertices_list()) and \
                     all(f(r) >= f.constant_coefficient() for r in p.rays_list()) and \
@@ -809,7 +824,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         Return True if self <= x everywhere.
         """
         if not self._is_piecewise_linear:
-            raise NotImplementedError, "Not implemented for non-linear PiecewisePolynomial_polyhedral functions."
+            raise NotImplementedError("Not implemented for non-linear PiecewisePolynomial_polyhedral functions.")
         for (p, f) in self.pairs():
             if not (all(f(v) <= x for v in p.vertices_list()) and \
                     all(f(r) <= f.constant_coefficient() for r in p.rays_list()) and \
@@ -819,10 +834,10 @@ class PiecewisePolynomial_polyhedral(SageObject):
 
     def is_constantly_equal_to(self, x):
         """
-        Return True if self <= x everywhere.
+        Return True if self == x everywhere.
         """
         if not self._is_piecewise_linear:
-            raise NotImplementedError, "Not implemented for non-linear PiecewisePolynomial_polyhedral functions."
+            raise NotImplementedError("Not implemented for non-linear PiecewisePolynomial_polyhedral functions.")
         for (p, f) in self.pairs():
             if not (all(f(v) == x for v in p.vertices_list()) and \
                     all(f(r) == f.constant_coefficient() for r in p.rays_list()) and \
@@ -862,7 +877,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
             1
         """
         if not self._is_piecewise_linear:
-            raise NotImplementedError, "Not implemented for non-linear PiecewisePolynomial_polyhedral functions."
+            raise NotImplementedError("Not implemented for non-linear PiecewisePolynomial_polyhedral functions.")
         result = []
         for i in range(len(self.pairs())-1, -1, -1):
             (p, f) = self.pairs()[i]
@@ -989,7 +1004,7 @@ def sublinear_function_from_polyhedron_and_point(polyhedron, pt):
     """
     pt = vector(pt)
     if not polyhedron.interior_contains(pt):
-        raise ValueError, "The point pt is not in the interior of the polyhedron."
+        raise ValueError("The point pt is not in the interior of the polyhedron.")
     d = polyhedron.dim() # == polyhedron.ambient_dim()
     PR = PolynomialRing(QQ, d, 'x')
     pairs = []
@@ -1022,6 +1037,7 @@ def subadditive_function_from_sublinear_function(sublin_function):
         sage: subadd_function(10,10) == subadd_function(0,0)
         True
     """
+    # BUG!
     subadd = PiecewisePolynomial_polyhedral.min(*(sublin_function.translation(t) \
                                                   for t in itertools.product([0, 1], repeat=sublin_function.dim())))
     subadd_function = subadd.restricted_to_domain(Polyhedron(vertices = itertools.product([0, 1], repeat=sublin_function.dim())))
@@ -1206,7 +1222,7 @@ def minimality_test_multirow(fn, f=None) :
         else:
             preimage_one = fn.preimage(1)
             if not preimage_one:
-                raise ValueError, "The function does not have value one."
+                raise ValueError("The function does not have value one.")
             f = list(preimage_one[0].vertices()[0])
             if len(preimage_one) > 1 or len(preimage_one[0].Vrepresentation()) > 1:
                 logging.warn("There is more than one point where the function takes the value 1; using f = %s.  Provide parameter f to minimality_test or extremality_test if you want a different f." % f)
