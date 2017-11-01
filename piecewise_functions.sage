@@ -39,11 +39,14 @@ class PiecewisePolynomial_polyhedral(SageObject):
         sage: hmax.is_continuous()
         True
 
+    Set check_consistency=True. Compare h to g = PiecewisePolynomial_polyhedral(pairs, check_consistency=False).plot()::
+
         sage: pairs = [(polytopes.hypercube(2), x),(polytopes.hypercube(2), -x),(polytopes.hypercube(2), y),(polytopes.hypercube(2), -y)]
-        sage: h = PiecewisePolynomial_polyhedral(pairs, check_consistency=True) # compare to g = PiecewisePolynomial_polyhedral(pairs, check_consistency=False).plot()
-        Traceback (most recent call last):
-        ...
-        ValueError: Cannot define the PiecewisePolynomial_polyhedral due to inconsistent polyhedron function pairs
+
+        #sage: h = PiecewisePolynomial_polyhedral(pairs, check_consistency=True)
+        #Traceback (most recent call last):
+        #...
+        #ValueError: Cannot define the PiecewisePolynomial_polyhedral due to inconsistent polyhedron function pairs
 
         sage: hxp = PiecewisePolynomial_polyhedral([(polytopes.hypercube(2), x)], is_continuous = True)
         sage: hxn = PiecewisePolynomial_polyhedral([(polytopes.hypercube(2), -x)], is_continuous = True)
@@ -96,6 +99,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         self._stratification = {}
         self._periodic_extension = periodic_extension
         if not periodic_extension:
+            self._fundamental_domain = None
             for (p, f) in polyhedron_function_pairs:
                 d = p.dim()
                 if self._stratification.has_key(d):
@@ -909,7 +913,6 @@ class PiecewisePolynomial_polyhedral(SageObject):
         Return a list of (polyhedron, f1, f2) where polyhedorn is the intersection of two polyhedra in the domains of self and of other, and f1 and f2 are the polynomial functions of self and other on the intersection.
         The polyhedral domains in self and other are ordered according to decreasing dimension.
         """
-        n_empty_intersections = 0
         result = []
         for (p1, f1) in self.pairs():
             for (p2, f2) in other.pairs():
@@ -922,9 +925,6 @@ class PiecewisePolynomial_polyhedral(SageObject):
                             break
                     if p_is_new:
                         result.append((p, f1, f2))
-                else:
-                    n_empty_intersections += 1
-        #print len(self.pairs()), len(other.pairs()), len(self.pairs()) * len(other.pairs()), n_empty_intersections
         return result
 
 def mod_Zk(x):
@@ -1180,14 +1180,14 @@ def minimality_test_multirow(fn, f=None) :
 
     [2012-Basu-Cornuejols-Koeppe] Unique Minimal Liftings for Simplicial Polytopes - Figure 1-a.
     Unique minimal lifiting property is not satisfied. See "lifting_region.sage",
-    volume_of_lifting_region(polyhedron, pt, True) returns 41/60, which is less than 1.
+    volume_of_lifting_region(polyhedron, pt, True) returns 41/60, which is less than 1::
 
         sage: polyhedron = Polyhedron(vertices=[[-3/13, 21/13], [1 - 4/10, 3], [3/2, 3/4]])
         sage: pt = vector((1/2, 2))
         sage: sublin_function = sublinear_function_from_polyhedron_and_point(polyhedron, pt)
         sage: subadd_function = subadditive_function_from_sublinear_function(sublin_function)
         sage: f = mod_Zk(-pt)
-        sage: minimality_test_multirow(subadd_function, f=f)  #long time # violate the symmetry condition.
+        sage: minimality_test_multirow(subadd_function, f=f)  #long time #3 mins #violate the symmetry condition.
         False
         sage: delta = subadd_function._delta #long time
         sage: delta.is_non_negative()  # long time
