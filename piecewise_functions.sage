@@ -967,12 +967,12 @@ def sublinear_function_from_slopes(slopes):
     """
     d = len(slopes[0])
     PR = PolynomialRing(QQ, d, 'x')
-    linear_functions = []
-    p = Polyhedra(QQ,d).universe()
+    pairs = []
     for s in slopes:
         f = sum(PR.gens()[i] * s[i] for i in range(d))
-        linear_functions.append(PiecewisePolynomial_polyhedral([(p,f)],is_continuous=True, check_consistency=False))
-    sublin_function = PiecewisePolynomial_polyhedral.max(*linear_functions)
+        p = Polyhedron(ieqs=[[0]+[s[i]-r[i] for i in range(d)] for r in slopes if s != r])
+        pairs.append((p,f))
+    sublin_function = PiecewisePolynomial_polyhedral(pairs, is_continuous=True, check_consistency=False)
     return sublin_function
 
 def sublinear_function_from_polyhedron_and_point(polyhedron, pt):
