@@ -1037,13 +1037,38 @@ def subadditive_function_from_sublinear_function(sublin_function):
         sage: subadd_function(10,10) == subadd_function(0,0)
         True
     """
-    # BUG!
-    subadd = PiecewisePolynomial_polyhedral.min(*(sublin_function.translation(t) \
-                                                  for t in itertools.product([0, 1], repeat=sublin_function.dim())))
-    subadd_function = subadd.restricted_to_domain(Polyhedron(vertices = itertools.product([0, 1], repeat=sublin_function.dim())))
+    d = sublin_function.dim()
+    box = Polyhedron(vertices = itertools.product([0, 1], repeat=d))
+    subadd_function = PiecewisePolynomial_polyhedral.min(*(sublin_function.translation(t).restricted_to_domain(box) for t in itertools.product([0, 1], repeat=d)))
+    # was a bug. if domain is thin, it is not enough to only translate to vertices of 0-1 cube.
+    for (p, f) in sublin_function.pairs():
+        f_coef = [f.monomial_coefficient(f.parent().gens()[i]) for i in range(d)]
+        ip = MixedIntegerLinearProgram(maximization=True) #, solver='ppl')
+        x = ip.new_variable(integer=True)
+        ip.set_objective(sum(x[i] * f_coef[i] for i in range(d)))
+        for l in p.Hrepresentation():
+            for v in box.vertices_list():
+                ip.add_constraint(sum((x[i]-v[i]) * l[i+1] for i in range(d)) + l[0], max=0)
+        opt_value = ip.solve()
+        opt_value = QQ(opt_value)
+        opt_solution = tuple(QQ(ip.get_values(x[i])) for i in range(d))
+        half_space = Polyhedron(ieqs=[[-opt_value]+ f_coef])
+        region = (box + (-p)).intersection(half_space)
+        translations = [t for t in region.integral_points() if region.interior_contains(t)]+[opt_solution]
+        for t in translations:
+            intersection = box.intersection(p + vector(t))
+            vertices = set(tuple(v) for v in intersection.vertices())
+            for pp in subadd_function.polyhedra():
+                for v in pp.vertices():
+                    if intersection.contains(v):
+                        vertices.add(tuple(v))
+            for v in vertices:
+                if subadd_function(v) > f(v) - f(list(t)):
+                    subadd_function = subadd_function.min(sublin_function.translation(t).restricted_to_domain(box))
+                    break
     subadd_function._periodic_extension = True
+    subadd_function._fundamental_domain = box
     return subadd_function
-
 
 def subadditive_function_from_slopes(slopes):
     """
@@ -1198,10 +1223,10 @@ def minimality_test_multirow(fn, f=None) :
         sage: M1 =Polyhedron(vertices=[[0, 0, 0] ,[2, 0, 0],[0, 3, 0],[0, 0, 6]])
         sage: pt = vector((1/4, 1/2, 3))
         sage: sublin_function = sublinear_function_from_polyhedron_and_point(M1, pt)
-        sage: subadd_function = subadditive_function_from_sublinear_function(sublin_function)
+        sage: subadd_function = subadditive_function_from_sublinear_function(sublin_function) # long time
         sage: f = mod_Zk(-pt)
-        sage: minimality_test_multirow(subadd_function, f=f) #subadd_function exceeds 1. WHY???
-        False
+        sage: minimality_test_multirow(subadd_function, f=f) # long time
+        True
     """
     if not fn._periodic_extension:
         logging.info('The function is periodic.')
