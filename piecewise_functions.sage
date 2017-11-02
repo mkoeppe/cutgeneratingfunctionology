@@ -919,10 +919,15 @@ class PiecewisePolynomial_polyhedral(SageObject):
                 p = p1.intersection(p2)
                 if not p.is_empty():
                     p_is_new = True
-                    for i in range(len(result)):
-                        if p._is_subpolyhedron(result[i][0]):
-                            p_is_new = False
-                            break
+                    if self._is_continuous and other._is_continuous:
+                        if p.dim() < self.dim():
+                            continue
+                    else:
+                        # slow! but needed for discontinuous function.
+                        for i in range(len(result)):
+                            if p._is_subpolyhedron(result[i][0]):
+                                p_is_new = False
+                                break
                     if p_is_new:
                         result.append((p, f1, f2))
         return result
@@ -1225,7 +1230,7 @@ def minimality_test_multirow(fn, f=None) :
         sage: sublin_function = sublinear_function_from_polyhedron_and_point(M1, pt)
         sage: subadd_function = subadditive_function_from_sublinear_function(sublin_function) # long time
         sage: f = mod_Zk(-pt)
-        sage: minimality_test_multirow(subadd_function, f=f) # long time
+        sage: minimality_test_multirow(subadd_function, f=f) # long time # never terminates.
         True
     """
     if not fn._periodic_extension:
@@ -1257,6 +1262,8 @@ def minimality_test_multirow(fn, f=None) :
     if not fn(f) == 1:  # quick check, before constructing delta function.
         logging.info('The function does not have value 1 at f.')
         return False
+    # number of pieces in delta = 2 * (number of pieces in fn)^3!
+    # using the unit hypercube as fundamental domain, for M1 in 3d, 2*93^3=1608714 pieces in delta. 
     delta = subadditivity_slack_delta(fn)
     domain_z_equals_f = Polyhedron(vertices=[[0]*d+f, [1]*d+[x-1 for x in f]]) # should be a line, but PiecewisePolynomial_polyhedral.restricted_to_domain() can only take bounded domain. We construct a line segment and extend it by periodicity.
     delta_restricted = delta.restricted_to_domain(domain_z_equals_f)
