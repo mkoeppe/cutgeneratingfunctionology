@@ -79,13 +79,15 @@ def generate_extreme_lifted_function_equiv(fn, show_plots=False, L=[], use_polyh
 #         return False
 #     return True
 
-def generate_perturbation_on_perturbation_components(fn, perturbation_components=None, use_polyhedron=True, n=1):
+def generate_perturbation_on_perturbation_components(fn, perturbation_components=None, use_polyhedron=True, repeat=None):
     if perturbation_components is None:
         find_decomposition_into_stability_intervals_with_completion(fn)
         if not fn._stability_orbits:
             return
         perturbation_components = fn._stability_orbits
     num_perturbation_components = len(perturbation_components)
+    if repeat is None:
+        repeat = [1] * num_perturbation_components
     gen_lim_slopes = generate_lim_slopes_on_perturbation_components(fn, perturbation_components=perturbation_components, solver=None, use_polyhedron=use_polyhedron)
     for lim_slope in gen_lim_slopes:
         perturbation = zero_perturbation_partial_function([[(0,1)]],[]) #piecewise_function_from_breakpoints_and_values([0,1],[0,0])
@@ -117,9 +119,9 @@ def generate_perturbation_on_perturbation_components(fn, perturbation_components
             global perturbation_template_values
             perturbation_template_bkpts = []
             perturbation_template_values = []
-            for i in range(n):
-                perturbation_template_bkpts += [i/n+x/n for x in perturbation_template_bkpts_once]
-                perturbation_template_values += [x/n for x in perturbation_template_values_once]
+            for j in range(repeat[i]):
+                perturbation_template_bkpts += [j/repeat[i]+x/repeat[i] for x in perturbation_template_bkpts_once]
+                perturbation_template_values += [x/repeat[i] for x in perturbation_template_values_once]
             perturbation_template_bkpts += [1]
             perturbation_template_values += [0]
             #igp.perturbation_template_bkpts = perturbation_template_bkpts  # for debug
