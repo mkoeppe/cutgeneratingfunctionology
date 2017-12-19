@@ -210,3 +210,123 @@ def perturbation_lim_slopes_mip(fn, perturbation_components=None, solver=None):
             #print (x,y,z), (xeps,yeps,zeps), deltafn + deltap
             mip.add_constraint(deltafn + deltap >= 0)
     return mip
+
+def perturbation_interior_slopes_bounds(fn, perturbation_components=None):
+    if perturbation_components is None:
+        find_decomposition_into_stability_intervals_with_completion(fn)
+        perturbation_components = fn._stability_orbits
+    num_perturbation_components = len(perturbation_components)
+    PR = PolynomialRing(QQ, 's', 2*num_perturbation_components)
+    pert_lim_slopes = {1:{}, -1:{}, 0:{}}
+    for i in range(num_perturbation_components):
+        orbit = perturbation_components[i][0]
+        walk_dict = perturbation_components[i][1]
+        sa = PR.gens()[2*i]
+        sb = PR.gens()[2*i+1]
+        for interval in orbit:
+            seed = (interval.a + interval.b) / 2
+            sign = walk_dict[seed][0]
+            if sign == 1:
+                pert_lim_slopes[1][interval.a] = sa
+                pert_lim_slopes[-1][interval.b] = sb
+            else:
+                pert_lim_slopes[1][interval.a] = sb
+                pert_lim_slopes[-1][interval.b] = sa
+    bkpt = uniq(fn.end_points()+pert_lim_slopes[1].keys()+pert_lim_slopes[-1].keys())
+    bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt]
+    slope2 = [(fn(fractional(bkpt2[i+1])) - fn(fractional(bkpt2[i]))) / (bkpt2[i+1] - bkpt2[i]) for i in range(len(bkpt2)-1)]
+    fn_lim_slopes = {1:{}, -1:{}, 0:{}}
+    type_1_vertices = ((x, y, x+y) for x in bkpt[:-1] for y in bkpt[:-1] if x <= y)
+    type_2_vertices = ((x, z-x, z) for x in bkpt[:-1] for z in bkpt2[:-1] if x < z < 1+x)
+    additive_vertices = unique_list((x,y,fractional(z)) for (x,y,z) in itertools.chain(type_1_vertices,type_2_vertices) if delta_pi(fn,x,y)==0)
+    for (x, y, z) in additive_vertices:
+        for w in [x,y,z]:
+            if w in fn_lim_slopes[-1]:
+                continue
+            i = bisect_left(bkpt, w)
+            if bkpt[i] != w:
+                fn_lim_slopes[-1][w] = fn_lim_slopes[1][w] = slope2[i-1]
+            else:
+                fn_lim_slopes[-1][w] = slope2[i-1]
+                fn_lim_slopes[1][w] = slope2[i]
+    upper_bounds = []
+    lower_bounds = []
+    # additive edges
+    for i in range(num_perturbation_components):
+        ith_upper_bound = set([])
+        ith_lower_bound = set([])
+        walk_dict = perturbation_components[i][1]
+        for x in walk_dict.keys():
+            #sign = walk_dict[x][0]
+            fn_slope = slope2[bisect_left(bkpt, x)-1]
+            # horizontal additive edge in vertical stripe
+            for y in bkpt[:-1]:
+                if delta_pi(fn,x,y) == 0:
+                    ith_upper_bound.add(PR(pert_lim_slopes[1].get(y, 0)+fn_lim_slopes[1].get(y, 0) - fn_slope))
+                    ith_lower_bound.add(PR(pert_lim_slopes[-1].get(y, 0)+fn_lim_slopes[-1].get(y, 0) - fn_slope))
+            # diagonal additive edge in vertical stripe
+            for z in bkpt[:-1]:
+                y = fractional(z-x)
+                if delta_pi(fn,x,y) == 0:
+                    ith_lower_bound.add(PR(pert_lim_slopes[1].get(z, 0)+fn_lim_slopes[1].get(z, 0) - fn_slope))
+                    ith_upper_bound.add(PR(pert_lim_slopes[-1].get(z, 0)+fn_lim_slopes[-1].get(z, 0) - fn_slope))
+        lower_bounds.append(ith_lower_bound)
+        upper_bounds.append(ith_upper_bound)
+    return lower_bounds, upper_bounds
+
+def generate_lim_and_interior_slopes_on_perturbation_components(fn, perturbation_components=None, solver=None, use_polyhedron=True):
+    mip = perturbation_lim_slopes_mip(fn, perturbation_components=perturbation_components, solver=solver)
+    lower_bounds, upper_bounds = perturbation_interior_slopes_bounds(fn, perturbation_components=perturbation_components)
+    if use_polyhedron:
+        vertices = mip.polyhedron().vertices()
+    else:
+        vertices = generate_random_mip_sol(mip)
+    for vertex in vertices:
+        lim_slopes = tuple(vertex)
+        good_lim_slopes = True
+        min_slopes = []
+        max_slopes = []
+        for i in range(len(lim_slopes)/2):
+            ith_slope_min = max(bound(lim_slopes) for bound in lower_bounds[i])
+            ith_slope_max = min(bound(lim_slopes) for bound in upper_bounds[i])
+            if ith_slope_min > 0 or ith_slope_max < 0:
+                good_lim_slopes = False
+                break
+            min_slopes.append(ith_slope_min)
+            max_slopes.append(ith_slope_max)
+        if good_lim_slopes:
+            yield lim_slopes, tuple(min_slopes), tuple(max_slopes)
+
+def construct_perturbation_given_slopes_and_lengths(fn, perturbation_components, lim_slope, min_slope, max_slope, lengths):
+    perturbation = zero_perturbation_partial_function([[(0,1)]],[]) #piecewise_function_from_breakpoints_and_values([0,1],[0,0])
+    global perturbation_template_bkpts
+    global perturbation_template_values
+    for i in range(len(perturbation_components)):
+        orbit = perturbation_components[i][0]
+        int = orbit[0]
+        seed = (int.a + int.b) / 2
+        stab_int = closed_or_open_or_halfopen_interval(int.a - seed, int.b - seed, int.left_closed, int.right_closed)
+        walk_dict = perturbation_components[i][1]
+        s_left= lim_slope[2*i]
+        s_right = lim_slope[2*i+1]
+        if s_left > 0:
+            s_a = min_slope[i]
+        else:
+            s_a = max_slope[i]
+        if s_right > 0:
+            s_b = min_slope[i]
+        else:
+            s_b = max_slope[i]
+        x = s_a/(s_a - s_left) * lengths[2*i]
+        y = s_b/(s_b - s_right) * lengths[2*i+1]
+        if lengths[2*i] + lengths[2*i+1] == 1:
+            perturbation_template_bkpts = [0, x, lengths[2*i], 1-y, 1]
+            perturbation_template_values = [0, interval_length(int) * x * s_left, 0, -interval_length(int) * y * s_right, 0]
+        else:
+            perturbation_template_bkpts = [0, x, lengths[2*i], 1-lengths[2*i+1], 1-y, 1]
+            perturbation_template_values = [0, interval_length(int) * x * s_left, 0, 0, -interval_length(int) * y * s_right, 0]
+        #igp.perturbation_template_bkpts = perturbation_template_bkpts  # for debug
+        #igp.perturbation_template_values = perturbation_template_values # for debug
+        pert_i = approx_discts_function(walk_dict, stab_int, function=fn)
+        perturbation = pert_i + perturbation
+    return perturbation
