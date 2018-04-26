@@ -11,7 +11,7 @@ from sage.rings.number_field.number_field import NumberField_absolute, NumberFie
 import sage.rings.number_field.number_field_element
 from sage.rings.number_field.number_field_element import NumberFieldElement_absolute
 
-from sage.structure.sage_object import op_EQ, op_NE, op_LE, op_GE, op_LT
+from sage.structure.richcmp import op_EQ, op_NE, op_LE, op_GE, op_LT
 
 class RealNumberFieldElement(NumberFieldElement_absolute):
 
