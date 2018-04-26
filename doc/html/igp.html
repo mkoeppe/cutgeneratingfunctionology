@@ -1,34 +1,33 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Infinite Group Relaxation Sage Code &mdash; Infinite Group Relaxation Sage Code 1.0+git documentation</title>
-    
+    <title>Infinite Group Relaxation Sage Code &#8212; Infinite Group Relaxation Sage Code 1.0+git documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
         VERSION:     '1.0+git',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="_static/MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js"></script>
-    <link rel="top" title="Infinite Group Relaxation Sage Code 1.0+git documentation" href="index.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Electronic compendium of extreme functions for the Gomory–Johnson model" href="extreme_functions.html" />
     <link rel="prev" title="igp: Infinite Group Relaxation Sage Code" href="index.html" /> 
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -44,7 +43,7 @@
         <li class="right" >
           <a href="index.html" title="igp: Infinite Group Relaxation Sage Code"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Infinite Group Relaxation Sage Code 1.0+git documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Infinite Group Relaxation Sage Code 1.0+git documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -55,7 +54,7 @@
             
   <div class="section" id="infinite-group-relaxation-sage-code">
 <h1>Infinite Group Relaxation Sage Code<a class="headerlink" href="#infinite-group-relaxation-sage-code" title="Permalink to this headline">¶</a></h1>
-<span class="target" id="module-igp"></span><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
+<span class="target" id="module-igp"></span><p>x.__init__(…) initializes x; see help(type(x)) for signature</p>
 <dl class="class">
 <dt id="igp.CrazyPiece">
 <em class="property">class </em><code class="descclassname">igp.</code><code class="descname">CrazyPiece</code><span class="sig-paren">(</span><em>interval</em>, <em>generators=None</em>, <em>cosets=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.CrazyPiece" title="Permalink to this definition">¶</a></dt>
@@ -104,6 +103,11 @@
 <dd><dl class="method">
 <dt id="igp.DirectedMoveCompositionCompletion.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>fdms</em>, <em>covered_components=[]</em>, <em>proj_add_vert=set([])</em>, <em>show_plots=False</em>, <em>plot_background=None</em>, <em>function_at_border=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.DirectedMoveCompositionCompletion.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="igp.DirectedMoveCompositionCompletion.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.DirectedMoveCompositionCompletion.__repr__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -499,6 +503,26 @@ Rather, the result is only defined on the intersection of the domains.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="igp.FastPiecewise.__eq__">
+<code class="descname">__eq__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.FastPiecewise.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="n">FastPiecewise</span><span class="p">([[</span><span class="n">open_interval</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">)]])</span>
+<span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span>  <span class="n">FastPiecewise</span><span class="p">([[</span><span class="n">open_interval</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">)],</span> <span class="p">[</span><span class="n">right_open_interval</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">)]],</span> <span class="n">merge</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">==</span> <span class="n">g</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">g</span> <span class="o">==</span> <span class="n">f</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">bkpt</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span> <span class="mi">7</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="gp">sage: </span><span class="n">limits</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">)]</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">piecewise_function_from_breakpoints_and_limits</span><span class="p">(</span><span class="n">bkpt</span><span class="p">,</span> <span class="n">limits</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">==</span> <span class="n">hildebrand_discont_3_slope_1</span><span class="p">()</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
 <dt id="igp.FastPiecewise.__hash__">
 <code class="descname">__hash__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.FastPiecewise.__hash__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -892,6 +916,34 @@ from a list of domain intervals and the functional directed move.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="igp.FunctionalDirectedMove.__invert__">
+<code class="descname">__invert__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.FunctionalDirectedMove.__invert__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the (pseudo-)inverse of <code class="docutils literal"><span class="pre">self</span></code>.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">FunctionalDirectedMove</span><span class="p">([[</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">]],</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">))</span>
+<span class="gp">sage: </span><span class="o">~</span><span class="n">h</span>
+<span class="go">&lt;FunctionalDirectedMove (1, -1/5) with domain [(4/5, 1)], range [&lt;Int[3/5, 4/5]&gt;]&gt;</span>
+<span class="gp">sage: </span><span class="o">~~</span><span class="n">h</span> <span class="o">==</span> <span class="n">h</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">FunctionalDirectedMove</span><span class="p">([[</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">]],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="gp">sage: </span><span class="o">~</span><span class="n">h</span> <span class="o">==</span> <span class="n">h</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.FunctionalDirectedMove.__mul__">
+<code class="descname">__mul__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.FunctionalDirectedMove.__mul__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the directed move that corresponds to the directed move <code class="docutils literal"><span class="pre">self</span></code> after <code class="docutils literal"><span class="pre">other</span></code>.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">FunctionalDirectedMove</span><span class="p">([(</span><span class="mi">5</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span><span class="mi">7</span><span class="o">/</span><span class="mi">10</span><span class="p">)],(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">/</span><span class="mi">10</span><span class="p">))</span> <span class="o">*</span> <span class="n">FunctionalDirectedMove</span><span class="p">([(</span><span class="mi">2</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span><span class="mi">4</span><span class="o">/</span><span class="mi">10</span><span class="p">)],(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="o">/</span><span class="mi">10</span><span class="p">))</span>
+<span class="go">&lt;FunctionalDirectedMove (1, 2/5) with domain [(3/10, 2/5)], range [&lt;Int[7/10, 4/5]&gt;]&gt;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
 <dt id="igp.FunctionalDirectedMove.__repr__">
 <code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.FunctionalDirectedMove.__repr__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1049,54 +1101,20 @@ Return a new move that is the restriction of domain and codomain of self to inte
 <dl class="method">
 <dt id="igp.PiecewiseCrazyFunction.__call__">
 <code class="descname">__call__</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewiseCrazyFunction.__call__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Utility class that is used by <code class="xref py py-class docutils literal"><span class="pre">CachedMethod</span></code> to bind a
-cached method to an instance.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Since <a class="reference external" href="http://trac.sagemath.org/11115">trac ticket #11115</a>, there is a special implementation
-<code class="xref py py-class docutils literal"><span class="pre">CachedMethodCallerNoArgs</span></code> for methods that do not take
-arguments.</p>
-</div>
-<p>EXAMPLES:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="k">class</span> <span class="nc">A</span><span class="p">:</span>
-<span class="go">....:    @cached_method</span>
-<span class="go">....:    def bar(self,x):</span>
-<span class="go">....:        return x^2</span>
-<span class="gp">sage: </span><span class="n">a</span> <span class="o">=</span> <span class="n">A</span><span class="p">()</span>
-<span class="gp">sage: </span><span class="n">a</span><span class="o">.</span><span class="n">bar</span>
-<span class="go">Cached version of &lt;function bar at 0x...&gt;</span>
-<span class="gp">sage: </span><span class="nb">type</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">bar</span><span class="p">)</span>
-<span class="go">&lt;type &#39;sage.misc.cachefunc.CachedMethodCaller&#39;&gt;</span>
-<span class="gp">sage: </span><span class="n">a</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="ow">is</span> <span class="n">a</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="go">True</span>
-</pre></div>
-</div>
-<p>TESTS:</p>
-<p>As of <a class="reference external" href="http://trac.sagemath.org/15692">trac ticket #15692</a> the contents of the cache are not pickled anymore:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">import</span> <span class="nn">__main__</span>
-<span class="gp">sage: </span><span class="n">__main__</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="n">A</span>
-<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">bar</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
-<span class="go">1</span>
-<span class="gp">sage: </span><span class="n">b</span> <span class="o">=</span> <span class="n">loads</span><span class="p">(</span><span class="n">dumps</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
-<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">bar</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
-<span class="go">0</span>
-</pre></div>
-</div>
-<p>The parameter <code class="docutils literal"><span class="pre">do_pickle</span></code> can be used to change this behaviour:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="k">class</span> <span class="nc">A</span><span class="p">:</span>
-<span class="go">....:    @cached_method(do_pickle=True)</span>
-<span class="go">....:    def bar(self,x):</span>
-<span class="go">....:        return x^2</span>
-
-<span class="gp">sage: </span><span class="n">__main__</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="n">A</span>
-<span class="gp">sage: </span><span class="n">a</span> <span class="o">=</span> <span class="n">A</span><span class="p">()</span>
-<span class="gp">sage: </span><span class="n">a</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<dd><p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+<span class="go">....:     def __init__(self, x):</span>
+<span class="go">....:         self._x = x</span>
+<span class="go">....:     @cached_method</span>
+<span class="go">....:     def f(self,*args):</span>
+<span class="go">....:         return self._x^2</span>
+<span class="gp">sage: </span><span class="n">a</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">a</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span>
+<span class="go">{}</span>
+<span class="gp">sage: </span><span class="n">a</span><span class="o">.</span><span class="n">f</span><span class="p">()</span>
 <span class="go">4</span>
-<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">bar</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
-<span class="go">1</span>
-<span class="gp">sage: </span><span class="n">b</span> <span class="o">=</span> <span class="n">loads</span><span class="p">(</span><span class="n">dumps</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
-<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">bar</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
-<span class="go">1</span>
+<span class="gp">sage: </span><span class="n">a</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span>
+<span class="go">{((), ()): 4}</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1166,7 +1184,7 @@ arguments.</p>
 <dd><p>Bases: <a class="reference internal" href="#igp.FastPiecewise" title="igp.FastPiecewise"><code class="xref py py-class docutils literal"><span class="pre">igp.FastPiecewise</span></code></a></p>
 <p>Returns a piecewise quasi-periodic function from a list of (interval, function) pairs.
 Decomposes a piecewise quasi-periodic function into a periodic function and a linear function.</p>
-<p>It is assumed &#8216;interval&#8217; from the first list of (interval, function) pairs is in the form (0,x1) for some x1 &gt; 0.</p>
+<p>It is assumed ‘interval’ from the first list of (interval, function) pairs is in the form (0,x1) for some x1 &gt; 0.</p>
 <dl class="method">
 <dt id="igp.PiecewiseQuasiPeriodic.__call__">
 <code class="descname">__call__</code><span class="sig-paren">(</span><em>x0</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewiseQuasiPeriodic.__call__" title="Permalink to this definition">¶</a></dt>
@@ -1534,8 +1552,8 @@ for the purpose of latexing.</p>
 <dt id="igp.additive_constraint">
 <code class="descclassname">igp.</code><code class="descname">additive_constraint</code><span class="sig-paren">(</span><em>q</em>, <em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.additive_constraint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a cached version of a function, which only recomputes
-values it hasn&#8217;t already computed. A custom name can be
-provided by an optional argument &#8220;name&#8221;.</p>
+values it hasn’t already computed. A custom name can be
+provided by an optional argument “name”.</p>
 <p>If <code class="docutils literal"><span class="pre">f</span></code> is a function, do either <code class="docutils literal"><span class="pre">g</span> <span class="pre">=</span> <span class="pre">CachedFunction(f)</span></code>
 to make a cached version of <code class="docutils literal"><span class="pre">f</span></code>, or put <code class="docutils literal"><span class="pre">&#64;CachedFunction</span></code>
 right before the definition of <code class="docutils literal"><span class="pre">f</span></code> (i.e., use Python decorators):</p>
@@ -1548,7 +1566,7 @@ right before the definition of <code class="docutils literal"><span class="pre">
 <code class="xref py py-meth docutils literal"><span class="pre">sage.structure.sage_object.SageObject._cache_key()</span></code>.</p>
 <p>TESTS:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">CachedFunction</span><span class="p">(</span><span class="n">number_of_partitions</span><span class="p">)</span>
-<span class="gp">sage: </span><span class="n">g</span><span class="o">.</span><span class="n">__name__</span>
+<span class="gp">sage: </span><span class="n">g</span><span class="o">.</span><span class="vm">__name__</span>
 <span class="go">&#39;number_of_partitions&#39;</span>
 <span class="gp">sage: </span><span class="s1">&#39;partitions&#39;</span> <span class="ow">in</span> <span class="n">sage</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">sageinspect</span><span class="o">.</span><span class="n">sage_getdoc</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
 <span class="go">True</span>
@@ -1632,7 +1650,7 @@ Incremental computation</p>
 <dt id="igp.arithmetic_complexity">
 <code class="descclassname">igp.</code><code class="descname">arithmetic_complexity</code><span class="sig-paren">(</span><em>fn</em>, <em>f=None</em>, <em>q=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.arithmetic_complexity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the arithmetic complexity.</p>
-<p>It is defined as the least common denominator of the values fn(i/q) for i=0,1, ... ,q,
+<p>It is defined as the least common denominator of the values fn(i/q) for i=0,1, … ,q,
 where fn is a piecewise linear function with rational breakpoints in (1/q)Z,
 or a discrete function with its domain contained in (1/q)Z.</p>
 <p>EXAMPLES:</p>
@@ -1648,7 +1666,7 @@ or a discrete function with its domain contained in (1/q)Z.</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -1683,12 +1701,12 @@ the group order.</p>
 <dl class="function">
 <dt id="igp.bccz_counterexample">
 <code class="descclassname">igp.</code><code class="descname">bccz_counterexample</code><span class="sig-paren">(</span><em>f=2/3</em>, <em>q=4</em>, <em>eta=1/1000</em>, <em>maxiter=10000</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.bccz_counterexample" title="Permalink to this definition">¶</a></dt>
-<dd><p>return function psi, a counterexample to Gomory&#8211;Johnson&#8217;s conjecture
-constructed by Basu&#8211;Conforti&#8211;Cornuejols&#8211;Zambelli [IR1].</p>
+<dd><p>return function psi, a counterexample to Gomory–Johnson’s conjecture
+constructed by Basu–Conforti–Cornuejols–Zambelli [IR1].</p>
 <p>psi is a continuous facet (hence extreme), but is not piecewise linear. cf. [IR1]</p>
 <p>It can be considered as an absolutely continuous, measurable, non-piecewise linear
-&#8220;2-slope function&#8221;.  A separate case with different parameters, which gives rise to
-a continuous &#8220;1-slope function&#8221;, is discussed in [KZh2015b, section 5].</p>
+“2-slope function”.  A separate case with different parameters, which gives rise to
+a continuous “1-slope function”, is discussed in [KZh2015b, section 5].</p>
 <p>Parameters:</p>
 <ul class="simple">
 <li>f (real) in (0,1);</li>
@@ -1699,9 +1717,9 @@ a continuous &#8220;1-slope function&#8221;, is discussed in [KZh2015b, section 
 <dl class="docutils">
 <dt>Note:</dt>
 <dd>psi is the uniform limit of the sequence of functions psi_n,
-generated by psi_n_in_bccz_counterexample_construction(f, [e[0], e[1], ..., e[n - 1]]).
+generated by psi_n_in_bccz_counterexample_construction(f, [e[0], e[1], …, e[n - 1]]).
 e is a geometric series with ratio q, such that:
-0 &lt; ... &lt; e[n] &lt;= e[n - 1] &lt;= ... &lt;= e[1] &lt;= e[0] &lt;= 1 - f and sum_{i = 0}^{infty} {2^i * e[i]} &lt;= f.
+0 &lt; … &lt; e[n] &lt;= e[n - 1] &lt;= … &lt;= e[1] &lt;= e[0] &lt;= 1 - f and sum_{i = 0}^{infty} {2^i * e[i]} &lt;= f.
 The first n terms of e are generated by generate_example_e_for_psi_n(f, n, q, eta)</dd>
 </dl>
 <p>See also:</p>
@@ -1732,6 +1750,31 @@ Mathematical Programming Ser. A 133 (2012), 25-38.</li>
 Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 <a class="reference external" href="http://dx.doi.org/10.1016/j.orl.2015.06.004">http://dx.doi.org/10.1016/j.orl.2015.06.004</a></li>
 </ul>
+</dd></dl>
+
+<dl class="class">
+<dt id="igp.bcds_discontinuous_everywhere">
+<em class="property">class </em><code class="descclassname">igp.</code><code class="descname">bcds_discontinuous_everywhere</code><span class="sig-paren">(</span><em>f=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.bcds_discontinuous_everywhere" title="Permalink to this definition">¶</a></dt>
+<dd><p>An extreme function whose graph is dense in R       imes [0,1].</p>
+<dl class="docutils">
+<dt>Reference:</dt>
+<dd>[bcds_discontinous_everywhere] Amitabh Basu, Michele Conforti, Marco Di Summa, An extreme function which is nonnegative and discontinuous everywhere, arXiv:1802.01499 [math.OC]</dd>
+</dl>
+<dl class="method">
+<dt id="igp.bcds_discontinuous_everywhere.__call__">
+<code class="descname">__call__</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.bcds_discontinuous_everywhere.__call__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="igp.bcds_discontinuous_everywhere.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>f=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.bcds_discontinuous_everywhere.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="igp.bcds_discontinuous_everywhere.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>xmin=0</em>, <em>xmax=1</em>, <em>ymin=0</em>, <em>ymax=1</em>, <em>color=None</em>, <em>rgbcolor=None</em>, <em>aspect_ratio='automatic'</em>, <em>thickness=None</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.bcds_discontinuous_everywhere.plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="function">
@@ -1790,7 +1833,7 @@ Constructed by Chun Yu Hong, 2013.</p>
 <dd><dl class="docutils">
 <dt>Summary:</dt>
 <dd><ul class="first last simple">
-<li>Name: Basu-Hildebrand-Koeppe&#8217;s irrational function.</li>
+<li>Name: Basu-Hildebrand-Koeppe’s irrational function.</li>
 <li>Infinite; Dim = 1; Slopes = 3; Continuous;  Covered intervals and equivariant perturbation.</li>
 <li>Discovered [IR2]  p.33, section.5.2, fig.9-10.</li>
 <li>Proven extreme [IR2] p.34, thm.5.3.</li>
@@ -1818,8 +1861,8 @@ Constructed by Chun Yu Hong, 2013.</p>
 </dd>
 <dt>Relation between the code parameters and the paper parameters:</dt>
 <dd><ul class="first last simple">
-<li>t1 = delta[0], t2 = delta[0] + delta[1], ...</li>
-<li>a1 = a0 + t1, a2 = a0 + t2, ...</li>
+<li>t1 = delta[0], t2 = delta[0] + delta[1], …</li>
+<li>a1 = a0 + t1, a2 = a0 + t2, …</li>
 <li>A = f/2 - a0/2 - d2/4,</li>
 <li>A0 = f/2 - a0/2 + d2/4.</li>
 </ul>
@@ -1872,7 +1915,7 @@ Constructed by Chun Yu Hong, 2013.</p>
 </dd>
 <dt>Reference:</dt>
 <dd><dl class="first last docutils">
-<dt>[IR2] A. Basu, R. Hildebrand, and M. Koeppe, Equivariant perturbation in Gomory and Johnson&#8217;s infinite group problem.</dt>
+<dt>[IR2] A. Basu, R. Hildebrand, and M. Koeppe, Equivariant perturbation in Gomory and Johnson’s infinite group problem.</dt>
 <dd><ol class="first last upperroman simple">
 <li>The one-dimensional case, Mathematics of Operations Research (2014), doi:10.1287/moor.2014.0660</li>
 </ol>
@@ -1885,7 +1928,7 @@ Constructed by Chun Yu Hong, 2013.</p>
 <dl class="function">
 <dt id="igp.bhk_irrational_extreme_limit_to_rational_nonextreme">
 <code class="descclassname">igp.</code><code class="descname">bhk_irrational_extreme_limit_to_rational_nonextreme</code><span class="sig-paren">(</span><em>n=+Infinity</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.bhk_irrational_extreme_limit_to_rational_nonextreme" title="Permalink to this definition">¶</a></dt>
-<dd><p>A sequence of <code class="docutils literal"><span class="pre">bhk_irrational</span></code> functions, each extreme, indexed by n = 1, 2, ...
+<dd><p>A sequence of <code class="docutils literal"><span class="pre">bhk_irrational</span></code> functions, each extreme, indexed by n = 1, 2, …
 whose limit (n = Infinity) is a <code class="docutils literal"><span class="pre">bhk_irrational</span></code> function with rational parameters, 
 and hence not extreme.</p>
 <p>EXAMPLES:</p>
@@ -1952,13 +1995,13 @@ at the borders of 2d diagrams.</p>
 <li>sum(delta) &lt; (f/2 - d2/4 - 3*a0/2) * c1 / (c1-c2);</li>
 <li>5*a0 &gt; 2*(c1-c2)/(c1-c3) * d2 + d2 / 2 + d1.</li>
 <li>d?? &gt; 0</li>
-<li>...</li>
+<li>…</li>
 </ul>
 </dd>
 <dt>Relation between the code parameters and the paper parameters:</dt>
 <dd><ul class="first last simple">
-<li>t1 = delta[0], t2 = delta[0] + delta[1], ...</li>
-<li>a1 = a0 + t1, a2 = a0 + t2, ...</li>
+<li>t1 = delta[0], t2 = delta[0] + delta[1], …</li>
+<li>a1 = a0 + t1, a2 = a0 + t2, …</li>
 <li>A = f/2 - a0/2 - d2/4,</li>
 <li>A0 = f/2 - a0/2 + d2/4.</li>
 </ul>
@@ -1968,8 +2011,8 @@ at the borders of 2d diagrams.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">bhk_slant_irrational</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d1</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d2</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="n">a0</span><span class="o">=</span><span class="mi">15</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">200</span><span class="p">),</span> <span class="n">c2</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">16</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">h2</span> <span class="o">=</span> <span class="n">bhk_gmi_irrational</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d1</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d2</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="n">a0</span><span class="o">=</span><span class="mi">15</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">200</span><span class="p">),</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">95</span><span class="o">/</span><span class="mi">100</span><span class="p">)</span>
-<span class="gp">sage: </span><span class="p">(</span><span class="n">h</span> <span class="o">-</span> <span class="n">h2</span><span class="p">)</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
-<span class="go">[[(0, 1), &lt;FastLinearFunction 0&gt;]]</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">==</span> <span class="n">h2</span>
+<span class="go">True</span>
 </pre></div>
 </div>
 <p>Bug example (function is not minimal):</p>
@@ -2044,7 +2087,7 @@ Not used, because we want to add covered intervals back to the domains of moves 
 
 <dl class="function">
 <dt id="igp.check_move_on_crazy_pieces">
-<code class="descclassname">igp.</code><code class="descname">check_move_on_crazy_pieces</code><span class="sig-paren">(</span><em>move_sign</em>, <em>cp1</em>, <em>cp2</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.check_move_on_crazy_pieces" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">igp.</code><code class="descname">check_move_on_crazy_pieces</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.check_move_on_crazy_pieces" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -2149,7 +2192,7 @@ however it violates the subadditivity, and thus is not an extreme function:</p>
 <span class="go">True</span>
 </pre></div>
 </div>
-<p>The following function&#8217;s parameters do not satisfy the requirement, however it is extreme:</p>
+<p>The following function’s parameters do not satisfy the requirement, however it is extreme:</p>
 <div class="last highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">chen_4_slope</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">s_pos</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">s_neg</span><span class="o">=-</span><span class="mi">5</span><span class="p">,</span> <span class="n">lam1</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">lam2</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
@@ -2328,7 +2371,7 @@ pair for a mixed integer problem.</p>
 <dl class="function">
 <dt id="igp.convert_linfun_to_linexp">
 <code class="descclassname">igp.</code><code class="descname">convert_linfun_to_linexp</code><span class="sig-paren">(</span><em>linfun</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.convert_linfun_to_linexp" title="Permalink to this definition">¶</a></dt>
-<dd><p>convert MILP&#8217;s <code class="docutils literal"><span class="pre">Linear_Function</span></code> to PPL&#8217;s <code class="docutils literal"><span class="pre">Linear_Expression</span></code>.</p>
+<dd><p>convert MILP’s <code class="docutils literal"><span class="pre">Linear_Function</span></code> to PPL’s <code class="docutils literal"><span class="pre">Linear_Expression</span></code>.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">pattern_setup_lp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">more_ini_additive</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">objcoef</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">linfun</span> <span class="o">=</span> <span class="n">fn</span><span class="p">[</span><span class="mi">5</span><span class="p">];</span> <span class="n">linfun</span>
@@ -2448,8 +2491,8 @@ or lrs format V-representation (of a polytope) to ppl gs.</p>
 <dt id="igp.delta_expr">
 <code class="descclassname">igp.</code><code class="descname">delta_expr</code><span class="sig-paren">(</span><em>q</em>, <em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.delta_expr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a cached version of a function, which only recomputes
-values it hasn&#8217;t already computed. A custom name can be
-provided by an optional argument &#8220;name&#8221;.</p>
+values it hasn’t already computed. A custom name can be
+provided by an optional argument “name”.</p>
 <p>If <code class="docutils literal"><span class="pre">f</span></code> is a function, do either <code class="docutils literal"><span class="pre">g</span> <span class="pre">=</span> <span class="pre">CachedFunction(f)</span></code>
 to make a cached version of <code class="docutils literal"><span class="pre">f</span></code>, or put <code class="docutils literal"><span class="pre">&#64;CachedFunction</span></code>
 right before the definition of <code class="docutils literal"><span class="pre">f</span></code> (i.e., use Python decorators):</p>
@@ -2462,7 +2505,7 @@ right before the definition of <code class="docutils literal"><span class="pre">
 <code class="xref py py-meth docutils literal"><span class="pre">sage.structure.sage_object.SageObject._cache_key()</span></code>.</p>
 <p>TESTS:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">CachedFunction</span><span class="p">(</span><span class="n">number_of_partitions</span><span class="p">)</span>
-<span class="gp">sage: </span><span class="n">g</span><span class="o">.</span><span class="n">__name__</span>
+<span class="gp">sage: </span><span class="n">g</span><span class="o">.</span><span class="vm">__name__</span>
 <span class="go">&#39;number_of_partitions&#39;</span>
 <span class="gp">sage: </span><span class="s1">&#39;partitions&#39;</span> <span class="ow">in</span> <span class="n">sage</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">sageinspect</span><span class="o">.</span><span class="n">sage_getdoc</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
 <span class="go">True</span>
@@ -2565,7 +2608,7 @@ right before the definition of <code class="docutils literal"><span class="pre">
 <dd><dl class="docutils">
 <dt>Summary:</dt>
 <dd><ul class="first last simple">
-<li>Name: Dash-Gunluk&#8217;s 2-Step MIR;</li>
+<li>Name: Dash-Gunluk’s 2-Step MIR;</li>
 <li>Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;</li>
 <li>Discovered [33]  p.39 def.8, Fig.5;</li>
 <li>Proven extreme (for infinite group) [60] p.377, thm.3.3.</li>
@@ -2633,7 +2676,7 @@ right before the definition of <code class="docutils literal"><span class="pre">
 <dd><p class="first">This is the limit function as alpha in dg_2_step_mir()
 tends (from left) to f/d, where d is integer;
 cf. [33] p.42, lemma 13.</p>
-<p>It&#8217;s a special case of <code class="docutils literal"><span class="pre">drlm_2_slope_limit()</span></code>:</p>
+<p>It’s a special case of <code class="docutils literal"><span class="pre">drlm_2_slope_limit()</span></code>:</p>
 <p class="last"><code class="docutils literal"><span class="pre">dg_2_step_mir_limit(f,</span> <span class="pre">d)</span> <span class="pre">=</span> <span class="pre">multiplicative_homomorphism(drlm_2_slope_limit(f=1-f,</span> <span class="pre">nb_pieces_left=1,</span> <span class="pre">nb_pieces_right=d),</span> <span class="pre">-1)</span></code>.</p>
 </dd>
 </dl>
@@ -2727,7 +2770,7 @@ Consider only directly covered and symmetry reflection regarding f.</p>
 <dd><dl class="docutils">
 <dt>Summary:</dt>
 <dd><ul class="first last simple">
-<li>Name: Dey&#8211;Richard&#8211;Li&#8211;Miller&#8217;s 2-Slope Limit;</li>
+<li>Name: Dey–Richard–Li–Miller’s 2-Slope Limit;</li>
 <li>Infinite; Dim = 1; Slopes = 1; Discontinuous; Group relations method;</li>
 <li>Discovered [40] p.158 def.10;</li>
 <li>Proven extreme [40] p.159 thm.8.</li>
@@ -2780,7 +2823,7 @@ Consider only directly covered and symmetry reflection regarding f.</p>
 <dd><dl class="docutils">
 <dt>Summary:</dt>
 <dd><ul class="first last simple">
-<li>Name: Dey&#8211;Richard&#8211;Li&#8211;Miller&#8217;s 3-Slope Limit;</li>
+<li>Name: Dey–Richard–Li–Miller’s 3-Slope Limit;</li>
 <li>Infinite; Dim = 1; Slopes = 2; Discontinuous; Group relations method;</li>
 <li>Discovered [40] p.161 def.11;</li>
 <li>Proven extreme [40] p.161 thm.9.</li>
@@ -2817,7 +2860,7 @@ Consider only directly covered and symmetry reflection regarding f.</p>
 <dd><dl class="docutils">
 <dt>Summary:</dt>
 <dd><ul class="first last simple">
-<li>Name: Dey&#8211;Richard&#8211;Li&#8211;Miller&#8217;s Backward 3-Slope;</li>
+<li>Name: Dey–Richard–Li–Miller’s Backward 3-Slope;</li>
 <li>Infinite; Dim = 1; Slopes = 3; Continuous; Group relations method;</li>
 <li>Discovered [40] p.154 eq.5;</li>
 <li>Proven [40] p.153 thm.6.</li>
@@ -2842,9 +2885,9 @@ one can prove that the function is extreme without assuming f, bkpt being ration
 </dd>
 <dt>Examples:</dt>
 <dd><ul class="first last">
-<li><p class="first">Finite group &#8211;&gt; Example 3.8 in [8] p.386,</p>
+<li><p class="first">Finite group –&gt; Example 3.8 in [8] p.386,</p>
 </li>
-<li><p class="first">Infinite group &#8211;&gt; Interpolation using Equation 5 from [40] p.154</p>
+<li><p class="first">Infinite group –&gt; Interpolation using Equation 5 from [40] p.154</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">drlm_backward_3_slope</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">12</span><span class="p">,</span> <span class="n">bkpt</span><span class="o">=</span><span class="mi">2</span><span class="o">/</span><span class="mi">12</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
 <span class="go">True</span>
@@ -2940,9 +2983,9 @@ the <code class="docutils literal"><span class="pre">s_positive</span></code> ha
 <code class="descclassname">igp.</code><code class="descname">edges_around_vertex</code><span class="sig-paren">(</span><em>q</em>, <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.edges_around_vertex" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a grid vertex v (assume that v[0] &lt;= v[1], v is not on the border),
 returns a list of elements corresponding to the edges connected to v.
-Each element has the form ({a, b}, v&#8217;). 
-v&#8217; is a grid vertex next to v. 
-If the edge (v, v&#8217;) is green, then segments a and b are connected.</p>
+Each element has the form ({a, b}, v’). 
+v’ is a grid vertex next to v. 
+If the edge (v, v’) is green, then segments a and b are connected.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">edges_around_vertex</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 <span class="go">[({0, 3}, (0, 3)),</span>
@@ -3012,7 +3055,7 @@ If the edge (v, v&#8217;) is green, then segments a and b are connected.</p>
 <dd><p>An effective perturbation function for the two-sided discontinuous function
 <span class="math">\(\pi_2 =\)</span> <code class="docutils literal"><span class="pre">minimal_no_covered_interval()</span></code> that appears in Equiv VII example 7.9.</p>
 <p>This perturbation is bounded, but is not Lipschitz continuous on the interval
-<span class="math">\((0, 1/2)\)</span>. In fact, it is a highly discontinuous &#8220;locally microperiodic&#8221;
+<span class="math">\((0, 1/2)\)</span>. In fact, it is a highly discontinuous “locally microperiodic”
 perturbation, which does not have a limit at any point in <span class="math">\((0, 1/2)\)</span>.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
@@ -3244,6 +3287,12 @@ and their vertices (only those with x &lt;= y) that are around v.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="igp.find_0index">
+<code class="descclassname">igp.</code><code class="descname">find_0index</code><span class="sig-paren">(</span><em>phi</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.find_0index" title="Permalink to this definition">¶</a></dt>
+<dd><p>find the index of 0 in the breakpoints.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="igp.find_decomposition_into_intervals_with_same_moves">
 <code class="descclassname">igp.</code><code class="descname">find_decomposition_into_intervals_with_same_moves</code><span class="sig-paren">(</span><em>functional_directed_moves</em>, <em>zero_perturbation_points=set([])</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.find_decomposition_into_intervals_with_same_moves" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -3284,6 +3333,74 @@ find a small delta that works for lemma 4 [dense-2-slope]</p>
 <span class="gp">sage: </span><span class="n">cp</span> <span class="o">=</span> <span class="n">equiv7_example_2_crazy_perturbation</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">find_epsilon_for_crazy_perturbation</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">cp</span><span class="p">)</span>
 <span class="go">1/6</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="igp.find_epsilon_interval">
+<code class="descclassname">igp.</code><code class="descname">find_epsilon_interval</code><span class="sig-paren">(</span><em>fn</em>, <em>perturb</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.find_epsilon_interval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a cached version of a function, which only recomputes
+values it hasn’t already computed. A custom name can be
+provided by an optional argument “name”.</p>
+<p>If <code class="docutils literal"><span class="pre">f</span></code> is a function, do either <code class="docutils literal"><span class="pre">g</span> <span class="pre">=</span> <span class="pre">CachedFunction(f)</span></code>
+to make a cached version of <code class="docutils literal"><span class="pre">f</span></code>, or put <code class="docutils literal"><span class="pre">&#64;CachedFunction</span></code>
+right before the definition of <code class="docutils literal"><span class="pre">f</span></code> (i.e., use Python decorators):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@CachedFunction</span>
+<span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>
+    <span class="o">....</span>
+</pre></div>
+</div>
+<p>The inputs to the function must be hashable or they must define
+<code class="xref py py-meth docutils literal"><span class="pre">sage.structure.sage_object.SageObject._cache_key()</span></code>.</p>
+<p>TESTS:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">CachedFunction</span><span class="p">(</span><span class="n">number_of_partitions</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">g</span><span class="o">.</span><span class="vm">__name__</span>
+<span class="go">&#39;number_of_partitions&#39;</span>
+<span class="gp">sage: </span><span class="s1">&#39;partitions&#39;</span> <span class="ow">in</span> <span class="n">sage</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">sageinspect</span><span class="o">.</span><span class="n">sage_getdoc</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">g</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="go">7</span>
+<span class="gp">sage: </span><span class="n">g</span><span class="o">.</span><span class="n">cache</span>
+<span class="go">{((5, &#39;default&#39;), ()): 7}</span>
+<span class="gp">sage: </span><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span> <span class="k">print</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">CachedFunction</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">w</span> <span class="o">=</span> <span class="n">walltime</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">h</span><span class="p">();</span> <span class="n">h</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span> <span class="n">h</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">sage: </span><span class="n">walltime</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>By default, the contents of the cache are not pickled:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="nd">@cached_function</span>
+<span class="go">....: def f(n): return None</span>
+<span class="gp">sage: </span><span class="kn">import</span> <span class="nn">__main__</span>
+<span class="gp">sage: </span><span class="n">__main__</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">f</span>
+<span class="gp">sage: </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span> <span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+<span class="go">100</span>
+
+<span class="gp">sage: </span><span class="n">s</span> <span class="o">=</span> <span class="n">dumps</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">f</span><span class="o">.</span><span class="n">clear_cache</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="n">loads</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal"><span class="pre">do_pickle</span></code> is set, then the cache is pickled:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="nd">@cached_function</span><span class="p">(</span><span class="n">do_pickle</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="go">....: def f(n): return None</span>
+<span class="gp">sage: </span><span class="n">__main__</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">f</span>
+<span class="gp">sage: </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span> <span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+<span class="go">100</span>
+
+<span class="gp">sage: </span><span class="n">s</span> <span class="o">=</span> <span class="n">dumps</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">f</span><span class="o">.</span><span class="n">clear_cache</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="n">loads</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+<span class="go">100</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -3569,6 +3686,74 @@ Set <code class="docutils literal"><span class="pre">show_plots=True</span></cod
 </dd></dl>
 
 <dl class="function">
+<dt id="igp.generate_directed_move_composition_completion">
+<code class="descclassname">igp.</code><code class="descname">generate_directed_move_composition_completion</code><span class="sig-paren">(</span><em>fn</em>, <em>show_plots=False</em>, <em>max_num_rounds=None</em>, <em>error_if_max_num_rounds_exceeded=True</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_directed_move_composition_completion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a cached version of a function, which only recomputes
+values it hasn’t already computed. A custom name can be
+provided by an optional argument “name”.</p>
+<p>If <code class="docutils literal"><span class="pre">f</span></code> is a function, do either <code class="docutils literal"><span class="pre">g</span> <span class="pre">=</span> <span class="pre">CachedFunction(f)</span></code>
+to make a cached version of <code class="docutils literal"><span class="pre">f</span></code>, or put <code class="docutils literal"><span class="pre">&#64;CachedFunction</span></code>
+right before the definition of <code class="docutils literal"><span class="pre">f</span></code> (i.e., use Python decorators):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@CachedFunction</span>
+<span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>
+    <span class="o">....</span>
+</pre></div>
+</div>
+<p>The inputs to the function must be hashable or they must define
+<code class="xref py py-meth docutils literal"><span class="pre">sage.structure.sage_object.SageObject._cache_key()</span></code>.</p>
+<p>TESTS:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">CachedFunction</span><span class="p">(</span><span class="n">number_of_partitions</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">g</span><span class="o">.</span><span class="vm">__name__</span>
+<span class="go">&#39;number_of_partitions&#39;</span>
+<span class="gp">sage: </span><span class="s1">&#39;partitions&#39;</span> <span class="ow">in</span> <span class="n">sage</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">sageinspect</span><span class="o">.</span><span class="n">sage_getdoc</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">g</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="go">7</span>
+<span class="gp">sage: </span><span class="n">g</span><span class="o">.</span><span class="n">cache</span>
+<span class="go">{((5, &#39;default&#39;), ()): 7}</span>
+<span class="gp">sage: </span><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span> <span class="k">print</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">CachedFunction</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">w</span> <span class="o">=</span> <span class="n">walltime</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">h</span><span class="p">();</span> <span class="n">h</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span> <span class="n">h</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">sage: </span><span class="n">walltime</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>By default, the contents of the cache are not pickled:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="nd">@cached_function</span>
+<span class="go">....: def f(n): return None</span>
+<span class="gp">sage: </span><span class="kn">import</span> <span class="nn">__main__</span>
+<span class="gp">sage: </span><span class="n">__main__</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">f</span>
+<span class="gp">sage: </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span> <span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+<span class="go">100</span>
+
+<span class="gp">sage: </span><span class="n">s</span> <span class="o">=</span> <span class="n">dumps</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">f</span><span class="o">.</span><span class="n">clear_cache</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="n">loads</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal"><span class="pre">do_pickle</span></code> is set, then the cache is pickled:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="nd">@cached_function</span><span class="p">(</span><span class="n">do_pickle</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="go">....: def f(n): return None</span>
+<span class="gp">sage: </span><span class="n">__main__</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">f</span>
+<span class="gp">sage: </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span> <span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+<span class="go">100</span>
+
+<span class="gp">sage: </span><span class="n">s</span> <span class="o">=</span> <span class="n">dumps</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">f</span><span class="o">.</span><span class="n">clear_cache</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="n">loads</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+<span class="go">100</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="igp.generate_directly_covered_components">
 <code class="descclassname">igp.</code><code class="descname">generate_directly_covered_components</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_directly_covered_components" title="Permalink to this definition">¶</a></dt>
 <dd><p>EXAMPLES:</p>
@@ -3596,8 +3781,8 @@ Set <code class="docutils literal"><span class="pre">show_plots=True</span></cod
 <dt id="igp.generate_example_e_for_psi_n">
 <code class="descclassname">igp.</code><code class="descname">generate_example_e_for_psi_n</code><span class="sig-paren">(</span><em>f=2/3</em>, <em>n=7</em>, <em>q=4</em>, <em>eta=1/1000</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_example_e_for_psi_n" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the first n terms of a geometric series e that satisfies 
-0 &lt; ... &lt; e[n] &lt;= e[n - 1] &lt;= ... &lt;= e[1] &lt;= e[0] &lt;= 1 - f and sum_{i = 0}^{infty} {2^i * e[i]} &lt;= f.</p>
-<p>This can be used in psi_n_in_bccz_counterexample_construction(f, [e[0],...,e[n-1]]), so that the function constructed is extreme.</p>
+0 &lt; … &lt; e[n] &lt;= e[n - 1] &lt;= … &lt;= e[1] &lt;= e[0] &lt;= 1 - f and sum_{i = 0}^{infty} {2^i * e[i]} &lt;= f.</p>
+<p>This can be used in psi_n_in_bccz_counterexample_construction(f, [e[0],…,e[n-1]]), so that the function constructed is extreme.</p>
 <dl class="docutils">
 <dt>Parameters:</dt>
 <dd><ul class="first last simple">
@@ -3626,6 +3811,74 @@ Mathematical Programming Ser. A 133 (2012), 25-38.</li>
 Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 <a class="reference external" href="http://dx.doi.org/10.1016/j.orl.2015.06.004">http://dx.doi.org/10.1016/j.orl.2015.06.004</a></li>
 </ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="igp.generate_functional_directed_moves">
+<code class="descclassname">igp.</code><code class="descname">generate_functional_directed_moves</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_functional_directed_moves" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a cached version of a function, which only recomputes
+values it hasn’t already computed. A custom name can be
+provided by an optional argument “name”.</p>
+<p>If <code class="docutils literal"><span class="pre">f</span></code> is a function, do either <code class="docutils literal"><span class="pre">g</span> <span class="pre">=</span> <span class="pre">CachedFunction(f)</span></code>
+to make a cached version of <code class="docutils literal"><span class="pre">f</span></code>, or put <code class="docutils literal"><span class="pre">&#64;CachedFunction</span></code>
+right before the definition of <code class="docutils literal"><span class="pre">f</span></code> (i.e., use Python decorators):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@CachedFunction</span>
+<span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>
+    <span class="o">....</span>
+</pre></div>
+</div>
+<p>The inputs to the function must be hashable or they must define
+<code class="xref py py-meth docutils literal"><span class="pre">sage.structure.sage_object.SageObject._cache_key()</span></code>.</p>
+<p>TESTS:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">CachedFunction</span><span class="p">(</span><span class="n">number_of_partitions</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">g</span><span class="o">.</span><span class="vm">__name__</span>
+<span class="go">&#39;number_of_partitions&#39;</span>
+<span class="gp">sage: </span><span class="s1">&#39;partitions&#39;</span> <span class="ow">in</span> <span class="n">sage</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">sageinspect</span><span class="o">.</span><span class="n">sage_getdoc</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">g</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="go">7</span>
+<span class="gp">sage: </span><span class="n">g</span><span class="o">.</span><span class="n">cache</span>
+<span class="go">{((5, &#39;default&#39;), ()): 7}</span>
+<span class="gp">sage: </span><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span> <span class="k">print</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">CachedFunction</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">w</span> <span class="o">=</span> <span class="n">walltime</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">h</span><span class="p">();</span> <span class="n">h</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span> <span class="n">h</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">sage: </span><span class="n">walltime</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>By default, the contents of the cache are not pickled:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="nd">@cached_function</span>
+<span class="go">....: def f(n): return None</span>
+<span class="gp">sage: </span><span class="kn">import</span> <span class="nn">__main__</span>
+<span class="gp">sage: </span><span class="n">__main__</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">f</span>
+<span class="gp">sage: </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span> <span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+<span class="go">100</span>
+
+<span class="gp">sage: </span><span class="n">s</span> <span class="o">=</span> <span class="n">dumps</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">f</span><span class="o">.</span><span class="n">clear_cache</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="n">loads</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal"><span class="pre">do_pickle</span></code> is set, then the cache is pickled:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="nd">@cached_function</span><span class="p">(</span><span class="n">do_pickle</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="go">....: def f(n): return None</span>
+<span class="gp">sage: </span><span class="n">__main__</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">f</span>
+<span class="gp">sage: </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span> <span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+<span class="go">100</span>
+
+<span class="gp">sage: </span><span class="n">s</span> <span class="o">=</span> <span class="n">dumps</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">f</span><span class="o">.</span><span class="n">clear_cache</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="n">loads</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+<span class="go">100</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -3755,6 +4008,74 @@ using field (base_ring).</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="igp.generate_nonsubadditive_vertices">
+<code class="descclassname">igp.</code><code class="descname">generate_nonsubadditive_vertices</code><span class="sig-paren">(</span><em>fn</em>, <em>reduced=True</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_nonsubadditive_vertices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a cached version of a function, which only recomputes
+values it hasn’t already computed. A custom name can be
+provided by an optional argument “name”.</p>
+<p>If <code class="docutils literal"><span class="pre">f</span></code> is a function, do either <code class="docutils literal"><span class="pre">g</span> <span class="pre">=</span> <span class="pre">CachedFunction(f)</span></code>
+to make a cached version of <code class="docutils literal"><span class="pre">f</span></code>, or put <code class="docutils literal"><span class="pre">&#64;CachedFunction</span></code>
+right before the definition of <code class="docutils literal"><span class="pre">f</span></code> (i.e., use Python decorators):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@CachedFunction</span>
+<span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>
+    <span class="o">....</span>
+</pre></div>
+</div>
+<p>The inputs to the function must be hashable or they must define
+<code class="xref py py-meth docutils literal"><span class="pre">sage.structure.sage_object.SageObject._cache_key()</span></code>.</p>
+<p>TESTS:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">CachedFunction</span><span class="p">(</span><span class="n">number_of_partitions</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">g</span><span class="o">.</span><span class="vm">__name__</span>
+<span class="go">&#39;number_of_partitions&#39;</span>
+<span class="gp">sage: </span><span class="s1">&#39;partitions&#39;</span> <span class="ow">in</span> <span class="n">sage</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">sageinspect</span><span class="o">.</span><span class="n">sage_getdoc</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">g</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="go">7</span>
+<span class="gp">sage: </span><span class="n">g</span><span class="o">.</span><span class="n">cache</span>
+<span class="go">{((5, &#39;default&#39;), ()): 7}</span>
+<span class="gp">sage: </span><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span> <span class="k">print</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">CachedFunction</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">w</span> <span class="o">=</span> <span class="n">walltime</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">h</span><span class="p">();</span> <span class="n">h</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span> <span class="n">h</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">sage: </span><span class="n">walltime</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>By default, the contents of the cache are not pickled:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="nd">@cached_function</span>
+<span class="go">....: def f(n): return None</span>
+<span class="gp">sage: </span><span class="kn">import</span> <span class="nn">__main__</span>
+<span class="gp">sage: </span><span class="n">__main__</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">f</span>
+<span class="gp">sage: </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span> <span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+<span class="go">100</span>
+
+<span class="gp">sage: </span><span class="n">s</span> <span class="o">=</span> <span class="n">dumps</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">f</span><span class="o">.</span><span class="n">clear_cache</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="n">loads</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal"><span class="pre">do_pickle</span></code> is set, then the cache is pickled:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="nd">@cached_function</span><span class="p">(</span><span class="n">do_pickle</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="go">....: def f(n): return None</span>
+<span class="gp">sage: </span><span class="n">__main__</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">f</span>
+<span class="gp">sage: </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span> <span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+<span class="go">100</span>
+
+<span class="gp">sage: </span><span class="n">s</span> <span class="o">=</span> <span class="n">dumps</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">f</span><span class="o">.</span><span class="n">clear_cache</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="n">loads</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+<span class="go">100</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="igp.generate_nonsuperadditive_vertices">
 <code class="descclassname">igp.</code><code class="descname">generate_nonsuperadditive_vertices</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_nonsuperadditive_vertices" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -3835,7 +4156,7 @@ using field (base_ring).</p>
 <dl class="function">
 <dt id="igp.generate_perturbations_simple">
 <code class="descclassname">igp.</code><code class="descname">generate_perturbations_simple</code><span class="sig-paren">(</span><em>fn</em>, <em>show_plots=False</em>, <em>f=None</em>, <em>oversampling=3</em>, <em>order=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_perturbations_simple" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate (with &#8220;yield&#8221;) perturbations for <code class="docutils literal"><span class="pre">simple_finite_dimensional_extremality_test</span></code>.</p>
+<dd><p>Generate (with “yield”) perturbations for <code class="docutils literal"><span class="pre">simple_finite_dimensional_extremality_test</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -4140,7 +4461,7 @@ of the polytope defined by <code class="docutils literal"><span class="pre">[ieq
 <dd><dl class="docutils">
 <dt>Summary:</dt>
 <dd><ul class="first last simple">
-<li>Name: Gomory&#8211;Johnson&#8217;s 2-Slope;</li>
+<li>Name: Gomory–Johnson’s 2-Slope;</li>
 <li>Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method;</li>
 <li>Discovered [61] p.352, Fig.5, construction 1;</li>
 <li>Proven extreme (infinite group) [60] p.377, thm.3.3; [61] p.352, thm.4; p.354, thm.5.</li>
@@ -4187,7 +4508,7 @@ of the polytope defined by <code class="docutils literal"><span class="pre">[ieq
 <dd><dl class="docutils">
 <dt>Summary:</dt>
 <dd><ul class="first last simple">
-<li>Name: Gomory&#8211;Johnson&#8217;s 2-Slope-repeat;</li>
+<li>Name: Gomory–Johnson’s 2-Slope-repeat;</li>
 <li>Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method;</li>
 <li>Discovered [61] p.354, Fig.7, construction 2;</li>
 <li>Proven extreme (for infinite group) [60] p.377, thm.3.3; [61] p.354, thm.5; p.355, thm.6.</li>
@@ -4231,7 +4552,7 @@ of the polytope defined by <code class="docutils literal"><span class="pre">[ieq
 <dd><dl class="docutils">
 <dt>Summary: </dt>
 <dd><ul class="first last simple">
-<li>Name: Gomory&#8211;Johnson&#8217; Forward 3-Slope;</li>
+<li>Name: Gomory–Johnson’ Forward 3-Slope;</li>
 <li>Infinite (or Finite); Dim = 1; Slopes = 3; Continuous; Analysis of subadditive polytope method;</li>
 <li>Discovered [61] p.359, Construction.3, Fig.8;</li>
 <li>Proven extreme [61] p.359, thm.8.</li>
@@ -4286,12 +4607,8 @@ True</p>
 <span class="gp">sage: </span><span class="n">lp</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">lp</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">lp</span><span class="o">.</span><span class="n">set_objective</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">)</span>
-<span class="gp">sage: </span><span class="n">glpk_simplex_exact_solve</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>
-<span class="go">glp_exact: 3 rows, 2 columns, 6 non-zeros</span>
-<span class="go">GNU MP bignum library is being used</span>
-<span class="go">*     2:   objval =                      2   (0)</span>
-<span class="go">*     2:   objval =                      2   (0)</span>
-<span class="go">OPTIMAL SOLUTION FOUND</span>
+<span class="gp">sage: </span><span class="k">print</span><span class="p">(</span><span class="s2">&quot;glp_exact noise follows in old sage versions&quot;</span><span class="p">);</span> <span class="n">glpk_simplex_exact_solve</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>
+<span class="go">glp_exact...</span>
 <span class="go">2.0</span>
 </pre></div>
 </div>
@@ -4371,7 +4688,7 @@ Not minimal.</p>
 <dl class="function">
 <dt id="igp.group_function_from_superadditive_lifting_function">
 <code class="descclassname">igp.</code><code class="descname">group_function_from_superadditive_lifting_function</code><span class="sig-paren">(</span><em>phi</em>, <em>f=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.group_function_from_superadditive_lifting_function" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a group representation &#8216;fn&#8217; (a subadditive periodic function) from a standard representation &#8216;phi&#8217; (a superadditive quasiperiodic function).</p>
+<dd><p>Convert a group representation ‘fn’ (a subadditive periodic function) from a standard representation ‘phi’ (a superadditive quasiperiodic function).</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
 <span class="gp">sage: </span><span class="n">phi</span> <span class="o">=</span> <span class="n">cpl3_function</span><span class="p">(</span><span class="n">r0</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span> <span class="n">o1</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="n">o2</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">12</span><span class="p">)</span>
@@ -4436,7 +4753,7 @@ sides of the origin but is also extreme.  This one has 2 slopes.</p>
 <dl class="function">
 <dt id="igp.hildebrand_5_slope_22_1">
 <code class="descclassname">igp.</code><code class="descname">hildebrand_5_slope_22_1</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.hildebrand_5_slope_22_1" title="Permalink to this definition">¶</a></dt>
-<dd><p>One of Hildebrand&#8217;s 5-slope functions.</p>
+<dd><p>One of Hildebrand’s 5-slope functions.</p>
 <p>They held the world record regarding the number of slopes until
 functions with more slopes were discovered in 2014.</p>
 <p>From Hildebrand (2013, unpublished).</p>
@@ -4452,7 +4769,7 @@ functions with more slopes were discovered in 2014.</p>
 <dl class="function">
 <dt id="igp.hildebrand_5_slope_24_1">
 <code class="descclassname">igp.</code><code class="descname">hildebrand_5_slope_24_1</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.hildebrand_5_slope_24_1" title="Permalink to this definition">¶</a></dt>
-<dd><p>One of Hildebrand&#8217;s 5-slope functions.</p>
+<dd><p>One of Hildebrand’s 5-slope functions.</p>
 <p>They held the world record regarding the number of slopes until
 functions with more slopes were discovered in 2014.</p>
 <p>From Hildebrand (2013, unpublished).</p>
@@ -4468,7 +4785,7 @@ functions with more slopes were discovered in 2014.</p>
 <dl class="function">
 <dt id="igp.hildebrand_5_slope_28_1">
 <code class="descclassname">igp.</code><code class="descname">hildebrand_5_slope_28_1</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.hildebrand_5_slope_28_1" title="Permalink to this definition">¶</a></dt>
-<dd><p>One of Hildebrand&#8217;s 5-slope functions.</p>
+<dd><p>One of Hildebrand’s 5-slope functions.</p>
 <p>They held the world record regarding the number of slopes until
 functions with more slopes were discovered in 2014.</p>
 <p>From Hildebrand (2013, unpublished).</p>
@@ -4539,7 +4856,7 @@ the feasible region of <span class="math">\((\pi(0), \pi(1/q),\dots, \pi(1))\)</
 <dl class="function">
 <dt id="igp.initial_cs_matrix">
 <code class="descclassname">igp.</code><code class="descname">initial_cs_matrix</code><span class="sig-paren">(</span><em>q</em>, <em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.initial_cs_matrix" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the matrix of the initial equality constraints&#8217; coefficients,
+<dd><p>Returns the matrix of the initial equality constraints’ coefficients,
 for the purpose of estimating the dimension of the polytope in backtracking search.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">initial_cs_matrix</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
@@ -4589,7 +4906,7 @@ corresponding to <span class="math">\(\pi(0) = 0\)</span>, <span class="math">\(
 <dd><p>Set up a <code class="docutils literal"><span class="pre">MixedIntegerLinearProgram()</span></code> with respect to
 the trivial constraints and the subadditivity/additivity constraints
 specified by <span class="math">\(q\)</span>, <span class="math">\(f\)</span> and vertices_color.
-Varibles of the MILP are fn[0], ..., fn[q], and auxiliary variables delta[x, y].</p>
+Varibles of the MILP are fn[0], …, fn[q], and auxiliary variables delta[x, y].</p>
 <dl class="docutils">
 <dt>Global variables:</dt>
 <dd><ul class="first last simple">
@@ -4605,8 +4922,8 @@ Varibles of the MILP are fn[0], ..., fn[q], and auxiliary variables delta[x, y].
 <span class="gp">sage: </span><span class="n">q</span><span class="o">=</span><span class="mi">5</span><span class="p">;</span> <span class="n">f</span><span class="o">=</span><span class="mi">3</span><span class="p">;</span>
 <span class="gp">sage: </span><span class="n">vertices_color</span> <span class="o">=</span> <span class="n">initial_vertices_color</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">f</span><span class="p">);</span>
 <span class="gp">sage: </span><span class="n">initial_mip</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">vertices_color</span><span class="p">)</span>
-<span class="gp">sage: </span><span class="n">igp</span><span class="o">.</span><span class="n">m</span>
-<span class="go">Mixed Integer Program  ( maximization, 16 variables, 10 constraints )</span>
+<span class="gp">sage: </span><span class="n">igp</span><span class="o">.</span><span class="n">m</span><span class="o">.</span><span class="n">number_of_variables</span><span class="p">()</span>
+<span class="go">16</span>
 <span class="gp">sage: </span><span class="n">igp</span><span class="o">.</span><span class="n">delta</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
 <span class="go">x_6</span>
 <span class="gp">sage: </span><span class="n">igp</span><span class="o">.</span><span class="n">var_id</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
@@ -4895,12 +5212,18 @@ which is slow for <code class="docutils literal"><span class="pre">RealNumberFie
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="igp.is_superadditive_almost_strict">
+<code class="descclassname">igp.</code><code class="descname">is_superadditive_almost_strict</code><span class="sig-paren">(</span><em>delta=1/10</em>, <em>s=3/2</em>, <em>inf=5</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.is_superadditive_almost_strict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the special general DFF is almost strictly superadditive, which means that phi(x+y)-phi(x)-phi(y)&gt;t for (x,y) not near three lines: x=0, y=0, x+y=1.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="igp.kf_n_step_mir">
 <code class="descclassname">igp.</code><code class="descname">kf_n_step_mir</code><span class="sig-paren">(</span><em>f=4/5, a=[1, 3/10, 2/25], field=None, conditioncheck=True</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.kf_n_step_mir" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Summary:</dt>
 <dd><ul class="first last simple">
-<li>Name: Kianfar-Fathi&#8217;s n-Step MIR;</li>
+<li>Name: Kianfar-Fathi’s n-Step MIR;</li>
 <li>Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;</li>
 <li>Discovered [74]  p.328, def.3, thm.2;</li>
 <li>Proven extreme (for infinite group) [60] p.377, thm.3.3.</li>
@@ -4916,19 +5239,19 @@ which is slow for <code class="docutils literal"><span class="pre">RealNumberFie
 <dt>Function is known to be extreme under the conditions:</dt>
 <dd><ul class="first last simple">
 <li>0 &lt; a[1] &lt; f &lt; 1 == a[0];</li>
-<li>a[i] &gt; 0, for i = 0, 1, ... , n-1;</li>
-<li>b[i - 1] / a[i] &lt; ceil(b[i - 1] / a[i]) &lt;= a[i - 1] / a[i],  for i = 1, 2, ... , n-1;</li>
+<li>a[i] &gt; 0, for i = 0, 1, … , n-1;</li>
+<li>b[i - 1] / a[i] &lt; ceil(b[i - 1] / a[i]) &lt;= a[i - 1] / a[i],  for i = 1, 2, … , n-1;</li>
 </ul>
 </dd>
 <dt>where,</dt>
 <dd><ul class="first last simple">
 <li>b[0] = f;</li>
-<li>b[i] = b[i - 1] - a[i] * floor(b[i - 1] / a[i]),  for i = 1, 2, ... , n-1.</li>
+<li>b[i] = b[i - 1] - a[i] * floor(b[i - 1] / a[i]),  for i = 1, 2, … , n-1.</li>
 </ul>
 </dd>
 <dt>Note:</dt>
 <dd>if a[i] &gt; b[i-1] for some i, then the kf_n_step_mir function degenerates, i.e.
-kf_n_step_mir(f, [a[0], .. , a[n - 1]]) = kf_n_step_mir(f, [a[0], .. a[i - 1], a[i + 1], ... , a[n - 1]])</dd>
+kf_n_step_mir(f, [a[0], .. , a[n - 1]]) = kf_n_step_mir(f, [a[0], .. a[i - 1], a[i + 1], … , a[n - 1]])</dd>
 </dl>
 <p>Examples: [74] p.333 - p.335, Fig.1 - Fig.6</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
@@ -4969,7 +5292,7 @@ kf_n_step_mir(f, [a[0], .. , a[n - 1]]) = kf_n_step_mir(f, [a[0], .. a[i - 1], a
 <dd><p>A 10-slope extreme function.</p>
 <p>Its two-dimensional polyhedral complex includes special patterns.</p>
 <p>This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_10_slope_1</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -4978,7 +5301,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -4987,7 +5310,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <code class="descclassname">igp.</code><code class="descname">kzh_28_slope_1</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.kzh_28_slope_1" title="Permalink to this definition">¶</a></dt>
 <dd><p>A 28-slope extreme function.</p>
 <p>This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>This was briefly the world record, until Basu, Conforti, Di Summa, and Paat gave a
 construction of a family of functions with an arbitrary number of slopes
 (see <code class="docutils literal"><span class="pre">bcdsp_arbitrary_slope</span></code>).</p>
@@ -5001,7 +5324,7 @@ construction of a family of functions with an arbitrary number of slopes
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5010,7 +5333,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <code class="descclassname">igp.</code><code class="descname">kzh_28_slope_2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.kzh_28_slope_2" title="Permalink to this definition">¶</a></dt>
 <dd><p>A 28-slope extreme function.</p>
 <p>This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>This was briefly the world record, until Basu, Conforti, Di Summa, and Paat gave a
 construction of a family of functions with an arbitrary number of slopes
 (see <code class="docutils literal"><span class="pre">bcdsp_arbitrary_slope</span></code>).</p>
@@ -5024,7 +5347,7 @@ construction of a family of functions with an arbitrary number of slopes
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5035,7 +5358,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 1/2q is extreme, thereby showing that an oversampling factor of 3
 is optimal.</p>
 <p>This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>Example:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_2q_example_1</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5053,7 +5376,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5133,7 +5456,7 @@ The function looks like <code class="docutils literal"><span class="pre">gj_forw
 maximal additive faces except for the symmetry reflection or x=0
 or y=0.</p>
 <p>This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_1</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5144,7 +5467,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5155,7 +5478,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 maximal additive faces except for the symmetry reflection or x=0
 or y=0.</p>
 <p>This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_2</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5166,7 +5489,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5177,7 +5500,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 maximal additive faces except for the symmetry reflection or x=0
 or y=0.</p>
 <p>This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_3</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5188,7 +5511,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5198,7 +5521,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <dd><p>5-slope extreme function without any 0-d or 1-d maximal additive faces
 except for the symmetry reflection or x=0 or y=0.</p>
 <p>This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_4</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5209,7 +5532,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5219,7 +5542,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <dd><p>5-slope extreme function without any 0-d or 1-d maximal additive faces
 except for the symmetry reflection or x=0 or y=0.</p>
 <p>This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_5</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5230,7 +5553,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5242,7 +5565,7 @@ on lower-dimensional additive faces.  All intervals are directly covered.</p>
 <p>This is in contrast to <code class="docutils literal"><span class="pre">hildebrand_5_slope_22_1</span></code> etc., whose extremality proof
 requires to translate and reflect covered intervals.</p>
 <p>This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_covers_1</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5253,7 +5576,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5265,7 +5588,7 @@ on lower-dimensional additive faces.  All intervals are directly covered.
 This is in contrast to <code class="docutils literal"><span class="pre">hildebrand_5_slope_22_1</span></code> etc., whose extremality proof
 requires to translate and reflect covered intervals.</p>
 <p>This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_covers_2</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5276,7 +5599,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5288,7 +5611,7 @@ on lower-dimensional additive faces.  All intervals are directly covered.
 This is in contrast to <code class="docutils literal"><span class="pre">hildebrand_5_slope_22_1</span></code> etc., whose extremality proof
 requires to translate and reflect covered intervals.
 This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_covers_3</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5299,7 +5622,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5311,7 +5634,7 @@ on lower-dimensional additive faces.  All intervals are directly covered.
 This is in contrast to <code class="docutils literal"><span class="pre">hildebrand_5_slope_22_1</span></code> etc., whose extremality proof
 requires to translate and reflect covered intervals.
 This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_covers_4</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5322,7 +5645,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5334,7 +5657,7 @@ on lower-dimensional additive faces.  All intervals are directly covered.
 This is in contrast to <code class="docutils literal"><span class="pre">hildebrand_5_slope_22_1</span></code> etc., whose extremality proof
 requires to translate and reflect covered intervals.
 This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_covers_5</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5345,7 +5668,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5357,7 +5680,7 @@ on lower-dimensional additive faces.  All intervals are directly covered.
 This is in contrast to <code class="docutils literal"><span class="pre">hildebrand_5_slope_22_1</span></code> etc., whose extremality proof
 requires to translate and reflect covered intervals.
 This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_covers_6</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5399,7 +5722,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 <dd><p>A 6-slope extreme function.</p>
 <p>Its two-dimensional polyhedral complex includes special patterns.</p>
 <p>This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_6_slope_1</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5408,7 +5731,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5420,7 +5743,7 @@ on lower-dimensional additive faces.  All intervals are directly covered.
 This is in contrast to <code class="docutils literal"><span class="pre">hildebrand_5_slope_22_1</span></code> etc., whose extremality proof
 requires to translate and reflect covered intervals.
 This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_6_slope_fulldim_covers_1</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5431,7 +5754,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5443,7 +5766,7 @@ on lower-dimensional additive faces.  All intervals are directly covered.
 This is in contrast to <code class="docutils literal"><span class="pre">hildebrand_5_slope_22_1</span></code> etc., whose extremality proof
 requires to translate and reflect covered intervals.
 This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_6_slope_fulldim_covers_2</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5454,7 +5777,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5467,7 +5790,7 @@ This is in contrast to <code class="docutils literal"><span class="pre">hildebra
 requires to translate and reflect covered intervals.
 This example has a similar 2d-diagram as that of kzh_6_slope_fulldim_covers_2()
 This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_6_slope_fulldim_covers_3</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5478,7 +5801,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5491,7 +5814,7 @@ This is in contrast to <code class="docutils literal"><span class="pre">hildebra
 requires to translate and reflect covered intervals.
 This example has a similar 2d-diagram as that of kzh_6_slope_fulldim_covers_2()
 This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_6_slope_fulldim_covers_4</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5502,7 +5825,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5515,7 +5838,7 @@ This is in contrast to <code class="docutils literal"><span class="pre">hildebra
 requires to translate and reflect covered intervals.
 This example has a similar 2d-diagram as that of kzh_6_slope_fulldim_covers_2()
 This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_6_slope_fulldim_covers_5</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5526,7 +5849,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5535,7 +5858,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <code class="descclassname">igp.</code><code class="descname">kzh_7_slope_1</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.kzh_7_slope_1" title="Permalink to this definition">¶</a></dt>
 <dd><p>A 7-slope extreme function.</p>
 <p>This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_7_slope_1</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5544,7 +5867,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5553,7 +5876,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <code class="descclassname">igp.</code><code class="descname">kzh_7_slope_2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.kzh_7_slope_2" title="Permalink to this definition">¶</a></dt>
 <dd><p>A 7-slope extreme function.</p>
 <p>This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_7_slope_2</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5562,7 +5885,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5571,7 +5894,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <code class="descclassname">igp.</code><code class="descname">kzh_7_slope_3</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.kzh_7_slope_3" title="Permalink to this definition">¶</a></dt>
 <dd><p>A 7-slope extreme function.</p>
 <p>This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_7_slope_3</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5580,7 +5903,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5589,7 +5912,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <code class="descclassname">igp.</code><code class="descname">kzh_7_slope_4</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.kzh_7_slope_4" title="Permalink to this definition">¶</a></dt>
 <dd><p>A 7-slope extreme function.</p>
 <p>This example was found by computer-based search
-described in Koeppe&#8211;Zhou [KZh2015a].</p>
+described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_7_slope_4</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -5598,7 +5921,7 @@ described in Koeppe&#8211;Zhou [KZh2015a].</p>
 </div>
 <p>Reference:</p>
 <p>[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search strategies for
-extreme functions of the Gomory&#8211;Johnson infinite group problem, 2015,
+extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
@@ -5652,18 +5975,18 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <div><p>This example is obtained by the following code:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">hmin</span> <span class="o">=</span> <span class="n">kzh_discontinuous_bhk_irrational</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d1</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d2</span><span class="o">=</span><span class="mi">5</span><span class="o">/</span><span class="mi">40</span><span class="p">,</span> <span class="n">a0</span><span class="o">=</span><span class="mi">19</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span> <span class="n">delta_ratio</span><span class="o">=</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="n">bb</span><span class="o">=</span><span class="mi">19</span><span class="o">/</span><span class="mi">23998</span><span class="p">,</span> <span class="n">c2</span><span class="o">=</span><span class="mi">5</span><span class="o">/</span><span class="mi">11999</span><span class="p">,</span> <span class="n">y1</span><span class="o">=</span><span class="mi">185</span><span class="o">/</span><span class="mi">1846</span><span class="p">,</span> <span class="n">y2</span><span class="o">=</span><span class="mi">240</span><span class="o">/</span><span class="mi">11999</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span> <span class="c1"># long time</span>
 <span class="gp">sage: </span><span class="n">hlift</span> <span class="o">=</span> <span class="n">lift_until_extreme</span><span class="p">(</span><span class="n">hmin</span><span class="p">,</span> <span class="n">use_all_perturbations</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">use_largest_absolute_epsilon</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="c1"># long time</span>
-<span class="gp">sage: </span><span class="p">(</span><span class="n">h</span> <span class="o">-</span> <span class="n">hlift</span><span class="p">)</span><span class="o">.</span><span class="n">list</span><span class="p">()</span> <span class="c1"># long time</span>
-<span class="go">[[(0, 1), &lt;FastLinearFunction 0&gt;]]</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">==</span> <span class="n">hlift</span>  <span class="c1"># long time</span>
+<span class="go">True</span>
 </pre></div>
 </div>
-<p>Without knowing the input values of <code class="docutils literal"><span class="pre">kzh_discontinuous_bhk_irrational()</span></code> that gives a minimal valid &#8216;hmin&#8217;, one could use the default values to construct a non-minimal discontinuous function, and then lift the function to minimal, as follows:</p>
+<p>Without knowing the input values of <code class="docutils literal"><span class="pre">kzh_discontinuous_bhk_irrational()</span></code> that gives a minimal valid ‘hmin’, one could use the default values to construct a non-minimal discontinuous function, and then lift the function to minimal, as follows:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h_org</span> <span class="o">=</span> <span class="n">kzh_discontinuous_bhk_irrational</span><span class="p">()</span> <span class="c1"># long time</span>
 <span class="gp">sage: </span><span class="n">hmin_from_org</span> <span class="o">=</span> <span class="n">lift</span><span class="p">(</span><span class="n">h_org</span><span class="p">,</span> <span class="n">phase_1</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_all_perturbations</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">use_largest_absolute_epsilon</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="c1"># long time</span>
-<span class="gp">sage: </span><span class="p">(</span><span class="n">hmin</span> <span class="o">-</span> <span class="n">hmin_from_org</span><span class="p">)</span><span class="o">.</span><span class="n">list</span><span class="p">()</span> <span class="c1"># long time</span>
-<span class="go">[[(0, 1), &lt;FastLinearFunction 0&gt;]]</span>
+<span class="gp">sage: </span><span class="n">hmin</span> <span class="o">==</span>  <span class="n">hmin_from_org</span> <span class="c1"># long time</span>
+<span class="go">True</span>
 </pre></div>
 </div>
-<p>&#8216;hmin&#8217; is minimal but not extreme. The solution space of the finite dimensional test has dimension 5:</p>
+<p>‘hmin’ is minimal but not extreme. The solution space of the finite dimensional test has dimension 5:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">finite_dimensional_extremality_test</span><span class="p">(</span><span class="n">hmin</span><span class="p">,</span><span class="n">show_all_perturbations</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c1"># long time</span>
 <span class="go">False</span>
 <span class="gp">sage: </span><span class="n">perturbs</span> <span class="o">=</span> <span class="n">hmin</span><span class="o">.</span><span class="n">_perturbations</span> <span class="c1"># long time</span>
@@ -5671,7 +5994,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <span class="go">5</span>
 </pre></div>
 </div>
-<p>A more general way of lifting &#8216;hmin&#8217; is to call the following generator. (Use Sage Polyhedron if &#8216;use_polyhedron&#8217; is set to <code class="docutils literal"><span class="pre">False</span></code>. Use LP if with random objective function if &#8216;use_polyhedron&#8217; is set to <code class="docutils literal"><span class="pre">True</span></code>.) Unfortunately, this method is too slow. With <code class="docutils literal"><span class="pre">use_polyhedron=False</span></code>, it takes 15-20 mins to find a lifted function:</p>
+<p>A more general way of lifting ‘hmin’ is to call the following generator. (Use Sage Polyhedron if ‘use_polyhedron’ is set to <code class="docutils literal"><span class="pre">False</span></code>. Use LP if with random objective function if ‘use_polyhedron’ is set to <code class="docutils literal"><span class="pre">True</span></code>.) Unfortunately, this method is too slow. With <code class="docutils literal"><span class="pre">use_polyhedron=False</span></code>, it takes 15-20 mins to find a lifted function:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">gen</span> <span class="o">=</span> <span class="n">generate_lifted_functions</span><span class="p">(</span><span class="n">hmin</span><span class="p">,</span> <span class="n">perturbs</span><span class="o">=</span><span class="n">perturbs</span><span class="p">,</span> <span class="n">use_polyhedron</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="c1"># not tested</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">next</span><span class="p">()</span> <span class="c1"># not tested</span>
 </pre></div>
@@ -5773,6 +6096,12 @@ origin.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="igp.linear_extension_from_cdff">
+<code class="descclassname">igp.</code><code class="descname">linear_extension_from_cdff</code><span class="sig-paren">(</span><em>phi</em>, <em>inf=5</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.linear_extension_from_cdff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extend a maximal classical DFF to a maximal general DFF using linear extension. Proposition 3.12.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="igp.linear_function_through_points">
 <code class="descclassname">igp.</code><code class="descname">linear_function_through_points</code><span class="sig-paren">(</span><em>p</em>, <em>q</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.linear_function_through_points" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -5780,7 +6109,7 @@ origin.</p>
 <dl class="function">
 <dt id="igp.ll_strong_fractional">
 <code class="descclassname">igp.</code><code class="descname">ll_strong_fractional</code><span class="sig-paren">(</span><em>f=2/3</em>, <em>field=None</em>, <em>conditioncheck=True</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.ll_strong_fractional" title="Permalink to this definition">¶</a></dt>
-<dd><p>Letchford&#8211;Lodi&#8217;s strong fractional cut.</p>
+<dd><p>Letchford–Lodi’s strong fractional cut.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">ll_strong_fractional</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span>
@@ -5880,7 +6209,7 @@ looked like; divided by its value at f=2/3 to normalize.</p>
 <dl class="function">
 <dt id="igp.lrs_lrs">
 <code class="descclassname">igp.</code><code class="descname">lrs_lrs</code><span class="sig-paren">(</span><em>in_str</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.lrs_lrs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Use the command &#8216;lrs&#8217; from lrslib.
+<dd><p>Use the command ‘lrs’ from lrslib.
 Input: lrs format in_str; Output: lrs format out_str;</p>
 </dd></dl>
 
@@ -5910,7 +6239,7 @@ Input: lrs format in_str; Output: lrs format out_str;</p>
 <code class="descclassname">igp.</code><code class="descname">lrs_redund</code><span class="sig-paren">(</span><em>in_str</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.lrs_redund" title="Permalink to this definition">¶</a></dt>
 <dd><p>To remove redundant inequalities from an H-representation or
 input points that are not vertices from a V-representation
-use the command &#8216;redund&#8217; from lrslib.</p>
+use the command ‘redund’ from lrslib.</p>
 <p>Input: lrs format in_str; Output: lrs format out_str;</p>
 <p>Copy and edit from <code class="docutils literal"><span class="pre">def</span> <span class="pre">_volume_lrs(self,</span> <span class="pre">verbose=False)</span></code>,
 <a class="reference external" href="http://www.sagenb.org/src/geometry/polyhedron/base.py">http://www.sagenb.org/src/geometry/polyhedron/base.py</a></p>
@@ -5927,8 +6256,19 @@ use the command &#8216;redund&#8217; from lrslib.</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="igp.maximality_test_gdff_linear">
+<code class="descclassname">igp.</code><code class="descname">maximality_test_gdff_linear</code><span class="sig-paren">(</span><em>phi</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.maximality_test_gdff_linear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether a given piecewise linear function is a maximal general DFF.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="igp.maximality_test_general_dff">
 <code class="descclassname">igp.</code><code class="descname">maximality_test_general_dff</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.maximality_test_general_dff" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="igp.maximality_test_quasi">
+<code class="descclassname">igp.</code><code class="descname">maximality_test_quasi</code><span class="sig-paren">(</span><em>phi</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.maximality_test_quasi" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -5962,7 +6302,7 @@ use the command &#8216;redund&#8217; from lrslib.</p>
 <dl class="function">
 <dt id="igp.merit_index">
 <code class="descclassname">igp.</code><code class="descname">merit_index</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.merit_index" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute Gomory&#8211;Johnson&#8217;s merit index.</p>
+<dd><p>Compute Gomory–Johnson’s merit index.</p>
 <p>It is defined as twice the area of additive points in the unit square
 (see [RD, Definition 19.28], which refers to [61]).</p>
 <p>EXAMPLES:</p>
@@ -6588,7 +6928,7 @@ The given slope is -4*z1/(2*z1-4*z1*r0) while the correct slope is (1-4*z1)/(2*z
 </dd>
 <dt>Note:</dt>
 <dd><ul class="first last simple">
-<li><code class="docutils literal"><span class="pre">multiplicative_homomorphism(</span> <span class="pre">mlr_cpl3_n_3_slope(r0,</span> <span class="pre">z1),</span> <span class="pre">-1)</span> <span class="pre">==</span> <span class="pre">gj_forward_3_slope(f=1-r0,</span> <span class="pre">lambda_1=2*z1/(1-r0),</span> <span class="pre">lambda_2=z1/r0)</span></code>;</li>
+<li><code class="docutils literal"><span class="pre">multiplicative_homomorphism(</span> <span class="pre">mlr_cpl3_n_3_slope(r0,</span> <span class="pre">z1),</span> <span class="pre">-1)</span> <span class="pre">==</span> <span class="pre">gj_forward_3_slope(f=1-r0,</span> <span class="pre">lambda_1=4*z1/(1-r0),</span> <span class="pre">lambda_2=2*z1/r0)</span></code>;</li>
 <li><code class="docutils literal"><span class="pre">gj_forward_3_slope</span></code> being extreme only requires:  r0 &gt;= z1, r0 + 4*z1 &lt;= 1.</li>
 </ul>
 </dd>
@@ -7017,7 +7357,7 @@ of its piecewise linear continuous interpolation.</p>
 <dl class="function">
 <dt id="igp.paint_complex_combined_mip">
 <code class="descclassname">igp.</code><code class="descname">paint_complex_combined_mip</code><span class="sig-paren">(</span><em>k_slopes</em>, <em>q</em>, <em>f</em>, <em>vertices_color</em>, <em>faces_color</em>, <em>last_covered_intervals</em>, <em>candidate_faces</em>, <em>cs_matrix</em>, <em>sym=False</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.paint_complex_combined_mip" title="Permalink to this definition">¶</a></dt>
-<dd><p>Combine &#8216;heuristic&#8217; backracting search (using MILP library) with vertex enumeration.
+<dd><p>Combine ‘heuristic’ backracting search (using MILP library) with vertex enumeration.
 If q - rank(cs_matrix) &lt;= dim_threshold, stop backtracking search.
 Enumerate and check vertex functions then.</p>
 <p>Similar to <code class="docutils literal"><span class="pre">paint_complex_combined_pol()</span></code>. 
@@ -7027,7 +7367,7 @@ Tests show that <code class="docutils literal"><span class="pre">paint_complex_c
 <dl class="function">
 <dt id="igp.paint_complex_combined_pol">
 <code class="descclassname">igp.</code><code class="descname">paint_complex_combined_pol</code><span class="sig-paren">(</span><em>k_slopes</em>, <em>q</em>, <em>f</em>, <em>vertices_color</em>, <em>faces_color</em>, <em>last_covered_intervals</em>, <em>candidate_faces</em>, <em>cs</em>, <em>cs_matrix</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.paint_complex_combined_pol" title="Permalink to this definition">¶</a></dt>
-<dd><p>Combine &#8216;heuristic&#8217; backracting search (using PPL) with vertex enumeration.
+<dd><p>Combine ‘heuristic’ backracting search (using PPL) with vertex enumeration.
 If q - rank(cs_matrix) &lt;= dim_threshold, stop backtracking search.
 Enumerate and check vertex functions then.</p>
 <p>Similar to <code class="docutils literal"><span class="pre">paint_complex_combined_mip()</span></code>.
@@ -7133,7 +7473,7 @@ according to pattern and size parameter <span class="math">\(l\)</span> (called 
 <p>If test_extremality is <code class="docutils literal"><span class="pre">True</span></code> (default is <code class="docutils literal"><span class="pre">False</span></code>), check extremality.</p>
 <p>Prints lines:
 NUM-SLOPES  SV (input to <code class="docutils literal"><span class="pre">pattern0_sym_fn</span></code>)  DENOMINATOR</p>
-<p>Creates files in the directory &#8216;sym_mode_2d_diagrams/patterns_PATTERN/&#8217;
+<p>Creates files in the directory ‘sym_mode_2d_diagrams/patterns_PATTERN/’
 (this directory is created if it does not exist).</p>
 <p>Returns the max number of slopes found, regardless of extremality test.</p>
 <p>EXAMPLES:</p>
@@ -7155,9 +7495,9 @@ NUM-SLOPES  SV (input to <code class="docutils literal"><span class="pre">patter
 <dt id="igp.pattern_fn">
 <code class="descclassname">igp.</code><code class="descname">pattern_fn</code><span class="sig-paren">(</span><em>l</em>, <em>pattern</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.pattern_fn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Suppose the prescribed painting (according to pattern and size parameter <span class="math">\(l\)</span>) has c connected components,
-with slope values q*Variable(0),..., q*Variable(c-1).</p>
+with slope values q*Variable(0),…, q*Variable(c-1).</p>
 <p>Returns a list fn of length (q+1).
-fn[i] is a Linear_Expression in terms of Variable(0),..., Variable(c-1), for i=0,...,q.</p>
+fn[i] is a Linear_Expression in terms of Variable(0),…, Variable(c-1), for i=0,…,q.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">pattern_fn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">fn</span><span class="p">[</span><span class="mi">28</span><span class="p">]</span>
@@ -7174,7 +7514,7 @@ fn[i] is a Linear_Expression in terms of Variable(0),..., Variable(c-1), for i=0
 <dt id="igp.pattern_glpk_lp">
 <code class="descclassname">igp.</code><code class="descname">pattern_glpk_lp</code><span class="sig-paren">(</span><em>l</em>, <em>more_ini_additive=False</em>, <em>exact_arithmetic=True</em>, <em>simplex_first=True</em>, <em>reconstruct_rational=False</em>, <em>objcoef=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.pattern_glpk_lp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find an extreme point of the polytope corresponding to the prescribed painting (pattern=0 and size parameter <span class="math">\(l\)</span>),
-by solving the LP (given objective funtion&#8217;s coefficient) using <code class="docutils literal"><span class="pre">glp_simplex</span></code> (+ <code class="docutils literal"><span class="pre">glp_exact</span></code>, with or without retrieving rational solution).</p>
+by solving the LP (given objective funtion’s coefficient) using <code class="docutils literal"><span class="pre">glp_simplex</span></code> (+ <code class="docutils literal"><span class="pre">glp_exact</span></code>, with or without retrieving rational solution).</p>
 <p>We hope to obtain many-slope vertex functions by choosing objcoef nicely.</p>
 <dl class="docutils">
 <dt>Returns:</dt>
@@ -7182,22 +7522,20 @@ by solving the LP (given objective funtion&#8217;s coefficient) using <code clas
 <li>optval: optimal value</li>
 <li>optsol: optimal solution <span class="math">\(s0, s1, \dots , s_{l+1}\)</span></li>
 <li>k_slope: number of slopes of this vertex function</li>
-<li>v: vertex function&#8217;s values at (1/q)Z.</li>
+<li>v: vertex function’s values at (1/q)Z.</li>
 </ul>
 </dd>
 </dl>
 <p>EXAMPLES:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">optval</span><span class="p">,</span> <span class="n">optsol</span><span class="p">,</span> <span class="n">k_slope</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">pattern_glpk_lp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">objcoef</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">55</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
-<span class="go">glp_exact: ...</span>
-<span class="go">OPTIMAL SOLUTION FOUND</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="k">print</span><span class="p">(</span><span class="s2">&quot;glp_exact noise follows in old sage versions&quot;</span><span class="p">);</span> <span class="n">optval</span><span class="p">,</span> <span class="n">optsol</span><span class="p">,</span> <span class="n">k_slope</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">pattern_glpk_lp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">objcoef</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">55</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+<span class="go">glp_exact...</span>
 <span class="gp">sage: </span><span class="n">k_slope</span>
 <span class="go">6</span>
 <span class="gp">sage: </span><span class="n">optsol</span>
 <span class="go">{0: 0.23404255319148934, 1: 0.14893617021276595, 2: -0.10638297872340424}</span>
 
-<span class="gp">sage: </span><span class="n">optval</span><span class="p">,</span> <span class="n">optsol</span><span class="p">,</span> <span class="n">k_slope</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">pattern_glpk_lp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">reconstruct_rational</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">objcoef</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">55</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
-<span class="go">glp_exact: ...</span>
-<span class="go">OPTIMAL SOLUTION FOUND</span>
+<span class="gp">sage: </span><span class="k">print</span><span class="p">(</span><span class="s2">&quot;glp_exact noise follows in old sage versions&quot;</span><span class="p">);</span> <span class="n">optval</span><span class="p">,</span> <span class="n">optsol</span><span class="p">,</span> <span class="n">k_slope</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">pattern_glpk_lp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">reconstruct_rational</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">objcoef</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">55</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+<span class="go">glp_exact...</span>
 <span class="gp">sage: </span><span class="n">optsol</span>
 <span class="go">(11/47, 7/47, -5/47)</span>
 </pre></div>
@@ -7230,8 +7568,8 @@ Experimental code.</p>
 <dt id="igp.pattern_polytope">
 <code class="descclassname">igp.</code><code class="descname">pattern_polytope</code><span class="sig-paren">(</span><em>vertices_color</em>, <em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.pattern_polytope" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set up a PPL polytope with respect to the vertices_color.</p>
-<p>fn is a list of <code class="docutils literal"><span class="pre">Linear_Expressions</span></code> in terms of Variable(0),..., Variable(c-1), of length (q+1).
-The polytope has variables {Variable(0),..., Variable(c-1)}.</p>
+<p>fn is a list of <code class="docutils literal"><span class="pre">Linear_Expressions</span></code> in terms of Variable(0),…, Variable(c-1), of length (q+1).
+The polytope has variables {Variable(0),…, Variable(c-1)}.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">vertices_color</span> <span class="o">=</span> <span class="n">pattern_vertices_color</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">more_ini_additive</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">pattern_fn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -7253,9 +7591,7 @@ pattern_lp, vertices_color might be modified.</p>
 <span class="gp">sage: </span><span class="n">vertices_color</span> <span class="o">=</span> <span class="n">pattern_vertices_color</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">more_ini_additive</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">pattern_setup_lp</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">positive_deltafn</span><span class="p">,</span> <span class="n">zero_deltafn</span><span class="p">,</span> <span class="n">undecided_deltafn</span> <span class="o">=</span> <span class="n">pattern_positive_zero_undecided_deltafn</span><span class="p">(</span><span class="n">vertices_color</span><span class="p">)</span>
-<span class="go">glp_exact: 121 rows, 95 columns, 439 non-zeros</span>
 <span class="gp">...</span>
-<span class="go">OPTIMAL SOLUTION FOUND</span>
 <span class="gp">sage: </span><span class="n">positive_deltafn</span>
 <span class="go">[(1, -1, 0), (1, 0, 1), (1, 0, -1), (1, 1, 0), (0, 1, -1), (1, 0, 0)]</span>
 <span class="gp">sage: </span><span class="n">zero_deltafn</span>
@@ -7298,7 +7634,7 @@ In this case, <code class="docutils literal"><span class="pre">pattern_backtrack
 <dl class="function">
 <dt id="igp.pattern_ppl_lp">
 <code class="descclassname">igp.</code><code class="descname">pattern_ppl_lp</code><span class="sig-paren">(</span><em>l</em>, <em>more_ini_additive=False</em>, <em>objcoef=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.pattern_ppl_lp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Similar to <code class="docutils literal"><span class="pre">pattern_glpk_lp()</span></code>. Uses PPL&#8217;s <code class="docutils literal"><span class="pre">MIP_Problem</span></code> class for solving lp.</p>
+<dd><p>Similar to <code class="docutils literal"><span class="pre">pattern_glpk_lp()</span></code>. Uses PPL’s <code class="docutils literal"><span class="pre">MIP_Problem</span></code> class for solving lp.</p>
 <p>Exact arithmetics, but too slow.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">optval</span><span class="p">,</span> <span class="n">optsol</span><span class="p">,</span> <span class="n">k_slope</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">v_div</span> <span class="o">=</span> <span class="n">pattern_ppl_lp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">objcoef</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">55</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
@@ -7337,9 +7673,9 @@ In the paper, r is what is called l here.</p>
 <dt id="igp.pattern_s">
 <code class="descclassname">igp.</code><code class="descname">pattern_s</code><span class="sig-paren">(</span><em>l</em>, <em>pattern</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.pattern_s" title="Permalink to this definition">¶</a></dt>
 <dd><p>Suppose the prescribed painting (according to pattern and size parameter <span class="math">\(l\)</span>) has c connected components,
-with slope values q*Variable(0),..., q*Variable(c-1).</p>
+with slope values q*Variable(0),…, q*Variable(c-1).</p>
 <p>Returns a list s of length f.
-s[i] = fn[i+1]-fn[i] is in {Variable(0),..., Variable(c-1)}, for i=0,...,f-1.</p>
+s[i] = fn[i+1]-fn[i] is in {Variable(0),…, Variable(c-1)}, for i=0,…,f-1.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pattern_s</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -7368,16 +7704,14 @@ where pattern=0, sym=True and the size parameter is <span class="math">\(l\)</sp
 </ul>
 </dd>
 <dt>When use_auxiliary_delta=True:</dt>
-<dd><ul class="first last">
+<dd><ul class="first last simple">
 <li><dl class="first docutils">
 <dt>var_delta: auxiliary variables deltafn;</dt>
-<dd><p class="first last">controle additive/subadd by <code class="docutils literal"><span class="pre">pattern_lp.set_max(var_delta[deltafn],</span> <span class="pre">0)</span></code>
-or <code class="docutils literal"><span class="pre">pattern_lp.set_max(var_delta[deltafn],</span> <span class="pre">None)</span></code></p>
-</dd>
+<dd>controle additive/subadd by <code class="docutils literal"><span class="pre">pattern_lp.set_max(var_delta[deltafn],</span> <span class="pre">0)</span></code>
+or <code class="docutils literal"><span class="pre">pattern_lp.set_max(var_delta[deltafn],</span> <span class="pre">None)</span></code></dd>
 </dl>
 </li>
-<li><p class="first">deltafn_dic: a dictionary, key = delta, value = a list [(i,j) such that <a href="#id1"><span class="problematic" id="id2">`</span></a>deltapi`[i,j]=key]</p>
-</li>
+<li>deltafn_dic: a dictionary, key = delta, value = a list [(i,j) such that <a href="#id1"><span class="problematic" id="id2">`</span></a>deltapi`[i,j]=key]</li>
 </ul>
 </dd>
 </dl>
@@ -7387,8 +7721,8 @@ or <code class="docutils literal"><span class="pre">pattern_lp.set_max(var_delta
 <span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">pattern_setup_lp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">more_ini_additive</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">objcoef</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">fn</span><span class="p">[</span><span class="mi">28</span><span class="p">]</span>
 <span class="go">2*x_0 + 12*x_1 + 14*x_2</span>
-<span class="gp">sage: </span><span class="n">igp</span><span class="o">.</span><span class="n">pattern_lp</span>
-<span class="go">Mixed Integer Program  ( maximization, 95 variables, 121 constraints )</span>
+<span class="gp">sage: </span><span class="n">igp</span><span class="o">.</span><span class="n">pattern_lp</span><span class="o">.</span><span class="n">number_of_variables</span><span class="p">()</span>
+<span class="go">95</span>
 <span class="gp">sage: </span><span class="n">igp</span><span class="o">.</span><span class="n">var_slope</span>
 <span class="go">MIPVariable ...</span>
 <span class="gp">sage: </span><span class="n">igp</span><span class="o">.</span><span class="n">var_delta</span>
@@ -7630,6 +7964,41 @@ False</dd>
 </dd></dl>
 
 <dl class="function">
+<dt id="igp.phi_bj_1_gdff">
+<code class="descclassname">igp.</code><code class="descname">phi_bj_1_gdff</code><span class="sig-paren">(</span><em>c=3/2</em>, <em>periods=3</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.phi_bj_1_gdff" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Summary:</dt>
+<dd><ul class="first last simple">
+<li>Name: f_BJ_1;</li>
+<li>Dim= 1; Slopes = 2; Continuous;</li>
+<li>Proven maximal for c&gt;=1;</li>
+<li>Proven extreme for c&gt;=1.</li>
+<li>quasi periodic function with period 1/c</li>
+<li>plot periods number of pieces for x&lt;0 and periods number of pieces for x&gt;0</li>
+</ul>
+</dd>
+<dt>Parameters:</dt>
+<dd>c (real) in [1,positive infinity).</dd>
+<dt>Examples:</dt>
+<dd><p class="first">[1] p.53, Fig 3.1</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>   <span class="c1"># Suppress output in automatic tests.</span>
+<span class="gp">sage: </span><span class="n">h</span><span class="o">=</span><span class="n">phi_bj_1_gdff</span><span class="p">(</span><span class="n">c</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>References:</p>
+<ul class="simple">
+<li>[1]: Alves, Clautiaux, Carvalho, Rietz, Dual-feasible functions for integer programming and combinatorial optimization, 2016.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="igp.phi_bj_1_quasi">
+<code class="descclassname">igp.</code><code class="descname">phi_bj_1_quasi</code><span class="sig-paren">(</span><em>c=3/2</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.phi_bj_1_quasi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="igp.phi_ccm_1">
 <code class="descclassname">igp.</code><code class="descname">phi_ccm_1</code><span class="sig-paren">(</span><em>c=3/2</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.phi_ccm_1" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
@@ -7800,6 +8169,12 @@ c (real) in [1,positive infinity).</dd>
 </dd></dl>
 
 <dl class="function">
+<dt id="igp.phi_s_delta">
+<code class="descclassname">igp.</code><code class="descname">phi_s_delta</code><span class="sig-paren">(</span><em>delta=1/10</em>, <em>s=3/2</em>, <em>inf=5</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.phi_s_delta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a family of piecewise linear general DFFs, which have breakpoints: [-inf,-delta, 0, delta, 1-delta,1,1+delta,inf] and slopes: [s,2s,0,1/(1-s*delta),0,2s,s] in each affine piece. The function is maximal if delta is small and s is large.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="igp.phi_s_in_drlm_not_extreme_2">
 <code class="descclassname">igp.</code><code class="descname">phi_s_in_drlm_not_extreme_2</code><span class="sig-paren">(</span><em>s=10</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.phi_s_in_drlm_not_extreme_2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
@@ -7890,8 +8265,8 @@ The pointwise limit as <span class="math">\(s\)</span> tends to <span class="mat
 <span class="gp">sage: </span><span class="n">bkpt</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span> <span class="mi">7</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
 <span class="gp">sage: </span><span class="n">limits</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">)]</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">piecewise_function_from_breakpoints_and_limits</span><span class="p">(</span><span class="n">bkpt</span><span class="p">,</span> <span class="n">limits</span><span class="p">)</span>
-<span class="gp">sage: </span><span class="p">(</span><span class="n">h</span> <span class="o">-</span> <span class="n">hildebrand_discont_3_slope_1</span><span class="p">())</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
-<span class="go">[[(0, 1), &lt;FastLinearFunction 0&gt;]]</span>
+<span class="gp">sage: </span><span class="n">h</span>  <span class="o">==</span> <span class="n">hildebrand_discont_3_slope_1</span><span class="p">()</span>
+<span class="go">True</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">piecewise_function_from_breakpoints_and_limits</span><span class="p">(</span><span class="n">bkpt</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">limits</span> <span class="o">=</span> <span class="p">[{</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">0</span><span class="p">},{</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="o">/</span><span class="mi">5</span><span class="p">},</span> <span class="p">{</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">},</span> <span class="p">{</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">0</span><span class="p">}])</span>
 <span class="gp">sage: </span><span class="n">h</span><span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="go">3/5</span>
@@ -8060,7 +8435,7 @@ additive faces, i.e., faces where <span class="math">\(\Delta \pi = 0\)</span>.<
 
 <dl class="function">
 <dt id="igp.plot_2d_diagram_with_cones">
-<code class="descclassname">igp.</code><code class="descname">plot_2d_diagram_with_cones</code><span class="sig-paren">(</span><em>fn</em>, <em>show_function=True</em>, <em>f=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_2d_diagram_with_cones" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">igp.</code><code class="descname">plot_2d_diagram_with_cones</code><span class="sig-paren">(</span><em>fn</em>, <em>show_function=True</em>, <em>f=None</em>, <em>conesize=200</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_2d_diagram_with_cones" title="Permalink to this definition">¶</a></dt>
 <dd><p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">zhou_two_sided_discontinuous_cannot_assume_any_continuity</span><span class="p">()</span>
@@ -8654,7 +9029,7 @@ maximal additive faces.</p>
 <dl class="function">
 <dt id="igp.projected_sequential_merge">
 <code class="descclassname">igp.</code><code class="descname">projected_sequential_merge</code><span class="sig-paren">(</span><em>g</em>, <em>n=1</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.projected_sequential_merge" title="Permalink to this definition">¶</a></dt>
-<dd><p>construct the one-dimensional projected sequential merge inequality: &#8220;h = g &#64;_n^1 gmic&#8221; with <span class="math">\(f = n r\)</span> in the first function <span class="math">\(g\)</span> and <span class="math">\(f = r\)</span> in the second function <code class="docutils literal"><span class="pre">gmic</span></code>.</p>
+<dd><p>construct the one-dimensional projected sequential merge inequality: “h = g &#64;_n^1 gmic” with <span class="math">\(f = n r\)</span> in the first function <span class="math">\(g\)</span> and <span class="math">\(f = r\)</span> in the second function <code class="docutils literal"><span class="pre">gmic</span></code>.</p>
 <dl class="docutils">
 <dt>The notation <span class="math">\(\lozenge_n^1\)</span> is given in [39] p.305, def.12 &amp; eq.25 :</dt>
 <dd><span class="math">\(h(x) = \frac{1}{n+1}\xi(x) + n g(\lfloor(n + 1)  x - r \xi(x)\rfloor)\)</span>, where <span class="math">\(\xi =\)</span> <code class="docutils literal"><span class="pre">gmic(r)</span></code>.</dd>
@@ -8735,7 +9110,7 @@ maximal additive faces.</p>
 <dd><dl class="docutils">
 <dt>Summary: </dt>
 <dd><ul class="first last simple">
-<li>Name: psi_n in the construction of BCCZ&#8217;s counterexample to GJ&#8217;s conjecture;</li>
+<li>Name: psi_n in the construction of BCCZ’s counterexample to GJ’s conjecture;</li>
 <li>Infinite; Dim = 1; Slopes = 2; Continuous;  Analysis of subadditive polytope method.</li>
 <li>Discovered [IR1]  p.30, section.3, fig.1;</li>
 <li>Proven extreme [IR1] p.35, thm.4.7.</li>
@@ -8743,9 +9118,9 @@ maximal additive faces.</p>
 </dd>
 <dt>Note:</dt>
 <dd><p class="first">The (uniform) limit psi = lim_{n to infty} psi_n is well defined if sum_{i = 0}^{infty} {2^i * e[i]} &lt; f.</p>
-<p>The (uniform) limit psi is a continuous facet, but is not piecewise linear. A counterexample of GJ&#8217;s conjecture.</p>
+<p>The (uniform) limit psi is a continuous facet, but is not piecewise linear. A counterexample of GJ’s conjecture.</p>
 <p>Could use the function generate_example_e_for_psi_n(f, n, q) to generate a sequence e that satisfies the conditions for extremality.</p>
-<p class="last">psi_n_in_bccz_counterexample_construction() is a special case of kf_n_step_mir(), with f=f, a = [1, (f + e[0])/2, (f - e[0] + 2*e[1])/4, ...]</p>
+<p class="last">psi_n_in_bccz_counterexample_construction() is a special case of kf_n_step_mir(), with f=f, a = [1, (f + e[0])/2, (f - e[0] + 2*e[1])/4, …]</p>
 </dd>
 <dt>Parameters:</dt>
 <dd><ul class="first last simple">
@@ -8756,7 +9131,7 @@ maximal additive faces.</p>
 <dt>Function is known to be extreme under the conditions:</dt>
 <dd><ul class="first last simple">
 <li>0 &lt; f &lt; 1;</li>
-<li>0 &lt; e[n - 1] &lt;= e[n - 2] &lt;= ... &lt;= e[1] &lt;= e[0] &lt;= 1 - f;</li>
+<li>0 &lt; e[n - 1] &lt;= e[n - 2] &lt;= … &lt;= e[1] &lt;= e[0] &lt;= 1 - f;</li>
 <li>sum_{i = 0}^{n - 1} 2^i * e[i] &lt; f.</li>
 </ul>
 </dd>
@@ -8860,7 +9235,7 @@ maximal additive faces.</p>
 <dl class="function">
 <dt id="igp.remove_redundancy_from_cs">
 <code class="descclassname">igp.</code><code class="descname">remove_redundancy_from_cs</code><span class="sig-paren">(</span><em>cs</em>, <em>verbose=False</em>, <em>return_lrs=False</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.remove_redundancy_from_cs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove redundant inequalities from cs using the command &#8216;redund&#8217; from lrslib.
+<dd><p>Remove redundant inequalities from cs using the command ‘redund’ from lrslib.
 Return the new cs without redundancy
 in ppl format if return_lrs==False (default), or in lrs format if return_lrs==True</p>
 </dd></dl>
@@ -8931,19 +9306,24 @@ by function <code class="docutils literal"><span class="pre">kzh_2q_example_1</s
 <dl class="docutils">
 <dt>Reference:</dt>
 <dd><dl class="first docutils">
-<dt>[IR2] A. Basu, R. Hildebrand, and M. Koeppe, Equivariant perturbation in Gomory and Johnson&#8217;s infinite group problem.</dt>
+<dt>[IR2] A. Basu, R. Hildebrand, and M. Koeppe, Equivariant perturbation in Gomory and Johnson’s infinite group problem.</dt>
 <dd><ol class="first last upperroman simple">
 <li>The one-dimensional case, Mathematics of Operations Research (2014), doi:10. 1287/moor.2014.0660</li>
 </ol>
 </dd>
 </dl>
 <p class="last">[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search
-strategies for extreme functions of the Gomory&#8211;Johnson
+strategies for extreme functions of the Gomory–Johnson
 infinite group problem, 2015, e-print
 <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="function">
+<dt id="igp.restricted_maximality_test_quasi">
+<code class="descclassname">igp.</code><code class="descname">restricted_maximality_test_quasi</code><span class="sig-paren">(</span><em>phi</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.restricted_maximality_test_quasi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="igp.right_open_interval">
@@ -8958,8 +9338,8 @@ infinite group problem, 2015, e-print
 <dl class="function">
 <dt id="igp.rlm_dpl1_extreme_3a">
 <code class="descclassname">igp.</code><code class="descname">rlm_dpl1_extreme_3a</code><span class="sig-paren">(</span><em>f=1/4</em>, <em>field=None</em>, <em>conditioncheck=True</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.rlm_dpl1_extreme_3a" title="Permalink to this definition">¶</a></dt>
-<dd><p>From Richard&#8211;Li&#8211;Miller [RLM2009].</p>
-<p>For 0 &lt; f &lt; 1/3, by Thm.28, the DPL1 function phi (whose corresponding h is shown on p.273, Fig.3-lowerleft) is &#8220;extreme&#8221; (not the usual definition).</p>
+<dd><p>From Richard–Li–Miller [RLM2009].</p>
+<p>For 0 &lt; f &lt; 1/3, by Thm.28, the DPL1 function phi (whose corresponding h is shown on p.273, Fig.3-lowerleft) is “extreme” (not the usual definition).</p>
 <p>See def.19 for the definition of DPLn, which is a special family of discontinuous piecewise linear functions.
 See Prop.18 and Fig 1 for relation between the DPLn representation <span class="math">\(\\phi\)</span> and the group representation <span class="math">\(\\pi\)</span>, where <span class="math">\(\\pi(u)\)</span> is called <span class="math">\(f(u)\)</span>, and <span class="math">\(f\)</span> is called <span class="math">\(r_0\)</span> throughout this paper.</p>
 <p>All we know from the paper is that <span class="math">\(\\pi\)</span> on p.273, Fig.3-lowerleft is subadditive. However, the extremality is unknown (see discussion after thm.28 p.272).</p>
@@ -9018,11 +9398,11 @@ and that the intervals are pairwise disjoint.</p>
 <dd><p>Generate events of the form <code class="docutils literal"><span class="pre">(x,</span> <span class="pre">epsilon),</span> <span class="pre">delta,</span> <span class="pre">tag</span></code>.</p>
 <p>This assumes that interval_list is sorted, and 
 that the intervals are pairwise disjoint. (disjoint needed?)</p>
-<p>delta is -1 for the beginning of an interval (&#8216;on&#8217;).
-delta is +1 for the end of an interval (&#8216;off&#8217;).</p>
+<p>delta is -1 for the beginning of an interval (‘on’).
+delta is +1 for the end of an interval (‘off’).</p>
 <p>This is so that the events sort lexicographically in a way that if
 we have intervals whose closures intersect in one point, such as
-[a, b) and [b, c], we see first the &#8216;on&#8217; event and then the &#8216;off&#8217;
+[a, b) and [b, c], we see first the ‘on’ event and then the ‘off’
 event.  In this way consumers of the scan can easily implement merging 
 of such intervals.</p>
 <p>if closure is <code class="docutils literal"><span class="pre">True</span></code>, considers intervals as closed.</p>
@@ -9076,16 +9456,13 @@ and that the intervals are pairwise disjoint.</p>
 <code class="descclassname">igp.</code><code class="descname">search_kslope_example</code><span class="sig-paren">(</span><em>k_slopes</em>, <em>q</em>, <em>f</em>, <em>mode='combined'</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.search_kslope_example" title="Permalink to this definition">¶</a></dt>
 <dd><p>Search for extreme functions that have required number of slope values.
 Return integer function values at breakpoints.</p>
-<ul>
-<li><p class="first">If mode is (defaut) &#8216;combined&#8217;, use <code class="docutils literal"><span class="pre">paint_complex_combined()</span></code> to paint a few triangles, then enumerate vertex-functions;</p>
-</li>
-<li><p class="first">If mode is &#8216;heuristic&#8217;, use <code class="docutils literal"><span class="pre">paint_complex_heuristic()</span></code> to paint;</p>
-</li>
-<li><p class="first">If mode is &#8216;naive&#8217;, enumerate vertex-fuctions and check whether all invervals are covered;</p>
-</li>
+<ul class="simple">
+<li>If mode is (defaut) ‘combined’, use <code class="docutils literal"><span class="pre">paint_complex_combined()</span></code> to paint a few triangles, then enumerate vertex-functions;</li>
+<li>If mode is ‘heuristic’, use <code class="docutils literal"><span class="pre">paint_complex_heuristic()</span></code> to paint;</li>
+<li>If mode is ‘naive’, enumerate vertex-fuctions and check whether all invervals are covered;</li>
 <li><dl class="first docutils">
-<dt>If mode is &#8216;sym&#8217;, restrict to the special 2d-diagram such as <code class="docutils literal"><span class="pre">kzh_6_slope_fulldim_covers_2()</span></code> and <code class="docutils literal"><span class="pre">kzh_6_slope_fulldim_covers_3()</span></code>:</dt>
-<dd><ul class="first last simple">
+<dt>If mode is ‘sym’, restrict to the special 2d-diagram such as <code class="docutils literal"><span class="pre">kzh_6_slope_fulldim_covers_2()</span></code> and <code class="docutils literal"><span class="pre">kzh_6_slope_fulldim_covers_3()</span></code>:</dt>
+<dd><ul class="first last">
 <li><span class="math">\(q = 2f\)</span>, <span class="math">\(f \bmod 2 = 1\)</span>;</li>
 <li>symmetry between left and right parts of f;</li>
 <li>2d-diagram is white in the middle;</li>
@@ -9133,7 +9510,7 @@ by adding the constraint <span class="math">\(\sum_{(x,y) \in \text{vertices}}{\
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">False</span></code> (do nothing),</li>
 <li><code class="docutils literal"><span class="pre">True</span></code> (use <code class="docutils literal"><span class="pre">show</span></code> to display on screen),</li>
-<li>a string (file name format such as &#8220;FILENAME-%s.pdf&#8221;, where %s is replaced by tag.</li>
+<li>a string (file name format such as “FILENAME-%s.pdf”, where %s is replaced by tag.</li>
 </ul>
 </dd></dl>
 
@@ -9214,6 +9591,11 @@ useful for the irrational case.</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="igp.strongly_maximality_test_quasi">
+<code class="descclassname">igp.</code><code class="descname">strongly_maximality_test_quasi</code><span class="sig-paren">(</span><em>phi</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.strongly_maximality_test_quasi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="igp.stuff_with_random_irrational_function">
 <code class="descclassname">igp.</code><code class="descname">stuff_with_random_irrational_function</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.stuff_with_random_irrational_function" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -9227,7 +9609,7 @@ useful for the irrational case.</p>
 <dl class="function">
 <dt id="igp.superadditive_lifting_function_from_group_function">
 <code class="descclassname">igp.</code><code class="descname">superadditive_lifting_function_from_group_function</code><span class="sig-paren">(</span><em>fn</em>, <em>f=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.superadditive_lifting_function_from_group_function" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a standard representation &#8216;phi&#8217; (a superadditive quasiperiodic function) from a group representation &#8216;fn&#8217; (a subadditive periodic function).</p>
+<dd><p>Convert a standard representation ‘phi’ (a superadditive quasiperiodic function) from a group representation ‘fn’ (a subadditive periodic function).</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
 <span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">mlr_cpl3_d_3_slope</span><span class="p">(</span><span class="n">r0</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">7</span><span class="p">)</span>
@@ -9249,6 +9631,12 @@ useful for the irrational case.</p>
 <dt id="igp.superadditivity_test_continuous">
 <code class="descclassname">igp.</code><code class="descname">superadditivity_test_continuous</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.superadditivity_test_continuous" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check if <span class="math">\(fn\)</span> is superadditive.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="igp.superadditivity_test_gdff_linear">
+<code class="descclassname">igp.</code><code class="descname">superadditivity_test_gdff_linear</code><span class="sig-paren">(</span><em>phi</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.superadditivity_test_gdff_linear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether a given piecewise linear function is superadditive.</p>
 </dd></dl>
 
 <dl class="function">
@@ -9370,6 +9758,12 @@ when constructing pi_fill_in. The proof follows verbatim.</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="igp.symmetry_test_gdff_linear">
+<code class="descclassname">igp.</code><code class="descname">symmetry_test_gdff_linear</code><span class="sig-paren">(</span><em>phi</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.symmetry_test_gdff_linear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether a given piecewise linear function satisfies phi(x)+phi(1-x)=1.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="igp.symmetry_test_general_dff">
 <code class="descclassname">igp.</code><code class="descname">symmetry_test_general_dff</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.symmetry_test_general_dff" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -9457,6 +9851,11 @@ dividing by the gcd of all elements.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="igp.two_slope_approximation_gdff_linear">
+<code class="descclassname">igp.</code><code class="descname">two_slope_approximation_gdff_linear</code><span class="sig-paren">(</span><em>phi</em>, <em>epsilon</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.two_slope_approximation_gdff_linear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="igp.two_slope_fill_in">
 <code class="descclassname">igp.</code><code class="descname">two_slope_fill_in</code><span class="sig-paren">(</span><em>function</em>, <em>order=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.two_slope_fill_in" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extend the given function to make it a 2-slope function in the
@@ -9464,7 +9863,7 @@ infinite group problem.</p>
 <p>function may be a function of a finite (cyclic) group problem,
 represented as a <code class="docutils literal"><span class="pre">FastPiecewise</span></code> with singleton intervals within [0,1] as its parts.</p>
 <p>(function is actually allowed, however, to be more general; it can be any <code class="docutils literal"><span class="pre">FastPiecewise</span></code>. When the given function is a function for the infinite group problem, its <code class="docutils literal"><span class="pre">restrict_to_finite_group</span></code> with order=order would be considered.)</p>
-<p>[Johnson (1974), section 7; see also Gomory&#8211;Johnson (1972, I, II)] If function is a subadditive valid function for the finite group problem, then its 2-slope fill-in is a subadditive valid function for the infinite group problem.</p>
+<p>[Johnson (1974), section 7; see also Gomory–Johnson (1972, I, II)] If function is a subadditive valid function for the finite group problem, then its 2-slope fill-in is a subadditive valid function for the infinite group problem.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">h_dis</span> <span class="o">=</span> <span class="n">discrete_function_from_points_and_values</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
@@ -9817,11 +10216,11 @@ one-sided continuity is present in the function.</p>
                         title="previous chapter">igp: Infinite Group Relaxation Sage Code</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="extreme_functions.html"
-                        title="next chapter">Electronic compendium of extreme functions for the Gomory&#8211;Johnson model</a></p>
+                        title="next chapter">Electronic compendium of extreme functions for the Gomory–Johnson model</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/igp.txt"
+      <li><a href="_sources/igp.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -9854,12 +10253,12 @@ one-sided continuity is present in the function.</p>
         <li class="right" >
           <a href="index.html" title="igp: Infinite Group Relaxation Sage Code"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Infinite Group Relaxation Sage Code 1.0+git documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Infinite Group Relaxation Sage Code 1.0+git documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2013-2016, Chun Yu Hong, Matthias Koeppe, Yuan Zhou.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.4.
+        &#169; Copyright 2013-2018, Chun Yu Hong, Matthias Koeppe, Yuan Zhou, Jiawei Wang.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
   </body>
 </html>
