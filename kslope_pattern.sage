@@ -34,8 +34,8 @@ def pattern_setup_lp(l, more_ini_additive=False, objcoef=None, use_auxiliary_del
         sage: fn = pattern_setup_lp(1, more_ini_additive=False, objcoef=None)
         sage: fn[28]
         2*x_0 + 12*x_1 + 14*x_2
-        sage: igp.pattern_lp
-        ... Program  ( maximization, 95 variables, 121 constraints )
+        sage: igp.pattern_lp.number_of_variables()
+        95
         sage: igp.var_slope
         MIPVariable ...
         sage: igp.var_delta
@@ -424,12 +424,8 @@ def glpk_simplex_exact_solve(lp):
         sage: lp.add_constraint(x - y <= 1)
         sage: lp.add_constraint(x + y >= 2)
         sage: lp.set_objective(x + y)
-        sage: glpk_simplex_exact_solve(lp)
-        glp_exact: 3 rows, 2 columns, 6 non-zeros
-        GNU MP bignum library is being used
-        *     2:   objval =                      2   (0)
-        *     2:   objval =                      2   (0)
-        OPTIMAL SOLUTION FOUND
+        sage: print("glp_exact noise follows in old sage versions"); glpk_simplex_exact_solve(lp)
+        glp_exact...
         2.0
     """
     lp.solver_parameter("simplex_or_intopt", "simplex_only")
@@ -456,17 +452,15 @@ def pattern_glpk_lp(l, more_ini_additive=False, exact_arithmetic=True, simplex_f
 
     EXAMPLES::
 
-        sage: optval, optsol, k_slope, v = pattern_glpk_lp(1, objcoef=(12,55,0))
-        glp_exact: ...
-        OPTIMAL SOLUTION FOUND
+        sage: print("glp_exact noise follows in old sage versions"); optval, optsol, k_slope, v = pattern_glpk_lp(1, objcoef=(12,55,0))
+        glp_exact...
         sage: k_slope
         6
         sage: optsol
         {0: 0.23404255319148934, 1: 0.14893617021276595, 2: -0.10638297872340424}
 
-        sage: optval, optsol, k_slope, v = pattern_glpk_lp(1, reconstruct_rational=True,objcoef=(12,55,0))
-        glp_exact: ...
-        OPTIMAL SOLUTION FOUND
+        sage: print("glp_exact noise follows in old sage versions"); optval, optsol, k_slope, v = pattern_glpk_lp(1, reconstruct_rational=True,objcoef=(12,55,0))
+        glp_exact...
         sage: optsol
         (11/47, 7/47, -5/47)
     """
