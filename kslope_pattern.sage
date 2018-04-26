@@ -114,7 +114,8 @@ def pattern_positive_zero_undecided_deltafn(vertices_color):
 
         sage: l = 1; q, f = pattern_q_and_f(l, 0);
         sage: vertices_color = pattern_vertices_color(l, pattern=0, more_ini_additive=False)
-        sage: fn = pattern_setup_lp(l)
+        sage: print("glp_exact noise follows in old sage versions"); fn = pattern_setup_lp(l)
+        glp_exact...
         sage: positive_deltafn, zero_deltafn, undecided_deltafn = pattern_positive_zero_undecided_deltafn(vertices_color)
         ...
         sage: positive_deltafn
