@@ -35,7 +35,7 @@ def pattern_setup_lp(l, more_ini_additive=False, objcoef=None, use_auxiliary_del
         sage: fn[28]
         2*x_0 + 12*x_1 + 14*x_2
         sage: igp.pattern_lp
-        Mixed Integer Program  ( maximization, 95 variables, 121 constraints )
+        ... Program  ( maximization, 95 variables, 121 constraints )
         sage: igp.var_slope
         MIPVariable ...
         sage: igp.var_delta
@@ -116,9 +116,7 @@ def pattern_positive_zero_undecided_deltafn(vertices_color):
         sage: vertices_color = pattern_vertices_color(l, pattern=0, more_ini_additive=False)
         sage: fn = pattern_setup_lp(l)
         sage: positive_deltafn, zero_deltafn, undecided_deltafn = pattern_positive_zero_undecided_deltafn(vertices_color)
-        glp_exact: 121 rows, 95 columns, 439 non-zeros
         ...
-        OPTIMAL SOLUTION FOUND
         sage: positive_deltafn
         [(1, -1, 0), (1, 0, 1), (1, 0, -1), (1, 1, 0), (0, 1, -1), (1, 0, 0)]
         sage: zero_deltafn
