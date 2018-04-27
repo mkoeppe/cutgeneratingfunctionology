@@ -15,10 +15,10 @@
 
 # General information about the project.
 project = u"Infinite Group Relaxation Sage Code"
-copyright = u'2013-2016, Chun Yu Hong, Matthias Koeppe, Yuan Zhou'
+copyright = u'2013-2018, Chun Yu Hong, Matthias Koeppe, Yuan Zhou, Jiawei Wang'
 package_name = 'igp'
 package_folder = "../../"
-authors = u"2013-2016, Chun Yu Hong, Matthias Koeppe, Yuan Zhou"
+authors = u"2013-2016, Chun Yu Hong, Matthias Koeppe, Yuan Zhou, Jiawei Wang"
 
 import sys
 import os

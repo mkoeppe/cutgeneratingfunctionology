@@ -611,8 +611,7 @@ def mlr_cpl3_n_3_slope(r0=9/25, z1=2/25, field=None, conditioncheck=True):
         * r0 + 8*z1 <= 1
 
     Note:
-        * ``multiplicative_homomorphism( mlr_cpl3_n_3_slope(r0, z1), -1) == gj_forward_3_slope(f=1-r0, lambda_1=2*z1/(1-r0), lambda_2=z1/r0)``;
-
+        * ``multiplicative_homomorphism( mlr_cpl3_n_3_slope(r0, z1), -1) == gj_forward_3_slope(f=1-r0, lambda_1=4*z1/(1-r0), lambda_2=2*z1/r0)``;
         * ``gj_forward_3_slope`` being extreme only requires:  r0 >= z1, r0 + 4*z1 <= 1.
 
     Examples:

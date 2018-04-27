@@ -104,19 +104,17 @@ def generate_maximal_additive_faces_continuous(function):
                             keep = False
                             logging.warn("Additivity appears only in the interior for some face. This is not shown on the diagram.")
                     elif len(temp) == 1:
-                        if temp[0][0] == I_list[i][0] and temp[0][1] == J_list[j][0] \
-                            and temp[0][0] + temp[0][1] != K_list[k][1]:
+                        x, y = temp[0]
+                        if x == I_list[i][0] and y == J_list[j][0] and x + y != K_list[k][1]:
                             keep = True
-                        elif temp[0][0] == I_list[i][0] and temp[0][0] + temp[0][1] == K_list[k][0] \
-                            and temp[0][1] != J_list[j][1]:
+                        elif x == I_list[i][0] and x + y == K_list[k][0] and y != J_list[j][1]:
                             keep = True
-                        elif temp[0][1] == J_list[j][0] and temp[0][0] + temp[0][1] == K_list[k][0] \
-                            and temp[0][0] != I_list[i][1]:     
+                        elif y == J_list[j][0] and x + y == K_list[k][0] and x != I_list[i][1]:
                             keep = True
                         else:
                             keep = False
                         if keep:
-                            if (temp[0][0],temp[0][1]) in additive_vertices:
+                            if (x,y) in additive_vertices:
                                 keep = False  
                             # if keep:
                             #     print I_list[i], J_list[j], K_list[k]      
