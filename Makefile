@@ -62,6 +62,10 @@ doc-pdf:
 
 clean: clean-doc
 	rm -f .tmp_check-long-timings.json
+	rm -rf build dist *.egg-info
+	rm -rf $(PACKAGE)/*.c
 
 clean-doc:
 	cd docs && $(SAGE) -sh -c "make clean"
+
+.PHONY: all build install test coverage sdist pip-install pip-uninstall pip-develop clean clean-doc doc doc-pdf

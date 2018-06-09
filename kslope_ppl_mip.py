@@ -209,8 +209,8 @@ def initial_mip(q, f, vertices_color):
         sage: q=5; f=3;
         sage: vertices_color = initial_vertices_color(q, f);
         sage: initial_mip(q, f, vertices_color)
-        sage: igp.m
-        Mixed Integer Program  ( maximization, 16 variables, 10 constraints )
+        sage: igp.m.number_of_variables()
+        16
         sage: igp.delta[1,1]
         x_6
         sage: igp.var_id[1,1]

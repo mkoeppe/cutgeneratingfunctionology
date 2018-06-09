@@ -73,7 +73,8 @@ from igp import (mlr_cpl3_a_2_slope,
                  mlr_cpl3_q_2_slope,
                  mlr_cpl3_r_2_slope)
 
-from igp import bcdsp_arbitrary_slope
+from igp import (bcdsp_arbitrary_slope,
+                 bcds_discontinuous_everywhere)
 
 from igp import (kzh_3_slope_param_extreme_1,
                  kzh_3_slope_param_extreme_2,

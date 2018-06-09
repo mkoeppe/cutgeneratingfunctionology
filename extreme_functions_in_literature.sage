@@ -1305,6 +1305,33 @@ def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
 
 extreme_function_with_world_record_number_of_slopes = bcdsp_arbitrary_slope
 
+class bcds_discontinuous_everywhere:
+
+    """
+    An extreme function whose graph is dense in R \times [0,1].
+
+    Reference:
+        [bcds_discontinous_everywhere] Amitabh Basu, Michele Conforti, Marco Di Summa, An extreme function which is nonnegative and discontinuous everywhere, arXiv:1802.01499 [math.OC]
+    """
+    def __init__(self, f=None):
+        self._f = f
+
+    def __call__(self, x):
+        raise NotImplementedError
+
+    def plot(self, xmin=0, xmax=1, ymin=0, ymax=1, color=None, rgbcolor=None,
+             aspect_ratio='automatic', thickness=None, **kwds):
+        ymin = max(0, ymin)
+        ymax = min(1, ymax)
+        color = color or rgbcolor or 'blue'
+        if xmax >= xmin and ymax >= ymin:
+            return polygon(((xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax)),
+                           fill=True, alpha=0.2, thickness=0, color=color,
+                           aspect_ratio=aspect_ratio,
+                           **kwds)
+        else:
+            return Graphics()
+
 def kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19, field=None, conditioncheck=True):
     """
     New extreme function discovered by computer based search followed by parametric search.

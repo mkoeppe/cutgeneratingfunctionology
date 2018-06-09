@@ -473,7 +473,7 @@ def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
                 p += line([(-(3/10)*y1, x1), (-(3/10)*y2, x2)], color=colors[i], zorder=-2, **kwds)
     return p
 
-def plot_2d_diagram_with_cones(fn, show_function=True, f=None):
+def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200):
     """
     EXAMPLES::
 
@@ -502,7 +502,7 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None):
                 color = "mediumspringgreen"
             else:
                 color = "red"
-            g += point([(x, y), (y, x)], color=color, size = 200, zorder=-1)
+            g += point([(x, y), (y, x)], color=color, size=conesize, zorder=-1)
     else:
         for (x, y, z) in vertices:
             for (xeps, yeps, zeps) in [(0,0,0)]+list(nonzero_eps):
@@ -2539,9 +2539,42 @@ class FunctionalDirectedMove (FastPiecewise):
 
     def plot(self, *args, **kwds):
         kwds = copy(kwds)
+        kwds['aspect_ratio'] = 1.0
         # ignore discontinuity markers in the moves diagram
         kwds['discontinuity_markers'] = False
         return FastPiecewise.plot(self, *args, **kwds)
+
+    def __invert__(self):
+        """
+        Returns the (pseudo-)inverse of ``self``.
+
+        EXAMPLES::
+
+            sage: h = FunctionalDirectedMove([[3/5, 4/5]], (1, 1/5))
+            sage: ~h
+            <FunctionalDirectedMove (1, -1/5) with domain [(4/5, 1)], range [<Int[3/5, 4/5]>]>
+            sage: ~~h == h
+            True
+            sage: h = FunctionalDirectedMove([[3/5, 4/5]], (-1, 1))
+            sage: ~h == h
+            True
+        """
+        if self.sign() == 1:
+            return FunctionalDirectedMove(self.range_intervals(), (1, -self[1]))
+        else:
+            return self
+
+    def __mul__(self, other):
+        """
+        Compute the directed move that corresponds to the directed move ``self`` after ``other``. 
+
+        EXAMPLES::
+
+            sage: FunctionalDirectedMove([(5/10,7/10)],(1, 2/10)) * FunctionalDirectedMove([(2/10,4/10)],(1,2/10))
+            <FunctionalDirectedMove (1, 2/5) with domain [(3/10, 2/5)], range [<Int[7/10, 4/5]>]>
+
+        """
+        return compose_functional_directed_moves(self, other)
 
 @cached_function
 def generate_functional_directed_moves(fn):
@@ -4049,7 +4082,7 @@ class DirectedMoveCompositionCompletion:
         for dm in move_keys:
             if dm[0] == 1:
                 forward_fdm = self.move_dict[dm]
-                backward_fdm = FunctionalDirectedMove(forward_fdm.range_intervals(), (1, -dm[1]))
+                backward_fdm = ~forward_fdm
                 self.add_move(backward_fdm)
         # extend initial moves by continuity
         for dm in self.move_dict.keys():
@@ -4085,7 +4118,12 @@ class DirectedMoveCompositionCompletion:
 
     def results(self):
         return self.move_dict.values(), self.covered_components
-
+    
+    def __repr__(self):
+        if self.is_complete:
+            return "<DirectedMoveCompositionCompletion (complete) with {} directed moves and {} covered components>".format(len(self.move_dict), len(self.covered_components))
+        else:
+            return "<DirectedMoveCompositionCompletion (incomplete, {} rounds) with {} directed moves and {} covered components>".format(self.num_rounds, len(self.move_dict), len(self.covered_components))
 
 def directed_move_composition_completion(fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, max_num_rounds=None, error_if_max_num_rounds_exceeded=True):
     """
