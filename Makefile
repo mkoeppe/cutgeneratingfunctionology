@@ -21,7 +21,8 @@ SAGEFILES =					\
 	vertex_enumeration.py			\
 	kslope_pattern.sage			\
 	2q_mip.sage				\
-	kslope_mip.sage
+	kslope_mip.sage				\
+	lifting_project.sage
 
 # Dual feasible functions
 SAGEFILES +=					\
