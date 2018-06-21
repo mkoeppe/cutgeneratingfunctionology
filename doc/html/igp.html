@@ -2334,6 +2334,11 @@ and epsilon is 1 if the interval is right closed and 0 otherwise.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="igp.construct_perturbation_given_slopes_and_lengths">
+<code class="descclassname">igp.</code><code class="descname">construct_perturbation_given_slopes_and_lengths</code><span class="sig-paren">(</span><em>fn</em>, <em>perturbation_components</em>, <em>lim_slope</em>, <em>min_slope</em>, <em>max_slope</em>, <em>lengths</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.construct_perturbation_given_slopes_and_lengths" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="igp.containing_eps_1d">
 <code class="descclassname">igp.</code><code class="descname">containing_eps_1d</code><span class="sig-paren">(</span><em>x</em>, <em>interval</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.containing_eps_1d" title="Permalink to this definition">¶</a></dt>
 <dd><p>Input:</p>
@@ -3814,6 +3819,16 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 </dd></dl>
 
 <dl class="function">
+<dt id="igp.generate_extreme_functions_for_finite_group">
+<code class="descclassname">igp.</code><code class="descname">generate_extreme_functions_for_finite_group</code><span class="sig-paren">(</span><em>q</em>, <em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_extreme_functions_for_finite_group" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="igp.generate_extreme_lifted_function_equiv">
+<code class="descclassname">igp.</code><code class="descname">generate_extreme_lifted_function_equiv</code><span class="sig-paren">(</span><em>fn</em>, <em>show_plots=False</em>, <em>L=[]</em>, <em>use_polyhedron=True</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_extreme_lifted_function_equiv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="igp.generate_functional_directed_moves">
 <code class="descclassname">igp.</code><code class="descname">generate_functional_directed_moves</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_functional_directed_moves" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a cached version of a function, which only recomputes
@@ -3973,6 +3988,16 @@ using field (base_ring).</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="igp.generate_lim_and_interior_slopes_on_perturbation_components">
+<code class="descclassname">igp.</code><code class="descname">generate_lim_and_interior_slopes_on_perturbation_components</code><span class="sig-paren">(</span><em>fn</em>, <em>perturbation_components=None</em>, <em>solver=None</em>, <em>use_polyhedron=True</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_lim_and_interior_slopes_on_perturbation_components" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="igp.generate_lim_slopes_on_perturbation_components">
+<code class="descclassname">igp.</code><code class="descname">generate_lim_slopes_on_perturbation_components</code><span class="sig-paren">(</span><em>fn</em>, <em>perturbation_components=None</em>, <em>solver=None</em>, <em>use_polyhedron=True</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_lim_slopes_on_perturbation_components" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="igp.generate_maximal_additive_faces">
 <code class="descclassname">igp.</code><code class="descname">generate_maximal_additive_faces</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_maximal_additive_faces" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -4119,6 +4144,11 @@ right before the definition of <code class="docutils literal"><span class="pre">
 <dl class="function">
 <dt id="igp.generate_nonsymmetric_vertices_general_dff">
 <code class="descclassname">igp.</code><code class="descname">generate_nonsymmetric_vertices_general_dff</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_nonsymmetric_vertices_general_dff" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="igp.generate_perturbation_on_perturbation_components">
+<code class="descclassname">igp.</code><code class="descname">generate_perturbation_on_perturbation_components</code><span class="sig-paren">(</span><em>fn</em>, <em>perturbation_components=None</em>, <em>use_polyhedron=True</em>, <em>repeat=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_perturbation_on_perturbation_components" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -4953,6 +4983,83 @@ Varibles of the MILP are fn[0], …, fn[q], and auxiliary variables delta[x, y].
 <dt id="igp.initialization_sym">
 <code class="descclassname">igp.</code><code class="descname">initialization_sym</code><span class="sig-paren">(</span><em>q</em>, <em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.initialization_sym" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="igp.injective_2_slope_fill_in">
+<code class="descclassname">igp.</code><code class="descname">injective_2_slope_fill_in</code><span class="sig-paren">(</span><em>fn</em>, <em>epsilon=1</em>, <em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.injective_2_slope_fill_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Input: a (continuous) minimal function fn for the infinite group problem, or a discrete minimal function for the finite group problem,  with rational breakpoints in 1/qZ and rational funciton values at the breakpoints. (weaker condition: ratioanl breakpoints and the set {x: fn_interpolation(x)=1/2} is the union of some rational x and intervals.)
+Output: a two-slope extreme function fn2 such that fn2 = fn on 1/qZ (and the infinity norm distance between fn and fn2 is less than epsilon).</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">discrete_function_from_points_and_values</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">not_extreme_1</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">find_infinity_norm_distance</span> <span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">fn2</span><span class="p">)</span>
+<span class="go">1/12</span>
+<span class="gp">sage: </span><span class="n">fn_app</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">20</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">finite_group_order_from_function_f_oversampling_order</span><span class="p">(</span><span class="n">fn_app</span><span class="p">)</span>
+<span class="go">160</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn_app</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">find_infinity_norm_distance</span> <span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">fn_app</span><span class="p">)</span>
+<span class="go">1/48</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">gmic</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">==</span> <span class="n">fn2</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span><span class="n">restrict_to_finite_group</span><span class="p">(</span><span class="n">minimal_has_uncovered_interval</span><span class="p">(),</span> <span class="n">order</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span><span class="n">restrict_to_finite_group</span><span class="p">(</span><span class="n">minimal_has_uncovered_interval</span><span class="p">(),</span> <span class="n">order</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">minimal_has_uncovered_breakpoints</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">example7slopecoarse2</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">number_of_slopes</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">lift_until_extreme_only_works_with_strict_subset_L</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">number_of_slopes</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>  <span class="c1"># long time</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">lift_until_extreme_default_style_bug_example</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>  <span class="c1"># q=52; q2=order=4004</span>
+<span class="gp">sage: </span><span class="n">finite_group_order_from_function_f_oversampling_order</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">12012</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Reference:</dt>
+<dd>[injective_2_slope_fill_in] M. Koeppe and Y. Zhou, All Cyclic Group Facets Inject, 
+manuscript, 2018.</dd>
+</dl>
+</dd></dl>
 
 <dl class="function">
 <dt id="igp.interpolate_to_infinite_group">
@@ -6030,6 +6137,37 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="igp.lift_extreme_function_for_finite_group_to_infinite_group">
+<code class="descclassname">igp.</code><code class="descname">lift_extreme_function_for_finite_group_to_infinite_group</code><span class="sig-paren">(</span><em>fn</em>, <em>show_plots=False</em>, <em>show_all_lifting=True</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.lift_extreme_function_for_finite_group_to_infinite_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">drlm_not_extreme_1</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">hh</span> <span class="o">=</span> <span class="n">lift_extreme_function_for_finite_group_to_infinite_group</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">hh</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">example7slopecoarse2</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">hh</span> <span class="o">=</span> <span class="n">lift_extreme_function_for_finite_group_to_infinite_group</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">hh</span><span class="p">)</span>
+<span class="go">12</span>
+<span class="gp">sage: </span><span class="n">bkpts</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span> <span class="mi">7</span><span class="o">/</span><span class="mi">26</span><span class="p">,</span> <span class="mi">4</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span><span class="mi">5</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span><span class="mi">21</span><span class="o">/</span><span class="mi">52</span><span class="p">,</span><span class="mi">23</span><span class="o">/</span><span class="mi">52</span><span class="p">,</span><span class="mi">6</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span><span class="mi">8</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span><span class="mi">33</span><span class="o">/</span><span class="mi">52</span><span class="p">,</span><span class="mi">35</span><span class="o">/</span><span class="mi">52</span><span class="p">,</span><span class="mi">9</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span><span class="mi">10</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span><span class="mi">21</span><span class="o">/</span><span class="mi">26</span><span class="p">,</span><span class="mi">11</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">sage: </span><span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">14</span><span class="p">,</span><span class="mi">5</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="o">/</span><span class="mi">14</span><span class="p">,</span><span class="mi">55</span><span class="o">/</span><span class="mi">112</span><span class="p">,</span><span class="mi">33</span><span class="o">/</span><span class="mi">112</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span><span class="mi">4</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span><span class="mi">79</span><span class="o">/</span><span class="mi">112</span><span class="p">,</span><span class="mi">57</span><span class="o">/</span><span class="mi">112</span><span class="p">,</span><span class="mi">9</span><span class="o">/</span><span class="mi">14</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span><span class="mi">11</span><span class="o">/</span><span class="mi">14</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">piecewise_function_from_breakpoints_and_values</span><span class="p">(</span><span class="n">bkpts</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">hh</span> <span class="o">=</span> <span class="n">lift_extreme_function_for_finite_group_to_infinite_group</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">hh</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">hh</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>BUG EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">FastPiecewise</span><span class="p">([[(</span><span class="n">QQ</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="mi">1</span><span class="o">/</span><span class="mi">18</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="n">QQ</span><span class="p">(</span><span class="mi">18</span><span class="p">),</span> <span class="n">QQ</span><span class="p">(</span><span class="mi">0</span><span class="p">))],</span> <span class="p">[(</span><span class="mi">1</span><span class="o">/</span><span class="mi">18</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">9</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="o">-</span><span class="mi">126</span><span class="o">/</span><span class="mi">11</span><span class="p">,</span> <span class="mi">18</span><span class="o">/</span><span class="mi">11</span><span class="p">)],</span> <span class="p">[(</span><span class="mi">1</span><span class="o">/</span><span class="mi">9</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">6</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="mi">18</span><span class="o">/</span><span class="mi">55</span><span class="p">,</span> <span class="mi">18</span><span class="o">/</span><span class="mi">55</span><span class="p">)],</span> <span class="p">[(</span><span class="mi">1</span><span class="o">/</span><span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="o">/</span><span class="mi">9</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="mi">342</span><span class="o">/</span><span class="mi">55</span><span class="p">,</span> <span class="o">-</span><span class="mi">36</span><span class="o">/</span><span class="mi">55</span><span class="p">)],</span> <span class="p">[(</span><span class="mi">2</span><span class="o">/</span><span class="mi">9</span><span class="p">,</span> <span class="mi">5</span><span class="o">/</span><span class="mi">18</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="o">-</span><span class="mi">126</span><span class="o">/</span><span class="mi">11</span><span class="p">,</span> <span class="mi">36</span><span class="o">/</span><span class="mi">11</span><span class="p">)],</span> <span class="p">[(</span><span class="mi">5</span><span class="o">/</span><span class="mi">18</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="mi">666</span><span class="o">/</span><span class="mi">55</span><span class="p">,</span> <span class="o">-</span><span class="mi">36</span><span class="o">/</span><span class="mi">11</span><span class="p">)],</span> <span class="p">[(</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="o">/</span><span class="mi">18</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="o">-</span><span class="mi">306</span><span class="o">/</span><span class="mi">55</span><span class="p">,</span> <span class="mi">144</span><span class="o">/</span><span class="mi">55</span><span class="p">)],</span> <span class="p">[(</span><span class="mi">7</span><span class="o">/</span><span class="mi">18</span><span class="p">,</span> <span class="mi">4</span><span class="o">/</span><span class="mi">9</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="mi">18</span><span class="o">/</span><span class="mi">55</span><span class="p">,</span> <span class="mi">18</span><span class="o">/</span><span class="mi">55</span><span class="p">)],</span> <span class="p">[(</span><span class="mi">4</span><span class="o">/</span><span class="mi">9</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="mi">342</span><span class="o">/</span><span class="mi">55</span><span class="p">,</span> <span class="o">-</span><span class="mi">126</span><span class="o">/</span><span class="mi">55</span><span class="p">)],</span> <span class="p">[(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="o">/</span><span class="mi">9</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="o">-</span><span class="mi">126</span><span class="o">/</span><span class="mi">11</span><span class="p">,</span> <span class="mi">72</span><span class="o">/</span><span class="mi">11</span><span class="p">)],</span> <span class="p">[(</span><span class="mi">5</span><span class="o">/</span><span class="mi">9</span><span class="p">,</span> <span class="mi">11</span><span class="o">/</span><span class="mi">18</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="mi">342</span><span class="o">/</span><span class="mi">55</span><span class="p">,</span> <span class="o">-</span><span class="mi">36</span><span class="o">/</span><span class="mi">11</span><span class="p">)],</span> <span class="p">[(</span><span class="mi">11</span><span class="o">/</span><span class="mi">18</span><span class="p">,</span> <span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="mi">18</span><span class="o">/</span><span class="mi">55</span><span class="p">,</span> <span class="mi">18</span><span class="o">/</span><span class="mi">55</span><span class="p">)],</span> <span class="p">[(</span><span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">13</span><span class="o">/</span><span class="mi">18</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="o">-</span><span class="mi">306</span><span class="o">/</span><span class="mi">55</span><span class="p">,</span> <span class="mi">234</span><span class="o">/</span><span class="mi">55</span><span class="p">)],</span> <span class="p">[(</span><span class="mi">13</span><span class="o">/</span><span class="mi">18</span><span class="p">,</span> <span class="mi">7</span><span class="o">/</span><span class="mi">9</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="mi">666</span><span class="o">/</span><span class="mi">55</span><span class="p">,</span> <span class="o">-</span><span class="mi">468</span><span class="o">/</span><span class="mi">55</span><span class="p">)],</span> <span class="p">[(</span><span class="mi">7</span><span class="o">/</span><span class="mi">9</span><span class="p">,</span> <span class="mi">5</span><span class="o">/</span><span class="mi">6</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="o">-</span><span class="mi">126</span><span class="o">/</span><span class="mi">11</span><span class="p">,</span> <span class="mi">108</span><span class="o">/</span><span class="mi">11</span><span class="p">)],</span> <span class="p">[(</span><span class="mi">5</span><span class="o">/</span><span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="o">/</span><span class="mi">9</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="mi">342</span><span class="o">/</span><span class="mi">55</span><span class="p">,</span> <span class="o">-</span><span class="mi">54</span><span class="o">/</span><span class="mi">11</span><span class="p">)],</span> <span class="p">[(</span><span class="mi">8</span><span class="o">/</span><span class="mi">9</span><span class="p">,</span> <span class="mi">17</span><span class="o">/</span><span class="mi">18</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="mi">18</span><span class="o">/</span><span class="mi">55</span><span class="p">,</span> <span class="mi">18</span><span class="o">/</span><span class="mi">55</span><span class="p">)],</span> <span class="p">[(</span><span class="mi">17</span><span class="o">/</span><span class="mi">18</span><span class="p">,</span> <span class="n">QQ</span><span class="p">(</span><span class="mi">1</span><span class="p">)),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="o">-</span><span class="mi">126</span><span class="o">/</span><span class="mi">11</span><span class="p">,</span> <span class="mi">126</span><span class="o">/</span><span class="mi">11</span><span class="p">)]])</span>
+<span class="gp">sage: </span><span class="n">lift_extreme_function_for_finite_group_to_infinite_group</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="go">[]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="igp.lift_of_minimal_has_uncovered_interval">
 <code class="descclassname">igp.</code><code class="descname">lift_of_minimal_has_uncovered_interval</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.lift_of_minimal_has_uncovered_interval" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function was obtained by:
@@ -6057,8 +6195,48 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 </dd></dl>
 
 <dl class="function">
+<dt id="igp.lift_on_uncovered_components">
+<code class="descclassname">igp.</code><code class="descname">lift_on_uncovered_components</code><span class="sig-paren">(</span><em>fn</em>, <em>show_plots=False</em>, <em>L=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.lift_on_uncovered_components" title="Permalink to this definition">¶</a></dt>
+<dd><p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">drlm_not_extreme_1</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">hh</span> <span class="o">=</span> <span class="n">lift_on_uncovered_components</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">hh</span><span class="p">)</span>                     <span class="c1"># not tested - wrong doctest</span>
+<span class="go">4</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">example7slopecoarse2</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">hh</span> <span class="o">=</span> <span class="n">lift_on_uncovered_components</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">hh</span><span class="p">)</span>                     <span class="c1"># not tested - wrong doctest</span>
+<span class="go">12</span>
+<span class="gp">sage: </span><span class="n">bkpts</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span> <span class="mi">7</span><span class="o">/</span><span class="mi">26</span><span class="p">,</span> <span class="mi">4</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span><span class="mi">5</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span><span class="mi">21</span><span class="o">/</span><span class="mi">52</span><span class="p">,</span><span class="mi">23</span><span class="o">/</span><span class="mi">52</span><span class="p">,</span><span class="mi">6</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span><span class="mi">8</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span><span class="mi">33</span><span class="o">/</span><span class="mi">52</span><span class="p">,</span><span class="mi">35</span><span class="o">/</span><span class="mi">52</span><span class="p">,</span><span class="mi">9</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span><span class="mi">10</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span><span class="mi">21</span><span class="o">/</span><span class="mi">26</span><span class="p">,</span><span class="mi">11</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">sage: </span><span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">14</span><span class="p">,</span><span class="mi">5</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="o">/</span><span class="mi">14</span><span class="p">,</span><span class="mi">55</span><span class="o">/</span><span class="mi">112</span><span class="p">,</span><span class="mi">33</span><span class="o">/</span><span class="mi">112</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span><span class="mi">4</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span><span class="mi">79</span><span class="o">/</span><span class="mi">112</span><span class="p">,</span><span class="mi">57</span><span class="o">/</span><span class="mi">112</span><span class="p">,</span><span class="mi">9</span><span class="o">/</span><span class="mi">14</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span><span class="mi">11</span><span class="o">/</span><span class="mi">14</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">piecewise_function_from_breakpoints_and_values</span><span class="p">(</span><span class="n">bkpts</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">hh</span> <span class="o">=</span> <span class="n">lift_on_uncovered_components</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>   <span class="c1"># long time. 30 mins?</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">hh</span><span class="p">)</span>                                <span class="c1"># not tested - wrong doctest</span>
+<span class="go">128</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">hh</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>     <span class="c1"># not tested - wrong doctest</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="igp.lift_until_extreme">
-<code class="descclassname">igp.</code><code class="descname">lift_until_extreme</code><span class="sig-paren">(</span><em>fn</em>, <em>show_plots=False</em>, <em>pause=False</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.lift_until_extreme" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">igp.</code><code class="descname">lift_until_extreme</code><span class="sig-paren">(</span><em>fn</em>, <em>show_plots=False</em>, <em>pause=False</em>, <em>covered_length=True</em>, <em>use_all_perturbations=True</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.lift_until_extreme" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="igp.lift_until_extreme_bug_example">
+<code class="descclassname">igp.</code><code class="descname">lift_until_extreme_bug_example</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.lift_until_extreme_bug_example" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="igp.lift_until_extreme_default_style_bug_example">
+<code class="descclassname">igp.</code><code class="descname">lift_until_extreme_default_style_bug_example</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.lift_until_extreme_default_style_bug_example" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="igp.lift_until_extreme_only_works_with_strict_subset_L">
+<code class="descclassname">igp.</code><code class="descname">lift_until_extreme_only_works_with_strict_subset_L</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.lift_until_extreme_only_works_with_strict_subset_L" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -7782,6 +7960,16 @@ according to <span class="math">\(pattern\)</span> and size parameter <span clas
 </pre></div>
 </div>
 </dd></dl>
+
+<dl class="function">
+<dt id="igp.perturbation_interior_slopes_bounds">
+<code class="descclassname">igp.</code><code class="descname">perturbation_interior_slopes_bounds</code><span class="sig-paren">(</span><em>fn</em>, <em>perturbation_components=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.perturbation_interior_slopes_bounds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="igp.perturbation_lim_slopes_mip">
+<code class="descclassname">igp.</code><code class="descname">perturbation_lim_slopes_mip</code><span class="sig-paren">(</span><em>fn</em>, <em>perturbation_components=None</em>, <em>solver=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.perturbation_lim_slopes_mip" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="igp.perturbation_mip">
@@ -9880,6 +10068,83 @@ represented as a <code class="docutils literal"><span class="pre">FastPiecewise<
 <span class="go">True</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="function">
+<dt id="igp.two_slope_fill_in_extreme">
+<code class="descclassname">igp.</code><code class="descname">two_slope_fill_in_extreme</code><span class="sig-paren">(</span><em>fn</em>, <em>epsilon=1</em>, <em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.two_slope_fill_in_extreme" title="Permalink to this definition">¶</a></dt>
+<dd><p>Input: a (continuous) minimal function fn for the infinite group problem, or a discrete minimal function for the finite group problem,  with rational breakpoints in 1/qZ and rational funciton values at the breakpoints. (weaker condition: ratioanl breakpoints and the set {x: fn_interpolation(x)=1/2} is the union of some rational x and intervals.)
+Output: a two-slope extreme function fn2 such that fn2 = fn on 1/qZ (and the infinity norm distance between fn and fn2 is less than epsilon).</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">discrete_function_from_points_and_values</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">not_extreme_1</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">find_infinity_norm_distance</span> <span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">fn2</span><span class="p">)</span>
+<span class="go">1/12</span>
+<span class="gp">sage: </span><span class="n">fn_app</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">20</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">finite_group_order_from_function_f_oversampling_order</span><span class="p">(</span><span class="n">fn_app</span><span class="p">)</span>
+<span class="go">160</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn_app</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">find_infinity_norm_distance</span> <span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">fn_app</span><span class="p">)</span>
+<span class="go">1/48</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">gmic</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">==</span> <span class="n">fn2</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span><span class="n">restrict_to_finite_group</span><span class="p">(</span><span class="n">minimal_has_uncovered_interval</span><span class="p">(),</span> <span class="n">order</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span><span class="n">restrict_to_finite_group</span><span class="p">(</span><span class="n">minimal_has_uncovered_interval</span><span class="p">(),</span> <span class="n">order</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">minimal_has_uncovered_breakpoints</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">example7slopecoarse2</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">number_of_slopes</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">lift_until_extreme_only_works_with_strict_subset_L</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">number_of_slopes</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>  <span class="c1"># long time</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">lift_until_extreme_default_style_bug_example</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>  <span class="c1"># q=52; q2=order=4004</span>
+<span class="gp">sage: </span><span class="n">finite_group_order_from_function_f_oversampling_order</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">12012</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Reference:</dt>
+<dd>[injective_2_slope_fill_in] M. Koeppe and Y. Zhou, All Cyclic Group Facets Inject, 
+manuscript, 2018.</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
