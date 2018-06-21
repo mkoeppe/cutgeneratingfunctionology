@@ -826,3 +826,153 @@ def symmetric_2_slope_fill_in_irrational(function, epsilon, show_plots=False, f=
         g = show_approximations(function, function, pi_comb, pi_fill_in, pi_sym)
         show_plot(g, show_plots, tag='sym_2_slope_fill_in_diagram', object=function)
     return pi_sym
+
+
+def injective_2_slope_fill_in(fn, epsilon=1, show_plots=False):
+    """
+    Input: a (continuous) minimal function fn for the infinite group problem, or a discrete minimal function for the finite group problem,  with rational breakpoints in 1/qZ and rational funciton values at the breakpoints. (weaker condition: ratioanl breakpoints and the set {x: fn_interpolation(x)=1/2} is the union of some rational x and intervals.)
+    Output: a two-slope extreme function fn2 such that fn2 = fn on 1/qZ (and the infinity norm distance between fn and fn2 is less than epsilon).
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.WARN)
+        sage: fn = discrete_function_from_points_and_values([0,1/5,2/5,3/5,4/5,1],[0,1/2,1,1/2,1/2,0])
+        sage: minimality_test(fn)
+        True
+        sage: extremality_test(fn)
+        False
+        sage: fn2 = injective_2_slope_fill_in(fn)
+        sage: extremality_test(fn2)
+        True
+
+        sage: fn = not_extreme_1()
+        sage: fn2 = injective_2_slope_fill_in(fn)
+        sage: extremality_test(fn2)
+        True
+        sage: find_infinity_norm_distance (fn, fn2)
+        1/12
+        sage: fn_app = injective_2_slope_fill_in(fn, epsilon=1/20)
+        sage: finite_group_order_from_function_f_oversampling_order(fn_app)
+        160
+        sage: minimality_test(fn_app)
+        True
+        sage: find_infinity_norm_distance (fn, fn_app)
+        1/48
+
+        sage: fn = gmic()
+        sage: fn2 = injective_2_slope_fill_in(fn)
+        sage: fn == fn2
+        True
+
+        sage: fn =restrict_to_finite_group(minimal_has_uncovered_interval(), order=8)
+        sage: fn2 = injective_2_slope_fill_in(fn)
+        sage: extremality_test(fn2)
+        True
+
+        sage: fn =restrict_to_finite_group(minimal_has_uncovered_interval(), order=16)
+        sage: fn2 = injective_2_slope_fill_in(fn)
+        sage: minimality_test(fn2)
+        True
+
+        sage: fn = minimal_has_uncovered_breakpoints()
+        sage: fn2 = injective_2_slope_fill_in(fn)
+        sage: minimality_test(fn2)
+        True
+
+        sage: fn = example7slopecoarse2()
+        sage: fn2 = injective_2_slope_fill_in(fn)
+        sage: number_of_slopes(fn2)
+        2
+        sage: minimality_test(fn2)
+        True
+
+        sage: fn = lift_until_extreme_only_works_with_strict_subset_L()
+        sage: fn2 = injective_2_slope_fill_in(fn)
+        sage: number_of_slopes(fn2)
+        2
+        sage: minimality_test(fn2)  # long time
+        True
+
+        sage: fn = lift_until_extreme_default_style_bug_example()
+        sage: fn2 = injective_2_slope_fill_in(fn)  # q=52; q2=order=4004
+        sage: finite_group_order_from_function_f_oversampling_order(fn2)
+        12012
+
+    Reference:
+        [injective_2_slope_fill_in] M. Koeppe and Y. Zhou, All Cyclic Group Facets Inject, 
+        manuscript, 2018.
+
+    """
+    sp, sm = limiting_slopes(fn)
+    f = find_f(fn)
+    q = finite_group_order_from_function_f_oversampling_order(fn)
+    #fn_q = restrict_to_finite_group(fn, order=q)
+    if show_plots:
+        g = plot_covered_intervals(fn,[],show_legend=False)
+    if fn.is_discrete():
+        fn = interpolate_to_infinite_group(fn)
+    bkpt = [0]
+    value = [0]
+    for i in range(q):
+        if (fn(i/q) - 1/2) * (fn((i+1)/q) - 1/2) < 0:
+            si = q * (fn((i+1)/q) - fn(i/q))
+            x =  (1/2 -fn(i/q)) / si
+            bkpt.append(i/q + x)
+            value.append(1/2)
+        elif fn(i/q) == 1/2 and fn((i+1)/q) == 1/2 and fractional((2*i+1)/q) == f:
+            bkpt.append((2*i+1)/q/2)
+            value.append(1/2)
+        bkpt.append((i+1)/q)
+        value.append(fn((i+1)/q))
+    is_rational_bkpt, bkpt = is_all_QQ(bkpt)
+    if is_rational_bkpt:
+        bkpt_denominator = [denominator(x) for x in bkpt]
+        q2 = lcm(bkpt_denominator)
+        # WARNING: q2 could be very large.
+        # For example, in lift_until_extreme_bug_example(), q=18 and q2=3011652. Problematic!
+    else:
+        raise ValueError("irrational")
+    min_delta = 3
+    # Question: Should min_delta be calculated on the grid of q or q2?
+    # can prove for q2, but it seems from experiments that q is good enough.
+    for i in range(q):
+        for j in range(q):
+            if i <= j:
+                delta_fn = delta_pi(fn, i/q, j/q)
+                if delta_fn > 0 and delta_fn < min_delta:
+                    min_delta = delta_fn
+    oversampling = ceil(max(sp, -sm) / min(epsilon, min_delta) / q2)
+    order = oversampling * q2
+    bkpt = [i/order for i in range(order+1)]
+    value = [fn(i/order) for i in range(order+1)]
+    b = [0]
+    s = []
+    for i in range(order):
+        if value[i+1]-value[i] == value[1]:
+            b.append(bkpt[i+1])
+            s.append(sp)
+        elif value[i]-value[i+1] == value[-2]:
+            b.append(bkpt[i+1])
+            s.append(sm)
+        else:
+            x = (value[i+1]-value[i]-sm/order)/(sp-sm)
+            if value[i]+value[i+1] < 1:
+                b += [bkpt[i]+x, bkpt[i+1]]
+                s += [sp, sm]
+            elif value[i]+value[i+1] > 1:
+                b += [bkpt[i+1]-x, bkpt[i+1]]
+                s += [sm, sp]
+            else: # value[i] ==  value[i+1] == 1/2:
+                if bkpt[i+1] <= f/2 or bkpt[i] >= (f+1)/2:
+                    b += [bkpt[i]+x, bkpt[i+1]]
+                    s += [sp, sm]
+                else:
+                    b += [bkpt[i+1]-x, bkpt[i+1]]
+                    s += [sm, sp]
+    fn2 = piecewise_function_from_breakpoints_and_slopes(b,s)
+    if show_plots:
+        g += plot(plot_with_colored_slopes(fn2))
+        g.show()
+    return fn2
+
+two_slope_fill_in_extreme = injective_2_slope_fill_in    # legacy name
