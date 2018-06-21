@@ -635,7 +635,7 @@ def sym_2_slope_fill_in_given_q(pi_pwl, f, q, epsilon):
         return None, None, None
     pi_comb = generate_pi_comb(pi_pwl, epsilon, delta, f=f)
     pi_fill_in = generate_pi_fill_in(pi_comb, q, f)
-    pi_sym = generate_pi_sym(pi_fill_in)
+    pi_sym = generate_pi_sym(pi_fill_in, f)
     return pi_comb, pi_fill_in, pi_sym
 
 def show_approximations(function, pi_pwl, pi_comb, pi_fill_in, pi_sym):
@@ -693,7 +693,7 @@ def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
         # make sure f/2 and (1+f)/2 are in 1/q*Z
         order = order * 2
     pi_fill_in = generate_pi_fill_in(pi_pwl, order, f)
-    pi_sym = generate_pi_sym(pi_fill_in)
+    pi_sym = generate_pi_sym(pi_fill_in, f)
     if subadditivity_test(pi_sym) and (find_infinity_norm_distance(function, pi_sym) <= epsilon):
         if show_plots:
             show_approximations(function, pi_pwl, pi_pwl, pi_fill_in, pi_sym).show()
@@ -815,7 +815,7 @@ def symmetric_2_slope_fill_in_irrational(function, epsilon, show_plots=False, f=
         ##print qmin, qmax
         q = floor(sqrt(qmin*qmax))
         pi_fill_in_q = generate_pi_fill_in(pi_comb, q, f)
-        pi_sym_q = generate_pi_sym(pi_fill_in_q)
+        pi_sym_q = generate_pi_sym(pi_fill_in_q, f)
         if (subadditivity_test(pi_sym_q) is True) and (find_infinity_norm_distance(function, pi_sym_q) <= epsilon):
             qmax = q
             pi_fill_in, pi_sym = pi_fill_in_q, pi_sym_q
