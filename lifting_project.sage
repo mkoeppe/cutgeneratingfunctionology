@@ -334,7 +334,7 @@ def construct_perturbation_given_slopes_and_lengths(fn, perturbation_components,
     return perturbation
 
 
-def two_slope_fill_in_extreme(fn, epsilon=1, show_plots=False):
+def injective_2_slope_fill_in(fn, epsilon=1, show_plots=False):
     """
     Input: a (continuous) minimal function fn for the infinite group problem, or a discrete minimal function for the finite group problem,  with rational breakpoints in 1/qZ and rational funciton values at the breakpoints. (weaker condition: ratioanl breakpoints and the set {x: fn_interpolation(x)=1/2} is the union of some rational x and intervals.)
     Output: a two-slope extreme function fn2 such that fn2 = fn on 1/qZ (and the infinity norm distance between fn and fn2 is less than epsilon).
@@ -347,17 +347,17 @@ def two_slope_fill_in_extreme(fn, epsilon=1, show_plots=False):
         True
         sage: extremality_test(fn)
         False
-        sage: fn2 = two_slope_fill_in_extreme(fn)
+        sage: fn2 = injective_2_slope_fill_in(fn)
         sage: extremality_test(fn2)
         True
 
         sage: fn = not_extreme_1()
-        sage: fn2 = two_slope_fill_in_extreme(fn)
+        sage: fn2 = injective_2_slope_fill_in(fn)
         sage: extremality_test(fn2)
         True
         sage: find_infinity_norm_distance (fn, fn2)
         1/12
-        sage: fn_app = two_slope_fill_in_extreme(fn, epsilon=1/20)
+        sage: fn_app = injective_2_slope_fill_in(fn, epsilon=1/20)
         sage: finite_group_order_from_function_f_oversampling_order(fn_app)
         160
         sage: minimality_test(fn_app)
@@ -366,41 +366,41 @@ def two_slope_fill_in_extreme(fn, epsilon=1, show_plots=False):
         1/48
 
         sage: fn = gmic()
-        sage: fn2 = two_slope_fill_in_extreme(fn)
+        sage: fn2 = injective_2_slope_fill_in(fn)
         sage: fn == fn2
         True
 
         sage: fn =restrict_to_finite_group(minimal_has_uncovered_interval(), order=8)
-        sage: fn2 = two_slope_fill_in_extreme(fn)
+        sage: fn2 = injective_2_slope_fill_in(fn)
         sage: extremality_test(fn2)
         True
 
         sage: fn =restrict_to_finite_group(minimal_has_uncovered_interval(), order=16)
-        sage: fn2 = two_slope_fill_in_extreme(fn)
+        sage: fn2 = injective_2_slope_fill_in(fn)
         sage: minimality_test(fn2)
         True
 
         sage: fn = minimal_has_uncovered_breakpoints()
-        sage: fn2 = two_slope_fill_in_extreme(fn)
+        sage: fn2 = injective_2_slope_fill_in(fn)
         sage: minimality_test(fn2)
         True
 
         sage: fn = example7slopecoarse2()
-        sage: fn2 = two_slope_fill_in_extreme(fn)
+        sage: fn2 = injective_2_slope_fill_in(fn)
         sage: number_of_slopes(fn2)
         2
         sage: minimality_test(fn2)
         True
 
         sage: fn = lift_until_extreme_only_works_with_strict_subset_L()
-        sage: fn2 = two_slope_fill_in_extreme(fn)
+        sage: fn2 = injective_2_slope_fill_in(fn)
         sage: number_of_slopes(fn2)
         2
         sage: minimality_test(fn2)  # long time
         True
 
         sage: fn = lift_until_extreme_default_style_bug_example()
-        sage: fn2 = two_slope_fill_in_extreme(fn)  # q=52; q2=order=4004
+        sage: fn2 = injective_2_slope_fill_in(fn)  # q=52; q2=order=4004
         sage: finite_group_order_from_function_f_oversampling_order(fn2)
         12012
     """
@@ -475,3 +475,5 @@ def two_slope_fill_in_extreme(fn, epsilon=1, show_plots=False):
         g += plot(plot_with_colored_slopes(fn2))
         g.show()
     return fn2
+
+two_slope_fill_in_extreme = injective_2_slope_fill_in    # legacy name
