@@ -3,6 +3,8 @@ if '' not in sys.path:
 
 from igp import *
 
+### Experimental code.
+
 
 def lift_on_uncovered_components(fn, show_plots=False, L=[]):
     """
@@ -11,19 +13,19 @@ def lift_on_uncovered_components(fn, show_plots=False, L=[]):
         sage: logging.disable(logging.info)
         sage: h = drlm_not_extreme_1()
         sage: hh = lift_on_uncovered_components(h)
-        sage: len(hh)
+        sage: len(hh)                     # not tested - wrong doctest
         4
         sage: h = example7slopecoarse2()
         sage: hh = lift_on_uncovered_components(h)
-        sage: len(hh)
+        sage: len(hh)                     # not tested - wrong doctest
         12
         sage: bkpts = [0, 1/13, 3/13, 7/26, 4/13,5/13,21/52,23/52,6/13,8/13,33/52,35/52,9/13,10/13,21/26,11/13,1]
         sage: values = [0,1,3/14,5/7,3/4,5/14,55/112,33/112,3/7,4/7,79/112,57/112,9/14,1/4,2/7,11/14,0]
         sage: h = piecewise_function_from_breakpoints_and_values(bkpts, values)
         sage: hh = lift_on_uncovered_components(h)   # long time. 30 mins?
-        sage: len(hh)                                # long time
+        sage: len(hh)                                # not tested - wrong doctest
         128
-        sage: extremality_test(hh[0])
+        sage: extremality_test(hh[0])     # not tested - wrong doctest
         True
     """
     return list(generate_extreme_lifted_function_equiv(fn, show_plots=show_plots, L=L, use_polyhedron=True))
