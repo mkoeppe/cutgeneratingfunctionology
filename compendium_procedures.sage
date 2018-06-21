@@ -643,10 +643,9 @@ def show_approximations(function, pi_pwl, pi_comb, pi_fill_in, pi_sym):
     Subfunction of the procedure ``symmetric_2_slope_fill_in()``.
     """
     if pi_pwl == function:
-        g = function.plot(color='black', legend_label='pi=pi_pwl', **ticks_keywords(function))
+        g = plot(function, color='black', legend_label='pi=pi_pwl', **ticks_keywords(function))
     else:
-        g = function.plot(color='black', legend_label='pi', **ticks_keywords(function))
-        g = plot_covered_intervals(function, [], uncovered_color='black',legend_label='pi')
+        g = plot(function, color='black', legend_label='pi', **ticks_keywords(function))
         g += pi_pwl.plot(color='gray', legend_label='pi_pwl')
     if not pi_comb == pi_pwl:
         g += pi_comb.plot(color='blue', legend_label='pi_comb')
@@ -696,7 +695,8 @@ def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
     pi_sym = generate_pi_sym(pi_fill_in, f)
     if subadditivity_test(pi_sym) and (find_infinity_norm_distance(function, pi_sym) <= epsilon):
         if show_plots:
-            show_approximations(function, pi_pwl, pi_pwl, pi_fill_in, pi_sym).show()
+            g = show_approximations(function, pi_pwl, pi_pwl, pi_fill_in, pi_sym)
+            show_plot(g, show_plots, tag='sym_2_slope_fill_in_diagram', object=function)
         #logging.disable(logging.NOTSET)
         return pi_sym
     epsilon_1 = find_infinity_norm_distance(function, pi_pwl)
@@ -908,7 +908,7 @@ def injective_2_slope_fill_in(fn, epsilon=1, show_plots=False):
     q = finite_group_order_from_function_f_oversampling_order(fn)
     #fn_q = restrict_to_finite_group(fn, order=q)
     if show_plots:
-        g = plot_covered_intervals(fn,[],show_legend=False)
+        g = plot(fn, color='black', legend_label='pi', **ticks_keywords(fn))
     if fn.is_discrete():
         fn = interpolate_to_infinite_group(fn)
     bkpt = [0]
@@ -971,8 +971,8 @@ def injective_2_slope_fill_in(fn, epsilon=1, show_plots=False):
                     s += [sm, sp]
     fn2 = piecewise_function_from_breakpoints_and_slopes(b,s)
     if show_plots:
-        g += plot(plot_with_colored_slopes(fn2))
-        g.show()
+        g += plot(fn2, color='red', legend_label='phi')
+        show_plot(g, show_plots, tag='inj_2_slope_fill_in_diagram', object=fn)
     return fn2
 
 two_slope_fill_in_extreme = injective_2_slope_fill_in    # legacy name
