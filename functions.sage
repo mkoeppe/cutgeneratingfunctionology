@@ -3498,7 +3498,7 @@ def lift_until_extreme(fn, show_plots = False, pause = False, covered_length=Tru
             covered_length = sum(interval_length(i) for i in covered_intervals)
             if show_plots:
                 plot_covered_intervals(next).show(title = 'covered length = %s' % covered_length)
-            print covered_length
+            logging.info("Covered length = %s" % covered_length)
         fn = next
         next = lift(fn, show_plots=False , use_all_perturbations=use_all_perturbations, **kwds)  #show_plots=show_plots
         if pause and next != fn:
