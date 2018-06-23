@@ -863,7 +863,7 @@ def dim_cs_matrix(q, changed_vertices, cs_matrix):
 
 def paint_complex_combined_pol(k_slopes, q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, cs, cs_matrix):
     """
-    Combine 'heuristic' backracting search (using PPL) with vertex enumeration.
+    Combine 'heuristic' backtracking search (using PPL) with vertex enumeration.
     If q - rank(cs_matrix) <= dim_threshold, stop backtracking search.
     Enumerate and check vertex functions then.
 
