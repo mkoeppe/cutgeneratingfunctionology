@@ -827,11 +827,54 @@ def symmetric_2_slope_fill_in_irrational(function, epsilon, show_plots=False, f=
         show_plot(g, show_plots, tag='sym_2_slope_fill_in_diagram', object=function)
     return pi_sym
 
+def injective_2_slope_fill_in_order(fn, epsilon=1):
+    "Compute the sampling order mq for use in ``injective_2_slope_fill_in``."
+    sp, sm = limiting_slopes(fn)
+    f = find_f(fn)
+    q = finite_group_order_from_function_f_oversampling_order(fn)
+    #fn_q = restrict_to_finite_group(fn, order=q)
+    if fn.is_discrete():
+        fn = interpolate_to_infinite_group(fn)
+    bkpt = [0]
+    value = [0]
+    for i in range(q):
+        if (fn(i/q) - 1/2) * (fn((i+1)/q) - 1/2) < 0:
+            si = q * (fn((i+1)/q) - fn(i/q))
+            x =  (1/2 -fn(i/q)) / si
+            bkpt.append(i/q + x)
+            value.append(1/2)
+        elif fn(i/q) == 1/2 and fn((i+1)/q) == 1/2 and fractional((2*i+1)/q) == f:
+            bkpt.append((2*i+1)/q/2)
+            value.append(1/2)
+        bkpt.append((i+1)/q)
+        value.append(fn((i+1)/q))
+    is_rational_bkpt, bkpt = is_all_QQ(bkpt)
+    if is_rational_bkpt:
+        bkpt_denominator = [denominator(x) for x in bkpt]
+        q2 = lcm(bkpt_denominator)
+        # WARNING: q2 could be very large.
+        # For example, in lift_until_extreme_bug_example(), q=18 and q2=3011652. Problematic!
+    else:
+        raise ValueError("irrational")
+    min_delta = 3
+    # Question: Should min_delta be calculated on the grid of q or q2?
+    # can prove for q2, but it seems from experiments that q is good enough.
+    for i in range(q):
+        for j in range(q):
+            if i <= j:
+                delta_fn = delta_pi(fn, i/q, j/q)
+                if delta_fn > 0 and delta_fn < min_delta:
+                    min_delta = delta_fn
+    oversampling = ceil(max(sp, -sm) / min(epsilon, min_delta) / q2)
+    order = oversampling * q2
+    return order
 
 def injective_2_slope_fill_in(fn, epsilon=1, show_plots=False):
     """
-    Input: a (continuous) minimal function fn for the infinite group problem, or a discrete minimal function for the finite group problem,  with rational breakpoints in 1/qZ and rational funciton values at the breakpoints. (weaker condition: ratioanl breakpoints and the set {x: fn_interpolation(x)=1/2} is the union of some rational x and intervals.)
-    Output: a two-slope extreme function fn2 such that fn2 = fn on 1/qZ (and the infinity norm distance between fn and fn2 is less than epsilon).
+    Input: a (continuous) minimal function fn for the infinite group problem, or a discrete minimal function for the finite group problem,  with rational breakpoints in 1/qZ and rational function values at the breakpoints. (weaker condition: rational breakpoints and the set {x: fn_interpolation(x)=1/2} is the union of some rational x and intervals.)
+    Output: a two-slope extreme function fn2 such that fn2 = fn on 1/mqZ (and the infinity norm distance between fn and fn2 is less than epsilon).
+
+    The function is obtained by putting upward and downward tents with slopes equal to the limiting slopes of the input function on top of some intervals between the points of the finite group of order mq = ``injective_2_slope_fill_in_order``.
 
     EXAMPLES::
 
@@ -898,53 +941,29 @@ def injective_2_slope_fill_in(fn, epsilon=1, show_plots=False):
         sage: finite_group_order_from_function_f_oversampling_order(fn2)
         12012
 
+    Systematic testing::
+
+        sage: q = 10; f = 1; show_plots=False
+        sage: for h in generate_extreme_functions_for_finite_group(q, f):
+        ....:     if number_of_slopes(h) > 2:
+        ....:         if show_plots: plot_2d_diagram(h, colorful=True)
+        ....:         order = injective_2_slope_fill_in_order(h)
+        ....:         if order < 1000:
+        ....:             i = injective_2_slope_fill_in(h, show_plots=show_plots)
+        ....:             assert minimality_test(i)
+
     Reference:
-        [injective_2_slope_fill_in] M. Koeppe and Y. Zhou, All Cyclic Group Facets Inject, 
+        [injective_2_slope_fill_in] M. Koeppe and Y. Zhou, All Cyclic Group Facets Inject,
         manuscript, 2018.
 
     """
-    sp, sm = limiting_slopes(fn)
-    f = find_f(fn)
-    q = finite_group_order_from_function_f_oversampling_order(fn)
-    #fn_q = restrict_to_finite_group(fn, order=q)
     if show_plots:
         g = plot(fn, color='black', legend_label='pi', **ticks_keywords(fn))
-    if fn.is_discrete():
-        fn = interpolate_to_infinite_group(fn)
-    bkpt = [0]
-    value = [0]
-    for i in range(q):
-        if (fn(i/q) - 1/2) * (fn((i+1)/q) - 1/2) < 0:
-            si = q * (fn((i+1)/q) - fn(i/q))
-            x =  (1/2 -fn(i/q)) / si
-            bkpt.append(i/q + x)
-            value.append(1/2)
-        elif fn(i/q) == 1/2 and fn((i+1)/q) == 1/2 and fractional((2*i+1)/q) == f:
-            bkpt.append((2*i+1)/q/2)
-            value.append(1/2)
-        bkpt.append((i+1)/q)
-        value.append(fn((i+1)/q))
-    is_rational_bkpt, bkpt = is_all_QQ(bkpt)
-    if is_rational_bkpt:
-        bkpt_denominator = [denominator(x) for x in bkpt]
-        q2 = lcm(bkpt_denominator)
-        # WARNING: q2 could be very large.
-        # For example, in lift_until_extreme_bug_example(), q=18 and q2=3011652. Problematic!
-    else:
-        raise ValueError("irrational")
-    min_delta = 3
-    # Question: Should min_delta be calculated on the grid of q or q2?
-    # can prove for q2, but it seems from experiments that q is good enough.
-    for i in range(q):
-        for j in range(q):
-            if i <= j:
-                delta_fn = delta_pi(fn, i/q, j/q)
-                if delta_fn > 0 and delta_fn < min_delta:
-                    min_delta = delta_fn
-    oversampling = ceil(max(sp, -sm) / min(epsilon, min_delta) / q2)
-    order = oversampling * q2
+    order = injective_2_slope_fill_in_order(fn, epsilon)
     bkpt = [i/order for i in range(order+1)]
     value = [fn(i/order) for i in range(order+1)]
+    sp, sm = limiting_slopes(fn)
+    f = find_f(fn)
     b = [0]
     s = []
     for i in range(order):
