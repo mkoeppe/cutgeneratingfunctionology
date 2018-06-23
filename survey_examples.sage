@@ -432,7 +432,6 @@ def zhou_two_sided_discontinuous_cannot_assume_any_continuity():
 
 ### The sporadic extreme functions have been moved to 'extreme_functions_sporadic.sage'
 
-
 ## Example functions that appear in the paper Equivariant perturbation V.
 
 def equiv5_random_discont_1():
