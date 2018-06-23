@@ -8586,7 +8586,7 @@ value.</p>
 
 <dl class="function">
 <dt id="igp.plot_2d_diagram">
-<code class="descclassname">igp.</code><code class="descname">plot_2d_diagram</code><span class="sig-paren">(</span><em>fn</em>, <em>show_function=True</em>, <em>show_projections=True</em>, <em>known_minimal=False</em>, <em>f=None</em>, <em>colorful=False</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_2d_diagram" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">igp.</code><code class="descname">plot_2d_diagram</code><span class="sig-paren">(</span><em>fn</em>, <em>show_function=True</em>, <em>show_projections=True</em>, <em>known_minimal=False</em>, <em>f=None</em>, <em>colorful=False</em>, <em>additive_color='mediumspringgreen'</em>, <em>function_color='blue'</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_2d_diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a plot of the 2d complex (<span class="math">\(\Delta P\)</span>) of fn with shaded
 additive faces, i.e., faces where <span class="math">\(\Delta \pi = 0\)</span>.</p>
 <ul class="simple">
@@ -8621,7 +8621,7 @@ additive faces, i.e., faces where <span class="math">\(\Delta \pi = 0\)</span>.<
 
 <dl class="function">
 <dt id="igp.plot_2d_diagram_additive_domain_sans_limits">
-<code class="descclassname">igp.</code><code class="descname">plot_2d_diagram_additive_domain_sans_limits</code><span class="sig-paren">(</span><em>fn</em>, <em>show_function=True</em>, <em>f=None</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_2d_diagram_additive_domain_sans_limits" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">igp.</code><code class="descname">plot_2d_diagram_additive_domain_sans_limits</code><span class="sig-paren">(</span><em>fn</em>, <em>show_function=True</em>, <em>f=None</em>, <em>additive_color='mediumspringgreen'</em>, <em>function_color='blue'</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_2d_diagram_additive_domain_sans_limits" title="Permalink to this definition">¶</a></dt>
 <dd><p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">hildebrand_discont_3_slope_1</span><span class="p">()</span>
@@ -8642,7 +8642,7 @@ additive faces, i.e., faces where <span class="math">\(\Delta \pi = 0\)</span>.<
 
 <dl class="function">
 <dt id="igp.plot_2d_diagram_with_cones">
-<code class="descclassname">igp.</code><code class="descname">plot_2d_diagram_with_cones</code><span class="sig-paren">(</span><em>fn</em>, <em>show_function=True</em>, <em>f=None</em>, <em>conesize=200</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_2d_diagram_with_cones" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">igp.</code><code class="descname">plot_2d_diagram_with_cones</code><span class="sig-paren">(</span><em>fn</em>, <em>show_function=True</em>, <em>f=None</em>, <em>conesize=200</em>, <em>additive_color='mediumspringgreen'</em>, <em>function_color='blue'</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_2d_diagram_with_cones" title="Permalink to this definition">¶</a></dt>
 <dd><p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">zhou_two_sided_discontinuous_cannot_assume_any_continuity</span><span class="p">()</span>
@@ -8656,6 +8656,11 @@ additive faces, i.e., faces where <span class="math">\(\Delta \pi = 0\)</span>.<
 <dl class="function">
 <dt id="igp.plot_2d_diagram_with_cones_dff">
 <code class="descclassname">igp.</code><code class="descname">plot_2d_diagram_with_cones_dff</code><span class="sig-paren">(</span><em>fn</em>, <em>show_function=True</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_2d_diagram_with_cones_dff" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="igp.plot_beams_of_one_face">
+<code class="descclassname">igp.</code><code class="descname">plot_beams_of_one_face</code><span class="sig-paren">(</span><em>face</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_beams_of_one_face" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
