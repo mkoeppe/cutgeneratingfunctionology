@@ -4212,10 +4212,13 @@ def generate_covered_components_strategically(fn, show_plots=False):
                 else:
                     g += face.plot(fill_color='red')
                 g += plot_covered_components_at_borders(fn, covered_components=[component])
-                show_plot(g, show_plots, tag=step , object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
+                show_plot(g + plot_beams_of_one_face(face), show_plots, tag=step, object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
             new_component, remaining_components = merge_components_with_given_component(component, covered_components)
-            if new_component != component and logging.getLogger().isEnabledFor(logging.DEBUG):
-                logging.debug("We obtain a new covered component %s, with overlapping components merged in." % (new_component))
+            if new_component != component:
+                if logging.getLogger().isEnabledFor(logging.DEBUG):
+                    logging.debug("We obtain a new covered component %s, with overlapping components merged in." % (new_component))
+                if show_plots:
+                    show_plot(g, show_plots, tag="{}a".format(step), object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
             covered_components = remaining_components + [new_component]
 
         elif max_face.is_1D():
@@ -4247,7 +4250,7 @@ def generate_covered_components_strategically(fn, show_plots=False):
                     covered_components = remaining_components + [new_component]
             if show_plots:
                 g += edge.plot(rgbcolor='red')
-                show_plot(g, show_plots, tag=step , object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
+                show_plot(g + plot_beams_of_one_face(edge), show_plots, tag=step , object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
 
     # There will be no more new covered intervals.
     # But perhaps merging of components will happen.
