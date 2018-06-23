@@ -4987,8 +4987,9 @@ Varibles of the MILP are fn[0], …, fn[q], and auxiliary variables delta[x, y].
 <dl class="function">
 <dt id="igp.injective_2_slope_fill_in">
 <code class="descclassname">igp.</code><code class="descname">injective_2_slope_fill_in</code><span class="sig-paren">(</span><em>fn</em>, <em>epsilon=1</em>, <em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.injective_2_slope_fill_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Input: a (continuous) minimal function fn for the infinite group problem, or a discrete minimal function for the finite group problem,  with rational breakpoints in 1/qZ and rational funciton values at the breakpoints. (weaker condition: ratioanl breakpoints and the set {x: fn_interpolation(x)=1/2} is the union of some rational x and intervals.)
-Output: a two-slope extreme function fn2 such that fn2 = fn on 1/qZ (and the infinity norm distance between fn and fn2 is less than epsilon).</p>
+<dd><p>Input: a (continuous) minimal function fn for the infinite group problem, or a discrete minimal function for the finite group problem,  with rational breakpoints in 1/qZ and rational function values at the breakpoints. (weaker condition: rational breakpoints and the set {x: fn_interpolation(x)=1/2} is the union of some rational x and intervals.)
+Output: a two-slope extreme function fn2 such that fn2 = fn on 1/mqZ (and the infinity norm distance between fn and fn2 is less than epsilon).</p>
+<p>The function is obtained by putting upward and downward tents with slopes equal to the limiting slopes of the input function on top of some intervals between the points of the finite group of order mq = <code class="docutils literal"><span class="pre">injective_2_slope_fill_in_order</span></code>.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">discrete_function_from_points_and_values</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
@@ -5054,11 +5055,28 @@ Output: a two-slope extreme function fn2 such that fn2 = fn on 1/qZ (and the inf
 <span class="go">12012</span>
 </pre></div>
 </div>
+<p>Systematic testing:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">q</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="n">f</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">show_plots</span><span class="o">=</span><span class="bp">False</span>
+<span class="gp">sage: </span><span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">generate_extreme_functions_for_finite_group</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+<span class="go">....:     if number_of_slopes(h) &gt; 2:</span>
+<span class="go">....:         if show_plots: plot_2d_diagram(h, colorful=True)</span>
+<span class="go">....:         order = injective_2_slope_fill_in_order(h)</span>
+<span class="go">....:         if order &lt; 1000:</span>
+<span class="go">....:             i = injective_2_slope_fill_in(h, show_plots=show_plots)</span>
+<span class="go">....:             assert minimality_test(i)</span>
+</pre></div>
+</div>
 <dl class="docutils">
 <dt>Reference:</dt>
-<dd>[injective_2_slope_fill_in] M. Koeppe and Y. Zhou, All Cyclic Group Facets Inject, 
+<dd>[injective_2_slope_fill_in] M. Koeppe and Y. Zhou, All Cyclic Group Facets Inject,
 manuscript, 2018.</dd>
 </dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="igp.injective_2_slope_fill_in_order">
+<code class="descclassname">igp.</code><code class="descname">injective_2_slope_fill_in_order</code><span class="sig-paren">(</span><em>fn</em>, <em>epsilon=1</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.injective_2_slope_fill_in_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the sampling order mq for use in <code class="docutils literal"><span class="pre">injective_2_slope_fill_in</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -7545,7 +7563,7 @@ Tests show that <code class="docutils literal"><span class="pre">paint_complex_c
 <dl class="function">
 <dt id="igp.paint_complex_combined_pol">
 <code class="descclassname">igp.</code><code class="descname">paint_complex_combined_pol</code><span class="sig-paren">(</span><em>k_slopes</em>, <em>q</em>, <em>f</em>, <em>vertices_color</em>, <em>faces_color</em>, <em>last_covered_intervals</em>, <em>candidate_faces</em>, <em>cs</em>, <em>cs_matrix</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.paint_complex_combined_pol" title="Permalink to this definition">¶</a></dt>
-<dd><p>Combine ‘heuristic’ backracting search (using PPL) with vertex enumeration.
+<dd><p>Combine ‘heuristic’ backtracking search (using PPL) with vertex enumeration.
 If q - rank(cs_matrix) &lt;= dim_threshold, stop backtracking search.
 Enumerate and check vertex functions then.</p>
 <p>Similar to <code class="docutils literal"><span class="pre">paint_complex_combined_mip()</span></code>.
@@ -10073,8 +10091,9 @@ represented as a <code class="docutils literal"><span class="pre">FastPiecewise<
 <dl class="function">
 <dt id="igp.two_slope_fill_in_extreme">
 <code class="descclassname">igp.</code><code class="descname">two_slope_fill_in_extreme</code><span class="sig-paren">(</span><em>fn</em>, <em>epsilon=1</em>, <em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.two_slope_fill_in_extreme" title="Permalink to this definition">¶</a></dt>
-<dd><p>Input: a (continuous) minimal function fn for the infinite group problem, or a discrete minimal function for the finite group problem,  with rational breakpoints in 1/qZ and rational funciton values at the breakpoints. (weaker condition: ratioanl breakpoints and the set {x: fn_interpolation(x)=1/2} is the union of some rational x and intervals.)
-Output: a two-slope extreme function fn2 such that fn2 = fn on 1/qZ (and the infinity norm distance between fn and fn2 is less than epsilon).</p>
+<dd><p>Input: a (continuous) minimal function fn for the infinite group problem, or a discrete minimal function for the finite group problem,  with rational breakpoints in 1/qZ and rational function values at the breakpoints. (weaker condition: rational breakpoints and the set {x: fn_interpolation(x)=1/2} is the union of some rational x and intervals.)
+Output: a two-slope extreme function fn2 such that fn2 = fn on 1/mqZ (and the infinity norm distance between fn and fn2 is less than epsilon).</p>
+<p>The function is obtained by putting upward and downward tents with slopes equal to the limiting slopes of the input function on top of some intervals between the points of the finite group of order mq = <code class="docutils literal"><span class="pre">injective_2_slope_fill_in_order</span></code>.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">discrete_function_from_points_and_values</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
@@ -10140,9 +10159,20 @@ Output: a two-slope extreme function fn2 such that fn2 = fn on 1/qZ (and the inf
 <span class="go">12012</span>
 </pre></div>
 </div>
+<p>Systematic testing:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">q</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="n">f</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">show_plots</span><span class="o">=</span><span class="bp">False</span>
+<span class="gp">sage: </span><span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">generate_extreme_functions_for_finite_group</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+<span class="go">....:     if number_of_slopes(h) &gt; 2:</span>
+<span class="go">....:         if show_plots: plot_2d_diagram(h, colorful=True)</span>
+<span class="go">....:         order = injective_2_slope_fill_in_order(h)</span>
+<span class="go">....:         if order &lt; 1000:</span>
+<span class="go">....:             i = injective_2_slope_fill_in(h, show_plots=show_plots)</span>
+<span class="go">....:             assert minimality_test(i)</span>
+</pre></div>
+</div>
 <dl class="docutils">
 <dt>Reference:</dt>
-<dd>[injective_2_slope_fill_in] M. Koeppe and Y. Zhou, All Cyclic Group Facets Inject, 
+<dd>[injective_2_slope_fill_in] M. Koeppe and Y. Zhou, All Cyclic Group Facets Inject,
 manuscript, 2018.</dd>
 </dl>
 </dd></dl>
