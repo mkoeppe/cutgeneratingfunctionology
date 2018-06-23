@@ -25,6 +25,7 @@ mip_notes_graphics/mip_notes_graphics.pdf: survey-graphics
 	(cd .. && sage -c 'sys.path = [""] + sys.path; load("survey_graphics/graphics_for_computer_based_search.sage")')
 
 software_paper_graphics/software_paper_graphics.pdf:
+	rm -f software_paper_graphics/animation_2d_diagram_disc*.pdf software_paper_graphics/gj2slope*.pdf
 	(cd .. && sage -c 'sys.path = [""] + sys.path; load("survey_graphics/graphics_for_software_paper.sage")')
 
 .PHONY: software_paper_graphics/software_paper_graphics.pdf

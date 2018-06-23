@@ -83,7 +83,7 @@ def plot_figure_6():
     igp.rainbow=rainbow_fig_6
     igp.remove_duplicate_or_empty_components = False
     fname=destdir+"gj2slope-%s"+ftype
-    plots = generate_animation_2d_diagram(h, show_plots=fname) 
+    generate_covered_components_strategically(h, show_plots=fname) 
     igp.show_plot_figsize = 10
     igp.rainbow = rainbow
     igp.remove_duplicate_or_empty_components = True
@@ -96,7 +96,7 @@ def plot_figure_7():
     igp.rainbow=rainbow_fig_7
     igp.remove_duplicate_or_empty_components = False
     fname=destdir+"animation_2d_diagram_disc-%s"+ftype
-    plots = generate_animation_2d_diagram(h, show_plots=fname) 
+    generate_covered_components_strategically(h, show_plots=fname) 
     igp.show_plot_figsize = 10
     igp.rainbow = rainbow
     igp.remove_duplicate_or_empty_components = True
