@@ -4234,8 +4234,9 @@ def generate_covered_components_strategically(fn, show_plots=False):
                     overlapped_ints = list(intersection_of_coho_intervals([covered_component, fdm.intervals()]))
                     moved_intervals = [[fdm.apply_to_coho_interval(overlapped_int)] for overlapped_int in overlapped_ints ]
                     newly_covered = union_of_coho_intervals_minus_union_of_coho_intervals(moved_intervals, covered_components)
-                    if newly_covered and logging.getLogger().isEnabledFor(logging.DEBUG):
-                        logging.debug("%s is indirectly covered." % (newly_covered))
+                    if newly_covered:
+                        if logging.getLogger().isEnabledFor(logging.DEBUG):
+                            logging.debug("%s is indirectly covered." % (newly_covered))
                         if show_plots:
                             g += plot_covered_components_at_borders(fn, covered_components=[newly_covered])
                         component = union_of_coho_intervals_minus_union_of_coho_intervals(moved_intervals + [overlapped_ints] + [component], [])
