@@ -10,10 +10,12 @@ def cpl3_function(r0, z1, o1, o2):
     Construct a CPL3= function.
 
     Parameters:
-        0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4, 0 <= o1, o2 (real), o1 + o2 <= 1/2;
-        if z1 = (1-r0)/4, then o1 + o2 = 1/2.
+        * 0 < r0 (real) < 1, 
+        * 0 < z1 (real) <= (1-r0)/4, 
+        * 0 <= o1, o2 (real), o1 + o2 <= 1/2;
+        * if z1 = (1-r0)/4, then o1 + o2 = 1/2.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
         sage: p = cpl3_function(r0=1/7, z1=1/7, o1=1/4, o2=1/12)
@@ -48,7 +50,7 @@ def superadditive_lifting_function_from_group_function(fn, f=None):
     """
     Convert a standard representation 'phi' (a superadditive quasiperiodic function) from a group representation 'fn' (a subadditive periodic function).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
         sage: fn = mlr_cpl3_d_3_slope(r0=1/7, z1=1/7)
@@ -75,7 +77,7 @@ def group_function_from_superadditive_lifting_function(phi, f=None):
     """
     Convert a group representation 'fn' (a subadditive periodic function) from a standard representation 'phi' (a superadditive quasiperiodic function).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
         sage: phi = cpl3_function(r0=1/7, z1=1/7, o1=1/4, o2=1/12)
@@ -112,13 +114,16 @@ def mlr_cpl3_a_2_slope(r0=3/13, z1=3/26, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4
+        * 0 < r0 (real) < 1, 
+        * 0 < z1 (real) <= (1-r0)/4
+
     Function is known to be extreme under the conditions:
-        0 < r0 < 1, 0 <= z1 < 1
+        * 0 < r0 < 1, 
+        * 0 <= z1 < 1
 
     Note:
         Parameter z1 is not actually used.
-        Same as gmic(f=r0).
+        Same as ``gmic(f=r0)``.
 
     Examples:
         page 183, Fig 2, point a::
@@ -158,13 +163,15 @@ def mlr_cpl3_b_3_slope(r0=3/26, z1=1/13, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4
+        * 0 < r0 (real) < 1, 
+        * 0 < z1 (real) <= (1-r0)/4.
+
     Function is known to be extreme under the conditions:
-        3*r0 + 8*z1 <= 1
+        * 3*r0 + 8*z1 <= 1
 
     Note:
-        When z1 = (1-r0)/4, the function is the same as gmic(f=r0).
-        mlr_cpl3_b_3_slope(r0,z1) is the same as drlm_backward_3_slope(f=r0,bkpt=r0+2*z1).
+        * When z1 = (1-r0)/4, the function is the same as ``gmic(f=r0)``.
+        * ``mlr_cpl3_b_3_slope(r0,z1)`` is the same as ``drlm_backward_3_slope(f=r0,bkpt=r0+2*z1)``.
 
     Examples:
         page 183, Fig 2, point b::
@@ -214,12 +221,14 @@ def mlr_cpl3_c_3_slope(r0=5/24, z1=1/12, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4
+        * 0 < r0 (real) < 1, 
+        * 0 < z1 (real) <= (1-r0)/4
+
     Function is known to be extreme under the conditions:
-        3*r0 + 4*z1 <= 1
+        * 3*r0 + 4*z1 <= 1
 
     Note:
-        mlr_cpl3_c_3_slope(r0,z1) is the same as drlm_backward_3_slope(f=r0,bkpt=r0+z1).
+        * ``mlr_cpl3_c_3_slope(r0,z1)`` is the same as ``drlm_backward_3_slope(f=r0,bkpt=r0+z1)``.
 
     Examples:
         page 183, Fig 2, point c::
@@ -262,13 +271,16 @@ def mlr_cpl3_d_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
        
     Parameters:
-        0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4
+        * 0 < r0 (real) < 1, 
+        * 0 < z1 (real) <= (1-r0)/4
+
     Function is known to be extreme under the conditions:
-        r0 = 2*z1, r0 + 8*z1 <= 1
+        * r0 = 2*z1, 
+        * r0 + 8*z1 <= 1
 
     Note:
-        multiplicative_homomorphism(mlr_cpl3_d_3_slope(r0, z1 = 2*r0), -1) == gj_forward_3_slope(f=1-r0, lambda_1=2*z1/(1-r0), lambda_2=z1/r0);
-        gj_forward_3_slope being extreme only requires:  r0 >= z1, r0 + 4*z1 <= 1.
+        * ``multiplicative_homomorphism(mlr_cpl3_d_3_slope(r0, z1=2*r0), -1)`` is the same as ``gj_forward_3_slope(f=1-r0, lambda_1=2*z1/(1-r0), lambda_2=z1/r0)``;
+        * ``gj_forward_3_slope`` being extreme only requires:  r0 >= z1, r0 + 4*z1 <= 1.
 
     Examples:
         p.183, Fig 2, point d1::
@@ -319,12 +331,15 @@ def mlr_cpl3_f_2_or_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4
+        * 0 < r0 (real) < 1, 
+        * 0 < z1 (real) <= (1-r0)/4
+
     Function is known to be extreme under the conditions:
-        r0 <= z1, r0 + 5*z1 = 1
+        * r0 <= z1, 
+        * r0 + 5*z1 = 1
 
     Note:
-        When z1 = (1-r0)/4, the function is the same as gmic(f=r0).
+        When z1 = (1-r0)/4, the function is the same as ``gmic(f=r0)``.
 
     Examples:
         page 184, Fig 3, point f1 and f2::
@@ -374,9 +389,12 @@ def mlr_cpl3_g_3_slope(r0=1/12, z1=None, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4
+        * 0 < r0 (real) < 1, 
+        * 0 < z1 (real) <= (1-r0)/4
+
     Function is known to be extreme under the conditions:
-        r0 < z1, 2*r0 + 4*z1 = 1
+        * r0 < z1, 
+        * 2*r0 + 4*z1 = 1
 
     Examples:
         page 184, Fig 3, point g::
@@ -426,12 +444,14 @@ def mlr_cpl3_h_2_slope(r0=1/4, z1=1/6, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4
+        * 0 < r0 (real) < 1, 
+        * 0 < z1 (real) <= (1-r0)/4
+
     Function is known to be extreme under the conditions:
-        r0 + 4*z1 <= 1 < 2*r0 + 4*z1
+        * r0 + 4*z1 <= 1 < 2*r0 + 4*z1
 
     Note:
-        When z1 = (1-r0)/4, the function is the same as gmic(f=r0).
+        When z1 = (1-r0)/4, the function is the same as ``gmic(f=r0)``.
 
     Examples:
         page 183, Fig 2, point h::
@@ -475,9 +495,12 @@ def mlr_cpl3_k_2_slope(r0=7/27, z1=4/27, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4
+        * 0 < r0 (real) < 1, 
+        * 0 < z1 (real) <= (1-r0)/4
+
     Function is known to be extreme under the conditions:
-        r0 <= 2*z1, r0 + 5*z1 = 1
+        * r0 <= 2*z1, 
+        * r0 + 5*z1 = 1
 
     Examples:
         page 185, Fig 4, point k1::
@@ -521,9 +544,12 @@ def mlr_cpl3_l_2_slope(r0=8/25, z1=None, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4
+        * 0 < r0 (real) < 1, 
+        * 0 < z1 (real) <= (1-r0)/4
+
     Function is known to be extreme under the conditions:
-        r0 = 2*z1, 6*z1 <= 1 < 7*z1
+        * r0 = 2*z1, 
+        * 6*z1 <= 1 < 7*z1
  
     Note:
         There is a typo in one of the given slopes [1] p.179, Table 3, Ext. pnt l, s3.
@@ -577,13 +603,16 @@ def mlr_cpl3_n_3_slope(r0=9/25, z1=2/25, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4
+        * 0 < r0 (real) < 1, 
+        * 0 < z1 (real) <= (1-r0)/4
+
     Function is known to be extreme under the conditions:
-        r0 > 2*z1, r0 + 8*z1 <= 1
+        * r0 > 2*z1, 
+        * r0 + 8*z1 <= 1
 
     Note:
-        multiplicative_homomorphism( mlr_cpl3_n_3_slope(r0, z1), -1) == gj_forward_3_slope(f=1-r0, lambda_1=2*z1/(1-r0), lambda_2=z1/r0);
-        gj_forward_3_slope being extreme only requires:  r0 >= z1, r0 + 4*z1 <= 1.
+        * ``multiplicative_homomorphism( mlr_cpl3_n_3_slope(r0, z1), -1) == gj_forward_3_slope(f=1-r0, lambda_1=4*z1/(1-r0), lambda_2=2*z1/r0)``;
+        * ``gj_forward_3_slope`` being extreme only requires:  r0 >= z1, r0 + 4*z1 <= 1.
 
     Examples:
         page 185, Fig 4, point n2::
@@ -632,9 +661,12 @@ def mlr_cpl3_o_2_slope(r0=3/8, z1=None, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4
+        * 0 < r0 (real) < 1, 
+        * 0 < z1 (real) <= (1-r0)/4
+
     Function is known to be extreme under the conditions:
-        r0 >= 2*z1, 2*r0 + 2*z1 = 1
+        * r0 >= 2*z1, 
+        * 2*r0 + 2*z1 = 1
 
     Examples:
         page 186, Fig 5, point o::
@@ -684,9 +716,12 @@ def mlr_cpl3_p_2_slope(r0=5/12, z1=None, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4
+        * 0 < r0 (real) < 1, 
+        * 0 < z1 (real) <= (1-r0)/4
+
     Function is known to be extreme under the conditions:
-        r0 > 2*z1, 2*r0 + 2*z1 = 1
+        * r0 > 2*z1, 
+        * 2*r0 + 2*z1 = 1
 
     Note:
         There is a typo in one of the given slopes [1] p.179, Table 3, Ext. pnt p, s4.
@@ -741,9 +776,12 @@ def mlr_cpl3_q_2_slope(r0=5/12, z1=3/24, field=None, conditioncheck=True):
 
 
     Parameters:
-        0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4
+        * 0 < r0 (real) < 1, 
+        * 0 < z1 (real) <= (1-r0)/4
+
     Function is known to be extreme under the conditions:
-        r0 > 2*z1, r0+4*z1 <= 1 < r0+5*z1
+        * r0 > 2*z1, 
+        * r0+4*z1 <= 1 < r0+5*z1
 
     Examples:
         page 186, Fig 5, point q::
@@ -791,9 +829,11 @@ def mlr_cpl3_r_2_slope(r0=3/7, z1=1/7, field=None, conditioncheck=True):
         - Proven extreme p.188, thm.19.
 
     Parameters:
-        0 < r0 (real) < 1, 0 < z1 (real) <= (1-r0)/4
+        * 0 < r0 (real) < 1, 
+        * 0 < z1 (real) <= (1-r0)/4
     Function is known to be extreme under the conditions:
-        r0 > 2*z1, r0+4*z1 <= 1 <= 2*r0+2*z1
+        * r0 > 2*z1, 
+        * r0+4*z1 <= 1 <= 2*r0+2*z1
 
     Examples:
         page 185, Fig , point r::

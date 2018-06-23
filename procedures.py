@@ -10,5 +10,6 @@ from igp import (multiplicative_homomorphism,
                  interpolate_to_infinite_group,
                  two_slope_fill_in,
                  symmetric_2_slope_fill_in,
-                 symmetric_2_slope_fill_in_irrational)
+                 symmetric_2_slope_fill_in_irrational,
+                 injective_2_slope_fill_in)
 

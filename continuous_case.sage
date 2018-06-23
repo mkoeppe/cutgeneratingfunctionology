@@ -20,14 +20,16 @@ def generate_nonsymmetric_vertices_continuous(fn, f):
         if fn.values_at_end_points()[i] + fn(y) != 1:
             yield (x, y, 0, 0)
 
-def generate_type_1_vertices_continuous(fn, comparison):
+def generate_type_1_vertices_continuous(fn, comparison, bkpt=None):
     """Output 6-tuples (x, y, z,xeps, yeps, zeps).
     """
-    bkpt = fn.end_points()
+    if bkpt is None:
+        bkpt = fn.end_points()
     return ( (x, y, x+y, 0, 0, 0) for x in bkpt for y in bkpt if x <= y and comparison(delta_pi(fn,x,y), 0) ) # generator comprehension
 
-def generate_type_2_vertices_continuous(fn, comparison):
-    bkpt = fn.end_points()
+def generate_type_2_vertices_continuous(fn, comparison, bkpt=None):
+    if bkpt is None:
+        bkpt = fn.end_points()
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     return ( (x, z-x, z, 0, 0, 0) for x in bkpt for z in bkpt2 if x < z < 1+x and comparison(delta_pi(fn, x, z-x), 0) ) # generator comprehension
 
@@ -102,19 +104,17 @@ def generate_maximal_additive_faces_continuous(function):
                             keep = False
                             logging.warn("Additivity appears only in the interior for some face. This is not shown on the diagram.")
                     elif len(temp) == 1:
-                        if temp[0][0] == I_list[i][0] and temp[0][1] == J_list[j][0] \
-                            and temp[0][0] + temp[0][1] != K_list[k][1]:
+                        x, y = temp[0]
+                        if x == I_list[i][0] and y == J_list[j][0] and x + y != K_list[k][1]:
                             keep = True
-                        elif temp[0][0] == I_list[i][0] and temp[0][0] + temp[0][1] == K_list[k][0] \
-                            and temp[0][1] != J_list[j][1]:
+                        elif x == I_list[i][0] and x + y == K_list[k][0] and y != J_list[j][1]:
                             keep = True
-                        elif temp[0][1] == J_list[j][0] and temp[0][0] + temp[0][1] == K_list[k][0] \
-                            and temp[0][0] != I_list[i][1]:     
+                        elif y == J_list[j][0] and x + y == K_list[k][0] and x != I_list[i][1]:
                             keep = True
                         else:
                             keep = False
                         if keep:
-                            if (temp[0][0],temp[0][1]) in additive_vertices:
+                            if (x,y) in additive_vertices:
                                 keep = False  
                             # if keep:
                             #     print I_list[i], J_list[j], K_list[k]      
@@ -203,10 +203,10 @@ def find_epsilon_interval_continuous(fn, perturb):
     logging.info("Finding epsilon interval for perturbation... done.  Interval is %s", [best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound])
     return best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound
 
-def generate_symbolic_continuous(function, components, field=None):
+def generate_symbolic_continuous(function, components, field=None, f=None):
     """
     Construct a vector-space-valued piecewise linear function
-    compatible with the given `function`.  Each of the components of
+    compatible with the given function.  Each of the components of
     the function has a slope that is a basis vector of the vector
     space. 
     """
@@ -219,7 +219,9 @@ def generate_symbolic_continuous(function, components, field=None):
     intervals_and_slopes = []
     for component, slope in itertools.izip(components, unit_vectors):
         intervals_and_slopes.extend([ (interval, slope) for interval in component ])
-    intervals_and_slopes.sort()
+    #intervals in components are coho intervals.
+    #was: intervals_and_slopes.sort()
+    intervals_and_slopes.sort(key=lambda (i, s): coho_interval_left_endpoint_with_epsilon(i))
     if field is None:
         bkpt = [ interval[0] for interval, slope in intervals_and_slopes ] + [1]
         bkpt = nice_field_values(bkpt)
@@ -227,14 +229,27 @@ def generate_symbolic_continuous(function, components, field=None):
     else:
         bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
     slopes = [ slope for interval, slope in intervals_and_slopes ]
-    return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
+    symbolic_function = piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+        logging.debug("Let v in R^%s.\nThe i-th entry of v represents the slope parameter on the i-th component of %s.\nSet up the symbolic function sym: [0,1] -> R^%s, so that pert(x) = sym(x) * v.\nThe symbolic function sym is %s." % (n, components, n, symbolic_function))
+    return symbolic_function
 
-def generate_additivity_equations_continuous(function, symbolic, field, f=None):
+def generate_additivity_equations_continuous(function, symbolic, field, f=None, bkpt=None):
     if f is None:
         f = find_f(function)
-    equations = [delta_pi(symbolic, x, y) \
-                     for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function) ] \
-                   + [symbolic(f)] \
-                   + [symbolic(1)]
-    return matrix(field, equations)
-
+    vs = list(generate_additive_vertices(function, bkpt=bkpt))
+    equations = [symbolic(f), symbolic(field(1))]+[delta_pi(symbolic, x, y) for (x, y, z, xeps, yeps, zeps) in vs]
+    M = matrix(field, equations)
+    if not logging.getLogger().isEnabledFor(logging.DEBUG):
+        return M
+    pivot_r =  list(M.pivot_rows())
+    for i in pivot_r:
+        if i == 0:
+            logging.debug("Condition pert(f) = 0 gives the equation\n%s * v = 0." % (symbolic(f)))
+        elif i == 1:
+            logging.debug("Condition pert(1) = 0 gives the equation\n%s * v = 0." % (symbolic(1)))
+        else:
+            (x, y, z, xeps, yeps, zeps) = vs[i-2]
+            eqn = equations[i]
+            logging.debug("Condition pert(%s) + pert(%s) = pert(%s) gives the equation\n%s * v = 0." % (x, y, z, eqn))
+    return M[pivot_r]

@@ -1,6 +1,15 @@
 ## Module
 
 from sage.all import *
+del SetPartitionsAk
+del SetPartitionsBk
+del SetPartitionsIk
+del SetPartitionsPRk
+del SetPartitionsPk
+del SetPartitionsRk
+del SetPartitionsSk
+del SetPartitionsTk
+
 
 igp_dir = os.path.dirname(__file__)
 if igp_dir:
@@ -28,8 +37,17 @@ load(igp_dir + "2q_mip.sage")
 load(igp_dir + "kslope_mip.sage")
 #load("old_walk_and_stability_interval_code.sage")
 load(igp_dir + "animation_2d_diagram.sage")
-
+load(igp_dir + "crazy_perturbation.sage")
+load(igp_dir + "crazy_perturbation_examples.sage")
 load(igp_dir + "bug_examples.sage")
+load(igp_dir + "lifting_project.sage")
+# Dual feasible functions
+load(igp_dir + "gdff_linear_test.sage")
+load(igp_dir + "dff_functions.sage")
+load(igp_dir + "dff_test_plot.sage")
+load(igp_dir + "discontinuous_dff.sage")
+load(igp_dir + "computer_based_search_naive_dff.sage")
+#load(igp_dir + "Gomory_conversion.sage")
 
 import extreme_functions, procedures
 

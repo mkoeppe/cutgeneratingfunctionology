@@ -12,20 +12,20 @@ sys.setrecursionlimit(50000)
 
 def pattern_setup_lp(l, more_ini_additive=False, objcoef=None, use_auxiliary_delta=True):
     r"""
-    Set up a MixedIntegerLinearProgram() with respect to the prescribled painting,
-    where `pattern`=0, `sym`=True and the size parameter is `l`.
+    Set up a ``MixedIntegerLinearProgram()`` with respect to the prescribled painting,
+    where pattern=0, sym=True and the size parameter is `l`.
 
     Returns:
-        - fn: a list of LinearFunction in terms of s_0, s_1, ... , s_{l+1}, corresponding to the function values at 1/q\Z.
+        - fn: a list of LinearFunction in terms of `s_0, s_1, \dots , s_{l+1}`, corresponding to the function values at `(1/q)Z`.
     Global variables:
-        - pattern_lp: MixedIntegerLinearProgram()
-        - var_slope: slope variables s_0, s_1, ... , s_{l+1}
+        - pattern_lp: ``MixedIntegerLinearProgram()``
+        - var_slope: slope variables`s_0, s_1, \dots , s_{l+1}`
 
-        use_auxiliary_delta=True:
+    When use_auxiliary_delta=True:
         - var_delta: auxiliary variables deltafn;
-                     controle additive/subadd by pattern_lp.set_max(var_delta[deltafn], 0)
-                     or pattern_lp.set_max(var_delta[deltafn], None)
-        - deltafn_dic: a dictionary, key = delta, value = a list [(i,j) such that \delta\pi[i,j]=key]
+                     controle additive/subadd by ``pattern_lp.set_max(var_delta[deltafn], 0)``
+                     or ``pattern_lp.set_max(var_delta[deltafn], None)``
+        - deltafn_dic: a dictionary, key = delta, value = a list [(i,j) such that `\delta\pi`[i,j]=key]
 
     EXAMPLES::
 
@@ -34,8 +34,8 @@ def pattern_setup_lp(l, more_ini_additive=False, objcoef=None, use_auxiliary_del
         sage: fn = pattern_setup_lp(1, more_ini_additive=False, objcoef=None)
         sage: fn[28]
         2*x_0 + 12*x_1 + 14*x_2
-        sage: igp.pattern_lp
-        Mixed Integer Program  ( maximization, 95 variables, 121 constraints )
+        sage: igp.pattern_lp.number_of_variables()
+        95
         sage: igp.var_slope
         MIPVariable ...
         sage: igp.var_delta
@@ -104,20 +104,20 @@ def pattern_setup_lp(l, more_ini_additive=False, objcoef=None, use_auxiliary_del
 def pattern_positive_zero_undecided_deltafn(vertices_color):
     """
     According to the prescribled painting, compute the lists positive_deltafn, zero_deltafn and undecided_deltafn.
+
     zero_deltafn does not include the implied zero deltafn.
     pattern_lp, vertices_color might be modified.
 
-    See also pattern_positive_zero_undecided_deltafn_trivial().
+    See also ``pattern_positive_zero_undecided_deltafn_trivial()``.
 
     EXAMPLES::
 
         sage: l = 1; q, f = pattern_q_and_f(l, 0);
         sage: vertices_color = pattern_vertices_color(l, pattern=0, more_ini_additive=False)
-        sage: fn = pattern_setup_lp(l)
+        sage: print("glp_exact noise follows in old sage versions"); fn = pattern_setup_lp(l)
+        glp_exact...
         sage: positive_deltafn, zero_deltafn, undecided_deltafn = pattern_positive_zero_undecided_deltafn(vertices_color)
-        glp_exact: 121 rows, 95 columns, 439 non-zeros
         ...
-        OPTIMAL SOLUTION FOUND
         sage: positive_deltafn
         [(1, -1, 0), (1, 0, 1), (1, 0, -1), (1, 1, 0), (0, 1, -1), (1, 0, 0)]
         sage: zero_deltafn
@@ -168,17 +168,18 @@ def pattern_positive_zero_undecided_deltafn(vertices_color):
 
 def pattern_positive_zero_undecided_deltafn_trivial(vertices_color):
     """
-    Compute the list `zero_deltafn` of deltafn that corresponds to green vertices on the prescribled painting.
-    The other deltafn are put in the list `undecided_deltafn`.
-    `positive_deltafn` is an empty list.
-    Modifiy `vertices_color` accordingly.
+    Compute the list zero_deltafn of deltafn that corresponds to green vertices on the prescribled painting.
 
-    Unlike pattern_positive_zero_undecided_deltafn(),
-    this function does not call glpk_simplex_exact_solve() and pattern_will_form_edge()
+    The other deltafn are put in the list undecided_deltafn.
+    positive_deltafn is an empty list.
+    Modifiy vertices_color accordingly.
+
+    Unlike ``pattern_positive_zero_undecided_deltafn()``,
+    this function does not call ``glpk_simplex_exact_solve()`` and ``pattern_will_form_edge()``
     to compute implied green and explicit white vertices.
-    Therefore, when vertex_enumeration_dim_threshold is large enough for given q so that
-    no backtracking is needed in pattern_backtrack_polytope(), it won't waste time on exact_solve.
-    In this case, pattern_backtrack_polytope() should perform as good as pattern_glpk_lp().
+    Therefore, when ``vertex_enumeration_dim_threshold`` is large enough for given `q` so that
+    no backtracking is needed in ``pattern_backtrack_polytope()``, it will not waste time on ``exact_solve``.
+    In this case, ``pattern_backtrack_polytope()`` should perform as good as ``pattern_glpk_lp()``.
     (Hopefully even better, since same deltafn value is accounted only once in constraints.)
 
     EXAMPLES::
@@ -259,12 +260,13 @@ def tuple_of_deltafn(n, linfun):
 
 def pattern_backtrack_polytope(l, k_slopes):
     r"""
-    (MAIN FUNCTION) Look for >=`k_slopes` vertex-functoins on prescribed painting
-    according to `pattern`=0 and size parameter `l`.
+    (MAIN FUNCTION) Look for >= k_slopes vertex-functoins on prescribed painting
+    according to pattern=0 and size parameter `l`.
 
-    Backtrack to find some green points such that they don't create new green edge.
-    Start the vertex-enumeration when exp_dim of the polytope is at most vertex_enumeration_dim_threshold.
-    Output the >=k_slopes vertex-functions (write to file), and max_num_slopes.
+    Backtrack to find some green points such that they do not create new green edge.
+    Start the vertex-enumeration when exp_dim of the polytope is at most ``vertex_enumeration_dim_threshold``.
+
+    Output the >= k_slopes vertex-functions (write to file), and max_num_slopes.
 
     EXAMPLES::
 
@@ -313,7 +315,7 @@ def pattern_backtrack_polytope(l, k_slopes):
 
 def convert_linfun_to_linexp(linfun):
     """
-    convert MILP's Linear_Function to PPL's Linear_Expression.
+    convert MILP's ``Linear_Function`` to PPL's ``Linear_Expression``.
 
     EXAMPLES::
 
@@ -331,7 +333,7 @@ def convert_linfun_to_linexp(linfun):
 
 def pattern_branch_on_deltafn(positive_deltafn, zero_deltafn, undecided_deltafn, vertices_color, exp_dim):
     r"""
-    Backtracking subroutine of pattern_backtrack_polytope().
+    Backtracking subroutine of ``pattern_backtrack_polytope()``.
     """
     global pattern_lp, var_delta, deltafn_dic
 
@@ -413,7 +415,7 @@ def pattern_branch_on_deltafn(positive_deltafn, zero_deltafn, undecided_deltafn,
 
 def glpk_simplex_exact_solve(lp):
     r"""
-    Solve lp by glp_simplex + glp_exact
+    Solve lp by ``glp_simplex`` + ``glp_exact``
 
     EXAMPLES::
 
@@ -423,12 +425,8 @@ def glpk_simplex_exact_solve(lp):
         sage: lp.add_constraint(x - y <= 1)
         sage: lp.add_constraint(x + y >= 2)
         sage: lp.set_objective(x + y)
-        sage: glpk_simplex_exact_solve(lp)
-        glp_exact: 3 rows, 2 columns, 6 non-zeros
-        GNU MP bignum library is being used
-        *     2:   objval =                      2   (0)
-        *     2:   objval =                      2   (0)
-        OPTIMAL SOLUTION FOUND
+        sage: print("glp_exact noise follows in old sage versions"); glpk_simplex_exact_solve(lp)
+        glp_exact...
         2.0
     """
     lp.solver_parameter("simplex_or_intopt", "simplex_only")
@@ -442,29 +440,28 @@ def glpk_simplex_exact_solve(lp):
 
 def pattern_glpk_lp(l, more_ini_additive=False, exact_arithmetic=True, simplex_first=True, reconstruct_rational=False, objcoef=None):
     r"""
-    Find an extreme point of the polytope corresponding to the prescribed painting (`pattern`=0 and size parameter `l`),
-    by solving the LP (given objective funtion's coefficient) using glp_simplex (+ glp_exact, with or without retrieving rational solution).
+    Find an extreme point of the polytope corresponding to the prescribed painting (pattern=0 and size parameter `l`),
+    by solving the LP (given objective funtion's coefficient) using ``glp_simplex`` (+ ``glp_exact``, with or without retrieving rational solution).
+
     We hope to obtain many-slope vertex functions by choosing objcoef nicely.
 
     Returns:
         - optval: optimal value
-        - optsol: optimal solution s0, s1, ... , s_{l+1}
+        - optsol: optimal solution `s0, s1, \dots , s_{l+1}`
         - k_slope: number of slopes of this vertex function
-        - v: vertex function's values at 1/q\Z.
+        - v: vertex function's values at (1/q)Z.
 
     EXAMPLES::
 
-        sage: optval, optsol, k_slope, v = pattern_glpk_lp(1, objcoef=(12,55,0))
-        glp_exact: ...
-        OPTIMAL SOLUTION FOUND
+        sage: print("glp_exact noise follows in old sage versions"); optval, optsol, k_slope, v = pattern_glpk_lp(1, objcoef=(12,55,0))
+        glp_exact...
         sage: k_slope
         6
         sage: optsol
         {0: 0.23404255319148934, 1: 0.14893617021276595, 2: -0.10638297872340424}
 
-        sage: optval, optsol, k_slope, v = pattern_glpk_lp(1, reconstruct_rational=True,objcoef=(12,55,0))
-        glp_exact: ...
-        OPTIMAL SOLUTION FOUND
+        sage: print("glp_exact noise follows in old sage versions"); optval, optsol, k_slope, v = pattern_glpk_lp(1, reconstruct_rational=True,objcoef=(12,55,0))
+        glp_exact...
         sage: optsol
         (11/47, 7/47, -5/47)
     """
@@ -510,9 +507,9 @@ def pattern_glpk_lp(l, more_ini_additive=False, exact_arithmetic=True, simplex_f
 
 def exact_optsol(b):
     r"""
-    Reconstruct exact rational basic solution. (solver = glp_simplex)
+    Reconstruct exact rational basic solution. (solver = ``glp_simplex``)
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = False)
         sage: x, y = lp[0], lp[1]
@@ -576,10 +573,11 @@ def exact_optsol(b):
 
 def pattern_ppl_lp(l, more_ini_additive=False, objcoef=None): #TOO SLOW
     r"""
-    Similar to pattern_glpk_lp(). Uses PPL's MIP_Problem class for solving lp.
+    Similar to ``pattern_glpk_lp()``. Uses PPL's ``MIP_Problem`` class for solving lp.
+
     Exact arithmetics, but too slow.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: optval, optsol, k_slope, v, v_div = pattern_ppl_lp(1, objcoef=(12,55,0))
         sage: k_slope
@@ -627,13 +625,13 @@ def pattern_ppl_lp(l, more_ini_additive=False, objcoef=None): #TOO SLOW
 
 def pattern_glpk_test(l_list, more_ini_additive=False, exact_arithmetic=True, simplex_first=True, reconstruct_rational=False):
     r"""
-    Test the running times for pattern_glpk_lp() with glp_simplex + glp_exact + reconstruction.
-    See table in :ticket:`18735` comment 7.
+    Test the running times for ``pattern_glpk_lp()`` with ``glp_simplex`` + ``glp_exact`` + reconstruction.
+    See table in :trac:`18735` comment 7.
 
-    Print l, number of slopes for the optimal solution, running time
-    Return a list of numbers of slopes
+    Print l, number of slopes for the optimal solution, running time.
+    Return a list of numbers of slopes.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: pattern_glpk_test(range(1,4),more_ini_additive=False, exact_arithmetic=False, simplex_first=False, reconstruct_rational=True)
         1 2 ...
@@ -677,7 +675,7 @@ def pattern_q_and_f(l, pattern):
     pattern == 0 corresponds to the pattern described in the paper.
     In the paper, r is what is called l here.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: pattern_q_and_f(1, pattern=0)
         (58, 29)
@@ -704,7 +702,7 @@ def pattern_additive_vertices(l, pattern):
     Remaining patterns are undocumented.
     In the paper, r is what is called l here.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: additive_vertices = pattern_additive_vertices(1, pattern=0)
         sage: len(additive_vertices)
@@ -750,7 +748,7 @@ def pattern_additive_vertices(l, pattern):
 
 def pattern_more_additive_vertices(l, pattern):
     """
-    Extra additive points, to be added to pattern_additive_vertices to reduce the dimension.
+    Extra additive points, to be added to ``pattern_additive_vertices`` to reduce the dimension.
     Experimental code.
     """
     q, f = pattern_q_and_f(l, pattern)
@@ -781,13 +779,13 @@ def pattern_vertices_color(l, pattern=0, more_ini_additive=False):
 
 def pattern_s(l, pattern):
     r"""
-    Suppose the prescribed painting (according to `pattern` and size parameter `l`) has c connected components,
+    Suppose the prescribed painting (according to pattern and size parameter `l`) has c connected components,
     with slope values q*Variable(0),..., q*Variable(c-1).
 
     Returns a list s of length f.
     s[i] = fn[i+1]-fn[i] is in {Variable(0),..., Variable(c-1)}, for i=0,...,f-1.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: s = pattern_s(1, pattern=0)
         sage: s[0]
@@ -844,13 +842,13 @@ def pattern_s(l, pattern):
 
 def pattern_fn(l, pattern):
     r"""
-    Suppose the prescribed painting (according to `pattern` and size parameter `l`) has c connected components,
+    Suppose the prescribed painting (according to pattern and size parameter `l`) has c connected components,
     with slope values q*Variable(0),..., q*Variable(c-1).
 
     Returns a list fn of length (q+1).
     fn[i] is a Linear_Expression in terms of Variable(0),..., Variable(c-1), for i=0,...,q.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: fn = pattern_fn(1, pattern=0)
         sage: fn[28]
@@ -874,10 +872,10 @@ def pattern_polytope(vertices_color, fn):
     r"""
     Set up a PPL polytope with respect to the vertices_color.
 
-    fn is a list of Linear_Expressions in terms of Variable(0),..., Variable(c-1), of length (q+1).
-    polytope has variables {Variable(0),..., Variable(c-1)}.
+    fn is a list of ``Linear_Expressions`` in terms of Variable(0),..., Variable(c-1), of length (q+1).
+    The polytope has variables {Variable(0),..., Variable(c-1)}.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: vertices_color = pattern_vertices_color(1, pattern=0, more_ini_additive=False)
         sage: fn = pattern_fn(1, pattern=0)
@@ -905,15 +903,15 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
                     test_extremality=False, polytope = None, exp_dim = None,
                     more_ini_additive=True, count_components=False, use_sha1=True):
     r"""
-    Computes the functions (with >= `k_slopes` slopes) corresponding to the extreme points of the polytope.
+    Computes the functions (with >= k_slopes slopes) corresponding to the extreme points of the polytope.
 
-    if `polytope` is None, set up a polytope corresponding to subadditivities and prescribed additivities,
-    according to `pattern` and size parameter `l` (called r in the paper).
+    If polytope is ``None``, set up a polytope corresponding to subadditivities and prescribed additivities,
+    according to pattern and size parameter `l` (called `r` in the paper).
 
-    If `test_extremality` is True (default is False), check extremality.
+    If test_extremality is ``True`` (default is ``False``), check extremality.
 
     Prints lines:
-    NUM-SLOPES  SV (input to pattern0_sym_fn)  DENOMINATOR
+    NUM-SLOPES  SV (input to ``pattern0_sym_fn``)  DENOMINATOR
 
     Creates files in the directory 'sym_mode_2d_diagrams/patterns_PATTERN/'
     (this directory is created if it does not exist).
@@ -1003,8 +1001,8 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
 
 def plot_pattern(l, vertices_color=None, more_ini_additive=True, show_plots=True):
     r"""
-    Plots prescribled painting (`pattern`=0) according to size parameter `l` and `more_ini_additive`.
-    If `vertices_color` is given, use it.
+    Plots prescribled painting (pattern=0) according to size parameter `l` and more_ini_additive.
+    If vertices_color is given, use it.
     """
     f = 18 * l + 11
     q = 2 * f
