@@ -833,8 +833,6 @@ def injective_2_slope_fill_in_order(fn, epsilon=1):
     f = find_f(fn)
     q = finite_group_order_from_function_f_oversampling_order(fn)
     #fn_q = restrict_to_finite_group(fn, order=q)
-    if fn.is_discrete():
-        fn = interpolate_to_infinite_group(fn)
     bkpt = [0]
     value = [0]
     for i in range(q):
@@ -960,6 +958,8 @@ def injective_2_slope_fill_in(fn, epsilon=1, show_plots=False):
     if show_plots:
         g = plot(fn, color='black', legend_label='pi', **ticks_keywords(fn))
     order = injective_2_slope_fill_in_order(fn, epsilon)
+    if fn.is_discrete():
+        fn = interpolate_to_infinite_group(fn)
     bkpt = [i/order for i in range(order+1)]
     value = [fn(i/order) for i in range(order+1)]
     sp, sm = limiting_slopes(fn)
