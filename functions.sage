@@ -340,7 +340,7 @@ def convex_vert_list(vertices):
 def plot_kwds_hook(kwds):
     pass
 
-def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal=False, f=None, colorful=False):
+def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal=False, f=None, colorful=False, additive_color="mediumspringgreen", function_color="blue"):
     """
     Returns a plot of the 2d complex (`\\Delta P`) of fn with shaded
     additive faces, i.e., faces where `\\Delta \\pi = 0`.
@@ -395,7 +395,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
             i = interval_color[j-1][1]
             p += face.plot(fill_color = colors[i], **kwds)
         else:
-            p += face.plot(**kwds)
+            p += face.plot(rgbcolor = additive_color, fill_color = additive_color, **kwds)
         delete_one_time_plot_kwds(kwds)
 
     ### For non-subadditive functions, show the points where delta_pi is negative.
@@ -449,7 +449,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     if show_projections:
         p += plot_projections_at_borders(fn)
     if show_function:
-        p += plot_function_at_borders(fn, covered_components = covered_components)
+        p += plot_function_at_borders(fn, covered_components = covered_components, color=function_color)
     return p
 
 def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
@@ -473,7 +473,7 @@ def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
                 p += line([(-(3/10)*y1, x1), (-(3/10)*y2, x2)], color=colors[i], zorder=-2, **kwds)
     return p
 
-def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200):
+def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200, additive_color="mediumspringgreen", function_color="blue"):
     """
     EXAMPLES::
 
@@ -487,7 +487,7 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200):
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
     g = plot_2d_complex(fn)
     if show_function:
-        g += plot_function_at_borders(fn)
+        g += plot_function_at_borders(fn, color=function_color)
     bkpt = uniq(copy(fn.end_points()))
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
@@ -499,7 +499,7 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200):
             if deltafn > 0:
                 color = "white"
             elif deltafn == 0:
-                color = "mediumspringgreen"
+                color = additive_color
             else:
                 color = "red"
             g += point([(x, y), (y, x)], color=color, size=conesize, zorder=-1)
@@ -510,14 +510,14 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200):
                 if deltafn > 0:
                     color = "white"
                 elif deltafn == 0:
-                    color = "mediumspringgreen"
+                    color = additive_color
                 else:
                     color = "red"
                 g += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), color=color, r=0.03)
                 g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)), color=color, r=0.03)
     return g
 
-def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, **kwds):
+def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, additive_color="mediumspringgreen", function_color='blue', **kwds):
     """
     EXAMPLES::
 
@@ -534,12 +534,12 @@ def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, 
         n = len(ver)
         mx, my = sum([x for (x,y) in ver])/n, sum([y for (x,y) in ver])/n
         if  delta_pi(fn, mx, my) == 0:
-            g += face.plot(**kwds)
+            g += face.plot(rgbcolor=additive_color, fill_color=additive_color, **kwds)
         else:
             g += face.plot(rgbcolor='white', fill_color='white', **kwds)
     g += plot_2d_complex(fn)
     if show_function:
-        g += plot_function_at_borders(fn)
+        g += plot_function_at_borders(fn, color=function_color)
     return g
 
 def plot_function_at_borders(fn, color='blue', legend_label="Function pi", covered_components=None, **kwds):
@@ -4156,7 +4156,7 @@ def generate_covered_components_strategically(fn, show_plots=False):
         return fn._strategical_covered_components
     step = 0
     if show_plots:
-        g = plot_2d_diagram(fn)
+        g = plot_2d_diagram(fn, function_color='black', additive_color="grey")
         show_plot(g, show_plots, tag=step , object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
     faces = [ face for face in generate_maximal_additive_faces(fn) if face.is_2D() ]
     edges = [ face for face in generate_maximal_additive_faces(fn) if face.is_horizontal() or face.is_diagonal() ] #face.is_1D() ]
