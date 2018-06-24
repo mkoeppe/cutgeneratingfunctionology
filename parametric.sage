@@ -1247,7 +1247,7 @@ class SemialgebraicComplexComponent(SageObject):
 
     def sage_polyhedron(self):
         if not self.is_polyhedral():
-            raise NotImplementedError, "The cell is not polyhedral. Construct the polyhedron in the lifted space."
+            raise NotImplementedError("The cell is not polyhedral. Construct the polyhedron in the lifted space.")
         ieqs = [ [-l.constant_coefficient()]+[-l.monomial_coefficient(m) for m in l.args()] for l in self.lin ]
         eqns = [ [-l.constant_coefficient()]+[-l.monomial_coefficient(m) for m in l.args()] for l in self.leq ]
         return Polyhedron(ieqs=ieqs, eqns=eqns)
@@ -1331,23 +1331,23 @@ class SemialgebraicComplex(SageObject):
         sage: boundary = extc.guess_boundary()
         sage: boundary
         [f - bkpt, -f + 4*bkpt - 1, -f]
-        sage: extc.is_complete(bddlin=boundary,strict=True)
+        sage: extc.is_complete(bddlin=boundary,strict=True) # optional - mathematica
         False
-        sage: extc.is_complete(bddlin=boundary,strict=False)
+        sage: extc.is_complete(bddlin=boundary,strict=False) # optional - mathematica
         True
         sage: pc = extc.polyhedral_complex()
         sage: [sage_input(pol) for pol in pc.cells_list()]
-        [Polyhedron(base_ring=QQ, vertices=[(QQ(0), 1/4)]),
-         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0))]),
-         Polyhedron(base_ring=QQ, vertices=[(1/3, 1/3)]),
-         Polyhedron(base_ring=QQ, vertices=[(1/7, 2/7)]),
-         Polyhedron(base_ring=QQ, vertices=[(1/3, 1/3), (1/7, 2/7)]),
-         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0)), (QQ(0), 1/4)]),
-         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0)), (1/7, 2/7)]),
-         Polyhedron(base_ring=QQ, vertices=[(QQ(0), 1/4), (1/7, 2/7)]),
-         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0)), (1/3, 1/3)]),
-         Polyhedron(base_ring=QQ, vertices=[(1/7, 2/7), (QQ(0), QQ(0)), (QQ(0), 1/4)]),
-         Polyhedron(base_ring=QQ, vertices=[(1/3, 1/3), (QQ(0), QQ(0)), (1/7, 2/7)])]
+        [Polyhedron(... vertices=[(QQ(0), 1/4)]),
+         Polyhedron(... vertices=[(QQ(0), QQ(0))]),
+         Polyhedron(... vertices=[(1/3, 1/3)]),
+         Polyhedron(... vertices=[(1/7, 2/7)]),
+         Polyhedron(... vertices=[(1/3, 1/3), (1/7, 2/7)]),
+         Polyhedron(... vertices=[(QQ(0), QQ(0)), (QQ(0), 1/4)]),
+         Polyhedron(... vertices=[(QQ(0), QQ(0)), (1/7, 2/7)]),
+         Polyhedron(... vertices=[(QQ(0), 1/4), (1/7, 2/7)]),
+         Polyhedron(... vertices=[(QQ(0), QQ(0)), (1/3, 1/3)]),
+         Polyhedron(... vertices=[(1/7, 2/7), (QQ(0), QQ(0)), (QQ(0), 1/4)]),
+         Polyhedron(... vertices=[(1/3, 1/3), (QQ(0), QQ(0)), (1/7, 2/7)])]
 
     Consider low-dimensional cells in the polyhedral case::
 
@@ -1361,7 +1361,7 @@ class SemialgebraicComplex(SageObject):
         sage: boundary = extc.guess_boundary()                                      #long time
         sage: boundary                                                              #long time
         [f - bkpt, -f + 4*bkpt - 1, -f]
-        sage: extc.is_complete(bddlin=boundary,strict=True)                         #long time
+        sage: extc.is_complete(bddlin=boundary,strict=True)                         #long time, optional - mathematica
         True
     """
     def __init__(self, function, var_name, max_iter=2, find_region_type=None, default_var_bound=(-0.1,1.1), bddleq=[], bddlin=[], kwds_dict={}, **opt_non_default):
@@ -2260,7 +2260,7 @@ def result_concrete_value(field, result):
  
     This function can provided to ``find_region_type`` when setting up a :class:`SemialgebraicComplex`. 
     In this way, one can compare result of type :class:`ParametricRealFieldElement` or list of :class:`ParametricRealFieldElement`
-    with the previous elements in ``region_type_color_map`` which do not necessairy have the same parent.
+    with the previous elements in ``region_type_color_map`` which do not necessarily have the same parent.
 
     EXAMPLES::
 
@@ -2579,17 +2579,17 @@ class PolyhedralComplex(GenericCellComplex):
 
         sage: pc = PolyhedralComplex([Polyhedron(base_ring=QQ, vertices=[(1/3, 1/3), (QQ(0), QQ(0)), (1/7, 2/7)]), Polyhedron(base_ring=QQ, vertices=[(1/7, 2/7), (QQ(0), QQ(0)), (QQ(0), 1/4)])])
         sage: [sage_input(pol) for pol in pc.cells_list()]
-        [Polyhedron(base_ring=QQ, vertices=[(1/3, 1/3)]),
-         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0))]),
-         Polyhedron(base_ring=QQ, vertices=[(QQ(0), 1/4)]),
-         Polyhedron(base_ring=QQ, vertices=[(1/7, 2/7)]),
-         Polyhedron(base_ring=QQ, vertices=[(QQ(0), 1/4), (1/7, 2/7)]),
-         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0)), (1/7, 2/7)]),
-         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0)), (1/3, 1/3)]),
-         Polyhedron(base_ring=QQ, vertices=[(1/3, 1/3), (1/7, 2/7)]),
-         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0)), (QQ(0), 1/4)]),
-         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0)), (1/3, 1/3), (1/7, 2/7)]),
-         Polyhedron(base_ring=QQ, vertices=[(QQ(0), QQ(0)), (QQ(0), 1/4), (1/7, 2/7)])]
+        [Polyhedron(... vertices=[(1/3, 1/3)]),
+         Polyhedron(... vertices=[(QQ(0), QQ(0))]),
+         Polyhedron(... vertices=[(QQ(0), 1/4)]),
+         Polyhedron(... vertices=[(1/7, 2/7)]),
+         Polyhedron(... vertices=[(QQ(0), 1/4), (1/7, 2/7)]),
+         Polyhedron(... vertices=[(QQ(0), QQ(0)), (1/7, 2/7)]),
+         Polyhedron(... vertices=[(QQ(0), QQ(0)), (1/3, 1/3)]),
+         Polyhedron(... vertices=[(1/3, 1/3), (1/7, 2/7)]),
+         Polyhedron(... vertices=[(QQ(0), QQ(0)), (QQ(0), 1/4)]),
+         Polyhedron(... vertices=[(QQ(0), QQ(0)), (1/3, 1/3), (1/7, 2/7)]),
+         Polyhedron(... vertices=[(QQ(0), QQ(0)), (QQ(0), 1/4), (1/7, 2/7)])]
         sage: pc.is_convex()
         True
         sage: p = pc.union_as_polyhedron()
