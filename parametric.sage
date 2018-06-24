@@ -263,6 +263,7 @@ class ParametricRealField(Field):
         self.allow_coercion_to_float = allow_coercion_to_float
         if allow_coercion_to_float:
             RDF.register_coercion(sage.structure.coerce_maps.NamedConvertMap(self, RDF, '__float__'))
+        logging.info("Initialized {}".format(self))
 
     def __copy__(self):
         logging.warn("copy(%s) is invoked" % self)
