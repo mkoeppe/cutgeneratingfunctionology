@@ -340,7 +340,7 @@ def convex_vert_list(vertices):
 def plot_kwds_hook(kwds):
     pass
 
-def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal=False, f=None, colorful=False):
+def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal=False, f=None, colorful=False, additive_color="mediumspringgreen", function_color="blue"):
     """
     Returns a plot of the 2d complex (`\\Delta P`) of fn with shaded
     additive faces, i.e., faces where `\\Delta \\pi = 0`.
@@ -395,7 +395,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
             i = interval_color[j-1][1]
             p += face.plot(fill_color = colors[i], **kwds)
         else:
-            p += face.plot(**kwds)
+            p += face.plot(rgbcolor = additive_color, fill_color = additive_color, **kwds)
         delete_one_time_plot_kwds(kwds)
 
     ### For non-subadditive functions, show the points where delta_pi is negative.
@@ -449,7 +449,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     if show_projections:
         p += plot_projections_at_borders(fn)
     if show_function:
-        p += plot_function_at_borders(fn, covered_components = covered_components)
+        p += plot_function_at_borders(fn, covered_components = covered_components, color=function_color)
     return p
 
 def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
@@ -473,7 +473,7 @@ def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
                 p += line([(-(3/10)*y1, x1), (-(3/10)*y2, x2)], color=colors[i], zorder=-2, **kwds)
     return p
 
-def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200):
+def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200, additive_color="mediumspringgreen", function_color="blue"):
     """
     EXAMPLES::
 
@@ -487,7 +487,7 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200):
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
     g = plot_2d_complex(fn)
     if show_function:
-        g += plot_function_at_borders(fn)
+        g += plot_function_at_borders(fn, color=function_color)
     bkpt = uniq(copy(fn.end_points()))
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
@@ -499,7 +499,7 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200):
             if deltafn > 0:
                 color = "white"
             elif deltafn == 0:
-                color = "mediumspringgreen"
+                color = additive_color
             else:
                 color = "red"
             g += point([(x, y), (y, x)], color=color, size=conesize, zorder=-1)
@@ -510,14 +510,14 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200):
                 if deltafn > 0:
                     color = "white"
                 elif deltafn == 0:
-                    color = "mediumspringgreen"
+                    color = additive_color
                 else:
                     color = "red"
                 g += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), color=color, r=0.03)
                 g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)), color=color, r=0.03)
     return g
 
-def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, **kwds):
+def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, additive_color="mediumspringgreen", function_color='blue', **kwds):
     """
     EXAMPLES::
 
@@ -534,12 +534,12 @@ def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, 
         n = len(ver)
         mx, my = sum([x for (x,y) in ver])/n, sum([y for (x,y) in ver])/n
         if  delta_pi(fn, mx, my) == 0:
-            g += face.plot(**kwds)
+            g += face.plot(rgbcolor=additive_color, fill_color=additive_color, **kwds)
         else:
             g += face.plot(rgbcolor='white', fill_color='white', **kwds)
     g += plot_2d_complex(fn)
     if show_function:
-        g += plot_function_at_borders(fn)
+        g += plot_function_at_borders(fn, color=function_color)
     return g
 
 def plot_function_at_borders(fn, color='blue', legend_label="Function pi", covered_components=None, **kwds):
@@ -3434,11 +3434,120 @@ def lift(fn, show_plots = False, use_all_perturbations=True, use_largest_absolut
             logging.info("Lifting fails. Try generate_lifted_functions() via polyhedron of perturbation space.")
         return perturbed
 
-def lift_until_extreme(fn, show_plots = False, pause = False, **kwds):
+def lift_extreme_function_for_finite_group_to_infinite_group(fn, show_plots = False, show_all_lifting=True):
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.info)
+        sage: h = drlm_not_extreme_1()
+        sage: hh = lift_extreme_function_for_finite_group_to_infinite_group(h)
+        sage: len(hh)
+        2
+        sage: h = example7slopecoarse2()
+        sage: hh = lift_extreme_function_for_finite_group_to_infinite_group(h)
+        sage: len(hh)
+        12
+        sage: bkpts = [0, 1/13, 3/13, 7/26, 4/13,5/13,21/52,23/52,6/13,8/13,33/52,35/52,9/13,10/13,21/26,11/13,1]
+        sage: values = [0,1,3/14,5/7,3/4,5/14,55/112,33/112,3/7,4/7,79/112,57/112,9/14,1/4,2/7,11/14,0]
+        sage: h = piecewise_function_from_breakpoints_and_values(bkpts, values)
+        sage: hh = lift_extreme_function_for_finite_group_to_infinite_group(h)
+        sage: len(hh)
+        2
+        sage: extremality_test(hh[0])
+        True
+
+    BUG EXAMPLES::
+
+        sage: h = FastPiecewise([[(QQ(0), 1/18), FastLinearFunction(QQ(18), QQ(0))], [(1/18, 1/9), FastLinearFunction(-126/11, 18/11)], [(1/9, 1/6), FastLinearFunction(18/55, 18/55)], [(1/6, 2/9), FastLinearFunction(342/55, -36/55)], [(2/9, 5/18), FastLinearFunction(-126/11, 36/11)], [(5/18, 1/3), FastLinearFunction(666/55, -36/11)], [(1/3, 7/18), FastLinearFunction(-306/55, 144/55)], [(7/18, 4/9), FastLinearFunction(18/55, 18/55)], [(4/9, 1/2), FastLinearFunction(342/55, -126/55)], [(1/2, 5/9), FastLinearFunction(-126/11, 72/11)], [(5/9, 11/18), FastLinearFunction(342/55, -36/11)], [(11/18, 2/3), FastLinearFunction(18/55, 18/55)], [(2/3, 13/18), FastLinearFunction(-306/55, 234/55)], [(13/18, 7/9), FastLinearFunction(666/55, -468/55)], [(7/9, 5/6), FastLinearFunction(-126/11, 108/11)], [(5/6, 8/9), FastLinearFunction(342/55, -54/11)], [(8/9, 17/18), FastLinearFunction(18/55, 18/55)], [(17/18, QQ(1)), FastLinearFunction(-126/11, 126/11)]])
+        sage: lift_extreme_function_for_finite_group_to_infinite_group(h)
+        []
+    """
+    bkpts = fn.end_points()
+    values = fn.values_at_end_points()
+    assert is_all_QQ_fastpath(bkpts + values) == True
+    q = lcm([denominator(x) for x in bkpts])
+    v = lcm([denominator(x) for x in values])
+    f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    fdms, covered_components= generate_directed_move_composition_completion(fn, show_plots=show_plots)
+    for pert_fin in  generate_perturbations_finite_dimensional(fn, show_plots=show_plots, f=f):
+        raise ValueError, "The given function is not extreme for the finite group (1/%s)Z" % q
+    uncovered_intervals = generate_uncovered_intervals(fn)
+    if show_plots:
+        logging.info("Plotting covered intervals...")
+        show_plot(plot_covered_intervals(fn), show_plots, tag='covered_intervals', object=fn)
+        logging.info("Plotting covered intervals... done")
+    if not uncovered_intervals:
+        logging.info("All intervals are covered (or connected-to-covered). %s components." % number_of_components(fn))
+        return [fn]
+    logging.info("Uncovered intervals: %s", (uncovered_intervals,))
+    all_lifting = [fn]
+    global perturbation_template_bkpts
+    global perturbation_template_values
+    generator = generate_generic_seeds_with_completion(fn)
+    for seed, stab_int, walk_list in generator:
+        lifted_functions = []
+        for perturbed in all_lifting:
+            perturbation_template_values = [0, 1, 0]
+            perturbation_template_bkpts = [0, 1/(4*q*v), 1]
+            perturb_1 = approx_discts_function(walk_list, stab_int, function=fn)
+            epsilon_interval_1 = find_epsilon_interval(perturbed, perturb_1)
+            perturbation_template_bkpts = [0, 1-1/(4*q*v), 1]
+            perturb_2 = approx_discts_function(walk_list, stab_int, function=fn)
+            epsilon_interval_2 = find_epsilon_interval(perturbed, perturb_2)
+            if epsilon_interval_1[1] != 10000 and epsilon_interval_2[1] != 10000:
+                s_left = 4*q*v * epsilon_interval_1[1]
+                s_right = - 4*q*v * epsilon_interval_2[1]
+                if s_left == s_right == 0:
+                    lifted_functions.append(perturbed)
+                else:
+                    perturbation_template_bkpts = [0, s_right/(s_right - s_left), 1]
+                    perturbation_template_values = [0, s_left*s_right/(s_right - s_left), 0]
+                    perturbation = approx_discts_function(walk_list, stab_int, function=fn)
+                    epsilon_interval = find_epsilon_interval(perturbed, perturbation)
+                    #assert epsilon_interval[1] == 1
+                    if epsilon_interval[1] == 1:
+                        lifted_functions.append(perturbed + perturbation)
+            if (show_all_lifting or not lifted_functions) and (epsilon_interval_1[0] != -10000 and epsilon_interval_2[0] != -10000):
+                s_left = 4*q*v * epsilon_interval_1[0]
+                s_right = - 4*q*v * epsilon_interval_2[0]
+                if s_left == s_right == 0:
+                    if not perturbed == lifted_functions[-1]:
+                        lifted_functions.append(perturbed)
+                else:
+                    perturbation_template_bkpts = [0, s_right/(s_right - s_left), 1]
+                    perturbation_template_values = [0, s_left*s_right/(s_right - s_left), 0]
+                    perturbation = approx_discts_function(walk_list, stab_int, function=fn)
+                    epsilon_interval = find_epsilon_interval(perturbed, perturbation)
+                    #assert epsilon_interval[1] == 1
+                    if epsilon_interval[1] == 1:
+                        lifted_functions.append(perturbed + perturbation)
+        if not lifted_functions:
+                raise ValueError, "can not find continuous perturbation"
+        all_lifting = lifted_functions
+    lifted_functions = []
+    for h in all_lifting:
+        if not generate_uncovered_components(h): #extremality_test(h):
+            lifted_functions.append(h)
+            if show_plots:
+                perturbation = h - fn
+                p = plot_rescaled_perturbation(perturbation)
+                p += plot(perturbed, color='black')
+                p += plot_with_colored_slopes(h)
+                p.show()
+    return lifted_functions
+
+def lift_until_extreme(fn, show_plots = False, pause = False, covered_length=True, use_all_perturbations=True, **kwds):
     next, fn = fn, None
     while next != fn:
+        if covered_length:
+            covered_components = generate_covered_components(next)
+            covered_intervals = union_of_coho_intervals_minus_union_of_coho_intervals(covered_components, [])
+            covered_length = sum(interval_length(i) for i in covered_intervals)
+            if show_plots:
+                plot_covered_intervals(next).show(title = 'covered length = %s' % covered_length)
+            logging.info("Covered length = %s" % covered_length)
         fn = next
-        next = lift(fn, show_plots=show_plots, **kwds)
+        next = lift(fn, show_plots=False , use_all_perturbations=use_all_perturbations, **kwds)  #show_plots=show_plots
         if pause and next != fn:
             raw_input("Press enter to continue")
     return next
@@ -4098,7 +4207,7 @@ def generate_covered_components_strategically(fn, show_plots=False):
         return fn._strategical_covered_components
     step = 0
     if show_plots:
-        g = plot_2d_diagram(fn)
+        g = plot_2d_diagram(fn, function_color='black', additive_color="grey")
         show_plot(g, show_plots, tag=step , object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
     faces = [ face for face in generate_maximal_additive_faces(fn) if face.is_2D() ]
     edges = [ face for face in generate_maximal_additive_faces(fn) if face.is_horizontal() or face.is_diagonal() ] #face.is_1D() ]
@@ -4154,10 +4263,13 @@ def generate_covered_components_strategically(fn, show_plots=False):
                 else:
                     g += face.plot(fill_color='red')
                 g += plot_covered_components_at_borders(fn, covered_components=[component])
-                show_plot(g, show_plots, tag=step , object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
+                show_plot(g + plot_beams_of_one_face(face), show_plots, tag=step, object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
             new_component, remaining_components = merge_components_with_given_component(component, covered_components)
-            if new_component != component and logging.getLogger().isEnabledFor(logging.DEBUG):
-                logging.debug("We obtain a new covered component %s, with overlapping components merged in." % (new_component))
+            if new_component != component:
+                if logging.getLogger().isEnabledFor(logging.DEBUG):
+                    logging.debug("We obtain a new covered component %s, with overlapping components merged in." % (new_component))
+                if show_plots:
+                    show_plot(g, show_plots, tag="{}a".format(step), object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
             covered_components = remaining_components + [new_component]
 
         elif max_face.is_1D():
@@ -4176,8 +4288,9 @@ def generate_covered_components_strategically(fn, show_plots=False):
                     overlapped_ints = list(intersection_of_coho_intervals([covered_component, fdm.intervals()]))
                     moved_intervals = [[fdm.apply_to_coho_interval(overlapped_int)] for overlapped_int in overlapped_ints ]
                     newly_covered = union_of_coho_intervals_minus_union_of_coho_intervals(moved_intervals, covered_components)
-                    if newly_covered and logging.getLogger().isEnabledFor(logging.DEBUG):
-                        logging.debug("%s is indirectly covered." % (newly_covered))
+                    if newly_covered:
+                        if logging.getLogger().isEnabledFor(logging.DEBUG):
+                            logging.debug("%s is indirectly covered." % (newly_covered))
                         if show_plots:
                             g += plot_covered_components_at_borders(fn, covered_components=[newly_covered])
                         component = union_of_coho_intervals_minus_union_of_coho_intervals(moved_intervals + [overlapped_ints] + [component], [])
@@ -4188,7 +4301,7 @@ def generate_covered_components_strategically(fn, show_plots=False):
                     covered_components = remaining_components + [new_component]
             if show_plots:
                 g += edge.plot(rgbcolor='red')
-                show_plot(g, show_plots, tag=step , object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
+                show_plot(g + plot_beams_of_one_face(edge), show_plots, tag=step , object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
 
     # There will be no more new covered intervals.
     # But perhaps merging of components will happen.

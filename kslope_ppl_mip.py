@@ -863,7 +863,7 @@ def dim_cs_matrix(q, changed_vertices, cs_matrix):
 
 def paint_complex_combined_pol(k_slopes, q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, cs, cs_matrix):
     """
-    Combine 'heuristic' backracting search (using PPL) with vertex enumeration.
+    Combine 'heuristic' backtracking search (using PPL) with vertex enumeration.
     If q - rank(cs_matrix) <= dim_threshold, stop backtracking search.
     Enumerate and check vertex functions then.
 
@@ -1424,3 +1424,15 @@ def times_in_naive_search(k, q, f):
     logging.info("Total time of naive search = %s" % t)
     logging.info("Numer of k-slope functions = %s" % n_sol)
     return h_list
+
+
+def generate_extreme_functions_for_finite_group(q, f):
+    vertices_color = initial_vertices_color(q, f)
+    cs = initial_cs(q, f, vertices_color)
+    polytope = C_Polyhedron(cs)
+    exp_dim = int(q / 2) - 1
+    extreme_points = vertex_enumeration(polytope, exp_dim=exp_dim)
+    for v in extreme_points:
+        v_n = v.coefficients()
+        h = h_from_vertex_values(v_n)
+        yield h
