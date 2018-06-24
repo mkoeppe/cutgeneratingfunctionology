@@ -22,8 +22,6 @@ import time
 # Parametric Real Number Field
 ###############################
 
-default_parametric_field = None
-
 class ParametricRealFieldElement(FieldElement):
     """
     A :class:`ParametricRealFieldElement` stores a symbolic expression of the parameters in the problem and a concrete value, which is the evaluation of this expression on the given parameter tuple.
@@ -34,7 +32,6 @@ class ParametricRealFieldElement(FieldElement):
     def __init__(self, value, symbolic=None, parent=None):
         if parent is None:
             raise ValueError, "ParametricRealFieldElement invoked with parent=None. That's asking for trouble"
-            parent = default_parametric_field
         FieldElement.__init__(self, parent) ## this is so that canonical_coercion works.
         ## Test coercing the value to RR, so that we do not try to build a ParametricRealFieldElement
         ## from something like a tuple or vector or list or variable of a polynomial ring
@@ -429,8 +426,6 @@ class ParametricRealField(Field):
         self.monomial_list = list(P.gens())
         self.v_dict = {P.gens()[i]:i for i in range(n)}
         self.polyhedron = NNC_Polyhedron(n,'universe')
-
-default_parametric_field = ParametricRealField()
 
 ###############################
 # Simplify polynomials
