@@ -331,6 +331,12 @@ def RealNumberField(polynomial, name=None, latex_name=None, names=None, check=Tr
         sage: K.<cbrt2> = RealNumberField(x^3 - 2, embedding=RIF(AA.polynomial_root(x^3-2, RIF(0,3))), exact_embedding=AA.polynomial_root(x^3-2, RIF(0,3)))
         sage: 6064/4813 < cbrt2 < 90325/71691
         True
+
+        sage: R.<y> = QQ[]; polynomial=y^2 - 2; embedding=RR(1.4142135623730949); exact_embedding=SR(AA(sqrt(2)))
+        sage: RealNumberField(polynomial=polynomial, name='a', embedding=embedding, exact_embedding=exact_embedding)
+        Real Number Field in `a` as the root of the defining polynomial y^2 - 2 near 1.414213562373095?
+
+
     """
 
     if names is not None:
