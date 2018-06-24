@@ -289,7 +289,7 @@ class ParametricRealField(Field):
         if S is sage.interfaces.mathematica.MathematicaElement or RDF.has_coerce_map_from(S):
             return CallableConvertMap(S, self, lambda s: ParametricRealFieldElement(s, parent=self), parent_as_first_arg=False)
     def __repr__(self):
-        return 'ParametricRealField%s' %repr(self.gens())
+        return 'ParametricRealField(names = {}, values = {})'.format(list(self._names), self._values)
     def _element_constructor_(self, elt):
         if parent(elt) == self:
             return elt
@@ -797,9 +797,11 @@ def construct_field_and_test_point(function, var_name, var_value, default_args):
         sage: default_args = read_default_args(function)
         sage: K, test_point = construct_field_and_test_point(function, var_name, var_value, default_args)
         sage: K
-        ParametricRealField[f~]
+        ParametricRealField(names = ['f'], values = [1/2])
         sage: test_point
-        {'conditioncheck': False, 'f': f~, 'field': ParametricRealField[f~]}
+        {'conditioncheck': False,
+             'f': f~,
+             'field': ParametricRealField(names = ['f'], values = [1/2])}
     """
     K = ParametricRealField(var_value, var_name)
     test_point = copy(default_args)
