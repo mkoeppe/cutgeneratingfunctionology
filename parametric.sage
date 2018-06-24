@@ -92,7 +92,10 @@ class ParametricRealFieldElement(FieldElement):
         return result
 
     def __float__(self):
-        return float(self._val)
+        if self.parent().allow_coercion_to_float:
+            return float(self._val)
+        else:
+            raise ValueError("Conversion to float is not allowed")
 
     def _repr_(self):
         s = self._sym
@@ -237,7 +240,7 @@ class ParametricRealField(Field):
     """
     Element = ParametricRealFieldElement
 
-    def __init__(self, values=[], names=()):
+    def __init__(self, values=[], names=(), allow_coercion_to_float=True):
         Field.__init__(self, self)
         self._zero_element = ParametricRealFieldElement(0, parent=self)
         self._one_element =  ParametricRealFieldElement(1, parent=self)
@@ -260,6 +263,9 @@ class ParametricRealField(Field):
         self.monomial_list = []
         # a dictionary that maps each monomial to the index of its corresponding Variable in self.polyhedron
         self.v_dict = {}
+        self.allow_coercion_to_float = allow_coercion_to_float
+        if allow_coercion_to_float:
+            RDF.register_coercion(sage.structure.coerce_maps.NamedConvertMap(self, RDF, '__float__'))
 
     def __copy__(self):
         logging.warn("copy(%s) is invoked" % self)
