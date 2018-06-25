@@ -298,7 +298,7 @@ class ParametricRealField(Field):
             QQ_elt = QQ(elt)
             return ParametricRealFieldElement(QQ_elt, parent=self)
             #return self.element_class(self, QQ_elt)
-        except:
+        except ValueError:
             raise TypeError, "ParametricRealField called with element %s" % elt
 
     def _coerce_impl(self, x):
@@ -1595,7 +1595,7 @@ class SemialgebraicComplex(SageObject):
                 return
         try:
             h = self.function(**test_point)
-        except: # Dangerous!!
+        except Exception: # Dangerous!!
             # Function is non-contructible at this random point.
             h = None
         region_type = self.find_region_type(K, h)
@@ -1987,7 +1987,7 @@ def find_lower_bound_of_linexpr(mip, linexpr):
     mip.set_objective_function(linexpr)
     try:
         lb = mip.optimal_value()
-    except:
+    except ValueError:
         # unbounded
         lb = None
     return lb
@@ -2002,7 +2002,7 @@ def find_upper_bound_of_linexpr(mip, linexpr):
     mip.set_objective_function(-linexpr)
     try:
         ub = -mip.optimal_value()
-    except:
+    except ValueError:
         # unbounded
         ub = None
     return ub
