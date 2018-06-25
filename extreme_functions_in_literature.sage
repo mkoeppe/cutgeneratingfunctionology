@@ -34,11 +34,16 @@ def gmic(f=4/5, field=None, conditioncheck=True):
 
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
-    if conditioncheck and not bool(0 < f < 1):
+    if not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
+    claimed_parameter_attribute = None
+    if conditioncheck:
+        claimed_parameter_attribute = 'extreme'
     gmi_bkpt = [0,f,1]
     gmi_values = [0,1,0]
-    return piecewise_function_from_breakpoints_and_values(gmi_bkpt, gmi_values, field=field)
+    h = piecewise_function_from_breakpoints_and_values(gmi_bkpt, gmi_values, field=field)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h
 
 
 def gj_2_slope(f=3/5, lambda_1=1/6, field=None, conditioncheck=True):
@@ -76,16 +81,21 @@ def gj_2_slope(f=3/5, lambda_1=1/6, field=None, conditioncheck=True):
 
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
+    if not (bool(0 < f < 1) & bool(0 < lambda_1 < f/(1 - f))):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    claimed_parameter_attribute = None
     if conditioncheck:
-        if not (bool(0 < f < 1) & bool(0 < lambda_1 < f/(1 - f))):
-            raise ValueError, "Bad parameters. Unable to construct the function."
         if not (bool(lambda_1 <= 1)):
             logging.info("Conditions for extremality are NOT satisfied.")
+            claimed_parameter_attribute = 'constructible'
         else:
             logging.info("Conditions for extremality are satisfied.")
+            claimed_parameter_attribute = 'extreme'
     bkpts = [0, (f - lambda_1*(1 - f))/2, (f + lambda_1*(1 - f))/2, f, 1]
     values = [0, (1 + lambda_1)/2, (1 - lambda_1)/2, 1, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
+    h = piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h
 
 
 def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, conditioncheck=True):
@@ -120,68 +130,148 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
 
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
+    if not (bool(0 < f < 1) & (m >= 2) & (n >= 2) & bool (s_positive > 1 / f) & bool(s_negative < 1/(f - 1))):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    claimed_parameter_attribute = None
     if conditioncheck:
-        if not (bool(0 < f < 1) & (m >= 2) & (n >= 2) & bool (s_positive > 1 / f) & bool(s_negative < 1/(f - 1))):
-            raise ValueError, "Bad parameters. Unable to construct the function."
         if not (bool(m >= (s_positive - s_positive*s_negative*f) / (s_positive - s_negative)) & bool(n >= (- s_negative + s_positive*s_negative*(f - 1)) / (s_positive - s_negative))):
             logging.info("Conditions for extremality are NOT satisfied.")
+            claimed_parameter_attribute = 'constructible'
         else:
             logging.info("Conditions for extremality are satisfied.")
+            claimed_parameter_attribute = 'extreme'
     len1_positive = (1 - s_negative*f) / (s_positive - s_negative) / m
     len1_negative = (f - m*len1_positive) / (m - 1)
     len2_negative = (1 - s_positive*(f - 1)) / (s_positive - s_negative) / n
     len2_positive = (1 - f - n*len2_negative) / (n - 1)
     interval_lengths = [len1_positive, len1_negative] * (m - 1) + [len1_positive, len2_negative] + [len2_positive, len2_negative]*(n - 1)
     slopes = [s_positive, s_negative]*(m + n - 1)
-    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
+    h = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h
 
+# def dg_2_step_mir(f=4/5, alpha=3/10, field=None, conditioncheck=True):
+#     """
+#     Summary:
+#         - Name: Dash-Gunluk's 2-Step MIR;
+#         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
+#         - Discovered [33]  p.39 def.8, Fig.5;
+#         - Proven extreme (for infinite group) [60] p.377, thm.3.3.
+#         - dg_2_step_mir is a facet.
 
-def dg_2_step_mir(f=4/5, alpha=3/10, field=None, conditioncheck=True):
-    """
-    Summary:
-        - Name: Dash-Gunluk's 2-Step MIR;
-        - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
-        - Discovered [33]  p.39 def.8, Fig.5;
-        - Proven extreme (for infinite group) [60] p.377, thm.3.3.
-        - dg_2_step_mir is a facet.
+#     Parameters:
+#         f (real) \in (0,1);
+#         alpha (real) \in (0,f).
 
-    Parameters:
-        * f (real) \in (0,1);
-        * alpha (real) \in (0,f).
+#     Function is known to be extreme under the conditions:
+#         0 < alpha < f < 1;
+#         f / alpha < ceil(f / alpha) <= 1 / alpha.
 
-    Function is known to be extreme under the conditions:
-        * 0 < alpha < f < 1;
-        * f / alpha < ceil(f / alpha) <= 1 / alpha.
+#     Examples:
+#         [33] p.40, Fig.5 ::
 
-    Examples: [33] p.40, Fig.5 ::
+#             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+#             sage: h = dg_2_step_mir(f=4/5, alpha=3/10)
+#             sage: extremality_test(h, False)
+#             True
 
-        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-        sage: h = dg_2_step_mir(f=4/5, alpha=3/10)
-        sage: extremality_test(h, False)
-        True
+#     Reference:
+#         [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
+#                 Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
+#                 (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
 
-    Reference:
-        [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
-                Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
-                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
+#         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
+#     """
+#     if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
+#         raise ValueError, "Bad parameters. Unable to construct the function."
+#     claimed_parameter_attribute = None
+#     if conditioncheck:
+#         if not bool(ceil(f / alpha) <= 1 / alpha):
+#             logging.info("Conditions for extremality are NOT satisfied.")
+#             claimed_parameter_attribute = 'constructible'
+#         else:
+#             logging.info("Conditions for extremality are satisfied.")
+#             claimed_parameter_attribute = 'extreme'
+#     rho = f - alpha * floor(f / alpha)
+#     tau = ceil(f / alpha)
+#     s_positive = (1 - rho*tau) / (rho*tau*(1 - f))
+#     s_negative = - 1/(1 - f)
+#     interval_lengths = [rho, alpha - rho] * tau
+#     interval_lengths[-1] = 1 - f
+#     slopes = [s_positive, s_negative] * tau
+#     h = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
+#     h._claimed_parameter_attribute = claimed_parameter_attribute
+#     return h
 
-        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
-    """
-    if conditioncheck:
-        if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
+class ExtremeFunctionsFactory:
+    #####  Bad name follows....
+    def check_conditions(self, *args, **kwargs):  ### could be in superclass
+        c = self.claimed_parameter_attributes(*args, **kwargs)
+        if c == 'not_constructible':
             raise ValueError, "Bad parameters. Unable to construct the function."
-        if not bool(ceil(f / alpha) <= 1 / alpha):
+        elif c == 'constructible':
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
-    rho = f - alpha * floor(f / alpha)
-    tau = ceil(f / alpha)
-    s_positive = (1 - rho*tau) / (rho*tau*(1 - f))
-    s_negative = - 1/(1 - f)
-    interval_lengths = [rho, alpha - rho] * tau
-    interval_lengths[-1] = 1 - f
-    slopes = [s_positive, s_negative] * tau
-    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
+
+class Dg2StepMir(ExtremeFunctionsFactory):
+
+    def __init__(self):
+        pass
+
+    def claimed_parameter_attributes(self, f=4/5, alpha=3/10):
+        if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
+            return 'not_constructible'
+        if not bool(ceil(f / alpha) <= 1 / alpha):
+            return 'constructible'
+        else:
+            return 'extreme'
+
+    def __call__(self, f=4/5, alpha=3/10, field=None, conditioncheck=True):
+        """
+        Summary:
+            - Name: Dash-Gunluk's 2-Step MIR;
+            - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
+            - Discovered [33]  p.39 def.8, Fig.5;
+            - Proven extreme (for infinite group) [60] p.377, thm.3.3.
+            - dg_2_step_mir is a facet.
+
+        Parameters:
+            * f (real) in (0,1);
+            * alpha (real) in (0,f).
+
+        Function is known to be extreme under the conditions:
+            * 0 < alpha < f < 1;
+            * f / alpha < ceil(f / alpha) <= 1 / alpha.
+
+        Examples: [33] p.40, Fig.5 ::
+
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: h = dg_2_step_mir(f=4/5, alpha=3/10)
+            sage: extremality_test(h, False)
+            True
+
+        Reference:
+            [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
+                Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
+                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
+
+            [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
+        """
+        if conditioncheck:
+            self.check_conditions(f, alpha)
+        if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
+            raise ValueError, "Bad parameters. Unable to construct the function."
+        rho = f - alpha * floor(f / alpha)
+        tau = ceil(f / alpha)
+        s_positive = (1 - rho*tau) / (rho*tau*(1 - f))
+        s_negative = - 1/(1 - f)
+        interval_lengths = [rho, alpha - rho] * tau
+        interval_lengths[-1] = 1 - f
+        slopes = [s_positive, s_negative] * tau
+        return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
+
+dg_2_step_mir = Dg2StepMir()
 
 
 def interval_length_n_step_mir(n, m, a, b):
@@ -193,87 +283,96 @@ def interval_length_n_step_mir(n, m, a, b):
         result[-1] = a[m - 1] - b[m - 1]
         return result
 
+class KfNStepMir(ExtremeFunctionsFactory):
 
-def kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
-    """
-    Summary:
-        - Name: Kianfar-Fathi's n-Step MIR;
-        - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
-        - Discovered [74]  p.328, def.3, thm.2;
-        - Proven extreme (for infinite group) [60] p.377, thm.3.3.
-        - (Although only extremality has been established in literature, the same proof shows that) ``kf_n_step_mir`` is a facet.
+    def __init__(self):
+        pass
 
-    Parameters:
-        * f (real) \in (0,1);
-        * a (list of reals, with length = n) \in (0,f).
-
-    Function is known to be extreme under the conditions:
-        * 0 < a[1] < f < 1 == a[0];
-        * a[i] > 0, for i = 0, 1, ... , n-1;
-        * b[i - 1] / a[i] < ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i],  for i = 1, 2, ... , n-1;
-    where,
-        * b[0] = f;
-        * b[i] = b[i - 1] - a[i] * floor(b[i - 1] / a[i]),  for i = 1, 2, ... , n-1.
-
-    Note:
-        if a[i] > b[i-1] for some i, then the kf_n_step_mir function degenerates, i.e.
-        kf_n_step_mir(f, [a[0], .. , a[n - 1]]) = kf_n_step_mir(f, [a[0], .. a[i - 1], a[i + 1], ... , a[n - 1]])
-
-    Examples: [74] p.333 - p.335, Fig.1 - Fig.6 ::
-        
-        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-        sage: h = kf_n_step_mir(f=4/5, a=[1])
-        sage: extremality_test(h, False)
-        True
-        sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10])
-        sage: extremality_test(h, False)
-        True
-        sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100])
-        sage: extremality_test(h, False)
-        True
-        sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100, 3/100])
-        sage: extremality_test(h, False)
-        True
-        sage: h = kf_n_step_mir(f=4/5, a=[1, 45/100, 2/10, 558/10000, 11/1000])
-        sage: extremality_test(h, False)
-        True
-        sage: h = kf_n_step_mir(f=4/5, a=[1, 48/100, 19/100, 8/100, 32/1000, 12/1000])
-        sage: extremality_test(h, False)
-        True
-
-    Reference:
-        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
-
-        [74]: K. Kianfar and Y. Fathi, Generalized mixed integer rounding valid inequalities:
-                Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313-346.
-    """
-    if conditioncheck:
+    def claimed_parameter_attributes(self, f=4/5, a=[1, 3/10, 8/100]):
         if (a == []) | (not bool(0 < f < 1 == a[0])):
-            raise ValueError, "Bad parameters. Unable to construct the function."
-    b = []
-    b.append(f)
-    n = len(a)
-    t = True
-    for i in range(1, n):
-        b.append(b[i - 1] - a[i] * floor(b[i - 1] / a[i]))
-        if not (bool(0 < a[i]) & bool(b[i - 1] / a[i] < ceil(b[i - 1] / a[i]))):
-            raise ValueError, "Bad parameters. Unable to construct the function."
-        if not bool(ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i]):
-            t = False
-    if conditioncheck:
-        if t:
-            logging.info("Conditions for extremality are satisfied.")
-        else:
-            logging.info("Conditions for extremality are NOT satisfied.")
-    interval_lengths =  interval_length_n_step_mir(n, 1, a, b)
-    nb_interval = len(interval_lengths)
-    interval_length_positive = sum(interval_lengths[i] for i in range(0, nb_interval, 2))
-    interval_length_negative = sum(interval_lengths[i] for i in range(1, nb_interval, 2))
-    s_negative = a[0] /(b[0] - a[0])
-    s_positive = - s_negative * interval_length_negative / interval_length_positive 
-    slopes = [s_positive, s_negative] * (nb_interval // 2)
-    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
+            return 'not_constructible'
+        b = []
+        b.append(f)
+        n = len(a)
+        for i in range(1, n):
+            b.append(b[i - 1] - a[i] * floor(b[i - 1] / a[i]))
+            if not (bool(0 < a[i]) & bool(b[i - 1] / a[i] < ceil(b[i - 1] / a[i]))):
+                return 'not_constructible'
+        for i in range(1, n):
+            if not bool(ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i]):
+                return 'constructible'
+        return 'extreme'
 
+    def __call__(self, f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
+        """
+        Summary:
+            - Name: Kianfar-Fathi's n-Step MIR;
+            - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
+            - Discovered [74]  p.328, def.3, thm.2;
+            - Proven extreme (for infinite group) [60] p.377, thm.3.3.
+            - (Although only extremality has been established in literature, the same proof shows that) ``kf_n_step_mir`` is a facet.
+
+        Parameters:
+            * f (real) \in (0,1);
+            * a (list of reals, with length = n) \in (0,f).
+
+        Function is known to be extreme under the conditions:
+            * 0 < a[1] < f < 1 == a[0];
+            * a[i] > 0, for i = 0, 1, ... , n-1;
+            * b[i - 1] / a[i] < ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i],  for i = 1, 2, ... , n-1;
+        where,
+            * b[0] = f;
+            * b[i] = b[i - 1] - a[i] * floor(b[i - 1] / a[i]),  for i = 1, 2, ... , n-1.
+
+        Note:
+            if a[i] > b[i-1] for some i, then the kf_n_step_mir function degenerates, i.e.
+            kf_n_step_mir(f, [a[0], .. , a[n - 1]]) = kf_n_step_mir(f, [a[0], .. a[i - 1], a[i + 1], ... , a[n - 1]])
+
+        Examples: [74] p.333 - p.335, Fig.1 - Fig.6 ::
+
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: h = kf_n_step_mir(f=4/5, a=[1])
+            sage: extremality_test(h, False)
+            True
+            sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10])
+            sage: extremality_test(h, False)
+            True
+            sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100])
+            sage: extremality_test(h, False)
+            True
+            sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100, 3/100])
+            sage: extremality_test(h, False)
+            True
+            sage: h = kf_n_step_mir(f=4/5, a=[1, 45/100, 2/10, 558/10000, 11/1000])
+            sage: extremality_test(h, False)
+            True
+            sage: h = kf_n_step_mir(f=4/5, a=[1, 48/100, 19/100, 8/100, 32/1000, 12/1000])
+            sage: extremality_test(h, False)
+            True
+
+        Reference:
+            [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
+
+            [74]: K. Kianfar and Y. Fathi, Generalized mixed integer rounding valid inequalities:
+                    Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313-346.
+        """
+        if conditioncheck:
+            self.check_conditions(f, a)
+        b = []
+        b.append(f)
+        n = len(a)
+        for i in range(1, n):
+            b.append(b[i - 1] - a[i] * floor(b[i - 1] / a[i]))
+        interval_lengths =  interval_length_n_step_mir(n, 1, a, b)
+        nb_interval = len(interval_lengths)
+        interval_length_positive = sum(interval_lengths[i] for i in range(0, nb_interval, 2))
+        interval_length_negative = sum(interval_lengths[i] for i in range(1, nb_interval, 2))
+        s_negative = a[0] /(b[0] - a[0])
+        s_positive = - s_negative * interval_length_negative / interval_length_positive
+        slopes = [s_positive, s_negative] * (nb_interval // 2)
+        return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
+
+kf_n_step_mir = KfNStepMir()
 
 def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditioncheck=True):
     """
@@ -319,22 +418,26 @@ def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditionc
     Reference:
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
-    if conditioncheck and not bool(0 < f < 1):
+    if not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
     a = lambda_1 * f / 2
     a1 = a + lambda_2 * (f - 1) / 2
+    if not bool(0 < a1 < a < f / 2):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    claimed_parameter_attribute = None
     if conditioncheck:
-        if not bool(0 < a1 < a < f / 2):
-            raise ValueError, "Bad parameters. Unable to construct the function."
         # note the discrepancy with the published literature
         if not (bool(0 <= lambda_1 <= 1/2) & bool(0 <= lambda_2 <= 1)):
             logging.info("Conditions for extremality are NOT satisfied.")
+            claimed_parameter_attribute = 'constructible'
         else:
-            logging.info("Conditions for extremality are satisfied.") 
+            logging.info("Conditions for extremality are satisfied.")
+            claimed_parameter_attribute = 'extreme'
     bkpts = [0, a1, a, f - a, f - a1, f, 1]
     values = [0, (lambda_1 + lambda_2)/2, lambda_1 / 2, 1 - lambda_1 / 2, 1 - (lambda_1 + lambda_2)/2, 1, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
-
+    h = piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h
 
 def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
     """
@@ -354,7 +457,7 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
     Note:
         In [40], they require that f, bkpt are rational numbers.
         The proof is based on interpolation of finite cyclic group extreme functions(cf. [8]), so it needs rational numbers.
-        But in fact, by analysing covered intervals and using the condition f < bkpt < (1+f)/4 < 1,
+        But in fact, by analysing covered intervals and using the condition f < bkpt <= (1+f)/4 < 1,
         one can prove that the function is extreme without assuming f, bkpt being rational numbers.
         
         In [61] p.374, Appendix C, p.360. Fig.10, they consider real number f, bkpt, and claim (without proof) that:
@@ -389,76 +492,92 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
       Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
       http://dx.doi.org/10.1016/j.orl.2015.06.004
     """
+    if not bool(0 < f < bkpt < 1 + f - bkpt < 1):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    claimed_parameter_attribute = None
     if conditioncheck:
-        if not bool(0 < f < bkpt < 1 + f - bkpt < 1):
-            raise ValueError, "Bad parameters. Unable to construct the function."
         #if not ((f in QQ) & (bkpt in QQ) & bool(0 < f < bkpt < ((1 + f)/4) < 1)):
-        if not bool(0 < f < bkpt < ((1 + f)/4) < 1):
+        if not bool(0 < f < bkpt <= ((1 + f)/4) < 1):
             logging.info("Conditions for extremality are NOT satisfied.")
+            claimed_parameter_attribute = 'constructible'
         else:
             logging.info("Conditions for extremality are satisfied.")
+            claimed_parameter_attribute = 'extreme'
     bkpts = [0, f, bkpt, 1 + f - bkpt, 1]
     # values = [0, 1, bkpt/(1 + f), (1 + f - bkpt)/(1 + f),0]
     slopes = [1/f, (1 + f - bkpt)/(1 + f)/(f - bkpt), 1/(1 + f), (1 + f - bkpt)/(1 + f)/(f - bkpt)]
-    return piecewise_function_from_breakpoints_and_slopes(bkpts, slopes, field=field)
+    h = piecewise_function_from_breakpoints_and_slopes(bkpts, slopes, field=field)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h
 
-def dg_2_step_mir_limit(f=3/5, d=3, field=None, conditioncheck=True):
-    """
-    Summary:
-        - Name: Dash-Gunluk 2-Step MIR Limit;
-        - Infinite; Dim = 1; Slopes = 1; Discontinuous; Simple sets method;
-        - Discovered [33] p.41, def.12;
-        - Proven extreme [33] p.43, lemma 14.
-        - dg_2_step_mir_limit is a facet.
+class Dg2StepMirLimit(ExtremeFunctionsFactory):
+    def __init__(self):
+        pass
 
-    Parameters:
-        * f (real) \in (0,1);
-        * d (positive integer): number of slopes on [0,f).
+    def claimed_parameter_attributes(self, f=3/5, d=3):
+        if not (bool(0 < f < 1) & (d >= 1)):
+            return 'not_constructible'
+        if not bool(d >= ceil(1 / (1 - f)) - 1):
+            return 'constructible'
+        else:
+            return 'extreme'
+    
+    def __call__(self, f=3/5, d=3, field=None, conditioncheck=True):
+        """
+        Summary:
+            - Name: Dash-Gunluk 2-Step MIR Limit;
+            - Infinite; Dim = 1; Slopes = 1; Discontinuous; Simple sets method;
+            - Discovered [33] p.41, def.12;
+            - Proven extreme [33] p.43, lemma 14.
+            - dg_2_step_mir_limit is a facet.
 
-    Function is known to be extreme under the conditions:
-        * 0 < f < 1;
-        * d >= ceil(1 / (1 - f)) - 1.
+        Parameters:
+            * f (real) \in (0,1);
+            * d (positive integer): number of slopes on [0,f).
 
-    Note:
-        This is the limit function as alpha in dg_2_step_mir()
-        tends (from left) to f/d, where d is integer;
-        cf. [33] p.42, lemma 13.
+        Function is known to be extreme under the conditions:
+            * 0 < f < 1;
+            * d >= ceil(1 / (1 - f)) - 1.
 
-        It's a special case of ``drlm_2_slope_limit()``:
+        Note:
+            This is the limit function as alpha in dg_2_step_mir()
+            tends (from left) to f/d, where d is integer;
+            cf. [33] p.42, lemma 13.
 
-        ``dg_2_step_mir_limit(f, d) = multiplicative_homomorphism(drlm_2_slope_limit(f=1-f, nb_pieces_left=1, nb_pieces_right=d), -1)``.
+            It's a special case of ``drlm_2_slope_limit()``:
 
-    Examples: [33] p.42, Fig.6 ::
+            ``dg_2_step_mir_limit(f, d) = multiplicative_homomorphism(drlm_2_slope_limit(f=1-f, nb_pieces_left=1, nb_pieces_right=d), -1)``.
 
-        sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
-        sage: h = dg_2_step_mir_limit(f=3/5, d=3)
-        sage: extremality_test(h, False)
-        True
+        Examples: [33] p.42, Fig.6 ::
 
-    Reference:
-        [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
-                Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
-                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
-    """
-    if conditioncheck:
+            sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
+            sage: h = dg_2_step_mir_limit(f=3/5, d=3)
+            sage: extremality_test(h, False)
+            True
+
+        Reference:
+            [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
+                    Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
+                    (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
+        """     
+        if conditioncheck:
+            self.check_conditions(f, d)
         if not (bool(0 < f < 1) & (d >= 1)):
             raise ValueError, "Bad parameters. Unable to construct the function."
-        if not bool(d >= ceil(1 / (1 - f)) - 1):
-            logging.info("Conditions for extremality are NOT satisfied.")
-        else:
-            logging.info("Conditions for extremality are satisfied.")
-    f = nice_field_values([f], field)[0]
-    field = f.parent()
-    pieces = []
-    for k in range(d):
-        left_x = f * k / d
-        right_x = f * (k + 1) / d
-        pieces = pieces + \
-                 [[singleton_interval(left_x), FastLinearFunction(field(0), left_x / f)], \
-                  [open_interval(left_x, right_x), FastLinearFunction(1 / (f - 1), (k + 1)/(d + 1)/(1 - f))]]
-    pieces.append([closed_interval(f, field(1)), FastLinearFunction(1 / (f - 1), 1 /(1 - f))])
-    h = FastPiecewise(pieces)
-    return h
+        f = nice_field_values([f], field)[0]
+        field = f.parent()
+        pieces = []
+        for k in range(d):
+            left_x = f * k / d
+            right_x = f * (k + 1) / d
+            pieces = pieces + \
+                     [[singleton_interval(left_x), FastLinearFunction(field(0), left_x / f)], \
+                      [open_interval(left_x, right_x), FastLinearFunction(1 / (f - 1), (k + 1)/(d + 1)/(1 - f))]]
+        pieces.append([closed_interval(f, field(1)), FastLinearFunction(1 / (f - 1), 1 /(1 - f))])
+        h = FastPiecewise(pieces)
+        return h
+
+dg_2_step_mir_limit = Dg2StepMirLimit()
 
 def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, conditioncheck=True):
     """
@@ -491,13 +610,16 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, c
     """
     m = nb_pieces_left
     d = nb_pieces_right
+    if not ((m in ZZ) & (d in ZZ) & (m >= 1) & (d >= 1) & bool(0 < f < 1)):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    claimed_parameter_attribute = None
     if conditioncheck:
-        if not ((m in ZZ) & (d in ZZ) & (m >= 1) & (d >= 1) & bool(0 < f < 1)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
         if not bool(m*(1 - f) <= d*f):
             logging.info("Conditions for extremality are NOT satisfied.")
+            claimed_parameter_attribute = 'constructible'
         else:
             logging.info("Conditions for extremality are satisfied.")
+            claimed_parameter_attribute = 'extreme'
     s = (m + d)/((d + 1)*f - (m - 1)*(1 - f))
     delta_2 = (s - s*f + 1)/(d + 1)
     if m == 1:
@@ -516,7 +638,8 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, c
         pieces = pieces + \
                  [[open_interval(1 - (1 - f)* k / d, 1 - (1 - f)*(k - 1)/d), FastLinearFunction(s, -s*f + 1 - (d - k + 1)*delta_2)], \
                   [singleton_interval(1 - (1 - f)*(k - 1)/d), FastLinearFunction(0, (k - 1) / d)]]
-    psi = FastPiecewise(pieces)    
+    psi = FastPiecewise(pieces)
+    psi._claimed_parameter_attribute = claimed_parameter_attribute
     return psi
 
 def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
@@ -549,19 +672,23 @@ def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
         [40]: S.S. Dey, J.-P.P. Richard, Y. Li, and L.A. Miller, On the extreme inequalities of infinite group problems,
                 Mathematical Programming 121 (2010) 145-170.
     """
+    if not bool(0 < f < 1):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    claimed_parameter_attribute = None
     if conditioncheck:
-        if not bool(0 < f < 1):
-            raise ValueError, "Bad parameters. Unable to construct the function."
         if not bool(0 < f < 1/3):
             logging.info("Conditions for extremality are NOT satisfied.")
+            claimed_parameter_attribute = 'constructible'
         else:
             logging.info("Conditions for extremality are satisfied.")
+            claimed_parameter_attribute = 'extreme'
     f = nice_field_values([f], field)[0]
     field = f.parent()
     pieces = [[closed_interval(0, f), FastLinearFunction(1/f, 0)], \
               [open_interval(f, 1), FastLinearFunction(1/(f + 1), 0)], \
               [singleton_interval(field(1)), FastLinearFunction(field(0), 0)]]
     kappa = FastPiecewise(pieces)
+    kappa._claimed_parameter_attribute = claimed_parameter_attribute
     return kappa
 
 def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
@@ -735,31 +862,38 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
         [IR1]:  A. Basu, M. Conforti, G. Cornuejols, and G. Zambelli, A counterexample to a conjecture of Gomory and Johnson,
                     Mathematical Programming Ser. A 133 (2012), 25-38.
     """
-    if conditioncheck and not bool(0 < f < 1):
+    if not bool(0 < f < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
+    claimed_parameter_attribute = None
     n = len(e)
     if n == 0:
-        logging.info("Conditions for extremality are satisfied.")
-        return piecewise_function_from_breakpoints_and_values([0,f,1], [0,1,0])
+        if conditioncheck:
+            logging.info("Conditions for extremality are satisfied.")
+            claimed_parameter_attribute = 'extreme'
+        h = piecewise_function_from_breakpoints_and_values([0,f,1], [0,1,0])
+        h._claimed_parameter_attribute = claimed_parameter_attribute
+        return h
     a = [1]
     b = [f]
     sum_e = 0
-    if conditioncheck and not bool(0 < e[0]):
+    if not bool(0 < e[0]):
         raise ValueError, "Bad parameters. Unable to construct the function."
     t = bool(e[0] <= 1 - f)
     for i in range(0, n):
         a.append((b[i] + e[i]) / 2)
         b.append((b[i] - e[i]) / 2)
         sum_e = sum_e + (2^i) * e[i]
-        if conditioncheck and not (bool(e[i] > 0) & bool(sum_e < f)):
+        if not (bool(e[i] > 0) & bool(sum_e < f)):
             raise ValueError, "Bad parameters. Unable to construct the function."
         if not (i == 0) | bool(e[i] <= e[i-1]):
             t = False
     if conditioncheck:
         if t:
             logging.info("Conditions for extremality are satisfied.")
+            claimed_parameter_attribute = 'extreme'
         else:
             logging.info("Conditions for extremality are NOT satisfied.")
+            claimed_parameter_attribute = 'constructible'
     interval_lengths =  interval_length_n_step_mir(n + 1, 1, a, b)
     nb_interval = len(interval_lengths)
     interval_length_positive = sum(interval_lengths[i] for i in range(0, nb_interval, 2))
@@ -767,7 +901,9 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
     s_negative = a[0] /(b[0] - a[0])
     s_positive = - s_negative * interval_length_negative / interval_length_positive 
     slopes = [s_positive, s_negative] * (nb_interval // 2)
-    return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
+    h = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h
 
 def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), field=None):
     """
@@ -1050,7 +1186,7 @@ def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/
     gmi = gmic(f, field=field)
     return alpha * bhk + (1 - alpha) * gmi
 
-def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, conditioncheck=True):
+def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, conditioncheck=True, condition_according_to_literature=False, merge=True):
     """
     This 4-slope function is shown [KChen_thesis] to be a facet.
 
@@ -1059,11 +1195,12 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
         * s_pos, s_neg (real): positive slope and negative slope
         * lam1, lam2 (real).
 
-    Requirement:
-        * 1/2 <= f <= 1;
-        * s_pos > 1/f;
-        * s_neg < 1/(f - 1);
-        * 1 - f + 1/s_neg < lam1 < min(1/2, (s_pos - s_neg) / s_pos / (1 - s_neg * f));
+    Function is claimed to be extreme under the following conditions,
+    according to literature [KChen_thesis]:
+        * 1/2 <= f < 1;
+        * s_pos >= 1/f;
+        * s_neg <= 1/(f - 1);
+        * 0 <= lam1 < min(1/2, (s_pos - s_neg) / s_pos / (1 - s_neg * f));
         * f - 1 / s_pos < lam2 < min(1/2, (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)).
 
     Note:
@@ -1072,9 +1209,28 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
         however it violates the subadditivity, and thus is not an extreme function::
 
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-            sage: h = chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/100, lam2=49/100)
+            sage: h = chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/100, lam2=49/100, condition_according_to_literature=True)
+            sage: h._claimed_parameter_attribute
+            'extreme'
             sage: extremality_test(h, False)
             False
+
+        On the other hand, the hypotheses stated by Chen are also not necessary for extremality.
+        For example, the following function does not satisfy the hypotheses, however it is extreme.
+
+            sage: h = chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/10, lam2=1/10, condition_according_to_literature=True)
+            sage: h._claimed_parameter_attribute
+            'constructible'
+            sage: extremality_test(h, False)
+            True
+
+    We propose to revised the conditions for extremality, as follows.
+        s_pos >= 1/f;
+        s_neg <= 1/(f - 1);
+        lam1 <= 1/2;
+        lam2 <= 1/2;
+        ((f*s_pos-1) * (1-f*s_neg)) * lam1 <= (s_pos-s_neg) * lam2;
+        ((f-1)*s_neg-1) * (1+(1-f)*s_pos) * lam2 <= (s_pos-s_neg) * lam1.
 
     Examples:
         [KChen_thesis]  p.38, fig.8::
@@ -1099,14 +1255,27 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
     Reference:
         [KChen_thesis]:  K. Chen, Topics in group methods for integer programming,
                             Ph.D. thesis, Georgia Institute of Technology, June 2011.
-    """
+    """     
+    if not (bool(0 < f < 1) and bool(s_pos >= 1/f) and bool(s_neg <= 1/(f - 1)) \
+                            and bool(0 <= lam1 <= 1) and bool(0 <= lam2 <= 1)):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    claimed_parameter_attribute = None
     if conditioncheck:
-        if not (bool(0 < f < 1) and bool(s_pos > 1/f) and bool(s_neg < 1/(f - 1)) \
-                                and bool(0 < lam1 < 1) and bool(0 < lam2 < 1)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
-        if bool(1/2 <= f) and bool(lam1 < 1/2) and bool(lam2 < 1/2) and \
-                bool(1 - f + 1/s_neg < lam1 < (s_pos - s_neg) / s_pos / (1 - s_neg * f)) and \
-                bool (f - 1 / s_pos < lam2 < (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)):
+        if condition_according_to_literature:
+            if bool(1/2 <= f) and bool(lam1 < 1/2) and bool(lam2 < 1/2) and \
+               bool(0 <= lam1  < (s_pos - s_neg) / s_pos / (1 - s_neg * f)) and \
+               bool (f - 1 / s_pos < lam2 < (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)):
+                claimed_parameter_attribute = 'extreme'
+            else:
+                claimed_parameter_attribute = 'constructible'
+        else:
+            if bool(lam1 <= 1/2) and bool(lam2 <= 1/2) \
+           and bool(-f^2*s_pos*s_neg*lam2 + 2*f*s_pos*s_neg*lam2 + f*s_pos*lam2 + f*s_neg*lam2 - s_pos*s_neg*lam2 - s_pos*lam1 + s_neg*lam1 - s_pos*lam2 - s_neg*lam2 - lam2 <= 0) \
+           and bool(-f^2*s_pos*s_neg*lam1 + f*s_pos*lam1 + f*s_neg*lam1 - s_pos*lam2 + s_neg*lam2 - lam1 <= 0):
+                claimed_parameter_attribute = 'extreme'
+            else:
+                claimed_parameter_attribute = 'constructible'
+        if claimed_parameter_attribute == 'extreme':
             logging.info("Conditions for extremality are satisfied.")
         else:
             logging.info("Conditions for extremality are NOT satisfied.")
@@ -1119,7 +1288,48 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
     d = 1 + f - c
     cc = 1 + (s_pos * lam2 * (f - 1) - lam2) / 2 / (s_pos - s_neg)
     dd = 1 + f - cc
-    return piecewise_function_from_breakpoints_and_slopes([0, aa, a, b, bb, f, dd, d, c, cc, 1], slopes, field=field)
+    h = piecewise_function_from_breakpoints_and_slopes([0, aa, a, b, bb, f, dd, d, c, cc, 1], slopes, field=field, merge=merge)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h
+
+def chen_4_slope_reworded(f=7/10, aa=19/240, a=7/80, c=77/80, cc=29/30,field=None, conditioncheck=True, condition_according_to_literature=False, merge=False):
+    if not (bool(0 < aa < a < f/2) and bool((1+f)/2 < c < cc < 1)):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    claimed_parameter_attribute = None
+    v = (a*aa*cc - a*aa - (a*aa*cc - aa^2 - (a*aa - aa^2)*c)*f)/(((a - aa)*c - a*cc + aa)*f^2 - ((a - aa)*c - a*cc + aa)*f)
+    w = (a*cc^2 + a*c - (a*c + a)*cc - (a*cc^2 + (a - aa)*c - ((a - aa)*c + a + aa)*cc + aa)*f)/(((a - aa)*c - a*cc + aa)*f^2 - ((a - aa)*c - a*cc + aa)*f)
+    lam1 = 2*a/f
+    lam2 = 2*(1-c)/(1-f)
+    s_pos = v/aa
+    s_neg = -w/(1-cc)
+    if conditioncheck:
+        if condition_according_to_literature:
+            if bool(1/2 <= f) and bool(lam1 < 1/2) and bool(lam2 < 1/2) and \
+               bool(0 <= lam1  < (s_pos - s_neg) / s_pos / (1 - s_neg * f)) and \
+               bool (f - 1 / s_pos < lam2 < (s_pos - s_neg) / s_neg / (s_pos * (f - 1) - 1)):
+                claimed_parameter_attribute = 'extreme'
+            else:
+                claimed_parameter_attribute = 'constructible'
+        else:
+            if bool(lam1 <= 1/2) and bool(lam2 <= 1/2) \
+           and bool(-f^2*s_pos*s_neg*lam2 + 2*f*s_pos*s_neg*lam2 + f*s_pos*lam2 + f*s_neg*lam2 - s_pos*s_neg*lam2 - s_pos*lam1 + s_neg*lam1 - s_pos*lam2 - s_neg*lam2 - lam2 <= 0) \
+           and bool(-f^2*s_pos*s_neg*lam1 + f*s_pos*lam1 + f*s_neg*lam1 - s_pos*lam2 + s_neg*lam2 - lam1 <= 0):
+                claimed_parameter_attribute = 'extreme'
+            else:
+                claimed_parameter_attribute = 'constructible'
+        if claimed_parameter_attribute == 'extreme':
+            logging.info("Conditions for extremality are satisfied.")
+        else:
+            logging.info("Conditions for extremality are NOT satisfied.")
+    slopes = [s_pos, s_neg, 1/f, s_neg, s_pos, s_neg, s_pos, 1/(f-1), s_pos, s_neg]
+    values = [0, v, a/f, 1-a/f, 1-v, 1, 1-w, 1-(1-c)/(1-f), (1-c)/(1-f), w, 0]
+    b = f - a
+    bb = f - aa
+    d = 1 + f - c
+    dd = 1 + f - cc
+    h = piecewise_function_from_breakpoints_and_values([0, aa, a, b, bb, f, dd, d, c, cc, 1], values, merge=merge, field=field)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h
 
 def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
     r"""
@@ -1158,13 +1368,15 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
        Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
        http://dx.doi.org/10.1016/j.orl.2015.06.004
     """
+    if not bool(0 < f < 1):
+        raise ValueError, "Bad parameters. Unable to construct the function."
+    claimed_parameter_attribute = None
     if conditioncheck:
-        if not bool(0 < f < 1):
-            raise ValueError, "Bad parameters. Unable to construct the function."
         if bool(f < 1/3):
             pass # is the fig3_lowerleft case
         else:
             pass # is not the fig3_lowerleft case
+        claimed_parameter_attribute = 'extreme'
     f = nice_field_values([f], field)[0]
     field = f.parent()
     pieces = [[closed_interval(field(0), f), FastLinearFunction(1/f, 0)], \
@@ -1173,85 +1385,98 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
               [open_interval((1 + f)/2, 1), FastLinearFunction(2/(1 + 2*f), -1/(1 + 2*f))], \
               [singleton_interval(field(1)), FastLinearFunction(field(0), 0)]]
     h = FastPiecewise(pieces)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
     return h
 
-def ll_strong_fractional(f=2/3, field=None, conditioncheck=True):
-    """
-    Letchford--Lodi's strong fractional cut.
+class LlStrongFractional(ExtremeFunctionsFactory):
 
-    EXAMPLES::
+    def __init__(self):
+        pass
 
-        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-        sage: h = ll_strong_fractional(f=2/3)
-        sage: extremality_test(h, False)
-        True
-        sage: h = ll_strong_fractional(f=2/7)
-        sage: minimality_test(h, False)
-        False
+    def claimed_parameter_attributes(self, f=2/3):
+        if not bool(0 < f < 1):
+            return 'not_constructible'
+        if not bool(1/2 <= f < 1):
+            return 'constructible'
+        else:
+            return 'extreme'
 
-    Reference:
-        [78] Letchford-Lodi (2002) Thm. 2, Fig. 3 (but note this figure shows the wrong function; 
-             see ``ll_strong_fractional_bad_figure_3`` and ``ll_strong_fractional_bad_figure_3_corrected``)
+    def __call__(self, f=2/3, field=None, conditioncheck=True):
+        """
+        Letchford--Lodi's strong fractional cut.
 
-        [33] S. Dash and O. Gunluk (2004) Thm. 16
+        EXAMPLES::
 
-    Remarks::
-        Discontinuous, 1-slope;
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: h = ll_strong_fractional(f=2/3)
+            sage: extremality_test(h, False)
+            True
+            sage: h = ll_strong_fractional(f=2/7)
+            sage: minimality_test(h, False)
+            False
 
-        For f >= 1/2, this function is facet (extreme), and is identical to
-        ``drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=1)``.
+        Reference:
+            [78] Letchford-Lodi (2002) Thm. 2, Fig. 3 (but note this figure shows the wrong function; 
+                 see ``ll_strong_fractional_bad_figure_3`` and ``ll_strong_fractional_bad_figure_3_corrected``)
 
-    EXAMPLES::
+            [33] S. Dash and O. Gunluk (2004) Thm. 16
 
-        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-        sage: f=2/3
-        sage: l = ll_strong_fractional(f)
-        sage: d = drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)
-        sage: dg = automorphism(dg_2_step_mir_limit(f=1-f, d=ceil(1/f)-1))
-        sage: show(plot(l, color='red', legend_label='ll_strong_fractional')) # not tested
-        sage: show(plot(d, color='blue', legend_label='drlm_2_slope_limit')) # not tested
-        sage: show(plot(dg, color='green', legend_label='automorphism(dg_2_step_mir_limit)')) # not tested
-        sage: l == d == dg
-        True
+        Remarks:
+            Discontinuous, 1-slope;
 
-    Remarks:
-        The function is NOT minimal for 0 < f < 1/2.  It equals
-        ``drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)``,
-        except for limits at breakpoints.
+            For f >= 1/2, this function is facet (extreme), and is identical to
+            ``drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=1)``.
 
-    EXAMPLES::
+        EXAMPLES::
 
-        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-        sage: f=1/3
-        sage: l = ll_strong_fractional(f)
-        sage: d = drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)
-        sage: dg = automorphism(dg_2_step_mir_limit(f=1-f, d=ceil(1/f)-1))
-        sage: show(plot(l, color='red', legend_label='ll_strong_fractional')) # not tested
-        sage: show(plot(d, color='blue', legend_label='drlm_2_slope_limit')) # not tested
-        sage: show(plot(dg, color='green', legend_label='automorphism(dg_2_step_mir_limit)')) # not tested
-        sage: d == dg
-        True
-        sage: l == d
-        False
-    """
-    if conditioncheck:
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: f=2/3
+            sage: l = ll_strong_fractional(f)
+            sage: d = drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)
+            sage: dg = automorphism(dg_2_step_mir_limit(f=1-f, d=ceil(1/f)-1))
+            sage: show(plot(l, color='red', legend_label='ll_strong_fractional')) # not tested
+            sage: show(plot(d, color='blue', legend_label='drlm_2_slope_limit')) # not tested
+            sage: show(plot(dg, color='green', legend_label='automorphism(dg_2_step_mir_limit)')) # not tested
+            sage: l == d == dg
+            True
+
+        Remarks:
+            The function is NOT minimal for 0 < f < 1/2.  It equals
+            ``drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)``,
+            except for limits at breakpoints.
+
+        EXAMPLES::
+
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: f=1/3
+            sage: l = ll_strong_fractional(f)
+            sage: d = drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)
+            sage: dg = automorphism(dg_2_step_mir_limit(f=1-f, d=ceil(1/f)-1))
+            sage: show(plot(l, color='red', legend_label='ll_strong_fractional')) # not tested
+            sage: show(plot(d, color='blue', legend_label='drlm_2_slope_limit')) # not tested
+            sage: show(plot(dg, color='green', legend_label='automorphism(dg_2_step_mir_limit)')) # not tested
+            sage: d == dg
+            True
+            sage: l == d
+            False
+        """
+        if conditioncheck:
+            self.check_conditions(f)
         if not bool(0 < f < 1):
             raise ValueError, "Bad parameters. Unable to construct the function."
-        if not bool(1/2 <= f < 1):
-            logging.info("The function is NOT minimal.")
-        else:
-            logging.info("Conditions for extremality are satisfied.")
-    f = nice_field_values([f], field)[0]
-    field = f.parent()
-    k = ceil(1/f) -1
-    pieces = [[closed_interval(0,f), FastLinearFunction(1/f, 0)]]
-    for p in range(k-1):
-        pieces.append([left_open_interval(f + (1 - f)* p / k, f + (1 - f)*(p + 1)/k), FastLinearFunction(1/f, -(p + 1)/f/(k + 1))])
-    p = k - 1
-    pieces.append([open_interval(f + (1 - f)* p / k, f + (1 - f)*(p + 1)/k), FastLinearFunction(1/f, -(p + 1)/f/(k + 1))])
-    pieces.append([singleton_interval(1), FastLinearFunction(0, 0)])
-    h = FastPiecewise(pieces)
-    return h
+        f = nice_field_values([f], field)[0]
+        field = f.parent()
+        k = ceil(1/f) -1
+        pieces = [[closed_interval(0,f), FastLinearFunction(1/f, 0)]]
+        for p in range(k-1):
+            pieces.append([left_open_interval(f + (1 - f)* p / k, f + (1 - f)*(p + 1)/k), FastLinearFunction(1/f, -(p + 1)/f/(k + 1))])
+        p = k - 1
+        pieces.append([open_interval(f + (1 - f)* p / k, f + (1 - f)*(p + 1)/k), FastLinearFunction(1/f, -(p + 1)/f/(k + 1))])
+        pieces.append([singleton_interval(1), FastLinearFunction(0, 0)])
+        h = FastPiecewise(pieces)
+        return h
+
+ll_strong_fractional = LlStrongFractional()
 
 def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
     """
@@ -1287,11 +1512,14 @@ def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
     """
     if not bool(0 < f < 1) or k not in ZZ or k < 2:
         raise ValueError, "Bad parameters. Unable to construct the function."
+    claimed_parameter_attribute = None
     if conditioncheck:
         if not bool(0 < f <= 1/2):
             logging.info("Conditions for extremality are NOT satisfied.")
+            claimed_parameter_attribute = 'constructible'
         else:
             logging.info("Conditions for extremality are satisfied.")
+            claimed_parameter_attribute = 'extreme'
     f = nice_field_values([f], field)[0]
     field = f.parent()
     bkpts = [field(0)]
@@ -1301,7 +1529,9 @@ def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
         slopes += [(2^i - f)/f/(1-f), 1/(f-1)]
     bkpts = bkpts + [f - x for x in bkpts[::-1]] + [field(1)]
     slopes = slopes + [1/f] + slopes[::-1] + [1/(f-1)]
-    return piecewise_function_from_breakpoints_and_slopes(bkpts, slopes, field=field)
+    h = piecewise_function_from_breakpoints_and_slopes(bkpts, slopes, field=field)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h
 
 extreme_function_with_world_record_number_of_slopes = bcdsp_arbitrary_slope
 
@@ -1354,15 +1584,20 @@ def kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19, field=None, conditionche
     """
     if not bool(0 < f < f+a < (1+f-b)/2 < (1+f+b)/2 < 1-a < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
+    claimed_parameter_attribute = None
     if conditioncheck:
         if not bool(0 <= a and  0 <= b <= f and 3*f+4*a-b-1 <= 0):
             logging.info("Conditions for extremality are NOT satisfied.")
+            claimed_parameter_attribute = 'constructible'
         else:
             logging.info("Conditions for extremality are satisfied.")
+            claimed_parameter_attribute = 'extreme'
     v = (f*f+f*a-3*f*b-3*a*b+b)/(f*f+f-3*f*b)
     bkpts = [0, f, f+a, (1+f-b)/2, (1+f+b)/2, 1-a, 1]
     values = [0, 1, v, (f-b)/2/f, (f+b)/2/f, 1-v, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
+    h = piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h
 
 def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=True):
     """
@@ -1372,7 +1607,7 @@ def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=
     Parameters: real numbers `f`, `a`, `b`, where `a` is the length of interval centered at `f/2`, and `b` is the length of interval centered at `(1+f)/2`.
 
     Function is known to be extreme under the (sufficient) conditions:
-        0 < b <= a < f < 1;  f <= a + b and f <= (1+a-b)/2
+        0 < a < f < 1; 2*b - a <= f <= a + b and f <= (1+a-b)/2
 
     Examples::
 
@@ -1387,18 +1622,23 @@ def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=
         sage: extremality_test(h)
         False
     """
-    if not bool(0 < a < f < 1 and 0 < b < f):
+    if not bool(0 < a < f < 1 and 0 < b < 1-f):
         raise ValueError, "Bad parameters. Unable to construct the function."
+    claimed_parameter_attribute = None
     if conditioncheck:
-        if not bool(b <= a and f <= a + b and f <= (1+a-b)/2):
+        if not bool(2*b - a <= f <= a + b and f <= (1+a-b)/2):
             logging.info("Conditions for extremality are NOT satisfied.")
+            claimed_parameter_attribute = 'constructible'
         else:
             logging.info("Conditions for extremality are satisfied.")
+            claimed_parameter_attribute = 'extreme'
     v = (f*(f-a+b-2)-a*b+2*a)/(f+b-1)/f/4;
     bkpts = [0, (f-a)/4, (f-a)/2, (f+a)/2, f-(f-a)/4, f, \
              (1+f-b)/2, (1+f+b)/2, 1]
     values = [0, v, (f-a)/f/2, (f+a)/f/2, 1-v, 1, (f-b)/f/2, (f+b)/f/2, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
+    h = piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h
 
 
 def kzh_4_slope_param_extreme_1(f=13/18, a=7/18, b=1/18, field=None, conditioncheck=True):
@@ -1426,14 +1666,19 @@ def kzh_4_slope_param_extreme_1(f=13/18, a=7/18, b=1/18, field=None, conditionch
     c = (1/4*f - 1/4*a - 1/2*b)
     if not bool(0 < b < (f-a)/2 < f < (1+f-b)/2-c < (1+f-b)/2 < 1):
         raise ValueError, "Bad parameters. Unable to construct the function."
+    claimed_parameter_attribute = None
     if conditioncheck:
         if not bool(b > 0 and -3*f + 2*a + 3*b + 1 < 0 and  f - 2*a < 0 \
                     and  2*f - a - 3*b - 1 < 0 and  3*f - a - 2 < 0):
             logging.info("Conditions for extremality are NOT satisfied.")
+            claimed_parameter_attribute = 'constructible'
         else:
             logging.info("Conditions for extremality are satisfied.")
+            claimed_parameter_attribute = 'extreme'
     bkpts = [0, b, (f-a)/2, (f+a)/2, f-b, f,\
              (1+f-b)/2-c, (1+f-b)/2, (1+f+b)/2, (1+f+b)/2+c, 1]
     values = [0, v, (f-a)/f/2, (f+a)/f/2, 1-v, 1, \
               w, (1-v)/2, (1+v)/2, 1-w, 0]
-    return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
+    h = piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
+    h._claimed_parameter_attribute = claimed_parameter_attribute
+    return h

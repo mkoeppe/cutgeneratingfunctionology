@@ -11,6 +11,7 @@ SAGEFILES =					\
 	real_number_field.sage			\
 	fast_linear.sage			\
 	functions.sage				\
+	parametric.sage				\
 	simple_extremality_test.sage		\
 	survey_examples.sage			\
 	extreme_functions_mlr_cpl3.sage		\

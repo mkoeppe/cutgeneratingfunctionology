@@ -229,7 +229,8 @@ def generate_symbolic_continuous(function, components, field=None, f=None):
     else:
         bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
     slopes = [ slope for interval, slope in intervals_and_slopes ]
-    symbolic_function = piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field)
+    # Use field=False to skip nice_field_values, since slopes are vectors.
+    symbolic_function = piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=False)
     if logging.getLogger().isEnabledFor(logging.DEBUG):
         logging.debug("Let v in R^%s.\nThe i-th entry of v represents the slope parameter on the i-th component of %s.\nSet up the symbolic function sym: [0,1] -> R^%s, so that pert(x) = sym(x) * v.\nThe symbolic function sym is %s." % (n, components, n, symbolic_function))
     return symbolic_function

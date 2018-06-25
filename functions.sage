@@ -719,7 +719,10 @@ def generate_covered_components(function):
         return function._completion.covered_components
     bkpts = function.end_points()
     field = bkpts[0].parent()
-    bkpts_are_rational = is_all_QQ_fastpath(bkpts)
+    if isinstance(field, ParametricRealField):
+        bkpts_are_rational = is_all_QQ_fastpath(result_concrete_value(field, bkpts))
+    else:
+        bkpts_are_rational = is_all_QQ_fastpath(bkpts)
     if not bkpts_are_rational:
         fdms, covered_components = generate_directed_move_composition_completion(function)
         return covered_components
@@ -922,32 +925,41 @@ def plot_with_colored_slopes(fn):
 
 ### Minimality check.
 
-def subadditivity_test(fn):
+def subadditivity_test(fn, stop_if_fail=False):
     """
     Check if fn is subadditive.
     """
     result = True
     for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices(fn, reduced=True):
         logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
-        result = False
+        if stop_if_fail:
+            return False
+        else:
+            result = False
     if result:
         logging.info("pi is subadditive.")
     else:
         logging.info("Thus pi is not subadditive.")
     return result
 
-def symmetric_test(fn, f):
+def symmetric_test(fn, f, stop_if_fail=False):
     """
     Check if fn is symmetric.
     """
     result = True
     if fn(f) != 1:
         logging.info('pi(f) is not equal to 1.')
-        result = False
+        if stop_if_fail:
+            return False
+        else:
+            result = False
     result = True
     for (x, y, xeps, yeps) in generate_nonsymmetric_vertices(fn, f):
         logging.info("pi(%s%s) + pi(%s%s) is not equal to 1" % (x, print_sign(xeps), y, print_sign(yeps)))
-        result = False
+        if stop_if_fail:
+            return False
+        else:
+            result = False
     if result:
         logging.info('pi is symmetric.')
     else:
@@ -970,7 +982,7 @@ def find_f(fn, no_error_if_not_minimal_anyway=False):
     for x in fn.end_points():
         if fn(x) == 1:
             if not f is None:
-                logging.warn("The given function has more than one breakpoint where the function takes the value 1; using f = %s.  Provide parameter f to minimality_test or extremality_test if you want a different f." % f)
+                logging.info("The given function has more than one breakpoint where the function takes the value 1; using f = %s.  Provide parameter f to minimality_test or extremality_test if you want a different f." % f)
                 return f
             else:
                 f = x
@@ -982,7 +994,7 @@ def find_f(fn, no_error_if_not_minimal_anyway=False):
         return None
     raise ValueError, "The given function has no breakpoint where the function takes value 1, so cannot determine f.  Provide parameter f to minimality_test or extremality_test."
 
-def minimality_test(fn, show_plots=False, f=None):
+def minimality_test(fn, show_plots=False, f=None, stop_if_fail=False):
     """
     Checks if fn is minimal with respect to the group relaxation with the given `f`.  
 
@@ -1019,12 +1031,16 @@ def minimality_test(fn, show_plots=False, f=None):
             if not ((x[-1] is None or 0 <= x[-1] <=1) and (x[1] is None or 0 <= x[1] <=1)):
                 logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
                 return False
-    if subadditivity_test(fn) and symmetric_test(fn, f):
+    if subadditivity_test(fn, stop_if_fail=stop_if_fail) and \
+       symmetric_test(fn, f, stop_if_fail=stop_if_fail):
         logging.info('Thus pi is minimal.')
         is_minimal = True
     else:
         logging.info('Thus pi is NOT minimal.')
-        is_minimal = False
+        if stop_if_fail:
+            return False
+        else:
+            is_minimal = False
     if show_plots:
         logging.info("Plotting 2d diagram...")
         show_plot(plot_2d_diagram(fn, known_minimal=is_minimal, f=f),
@@ -1160,7 +1176,10 @@ class FastPiecewise (PiecewisePolynomial):
         self._values_at_end_points = values_at_end_points
         self._limits_at_end_points = limits_at_end_points
         self._periodic_extension = periodic_extension
-        self._call_cache = dict()
+        if not any(is_parametric_element(x) for x in end_points):
+            # We do not wish to keep a call cache when the breakpoints are
+            # parametric, because that may create `mysterious' proof cells.
+            self._call_cache = dict()
 
         is_continuous = True
         if len(end_points) == 1 and end_points[0] is None:
@@ -1453,10 +1472,11 @@ class FastPiecewise (PiecewisePolynomial):
             ...
             ValueError: Value not defined at point 3, outside of domain.
         """
-        # fast path 
-        result = self._call_cache.get(x0)
-        if result is not None:
-            return result
+        # fast path
+        if hasattr(self, '_call_cache'):
+            result = self._call_cache.get(x0)
+            if result is not None:
+                return result
         # Remember that intervals are sorted according to their left endpoints; singleton has priority.
         endpts = self.end_points()
         ith = self._ith_at_end_points
@@ -1466,7 +1486,8 @@ class FastPiecewise (PiecewisePolynomial):
         if x0 == endpts[i]:
             if self._values_at_end_points[i] is not None:
                 result = self._values_at_end_points[i]
-                self._call_cache[x0] = result
+                if hasattr(self, '_call_cache'):
+                    self._call_cache[x0] = result
                 return result
             else:
                 raise ValueError,"Value not defined at point %s, outside of domain." % x0
@@ -1474,7 +1495,8 @@ class FastPiecewise (PiecewisePolynomial):
             raise ValueError,"Value not defined at point %s, outside of domain." % x0
         if is_pt_in_interval(self._intervals[ith[i]],x0):
             result = self.functions()[ith[i]](x0)
-            self._call_cache[x0] = result
+            if hasattr(self, '_call_cache'):
+                self._call_cache[x0] = result
             return result
         raise ValueError,"Value not defined at point %s, outside of domain." % x0
 
@@ -1965,6 +1987,8 @@ def nice_field_values(symb_values, field=None):
     Coerce the real numbers in the list symb_values into a convenient common field
     and return a list, parallel to symb_values, of the coerced values.
 
+    If `field` is `False`, the given numbers are returned as is.
+
     If all given numbers are rational, the field will be the rational
     field (``QQ``).  
 
@@ -1976,6 +2000,23 @@ def nice_field_values(symb_values, field=None):
     Otherwise, the given numbers are returned as is.
     """
     ### Add tests!
+    if field is False:
+        # do nothing
+        return symb_values
+    if isinstance(field, ParametricRealField):
+        syms = []
+        vals = []
+        for element in symb_values:
+            if is_parametric_element(element):
+                syms.append(element.sym())
+                vals.append(element.val())
+            else:
+                syms.append(element)  # changed to not do SR. -mkoeppe
+                vals.append(element)
+        vals = nice_field_values(vals) #, field=RealNumberField)
+        field_values = [ParametricRealFieldElement(vals[i],syms[i], parent=field) for i in range(len(symb_values))]
+        return field_values
+
     if field is None:
         field = default_field
     is_rational, field_values = is_all_QQ(symb_values)
@@ -2045,9 +2086,18 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
     ## slopes = [ canonicalize_number(slope) for slope in slopes ]
     ## intercepts = [ canonicalize_number(intercept) for intercept in intercepts ]
     #print slopes
-    return FastPiecewise([ [(bkpt[i],bkpt[i+1]), 
-                            fast_linear_function(slopes[i], intercepts[i])] for i in range(len(bkpt)-1) ],
-                         merge=merge)
+    pieces = []
+    for i in range(len(bkpt)-1):
+        if bkpt[i] > bkpt[i+1]:
+            raise ValueError("Breakpoints are not sorted in increasing order.")
+        elif bkpt[i] == bkpt[i+1]:
+            logging.warn("Degenerate interval occurs at breakpoint %s" % bkpt[i])
+            if values[i] != values[i+1]:
+                raise ValueError("Degeneration leads to a discontinuous function.")
+        else:
+            pieces.append( [(bkpt[i],bkpt[i+1]),
+                            fast_linear_function(slopes[i], intercepts[i])] )
+    return FastPiecewise(pieces, merge=merge)
 
 def piecewise_function_from_breakpoints_and_values(bkpt, values, field=None, merge=True):
     """
@@ -2061,7 +2111,7 @@ def piecewise_function_from_breakpoints_and_values(bkpt, values, field=None, mer
     """
     if len(bkpt)!=len(values):
         raise ValueError, "Need to have the same number of breakpoints and values."
-    slopes = [ (values[i+1]-values[i])/(bkpt[i+1]-bkpt[i]) for i in range(len(bkpt)-1) ]
+    slopes = [ (values[i+1]-values[i])/(bkpt[i+1]-bkpt[i]) if bkpt[i+1] != bkpt[i] else 0 for i in range(len(bkpt)-1) ]
     return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field, merge=merge)
 
 def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None, merge=True):
@@ -2077,7 +2127,7 @@ def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None, mer
     if len(bkpt)!=len(slopes)+1:
         raise ValueError, "Need to have one breakpoint more than slopes."
     values = [0]
-    for i in range(1,len(bkpt)-1):
+    for i in range(1, len(bkpt)):
         values.append(values[i-1] + slopes[i - 1] * (bkpt[i] - bkpt[i-1]))
     return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field, merge=merge)
 
@@ -2924,7 +2974,10 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, phase_1 
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
     global crazy_perturbations_warning
-    if crazy_perturbations and (limiting_slopes(fn) == (+Infinity, -Infinity)):
+    if crazy_perturbations and \
+       limiting_slopes(fn)[0] is +Infinity and \
+       limiting_slopes(fn)[1] is -Infinity:
+        # this needs checking that it does the right thing for parametric functions.
         crazy_perturbations_warning = True
     else:
         crazy_perturbations_warning = False
@@ -3662,6 +3715,10 @@ def is_QQ_linearly_independent(*numbers):
         return True
     elif len(numbers) == 1:
         return numbers[0] != 0
+    if is_parametric_element(numbers[0]):
+        is_independent = is_QQ_linearly_independent(*(x.val() for x in numbers))
+        #numbers[0].parent().record_independence_of_pair(numbers, is_independent)
+        return is_independent
     # fast path for rationals
     if is_all_QQ_fastpath(numbers):
         return False

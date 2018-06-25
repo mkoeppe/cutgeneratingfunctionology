@@ -5,6 +5,9 @@
 *.swp
 *.out
 *.pyc
+*.pdf
+*.gif
+*.png
 desktop.ini
 .dropbox
 Icon*
