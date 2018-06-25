@@ -1176,7 +1176,10 @@ class FastPiecewise (PiecewisePolynomial):
         self._values_at_end_points = values_at_end_points
         self._limits_at_end_points = limits_at_end_points
         self._periodic_extension = periodic_extension
-        #self._call_cache = dict()
+        if not any(is_parametric_element(x) for x in end_points):
+            # We do not wish to keep a call cache when the breakpoints are
+            # parametric, because that may create `mysterious' proof cells.
+            self._call_cache = dict()
 
         is_continuous = True
         if len(end_points) == 1 and end_points[0] is None:
@@ -1469,10 +1472,11 @@ class FastPiecewise (PiecewisePolynomial):
             ...
             ValueError: Value not defined at point 3, outside of domain.
         """
-        # fast path 
-        #result = self._call_cache.get(x0)
-        #if result is not None:
-        #    return result
+        # fast path
+        if hasattr(self, '_call_cache'):
+            result = self._call_cache.get(x0)
+            if result is not None:
+                return result
         # Remember that intervals are sorted according to their left endpoints; singleton has priority.
         endpts = self.end_points()
         ith = self._ith_at_end_points
@@ -1482,7 +1486,8 @@ class FastPiecewise (PiecewisePolynomial):
         if x0 == endpts[i]:
             if self._values_at_end_points[i] is not None:
                 result = self._values_at_end_points[i]
-                #self._call_cache[x0] = result
+                if hasattr(self, '_call_cache'):
+                    self._call_cache[x0] = result
                 return result
             else:
                 raise ValueError,"Value not defined at point %s, outside of domain." % x0
@@ -1490,7 +1495,8 @@ class FastPiecewise (PiecewisePolynomial):
             raise ValueError,"Value not defined at point %s, outside of domain." % x0
         if is_pt_in_interval(self._intervals[ith[i]],x0):
             result = self.functions()[ith[i]](x0)
-            #self._call_cache[x0] = result
+            if hasattr(self, '_call_cache'):
+                self._call_cache[x0] = result
             return result
         raise ValueError,"Value not defined at point %s, outside of domain." % x0
 
@@ -2001,7 +2007,7 @@ def nice_field_values(symb_values, field=None):
         syms = []
         vals = []
         for element in symb_values:
-            if isinstance(element,ParametricRealFieldElement):
+            if is_parametric_element(element):
                 syms.append(element.sym())
                 vals.append(element.val())
             else:
@@ -3709,7 +3715,7 @@ def is_QQ_linearly_independent(*numbers):
         return True
     elif len(numbers) == 1:
         return numbers[0] != 0
-    if isinstance(numbers[0], ParametricRealFieldElement):
+    if is_parametric_element(numbers[0]):
         is_independent = is_QQ_linearly_independent(*(x.val() for x in numbers))
         #numbers[0].parent().record_independence_of_pair(numbers, is_independent)
         return is_independent

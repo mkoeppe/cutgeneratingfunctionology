@@ -167,6 +167,11 @@ class ParametricRealFieldElement(FieldElement):
         """
         return hash(self._val)
 
+def is_parametric_element(x):
+    # We avoid using isinstance here so that this is robust even if parametric.sage is reloaded.
+    # For example, apparently in the test suite.
+    return hasattr(x, '_sym')
+
 from sage.rings.ring import Field
 import sage.rings.number_field.number_field_base as number_field_base
 from sage.structure.coerce_maps import CallableConvertMap
