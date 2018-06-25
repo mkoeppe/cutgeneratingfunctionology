@@ -286,7 +286,8 @@ class ParametricRealField(Field):
     def _coerce_map_from_(self, S):
         if isinstance(S, ParametricRealField) and self is not S:
             return None
-        if S is sage.interfaces.mathematica.MathematicaElement or RDF.has_coerce_map_from(S):
+        if S is sage.interfaces.mathematica.MathematicaElement or (AA.has_coerce_map_from(S)):
+            # We test whether S coerces into AA. This rules out inexact fields such as RDF.
             return CallableConvertMap(S, self, lambda s: ParametricRealFieldElement(s, parent=self), parent_as_first_arg=False)
     def __repr__(self):
         return 'ParametricRealField(names = {}, values = {})'.format(list(self._names), self._values)
