@@ -234,6 +234,35 @@ class ParametricRealField(Field):
         True
         sage: K.get_lt_factor()
         {-f, f - 1, f - 1/2, f - 1/3}
+
+    Elements coerce to RDF, RR, float to enable plotting of functions::
+
+        sage: K.<f> = ParametricRealField([4/5])
+        sage: RDF(f)
+        0.8
+        sage: RR(f)
+        0.800000000000000
+        sage: float(f)
+        0.8
+        sage: 0.2 - f
+        -0.600000000000000
+
+    Plotting will show symbolic labels on the axes::
+
+        sage: plot_with_colored_slopes(gmic(f))
+        Graphics object...
+
+    But they do not coerce or convert into any exact fields::
+
+        sage: QQ(f)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert f~ to a rational
+        sage: AA(f)
+        Traceback (most recent call last):
+        ...
+        TypeError: Illegal initializer for algebraic number
+
     """
     Element = ParametricRealFieldElement
 
@@ -262,7 +291,8 @@ class ParametricRealField(Field):
         self.v_dict = {}
         self.allow_coercion_to_float = allow_coercion_to_float
         if allow_coercion_to_float:
-            RDF.register_coercion(sage.structure.coerce_maps.NamedConvertMap(self, RDF, '__float__'))
+            RDF.register_coercion(sage.structure.coerce_maps.CallableConvertMap(self, RDF, lambda x: RDF(x._val), parent_as_first_arg=False))
+            RR.register_coercion(sage.structure.coerce_maps.CallableConvertMap(self, RR, lambda x: RR(x._val), parent_as_first_arg=False))
         logging.info("Initialized {}".format(self))
 
     def __copy__(self):
