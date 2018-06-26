@@ -52,6 +52,10 @@ load(igp_dir + "discontinuous_dff.sage")
 load(igp_dir + "computer_based_search_naive_dff.sage")
 #load(igp_dir + "Gomory_conversion.sage")
 
+# multirow
+load(igp_dir + "piecewise_functions.sage")
+load(igp_dir + "lifting_region.sage")
+
 import extreme_functions, procedures
 
 try:
