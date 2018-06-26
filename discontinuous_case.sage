@@ -465,9 +465,10 @@ def generate_maximal_additive_faces_general(function):
     # 2D faces
     for i in range(n):
         for j in range(i, n):
+            IplusJ = interval_sum(I_list[i],J_list[j])
             for k in range(2*n):
                 # Check if int(I+J) intersects int(K) is non-empty.
-                if len(interval_intersection(interval_sum(I_list[i],J_list[j]),K_list[k])) == 2:
+                if len(interval_intersection(IplusJ,K_list[k])) == 2:
                     face = Face( (I_list[i], J_list[j], K_list[k]) )
                     if is_additive_face(function, face): 
                         faces.append(face)
