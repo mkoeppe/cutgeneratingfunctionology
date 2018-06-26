@@ -419,7 +419,7 @@ class ParametricRealField(Field):
 
     def make_proof_cell(self, **opt):
         r"""
-        Make a :class:`SemialgebraiComplexComponent` from a :class:`ParametricRealField`.
+        Make a :class:`SemialgebraicComplexComponent` from a :class:`ParametricRealField`.
         
         In **opt, one can provide: region_type, complex (parent of the cell), function, max_iter, find_region_type, default_var_bound, bddleq, bddlin, kwds_dict.
 
@@ -959,6 +959,17 @@ class SemialgebraicComplexComponent(SageObject):
             self.lin = substitute_lins(lins, self.var_map, self.parent.var_name, self.var_value)
         self.neighbor_points = []
 
+    def __repr__(self):
+        s = "SemialgebraicComplexComponent(var_value={}, region_type={}".format(self.var_value, self.region_type)
+        if self.is_polyhedral():
+            s += ", polyhedral"
+        if self.leq:
+            s += ", {} eqs".format(len(self.leq))
+        if self.lin:
+            s += ", {} ins".format(len(self.lin))
+        s += ")"
+        return s
+
     def bounds_propagation(self, polyhedron, max_iter):
         """
         Compute LP bounds for variables and then do upward and downward bounds propagation until
@@ -1017,7 +1028,7 @@ class SemialgebraicComplexComponent(SageObject):
         Plot the cell.
 
         - If slice_value is given, plot the slice of the cell according to the parameter values in slice_value that are not None. See examples in ``SemialgebraicComplex.plot()``.
-        - show_testpoint controls whether to plot the testpoint in this cell.
+        - show_testpoints controls whether to plot the testpoint in this cell.
         - plot_points controls the quality of the plotting.
         """
         g = Graphics()
@@ -1441,6 +1452,9 @@ class SemialgebraicComplex(SageObject):
         self.default_var_bound = default_var_bound
         self.bddleq = bddleq
         self.bddlin = bddlin
+
+    def __repr__(self):
+        return "SemialgebraicComplex with {} components".format(len(self.components))
 
     def generate_random_var_value(self, var_bounds=None):
         """
@@ -2317,7 +2331,7 @@ def result_symbolic_expression(field, result):
  
     This function can provided to ``find_region_type`` when setting up a :class:`SemialgebraicComplex`. 
     In this way, one can compare result of type :class:`ParametricRealFieldElement` or list of :class:`ParametricRealFieldElement`
-    with the previous elements in ``region_type_color_map`` which do not necessairy have the same parent.
+    with the previous elements in ``region_type_color_map`` which do not necessarily have the same parent.
 
     EXAMPLES::
 
