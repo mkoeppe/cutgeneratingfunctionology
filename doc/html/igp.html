@@ -1606,7 +1606,7 @@ except for limits at breakpoints.</dd>
 <dl class="method">
 <dt id="igp.ParametricRealField.make_proof_cell">
 <code class="descname">make_proof_cell</code><span class="sig-paren">(</span><em>**opt</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.ParametricRealField.make_proof_cell" title="Permalink to this definition">¶</a></dt>
-<dd><p>Make a <code class="xref py py-class docutils literal"><span class="pre">SemialgebraiComplexComponent</span></code> from a <a class="reference internal" href="#igp.ParametricRealField" title="igp.ParametricRealField"><code class="xref py py-class docutils literal"><span class="pre">ParametricRealField</span></code></a>.</p>
+<dd><p>Make a <a class="reference internal" href="#igp.SemialgebraicComplexComponent" title="igp.SemialgebraicComplexComponent"><code class="xref py py-class docutils literal"><span class="pre">SemialgebraicComplexComponent</span></code></a> from a <a class="reference internal" href="#igp.ParametricRealField" title="igp.ParametricRealField"><code class="xref py py-class docutils literal"><span class="pre">ParametricRealField</span></code></a>.</p>
 <p>In <a href="#id1"><span class="problematic" id="id2">**</span></a>opt, one can provide: region_type, complex (parent of the cell), function, max_iter, find_region_type, default_var_bound, bddleq, bddlin, kwds_dict.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
@@ -2456,6 +2456,11 @@ for the purpose of latexing.</p>
 </div>
 </dd></dl>
 
+<dl class="method">
+<dt id="igp.SemialgebraicComplex.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.SemialgebraicComplex.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="igp.SemialgebraicComplex.__weakref__">
 <code class="descname">__weakref__</code><a class="headerlink" href="#igp.SemialgebraicComplex.__weakref__" title="Permalink to this definition">¶</a></dt>
@@ -2801,6 +2806,11 @@ Return the <a class="reference internal" href="#igp.PolyhedralComplex" title="ig
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>parent</em>, <em>K</em>, <em>var_value</em>, <em>region_type</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.SemialgebraicComplexComponent.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="igp.SemialgebraicComplexComponent.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.SemialgebraicComplexComponent.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="igp.SemialgebraicComplexComponent.__weakref__">
 <code class="descname">__weakref__</code><a class="headerlink" href="#igp.SemialgebraicComplexComponent.__weakref__" title="Permalink to this definition">¶</a></dt>
@@ -2858,7 +2868,7 @@ See examples in <code class="docutils literal"><span class="pre">update_mccormic
 <dd><p>Plot the cell.</p>
 <ul class="simple">
 <li>If slice_value is given, plot the slice of the cell according to the parameter values in slice_value that are not None. See examples in <code class="docutils literal"><span class="pre">SemialgebraicComplex.plot()</span></code>.</li>
-<li>show_testpoint controls whether to plot the testpoint in this cell.</li>
+<li>show_testpoints controls whether to plot the testpoint in this cell.</li>
 <li>plot_points controls the quality of the plotting.</li>
 </ul>
 </dd></dl>
@@ -5689,7 +5699,9 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 <dl class="function">
 <dt id="igp.generate_extreme_functions_for_finite_group">
 <code class="descclassname">igp.</code><code class="descname">generate_extreme_functions_for_finite_group</code><span class="sig-paren">(</span><em>q</em>, <em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_extreme_functions_for_finite_group" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>A generator that enumerates the interpolations of the extreme
+functions for the cyclic group problem <span class="math">\(R_{f/q}(1/q \Z, \Z)\)</span>.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="igp.generate_extreme_lifted_function_equiv">
@@ -11456,7 +11468,7 @@ with the previous elements in <code class="docutils literal"><span class="pre">r
 <dd><p>Return the symbolic expressions in result as a tuple</p>
 <p>This function can provided to <code class="docutils literal"><span class="pre">find_region_type</span></code> when setting up a <a class="reference internal" href="#igp.SemialgebraicComplex" title="igp.SemialgebraicComplex"><code class="xref py py-class docutils literal"><span class="pre">SemialgebraicComplex</span></code></a>. 
 In this way, one can compare result of type <a class="reference internal" href="#igp.ParametricRealFieldElement" title="igp.ParametricRealFieldElement"><code class="xref py py-class docutils literal"><span class="pre">ParametricRealFieldElement</span></code></a> or list of <a class="reference internal" href="#igp.ParametricRealFieldElement" title="igp.ParametricRealFieldElement"><code class="xref py py-class docutils literal"><span class="pre">ParametricRealFieldElement</span></code></a>
-with the previous elements in <code class="docutils literal"><span class="pre">region_type_color_map</span></code> which do not necessairy have the same parent.</p>
+with the previous elements in <code class="docutils literal"><span class="pre">region_type_color_map</span></code> which do not necessarily have the same parent.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="k">def</span> <span class="nf">vol</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">):</span>
