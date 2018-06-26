@@ -39,6 +39,15 @@ def modified_delta_pi(fn, fn_values, pts, i, j):
 def modified_delta_pi2(fn, fn_values2, pts, i, j):
     return fn_values2[i] + fn(fractional(pts[j] - pts[i])) - fn_values2[j]  
 
+def generate_overlapping_interval_indices(interval, K_list):
+    """
+    Given K_list (a list of intervals [a, b] sorted from left to right),
+    return a generator of indices of elements of K_list that have a nonempty intersection with interval.
+    """
+    for k in range(len(K_list)):
+        if len(interval_intersection(interval, K_list[k])) > 0:
+            yield k
+
 def generate_maximal_additive_faces_continuous(function):
     logging.info("Computing maximal additive faces...")
     bkpt = function.end_points()
@@ -71,7 +80,8 @@ def generate_maximal_additive_faces_continuous(function):
     for i in range(len(I_list)):
         for j in range(i, len(J_list)):
             IplusJ = interval_sum(I_list[i],J_list[j])
-            for k in range(len(K_list)):
+            bisect_left
+            for k in generate_overlapping_interval_indices(IplusJ, K_list):
                 # Check if int(I+J) intersects int(K) is non-empty.
                 if len(interval_intersection(IplusJ,K_list[k])) == 2:
                     temp_verts = verts(I_list[i],J_list[j],K_list[k])
