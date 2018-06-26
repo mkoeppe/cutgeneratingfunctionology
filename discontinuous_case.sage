@@ -477,17 +477,19 @@ def generate_maximal_additive_faces_general(function):
     # 1D horizontal and vertical faces
     for i in range(n):
         for j in range(n):
+            I = [bkpt[i]]
+            IplusJ = (bkpt[i] + bkpt[j], bkpt[i] + bkpt[j+1])
             for k in range(2*n):
-                if len(interval_intersection((bkpt[i] + bkpt[j], bkpt[i] + bkpt[j+1]), K_list[k])) == 2:
-                    face = Face( ([bkpt[i]], J_list[j], K_list[k]) )
+                if len(interval_intersection(IplusJ, K_list[k])) == 2:
+                    face = Face( (I, J_list[j], K_list[k]) )
                     if is_additive_face(function, face): 
                         faces.append(face)
                         faces.append(x_y_swapped_face(face))
     # 1D diagonal faces
-    for k in range(2*n):
-        for i in range(n):
-            for j in range(i, n):
-                interval_K = interval_sum(I_list[i],J_list[j])
+    for i in range(n):
+        for j in range(i, n):
+            interval_K = interval_sum(I_list[i],J_list[j])
+            for k in range(2*n):
                 if interval_K[0] < bkpt2[k] < interval_K[1]:
                     face = Face( (I_list[i], J_list[j], [bkpt2[k]]) )
                     if is_additive_face(function, face): 
