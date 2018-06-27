@@ -1894,6 +1894,386 @@ field, by <code class="docutils literal"><span class="pre">nice_field_values</sp
 </dd></dl>
 
 <dl class="class">
+<dt id="igp.PiecewisePolynomial_polyhedral">
+<em class="property">class </em><code class="descclassname">igp.</code><code class="descname">PiecewisePolynomial_polyhedral</code><span class="sig-paren">(</span><em>polyhedron_function_pairs</em>, <em>periodic_extension=False</em>, <em>is_continuous=None</em>, <em>check_consistency=False</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sage.structure.sage_object.SageObject</span></code></p>
+<p>Define a piecewise polynomial function using pairs of (polyhedron, function).</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">square</span> <span class="o">=</span> <span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+<span class="gp">sage: </span><span class="n">R</span><span class="o">.&lt;</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="o">&gt;=</span><span class="n">PolynomialRing</span><span class="p">(</span><span class="n">QQ</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h1</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="p">([(</span><span class="n">square</span><span class="p">,</span> <span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="p">)])</span>
+<span class="gp">sage: </span><span class="n">h1</span>
+<span class="go">&lt;PiecewisePolynomial_polyhedral with 1 parts, </span>
+<span class="go"> domain: A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices: (A vertex at (0, 0), A vertex at (0, 1), A vertex at (1, 0), A vertex at (1, 1))</span>
+<span class="go"> function: x + y&gt;</span>
+<span class="gp">sage: </span><span class="n">h1</span><span class="o">.</span><span class="n">is_continuous</span><span class="p">()</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">h2</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="p">([(</span><span class="n">square</span><span class="p">,</span> <span class="o">-</span><span class="n">x</span><span class="o">-</span><span class="n">y</span><span class="p">)],</span> <span class="n">is_continuous</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h1</span> <span class="o">+</span> <span class="n">h2</span> <span class="o">==</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="p">([(</span><span class="n">square</span><span class="p">,</span> <span class="n">R</span><span class="p">(</span><span class="mi">0</span><span class="p">))])</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">h1</span> <span class="o">*</span> <span class="n">h2</span>
+<span class="go">&lt;PiecewisePolynomial_polyhedral with 1 parts, </span>
+<span class="go"> domain: A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices: (A vertex at (1, 0), A vertex at (1, 1), A vertex at (0, 1), A vertex at (0, 0))</span>
+<span class="go"> function: -x^2 - 2*x*y - y^2&gt;</span>
+<span class="gp">sage: </span><span class="n">hmax</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">h1</span><span class="p">,</span> <span class="n">h2</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">hmax</span>
+<span class="go">&lt;PiecewisePolynomial_polyhedral with 1 parts, </span>
+<span class="go"> domain: A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices: (A vertex at (0, 0), A vertex at (1, 1), A vertex at (0, 1), A vertex at (1, 0))</span>
+<span class="go"> function: x + y&gt;</span>
+<span class="gp">sage: </span><span class="n">hmax</span><span class="o">.</span><span class="n">is_continuous</span><span class="p">()</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Set check_consistency=True. Compare h to g = PiecewisePolynomial_polyhedral(pairs, check_consistency=False).plot():</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">pairs</span> <span class="o">=</span> <span class="p">[(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">x</span><span class="p">),(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="o">-</span><span class="n">x</span><span class="p">),(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">y</span><span class="p">),(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="o">-</span><span class="n">y</span><span class="p">)]</span>
+
+<span class="go">#sage: h = PiecewisePolynomial_polyhedral(pairs, check_consistency=True)</span>
+<span class="go">#Traceback (most recent call last):</span>
+<span class="go">#...</span>
+<span class="go">#ValueError: Cannot define the PiecewisePolynomial_polyhedral due to inconsistent polyhedron function pairs</span>
+
+<span class="gp">sage: </span><span class="n">hxp</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="p">([(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">x</span><span class="p">)],</span> <span class="n">is_continuous</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">hxn</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="p">([(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="o">-</span><span class="n">x</span><span class="p">)],</span> <span class="n">is_continuous</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">hyp</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="p">([(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">y</span><span class="p">)],</span> <span class="n">is_continuous</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">hyn</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="p">([(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="o">-</span><span class="n">y</span><span class="p">)],</span> <span class="n">is_continuous</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">hsublin</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">hxp</span><span class="p">,</span> <span class="n">hxn</span><span class="p">,</span> <span class="n">hyp</span><span class="p">,</span> <span class="n">hyn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">hsublin</span><span class="o">.</span><span class="n">limiting_slopes</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">[(0, 1), (0, -1), (1, 0), (-1, 0)]</span>
+<span class="gp">sage: </span><span class="n">h_restricted</span> <span class="o">=</span> <span class="n">hsublin</span><span class="o">.</span><span class="n">restricted_to_domain</span><span class="p">(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h_restricted</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span> <span class="c1"># not tested</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">h_restricted</span><span class="o">.</span><span class="n">pairs</span><span class="p">())</span>
+<span class="go">6</span>
+
+<span class="gp">sage: </span><span class="n">hsquare</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="p">(</span><span class="n">h_restricted</span><span class="o">.</span><span class="n">pairs</span><span class="p">(),</span> <span class="n">periodic_extension</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">hsquare</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span> <span class="c1"># not tested</span>
+<span class="gp">sage: </span><span class="n">hsquare</span><span class="o">.</span><span class="n">limiting_slopes</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+<span class="go">[(0, 1), (0, -1), (1, 0), (-1, 0)]</span>
+<span class="gp">sage: </span><span class="n">hsquare</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+<span class="go">0</span>
+<span class="gp">sage: </span><span class="n">hsquare</span><span class="o">.</span><span class="n">which_function</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">),(</span><span class="mi">11</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">)]))</span>
+<span class="go">y - 1</span>
+<span class="gp">sage: </span><span class="n">hsquare</span><span class="o">.</span><span class="n">which_function</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">9</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">9</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">)]))</span>
+<span class="go">-x + 5</span>
+<span class="gp">sage: </span><span class="n">hsquare</span><span class="o">.</span><span class="n">which_function</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">11</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">11</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">)]))</span>
+<span class="go">x - 5</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">hsquare</span><span class="o">.</span><span class="n">pairs</span><span class="p">())</span>
+<span class="go">8</span>
+
+<span class="gp">sage: </span><span class="n">hsquare_res</span> <span class="o">=</span> <span class="n">hsquare</span><span class="o">.</span><span class="n">restricted_to_domain</span><span class="p">(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">hsquare_res</span> <span class="o">==</span> <span class="n">h_restricted</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.__add__">
+<code class="descname">__add__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.__add__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add self and another piecewise function.
+The sum is a function defined on the intersection of the domain of self and the domain of other.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.__call__">
+<code class="descname">__call__</code><span class="sig-paren">(</span><em>x</em>, <em>*arg</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.__call__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.__div__">
+<code class="descname">__div__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.__div__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.__eq__">
+<code class="descname">__eq__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assume that self and other have the same domain (=union of the polyhedra). Return True if self == other on the domain.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>polyhedron_function_pairs</em>, <em>periodic_extension=False</em>, <em>is_continuous=None</em>, <em>check_consistency=False</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.__mul__">
+<code class="descname">__mul__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.__mul__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multiply self by a scalar or another piecewise function.
+The product is a function defined on the intersection of the domain of self and the domain of other.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.__neg__">
+<code class="descname">__neg__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.__neg__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.__rmul__">
+<code class="descname">__rmul__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.__rmul__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multiply self by a scalar or another piecewise function.
+The product is a function defined on the intersection of the domain of self and the domain of other.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.__sub__">
+<code class="descname">__sub__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.__sub__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="igp.PiecewisePolynomial_polyhedral.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.affine_linear_embedding">
+<code class="descname">affine_linear_embedding</code><span class="sig-paren">(</span><em>A</em>, <em>b=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.affine_linear_embedding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given full row rank matrix A and vector b (default b = 0). 
+Return the composition PiecewisePolynomial_polyhedral function x -&gt; self(A*x+b).</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">hildebrand_discont_3_slope_1</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">piecewise_polynomial_polyhedral_from_fast_piecewise</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h_vert_strip</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">affine_linear_embedding</span><span class="p">(</span><span class="n">matrix</span><span class="p">([(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)]))</span>
+<span class="gp">sage: </span><span class="n">h_diag_strip</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">affine_linear_embedding</span><span class="p">(</span><span class="n">matrix</span><span class="p">([(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)]))</span>
+<span class="gp">sage: </span><span class="n">h_vert_strip</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="c1"># not tested</span>
+<span class="gp">sage: </span><span class="n">h_diag_strip</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span> <span class="c1"># not tested</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.dim">
+<code class="descname">dim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="igp.PiecewisePolynomial_polyhedral.from_values_on_group_triangulation">
+<em class="property">classmethod </em><code class="descname">from_values_on_group_triangulation</code><span class="sig-paren">(</span><em>M</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.from_values_on_group_triangulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">M</span> <span class="o">=</span> <span class="n">matrix</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">],[</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">],[</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span>  <span class="c1"># q=3</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="o">.</span><span class="n">from_values_on_group_triangulation</span><span class="p">(</span><span class="n">M</span><span class="p">)</span> <span class="c1"># grid=(1/qZ)^2</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.functions">
+<code class="descname">functions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.functions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.intersection_of_domains">
+<code class="descname">intersection_of_domains</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.intersection_of_domains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of (polyhedron, f1, f2) where polyhedorn is the intersection of two polyhedra in the domains of self and of other, and f1 and f2 are the polynomial functions of self and other on the intersection.
+The polyhedral domains in self and other are ordered according to decreasing dimension.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.is_constantly_equal_to">
+<code class="descname">is_constantly_equal_to</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.is_constantly_equal_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if self == x everywhere.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.is_continuous">
+<code class="descname">is_continuous</code><span class="sig-paren">(</span><em>is_continuous=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.is_continuous" title="Permalink to this definition">¶</a></dt>
+<dd><p>return if the function is continuous.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.is_lower_bounded_by">
+<code class="descname">is_lower_bounded_by</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.is_lower_bounded_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if self &gt;= x everywhere.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.is_non_negative">
+<code class="descname">is_non_negative</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.is_non_negative" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if self &gt;= 0 everywhere.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.is_upper_bounded_by">
+<code class="descname">is_upper_bounded_by</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.is_upper_bounded_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if self &lt;= x everywhere.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.limit">
+<code class="descname">limit</code><span class="sig-paren">(</span><em>x</em>, <em>polyhedron=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.limit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the limit of self at x approaching from the relative interior of polyhedron,
+where the input polyhedron is contained in the domain of some piece of the function.
+if polyhedron=None, then return the function value at x.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.limiting_slopes">
+<code class="descname">limiting_slopes</code><span class="sig-paren">(</span><em>x=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.limiting_slopes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the gradients of the affine functions on the full-dim polyhedron whose closure contains x.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.max">
+<code class="descname">max</code><span class="sig-paren">(</span><em>other</em>, <em>*arg</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.max" title="Permalink to this definition">¶</a></dt>
+<dd><p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">R</span><span class="o">.&lt;</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="o">&gt;=</span><span class="n">PolynomialRing</span><span class="p">(</span><span class="n">QQ</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">hp</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="p">([(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="p">)])</span>
+<span class="gp">sage: </span><span class="n">hn</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="p">([(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="o">-</span><span class="n">x</span><span class="o">-</span><span class="n">y</span><span class="p">)])</span>
+<span class="gp">sage: </span><span class="n">PiecewisePolynomial_polyhedral</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">hn</span><span class="p">)</span>
+<span class="go">&lt;PiecewisePolynomial_polyhedral with 2 parts, </span>
+<span class="go"> domain: A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices: (A vertex at (1, -1), A vertex at (-1, 1), A vertex at (1, 1))</span>
+<span class="go"> function: x + y</span>
+<span class="go"> domain: A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices: (A vertex at (-1, 1), A vertex at (1, -1), A vertex at (-1, -1))</span>
+<span class="go"> function: -x - y&gt;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.min">
+<code class="descname">min</code><span class="sig-paren">(</span><em>other</em>, <em>*arg</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.min" title="Permalink to this definition">¶</a></dt>
+<dd><p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">R</span><span class="o">.&lt;</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="o">&gt;=</span><span class="n">PolynomialRing</span><span class="p">(</span><span class="n">QQ</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">hp</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="p">([(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="p">)])</span>
+<span class="gp">sage: </span><span class="n">hn</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="p">([(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="o">-</span><span class="n">x</span><span class="o">-</span><span class="n">y</span><span class="p">)])</span>
+<span class="gp">sage: </span><span class="n">PiecewisePolynomial_polyhedral</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">hn</span><span class="p">)</span>
+<span class="go">&lt;PiecewisePolynomial_polyhedral with 2 parts, </span>
+<span class="go"> domain: A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices: (A vertex at (-1, 1), A vertex at (1, -1), A vertex at (-1, -1))</span>
+<span class="go"> function: x + y</span>
+<span class="go"> domain: A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices: (A vertex at (1, -1), A vertex at (-1, 1), A vertex at (1, 1))</span>
+<span class="go"> function: -x - y&gt;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.pairs">
+<code class="descname">pairs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.pairs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>domain=None</em>, <em>alpha=0.500000000000000</em>, <em>projection=False</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">hildebrand_discont_3_slope_1</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">piecewise_polynomial_polyhedral_from_fast_piecewise</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h_diag_strip</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">affine_linear_embedding</span><span class="p">(</span><span class="n">matrix</span><span class="p">([(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)]))</span>
+<span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">h_diag_strip</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">show</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">viewer</span><span class="o">=</span><span class="s1">&#39;threejs&#39;</span><span class="p">)</span> <span class="c1">#not tested</span>
+<span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">plot</span><span class="p">(</span><span class="n">h_diag_strip</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">60</span><span class="p">)</span>
+
+<span class="gp">sage: </span><span class="n">M</span> <span class="o">=</span> <span class="n">matrix</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">],[</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">],[</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span>  <span class="c1"># q=3</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="o">.</span><span class="n">from_values_on_group_triangulation</span><span class="p">(</span><span class="n">M</span><span class="p">)</span> <span class="c1"># grid=(1/qZ)^2</span>
+<span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.plot_projection">
+<code class="descname">plot_projection</code><span class="sig-paren">(</span><em>domain=None</em>, <em>group_triangulation=False</em>, <em>show_values_on_vertices=False</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.plot_projection" title="Permalink to this definition">¶</a></dt>
+<dd><p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">hildebrand_discont_3_slope_1</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">piecewise_polynomial_polyhedral_from_fast_piecewise</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h_diag_strip</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">affine_linear_embedding</span><span class="p">(</span><span class="n">matrix</span><span class="p">([(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)]))</span>
+<span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">h_diag_strip</span><span class="o">.</span><span class="n">plot_projection</span><span class="p">()</span>
+
+<span class="gp">sage: </span><span class="n">M</span> <span class="o">=</span> <span class="n">matrix</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">],[</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">],[</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span>  <span class="c1"># q=3</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="o">.</span><span class="n">from_values_on_group_triangulation</span><span class="p">(</span><span class="n">M</span><span class="p">)</span> <span class="c1"># grid=(1/qZ)^2</span>
+<span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">plot_projection</span><span class="p">(</span><span class="n">group_triangulation</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">sage: </span><span class="n">PR</span><span class="o">.&lt;</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="o">&gt;=</span><span class="n">PolynomialRing</span><span class="p">(</span><span class="n">QQ</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">pairs</span> <span class="o">=</span> <span class="p">[(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">-</span><span class="n">vector</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="n">vector</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)]),</span> <span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)]),</span> <span class="mi">0</span><span class="p">)]</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="p">(</span><span class="n">pairs</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">plot_projection</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">g</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">xmin</span><span class="o">=-</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">xmax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">ymin</span><span class="o">=-</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">ymax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span> <span class="c1"># not tested</span>
+
+<span class="gp">sage: </span><span class="n">PR</span><span class="o">.&lt;</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">PolynomialRing</span><span class="p">(</span><span class="n">QQ</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="p">([(</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)]),</span> <span class="n">x</span><span class="p">),</span> <span class="p">(</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)]),</span> <span class="o">-</span><span class="n">x</span><span class="p">),</span> <span class="p">(</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]),</span> <span class="n">y</span><span class="p">),</span> <span class="p">(</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)]),</span> <span class="o">-</span><span class="n">y</span><span class="p">)])</span>
+<span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">plot_projection</span><span class="p">(</span><span class="n">show_values_on_vertices</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">sage: </span><span class="n">pairs</span> <span class="o">=</span> <span class="p">[(</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)]),</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)]),</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)]),</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)]),</span> <span class="mi">1</span><span class="p">)]</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="p">(</span><span class="n">pairs</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">plot_projection</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.polyhedra">
+<code class="descname">polyhedra</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.polyhedra" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.preimage">
+<code class="descname">preimage</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.preimage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return closure of the preimage, as a list of polyhedra, of the given value under the map self.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">gmic</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">piecewise_polynomial_polyhedral_from_fast_piecewise</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">delta</span> <span class="o">=</span> <span class="n">subadditivity_slack_delta</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">preimages</span> <span class="o">=</span> <span class="n">delta</span><span class="o">.</span><span class="n">preimage</span><span class="p">(</span><span class="mi">5</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">preimages</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">sage: </span><span class="n">preimages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">vertices</span><span class="p">()</span>
+<span class="go">(A vertex at (4/5, 4/5), A vertex at (4/5, 1/5), A vertex at (1/5, 4/5))</span>
+<span class="gp">sage: </span><span class="n">additive_domain</span><span class="o">=</span> <span class="n">delta</span><span class="o">.</span><span class="n">preimage</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">additive_domain</span><span class="p">)</span>
+<span class="go">6</span>
+<span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">additive_domain</span><span class="p">)</span> <span class="c1"># not tested</span>
+
+<span class="gp">sage: </span><span class="n">PR</span><span class="o">.&lt;</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="o">&gt;=</span><span class="n">PolynomialRing</span><span class="p">(</span><span class="n">QQ</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">pairs</span> <span class="o">=</span> <span class="p">[(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">-</span><span class="n">vector</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="n">vector</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)]),</span> <span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)]),</span> <span class="mi">0</span><span class="p">)]</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="p">(</span><span class="n">pairs</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h</span><span class="o">.</span><span class="n">preimage</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">[]</span>
+
+<span class="gp">sage: </span><span class="n">pairs</span> <span class="o">=</span> <span class="p">[(</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)]),</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)]),</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)]),</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)]),</span> <span class="mi">1</span><span class="p">)]</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="p">(</span><span class="n">pairs</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">preimage</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.restricted_to_domain">
+<code class="descname">restricted_to_domain</code><span class="sig-paren">(</span><em>domain</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.restricted_to_domain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a PiecewisePolynomial_polyhedral which is self restricted to domain, where domain is a given polyhedron.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.sage_input">
+<code class="descname">sage_input</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.sage_input" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.translation">
+<code class="descname">translation</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.translation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the translated PiecewisePolynomial_polyhedral function x -&gt; self(x+t).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="igp.PiecewisePolynomial_polyhedral.which_function">
+<code class="descname">which_function</code><span class="sig-paren">(</span><em>x=None</em>, <em>polyhedron=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewisePolynomial_polyhedral.which_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the function of the (first) piece whose domain contains x, if polyhedron=None;
+return the function of the (first) piece whose domain contains polyhedron, otherwise.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="igp.PiecewiseQuasiPeriodic">
 <em class="property">class </em><code class="descclassname">igp.</code><code class="descname">PiecewiseQuasiPeriodic</code><span class="sig-paren">(</span><em>list_of_pairs</em>, <em>quasiperiodic_extension=True</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.PiecewiseQuasiPeriodic" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#igp.FastPiecewise" title="igp.FastPiecewise"><code class="xref py py-class docutils literal"><span class="pre">igp.FastPiecewise</span></code></a></p>
@@ -3055,6 +3435,15 @@ until get a new point such that l(new point)&lt;0 for any l in ineqs.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">adjust_pt_to_satisfy_ineqs</span><span class="p">(</span><span class="n">vector</span><span class="p">([</span><span class="mi">11</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span> <span class="mi">7</span><span class="o">/</span><span class="mi">8</span><span class="p">]),</span> <span class="n">ineq</span><span class="p">,[</span><span class="o">-</span><span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="o">^</span><span class="mi">2</span><span class="p">,</span> <span class="n">a</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="function">
+<dt id="igp.affine_map_for_affine_hull">
+<code class="descclassname">igp.</code><code class="descname">affine_map_for_affine_hull</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.affine_map_for_affine_hull" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the an affine map x -&gt; A*x+b that maps the affine space of p to the ambient space of p.
+The affine space of p (in the ambient space) is equal to {A(x) + b for x in the projected space}.
+This is adapted from sage.geometry.polyhedron.base.affine_hull. 
+Note that the meanings of A, b and v0  are modified. We also handle the unbounded case.</p>
 </dd></dl>
 
 <dl class="function">
@@ -4424,6 +4813,11 @@ Consider only directly covered and symmetry reflection regarding f.</p>
 <p>points and values are two parallel lists.</p>
 <p>The data are coerced into a common convenient field via <code class="docutils literal"><span class="pre">nice_field_values</span></code>.</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="igp.div_Zk">
+<code class="descclassname">igp.</code><code class="descname">div_Zk</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.div_Zk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="igp.dr_projected_sequential_merge_3_slope">
@@ -7252,6 +7646,16 @@ which is slow for <code class="docutils literal"><span class="pre">RealNumberFie
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="igp.is_lattice_free_polyhedron">
+<code class="descclassname">igp.</code><code class="descname">is_lattice_free_polyhedron</code><span class="sig-paren">(</span><em>B</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.is_lattice_free_polyhedron" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="igp.is_maximal_lattice_free_polyhedron">
+<code class="descclassname">igp.</code><code class="descname">is_maximal_lattice_free_polyhedron</code><span class="sig-paren">(</span><em>B</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.is_maximal_lattice_free_polyhedron" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="igp.is_not_a_downstairs_wall">
 <code class="descclassname">igp.</code><code class="descname">is_not_a_downstairs_wall</code><span class="sig-paren">(</span><em>c</em>, <em>mip</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.is_not_a_downstairs_wall" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return whether a PPL constraint c is always strictly positive in mip.</p>
@@ -7285,6 +7689,11 @@ which is slow for <code class="docutils literal"><span class="pre">RealNumberFie
 <dd><p>Return whether lb &lt;= v &lt;= ub.</p>
 <p><code class="docutils literal"><span class="pre">None</span></code> is considered as -Infinity and +Infinity for lb and ub, respectively.</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="igp.is_volume_affine_in_f">
+<code class="descclassname">igp.</code><code class="descname">is_volume_affine_in_f</code><span class="sig-paren">(</span><em>B</em>, <em>num_tests=10</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.is_volume_affine_in_f" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="igp.kzh_10_slope_1">
@@ -8133,6 +8542,16 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="igp.lifting_regions">
+<code class="descclassname">igp.</code><code class="descname">lifting_regions</code><span class="sig-paren">(</span><em>B</em>, <em>f</em>, <em>shifted=False</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.lifting_regions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="igp.lifting_regions_tile_box">
+<code class="descclassname">igp.</code><code class="descname">lifting_regions_tile_box</code><span class="sig-paren">(</span><em>regions</em>, <em>box=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.lifting_regions_tile_box" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="igp.limiting_slopes">
 <code class="descclassname">igp.</code><code class="descname">limiting_slopes</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.limiting_slopes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the limiting slopes on the right and the left side of the
@@ -8401,6 +8820,85 @@ G. Reinelt, G. Rinaldi, and L. A. Wolsey, eds.), Springer Berlin Heidelberg,
 <span class="go">False</span>
 <span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">piecewise_function_from_breakpoints_and_values</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">]))</span>
 <span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="igp.minimality_test_multirow">
+<code class="descclassname">igp.</code><code class="descname">minimality_test_multirow</code><span class="sig-paren">(</span><em>fn</em>, <em>f=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.minimality_test_multirow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test if the input PiecewisePolynomial_polyhedral function <span class="math">\(fn\)</span> is a minimal function 
+for the (multi-row) group relaxation with the given <span class="math">\(f\)</span>.</p>
+<dl class="docutils">
+<dt>Example::</dt>
+<dd><p class="first">sage: logging.disable(logging.WARN)             # Suppress output in automatic tests.
+sage: h = gmic(4/5)
+sage: fn = piecewise_polynomial_polyhedral_from_fast_piecewise(h)
+sage: minimality_test_multirow(fn, f=[4/5])
+True
+sage: h = ll_strong_fractional()
+sage: fn = piecewise_polynomial_polyhedral_from_fast_piecewise(h)
+sage: minimality_test_multirow(fn)
+True
+sage: h_vert_strip = fn.affine_linear_embedding(matrix([(1,0)]))
+sage: minimality_test_multirow(h_vert_strip, f=[2/3,2/3])
+True
+sage: minimality_test_multirow(h_vert_strip, f=[1/3,2/3])
+False
+sage: h_diag_strip = fn.affine_linear_embedding(matrix([(1,1)]))
+sage: minimality_test_multirow(h_diag_strip, f=[1/3,1/3])
+True</p>
+<p class="last">sage: h = hildebrand_discont_3_slope_1()
+sage: fn = piecewise_polynomial_polyhedral_from_fast_piecewise(h)
+sage: h_diag_strip = fn.affine_linear_embedding(matrix([(1,1)]))
+sage: minimality_test_multirow(h_diag_strip, f=[1/4,1/4]) #long time  #takes 110 seconds
+True
+sage: M = matrix([[0,1/4,1/2],[1/4,1/2,3/4],[1/2,3/4,1]])  # q=3
+sage: fn = PiecewisePolynomial_polyhedral.from_values_on_group_triangulation(M)
+sage: minimality_test_multirow(fn) #long time # f = [2/3, 2/3] # takes 132 seconds
+True
+sage: PR.&lt;x0,x1&gt;=PolynomialRing(QQ)
+sage: fn = PiecewisePolynomial_polyhedral([(Polyhedron(vertices=[(0,0),(2/3,0),(2/3,2/3),(0,2/3)]), (x0+x1)*3/4), (Polyhedron(vertices=[(1,1),(2/3,1),(2/3,2/3),(1,2/3)]), (2-x0-x1)*3/2), (Polyhedron(vertices=[(1,0),(2/3,0),(2/3,2/3),(1,2/3)]), -3/2*x0 + 3/4*x1 + 3/2), (Polyhedron(vertices=[(0,1),(2/3,1),(2/3,2/3),(0,2/3)]), 3/4*x0 - 3/2*x1 + 3/2)], periodic_extension=True)
+sage: minimality_test_multirow(fn)   # same function as before, minimality test is much faster when it has less pieces.
+True</p>
+</dd>
+</dl>
+<p>[2012-Basu-Cornuejols-Koeppe] Unique Minimal Liftings for Simplicial Polytopes - Figure 1-b:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">slopes</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span>
+<span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">=</span> <span class="n">subadditive_function_from_slopes</span><span class="p">(</span><span class="n">slopes</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">minimality_test_multirow</span><span class="p">(</span><span class="n">subadd_function</span><span class="p">,</span> <span class="n">f</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">])</span> 
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="c1">#volume_of_additive_domain(subadd_function)</span>
+<span class="gp">sage: </span><span class="n">additive_faces</span> <span class="o">=</span> <span class="n">subadd_function</span><span class="o">.</span><span class="n">_delta</span><span class="o">.</span><span class="n">preimage</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">additive_faces</span><span class="p">)</span>
+<span class="go">69</span>
+<span class="gp">sage: </span><span class="nb">sum</span><span class="p">(</span><span class="n">face</span><span class="o">.</span><span class="n">volume</span><span class="p">()</span> <span class="k">for</span> <span class="n">face</span> <span class="ow">in</span> <span class="n">additive_faces</span><span class="p">)</span>
+<span class="go">731/15552</span>
+</pre></div>
+</div>
+<p>[2012-Basu-Cornuejols-Koeppe] Unique Minimal Liftings for Simplicial Polytopes - Figure 1-a.
+Unique minimal lifiting property is not satisfied. See “lifting_region.sage”,
+volume_of_lifting_region(polyhedron, pt, True) returns 41/60, which is less than 1:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">polyhedron</span> <span class="o">=</span> <span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[[</span><span class="o">-</span><span class="mi">3</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span> <span class="mi">21</span><span class="o">/</span><span class="mi">13</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">4</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">]])</span>
+<span class="gp">sage: </span><span class="n">pt</span> <span class="o">=</span> <span class="n">vector</span><span class="p">((</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="gp">sage: </span><span class="n">sublin_function</span> <span class="o">=</span> <span class="n">sublinear_function_from_polyhedron_and_point</span><span class="p">(</span><span class="n">polyhedron</span><span class="p">,</span> <span class="n">pt</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">=</span> <span class="n">subadditive_function_from_sublinear_function</span><span class="p">(</span><span class="n">sublin_function</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="n">mod_Zk</span><span class="p">(</span><span class="o">-</span><span class="n">pt</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">minimality_test_multirow</span><span class="p">(</span><span class="n">subadd_function</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>  <span class="c1">#long time #3 mins #violate the symmetry condition.</span>
+<span class="go">False</span>
+<span class="gp">sage: </span><span class="n">delta</span> <span class="o">=</span> <span class="n">subadd_function</span><span class="o">.</span><span class="n">_delta</span> <span class="c1">#long time</span>
+<span class="gp">sage: </span><span class="n">delta</span><span class="o">.</span><span class="n">is_non_negative</span><span class="p">()</span>  <span class="c1"># long time</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>3-d example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">M1</span> <span class="o">=</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="p">,[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">]])</span>
+<span class="gp">sage: </span><span class="n">pt</span> <span class="o">=</span> <span class="n">vector</span><span class="p">((</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="gp">sage: </span><span class="n">sublin_function</span> <span class="o">=</span> <span class="n">sublinear_function_from_polyhedron_and_point</span><span class="p">(</span><span class="n">M1</span><span class="p">,</span> <span class="n">pt</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">=</span> <span class="n">subadditive_function_from_sublinear_function</span><span class="p">(</span><span class="n">sublin_function</span><span class="p">)</span> <span class="c1"># long time</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="n">mod_Zk</span><span class="p">(</span><span class="o">-</span><span class="n">pt</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">minimality_test_multirow</span><span class="p">(</span><span class="n">subadd_function</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="n">f</span><span class="p">)</span> <span class="c1"># not tested # never terminates, uses a lot of memory</span>
+<span class="go">True</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -9170,6 +9668,11 @@ The given slope is (2*z1-10*z1*r0+r0)/(r0*(1-2*r0)*(4*z1-1+r0)) while the correc
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="function">
+<dt id="igp.mod_Zk">
+<code class="descclassname">igp.</code><code class="descname">mod_Zk</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.mod_Zk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="igp.modified_delta_pi">
@@ -10379,6 +10882,18 @@ value.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="igp.piecewise_polynomial_polyhedral_from_fast_piecewise">
+<code class="descclassname">igp.</code><code class="descname">piecewise_polynomial_polyhedral_from_fast_piecewise</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.piecewise_polynomial_polyhedral_from_fast_piecewise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a FastPiecewise type function fn to a PiecewisePolynomial_polyhedral type one.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">gmic</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">piecewise_polynomial_polyhedral_from_fast_piecewise</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="igp.plot_2d_additive_limit_vertices">
 <code class="descclassname">igp.</code><code class="descname">plot_2d_additive_limit_vertices</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_2d_additive_limit_vertices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Temporary code. Show additivity information on a 2d-diagram</p>
@@ -10584,6 +11099,11 @@ If vertices_color is given, use it.</p>
 </pre></div>
 </div>
 </dd></dl>
+
+<dl class="function">
+<dt id="igp.plot_polyhedron_and_f">
+<code class="descclassname">igp.</code><code class="descname">plot_polyhedron_and_f</code><span class="sig-paren">(</span><em>B</em>, <em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_polyhedron_and_f" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="igp.plot_projections_at_borders">
@@ -11256,6 +11776,11 @@ maximal additive faces.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="igp.random_point_in_polytope">
+<code class="descclassname">igp.</code><code class="descname">random_point_in_polytope</code><span class="sig-paren">(</span><em>B</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.random_point_in_polytope" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="igp.random_test_number">
 <code class="descclassname">igp.</code><code class="descname">random_test_number</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.random_test_number" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -11899,9 +12424,97 @@ Remove redundant inequalities using PPL.</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="igp.subadditive_function_from_slopes">
+<code class="descclassname">igp.</code><code class="descname">subadditive_function_from_slopes</code><span class="sig-paren">(</span><em>slopes</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.subadditive_function_from_slopes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a Zk-periodic subadditive PiecewisePolynomial_polyhedral function 
+whose gradients at the orgin are give by the parameter slopes.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">=</span> <span class="n">subadditive_function_from_slopes</span><span class="p">([(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)])</span>
+<span class="gp">sage: </span><span class="n">subadd_function</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="igp.subadditive_function_from_sublinear_function">
+<code class="descclassname">igp.</code><code class="descname">subadditive_function_from_sublinear_function</code><span class="sig-paren">(</span><em>sublin_function</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.subadditive_function_from_sublinear_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trivial fill-in? Return a Zk-periodic PiecewisePolynomial_polyhedral function.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">sublin_function</span> <span class="o">=</span> <span class="n">sublinear_function_from_slopes</span><span class="p">([(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)])</span>
+<span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">=</span> <span class="n">subadditive_function_from_sublinear_function</span><span class="p">(</span><span class="n">sublin_function</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">subadd_function</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span> <span class="o">==</span> <span class="n">subadd_function</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="igp.subadditivity_slack_delta">
+<code class="descclassname">igp.</code><code class="descname">subadditivity_slack_delta</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.subadditivity_slack_delta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the subadditivity slack function Delta: (x, y) -&gt; h(x) + h(y) - h(x+y) 
+of the given PiecewisePolynomial_polyhedral function h.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">gmic</span><span class="p">(</span><span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">piecewise_polynomial_polyhedral_from_fast_piecewise</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">delta</span> <span class="o">=</span> <span class="n">subadditivity_slack_delta</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">delta</span><span class="o">.</span><span class="n">plot_projection</span><span class="p">(</span><span class="n">show_values_on_vertices</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">delta</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="c1"># not tested</span>
+<span class="gp">sage: </span><span class="n">delta</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">3/2</span>
+<span class="gp">sage: </span><span class="n">delta</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="igp.subadditivity_test">
 <code class="descclassname">igp.</code><code class="descname">subadditivity_test</code><span class="sig-paren">(</span><em>fn</em>, <em>stop_if_fail=False</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.subadditivity_test" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check if fn is subadditive.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="igp.sublinear_function_from_polyhedron_and_point">
+<code class="descclassname">igp.</code><code class="descname">sublinear_function_from_polyhedron_and_point</code><span class="sig-paren">(</span><em>polyhedron</em>, <em>pt</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.sublinear_function_from_polyhedron_and_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct sublinear function phi given a full-dimensional polyhedron and an interior point f.
+Notice that the vector f for the group relaxation problem equals to (- pt) mod Z.</p>
+<p>EXAMPLES:
+[2012-Basu-Cornuejols-Koeppe] Unique Minimal Liftings for Simplicial Polytopes - Figure 1-b:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">polyhedron</span> <span class="o">=</span> <span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">),(</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">)])</span>
+<span class="gp">sage: </span><span class="n">pt</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">sublin_function</span> <span class="o">=</span> <span class="n">sublinear_function_from_polyhedron_and_point</span><span class="p">(</span><span class="n">polyhedron</span><span class="p">,</span> <span class="n">pt</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">sublin_function</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">polyhedron</span> <span class="o">-</span> <span class="n">vector</span><span class="p">(</span><span class="n">pt</span><span class="p">))</span> <span class="c1"># not tested</span>
+<span class="gp">sage: </span><span class="n">sublin_function</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span>
+<span class="go">1</span>
+<span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">=</span> <span class="n">subadditive_function_from_sublinear_function</span><span class="p">(</span><span class="n">sublin_function</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">==</span> <span class="n">subadditive_function_from_slopes</span><span class="p">(</span><span class="n">subadd_function</span><span class="o">.</span><span class="n">limiting_slopes</span><span class="p">())</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">subadd_function</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span> <span class="c1">#not tested</span>
+<span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">subadd_function</span><span class="o">.</span><span class="n">plot_projection</span><span class="p">(</span><span class="n">show_values_on_vertices</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>[2012-Basu-Cornuejols-Koeppe] Unique Minimal Liftings for Simplicial Polytopes - Figure 1-a:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">polyhedron</span> <span class="o">=</span> <span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[[</span><span class="o">-</span><span class="mi">3</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span> <span class="mi">21</span><span class="o">/</span><span class="mi">13</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">4</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">]])</span>
+<span class="gp">sage: </span><span class="n">pt</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">sublin_function</span> <span class="o">=</span> <span class="n">sublinear_function_from_polyhedron_and_point</span><span class="p">(</span><span class="n">polyhedron</span><span class="p">,</span> <span class="n">pt</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">=</span> <span class="n">subadditive_function_from_sublinear_function</span><span class="p">(</span><span class="n">sublin_function</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="igp.sublinear_function_from_slopes">
+<code class="descclassname">igp.</code><code class="descname">sublinear_function_from_slopes</code><span class="sig-paren">(</span><em>slopes</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.sublinear_function_from_slopes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a sublinear PiecewisePolynomial_polyhedral function whose gradients at the orgin are given by the parameter slopes.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">sublin_function</span> <span class="o">=</span> <span class="n">sublinear_function_from_slopes</span><span class="p">([(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)])</span>
+<span class="gp">sage: </span><span class="n">sublin_function</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="go">10</span>
+<span class="gp">sage: </span><span class="n">sublin_function</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="c1"># not tested</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -12570,6 +13183,45 @@ Return new covered_intervals and uncovered_intervals.</p>
 <code class="descclassname">igp.</code><code class="descname">verts</code><span class="sig-paren">(</span><em>I1</em>, <em>J1</em>, <em>K1</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.verts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the vertices based on <span class="math">\(I, J\)</span> and <span class="math">\(K\)</span>.</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="igp.volume_of_additive_domain">
+<code class="descclassname">igp.</code><code class="descname">volume_of_additive_domain</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.volume_of_additive_domain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the volume of x * y in [0,1]^(2d) such that h(x) + h(y) = h((x+y) mod Z^d)
+For d=1, the result = (merit index of h) / 2.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">gmic</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">piecewise_polynomial_polyhedral_from_fast_piecewise</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">volume_of_additive_domain</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="go">17/50</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="igp.volume_of_lifting_region">
+<code class="descclassname">igp.</code><code class="descname">volume_of_lifting_region</code><span class="sig-paren">(</span><em>B</em>, <em>f=None</em>, <em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.volume_of_lifting_region" title="Permalink to this definition">¶</a></dt>
+<dd><p>Examples:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">M11</span> <span class="o">=</span> <span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]])</span>
+<span class="gp">sage: </span><span class="n">volume_of_lifting_region</span><span class="p">(</span><span class="n">M11</span><span class="p">)</span>
+<span class="go">11/12</span>
+<span class="gp">sage: </span><span class="n">B</span> <span class="o">=</span> <span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[[</span><span class="o">-</span><span class="mi">3</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span> <span class="mi">21</span><span class="o">/</span><span class="mi">13</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">4</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">]])</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="n">B</span><span class="o">.</span><span class="n">center</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">volume_of_lifting_region</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+<span class="go">1763/2600</span>
+<span class="gp">sage: </span><span class="n">B</span> <span class="o">=</span> <span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[[</span><span class="o">-</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="o">/</span><span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">39</span><span class="o">/</span><span class="mi">25</span><span class="p">,</span><span class="mi">27</span><span class="o">/</span><span class="mi">50</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">volume_of_lifting_region</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="c1"># long time # 12 s</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="igp.volume_of_union_of_polytopes">
+<code class="descclassname">igp.</code><code class="descname">volume_of_union_of_polytopes</code><span class="sig-paren">(</span><em>polyhedra</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.volume_of_union_of_polytopes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="igp.w_2slope_3covered">
