@@ -375,7 +375,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
             x0 = list(mod_Zk(x))
             z = vector(self._polynomial_ring.gens()) - vector(x) + vector(x0)
             x_translate = [x0]
-            # compoute the translations of x by Zk.
+            # compute the translations of x by Zk.
             for i in range(self.dim()):
                 if x0[i] == 0:
                     x_translate += [[xt[j] if j != i else 1 for j in range(self.dim())] for xt in x_translate]
@@ -961,7 +961,7 @@ def affine_map_for_affine_hull(p):
 
 def sublinear_function_from_slopes(slopes):
     """
-    Return a sublinear PiecewisePolynomial_polyhedral function whose gradients at the orgin are give by the parameter slopes.
+    Return a sublinear PiecewisePolynomial_polyhedral function whose gradients at the orgin are given by the parameter slopes.
 
     EXAMPLES::
 
@@ -1156,7 +1156,7 @@ def subadditivity_slack_delta(h):
     h._delta = delta
     return delta
 
-def minimality_test_multirow(fn, f=None) :
+def minimality_test_multirow(fn, f=None):
     """
     Test if the input PiecewisePolynomial_polyhedral function `fn` is a minimal function 
     for the (multi-row) group relaxation with the given `f`.
@@ -1234,7 +1234,7 @@ def minimality_test_multirow(fn, f=None) :
         True
     """
     if not fn._periodic_extension:
-        logging.info('The function is periodic.')
+        logging.info('The function is not periodic.')
         return False
     if not fn.is_non_negative():
         logging.info('The function is not non-negative.')
