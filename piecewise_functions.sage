@@ -1230,7 +1230,7 @@ def minimality_test_multirow(fn, f=None) :
         sage: sublin_function = sublinear_function_from_polyhedron_and_point(M1, pt)
         sage: subadd_function = subadditive_function_from_sublinear_function(sublin_function) # long time
         sage: f = mod_Zk(-pt)
-        sage: minimality_test_multirow(subadd_function, f=f) # long time # never terminates.
+        sage: minimality_test_multirow(subadd_function, f=f) # not tested # never terminates, uses a lot of memory
         True
     """
     if not fn._periodic_extension:
