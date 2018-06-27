@@ -88,7 +88,7 @@ def volume_of_union_of_polytopes(polyhedra):
                 signs.append(sign)
     return vol
         
-def volume_of_lifting_region(B, f=None, show_graphics=False):
+def volume_of_lifting_region(B, f=None, show_plots=False):
     """
     Examples::
 
@@ -109,7 +109,7 @@ def volume_of_lifting_region(B, f=None, show_graphics=False):
     regions = lifting_regions(B, f)
     regions_tile = lifting_regions_tile_box(regions)
     vol = volume_of_union_of_polytopes(regions_tile)
-    if show_graphics:
+    if show_plots:
         d = B.dim()
         box = B.bounding_box(integral=True)
         lattices = [tuple(pt) for pt in rectangular_box_points(list(box[0]), list(box[1]), None)]
