@@ -1,3 +1,10 @@
+# Make sure current directory is in path.  
+# That's not true while doctesting (sage -t).
+if '' not in sys.path:
+    sys.path = [''] + sys.path
+
+from igp import *
+
 def search_example_continuous_dff(q):
     lp = MixedIntegerLinearProgram(base_ring=QQ)
     x = lp.new_variable()
