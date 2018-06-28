@@ -176,7 +176,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
                         self._stratification[d] = set([(intersection, f)])
             self._pairs = list(itertools.chain.from_iterable(list(v) for v in self._stratification.values()))
         self._is_continuous = is_continuous
-        if is_continuous:
+        if is_continuous:    # FIXME: Call self.is_continuous(is_continuous), which does the same?
             d = self._pairs[-1][0].dim()
             # delete all pieces defined on lower-dimensional polyhedra.
             self._stratification =  {d: self._stratification[d]}
@@ -776,6 +776,12 @@ class PiecewisePolynomial_polyhedral(SageObject):
 
             sage: M = matrix([[0,1/4,1/2],[1/4,1/2,3/4],[1/2,3/4,1]])  # q=3
             sage: h = PiecewisePolynomial_polyhedral.from_values_on_group_triangulation(M) # grid=(1/qZ)^2
+
+        Example from Equivariant III:
+
+            sage: M = 1/4 * matrix([[0,2,2,2,2],[2,2,2,3,1],[2,2,4,2,2],[2,2,2,1,2],[2,2,2,2,3]]).transpose()  # q=5
+            sage: h = PiecewisePolynomial_polyhedral.from_values_on_group_triangulation(M) # grid=(1/qZ)^2
+
         """
         q = sage.rings.integer.Integer(M.dimensions()[0])
         PR = PolynomialRing(QQ, 2, 'x')
@@ -1030,7 +1036,7 @@ def sublinear_function_from_polyhedron_and_point(polyhedron, pt):
     sublin_function = PiecewisePolynomial_polyhedral(pairs, is_continuous=True, check_consistency=False)
     return sublin_function
 
-    
+#FIXME: Rename to trivial_fill_in or trivial_lifting....
 def subadditive_function_from_sublinear_function(sublin_function):
     """
     Trivial fill-in? Return a Zk-periodic PiecewisePolynomial_polyhedral function.
