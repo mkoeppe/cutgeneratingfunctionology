@@ -268,10 +268,21 @@ class ParametricRealField(Field):
         ...
         TypeError: Illegal initializer for algebraic number
 
+    Test that values can also be initialized by vectors (internally we make it tuples)::
+
+        sage: f = vector(QQ, [1, 2])
+        sage: K.<f0, f1> = ParametricRealField(f)
+        sage: f = vector(f0.parent(), [f0, f1]); f
+        ((f0)~, (f1)~)
+        sage: f.parent()
+        Vector space of dimension 2 over ParametricRealField(names = ['f0', 'f1'], values = [1, 2])
+        sage: f[0]*f[1] <= 4
+        True
+
     """
     Element = ParametricRealFieldElement
 
-    def __init__(self, values=[], names=(), allow_coercion_to_float=True):
+    def __init__(self, values=(), names=(), allow_coercion_to_float=True):
         Field.__init__(self, self)
         self._zero_element = ParametricRealFieldElement(0, parent=self)
         self._one_element =  ParametricRealFieldElement(1, parent=self)
@@ -283,8 +294,8 @@ class ParametricRealField(Field):
         self._lt_factor = set([])
         vnames = PolynomialRing(QQ, names).fraction_field().gens();
         self._gens = [ ParametricRealFieldElement(value, name, parent=self) for (value, name) in izip(values, vnames) ]
-        self._names = names
-        self._values = values
+        self._names = tuple(names)
+        self._values = tuple(values)
 
         # do the computation of the polyhedron incrementally,
         # rather than first building a huge list and then in a second step processing it.
@@ -325,7 +336,7 @@ class ParametricRealField(Field):
             # We test whether S coerces into AA. This rules out inexact fields such as RDF.
             return CallableConvertMap(S, self, lambda s: ParametricRealFieldElement(s, parent=self), parent_as_first_arg=False)
     def __repr__(self):
-        return 'ParametricRealField(names = {}, values = {})'.format(list(self._names), self._values)
+        return 'ParametricRealField(names = {}, values = {})'.format(list(self._names), list(self._values))
     def _element_constructor_(self, elt):
         if parent(elt) == self:
             return elt
