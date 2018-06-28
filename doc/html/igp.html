@@ -1432,7 +1432,7 @@ except for limits at breakpoints.</dd>
 
 <dl class="class">
 <dt id="igp.ParametricRealField">
-<em class="property">class </em><code class="descclassname">igp.</code><code class="descname">ParametricRealField</code><span class="sig-paren">(</span><em>values=[]</em>, <em>names=()</em>, <em>allow_coercion_to_float=True</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.ParametricRealField" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">igp.</code><code class="descname">ParametricRealField</code><span class="sig-paren">(</span><em>values=()</em>, <em>names=()</em>, <em>allow_coercion_to_float=True</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.ParametricRealField" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sage.rings.ring.Field</span></code></p>
 <p>A Metaprogramming trick for parameter space analysis.</p>
 <p>EXAMPLES:</p>
@@ -1522,6 +1522,17 @@ except for limits at breakpoints.</dd>
 <span class="gr">TypeError</span>: <span class="n">Illegal initializer for algebraic number</span>
 </pre></div>
 </div>
+<p>Test that values can also be initialized by vectors (internally we make it tuples):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="n">vector</span><span class="p">(</span><span class="n">QQ</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.&lt;</span><span class="n">f0</span><span class="p">,</span> <span class="n">f1</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ParametricRealField</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="n">vector</span><span class="p">(</span><span class="n">f0</span><span class="o">.</span><span class="n">parent</span><span class="p">(),</span> <span class="p">[</span><span class="n">f0</span><span class="p">,</span> <span class="n">f1</span><span class="p">]);</span> <span class="n">f</span>
+<span class="go">((f0)~, (f1)~)</span>
+<span class="gp">sage: </span><span class="n">f</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span>
+<span class="go">Vector space of dimension 2 over ParametricRealField(names = [&#39;f0&#39;, &#39;f1&#39;], values = [1, 2])</span>
+<span class="gp">sage: </span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">4</span>
+<span class="go">True</span>
+</pre></div>
+</div>
 <dl class="attribute">
 <dt id="igp.ParametricRealField.Element">
 <code class="descname">Element</code><a class="headerlink" href="#igp.ParametricRealField.Element" title="Permalink to this definition">¶</a></dt>
@@ -1535,7 +1546,7 @@ except for limits at breakpoints.</dd>
 
 <dl class="method">
 <dt id="igp.ParametricRealField.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>values=[]</em>, <em>names=()</em>, <em>allow_coercion_to_float=True</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.ParametricRealField.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>values=()</em>, <em>names=()</em>, <em>allow_coercion_to_float=True</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.ParametricRealField.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -2062,6 +2073,10 @@ Return the composition PiecewisePolynomial_polyhedral function x -&gt; self(A*x+
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">PiecewisePolynomial_polyhedral</span><span class="o">.</span><span class="n">from_values_on_group_triangulation</span><span class="p">(</span><span class="n">M</span><span class="p">)</span> <span class="c1"># grid=(1/qZ)^2</span>
 </pre></div>
 </div>
+<p>Example from Equivariant III:</p>
+<blockquote>
+<div>sage: M = 1/4 * matrix([[0,2,2,2,2],[2,2,2,3,1],[2,2,4,2,2],[2,2,2,1,2],[2,2,2,2,3]]).transpose()  # q=5
+sage: h = PiecewisePolynomial_polyhedral.from_values_on_group_triangulation(M) # grid=(1/qZ)^2</div></blockquote>
 </dd></dl>
 
 <dl class="method">
