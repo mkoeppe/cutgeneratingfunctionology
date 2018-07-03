@@ -3951,9 +3951,11 @@ def extended_initial_move_by_continuity(fdm, fn):
     extended_domain.append(open_interval(l_last, r_last))
     return FunctionalDirectedMove(extended_domain, fdm.directed_move)
 
+show_translations_and_reflections_separately = False
+
 class DirectedMoveCompositionCompletion:
 
-    def __init__(self, fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None):
+    def __init__(self, fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, show_translations_and_reflections_separately=show_translations_and_reflections_separately, show_zero_perturbation=True):
         self.show_plots = show_plots
         self.plot_background = plot_background
         # To show colorful components at borders, and in extend_domain_of_move_by_adding_covered_intervals, need the function. Otherwise set it to default None
@@ -3971,6 +3973,8 @@ class DirectedMoveCompositionCompletion:
         self.num_rounds = -1
         self.is_complete = False
         self.proj_add_vert = proj_add_vert
+        self._show_translations_and_reflections_separately = show_translations_and_reflections_separately
+        self._show_zero_perturbation = show_zero_perturbation
 
     def add_move(self, fdm):
         """
@@ -4005,17 +4009,27 @@ class DirectedMoveCompositionCompletion:
         #  return a set, unsorted
         return zero_perturbation_points
 
-    def plot(self, *args, **kwds):
-        g = plot_directed_moves(list(self.move_dict.values()), **kwds)
-        zero_perturbation =  zero_perturbation_partial_function(self.covered_components, \
-                                                                self.generate_zero_perturbation_points())
-        if zero_perturbation:
-            g += plot_function_at_borders(zero_perturbation, color='magenta', legend_label='fixed perturbation (mod interpol)', thickness=3)
+    def _plot_directed_moves(self, moves, color='blue', **kwds):
+        g = plot_directed_moves(moves, color=color, ymin=0, ymax=1, **kwds)
+        if self._show_zero_perturbation:
+            zero_perturbation = zero_perturbation_partial_function(self.covered_components,
+                                                                   self.generate_zero_perturbation_points())
+            if zero_perturbation:
+                g += plot_function_at_borders(zero_perturbation, color='magenta', legend_label='fixed perturbation (mod interpol)', thickness=3)
         if self.plot_background:
             g += self.plot_background
         if self.function_at_border and self.covered_components:
             g +=  plot_covered_components_at_borders(self.function_at_border, self.covered_components, **kwds)
         return g
+
+    def plot(self, legend_label='moves', *args, **kwds):
+        if self._show_translations_and_reflections_separately:
+            gt = self._plot_directed_moves([ fdm for fdm in self.move_dict.values() if fdm.sign() == +1 ], color='blue', legend_label='translation moves', **kwds)
+            gr = self._plot_directed_moves([ fdm for fdm in self.move_dict.values() if fdm.sign() == -1 ], color='red', legend_label='reflection moves', **kwds)
+            return graphics_array([gt, gr])
+        else:
+            return self._plot_directed_moves(list(self.move_dict.values()),
+                                             legend_label=legend_label, **kwds)
 
     def maybe_show_plot(self, current_dense_move_plot=None):
         if (self.any_change_components or self.any_change_moves) and self.show_plots:
@@ -4032,7 +4046,11 @@ class DirectedMoveCompositionCompletion:
             g = self.plot(legend_label='moves')
             if current_dense_move_plot:
                 g += current_dense_move_plot
-            show_plot(g, self.show_plots, tag, legend_title=title, legend_loc="upper left", object=self)
+            if isinstance(g, sage.plot.graphics.GraphicsArray):
+                # GraphicsArrays can't have legends.
+                show_plot(g, self.show_plots, tag, object=self)
+            else:
+                show_plot(g, self.show_plots, tag, legend_title=title, legend_loc="upper left", object=self)
             logging.info("Plotting... done")
 
     def extend_components_by_moves(self):
