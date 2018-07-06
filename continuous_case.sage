@@ -46,9 +46,9 @@ def generate_overlapping_interval_indices(interval, breakpoints):
 
     Examples:
         sage: generate_overlapping_interval_indices([1/3,2/3], [0,1/4,1/2,3/4,1])
-        [1,2]
+        [1, 2]
         sage: generate_overlapping_interval_indices([1/3,2/3], [0,1/4,1/3,1/2,2/3])
-        [1,2,3]
+        [1, 2, 3]
 
     """
     i=bisect_left(breakpoints,interval[0])
