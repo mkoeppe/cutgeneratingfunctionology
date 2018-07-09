@@ -171,7 +171,7 @@ class Face:
     def __repr__(self):
         return '<Face ' + repr(self.minimal_triple) + '>'
 
-    def plot(self, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color="mediumspringgreen", *args, **kwds):
+    def plot(self, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color="mediumspringgreen", edge_thickness=2, *args, **kwds):
         y = var('y')
         trip = self.minimal_triple
         vert = self.vertices
@@ -179,11 +179,11 @@ class Face:
             return point((trip[0][0], \
                           trip[1][0]), rgbcolor = rgbcolor, size = 30, **kwds)
         elif self.is_horizontal():
-            return line([(trip[0][0],trip[1][0]),(trip[0][1],trip[1][0])], rgbcolor = rgbcolor, thickness=2, **kwds)
+            return line([(trip[0][0],trip[1][0]),(trip[0][1],trip[1][0])], rgbcolor = rgbcolor, thickness=edge_thickness, **kwds)
         elif self.is_vertical():
-            return line([(trip[0][0],trip[1][0]),(trip[0][0],trip[1][1])], rgbcolor = rgbcolor, thickness=2, **kwds)
+            return line([(trip[0][0],trip[1][0]),(trip[0][0],trip[1][1])], rgbcolor = rgbcolor, thickness=edge_thickness, **kwds)
         elif self.is_diagonal():
-            return line([(trip[0][0],trip[2][0]-trip[0][0]),(trip[0][1],trip[2][0]-trip[0][1])], rgbcolor = rgbcolor, thickness=2, **kwds)
+            return line([(trip[0][0],trip[2][0]-trip[0][0]),(trip[0][1],trip[2][0]-trip[0][1])], rgbcolor = rgbcolor, thickness=edge_thickness, **kwds)
         elif self.is_2D():
             ## Sorting is necessary for this example:
             ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("data/dey-richard-not-extreme.txt"))
