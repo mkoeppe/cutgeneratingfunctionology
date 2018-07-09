@@ -209,15 +209,24 @@ def sampled_face(F, num_samples=5):
            + [ Face([I, [y], K]) for y in sampled_interval(J, num_samples) ] \
            + [ Face([I, J, [z]]) for z in sampled_interval(K, num_samples) ]
 
-F = Face([[2/9, 3/9], [4/9, 5/9], [6/9, 7/9]])
-
+F = Face([[2/19, 3/19], [6/19, 7/19], [8/19, 9/19]]) # lower triangle
 E_list = [ E for E in sampled_face(F) if E.is_1D() ]
+fname = destdir+'triangle_sampled-%s.png'
 
-
-g = sum(E.plot() for E in E_list)
-g.save(destdir+'triangle_sampled-2d_diagram.png', xmin=0, xmax=1, ymin=0, ymax=1, aspect_ratio=1)
+g = sum(E.plot(edge_thickness=1) for E in E_list)
+g.save(fname % "2d_diagram", xmin=0, xmax=1, ymin=0, ymax=1, aspect_ratio=1)
 
 background = polygon(((0,0), (0,1), (1,1), (1,0)), color='white', aspect_ratio=1, zorder=-2)
-completion = DirectedMoveCompositionCompletion(fdms = [ E.functional_directed_move() for E in E_list ], show_plots=destdir+'triangle_sampled-%s.png', plot_background=background, show_translations_and_reflections_separately=True, show_zero_perturbation=False)
+completion = DirectedMoveCompositionCompletion(fdms = [ E.functional_directed_move() for E in E_list ], show_plots=fname, plot_background=background, show_translations_and_reflections_separately=True, show_zero_perturbation=False)
 #show(completion.plot())
 completion.complete()
+
+F2 = Face([[4/19, 5/19], [11/19, 12/19], [16/19, 17/19]]) # upper triangle
+E2_list = E_list + [ E for E in sampled_face(F2) if E.is_1D() ] # lower and upper together (separate components)
+fname = destdir+'two_triangles_sampled-%s.png'
+
+g = sum(E.plot(edge_thickness=1) for E in E2_list)
+g.save(fname % "2d_diagram", xmin=0, xmax=1, ymin=0, ymax=1, aspect_ratio=1)
+
+completion2 = DirectedMoveCompositionCompletion(fdms = [ E.functional_directed_move() for E in E2_list ], show_plots=fname, plot_background=background, show_translations_and_reflections_separately=True, show_zero_perturbation=False)
+completion2.complete()
