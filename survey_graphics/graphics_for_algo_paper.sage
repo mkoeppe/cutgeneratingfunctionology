@@ -209,7 +209,7 @@ def sampled_face(F, num_samples=5):
            + [ Face([I, [y], K]) for y in sampled_interval(J, num_samples) ] \
            + [ Face([I, J, [z]]) for z in sampled_interval(K, num_samples) ]
 
-def symmetric_sampled_faces(F, F_prime, num_samples=5):
+def symmetric_sampled_faces(F, Fprime, num_samples=5):
     E_list = [ E for E in sampled_face(F) if E.is_1D() ]
     E_list += [ E for E in sampled_face(Fprime) if E.is_1D() ]
     return E_list
