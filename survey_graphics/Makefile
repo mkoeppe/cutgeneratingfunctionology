@@ -36,3 +36,6 @@ crazy_perturbation_graphics/crazy_perturbation_graphics.pdf:
 	(cd .. && sage -c 'sys.path = [""] + sys.path; load("survey_graphics/graphics_for_crazy_perturbation.sage")')
 
 .PHONY: crazy_perturbation_graphics/crazy_perturbation_graphics.pdf
+
+algo-paper-graphics:
+	(cd .. && sage -c 'sys.path = [""] + sys.path; load("survey_graphics/graphics_for_algo_paper.sage")')
