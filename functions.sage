@@ -3034,8 +3034,8 @@ def generate_perturbations(fn, show_plots=False, f=None, max_num_it=1000, finite
         yield perturbation
 
 def generate_perturbations_equivariant(fn, show_plots=False, f=None, max_num_it=1000):
-    if not fn.is_continuous():
-        logging.warning("Code for detecting perturbations using moves is EXPERIMENTAL in the discontinuous case.")
+    if fn.is_two_sided_discontinuous():
+        logging.warning("Code for detecting perturbations using moves is EXPERIMENTAL in the two-sided discontinuous case.")
     generator = generate_generic_seeds_with_completion(fn, show_plots=show_plots, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
     #seen_perturbation = False
     for seed, stab_int, walk_list in generator:
