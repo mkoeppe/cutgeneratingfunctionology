@@ -604,6 +604,11 @@ def plot_projections_at_borders(fn):
     - `p_2(F)` at the left border, 
     - `p_3(F)` at the bottom and the right borders.
     """
+    return plot_projections_of_faces(end_points=fn.end_points(),
+                                    nonsubadditive_vertices=generate_nonsubadditive_vertices(fn),
+                                    additive_faces=generate_maximal_additive_faces(fn))
+
+def plot_projections_of_faces(additive_faces, nonsubadditive_vertices=(), end_points=()):
     g = Graphics()
     I_J_verts = set()
     K_verts = set()
@@ -623,23 +628,23 @@ def plot_projections_at_borders(fn):
         #IJK_kwds[i]['legend_color'] = proj_plot_colors[i] # does not work in Sage 5.11
         IJK_kwds[i]['color'] = proj_plot_colors[i]
         plot_kwds_hook(IJK_kwds[i])
-    for face in generate_maximal_additive_faces(fn):
+    for face in additive_faces:
         I, J, K = face.minimal_triple
         I_J_verts.update(I) # no need for J because the x-y swapped face will also be processed
         K_verts.update(K)
         g += plot_projections_of_one_face(face, IJK_kwds)
-    for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices(fn):
+    for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices:
         I_J_verts.add(x)
         I_J_verts.add(y)
         K_verts.add(z)
     # plot dashed help lines corresponding to non-breakpoint projections. 
     # (plot_2d_complex already draws solid lines for the breakpoints.)
-    I_J_verts.difference_update(fn.end_points())
+    I_J_verts.difference_update(end_points)
     for x in I_J_verts:
         g += line([(x, 0), (x, 1)], linestyle=':', color='grey')
         g += line([(0, x), (1, x)], linestyle=':', color='grey')
-    K_verts.difference_update(fn.end_points())
-    K_verts.difference_update(1 + x for x in fn.end_points())
+    K_verts.difference_update(end_points)
+    K_verts.difference_update(1 + x for x in end_points)
     for z in K_verts:
         if z <= 1:
             g += line([(0, z), (z, 0)], linestyle=':', color='grey')
