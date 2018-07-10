@@ -879,7 +879,7 @@ def number_of_components(fn):
     covered_components = generate_covered_components(fn)
     return len(covered_components)
 
-def slopes_intervals_dict(fn):
+def slopes_intervals_dict(fn, ignore_nonlinear=False):
     """
     Returns a dictionary that maps a slope value to a list of intervals with that slope.
 
@@ -897,7 +897,10 @@ def slopes_intervals_dict(fn):
                     slopes_dict[f._slope] = []
                 slopes_dict[f._slope].append((i[0], i[1]))
             except AttributeError:
-                pass
+                if ignore_nonlinear:
+                    pass
+                else:
+                    raise ValueError("Nonlinear piece in function")
     return slopes_dict
 
 def number_of_slopes(fn):
@@ -916,6 +919,25 @@ def number_of_slopes(fn):
         1
         sage: number_of_slopes(automorphism(restrict_to_finite_group(gmic(10/11)), 3))
         2
+
+    For non-piecewise linear functions, this raises an exception::
+
+        sage: number_of_slopes(california_ip())
+        Traceback (most recent call last):
+        ...
+        ValueError: Nonlinear piece in function
+        sage: number_of_slopes(bccz_counterexample())
+        Traceback (most recent call last):
+        ...
+        AttributeError: ... has no attribute 'is_discrete'
+        sage: number_of_slopes(bcds_discontinuous_everywhere())
+        Traceback (most recent call last):
+        ...
+        AttributeError: ... has no attribute 'is_discrete'
+        sage: number_of_slopes(kzh_minimal_has_only_crazy_perturbation_1_perturbation())
+        Traceback (most recent call last):
+        ...
+        AttributeError: ... has no attribute 'is_discrete'
     """
     if fn.is_discrete():
         fn = interpolate_to_infinite_group(fn)
@@ -925,7 +947,7 @@ def plot_with_colored_slopes(fn):
     """
     Returns a plot of fn, with pieces of different slopes in different colors.
     """
-    slopes_dict = slopes_intervals_dict(fn)
+    slopes_dict = slopes_intervals_dict(fn, ignore_nonlinear=True)
     return plot_covered_intervals(fn, slopes_dict.values(), labels=[ "Slope %s" % s for s in slopes_dict.keys() ])
 
 ### Minimality check.
@@ -3039,8 +3061,8 @@ def generate_perturbations(fn, show_plots=False, f=None, max_num_it=1000, finite
         yield perturbation
 
 def generate_perturbations_equivariant(fn, show_plots=False, f=None, max_num_it=1000):
-    if not fn.is_continuous():
-        logging.warning("Code for detecting perturbations using moves is EXPERIMENTAL in the discontinuous case.")
+    if fn.is_two_sided_discontinuous():
+        logging.warning("Code for detecting perturbations using moves is EXPERIMENTAL in the two-sided discontinuous case.")
     generator = generate_generic_seeds_with_completion(fn, show_plots=show_plots, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
     #seen_perturbation = False
     for seed, stab_int, walk_list in generator:

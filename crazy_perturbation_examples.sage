@@ -107,6 +107,8 @@ def kzh_minimal_has_only_crazy_perturbation_1():
         sage: crazy_piece_1 = CrazyPiece((ucl, ucr), generators, [(ucl, 1), (ucr, -1)])
         sage: crazy_piece_2 = CrazyPiece((f-ucr, f-ucl), generators, [(f-ucr, 1), (f-ucl, -1)])
         sage: cp = PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
+        sage: cp == kzh_minimal_has_only_crazy_perturbation_1_perturbation()  # not tested - equality is not implemented
+        True
 
     This crazy perturbation is valid, since it has positive epsilon::
 
@@ -161,3 +163,20 @@ def kzh_minimal_has_only_crazy_perturbation_1():
         pieces.append(open_piece((bkpt_rat[i-1]*o+bkpt_irr[i-1]*sqrt2, lim_right_rat[i-1]*o+lim_right_irr[i-1]*sqrt2),(bkpt_rat[i]*o+bkpt_irr[i]*sqrt2, lim_left_rat[i]*o+lim_left_irr[i]*sqrt2)))
         pieces.append(singleton_piece(bkpt_rat[i]*o+bkpt_irr[i]*sqrt2, value_rat[i]*o+value_irr[i]*sqrt2))
     return FastPiecewise(pieces)
+
+def kzh_minimal_has_only_crazy_perturbation_1_perturbation():
+    """
+    A crazy perturbation for ``kzh_minimal_has_only_crazy_perturbation_1``.
+    """
+    h = kzh_minimal_has_only_crazy_perturbation_1()
+    bkpts = h.end_points()
+    t1 = bkpts[10]-bkpts[6]
+    t2 = bkpts[13]-bkpts[6]
+    f = bkpts[37]
+    ucl = bkpts[17]
+    ucr = bkpts[18]
+    generators = [t1, t2]
+    pwl = piecewise_function_from_breakpoints_and_slopes([0,1],[0])
+    crazy_piece_1 = CrazyPiece((ucl, ucr), generators, [(ucl, 1), (ucr, -1)])
+    crazy_piece_2 = CrazyPiece((f-ucr, f-ucl), generators, [(f-ucr, 1), (f-ucl, -1)])
+    return PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
