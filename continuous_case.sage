@@ -95,7 +95,6 @@ def generate_maximal_additive_faces_continuous(function):
     for i in range(len(I_list)):
         for j in range(i, len(J_list)):
             IplusJ = interval_sum(I_list[i],J_list[j])
-            bisect_left
             for k in generate_overlapping_interval_indices(IplusJ, bkpt2):
                 # Check if int(I+J) intersects int(K) is non-empty.
                 if len(interval_intersection(IplusJ,K_list[k])) == 2:
