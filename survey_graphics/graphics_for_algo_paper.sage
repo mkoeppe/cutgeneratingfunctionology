@@ -6,6 +6,9 @@ ftype = ".png"
 
 logging.disable(logging.INFO)
 
+igp.plot = plot_no_legend
+igp.plot_kwds_hook = plot_kwds_hook_no_legend
+
 
 ## ######## not used ###
 ## g = line([(0,0), (0.2,0)],color='black')
