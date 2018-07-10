@@ -5,6 +5,11 @@ if '' not in sys.path:
 
 from igp import *
 
+"""
+    sage: import warnings
+    sage: warnings.filterwarnings('ignore', 'Matplotlib is building the font cache using fc-list. This may take a moment.')
+"""
+
 import sage.structure.element
 from sage.structure.element import FieldElement
 
