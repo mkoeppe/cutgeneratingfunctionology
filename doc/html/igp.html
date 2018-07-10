@@ -8386,6 +8386,8 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <span class="gp">sage: </span><span class="n">crazy_piece_1</span> <span class="o">=</span> <span class="n">CrazyPiece</span><span class="p">((</span><span class="n">ucl</span><span class="p">,</span> <span class="n">ucr</span><span class="p">),</span> <span class="n">generators</span><span class="p">,</span> <span class="p">[(</span><span class="n">ucl</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">ucr</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)])</span>
 <span class="gp">sage: </span><span class="n">crazy_piece_2</span> <span class="o">=</span> <span class="n">CrazyPiece</span><span class="p">((</span><span class="n">f</span><span class="o">-</span><span class="n">ucr</span><span class="p">,</span> <span class="n">f</span><span class="o">-</span><span class="n">ucl</span><span class="p">),</span> <span class="n">generators</span><span class="p">,</span> <span class="p">[(</span><span class="n">f</span><span class="o">-</span><span class="n">ucr</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">f</span><span class="o">-</span><span class="n">ucl</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)])</span>
 <span class="gp">sage: </span><span class="n">cp</span> <span class="o">=</span> <span class="n">PiecewiseCrazyFunction</span><span class="p">(</span><span class="n">pwl</span><span class="p">,</span> <span class="p">[</span><span class="n">crazy_piece_1</span><span class="p">,</span> <span class="n">crazy_piece_2</span><span class="p">])</span>
+<span class="gp">sage: </span><span class="n">cp</span> <span class="o">==</span> <span class="n">kzh_minimal_has_only_crazy_perturbation_1_perturbation</span><span class="p">()</span>  <span class="c1"># not tested - equality is not implemented</span>
+<span class="go">True</span>
 </pre></div>
 </div>
 <p>This crazy perturbation is valid, since it has positive epsilon:</p>
@@ -8424,6 +8426,12 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 </pre></div>
 </div>
 </div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="igp.kzh_minimal_has_only_crazy_perturbation_1_perturbation">
+<code class="descclassname">igp.</code><code class="descname">kzh_minimal_has_only_crazy_perturbation_1_perturbation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.kzh_minimal_has_only_crazy_perturbation_1_perturbation" title="Permalink to this definition">¶</a></dt>
+<dd><p>A crazy perturbation for <code class="docutils literal"><span class="pre">kzh_minimal_has_only_crazy_perturbation_1</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -9866,6 +9874,25 @@ of its piecewise linear continuous interpolation.</p>
 <span class="go">1</span>
 <span class="gp">sage: </span><span class="n">number_of_slopes</span><span class="p">(</span><span class="n">automorphism</span><span class="p">(</span><span class="n">restrict_to_finite_group</span><span class="p">(</span><span class="n">gmic</span><span class="p">(</span><span class="mi">10</span><span class="o">/</span><span class="mi">11</span><span class="p">)),</span> <span class="mi">3</span><span class="p">))</span>
 <span class="go">2</span>
+</pre></div>
+</div>
+<p>For non-piecewise linear functions, this raises an exception:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">number_of_slopes</span><span class="p">(</span><span class="n">california_ip</span><span class="p">())</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">Nonlinear piece in function</span>
+<span class="gp">sage: </span><span class="n">number_of_slopes</span><span class="p">(</span><span class="n">bccz_counterexample</span><span class="p">())</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">... has no attribute &#39;is_discrete&#39;</span>
+<span class="gp">sage: </span><span class="n">number_of_slopes</span><span class="p">(</span><span class="n">bcds_discontinuous_everywhere</span><span class="p">())</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">... has no attribute &#39;is_discrete&#39;</span>
+<span class="gp">sage: </span><span class="n">number_of_slopes</span><span class="p">(</span><span class="n">kzh_minimal_has_only_crazy_perturbation_1_perturbation</span><span class="p">())</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">... has no attribute &#39;is_discrete&#39;</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -12403,7 +12430,7 @@ Remove redundant inequalities using PPL.</p>
 
 <dl class="function">
 <dt id="igp.slopes_intervals_dict">
-<code class="descclassname">igp.</code><code class="descname">slopes_intervals_dict</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.slopes_intervals_dict" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">igp.</code><code class="descname">slopes_intervals_dict</code><span class="sig-paren">(</span><em>fn</em>, <em>ignore_nonlinear=False</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.slopes_intervals_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dictionary that maps a slope value to a list of intervals with that slope.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
