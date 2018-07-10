@@ -1,17 +1,6 @@
 import igp
 from igp import *
 
-def plot_no_legend(f, *args, **kwds):
-    # really should rather use plot_kwds_hook everywhere in functions.sage
-    plot_kwds_hook_no_legend(kwds)
-    return orig_plot(f, *args, **kwds)
-
-def plot_kwds_hook_no_legend(kwds):
-    if 'legend_label' in kwds:
-        del kwds['legend_label']
-    if 'legend_title' in kwds:
-        del kwds['legend_title']
-
 destdir = "/Users/mkoeppe/Dropbox/basu-hildebrand-koeppe-papers-for-yuan/algo-paper/slides/"
 
 orig_plot = sage.plot.plot.plot

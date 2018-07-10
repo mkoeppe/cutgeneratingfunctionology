@@ -152,20 +152,6 @@ def no_labels_ticks_keywords(function, y_ticks_for_breakpoints=False):
 def dark_rainbow(num):
     return ['darkblue', 'darkgreen', 'firebrick', 'darkcyan', 'darkmagenta'][:num]
 
-def plot_no_legend(f, *args, **kwds):
-    # really should rather use plot_kwds_hook everywhere in functions.sage
-    plot_kwds_hook_no_legend(kwds)
-    return orig_plot(f, *args, **kwds)
-
-def plot_kwds_hook_no_legend(kwds):
-    if 'legend_label' in kwds:
-        del kwds['legend_label']
-    if 'legend_title' in kwds:
-        del kwds['legend_title']
-
-def dont_plot_rescaled_perturbation(*args, **kwds):
-    return Graphics()
-
 def plot_something(h):
     g = None
     try:
