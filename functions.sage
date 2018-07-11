@@ -2736,6 +2736,10 @@ def show_plot(graphics, show_plots, tag, object=None, **show_kwds):
     - a string (file name format such as "FILENAME-%s.pdf", where %s is replaced by tag.
     """
     plot_kwds_hook(show_kwds)
+    if isinstance(graphics, sage.plot.graphics.GraphicsArray):
+        # GraphicsArrays can't have legends.
+        show_kwds = copy(show_kwds)
+        plot_kwds_hook_no_legend(show_kwds)
     if isinstance(show_plots, str):
         graphics.save(show_plots % tag, figsize=show_plots_figsize, **show_kwds)
     elif show_plots:
@@ -4078,11 +4082,7 @@ class DirectedMoveCompositionCompletion:
             g = self.plot(legend_label='moves')
             if current_dense_move_plot:
                 g += current_dense_move_plot
-            if isinstance(g, sage.plot.graphics.GraphicsArray):
-                # GraphicsArrays can't have legends.
-                show_plot(g, self.show_plots, tag, object=self)
-            else:
-                show_plot(g, self.show_plots, tag, legend_title=title, legend_loc="upper left", object=self)
+            show_plot(g, self.show_plots, tag, legend_title=title, legend_loc="upper left", object=self)
             logging.info("Plotting... done")
 
     def extend_components_by_moves(self):

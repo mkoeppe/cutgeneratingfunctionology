@@ -7,6 +7,8 @@ def plot_no_legend(f, *args, **kwds):
 def plot_kwds_hook_no_legend(kwds):
     if 'legend_label' in kwds:
         del kwds['legend_label']
+    if 'legend_loc' in kwds:
+        del kwds['legend_loc']
     if 'legend_title' in kwds:
         del kwds['legend_title']
 
