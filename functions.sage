@@ -3982,7 +3982,7 @@ show_translations_and_reflections_separately = False
 
 class DirectedMoveCompositionCompletion:
 
-    def __init__(self, fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, show_translations_and_reflections_separately=show_translations_and_reflections_separately, show_zero_perturbation=True):
+    def __init__(self, fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, show_zero_perturbation=True):
         self.show_plots = show_plots
         self.plot_background = plot_background
         # To show colorful components at borders, and in extend_domain_of_move_by_adding_covered_intervals, need the function. Otherwise set it to default None
@@ -4000,7 +4000,6 @@ class DirectedMoveCompositionCompletion:
         self.num_rounds = -1
         self.is_complete = False
         self.proj_add_vert = proj_add_vert
-        self._show_translations_and_reflections_separately = show_translations_and_reflections_separately
         self._show_zero_perturbation = show_zero_perturbation
 
     def add_move(self, fdm):
@@ -4050,7 +4049,7 @@ class DirectedMoveCompositionCompletion:
         return g
 
     def plot(self, legend_label='moves', *args, **kwds):
-        if self._show_translations_and_reflections_separately:
+        if show_translations_and_reflections_separately:
             gt = self._plot_directed_moves([ fdm for fdm in self.move_dict.values() if fdm.sign() == +1 ], color='blue', legend_label='translation moves', **kwds)
             gr = self._plot_directed_moves([ fdm for fdm in self.move_dict.values() if fdm.sign() == -1 ], color='red', legend_label='reflection moves', **kwds)
             return graphics_array([gt, gr])

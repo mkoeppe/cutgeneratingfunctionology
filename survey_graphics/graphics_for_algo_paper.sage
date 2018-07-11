@@ -9,6 +9,10 @@ logging.disable(logging.INFO)
 igp.plot = plot_no_legend
 igp.plot_kwds_hook = plot_kwds_hook_no_legend
 
+# Two independently configurable style options for moves diagrams.
+igp.show_translations_and_reflections_separately = True
+
+
 
 ## ######## not used ###
 ## g = line([(0,0), (0.2,0)],color='black')
@@ -239,7 +243,7 @@ g.save(fname % "2d_diagram", xmin=0, xmax=1, ymin=0, ymax=1, aspect_ratio=1,
 
 background = polygon(((0,0), (0,1), (1,1), (1,0)), color='white', aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F_list))
 # FIXME: The ticks keywords don't seem to apply to the translation moves diagram....
-completion = DirectedMoveCompositionCompletion(fdms = [ E.functional_directed_move() for E in E_list ], show_plots=fname, plot_background=background, show_translations_and_reflections_separately=True, show_zero_perturbation=False)
+completion = DirectedMoveCompositionCompletion(fdms = [ E.functional_directed_move() for E in E_list ], show_plots=fname, plot_background=background, show_zero_perturbation=False)
 #show(completion.plot())
 completion.complete()
 
@@ -257,5 +261,5 @@ g.save(fname % "2d_diagram", xmin=0, xmax=1, ymin=0, ymax=1, aspect_ratio=1,
        **ticks_keywords_for_faces(F2_list))
 
 background = polygon(((0,0), (0,1), (1,1), (1,0)), color='white', aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F2_list))
-completion2 = DirectedMoveCompositionCompletion(fdms = [ E.functional_directed_move() for E in E2_list ], show_plots=fname, plot_background=background, show_translations_and_reflections_separately=True, show_zero_perturbation=False)
+completion2 = DirectedMoveCompositionCompletion(fdms = [ E.functional_directed_move() for E in E2_list ], show_plots=fname, plot_background=background, show_zero_perturbation=False)
 completion2.complete()
