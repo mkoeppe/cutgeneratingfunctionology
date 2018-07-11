@@ -11,6 +11,7 @@ igp.plot_kwds_hook = plot_kwds_hook_no_legend
 
 # Two independently configurable style options for moves diagrams.
 igp.show_translations_and_reflections_separately = True
+igp.show_translations_and_reflections_by_color = True
 
 
 

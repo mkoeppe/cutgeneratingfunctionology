@@ -2614,12 +2614,17 @@ class FunctionalDirectedMove (FastPiecewise):
         new_domain = union_of_coho_intervals_minus_union_of_coho_intervals([domain], restricting_domain_list, remove_closure=True )
         return FunctionalDirectedMove(new_domain, self.directed_move)
 
-    def plot(self, *args, **kwds):
+    def plot(self, rgbcolor=None, color=None, *args, **kwds):
         kwds = copy(kwds)
         kwds['aspect_ratio'] = 1.0
         # ignore discontinuity markers in the moves diagram
         kwds['discontinuity_markers'] = False
-        return FastPiecewise.plot(self, *args, **kwds)
+        if rgbcolor is None:
+            if show_translations_and_reflections_by_color and self.sign() == -1:
+                rgbcolor='red'
+            else:
+                rgbcolor='blue'
+        return FastPiecewise.plot(self, color=rgbcolor, *args, **kwds)
 
     def __invert__(self):
         """
@@ -3979,6 +3984,7 @@ def extended_initial_move_by_continuity(fdm, fn):
     return FunctionalDirectedMove(extended_domain, fdm.directed_move)
 
 show_translations_and_reflections_separately = False
+show_translations_and_reflections_by_color = False
 
 class DirectedMoveCompositionCompletion:
 
@@ -4035,8 +4041,8 @@ class DirectedMoveCompositionCompletion:
         #  return a set, unsorted
         return zero_perturbation_points
 
-    def _plot_directed_moves(self, moves, color='blue', **kwds):
-        g = plot_directed_moves(moves, color=color, ymin=0, ymax=1, **kwds)
+    def _plot_directed_moves(self, moves, **kwds):
+        g = plot_directed_moves(moves, ymin=0, ymax=1, **kwds)
         if self._show_zero_perturbation:
             zero_perturbation = zero_perturbation_partial_function(self.covered_components,
                                                                    self.generate_zero_perturbation_points())
@@ -4050,8 +4056,8 @@ class DirectedMoveCompositionCompletion:
 
     def plot(self, legend_label='moves', *args, **kwds):
         if show_translations_and_reflections_separately:
-            gt = self._plot_directed_moves([ fdm for fdm in self.move_dict.values() if fdm.sign() == +1 ], color='blue', legend_label='translation moves', **kwds)
-            gr = self._plot_directed_moves([ fdm for fdm in self.move_dict.values() if fdm.sign() == -1 ], color='red', legend_label='reflection moves', **kwds)
+            gt = self._plot_directed_moves([ fdm for fdm in self.move_dict.values() if fdm.sign() == +1 ], legend_label='translation moves', **kwds)
+            gr = self._plot_directed_moves([ fdm for fdm in self.move_dict.values() if fdm.sign() == -1 ], legend_label='reflection moves', **kwds)
             return graphics_array([gt, gr])
         else:
             return self._plot_directed_moves(list(self.move_dict.values()),
