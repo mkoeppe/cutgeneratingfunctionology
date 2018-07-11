@@ -66,6 +66,12 @@ extremality_test(h, show_plots=destdir+"two-sided-discontinuous-%s.png", show_al
 ## find_epsilon_for_crazy_perturbation(h1, cp)
 ## 0
 
+############################################################
+### Split lemma diagrams
+############################################################
+save_show_translations_and_reflections_separately = igp.show_translations_and_reflections_separately
+igp.show_translations_and_reflections_separately = False # override -- show translations only!
+
 plot_background = polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
 t1 = 2/15 #1/10
 t2 = 3/15 #3/10
@@ -92,7 +98,11 @@ g1.save(destdir+"strip-lemma-dependent.png",ticks=[[0,l,u,1],[0,l,u,1]],tick_for
 g2 = g1 + polygon(((l,l), (l,u), (u,u), (u,l)), color="cyan")
 #g2.show(ticks=[[0,l,u,1],[0,l,u,1]],tick_formatter=[["$0$","$l$","$u$","$1$"], ["$0$","$l$","$u$","$1$"]],figsize=5)
 g2.save(destdir+"strip-lemma-independent.png",ticks=[[0,l,u,1],[0,l,u,1]],tick_formatter=[["$0$","$l$","$u$","$1$"], ["$0$","$l$","$u$","$1$"]],figsize=5)
+igp.show_translations_and_reflections_separately = save_show_translations_and_reflections_separately
 
+############################################################
+## Other moves diagrams:
+############################################################
 
 plot_background = polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
 a = 3/10; b=45/100; t1=1/4; t2=1-1/10; r=7/6
@@ -138,11 +148,11 @@ g += text("", (0,t2-1), axis_coords=False, vertical_alignment='center',horizonta
 #g.show(ticks=[tkx,tky], tick_formatter=[tkxf, tkyf], figsize=5)
 g.save(destdir+"moves-diagram-edges.png",ticks=[tkx,tky], tick_formatter=[tkxf, tkyf], figsize=5)
 
-
+plot_background = polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
 fdms = [face.functional_directed_move() for face in [F1,F1v,F2,F2v,F3]]
-c = DirectedMoveCompositionCompletion(fdms, plot_background=plot_background)
-c.add_backward_moves()
-gg = c.plot() + line([(0, 0), (1, 1)], linestyle='-.', color='grey') + line([(a, 0), (a, 1)], linestyle=':', color='grey') + line([(b, 0), (b, 1)], linestyle=':', color='grey') + line([(0, a+t1), (a, a+t1)], linestyle=':', color='grey') + line([(0,b+t1), (b, b+t1)], linestyle=':', color='grey') + line([(0, a+t2-1), (a, a+t2-1)], linestyle=':', color='grey') + line([(0,b+t2-1), (b, b+t2-1)], linestyle=':', color='grey') + line([(0, t1), (a, a+t1)], linestyle=':', color='grey') + line([(0, t2-1), (a, a+t2-1)], linestyle=':', color='grey')
+gg = plot_background
+# perhaps split up into extra_translation_graphics, extra_reflection_graphics...
+gg += line([(0, 0), (1, 1)], linestyle='-.', color='grey') + line([(a, 0), (a, 1)], linestyle=':', color='grey') + line([(b, 0), (b, 1)], linestyle=':', color='grey') + line([(0, a+t1), (a, a+t1)], linestyle=':', color='grey') + line([(0,b+t1), (b, b+t1)], linestyle=':', color='grey') + line([(0, a+t2-1), (a, a+t2-1)], linestyle=':', color='grey') + line([(0,b+t2-1), (b, b+t2-1)], linestyle=':', color='grey') + line([(0, t1), (a, a+t1)], linestyle=':', color='grey') + line([(0, t2-1), (a, a+t2-1)], linestyle=':', color='grey')
 gg += text("$\\tau_1^+$", ((a+b)/2,(a+b)/2+t1+0.02), axis_coords=False, vertical_alignment='center',horizontal_alignment='right', color='black')
 gg += text("$\\tau_2^+$", ((a+b)/2,(a+b)/2+t2-1-0.02), axis_coords=False, vertical_alignment='top',horizontal_alignment='center', color='black')
 gg += text("$\\tau_1^-$", ((a+b)/2+t1+0.02, (a+b)/2), axis_coords=False, vertical_alignment='top',horizontal_alignment='left', color='black')
@@ -150,13 +160,15 @@ gg += text("$\\tau_2^-$", ((a+b)/2+t2-1, (a+b)/2+0.02), axis_coords=False, verti
 gg += text("$\\rho_r|_{(a,b)}$", ((a+b)/2,r-(a+b)/2+0.02), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='left', color='black')
 gg += text("$(\\rho_r|_{(a,b)})^{-1}$", (r-(a+b)/2-0.02,(a+b)/2), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='left', color='black')
 gg += line([(b, r-b), (r, 0)], linestyle=':', color='grey', zorder=-10)
+c = DirectedMoveCompositionCompletion(fdms, plot_background=gg)
+c.add_backward_moves()
 mtkx = [0,a,b,1,r]
 mtky = [t2-1,0,a+t2-1,t1, b+t2-1,a+t1,b+t1,1]
 mtkxf = ["$0$","$a$","$b$","$1$","$r$"]
 mtkyf = ["$t_2-1$","$0$","$a+t_2-1$","$t_1$","$b+t_2-1$","$a+t_1$","$b+t_1$","$1$"]
-gg += text("", ((a+b)/2,1+0.03), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='center', color='black')
-#gg.show(ticks=[mtkx,mtky], tick_formatter=[mtkxf, mtkyf], figsize=5)
-gg.save(destdir+"moves-diagram.png",ticks=[mtkx,mtky], tick_formatter=[mtkxf, mtkyf], figsize=5)
+gg = c.plot(extra_graphics=text("", ((a+b)/2,1+0.03), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='center', color='black',ticks=[mtkx,mtky], tick_formatter=[mtkxf, mtkyf]))
+#gg.show(figsize=5)
+gg.save(destdir+"moves-diagram.png", figsize=5)
 
 ## ########## mip 2017 slides ###########
 ## igprainbow=igp.rainbow

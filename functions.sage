@@ -3103,17 +3103,17 @@ def plot_completion_diagram(fn, perturbation=None):
         extremality_test(fn, show_plots=False)
     if fn._completion.plot_background is None:
         fn._completion.plot_background = plot_completion_diagram_background(fn)
-    g = fn._completion.plot() 
+    g = None
     if perturbation is None:
         if hasattr(fn, '_perturbations') and fn._perturbations:
             perturbation = fn._perturbations[0]
     elif isinstance(perturbation, Integer):
         perturbation = basic_perturbation(fn, perturbation)
     if perturbation is not None:
-        g += plot_function_at_borders(rescale_to_amplitude(perturbation, 1/10), color='magenta', legend_label='perturbation (rescaled)')
+        g = plot_function_at_borders(rescale_to_amplitude(perturbation, 1/10), color='magenta', legend_label='perturbation (rescaled)')
     if hasattr(perturbation, '_walk_list'):
         g += plot_walk_in_completion_diagram(perturbation._seed, perturbation._walk_list)
-    return g
+    return fn._completion.plot(extra_graphics = g)
 
 def perturbation_polyhedron(fn, perturbs):
     """
@@ -4045,7 +4045,7 @@ class DirectedMoveCompositionCompletion:
         #  return a set, unsorted
         return zero_perturbation_points
 
-    def _plot_directed_moves(self, moves, **kwds):
+    def _plot_directed_moves(self, moves, extra_graphics=None, **kwds):
         g = plot_directed_moves(moves, ymin=0, ymax=1, **kwds)
         if self._show_zero_perturbation:
             zero_perturbation = zero_perturbation_partial_function(self.covered_components,
@@ -4056,6 +4056,8 @@ class DirectedMoveCompositionCompletion:
             g += self.plot_background
         if self.function_at_border and self.covered_components:
             g +=  plot_covered_components_at_borders(self.function_at_border, self.covered_components, **kwds)
+        if extra_graphics:
+            g += extra_graphics
         return g
 
     def plot(self, legend_label='moves', *args, **kwds):
