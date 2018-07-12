@@ -260,6 +260,25 @@ completion = DirectedMoveCompositionCompletion(fdms = [ E.functional_directed_mo
 #show(completion.plot())
 completion.complete()
 
+I, J, K = [3/19, 7/19], [1/19, 2/19], [4/19, 6/19]
+F = Face([I, J, K]) # lower triangle
+Fprime = Face([J, I, K]) # swapped
+F_list = [F, Fprime]
+E_list = symmetric_sampled_faces(F, Fprime)
+fname = destdir+'quadrilateral_overlapping_projections-%s.png'
+
+g = plot_projections_of_faces(additive_faces=[F, Fprime])
+g += sum(E.plot(edge_thickness=1) for E in E_list)
+g.save(fname % "2d_diagram", xmin=0, xmax=1, ymin=0, ymax=1, aspect_ratio=1,
+       **ticks_keywords_for_faces((F, Fprime)))
+
+background = polygon(((0,0), (0,1), (1,1), (1,0)), color='white', aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F_list))
+# FIXME: The ticks keywords don't seem to apply to the translation moves diagram....
+completion = DirectedMoveCompositionCompletion(fdms = [ E.functional_directed_move() for E in E_list ], show_plots=fname, plot_background=background, show_zero_perturbation=False)
+#show(completion.plot())
+completion.complete()
+
+
 I2, J2, K2 = [4/19, 5/19], [11/19, 12/19], [16/19, 17/19]
 F2 = Face([I2, J2, K2]) # upper triangle
 F2prime = Face([J2, I2, K2]) # swapped
