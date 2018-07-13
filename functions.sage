@@ -1994,6 +1994,26 @@ def can_coerce_to_QQ(x):
     return False
 
 def is_all_QQ(values):
+    """
+    Check if all numbers in the list ``values`` are (or can be converted to) rationals.
+
+    Returns a tuple of two values:
+
+     - True if all rationals
+     - a list of values (converted to elements of QQ if True, or the original elements otherwise).
+
+    EXAMPLES::
+
+        sage: is_QQ, QQ_values = is_all_QQ([1, 2/3])
+        sage: is_QQ
+        True
+        sage: QQ_values
+        [1, 2/3]
+        sage: [ parent(x) for x in QQ_values ]
+        [Rational Field, Rational Field]
+        sage: is_all_QQ([1, pi])
+        (False, [1, pi])
+    """
     is_rational = False
     try:
         values = [ QQ(x) for x in values ]
