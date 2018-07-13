@@ -1511,6 +1511,10 @@ class ParametricRealField(Field):
         self._bsa = BasicSemialgebraicSet_veronese(self._polyhedron, ambient_dim=n,
                                                    polynomial_map=monomial_list, v_dict=v_dict)
 
+    def plot(self, *options, **kwds):
+        return self.make_proof_cell().plot(*options, **kwds)
+
+
 ###############################
 # TO REFACTOR using section
 ###############################
