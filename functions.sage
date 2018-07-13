@@ -767,9 +767,12 @@ def ticks_keywords(function, y_ticks_for_breakpoints=False):
     Compute ``plot`` keywords for displaying the ticks.
     """
     xticks = function.end_points()
-    f = find_f(function, no_error_if_not_minimal_anyway=True)
-    if f is not None and not f in xticks:
-        xticks.append(f)
+    try:
+        f = find_f(function, no_error_if_not_minimal_anyway=True)
+        if f is not None and not f in xticks:
+            xticks.append(f)
+    except ValueError:
+        pass
     xtick_formatter = [ "$%s$" % latex(x) for x in xticks ]
     #xtick_formatter = 'latex'  # would not show rationals as fractions
     ytick_formatter = None
