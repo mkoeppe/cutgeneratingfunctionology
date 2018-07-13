@@ -3751,12 +3751,18 @@ def is_QQ_linearly_independent(*numbers):
         True
         sage: is_QQ_linearly_independent(1+sqrt(2),sqrt(2),1)
         False
+        sage: is_QQ_linearly_independent(pi)
+        True
+        sage: is_QQ_linearly_independent(1,pi)
+        Traceback (most recent call last):
+        ...
+        ValueError: Q-linear independence test only implemented for algebraic numbers
     """
     # trivial cases
     if len(numbers) == 0:
         return True
     elif len(numbers) == 1:
-        return numbers[0] != 0
+        return bool(numbers[0] != 0)
     if is_parametric_element(numbers[0]):
         is_independent = is_QQ_linearly_independent(*(x.val() for x in numbers))
         #numbers[0].parent().record_independence_of_pair(numbers, is_independent)
@@ -3768,7 +3774,8 @@ def is_QQ_linearly_independent(*numbers):
         # try to coerce to common number field
         numbers = nice_field_values(numbers, RealNumberField)
         if not is_NumberFieldElement(numbers[0]):
-            if is_all_QQ(numbers):
+            is_QQ, QQ_numbers = is_all_QQ(numbers)
+            if is_QQ:
                 return False
             raise ValueError, "Q-linear independence test only implemented for algebraic numbers"
     coordinate_matrix = matrix(QQ, [x.list() for x in numbers])
