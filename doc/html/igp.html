@@ -7381,7 +7381,7 @@ Output: a two-slope extreme function fn2 such that fn2 = fn on 1/mqZ (and the in
 <span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">number_of_slopes</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
 <span class="go">2</span>
-<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>  <span class="c1"># long time</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>  <span class="c1">#long time</span>
 <span class="go">True</span>
 
 <span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">lift_until_extreme_default_style_bug_example</span><span class="p">()</span>
@@ -7392,7 +7392,7 @@ Output: a two-slope extreme function fn2 such that fn2 = fn on 1/mqZ (and the in
 </div>
 <p>Systematic testing:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">q</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="n">f</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">show_plots</span><span class="o">=</span><span class="bp">False</span>
-<span class="gp">sage: </span><span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">generate_extreme_functions_for_finite_group</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+<span class="gp">sage: </span><span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">generate_extreme_functions_for_finite_group</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span> <span class="c1">#long time</span>
 <span class="go">....:     if number_of_slopes(h) &gt; 2:</span>
 <span class="go">....:         if show_plots: plot_2d_diagram(h, colorful=True)</span>
 <span class="go">....:         order = injective_2_slope_fill_in_order(h)</span>
@@ -7606,6 +7606,12 @@ of its endpoints, suitable for specifying pieces of a <code class="docutils lite
 <span class="go">True</span>
 <span class="gp">sage: </span><span class="n">is_QQ_linearly_independent</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="mi">1</span><span class="p">)</span>
 <span class="go">False</span>
+<span class="gp">sage: </span><span class="n">is_QQ_linearly_independent</span><span class="p">(</span><span class="n">pi</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">is_QQ_linearly_independent</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">pi</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">Q-linear independence test only implemented for algebraic numbers</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -7620,7 +7626,27 @@ by taking the appropriate limits (pointing inwards) at the vertices.</p>
 <dl class="function">
 <dt id="igp.is_all_QQ">
 <code class="descclassname">igp.</code><code class="descname">is_all_QQ</code><span class="sig-paren">(</span><em>values</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.is_all_QQ" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Check if all numbers in the list <code class="docutils literal"><span class="pre">values</span></code> are (or can be converted to) rationals.</p>
+<p>Returns a tuple of two values:</p>
+<blockquote>
+<div><ul class="simple">
+<li>True if all rationals</li>
+<li>a list of values (converted to elements of QQ if True, or the original elements otherwise).</li>
+</ul>
+</div></blockquote>
+<p>EXAMPLES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">is_QQ</span><span class="p">,</span> <span class="n">QQ_values</span> <span class="o">=</span> <span class="n">is_all_QQ</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="p">])</span>
+<span class="gp">sage: </span><span class="n">is_QQ</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">QQ_values</span>
+<span class="go">[1, 2/3]</span>
+<span class="gp">sage: </span><span class="p">[</span> <span class="n">parent</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">QQ_values</span> <span class="p">]</span>
+<span class="go">[Rational Field, Rational Field]</span>
+<span class="gp">sage: </span><span class="n">is_all_QQ</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">pi</span><span class="p">])</span>
+<span class="go">(False, [1, pi])</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="igp.is_all_QQ_fastpath">
@@ -12936,7 +12962,7 @@ Output: a two-slope extreme function fn2 such that fn2 = fn on 1/mqZ (and the in
 <span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">number_of_slopes</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
 <span class="go">2</span>
-<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>  <span class="c1"># long time</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>  <span class="c1">#long time</span>
 <span class="go">True</span>
 
 <span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">lift_until_extreme_default_style_bug_example</span><span class="p">()</span>
@@ -12947,7 +12973,7 @@ Output: a two-slope extreme function fn2 such that fn2 = fn on 1/mqZ (and the in
 </div>
 <p>Systematic testing:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">q</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="n">f</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">show_plots</span><span class="o">=</span><span class="bp">False</span>
-<span class="gp">sage: </span><span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">generate_extreme_functions_for_finite_group</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+<span class="gp">sage: </span><span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">generate_extreme_functions_for_finite_group</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span> <span class="c1">#long time</span>
 <span class="go">....:     if number_of_slopes(h) &gt; 2:</span>
 <span class="go">....:         if show_plots: plot_2d_diagram(h, colorful=True)</span>
 <span class="go">....:         order = injective_2_slope_fill_in_order(h)</span>
