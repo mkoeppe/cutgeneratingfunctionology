@@ -201,9 +201,9 @@ save_move_plot(rhoab, "move_rhoab+")
 save_move_plot(~rhoab, "move_rhoab-")
 
 # some compositions
-save_move_plot((~tau1) * tau2, "move_tau1-_o_tau2+")
-save_move_plot((~rhoab) * tau2, "move_rhoab-_o_tau2+")
-save_move_plot((~tau1) * rhoab, "move_tau1-_o_rhoab+")
+save_move_plot(tau1 * (~tau2), "move_tau1+_o_tau2-")
+save_move_plot(rhoab * (~tau2), "move_rhoab+_o_tau2-")
+save_move_plot(tau1 * rhoab, "move_tau1+_o_rhoab+")
 
 ## ########## mip 2017 slides ###########
 ## igprainbow=igp.rainbow
