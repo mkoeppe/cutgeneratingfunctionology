@@ -1244,6 +1244,12 @@ class FastPiecewise (PiecewisePolynomial):
             sage: h = piecewise_function_from_breakpoints_and_limits(bkpt, limits)
             sage: h == hildebrand_discont_3_slope_1()
             True
+            sage: f = FastPiecewise([[open_interval(1,2), FastLinearFunction(1,3)], [right_open_interval(3,4), FastLinearFunction(2,3)]])
+            sage: g = FastPiecewise([[open_interval(1,2), FastLinearFunction(1,3)], [right_open_interval(3,4), FastLinearFunction(2,3)]])
+            sage: f == g
+            True
+            sage: g == f
+            True
         """
         if self._periodic_extension != other._periodic_extension:
             return False
@@ -1251,7 +1257,7 @@ class FastPiecewise (PiecewisePolynomial):
         if union_of_coho_intervals_minus_union_of_coho_intervals([other.intervals()],[], old_fashioned_closed_intervals=True) != domain:
             return False
         difference = self - other
-        return (difference.intervals() == domain) and (difference.functions() == [FastLinearFunction(0,0)])
+        return (difference.intervals() == domain) and any(fn == FastLinearFunction(0,0) for fn in difference.functions())
 
     def is_continuous(self):
         """
