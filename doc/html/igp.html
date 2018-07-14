@@ -693,6 +693,12 @@ Rather, the result is only defined on the intersection of the domains.</p>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">piecewise_function_from_breakpoints_and_limits</span><span class="p">(</span><span class="n">bkpt</span><span class="p">,</span> <span class="n">limits</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">==</span> <span class="n">hildebrand_discont_3_slope_1</span><span class="p">()</span>
 <span class="go">True</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="n">FastPiecewise</span><span class="p">([[</span><span class="n">open_interval</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">)],</span> <span class="p">[</span><span class="n">right_open_interval</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">)]])</span>
+<span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">FastPiecewise</span><span class="p">([[</span><span class="n">open_interval</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">)],</span> <span class="p">[</span><span class="n">right_open_interval</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">FastLinearFunction</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">)]])</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">==</span> <span class="n">g</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">g</span> <span class="o">==</span> <span class="n">f</span>
+<span class="go">True</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1100,9 +1106,13 @@ from a list of domain intervals and the functional directed move.</p>
 <span class="go">&lt;FunctionalDirectedMove (1, -1/5) with domain [(4/5, 1)], range [&lt;Int[3/5, 4/5]&gt;]&gt;</span>
 <span class="gp">sage: </span><span class="o">~~</span><span class="n">h</span> <span class="o">==</span> <span class="n">h</span>
 <span class="go">True</span>
-<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">FunctionalDirectedMove</span><span class="p">([[</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">]],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">FunctionalDirectedMove</span><span class="p">([[</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="o">/</span><span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">]],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 <span class="gp">sage: </span><span class="o">~</span><span class="n">h</span> <span class="o">==</span> <span class="n">h</span>
 <span class="go">True</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">FunctionalDirectedMove</span><span class="p">([[</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">]],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">));</span> <span class="n">h</span>
+<span class="go">&lt;FunctionalDirectedMove (-1, 1) with domain [(3/5, 4/5)], range [&lt;Int[1/5, 2/5]&gt;]&gt;</span>
+<span class="gp">sage: </span><span class="o">~</span><span class="n">h</span>
+<span class="go">&lt;FunctionalDirectedMove (-1, 1) with domain [(1/5, 2/5)], range [&lt;Int[3/5, 4/5]&gt;]&gt;</span>
 </pre></div>
 </div>
 </dd></dl>
