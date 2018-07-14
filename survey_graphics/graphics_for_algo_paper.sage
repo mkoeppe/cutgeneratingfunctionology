@@ -188,8 +188,9 @@ rhoab = FunctionalDirectedMove([open_interval(a, b)], F3.functional_directed_mov
 def save_move_plot(move, name):
     g = Graphics()
     g += plot_background
-    if move:
-        g += move.plot(**ticks_keywords(move))
+    if not move:
+        move = FastPiecewise([])
+    g += move.plot(**ticks_keywords(move, extra_xticks=[1], extra_yticks=[1]))
     g.save(destdir + name + ".png", figsize=3)
 
 save_move_plot(tau1, "move_tau1+")
