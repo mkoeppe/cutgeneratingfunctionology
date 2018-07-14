@@ -1856,6 +1856,9 @@ class FastPiecewise (PiecewisePolynomial):
             g += point(last_end_point, color=color,pointsize=23, **point_kwds)
             delete_one_time_plot_kwds(point_kwds)
             g += point(last_end_point, rgbcolor='white', pointsize=10, **point_kwds)
+        # For empty functions, if ticks were provided, use them (for uniformity).
+        if not g:
+            g._set_extra_kwds(kwds)
         return g
 
     def is_continuous_defined(self, xmin=0, xmax=1):
