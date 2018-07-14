@@ -107,7 +107,7 @@ igp.show_translations_and_reflections_separately = save_show_translations_and_re
 # 2d diagram
 plot_background = polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
 #a = 3/10; b=45/100; t1=1/4; t2=1-1/10; r=7/6
-K.<r,a,b,t1,t2> = ParametricRealField([7/6, 3/10, 45/100, 1/4, 1-1/10])
+K.<r,a,b,t1,t2> = ParametricRealField([7/6, 3/10, 45/100, 1/4, 1-1/10])  # r comes first, good term order for labels!
 F1 = Face([[a,b],[t1],[a+t1,b+t1]])
 F1v = Face([[t1],[a,b],[a+t1,b+t1]])
 F2 = Face([[a,b],[t2],[a+t2,b+t2]])
@@ -182,10 +182,27 @@ gg.save(destdir+"moves-diagram.png", figsize=5)
 
 # separate moves
 tau1 = F1.functional_directed_move()
-(plot_background + tau1.plot(**ticks_keywords(tau1))).save(destdir+"move-tau1plus.png", figsize=3)
-(plot_background + (~tau1).plot(**ticks_keywords(~tau1))).save(destdir+"move-tau1minus.png", figsize=3)
+tau2 = F2.functional_directed_move()
 rhoab = FunctionalDirectedMove([open_interval(a, b)], F3.functional_directed_move().directed_move)
-(plot_background + rhoab.plot(**ticks_keywords(rhoab))).save(destdir+"move-rhoab.png", figsize=3)
+
+def save_move_plot(move, name):
+    g = Graphics()
+    g += plot_background
+    if move:
+        g += move.plot(**ticks_keywords(move))
+    g.save(destdir + name + ".png", figsize=3)
+
+save_move_plot(tau1, "move_tau1+")
+save_move_plot(~tau1, "move_tau1-")
+save_move_plot(tau2, "move_tau2+")
+save_move_plot(~tau2, "move_tau2-")
+save_move_plot(rhoab, "move_rhoab+")
+save_move_plot(~rhoab, "move_rhoab-")
+
+# some compositions
+save_move_plot((~tau1) * tau2, "move_tau1-_o_tau2+")
+save_move_plot((~rhoab) * tau2, "move_rhoab-_o_tau2+")
+save_move_plot((~tau1) * rhoab, "move_tau1-_o_rhoab+")
 
 ## ########## mip 2017 slides ###########
 ## igprainbow=igp.rainbow
