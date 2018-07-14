@@ -2653,14 +2653,18 @@ class FunctionalDirectedMove (FastPiecewise):
             <FunctionalDirectedMove (1, -1/5) with domain [(4/5, 1)], range [<Int[3/5, 4/5]>]>
             sage: ~~h == h
             True
-            sage: h = FunctionalDirectedMove([[3/5, 4/5]], (-1, 1))
+            sage: h = FunctionalDirectedMove([[1/5, 2/5], [3/5, 4/5]], (-1, 1))
             sage: ~h == h
             True
+            sage: h = FunctionalDirectedMove([[3/5, 4/5]], (-1, 1)); h
+            <FunctionalDirectedMove (-1, 1) with domain [(3/5, 4/5)], range [<Int[1/5, 2/5]>]>
+            sage: ~h
+            <FunctionalDirectedMove (-1, 1) with domain [(1/5, 2/5)], range [<Int[3/5, 4/5]>]>
         """
         if self.sign() == 1:
             return FunctionalDirectedMove(self.range_intervals(), (1, -self[1]))
         else:
-            return self
+            return FunctionalDirectedMove(self.range_intervals(), self.directed_move)
 
     def __mul__(self, other):
         """
