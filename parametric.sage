@@ -607,8 +607,11 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
         sage: set(lin)
         {-lam, -f, f - 1, -f*lam - f + lam}
 
-        sage: _ = extremality_test(h)
-        sage: leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_poly(), K.get_lt_poly())
+        sage: # _ = extremality_test(h); eq_poly, lt_poly = K.get_eq_poly(), K.get_lt_poly()
+        sage: R = f._sym.parent().ring()
+        sage: f, lam = R(f._sym), R(lam._sym)
+        sage: eq_poly, lt_poly = {}, {-lam, -1/2*lam, -1/2*lam - 1/2, 1/4*lam - 1/4, 1/2*lam - 1/2, -2*f, -2*f + 1, -f, -f - 1, f - 2, f - 1, 2*f - 2, -2*f*lam + f + 2*lam - 1, -3/2*f*lam - 1/2*f + 3/2*lam, -3/2*f*lam + 1/2*f + 3/2*lam - 1, -f*lam + lam - 1, -f*lam - f + lam, -f*lam + f + lam - 2, -f*lam + f + lam - 1, -1/2*f*lam - 3/2*f + 1/2*lam, -1/2*f*lam - 3/2*f + 1/2*lam + 1, -1/2*f*lam - 1/2*f + 1/2*lam, -1/2*f*lam - 1/2*f + 1/2*lam - 1, -1/2*f*lam + 1/2*f + 1/2*lam - 2, -1/2*f*lam + 1/2*f + 1/2*lam - 1, -1/2*f*lam + 3/2*f + 1/2*lam - 2, -1/4*f*lam - 1/4*f + 1/4*lam, 1/2*f*lam - 3/2*f - 1/2*lam, 1/2*f*lam - 3/2*f - 1/2*lam + 1, 1/2*f*lam - 1/2*f - 1/2*lam, 1/2*f*lam - 1/2*f - 1/2*lam - 1, 1/2*f*lam + 1/2*f - 1/2*lam - 2, 1/2*f*lam + 1/2*f - 1/2*lam - 1, 1/2*f*lam + 3/2*f - 1/2*lam - 2, f*lam - lam, f*lam - lam - 1, f*lam - f - lam, f*lam + f - lam - 2, f*lam + f - lam - 1, 3/2*f*lam - 1/2*f - 3/2*lam, 3/2*f*lam + 1/2*f - 3/2*lam - 1, 1/2*f^2*lam + 1/2*f^2 - f*lam - 1/2*f + 1/2*lam}
+        sage: leq, lin = simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly)
         sage: set(lin)
         {-lam,
          lam - 1,
@@ -616,7 +619,9 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
          -f*lam - 3*f + lam + 2,
          f*lam - lam,
          f^2*lam + f^2 - 2*f*lam - f + lam}
-        sage: leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
+        sage: # eq_factor, lt_factor = K.get_eq_factor(), K.get_lt_factor()
+        sage: eq_factor, lt_factor = {}, {-lam, lam - 1, 2*lam - 1, -f, f - 1, -3*f*lam - f + 3*lam, -f*lam - 3*f + lam + 2, -f*lam - f + lam, f*lam - 3*f - lam + 2, f*lam - f - lam, 3*f*lam - f - 3*lam, 3*f*lam + f - 3*lam - 2}
+        sage: leq, lin = simplify_eq_lt_poly_via_ppl(eq_factor, lt_factor)
         sage: set(lin)
         {-lam,
          2*lam - 1,
