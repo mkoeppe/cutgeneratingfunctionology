@@ -191,11 +191,13 @@ class ParametricRealField(Field):
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: K.<f> = ParametricRealField([4/5])
         sage: h = gmic(f, field=K)
-        sage: _ = generate_maximal_additive_faces(h);
+        sage: I_list = J_list = h.intervals()
+        sage: K_list = I_list + [ (a+1, b+1) for (a, b) in h.intervals() ]
+        sage: _ = [ verts(I, J, KK) for I in I_list for J in J_list for KK in K_list ]
         sage: K.get_eq()
         set()
         sage: K.get_lt()
-        {-1/(-f^2 + f), -1/f, -2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2}
+        {-1/(-f^2 + f), -2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2}
         sage: K.get_eq_poly()
         set()
         sage: K.get_lt_poly()
