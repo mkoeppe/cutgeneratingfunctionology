@@ -12,4 +12,5 @@ Masumi Sugiyama contributed the mlr_cpl3_... functions to the
 compendium, and added functions that convert between group functions
 and superadditive lifting functions.
 
-Jiawei Wang added code for dual-feasible functions.
+Jiawei Wang added code for dual-feasible functions and did some code
+optimization.
