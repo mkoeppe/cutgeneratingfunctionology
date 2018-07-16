@@ -289,12 +289,13 @@ F_list = [F, Fprime]
 E_list = symmetric_sampled_faces(F, Fprime)
 fname = destdir+'triangle_sampled-%s.png'
 
-g = plot_projections_of_faces(additive_faces=[F, Fprime])
+background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F_list))
+g = background + plot_projections_of_faces(additive_faces=[F, Fprime])
 g += sum(E.plot(edge_thickness=1) for E in E_list)
 g.save(fname % "2d_diagram", xmin=0, xmax=1, ymin=0, ymax=1, aspect_ratio=1,
        **ticks_keywords_for_faces((F, Fprime)))
 
-background = polygon(((0,0), (0,1), (1,1), (1,0)), color='white', aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F_list))
+background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F_list))
 # FIXME: The ticks keywords don't seem to apply to the translation moves diagram....
 completion = DirectedMoveCompositionCompletion(fdms = [ E.functional_directed_move() for E in E_list ], show_plots=fname, plot_background=background, show_zero_perturbation=False)
 #show(completion.plot())
@@ -307,12 +308,13 @@ F_list = [F, Fprime]
 E_list = symmetric_sampled_faces(F, Fprime)
 fname = destdir+'quadrilateral_overlapping_projections-%s.png'
 
-g = plot_projections_of_faces(additive_faces=[F, Fprime])
+background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F_list))
+g = background + plot_projections_of_faces(additive_faces=[F, Fprime])
 g += sum(E.plot(edge_thickness=1) for E in E_list)
 g.save(fname % "2d_diagram", xmin=0, xmax=1, ymin=0, ymax=1, aspect_ratio=1,
        **ticks_keywords_for_faces((F, Fprime)))
 
-background = polygon(((0,0), (0,1), (1,1), (1,0)), color='white', aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F_list))
+background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F_list))
 # FIXME: The ticks keywords don't seem to apply to the translation moves diagram....
 completion = DirectedMoveCompositionCompletion(fdms = [ E.functional_directed_move() for E in E_list ], show_plots=fname, plot_background=background, show_zero_perturbation=False)
 #show(completion.plot())
@@ -327,11 +329,12 @@ E2_list = E_list + symmetric_sampled_faces(F2, F2prime)
 
 fname = destdir+'two_triangles_sampled-%s.png'
 
-g = plot_projections_of_faces(additive_faces=F2_list)
+background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F2_list))
+g = background + plot_projections_of_faces(additive_faces=F2_list)
 g += sum(E.plot(edge_thickness=1) for E in E2_list)
 g.save(fname % "2d_diagram", xmin=0, xmax=1, ymin=0, ymax=1, aspect_ratio=1,
        **ticks_keywords_for_faces(F2_list))
 
-background = polygon(((0,0), (0,1), (1,1), (1,0)), color='white', aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F2_list))
+background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F2_list))
 completion2 = DirectedMoveCompositionCompletion(fdms = [ E.functional_directed_move() for E in E2_list ], show_plots=fname, plot_background=background, show_zero_perturbation=False)
 completion2.complete()
