@@ -40,6 +40,24 @@ def modified_delta_pi2(fn, fn_values2, pts, i, j):
     return fn_values2[i] + fn(fractional(pts[j] - pts[i])) - fn_values2[j]  
 
 def generate_maximal_additive_faces_continuous(function):
+    """
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = gj_2_slope(f=4/5, lambda_1=1/6, conditioncheck=False)
+        sage: generate_maximal_additive_faces_continuous(h)
+        [<Face ([0, 23/60], [0, 23/60], [0, 23/60])>,
+         <Face ([0], [23/60, 5/12], [23/60, 5/12])>,
+         <Face ([23/60, 5/12], [0], [23/60, 5/12])>,
+         <Face ([0, 23/60], [5/12, 4/5], [5/12, 4/5])>,
+         <Face ([5/12, 4/5], [0, 23/60], [5/12, 4/5])>,
+         <Face ([0], [4/5, 1], [4/5, 1])>,
+         <Face ([4/5, 1], [0], [4/5, 1])>,
+         <Face ([23/60, 5/12], [23/60, 5/12], [4/5, 5/6])>,
+         <Face ([23/60, 5/12], [29/30, 1], [83/60, 17/12])>,
+         <Face ([29/30, 1], [23/60, 5/12], [83/60, 17/12])>,
+         <Face ([4/5, 1], [4/5, 1], [9/5, 2])>]
+    """
     logging.info("Computing maximal additive faces...")
     bkpt = function.end_points()
     bkpt2 = []
