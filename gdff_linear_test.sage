@@ -1,3 +1,11 @@
+# Make sure current directory is in path.  
+# That's not true while doctesting (sage -t).
+if '' not in sys.path:
+    sys.path = [''] + sys.path
+
+from igp import *
+
+
 def phi_bj_1_quasi(c=3/2):
     n=floor(c)
     beta=c-n

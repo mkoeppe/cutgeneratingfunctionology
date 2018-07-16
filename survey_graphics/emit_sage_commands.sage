@@ -24,7 +24,7 @@ with open(destdir + "sage-commands.tex", "w") as sage_commands:
         emit_tex_sage_command(f)
 
     # survey examples:
-    for f in ['generate_example_e_for_psi_n', 'chen_3_slope_not_extreme', 'psi_n_in_bccz_counterexample_construction', 'gomory_fractional', 'not_minimal_2', 'not_extreme_1', 'kzh_2q_example_1']:
+    for f in ['generate_example_e_for_psi_n', 'chen_3_slope_not_extreme', 'psi_n_in_bccz_counterexample_construction', 'gomory_fractional', 'not_minimal_2', 'not_extreme_1', 'kzh_2q_example_1', 'zhou_two_sided_discontinuous_cannot_assume_any_continuity']:
         emit_tex_sage_command(f)
 
 

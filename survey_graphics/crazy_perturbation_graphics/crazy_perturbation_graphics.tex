@@ -1,0 +1,529 @@
+\documentclass[10pt,reqno]{amsart}
+%\documentclass[runningheads,a4paper,envcountsame,envcountsect]{llncs}
+%\usepackage{pgfmath,pgffor}
+
+\usepackage{pdfpages}
+%% \usepackage{longtable} % for 'longtable' environment
+\usepackage{pdflscape} % for 'landscape' environment
+
+\usepackage{booktabs}
+\usepackage{amssymb}
+%\setcounter{tocdepth}{3}  %% causes errors?! --Matthias
+\usepackage{graphicx}
+\usepackage{epstopdf}
+%%\usepackage[headings]{fullpage}
+\usepackage[hyphens]{url}
+%% \newcommand{\keywords}[1]{\par\addvspace\baselineskip
+%% \noindent\keywordname\enspace\ignorespaces#1}
+%\usepackage{color}
+%\usepackage[usenames,svgnames,table]{xcolor}
+%\usepackage{equipert}
+\usepackage[square,numbers,sort&compress]{natbib}
+
+\usepackage{multirow}
+
+\usepackage{tikz}
+\definecolor{mediumspringgreen}{rgb}{0.0, 0.98039215, 0.60392156}
+
+\usepackage{pgfplots} %% This Clashes with other things
+
+\usetikzlibrary{positioning}
+
+
+\def\visible<#1>{}  % beamer command not needed here
+
+\usepackage[utf8]{inputenc}
+% \usepackage{xr}
+
+\usepackage[english]{babel}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{latexsym}
+\usepackage{color}
+\usepackage{subfigure}
+\usepackage{enumerate}
+
+\usepackage{hyperref}  
+
+\usepackage{ifpdf}
+%\usepackage{verbatim}
+\usepackage{listings}
+\lstset{
+  %basicstyle=\tiny\ttfamily,
+  basicstyle=\tiny\sffamily,
+  breaklines=true,
+  breakatwhitespace=false,
+  columns=fullflexible,
+  breakindent=1em
+}
+
+\newcommand\inputfig[1]{\ifpdf
+\input{#1.pdftex_t}% \input{#1.pdf_t}
+\else
+\input{#1.pstex_t}
+\fi}
+\newcommand\inputfigeps[1]{\ifpdf
+\includegraphics{#1.pdf}% \input{#1.pdf_t}
+\else
+\includegraphics{#1.eps}
+\fi
+}
+
+%Math Operators
+\DeclareMathOperator    \aff                    {aff}
+\DeclareMathOperator    \argmin         {arg\,min}
+\DeclareMathOperator    \argmax         {arg\,max}
+\DeclareMathOperator    \bd                     {bd}
+\DeclareMathOperator    \cl                     {cl}
+\DeclareMathOperator    \conv           {conv}
+\DeclareMathOperator    \cone           {cone}
+\DeclareMathOperator    \dist           {dist}
+\DeclareMathOperator    \ep                     {exp}
+\DeclareMathOperator    \et                     {ext}
+\DeclareMathOperator    \ext                    {ext}
+\DeclareMathOperator    \intr                   {int}
+\DeclareMathOperator    \lin                    {lin}
+\DeclareMathOperator    \proj           {proj}
+\DeclareMathOperator    \rec                    {rec}
+\DeclareMathOperator    \rk                     {rk}
+\DeclareMathOperator    \relint         {rel\,int}
+\DeclareMathOperator    \spann          {span}
+\DeclareMathOperator    \verts          {vert}
+\DeclareMathOperator    \vol                    {vol}
+\DeclareMathOperator    \Aff {Aff}  % Grp of invertible affine linear transformations
+
+
+\newcommand{\vect}[1]{\left(\begin{array}{@{}c@{}}#1\end{array}\right)}
+
+
+%\newcommand{\mod}{\mathrm{mod}\;}
+
+% to blank out text:
+\newcommand{\old}[1]{{}}
+
+
+%Command Shortcuts
+\newcommand{\ol}{\overline}
+\newcommand{\sm}{\setminus}
+\newcommand{\bb}{\mathbb}
+
+
+%Mathbb
+\newcommand{\R}{\bb R}
+\newcommand{\Q}{\bb Q}
+\newcommand{\Z}{\bb Z}
+\newcommand{\N}{\bb N}
+\newcommand{\C}{\bb C}
+\newcommand{\T}{\mathcal T}
+\renewcommand{\r}{\bar{r}}
+%\newcommand{\p}{\bar{p}}
+
+%\newcommand{\verts}{\mathrm{vert}}
+%\renewcommand{\intr}{\mathrm{int}}
+
+%Constructed Commands
+\newcommand{\floor}[1]{\lfloor#1\rfloor}
+\newcommand{\ceil}[1]{\lceil #1 \rceil}
+\newcommand\st{\mid}
+\newcommand\bigst{\mathrel{\big|}}
+\newcommand\Bigst{\mathrel{\Big|}}
+
+%% Vectors
+\def\ve#1{\mathchoice{\mbox{\boldmath$\displaystyle\bf#1$}}
+{\mbox{\boldmath$\textstyle\bf#1$}}
+{\mbox{\boldmath$\scriptstyle\bf#1$}}
+{\mbox{\boldmath$\scriptscriptstyle\bf#1$}}}
+
+%% %%% Proofs with qeds
+
+%% \let\proofqed=\qed
+%% \newcommand\qedhere{\qed\global\let\proofqed=\relax}
+
+%% \let\saveproof=\proof
+%% \def\proof{\saveproof\global\let\proofqed=\qed}
+%% \let\saveendproof=\endproof
+%% \def\endproof{\proofqed\saveendproof}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%          SPECIFIC COMMANDS FOR THIS PAPER        %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Random new commands
+\newcommand{\bpi}{\bar \pi}
+\newcommand{\varphiD}{\psi_{q,\diag}}
+\newcommand{\psiPoint}{\psi^m_{q,\point}}
+\newcommand{\setcond}[2]{\left\{ #1 \,\st\, #2 \right\}}
+% Mathcal 
+\newcommand{\I}{\mathcal{P}}  %%NOTE THE CHANGE!!!
+% \newcommand{\diag}{\smallsetminus}
+\newcommand{\Itri}[1][q]{\I_{#1,\tri}}
+\newcommand{\Idiag}[1][q]{\I_{#1,\diag}}
+\newcommand{\Ivert}[1][q]{\I_{#1,\ver}}
+\newcommand{\Iverthor}[1][q]{\I_{#1,\ver\,\hor}}
+\newcommand{\Ihor}[1][q]{\I_{#1,\hor}}
+\newcommand{\Iedge}[1][q]{\I_{#1,\edge}}
+\newcommand{\Ipoint}[1][q]{\I_{#1,\point}}
+\newcommand{\Ipointedge}[1][q]{\I_{#1,\point\,\edge}}
+\newcommand{\Ipointdiag}[1][q]{\I_{#1,\point\,\diag}}
+\newcommand{\Ipointdiagtri}[1][q]{\I_{#1,\point\,\diag\,\tri}}
+\renewcommand{\P}{\mathcal{P}}
+\newcommand{\D}{\mathcal{D}}
+\renewcommand{\S}{\mathcal{S}}
+\newcommand{\Stri}{\S_{q,\tri}}
+\newcommand{\barStri}{\bar\S_{q,\tri}}
+%%%% Notation updates:
+
+\newcommand{\E}{\mathcal{E}}
+\newcommand{\G}{\mathcal{G}}
+
+\newcommand\EqClass[1]{[#1]} % Equivalence class of a triangle modulo integer
+                             % translation. 
+
+%
+%% Bold face letters
+\newcommand{\rx}{{\ve r}}
+\newcommand{\x}{{\ve x}}
+\newcommand{\y}{{\ve y}}
+\newcommand{\z}{{\ve z}}
+\renewcommand{\v}{{\ve v}}
+\newcommand{\g}{{\ve g}}
+\newcommand{\e}{{\ve e}}
+\renewcommand{\u}{{\ve u}}
+\renewcommand{\a}{{\ve a}}
+\newcommand{\f}{{\ve f}}
+\newcommand{\0}{{\ve 0}}
+\newcommand{\m}{{\ve m}}
+\newcommand{\p}{{\ve p}}
+\renewcommand{\t}{{\ve t}}
+\newcommand{\w}{{\ve w}}
+\renewcommand{\b}{{\ve b}}
+\renewcommand{\d}{{\ve d}}
+\newcommand{\cve}{{\ve c}}
+\newcommand{\h}{{\ve h}}
+\newcommand{\rr}{{\ve r}}
+\newcommand{\gp}{{\ve {\bar g}}}
+\newcommand{\gt}{{\ve {\tilde g}}}
+\newcommand{\gs}{{\ve  g}}
+
+\newcommand{\ie}{ i.e. }
+
+\newcommand{\Ball}{B}
+% No longer mathcal
+\newcommand{\B}{B}
+
+\def\st{\mid}
+\newenvironment{psmallmatrix}{\left(\smallmatrix}{\endsmallmatrix\right)}
+\newenvironment{psmallmatrixbig}{\bigl(\smallmatrix}{\endsmallmatrix\bigr)}
+\newcommand\InlineFrac[2]{#1/#2}  % only works for simple arguments
+\newcommand\ColVec[3][\relax]% Optional argument is denominator.
+{
+  \ifx#1\relax
+  % no denominator
+  \bgroup\let\frac=\InlineFrac\begin{psmallmatrixbig}#2\vphantom{/}\\#3\vphantom{/}\end{psmallmatrixbig}\egroup
+  \else
+  %\frac1{#1}\bgroup\let\frac=\InlineFrac\begin{psmallmatrix}#2\\#3\end{psmallmatrix}\egroup
+  \bgroup\let\frac=\InlineFrac\begin{psmallmatrixbig}\ifx#200\else#2/#1\fi\\\ifx#300\else#3/#1\fi\end{psmallmatrixbig}\egroup
+  \fi
+}
+
+%Theorem Environments
+\newtheorem{theorem}{Theorem}[section]
+
+%% create new theorem numbered just as Theorem, but which works with autoref.
+\makeatletter
+\newcommand\MkNewTheorem[2]{%
+  \newtheorem{#1}{#2}
+  \expandafter\def\csname c@#1\endcsname{\c@theorem}
+  \expandafter\def\csname p@#1\endcsname{\p@theorem}
+  \expandafter\def\csname the#1\endcsname{\thetheorem}
+  \expandafter\def\csname #1name\endcsname{#2}
+}
+
+\MkNewTheorem{corollary}{Corollary}
+\MkNewTheorem{lemma}{Lemma}
+\MkNewTheorem{proposition}{Proposition}
+\MkNewTheorem{prop}{Proposition}
+\MkNewTheorem{claim}{Claim}
+\MkNewTheorem{observation}{Observation}
+\MkNewTheorem{obs}{Observation}
+\MkNewTheorem{conjecture}{Conjecture}
+\MkNewTheorem{openquestion}{Open question}
+\MkNewTheorem{question}{Question}
+
+\theoremstyle{definition}
+\MkNewTheorem{example}{Example}
+\MkNewTheorem{exercise}{Exercise}
+\MkNewTheorem{notation}{Notation}
+\MkNewTheorem{assumption}{Assumption}
+\MkNewTheorem{definition}{Definition}
+\MkNewTheorem{remark}{Remark}
+\MkNewTheorem{goal}{Goal}
+\MkNewTheorem{problem}{Problem}
+
+% \newtheorem{obs}[theorem]{Observation}
+% \newtheorem{prop}[theorem]{Proposition}
+% \newtheorem{assumption}{Assumption}
+
+%%% We want boldmath everywhere bold appears
+\makeatletter
+\let\OurMathBbAux=\mathbb
+\DeclareRobustCommand\OurMathBb{\OurMathBbAux}
+\let\mathbb=\OurMathBb
+\let\bfseries=\undefined
+\DeclareRobustCommand\bfseries
+{\not@math@alphabet\bfseries\mathbf
+  \boldmath\fontseries\bfdefault\selectfont\let\OurMathBbAux=\mathbf}
+\def\@thm#1#2#3{%
+  \ifhmode\unskip\unskip\par\fi
+  \normalfont
+  \trivlist
+  \let\thmheadnl\relax
+  \let\thm@swap\@gobble
+  \thm@notefont{\fontseries\mddefault\upshape\unboldmath}%   %%% <--- Added \unboldmath
+  \thm@headpunct{.}% add period after heading
+  \thm@headsep 5\p@ plus\p@ minus\p@\relax
+  \thm@space@setup
+  #1% style overrides
+  \@topsep \thm@preskip               % used by thm head
+  \@topsepadd \thm@postskip           % used by \@endparenv
+  \def\@tempa{#2}\ifx\@empty\@tempa
+    \def\@tempa{\@oparg{\@begintheorem{#3}{}}[]}%
+  \else
+    \refstepcounter{#2}%
+    \def\@tempa{\@oparg{\@begintheorem{#3}{\csname the#2\endcsname}}[]}%
+  \fi
+  \@tempa
+}
+\makeatother
+
+%%% Redefine \pmod so that it respects \textstyle.
+\makeatletter
+\renewcommand{\pod}[1]%% a helper command used in \pmod.
+{\allowbreak\mathchoice{\mkern18mu}{\mkern8mu}{\mkern8mu}{\mkern8mu}(#1)}
+\makeatother
+
+%% We certainly do not want to distinguish the two:
+\let\epsilon=\varepsilon
+
+%\chardef\Myunderscore=`\_
+\let\Myunderscore=\textunderscore   %%%% Better with textsf
+% from http://texwelt.de/wissen/fragen/565/was-heit-hyperrefs-warnung-token-not-allowed-in-a-pdf-string
+\pdfstringdefDisableCommands{%
+  \def\Myunderscore{\textunderscore}%
+}
+\newcommand\underscore{\Myunderscore\allowbreak}
+\let\_=\underscore
+
+\newcommand\githubsearchurl{https://github.com/mkoeppe/infinite-group-relaxation-code/search}
+%\input{sage-commands}
+\DeclareRobustCommand\sage[1]{\textsf{\upshape #1}}
+%\DeclareRobustCommand\sage[1]{\texttt{#1}}
+\DeclareRobustCommand\sagefunc[1]{\pgfkeys{/sagefunc/#1}}
+\DeclareRobustCommand\sagefuncgraph[1]{\raisebox{-0.08ex}{\includegraphics[height=2ex,width=2.5em]{funcgraphs/#1}}}
+\DeclareRobustCommand\sagefuncwithgraph[1]{\sagefunc{#1} \sagefuncgraph{#1}}
+
+\DeclareRobustCommand\sagefuncwithgraphgomoryfractional{\sagefunc{gomory_fractional}\ \smash{\raisebox{-0.08ex}{\includegraphics[height=2.65ex,width=2.5em]{funcgraphs/gomory_fractional}}}}
+
+
+%% \title[Two-sided discontinuous piecewise linear minimal valid functions]{Two-sided discontinuous piecewise linear minimal valid functions 
+%%   that are not extreme,
+%%   but which are not convex combinations of other piecewise linear minimal valid functions
+%% }
+
+% \thanks{The authors gratefully acknowledge partial support from the National Science
+%   Foundation through grant DMS-1320051, awarded to M.~K\"oppe.}
+
+%% \author{Matthias K\"oppe}
+%% \address{Matthias K\"oppe: Dept.\ of Mathematics, University of California, Davis}
+%% \email{mkoeppe@math.ucdavis.edu}
+
+%% \author{Yuan Zhou} 
+%% \address{Yuan Zhou: Dept.\ of Mathematics, University of Kentucky}
+%% \email{yuan.zhou@uky.edu}
+%% 719 Patterson Office Tower
+%% Lexington, Kentucky 40506-0027
+
+
+
+\date{$\relax$Revision: 2348 $ - \ $Date: 2018-01-28 20:35:05 -0800 (Sun, 28 Jan 2018) $ $\!\!\!}
+
+\usepackage[normalem]{ulem}
+
+%\graphicspath{{../reu-2013/}}
+\newcommand\Figure[2][\relax]{%
+  \begin{figure}[h!]
+    \includegraphics[width=.8\textwidth]{#2}
+    \caption{\ifx#1\relax#2\else#1\fi}
+  \end{figure}
+}
+
+\begin{document}
+ \newcommand{\tgreen}[1]{\textsf{\textcolor {ForestGreen} {#1}}}
+ \newcommand{\tred}[1]{\texttt{\textcolor {red} {#1}}}
+ \newcommand{\tblue}[1]{\textcolor {blue} {#1}}
+
+%\newcommand{\tgreen}[1]{#1}
+%\newcommand{\tred}[1]{}
+%\newcommand{\tblue}[1]{#1}
+
+
+%\clearpage
+%% {\footnotesize
+%% \tableofcontents}
+
+\setcounter{page}{16}
+\setcounter{section}{5}
+\thispagestyle{plain}
+
+\section{Figures from \itshape Equivariant Perturbation in Gomory and Johnson's Infinite Group 
+  Problem. VI. The Curious Case of Two-Sided Discontinuous Minimal Valid
+  Functions}
+
+\begin{figure}[h]
+%%%%%%%%%% Comment from survey: I decided that this figure, after all, is too distracting; it's
+%%%%%%%%%% also a bit too complicated to explain.
+\begin{center}
+\includegraphics[width=.44\linewidth]{zhou_two_sided_discontinuous_cannot_assume_any_continuity-covered_intervals.png}\quad
+\includegraphics[width=.44\linewidth]{zhou_two_sided_discontinuous_cannot_assume_any_continuity-perturbation-1.png}
+\end{center}
+\caption{This function, \sage{$\pi$ = \sage{zhou\_two\_sided\_discontinuous\_cannot\_assume\_any\_continuity}}, is
+  minimal, but not extreme% (and  hence also not a facet)
+  , as proved by
+  \sage{extremality\_test($\pi$, show\underscore{}plots=True)}.
+  The procedure first shows that
+  for any distinct minimal $\pi^1 = \pi + \bar\pi$ (\emph{blue}), $\pi^2 = \pi
+  - \bar\pi$ (\emph{red}) such that $\pi = \tfrac{1}{2}\pi^1
+  + \tfrac{1}{2} \pi^2$, the functions $\pi^1$ and $\pi^2$ are
+  piecewise linear with the same breakpoints as $\pi$ and possible additional
+  breakpoints at~$\frac14$ and $\frac34$.   The open intervals between these
+  breakpoints are covered%  (see \autoref{s:preliminaries}, after
+  % \autoref{thm:directly_covered}, for this notion)
+  . %  (in the terminology of
+  % \cite{basu-hildebrand-koeppe:equivariant}, $\pi$ is \emph{affine imposing}
+  % on all open intervals between these breakpoints
+  %).  
+  %% \tred{(TODO: Use plotting code from branch
+  %% plot\_covered\_intervals\_with\_markers to mark the extra breakpoint.)}
+  A finite-dimensional extremality
+  test then finds exactly one linearly independent perturbation $\bar\pi$
+  (\emph{magenta}), as shown. Thus all nontrivial perturbations are discontinuous at
+  $\frac{3}{4}$, a point where $\pi$ is continuous.
+}
+\label{fig:two_sided_discontinuous_cannot_assume_any_continuity}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{has_crazy_perturbation.png}
+\caption{This function,
+  \sage{$\pi$ = kzh\_minimal\_has\_only\_crazy\_perturbation\_1}, 
+  % is the star of the present paper.  
+  % It
+  has three slopes (\emph{blue}, \emph{green}, \emph{red}) and is
+  discontinuous on both sides of the origin. 
+  It is a non-extreme minimal valid function, 
+  but in order to demonstrate non-extremality, one needs to use a highly
+  discontinuous (locally microperiodic) perturbation.
+  We construct a simple explicit example perturbation $\epsilon\bar\pi$
+  (\emph{magenta})% ; see \autoref{th:kzh_minimal_has_only_crazy_perturbation_1}
+  .
+  It takes three values, $\epsilon$, $0$, and $-\epsilon$ 
+  (\emph{horizontal magenta line segments}) where $\epsilon=0.0003$; 
+  in the figure it has been rescaled to amplitude~$\frac1{10}$.
+}
+\label{fig:has_crazy_perturbation}
+\end{figure}
+
+\def\COMMONSCALE{0.35}
+\begin{figure}[hp]
+\begin{minipage}{.48\textwidth}
+\includegraphics[scale=\COMMONSCALE]{proof_uniform_cont_case_1.png}
+\par\centering
+  Case 1
+\end{minipage}
+\hfill
+\begin{minipage}{.46\textwidth}
+\includegraphics[scale=\COMMONSCALE]{proof_uniform_cont_case_3.png}
+\par\centering
+  Case 3
+\end{minipage}
+\vspace{3ex}\par
+\centering
+\begin{minipage}{.58\textwidth}
+\includegraphics[scale=\COMMONSCALE]{proof_uniform_cont_case_2.png}
+\par\centering
+  Case 2
+\end{minipage}
+%\begin{minipage}{.32\textwidth}
+%\includegraphics[width=\linewidth]{proof_uniform_cont_case_4.png}
+%\end{minipage}
+\caption{Illustration of the proof % of
+  % \autoref{prop:near-pexider}
+  for $U$. Three partial diagrams of 
+  $\Delta\P$, where the tangent cone $C$ of a two-dimensional face $F\in
+  \Delta\P$ at vertex $(u,v)$ is a (\textit{left}, Case~1): right-angle cone (first
+  quadrant); 
+  (\textit{bottom}, Case~2): obtuse-angle cone; (\textit{right}, Case~3):
+  sharp-angle cone (contained in a second quadrant). The \emph{light green
+    area} $C_\eta$ is contained in the face~$F$. The \emph{green sector} at
+  $(u,v)$ indicates that 
+  $\Delta\pi_F(u,v)=0$. The \emph{black points} inside the \emph{light green
+    area} show the sequences used in the proof% of equation~\eqref{eq:case123-U}
+  .}
+\label{fig:proof_uniform_continuous}
+\end{figure}
+
+\begin{figure}[hp]
+\begin{minipage}{.5\textwidth}
+\includegraphics[scale=\COMMONSCALE]{proof_uniform_V_case12.png}
+\par\centering
+  Case 1 and Case 2
+\end{minipage}
+\hfill
+\begin{minipage}{.4\textwidth}
+\includegraphics[scale=\COMMONSCALE]{proof_uniform_V_case3.png}
+\par\centering
+  Case 3
+\end{minipage}
+\caption{Illustration of the proof % of
+  % \autoref{prop:near-pexider}
+  for~$V$% ,
+  % equation~\eqref{eq:V-from-U}
+  .}
+\label{fig:V-from-U}
+\end{figure}
+
+\begin{figure}[hp]
+\begin{minipage}{.4\textwidth}
+\includegraphics[scale=\COMMONSCALE]{proof_uniform_W_case12.png}
+\par\centering
+  Case 1 and Case 2
+\par\vspace{20ex}
+\end{minipage}
+\hfill
+\begin{minipage}{.55\textwidth}
+\includegraphics[scale=\COMMONSCALE]{proof_uniform_W_case3a.png}
+\par{\centering
+  Case 3a
+\par\vspace{8ex}}
+\includegraphics[scale=\COMMONSCALE]{proof_uniform_W_case3b.png}
+\par\centering
+  Case 3b
+\end{minipage}
+\caption{Illustration of the proof % of
+  % \autoref{prop:near-pexider}
+  for~$W$% ,
+  % equation~\eqref{eq:W-from-U}.
+}
+\label{fig:W-from-U}
+\end{figure}
+
+
+\end{document}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

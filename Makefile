@@ -5,6 +5,7 @@ SAGEFILES =					\
 	compendium_procedures.sage		\
 	continuous_case.sage			\
 	discontinuous_case.sage			\
+	discrete_case.sage			\
 	extreme_functions_in_literature.sage	\
 	extreme_functions_sporadic.sage		\
 	intervals.sage				\
@@ -12,6 +13,7 @@ SAGEFILES =					\
 	fast_linear.sage			\
 	functions.sage				\
 	parametric.sage				\
+	semialgebraic_mathematica.sage		\
 	simple_extremality_test.sage		\
 	survey_examples.sage			\
 	extreme_functions_mlr_cpl3.sage		\
@@ -23,14 +25,25 @@ SAGEFILES =					\
 	kslope_pattern.sage			\
 	2q_mip.sage				\
 	kslope_mip.sage				\
+	animation_2d_diagram.sage		\
 	lifting_project.sage
+
+## Don't test; currently broken
+# 	parametric_cpl.sage			\
+
 
 # Dual feasible functions
 SAGEFILES +=					\
 	dff_functions.sage			\
 	dff_test_plot.sage			\
 	discontinuous_dff.sage			\
-	computer_based_search_naive_dff.sage
+	computer_based_search_naive_dff.sage	\
+	gdff_linear_test.sage
+
+# Multirow
+SAGEFILES +=					\
+	piecewise_functions.sage		\
+	lifting_region.sage
 
 all:
 	@echo "No need to 'make' anything. Just run it in Sage; see README.rst"

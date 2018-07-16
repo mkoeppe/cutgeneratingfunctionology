@@ -874,7 +874,7 @@ def number_of_components(fn):
     covered_components = generate_covered_components(fn)
     return len(covered_components)
 
-def slopes_intervals_dict(fn):
+def slopes_intervals_dict(fn, ignore_nonlinear=False):
     """
     Returns a dictionary that maps a slope value to a list of intervals with that slope.
 
@@ -892,7 +892,10 @@ def slopes_intervals_dict(fn):
                     slopes_dict[f._slope] = []
                 slopes_dict[f._slope].append((i[0], i[1]))
             except AttributeError:
-                pass
+                if ignore_nonlinear:
+                    pass
+                else:
+                    raise ValueError("Nonlinear piece in function")
     return slopes_dict
 
 def number_of_slopes(fn):
@@ -911,6 +914,25 @@ def number_of_slopes(fn):
         1
         sage: number_of_slopes(automorphism(restrict_to_finite_group(gmic(10/11)), 3))
         2
+
+    For non-piecewise linear functions, this raises an exception::
+
+        sage: number_of_slopes(california_ip())
+        Traceback (most recent call last):
+        ...
+        ValueError: Nonlinear piece in function
+        sage: number_of_slopes(bccz_counterexample())
+        Traceback (most recent call last):
+        ...
+        AttributeError: ... has no attribute 'is_discrete'
+        sage: number_of_slopes(bcds_discontinuous_everywhere())
+        Traceback (most recent call last):
+        ...
+        AttributeError: ... has no attribute 'is_discrete'
+        sage: number_of_slopes(kzh_minimal_has_only_crazy_perturbation_1_perturbation())
+        Traceback (most recent call last):
+        ...
+        AttributeError: ... has no attribute 'is_discrete'
     """
     if fn.is_discrete():
         fn = interpolate_to_infinite_group(fn)
@@ -920,7 +942,7 @@ def plot_with_colored_slopes(fn):
     """
     Returns a plot of fn, with pieces of different slopes in different colors.
     """
-    slopes_dict = slopes_intervals_dict(fn)
+    slopes_dict = slopes_intervals_dict(fn, ignore_nonlinear=True)
     return plot_covered_intervals(fn, slopes_dict.values(), labels=[ "Slope %s" % s for s in slopes_dict.keys() ])
 
 ### Minimality check.
@@ -1222,6 +1244,12 @@ class FastPiecewise (PiecewisePolynomial):
             sage: h = piecewise_function_from_breakpoints_and_limits(bkpt, limits)
             sage: h == hildebrand_discont_3_slope_1()
             True
+            sage: f = FastPiecewise([[open_interval(1,2), FastLinearFunction(1,3)], [right_open_interval(3,4), FastLinearFunction(2,3)]])
+            sage: g = FastPiecewise([[open_interval(1,2), FastLinearFunction(1,3)], [right_open_interval(3,4), FastLinearFunction(2,3)]])
+            sage: f == g
+            True
+            sage: g == f
+            True
         """
         if self._periodic_extension != other._periodic_extension:
             return False
@@ -1229,7 +1257,7 @@ class FastPiecewise (PiecewisePolynomial):
         if union_of_coho_intervals_minus_union_of_coho_intervals([other.intervals()],[], old_fashioned_closed_intervals=True) != domain:
             return False
         difference = self - other
-        return (difference.intervals() == domain) and (difference.functions() == [FastLinearFunction(0,0)])
+        return (difference.intervals() == domain) and any(fn == FastLinearFunction(0,0) for fn in difference.functions())
 
     def is_continuous(self):
         """
@@ -1972,6 +2000,26 @@ def can_coerce_to_QQ(x):
     return False
 
 def is_all_QQ(values):
+    """
+    Check if all numbers in the list ``values`` are (or can be converted to) rationals.
+
+    Returns a tuple of two values:
+
+     - True if all rationals
+     - a list of values (converted to elements of QQ if True, or the original elements otherwise).
+
+    EXAMPLES::
+
+        sage: is_QQ, QQ_values = is_all_QQ([1, 2/3])
+        sage: is_QQ
+        True
+        sage: QQ_values
+        [1, 2/3]
+        sage: [ parent(x) for x in QQ_values ]
+        [Rational Field, Rational Field]
+        sage: is_all_QQ([1, pi])
+        (False, [1, pi])
+    """
     is_rational = False
     try:
         values = [ QQ(x) for x in values ]
@@ -2605,14 +2653,18 @@ class FunctionalDirectedMove (FastPiecewise):
             <FunctionalDirectedMove (1, -1/5) with domain [(4/5, 1)], range [<Int[3/5, 4/5]>]>
             sage: ~~h == h
             True
-            sage: h = FunctionalDirectedMove([[3/5, 4/5]], (-1, 1))
+            sage: h = FunctionalDirectedMove([[1/5, 2/5], [3/5, 4/5]], (-1, 1))
             sage: ~h == h
             True
+            sage: h = FunctionalDirectedMove([[3/5, 4/5]], (-1, 1)); h
+            <FunctionalDirectedMove (-1, 1) with domain [(3/5, 4/5)], range [<Int[1/5, 2/5]>]>
+            sage: ~h
+            <FunctionalDirectedMove (-1, 1) with domain [(1/5, 2/5)], range [<Int[3/5, 4/5]>]>
         """
         if self.sign() == 1:
             return FunctionalDirectedMove(self.range_intervals(), (1, -self[1]))
         else:
-            return self
+            return FunctionalDirectedMove(self.range_intervals(), self.directed_move)
 
     def __mul__(self, other):
         """
@@ -3034,8 +3086,8 @@ def generate_perturbations(fn, show_plots=False, f=None, max_num_it=1000, finite
         yield perturbation
 
 def generate_perturbations_equivariant(fn, show_plots=False, f=None, max_num_it=1000):
-    if not fn.is_continuous():
-        logging.warning("Code for detecting perturbations using moves is EXPERIMENTAL in the discontinuous case.")
+    if fn.is_two_sided_discontinuous():
+        logging.warning("Code for detecting perturbations using moves is EXPERIMENTAL in the two-sided discontinuous case.")
     generator = generate_generic_seeds_with_completion(fn, show_plots=show_plots, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
     #seen_perturbation = False
     for seed, stab_int, walk_list in generator:
@@ -3709,12 +3761,18 @@ def is_QQ_linearly_independent(*numbers):
         True
         sage: is_QQ_linearly_independent(1+sqrt(2),sqrt(2),1)
         False
+        sage: is_QQ_linearly_independent(pi)
+        True
+        sage: is_QQ_linearly_independent(1,pi)
+        Traceback (most recent call last):
+        ...
+        ValueError: Q-linear independence test only implemented for algebraic numbers
     """
     # trivial cases
     if len(numbers) == 0:
         return True
     elif len(numbers) == 1:
-        return numbers[0] != 0
+        return bool(numbers[0] != 0)
     if is_parametric_element(numbers[0]):
         is_independent = is_QQ_linearly_independent(*(x.val() for x in numbers))
         #numbers[0].parent().record_independence_of_pair(numbers, is_independent)
@@ -3726,7 +3784,8 @@ def is_QQ_linearly_independent(*numbers):
         # try to coerce to common number field
         numbers = nice_field_values(numbers, RealNumberField)
         if not is_NumberFieldElement(numbers[0]):
-            if is_all_QQ(numbers):
+            is_QQ, QQ_numbers = is_all_QQ(numbers)
+            if is_QQ:
                 return False
             raise ValueError, "Q-linear independence test only implemented for algebraic numbers"
     coordinate_matrix = matrix(QQ, [x.list() for x in numbers])

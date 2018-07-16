@@ -5,6 +5,11 @@ if '' not in sys.path:
 
 from igp import *
 
+"""
+    sage: import warnings
+    sage: warnings.filterwarnings('ignore', 'Matplotlib is building the font cache using fc-list. This may take a moment.')
+"""
+
 import sage.structure.element
 from sage.structure.element import FieldElement
 
@@ -186,11 +191,13 @@ class ParametricRealField(Field):
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: K.<f> = ParametricRealField([4/5])
         sage: h = gmic(f, field=K)
-        sage: _ = generate_maximal_additive_faces(h);
+        sage: I_list = J_list = h.intervals()
+        sage: K_list = I_list + [ (a+1, b+1) for (a, b) in h.intervals() ]
+        sage: _ = [ verts(I, J, KK) for I in I_list for J in J_list for KK in K_list ]
         sage: K.get_eq()
         set()
         sage: K.get_lt()
-        {-1/(-f^2 + f), -1/f, -2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2}
+        {-1/(-f^2 + f), -2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2}
         sage: K.get_eq_poly()
         set()
         sage: K.get_lt_poly()
@@ -268,10 +275,21 @@ class ParametricRealField(Field):
         ...
         TypeError: Illegal initializer for algebraic number
 
+    Test that values can also be initialized by vectors (internally we make it tuples)::
+
+        sage: f = vector(QQ, [1, 2])
+        sage: K.<f0, f1> = ParametricRealField(f)
+        sage: f = vector(f0.parent(), [f0, f1]); f
+        ((f0)~, (f1)~)
+        sage: f.parent()
+        Vector space of dimension 2 over ParametricRealField(names = ['f0', 'f1'], values = [1, 2])
+        sage: f[0]*f[1] <= 4
+        True
+
     """
     Element = ParametricRealFieldElement
 
-    def __init__(self, values=[], names=(), allow_coercion_to_float=True):
+    def __init__(self, values=(), names=(), allow_coercion_to_float=True):
         Field.__init__(self, self)
         self._zero_element = ParametricRealFieldElement(0, parent=self)
         self._one_element =  ParametricRealFieldElement(1, parent=self)
@@ -283,8 +301,8 @@ class ParametricRealField(Field):
         self._lt_factor = set([])
         vnames = PolynomialRing(QQ, names).fraction_field().gens();
         self._gens = [ ParametricRealFieldElement(value, name, parent=self) for (value, name) in izip(values, vnames) ]
-        self._names = names
-        self._values = values
+        self._names = tuple(names)
+        self._values = tuple(values)
 
         # do the computation of the polyhedron incrementally,
         # rather than first building a huge list and then in a second step processing it.
@@ -325,7 +343,7 @@ class ParametricRealField(Field):
             # We test whether S coerces into AA. This rules out inexact fields such as RDF.
             return CallableConvertMap(S, self, lambda s: ParametricRealFieldElement(s, parent=self), parent_as_first_arg=False)
     def __repr__(self):
-        return 'ParametricRealField(names = {}, values = {})'.format(list(self._names), self._values)
+        return 'ParametricRealField(names = {}, values = {})'.format(list(self._names), list(self._values))
     def _element_constructor_(self, elt):
         if parent(elt) == self:
             return elt
@@ -589,8 +607,11 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
         sage: set(lin)
         {-lam, -f, f - 1, -f*lam - f + lam}
 
-        sage: _ = extremality_test(h)
-        sage: leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_poly(), K.get_lt_poly())
+        sage: # _ = extremality_test(h); eq_poly, lt_poly = K.get_eq_poly(), K.get_lt_poly()
+        sage: R = f._sym.parent().ring()
+        sage: f, lam = R(f._sym), R(lam._sym)
+        sage: eq_poly, lt_poly = {}, {-lam, -1/2*lam, -1/2*lam - 1/2, 1/4*lam - 1/4, 1/2*lam - 1/2, -2*f, -2*f + 1, -f, -f - 1, f - 2, f - 1, 2*f - 2, -2*f*lam + f + 2*lam - 1, -3/2*f*lam - 1/2*f + 3/2*lam, -3/2*f*lam + 1/2*f + 3/2*lam - 1, -f*lam + lam - 1, -f*lam - f + lam, -f*lam + f + lam - 2, -f*lam + f + lam - 1, -1/2*f*lam - 3/2*f + 1/2*lam, -1/2*f*lam - 3/2*f + 1/2*lam + 1, -1/2*f*lam - 1/2*f + 1/2*lam, -1/2*f*lam - 1/2*f + 1/2*lam - 1, -1/2*f*lam + 1/2*f + 1/2*lam - 2, -1/2*f*lam + 1/2*f + 1/2*lam - 1, -1/2*f*lam + 3/2*f + 1/2*lam - 2, -1/4*f*lam - 1/4*f + 1/4*lam, 1/2*f*lam - 3/2*f - 1/2*lam, 1/2*f*lam - 3/2*f - 1/2*lam + 1, 1/2*f*lam - 1/2*f - 1/2*lam, 1/2*f*lam - 1/2*f - 1/2*lam - 1, 1/2*f*lam + 1/2*f - 1/2*lam - 2, 1/2*f*lam + 1/2*f - 1/2*lam - 1, 1/2*f*lam + 3/2*f - 1/2*lam - 2, f*lam - lam, f*lam - lam - 1, f*lam - f - lam, f*lam + f - lam - 2, f*lam + f - lam - 1, 3/2*f*lam - 1/2*f - 3/2*lam, 3/2*f*lam + 1/2*f - 3/2*lam - 1, 1/2*f^2*lam + 1/2*f^2 - f*lam - 1/2*f + 1/2*lam}
+        sage: leq, lin = simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly)
         sage: set(lin)
         {-lam,
          lam - 1,
@@ -598,7 +619,9 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
          -f*lam - 3*f + lam + 2,
          f*lam - lam,
          f^2*lam + f^2 - 2*f*lam - f + lam}
-        sage: leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
+        sage: # eq_factor, lt_factor = K.get_eq_factor(), K.get_lt_factor()
+        sage: eq_factor, lt_factor = {}, {-lam, lam - 1, 2*lam - 1, -f, f - 1, -3*f*lam - f + 3*lam, -f*lam - 3*f + lam + 2, -f*lam - f + lam, f*lam - 3*f - lam + 2, f*lam - f - lam, 3*f*lam - f - 3*lam, 3*f*lam + f - 3*lam - 2}
+        sage: leq, lin = simplify_eq_lt_poly_via_ppl(eq_factor, lt_factor)
         sage: set(lin)
         {-lam,
          2*lam - 1,
