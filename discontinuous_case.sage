@@ -466,7 +466,7 @@ def generate_maximal_additive_faces_general(function):
     for i in range(n):
         for j in range(i, n):
             IplusJ = interval_sum(I_list[i],J_list[j])
-            for k in range(2*n):
+            for k in generate_overlapping_interval_indices(IplusJ, bkpt2):
                 # Check if int(I+J) intersects int(K) is non-empty.
                 if len(interval_intersection(IplusJ,K_list[k])) == 2:
                     face = Face( (I_list[i], J_list[j], K_list[k]) )
@@ -479,7 +479,7 @@ def generate_maximal_additive_faces_general(function):
         for j in range(n):
             I = [bkpt[i]]
             IplusJ = (bkpt[i] + bkpt[j], bkpt[i] + bkpt[j+1])
-            for k in range(2*n):
+            for k in generate_overlapping_interval_indices(IplusJ, bkpt2):
                 if len(interval_intersection(IplusJ, K_list[k])) == 2:
                     face = Face( (I, J_list[j], K_list[k]) )
                     if is_additive_face(function, face): 
@@ -489,7 +489,7 @@ def generate_maximal_additive_faces_general(function):
     for i in range(n):
         for j in range(i, n):
             interval_K = interval_sum(I_list[i],J_list[j])
-            for k in range(2*n):
+            for k in generate_overlapping_interval_indices(interval_K, bkpt2):
                 if interval_K[0] < bkpt2[k] < interval_K[1]:
                     face = Face( (I_list[i], J_list[j], [bkpt2[k]]) )
                     if is_additive_face(function, face): 

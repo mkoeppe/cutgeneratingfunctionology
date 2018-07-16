@@ -39,6 +39,30 @@ def modified_delta_pi(fn, fn_values, pts, i, j):
 def modified_delta_pi2(fn, fn_values2, pts, i, j):
     return fn_values2[i] + fn(fractional(pts[j] - pts[i])) - fn_values2[j]  
 
+def generate_overlapping_interval_indices(interval, breakpoints):
+    """
+    Given breakpoints (a list of breakpoints which generate subintervals),
+    return a list of indices of subintervals that have a nonempty intersection with interval.
+
+    Examples:
+        sage: generate_overlapping_interval_indices([1/3,2/3], [0,1/4,1/2,3/4,1])
+        [1, 2]
+        sage: generate_overlapping_interval_indices([1/3,2/3], [0,1/4,1/3,1/2,2/3])
+        [1, 2, 3]
+
+    """
+    i=bisect_left(breakpoints,interval[0])
+    j=bisect_left(breakpoints,interval[1])
+    if i!=0:
+        i=i-1
+    if j>=len(breakpoints) or breakpoints[-1]==interval[1]:
+        return range(i,len(breakpoints)-1)
+    if breakpoints[j]==interval[1]:
+        j=j+1
+    return range(i,j)
+    #for k in range(i,j):
+        #yield k
+
 def generate_maximal_additive_faces_continuous(function):
     """
     EXAMPLES::
@@ -89,7 +113,7 @@ def generate_maximal_additive_faces_continuous(function):
     for i in range(len(I_list)):
         for j in range(i, len(J_list)):
             IplusJ = interval_sum(I_list[i],J_list[j])
-            for k in range(len(K_list)):
+            for k in generate_overlapping_interval_indices(IplusJ, bkpt2):
                 # Check if int(I+J) intersects int(K) is non-empty.
                 if len(interval_intersection(IplusJ,K_list[k])) == 2:
                     temp_verts = verts(I_list[i],J_list[j],K_list[k])

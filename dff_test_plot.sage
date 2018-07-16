@@ -670,7 +670,8 @@ def generate_maximal_additive_faces_continuous_dff(function):
     faces = []
     for i in range(len(I_list)):
         for j in range(i, len(J_list)):
-            for k in range(len(K_list)):
+            IplusJ = interval_sum(I_list[i],J_list[j])
+            for k in generate_overlapping_interval_indices(IplusJ, bkpt):
                 # Check if int(I+J) intersects int(K) is non-empty.
                 if len(interval_intersection(interval_sum(I_list[i],J_list[j]),K_list[k])) == 2:
                     temp_verts = verts(I_list[i],J_list[j],K_list[k])

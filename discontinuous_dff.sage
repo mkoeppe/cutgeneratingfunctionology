@@ -34,9 +34,10 @@ def generate_maximal_additive_faces_general_dff(function):
     # 2D faces
     for i in range(n):
         for j in range(i, n):
-            for k in range(n):
+            IplusJ = interval_sum(I_list[i],J_list[j])
+            for k in generate_overlapping_interval_indices(IplusJ, bkpt):
                 # Check if int(I+J) intersects int(K) is non-empty.
-                if len(interval_intersection(interval_sum(I_list[i],J_list[j]),K_list[k])) == 2:
+                if len(interval_intersection(IplusJ,K_list[k])) == 2:
                     face = Face( (I_list[i], J_list[j], K_list[k]) )
                     if is_additive_face(function, face): 
                         faces.append(face)
@@ -45,23 +46,26 @@ def generate_maximal_additive_faces_general_dff(function):
     # 1D horizontal and vertical faces
     for i in range(n):
         for j in range(n):
-            for k in range(n):
-                if len(interval_intersection((bkpt[i] + bkpt[j], bkpt[i] + bkpt[j+1]), K_list[k])) == 2:
+            I = [bkpt[i]]
+            IplusJ = (bkpt[i] + bkpt[j], bkpt[i] + bkpt[j+1])
+            for k in generate_overlapping_interval_indices(IplusJ, bkpt):
+                if len(interval_intersection(IplusJ, K_list[k])) == 2:
                     face = Face( ([bkpt[i]], J_list[j], K_list[k]) )
                     if is_additive_face(function, face): 
                         faces.append(face)
                         faces.append(x_y_swapped_face(face))
     # 1D diagonal faces
-    for k in range(n+1):
-        for i in range(n):
-            for j in range(i, n):
-                interval_K = interval_sum(I_list[i],J_list[j])
+    for i in range(n):
+        for j in range(i, n):
+            interval_K = interval_sum(I_list[i],J_list[j])
+            for k in generate_overlapping_interval_indices(interval_K, bkpt):
                 if interval_K[0] < bkpt[k] < interval_K[1]:
                     face = Face( (I_list[i], J_list[j], [bkpt[k]]) )
                     if is_additive_face(function, face): 
                         faces.append(face)
                         if i != j:
                             faces.append(x_y_swapped_face(face))
+
     # 0D faces
     additive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices_general_dff(function) if x != 1 and y != 1}
     additive_vertices_seen = {vertex for face in faces for vertex in face.vertices}
