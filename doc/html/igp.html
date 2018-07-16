@@ -6465,6 +6465,20 @@ right before the definition of <code class="docutils literal"><span class="pre">
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="igp.generate_overlapping_interval_indices">
+<code class="descclassname">igp.</code><code class="descname">generate_overlapping_interval_indices</code><span class="sig-paren">(</span><em>interval</em>, <em>breakpoints</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_overlapping_interval_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given breakpoints (a list of breakpoints which generate subintervals),
+return a list of indices of subintervals that have a nonempty intersection with interval.</p>
+<dl class="docutils">
+<dt>Examples:</dt>
+<dd>sage: generate_overlapping_interval_indices([1/3,2/3], [0,1/4,1/2,3/4,1])
+[1, 2]
+sage: generate_overlapping_interval_indices([1/3,2/3], [0,1/4,1/3,1/2,2/3])
+[1, 2, 3]</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="igp.generate_perturbation_on_perturbation_components">
 <code class="descclassname">igp.</code><code class="descname">generate_perturbation_on_perturbation_components</code><span class="sig-paren">(</span><em>fn</em>, <em>perturbation_components=None</em>, <em>use_polyhedron=True</em>, <em>repeat=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.generate_perturbation_on_perturbation_components" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
