@@ -1562,11 +1562,18 @@ class bcds_discontinuous_everywhere:
     Reference:
         [bcds_discontinous_everywhere] Amitabh Basu, Michele Conforti, Marco Di Summa, An extreme function which is nonnegative and discontinuous everywhere, arXiv:1802.01499 [math.OC]
     """
-    def __init__(self, f=None):
-        self._f = f
+    def __init__(self):
+        self._f = 1/2
 
     def __call__(self, x):
-        raise NotImplementedError
+        xx=fractional(x)
+        a=nice_field_values([xx],RealNumberField)
+        coef=2*a[0].list()[0]
+        y=(coef-1)/2
+        if y==floor(y):
+            return 1
+        else:
+            return coef-floor(coef)
 
     def plot(self, xmin=0, xmax=1, ymin=0, ymax=1, color=None, rgbcolor=None,
              aspect_ratio='automatic', thickness=None, **kwds):
