@@ -2101,11 +2101,9 @@ def nice_field_values(symb_values, field=None):
             field_values = embedded_field_values
             logging.info("Coerced into real number field: %s" % embedded_field)
         except ValueError:
-            logging.info("Coercion to a real number field failed, keeping it symbolic")
-            pass
+            raise TypeError("Coercion to a real number field failed")
         except TypeError:
-            logging.info("Coercion to a real number field failed, keeping it symbolic")
-            pass
+            raise TypeError("Coercion to a real number field failed")
     return field_values
 
 #@logger
@@ -3782,11 +3780,9 @@ def is_QQ_linearly_independent(*numbers):
         return False
     if not is_all_the_same_number_field_fastpath(numbers):
         # try to coerce to common number field
-        numbers = nice_field_values(numbers, RealNumberField)
-        if not is_NumberFieldElement(numbers[0]):
-            is_QQ, QQ_numbers = is_all_QQ(numbers)
-            if is_QQ:
-                return False
+        try:
+            numbers = nice_field_values(numbers, RealNumberField)
+        except TypeError:
             raise ValueError, "Q-linear independence test only implemented for algebraic numbers"
     coordinate_matrix = matrix(QQ, [x.list() for x in numbers])
     return rank(coordinate_matrix) == len(numbers)
