@@ -3866,9 +3866,13 @@ def plot_directed_moves(dmoves, **kwds):
         delete_one_time_plot_kwds(kwds)
     return g
 
-def plot_dense_moves(component, **kwds):
-    return sum([polygon(((domain[0], domain[0]), (domain[1], domain[0]), (domain[1], domain[1]), (domain[0], domain[1])), rgbcolor=kwds.get("rgbcolor", "cyan"), alpha=0.5) + polygon(((domain[0], domain[0]), (domain[1], domain[0]), (domain[1], domain[1]), (domain[0], domain[1])), color="red", fill=False) for domain in component])
+def _plot_component_rectangle(domain, range, **kwds):
+    "Default colors are for strip lemma rectangles (densely covered)"
+    corners = ((domain[0], range[0]), (domain[1], range[0]), (domain[1], range[1]), (domain[0], range[1]))
+    return polygon(corners, rgbcolor=kwds.get("rgbcolor", "cyan"), alpha=0.5) + polygon(corners, color=kwds.get("frame_color", "red"), fill=False)
 
+def plot_covered_component_as_rectangles(component, **kwds):
+    return sum([_plot_component_rectangle(domain, range, **kwds) for domain in component for range in component])
 
 def reduce_covered_components(covered_components):
     reduced_components = []
@@ -4158,7 +4162,7 @@ class DirectedMoveCompositionCompletion:
         global crazy_perturbations_warning
         changed_move_keys = self.any_change_moves
         all_move_keys = self.move_dict.keys()
-        current_dense_move = []
+        strip_lemma_intervals = []
         known_extended_domains = dict()
         for dm_a in changed_move_keys:
             for dm_b in all_move_keys:
@@ -4177,15 +4181,16 @@ class DirectedMoveCompositionCompletion:
                     if crazy_perturbations_warning:
                         logging.warn("This function is two-sided discontinuous at the origin. Crazy perturbations might exist.")
                     self.any_change_components = True
-                    current_dense_move += d
+                    strip_lemma_intervals += d
                     logging.info("New dense move from strip lemma: %s" % d)
                     # merge components with d
                     dense_intervals, self.covered_components = merge_components_with_given_component(d, self.covered_components)
                     self.covered_components.append(dense_intervals)
                     # kill moves
                     self.reduce_moves_by_components(given_components = [dense_intervals])
-        if current_dense_move:
-            return plot_dense_moves(current_dense_move)
+        if strip_lemma_intervals:
+            return sum(plot_covered_component_as_rectangles([interval])
+                       for interval in strip_lemma_intervals)
         else:
             return None
 
