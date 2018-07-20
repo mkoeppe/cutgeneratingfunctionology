@@ -4037,6 +4037,7 @@ def extended_initial_move_by_continuity(fdm, fn):
 
 show_translations_and_reflections_separately = False
 show_translations_and_reflections_by_color = False
+show_covered_components_as_rectangles = False
 
 class DirectedMoveCompositionCompletion:
 
@@ -4094,7 +4095,11 @@ class DirectedMoveCompositionCompletion:
         return zero_perturbation_points
 
     def _plot_directed_moves(self, moves, extra_graphics=None, **kwds):
-        g = plot_directed_moves(moves, ymin=0, ymax=1, **kwds)
+        g = Graphics()
+        if show_covered_components_as_rectangles:
+            for component, color in itertools.izip(self.covered_components, rainbow(len(self.covered_components))):
+                g += plot_covered_component_as_rectangles(component, rgbcolor=color, frame_color='grey')
+        g += plot_directed_moves(moves, ymin=0, ymax=1, **kwds)
         if self._show_zero_perturbation:
             zero_perturbation = zero_perturbation_partial_function(self.covered_components,
                                                                    self.generate_zero_perturbation_points())
