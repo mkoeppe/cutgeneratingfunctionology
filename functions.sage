@@ -229,7 +229,7 @@ class Face:
             # attention: I, J are not sorted.
             return (-1, K[0]), [open_interval(* I), open_interval(* J)], [open_interval(* J), open_interval(* I)]
         else:
-            raise ValueError, "Face does not correspond to a directed move: %s" % self
+            raise ValueError("Face does not correspond to a directed move: %s" % self)
 
     def functional_directed_move(self, is_backward_translation=False):
         """
@@ -260,6 +260,13 @@ class Face:
         else:
             fdm = FunctionalDirectedMove(codomain, (directed_move[0], -directed_move[0]*directed_move[1]))
         return fdm
+
+    def covered_component(self):
+        if self.is_2D():
+            (I, J, K) = self.minimal_triple
+            K_mod_1 = interval_mod_1(K)
+            return union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(*I)], [open_interval(*J)], [open_interval(*K_mod_1)]],[])
+        raise ValueError("Face does not give a covered component")
 
     def is_0D(self):
         return len(self.vertices) == 1
@@ -4456,10 +4463,7 @@ def generate_directly_covered_components(fn):
     covered_components = []
     for face in generate_maximal_additive_faces(fn):
         if face.is_2D():
-            (I, J, K) = face.minimal_triple
-            K_mod_1 = interval_mod_1(K)
-            component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* K_mod_1)]],[])
-            covered_components.append(component)
+            covered_components.append(face.covered_component())
     return reduce_covered_components(covered_components)
 
 # alias
