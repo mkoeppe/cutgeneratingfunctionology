@@ -4268,7 +4268,7 @@ class DirectedMoveCompositionCompletion:
 
     def complete(self, max_num_rounds=None, error_if_max_num_rounds_exceeded=True):
         if self.num_rounds == -1:
-            if self.any_change_moves:
+            if self.any_change_moves or show_covered_components_as_rectangles:
                 # do not show move diagram if there is no moves.
                 self.maybe_show_plot()
             self.add_backward_moves()
