@@ -13,6 +13,7 @@ igp.plot_kwds_hook = plot_kwds_hook_no_legend
 igp.show_translations_and_reflections_separately = False
 igp.show_translations_and_reflections_by_color = True
 
+igp.show_covered_components_as_rectangles = True
 
 
 ## ######## not used ###
@@ -282,59 +283,47 @@ def ticks_keywords_for_faces(faces):
     tick_formatter = [ "$%s$" % latex(x) for x in L ]
     return { 'ticks': (L, L), 'tick_formatter': (tick_formatter, tick_formatter) }
 
+def plot_sampled_stuff(F_list, E_list, name):
+    fname = destdir + name + "-%s.png"
+    fname_sampled = destdir + name + "_sampled-%s.png"
+
+    background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F_list))
+    g = background + plot_projections_of_faces(additive_faces=F_list)
+    g += sum(E.plot(edge_thickness=1) for E in E_list)
+    g.save(fname_sampled % "2d_diagram", xmin=0, xmax=1, ymin=0, ymax=1, aspect_ratio=1,
+       **ticks_keywords_for_faces(F_list))
+
+    background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F_list))
+    # FIXME: The ticks keywords don't seem to apply to the translation moves diagram....
+    completion = DirectedMoveCompositionCompletion(fdms=[ E.functional_directed_move() for E in E_list ], show_plots=fname_sampled, plot_background=background, show_zero_perturbation=False)
+    #show(completion.plot())
+    completion.complete()
+
+    # unsampled
+    completion = DirectedMoveCompositionCompletion(covered_components=[ F.covered_component() for F in F_list ], show_plots=fname, plot_background=background, show_zero_perturbation=False)
+    completion.complete()
+
+
+###############
 I, J, K = [2/19, 3/19], [6/19, 7/19], [8/19, 9/19]
 F = Face([I, J, K]) # lower triangle
 Fprime = Face([J, I, K]) # swapped
 F_list = [F, Fprime]
 E_list = symmetric_sampled_faces(F, Fprime)
-fname = destdir+'triangle_sampled-%s.png'
+plot_sampled_stuff(F_list, E_list, 'triangle')
 
-background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F_list))
-g = background + plot_projections_of_faces(additive_faces=[F, Fprime])
-g += sum(E.plot(edge_thickness=1) for E in E_list)
-g.save(fname % "2d_diagram", xmin=0, xmax=1, ymin=0, ymax=1, aspect_ratio=1,
-       **ticks_keywords_for_faces((F, Fprime)))
-
-background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F_list))
-# FIXME: The ticks keywords don't seem to apply to the translation moves diagram....
-completion = DirectedMoveCompositionCompletion(fdms = [ E.functional_directed_move() for E in E_list ], show_plots=fname, plot_background=background, show_zero_perturbation=False)
-#show(completion.plot())
-completion.complete()
-
-I, J, K = [3/19, 7/19], [1/19, 2/19], [4/19, 6/19]
-F = Face([I, J, K]) # lower triangle
-Fprime = Face([J, I, K]) # swapped
-F_list = [F, Fprime]
-E_list = symmetric_sampled_faces(F, Fprime)
-fname = destdir+'quadrilateral_overlapping_projections-%s.png'
-
-background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F_list))
-g = background + plot_projections_of_faces(additive_faces=[F, Fprime])
-g += sum(E.plot(edge_thickness=1) for E in E_list)
-g.save(fname % "2d_diagram", xmin=0, xmax=1, ymin=0, ymax=1, aspect_ratio=1,
-       **ticks_keywords_for_faces((F, Fprime)))
-
-background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F_list))
-# FIXME: The ticks keywords don't seem to apply to the translation moves diagram....
-completion = DirectedMoveCompositionCompletion(fdms = [ E.functional_directed_move() for E in E_list ], show_plots=fname, plot_background=background, show_zero_perturbation=False)
-#show(completion.plot())
-completion.complete()
-
-
+#################
 I2, J2, K2 = [4/19, 5/19], [11/19, 12/19], [16/19, 17/19]
 F2 = Face([I2, J2, K2]) # upper triangle
 F2prime = Face([J2, I2, K2]) # swapped
 F2_list = F_list + [F2, F2prime]  # lower and upper together (separate components)
 E2_list = E_list + symmetric_sampled_faces(F2, F2prime)
+plot_sampled_stuff(F2_list, E2_list, 'two_triangles')
 
-fname = destdir+'two_triangles_sampled-%s.png'
-
-background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F2_list))
-g = background + plot_projections_of_faces(additive_faces=F2_list)
-g += sum(E.plot(edge_thickness=1) for E in E2_list)
-g.save(fname % "2d_diagram", xmin=0, xmax=1, ymin=0, ymax=1, aspect_ratio=1,
-       **ticks_keywords_for_faces(F2_list))
-
-background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F2_list))
-completion2 = DirectedMoveCompositionCompletion(fdms = [ E.functional_directed_move() for E in E2_list ], show_plots=fname, plot_background=background, show_zero_perturbation=False)
-completion2.complete()
+#################
+I, J, K = [3/19, 7/19], [1/19, 2/19], [4/19, 6/19]
+F = Face([I, J, K]) # lower triangle
+Fprime = Face([J, I, K]) # swapped
+F_list = [F, Fprime]
+E_list = symmetric_sampled_faces(F, Fprime)
+plot_sampled_stuff(F_list, E_list, 'quadrilateral_overlapping_projections')
