@@ -1568,6 +1568,17 @@ class bcds_discontinuous_everywhere:
         self.ngens=ngens
 
     def __call__(self, x):
+        """
+        TESTS::
+
+            sage: h = bcds_discontinuous_everywhere()
+            sage: K.<a> = NumberField(x^4+2*x^3-x^2-17, embedding=5)
+            sage: L.<b>=NumberField(x^4-4*x^3+7*x^2-x-19,embedding=-1)
+            sage: aa = AA(a)
+            sage: bb = AA(b)
+            sage: delta_pi(h, aa, bb) >= 0
+            True
+        """
         xx=fractional(x)
         try:
             xxx=self.field(xx)
