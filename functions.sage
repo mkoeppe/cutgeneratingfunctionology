@@ -3883,6 +3883,12 @@ def _plot_component_rectangle(domain, range, **kwds):
 def plot_covered_component_as_rectangles(component, **kwds):
     return sum([_plot_component_rectangle(domain, range, **kwds) for domain in component for range in component])
 
+def plot_covered_components_as_rectangles(components):
+    g = Graphics()
+    for component, color in itertools.izip(components, rainbow(len(components))):
+        g += plot_covered_component_as_rectangles(component, rgbcolor=color, frame_color='grey')
+    return g
+
 def reduce_covered_components(covered_components):
     reduced_components = []
     remaining_components = covered_components
@@ -4106,8 +4112,7 @@ class DirectedMoveCompositionCompletion:
     def _plot_directed_moves(self, moves, extra_graphics=None, **kwds):
         g = Graphics()
         if show_covered_components_as_rectangles:
-            for component, color in itertools.izip(self.covered_components, rainbow(len(self.covered_components))):
-                g += plot_covered_component_as_rectangles(component, rgbcolor=color, frame_color='grey')
+            g += plot_covered_components_as_rectangles(self.covered_components)
         g += plot_directed_moves(moves, **kwds)
         if self._show_zero_perturbation:
             zero_perturbation = zero_perturbation_partial_function(self.covered_components,
