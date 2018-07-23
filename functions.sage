@@ -2450,6 +2450,8 @@ def find_largest_epsilon(fn, perturb):
 ### Moves
 ###
 
+show_moves_with_discontinuity_markers = False
+
 class FunctionalDirectedMove (FastPiecewise):
     # FIXME: At the moment, does not reduce modulo 1, in contrast to old code!
     """
@@ -2658,7 +2660,7 @@ class FunctionalDirectedMove (FastPiecewise):
         kwds = copy(kwds)
         kwds['aspect_ratio'] = 1.0
         # ignore discontinuity markers in the moves diagram
-        kwds['discontinuity_markers'] = False
+        kwds['discontinuity_markers'] = show_moves_with_discontinuity_markers
         if rgbcolor is None:
             if show_translations_and_reflections_by_color and self.sign() == -1:
                 rgbcolor='red'
