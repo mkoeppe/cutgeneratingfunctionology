@@ -1562,19 +1562,25 @@ class bcds_discontinuous_everywhere:
     Reference:
         [bcds_discontinous_everywhere] Amitabh Basu, Michele Conforti, Marco Di Summa, An extreme function which is nonnegative and discontinuous everywhere, arXiv:1802.01499 [math.OC]
     """
-    def __init__(self):
+    def __init__(self,field=QQ,ngens=1):
         self._f = 1/2
+        self.field=field
+        self.ngens=ngens
 
     def __call__(self, x):
         xx=fractional(x)
-        a=nice_field_values([xx],RealNumberField)
-        coef=2*a[0].list()[0]
-        y=(coef-1)/2
-        if y==floor(y):
-            return 1
-        else:
-            return coef-floor(coef)
-
+        try:
+            xxx=self.field(xx)
+            coef=2*xxx.list()[0]
+            y=(coef-1)/2
+            if y==floor(y):
+                return 1
+            else:
+                return coef-floor(coef)
+        except ValueError:
+            self.ngens+=1
+            return 0 
+       
     def plot(self, xmin=0, xmax=1, ymin=0, ymax=1, color=None, rgbcolor=None,
              aspect_ratio='automatic', thickness=None, **kwds):
         ymin = max(0, ymin)
@@ -1587,6 +1593,114 @@ class bcds_discontinuous_everywhere:
                            **kwds)
         else:
             return Graphics()
+
+class kzh_lifted:
+
+    """
+    Reference:
+        Matthias Koeppe, Yuan Zhou. On the notions of facets, weak facets, and extreme functions of the Gomory–Johnson infinite group problem.
+    """
+    def __init__(self,f=4/5,l=219/800,u=269/800,t1=77/7752*sqrt(2),t2=77/2584):
+        self._f = f
+        K.<a>=NumberField(x^2-2)
+        self._l=l
+        self._u=u
+        self._t1=t1
+        self._t2=t2
+        self.field=K
+
+    def __call__(self, x):
+        x=fractional(x)
+        f=self._f
+        l=self._l
+        u=self._u
+        t1=self._t1
+        t2=self._t2
+        s=19/23998
+        pi=kzh_minimal_has_only_crazy_perturbation_1()
+        if x<l or u<x<f-u or x>f-l:
+            return pi(x)
+        if l<x<u and is_in_C(self,x):
+            return pi(x)
+        if f-u<x<f-l and is_in_C(self,f-x):
+            return pi(x)
+        if l<x<u and is_in_Cplus(self,x):
+            return pi(x)+s
+        if f-u<x<f-l and is_in_Cplus(self,f-x):
+            return pi(x)+s
+        return pi(x)-s
+
+    def is_in_T(self, x):
+        try:
+            x=self.field(x)
+            c1=x.list()[0]/self._t2
+            c2=x.list()[1]/(self._t1/sqrt(2))
+            if c1 in ZZ and c2 in ZZ:
+                return True
+            else: 
+                return False
+        except (TypeError,ValueError):
+            return False
+ 
+    def is_in_C(self, x):  
+        f=self._f
+        l=self._l
+        u=self._u
+        t1=self._t1
+        t2=self._t2
+        if is_in_T(self,x-(l+u)/2) and is_in_T(self,x-(l+u-t1)/2) and is_in_T(self,x-(l+u-t2)/2):
+            return True
+        else:
+            return False
+                
+        
+    def is_in_Cplus(self,x): 
+        f=self._f
+        l=self._l
+        u=self._u
+        t1=self._t1
+        t2=self._t2
+
+def partial_minimality_test(fn):
+    if fn(0)==0 and partial_subadditivity_test(fn) and partial_symmetry_test(fn):
+        return True
+    else:
+        return False
+
+def generate_one_random_aa_number(degree=4):
+    p=ZZ[x].random_element(degree)
+    try: 
+        K.<a>=NumberField(p)
+        return AA(a)
+    except ValueError:
+        generate_one_random_aa_number(degree)
+    
+    
+def generate_random_aa_numbers(degree=4,n=100):
+    res=[]
+    for i in range(n):
+        res.append(generate_one_random_aa_number(degree))
+    return res
+    
+
+def partial_symmetry_test(fn):
+    points=generate_random_aa_numbers()
+    for x in points:
+        if fn(x)+fn(self._f-x)!=1:
+            return False
+    return True
+
+def partial_subadditivity_test(fn):
+    points=generate_random_aa_numbers()
+    for x in points:
+        for y in points:
+            if fn(x)+fn(y)<fn(x+y):
+                return False
+    return True
+
+    
+        
+        
 
 def kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19, field=None, conditioncheck=True):
     r"""
