@@ -1,7 +1,8 @@
 import igp
 from igp import *
 
-destdir = "survey_graphics/algo_paper_graphics/"
+#destdir = "survey_graphics/algo_paper_graphics/"
+destdir = "/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/graphics-for-algo-paper/"
 ftype = ".png"
 
 logging.disable(logging.INFO)
@@ -14,7 +15,7 @@ igp.show_translations_and_reflections_separately = False
 igp.show_translations_and_reflections_by_color = True
 
 igp.show_covered_components_as_rectangles = True
-
+igp.show_moves_with_discontinuity_markers = True   ## do we want this?
 
 ## ######## not used ###
 ## g = line([(0,0), (0.2,0)],color='black')
@@ -39,12 +40,15 @@ igp.show_covered_components_as_rectangles = True
 
 
 ######  algo-paper ####
-h1 = equiv7_example_1()
-h = minimal_no_covered_interval()
 
-### copy some plot formatting from graphics_for-survey ###...
-extremality_test(h1, show_plots=destdir+"one-sided-discontinuous-%s.png", show_all_perturbations=True)
-extremality_test(h, show_plots=destdir+"two-sided-discontinuous-%s.png", show_all_perturbations=True)
+## Some standard functions with happy moves diagrams!!
+names = 'equiv7_example_1', 'minimal_no_covered_interval' # essential
+names += 'kzh_7_slope_1', 'example7slopecoarse2', 'not_extreme_1', 'drlm_not_extreme_1', 'bhk_irrational_extreme_limit_to_rational_nonextreme', 'hildebrand_5_slope_22_1', 'rlm_dpl1_extreme_3a', 'hildebrand_discont_3_slope_1', 'zhou_two_sided_discontinuous_cannot_assume_any_continuity'  # additional, we will select later
+
+for name in names:
+    h = eval(name)()
+    extremality_test(h, show_all_perturbations=True, show_plots=destdir + "%s-%%s.pdf" % name)
+    show_plot(h._completion.plot(), destdir + "%s-%%s.pdf" % name, tag='completion-final')
 
 ## # crazy perturbation exists for h.
 ## t1, t2 = nice_field_values([1, sqrt(2)])
@@ -210,6 +214,58 @@ save_move_plot(tau1 * (~rhoab), "move_tau1+_o_rhoab-")
 save_move_plot(tau1 * (~tau1), "move_tau1+_o_tau1-")
 save_move_plot((~tau1) * tau1, "move_tau1-_o_tau1+")
 
+############################################################
+## Moves and covered intervals
+############################################################
+
+plot_background = polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
+
+t1 = 2/15
+tau1 = FunctionalDirectedMove([open_interval(6/15, 11/15)], (1, t1))
+moves = [tau1]
+comp = [ open_interval(7/15, 10/15) ]
+fname = destdir + 'reduces_moves_by_components_ex1' + "-%s.png"
+c = DirectedMoveCompositionCompletion(moves, [comp],
+                                      show_plots=fname, plot_background=plot_background)
+#c.add_backward_moves()
+show_plot(plot_background + plot_covered_components_as_rectangles([comp]) + sum(m.plot() for m in moves), fname, tag='completion-unreduced')
+show_plot(c.plot(), fname, tag='completion-initial')
+
+
+t1 = 2/15
+tau1a = FunctionalDirectedMove([open_interval(6/15, 7/15)], (1, t1))
+tau1b = FunctionalDirectedMove([open_interval(8/15, 11/15)], (1, t1))
+comp = [ open_interval(7/15, 10/15) ]
+fname = destdir + 'extend_components_by_moves_ex1' + "-%s.png"
+c = DirectedMoveCompositionCompletion([tau1a, tau1b], [comp],
+                                      show_plots=fname, plot_background=plot_background)
+c.complete()
+show_plot(c.plot(), fname, tag='completion-final')
+
+t1 = 5/15
+tau1a = FunctionalDirectedMove([open_interval(2/15, 3/15)], (1, t1))
+tau1b = FunctionalDirectedMove([open_interval(4/15, 5/15)], (1, t1))
+comp = [ open_interval(3/15, 4/15), (7/15, 10/15) ]
+fname = destdir + 'extend_components_by_moves_ex2' + "-%s.png"
+c = DirectedMoveCompositionCompletion([tau1a, tau1b], [comp],
+                                      show_plots=fname, plot_background=plot_background)
+c.complete()
+show_plot(c.plot(), fname, tag='completion-final')
+
+t1 = 6/15
+tau1a = FunctionalDirectedMove([open_interval(0/15, 1/15)], (1, t1))
+tau1b = FunctionalDirectedMove([open_interval(4/15, 5/15)], (1, t1))
+comp = [ open_interval(1/15, 4/15), (7/15, 10/15) ]
+fname = destdir + 'extend_components_by_moves_ex3' + "-%s.png"
+c = DirectedMoveCompositionCompletion([tau1a, tau1b], [comp],
+                                      show_plots=fname,
+                                      plot_background=plot_background)
+c.complete()
+show_plot(c.plot(), fname, tag='completion-final')
+
+
+
+
 
 ## ########## mip 2017 slides ###########
 ## igprainbow=igp.rainbow
@@ -298,10 +354,12 @@ def plot_sampled_stuff(F_list, E_list, name):
     completion = DirectedMoveCompositionCompletion(fdms=[ E.functional_directed_move() for E in E_list ], show_plots=fname_sampled, plot_background=background, show_zero_perturbation=False)
     #show(completion.plot())
     completion.complete()
+    show_plot(completion.plot(), fname_sampled, tag='completion-final')
 
     # unsampled
     completion = DirectedMoveCompositionCompletion(covered_components=[ F.covered_component() for F in F_list ], show_plots=fname, plot_background=background, show_zero_perturbation=False)
     completion.complete()
+    show_plot(completion.plot(), fname, tag='completion-final')
 
 
 ###############
