@@ -4055,7 +4055,9 @@ show_translations_and_reflections_by_color = False
 show_covered_components_as_rectangles = False
 
 class DirectedMoveCompositionCompletion:
-
+    # FIXME: Rename function_at_border because it is used for continuity properties too,
+    # not just for plotting.
+    
     def __init__(self, fdms=[], covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, show_zero_perturbation=True):
         self.show_plots = show_plots
         self.plot_background = plot_background
