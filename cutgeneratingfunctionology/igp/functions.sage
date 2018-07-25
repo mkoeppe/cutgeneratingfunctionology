@@ -11,6 +11,361 @@ from six.moves import zip
 from functools import reduce
 from six.moves import input
 
+def faster_subadditive_test(fn,initial_bkpts=10):
+    f_l=generate_initial_lower_approximation(fn,initial_bkpts)
+    f_u=generate_initial_upper_approximation(fn,initial_bkpts)
+    return True
+
+def generate_initial_lower_approximation(fn,initial_bkpts):
+    res=lower_approximation(fn)
+    while len(res.end_points())>initial_bkpts:
+        res=lower_approximation(res)
+    return res
+
+def generate_initial_upper_approximation(fn,initial_bkpts):
+    res=upper_approximation(fn)
+    while len(res.end_points())>initial_bkpts:
+        res=upper_approximation(res)
+    return res
+
+
+
+
+def generate_new_approximation_function(fn,f_o,new_bkpts):
+    bkpt0=f_o.end_points()
+    bkpts=[]
+    values=[]
+    for bkpt in bkpt0:
+        if bkpt<new_bkpts[0][1]:
+            bkpts.append(bkpt)
+            values.append(f_o(bkpt))
+            continue
+        break
+    for new_bkpt in new_bkpts:
+        bkpts.append(new_bkpt[1])
+        if new_bkpt[0]==0:
+            values.append(f_o(new_bkpt[1]))
+        else:
+            values.append(fn(new_bkpt[1]))
+    for bkpt in bkpt0:
+        if bkpt>new_bkpts[-1][1]:
+            bkpts.append(bkpt)
+            values.append(f_o(bkpt))
+    return piecewise_function_from_breakpoints_and_values(bkpts,values)
+        
+
+def one_point_lift_lower_keep_old_bkpts(fn,f_l,x,left,right):
+    bkpts=fn.end_points()
+    res_left=left
+    res_right=right
+    left_slope=(fn(x)-f_l(left))/(x-left)
+    right_slope=(fn(x)-f_l(right))/(x-right)
+    for bkpt in bkpts:
+        if left<bkpt<x:
+            slope=slope_of_two_points(fn,x,bkpt)
+            if slope>left_slope:
+                left_slope=slope
+                res_left=bkpt   
+        if x<bkpt<right:
+            slope=slope_of_two_points(fn,x,bkpt)
+            if slope<right_slope:
+                right_slope=slope
+                res_right=bkpt
+    res=[]
+    if res_left>left:
+        bkpt_new=find_intersection([left,f_l(left)],[x,f_l(x)],[x,fn(x)],[res_left,fn(res_left)])
+        for bkpt in bkpts:
+            if bkpt_new<=bkpt<x:
+                res.append([0,bkpt])
+                break
+    res.append([1,x])
+    if res_right<right:
+        bkpt_new=find_intersection([right,f_l(right)],[x,f_l(x)],[x,fn(x)],[res_right,fn(res_right)])
+        for i in range(len(bkpts)):
+            if x<bkpts[len(bkpts)-i-1] <=bkpt_new:
+                res.append([0,bkpts[len(bkpts)-i-1]])
+                break
+    return res
+
+def one_point_down_upper_keep_old_bkpts(fn,f_u,x,left,right):
+    bkpts=fn.end_points()
+    res_left=left
+    res_right=right
+    left_slope=(fn(x)-f_u(left))/(x-left)
+    right_slope=(fn(x)-f_u(right))/(x-right)
+    for bkpt in bkpts:
+        if left<bkpt<x:
+            slope=slope_of_two_points(fn,x,bkpt)
+            if slope<left_slope:
+                left_slope=slope
+                res_left=bkpt   
+        if x<bkpt<right:
+            slope=slope_of_two_points(fn,x,bkpt)
+            if slope>right_slope:
+                right_slope=slope
+                res_right=bkpt
+    res=[]
+    if res_left>left:
+        bkpt_new=find_intersection([left,f_u(left)],[x,f_u(x)],[x,fn(x)],[res_left,fn(res_left)])
+        for bkpt in bkpts:
+            if bkpt_new<=bkpt<x:
+                res.append([0,bkpt])
+                break
+    res.append([1,x])
+    if res_right<right:
+        bkpt_new=find_intersection([right,f_u(right)],[x,f_u(x)],[x,fn(x)],[res_right,fn(res_right)])
+        for i in range(len(bkpts)):
+            if x<bkpts[len(bkpts)-i-1] <=bkpt_new:
+                res.append([0,bkpts[len(bkpts)-i-1]])
+                break
+    return res
+
+
+def one_point_down_upper(fn,f_u,x,left,right):
+    bkpts=fn.end_points()
+    res_left=left
+    res_right=right
+    left_slope=(fn(x)-f_u(left))/(x-left)
+    right_slope=(fn(x)-f_u(right))/(x-right)
+    for bkpt in bkpts:
+        if left<bkpt<x:
+            slope=slope_of_two_points(fn,x,bkpt)
+            if slope<left_slope:
+                left_slope=slope
+                res_left=bkpt   
+        if x<bkpt<right:
+            slope=slope_of_two_points(fn,x,bkpt)
+            if slope>right_slope:
+                right_slope=slope
+                res_right=bkpt
+    res=[]
+    if res_left>left:
+        res.append([0,find_intersection([left,f_u(left)],[x,f_u(x)],[x,fn(x)],[res_left,fn(res_left)])])
+    res.append([1,x])
+    if res_right<right:
+        res.append([0,find_intersection([right,f_u(right)],[x,f_u(x)],[x,fn(x)],[res_right,fn(res_right)])])
+    return res
+
+
+def one_point_lift_lower(fn,f_l,x,left,right):
+    bkpts=fn.end_points()
+    res_left=left
+    res_right=right
+    left_slope=(fn(x)-f_l(left))/(x-left)
+    right_slope=(fn(x)-f_l(right))/(x-right)
+    for bkpt in bkpts:
+        if left<bkpt<x:
+            slope=slope_of_two_points(fn,x,bkpt)
+            if slope>left_slope:
+                left_slope=slope
+                res_left=bkpt   
+        if x<bkpt<right:
+            slope=slope_of_two_points(fn,x,bkpt)
+            if slope<right_slope:
+                right_slope=slope
+                res_right=bkpt
+    res=[]
+    if res_left>left:
+        res.append([0,find_intersection([left,f_l(left)],[x,f_l(x)],[x,fn(x)],[res_left,fn(res_left)])])
+    res.append([1,x])
+    if res_right<right:
+        res.append([0,find_intersection([right,f_l(right)],[x,f_l(x)],[x,fn(x)],[res_right,fn(res_right)])])
+    return res
+    
+def find_intersection(a1,a2,c1,c2):
+    x1=a1[0]
+    y1=a1[1]
+    x2=a2[0]
+    y2=a2[1]
+    z1=c1[0]
+    t1=c1[1]
+    z2=c2[0]
+    t2=c2[1]
+    m1=(y2-y1)/(x2-x1)
+    b1=y1-m1*x1
+    m2=(t2-t1)/(z2-z1)
+    b2=t1-m2*z1
+    return (b2-b1)/(m1-m2)
+
+
+def slope_of_two_points(fn,x1,x2):
+    return (fn(x1)-fn(x2))/(x1-x2)    
+    
+
+def lower_approximation(fn):
+    """
+    Return a lower approximation function of a given function fn.
+    """
+    # Works only for continuous functions.
+    bkpt=fn.end_points()
+    bkpt_l=[bkpt[0]]
+    value_l=[fn(bkpt[0])]
+    slopes=[]
+    for i in range(len(bkpt)-1):
+        slopes.append(fn.which_function(bkpt[i+1])._slope)
+    for i in range(len(bkpt)-2):
+        x=bkpt[i+1]
+        if slopes[i]==slopes[i+1]:
+            continue
+        if slopes[i]<slopes[i+1]:
+            bkpt_l.append(x)
+            value_l.append(fn(x))
+    bkpt_l.append(bkpt[-1])
+    value_l.append(fn(bkpt[-1]))
+    f_l=piecewise_function_from_breakpoints_and_values(bkpt_l,value_l)
+    return f_l
+
+def upper_approximation(fn):
+    """
+    Return an upper approximation function of a given function fn.
+    """
+    # Works only for continuous functions.
+    bkpt=fn.end_points()
+    bkpt_u=[bkpt[0]]
+    value_u=[fn(bkpt[0])]
+    slopes=[]
+    for i in range(len(bkpt)-1):
+        slopes.append(fn.which_function(bkpt[i+1])._slope)
+    for i in range(len(bkpt)-2):
+        x=bkpt[i+1]
+        if slopes[i]==slopes[i+1]:
+            continue
+        if slopes[i]>slopes[i+1]:
+            bkpt_u.append(x)
+            value_u.append(fn(x))
+    bkpt_u.append(bkpt[-1])
+    value_u.append(fn(bkpt[-1]))
+    f_u=piecewise_function_from_breakpoints_and_values(bkpt_u,value_u)
+    return f_u
+
+
+def one_point_up_function(fn,f_l,index):
+    bkpt=fn.end_points()
+    bkpt2=f_l.end_points()
+    if index>=len(bkpt2)-1:
+        return f_l
+    x=bkpt2[index]
+    y=bkpt2[index+1]
+    index1=bisect_left(bkpt,x)
+    index2=bisect_left(bkpt,y)
+    if index1+1==index2:
+        return f_l
+    new_bkpt=[]
+    values=[]
+    for i in range(index+1):
+        new_bkpt.append(bkpt2[i])
+        values.append(fn(bkpt2[i]))
+    tmp=bkpt[index1+1]
+    dis=fn(tmp)-f_l(tmp)
+    for k in range(index1+2,index2):
+        xx=bkpt[k]
+        if fn(xx)-f_l(xx)<dis:
+            tmp=xx
+            dis=fn(xx)-f_l(xx)
+    new_bkpt.append(tmp)
+    values.append(fn(tmp))
+    for j in range(index+1,len(bkpt2)):
+        new_bkpt.append(bkpt2[j])
+        values.append(fn(bkpt2[j]))
+    return piecewise_function_from_breakpoints_and_values(new_bkpt,values)
+
+def one_point_down_function(fn,f_u,index):
+    bkpt=fn.end_points()
+    bkpt2=f_u.end_points()
+    if index>=len(bkpt2)-1:
+        return f_u
+    x=bkpt2[index]
+    y=bkpt2[index+1]
+    index1=bisect_left(bkpt,x)
+    index2=bisect_left(bkpt,y)
+    if index1+1==index2:
+        return f_u
+    new_bkpt=[]
+    values=[]
+    for i in range(index+1):
+        new_bkpt.append(bkpt2[i])
+        values.append(fn(bkpt2[i]))
+    tmp=bkpt[index1+1]
+    dis=f_u(tmp)-fn(tmp)
+    for k in range(index1+2,index2):
+        xx=bkpt[k]
+        if f_u(xx)-fn(xx)<dis:
+            tmp=xx
+            dis=f_u(xx)-fn(xx)
+    new_bkpt.append(tmp)
+    values.append(fn(tmp))
+    for j in range(index+1,len(bkpt2)):
+        new_bkpt.append(bkpt2[j])
+        values.append(fn(bkpt2[j]))
+    return piecewise_function_from_breakpoints_and_values(new_bkpt,values)
+
+def find_left_right(f,x):
+    """
+    Find the closest bkpts(left and right) to x such that left<x<right.
+    """
+    bkpt=f.end_points()
+    index=bisect_left(bkpt,x)
+    if bkpt[index]>x:
+        return bkpt[index-1],bkpt[index]
+    else:
+        return bkpt[index-1],bkpt[index+1]
+
+def delta_pi_approximation(f_l,f_u,x,y):
+    return f_l(fractional(x))+f_l(fractional(y))-f_u(fractional(x+y))
+
+def generate_new_test_vertices(f_l,f_u,new_l,new_u):
+    """
+    Generate new vertices in the complex where subadditivity test is needed.
+    """
+    old_l=f_l.end_points()
+    old_u=f_u.end_points()
+    for x in new_l:
+        for y in old_l+new_l:
+            yield [x,y,x+y]
+    for x in old_l+new_l:
+        for z in (new_u+[1+b for b in new_u]):
+            if 0<z-x<1:
+                yield [x,z-x,z]
+    for x in new_l:
+        for z in (old_u[:-1]+[1+b for b in old_u]):
+            if 0<z-x<1:
+                yield [x,z-x,z]
+
+
+
+def generate_nonsubadditivity_vertices_approximation_continuous(f_l,f_u):
+    bkpt_l=f_l.end_points()
+    bkpt_u=f_u.end_points()[:-1]+[bkpt+1 for bkpt in f_u.end_points()]
+    res=[]
+    for x in bkpt_l:
+        for y in bkpt_l:
+            if x>=y:
+                if delta_pi_approximation(f_l,f_u,x,y)<0:
+                    res.append([x,y,x+y])
+    for x in bkpt_l:
+        for z in bkpt_u:
+            if delta_pi_approximation(f_l,f_u,x,z-x)<0:
+                res.append([x,z-x,z])
+    return res
+ 
+
+def subadditivity_test_approximation_continuous(f_l,f_u):
+    gen=generate_nonsubadditivity_vertices_approximation_continuous(f_l,f_u)
+    if len(gen)>0:
+       return True
+    else:
+       return False
+
+
+
+
+
+
+
+
+
+
+
 def unique_list(iterator):
     r"""
     Returns the list of the elements in the iterator without repetition.
