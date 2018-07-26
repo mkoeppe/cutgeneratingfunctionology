@@ -16,6 +16,7 @@ def faster_subadditivity_test(fn,initial_bkpts=10,keep_old_bkpts=True):
     Faster subadditivity test.
     """
     # create initial lower and upper approximation functions. 
+    # Maybe need a better way to generate initial approximation functions.
     f_l=generate_initial_lower_approximation(fn,initial_bkpts)
     f_u=generate_initial_upper_approximation(fn,initial_bkpts)
     nonsubadditive_vertices=generate_nonsubadditivity_vertices_approximation_continuous(f_l,f_u)
@@ -35,19 +36,27 @@ def faster_subadditivity_test(fn,initial_bkpts=10,keep_old_bkpts=True):
         new_l=new_bkpts_lower(fn,f_l,fractional(x),keep_old_bkpts)   
         new_l_no_label=[bkpt[1] for bkpt in new_l]
         new_u_no_label=[bkpt[1] for bkpt in new_u]
+        # the number of test_vertices can be large and the same vertex can be checked multiple times
         test_vertices=nonsubadditive_vertices+generate_new_test_vertices(f_l,f_u,new_l_no_label,new_u_no_label)
         # update f_l,f_u
+        # one point update, not efficient?
         f_l=lower_approximation_one_point_update(fn,f_l,fractional(x),keep_old_bkpts)
         f_u=upper_approximation_one_point_update(fn,f_u,fractional(z),keep_old_bkpts)
         nonsubadditive_vertices=generate_local_nonsubadditivity_vertices_approximation_continuous(f_l,f_u,test_vertices)
     return True, f_l,f_u
 
 def lower_approximation_one_point_update(fn,f_l,x,keep_old_bkpts=True):
+    """
+    Lift up function f_l such that it is exact at x.
+    """
     if fn(fractional(x))==f_l(fractional(x)):
         return f_l
     return generate_new_approximation_function(fn,f_l,new_bkpts_lower(fn,f_l,x,keep_old_bkpts))
 
 def new_bkpts_lower(fn,f_l,x,keep_old_bkpts=True):
+    """
+    Return new breakpoints created if f_l is lifted up at x.
+    """
     if fn(fractional(x))==f_l(fractional(x)):
         return []
     left, right=find_left_right(f_l,x)
@@ -58,6 +67,9 @@ def new_bkpts_lower(fn,f_l,x,keep_old_bkpts=True):
     return new_bkpts
 
 def new_bkpts_upper(fn,f_u,x,keep_old_bkpts=True):
+    """
+    Return new breakpoints created if f_u is pushed down at x.
+    """
     if fn(fractional(x))==f_u(fractional(x)):
         return []
     left, right=find_left_right(f_u,x)
@@ -68,11 +80,17 @@ def new_bkpts_upper(fn,f_u,x,keep_old_bkpts=True):
     return new_bkpts
 
 def upper_approximation_one_point_update(fn,f_u,x,keep_old_bkpts=True):
+    """
+    Push down function f_u such that it is exact at x.
+    """
     if fn(fractional(x))==f_u(fractional(x)):
         return f_u
     return generate_new_approximation_function(fn,f_u,new_bkpts_upper(fn,f_u,x,keep_old_bkpts))
 
 def generate_local_nonsubadditivity_vertices_approximation_continuous(f_l,f_u,test_vertices):
+    """
+    Return a list of nonsubadditivity_vertices wrt f_l and f_u, based on given test vertices.
+    """
     res=[]
     for vertex in test_vertices:
         if delta_pi_approximation(f_l,f_u,vertex[0],vertex[1])<0:
@@ -80,6 +98,9 @@ def generate_local_nonsubadditivity_vertices_approximation_continuous(f_l,f_u,te
     return res
 
 def find_least_nonsubadditive_vertices(fn,vertices):
+    """
+    Find one vertex where approximation functions can be modified.
+    """
     best_delta=2
     best_x=0
     best_y=0
@@ -96,18 +117,27 @@ def find_least_nonsubadditive_vertices(fn,vertices):
     return True,[best_x,best_y,best_x+best_y]
 
 def generate_initial_lower_approximation(fn,initial_bkpts):
+    """
+    Generate initial lower approximation such that the number of breakpoints<=initial_bkpts.
+    """
     res=lower_approximation(fn)
     while len(res.end_points())>initial_bkpts:
         res=lower_approximation(res)
     return res
 
 def generate_initial_upper_approximation(fn,initial_bkpts):
+    """
+    Generate initial upper approximation such that the number of breakpoints<=initial_bkpts.
+    """
     res=upper_approximation(fn)
     while len(res.end_points())>initial_bkpts:
         res=upper_approximation(res)
     return res
 
 def generate_new_approximation_function(fn,f_o,new_bkpts):
+    """
+    Generate a new function which is obtained by adding new breakpoints (new_bkpts) to old function f_o.
+    """
     bkpt0=f_o.end_points()
     bkpts=[]
     values=[]
@@ -131,6 +161,9 @@ def generate_new_approximation_function(fn,f_o,new_bkpts):
         
 
 def one_point_lift_lower_keep_old_bkpts(fn,f_l,x,left,right):
+    """
+    Generate new breakpoints including x with label. label=0 implies f_l, label=1 implies fn.
+    """
     bkpts=fn.end_points()
     res_left=left
     res_right=right
@@ -164,6 +197,9 @@ def one_point_lift_lower_keep_old_bkpts(fn,f_l,x,left,right):
     return res
 
 def one_point_down_upper_keep_old_bkpts(fn,f_u,x,left,right):
+    """
+    Generate new breakpoints including x with label. label=0 implies f_l, label=1 implies fn.
+    """
     bkpts=fn.end_points()
     res_left=left
     res_right=right
@@ -270,7 +306,7 @@ def slope_of_two_points(fn,x1,x2):
 
 def lower_approximation(fn):
     """
-    Return a lower approximation function of a given function fn.
+    Return a lower approximation function of a given function fn using slope change.
     """
     # Works only for continuous functions.
     bkpt=fn.end_points()
@@ -293,7 +329,7 @@ def lower_approximation(fn):
 
 def upper_approximation(fn):
     """
-    Return an upper approximation function of a given function fn.
+    Return an upper approximation function of a given function fn using slope change.
     """
     # Works only for continuous functions.
     bkpt=fn.end_points()
@@ -412,6 +448,9 @@ def generate_new_test_vertices(f_l,f_u,new_l,new_u):
 
 
 def generate_nonsubadditivity_vertices_approximation_continuous(f_l,f_u):
+    """
+    Generate initial nonsubadditivity vertices wrt f_l and f_u.
+    """
     bkpt_l=f_l.end_points()
     bkpt_u=f_u.end_points()[:-1]+[bkpt+1 for bkpt in f_u.end_points()]
     res=[]
