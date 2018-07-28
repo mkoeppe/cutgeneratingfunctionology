@@ -242,6 +242,16 @@ c = DirectedMoveCompositionCompletion([tau1a, tau1b], [comp],
 c.complete()
 show_plot(c.plot(), fname, tag='completion-final')
 
+t1 = 2/15
+tau1a = FunctionalDirectedMove([open_interval(4/15, 7/15)], (1, t1))
+tau1b = FunctionalDirectedMove([open_interval(8/15, 11/15)], (1, t1))
+comp = [ open_interval(7/15, 10/15) ]
+fname = destdir + 'extend_components_by_moves_ex1a' + "-%s.png"
+c = DirectedMoveCompositionCompletion([tau1a, tau1b], [comp],
+                                      show_plots=fname, plot_background=plot_background)
+c.complete()
+show_plot(c.plot(), fname, tag='completion-final')
+
 t1 = 5/15
 tau1a = FunctionalDirectedMove([open_interval(2/15, 3/15)], (1, t1))
 tau1b = FunctionalDirectedMove([open_interval(4/15, 5/15)], (1, t1))
@@ -260,6 +270,15 @@ fname = destdir + 'extend_components_by_moves_ex3' + "-%s.png"
 c = DirectedMoveCompositionCompletion([tau1a, tau1b], [comp],
                                       show_plots=fname,
                                       plot_background=plot_background)
+c.complete()
+show_plot(c.plot(), fname, tag='completion-final')
+
+t1 = 5/15
+tau1 = FunctionalDirectedMove([open_interval(2/15, 5/15)], (1, t1))
+comp = [ open_interval(3/15, 4/15) ]
+fname = destdir + 'extend_components_by_moves_ex4' + "-%s.png"
+c = DirectedMoveCompositionCompletion([tau1], [comp],
+                                      show_plots=fname, plot_background=plot_background)
 c.complete()
 show_plot(c.plot(), fname, tag='completion-final')
 
