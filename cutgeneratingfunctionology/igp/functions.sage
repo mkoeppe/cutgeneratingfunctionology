@@ -10,6 +10,7 @@ from six.moves import range
 from six.moves import zip
 from functools import reduce
 from six.moves import input
+from itertools import chain
 
 def faster_subadditivity_test(fn,initial_bkpts=10,keep_old_bkpts=True):
     """
@@ -19,16 +20,22 @@ def faster_subadditivity_test(fn,initial_bkpts=10,keep_old_bkpts=True):
     # Maybe need a better way to generate initial approximation functions.
     f_l=generate_initial_lower_approximation(fn,initial_bkpts)
     f_u=generate_initial_upper_approximation(fn,initial_bkpts)
-    nonsubadditive_vertices=generate_nonsubadditivity_vertices_approximation_continuous(f_l,f_u)
-    while len(nonsubadditive_vertices)>0:
+    #nonsubadditive_vertices=generate_nonsubadditivity_vertices_approximation_continuous(f_l,f_u)
+    test_vertices=generate_initial_test_vertices(f_l,f_u)
+    while True:
         # test subadditivity for original functions at necessary vertices.
+        nonsubadditive_vertices=generate_local_nonsubadditivity_vertices_approximation_continuous(f_l,f_u,test_vertices)
         flag,new_bkpt=find_least_nonsubadditive_vertices(fn,nonsubadditive_vertices)
-        x=new_bkpt[0]
-        y=new_bkpt[1]
-        z=new_bkpt[2]
         if not flag:
             logging.info("pi(%s) + pi(%s) - pi(%s) < 0" %(x,y,z))
             return False
+        # if there is no nonsubadditivity vertices, return True.
+        if len(new_bkpt)==0:
+            return True, f_l, f_u
+        else:
+            x=new_bkpt[0]
+            y=new_bkpt[1]
+            z=new_bkpt[2]
         # update test_vertices
         if f_l(fractional(x))==fn(fractional(x)):
             x=y
@@ -37,13 +44,27 @@ def faster_subadditivity_test(fn,initial_bkpts=10,keep_old_bkpts=True):
         new_l_no_label=[bkpt[1] for bkpt in new_l]
         new_u_no_label=[bkpt[1] for bkpt in new_u]
         # the number of test_vertices can be large and the same vertex can be checked multiple times
-        test_vertices=nonsubadditive_vertices+generate_new_test_vertices(f_l,f_u,new_l_no_label,new_u_no_label)
+        test_vertices=chain(generate_local_nonsubadditivity_vertices_approximation_continuous(f_l,f_u,test_vertices),generate_new_test_vertices(f_l,f_u,new_l_no_label,new_u_no_label))
         # update f_l,f_u
         # one point update, not efficient?
         f_l=lower_approximation_one_point_update(fn,f_l,fractional(x),keep_old_bkpts)
         f_u=upper_approximation_one_point_update(fn,f_u,fractional(z),keep_old_bkpts)
-        nonsubadditive_vertices=generate_local_nonsubadditivity_vertices_approximation_continuous(f_l,f_u,test_vertices)
-    return True, f_l,f_u
+
+
+def generate_initial_test_vertices(f_l,f_u):
+    """
+    Generate initial test vertices for subadditivity test.
+    """
+    bkpt_l=f_l.end_points()
+    bkpt_u=f_u.end_points()[:-1]+[bkpt+1 for bkpt in f_u.end_points()]
+    for x in bkpt_l:
+        for y in bkpt_l:
+            if x>=y:
+                yield [x,y,x+y]
+    for x in bkpt_l:
+        for z in bkpt_u:
+            yield [x,z-x,z]
+
 
 def lower_approximation_one_point_update(fn,f_l,x,keep_old_bkpts=True):
     """
@@ -91,19 +112,15 @@ def generate_local_nonsubadditivity_vertices_approximation_continuous(f_l,f_u,te
     """
     Return a list of nonsubadditivity_vertices wrt f_l and f_u, based on given test vertices.
     """
-    res=[]
     for vertex in test_vertices:
         if delta_pi_approximation(f_l,f_u,vertex[0],vertex[1])<0:
-            res.append([vertex[0],vertex[1],vertex[0]+vertex[1]])
-    return res
+            yield [vertex[0],vertex[1],vertex[0]+vertex[1]]
 
 def find_least_nonsubadditive_vertices(fn,vertices):
     """
     Find one vertex where approximation functions can be modified.
     """
     best_delta=2
-    best_x=0
-    best_y=0
     for [x,y,z] in vertices:
         delta=fn(fractional(x))+fn(fractional(y))-fn(fractional(z))
         if delta<0:
@@ -114,13 +131,18 @@ def find_least_nonsubadditive_vertices(fn,vertices):
             best_y=y
             if delta==0:
                 return True,[x,y,z]
-    return True,[best_x,best_y,best_x+best_y]
+    #if there is no nonsubadditivity vertices, return a special [].
+    try:
+        return True,[best_x,best_y,best_x+best_y]
+    except UnboundLocalError:
+        return True,[]
 
 def generate_initial_lower_approximation(fn,initial_bkpts):
     """
     Generate initial lower approximation such that the number of breakpoints<=initial_bkpts.
     """
     res=lower_approximation(fn)
+    # Could there be a infinite loop?
     while len(res.end_points())>initial_bkpts:
         res=lower_approximation(res)
     return res
@@ -429,22 +451,19 @@ def generate_new_test_vertices(f_l,f_u,new_l,new_u):
     """
     Generate new vertices in the complex where subadditivity test is needed.
     """
-    res=[]
     old_l=f_l.end_points()
     old_u=f_u.end_points()
     for x in new_l:
         for y in old_l+new_l:
-            res.append( [x,y,x+y])
+            yield [x,y,x+y]
     for x in old_l+new_l:
         for z in (new_u+[1+b for b in new_u]):
             if 0<z-x<1:
-                res.append( [x,z-x,z])
+                yield [x,z-x,z]
     for x in new_l:
         for z in (old_u[:-1]+[1+b for b in old_u]):
             if 0<z-x<1:
-                res.append( [x,z-x,z])
-    return res
-
+                yield [x,z-x,z]
 
 
 def generate_nonsubadditivity_vertices_approximation_continuous(f_l,f_u):
@@ -453,24 +472,15 @@ def generate_nonsubadditivity_vertices_approximation_continuous(f_l,f_u):
     """
     bkpt_l=f_l.end_points()
     bkpt_u=f_u.end_points()[:-1]+[bkpt+1 for bkpt in f_u.end_points()]
-    res=[]
     for x in bkpt_l:
         for y in bkpt_l:
             if x>=y:
                 if delta_pi_approximation(f_l,f_u,x,y)<0:
-                    res.append([x,y,x+y])
+                    yield [x,y,x+y]
     for x in bkpt_l:
         for z in bkpt_u:
             if delta_pi_approximation(f_l,f_u,x,z-x)<0:
-                res.append([x,z-x,z])
-    return res
- 
-
-
-
-
-
-
+                yield [x,z-x,z]
 
 
 
