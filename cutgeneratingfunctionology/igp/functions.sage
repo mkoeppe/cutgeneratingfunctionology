@@ -50,6 +50,131 @@ def faster_subadditivity_test(fn,initial_bkpts=10,keep_old_bkpts=True):
         f_l=lower_approximation_one_point_update(fn,f_l,fractional(x),keep_old_bkpts)
         f_u=upper_approximation_one_point_update(fn,f_u,fractional(z),keep_old_bkpts)
 
+def generate_new_bkpts_and_values_over_interlval_ab_lower(fn,fl,a,b,index):
+    new_index=index
+    if a[0]==0 and b[0]==0:
+        while new_index<len(fn.end_points()) and fn.end_points()[new_index]<=b[1]:
+            new_index+=1
+        return [b[1]], [fl(b[1])], new_index
+    if a[0]==0:
+        left_endpoint=[a[1],fl(a[1])]
+    else:
+        left_endpoint=[a[1],fn(a[1])]
+    if b[0]==0:
+        right_endpoint=[b[1],fl(b[1])]
+    else:
+        right_endpoint=[b[1],fn(b[1])]
+    best_slope_left=best_slope_right=(right_endpoint[1]-left_endpoint[1])/(right_endpoint[0]-left_endpoint[0])
+    while fn.end_points()[new_index]<=b[1]:
+        bkpt=fn.end_points()[new_index]
+        if bkpt==b[1]:
+            new_index+=1
+            break
+        slope_left=(left_endpoint[1]-fn(bkpt))/(left_endpoint[0]-bkpt)
+        slope_right=(right_endpoint[1]-fn(bkpt))/(right_endpoint[0]-bkpt)    
+        if slope_left<best_slope_left:
+            best_slope_left=slope_left
+        if slope_right>best_slope_right:
+            best_slope_right=slope_right
+        new_index+=1
+    if best_slope_left==(right_endpoint[1]-left_endpoint[1])/(right_endpoint[0]-left_endpoint[0]):
+        return [b[1]], [right_endpoint[1]], new_index
+    bkpt1, value1=find_intersection_point_slope(left_endpoint,best_slope_left,right_endpoint,best_slope_right)
+    if value1>=fl(bkpt1):
+        return [bkpt1,b[1]],[value1,right_endpoint[1]],new_index
+    else:
+        bkpt2=find_intersection(left_endpoint,[bkpt1,value1],[a[1],fl(a[1])],[b[1],fl(b[1])])
+        bkpt3=find_intersection(right_endpoint,[bkpt1,value1],[a[1],fl(a[1])],[b[1],fl(b[1])])
+        return [bkpt2,bkpt3,b[1]],[fl(bkpt2),fl(bkpt3),right_endpoint[1]],new_index
+    
+        
+    
+
+def find_intersection_point_slope(point1,slope1,point2,slope2):
+    x1=point1[0]
+    y1=point1[1]
+    x2=point2[0]
+    y2=point2[1]
+    x=(y1-y2+m2*x2-m1*x1)/(m2-m1)
+    y=m1*x+y1-m1*x1
+    return x,y
+    
+    
+    
+
+def new_lower_approximation(fn,fl,new_bkpts):
+    """
+    Generate new lower approximation function based on the old lower approximation function fl and new breakpoints new_bkpts where it is exact.
+    """
+    bkpts=[0]
+    values=[0]
+    fn_bkpts=fn.end_points()
+    fl_bkpts=[[0,bkpt] for bkpt in fl.end_points()]
+    new_bkpts_with_label=[[1,bkpt] for bkpt in new_bkpts]
+    n=len(new_bkpts)
+    m=len(fl_bkpts)
+    a=[0,0]
+    fl_bkpts_index=1
+    new_bkpts_index=0
+    fn_bkpts_index=1
+    while fl_bkpts_index<m:
+        if new_bkpts_index>=n:
+            b=fl_bkpts[fl_bkpts_index]
+            fl_bkpts_index+=1
+            b,v,fn_bkpts_index=generate_new_bkpts_and_values_over_interlval_ab_lower(fn,fl,a,b,fn_bkpts_index)
+            bkpts=bkpts+b
+            values=values+v
+            a=b
+            continue
+        if fl_bkpts[fl_bkpts_index][1]<new_bkpts_with_label[new_bkpts_index][1]:
+            b=fl_bkpts[fl_bkpts_index]
+            fl_bkpts_index+=1
+        elif fl_bkpts[fl_bkpts_index][1]==new_bkpts_with_label[new_bkpts_index][1]:
+            b=new_bkpts_with_label[new_bkpts_index]
+            fl_bkpts_index+=1
+            new_bkpts_index+=1
+        else:
+            b=new_bkpts_with_label[new_bkpts_index]
+            new_bkpts_index+=1
+        b,v,fn_bkpts_index=generate_new_bkpts_and_values_over_interlval_ab_lower(fn,fl,a,b,fn_bkpts_index)
+        bkpts=bkpts+b
+        values=values+v
+        a=b
+    return piecewise_function_from_breakpoints_and_values(bkpts,values)
+    
+
+def new_upper_approximation(fn,fu,new_bkpts):
+    """
+    Generate new upper approximation function based on the old upper approximation function fu and new breakpoints new_bkpts where it is exact.
+    """
+    bkpts=[0]
+    values=[0]
+    fn_bkpts=fn.end_points()
+    fu_bkpts=fu.end_points()
+    n=len(new_bkpts)
+    a=0
+    fu_bkpts_index=1
+    new_bkpts_index=0
+    while fu_bkpts_index<len(fu_bkpts):
+        if new_bkpts_index>=n:
+            b=fu_bkpts[fu_bkpts_index]
+            fu_bkpts_index+=1
+            #do something
+            a=b
+            continue
+        if fu_bkpts[fu_bkpts_index]<new_bkpts[new_bkpts_index]:
+            b=fu_bkpts[fu_bkpts_index]
+            fu_bkpts_index+=1
+        elif fu_bkpts[fu_bkpts_index]==new_bkpts[new_bkpts_index]:
+            b=fu_bkpts[fu_bkpts_index]
+            fu_bkpts_index+=1
+            new_bkpts_index+=1
+        else:
+            b=new_bkpts[new_bkpts_index]
+            new_bkpts_index+=1
+        # do something
+        a=b
+    return piecewise_function_from_breakpoints_and_values(bkpts,values)
 
 def generate_initial_test_vertices(f_l,f_u):
     """
@@ -346,8 +471,8 @@ def lower_approximation(fn):
             value_l.append(fn(x))
     bkpt_l.append(bkpt[-1])
     value_l.append(fn(bkpt[-1]))
-    f_l=piecewise_function_from_breakpoints_and_values(bkpt_l,value_l)
-    return f_l
+    return piecewise_function_from_breakpoints_and_values(bkpt_l,value_l)
+
 
 def upper_approximation(fn):
     """
@@ -369,69 +494,7 @@ def upper_approximation(fn):
             value_u.append(fn(x))
     bkpt_u.append(bkpt[-1])
     value_u.append(fn(bkpt[-1]))
-    f_u=piecewise_function_from_breakpoints_and_values(bkpt_u,value_u)
-    return f_u
-
-
-def one_point_up_function(fn,f_l,index):
-    bkpt=fn.end_points()
-    bkpt2=f_l.end_points()
-    if index>=len(bkpt2)-1:
-        return f_l
-    x=bkpt2[index]
-    y=bkpt2[index+1]
-    index1=bisect_left(bkpt,x)
-    index2=bisect_left(bkpt,y)
-    if index1+1==index2:
-        return f_l
-    new_bkpt=[]
-    values=[]
-    for i in range(index+1):
-        new_bkpt.append(bkpt2[i])
-        values.append(fn(bkpt2[i]))
-    tmp=bkpt[index1+1]
-    dis=fn(tmp)-f_l(tmp)
-    for k in range(index1+2,index2):
-        xx=bkpt[k]
-        if fn(xx)-f_l(xx)<dis:
-            tmp=xx
-            dis=fn(xx)-f_l(xx)
-    new_bkpt.append(tmp)
-    values.append(fn(tmp))
-    for j in range(index+1,len(bkpt2)):
-        new_bkpt.append(bkpt2[j])
-        values.append(fn(bkpt2[j]))
-    return piecewise_function_from_breakpoints_and_values(new_bkpt,values)
-
-def one_point_down_function(fn,f_u,index):
-    bkpt=fn.end_points()
-    bkpt2=f_u.end_points()
-    if index>=len(bkpt2)-1:
-        return f_u
-    x=bkpt2[index]
-    y=bkpt2[index+1]
-    index1=bisect_left(bkpt,x)
-    index2=bisect_left(bkpt,y)
-    if index1+1==index2:
-        return f_u
-    new_bkpt=[]
-    values=[]
-    for i in range(index+1):
-        new_bkpt.append(bkpt2[i])
-        values.append(fn(bkpt2[i]))
-    tmp=bkpt[index1+1]
-    dis=f_u(tmp)-fn(tmp)
-    for k in range(index1+2,index2):
-        xx=bkpt[k]
-        if f_u(xx)-fn(xx)<dis:
-            tmp=xx
-            dis=f_u(xx)-fn(xx)
-    new_bkpt.append(tmp)
-    values.append(fn(tmp))
-    for j in range(index+1,len(bkpt2)):
-        new_bkpt.append(bkpt2[j])
-        values.append(fn(bkpt2[j]))
-    return piecewise_function_from_breakpoints_and_values(new_bkpt,values)
+    return piecewise_function_from_breakpoints_and_values(bkpt_u,value_u)
 
 def find_left_right(f,x):
     """
