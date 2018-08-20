@@ -1562,36 +1562,39 @@ class bcds_discontinuous_everywhere:
     Reference:
         [bcds_discontinous_everywhere] Amitabh Basu, Michele Conforti, Marco Di Summa, An extreme function which is nonnegative and discontinuous everywhere, arXiv:1802.01499 [math.OC]
     """
-    def __init__(self,field=QQ,ngens=1):
+    def __init__(self):
         self._f = 1/2
-        self.field=field
-        self.ngens=ngens
 
     def __call__(self, x):
         """
-        TESTS::
+        Examples::
 
             sage: h = bcds_discontinuous_everywhere()
-            sage: K.<a> = NumberField(x^4+2*x^3-x^2-17, embedding=5)
-            sage: L.<b>=NumberField(x^4-4*x^3+7*x^2-x-19,embedding=-1)
-            sage: aa = AA(a)
-            sage: bb = AA(b)
-            sage: delta_pi(h, aa, bb) >= 0
+            sage: delta_pi(h, 1/5+sqrt(3), 3/7+sqrt(1/3)) >= 0
+            True
+            sage: delta_pi(h, -13/9+sqrt(17), 3/7-3*sqrt(17))>=0
             True
         """
-        xx=fractional(x)
         try:
-            xxx=self.field(xx)
-            coef=2*xxx.list()[0]
-            y=(coef-1)/2
-            if y==floor(y):
-                return 1
-            else:
-                return coef-floor(coef)
-        except ValueError:
-            self.ngens+=1
-            return 0 
-       
+            xx=AA(x)
+        except TypeError:
+            raise NotImplementedError("Not implemented for non-algebraic numbers.")
+        p=xx.minpoly()
+        if p.degree()>2:
+            raise NotImplementedError("Not implemented for algebraic numbers with degree greater than 2.") 
+        elif p.degree()==2:
+            try:
+                s=-p.coefficients()[1]/p.coefficients()[2]/2
+            except IndexError:
+                return 0
+        else:
+            s=xx
+        ss=fractional(s)
+        if ss<=1/2:
+            return 2*ss
+        else:
+            return 2-2*ss
+               
     def plot(self, xmin=0, xmax=1, ymin=0, ymax=1, color=None, rgbcolor=None,
              aspect_ratio='automatic', thickness=None, **kwds):
         ymin = max(0, ymin)
