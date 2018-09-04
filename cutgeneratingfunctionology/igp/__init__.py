@@ -72,6 +72,7 @@ igp_load(igp_dir + "crazy_perturbation_examples.sage")
 igp_load(igp_dir + "bug_examples.sage")
 igp_load(igp_dir + "lifting_project.sage")
 igp_load(igp_dir + "plot_options.sage")
+igp_load(igp_dir + "faster_subadditivity_test.sage")
 
 from . import extreme_functions, procedures
 
