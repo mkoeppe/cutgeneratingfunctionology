@@ -3,6 +3,23 @@ from itertools import chain
 import itertools
 import numpy as np
 
+def number_of_vertices(fn):
+    """
+    Return the number of vertices of the complex delta_pi.
+    """
+    bkpts=fn.end_points()
+    bkpts2=fn.end_points()[1:-1]+[1+bkpt for bkpt in fn.end_points()[:-1]]
+    counter=len(bkpts)^2
+    for z in bkpts2:
+        for x in bkpts:
+            y=z-x
+            if 0<y<1 and y not in bkpts:
+                #symmetry
+                counter+=2
+    return counter
+                
+                           
+    
 
 def find_best_slope_intercept(X,Y,lower_bound=True,solver='GLPK'):
     """
