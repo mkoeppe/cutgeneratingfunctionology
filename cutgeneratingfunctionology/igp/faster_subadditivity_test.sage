@@ -17,32 +17,43 @@ def number_of_vertices(fn):
                 #symmetry
                 counter+=2
     return counter
-                
+ 
+def find_slope_intercept_trivial(X,Y):
+    m=(Y[1]-Y[0])/(X[1]-X[0])
+    b=Y[1]-m*X[1] 
+    return [m,b]          
                            
-    
-
-def find_best_slope_intercept(X,Y,lower_bound=True,solver='GLPK'):
+def find_best_slope_intercept(X,Y,lower_bound=True,solver='GLPK',norm='one'):
     """
-    Find the slope anf intercept of the affine lower/upper estimator.
+    Find the slope and intercept of the affine lower/upper estimator.
     """
-    if lower_bound:
-        p = MixedIntegerLinearProgram(maximization=True, solver=solver)
-        v = p.new_variable()
+    p = MixedIntegerLinearProgram(maximization=False, solver=solver)
+    v = p.new_variable()
+    if norm=='one':
         m, b= v['m'], v['b']
-        p.set_objective(m*sum(X)+b*len(X))
-        for i in range(len(X)):
-            p.add_constraint(m*X[i]+b<=Y[i])
+        if lower_bound:
+            p.set_objective(-m*sum(X)-b*len(X))
+            for i in range(len(X)):
+                p.add_constraint(m*X[i]+b<=Y[i])
+        else:
+            p.set_objective(m*sum(X)+b*len(X))
+            for i in range(len(X)):
+                p.add_constraint(m*X[i]+b>=Y[i])
+    elif norm=='inf':
+        m, b, z=v['m'], v['b'], v['z']
+        p.set_objective(z)
+        if lower_bound:
+            for i in range(len(X)):
+                p.add_constraint(z>=Y[i]-m*X[i]-b>=0)
+        else:
+            for i in range(len(X)):
+                p.add_constraint(z>=m*X[i]+b-Y[i]>=0)
     else:
-        p = MixedIntegerLinearProgram(maximization=False, solver=solver)
-        v = p.new_variable()
-        m, b= v['m'], v['b']
-        p.set_objective(m*sum(X)+b*len(X))
-        for i in range(len(X)):
-            p.add_constraint(m*X[i]+b>=Y[i])
+        raise ValueError, "Can't recognize norm."
     p.solve()
     return [p.get_values(m),p.get_values(b)]
 
-def find_affine_bounds(fn,I,lower_bound=True,extended=False):
+def find_affine_bounds(fn,I,lower_bound=True,extended=False,norm='one'):
     """
     Find the affine lower/upper estimator of the function fn over the closed interval I.
     """
@@ -56,7 +67,9 @@ def find_affine_bounds(fn,I,lower_bound=True,extended=False):
         for i in range(I_index[0], I_index[1]+1):
             X.append(bkpts[i])
             Y.append(fn(fractional(bkpts[i])))
-    slope,intercept=find_best_slope_intercept(X,Y,lower_bound=lower_bound)
+        slope,intercept=find_best_slope_intercept(X,Y,lower_bound=lower_bound,norm=norm)
+    else:
+        slope,intercept=find_slope_intercept_trivial(X,Y)    
     return slope, intercept
 
 def find_possible_branching_bkpts_index(bkpts,I):
@@ -117,7 +130,7 @@ def find_branching_direction(fn,I,J,K,I_index,J_index,K_index):
         ind=np.argmax([candidate[1] for candidate in candidates])
         return candidates[ind][0]
 
-def delta_pi_min(fn,I,J,K,approximation='constant'):
+def delta_pi_min(fn,I,J,K,approximation='constant',norm='one'):
     """
     Return the minimum of the function delta fn in the region whose projections are I,J,K.
     """
@@ -139,12 +152,14 @@ def delta_pi_min(fn,I,J,K,approximation='constant'):
         if alpha_I+alpha_J-beta_K>0:
             return alpha_I+alpha_J-beta_K
     elif approximation=='affine':
-        m_I, b_I=find_affine_bounds(fn,new_I,lower_bound=True,extended=False)
-        m_J, b_J=find_affine_bounds(fn,new_J,lower_bound=True,extended=False)
-        m_K, b_K=find_affine_bounds(fn,new_K,lower_bound=False,extended=True)
+        m_I, b_I=find_affine_bounds(fn,new_I,lower_bound=True,extended=False,norm=norm)
+        m_J, b_J=find_affine_bounds(fn,new_J,lower_bound=True,extended=False,norm=norm)
+        m_K, b_K=find_affine_bounds(fn,new_K,lower_bound=False,extended=True,norm=norm)
         delta_lower_bound=min((m_I*vertex[0]+b_I)+(m_J*vertex[1]+b_J)-(m_K*fractional(vertex[0]+vertex[1])+b_K) for vertex in vertices)
         if delta_lower_bound>0:
             return delta_lower_bound
+    else:
+        raise ValueError, "Can't recognize approximation."
     upper_bound=min(delta_pi(fn,v[0],v[1]) for v in vertices)
     if upper_bound<0:
         return upper_bound
