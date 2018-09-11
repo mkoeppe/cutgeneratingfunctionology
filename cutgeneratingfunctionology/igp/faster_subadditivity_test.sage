@@ -3,14 +3,78 @@ from itertools import chain
 import itertools
 import numpy as np
 
-def strategic_delta_pi_min(fn,approximation='constant',norm='one'):
+class SubadditivityTestTreeNode :
+    def __init__(self, fn, I, J, K):
+        self.I=I
+        self.J=J
+        self.K=K
+        self.function=fn
+        self.bkpts1=self.function.end_points()
+        self.bkpts2=self.function.end_points()[:-1]+[1+bkpt for bkpt in self.function.end_points()]
+
+#def delta_pi_lower_bound(self,approximation='constant'):
+
+
+    def vertices(self):
+        return verts(self.I,self.J,self.K)
+
+    def delta_pi_upper_bound(self):
+        return min(delta_pi(self.function,v[0],v[1]) for v in self.vertices)
+
+
+
+#class SubadditivityTestTree :
+
+#def __init__(self,)
+
+def histogram_delta_pi(fn,sampling='vertices'):
+    """
+    The histogram of the values of delta pi over given points in the complex.
+    """
+    if sampling=='vertices':
+        bkpts=fn.end_points()
+        bkpts2=fn.end_points()[:-1]+[1+bkpt for bkpt in fn.end_points()]
+        values=[]
+        for x in bkpts:
+            for y in bkpts:
+                values.append(delta_pi(fn,x,y))
+        for z in bkpts2[1:-1]:
+            for x in bkpts[1:-1]:
+                y=z-x
+                if 0<y<1 and y not in bkpts:
+                    val=delta_pi(fn,x,y)
+                    #symmetry
+                    values=values+[val,val]
+    else:
+        try:
+            q=int(sampling)
+            for i in range(q+1):
+                for j in range(q+1):
+                    x=i/q
+                    y=j/q
+                    values.append(delta_pi(fn,x,y))
+        except:
+            raise ValueError, "Can't recognize sampling."
+    return np.histogram(values,bins=5, density=False)
+
+def values_of_delta_pi_over_grid(fn,q):
+    """
+    Return a matrix representing the values of delta pi over the grid (1/q)Z*(1/q)Z.
+    """
+    res=np.zeros((q+1,q+1))
+    for i in range(q+1):
+        for j in range(q+1):
+            res[q-j][i]=delta_pi(fn,i/q,j/q)
+    return res
+
+def strategic_delta_pi_min(fn,approximation='constant',norm='one',branching_point_selection='median'):
     """
     Return the minimum of delta_pi.
     """
     f=find_f(fn)
-    a=delta_pi_min(fn,[0,f],[0,f],[0,f],approximation=approximation,norm=norm)
-    b=delta_pi_min(fn,[0,1],[0,1],[f,1+f],approximation=approximation,norm=norm)
-    c=delta_pi_min(fn,[f,1],[f,1],[1+f,2],approximation=approximation,norm=norm)
+    a=delta_pi_min(fn,[0,f],[0,f],[0,f],approximation=approximation,norm=norm,branching_point_selection=branching_point_selection)
+    b=delta_pi_min(fn,[0,1],[0,1],[f,1+f],approximation=approximation,norm=norm,branching_point_selection=branching_point_selection)
+    c=delta_pi_min(fn,[f,1],[f,1],[1+f,2],approximation=approximation,norm=norm,branching_point_selection=branching_point_selection)
     return min(a,b,c)
 
 def number_of_vertices(fn):
@@ -115,13 +179,27 @@ def fn_constant_bounds(fn,I,lower_bound=True,extended=False):
         else:
             return max(fn(fractional(I[0])), fn(fractional(I[1])), min(fn(fractional(bkpts[i])) for i in range(I_index[0], I_index[1]+1)))
 
-def find_branching_bkpt(fn,I_index,extended=False):
-    bkpts1=fn.end_points()
-    bkpts2=fn.end_points()[:-1]+[1+bkpt for bkpt in fn.end_points()]
+def find_branching_bkpt(fn,I_index,extended=False,branching_point_selection='median'):
+    """
+    Select the branching point.
+    """
     if extended:
-        return bkpts2[floor((I_index[0]+I_index[1])/2)]
+        bkpts=fn.end_points()[:-1]+[1+bkpt for bkpt in fn.end_points()]
     else:
-        return bkpts1[floor((I_index[0]+I_index[1])/2)]
+        bkpts=fn.end_points()
+    if branching_point_selection=='median':
+        return bkpts[floor((I_index[0]+I_index[1])/2)]
+    elif branching_point_selection=='sparse':
+        distance=0
+        for k in range(I_index[0],I_index[1]+1):
+        # choose large interval. Could be more flexible?
+            new_distance=bkpts[k+1]-bkpts[k-1]
+            if new_distance>distance:
+                distance=new_distance
+                best_bkpt=bkpts[k]
+        return best_bkpt
+    else:
+        raise ValueError, "Can't recognize branching_point_selection."
 
 def find_branching_direction(fn,I,J,K,I_index,J_index,K_index):
     lenI=I[1]-I[0]
@@ -140,7 +218,7 @@ def find_branching_direction(fn,I,J,K,I_index,J_index,K_index):
         ind=np.argmax([candidate[1] for candidate in candidates])
         return candidates[ind][0]
 
-def delta_pi_min(fn,I,J,K,approximation='constant',norm='one'):
+def delta_pi_min(fn,I,J,K,approximation='constant',norm='one',branching_point_selection='median'):
     """
     Return the minimum of the function delta fn in the region whose projections are I,J,K.
     """
@@ -177,12 +255,12 @@ def delta_pi_min(fn,I,J,K,approximation='constant',norm='one'):
     if not branch_direction:
         return upper_bound
     elif branch_direction=='I':
-        bkpt=find_branching_bkpt(fn,I_index,extended=False)
-        return min(delta_pi_min(fn,[I[0],bkpt],J,K,approximation=approximation),delta_pi_min(fn,[bkpt,I[1]],J,K,approximation=approximation))
+        bkpt=find_branching_bkpt(fn,I_index,extended=False,branching_point_selection=branching_point_selection)
+        return min(delta_pi_min(fn,[I[0],bkpt],J,K,approximation=approximation,norm=norm,branching_point_selection=branching_point_selection),delta_pi_min(fn,[bkpt,I[1]],J,K,approximation=approximation,norm=norm,branching_point_selection=branching_point_selection))
     elif branch_direction=='J':
-        bkpt=find_branching_bkpt(fn,J_index,extended=False)
-        return min(delta_pi_min(fn,I,[J[0],bkpt],K,approximation=approximation),delta_pi_min(fn,I,[bkpt,J[1]],K,approximation=approximation))
+        bkpt=find_branching_bkpt(fn,J_index,extended=False,branching_point_selection=branching_point_selection)
+        return min(delta_pi_min(fn,I,[J[0],bkpt],K,approximation=approximation,norm=norm,branching_point_selection=branching_point_selection),delta_pi_min(fn,I,[bkpt,J[1]],K,approximation=approximation,norm=norm,branching_point_selection=branching_point_selection))
     elif branch_direction=='K':
-        bkpt=find_branching_bkpt(fn,K_index,extended=True)
-        return min(delta_pi_min(fn,I,J,[K[0],bkpt],approximation=approximation),delta_pi_min(fn,I,J,[bkpt,K[1]],approximation=approximation))
+        bkpt=find_branching_bkpt(fn,K_index,extended=True,branching_point_selection=branching_point_selection)
+        return min(delta_pi_min(fn,I,J,[K[0],bkpt],approximation=approximation,norm=norm,branching_point_selection=branching_point_selection),delta_pi_min(fn,I,J,[bkpt,K[1]],approximation=approximation,norm=norm,branching_point_selection=branching_point_selection))
     
