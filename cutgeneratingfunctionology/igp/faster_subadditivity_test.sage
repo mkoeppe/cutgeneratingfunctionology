@@ -3,6 +3,16 @@ from itertools import chain
 import itertools
 import numpy as np
 
+def strategic_delta_pi_min(fn,approximation='constant',norm='one'):
+    """
+    Return the minimum of delta_pi.
+    """
+    f=find_f(fn)
+    a=delta_pi_min(fn,[0,f],[0,f],[0,f],approximation=approximation,norm=norm)
+    b=delta_pi_min(fn,[0,1],[0,1],[f,1+f],approximation=approximation,norm=norm)
+    c=delta_pi_min(fn,[f,1],[f,1],[1+f,2],approximation=approximation,norm=norm)
+    return min(a,b,c)
+
 def number_of_vertices(fn):
     """
     Return the number of vertices of the complex delta_pi.
