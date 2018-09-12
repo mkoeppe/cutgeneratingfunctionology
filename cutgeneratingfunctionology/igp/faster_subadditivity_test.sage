@@ -85,7 +85,6 @@ class SubadditivityTestTree :
             self._height=current_node.level
             level=current_node.level+1
             self._number_of_nodes+=1
-            lower_bound=current_node.delta_pi_constant_lower_bound()
             upper_bound=current_node.delta_pi_upper_bound()
             #search nonsubadditive vertices
             for v in current_node.vertices:
@@ -94,19 +93,22 @@ class SubadditivityTestTree :
             if upper_bound<GlobalUpperBound:
                 GlobalUpperBound=upper_bound
             #2 types of leafs
-            if lower_bound>GlobalUpperBound:
-                self.type1_leafs.append(current_node)
-                continue
             if not current_node.is_divisible():
                 for v in current_node.vertices:
                     if delta_pi(self.function,v[0],v[1])==0:
                         self.additive_vertices.append(v)
+                self.type1_leafs.append(current_node)
+                continue
+            if current_node.delta_pi_constant_lower_bound()>GlobalUpperBound:
                 self.type2_leafs.append(current_node)
                 continue
             #branching
             intervals1,intervals2=current_node.new_intervals()
             queue.append(SubadditivityTestTreeNode(self.function,level,intervals1))
             queue.append(SubadditivityTestTreeNode(self.function,level,intervals2))
+        self.strict_subadditive_faces=[]
+        for node in self.type2_leafs:
+            self.strict_subadditive_faces.append(Face(node.intervals))
         if self.nonadditive_vertices:
             self._is_subadditive=False
         else:
@@ -114,6 +116,13 @@ class SubadditivityTestTree :
         self.additive_vertices=set(self.additive_vertices)
         self.nonadditive_vertices=set(self.nonadditive_vertices)
         return GlobalUpperBound
+
+def plot_strict_subadditive_2d_faces(fn,faces):
+    p = Graphics()
+    p += plot_2d_complex(fn)
+    for face in faces:
+        p += face.plot(rgbcolor = "red", fill_color = "red")
+    return p
 
 def histogram_delta_pi(fn,sampling='vertices'):
     """
