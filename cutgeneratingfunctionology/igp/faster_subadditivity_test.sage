@@ -26,11 +26,28 @@ class SubadditivityTestTreeNode :
     def delta_pi_upper_bound(self):
         return min(delta_pi(self.function,v[0],v[1]) for v in self.vertices)
 
-    def is_leaf(self):
-        if self.delta_pi_constant_lower_bound()>0 or (not self.I_index and not self.J_index and not self.K_index):
-            return True
+    def branching_direction(self):
+        new_I,new_J,new_K=self.projs
+        return find_branching_direction(self.function,new_I,new_J,new_K,self.I_index,self.J_index,self.K_index)
+
+    def new_intervals(self):
+        if self.branching_direction()=='I':
+            new_bkpt=self.bkpts1[floor((self.I_index[0]+self.I_index[1])/2)]
+            return [[self.intervals[0][0],new_bkpt],self.intervals[1],self.intervals[2]],[[new_bkpt,self.intervals[0][1]],self.intervals[1],self.intervals[2]]
+        elif self.branching_direction()=='J':
+            new_bkpt=self.bkpts1[floor((self.J_index[0]+self.J_index[1])/2)]
+            return [self.intervals[0],[self.intervals[1][0],new_bkpt],self.intervals[2]],[self.intervals[0],[new_bkpt,self.intervals[1][1]],self.intervals[2]]
+        elif self.branching_direction()=='K':
+            new_bkpt=self.bkpts2[floor((self.K_index[0]+self.K_index[1])/2)]
+            return [self.intervals[0],self.intervals[1],[self.intervals[2][0],new_bkpt]],[self.intervals[0],self.intervals[1],[new_bkpt,self.intervals[2][1]]]
         else:
+            return None
+
+    def is_divisible(self):
+        if not self.I_index and not self.J_index and not self.K_index:
             return False
+        else:
+            return True
 
 
 class SubadditivityTestTree :
@@ -45,17 +62,58 @@ class SubadditivityTestTree :
     def is_subadditive(self):
         return self._is_subadditive
 
+    def height(self):
+        return self._height
+
+    def number_of_nodes(self):
+        return self._number_of_nodes
+
     def solve(self):
         """
         Return the min of delta pi over the complex.
         """
-        #compute self.leafs, self.addtive_faces, self.nonadditive_vertices,self.height,
-        self._is_subadditive=True
-        return 0
-
-
-
-
+        GlobalUpperBound=0
+        self._height=0
+        self._number_of_nodes=0
+        self.additive_vertices=[]
+        self.nonadditive_vertices=[]
+        self.type1_leafs=[]
+        self.type2_leafs=[]
+        queue=[self.root()]
+        while queue:
+            current_node=queue.pop(0)
+            self._height=current_node.level
+            level=current_node.level+1
+            self._number_of_nodes+=1
+            lower_bound=current_node.delta_pi_constant_lower_bound()
+            upper_bound=current_node.delta_pi_upper_bound()
+            #search nonsubadditive vertices
+            for v in current_node.vertices:
+                if delta_pi(self.function,v[0],v[1])<0:
+                    self.nonadditive_vertices.append(v)
+            if upper_bound<GlobalUpperBound:
+                GlobalUpperBound=upper_bound
+            #2 types of leafs
+            if lower_bound>GlobalUpperBound:
+                self.type1_leafs.append(current_node)
+                continue
+            if not current_node.is_divisible():
+                for v in current_node.vertices:
+                    if delta_pi(self.function,v[0],v[1])==0:
+                        self.additive_vertices.append(v)
+                self.type2_leafs.append(current_node)
+                continue
+            #branching
+            intervals1,intervals2=current_node.new_intervals()
+            queue.append(SubadditivityTestTreeNode(self.function,level,intervals1))
+            queue.append(SubadditivityTestTreeNode(self.function,level,intervals2))
+        if self.nonadditive_vertices:
+            self._is_subadditive=False
+        else:
+            self._is_subadditive=True
+        self.additive_vertices=set(self.additive_vertices)
+        self.nonadditive_vertices=set(self.nonadditive_vertices)
+        return GlobalUpperBound
 
 def histogram_delta_pi(fn,sampling='vertices'):
     """
