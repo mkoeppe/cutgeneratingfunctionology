@@ -4,28 +4,58 @@ import itertools
 import numpy as np
 
 class SubadditivityTestTreeNode :
-    def __init__(self, fn, I, J, K):
-        self.I=I
-        self.J=J
-        self.K=K
+
+    def __init__(self, fn, level, intervals):
+        self.intervals=intervals
+        self.level=level
         self.function=fn
         self.bkpts1=self.function.end_points()
         self.bkpts2=self.function.end_points()[:-1]+[1+bkpt for bkpt in self.function.end_points()]
+        self.vertices=verts(*intervals)
+        self.projs=projections(self.vertices)
+        self.I_index=find_possible_branching_bkpts_index(self.bkpts1,self.projs[0])
+        self.J_index=find_possible_branching_bkpts_index(self.bkpts1,self.projs[1])
+        self.K_index=find_possible_branching_bkpts_index(self.bkpts2,self.projs[2])
 
-#def delta_pi_lower_bound(self,approximation='constant'):
-
-
-    def vertices(self):
-        return verts(self.I,self.J,self.K)
+    def delta_pi_constant_lower_bound(self):
+        alpha_I=fn_constant_bounds(self.function,self.projs[0],lower_bound=True,extended=False)
+        alpha_J=fn_constant_bounds(self.function,self.projs[1],lower_bound=True,extended=False)
+        beta_K=fn_constant_bounds(self.function,self.projs[2],lower_bound=False,extended=True)
+        return alpha_I+alpha_J-beta_K
 
     def delta_pi_upper_bound(self):
         return min(delta_pi(self.function,v[0],v[1]) for v in self.vertices)
 
+    def is_leaf(self):
+        if self.delta_pi_constant_lower_bound()>0 or (not self.I_index and not self.J_index and not self.K_index):
+            return True
+        else:
+            return False
 
 
-#class SubadditivityTestTree :
+class SubadditivityTestTree :
 
-#def __init__(self,)
+    def __init__(self,fn,intervals=[[0,1],[0,1],[0,2]]):
+        self.function=fn
+        self.intervals=intervals
+
+    def root(self):
+        return SubadditivityTestTreeNode(self.function,0,self.intervals)
+
+    def is_subadditive(self):
+        return self._is_subadditive
+
+    def solve(self):
+        """
+        Return the min of delta pi over the complex.
+        """
+        #compute self.leafs, self.addtive_faces, self.nonadditive_vertices,self.height,
+        self._is_subadditive=True
+        return 0
+
+
+
+
 
 def histogram_delta_pi(fn,sampling='vertices'):
     """
@@ -177,7 +207,7 @@ def fn_constant_bounds(fn,I,lower_bound=True,extended=False):
         if not I_index:
             return max(fn(fractional(I[0])), fn(fractional(I[1])))
         else:
-            return max(fn(fractional(I[0])), fn(fractional(I[1])), min(fn(fractional(bkpts[i])) for i in range(I_index[0], I_index[1]+1)))
+            return max(fn(fractional(I[0])), fn(fractional(I[1])), max(fn(fractional(bkpts[i])) for i in range(I_index[0], I_index[1]+1)))
 
 def find_branching_bkpt(fn,I_index,extended=False,branching_point_selection='median'):
     """
