@@ -6,45 +6,91 @@ import numpy as np
 class SubadditivityTestTreeNode :
 
     def __init__(self, fn, level, intervals):
+
         self.intervals=intervals
         self.level=level
         self.function=fn
-        self.bkpts1=self.function.end_points()
-        self.bkpts2=self.function.end_points()[:-1]+[1+bkpt for bkpt in self.function.end_points()]
         self.vertices=verts(*intervals)
-        self.projs=projections(self.vertices)
-        self.I_index=find_possible_branching_bkpts_index(self.bkpts1,self.projs[0])
-        self.J_index=find_possible_branching_bkpts_index(self.bkpts1,self.projs[1])
-        self.K_index=find_possible_branching_bkpts_index(self.bkpts2,self.projs[2])
+        self.projections=projections(self.vertices)
+
+    def I_bkpts(self):
+        new_I=self.projections[0]
+        bkpts=self.function.end_points()
+        i=bisect_left(bkpts, new_I[0])
+        j=bisect_left(bkpts, new_I[1])-1
+        if new_I[0]==bkpts[i]:
+            i=i+1
+        if i>j:
+            return [new_I[0],new_I[1]]
+        else:
+            return [new_I[0]]+bkpts[i:j+1]+[new_I[1]]
+
+    def J_bkpts(self):
+        new_J=self.projections[1]
+        bkpts=self.function.end_points()
+        i=bisect_left(bkpts, new_J[0])
+        j=bisect_left(bkpts, new_J[1])-1
+        if new_J[0]==bkpts[i]:
+            i=i+1
+        if i>j:
+            return [new_J[0],new_J[1]]
+        else:
+            return [new_J[0]]+bkpts[i:j+1]+[new_J[1]]
+
+    def K_bkpts(self):
+        new_K=self.projections[2]
+        bkpts=self.function.end_points()[:-1]+[1+bkpt for bkpt in self.function.end_points()]
+        i=bisect_left(bkpts, new_K[0])
+        j=bisect_left(bkpts, new_K[1])-1
+        if new_K[0]==bkpts[i]:
+            i=i+1
+        if i>j:
+            return [new_K[0],new_K[1]]
+        else:
+            return [new_K[0]]+bkpts[i:j+1]+[new_K[1]]
 
     def delta_pi_constant_lower_bound(self):
-        alpha_I=fn_constant_bounds(self.function,self.projs[0],lower_bound=True,extended=False)
-        alpha_J=fn_constant_bounds(self.function,self.projs[1],lower_bound=True,extended=False)
-        beta_K=fn_constant_bounds(self.function,self.projs[2],lower_bound=False,extended=True)
+        alpha_I=min(self.function(bkpt) for bkpt in self.I_bkpts())
+        alpha_J=min(self.function(bkpt) for bkpt in self.J_bkpts())
+        beta_K=max(self.function(fractional(bkpt)) for bkpt in self.K_bkpts())
         return alpha_I+alpha_J-beta_K
 
     def delta_pi_upper_bound(self):
         return min(delta_pi(self.function,v[0],v[1]) for v in self.vertices)
 
     def branching_direction(self):
-        new_I,new_J,new_K=self.projs
-        return find_branching_direction(self.function,new_I,new_J,new_K,self.I_index,self.J_index,self.K_index)
+        new_I,new_J,new_K=self.projections
+        lenI=new_I[1]-new_I[0]
+        lenJ=new_J[1]-new_J[0]
+        lenK=new_K[1]-new_K[0]
+        candidates=[]
+        if len(self.I_bkpts())>2:
+            candidates.append(['I',lenI])
+        if len(self.J_bkpts())>2:
+            candidates.append(['J',lenJ])
+        if len(self.K_bkpts())>2:
+            candidates.append(['K',lenK])
+        if not candidates:
+            return None
+        else:
+            ind=np.argmax([candidate[1] for candidate in candidates])
+            return candidates[ind][0]
 
     def new_intervals(self):
         if self.branching_direction()=='I':
-            new_bkpt=self.bkpts1[floor((self.I_index[0]+self.I_index[1])/2)]
+            new_bkpt=self.I_bkpts()[floor(len(self.I_bkpts())/2)]
             return [[self.intervals[0][0],new_bkpt],self.intervals[1],self.intervals[2]],[[new_bkpt,self.intervals[0][1]],self.intervals[1],self.intervals[2]]
         elif self.branching_direction()=='J':
-            new_bkpt=self.bkpts1[floor((self.J_index[0]+self.J_index[1])/2)]
+            new_bkpt=self.J_bkpts()[floor(len(self.J_bkpts())/2)]
             return [self.intervals[0],[self.intervals[1][0],new_bkpt],self.intervals[2]],[self.intervals[0],[new_bkpt,self.intervals[1][1]],self.intervals[2]]
         elif self.branching_direction()=='K':
-            new_bkpt=self.bkpts2[floor((self.K_index[0]+self.K_index[1])/2)]
+            new_bkpt=self.K_bkpts()[floor(len(self.K_bkpts())/2)]
             return [self.intervals[0],self.intervals[1],[self.intervals[2][0],new_bkpt]],[self.intervals[0],self.intervals[1],[new_bkpt,self.intervals[2][1]]]
         else:
-            return None
+            raise ValueError, "Indivisible Region."
 
     def is_divisible(self):
-        if not self.I_index and not self.J_index and not self.K_index:
+        if len(self.I_bkpts())==2 and len(self.I_bkpts())==2 and len(self.I_bkpts())==2:
             return False
         else:
             return True
