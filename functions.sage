@@ -171,7 +171,7 @@ class Face:
     def __repr__(self):
         return '<Face ' + repr(self.minimal_triple) + '>'
 
-    def plot(self, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color="mediumspringgreen", *args, **kwds):
+    def plot(self, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color="mediumspringgreen", edge_thickness=2, *args, **kwds):
         y = var('y')
         trip = self.minimal_triple
         vert = self.vertices
@@ -179,11 +179,11 @@ class Face:
             return point((trip[0][0], \
                           trip[1][0]), rgbcolor = rgbcolor, size = 30, **kwds)
         elif self.is_horizontal():
-            return line([(trip[0][0],trip[1][0]),(trip[0][1],trip[1][0])], rgbcolor = rgbcolor, thickness=2, **kwds)
+            return line([(trip[0][0],trip[1][0]),(trip[0][1],trip[1][0])], rgbcolor = rgbcolor, thickness=edge_thickness, **kwds)
         elif self.is_vertical():
-            return line([(trip[0][0],trip[1][0]),(trip[0][0],trip[1][1])], rgbcolor = rgbcolor, thickness=2, **kwds)
+            return line([(trip[0][0],trip[1][0]),(trip[0][0],trip[1][1])], rgbcolor = rgbcolor, thickness=edge_thickness, **kwds)
         elif self.is_diagonal():
-            return line([(trip[0][0],trip[2][0]-trip[0][0]),(trip[0][1],trip[2][0]-trip[0][1])], rgbcolor = rgbcolor, thickness=2, **kwds)
+            return line([(trip[0][0],trip[2][0]-trip[0][0]),(trip[0][1],trip[2][0]-trip[0][1])], rgbcolor = rgbcolor, thickness=edge_thickness, **kwds)
         elif self.is_2D():
             ## Sorting is necessary for this example:
             ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("data/dey-richard-not-extreme.txt"))
@@ -229,7 +229,7 @@ class Face:
             # attention: I, J are not sorted.
             return (-1, K[0]), [open_interval(* I), open_interval(* J)], [open_interval(* J), open_interval(* I)]
         else:
-            raise ValueError, "Face does not correspond to a directed move: %s" % self
+            raise ValueError("Face does not correspond to a directed move: %s" % self)
 
     def functional_directed_move(self, is_backward_translation=False):
         """
@@ -260,6 +260,13 @@ class Face:
         else:
             fdm = FunctionalDirectedMove(codomain, (directed_move[0], -directed_move[0]*directed_move[1]))
         return fdm
+
+    def covered_component(self):
+        if self.is_2D():
+            (I, J, K) = self.minimal_triple
+            K_mod_1 = interval_mod_1(K)
+            return union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(*I)], [open_interval(*J)], [open_interval(*K_mod_1)]],[])
+        raise ValueError("Face does not give a covered component")
 
     def is_0D(self):
         return len(self.vertices) == 1
@@ -604,6 +611,11 @@ def plot_projections_at_borders(fn):
     - `p_2(F)` at the left border, 
     - `p_3(F)` at the bottom and the right borders.
     """
+    return plot_projections_of_faces(end_points=fn.end_points(),
+                                    nonsubadditive_vertices=generate_nonsubadditive_vertices(fn),
+                                    additive_faces=generate_maximal_additive_faces(fn))
+
+def plot_projections_of_faces(additive_faces, nonsubadditive_vertices=(), end_points=()):
     g = Graphics()
     I_J_verts = set()
     K_verts = set()
@@ -623,23 +635,23 @@ def plot_projections_at_borders(fn):
         #IJK_kwds[i]['legend_color'] = proj_plot_colors[i] # does not work in Sage 5.11
         IJK_kwds[i]['color'] = proj_plot_colors[i]
         plot_kwds_hook(IJK_kwds[i])
-    for face in generate_maximal_additive_faces(fn):
+    for face in additive_faces:
         I, J, K = face.minimal_triple
         I_J_verts.update(I) # no need for J because the x-y swapped face will also be processed
         K_verts.update(K)
         g += plot_projections_of_one_face(face, IJK_kwds)
-    for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices(fn):
+    for (x, y, z, xeps, yeps, zeps) in nonsubadditive_vertices:
         I_J_verts.add(x)
         I_J_verts.add(y)
         K_verts.add(z)
     # plot dashed help lines corresponding to non-breakpoint projections. 
     # (plot_2d_complex already draws solid lines for the breakpoints.)
-    I_J_verts.difference_update(fn.end_points())
+    I_J_verts.difference_update(end_points)
     for x in I_J_verts:
         g += line([(x, 0), (x, 1)], linestyle=':', color='grey')
         g += line([(0, x), (1, x)], linestyle=':', color='grey')
-    K_verts.difference_update(fn.end_points())
-    K_verts.difference_update(1 + x for x in fn.end_points())
+    K_verts.difference_update(end_points)
+    K_verts.difference_update(1 + x for x in end_points)
     for z in K_verts:
         if z <= 1:
             g += line([(0, z), (z, 0)], linestyle=':', color='grey')
@@ -757,14 +769,18 @@ def uncovered_intervals_from_covered_components(covered_components):
 # alias
 uncovered_intervals_from_covered_intervals = uncovered_intervals_from_covered_components
     
-def ticks_keywords(function, y_ticks_for_breakpoints=False):
+def ticks_keywords(function, y_ticks_for_breakpoints=False, extra_xticks=[], extra_yticks=[1]):
     """
     Compute ``plot`` keywords for displaying the ticks.
     """
     xticks = function.end_points()
-    f = find_f(function, no_error_if_not_minimal_anyway=True)
-    if f is not None and not f in xticks:
-        xticks.append(f)
+    try:
+        f = find_f(function, no_error_if_not_minimal_anyway=True)
+        if f is not None and not f in xticks:
+            xticks.append(f)
+    except ValueError:
+        pass
+    xticks = uniq(list(extra_xticks) + xticks)
     xtick_formatter = [ "$%s$" % latex(x) for x in xticks ]
     #xtick_formatter = 'latex'  # would not show rationals as fractions
     ytick_formatter = None
@@ -773,7 +789,7 @@ def ticks_keywords(function, y_ticks_for_breakpoints=False):
         ytick_formatter = xtick_formatter
     else:
         #yticks = 1/5
-        yticks = uniq([1] + [ y for limits in function.limits_at_end_points() for y in limits if y is not None ])
+        yticks = uniq(list(extra_yticks) + [ y for limits in function.limits_at_end_points() for y in limits if y is not None ])
         ytick_formatter = [ "$%s$" % latex(y) for y in yticks ]
     ## FIXME: Can we influence ticks placement as well so that labels don't overlap?
     ## or maybe rotate labels 90 degrees?
@@ -1848,6 +1864,9 @@ class FastPiecewise (PiecewisePolynomial):
             g += point(last_end_point, color=color,pointsize=23, **point_kwds)
             delete_one_time_plot_kwds(point_kwds)
             g += point(last_end_point, rgbcolor='white', pointsize=10, **point_kwds)
+        # For empty functions, if ticks were provided, use them (for uniformity).
+        if not g:
+            g._set_extra_kwds(kwds)
         return g
 
     def is_continuous_defined(self, xmin=0, xmax=1):
@@ -2431,6 +2450,8 @@ def find_largest_epsilon(fn, perturb):
 ### Moves
 ###
 
+show_moves_with_discontinuity_markers = False
+
 class FunctionalDirectedMove (FastPiecewise):
     # FIXME: At the moment, does not reduce modulo 1, in contrast to old code!
     """
@@ -2635,12 +2656,17 @@ class FunctionalDirectedMove (FastPiecewise):
         new_domain = union_of_coho_intervals_minus_union_of_coho_intervals([domain], restricting_domain_list, remove_closure=True )
         return FunctionalDirectedMove(new_domain, self.directed_move)
 
-    def plot(self, *args, **kwds):
+    def plot(self, rgbcolor=None, color=None, *args, **kwds):
         kwds = copy(kwds)
         kwds['aspect_ratio'] = 1.0
         # ignore discontinuity markers in the moves diagram
-        kwds['discontinuity_markers'] = False
-        return FastPiecewise.plot(self, *args, **kwds)
+        kwds['discontinuity_markers'] = show_moves_with_discontinuity_markers
+        if rgbcolor is None:
+            if show_translations_and_reflections_by_color and self.sign() == -1:
+                rgbcolor='red'
+            else:
+                rgbcolor='blue'
+        return FastPiecewise.plot(self, color=rgbcolor, *args, **kwds)
 
     def __invert__(self):
         """
@@ -2756,6 +2782,10 @@ def show_plot(graphics, show_plots, tag, object=None, **show_kwds):
     - a string (file name format such as "FILENAME-%s.pdf", where %s is replaced by tag.
     """
     plot_kwds_hook(show_kwds)
+    if isinstance(graphics, sage.plot.graphics.GraphicsArray):
+        # GraphicsArrays can't have legends.
+        show_kwds = copy(show_kwds)
+        plot_kwds_hook_no_legend(show_kwds)
     if isinstance(show_plots, str):
         graphics.save(show_plots % tag, figsize=show_plots_figsize, **show_kwds)
     elif show_plots:
@@ -3119,17 +3149,17 @@ def plot_completion_diagram(fn, perturbation=None):
         extremality_test(fn, show_plots=False)
     if fn._completion.plot_background is None:
         fn._completion.plot_background = plot_completion_diagram_background(fn)
-    g = fn._completion.plot() 
+    g = None
     if perturbation is None:
         if hasattr(fn, '_perturbations') and fn._perturbations:
             perturbation = fn._perturbations[0]
     elif isinstance(perturbation, Integer):
         perturbation = basic_perturbation(fn, perturbation)
     if perturbation is not None:
-        g += plot_function_at_borders(rescale_to_amplitude(perturbation, 1/10), color='magenta', legend_label='perturbation (rescaled)')
+        g = plot_function_at_borders(rescale_to_amplitude(perturbation, 1/10), color='magenta', legend_label='perturbation (rescaled)')
     if hasattr(perturbation, '_walk_list'):
         g += plot_walk_in_completion_diagram(perturbation._seed, perturbation._walk_list)
-    return g
+    return fn._completion.plot(extra_graphics = g)
 
 def perturbation_polyhedron(fn, perturbs):
     """
@@ -3845,9 +3875,19 @@ def plot_directed_moves(dmoves, **kwds):
         delete_one_time_plot_kwds(kwds)
     return g
 
-def plot_dense_moves(component, **kwds):
-    return sum([polygon(((domain[0], domain[0]), (domain[1], domain[0]), (domain[1], domain[1]), (domain[0], domain[1])), rgbcolor=kwds.get("rgbcolor", "cyan"), alpha=0.5) + polygon(((domain[0], domain[0]), (domain[1], domain[0]), (domain[1], domain[1]), (domain[0], domain[1])), color="red", fill=False) for domain in component])
+def _plot_component_rectangle(domain, range, **kwds):
+    "Default colors are for strip lemma rectangles (densely covered)"
+    corners = ((domain[0], range[0]), (domain[1], range[0]), (domain[1], range[1]), (domain[0], range[1]))
+    return polygon(corners, rgbcolor=kwds.get("rgbcolor", "cyan"), alpha=0.5) + polygon(corners, color=kwds.get("frame_color", "red"), fill=False)
 
+def plot_covered_component_as_rectangles(component, **kwds):
+    return sum([_plot_component_rectangle(domain, range, **kwds) for domain in component for range in component])
+
+def plot_covered_components_as_rectangles(components):
+    g = Graphics()
+    for component, color in itertools.izip(components, rainbow(len(components))):
+        g += plot_covered_component_as_rectangles(component, rgbcolor=color, frame_color='grey')
+    return g
 
 def reduce_covered_components(covered_components):
     reduced_components = []
@@ -4010,9 +4050,15 @@ def extended_initial_move_by_continuity(fdm, fn):
     extended_domain.append(open_interval(l_last, r_last))
     return FunctionalDirectedMove(extended_domain, fdm.directed_move)
 
-class DirectedMoveCompositionCompletion:
+show_translations_and_reflections_separately = False
+show_translations_and_reflections_by_color = False
+show_covered_components_as_rectangles = False
 
-    def __init__(self, fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None):
+class DirectedMoveCompositionCompletion:
+    # FIXME: Rename function_at_border because it is used for continuity properties too,
+    # not just for plotting.
+    
+    def __init__(self, fdms=[], covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, show_zero_perturbation=True):
         self.show_plots = show_plots
         self.plot_background = plot_background
         # To show colorful components at borders, and in extend_domain_of_move_by_adding_covered_intervals, need the function. Otherwise set it to default None
@@ -4030,6 +4076,7 @@ class DirectedMoveCompositionCompletion:
         self.num_rounds = -1
         self.is_complete = False
         self.proj_add_vert = proj_add_vert
+        self._show_zero_perturbation = show_zero_perturbation
 
     def add_move(self, fdm):
         """
@@ -4064,17 +4111,32 @@ class DirectedMoveCompositionCompletion:
         #  return a set, unsorted
         return zero_perturbation_points
 
-    def plot(self, *args, **kwds):
-        g = plot_directed_moves(list(self.move_dict.values()), **kwds)
-        zero_perturbation =  zero_perturbation_partial_function(self.covered_components, \
-                                                                self.generate_zero_perturbation_points())
-        if zero_perturbation:
-            g += plot_function_at_borders(zero_perturbation, color='magenta', legend_label='fixed perturbation (mod interpol)', thickness=3)
+    def _plot_directed_moves(self, moves, extra_graphics=None, **kwds):
+        g = Graphics()
+        if show_covered_components_as_rectangles:
+            g += plot_covered_components_as_rectangles(self.covered_components)
+        g += plot_directed_moves(moves, **kwds)
+        if self._show_zero_perturbation:
+            zero_perturbation = zero_perturbation_partial_function(self.covered_components,
+                                                                   self.generate_zero_perturbation_points())
+            if zero_perturbation:
+                g += plot_function_at_borders(zero_perturbation, color='magenta', legend_label='fixed perturbation (mod interpol)', thickness=3)
         if self.plot_background:
             g += self.plot_background
         if self.function_at_border and self.covered_components:
             g +=  plot_covered_components_at_borders(self.function_at_border, self.covered_components, **kwds)
+        if extra_graphics:
+            g += extra_graphics
         return g
+
+    def plot(self, legend_label='moves', *args, **kwds):
+        if show_translations_and_reflections_separately:
+            gt = self._plot_directed_moves([ fdm for fdm in self.move_dict.values() if fdm.sign() == +1 ], legend_label='translation moves', **kwds)
+            gr = self._plot_directed_moves([ fdm for fdm in self.move_dict.values() if fdm.sign() == -1 ], legend_label='reflection moves', **kwds)
+            return graphics_array([gt, gr])
+        else:
+            return self._plot_directed_moves(list(self.move_dict.values()),
+                                             legend_label=legend_label, **kwds)
 
     def maybe_show_plot(self, current_dense_move_plot=None):
         if (self.any_change_components or self.any_change_moves) and self.show_plots:
@@ -4121,7 +4183,7 @@ class DirectedMoveCompositionCompletion:
         global crazy_perturbations_warning
         changed_move_keys = self.any_change_moves
         all_move_keys = self.move_dict.keys()
-        current_dense_move = []
+        strip_lemma_intervals = []
         known_extended_domains = dict()
         for dm_a in changed_move_keys:
             for dm_b in all_move_keys:
@@ -4140,15 +4202,16 @@ class DirectedMoveCompositionCompletion:
                     if crazy_perturbations_warning:
                         logging.warn("This function is two-sided discontinuous at the origin. Crazy perturbations might exist.")
                     self.any_change_components = True
-                    current_dense_move += d
+                    strip_lemma_intervals += d
                     logging.info("New dense move from strip lemma: %s" % d)
                     # merge components with d
                     dense_intervals, self.covered_components = merge_components_with_given_component(d, self.covered_components)
                     self.covered_components.append(dense_intervals)
                     # kill moves
                     self.reduce_moves_by_components(given_components = [dense_intervals])
-        if current_dense_move:
-            return plot_dense_moves(current_dense_move)
+        if strip_lemma_intervals:
+            return sum(plot_covered_component_as_rectangles([interval])
+                       for interval in strip_lemma_intervals)
         else:
             return None
 
@@ -4214,7 +4277,7 @@ class DirectedMoveCompositionCompletion:
 
     def complete(self, max_num_rounds=None, error_if_max_num_rounds_exceeded=True):
         if self.num_rounds == -1:
-            if self.any_change_moves:
+            if self.any_change_moves or show_covered_components_as_rectangles:
                 # do not show move diagram if there is no moves.
                 self.maybe_show_plot()
             self.add_backward_moves()
@@ -4409,10 +4472,7 @@ def generate_directly_covered_components(fn):
     covered_components = []
     for face in generate_maximal_additive_faces(fn):
         if face.is_2D():
-            (I, J, K) = face.minimal_triple
-            K_mod_1 = interval_mod_1(K)
-            component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* K_mod_1)]],[])
-            covered_components.append(component)
+            covered_components.append(face.covered_component())
     return reduce_covered_components(covered_components)
 
 # alias
