@@ -196,8 +196,9 @@ class ParametricRealField(Field):
         sage: _ = [ verts(I, J, KK) for I in I_list for J in J_list for KK in K_list ]
         sage: K.get_eq()
         set()
-        sage: K.get_lt()
-        {-1/(-f^2 + f), -2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2}
+        sage: R = f._sym.parent().ring()
+        sage: sorted([ p for p in K.get_lt() if p in R ])   # filter out the rational function 1/(f^2 - f), which is normalized differently starting Sage 8.4b2
+        [-2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2]
         sage: K.get_eq_poly()
         set()
         sage: K.get_lt_poly()
