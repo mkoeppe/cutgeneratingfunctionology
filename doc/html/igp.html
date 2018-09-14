@@ -255,15 +255,20 @@ cf. [33] p.42, lemma 13.</p>
 
 <dl class="class">
 <dt id="igp.DirectedMoveCompositionCompletion">
-<em class="property">class </em><code class="descclassname">igp.</code><code class="descname">DirectedMoveCompositionCompletion</code><span class="sig-paren">(</span><em>fdms</em>, <em>covered_components=[]</em>, <em>proj_add_vert=set([])</em>, <em>show_plots=False</em>, <em>plot_background=None</em>, <em>function_at_border=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.DirectedMoveCompositionCompletion" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">igp.</code><code class="descname">DirectedMoveCompositionCompletion</code><span class="sig-paren">(</span><em>fdms=[]</em>, <em>covered_components=[]</em>, <em>proj_add_vert=set([])</em>, <em>show_plots=False</em>, <em>plot_background=None</em>, <em>function_at_border=None</em>, <em>show_zero_perturbation=True</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.DirectedMoveCompositionCompletion" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="method">
 <dt id="igp.DirectedMoveCompositionCompletion.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>fdms</em>, <em>covered_components=[]</em>, <em>proj_add_vert=set([])</em>, <em>show_plots=False</em>, <em>plot_background=None</em>, <em>function_at_border=None</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.DirectedMoveCompositionCompletion.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>fdms=[]</em>, <em>covered_components=[]</em>, <em>proj_add_vert=set([])</em>, <em>show_plots=False</em>, <em>plot_background=None</em>, <em>function_at_border=None</em>, <em>show_zero_perturbation=True</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.DirectedMoveCompositionCompletion.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="igp.DirectedMoveCompositionCompletion.__repr__">
 <code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.DirectedMoveCompositionCompletion.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="igp.DirectedMoveCompositionCompletion._plot_directed_moves">
+<code class="descname">_plot_directed_moves</code><span class="sig-paren">(</span><em>moves</em>, <em>extra_graphics=None</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.DirectedMoveCompositionCompletion._plot_directed_moves" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -316,7 +321,7 @@ Merge or restrict functional directed move if necessary.</p>
 
 <dl class="method">
 <dt id="igp.DirectedMoveCompositionCompletion.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.DirectedMoveCompositionCompletion.plot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot</code><span class="sig-paren">(</span><em>legend_label='moves'</em>, <em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.DirectedMoveCompositionCompletion.plot" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -395,6 +400,11 @@ sys.stdout or sys.stderr may be used.</p>
 <dl class="method">
 <dt id="igp.Face.__repr__">
 <code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.Face.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="igp.Face.covered_component">
+<code class="descname">covered_component</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#igp.Face.covered_component" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -483,7 +493,7 @@ sys.stdout or sys.stderr may be used.</p>
 
 <dl class="method">
 <dt id="igp.Face.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>rgbcolor=(0.000000000000000</em>, <em>0.980392156862745</em>, <em>0.603921568627451)</em>, <em>fill_color='mediumspringgreen'</em>, <em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.Face.plot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot</code><span class="sig-paren">(</span><em>rgbcolor=(0.000000000000000</em>, <em>0.980392156862745</em>, <em>0.603921568627451)</em>, <em>fill_color='mediumspringgreen'</em>, <em>edge_thickness=2</em>, <em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.Face.plot" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1216,7 +1226,7 @@ i.e <span class="math notranslate nohighlight">\(y = x - t_1\)</span>.</p>
 
 <dl class="method">
 <dt id="igp.FunctionalDirectedMove.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.FunctionalDirectedMove.plot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot</code><span class="sig-paren">(</span><em>rgbcolor=None</em>, <em>color=None</em>, <em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.FunctionalDirectedMove.plot" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1445,8 +1455,9 @@ except for limits at breakpoints.</dd>
 <span class="gp">sage: </span><span class="n">_</span> <span class="o">=</span> <span class="p">[</span> <span class="n">verts</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">KK</span><span class="p">)</span> <span class="k">for</span> <span class="n">I</span> <span class="ow">in</span> <span class="n">I_list</span> <span class="k">for</span> <span class="n">J</span> <span class="ow">in</span> <span class="n">J_list</span> <span class="k">for</span> <span class="n">KK</span> <span class="ow">in</span> <span class="n">K_list</span> <span class="p">]</span>
 <span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">get_eq</span><span class="p">()</span>
 <span class="go">set()</span>
-<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">get_lt</span><span class="p">()</span>
-<span class="go">{-1/(-f^2 + f), -2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2}</span>
+<span class="gp">sage: </span><span class="n">R</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">_sym</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span><span class="o">.</span><span class="n">ring</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="nb">sorted</span><span class="p">([</span> <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">K</span><span class="o">.</span><span class="n">get_lt</span><span class="p">()</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">R</span> <span class="p">])</span>   <span class="c1"># filter out the rational function 1/(f^2 - f), which is normalized differently starting Sage 8.4b2</span>
+<span class="go">[-2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2]</span>
 <span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">get_eq_poly</span><span class="p">()</span>
 <span class="go">set()</span>
 <span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">get_lt_poly</span><span class="p">()</span>
@@ -3358,6 +3369,12 @@ slice_value has the same length as self.var_value.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="igp._plot_component_rectangle">
+<code class="descclassname">igp.</code><code class="descname">_plot_component_rectangle</code><span class="sig-paren">(</span><em>domain</em>, <em>range</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp._plot_component_rectangle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default colors are for strip lemma rectangles (densely covered)</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="igp.add_mccormick_bound">
 <code class="descclassname">igp.</code><code class="descname">add_mccormick_bound</code><span class="sig-paren">(</span><em>mip</em>, <em>x3</em>, <em>x1</em>, <em>x2</em>, <em>c1</em>, <em>c2</em>, <em>is_lowerbound</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.add_mccormick_bound" title="Permalink to this definition">¶</a></dt>
 <dd><p>Try adding x3 &gt; c1*x1 + c2*x2 - c1*c2 (if is_lowerbound, else x3 &lt; c1*x1 + c2*x2 - c1*c2) to mip.
@@ -4835,6 +4852,11 @@ Consider only directly covered and symmetry reflection regarding f.</p>
 <dl class="function">
 <dt id="igp.div_Zk">
 <code class="descclassname">igp.</code><code class="descname">div_Zk</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.div_Zk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="igp.dont_plot_rescaled_perturbation">
+<code class="descclassname">igp.</code><code class="descname">dont_plot_rescaled_perturbation</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.dont_plot_rescaled_perturbation" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -11108,6 +11130,16 @@ additive faces, i.e., faces where <span class="math notranslate nohighlight">\(\
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="igp.plot_covered_component_as_rectangles">
+<code class="descclassname">igp.</code><code class="descname">plot_covered_component_as_rectangles</code><span class="sig-paren">(</span><em>component</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_covered_component_as_rectangles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="igp.plot_covered_components_as_rectangles">
+<code class="descclassname">igp.</code><code class="descname">plot_covered_components_as_rectangles</code><span class="sig-paren">(</span><em>components</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_covered_components_as_rectangles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="igp.plot_covered_components_at_borders">
 <code class="descclassname">igp.</code><code class="descname">plot_covered_components_at_borders</code><span class="sig-paren">(</span><em>fn</em>, <em>covered_components=None</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_covered_components_at_borders" title="Permalink to this definition">¶</a></dt>
 <dd><p>Colorful decoration.</p>
@@ -11131,11 +11163,6 @@ on the upper and the left border of the 2d diagrams.</p>
 </pre></div>
 </div>
 </dd></dl>
-
-<dl class="function">
-<dt id="igp.plot_dense_moves">
-<code class="descclassname">igp.</code><code class="descname">plot_dense_moves</code><span class="sig-paren">(</span><em>component</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_dense_moves" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="function">
 <dt id="igp.plot_directed_moves">
@@ -11172,10 +11199,20 @@ to decorate 2d diagrams.</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="igp.plot_kwds_hook_no_legend">
+<code class="descclassname">igp.</code><code class="descname">plot_kwds_hook_no_legend</code><span class="sig-paren">(</span><em>kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_kwds_hook_no_legend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="igp.plot_limit_cone_of_vertex">
 <code class="descclassname">igp.</code><code class="descname">plot_limit_cone_of_vertex</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>cone</em>, <em>color='red'</em>, <em>r=0.0300000000000000</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_limit_cone_of_vertex" title="Permalink to this definition">¶</a></dt>
 <dd><p>plot a cone or a ray or a point</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="igp.plot_no_legend">
+<code class="descclassname">igp.</code><code class="descname">plot_no_legend</code><span class="sig-paren">(</span><em>f</em>, <em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_no_legend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="igp.plot_painted_faces">
@@ -11227,6 +11264,11 @@ additive faces F of <span class="math notranslate nohighlight">\(fn\)</span> as 
 p2(F) at the left border, p3(F) at the bottom and the right
 borders.</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="igp.plot_projections_of_faces">
+<code class="descclassname">igp.</code><code class="descname">plot_projections_of_faces</code><span class="sig-paren">(</span><em>additive_faces</em>, <em>nonsubadditive_vertices=()</em>, <em>end_points=()</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.plot_projections_of_faces" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="igp.plot_projections_of_one_face">
@@ -12828,7 +12870,7 @@ when constructing pi_fill_in. The proof follows verbatim.</p>
 
 <dl class="function">
 <dt id="igp.ticks_keywords">
-<code class="descclassname">igp.</code><code class="descname">ticks_keywords</code><span class="sig-paren">(</span><em>function</em>, <em>y_ticks_for_breakpoints=False</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.ticks_keywords" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">igp.</code><code class="descname">ticks_keywords</code><span class="sig-paren">(</span><em>function, y_ticks_for_breakpoints=False, extra_xticks=[], extra_yticks=[1]</em><span class="sig-paren">)</span><a class="headerlink" href="#igp.ticks_keywords" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute <code class="docutils literal notranslate"><span class="pre">plot</span></code> keywords for displaying the ticks.</p>
 </dd></dl>
 
