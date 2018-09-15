@@ -376,6 +376,12 @@ def plot_sampled_stuff(F_list, E_list, name):
     show_plot(completion.plot(), fname_sampled, tag='completion-final')
 
     # unsampled
+    background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F_list))
+    g = background + plot_projections_of_faces(additive_faces=F_list)
+    g += sum(F.plot() for F in F_list)
+    g.save(fname % "2d_diagram", xmin=0, xmax=1, ymin=0, ymax=1, aspect_ratio=1,
+       **ticks_keywords_for_faces(F_list))
+
     completion = DirectedMoveCompositionCompletion(covered_components=[ F.covered_component() for F in F_list ], show_plots=fname, plot_background=background, show_zero_perturbation=False)
     completion.complete()
     show_plot(completion.plot(), fname, tag='completion-final')
