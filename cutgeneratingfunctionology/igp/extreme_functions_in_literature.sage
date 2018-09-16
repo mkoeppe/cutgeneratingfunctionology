@@ -1574,6 +1574,10 @@ class bcds_discontinuous_everywhere:
             True
             sage: delta_pi(h, -13/9+sqrt(17), 3/7-3*sqrt(17))>=0
             True
+            sage: delta_pi(h, 19/8, 3/7-3*sqrt(101))>=0
+            True
+            sage: delta_pi(h, 19/8+sqrt(101/9), 3/7-1/3*sqrt(101))>=0
+            True
         """
         try:
             xx=AA(x)
@@ -1583,10 +1587,7 @@ class bcds_discontinuous_everywhere:
         if p.degree()>2:
             raise NotImplementedError("Not implemented for algebraic numbers with degree greater than 2.") 
         elif p.degree()==2:
-            try:
-                s=-p.coefficients()[1]/p.coefficients()[2]/2
-            except IndexError:
-                return 0
+            s=-p.coefficients(sparse=False)[1]/2
         else:
             s=xx
         ss=fractional(s)
