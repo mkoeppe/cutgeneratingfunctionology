@@ -55,6 +55,16 @@ class SubadditivityTestTreeNode :
         beta_K=max(self.function(fractional(bkpt)) for bkpt in self.K_bkpts())
         return alpha_I+alpha_J-beta_K
 
+    def delta_pi_affine_lower_bound(self,norm='one'):
+        I_values=[self.function(bkpt) for bkpt in self.I_bkpts()]
+        J_values=[self.function(bkpt) for bkpt in self.J_bkpts()]
+        K_values=[self.function(fractional(bkpt)) for bkpt in self.K_bkpts()]
+        self.I_slope, self.I_intercept=find_affine_bounds_new(self.function,self.I_bkpts(),I_values,lower_bound=True,norm=norm)
+        self.J_slope, self.J_intercept=find_affine_bounds_new(self.function,self.J_bkpts(),J_values,lower_bound=True,norm=norm)
+        self.K_slope, self.K_intercept=find_affine_bounds_new(self.function,self.K_bkpts(),K_values,lower_bound=False,norm=norm)
+        delta_lower_bound=min((m_I*vertex[0]+b_I)+(m_J*vertex[1]+b_J)-(m_K*(vertex[0]+vertex[1])+b_K) for vertex in vertices)
+        return min
+
     def delta_pi_upper_bound(self):
         return min(delta_pi(self.function,v[0],v[1]) for v in self.vertices)
 
@@ -238,7 +248,7 @@ def number_of_vertices(fn):
 def find_slope_intercept_trivial(X,Y):
     m=(Y[1]-Y[0])/(X[1]-X[0])
     b=Y[1]-m*X[1] 
-    return [m,b]          
+    return m,b
                            
 def find_best_slope_intercept(X,Y,lower_bound=True,solver='GLPK',norm='one'):
     """
@@ -268,9 +278,17 @@ def find_best_slope_intercept(X,Y,lower_bound=True,solver='GLPK',norm='one'):
     else:
         raise ValueError, "Can't recognize norm."
     p.solve()
-    return [p.get_values(m),p.get_values(b)]
+    return p.get_values(m),p.get_values(b)
 
-def find_affine_bounds(fn,I,lower_bound=True,extended=False,norm='one'):
+def find_affine_bounds_new(fn,X,Y,lower_bound=True,norm='one'):
+    if len(bkpts)==2:
+        slope,intercept=find_slope_intercept_trivial(X,Y)
+    else:
+        slope,intercept=find_best_slope_intercept(X,Y,lower_bound=lower_bound,norm=norm)
+    return slope, intercept
+
+
+def find_affine_bounds(fn,I,lower_bound=True,extended=False,lower_bound=True):
     """
     Find the affine lower/upper estimator of the function fn over the closed interval I.
     """
