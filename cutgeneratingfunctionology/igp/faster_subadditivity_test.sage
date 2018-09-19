@@ -62,8 +62,18 @@ class SubadditivityTestTreeNode :
         self.I_slope, self.I_intercept=find_affine_bounds_new(self.function,self.I_bkpts(),I_values,lower_bound=True,norm=norm)
         self.J_slope, self.J_intercept=find_affine_bounds_new(self.function,self.J_bkpts(),J_values,lower_bound=True,norm=norm)
         self.K_slope, self.K_intercept=find_affine_bounds_new(self.function,self.K_bkpts(),K_values,lower_bound=False,norm=norm)
-        delta_lower_bound=min((m_I*vertex[0]+b_I)+(m_J*vertex[1]+b_J)-(m_K*(vertex[0]+vertex[1])+b_K) for vertex in vertices)
-        return min
+        delta_lower_bound=min((self.I_slope*vertex[0]+self.I_intercept)+(self.J_slope*vertex[1]+self.I_intercept)-(self.K_slope*(vertex[0]+vertex[1])+self.I_intercept) for vertex in vertices)
+        return delta_lower_bound
+
+    def delta_pi_fast_affine_lower_bound(self,slope_I,slope_J,slope_K):
+        I_values=[self.function(bkpt) for bkpt in self.I_bkpts()]
+        J_values=[self.function(bkpt) for bkpt in self.J_bkpts()]
+        K_values=[self.function(fractional(bkpt)) for bkpt in self.K_bkpts()]
+        intercept_I=find_best_intercept(self.I_bkpts(),I_values,slope_I,lower_bound=True)
+        intercept_J=find_best_intercept(self.J_bkpts(),J_values,slope_J,lower_bound=True)
+        intercept_K=find_best_intercept(self.K_bkpts(),K_values,slope_K,lower_bound=False)
+        delta_lower_bound=min((slope_I*vertex[0]+intercept_I)+(m_J*vertex[1]+intercept_J)-(m_K*(vertex[0]+vertex[1])+intercept_K) for vertex in vertices)
+        return delta_lower_bound
 
     def delta_pi_upper_bound(self):
         return min(delta_pi(self.function,v[0],v[1]) for v in self.vertices)
@@ -180,35 +190,7 @@ def plot_strict_subadditive_2d_faces(fn,faces):
         p += face.plot(rgbcolor = "red", fill_color = "red")
     return p
 
-def histogram_delta_pi(fn,sampling='vertices'):
-    """
-    The histogram of the values of delta pi over given points in the complex.
-    """
-    if sampling=='vertices':
-        bkpts=fn.end_points()
-        bkpts2=fn.end_points()[:-1]+[1+bkpt for bkpt in fn.end_points()]
-        values=[]
-        for x in bkpts:
-            for y in bkpts:
-                values.append(delta_pi(fn,x,y))
-        for z in bkpts2[1:-1]:
-            for x in bkpts[1:-1]:
-                y=z-x
-                if 0<y<1 and y not in bkpts:
-                    val=delta_pi(fn,x,y)
-                    #symmetry
-                    values=values+[val,val]
-    else:
-        try:
-            q=int(sampling)
-            for i in range(q+1):
-                for j in range(q+1):
-                    x=i/q
-                    y=j/q
-                    values.append(delta_pi(fn,x,y))
-        except:
-            raise ValueError, "Can't recognize sampling."
-    return np.histogram(values,bins=5, density=False)
+
 
 def values_of_delta_pi_over_grid(fn,q):
     """
@@ -229,26 +211,29 @@ def strategic_delta_pi_min(fn,approximation='constant',norm='one',branching_poin
     b=delta_pi_min(fn,[0,1],[0,1],[f,1+f],approximation=approximation,norm=norm,branching_point_selection=branching_point_selection)
     c=delta_pi_min(fn,[f,1],[f,1],[1+f,2],approximation=approximation,norm=norm,branching_point_selection=branching_point_selection)
     return min(a,b,c)
-
-def number_of_vertices(fn):
-    """
-    Return the number of vertices of the complex delta_pi.
-    """
-    bkpts=fn.end_points()
-    bkpts2=fn.end_points()[1:-1]+[1+bkpt for bkpt in fn.end_points()[:-1]]
-    counter=len(bkpts)^2
-    for z in bkpts2:
-        for x in bkpts:
-            y=z-x
-            if 0<y<1 and y not in bkpts:
-                #symmetry
-                counter+=2
-    return counter
  
 def find_slope_intercept_trivial(X,Y):
     m=(Y[1]-Y[0])/(X[1]-X[0])
     b=Y[1]-m*X[1] 
     return m,b
+
+def find_best_intercept(X,Y,slope,lower_bound=True):
+    """
+    Find the intercept of the affine lower/upper estimator with fixed slope.
+    """
+    min_b=infinity
+    max_b=-infinity
+    for i in range(len(X)):
+        b=Y[i]-X[i]*slope
+        if b<min_b:
+            min_b=b
+        if b>max_b:
+            max_b=b
+    if lower_bound:
+        return min_b
+    else:
+        return max_b
+
                            
 def find_best_slope_intercept(X,Y,lower_bound=True,solver='GLPK',norm='one'):
     """
@@ -288,7 +273,7 @@ def find_affine_bounds_new(fn,X,Y,lower_bound=True,norm='one'):
     return slope, intercept
 
 
-def find_affine_bounds(fn,I,lower_bound=True,extended=False,lower_bound=True):
+def find_affine_bounds(fn,I,lower_bound=True,extended=False,norm='one'):
     """
     Find the affine lower/upper estimator of the function fn over the closed interval I.
     """
