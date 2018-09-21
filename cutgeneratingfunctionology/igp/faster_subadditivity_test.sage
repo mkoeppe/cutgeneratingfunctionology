@@ -113,7 +113,7 @@ class SubadditivityTestTreeNode :
             raise ValueError, "Indivisible Region."
 
     def is_divisible(self):
-        if len(self.I_bkpts())==2 and len(self.I_bkpts())==2 and len(self.I_bkpts())==2:
+        if len(self.I_bkpts())==2 and len(self.J_bkpts())==2 and len(self.K_bkpts())==2:
             return False
         else:
             return True
@@ -154,7 +154,7 @@ class SubadditivityTestTree :
         self.global_upper_bound=global_upper_bound
         self.root=SubadditivityTestTreeNode(fn,0,intervals)
         self.height=0
-        self.node_lists=[self.root]
+        self.node_list=[self.root]
 
     def is_subadditive(self):
         return self._is_subadditive
@@ -163,16 +163,16 @@ class SubadditivityTestTree :
         return self.height
 
     def number_of_nodes(self):
-        return len(self.node_lists)
+        return len(self.node_list)
 
-    def next_level(self, node_lists):
+    def next_level(self, node_list):
         next_level=[]
-        for node in node_lists:
+        for node in node_list:
             node.generate_children(self.global_upper_bound)
             if node.left_child:
-                next_level=snext_level+[node.left_child,node.right_child]
+                next_level=next_level+[node.left_child,node.right_child]
                 self.height=max(self.height,node.left_child.level)
-                self.node_lists=self.node_lists+[node.left_child,node.right_child]
+                self.node_list=self.node_list+[node.left_child,node.right_child]
         return next_level
 
     def solve(self):
@@ -223,6 +223,32 @@ class SubadditivityTestTree :
         self.additive_vertices=set(self.additive_vertices)
         self.nonadditive_vertices=set(self.nonadditive_vertices)
         return GlobalUpperBound
+
+
+def plot_2d_regions(fn):
+    T=SubadditivityTestTree(fn)
+    p=Graphics()
+    current_level=T.node_list
+    while current_level:
+        p+=plot_2d_regions_in_one_level(current_level)
+        p.show()
+        current_level=T.next_level(current_level)
+
+
+
+def plot_2d_regions_in_one_level(node_list):
+    p=Graphics()
+    for node in node_list:
+        region=Polyhedron(vertices=node.vertices)
+        p+=region.projection().render_outline_2d()
+        if not node.is_divisible():
+            p+=Face(node.intervals).plot(fill_color = "yellow")
+        elif node.delta_pi_constant_lower_bound()>0:
+            p+=Face(node.intervals).plot(fill_color = "red")
+    return p
+
+
+
 
 def plot_strict_subadditive_2d_faces(fn,faces):
     p = Graphics()
