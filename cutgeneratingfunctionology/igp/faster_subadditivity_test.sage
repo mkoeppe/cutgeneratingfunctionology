@@ -12,6 +12,9 @@ class SubadditivityTestTreeNode :
         self.function=fn
         self.vertices=verts(*intervals)
         self.projections=projections(self.vertices)
+        self.left_child=None
+        self.right_child=None
+        self.parent=None
 
     def I_bkpts(self):
         new_I=self.projections[0]
@@ -115,24 +118,62 @@ class SubadditivityTestTreeNode :
         else:
             return True
 
+    def generate_children(self,global_upper_bound=0):
+        if self.is_divisible():
+            if self.delta_pi_constant_lower_bound()>global_upper_bound:
+                self._is_fathomed=True
+                return
+            else:
+                self._is_fathomed=False
+                I1,I2=self.new_intervals()
+                self.left_child=SubadditivityTestTreeNode(self.function,self.level+1,I1)
+                self.right_child=SubadditivityTestTreeNode(self.function,self.level+1,I2)
+                self.left_child.parent=self
+                self.right_child.parent=self
+        else:
+            self._is_fathomed=True
+
+    def is_fathomed(self,global_upper_bound=0):
+        if hasattr(self,'_is_fathomed'):
+            return self._is_fathomed
+        if self.is_divisible():
+            if self.delta_pi_constant_lower_bound()>global_upper_bound:
+                return True
+            else:
+                return False
+        else:
+            return True
+
+
 
 class SubadditivityTestTree :
 
-    def __init__(self,fn,intervals=[[0,1],[0,1],[0,2]]):
+    def __init__(self,fn,intervals=[[0,1],[0,1],[0,2]],global_upper_bound=0):
         self.function=fn
         self.intervals=intervals
-
-    def root(self):
-        return SubadditivityTestTreeNode(self.function,0,self.intervals)
+        self.global_upper_bound=global_upper_bound
+        self.root=SubadditivityTestTreeNode(fn,0,intervals)
+        self.height=0
+        self.node_lists=[self.root]
 
     def is_subadditive(self):
         return self._is_subadditive
 
     def height(self):
-        return self._height
+        return self.height
 
     def number_of_nodes(self):
-        return self._number_of_nodes
+        return len(self.node_lists)
+
+    def next_level(self, node_lists):
+        next_level=[]
+        for node in node_lists:
+            node.generate_children(self.global_upper_bound)
+            if node.left_child:
+                next_level=snext_level+[node.left_child,node.right_child]
+                self.height=max(self.height,node.left_child.level)
+                self.node_lists=self.node_lists+[node.left_child,node.right_child]
+        return next_level
 
     def solve(self):
         """
