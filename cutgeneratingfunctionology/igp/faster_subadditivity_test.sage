@@ -100,13 +100,14 @@ class SubadditivityTestTreeNode :
             return candidates[ind][0]
 
     def new_intervals(self):
-        if self.branching_direction()=='I':
+        dir=self.branching_direction()
+        if dir=='I':
             new_bkpt=self.I_bkpts()[floor(len(self.I_bkpts())/2)]
             return [[self.intervals[0][0],new_bkpt],self.intervals[1],self.intervals[2]],[[new_bkpt,self.intervals[0][1]],self.intervals[1],self.intervals[2]]
-        elif self.branching_direction()=='J':
+        elif dir=='J':
             new_bkpt=self.J_bkpts()[floor(len(self.J_bkpts())/2)]
             return [self.intervals[0],[self.intervals[1][0],new_bkpt],self.intervals[2]],[self.intervals[0],[new_bkpt,self.intervals[1][1]],self.intervals[2]]
-        elif self.branching_direction()=='K':
+        elif dir=='K':
             new_bkpt=self.K_bkpts()[floor(len(self.K_bkpts())/2)]
             return [self.intervals[0],self.intervals[1],[self.intervals[2][0],new_bkpt]],[self.intervals[0],self.intervals[1],[new_bkpt,self.intervals[2][1]]]
         else:
@@ -119,30 +120,24 @@ class SubadditivityTestTreeNode :
             return True
 
     def generate_children(self,global_upper_bound=0):
-        if self.is_divisible():
-            if self.delta_pi_constant_lower_bound()>global_upper_bound:
-                self._is_fathomed=True
-                return
-            else:
-                self._is_fathomed=False
-                I1,I2=self.new_intervals()
-                self.left_child=SubadditivityTestTreeNode(self.function,self.level+1,I1)
-                self.right_child=SubadditivityTestTreeNode(self.function,self.level+1,I2)
-                self.left_child.parent=self
-                self.right_child.parent=self
-        else:
-            self._is_fathomed=True
+        if not self.is_fathomed(global_upper_bound):
+            I1,I2=self.new_intervals()
+            self.left_child=SubadditivityTestTreeNode(self.function,self.level+1,I1)
+            self.right_child=SubadditivityTestTreeNode(self.function,self.level+1,I2)
+            self.left_child.parent=self
+            self.right_child.parent=self
 
     def is_fathomed(self,global_upper_bound=0):
         if hasattr(self,'_is_fathomed'):
             return self._is_fathomed
         if self.is_divisible():
             if self.delta_pi_constant_lower_bound()>global_upper_bound:
-                return True
+                self._is_fathomed=True
             else:
-                return False
+                self._is_fathomed=False
         else:
-            return True
+            self._is_fathomed=True
+        return self._is_fathomed
 
 
 
@@ -154,87 +149,65 @@ class SubadditivityTestTree :
         self.global_upper_bound=global_upper_bound
         self.root=SubadditivityTestTreeNode(fn,0,intervals)
         self.height=0
-        self.node_list=[self.root]
-
-    def is_subadditive(self):
-        return self._is_subadditive
-
-    def height(self):
-        return self.height
+        self.complete_node_list=[self.root]
+        self.leaf_list=[self.root]
+        self.unfathomed_node_list=[self.root]
 
     def number_of_nodes(self):
-        return len(self.node_list)
+        return len(self.complete_node_list)
+
+    def number_of_leaves(self):
+        return len(self.leaf_list)
+
+    def node_branching(self,node):
+        """
+        Branch on a given node.
+        """
+        if node.left_child:
+            return
+        node.generate_children(self.global_upper_bound)
+        if node.left_child:
+            self.height=max(self.height,node.left_child.level)
+            self.complete_node_list=self.complete_node_list+[node.left_child,node.right_child]
+            self.leaf_list.remove(node)
+            self.leaf_list=self.leaf_list+[node.left_child,node.right_child]
+            self.unfathomed_node_list=self.unfathomed_node_list+[node.left_child,node.right_child]
 
     def next_level(self, node_list):
+        """
+        Generate nodes in the next level.
+        """
         next_level=[]
         for node in node_list:
-            node.generate_children(self.global_upper_bound)
+            self.node_branching(node)
             if node.left_child:
                 next_level=next_level+[node.left_child,node.right_child]
-                self.height=max(self.height,node.left_child.level)
-                self.node_list=self.node_list+[node.left_child,node.right_child]
         return next_level
 
-    def solve(self):
-        """
-        Return the min of delta pi over the complex.
-        """
-        GlobalUpperBound=0
-        self._height=0
-        self._number_of_nodes=0
-        self.additive_vertices=[]
-        self.nonadditive_vertices=[]
-        self.type1_leafs=[]
-        self.type2_leafs=[]
-        queue=[self.root()]
-        while queue:
-            current_node=queue.pop(0)
-            self._height=current_node.level
-            level=current_node.level+1
-            self._number_of_nodes+=1
+    def minimum(self,search_method='BFS'):
+        self.unfathomed_node=[self.root]
+        while self.unfathomed_node_list:
+            if search_method=='BFS':
+                current_node=self.unfathomed_node_list.pop(0)
+            elif search_method=='DFS':
+                current_node=self.unfathomed_node_list.pop()
+            else:
+                raise ValueError, "Can't recognize search_method."
             upper_bound=current_node.delta_pi_upper_bound()
-            #search nonsubadditive vertices
-            for v in current_node.vertices:
-                if delta_pi(self.function,v[0],v[1])<0:
-                    self.nonadditive_vertices.append(v)
-            if upper_bound<GlobalUpperBound:
-                GlobalUpperBound=upper_bound
-            #2 types of leafs
-            if not current_node.is_divisible():
-                for v in current_node.vertices:
-                    if delta_pi(self.function,v[0],v[1])==0:
-                        self.additive_vertices.append(v)
-                self.type1_leafs.append(current_node)
-                continue
-            if current_node.delta_pi_constant_lower_bound()>GlobalUpperBound:
-                self.type2_leafs.append(current_node)
-                continue
-            #branching
-            intervals1,intervals2=current_node.new_intervals()
-            queue.append(SubadditivityTestTreeNode(self.function,level,intervals1))
-            queue.append(SubadditivityTestTreeNode(self.function,level,intervals2))
-        self.strict_subadditive_faces=[]
-        for node in self.type2_leafs:
-            self.strict_subadditive_faces.append(Face(node.intervals))
-        if self.nonadditive_vertices:
-            self._is_subadditive=False
-        else:
-            self._is_subadditive=True
-        self.additive_vertices=set(self.additive_vertices)
-        self.nonadditive_vertices=set(self.nonadditive_vertices)
-        return GlobalUpperBound
+            if upper_bound<self.global_upper_bound:
+                self.global_upper_bound=upper_bound
+            self.node_branching(current_node)
+        return self.global_upper_bound
 
 
 def plot_2d_regions(fn):
     T=SubadditivityTestTree(fn)
     p=Graphics()
-    current_level=T.node_list
+    current_level=T.complete_node_list
     while current_level:
         p+=plot_2d_regions_in_one_level(current_level)
         p.show()
         current_level=T.next_level(current_level)
-
-
 
 def plot_2d_regions_in_one_level(node_list):
     p=Graphics()
@@ -247,16 +220,16 @@ def plot_2d_regions_in_one_level(node_list):
             p+=Face(node.intervals).plot(fill_color = "red")
     return p
 
-
-
-
-def plot_strict_subadditive_2d_faces(fn,faces):
-    p = Graphics()
-    p += plot_2d_complex(fn)
-    for face in faces:
-        p += face.plot(rgbcolor = "red", fill_color = "red")
+def plot_2d_regions_temporary(T):
+    p=Graphics()
+    for node in T.leaf_list:
+        region=Polyhedron(vertices=node.vertices)
+        p+=region.projection().render_outline_2d()
+        if not node.is_divisible():
+            p+=Face(node.intervals).plot(fill_color = "yellow")
+        elif node.delta_pi_constant_lower_bound()>0:
+            p+=Face(node.intervals).plot(fill_color = "red")
     return p
-
 
 
 def values_of_delta_pi_over_grid(fn,q):
