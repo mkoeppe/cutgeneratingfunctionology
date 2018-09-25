@@ -16,6 +16,10 @@ class SubadditivityTestTreeNode :
         self.right_child=None
         self.parent=None
 
+
+
+# should combine I,J,K_bkpts, and make them attribute?
+
     def I_bkpts(self):
         new_I=self.projections[0]
         bkpts=self.function.end_points()
@@ -39,6 +43,8 @@ class SubadditivityTestTreeNode :
             return [new_J[0],new_J[1]]
         else:
             return [new_J[0]]+bkpts[i:j+1]+[new_J[1]]
+
+# why K_bkpts is slower than I,J?
 
     def K_bkpts(self):
         new_K=self.projections[2]
@@ -65,7 +71,7 @@ class SubadditivityTestTreeNode :
         self.I_slope, self.I_intercept=find_affine_bounds_new(self.function,self.I_bkpts(),I_values,lower_bound=True,norm=norm)
         self.J_slope, self.J_intercept=find_affine_bounds_new(self.function,self.J_bkpts(),J_values,lower_bound=True,norm=norm)
         self.K_slope, self.K_intercept=find_affine_bounds_new(self.function,self.K_bkpts(),K_values,lower_bound=False,norm=norm)
-        delta_lower_bound=min((self.I_slope*vertex[0]+self.I_intercept)+(self.J_slope*vertex[1]+self.I_intercept)-(self.K_slope*(vertex[0]+vertex[1])+self.I_intercept) for vertex in vertices)
+        delta_lower_bound=min((self.I_slope*vertex[0]+self.I_intercept)+(self.J_slope*vertex[1]+self.J_intercept)-(self.K_slope*(vertex[0]+vertex[1])+self.K_intercept) for vertex in self.vertices)
         return delta_lower_bound
 
     def delta_pi_fast_affine_lower_bound(self,slope_I,slope_J,slope_K):
@@ -75,7 +81,32 @@ class SubadditivityTestTreeNode :
         intercept_I=find_best_intercept(self.I_bkpts(),I_values,slope_I,lower_bound=True)
         intercept_J=find_best_intercept(self.J_bkpts(),J_values,slope_J,lower_bound=True)
         intercept_K=find_best_intercept(self.K_bkpts(),K_values,slope_K,lower_bound=False)
-        delta_lower_bound=min((slope_I*vertex[0]+intercept_I)+(m_J*vertex[1]+intercept_J)-(m_K*(vertex[0]+vertex[1])+intercept_K) for vertex in vertices)
+        delta_lower_bound=min((slope_I*vertex[0]+intercept_I)+(slope_J*vertex[1]+intercept_J)-(slope_K*(vertex[0]+vertex[1])+intercept_K) for vertex in self.vertices)
+        return delta_lower_bound
+
+    def delta_pi_lower_bound(self,max_number_of_bkpts=100,norm='one'):
+        """
+        Stratigic lower bound of delta pi. If the number of bkpts is small, use affine bound. Use constant bound otherwise.
+        """
+        I_values=[self.function(bkpt) for bkpt in self.I_bkpts()]
+        J_values=[self.function(bkpt) for bkpt in self.J_bkpts()]
+        K_values=[self.function(fractional(bkpt)) for bkpt in self.K_bkpts()]
+        if len(self.I_bkpts())<=max_number_of_bkpts:
+            slope_I, intercept_I=find_affine_bounds_new(self.function,self.I_bkpts(),I_values,lower_bound=True,norm=norm)
+        else:
+            slope_I=0
+            intercept_I=min(I_values)
+        if len(self.J_bkpts())<=max_number_of_bkpts:
+            slope_J, intercept_J=find_affine_bounds_new(self.function,self.J_bkpts(),J_values,lower_bound=True,norm=norm)
+        else:
+            slope_J=0
+            intercept_J=min(J_values)
+        if len(self.K_bkpts())<=max_number_of_bkpts:
+            slope_K, intercept_K=find_affine_bounds_new(self.function,self.K_bkpts(),K_values,lower_bound=False,norm=norm)
+        else:
+            slope_K=0
+            intercept_K=max(K_values)
+        delta_lower_bound=min((slope_I*vertex[0]+intercept_I)+(slope_J*vertex[1]+intercept_J)-(slope_K*(vertex[0]+vertex[1])+intercept_K) for vertex in self.vertices)
         return delta_lower_bound
 
     def delta_pi_upper_bound(self):
@@ -131,7 +162,7 @@ class SubadditivityTestTreeNode :
         if hasattr(self,'_is_fathomed'):
             return self._is_fathomed
         if self.is_divisible():
-            if self.delta_pi_constant_lower_bound()>global_upper_bound:
+            if self.delta_pi_lower_bound()>global_upper_bound:
                 self._is_fathomed=True
             else:
                 self._is_fathomed=False
@@ -198,15 +229,16 @@ class SubadditivityTestTree :
             self.node_branching(current_node)
         return self.global_upper_bound
 
-    def plot_current_regions(self):
+    def plot_current_regions(self,colorful=False):
         p=Graphics()
         for node in self.leaf_set:
             region=Polyhedron(vertices=node.vertices)
             p+=region.projection().render_outline_2d()
-            if not node.is_divisible():
-                p+=Face(node.intervals).plot(fill_color = "yellow")
-            elif node.delta_pi_constant_lower_bound()>self.global_upper_bound:
-                p+=Face(node.intervals).plot(fill_color = "red")
+            if colorful:
+                if not node.is_divisible():
+                    p+=Face(node.intervals).plot(fill_color = "yellow")
+                elif node.delta_pi_lower_bound()>self.global_upper_bound:
+                    p+=Face(node.intervals).plot(fill_color = "red")
         return p
 
 
@@ -229,7 +261,7 @@ def plot_2d_regions_in_one_level(node_set,colorful=False):
         if colorful:
             if not node.is_divisible():
                 p+=Face(node.intervals).plot(fill_color = "yellow")
-            elif node.delta_pi_constant_lower_bound()>0:
+            elif node.delta_pi_lower_bound()>0:
                 p+=Face(node.intervals).plot(fill_color = "red")
     return p
 
@@ -307,7 +339,7 @@ def find_best_slope_intercept(X,Y,lower_bound=True,solver='GLPK',norm='one'):
     return p.get_values(m),p.get_values(b)
 
 def find_affine_bounds_new(fn,X,Y,lower_bound=True,norm='one'):
-    if len(bkpts)==2:
+    if len(X)==2:
         slope,intercept=find_slope_intercept_trivial(X,Y)
     else:
         slope,intercept=find_best_slope_intercept(X,Y,lower_bound=lower_bound,norm=norm)
