@@ -140,7 +140,6 @@ class SubadditivityTestTreeNode :
         return self._is_fathomed
 
 
-
 class SubadditivityTestTree :
 
     def __init__(self,fn,intervals=[[0,1],[0,1],[0,2]],global_upper_bound=0):
@@ -149,8 +148,9 @@ class SubadditivityTestTree :
         self.global_upper_bound=global_upper_bound
         self.root=SubadditivityTestTreeNode(fn,0,intervals)
         self.height=0
-        self.complete_node_list=[self.root]
-        self.leaf_list=[self.root]
+        self.complete_node_list=set([self.root])
+        self.leaf_list=set([self.root])
+        # the order of unfathomed nodes matters, like DFS or BFS
         self.unfathomed_node_list=[self.root]
 
     def number_of_nodes(self):
@@ -163,29 +163,29 @@ class SubadditivityTestTree :
         """
         Branch on a given node.
         """
-        if node.left_child:
-            return
-        node.generate_children(self.global_upper_bound)
-        if node.left_child:
-            self.height=max(self.height,node.left_child.level)
-            self.complete_node_list=self.complete_node_list+[node.left_child,node.right_child]
-            self.leaf_list.remove(node)
-            self.leaf_list=self.leaf_list+[node.left_child,node.right_child]
-            self.unfathomed_node_list=self.unfathomed_node_list+[node.left_child,node.right_child]
+        if not node.left_child:
+            node.generate_children(self.global_upper_bound)
+            if node.left_child:
+                self.height=max(self.height,node.left_child.level)
+                self.complete_node_list.update({node.left_child,node.right_child})
+                self.leaf_list.discard(node)
+                self.leaf_list.update({node.left_child,node.right_child})
+                self.unfathomed_node_list=self.unfathomed_node_list+[node.left_child,node.right_child]
+
 
     def next_level(self, node_list):
         """
         Generate nodes in the next level.
         """
-        next_level=[]
+        next_level=set()
         for node in node_list:
             self.node_branching(node)
             if node.left_child:
-                next_level=next_level+[node.left_child,node.right_child]
+                next_level.update({node.left_child,node.right_child})
         return next_level
 
     def minimum(self,search_method='BFS'):
-        self.unfathomed_node=[self.root]
+        self.unfathomed_node_list=[self.root]
         while self.unfathomed_node_list:
             if search_method=='BFS':
                 current_node=self.unfathomed_node_list.pop(0)
@@ -199,38 +199,40 @@ class SubadditivityTestTree :
             self.node_branching(current_node)
         return self.global_upper_bound
 
+    def plot_current_regions(self):
+        p=Graphics()
+        for node in self.leaf_list:
+            region=Polyhedron(vertices=node.vertices)
+            p+=region.projection().render_outline_2d()
+            if not node.is_divisible():
+                p+=Face(node.intervals).plot(fill_color = "yellow")
+            elif node.delta_pi_constant_lower_bound()>self.global_upper_bound:
+                p+=Face(node.intervals).plot(fill_color = "red")
+        return p
 
-def plot_2d_regions(fn):
+
+def plot_2d_regions(fn,colorful=False):
     T=SubadditivityTestTree(fn)
     p=Graphics()
-    current_level=T.complete_node_list
+    # current_level=T.complete_node_list results in error: Set changed size during iteration
+    current_level=set([T.root])
     while current_level:
-        p+=plot_2d_regions_in_one_level(current_level)
+        p+=plot_2d_regions_in_one_level(current_level,colorful=colorful)
         p.show()
-        current_level=T.next_level(current_level)
+        next_level=T.next_level(current_level)
+        current_level=next_level
 
-def plot_2d_regions_in_one_level(node_list):
+def plot_2d_regions_in_one_level(node_list,colorful=False):
     p=Graphics()
     for node in node_list:
         region=Polyhedron(vertices=node.vertices)
         p+=region.projection().render_outline_2d()
-        if not node.is_divisible():
-            p+=Face(node.intervals).plot(fill_color = "yellow")
-        elif node.delta_pi_constant_lower_bound()>0:
-            p+=Face(node.intervals).plot(fill_color = "red")
+        if colorful:
+            if not node.is_divisible():
+                p+=Face(node.intervals).plot(fill_color = "yellow")
+            elif node.delta_pi_constant_lower_bound()>0:
+                p+=Face(node.intervals).plot(fill_color = "red")
     return p
-
-def plot_2d_regions_temporary(T):
-    p=Graphics()
-    for node in T.leaf_list:
-        region=Polyhedron(vertices=node.vertices)
-        p+=region.projection().render_outline_2d()
-        if not node.is_divisible():
-            p+=Face(node.intervals).plot(fill_color = "yellow")
-        elif node.delta_pi_constant_lower_bound()>0:
-            p+=Face(node.intervals).plot(fill_color = "red")
-    return p
-
 
 def values_of_delta_pi_over_grid(fn,q):
     """
