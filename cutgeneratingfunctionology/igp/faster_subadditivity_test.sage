@@ -148,16 +148,16 @@ class SubadditivityTestTree :
         self.global_upper_bound=global_upper_bound
         self.root=SubadditivityTestTreeNode(fn,0,intervals)
         self.height=0
-        self.complete_node_list=set([self.root])
-        self.leaf_list=set([self.root])
+        self.complete_node_set=set([self.root])
+        self.leaf_set=set([self.root])
         # the order of unfathomed nodes matters, like DFS or BFS
         self.unfathomed_node_list=[self.root]
 
     def number_of_nodes(self):
-        return len(self.complete_node_list)
+        return len(self.complete_node_set)
 
     def number_of_leaves(self):
-        return len(self.leaf_list)
+        return len(self.leaf_set)
 
     def node_branching(self,node):
         """
@@ -167,18 +167,17 @@ class SubadditivityTestTree :
             node.generate_children(self.global_upper_bound)
             if node.left_child:
                 self.height=max(self.height,node.left_child.level)
-                self.complete_node_list.update({node.left_child,node.right_child})
-                self.leaf_list.discard(node)
-                self.leaf_list.update({node.left_child,node.right_child})
+                self.complete_node_set.update({node.left_child,node.right_child})
+                self.leaf_set.discard(node)
+                self.leaf_set.update({node.left_child,node.right_child})
                 self.unfathomed_node_list=self.unfathomed_node_list+[node.left_child,node.right_child]
 
-
-    def next_level(self, node_list):
+    def next_level(self, node_set):
         """
         Generate nodes in the next level.
         """
         next_level=set()
-        for node in node_list:
+        for node in node_set:
             self.node_branching(node)
             if node.left_child:
                 next_level.update({node.left_child,node.right_child})
@@ -201,7 +200,7 @@ class SubadditivityTestTree :
 
     def plot_current_regions(self):
         p=Graphics()
-        for node in self.leaf_list:
+        for node in self.leaf_set:
             region=Polyhedron(vertices=node.vertices)
             p+=region.projection().render_outline_2d()
             if not node.is_divisible():
@@ -214,7 +213,7 @@ class SubadditivityTestTree :
 def plot_2d_regions(fn,colorful=False):
     T=SubadditivityTestTree(fn)
     p=Graphics()
-    # current_level=T.complete_node_list results in error: Set changed size during iteration
+    # current_level=T.complete_node_set results in error: Set changed size during iteration
     current_level=set([T.root])
     while current_level:
         p+=plot_2d_regions_in_one_level(current_level,colorful=colorful)
@@ -222,9 +221,9 @@ def plot_2d_regions(fn,colorful=False):
         next_level=T.next_level(current_level)
         current_level=next_level
 
-def plot_2d_regions_in_one_level(node_list,colorful=False):
+def plot_2d_regions_in_one_level(node_set,colorful=False):
     p=Graphics()
-    for node in node_list:
+    for node in node_set:
         region=Polyhedron(vertices=node.vertices)
         p+=region.projection().render_outline_2d()
         if colorful:
