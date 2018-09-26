@@ -16,47 +16,17 @@ class SubadditivityTestTreeNode :
         self.right_child=None
         self.parent=None
 
-
-
-# should combine I,J,K_bkpts, and make them attribute?
-
     def I_bkpts(self):
         new_I=self.projections[0]
-        bkpts=self.function.end_points()
-        i=bisect_left(bkpts, new_I[0])
-        j=bisect_left(bkpts, new_I[1])-1
-        if new_I[0]==bkpts[i]:
-            i=i+1
-        if i>j:
-            return [new_I[0],new_I[1]]
-        else:
-            return [new_I[0]]+bkpts[i:j+1]+[new_I[1]]
+        return find_all_bkpts_in_the_interval(self.function.end_points(),new_I)
 
     def J_bkpts(self):
         new_J=self.projections[1]
-        bkpts=self.function.end_points()
-        i=bisect_left(bkpts, new_J[0])
-        j=bisect_left(bkpts, new_J[1])-1
-        if new_J[0]==bkpts[i]:
-            i=i+1
-        if i>j:
-            return [new_J[0],new_J[1]]
-        else:
-            return [new_J[0]]+bkpts[i:j+1]+[new_J[1]]
-
-# why K_bkpts is slower than I,J?
+        return find_all_bkpts_in_the_interval(self.function.end_points(),new_J)
 
     def K_bkpts(self):
         new_K=self.projections[2]
-        bkpts=self.function.end_points()[:-1]+[1+bkpt for bkpt in self.function.end_points()]
-        i=bisect_left(bkpts, new_K[0])
-        j=bisect_left(bkpts, new_K[1])-1
-        if new_K[0]==bkpts[i]:
-            i=i+1
-        if i>j:
-            return [new_K[0],new_K[1]]
-        else:
-            return [new_K[0]]+bkpts[i:j+1]+[new_K[1]]
+        return find_all_bkpts_in_the_interval(self.function.end_points(),new_K)
 
     def delta_pi_constant_lower_bound(self):
         alpha_I=min(self.function(bkpt) for bkpt in self.I_bkpts())
@@ -84,7 +54,7 @@ class SubadditivityTestTreeNode :
         delta_lower_bound=min((slope_I*vertex[0]+intercept_I)+(slope_J*vertex[1]+intercept_J)-(slope_K*(vertex[0]+vertex[1])+intercept_K) for vertex in self.vertices)
         return delta_lower_bound
 
-    def delta_pi_lower_bound(self,max_number_of_bkpts=100,norm='one'):
+    def delta_pi_lower_bound(self,max_number_of_bkpts=0,norm='one'):
         """
         Stratigic lower bound of delta pi. If the number of bkpts is small, use affine bound. Use constant bound otherwise.
         """
@@ -231,16 +201,65 @@ class SubadditivityTestTree :
 
     def plot_current_regions(self,colorful=False):
         p=Graphics()
+        kwds = { 'legend_label1': "indivisible face" , 'legend_label2': "strict subadditive divisible face"}
+        legend=[0,0]
         for node in self.leaf_set:
             region=Polyhedron(vertices=node.vertices)
             p+=region.projection().render_outline_2d()
             if colorful:
                 if not node.is_divisible():
-                    p+=Face(node.intervals).plot(fill_color = "yellow")
+                    if legend[0]==0:
+                        p+=Face(node.intervals).plot(rgbcolor = "yellow",fill_color = "yellow",legend_label=kwds['legend_label1'])
+                        legend[0]=1
+                    else:
+                        p+=Face(node.intervals).plot(rgbcolor = "yellow",fill_color = "yellow")
                 elif node.delta_pi_lower_bound()>self.global_upper_bound:
-                    p+=Face(node.intervals).plot(fill_color = "red")
+                    if legend[1]==0:
+                        p+=Face(node.intervals).plot(rgbcolor = "red",fill_color = "red",legend_label=kwds['legend_label2'])
+                        legend[1]=1
+                    else:
+                        p+=Face(node.intervals).plot(rgbcolor = "red",fill_color = "red")
         return p
 
+def find_all_bkpts_in_the_interval(bkpts,interval):
+    """
+    Return a list of breakpoints contained in interval and bkpts+Z. bkpts=fn.end_points(), and interval can be any closed interval contained in [0,2].
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)
+        sage: fn=gj_2_slope()
+        sage: bkpts=fn.end_points()
+        sage: bkpts
+        [0, 4/15, 1/3, 3/5, 1]
+        sage: find_all_bkpts_in_the_interval(bkpts,[4/15,3/5])
+        [4/15, 1/3, 3/5]
+        sage: find_all_bkpts_in_the_interval(bkpts,[1/15,4/5])
+        [1/15, 4/15, 1/3, 3/5, 4/5]
+        sage: find_all_bkpts_in_the_interval(bkpts,[1/3,2])
+        [1/3, 3/5, 1, 19/15, 4/3, 8/5, 2]
+        sage: find_all_bkpts_in_the_interval(bkpts,[9/8,19/10])
+        [9/8, 19/15, 4/3, 8/5, 19/10]
+    """
+    if interval[1]<=1:
+        i,j=find_bkpts_index_from_zero_to_one(bkpts,interval)
+        return [interval[0]]+bkpts[i:j+1]+[interval[1]]
+    if interval[0]>=1:
+        new_interval=[interval[0]-1,interval[1]-1]
+        i,j=find_bkpts_index_from_zero_to_one(bkpts,new_interval)
+        return [interval[0]]+[bkpt+1 for bkpt in bkpts[i:j+1]]+[interval[1]]
+    interval1=[interval[0],1]
+    interval2=[0,interval[1]-1]
+    i1,j1=find_bkpts_index_from_zero_to_one(bkpts,interval1)
+    i2,j2=find_bkpts_index_from_zero_to_one(bkpts,interval2)
+    return [interval[0]]+bkpts[i1:j1+2]+[bkpt+1 for bkpt in bkpts[i2:j2+1]]+[interval[1]]
+
+def find_bkpts_index_from_zero_to_one(bkpts,interval):
+    i=bisect_left(bkpts, interval[0])
+    j=bisect_left(bkpts, interval[1])-1
+    if interval[0]==bkpts[i]:
+        i=i+1
+    return i,j
 
 def plot_2d_regions(fn,colorful=False):
     T=SubadditivityTestTree(fn)
@@ -260,9 +279,9 @@ def plot_2d_regions_in_one_level(node_set,colorful=False):
         p+=region.projection().render_outline_2d()
         if colorful:
             if not node.is_divisible():
-                p+=Face(node.intervals).plot(fill_color = "yellow")
+                p+=Face(node.intervals).plot(rgbcolor = "yellow", fill_color = "yellow")
             elif node.delta_pi_lower_bound()>0:
-                p+=Face(node.intervals).plot(fill_color = "red")
+                p+=Face(node.intervals).plot(rgbcolor = "red", fill_color = "red")
     return p
 
 def values_of_delta_pi_over_grid(fn,q):
