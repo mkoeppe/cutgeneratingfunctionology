@@ -4155,10 +4155,8 @@ class DirectedMoveCompositionCompletion:
                 b = self.move_dict.get(dm_b, None)
                 if not a or not b:
                     continue                        # move has been killed
-                if not check_for_strip_lemma_linear_independence(a, b):
-                    continue   # clear obstructions to apply the strip lemma
                 # check if the strip lemma gives new dense intervals
-                d = check_for_strip_lemma_small_translations(a.intervals(), b.intervals(), a[1], b[1])
+                d = check_for_strip_lemma_fastpath(a, b)
                 if d:
                     if crazy_perturbations_warning:
                         logging.warn("This function is two-sided discontinuous at the origin. Crazy perturbations might exist.")
