@@ -2,7 +2,8 @@ import igp
 from igp import *
 
 #destdir = "survey_graphics/algo_paper_graphics/"
-destdir = "/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/graphics-for-algo-paper/"
+#destdir = "/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/graphics-for-algo-paper/"
+destdir = "/Users/yzh/Dropbox/basu-hildebrand-koeppe-papers-for-yuan/algo-paper/graphics-for-algo-paper/"
 ftype = ".png"
 
 logging.disable(logging.INFO)
@@ -87,7 +88,7 @@ u2 = 14/15-t2
 m1 = FunctionalDirectedMove([open_interval(l1, u1)], (1, t1))
 m2 = FunctionalDirectedMove([open_interval(l2, u2)], (1, t2))
 l = l1; ll = l2; uu = 3/4; u = 14/15
-c = DirectedMoveCompositionCompletion([m1, m2], show_plots=False, plot_background=plot_background)
+c = DirectedMoveCompositionCompletion([m1, m2], show_plots=False, plot_background=plot_background,pts_of_discontinuity=[])
 c.add_backward_moves()
 g = c.plot()+ line([(l,0),(l,u)], color='black', linestyle=':') +line([(ll,0),(ll,uu)], color='black', linestyle=':') + line([(uu,0),(uu,uu)], color='black', linestyle=':') + line([(u,0),(u,u)], color='black', linestyle=':') + line([(0,t1),(l,l+t1)], color='black', linestyle=':') + line([(0,t2),(ll,ll+t2)], color='black', linestyle=':') + line([(l,l),(u,l)], color='black', linestyle=':') + line([(ll,ll),(uu,ll)], color='black', linestyle=':')+line([(l,u),(u,u)], color='black', linestyle=':') +line([(ll,uu),(uu,uu)], color='black', linestyle=':') + text("$\\tau_1$", (0.5,0.58), axis_coords=False) +text("$\\tau_2$", (0.62,0.88), axis_coords=False) + text("$\\tau_1^{-1}$", (0.58,0.5), axis_coords=False) +text("$\\tau_2^{-1}$", (0.88, 0.62), axis_coords=False)
 tkx = [0,l,ll,uu,u,1]
@@ -174,7 +175,7 @@ gg += rhor_ab_label
 rhor_ab_inverse_label = text("$(\\rho_r|_{(a,b)})^{-1}$", (r-(a+b)/2-0.02,(a+b)/2), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='left', color='black')
 gg += rhor_ab_inverse_label
 gg += line([(b, r-b), (r, 0)], linestyle=':', color='grey', zorder=-10)
-c = DirectedMoveCompositionCompletion(fdms, plot_background=gg)
+c = DirectedMoveCompositionCompletion(fdms, plot_background=gg, pts_of_discontinuity=[])
 c.add_backward_moves()
 mtkx = [0,a,b,1,r]
 mtky = [t2-1,0,a+t2-1,t1, b+t2-1,a+t1,b+t1,1]
@@ -226,7 +227,7 @@ moves = [tau1]
 comp = [ open_interval(7/15, 10/15) ]
 fname = destdir + 'reduces_moves_by_components_ex1' + "-%s.png"
 c = DirectedMoveCompositionCompletion(moves, [comp],
-                                      show_plots=fname, plot_background=plot_background)
+                                      show_plots=fname, plot_background=plot_background, pts_of_discontinuity=[])
 #c.add_backward_moves()
 show_plot(plot_background + plot_covered_components_as_rectangles([comp]) + sum(m.plot() for m in moves), fname, tag='completion-unreduced')
 show_plot(c.plot(), fname, tag='completion-initial')
@@ -238,7 +239,7 @@ tau1b = FunctionalDirectedMove([open_interval(8/15, 11/15)], (1, t1))
 comp = [ open_interval(7/15, 10/15) ]
 fname = destdir + 'extend_components_by_moves_ex1' + "-%s.png"
 c = DirectedMoveCompositionCompletion([tau1a, tau1b], [comp],
-                                      show_plots=fname, plot_background=plot_background)
+                                      show_plots=fname, plot_background=plot_background, pts_of_discontinuity=[])
 c.complete()
 show_plot(c.plot(), fname, tag='completion-final')
 
@@ -248,7 +249,7 @@ tau1b = FunctionalDirectedMove([open_interval(8/15, 11/15)], (1, t1))
 comp = [ open_interval(7/15, 10/15) ]
 fname = destdir + 'extend_components_by_moves_ex1a' + "-%s.png"
 c = DirectedMoveCompositionCompletion([tau1a, tau1b], [comp],
-                                      show_plots=fname, plot_background=plot_background)
+                                      show_plots=fname, plot_background=plot_background, pts_of_discontinuity=[])
 c.complete()
 show_plot(c.plot(), fname, tag='completion-final')
 
@@ -258,7 +259,7 @@ tau1b = FunctionalDirectedMove([open_interval(4/15, 5/15)], (1, t1))
 comp = [ open_interval(3/15, 4/15), (7/15, 10/15) ]
 fname = destdir + 'extend_components_by_moves_ex2' + "-%s.png"
 c = DirectedMoveCompositionCompletion([tau1a, tau1b], [comp],
-                                      show_plots=fname, plot_background=plot_background)
+                                      show_plots=fname, plot_background=plot_background, pts_of_discontinuity=[])
 c.complete()
 show_plot(c.plot(), fname, tag='completion-final')
 
@@ -269,7 +270,8 @@ comp = [ open_interval(1/15, 4/15), (7/15, 10/15) ]
 fname = destdir + 'extend_components_by_moves_ex3' + "-%s.png"
 c = DirectedMoveCompositionCompletion([tau1a, tau1b], [comp],
                                       show_plots=fname,
-                                      plot_background=plot_background)
+                                      plot_background=plot_background,
+                                      pts_of_discontinuity=[])
 c.complete()
 show_plot(c.plot(), fname, tag='completion-final')
 
@@ -278,7 +280,7 @@ tau1 = FunctionalDirectedMove([open_interval(2/15, 5/15)], (1, t1))
 comp = [ open_interval(3/15, 4/15) ]
 fname = destdir + 'extend_components_by_moves_ex4' + "-%s.png"
 c = DirectedMoveCompositionCompletion([tau1], [comp],
-                                      show_plots=fname, plot_background=plot_background)
+                                      show_plots=fname, plot_background=plot_background, pts_of_discontinuity=[])
 c.complete()
 show_plot(c.plot(), fname, tag='completion-final')
 
@@ -370,13 +372,13 @@ def plot_sampled_stuff(F_list, E_list, name):
 
     background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2, **ticks_keywords_for_faces(F_list))
     # FIXME: The ticks keywords don't seem to apply to the translation moves diagram....
-    completion = DirectedMoveCompositionCompletion(fdms=[ E.functional_directed_move() for E in E_list ], show_plots=fname_sampled, plot_background=background, show_zero_perturbation=False)
+    completion = DirectedMoveCompositionCompletion(fdms=[ E.functional_directed_move() for E in E_list ], show_plots=fname_sampled, plot_background=background, pts_of_discontinuity=[], show_zero_perturbation=False)
     #show(completion.plot())
     completion.complete()
     show_plot(completion.plot(), fname_sampled, tag='completion-final')
 
     # unsampled
-    completion = DirectedMoveCompositionCompletion(covered_components=[ F.covered_component() for F in F_list ], show_plots=fname, plot_background=background, show_zero_perturbation=False)
+    completion = DirectedMoveCompositionCompletion(covered_components=[ F.covered_component() for F in F_list ], show_plots=fname, plot_background=background, pts_of_discontinuity=[], show_zero_perturbation=False)
     completion.complete()
     show_plot(completion.plot(), fname, tag='completion-final')
 

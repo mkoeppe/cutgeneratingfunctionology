@@ -4001,41 +4001,9 @@ def check_for_strip_lemma_small_translations(domain1, domain2, t1, t2):
     d = union_of_coho_intervals_minus_union_of_coho_intervals([[interval] for interval in dense_intervals], [])
     return d
 
-def extend_initial_move_by_continuity(fdm, fn, covered_components):
-    if fn is None or fn.is_two_sided_discontinuous():
-        return fdm
-    fdm_domain = [interval_including_endpoints_if_continuous(interval, fdm, fn) for interval in fdm.intervals()]
-    covered_domains = []
-    for component in covered_components:
-        preimages =  [ fdm.apply_to_coho_interval(interval, inverse=True) for interval in component ]
-        preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
-        restricted_domain = intersection_of_coho_intervals([component, preimages])
-        covered_domain = [interval_including_endpoints_if_continuous(interval, fdm, fn) for interval in restricted_domain]
-        covered_domains.append(covered_domain)
-    union_domains = union_of_coho_intervals_minus_union_of_coho_intervals(covered_domains+[fdm_domain],[])
-    # discard the intervals that do not intersect with fdm_domains
-    extended_domain = []
-    for domain in union_domains:
-        keep = False
-        for i in fdm_domain:
-            if coho_interval_contained_in_coho_interval(i, domain):
-                keep = True
-                break
-        if keep:
-            open_domain = open_interval(domain[0], domain[1])
-            extended_domain.append(open_domain)
-    return FunctionalDirectedMove(extended_domain, fdm.directed_move)
-
-def is_continuous_at_point(fn, x):
-    if fn.is_continuous():
-        return True
-    else:
-        limits = fn.limits(x)
-        return limits[-1]==limits[0]==limits[1]
-
-def interval_including_endpoints_if_continuous(interval, fdm, fn):
-    left_closed = is_continuous_at_point(fn, interval[0]) and is_continuous_at_point(fn, fdm.apply_ignoring_domain(interval[0]))
-    right_closed = is_continuous_at_point(fn, interval[1]) and is_continuous_at_point(fn, fdm.apply_ignoring_domain(interval[1]))
+def interval_including_endpoints_if_continuous(interval, fdm, pts_of_discontinuity):
+    left_closed = (interval[0] not in pts_of_discontinuity) and (fdm.apply_ignoring_domain(interval[0]) not in pts_of_discontinuity)
+    right_closed = (interval[1] not in pts_of_discontinuity) and (fdm.apply_ignoring_domain(interval[1]) not in pts_of_discontinuity)
     return closed_or_open_or_halfopen_interval(interval[0], interval[1], left_closed, right_closed)
 
 show_translations_and_reflections_separately = False
@@ -4046,11 +4014,21 @@ class DirectedMoveCompositionCompletion:
     # FIXME: Rename function_at_border because it is used for continuity properties too,
     # not just for plotting.
     
-    def __init__(self, fdms=[], covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, show_zero_perturbation=True):
+    def __init__(self, fdms=[], covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, pts_of_discontinuity=None, show_zero_perturbation=True):
         self.show_plots = show_plots
         self.plot_background = plot_background
         # To show colorful components at borders, and in extend_domain_of_move_by_adding_covered_intervals, need the function. Otherwise set it to default None
         self.function_at_border = function_at_border
+        if function_at_border is not None:
+            if function_at_border.is_continuous():
+                pts_of_discontinuity = []
+            elif pts_of_discontinuity is None:
+                pts_of_discontinuity = []
+                for x in function_at_border.end_points():
+                    limits = function_at_border.limits(x)
+                    if not limits[-1]==limits[0]==limits[1]:
+                        pts_of_discontinuity.append(x)
+        self.pts_of_discontinuity = pts_of_discontinuity
         self.move_dict = dict()
         self.sym_init_moves = dict() # updated by self.add_backward_moves() in round 0.
         self.covered_components = covered_components
@@ -4237,6 +4215,32 @@ class DirectedMoveCompositionCompletion:
         self.num_rounds += 1
         self.maybe_show_plot(current_dense_move_plot)
 
+    def extend_moves_by_continuity(self):
+        if (self.function_at_border is None) or (not self.function_at_border.is_two_sided_discontinuous()):
+            for dm in self.move_dict.keys():
+                fdm = self.move_dict[dm]
+                fdm_domain = [interval_including_endpoints_if_continuous(interval, fdm, self.pts_of_discontinuity) for interval in fdm.intervals()]
+                covered_domains = []
+                for component in self.covered_components:
+                    preimages =  [ fdm.apply_to_coho_interval(interval, inverse=True) for interval in component ]
+                    preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
+                    restricted_domain = intersection_of_coho_intervals([component, preimages])
+                    covered_domain = [interval_including_endpoints_if_continuous(interval, fdm, self.pts_of_discontinuity) for interval in restricted_domain]
+                    covered_domains.append(covered_domain)
+                union_domains = union_of_coho_intervals_minus_union_of_coho_intervals(covered_domains+[fdm_domain],[])
+                # discard the intervals that do not intersect with fdm_domains
+                extended_domain = []
+                for domain in union_domains:
+                    keep = False
+                    for i in fdm_domain:
+                        if coho_interval_contained_in_coho_interval(i, domain):
+                            keep = True
+                            break
+                    if keep:
+                        open_domain = open_interval(domain[0], domain[1])
+                        extended_domain.append(open_domain)
+                self.move_dict[dm] = FunctionalDirectedMove(extended_domain, fdm.directed_move)
+
     def add_backward_moves(self):
         self.num_rounds = 0
         move_keys = list(self.any_change_moves)
@@ -4247,9 +4251,7 @@ class DirectedMoveCompositionCompletion:
                 backward_fdm = ~forward_fdm
                 self.add_move(backward_fdm)
         # extend initial moves by continuity
-        for dm in self.move_dict.keys():
-           fdm = self.move_dict[dm]
-           self.move_dict[dm] = extend_initial_move_by_continuity(fdm, self.function_at_border, self.covered_components)
+        self.extend_moves_by_continuity()
         if self.any_change_moves: # has new backward moves
             # to see that unnecessary discontinuity marks have disappeared,
             # need to set kwds['discontinuity_markers'] = True in FunctionalDirectedMove.plot()
@@ -4287,7 +4289,7 @@ class DirectedMoveCompositionCompletion:
         else:
             return "<DirectedMoveCompositionCompletion (incomplete, {} rounds) with {} directed moves and {} covered components>".format(self.num_rounds, len(self.move_dict), len(self.covered_components))
 
-def directed_move_composition_completion(fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, max_num_rounds=None, error_if_max_num_rounds_exceeded=True):
+def directed_move_composition_completion(fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, pts_of_discontinuity=None, max_num_rounds=None, error_if_max_num_rounds_exceeded=True):
     """
     Only used in ``stuff_with_random_irrational_function()``.
     """
@@ -4295,7 +4297,8 @@ def directed_move_composition_completion(fdms, covered_components=[], proj_add_v
                                                    proj_add_vert = proj_add_vert, \
                                                    show_plots=show_plots, \
                                                    plot_background=plot_background, \
-                                                   function_at_border=function_at_border)
+                                                   function_at_border=function_at_border, \
+                                                   pts_of_discontinuity=pts_of_discontinuity)
     completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
     return completion.results()
 
