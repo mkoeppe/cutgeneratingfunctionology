@@ -4037,7 +4037,6 @@ class DirectedMoveCompositionCompletion:
         else:
             self.any_change_components = False
         self.any_change_moves = set()
-        self.any_extended_moves = set()
         for fdm in fdms:
             self.add_move(fdm)
         self.num_rounds = -1
@@ -4148,11 +4147,9 @@ class DirectedMoveCompositionCompletion:
 
     def extend_components_by_strip_lemma(self):
         global crazy_perturbations_warning
-        changed_move_keys = self.any_change_moves.union(self.any_extended_moves)
-        self.any_extended_moves = set()
         all_move_keys = self.move_dict.keys()
         strip_lemma_intervals = []
-        for dm_a in changed_move_keys:
+        for dm_a in all_move_keys:
             for dm_b in all_move_keys:
                 a = self.move_dict.get(dm_a, None)
                 b = self.move_dict.get(dm_b, None)
@@ -4205,8 +4202,6 @@ class DirectedMoveCompositionCompletion:
                 reduced_fdm = fdm.reduced_by_components(self.covered_components)
             if reduced_fdm.intervals():
                 new_move_dict[dm] = reduced_fdm
-                if (dm not in self.any_change_moves) and union_of_coho_intervals_minus_union_of_coho_intervals([reduced_fdm.intervals()], [self.move_dict[dm].intervals()]):
-                    self.any_extended_moves.add(dm)
         self.move_dict = new_move_dict
 
     def complete_one_round(self):
