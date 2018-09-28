@@ -77,7 +77,7 @@ class SubadditivityTestTreeNode :
         delta_lower_bound=min((slope_I*vertex[0]+intercept_I)+(slope_J*vertex[1]+intercept_J)-(slope_K*(vertex[0]+vertex[1])+intercept_K) for vertex in self.vertices)
         return delta_lower_bound
 
-    def delta_pi_lower_bound(self,max_number_of_bkpts=10,norm='inf'):
+    def delta_pi_lower_bound(self,max_number_of_bkpts=0,norm='inf'):
         """
         Stratigic lower bound of delta pi. If the number of bkpts is small, use affine bound. Use constant bound otherwise.
         """
