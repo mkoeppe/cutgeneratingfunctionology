@@ -2630,19 +2630,19 @@ class FunctionalDirectedMove (FastPiecewise):
         """
         return self.directed_move[0] == 1 and self.directed_move[1] == 0
 
-    # def restricting(self, components):
-    #     """
-    #     Returns a new move by removing ``self.restricted(component)`` for component in components.
-    #     (The result may have the empty set as its domain.)
-    #     """
-    #     domain = self.intervals()                        # sorted.
-    #     restricting_domain_list = []
-    #     for component in components:
-    #         preimages = [ self.apply_to_coho_interval(interval, inverse=True) for interval in component ]
-    #         preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
-    #         restricting_domain_list.append(list(intersection_of_coho_intervals([component, preimages])))
-    #     new_domain = union_of_coho_intervals_minus_union_of_coho_intervals([domain], restricting_domain_list, remove_closure=True )
-    #     return FunctionalDirectedMove(new_domain, self.directed_move)
+    def restricting(self, components):
+        """
+        Returns a new move by removing ``self.restricted(component)`` for component in components.
+        (The result may have the empty set as its domain.)
+        """
+        domain = self.intervals()                        # sorted.
+        restricting_domain_list = []
+        for component in components:
+            preimages = [ self.apply_to_coho_interval(interval, inverse=True) for interval in component ]
+            preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
+            restricting_domain_list.append(list(intersection_of_coho_intervals([component, preimages])))
+        new_domain = union_of_coho_intervals_minus_union_of_coho_intervals([domain], restricting_domain_list, remove_closure=True )
+        return FunctionalDirectedMove(new_domain, self.directed_move)
 
     def reduced_by_components(self, components):
         """
@@ -4542,8 +4542,8 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
     if hasattr(fn, '_stability_orbits'):
         return
     fn._stability_orbits = []
-    fdms, covered_components= generate_directed_move_composition_completion(fn, show_plots=show_plots)
-
+    long_fdms, covered_components= generate_directed_move_composition_completion(fn, show_plots=show_plots)
+    fdms = [fdm.restricting(covered_components) for fdm in long_fdms]
     zero_perturbation_points = fn._completion.generate_zero_perturbation_points()
     decomposition = find_decomposition_into_intervals_with_same_moves(fdms, zero_perturbation_points )
     done_intervals = set()
