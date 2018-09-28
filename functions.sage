@@ -3471,13 +3471,13 @@ def solve_mip_with_random_objective_function(mip):
     n = mip.number_of_variables()
     obj_fun = 0
     for i in range(n):
-        random_coeff = QQ(random() - 1/2)
+        random_coeff = QQ(sage.misc.prandom.random() - 1/2)
         # integer coefficient ZZ.random_element() was used, due to a printing error, but this has been solved.
         # When objective function has zero coefficient, solver='InteractiveLP'
         # sometimes gives non-vertex optimial solution, which comes from the standard-form back transformation of a vertex.
         # To avoid such case, we generate another random coefficient.
         while random_coeff == 0:
-            random_coeff = QQ(random() - 1/2) #ZZ.random_element()
+            random_coeff = QQ(sage.misc.prandom.random() - 1/2) #ZZ.random_element()
         obj_fun += random_coeff * mip[i]
     mip.set_objective(obj_fun)
     opt_val = mip.solve()
@@ -3712,12 +3712,12 @@ def random_piecewise_function(xgrid=10, ygrid=10, continuous_proba=1, symmetry=T
         leftlimits = [0]
         rightlimits = []
         for i in range(0, xgrid):
-            p = random()
+            p = sage.misc.prandom.random()
             if p > continuous_proba:
                 rightlimits.append(randint(0, ygrid) / ygrid)
             else:
                 rightlimits.append(yvalues[i])
-            p = random()
+            p = sage.misc.prandom.random()
             if p > continuous_proba:
                 leftlimits.append(randint(0, ygrid) / ygrid)
             else:
