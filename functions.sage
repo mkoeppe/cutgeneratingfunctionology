@@ -724,8 +724,8 @@ def generate_covered_components(function):
         sage: h = hildebrand_discont_3_slope_1()
         sage: generate_covered_components(h)
         [[<Int(0, 1/8)>, <Int(3/8, 1/2)>],
-         [<Int(1/8, 1/4)>, <Int(1/4, 3/8)>, <Int(1/2, 5/8)>, <Int(7/8, 1)>],
-         [<Int(5/8, 3/4)>, <Int(3/4, 7/8)>]]    
+         [<Int(1/8, 3/8)>, <Int(1/2, 5/8)>, <Int(7/8, 1)>],
+         [<Int(5/8, 7/8)>]]
     """
     if hasattr(function,  "_completion"):
         return function._completion.covered_components
@@ -2644,32 +2644,33 @@ class FunctionalDirectedMove (FastPiecewise):
         new_domain = union_of_coho_intervals_minus_union_of_coho_intervals([domain], restricting_domain_list, remove_closure=True )
         return FunctionalDirectedMove(new_domain, self.directed_move)
 
-    def reduced_by_components(self, components):
-        """
-        NEW
-        """
-        domain_move_indices = set(range(len(self.intervals())))
-        domains = []
-        for component in components:
-            preimages =  [self.apply_to_coho_interval(interval, inverse=True) for interval in component]
+    def reduced_by_components(self, covered_components, pts_of_discontinuity=None):
+        domain_move = [interval_including_endpoints_if_continuous(interval, pts_of_discontinuity, self) for interval in self.intervals()]
+        covered_domains = []
+        for component in covered_components:
+            preimages =  [ self.apply_to_coho_interval(interval, inverse=True) for interval in component ]
             preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
-            domain_component = list(intersection_of_coho_intervals([component, preimages]))
-            domain_component_indices = set([])
-            for index_i in list(domain_move_indices):
-                i = self.intervals()[index_i]
-                for index_j in range(len(domain_component)):
-                    j = domain_component[index_j]
-                    # remove interval from domain if it is fully covered.
-                    if j[0] <= i[0] and i[1] <= j[1]:
-                        domain_move_indices.remove(index_i)
+            restricted_domain = intersection_of_coho_intervals([component, preimages])
+            covered_domain = [interval_including_endpoints_if_continuous(interval, pts_of_discontinuity, self) for interval in restricted_domain]
+            covered_domains.append(covered_domain)
+        domain_component = union_of_coho_intervals_minus_union_of_coho_intervals(covered_domains,[])
+        domain_component_indices = set([])
+        domain_move_indices = set(range(len(domain_move)))
+        domains = []
+        for index_i in list(domain_move_indices):
+            i = domain_move[index_i]
+            for index_j in range(len(domain_component)):
+                j = domain_component[index_j]
+                if coho_interval_contained_in_coho_interval(i, j):
+                    # remove interval i from domain if it is fully covered.
+                    domain_move_indices.remove(index_i)
+                elif coho_intervals_intersecting(i, j):
                     # extend to the boundary of covered interval.
-                    if (i[0] < j[0] and j[0] < i[1] < j[1]) or (j[0] < i[0] < j[1] and j[1] < i[1]):
-                        domain_component_indices.add(index_j)
-            domains.append([domain_component[index_j] for index_j in domain_component_indices])
-        domains.append([self.intervals()[index_i] for index_i in domain_move_indices])
+                    domain_component_indices.add(index_j)
+        domains = [[domain_move[index_i] for index_i in sorted(domain_move_indices)], [domain_component[index_j] for index_j in sorted(domain_component_indices)]]
         union_domains = union_of_coho_intervals_minus_union_of_coho_intervals(domains, [])
-        return FunctionalDirectedMove(union_domains, self.directed_move)
-
+        open_domains = [open_interval(i[0],i[1]) for i in union_domains]
+        return FunctionalDirectedMove(open_domains, self.directed_move)
 
     def plot(self, rgbcolor=None, color=None, *args, **kwds):
         kwds = copy(kwds)
@@ -4001,7 +4002,9 @@ def check_for_strip_lemma_small_translations(domain1, domain2, t1, t2):
     d = union_of_coho_intervals_minus_union_of_coho_intervals([[interval] for interval in dense_intervals], [])
     return d
 
-def interval_including_endpoints_if_continuous(interval, pts_of_discontinuity, fdm=None):
+def interval_including_endpoints_if_continuous(interval, pts_of_discontinuity=None, fdm=None):
+    if pts_of_discontinuity is None:
+        return interval
     left_closed = (interval[0] not in pts_of_discontinuity)
     right_closed = (interval[1] not in pts_of_discontinuity)
     if fdm:
@@ -4025,7 +4028,11 @@ class DirectedMoveCompositionCompletion:
         if function_at_border is not None:
             if function_at_border.is_continuous():
                 pts_of_discontinuity = []
+            elif function_at_border.is_two_sided_discontinuous():
+                pts_of_discontinuity = None
             elif pts_of_discontinuity is None:
+                # function is discontinuous but not two-sided discontinuous at the origin.
+                # pts_of_discontinuity is not given. We compute itl
                 pts_of_discontinuity = []
                 for x in function_at_border.end_points():
                     limits = function_at_border.limits(x)
@@ -4052,7 +4059,7 @@ class DirectedMoveCompositionCompletion:
         Add a functional directed move to self.
         Merge or restrict functional directed move if necessary.
         """
-        reduced_fdm = fdm.reduced_by_components(self.covered_components)
+        reduced_fdm = fdm.reduced_by_components(self.covered_components, self.pts_of_discontinuity)
         if not reduced_fdm.intervals():
             return
         directed_move = fdm.directed_move
@@ -4172,7 +4179,7 @@ class DirectedMoveCompositionCompletion:
                     dense_intervals = self.extend_component_by_continuity(dense_intervals)
                     self.covered_components.append(dense_intervals)
                     # kill moves
-                    self.reduce_moves_by_components(given_components = [dense_intervals])
+                    self.reduce_moves_by_components()
         if strip_lemma_intervals:
             return sum(plot_covered_component_as_rectangles([interval])
                        for interval in strip_lemma_intervals)
@@ -4195,16 +4202,14 @@ class DirectedMoveCompositionCompletion:
                 if c:
                     self.add_move(c)
 
-    def reduce_moves_by_components(self, given_components=None):
+    def reduce_moves_by_components(self):
         """
         Reduce moves with ``self.covered_components``.
         """
+        # NOTE: it does not modify any_change_moves even if longer moves are created.
         new_move_dict = dict()
         for (dm, fdm) in self.move_dict.items():
-            if not given_components is None:
-                reduced_fdm = fdm.reduced_by_components(given_components)
-            else:
-                reduced_fdm = fdm.reduced_by_components(self.covered_components)
+            reduced_fdm = fdm.reduced_by_components(self.covered_components, self.pts_of_discontinuity)
             if reduced_fdm.intervals():
                 new_move_dict[dm] = reduced_fdm
         self.move_dict = new_move_dict
@@ -4218,34 +4223,8 @@ class DirectedMoveCompositionCompletion:
         self.num_rounds += 1
         self.maybe_show_plot(current_dense_move_plot)
 
-    def extend_moves_by_continuity(self):
-        if (self.function_at_border is None) or (not self.function_at_border.is_two_sided_discontinuous()):
-            for dm in self.move_dict.keys():
-                fdm = self.move_dict[dm]
-                fdm_domain = [interval_including_endpoints_if_continuous(interval, self.pts_of_discontinuity, fdm) for interval in fdm.intervals()]
-                covered_domains = []
-                for component in self.covered_components:
-                    preimages =  [ fdm.apply_to_coho_interval(interval, inverse=True) for interval in component ]
-                    preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
-                    restricted_domain = intersection_of_coho_intervals([component, preimages])
-                    covered_domain = [interval_including_endpoints_if_continuous(interval, self.pts_of_discontinuity, fdm) for interval in restricted_domain]
-                    covered_domains.append(covered_domain)
-                union_domains = union_of_coho_intervals_minus_union_of_coho_intervals(covered_domains+[fdm_domain],[])
-                # discard the intervals that do not intersect with fdm_domains
-                extended_domain = []
-                for domain in union_domains:
-                    keep = False
-                    for i in fdm_domain:
-                        if coho_interval_contained_in_coho_interval(i, domain):
-                            keep = True
-                            break
-                    if keep:
-                        open_domain = open_interval(domain[0], domain[1])
-                        extended_domain.append(open_domain)
-                self.move_dict[dm] = FunctionalDirectedMove(extended_domain, fdm.directed_move)
-
     def extend_component_by_continuity(self, component):
-        if (self.function_at_border is None) or (not self.function_at_border.is_two_sided_discontinuous()):
+        if self.pts_of_discontinuity is not None:
             intervals = [interval_including_endpoints_if_continuous(interval, self.pts_of_discontinuity, None) for interval in component]
             union_intervals = union_of_coho_intervals_minus_union_of_coho_intervals([intervals],[])
             new_component = [open_interval(i[0],i[1]) for i in union_intervals]
@@ -4256,20 +4235,16 @@ class DirectedMoveCompositionCompletion:
     def add_backward_moves(self):
         self.num_rounds = 0
         self.covered_components = [self.extend_component_by_continuity(component) for component in self.covered_components]
-        move_keys = list(self.any_change_moves)
-        self.any_change_moves = set()
-        for dm in move_keys:
+        for dm in list(self.any_change_moves):
             if dm[0] == 1:
-                forward_fdm = self.move_dict[dm]
+                # extend initial moves by continuity
+                forward_fdm = self.move_dict[dm].reduced_by_components(self.covered_components, self.pts_of_discontinuity)
                 backward_fdm = ~forward_fdm
                 self.add_move(backward_fdm)
-        # extend initial moves by continuity
-        self.extend_moves_by_continuity()
-        if self.any_change_moves: # has new backward moves
-            # to see that unnecessary discontinuity marks have disappeared,
-            # need to set kwds['discontinuity_markers'] = True in FunctionalDirectedMove.plot()
-            # and call the following no matter self.any_change_moves is True or False
-            self.maybe_show_plot()
+        # to see that unnecessary discontinuity marks have disappeared,
+        # need to set kwds['discontinuity_markers'] = True in FunctionalDirectedMove.plot()
+        # and call the following no matter self.any_change_moves is True or False
+        self.maybe_show_plot()
         self.any_change_moves = set(self.move_dict.keys())
         self.sym_init_moves = copy(self.move_dict)
 
