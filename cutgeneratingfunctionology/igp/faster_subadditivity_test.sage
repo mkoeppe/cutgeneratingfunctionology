@@ -230,14 +230,17 @@ class SubadditivityTestTree :
             for v in current_node.vertices:
                 delta=delta_pi(self.function,v[0],v[1])
                 if delta<self.objective_limit:
-                    self.nonsubadditive_vertices.add(v)
+                    self._is_subadditive=False
                     # can stop early
                     if stop_if_fail:
                         return False
+                    self.nonsubadditive_vertices.add(v)
                 if delta==self.objective_limit and cache_additive_vertices:
                     self.additive_vertices.add(v)
             self.node_branching(current_node,find_min=False,stop_only_if_strict=cache_additive_vertices)
-        return True
+        if not hasattr(self,'_is_subadditive'):
+            self._is_subadditive=True
+        return self._is_subadditive
 
     def minimum(self,search_method='BFS'):
         self.unfathomed_node_list=[self.root]
@@ -252,7 +255,8 @@ class SubadditivityTestTree :
             if upper_bound<self.global_upper_bound:
                 self.global_upper_bound=upper_bound
             self.node_branching(current_node,find_min=True,stop_only_if_strict=False)
-        return self.global_upper_bound
+        self.min=self.global_upper_bound
+        return self.min
 
     def plot_current_regions(self,colorful=False):
         p=Graphics()
