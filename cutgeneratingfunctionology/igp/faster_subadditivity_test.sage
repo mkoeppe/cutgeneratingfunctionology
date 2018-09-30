@@ -37,35 +37,30 @@ class SubadditivityTestTreeNode :
         self._K_bkpts=find_all_bkpts_in_the_interval(self.function.end_points(),new_K)
         return self._K_bkpts
 
-# affine bounds don't always dominate constant bound
-
     def delta_pi_constant_lower_bound(self):
-        """
-        EXAMPLE::
-
-            sage: logging.disable(logging.INFO)
-            sage: N=SubadditivityTestTreeNode(gj_forward_3_slope(),0,intervals=[[28/45,4/5],[28/45,4/5],[1+8/45,1+28/45]])
-            sage: N.delta_pi_constant_lower_bound()
-            5/36
-            sage: N.delta_pi_affine_lower_bound(norm='one')
-            -0.08333333333333326
-            sage: N.delta_pi_affine_lower_bound(norm='inf')
-            0.41666666666666674
-        """
         alpha_I=min(self.function(bkpt) for bkpt in self.I_bkpts())
         alpha_J=min(self.function(bkpt) for bkpt in self.J_bkpts())
         beta_K=max(self.function(fractional(bkpt)) for bkpt in self.K_bkpts())
         return alpha_I+alpha_J-beta_K
 
-    def delta_pi_affine_lower_bound(self,norm='one'):
+    def delta_pi_affine_lower_bound(self,solver='GLPK'):
         I_values=[self.function(bkpt) for bkpt in self.I_bkpts()]
         J_values=[self.function(bkpt) for bkpt in self.J_bkpts()]
         K_values=[self.function(fractional(bkpt)) for bkpt in self.K_bkpts()]
-        self.I_slope, self.I_intercept=find_affine_bounds_new(self.function,self.I_bkpts(),I_values,lower_bound=True,norm=norm)
-        self.J_slope, self.J_intercept=find_affine_bounds_new(self.function,self.J_bkpts(),J_values,lower_bound=True,norm=norm)
-        self.K_slope, self.K_intercept=find_affine_bounds_new(self.function,self.K_bkpts(),K_values,lower_bound=False,norm=norm)
-        delta_lower_bound=min((self.I_slope*vertex[0]+self.I_intercept)+(self.J_slope*vertex[1]+self.J_intercept)-(self.K_slope*(vertex[0]+vertex[1])+self.K_intercept) for vertex in self.vertices)
-        return delta_lower_bound
+        p = MixedIntegerLinearProgram(maximization=True, solver=solver)
+        v = p.new_variable()
+        m1, b1, m2, b2, m3, b3, deltamin= v['m1'], v['b1'], v['m2'], v['b2'], v['m3'], v['b3'], v['deltamin']
+        p.set_objective(deltamin)
+        for i in range(len(I_values)):
+            p.add_constraint(m1*self.I_bkpts()[i]+b1<=I_values[i])
+        for j in range(len(J_values)):
+            p.add_constraint(m2*self.J_bkpts()[j]+b2<=J_values[j])
+        for k in range(len(K_values)):
+            p.add_constraint(m3*self.K_bkpts()[k]+b3>=K_values[k])
+        for v in self.vertices:
+            x, y, z=v[0], v[1], v[0]+v[1]
+            p.add_constraint(deltamin<=m1*x+b1+m2*y+b2-m3*(x+y)-b3)
+        return p.solve()
 
     def delta_pi_fast_affine_lower_bound(self,slope_I,slope_J,slope_K):
         I_values=[self.function(bkpt) for bkpt in self.I_bkpts()]
@@ -74,33 +69,21 @@ class SubadditivityTestTreeNode :
         intercept_I=find_best_intercept(self.I_bkpts(),I_values,slope_I,lower_bound=True)
         intercept_J=find_best_intercept(self.J_bkpts(),J_values,slope_J,lower_bound=True)
         intercept_K=find_best_intercept(self.K_bkpts(),K_values,slope_K,lower_bound=False)
-        delta_lower_bound=min((slope_I*vertex[0]+intercept_I)+(slope_J*vertex[1]+intercept_J)-(slope_K*(vertex[0]+vertex[1])+intercept_K) for vertex in self.vertices)
-        return delta_lower_bound
+        lower_bound=min((slope_I*vertex[0]+intercept_I)+(slope_J*vertex[1]+intercept_J)-(slope_K*(vertex[0]+vertex[1])+intercept_K) for vertex in self.vertices)
+        return lower_bound
 
-    def delta_pi_lower_bound(self,max_number_of_bkpts=0,norm='inf'):
+    def delta_pi_lower_bound(self,max_number_of_bkpts=30,solver='GLPK'):
         """
         Stratigic lower bound of delta pi. If the number of bkpts is small, use affine bound. Use constant bound otherwise.
         """
         I_values=[self.function(bkpt) for bkpt in self.I_bkpts()]
         J_values=[self.function(bkpt) for bkpt in self.J_bkpts()]
         K_values=[self.function(fractional(bkpt)) for bkpt in self.K_bkpts()]
-        if len(self.I_bkpts())<=max_number_of_bkpts:
-            slope_I, intercept_I=find_affine_bounds_new(self.function,self.I_bkpts(),I_values,lower_bound=True,norm=norm)
+        if len(self.I_bkpts())+len(self.J_bkpts())+len(self.K_bkpts())<=max_number_of_bkpts:
+            lower_bound=self.delta_pi_affine_lower_bound(solver=solver)
         else:
-            slope_I=0
-            intercept_I=min(I_values)
-        if len(self.J_bkpts())<=max_number_of_bkpts:
-            slope_J, intercept_J=find_affine_bounds_new(self.function,self.J_bkpts(),J_values,lower_bound=True,norm=norm)
-        else:
-            slope_J=0
-            intercept_J=min(J_values)
-        if len(self.K_bkpts())<=max_number_of_bkpts:
-            slope_K, intercept_K=find_affine_bounds_new(self.function,self.K_bkpts(),K_values,lower_bound=False,norm=norm)
-        else:
-            slope_K=0
-            intercept_K=max(K_values)
-        delta_lower_bound=min((slope_I*vertex[0]+intercept_I)+(slope_J*vertex[1]+intercept_J)-(slope_K*(vertex[0]+vertex[1])+intercept_K) for vertex in self.vertices)
-        return delta_lower_bound
+            lower_bound=self.delta_pi_constant_lower_bound()
+        return lower_bound
 
     def delta_pi_upper_bound(self):
         return min(delta_pi(self.function,v[0],v[1]) for v in self.vertices)
@@ -143,24 +126,24 @@ class SubadditivityTestTreeNode :
         else:
             return True
 
-    def generate_children(self,upper_bound=0,stop_only_if_strict=True):
-        if not self.is_fathomed(upper_bound,stop_only_if_strict):
+    def generate_children(self,upper_bound=0,stop_only_if_strict=True,**kwds):
+        if not self.is_fathomed(upper_bound,stop_only_if_strict,**kwds):
             I1,I2=self.new_intervals()
             self.left_child=SubadditivityTestTreeNode(self.function,self.level+1,I1)
             self.right_child=SubadditivityTestTreeNode(self.function,self.level+1,I2)
             self.left_child.parent=self
             self.right_child.parent=self
 
-    def is_fathomed(self,upper_bound=0,stop_only_if_strict=True):
+    def is_fathomed(self,value=0,stop_only_if_strict=True,**kwds):
         if self.is_divisible():
             if stop_only_if_strict:
-                if self.delta_pi_lower_bound()>upper_bound:
+                if self.delta_pi_lower_bound(**kwds)>value:
                     return True
                 else:
                     return False
             else:
                 # stop branching early.
-                if self.delta_pi_lower_bound()>=upper_bound:
+                if self.delta_pi_lower_bound(**kwds)>=value:
                     return True
                 else:
                     return False
@@ -184,22 +167,21 @@ class SubadditivityTestTree :
         self.nonsubadditive_vertices=set()
         self.additive_vertices=set()
 
-
     def number_of_nodes(self):
         return len(self.complete_node_set)
 
     def number_of_leaves(self):
         return len(self.leaf_set)
 
-    def node_branching(self,node,find_min=True,stop_only_if_strict=True):
+    def node_branching(self,node,find_min=True,stop_only_if_strict=True,**kwds):
         """
         Branch on a given node, dependent on current self.global_upper_bound.
         """
         if not node.left_child:
             if find_min:
-                node.generate_children(self.global_upper_bound,stop_only_if_strict)
+                node.generate_children(self.global_upper_bound,stop_only_if_strict,**kwds)
             else:
-                node.generate_children(self.objective_limit,stop_only_if_strict)
+                node.generate_children(self.objective_limit,stop_only_if_strict,**kwds)
             if node.left_child:
                 self.height=max(self.height,node.left_child.level)
                 self.complete_node_set.update({node.left_child,node.right_child})
@@ -207,18 +189,18 @@ class SubadditivityTestTree :
                 self.leaf_set.update({node.left_child,node.right_child})
                 self.unfathomed_node_list=self.unfathomed_node_list+[node.left_child,node.right_child]
 
-    def next_level(self, node_set,find_min=True,stop_only_if_strict=True):
+    def next_level(self, node_set,find_min=True,stop_only_if_strict=True,**kwds):
         """
         Generate nodes in the next level.
         """
         next_level=set()
         for node in node_set:
-            self.node_branching(node,find_min,stop_only_if_strict)
+            self.node_branching(node,find_min,stop_only_if_strict,**kwds)
             if node.left_child:
                 next_level.update({node.left_child,node.right_child})
         return next_level
 
-    def is_subadditive(self,stop_if_fail=False,cache_additive_vertices=True,search_method='BFS'):
+    def is_subadditive(self,stop_if_fail=False,cache_additive_vertices=True,search_method='BFS',**kwds):
         self.unfathomed_node_list=[self.root]
         while self.unfathomed_node_list:
             if search_method=='BFS':
@@ -237,12 +219,12 @@ class SubadditivityTestTree :
                     self.nonsubadditive_vertices.add(v)
                 if delta==self.objective_limit and cache_additive_vertices:
                     self.additive_vertices.add(v)
-            self.node_branching(current_node,find_min=False,stop_only_if_strict=cache_additive_vertices)
+            self.node_branching(current_node,find_min=False,stop_only_if_strict=cache_additive_vertices,**kwds)
         if not hasattr(self,'_is_subadditive'):
             self._is_subadditive=True
         return self._is_subadditive
 
-    def minimum(self,search_method='BFS'):
+    def minimum(self,search_method='BFS',**kwds):
         self.unfathomed_node_list=[self.root]
         while self.unfathomed_node_list:
             if search_method=='BFS':
@@ -254,11 +236,11 @@ class SubadditivityTestTree :
             upper_bound=current_node.delta_pi_upper_bound()
             if upper_bound<self.global_upper_bound:
                 self.global_upper_bound=upper_bound
-            self.node_branching(current_node,find_min=True,stop_only_if_strict=False)
+            self.node_branching(current_node,find_min=True,stop_only_if_strict=False,**kwds)
         self.min=self.global_upper_bound
         return self.min
 
-    def plot_current_regions(self,colorful=False):
+    def plot_current_regions(self,colorful=False,**kwds):
         p=Graphics()
         kwds = { 'legend_label1': "indivisible face" , 'legend_label2': "strict subadditive divisible face"}
         legend=[0,0]
@@ -272,7 +254,7 @@ class SubadditivityTestTree :
                         legend[0]=1
                     else:
                         p+=Face(node.intervals).plot(rgbcolor = "yellow",fill_color = "yellow")
-                elif node.delta_pi_lower_bound()>self.global_upper_bound:
+                elif node.delta_pi_lower_bound(**kwds)>self.global_upper_bound:
                     if legend[1]==0:
                         p+=Face(node.intervals).plot(rgbcolor = "red",fill_color = "red",legend_label=kwds['legend_label2'])
                         legend[1]=1
@@ -320,7 +302,7 @@ def find_bkpts_index_from_zero_to_one(bkpts,interval):
         i=i+1
     return i,j
 
-def plot_2d_regions(fn,colorful=False,find_min=True,stop_only_if_strict=True):
+def plot_2d_regions(fn,colorful=False,find_min=True,stop_only_if_strict=True,**kwds):
     T=SubadditivityTestTree(fn)
     p=Graphics()
     # current_level=T.complete_node_set results in error: Set changed size during iteration
@@ -328,10 +310,10 @@ def plot_2d_regions(fn,colorful=False,find_min=True,stop_only_if_strict=True):
     while current_level:
         p+=plot_2d_regions_in_one_level(current_level,colorful=colorful)
         p.show()
-        next_level=T.next_level(current_level,find_min,stop_only_if_strict)
+        next_level=T.next_level(current_level,find_min,stop_only_if_strict,**kwds)
         current_level=next_level
 
-def plot_2d_regions_in_one_level(node_set,colorful=False):
+def plot_2d_regions_in_one_level(node_set,colorful=False,**kwds):
     p=Graphics()
     for node in node_set:
         region=Polyhedron(vertices=node.vertices)
@@ -339,7 +321,7 @@ def plot_2d_regions_in_one_level(node_set,colorful=False):
         if colorful:
             if not node.is_divisible():
                 p+=Face(node.intervals).plot(rgbcolor = "yellow", fill_color = "yellow")
-            elif node.delta_pi_lower_bound()>0:
+            elif node.delta_pi_lower_bound(**kwds)>0:
                 p+=Face(node.intervals).plot(rgbcolor = "red", fill_color = "red")
     return p
 
@@ -540,9 +522,9 @@ def delta_pi_min(fn,I,J,K,approximation='constant',norm='one',branching_point_se
         m_I, b_I=find_affine_bounds(fn,new_I,lower_bound=True,extended=False,norm=norm)
         m_J, b_J=find_affine_bounds(fn,new_J,lower_bound=True,extended=False,norm=norm)
         m_K, b_K=find_affine_bounds(fn,new_K,lower_bound=False,extended=True,norm=norm)
-        delta_lower_bound=min((m_I*vertex[0]+b_I)+(m_J*vertex[1]+b_J)-(m_K*fractional(vertex[0]+vertex[1])+b_K) for vertex in vertices)
-        if delta_lower_bound>0:
-            return delta_lower_bound
+        lower_bound=min((m_I*vertex[0]+b_I)+(m_J*vertex[1]+b_J)-(m_K*fractional(vertex[0]+vertex[1])+b_K) for vertex in vertices)
+        if lower_bound>0:
+            return lower_bound
     else:
         raise ValueError, "Can't recognize approximation."
     upper_bound=min(delta_pi(fn,v[0],v[1]) for v in vertices)
