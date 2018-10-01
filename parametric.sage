@@ -2234,7 +2234,9 @@ def find_region_type_igp(K, h, region_level='extreme', is_minimal=None, use_simp
     if region_level == 'constructible':
         return 'is_constructible'
     if is_minimal is None:
-        is_minimal = minimality_test(h, stop_if_fail=True)
+        global full_certificates
+        full_certificates = False
+        is_minimal = minimality_test(h)
     if is_minimal:
         if region_level == 'minimal':
             return 'is_minimal'
