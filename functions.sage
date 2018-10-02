@@ -964,14 +964,15 @@ def plot_with_colored_slopes(fn):
 
 ### Minimality check.
 
-def subadditivity_test(fn, stop_if_fail=False):
+def subadditivity_test(fn, full_certificates=True):
     """
     Check if fn is subadditive.
     """
     result = True
     for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices(fn, reduced=True):
         logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
-        if stop_if_fail:
+        if not full_certificates:
+            logging.info("Thus pi is not subadditive.")
             return False
         else:
             result = False
@@ -981,21 +982,23 @@ def subadditivity_test(fn, stop_if_fail=False):
         logging.info("Thus pi is not subadditive.")
     return result
 
-def symmetric_test(fn, f, stop_if_fail=False):
+def symmetric_test(fn, f, full_certificates=True):
     """
     Check if fn is symmetric.
     """
     result = True
     if fn(f) != 1:
         logging.info('pi(f) is not equal to 1.')
-        if stop_if_fail:
+        if not full_certificates:
+            logging.info('pi is not symmetric.')
             return False
         else:
             result = False
     result = True
     for (x, y, xeps, yeps) in generate_nonsymmetric_vertices(fn, f):
         logging.info("pi(%s%s) + pi(%s%s) is not equal to 1" % (x, print_sign(xeps), y, print_sign(yeps)))
-        if stop_if_fail:
+        if not full_certificates:
+            logging.info('pi is not symmetric.')
             return False
         else:
             result = False
@@ -1033,7 +1036,7 @@ def find_f(fn, no_error_if_not_minimal_anyway=False):
         return None
     raise ValueError, "The given function has no breakpoint where the function takes value 1, so cannot determine f.  Provide parameter f to minimality_test or extremality_test."
 
-def minimality_test(fn, show_plots=False, f=None, stop_if_fail=False):
+def minimality_test(fn, show_plots=False, f=None, full_certificates=True):
     """
     Checks if fn is minimal with respect to the group relaxation with the given `f`.  
 
@@ -1070,13 +1073,13 @@ def minimality_test(fn, show_plots=False, f=None, stop_if_fail=False):
             if not ((x[-1] is None or 0 <= x[-1] <=1) and (x[1] is None or 0 <= x[1] <=1)):
                 logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
                 return False
-    if subadditivity_test(fn, stop_if_fail=stop_if_fail) and \
-       symmetric_test(fn, f, stop_if_fail=stop_if_fail):
+    if subadditivity_test(fn, full_certificates=full_certificates) and \
+       symmetric_test(fn, f, full_certificates=full_certificates):
         logging.info('Thus pi is minimal.')
         is_minimal = True
     else:
         logging.info('Thus pi is NOT minimal.')
-        if stop_if_fail:
+        if not full_certificates:
             return False
         else:
             is_minimal = False
@@ -2879,7 +2882,7 @@ def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbatio
     assert epsilon > 0, "Epsilon should be positive, something is wrong"
     #logging.info("Thus the function is not extreme.")  ## Now printed by caller.
 
-def generate_perturbations_finite_dimensional(function, show_plots=False, f=None):
+def generate_perturbations_finite_dimensional(function, show_plots=False, f=None, full_certificates=True):
     ## FIXME: Perhaps we want an oversampling parameter as in generate_perturbations_simple??
     """
     Generate (with ``yield``) perturbations for ``finite_dimensional_extremality_test``.
@@ -2909,6 +2912,9 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
     slope_jump_vects = equation_matrix.right_kernel().basis()
     logging.info("Finite dimensional test: Solution space has dimension %s." % len(slope_jump_vects))
     for basis_index in range(len(slope_jump_vects)):
+        if not full_certificates:
+            yield None
+            return
         slope_jump = slope_jump_vects[basis_index]
         logging.debug("The {}-th solution is\nv = {}.".format(basis_index+1, slope_jump))
         perturbation = slope_jump * symbolic
@@ -2918,7 +2924,7 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
         yield perturbation
 
 def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn_about_uncovered_intervals=True, 
-                                        show_all_perturbations=False):
+                                        show_all_perturbations=False, full_certificates=True):
     """
     Solve a homogeneous linear system of additivity equations with one
     slope variable for every component (including every non-covered
@@ -2946,10 +2952,13 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn
     if show_all_perturbations is None:
         show_all_perturbations = show_plots
     if function.is_discrete():
-        return simple_finite_dimensional_extremality_test(function, oversampling=1, show_all_perturbations=show_all_perturbations)
+        return simple_finite_dimensional_extremality_test(function, oversampling=1, show_all_perturbations=show_all_perturbations, full_certificates=full_certificates)
     seen_perturbation = False
     function._perturbations = []
-    for index, perturbation in enumerate(generate_perturbations_finite_dimensional(function, show_plots=show_plots, f=f)):
+    for index, perturbation in enumerate(generate_perturbations_finite_dimensional(function, show_plots=show_plots, f=f, full_certificates=full_certificates)):
+        if not full_certificates:
+            logging.info("The function is NOT extreme.")
+            return False
         function._perturbations.append(perturbation)
         check_perturbation(function, perturbation,
                            show_plots=show_plots, show_plot_tag='perturbation-%s' % (index + 1),
@@ -3021,7 +3030,7 @@ class MaximumNumberOfIterationsReached(Exception):
 
 crazy_perturbations_warning = False
 
-def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, phase_1 = False, finite_dimensional_test_first = False, show_all_perturbations=False, crazy_perturbations=True):
+def extremality_test(fn, show_plots = False, f=None, max_num_it=1000, phase_1=False, finite_dimensional_test_first=False, show_all_perturbations=False, crazy_perturbations=True, full_certificates=True):
     """Check if fn is extreme for the group relaxation with the given `f`. 
 
     If fn is discrete, it has to be defined on a cyclic subgroup of
@@ -3079,7 +3088,7 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, phase_1 
         crazy_perturbations_warning = True
     else:
         crazy_perturbations_warning = False
-    if f is None or not minimality_test(fn, show_plots=show_plots, f=f):
+    if f is None or not minimality_test(fn, show_plots=show_plots, f=f, full_certificates=full_certificates):
         logging.info("Not minimal, thus NOT extreme.")
         if not phase_1:
             return False
@@ -3088,9 +3097,12 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, phase_1 
     if do_phase_1_lifting:
         finite_dimensional_test_first = True
     seen_perturbation = False
-    generator = generate_perturbations(fn, show_plots=show_plots, f=f, max_num_it=max_num_it, finite_dimensional_test_first=finite_dimensional_test_first)
+    generator = generate_perturbations(fn, show_plots=show_plots, f=f, max_num_it=max_num_it, finite_dimensional_test_first=finite_dimensional_test_first, full_certificates=full_certificates)
     fn._perturbations = []
     for index, perturbation in enumerate(generator):
+        if not full_certificates:
+            logging.info("The function is NOT extreme.")
+            return False
         fn._perturbations.append(perturbation)
         check_perturbation(fn, perturbation, show_plots=show_plots, 
                            show_plot_tag='perturbation-%s' % (index + 1), 
@@ -3104,16 +3116,19 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, phase_1 
         logging.info("Thus the function is extreme.")
     return not seen_perturbation
 
-def generate_perturbations(fn, show_plots=False, f=None, max_num_it=1000, finite_dimensional_test_first = False):
+def generate_perturbations(fn, show_plots=False, f=None, max_num_it=1000, finite_dimensional_test_first=False, full_certificates=True):
     """
     Generate (with ``yield``) perturbations for ``extremality_test``.
     """
     if fn.is_discrete():
-        all = generate_perturbations_simple(fn, show_plots=show_plots, f=f, oversampling=None)
+        all = generate_perturbations_simple(fn, show_plots=show_plots, f=f, oversampling=None, full_certificates=full_certificates)
     else:
         fdms, covered_components= generate_directed_move_composition_completion(fn, show_plots=show_plots)
-        finite = generate_perturbations_finite_dimensional(fn, show_plots=show_plots, f=f)
+        finite = generate_perturbations_finite_dimensional(fn, show_plots=show_plots, f=f, full_certificates=full_certificates)
         uncovered_intervals = generate_uncovered_intervals(fn)
+        if not full_certificates and uncovered_intervals:
+            yield None
+            return
         if show_plots:
             logging.info("Plotting covered intervals...")
             show_plot(plot_covered_intervals(fn), show_plots, tag='covered_intervals', object=fn)
@@ -3487,13 +3502,13 @@ def solve_mip_with_random_objective_function(mip):
     n = mip.number_of_variables()
     obj_fun = 0
     for i in range(n):
-        random_coeff = QQ(random() - 1/2)
+        random_coeff = QQ(sage.misc.prandom.random() - 1/2)
         # integer coefficient ZZ.random_element() was used, due to a printing error, but this has been solved.
         # When objective function has zero coefficient, solver='InteractiveLP'
         # sometimes gives non-vertex optimial solution, which comes from the standard-form back transformation of a vertex.
         # To avoid such case, we generate another random coefficient.
         while random_coeff == 0:
-            random_coeff = QQ(random() - 1/2) #ZZ.random_element()
+            random_coeff = QQ(sage.misc.prandom.random() - 1/2) #ZZ.random_element()
         obj_fun += random_coeff * mip[i]
     mip.set_objective(obj_fun)
     opt_val = mip.solve()
@@ -3728,12 +3743,12 @@ def random_piecewise_function(xgrid=10, ygrid=10, continuous_proba=1, symmetry=T
         leftlimits = [0]
         rightlimits = []
         for i in range(0, xgrid):
-            p = random()
+            p = sage.misc.prandom.random()
             if p > continuous_proba:
                 rightlimits.append(randint(0, ygrid) / ygrid)
             else:
                 rightlimits.append(yvalues[i])
-            p = random()
+            p = sage.misc.prandom.random()
             if p > continuous_proba:
                 leftlimits.append(randint(0, ygrid) / ygrid)
             else:
