@@ -200,7 +200,7 @@ class SubadditivityTestTree :
                 next_level.update({node.left_child,node.right_child})
         return next_level
 
-    def is_subadditive(self,stop_if_fail=False,cache_additive_vertices=True,search_method='BFS',**kwds):
+    def is_subadditive(self,stop_if_fail=False,cache_additive_vertices=False,search_method='BFS',**kwds):
         self.unfathomed_node_list=[self.root]
         while self.unfathomed_node_list:
             if search_method=='BFS':
