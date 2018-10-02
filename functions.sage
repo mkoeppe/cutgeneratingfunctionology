@@ -3096,6 +3096,9 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it=1000, phase_1=Fa
             do_phase_1_lifting = True
     if do_phase_1_lifting:
         finite_dimensional_test_first = True
+    if not full_certificates and fn.is_continuous() and number_of_slopes(fn) == 2:
+        logging.info("Gomory-Johnson's 2-slope theorem applies. The function is extreme.")
+        return True
     seen_perturbation = False
     generator = generate_perturbations(fn, show_plots=show_plots, f=f, max_num_it=max_num_it, finite_dimensional_test_first=finite_dimensional_test_first, full_certificates=full_certificates)
     fn._perturbations = []

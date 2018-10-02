@@ -171,7 +171,9 @@ def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, ove
     if not minimality_test(fn, show_plots=show_plots, f=f):
         logging.info("Not minimal, thus NOT extreme.")
         return False
-
+    if not full_certificates and fn.is_continuous() and number_of_slopes(fn) == 2:
+        logging.info("Gomory-Johnson's 2-slope theorem applies. The function is extreme.")
+        return True
     seen_perturbation = False
     fn._perturbations = []
     for index, perturbation in enumerate(generate_perturbations_simple(fn, show_plots=show_plots, f=f, oversampling=oversampling, order=order, full_certificates=full_certificates)):
