@@ -5,7 +5,7 @@ if '' not in sys.path:
 
 from igp import *
 
-def generate_perturbations_simple(fn, show_plots=False, f=None, oversampling=3, order=None):
+def generate_perturbations_simple(fn, show_plots=False, f=None, oversampling=3, order=None, full_certificates=True):
     """
     Generate (with "yield") perturbations for ``simple_finite_dimensional_extremality_test``. 
     """
@@ -136,7 +136,7 @@ def discontinuous_interpolation(pts, mid, right, left):
                 singleton_piece(1, 0) ]
     return FastPiecewise(pieces)
 
-def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, oversampling=3, order=None, show_all_perturbations=False):
+def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, oversampling=3, order=None, show_all_perturbations=False, full_certificates=True):
     """
     Simple finite dimensional extremality test for fn that does not go
     through the whole machinery of covered intervals etc., but rather
@@ -174,7 +174,7 @@ def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, ove
 
     seen_perturbation = False
     fn._perturbations = []
-    for index, perturbation in enumerate(generate_perturbations_simple(fn, show_plots=show_plots, f=f, oversampling=oversampling, order=order)):
+    for index, perturbation in enumerate(generate_perturbations_simple(fn, show_plots=show_plots, f=f, oversampling=oversampling, order=order, full_certificates=full_certificates)):
         if not full_certificates:
             logging.info("The function is NOT extreme.")
             return False
