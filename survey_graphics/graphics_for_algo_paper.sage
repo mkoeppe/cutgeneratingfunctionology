@@ -221,17 +221,61 @@ save_move_plot((~tau1) * tau1, "move_tau1-_o_tau1+")
 
 plot_background = polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
 
+## reduce_moves_by_components
+#############################
+
 t1 = 2/15
+comp = [ open_interval(7/15, 10/15) ]
+
+def show_reduced_moves_by_components(moves, comp, name):
+    fname = destdir + name + "-%s.png"
+    c = DirectedMoveCompositionCompletion(moves, [comp],
+                                          show_plots=fname, plot_background=plot_background, pts_of_discontinuity=[])
+    #c.add_backward_moves()
+    show_plot(plot_background + plot_covered_components_as_rectangles([comp]) + sum(m.plot() for m in moves), fname, tag='completion-unreduced')
+    show_plot(c.plot(), fname, tag='completion-initial')
+
+
+# old - is now a no-op in "long normal form" model
 tau1 = FunctionalDirectedMove([open_interval(6/15, 11/15)], (1, t1))
 moves = [tau1]
-comp = [ open_interval(7/15, 10/15) ]
-fname = destdir + 'reduces_moves_by_components_ex1' + "-%s.png"
-c = DirectedMoveCompositionCompletion(moves, [comp],
-                                      show_plots=fname, plot_background=plot_background, pts_of_discontinuity=[])
-#c.add_backward_moves()
-show_plot(plot_background + plot_covered_components_as_rectangles([comp]) + sum(m.plot() for m in moves), fname, tag='completion-unreduced')
-show_plot(c.plot(), fname, tag='completion-initial')
+name = 'reduces_moves_by_components_ex1'   ######### TYPO -- change reduces to reduce...
+# This one is no-op with algo-paper branch
+show_reduced_moves_by_components(moves, comp, name)
 
+# (a) move pokes in a bit from one side. in "long normal form" gets extended to far boundary
+tau1a = FunctionalDirectedMove([open_interval(6/15, 8/15)], (1, t1))
+moves = [tau1a]
+name = 'reduce_moves_by_components_ex1a'
+show_reduced_moves_by_components(moves, comp, name)
+
+# (b) move pokes in a bit from two sides. In "long normal form" gets extended, joined
+tau1a = FunctionalDirectedMove([open_interval(6/15, 8/15)], (1, t1))
+tau1b = FunctionalDirectedMove([open_interval(9/15, 11/15)], (1, t1))
+moves = [tau1a, tau1b]
+name = 'reduce_moves_by_components_ex1b'
+show_reduced_moves_by_components(moves, comp, name)
+
+# (c) move completely within square (gets removed)
+tau1a = FunctionalDirectedMove([open_interval(7/15, 8/15)], (1, t1))
+moves = [tau1a]
+name = 'reduce_moves_by_components_ex1c'
+show_reduced_moves_by_components(moves, comp, name)
+
+# (d) .... Crucial drawback of the proposed half-open model: Graphs do not have
+# the full information stored in moves.
+#
+# ----> 1) Need to decorate ----](-----
+# for adjacent, not to be joined moves
+#
+# ----> 2) A "short normal form" is NOT obtained by 'taking out boxes from lines'.
+#          Consider closed secant in an open box:  Reducing it would lead to singletons
+#          at the boundary.
+
+
+
+## extend_components_by_moves
+#############################
 
 t1 = 2/15
 tau1a = FunctionalDirectedMove([open_interval(6/15, 7/15)], (1, t1))
