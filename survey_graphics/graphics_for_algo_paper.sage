@@ -1,9 +1,12 @@
 import igp
 from igp import *
 
-#destdir = "survey_graphics/algo_paper_graphics/"
-#destdir = "/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/graphics-for-algo-paper/"
-destdir = "/Users/yzh/Dropbox/basu-hildebrand-koeppe-papers-for-yuan/algo-paper/graphics-for-algo-paper/"
+try:
+    destdir = algo_paper_output_dir  # defined in config.sage
+except Exception:
+    #destdir = "survey_graphics/algo_paper_graphics/"
+    destdir = "/Users/yzh/Dropbox/basu-hildebrand-koeppe-papers-for-yuan/algo-paper/graphics-for-algo-paper/"
+
 ftype = ".png"
 
 logging.disable(logging.INFO)
@@ -38,6 +41,7 @@ igp.show_moves_with_discontinuity_markers = True   ## do we want this?
 ## g.save("additive_edge_disct_case_3.png", axes=False, figsize=2)
 
 
+igp.show_plots_figsize = 10
 
 
 ######  algo-paper ####
@@ -109,6 +113,8 @@ igp.show_translations_and_reflections_separately = save_show_translations_and_re
 ############################################################
 ## Other moves diagrams:
 ############################################################
+
+igp.show_plots_figsize = 3
 
 # 2d diagram
 plot_background = polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
@@ -219,20 +225,29 @@ save_move_plot((~tau1) * tau1, "move_tau1-_o_tau1+")
 ## Moves and covered intervals
 ############################################################
 
-plot_background = polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
+plot_background = polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey', ticks = [[], []])
 
 ## reduce_moves_by_components
 #############################
 
 t1 = 2/15
-comp = [ open_interval(7/15, 10/15) ]
+comp = [ open_interval(7/15, 12/15) ]
 
-def show_reduced_moves_by_components(moves, comp, name):
+def show_reduced_moves_by_components(moves, comp, name, pts_of_discontinuity=[]):
     fname = destdir + name + "-%s.png"
+    if pts_of_discontinuity:
+        cts_intervals = union_of_coho_intervals_minus_union_of_coho_intervals([[[0, 1]]],
+                                                                              [ [[x]] for x in pts_of_discontinuity ])
+        cts_function = FastPiecewise([ (interval, FastLinearFunction(0,0)) for interval in cts_intervals ])
+        background = plot_background + plot_function_at_borders(cts_function, color='black')
+    else:
+        background = plot_background
     c = DirectedMoveCompositionCompletion(moves, [comp],
-                                          show_plots=fname, plot_background=plot_background, pts_of_discontinuity=[])
+                                          show_plots=fname, plot_background=background,
+                                          pts_of_discontinuity=pts_of_discontinuity,
+                                          show_zero_perturbation=False)
     #c.add_backward_moves()
-    show_plot(plot_background + plot_covered_components_as_rectangles([comp]) + sum(m.plot() for m in moves), fname, tag='completion-unreduced')
+    show_plot(background + plot_covered_components_as_rectangles([comp]) + sum(m.plot() for m in moves), fname, tag='completion-unreduced')
     show_plot(c.plot(), fname, tag='completion-initial')
 
 
@@ -243,26 +258,37 @@ name = 'reduces_moves_by_components_ex1'   ######### TYPO -- change reduces to r
 # This one is no-op with algo-paper branch
 show_reduced_moves_by_components(moves, comp, name)
 
-# (a) move pokes in a bit from one side. in "long normal form" gets extended to far boundary
+# (1a) move pokes in a bit from one side. in "long normal form" gets extended to far boundary
 tau1a = FunctionalDirectedMove([open_interval(6/15, 8/15)], (1, t1))
 moves = [tau1a]
 name = 'reduce_moves_by_components_ex1a'
 show_reduced_moves_by_components(moves, comp, name)
 
-# (b) move pokes in a bit from two sides. In "long normal form" gets extended, joined
+# (1b) move pokes in a bit from two sides. In "long normal form" gets extended, joined
 tau1a = FunctionalDirectedMove([open_interval(6/15, 8/15)], (1, t1))
 tau1b = FunctionalDirectedMove([open_interval(9/15, 11/15)], (1, t1))
 moves = [tau1a, tau1b]
 name = 'reduce_moves_by_components_ex1b'
 show_reduced_moves_by_components(moves, comp, name)
 
-# (c) move completely within square (gets removed)
+# (1c) move completely within square (gets removed)
 tau1a = FunctionalDirectedMove([open_interval(7/15, 8/15)], (1, t1))
 moves = [tau1a]
 name = 'reduce_moves_by_components_ex1c'
 show_reduced_moves_by_components(moves, comp, name)
 
-# (d) .... Crucial drawback of the proposed half-open model: Graphs do not have
+# (2a) adjacent move at discontinuity, no-op.
+tau1a = FunctionalDirectedMove([open_interval(6/15, 7/15)], (1, t1))
+moves = [tau1a]
+name = 'reduce_moves_by_components_ex2a'
+show_reduced_moves_by_components(moves, comp, name, pts_of_discontinuity=[7/15])
+
+# (2b) adjacent move at continuity, extend.
+name = 'reduce_moves_by_components_ex2b'
+show_reduced_moves_by_components(moves, comp, name)
+
+
+# (e) .... Crucial drawback of the proposed half-open model: Graphs do not have
 # the full information stored in moves.
 #
 # ----> 1) Need to decorate ----](-----
@@ -277,59 +303,49 @@ show_reduced_moves_by_components(moves, comp, name)
 ## extend_components_by_moves
 #############################
 
+def show_extend_components_by_moves(moves, comp, name, pts_of_discontinuity=[]):
+    fname = destdir + name + "-%s.png"
+    c = DirectedMoveCompositionCompletion(moves, [comp],
+                                          show_plots=fname, plot_background=plot_background,
+                                          pts_of_discontinuity=pts_of_discontinuity,
+                                          show_zero_perturbation=False)
+    c.complete()
+    show_plot(c.plot(), fname, tag='completion-final')
+
+
 t1 = 2/15
 tau1a = FunctionalDirectedMove([open_interval(6/15, 7/15)], (1, t1))
 tau1b = FunctionalDirectedMove([open_interval(8/15, 11/15)], (1, t1))
 comp = [ open_interval(7/15, 10/15) ]
-fname = destdir + 'extend_components_by_moves_ex1' + "-%s.png"
-c = DirectedMoveCompositionCompletion([tau1a, tau1b], [comp],
-                                      show_plots=fname, plot_background=plot_background, pts_of_discontinuity=[])
-c.complete()
-show_plot(c.plot(), fname, tag='completion-final')
+name = 'extend_components_by_moves_ex1'
+show_extend_components_by_moves([tau1a, tau1b], comp, name)
 
 t1 = 2/15
 tau1a = FunctionalDirectedMove([open_interval(4/15, 7/15)], (1, t1))
 tau1b = FunctionalDirectedMove([open_interval(8/15, 11/15)], (1, t1))
 comp = [ open_interval(7/15, 10/15) ]
-fname = destdir + 'extend_components_by_moves_ex1a' + "-%s.png"
-c = DirectedMoveCompositionCompletion([tau1a, tau1b], [comp],
-                                      show_plots=fname, plot_background=plot_background, pts_of_discontinuity=[])
-c.complete()
-show_plot(c.plot(), fname, tag='completion-final')
+name = 'extend_components_by_moves_ex1a'
+show_extend_components_by_moves([tau1a, tau1b], comp, name)
 
 t1 = 5/15
 tau1a = FunctionalDirectedMove([open_interval(2/15, 3/15)], (1, t1))
 tau1b = FunctionalDirectedMove([open_interval(4/15, 5/15)], (1, t1))
 comp = [ open_interval(3/15, 4/15), (7/15, 10/15) ]
-fname = destdir + 'extend_components_by_moves_ex2' + "-%s.png"
-c = DirectedMoveCompositionCompletion([tau1a, tau1b], [comp],
-                                      show_plots=fname, plot_background=plot_background, pts_of_discontinuity=[])
-c.complete()
-show_plot(c.plot(), fname, tag='completion-final')
+name = 'extend_components_by_moves_ex2'
+show_extend_components_by_moves([tau1a, tau1b], comp, name)
 
 t1 = 6/15
 tau1a = FunctionalDirectedMove([open_interval(0/15, 1/15)], (1, t1))
 tau1b = FunctionalDirectedMove([open_interval(4/15, 5/15)], (1, t1))
 comp = [ open_interval(1/15, 4/15), (7/15, 10/15) ]
-fname = destdir + 'extend_components_by_moves_ex3' + "-%s.png"
-c = DirectedMoveCompositionCompletion([tau1a, tau1b], [comp],
-                                      show_plots=fname,
-                                      plot_background=plot_background,
-                                      pts_of_discontinuity=[])
-c.complete()
-show_plot(c.plot(), fname, tag='completion-final')
+name = 'extend_components_by_moves_ex3'
+show_extend_components_by_moves([tau1a, tau1b], comp, name)
 
 t1 = 5/15
 tau1 = FunctionalDirectedMove([open_interval(2/15, 5/15)], (1, t1))
 comp = [ open_interval(3/15, 4/15) ]
-fname = destdir + 'extend_components_by_moves_ex4' + "-%s.png"
-c = DirectedMoveCompositionCompletion([tau1], [comp],
-                                      show_plots=fname, plot_background=plot_background, pts_of_discontinuity=[])
-c.complete()
-show_plot(c.plot(), fname, tag='completion-final')
-
-
-
+name = 'extend_components_by_moves_ex4'
+show_extend_components_by_moves([tau1], comp, name)
 
 
 ## ########## mip 2017 slides ###########
@@ -379,6 +395,10 @@ show_plot(c.plot(), fname, tag='completion-final')
 
 
 ## Face sampling
+
+
+igp.show_plots_figsize = 10
+
 
 def sampled_interval(I, num_samples=5):
     a, b = interval_to_endpoints(I)
