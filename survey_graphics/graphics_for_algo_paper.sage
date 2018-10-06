@@ -230,9 +230,6 @@ plot_background = polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='gre
 ## reduce_moves_by_components
 #############################
 
-t1 = 2/15
-comp = [ open_interval(7/15, 12/15) ]
-
 def show_reduced_moves_by_components(moves, comp, name, pts_of_discontinuity=[]):
     fname = destdir + name + "-%s.png"
     if pts_of_discontinuity:
@@ -242,14 +239,16 @@ def show_reduced_moves_by_components(moves, comp, name, pts_of_discontinuity=[])
         background = plot_background + plot_function_at_borders(cts_function, color='black')
     else:
         background = plot_background
-    c = DirectedMoveCompositionCompletion(moves, [comp],
+    c = DirectedMoveCompositionCompletion(moves, comp,
                                           show_plots=fname, plot_background=background,
                                           pts_of_discontinuity=pts_of_discontinuity,
                                           show_zero_perturbation=False)
     #c.add_backward_moves()
-    show_plot(background + plot_covered_components_as_rectangles([comp]) + sum(m.plot() for m in moves), fname, tag='completion-unreduced')
+    show_plot(background + plot_covered_components_as_rectangles(comp) + sum(m.plot() for m in moves), fname, tag='completion-unreduced')
     show_plot(c.plot(), fname, tag='completion-initial')
 
+t1 = 2/15
+comp = [ [ open_interval(7/15, 12/15) ] ]
 
 # old - is now a no-op in "long normal form" model
 tau1 = FunctionalDirectedMove([open_interval(6/15, 11/15)], (1, t1))
@@ -287,6 +286,16 @@ show_reduced_moves_by_components(moves, comp, name, pts_of_discontinuity=[7/15])
 name = 'reduce_moves_by_components_ex2b'
 show_reduced_moves_by_components(moves, comp, name)
 
+# (2c) two squares joined at corner by a move
+comp = [ [ open_interval(7/15, 12/15) ], [ open_interval(5/15, 7/15) ] ]
+tau1 = FunctionalDirectedMove([open_interval(5/15, 12/15)], (1, 0))
+moves = [tau1]
+name = 'reduce_moves_by_components_ex2c'
+show_reduced_moves_by_components(moves, comp, name, pts_of_discontinuity=[7/15])
+
+# (2d) likewise with continuity
+name = 'reduce_moves_by_components_ex2d'
+show_reduced_moves_by_components(moves, comp, name)
 
 # (e) .... Crucial drawback of the proposed half-open model: Graphs do not have
 # the full information stored in moves.
