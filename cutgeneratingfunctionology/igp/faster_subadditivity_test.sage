@@ -52,7 +52,7 @@ class SubadditivityTestTreeNode :
     def K_values(self):
         if hasattr(self,'_K_values'):
             return self._K_values
-        self._K_values=[self.function(fractional(bkpt)) for bkpt in self.K_bkpts()]
+        self._K_values=[self.function(bkpt if bkpt<=1 else bkpt-1) for bkpt in self.K_bkpts()]
         return self._K_values
 
     def delta_pi_constant_lower_bound(self):
@@ -95,7 +95,7 @@ class SubadditivityTestTreeNode :
         return lower_bound
 
     def delta_pi_upper_bound(self):
-        return min(delta_pi(self.function,v[0],v[1]) for v in self.vertices)
+        return min(self.function(v[0])+self.function(v[1])-self.function(v[2] if v[2]<=1 else v[2]-1) for v in self.vertices)
 
     def branching_direction(self):
         new_I,new_J,new_K=self.projections
@@ -219,7 +219,7 @@ class SubadditivityTestTree :
             else:
                 raise ValueError, "Can't recognize search_method."
             for v in current_node.vertices:
-                delta=delta_pi(self.function,v[0],v[1])
+                delta=self.function(v[0])+self.function(v[1])-self.function(v[2] if v[2]<=1 else v[2]-1)
                 if delta<self.objective_limit:
                     self._is_subadditive=False
                     # can stop early
