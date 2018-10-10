@@ -37,38 +37,50 @@ class SubadditivityTestTreeNode :
         self._K_bkpts=find_all_bkpts_in_the_interval(self.function.end_points(),new_K)
         return self._K_bkpts
 
+    def I_values(self):
+        if hasattr(self,'_I_values'):
+            return self._I_values
+        self._I_values=[self.function(bkpt) for bkpt in self.I_bkpts()]
+        return self._I_values
+
+    def J_values(self):
+        if hasattr(self,'_J_values'):
+            return self._J_values
+        self._J_values=[self.function(bkpt) for bkpt in self.J_bkpts()]
+        return self._J_values
+
+    def K_values(self):
+        if hasattr(self,'_K_values'):
+            return self._K_values
+        self._K_values=[self.function(fractional(bkpt)) for bkpt in self.K_bkpts()]
+        return self._K_values
+
     def delta_pi_constant_lower_bound(self):
-        alpha_I=min(self.function(bkpt) for bkpt in self.I_bkpts())
-        alpha_J=min(self.function(bkpt) for bkpt in self.J_bkpts())
-        beta_K=max(self.function(fractional(bkpt)) for bkpt in self.K_bkpts())
+        alpha_I=min(self.I_values())
+        alpha_J=min(self.J_values())
+        beta_K=max(self.K_values())
         return alpha_I+alpha_J-beta_K
 
     def delta_pi_affine_lower_bound(self,solver='GLPK'):
-        I_values=[self.function(bkpt) for bkpt in self.I_bkpts()]
-        J_values=[self.function(bkpt) for bkpt in self.J_bkpts()]
-        K_values=[self.function(fractional(bkpt)) for bkpt in self.K_bkpts()]
         p = MixedIntegerLinearProgram(maximization=True, solver=solver)
         v = p.new_variable()
         m1, b1, m2, b2, m3, b3, deltamin= v['m1'], v['b1'], v['m2'], v['b2'], v['m3'], v['b3'], v['deltamin']
         p.set_objective(deltamin)
-        for i in range(len(I_values)):
-            p.add_constraint(m1*self.I_bkpts()[i]+b1<=I_values[i])
-        for j in range(len(J_values)):
-            p.add_constraint(m2*self.J_bkpts()[j]+b2<=J_values[j])
-        for k in range(len(K_values)):
-            p.add_constraint(m3*self.K_bkpts()[k]+b3>=K_values[k])
+        for i in range(len(self.I_values())):
+            p.add_constraint(m1*self.I_bkpts()[i]+b1<=self.I_values()[i])
+        for j in range(len(self.J_values())):
+            p.add_constraint(m2*self.J_bkpts()[j]+b2<=self.J_values()[j])
+        for k in range(len(self.K_values())):
+            p.add_constraint(m3*self.K_bkpts()[k]+b3>=self.K_values()[k])
         for v in self.vertices:
             x, y, z=v[0], v[1], v[0]+v[1]
             p.add_constraint(deltamin<=m1*x+b1+m2*y+b2-m3*(x+y)-b3)
         return p.solve()
 
     def delta_pi_fast_affine_lower_bound(self,slope_I,slope_J,slope_K):
-        I_values=[self.function(bkpt) for bkpt in self.I_bkpts()]
-        J_values=[self.function(bkpt) for bkpt in self.J_bkpts()]
-        K_values=[self.function(fractional(bkpt)) for bkpt in self.K_bkpts()]
-        intercept_I=find_best_intercept(self.I_bkpts(),I_values,slope_I,lower_bound=True)
-        intercept_J=find_best_intercept(self.J_bkpts(),J_values,slope_J,lower_bound=True)
-        intercept_K=find_best_intercept(self.K_bkpts(),K_values,slope_K,lower_bound=False)
+        intercept_I=find_best_intercept(self.I_bkpts(),self.I_values(),slope_I,lower_bound=True)
+        intercept_J=find_best_intercept(self.J_bkpts(),self.J_values(),slope_J,lower_bound=True)
+        intercept_K=find_best_intercept(self.K_bkpts(),self.K_values(),slope_K,lower_bound=False)
         lower_bound=min((slope_I*vertex[0]+intercept_I)+(slope_J*vertex[1]+intercept_J)-(slope_K*(vertex[0]+vertex[1])+intercept_K) for vertex in self.vertices)
         return lower_bound
 
@@ -76,9 +88,6 @@ class SubadditivityTestTreeNode :
         """
         Stratigic lower bound of delta pi. If the number of bkpts is small, use affine bound. Use constant bound otherwise.
         """
-        I_values=[self.function(bkpt) for bkpt in self.I_bkpts()]
-        J_values=[self.function(bkpt) for bkpt in self.J_bkpts()]
-        K_values=[self.function(fractional(bkpt)) for bkpt in self.K_bkpts()]
         if len(self.I_bkpts())+len(self.J_bkpts())+len(self.K_bkpts())<=max_number_of_bkpts:
             lower_bound=self.delta_pi_affine_lower_bound(solver=solver)
         else:
