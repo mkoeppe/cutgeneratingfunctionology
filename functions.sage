@@ -4060,6 +4060,8 @@ class DirectedMoveCompositionCompletion:
         self.move_dict = dict()
         self.sym_init_moves = dict() # updated by self.add_backward_moves() in round 0.
         self.covered_components = covered_components
+        self._max_component_intervals = 0
+        self._max_directed_move_intervals = 0
         if covered_components:
             self.any_change_components = True
         else:
@@ -4071,6 +4073,27 @@ class DirectedMoveCompositionCompletion:
         self.is_complete = False
         self.proj_add_vert = proj_add_vert
         self._show_zero_perturbation = show_zero_perturbation
+
+    def update_stats(self):
+        """
+        Update ``max_component_intervals`` and ``max_directed_move_intervals``.
+        """
+        self._max_component_intervals = max(self._max_component_intervals,
+                                            self.num_component_intervals())
+        self._max_directed_move_intervals = max(self._max_directed_move_intervals,
+                                                self.num_directed_move_intervals())
+
+    def num_component_intervals(self):
+        return sum(len(c) for c in self.covered_components)
+
+    def num_directed_move_intervals(self):
+        return sum(len(m.intervals()) for m in self.move_dict.itervalues())
+
+    def max_component_intervals(self):
+        return self._max_component_intervals
+
+    def max_directed_move_intervals(self):
+        return self._max_directed_move_intervals
 
     def add_move(self, fdm):
         """
@@ -4238,6 +4261,7 @@ class DirectedMoveCompositionCompletion:
             self.extend_components_by_moves()
         current_dense_move_plot = self.extend_components_by_strip_lemma()
         self.extend_moves_by_composition_of_moves()
+        self.update_stats()
         self.num_rounds += 1
         self.maybe_show_plot(current_dense_move_plot)
 
@@ -4272,6 +4296,7 @@ class DirectedMoveCompositionCompletion:
                 # do not show move diagram if there is no moves.
                 self.maybe_show_plot()
             self.add_backward_moves()
+        self.update_stats()
 
         while (self.any_change_components or self.any_change_moves) and (max_num_rounds is None or self.num_rounds < max_num_rounds):
             self.complete_one_round()
