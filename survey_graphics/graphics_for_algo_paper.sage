@@ -92,7 +92,7 @@ u2 = 14/15-t2
 m1 = FunctionalDirectedMove([open_interval(l1, u1)], (1, t1))
 m2 = FunctionalDirectedMove([open_interval(l2, u2)], (1, t2))
 l = l1; ll = l2; uu = 3/4; u = 14/15
-c = DirectedMoveCompositionCompletion([m1, m2], show_plots=False, plot_background=plot_background,pts_of_discontinuity=[])
+c = DirectedMoveCompositionCompletion([m1, m2], show_plots=False, plot_background=plot_background,pts_of_discontinuity=[], show_zero_perturbation=False)
 c.add_backward_moves()
 g = c.plot()+ line([(l,0),(l,u)], color='black', linestyle=':') +line([(ll,0),(ll,uu)], color='black', linestyle=':') + line([(uu,0),(uu,uu)], color='black', linestyle=':') + line([(u,0),(u,u)], color='black', linestyle=':') + line([(0,t1),(l,l+t1)], color='black', linestyle=':') + line([(0,t2),(ll,ll+t2)], color='black', linestyle=':') + line([(l,l),(u,l)], color='black', linestyle=':') + line([(ll,ll),(uu,ll)], color='black', linestyle=':')+line([(l,u),(u,u)], color='black', linestyle=':') +line([(ll,uu),(uu,uu)], color='black', linestyle=':') + text("$\\tau_1$", (0.5,0.58), axis_coords=False) +text("$\\tau_2$", (0.62,0.88), axis_coords=False) + text("$\\tau_1^{-1}$", (0.58,0.5), axis_coords=False) +text("$\\tau_2^{-1}$", (0.88, 0.62), axis_coords=False)
 tkx = [0,l,ll,uu,u,1]
@@ -105,8 +105,12 @@ c.complete()
 g1 = c.plot()+line([(l,0),(l,u)], color='black', linestyle=':') + line([(u,0),(u,u)], color='black', linestyle=':') + line([(0,l),(u,l)], color='black', linestyle=':') +line([(0,u),(u,u)], color='black', linestyle=':')
 #g1.show(ticks=[[0,l,u,1],[0,l,u,1]],tick_formatter=[["$0$","$l$","$u$","$1$"], ["$0$","$l$","$u$","$1$"]],figsize=5)
 g1.save(destdir+"strip-lemma-dependent.png",ticks=[[0,l,u,1],[0,l,u,1]],tick_formatter=[["$0$","$l$","$u$","$1$"], ["$0$","$l$","$u$","$1$"]],figsize=5)
-g2 = g1 + polygon(((l,l), (l,u), (u,u), (u,l)), color="cyan")
-#g2.show(ticks=[[0,l,u,1],[0,l,u,1]],tick_formatter=[["$0$","$l$","$u$","$1$"], ["$0$","$l$","$u$","$1$"]],figsize=5)
+
+t2 = 3/15 + 1/100000*sqrt(2)
+m2 = FunctionalDirectedMove([open_interval(l2, u2)], (1, t2))
+c = DirectedMoveCompositionCompletion([m1, m2], show_plots=False, plot_background=plot_background,pts_of_discontinuity=[], show_zero_perturbation=False)
+c.complete()
+g2 = c.plot() +line([(l,0),(l,u)], color='black', linestyle=':') + line([(u,0),(u,u)], color='black', linestyle=':') + line([(0,l),(u,l)], color='black', linestyle=':') +line([(0,u),(u,u)], color='black', linestyle=':')
 g2.save(destdir+"strip-lemma-independent.png",ticks=[[0,l,u,1],[0,l,u,1]],tick_formatter=[["$0$","$l$","$u$","$1$"], ["$0$","$l$","$u$","$1$"]],figsize=5)
 igp.show_translations_and_reflections_separately = save_show_translations_and_reflections_separately
 
