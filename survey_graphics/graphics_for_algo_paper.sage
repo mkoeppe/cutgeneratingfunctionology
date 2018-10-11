@@ -230,13 +230,17 @@ plot_background = polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='gre
 ## reduce_moves_by_components
 #############################
 
+## FIXME: Move into code
+def plot_points_of_discontinuity_at_borders(pts_of_discontinuity):
+    cts_intervals = union_of_coho_intervals_minus_union_of_coho_intervals([[[0, 1]]],
+                                                                          [ [[x]] for x in pts_of_discontinuity ])
+    cts_function = FastPiecewise([ (interval, FastLinearFunction(0,0)) for interval in cts_intervals ])
+    return plot_function_at_borders(cts_function, color='black')
+
 def show_reduced_moves_by_components(moves, comp, name, pts_of_discontinuity=[]):
     fname = destdir + name + "-%s.png"
     if pts_of_discontinuity:
-        cts_intervals = union_of_coho_intervals_minus_union_of_coho_intervals([[[0, 1]]],
-                                                                              [ [[x]] for x in pts_of_discontinuity ])
-        cts_function = FastPiecewise([ (interval, FastLinearFunction(0,0)) for interval in cts_intervals ])
-        background = plot_background + plot_function_at_borders(cts_function, color='black')
+        background = plot_background + plot_points_of_discontinuity_at_borders(pts_of_discontinuity)
     else:
         background = plot_background
     c = DirectedMoveCompositionCompletion(moves, comp,
@@ -314,8 +318,12 @@ show_reduced_moves_by_components(moves, comp, name)
 
 def show_extend_components_by_moves(moves, comp, name, pts_of_discontinuity=[]):
     fname = destdir + name + "-%s.png"
-    c = DirectedMoveCompositionCompletion(moves, [comp],
-                                          show_plots=fname, plot_background=plot_background,
+    if pts_of_discontinuity:
+        background = plot_background + plot_points_of_discontinuity_at_borders(pts_of_discontinuity)
+    else:
+        background = plot_background
+    c = DirectedMoveCompositionCompletion(moves, comp,
+                                          show_plots=fname, plot_background=background,
                                           pts_of_discontinuity=pts_of_discontinuity,
                                           show_zero_perturbation=False)
     c.complete()
@@ -325,36 +333,43 @@ def show_extend_components_by_moves(moves, comp, name, pts_of_discontinuity=[]):
 t1 = 2/15
 tau1a = FunctionalDirectedMove([open_interval(6/15, 7/15)], (1, t1))
 tau1b = FunctionalDirectedMove([open_interval(8/15, 11/15)], (1, t1))
-comp = [ open_interval(7/15, 10/15) ]
+comp = [ [ open_interval(7/15, 10/15) ] ]
 name = 'extend_components_by_moves_ex1'
 show_extend_components_by_moves([tau1a, tau1b], comp, name)
 
 t1 = 2/15
 tau1a = FunctionalDirectedMove([open_interval(4/15, 7/15)], (1, t1))
 tau1b = FunctionalDirectedMove([open_interval(8/15, 11/15)], (1, t1))
-comp = [ open_interval(7/15, 10/15) ]
+comp = [ [ open_interval(7/15, 10/15) ] ]
 name = 'extend_components_by_moves_ex1a'
 show_extend_components_by_moves([tau1a, tau1b], comp, name)
 
 t1 = 5/15
 tau1a = FunctionalDirectedMove([open_interval(2/15, 3/15)], (1, t1))
 tau1b = FunctionalDirectedMove([open_interval(4/15, 5/15)], (1, t1))
-comp = [ open_interval(3/15, 4/15), (7/15, 10/15) ]
+comp = [ [ open_interval(3/15, 4/15), (7/15, 10/15) ] ]
 name = 'extend_components_by_moves_ex2'
 show_extend_components_by_moves([tau1a, tau1b], comp, name)
 
 t1 = 6/15
 tau1a = FunctionalDirectedMove([open_interval(0/15, 1/15)], (1, t1))
 tau1b = FunctionalDirectedMove([open_interval(4/15, 5/15)], (1, t1))
-comp = [ open_interval(1/15, 4/15), (7/15, 10/15) ]
+comp = [ [ open_interval(1/15, 4/15), (7/15, 10/15) ] ]
 name = 'extend_components_by_moves_ex3'
 show_extend_components_by_moves([tau1a, tau1b], comp, name)
 
 t1 = 5/15
 tau1 = FunctionalDirectedMove([open_interval(2/15, 5/15)], (1, t1))
-comp = [ open_interval(3/15, 4/15) ]
+comp = [ [ open_interval(3/15, 4/15) ] ]
 name = 'extend_components_by_moves_ex4'
 show_extend_components_by_moves([tau1], comp, name)
+
+# adjacent move at discontinuity
+t1 = 2/15
+tau1a = FunctionalDirectedMove([open_interval(6/15, 7/15)], (1, t1))
+comp = [ [ open_interval(7/15, 12/15) ] ]
+name = 'extend_components_by_moves_ex5'
+show_extend_components_by_moves([tau1a], comp, name, pts_of_discontinuity=[7/15])
 
 
 ## ########## mip 2017 slides ###########
