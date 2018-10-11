@@ -311,7 +311,11 @@ show_reduced_moves_by_components(moves, comp, name)
 #          Consider closed secant in an open box:  Reducing it would lead to singletons
 #          at the boundary.
 
-
+# (3) mystery operation that merges rectangles at continuity
+name = 'merge_rectangles_ex3'
+moves = []
+comp = [ [open_interval(6/15, 7/15), open_interval(7/15, 10/15) ] ]
+show_reduced_moves_by_components(moves, comp, name)
 
 ## extend_components_by_moves
 #############################
