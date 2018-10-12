@@ -130,16 +130,26 @@ def plot_points_of_discontinuity_at_borders(pts_of_discontinuity):
 def show_reduced_moves_by_components(moves, comp, name, pts_of_discontinuity=[]):
     fname = destdir + name + "-%s.png"
     if pts_of_discontinuity:
+        # FIXME: Distinguish all-discontinuous from all-continuous case... how?
         background = plot_background + plot_points_of_discontinuity_at_borders(pts_of_discontinuity)
     else:
         background = plot_background
+    ## FIXME: This should be an option as well.
+    show_plot(background + plot_covered_components_as_rectangles(comp) + sum(m.plot() for m in moves), fname, tag='completion-unreduced')
     c = DirectedMoveCompositionCompletion(moves, comp,
                                           show_plots=fname, plot_background=background,
                                           pts_of_discontinuity=pts_of_discontinuity,
                                           show_zero_perturbation=False)
+    c.extend_components_by_continuity()
+    c.reduce_moves_by_components()
     #c.add_backward_moves()
-    show_plot(background + plot_covered_components_as_rectangles(comp) + sum(m.plot() for m in moves), fname, tag='completion-unreduced')
+    ## FIXME: This should be an option as well.
     show_plot(c.plot(), fname, tag='completion-initial')
+    ## if complete:
+    ##     c.complete()
+    ## # FIXME: Add an option to DirectedMoveCompositionCompletion.  Optional because within extremality test, don't want to show the last one
+    ## # because it will be shown again with perturbation stuff.
+    ## show_plot(c.plot(), fname, tag='completion-final')
 
 t1 = 2/15
 comp = [ [ open_interval(7/15, 12/15) ] ]
@@ -182,7 +192,7 @@ show_reduced_moves_by_components(moves, comp, name)
 
 # (2c) two squares joined at corner by a move
 comp = [ [ open_interval(7/15, 12/15) ], [ open_interval(5/15, 7/15) ] ]
-tau1 = FunctionalDirectedMove([open_interval(5/15, 12/15)], (1, 0))
+tau1 = FunctionalDirectedMove([open_interval(5/15, 11/15)], (1, 0))
 moves = [tau1]
 name = 'reduce_moves_by_components_ex2c'
 show_reduced_moves_by_components(moves, comp, name, pts_of_discontinuity=[7/15])
@@ -201,11 +211,32 @@ show_reduced_moves_by_components(moves, comp, name)
 #          Consider closed secant in an open box:  Reducing it would lead to singletons
 #          at the boundary.
 
-# (3) mystery operation that merges rectangles at continuity
-name = 'merge_rectangles_ex3'
+## extend_A operation
+#####################
+
+# FIXME: Would be nice to be able to bring to normal form with calling complete().
+
+# merging moves. version without continuity
+name = 'extend_moves_ex1a'
+tau1a = FunctionalDirectedMove([open_interval(6/15, 7/15)], (1, t1))
+tau1b = FunctionalDirectedMove([open_interval(7/15, 11/15)], (1, t1))
+moves = [tau1a, tau1b]
+show_reduced_moves_by_components(moves, [], name, pts_of_discontinuity=[7/15])
+
+# likewise with continuity
+name = 'extend_moves_ex1b'
+show_reduced_moves_by_components(moves, [], name, pts_of_discontinuity=[])
+
+# (3) merging rectangles at continuity. version without continuity.
+name = 'merge_rectangles_ex3a'
 moves = []
 comp = [ [open_interval(6/15, 7/15), open_interval(7/15, 10/15) ] ]
-show_reduced_moves_by_components(moves, comp, name)
+show_reduced_moves_by_components(moves, comp, name, pts_of_discontinuity=[7/15])
+
+# likewise with continuity
+name = 'merge_rectangles_ex3b'
+show_reduced_moves_by_components(moves, comp, name, pts_of_discontinuity=[])
+
 
 ## extend_components_by_moves
 #############################
