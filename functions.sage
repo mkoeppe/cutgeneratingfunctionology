@@ -4274,9 +4274,12 @@ class DirectedMoveCompositionCompletion:
         else:
             return component
 
+    def extend_components_by_continuity(self):
+        self.covered_components = [self.extend_component_by_continuity(component) for component in self.covered_components]
+
     def add_backward_moves(self):
         self.num_rounds = 0
-        self.covered_components = [self.extend_component_by_continuity(component) for component in self.covered_components]
+        self.extend_components_by_continuity()
         for dm in list(self.any_change_moves):
             if dm[0] == 1:
                 # extend initial moves by continuity
@@ -4296,6 +4299,7 @@ class DirectedMoveCompositionCompletion:
                 # do not show move diagram if there is no moves.
                 self.maybe_show_plot()
             self.add_backward_moves()
+            self.reduce_moves_by_components()
         self.update_stats()
 
         while (self.any_change_components or self.any_change_moves) and (max_num_rounds is None or self.num_rounds < max_num_rounds):
