@@ -4281,11 +4281,13 @@ class DirectedMoveCompositionCompletion:
         self.num_rounds = 0
         self.extend_components_by_continuity()
         for dm in list(self.any_change_moves):
-            if dm[0] == 1:
-                # extend initial moves by continuity
-                forward_fdm = self.move_dict[dm].reduced_by_components(self.covered_components, self.pts_of_discontinuity)
-                backward_fdm = ~forward_fdm
-                self.add_move(backward_fdm)
+            # For reflections coming from faces, this is a no-op.
+            # But we do this anyway, to be consistent for abstract moves diagram.
+            #if dm[0] == -1: continue
+            # extend initial moves by continuity
+            forward_fdm = self.move_dict[dm].reduced_by_components(self.covered_components, self.pts_of_discontinuity)
+            backward_fdm = ~forward_fdm
+            self.add_move(backward_fdm)
         # to see that unnecessary discontinuity marks have disappeared,
         # need to set kwds['discontinuity_markers'] = True in FunctionalDirectedMove.plot()
         # and call the following no matter self.any_change_moves is True or False
