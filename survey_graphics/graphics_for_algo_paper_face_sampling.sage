@@ -11,15 +11,19 @@ def sampled_interval(I, num_samples=5):
     delta = (b - a) / num_samples
     return [ a + i * delta for i in range(num_samples+1) ]
 
-def sampled_face(F, num_samples=5):
+def sampled_face(F, num_samples=5, translations=True, reflections=True):
     I, J, K = F.minimal_triple
-    return [ Face([[x], J, K]) for x in sampled_interval(I, num_samples) ] \
-           + [ Face([I, [y], K]) for y in sampled_interval(J, num_samples) ] \
-           + [ Face([I, J, [z]]) for z in sampled_interval(K, num_samples) ]
+    result = []
+    if translations:
+        result = [ Face([[x], J, K]) for x in sampled_interval(I, num_samples) ] \
+          + [ Face([I, [y], K]) for y in sampled_interval(J, num_samples) ]
+    if reflections:
+        result += [ Face([I, J, [z]]) for z in sampled_interval(K, num_samples) ]
+    return result
 
-def symmetric_sampled_faces(F, Fprime, num_samples=4):
-    E_list = [ E for E in sampled_face(F, num_samples) if E.is_1D() ]
-    E_list += [ E for E in sampled_face(Fprime, num_samples) if E.is_1D() ]
+def symmetric_sampled_faces(F, Fprime, num_samples=4, **kwds):
+    E_list = [ E for E in sampled_face(F, num_samples, **kwds) if E.is_1D() ]
+    E_list += [ E for E in sampled_face(Fprime, num_samples, **kwds) if E.is_1D() ]
     return E_list
 
 def ticks_keywords_for_faces(faces):
@@ -60,6 +64,15 @@ Fprime = Face([J, I, K]) # swapped
 F_list = [F, Fprime]
 E_list = symmetric_sampled_faces(F, Fprime)
 plot_sampled_stuff(F_list, E_list, 'triangle')
+
+# reflections-only version
+E_list = symmetric_sampled_faces(F, Fprime, translations=False)
+plot_sampled_stuff(F_list, E_list, 'triangle_reflections')
+
+# translations-only version
+E_list = symmetric_sampled_faces(F, Fprime, reflections=False)
+plot_sampled_stuff(F_list, E_list, 'triangle_translations')
+
 
 #################
 I2, J2, K2 = [4/19, 5/19], [11/19, 12/19], [16/19, 17/19]
