@@ -37,3 +37,20 @@ c.complete()
 g2 = c.plot() +line([(l,0),(l,u)], color='black', linestyle=':') + line([(u,0),(u,u)], color='black', linestyle=':') + line([(0,l),(u,l)], color='black', linestyle=':') +line([(0,u),(u,u)], color='black', linestyle=':')
 g2.save(destdir+"strip-lemma-independent.png",ticks=[[0,l,u,1],[0,l,u,1]],tick_formatter=[["$0$","$l$","$u$","$1$"], ["$0$","$l$","$u$","$1$"]],figsize=5)
 igp.show_translations_and_reflections_separately = save_show_translations_and_reflections_separately
+
+
+## (reflection, reflection) gives no strip lemma
+
+## # l1 = 3/15
+## # u1 = 7/15
+## # l2 = 5/15
+## # u2 = 9/15
+## l1 = l2 = 0
+## r1 = 17/15
+## r2 = 18/15 + 1/100
+## u1 = r1
+## u2 = r2
+## m1 = FunctionalDirectedMove([open_interval(l1, u1)], (-1, r1))
+## m2 = FunctionalDirectedMove([open_interval(l2, u2)], (-1, r2))
+## c = DirectedMoveCompositionCompletion([m1, m2], show_plots=destdir+'strip-lemma-r-r-dependent-%s.png', plot_background=plot_background,pts_of_discontinuity=[], show_zero_perturbation=False)
+## c.complete()
