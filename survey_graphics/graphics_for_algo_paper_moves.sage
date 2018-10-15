@@ -120,24 +120,11 @@ plot_background = polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='gre
 ## reduce_moves_by_components
 #############################
 
-## FIXME: Move into code
-def plot_points_of_discontinuity_at_borders(pts_of_discontinuity):
-    cts_intervals = union_of_coho_intervals_minus_union_of_coho_intervals([[[0, 1]]],
-                                                                          [ [[x]] for x in pts_of_discontinuity ])
-    cts_function = FastPiecewise([ (interval, FastLinearFunction(0,0)) for interval in cts_intervals ])
-    return plot_function_at_borders(cts_function, color='black')
-
 def show_reduced_moves_by_components(moves, comp, name, pts_of_discontinuity=[]):
     fname = destdir + name + "-%s.png"
-    if pts_of_discontinuity:
-        # FIXME: Distinguish all-discontinuous from all-continuous case... how?
-        background = plot_background + plot_points_of_discontinuity_at_borders(pts_of_discontinuity)
-    else:
-        background = plot_background
-    ## FIXME: This should be an option as well.
-    show_plot(background + plot_covered_components_as_rectangles(comp) + sum(m.plot() for m in moves), fname, tag='completion-unreduced')
+    show_plot(plot_background + plot_covered_components_as_rectangles(comp) + sum(m.plot() for m in moves) + plot_points_of_discontinuity_at_borders(pts_of_discontinuity), fname, tag='completion-unreduced')
     c = DirectedMoveCompositionCompletion(moves, comp,
-                                          show_plots=fname, plot_background=background,
+                                          show_plots=fname, plot_background=plot_background,
                                           pts_of_discontinuity=pts_of_discontinuity,
                                           show_zero_perturbation=False)
     c.extend_components_by_continuity()
@@ -243,12 +230,8 @@ show_reduced_moves_by_components(moves, comp, name, pts_of_discontinuity=[])
 
 def show_extend_components_by_moves(moves, comp, name, pts_of_discontinuity=[]):
     fname = destdir + name + "-%s.png"
-    if pts_of_discontinuity:
-        background = plot_background + plot_points_of_discontinuity_at_borders(pts_of_discontinuity)
-    else:
-        background = plot_background
     c = DirectedMoveCompositionCompletion(moves, comp,
-                                          show_plots=fname, plot_background=background,
+                                          show_plots=fname, plot_background=plot_background,
                                           pts_of_discontinuity=pts_of_discontinuity,
                                           show_zero_perturbation=False)
     c.complete()

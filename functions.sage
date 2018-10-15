@@ -4033,6 +4033,18 @@ def interval_including_endpoints_if_continuous(interval, pts_of_discontinuity=Tr
         right_closed = right_closed and (fdm.apply_ignoring_domain(interval[1]) not in pts_of_discontinuity)
     return closed_or_open_or_halfopen_interval(interval[0], interval[1], left_closed, right_closed)
 
+def plot_points_of_discontinuity_at_borders(pts_of_discontinuity):
+    if pts_of_discontinuity is True:
+        # Everywhere discontinuous.
+        return line(((0, 0), (0, 1), (1, 1)), color='white', linestyle=':', thickness=2, zorder=10)
+    cts_intervals = union_of_coho_intervals_minus_union_of_coho_intervals([[[0, 1]]],
+                                                                          [ [[x]] for x in pts_of_discontinuity ])
+    cts_function = FastPiecewise([ (interval, FastLinearFunction(0,0)) for interval in cts_intervals ])
+    g = plot_function_at_borders(cts_function, color='black')
+    for x in pts_of_discontinuity:
+        g += line(((0, x), (1, x)), color='gray', linestyle=':') + line(((x, 0), (x, 1)), color='gray', linestyle=':')
+    return g
+
 show_translations_and_reflections_separately = False
 show_translations_and_reflections_by_color = False
 show_covered_components_as_rectangles = False
@@ -4153,6 +4165,7 @@ class DirectedMoveCompositionCompletion:
         if show_covered_components_as_rectangles:
             g += plot_covered_components_as_rectangles(self.covered_components)
         g += plot_directed_moves(moves, **kwds)
+        g += plot_points_of_discontinuity_at_borders(self.pts_of_discontinuity)
         if self._show_zero_perturbation:
             zero_perturbation = zero_perturbation_partial_function(self.covered_components,
                                                                    self.generate_zero_perturbation_points())
