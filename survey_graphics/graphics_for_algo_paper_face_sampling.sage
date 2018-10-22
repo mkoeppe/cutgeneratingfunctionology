@@ -89,3 +89,66 @@ Fprime = Face([J, I, K]) # swapped
 F_list = [F, Fprime]
 E_list = symmetric_sampled_faces(F, Fprime)
 plot_sampled_stuff(F_list, E_list, 'quadrilateral_overlapping_projections')
+
+
+# #############
+num_sample = 7 ;
+t = [35/100 + (50-35)/100/(num_sample-1) * i for i in range(num_sample)] # delta = 0.025
+x1 = []; x2=[];
+for i in range(num_sample):
+    x, y = var('x,y')
+    eq1 = 40000*(x-0.2)^2-20000*(x-0.2)*(y-0.7)+10000*(y-0.7)^2-400*(x-0.2)+1600*(y-0.7)+1.0 == 0.0
+    eq2 = y == x + t[i]
+    solns = solve([eq1,eq2], x, y)
+    x1.append(QQ(solns[0][0].rhs().n(30)))
+    x2.append(QQ(solns[1][0].rhs().n(30)))
+fdms_tau = [FunctionalDirectedMove([open_interval(x1[i],x2[i])],(1,t[i])) for i in range(num_sample)]
+name = 'open_sets_of_tau'
+fname = destdir + name + "-%s.png"
+fname_sampled = destdir + name + "_sampled-%s.png"
+x, y = var('x,y')
+g = implicit_plot(40000*(x-0.2)^2-20000*(x-0.2)*(y-0.7)+10000*(y-0.7)^2-400*(x-0.2)+1600*(y-0.7)+1.0, (x, 0,1), (y,0,1),linewidth=1, linestyle=':')
+for fdm in fdms_tau:
+    g += fdm.plot()
+show_plot(g, fname_sampled, tag='')
+background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2)
+completion_tau = DirectedMoveCompositionCompletion(fdms=fdms_tau,show_plots=fname_sampled, plot_background=background, pts_of_discontinuity=[], show_zero_perturbation=False)
+completion_tau.complete()
+show_plot(completion_tau.plot(), fname_sampled, tag='completion-final')
+
+num_sample = 11 ;
+r = [65/100 + (90-65)/100/(num_sample-1) * i for i in range(num_sample)]
+x1 = []; x2=[];
+for i in range(num_sample):
+    x, y = var('x,y')
+    eq1 = 40000*(x-0.2)^2-20000*(x-0.2)*(y-0.7)+10000*(y-0.7)^2-400*(x-0.2)+1600*(y-0.7)+1.0 == 0.0
+    eq2 = x + y == r[i]
+    solns = solve([eq1,eq2], x, y)
+    x1.append(QQ(solns[0][0].rhs().n(30)))
+    x2.append(QQ(solns[1][0].rhs().n(30)))
+fdms_rho = [FunctionalDirectedMove([open_interval(x1[i],x2[i])],(-1,r[i])) for i in range(num_sample)]
+name = 'open_sets_of_rho'
+fname = destdir + name + "-%s.png"
+fname_sampled = destdir + name + "_sampled-%s.png"
+x, y = var('x,y')
+g = implicit_plot(40000*(x-0.2)^2-20000*(x-0.2)*(y-0.7)+10000*(y-0.7)^2-400*(x-0.2)+1600*(y-0.7)+1.0, (x, 0,1), (y,0,1),linewidth=1, linestyle=':',fillcolor='red', color='red')
+for fdm in fdms_rho:
+    g += fdm.plot()
+show_plot(g, fname_sampled, tag='')
+completion_rho = DirectedMoveCompositionCompletion(fdms=fdms_rho,show_plots=fname_sampled, plot_background=background, pts_of_discontinuity=[], show_zero_perturbation=False)
+completion_rho.complete()
+show_plot(completion_rho.plot(), fname_sampled, tag='completion-final')
+
+name = 'open_sets_of_moves'
+fname = destdir + name + "-%s.png"
+fname_sampled = destdir + name + "_sampled-%s.png"
+x, y = var('x,y')
+g = implicit_plot(40000*(x-0.2)^2-20000*(x-0.2)*(y-0.7)+10000*(y-0.7)^2-400*(x-0.2)+1600*(y-0.7)+1.0, (x, 0,1), (y,0,1),linewidth=1, linestyle=':',fillcolor='purple', color='purple')
+fdms = fdms_tau + fdms_rho
+for fdm in fdms:
+    g += fdm.plot()
+show_plot(g, fname_sampled, tag='')
+completion = DirectedMoveCompositionCompletion(fdms=fdms,show_plots=fname_sampled, plot_background=background, pts_of_discontinuity=[], show_zero_perturbation=False)
+completion.complete()
+show_plot(completion.plot(), fname_sampled, tag='completion-final')
+
