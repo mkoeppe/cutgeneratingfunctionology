@@ -155,6 +155,42 @@ completion_rho = DirectedMoveCompositionCompletion(fdms=fdms_rho,show_plots=fnam
 completion_rho.complete()
 show_plot(completion_rho.plot(), fname_sampled, tag='completion-final')
 
+num_sample = 11 ;
+dx = 15/100; dy = -15/100  #dx = 16/100; dy = -16/100 better?
+r2 = [18/100+6/10+dx+dy + 26/100/(num_sample-1) * (i-5) for i in range(num_sample)]
+open_domains = []
+for i in range(num_sample):
+    x, y = var('x,y')
+    eq1 = 40000*(x-dx-0.2)^2-20000*(x-dx-0.2)*(y-dy-0.7)+10000*(y-dy-0.7)^2-400*(x-dx-0.2)+1600*(y-dy-0.7)+1.0 == 0.0
+    eq2 = (x-dx-18/100)^2+(y-dy-6/10)^2==(5/200)^2
+    eq = x + y == r2[i]
+    solns = solve([eq1,eq], x, y)
+    a1 = (QQ(solns[0][0].rhs().n(30)))
+    b2 = (QQ(solns[1][0].rhs().n(30)))
+    if a1 > b2:
+        a1, b2 = b2, a1
+    solns = solve([eq2,eq], x, y)
+    if solns[0][0].rhs().is_real():
+        b1 = (QQ(solns[0][0].rhs().n(30)))
+        a2 = (QQ(solns[1][0].rhs().n(30)))
+        if b1 > a2:
+            b1, a2 = a2, b1 
+        open_domains.append([open_interval(a1,b1), open_interval(a2,b2)])
+    else:
+        open_domains.append([open_interval(a1,b2)])
+fdms_rho2 = [FunctionalDirectedMove(open_domains[i],(-1,r2[i])) for i in range(num_sample)]
+name = 'open_sets_of_rho2'
+fname = destdir + name + "-%s.png"
+fname_sampled = destdir + name + "_sampled-%s.png"
+x, y = var('x,y')
+g = implicit_plot(40000*(x-dx-0.2)^2-20000*(x-dx-0.2)*(y-dy-0.7)+10000*(y-dy-0.7)^2-400*(x-dx-0.2)+1600*(y-dy-0.7)+1.0, (x, 0,1), (y,0,1),linewidth=1, linestyle=':',fillcolor='red', color='red')+implicit_plot((x-dx-18/100)^2+(y-dy-6/10)^2==(5/200)^2, (x,0,1), (y,0,1),linewidth=1, linestyle=':',fillcolor='red', color='red')
+for fdm in fdms_rho2:
+    g += fdm.plot()
+show_plot(g, fname_sampled, tag='')
+completion_rho2 = DirectedMoveCompositionCompletion(fdms=fdms_rho2,show_plots=fname_sampled, plot_background=background, pts_of_discontinuity=[], show_zero_perturbation=False)
+completion_rho2.complete()
+show_plot(completion_rho2.plot(), fname_sampled, tag='completion-final')
+
 name = 'open_sets_of_moves'
 fname = destdir + name + "-%s.png"
 fname_sampled = destdir + name + "_sampled-%s.png"
