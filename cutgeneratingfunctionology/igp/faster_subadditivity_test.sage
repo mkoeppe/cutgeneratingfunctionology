@@ -1,5 +1,6 @@
 from itertools import chain
 
+import Queue as queue
 import itertools
 import numpy as np
 
@@ -61,7 +62,7 @@ class SubadditivityTestTreeNode :
         beta_K=max(self.K_values())
         return alpha_I+alpha_J-beta_K
 
-    def delta_pi_affine_lower_bound(self,solver='GLPK'):
+    def delta_pi_affine_lower_bound(self,solver='Coin'):
         p = MixedIntegerLinearProgram(maximization=True, solver=solver)
         v = p.new_variable()
         m1, b1, m2, b2, m3, b3, deltamin= v['m1'], v['b1'], v['m2'], v['b2'], v['m3'], v['b3'], v['deltamin']
@@ -84,14 +85,17 @@ class SubadditivityTestTreeNode :
         lower_bound=min((slope_I*vertex[0]+intercept_I)+(slope_J*vertex[1]+intercept_J)-(slope_K*(vertex[0]+vertex[1])+intercept_K) for vertex in self.vertices)
         return lower_bound
 
-    def delta_pi_lower_bound(self,max_number_of_bkpts=30,solver='GLPK'):
+    def delta_pi_lower_bound(self,max_number_of_bkpts=30,solver='Coin'):
         """
         Stratigic lower bound of delta pi. If the number of bkpts is small, use affine bound. Use constant bound otherwise.
         """
+        if hasattr(self,'_delta_pi_lb'):
+            return self._delta_pi_lb
         if len(self.I_bkpts())+len(self.J_bkpts())+len(self.K_bkpts())<=max_number_of_bkpts:
             lower_bound=self.delta_pi_affine_lower_bound(solver=solver)
         else:
             lower_bound=self.delta_pi_constant_lower_bound()
+        self._delta_pi_lb=lower_bound
         return lower_bound
 
     def delta_pi_upper_bound(self):
@@ -172,7 +176,7 @@ class SubadditivityTestTree :
         self.complete_node_set=set([self.root])
         self.leaf_set=set([self.root])
         # the order of unfathomed nodes matters, like DFS or BFS
-        self.unfathomed_node_list=[self.root]
+        self.unfathomed_node_list=queue.PriorityQueue()
         self.nonsubadditive_vertices=set()
         self.additive_vertices=set()
 
@@ -182,7 +186,7 @@ class SubadditivityTestTree :
     def number_of_leaves(self):
         return len(self.leaf_set)
 
-    def node_branching(self,node,find_min=True,stop_only_if_strict=True,**kwds):
+    def node_branching(self,node,search_method='BFS',find_min=True,stop_only_if_strict=True,**kwds):
         """
         Branch on a given node, dependent on current self.global_upper_bound.
         """
@@ -192,11 +196,21 @@ class SubadditivityTestTree :
             else:
                 node.generate_children(self.objective_limit,stop_only_if_strict,**kwds)
             if node.left_child:
+                if search_method=='BFS':
+                    self.unfathomed_node_list.put((len(self.complete_node_set),node.left_child))
+                    self.unfathomed_node_list.put((len(self.complete_node_set)+1,node.right_child))
+                elif search_method=='DFS':
+                    self.unfathomed_node_list.put((-len(self.complete_node_set),node.left_child))
+                    self.unfathomed_node_list.put((-len(self.complete_node_set)-1,node.right_child))
+                elif search_method=='BB':
+                    self.unfathomed_node_list.put((node.left_child.delta_pi_lower_bound(**kwds),node.left_child))
+                    self.unfathomed_node_list.put((node.right_child.delta_pi_lower_bound(**kwds),node.right_child))
+                else:
+                    raise ValueError, "Can't recognize search_method."
                 self.height=max(self.height,node.left_child.level)
                 self.complete_node_set.update({node.left_child,node.right_child})
                 self.leaf_set.discard(node)
                 self.leaf_set.update({node.left_child,node.right_child})
-                self.unfathomed_node_list=self.unfathomed_node_list+[node.left_child,node.right_child]
 
     def next_level(self, node_set,find_min=True,stop_only_if_strict=True,**kwds):
         """
@@ -234,18 +248,18 @@ class SubadditivityTestTree :
         return self._is_subadditive
 
     def minimum(self,search_method='BFS',**kwds):
-        self.unfathomed_node_list=[self.root]
-        while self.unfathomed_node_list:
-            if search_method=='BFS':
-                current_node=self.unfathomed_node_list.pop(0)
-            elif search_method=='DFS':
-                current_node=self.unfathomed_node_list.pop()
-            else:
-                raise ValueError, "Can't recognize search_method."
+        if search_method=='BFS' or search_method=='DFS':
+            self.unfathomed_node_list.put((0,self.root))
+        elif search_method=='BB':
+            self.unfathomed_node_list.put((self.root.delta_pi_lower_bound(**kwds),self.root))
+        else:
+            raise ValueError, "Can't recognize search_method."
+        while not self.unfathomed_node_list.empty():
+            current_node=self.unfathomed_node_list.get()[1]
             upper_bound=current_node.delta_pi_upper_bound()
             if upper_bound<self.global_upper_bound:
                 self.global_upper_bound=upper_bound
-            self.node_branching(current_node,find_min=True,stop_only_if_strict=False,**kwds)
+            self.node_branching(current_node,search_method=search_method,find_min=True,stop_only_if_strict=False,**kwds)
         self.min=self.global_upper_bound
         return self.min
 
@@ -377,7 +391,7 @@ def find_best_intercept(X,Y,slope,lower_bound=True):
         return max_b
 
                            
-def find_best_slope_intercept(X,Y,lower_bound=True,solver='GLPK',norm='one'):
+def find_best_slope_intercept(X,Y,lower_bound=True,solver='Coin',norm='one'):
     """
     Find the slope and intercept of the affine lower/upper estimator.
     """
