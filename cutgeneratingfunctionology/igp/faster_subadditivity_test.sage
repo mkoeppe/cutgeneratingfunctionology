@@ -224,14 +224,14 @@ class SubadditivityTestTree :
         return next_level
 
     def is_subadditive(self,stop_if_fail=False,cache_additive_vertices=False,search_method='BFS',**kwds):
-        self.unfathomed_node_list=[self.root]
-        while self.unfathomed_node_list:
-            if search_method=='BFS':
-                current_node=self.unfathomed_node_list.pop(0)
-            elif search_method=='DFS':
-                current_node=self.unfathomed_node_list.pop()
-            else:
-                raise ValueError, "Can't recognize search_method."
+        if search_method=='BFS' or search_method=='DFS':
+            self.unfathomed_node_list.put((0,self.root))
+        elif search_method=='BB':
+            self.unfathomed_node_list.put((self.root.delta_pi_lower_bound(**kwds),self.root))
+        else:
+            raise ValueError, "Can't recognize search_method."
+        while not self.unfathomed_node_list.empty():
+            current_node=self.unfathomed_node_list.get()[1]
             for v in current_node.vertices:
                 delta=self.function(v[0])+self.function(v[1])-self.function(v[2] if v[2]<=1 else v[2]-1)
                 if delta<self.objective_limit:
@@ -242,7 +242,7 @@ class SubadditivityTestTree :
                     self.nonsubadditive_vertices.add(v)
                 if delta==self.objective_limit and cache_additive_vertices:
                     self.additive_vertices.add(v)
-            self.node_branching(current_node,find_min=False,stop_only_if_strict=cache_additive_vertices,**kwds)
+            self.node_branching(current_node,search_method=search_method,find_min=False,stop_only_if_strict=cache_additive_vertices,**kwds)
         if not hasattr(self,'_is_subadditive'):
             self._is_subadditive=True
         return self._is_subadditive
