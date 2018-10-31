@@ -204,3 +204,19 @@ completion = DirectedMoveCompositionCompletion(fdms=fdms,show_plots=fname_sample
 completion.complete()
 show_plot(completion.plot(), fname_sampled, tag='completion-final')
 
+name = 'lim_tau_dense'
+fname = destdir + name + "-%s.png"
+t = [0, 1/64, 1/32, 1/16]
+fdms = [FunctionalDirectedMove([open_interval(1/8+ti,3/8)],(1,1/2-ti)) for ti in t]
+background = polygon(((0,0), (0,1), (1,1), (1,0)), color='grey', fill=False, aspect_ratio=1, zorder=-2)
+completion = DirectedMoveCompositionCompletion(fdms=fdms,show_plots=fname, plot_background=background, pts_of_discontinuity=[], show_zero_perturbation=False)
+completion.complete()
+show_plot(completion.plot(), fname, tag='completion-final')
+
+name = 'lim_rho_dense'
+fname = destdir + name + "-%s.png"
+fdms = [FunctionalDirectedMove([open_interval(1/8+ti,3/8)],(-1,1+ti)) for ti in t]
+completion = DirectedMoveCompositionCompletion(fdms=fdms,show_plots=fname, plot_background=background, pts_of_discontinuity=[], show_zero_perturbation=False)
+completion.complete()
+show_plot(completion.plot(), fname, tag='completion-final')
+
