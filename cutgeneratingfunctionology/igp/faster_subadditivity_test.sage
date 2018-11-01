@@ -75,8 +75,16 @@ class SubadditivityTestTreeNode :
             p.add_constraint(m3*self.K_bkpts()[k]+b3>=self.K_values()[k])
         for v in self.vertices:
             x, y, z=v[0], v[1], v[0]+v[1]
-            p.add_constraint(deltamin<=m1*x+b1+m2*y+b2-m3*(x+y)-b3)
-        return p.solve()
+            p.add_constraint(deltamin<=m1*x+b1+m2*y+b2-m3*z-b3)
+        p.solve()
+        # deal with precision problem.
+        m_I=p.get_values(m1)
+        m_J=p.get_values(m2)
+        m_K=p.get_values(m3)
+        b_I=min(self.I_values()[i]-m_I*self.I_bkpts()[i] for i in range(len(self.I_values())))
+        b_J=min(self.J_values()[i]-m_J*self.J_bkpts()[i] for i in range(len(self.J_values())))
+        b_K=max(self.K_values()[i]-m_K*self.K_bkpts()[i] for i in range(len(self.K_values())))
+        return min(m_I*v[0]+b_I+m_J*v[1]+b_J-m_K*(v[0]+v[1])-b_K for v in self.vertices)
 
     def delta_pi_fast_affine_lower_bound(self,slope_I,slope_J,slope_K):
         intercept_I=find_best_intercept(self.I_bkpts(),self.I_values(),slope_I,lower_bound=True)
