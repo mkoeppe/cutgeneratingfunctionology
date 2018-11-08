@@ -107,7 +107,10 @@ class SubadditivityTestTreeNode :
         return lower_bound
 
     def delta_pi_upper_bound(self):
-        return min(self.function(v[0])+self.function(v[1])-self.function(v[2] if v[2]<=1 else v[2]-1) for v in self.vertices)
+        if hasattr(self,'_delta_pi_ub'):
+            return self._delta_pi_ub
+        self._delta_pi_ub=min(self.function(v[0])+self.function(v[1])-self.function(v[2] if v[2]<=1 else v[2]-1) for v in self.vertices)
+        return self._delta_pi_ub
 
     def branching_direction(self):
         new_I,new_J,new_K=self.projections
@@ -211,8 +214,14 @@ class SubadditivityTestTree :
                     self.unfathomed_node_list.put((-len(self.complete_node_set),node.left_child))
                     self.unfathomed_node_list.put((-len(self.complete_node_set)-1,node.right_child))
                 elif search_method=='BB':
-                    self.unfathomed_node_list.put((node.left_child.delta_pi_lower_bound(**kwds),node.left_child))
-                    self.unfathomed_node_list.put((node.right_child.delta_pi_lower_bound(**kwds),node.right_child))
+                    if node.left_child.is_divisible():
+                        self.unfathomed_node_list.put((node.left_child.delta_pi_lower_bound(**kwds),node.left_child))
+                    else:
+                        self.unfathomed_node_list.put((node.left_child.delta_pi_upper_bound(),node.left_child))
+                    if node.right_child.is_divisible():
+                        self.unfathomed_node_list.put((node.right_child.delta_pi_lower_bound(**kwds),node.right_child))
+                    else:
+                        self.unfathomed_node_list.put((node.right_child.delta_pi_upper_bound(),node.right_child))
                 else:
                     raise ValueError, "Can't recognize search_method."
                 self.height=max(self.height,node.left_child.level)
