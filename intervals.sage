@@ -385,6 +385,7 @@ def scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, r
 
 def intersection_of_coho_intervals(interval_lists):
     """Compute the intersection of the union of intervals. 
+    Actually returns a generator.
     
     Each interval_list must be sorted, but intervals may overlap.  In
     this case, the output is broken into non-overlapping intervals at
