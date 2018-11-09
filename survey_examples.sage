@@ -483,3 +483,18 @@ def equiv7_example_2_crazy_perturbation():
     crazy_piece_2 = CrazyPiece((1/4, 1/2), generators, [(1/4, 1), (1/2, -1)])
     cp = PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
     return cp
+
+def equiv7_minimal_2_covered_2_uncovered():
+    """
+    A continuous minimal valid function that appears in Equiv VII.
+
+    Five 0-slopes, all uncovered, translation and reflection on all five.
+    (need one more equation)
+    """
+    # from functions_with_horizontal_slopes.sage example_7
+    bkpts0 = [0,3,4,7,8,11,12,13,14,15,16,17,18,19,20,21,22,25,26,29,30,33,49]
+    bkpts = [bkpt/49 for bkpt in bkpts0]
+    values0 = [0,3,2,5,4,7,6,6,7,7,8,8,9,9,10,10,9,12,11,14,13,16,0]
+    values = [value/16 for value in values0]
+    h = piecewise_function_from_breakpoints_and_values(bkpts, values)
+    return h
