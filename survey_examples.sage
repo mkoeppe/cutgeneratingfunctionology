@@ -498,3 +498,6 @@ def equiv7_minimal_2_covered_2_uncovered():
     values = [value/16 for value in values0]
     h = piecewise_function_from_breakpoints_and_values(bkpts, values)
     return h
+
+def equiv7_example_3():
+    return piecewise_function_from_breakpoints_and_values([ x/10 for x in range(11)], [0, 3/9, 3/9, 3/9, 4/9, 5/9, 6/9, 6/9, 6/9, 9/9, 0])
