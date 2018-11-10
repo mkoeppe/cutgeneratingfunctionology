@@ -63,8 +63,8 @@ for name in names:
     g.save(destdir + "{}-only-function.png".format(name),
            figsize=igp.show_plots_figsize, aspect_ratio=0.3)
     for index, perturb in enumerate(h._perturbations):
-        rescaled = rescale_to_amplitude(perturb, 4/10)
+        rescaled = rescale_to_amplitude(perturb, 1/10)
         g = plot(rescaled, color='magenta', **perturb_ticks_keywords(h))
         g.save(destdir + "{}-only-perturbation-{}.png".format(name, index+1),
-               figsize=igp.show_plots_figsize, ymin=-0.5, ymax=0.5,
+               figsize=igp.show_plots_figsize, ymin=-0.11, ymax=0.11,
                aspect_ratio=0.3)
