@@ -53,6 +53,7 @@ def perturb_ticks_keywords(function):
 igp.show_plots_figsize = 10
 
 names = 'equiv7_example_1', 'minimal_no_covered_interval', 'equiv7_minimal_2_covered_2_uncovered' # essential
+name += 'equiv7_example_3',  # Robert's proposed example
 names += 'kzh_7_slope_1', 'example7slopecoarse2', 'not_extreme_1', 'drlm_not_extreme_1', 'bhk_irrational_extreme_limit_to_rational_nonextreme', 'hildebrand_5_slope_22_1', 'rlm_dpl1_extreme_3a', 'hildebrand_discont_3_slope_1', 'zhou_two_sided_discontinuous_cannot_assume_any_continuity'  # additional, we will select later
 
 for name in names:
