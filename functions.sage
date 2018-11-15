@@ -141,6 +141,8 @@ def generate_maximal_additive_faces(fn):
     fn._maximal_additive_faces = result
     return result
             
+additive_color = "mediumspringgreen"
+
 ### Create a new class representing a "face" (which knows its
 ### vertices, minimal triple, whether it's a translation/reflection,
 ### etc.; whether it's solid or dense).
@@ -171,10 +173,12 @@ class Face:
     def __repr__(self):
         return '<Face ' + repr(self.minimal_triple) + '>'
 
-    def plot(self, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color="mediumspringgreen", edge_thickness=2, *args, **kwds):
+    def plot(self, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color=None, edge_thickness=2, *args, **kwds):
         y = var('y')
         trip = self.minimal_triple
         vert = self.vertices
+        if fill_color is None:
+            fill_color = additive_color
         if self.is_0D():
             return point((trip[0][0], \
                           trip[1][0]), rgbcolor = rgbcolor, size = 30, **kwds)
@@ -347,7 +351,7 @@ def convex_vert_list(vertices):
 def plot_kwds_hook(kwds):
     pass
 
-def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal=False, f=None, colorful=False, additive_color="mediumspringgreen", function_color="blue"):
+def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal=False, f=None, colorful=False, additive_color=None, function_color="blue"):
     """
     Returns a plot of the 2d complex (`\\Delta P`) of fn with shaded
     additive faces, i.e., faces where `\\Delta \\pi = 0`.
@@ -381,6 +385,9 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     """
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    if additive_color is None:
+        import igp
+        additive_color = igp.additive_color
     faces = generate_maximal_additive_faces(fn)
     p = Graphics()
     kwds = { 'legend_label': "Additive face" }
@@ -480,7 +487,7 @@ def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
                 p += line([(-(3/10)*y1, x1), (-(3/10)*y2, x2)], color=colors[i], zorder=-2, **kwds)
     return p
 
-def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200, additive_color="mediumspringgreen", function_color="blue"):
+def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200, additive_color=additive_color, function_color="blue"):
     """
     EXAMPLES::
 
@@ -524,7 +531,7 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200, add
                 g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)), color=color, r=0.03)
     return g
 
-def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, additive_color="mediumspringgreen", function_color='blue', **kwds):
+def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, additive_color=additive_color, function_color='blue', **kwds):
     """
     EXAMPLES::
 
