@@ -776,7 +776,19 @@ def uncovered_intervals_from_covered_components(covered_components):
 
 # alias
 uncovered_intervals_from_covered_intervals = uncovered_intervals_from_covered_components
-    
+
+y_ticks_use_solidus = False
+
+def latex_tick_formatter_x(x):
+    return "$%s$" % latex(x)
+
+def latex_tick_formatter_y(y):
+    if y_ticks_use_solidus and y in QQ and y not in ZZ:
+        y = QQ(y)
+        return "$%s/%s$" % (y.numerator(), y.denominator())
+    else:
+        return "$%s$" % latex(y)
+
 def ticks_keywords(function, y_ticks_for_breakpoints=False, extra_xticks=[], extra_yticks=[1]):
     """
     Compute ``plot`` keywords for displaying the ticks.
@@ -789,16 +801,15 @@ def ticks_keywords(function, y_ticks_for_breakpoints=False, extra_xticks=[], ext
     except ValueError:
         pass
     xticks = uniq(list(extra_xticks) + xticks)
-    xtick_formatter = [ "$%s$" % latex(x) for x in xticks ]
+    xtick_formatter = [ latex_tick_formatter_x(x) for x in xticks ]
     #xtick_formatter = 'latex'  # would not show rationals as fractions
     ytick_formatter = None
     if y_ticks_for_breakpoints:
         yticks = xticks
-        ytick_formatter = xtick_formatter
     else:
         #yticks = 1/5
         yticks = uniq(list(extra_yticks) + [ y for limits in function.limits_at_end_points() for y in limits if y is not None ])
-        ytick_formatter = [ "$%s$" % latex(y) for y in yticks ]
+    ytick_formatter = [ latex_tick_formatter_y(y) for y in yticks ]
     ## FIXME: Can we influence ticks placement as well so that labels don't overlap?
     ## or maybe rotate labels 90 degrees?
     return {'ticks': [xticks, yticks], \
