@@ -24,18 +24,18 @@ tky = [0,t1,t2,1]
 tkxf = ["$0$","$l$","$l'$","$u'$","$u$","$1$"]
 tkyf = ["$0$","$t_1$","$t_2$","$1$"]
 #g.show(ticks=[tkx,tky], tick_formatter=[tkxf, tkyf], figsize=5)
-g.save(destdir+"strip-lemma.png",ticks=[tkx,tky], tick_formatter=[tkxf, tkyf], figsize=5)
+g.save(destdir+"strip-lemma" + ftype,ticks=[tkx,tky], tick_formatter=[tkxf, tkyf], figsize=5)
 c.complete()
 g1 = c.plot()+line([(l,0),(l,u)], color='black', linestyle=':') + line([(u,0),(u,u)], color='black', linestyle=':') + line([(0,l),(u,l)], color='black', linestyle=':') +line([(0,u),(u,u)], color='black', linestyle=':')
 #g1.show(ticks=[[0,l,u,1],[0,l,u,1]],tick_formatter=[["$0$","$l$","$u$","$1$"], ["$0$","$l$","$u$","$1$"]],figsize=5)
-g1.save(destdir+"strip-lemma-dependent.png",ticks=[[0,l,u,1],[0,l,u,1]],tick_formatter=[["$0$","$l$","$u$","$1$"], ["$0$","$l$","$u$","$1$"]],figsize=5)
+g1.save(destdir+"strip-lemma-dependent" + ftype,ticks=[[0,l,u,1],[0,l,u,1]],tick_formatter=[["$0$","$l$","$u$","$1$"], ["$0$","$l$","$u$","$1$"]],figsize=5)
 
 t2e = 3/15 + 1/100000*sqrt(2)
 m2e = FunctionalDirectedMove([open_interval(l2, u2)], (1, t2e))
 c = DirectedMoveCompositionCompletion([m1, m2e], show_plots=False, plot_background=plot_background,pts_of_discontinuity=[], show_zero_perturbation=False)
 c.complete()
 g2 = c.plot() +line([(l,0),(l,u)], color='black', linestyle=':') + line([(u,0),(u,u)], color='black', linestyle=':') + line([(0,l),(u,l)], color='black', linestyle=':') +line([(0,u),(u,u)], color='black', linestyle=':')
-g2.save(destdir+"strip-lemma-independent.png",ticks=[[0,l,u,1],[0,l,u,1]],tick_formatter=[["$0$","$l$","$u$","$1$"], ["$0$","$l$","$u$","$1$"]],figsize=5)
+g2.save(destdir+"strip-lemma-independent" + ftype,ticks=[[0,l,u,1],[0,l,u,1]],tick_formatter=[["$0$","$l$","$u$","$1$"], ["$0$","$l$","$u$","$1$"]],figsize=5)
 igp.show_translations_and_reflections_separately = save_show_translations_and_reflections_separately
 
 

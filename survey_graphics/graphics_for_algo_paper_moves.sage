@@ -5,6 +5,7 @@
 load("survey_graphics/graphics_for_algo_paper_init.sage")
 
 igp.show_plots_figsize = 3
+paper_plot_kwds['fontsize'] = 10   # restore to sage default
 
 # 2d diagram
 plot_background = polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
@@ -50,7 +51,7 @@ tkxf = ["$0$","$a$","$b$","$1$","$r$"]
 tkyf = ["$0$","$t_1$","$t_2$","$1$"]
 g += text("", (0,t2-1), axis_coords=False, vertical_alignment='center',horizontal_alignment='left', color='black')
 #g.show(ticks=[tkx,tky], tick_formatter=[tkxf, tkyf], figsize=5)
-g.save(destdir+"moves-diagram-edges.png",ticks=[tkx,tky], tick_formatter=[tkxf, tkyf], figsize=5)
+g.save(destdir+"moves-diagram-edges" + ftype,ticks=[tkx,tky], tick_formatter=[tkxf, tkyf], figsize=5)
 
 # moves diagram
 plot_background = polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey')
@@ -80,7 +81,7 @@ mtkyf = ["$t_2-1$","$0$","$a+t_2-1$","$t_1$","$b+t_2-1$","$a+t_1$","$b+t_1$","$1
 ticks_graphics = text("", ((a+b)/2,1+0.03), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='center', color='black',ticks=[mtkx,mtky], tick_formatter=[mtkxf, mtkyf])
 gg = c.plot(extra_graphics=ticks_graphics)
 #gg.show(figsize=5)
-gg.save(destdir+"moves-diagram.png", figsize=5)
+gg.save(destdir+"moves-diagram" + ftype, figsize=5)
 
 # separate moves
 tau1 = F1.functional_directed_move()
@@ -93,7 +94,7 @@ def save_move_plot(move, name):
     if not move:
         move = FastPiecewise([])
     g += move.plot(**ticks_keywords(move, extra_xticks=[1], extra_yticks=[1]))
-    g.save(destdir + name + ".png", figsize=3)
+    g.save(destdir + name + ftype, figsize=3)
 
 save_move_plot(tau1, "move_tau1+")
 save_move_plot(~tau1, "move_tau1-")
@@ -121,7 +122,7 @@ plot_background = polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='gre
 #############################
 
 def show_reduced_moves_by_components(moves, comp, name, pts_of_discontinuity=[]):
-    fname = destdir + name + "-%s.png"
+    fname = destdir + name + "-%s" + ftype
     show_plot(plot_background + plot_covered_components_as_rectangles(comp) + sum(m.plot() for m in moves) + plot_points_of_discontinuity_at_borders(pts_of_discontinuity), fname, tag='completion-unreduced')
     c = DirectedMoveCompositionCompletion(moves, comp,
                                           show_plots=fname, plot_background=plot_background,
@@ -229,7 +230,7 @@ show_reduced_moves_by_components(moves, comp, name, pts_of_discontinuity=[])
 #############################
 
 def show_extend_components_by_moves(moves, comp, name, pts_of_discontinuity=[]):
-    fname = destdir + name + "-%s.png"
+    fname = destdir + name + "-%s" + ftype
     c = DirectedMoveCompositionCompletion(moves, comp,
                                           show_plots=fname, plot_background=plot_background,
                                           pts_of_discontinuity=pts_of_discontinuity,
