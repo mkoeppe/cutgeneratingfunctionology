@@ -4057,6 +4057,8 @@ def plot_points_of_discontinuity_at_borders(pts_of_discontinuity):
     if pts_of_discontinuity is True:
         # Everywhere discontinuous.
         return line(((0, 0), (0, 1), (1, 1)), color='white', linestyle=':', thickness=2, zorder=10)
+    if not pts_of_discontinuity:
+        return Graphics()
     cts_intervals = union_of_coho_intervals_minus_union_of_coho_intervals([[[0, 1]]],
                                                                           [ [[x]] for x in pts_of_discontinuity ])
     cts_function = FastPiecewise([ (interval, FastLinearFunction(0,0)) for interval in cts_intervals ])
