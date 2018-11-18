@@ -64,16 +64,22 @@ def plot_it(name):
     g = plot_covered_intervals(h, **ticks_keywords(h))
     g.save(destdir + "{}-only-function".format(name) + ftype,
            figsize=igp.show_plots_figsize, aspect_ratio=0.3, **paper_plot_kwds)
+    c = h._completion
+    zero_perturbation = zero_perturbation_partial_function(c.covered_components,
+                                                           c.generate_zero_perturbation_points())
     for index, perturb in enumerate(h._perturbations):
         rescaled = rescale_to_amplitude(perturb, 1/10)
-        for x_labels in [False, True]:
+        for x_labels in [False, True, 'zeropert']:
             perturb_kwds = copy(paper_plot_kwds)
-            perturb_kwds.update(perturb_ticks_keywords(h, x_labels=x_labels))
-            if x_labels:
+            perturb_kwds.update(perturb_ticks_keywords(zero_perturbation, x_labels=x_labels))
+            g = plot(rescaled, color='magenta', thickness=2, **perturb_kwds)
+            if x_labels is 'zeropert':
+                g += plot(zero_perturbation, color='magenta', thickness=3, **perturb_kwds)
+                fname = "{}-only-perturbation-zeropert-{}"
+            elif x_labels:
                 fname = "{}-only-perturbation-{}"
             else:
                 fname = "{}-only-perturbation-nolabel-{}"
-            g = plot(rescaled, color='magenta', thickness=2, **perturb_kwds)
             g.save(destdir + fname.format(name, index+1) + ftype,
                    figsize=igp.show_plots_figsize, ymin=-0.11, ymax=0.11,
                    aspect_ratio=0.3, **paper_plot_kwds)
