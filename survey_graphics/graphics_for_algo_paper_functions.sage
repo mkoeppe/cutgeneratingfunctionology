@@ -34,7 +34,7 @@ igp.ticks_keywords = std_ticks_keywords
 
 ## Some standard functions with happy moves diagrams!!
 
-def perturb_ticks_keywords(function):
+def perturb_ticks_keywords(function, x_labels=True):
     """
     Compute ``plot`` keywords for displaying the ticks.
     """
@@ -46,7 +46,10 @@ def perturb_ticks_keywords(function):
     except ValueError:
         pass
     xticks = uniq(xticks)
-    xtick_formatter = [ "$%s$" % latex(x) for x in xticks ]
+    if x_labels:
+        xtick_formatter = [ "$%s$" % latex(x) for x in xticks ]
+    else:
+        xtick_formatter = [ "" for x in xticks ]
     yticks = []
     ytick_formatter = [ "$%s$" % latex(y) for y in yticks ]
     return {'ticks': [xticks, yticks], \
@@ -54,20 +57,26 @@ def perturb_ticks_keywords(function):
             'gridlines': True, \
             'tick_formatter': [xtick_formatter, ytick_formatter]}
 
-
 def plot_it(name):
     h = eval(name)()
     extremality_test(h, show_all_perturbations=True, show_plots=destdir + "%s-%%s" % name + ftype)
     show_plot(h._completion.plot(), destdir + "%s-%%s" % name + ftype, tag='completion-final')
     g = plot_covered_intervals(h, **ticks_keywords(h))
     g.save(destdir + "{}-only-function".format(name) + ftype,
-           figsize=igp.show_plots_figsize, aspect_ratio=0.3)
+           figsize=igp.show_plots_figsize, aspect_ratio=0.3, **paper_plot_kwds)
     for index, perturb in enumerate(h._perturbations):
         rescaled = rescale_to_amplitude(perturb, 1/10)
-        g = plot(rescaled, color='magenta', **perturb_ticks_keywords(h))
-        g.save(destdir + "{}-only-perturbation-{}".format(name, index+1) + ftype,
-               figsize=igp.show_plots_figsize, ymin=-0.11, ymax=0.11,
-               aspect_ratio=0.3)
+        for x_labels in [False, True]:
+            perturb_kwds = copy(paper_plot_kwds)
+            perturb_kwds.update(perturb_ticks_keywords(h, x_labels=x_labels))
+            if x_labels:
+                fname = "{}-only-perturbation-{}"
+            else:
+                fname = "{}-only-perturbation-nolabel-{}"
+            g = plot(rescaled, color='magenta', thickness=2, **perturb_kwds)
+            g.save(destdir + fname.format(name, index+1) + ftype,
+                   figsize=igp.show_plots_figsize, ymin=-0.11, ymax=0.11,
+                   aspect_ratio=0.3, **paper_plot_kwds)
 
 
 # figures for 1/2 linewidth
@@ -78,7 +87,7 @@ for name in 'equiv7_example_1', 'minimal_no_covered_interval':
 
 # figure for 0.8 linewidth
 igp.show_plots_figsize = 8
-paper_plot_kwds['fontsize'] = 15
+paper_plot_kwds['fontsize'] = 20
 for name in 'equiv7_example_xyz_2', :
     plot_it(name)
 
