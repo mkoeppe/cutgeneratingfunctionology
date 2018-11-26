@@ -113,6 +113,6 @@ g.save("/Users/arsenalcrown/Dropbox/jiawei-bhk-papers/jiawei/dff-paper/dff_paper
 
 f=w_2slope_3covered()
 g=plot_2d_diagram_dff_no_lable(f, colorful=True)
-g.save("/Users/arsenalcrown/Dropbox/jiawei-bhk-papers/jiawei/dff-paper/dff_paper_graphics/continuous_2slope_3covered.png")
+g.save("/Users/arsenalcrown/Dropbox/jiawei-bhk-papers/jiawei/dff-paper/dff_paper_graphics/continuous_2slope_3covered.png",figsize=25)
 
 
