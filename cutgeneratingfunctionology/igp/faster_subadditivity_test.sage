@@ -93,7 +93,7 @@ class SubadditivityTestTreeNode :
         lower_bound=min((slope_I*vertex[0]+intercept_I)+(slope_J*vertex[1]+intercept_J)-(slope_K*(vertex[0]+vertex[1])+intercept_K) for vertex in self.vertices)
         return lower_bound
 
-    def delta_pi_lower_bound(self,max_number_of_bkpts=30,solver='Coin'):
+    def delta_pi_lower_bound(self,max_number_of_bkpts=0,solver='Coin'):
         """
         Stratigic lower bound of delta pi. If the number of bkpts is small, use affine bound. Use constant bound otherwise.
         """
@@ -198,7 +198,7 @@ class SubadditivityTestTree :
     def number_of_leaves(self):
         return len(self.leaf_set)
 
-    def node_branching(self,node,search_method='BFS',find_min=True,stop_only_if_strict=True,**kwds):
+    def node_branching(self,node,search_method='BB',find_min=True,stop_only_if_strict=True,**kwds):
         """
         Branch on a given node, dependent on current self.global_upper_bound.
         """
@@ -241,7 +241,7 @@ class SubadditivityTestTree :
                 next_level.update({node.left_child,node.right_child})
         return next_level
 
-    def is_subadditive(self,stop_if_fail=False,cache_additive_vertices=False,search_method='BFS',**kwds):
+    def is_subadditive(self,stop_if_fail=False,cache_additive_vertices=False,search_method='BB',**kwds):
         if search_method=='BFS' or search_method=='DFS':
             self.unfathomed_node_list.put((0,self.root))
         elif search_method=='BB':
@@ -265,7 +265,7 @@ class SubadditivityTestTree :
             self._is_subadditive=True
         return self._is_subadditive
 
-    def minimum(self,search_method='BFS',**kwds):
+    def minimum(self,search_method='BB',**kwds):
         if search_method=='BFS' or search_method=='DFS':
             self.unfathomed_node_list.put((0,self.root))
         elif search_method=='BB':
@@ -281,7 +281,7 @@ class SubadditivityTestTree :
         self.min=self.global_upper_bound
         return self.min
 
-    def generate_maximal_additive_faces(self,search_method='BFS',**kwds):
+    def generate_maximal_additive_faces(self,search_method='BB',**kwds):
         epsilon=QQ(1)/1000000
         if search_method=='BFS' or search_method=='DFS':
             self.unfathomed_node_list.put((0,self.root))
