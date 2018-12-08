@@ -245,6 +245,16 @@ def coho_interval_from_interval(int):
     else:
         raise ValueError, "Not an interval: %s" % (int,)
 
+def realset_from_interval(int):
+    if len(int) == 0:
+        return RealSet()
+    elif len(int) == 1:
+        return RealSet.point(int[0])
+    elif len(int) == 2:
+        return RealSet.closed(int[0], int[1])
+    else:
+        raise ValueError, "Not an interval: %s" % (int,)
+
 def interval_length(interval):
     """
     Determine the length of the given interval.
