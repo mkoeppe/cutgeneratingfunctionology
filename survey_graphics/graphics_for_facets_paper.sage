@@ -38,7 +38,7 @@ liftname = ''
 
 Gh = (plot_2d_diagram_additive_domain_sans_limits(h, show_function=False) + plot_function_at_borders(h, color='black', thickness=2) + bb)
 Gh.save(destdir + '{}{}-2d_diagram_sans_limits'.format(name, liftname) + ftype, figsize=igp.show_plots_figsize, **paper_plot_kwds)
-Ghl = (plot_2d_diagram_additive_domain_sans_limits(hl, show_function=False, alpha=0.35) + plot_function_at_borders(hl, color='red', thickness=2) + bb)
+Ghl = (plot_2d_diagram_additive_domain_sans_limits(hl, show_function=False) + plot_function_at_borders(hl, color='red', thickness=2) + bb)
 ## (Gh + Ghl).save(destdir + '{}{}-lifted-2d_diagram_sans_limits'.format(name, liftname) + ftype, figsize=igp.show_plots_figsize, **paper_plot_kwds)
 Ghl.save(destdir + '{}{}-lift1-2d_diagram_sans_limits'.format(name, liftname) + ftype, figsize=igp.show_plots_figsize, **paper_plot_kwds)
 
@@ -51,12 +51,13 @@ Ghl.save(destdir + '{}{}-lift1-2d_diagram_plus_limits'.format(name, liftname) + 
 
 ####
 
-fn = kzh_minimal_has_only_crazy_perturbation_1()
-gen = set(itertools.chain(generate_type_1_vertices(fn, operator.gt), \
-                                generate_type_2_vertices(fn, operator.gt)))
-dp = [delta_pi_general(fn, x, y, (xeps, yeps, zeps)) for (x, y, z, xeps, yeps, zeps) in gen]
-igp.show_RNFElement_by_embedding=False
-assert min(dp) == 19/23998
+### The following has been replaced by the more precise test kzh_minimal_has_only_crazy_perturbation_1_check_subadditivity_slacks()
+## fn = kzh_minimal_has_only_crazy_perturbation_1()
+## gen = set(itertools.chain(generate_type_1_vertices(fn, operator.gt), \
+##                                 generate_type_2_vertices(fn, operator.gt)))
+## dp = [delta_pi_general(fn, x, y, (xeps, yeps, zeps)) for (x, y, z, xeps, yeps, zeps) in gen]
+## igp.show_RNFElement_by_embedding=False
+## assert min(dp) == 19/23998
 
 
 # figures for full linewidth
