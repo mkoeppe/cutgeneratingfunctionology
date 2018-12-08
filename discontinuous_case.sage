@@ -383,6 +383,14 @@ def delta_pi_general(fn, x, y, (xeps, yeps, zeps)=(0,0,0)):
     """
     return fn.limit(fractional(x), xeps) + fn.limit(fractional(y), yeps) - fn.limit(fractional(x + y), zeps)
 
+def delta_pi_of_face(fn, x, y, F):
+    def generic_point(I):
+        a, b = interval_to_endpoints(I)
+        return fractional((a + b) / 2)
+    return (fn.which_function(generic_point(F.minimal_triple[0]))(fractional(x))
+            + fn.which_function(generic_point(F.minimal_triple[1]))(fractional(y))
+            - fn.which_function(generic_point(F.minimal_triple[2]))(fractional(x + y)))
+
 def containing_eps_1d(x, interval):
     """
     Input:  
