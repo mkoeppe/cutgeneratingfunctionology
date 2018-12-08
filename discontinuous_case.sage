@@ -409,8 +409,8 @@ def containing_eps_1d(x, interval):
 def generate_containing_eps_triple(vertex, triple):
     """
     Given vertex `v` of face `F`, and the 3-projection-interval triple of `F`.
-    Return the approching limits {(xeps, yeps, zeps)}
-    pointing inwards at `v` from containning faces of `F`,
+    Return the approaching limits {(xeps, yeps, zeps)}
+    pointing inwards at `v` from containing faces of `F`,
     that should be considered for testing the additivity of `F`.
     """
     xeps_list = containing_eps_1d(vertex[0], triple[0])
