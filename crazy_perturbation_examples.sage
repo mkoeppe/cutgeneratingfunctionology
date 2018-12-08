@@ -181,16 +181,13 @@ def kzh_minimal_has_only_crazy_perturbation_1_perturbation():
     crazy_piece_2 = CrazyPiece((f-ucr, f-ucl), generators, [(f-ucr, 1), (f-ucl, -1)])
     return PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
 
-def generate_all_faces(fn):
-    zero_fn = FastPiecewise([(I, FastLinearFunction(0, 0)) for I, f in fn.list()], merge=False)
-    for F in generate_maximal_additive_faces_general(zero_fn):
-        yield F
-
-def number_of_projections_intersecting(F, real_set):
-    return len([I for I in F.minimal_triple
-                if not real_set.is_disjoint_from(realset_from_interval(I))])
-
-def check_faces():
+def kzh_minimal_has_only_crazy_perturbation_1_check_subadditivity_slacks():
+    def generate_all_faces(fn):
+        zero_fn = FastPiecewise([(I, FastLinearFunction(0, 0)) for I, f in fn.list()], merge=False)
+        return generate_maximal_additive_faces_general(zero_fn)
+    def number_of_projections_intersecting(F, real_set):
+        return len([I for I in F.minimal_triple
+                    if not real_set.is_disjoint_from(realset_from_interval(I))])
     h = kzh_minimal_has_only_crazy_perturbation_1()
     bkpts = h.end_points()
     ucl = bkpts[17]
@@ -199,18 +196,19 @@ def check_faces():
     special_intervals = RealSet.open(ucl, ucr) + RealSet.open(f - ucr, f - ucl)
     s = delta_pi_general(h, bkpts[39], 1 + ucl - bkpts[39], (-1, 0, 0))
     assert s == 19/23998
-    print("s = {}".format(s))
+    logging.debug("s = {}".format(s))
     for F in generate_all_faces(h):
         n_F = number_of_projections_intersecting(F, special_intervals)
         if n_F:
-            print("{} n_F = {}".format(F, n_F))
-            deltas = [ delta_pi_general(h, vertex[0], vertex[1], eps_triple)
-                       for vertex in F.vertices
-                       for eps_triple in generate_containing_eps_triple(vertex, F.minimal_triple) ]
+            logging.debug("{} n_F = {}".format(F, n_F))
+            deltas = [ delta_pi_of_face(h, vertex[0], vertex[1], F)
+                       for vertex in F.vertices ]
             deltas = sorted(unique_list(deltas))
-            print("... {}".format(deltas))
-            if deltas != [0]:
+            if deltas == [0]:
+                logging.debug("... additive face")
+            else:
+                logging.debug("... Delta pi values {}".format(deltas))
                 assert deltas[0] >= n_F * s
                 if deltas[0] == n_F * s:
-                    print("... tight")
-                    assert len(deltas) > 1
+                    logging.debug("... tight")
+                    assert len(deltas) > 1  # strict for at least one vertex
