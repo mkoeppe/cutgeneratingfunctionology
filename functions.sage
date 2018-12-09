@@ -141,6 +141,8 @@ def generate_maximal_additive_faces(fn):
     fn._maximal_additive_faces = result
     return result
             
+additive_color = "mediumspringgreen"
+
 ### Create a new class representing a "face" (which knows its
 ### vertices, minimal triple, whether it's a translation/reflection,
 ### etc.; whether it's solid or dense).
@@ -171,10 +173,12 @@ class Face:
     def __repr__(self):
         return '<Face ' + repr(self.minimal_triple) + '>'
 
-    def plot(self, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color="mediumspringgreen", edge_thickness=2, *args, **kwds):
+    def plot(self, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color=None, edge_thickness=2, *args, **kwds):
         y = var('y')
         trip = self.minimal_triple
         vert = self.vertices
+        if fill_color is None:
+            fill_color = additive_color
         if self.is_0D():
             return point((trip[0][0], \
                           trip[1][0]), rgbcolor = rgbcolor, size = 30, **kwds)
@@ -347,7 +351,7 @@ def convex_vert_list(vertices):
 def plot_kwds_hook(kwds):
     pass
 
-def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal=False, f=None, colorful=False, additive_color="mediumspringgreen", function_color="blue"):
+def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal=False, f=None, colorful=False, additive_color=None, function_color="blue"):
     """
     Returns a plot of the 2d complex (`\\Delta P`) of fn with shaded
     additive faces, i.e., faces where `\\Delta \\pi = 0`.
@@ -381,6 +385,9 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     """
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    if additive_color is None:
+        import igp
+        additive_color = igp.additive_color
     faces = generate_maximal_additive_faces(fn)
     p = Graphics()
     kwds = { 'legend_label': "Additive face" }
@@ -480,7 +487,7 @@ def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
                 p += line([(-(3/10)*y1, x1), (-(3/10)*y2, x2)], color=colors[i], zorder=-2, **kwds)
     return p
 
-def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200, additive_color="mediumspringgreen", function_color="blue"):
+def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200, additive_color=additive_color, function_color="blue"):
     """
     EXAMPLES::
 
@@ -524,7 +531,7 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200, add
                 g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)), color=color, r=0.03)
     return g
 
-def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, additive_color="mediumspringgreen", function_color='blue', **kwds):
+def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, additive_color=additive_color, function_color='blue', **kwds):
     """
     EXAMPLES::
 
@@ -724,8 +731,8 @@ def generate_covered_components(function):
         sage: h = hildebrand_discont_3_slope_1()
         sage: generate_covered_components(h)
         [[<Int(0, 1/8)>, <Int(3/8, 1/2)>],
-         [<Int(1/8, 1/4)>, <Int(1/4, 3/8)>, <Int(1/2, 5/8)>, <Int(7/8, 1)>],
-         [<Int(5/8, 3/4)>, <Int(3/4, 7/8)>]]    
+         [<Int(1/8, 3/8)>, <Int(1/2, 5/8)>, <Int(7/8, 1)>],
+         [<Int(5/8, 7/8)>]]
     """
     if hasattr(function,  "_completion"):
         return function._completion.covered_components
@@ -745,7 +752,8 @@ def generate_covered_components(function):
     functional_directed_moves = generate_functional_directed_moves(function)
     covered_components = generate_directly_covered_components(function)
     completion = DirectedMoveCompositionCompletion(functional_directed_moves,
-                                                   covered_components = covered_components)
+                                                   covered_components=covered_components,
+                                                   function=function)
     completion.add_backward_moves()
     while completion.any_change_components:
         completion.extend_components_by_moves()
@@ -768,7 +776,19 @@ def uncovered_intervals_from_covered_components(covered_components):
 
 # alias
 uncovered_intervals_from_covered_intervals = uncovered_intervals_from_covered_components
-    
+
+y_ticks_use_solidus = False
+
+def latex_tick_formatter_x(x):
+    return "$%s$" % latex(x)
+
+def latex_tick_formatter_y(y):
+    if y_ticks_use_solidus and y in QQ and y not in ZZ:
+        y = QQ(y)
+        return "$%s/%s$" % (y.numerator(), y.denominator())
+    else:
+        return "$%s$" % latex(y)
+
 def ticks_keywords(function, y_ticks_for_breakpoints=False, extra_xticks=[], extra_yticks=[1]):
     """
     Compute ``plot`` keywords for displaying the ticks.
@@ -781,16 +801,15 @@ def ticks_keywords(function, y_ticks_for_breakpoints=False, extra_xticks=[], ext
     except ValueError:
         pass
     xticks = uniq(list(extra_xticks) + xticks)
-    xtick_formatter = [ "$%s$" % latex(x) for x in xticks ]
+    xtick_formatter = [ latex_tick_formatter_x(x) for x in xticks ]
     #xtick_formatter = 'latex'  # would not show rationals as fractions
     ytick_formatter = None
     if y_ticks_for_breakpoints:
         yticks = xticks
-        ytick_formatter = xtick_formatter
     else:
         #yticks = 1/5
         yticks = uniq(list(extra_yticks) + [ y for limits in function.limits_at_end_points() for y in limits if y is not None ])
-        ytick_formatter = [ "$%s$" % latex(y) for y in yticks ]
+    ytick_formatter = [ latex_tick_formatter_y(y) for y in yticks ]
     ## FIXME: Can we influence ticks placement as well so that labels don't overlap?
     ## or maybe rotate labels 90 degrees?
     return {'ticks': [xticks, yticks], \
@@ -963,14 +982,15 @@ def plot_with_colored_slopes(fn):
 
 ### Minimality check.
 
-def subadditivity_test(fn, stop_if_fail=False):
+def subadditivity_test(fn, full_certificates=True):
     """
     Check if fn is subadditive.
     """
     result = True
     for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices(fn, reduced=True):
         logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
-        if stop_if_fail:
+        if not full_certificates:
+            logging.info("Thus pi is not subadditive.")
             return False
         else:
             result = False
@@ -980,21 +1000,23 @@ def subadditivity_test(fn, stop_if_fail=False):
         logging.info("Thus pi is not subadditive.")
     return result
 
-def symmetric_test(fn, f, stop_if_fail=False):
+def symmetric_test(fn, f, full_certificates=True):
     """
     Check if fn is symmetric.
     """
     result = True
     if fn(f) != 1:
         logging.info('pi(f) is not equal to 1.')
-        if stop_if_fail:
+        if not full_certificates:
+            logging.info('pi is not symmetric.')
             return False
         else:
             result = False
     result = True
     for (x, y, xeps, yeps) in generate_nonsymmetric_vertices(fn, f):
         logging.info("pi(%s%s) + pi(%s%s) is not equal to 1" % (x, print_sign(xeps), y, print_sign(yeps)))
-        if stop_if_fail:
+        if not full_certificates:
+            logging.info('pi is not symmetric.')
             return False
         else:
             result = False
@@ -1032,7 +1054,7 @@ def find_f(fn, no_error_if_not_minimal_anyway=False):
         return None
     raise ValueError, "The given function has no breakpoint where the function takes value 1, so cannot determine f.  Provide parameter f to minimality_test or extremality_test."
 
-def minimality_test(fn, show_plots=False, f=None, stop_if_fail=False):
+def minimality_test(fn, show_plots=False, f=None, full_certificates=True):
     """
     Checks if fn is minimal with respect to the group relaxation with the given `f`.  
 
@@ -1069,13 +1091,13 @@ def minimality_test(fn, show_plots=False, f=None, stop_if_fail=False):
             if not ((x[-1] is None or 0 <= x[-1] <=1) and (x[1] is None or 0 <= x[1] <=1)):
                 logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
                 return False
-    if subadditivity_test(fn, stop_if_fail=stop_if_fail) and \
-       symmetric_test(fn, f, stop_if_fail=stop_if_fail):
+    if subadditivity_test(fn, full_certificates=full_certificates) and \
+       symmetric_test(fn, f, full_certificates=full_certificates):
         logging.info('Thus pi is minimal.')
         is_minimal = True
     else:
         logging.info('Thus pi is NOT minimal.')
-        if stop_if_fail:
+        if not full_certificates:
             return False
         else:
             is_minimal = False
@@ -2629,24 +2651,11 @@ class FunctionalDirectedMove (FastPiecewise):
         """
         return self.directed_move[0] == 1 and self.directed_move[1] == 0
 
-    def restricted(self, intervals):
-        """
-        Not used.
-        Return a new move that is the restriction of domain and codomain of self to intervals.
-        (The result may have the empty set as its domain.)
-        """
-        domain = self.intervals()                        # sorted.
-        preimages = [ self.apply_to_coho_interval(interval, inverse=True) for interval in intervals ]
-        preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
-        new_domain = list(intersection_of_coho_intervals([domain, intervals, preimages]))
-        return FunctionalDirectedMove(new_domain, self.directed_move)
-
     def restricting(self, components):
-        """ 
+        """
         Returns a new move by removing ``self.restricted(component)`` for component in components.
         (The result may have the empty set as its domain.)
         """
-
         domain = self.intervals()                        # sorted.
         restricting_domain_list = []
         for component in components:
@@ -2655,6 +2664,34 @@ class FunctionalDirectedMove (FastPiecewise):
             restricting_domain_list.append(list(intersection_of_coho_intervals([component, preimages])))
         new_domain = union_of_coho_intervals_minus_union_of_coho_intervals([domain], restricting_domain_list, remove_closure=True )
         return FunctionalDirectedMove(new_domain, self.directed_move)
+
+    def reduced_by_components(self, covered_components, pts_of_discontinuity=True):
+        domain_move = [interval_including_endpoints_if_continuous(interval, pts_of_discontinuity, self) for interval in self.intervals()]
+        covered_domains = []
+        for component in covered_components:
+            preimages =  [ self.apply_to_coho_interval(interval, inverse=True) for interval in component ]
+            preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
+            restricted_domain = intersection_of_coho_intervals([component, preimages])
+            covered_domain = [interval_including_endpoints_if_continuous(interval, pts_of_discontinuity, self) for interval in restricted_domain]
+            covered_domains.append(covered_domain)
+        domain_component = union_of_coho_intervals_minus_union_of_coho_intervals(covered_domains,[])
+        domain_component_indices = set([])
+        domain_move_indices = set(range(len(domain_move)))
+        domains = []
+        for index_i in list(domain_move_indices):
+            i = domain_move[index_i]
+            for index_j in range(len(domain_component)):
+                j = domain_component[index_j]
+                if coho_interval_contained_in_coho_interval(i, j):
+                    # remove interval i from domain if it is fully covered.
+                    domain_move_indices.remove(index_i)
+                elif coho_intervals_intersecting(i, j):
+                    # extend to the boundary of covered interval.
+                    domain_component_indices.add(index_j)
+        domains = [[domain_move[index_i] for index_i in sorted(domain_move_indices)], [domain_component[index_j] for index_j in sorted(domain_component_indices)]]
+        union_domains = union_of_coho_intervals_minus_union_of_coho_intervals(domains, [])
+        open_domains = [open_interval(i[0],i[1]) for i in union_domains]
+        return FunctionalDirectedMove(open_domains, self.directed_move)
 
     def plot(self, rgbcolor=None, color=None, *args, **kwds):
         kwds = copy(kwds)
@@ -2781,15 +2818,17 @@ def show_plot(graphics, show_plots, tag, object=None, **show_kwds):
     - ``True`` (use ``show`` to display on screen), 
     - a string (file name format such as "FILENAME-%s.pdf", where %s is replaced by tag.
     """
+    show_kwds = copy(show_kwds)
     plot_kwds_hook(show_kwds)
     if isinstance(graphics, sage.plot.graphics.GraphicsArray):
         # GraphicsArrays can't have legends.
-        show_kwds = copy(show_kwds)
         plot_kwds_hook_no_legend(show_kwds)
+    if show_plots_figsize is not None:
+        show_kwds['figsize'] = show_plots_figsize
     if isinstance(show_plots, str):
-        graphics.save(show_plots % tag, figsize=show_plots_figsize, **show_kwds)
+        graphics.save(show_plots % tag, **show_kwds)
     elif show_plots:
-        graphics.show(figsize=show_plots_figsize, **show_kwds)
+        graphics.show(**show_kwds)
 
 def plot_rescaled_perturbation(perturb, xmin=0, xmax=1, **kwds):
     return plot(rescale_to_amplitude(perturb, 1/10), xmin=xmin,
@@ -2863,7 +2902,7 @@ def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbatio
     assert epsilon > 0, "Epsilon should be positive, something is wrong"
     #logging.info("Thus the function is not extreme.")  ## Now printed by caller.
 
-def generate_perturbations_finite_dimensional(function, show_plots=False, f=None):
+def generate_perturbations_finite_dimensional(function, show_plots=False, f=None, full_certificates=True):
     ## FIXME: Perhaps we want an oversampling parameter as in generate_perturbations_simple??
     """
     Generate (with ``yield``) perturbations for ``finite_dimensional_extremality_test``.
@@ -2893,6 +2932,9 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
     slope_jump_vects = equation_matrix.right_kernel().basis()
     logging.info("Finite dimensional test: Solution space has dimension %s." % len(slope_jump_vects))
     for basis_index in range(len(slope_jump_vects)):
+        if not full_certificates:
+            yield None
+            return
         slope_jump = slope_jump_vects[basis_index]
         logging.debug("The {}-th solution is\nv = {}.".format(basis_index+1, slope_jump))
         perturbation = slope_jump * symbolic
@@ -2902,7 +2944,7 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
         yield perturbation
 
 def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn_about_uncovered_intervals=True, 
-                                        show_all_perturbations=False):
+                                        show_all_perturbations=False, full_certificates=True):
     """
     Solve a homogeneous linear system of additivity equations with one
     slope variable for every component (including every non-covered
@@ -2930,10 +2972,13 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn
     if show_all_perturbations is None:
         show_all_perturbations = show_plots
     if function.is_discrete():
-        return simple_finite_dimensional_extremality_test(function, oversampling=1, show_all_perturbations=show_all_perturbations)
+        return simple_finite_dimensional_extremality_test(function, oversampling=1, show_all_perturbations=show_all_perturbations, full_certificates=full_certificates)
     seen_perturbation = False
     function._perturbations = []
-    for index, perturbation in enumerate(generate_perturbations_finite_dimensional(function, show_plots=show_plots, f=f)):
+    for index, perturbation in enumerate(generate_perturbations_finite_dimensional(function, show_plots=show_plots, f=f, full_certificates=full_certificates)):
+        if not full_certificates:
+            logging.info("The function is NOT extreme.")
+            return False
         function._perturbations.append(perturbation)
         check_perturbation(function, perturbation,
                            show_plots=show_plots, show_plot_tag='perturbation-%s' % (index + 1),
@@ -3005,7 +3050,7 @@ class MaximumNumberOfIterationsReached(Exception):
 
 crazy_perturbations_warning = False
 
-def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, phase_1 = False, finite_dimensional_test_first = False, show_all_perturbations=False, crazy_perturbations=True):
+def extremality_test(fn, show_plots = False, f=None, max_num_it=1000, phase_1=False, finite_dimensional_test_first=False, show_all_perturbations=False, crazy_perturbations=True, full_certificates=True):
     """Check if fn is extreme for the group relaxation with the given `f`. 
 
     If fn is discrete, it has to be defined on a cyclic subgroup of
@@ -3063,7 +3108,7 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, phase_1 
         crazy_perturbations_warning = True
     else:
         crazy_perturbations_warning = False
-    if f is None or not minimality_test(fn, show_plots=show_plots, f=f):
+    if f is None or not minimality_test(fn, show_plots=show_plots, f=f, full_certificates=full_certificates):
         logging.info("Not minimal, thus NOT extreme.")
         if not phase_1:
             return False
@@ -3071,10 +3116,16 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, phase_1 
             do_phase_1_lifting = True
     if do_phase_1_lifting:
         finite_dimensional_test_first = True
+    if not full_certificates and fn.is_continuous() and number_of_slopes(fn) == 2:
+        logging.info("Gomory-Johnson's 2-slope theorem applies. The function is extreme.")
+        return True
     seen_perturbation = False
-    generator = generate_perturbations(fn, show_plots=show_plots, f=f, max_num_it=max_num_it, finite_dimensional_test_first=finite_dimensional_test_first)
+    generator = generate_perturbations(fn, show_plots=show_plots, f=f, max_num_it=max_num_it, finite_dimensional_test_first=finite_dimensional_test_first, full_certificates=full_certificates)
     fn._perturbations = []
     for index, perturbation in enumerate(generator):
+        if not full_certificates:
+            logging.info("The function is NOT extreme.")
+            return False
         fn._perturbations.append(perturbation)
         check_perturbation(fn, perturbation, show_plots=show_plots, 
                            show_plot_tag='perturbation-%s' % (index + 1), 
@@ -3088,16 +3139,19 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it = 1000, phase_1 
         logging.info("Thus the function is extreme.")
     return not seen_perturbation
 
-def generate_perturbations(fn, show_plots=False, f=None, max_num_it=1000, finite_dimensional_test_first = False):
+def generate_perturbations(fn, show_plots=False, f=None, max_num_it=1000, finite_dimensional_test_first=False, full_certificates=True):
     """
     Generate (with ``yield``) perturbations for ``extremality_test``.
     """
     if fn.is_discrete():
-        all = generate_perturbations_simple(fn, show_plots=show_plots, f=f, oversampling=None)
+        all = generate_perturbations_simple(fn, show_plots=show_plots, f=f, oversampling=None, full_certificates=full_certificates)
     else:
         fdms, covered_components= generate_directed_move_composition_completion(fn, show_plots=show_plots)
-        finite = generate_perturbations_finite_dimensional(fn, show_plots=show_plots, f=f)
+        finite = generate_perturbations_finite_dimensional(fn, show_plots=show_plots, f=f, full_certificates=full_certificates)
         uncovered_intervals = generate_uncovered_intervals(fn)
+        if not full_certificates and uncovered_intervals:
+            yield None
+            return
         if show_plots:
             logging.info("Plotting covered intervals...")
             show_plot(plot_covered_intervals(fn), show_plots, tag='covered_intervals', object=fn)
@@ -3938,7 +3992,7 @@ def check_for_strip_lemma_fastpath(m1, m2):
         [<Int(4/15, 14/15)>]
     """
     if not check_for_strip_lemma_linear_independence(m1, m2):
-        return None
+        return []
     return check_for_strip_lemma_small_translations(m1.intervals(), m2.intervals(), m1[1], m2[1])
 
 def check_for_strip_lemma_linear_independence(m1, m2):
@@ -3983,89 +4037,86 @@ def check_for_strip_lemma_small_translations(domain1, domain2, t1, t2):
             UU = max(u1 + t1, u2 + t2)
             if t1 + t2 <= U - L:
                 dense_intervals.append(open_interval(LL, UU))
-    if not dense_intervals:
-        return None
-    else:
-        # sort the dense intervals and return the union
-        d = union_of_coho_intervals_minus_union_of_coho_intervals([[interval] for interval in dense_intervals], [])
-        return d
+    d = union_of_coho_intervals_minus_union_of_coho_intervals([[interval] for interval in dense_intervals], [])
+    return d
 
-def extend_domain_of_move_by_adding_covered_intervals(fdm, fn, covered_components, known_extended_domains):
-    #TODO reflection moves
-    if not (fdm.sign() == 1) or fn is None or fn.is_two_sided_discontinuous():
-        return fdm.intervals()
-    t = fdm[1]
-    if known_extended_domains.has_key(t):
-        return known_extended_domains[t]
-    fdm_domain = [interval_including_endpoints_if_continuous(interval, t, fn) for interval in fdm.intervals()]
-    covered_domains = []
-    for component in covered_components:
-        preimages = [ open_interval(i[0] - t, i[1] - t) for i in component ]
-        restricted_domain = intersection_of_coho_intervals([component, preimages])
-        covered_domain = [interval_including_endpoints_if_continuous(interval, t, fn) for interval in restricted_domain]
-        covered_domains.append(covered_domain)
-    union_domains = union_of_coho_intervals_minus_union_of_coho_intervals(covered_domains+[fdm_domain],[])
-    # discard the intervals that do not intersect with fdm_domains
-    extended_domain = []
-    for domain in union_domains:
-        keep = False
-        for i in fdm_domain:
-            if coho_interval_contained_in_coho_interval(i, domain):
-                keep = True
-                break
-        if keep:
-            extended_domain.append(domain)
-    known_extended_domains[t] = extended_domain
-    return extended_domain
-
-def is_continuous_at_point(fn, x):
-    if fn.is_continuous():
-        return True
-    else:
-        limits = fn.limits(x)
-        return limits[-1]==limits[0]==limits[1]
-
-def interval_including_endpoints_if_continuous(interval, t, fn):
-    left_closed = is_continuous_at_point(fn, interval[0]) and is_continuous_at_point(fn, interval[0] + t)
-    right_closed = is_continuous_at_point(fn, interval[1]) and is_continuous_at_point(fn, interval[1] + t)
+def interval_including_endpoints_if_continuous(interval, pts_of_discontinuity=True, fdm=None):
+    assert pts_of_discontinuity is not None
+    if pts_of_discontinuity is True:
+        # everywhere discontinuous
+        return interval
+    # pts of discontinuity is a list
+    left_closed = (interval[0] not in pts_of_discontinuity)
+    right_closed = (interval[1] not in pts_of_discontinuity)
+    if fdm:
+        left_closed= left_closed and (fdm.apply_ignoring_domain(interval[0]) not in pts_of_discontinuity)
+        right_closed = right_closed and (fdm.apply_ignoring_domain(interval[1]) not in pts_of_discontinuity)
     return closed_or_open_or_halfopen_interval(interval[0], interval[1], left_closed, right_closed)
 
-def extended_initial_move_by_continuity(fdm, fn):
-    if fn is None or fn.is_two_sided_discontinuous():
-        return fdm
-    extended_domain = []
-    # assume domain of fdm is a list of open intervals
-    interval = fdm.intervals()[0]
-    l_last = interval[0]
-    r_last = interval[1]
-    for interval in fdm.intervals()[1::]:
-        l = interval[0]
-        r = interval[1]
-        if (r_last == l) and is_continuous_at_point(fn, l) and is_continuous_at_point(fn, fdm.apply_ignoring_domain(l)):
-            r_last = r
-        else:
-            extended_domain.append(open_interval(l_last, r_last))
-            l_last = l
-            r_last = r
-    extended_domain.append(open_interval(l_last, r_last))
-    return FunctionalDirectedMove(extended_domain, fdm.directed_move)
+def plot_points_of_discontinuity_at_borders(pts_of_discontinuity):
+    if pts_of_discontinuity is True:
+        # Everywhere discontinuous.
+        return line(((0, 0), (0, 1), (1, 1)), color='white', linestyle=':', thickness=2, zorder=10)
+    if not pts_of_discontinuity:
+        return Graphics()
+    cts_intervals = union_of_coho_intervals_minus_union_of_coho_intervals([[[0, 1]]],
+                                                                          [ [[x]] for x in pts_of_discontinuity ])
+    cts_function = FastPiecewise([ (interval, FastLinearFunction(0,0)) for interval in cts_intervals ])
+    g = plot_function_at_borders(cts_function, color='black')
+    for x in pts_of_discontinuity:
+        g += line(((0, x), (1, x)), color='gray', linestyle=':') + line(((x, 0), (x, 1)), color='gray', linestyle=':')
+    return g
 
 show_translations_and_reflections_separately = False
 show_translations_and_reflections_by_color = False
 show_covered_components_as_rectangles = False
 
 class DirectedMoveCompositionCompletion:
-    # FIXME: Rename function_at_border because it is used for continuity properties too,
-    # not just for plotting.
-    
-    def __init__(self, fdms=[], covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, show_zero_perturbation=True):
+
+    def __init__(self, fdms=[], covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function=None, pts_of_discontinuity=None, show_zero_perturbation=True, show_kwds={}):
+        """
+        Computation of the continuous closure of (the inverse semigroup generated by) a set of moves.
+
+        Input for abstract move ensembles:
+         - fdms: list of ``FunctionalDirectedMove`` elements (each is a move with a list of domains)
+         - covered_components: list of lists of intervals
+         - pts_of_discontinuity: Either ``True'' (everywhere discontinuous), or a list of points
+           where discontinuity is allowed.  If not provided (or ``None''), uses the following defaults:
+           If ``function`` is provided, uses the allowed discontinuities of its effective perturbations.
+           Otherwise, defaults to ``True`` (everywhere discontinuous).
+
+        Additional input for move ensembles coming from a function:
+         - function: a ``FastPiecewise`` function
+        """
         self.show_plots = show_plots
+        self._show_kwds = show_kwds
         self.plot_background = plot_background
         # To show colorful components at borders, and in extend_domain_of_move_by_adding_covered_intervals, need the function. Otherwise set it to default None
-        self.function_at_border = function_at_border
+        self.function = function
+        if function is not None:
+            if pts_of_discontinuity is not None:
+                raise ValueError("only one of function and pts_of_discontinuity can be provided")
+            if function.is_continuous():
+                pts_of_discontinuity = []
+            elif function.is_two_sided_discontinuous():
+                pts_of_discontinuity = True
+            elif pts_of_discontinuity is None:
+                # function is discontinuous but not two-sided discontinuous at the origin.
+                # pts_of_discontinuity is not given. We compute itl
+                pts_of_discontinuity = []
+                for x in function.end_points():
+                    limits = function.limits(x)
+                    if not limits[-1]==limits[0]==limits[1]:
+                        pts_of_discontinuity.append(x)
+        else:
+            if pts_of_discontinuity is None:
+                pts_of_discontinuity = True
+        self.pts_of_discontinuity = pts_of_discontinuity
         self.move_dict = dict()
         self.sym_init_moves = dict() # updated by self.add_backward_moves() in round 0.
         self.covered_components = covered_components
+        self._max_component_intervals = 0
+        self._max_directed_move_intervals = 0
         if covered_components:
             self.any_change_components = True
         else:
@@ -4078,12 +4129,33 @@ class DirectedMoveCompositionCompletion:
         self.proj_add_vert = proj_add_vert
         self._show_zero_perturbation = show_zero_perturbation
 
+    def update_stats(self):
+        """
+        Update ``max_component_intervals`` and ``max_directed_move_intervals``.
+        """
+        self._max_component_intervals = max(self._max_component_intervals,
+                                            self.num_component_intervals())
+        self._max_directed_move_intervals = max(self._max_directed_move_intervals,
+                                                self.num_directed_move_intervals())
+
+    def num_component_intervals(self):
+        return sum(len(c) for c in self.covered_components)
+
+    def num_directed_move_intervals(self):
+        return sum(len(m.intervals()) for m in self.move_dict.itervalues())
+
+    def max_component_intervals(self):
+        return self._max_component_intervals
+
+    def max_directed_move_intervals(self):
+        return self._max_directed_move_intervals
+
     def add_move(self, fdm):
         """
         Add a functional directed move to self.
         Merge or restrict functional directed move if necessary.
         """
-        reduced_fdm = fdm.restricting(self.covered_components)
+        reduced_fdm = fdm.reduced_by_components(self.covered_components, self.pts_of_discontinuity)
         if not reduced_fdm.intervals():
             return
         directed_move = fdm.directed_move
@@ -4116,6 +4188,7 @@ class DirectedMoveCompositionCompletion:
         if show_covered_components_as_rectangles:
             g += plot_covered_components_as_rectangles(self.covered_components)
         g += plot_directed_moves(moves, **kwds)
+        g += plot_points_of_discontinuity_at_borders(self.pts_of_discontinuity)
         if self._show_zero_perturbation:
             zero_perturbation = zero_perturbation_partial_function(self.covered_components,
                                                                    self.generate_zero_perturbation_points())
@@ -4123,8 +4196,8 @@ class DirectedMoveCompositionCompletion:
                 g += plot_function_at_borders(zero_perturbation, color='magenta', legend_label='fixed perturbation (mod interpol)', thickness=3)
         if self.plot_background:
             g += self.plot_background
-        if self.function_at_border and self.covered_components:
-            g +=  plot_covered_components_at_borders(self.function_at_border, self.covered_components, **kwds)
+        if self.function and self.covered_components:
+            g +=  plot_covered_components_at_borders(self.function, self.covered_components, **kwds)
         if extra_graphics:
             g += extra_graphics
         return g
@@ -4153,7 +4226,7 @@ class DirectedMoveCompositionCompletion:
             g = self.plot(legend_label='moves')
             if current_dense_move_plot:
                 g += current_dense_move_plot
-            show_plot(g, self.show_plots, tag, legend_title=title, legend_loc="upper left", object=self)
+            show_plot(g, self.show_plots, tag, legend_title=title, legend_loc="upper left", object=self, **self._show_kwds)
             logging.info("Plotting... done")
 
     def extend_components_by_moves(self):
@@ -4165,39 +4238,33 @@ class DirectedMoveCompositionCompletion:
         self.any_change_components = False
         for component in self.covered_components:
             extended_component = component
-            for dm in self.move_dict.keys():
-                if self.sym_init_moves.has_key(dm) and list(intersection_of_coho_intervals([extended_component, self.move_dict[dm].intervals()])):
-                    #can extend the compnent by self.sym_init_moves[dm]
+            for (dm, fdm) in self.move_dict.items():
+                overlapped_ints = intersection_of_coho_intervals([extended_component, fdm.intervals()]) # generator
+                moved_ints = [[fdm.apply_to_coho_interval(overlapped_int)] for overlapped_int in overlapped_ints]
+                new_ints = union_of_coho_intervals_minus_union_of_coho_intervals(moved_ints, [extended_component])
+                if new_ints:
+                    #can extend the compnent by applying fdm
                     self.any_change_components = True
-                    fdm = self.sym_init_moves[dm]
-                    overlapped_ints = intersection_of_coho_intervals([extended_component, fdm.intervals()]) # generator
-                    moved_intervals = [[fdm.apply_to_coho_interval(overlapped_int)] for overlapped_int in overlapped_ints ]
-                    extended_component = union_of_coho_intervals_minus_union_of_coho_intervals([extended_component] + moved_intervals, [])
+                    extended_component = union_of_coho_intervals_minus_union_of_coho_intervals([extended_component] + moved_ints, [])
+                    extended_component = self.extend_component_by_continuity(extended_component)
             new_components.append(extended_component)
-        # got a extended component list, now merge components
+        # got a list of extended components, now merge components
         self.covered_components = reduce_covered_components(new_components)
         # kill moves
         self.reduce_moves_by_components()
 
     def extend_components_by_strip_lemma(self):
         global crazy_perturbations_warning
-        changed_move_keys = self.any_change_moves
         all_move_keys = self.move_dict.keys()
         strip_lemma_intervals = []
-        known_extended_domains = dict()
-        for dm_a in changed_move_keys:
+        for dm_a in all_move_keys:
             for dm_b in all_move_keys:
                 a = self.move_dict.get(dm_a, None)
                 b = self.move_dict.get(dm_b, None)
                 if not a or not b:
                     continue                        # move has been killed
-                if not check_for_strip_lemma_linear_independence(a, b):
-                    continue   # clear obstructions to apply the strip lemma
-                a_domain = extend_domain_of_move_by_adding_covered_intervals(a, self.function_at_border, self.covered_components, known_extended_domains)
-                b_domain = extend_domain_of_move_by_adding_covered_intervals(b, self.function_at_border, self.covered_components, known_extended_domains)
                 # check if the strip lemma gives new dense intervals
-                d = check_for_strip_lemma_small_translations(a_domain, b_domain, a[1], b[1])
-                # d is not dominated by covered_components because we start with reduced moves.
+                d = check_for_strip_lemma_fastpath(a, b)
                 if d:
                     if crazy_perturbations_warning:
                         logging.warn("This function is two-sided discontinuous at the origin. Crazy perturbations might exist.")
@@ -4206,9 +4273,10 @@ class DirectedMoveCompositionCompletion:
                     logging.info("New dense move from strip lemma: %s" % d)
                     # merge components with d
                     dense_intervals, self.covered_components = merge_components_with_given_component(d, self.covered_components)
+                    dense_intervals = self.extend_component_by_continuity(dense_intervals)
                     self.covered_components.append(dense_intervals)
                     # kill moves
-                    self.reduce_moves_by_components(given_components = [dense_intervals])
+                    self.reduce_moves_by_components()
         if strip_lemma_intervals:
             return sum(plot_covered_component_as_rectangles([interval])
                        for interval in strip_lemma_intervals)
@@ -4231,16 +4299,14 @@ class DirectedMoveCompositionCompletion:
                 if c:
                     self.add_move(c)
 
-    def reduce_moves_by_components(self, given_components=None):
+    def reduce_moves_by_components(self):
         """
         Reduce moves with ``self.covered_components``.
         """
+        # NOTE: it does not modify any_change_moves even if longer moves are created.
         new_move_dict = dict()
         for (dm, fdm) in self.move_dict.items():
-            if not given_components is None:
-                reduced_fdm = fdm.restricting(given_components)
-            else:
-                reduced_fdm = fdm.restricting(self.covered_components)
+            reduced_fdm = fdm.reduced_by_components(self.covered_components, self.pts_of_discontinuity)
             if reduced_fdm.intervals():
                 new_move_dict[dm] = reduced_fdm
         self.move_dict = new_move_dict
@@ -4251,27 +4317,39 @@ class DirectedMoveCompositionCompletion:
             self.extend_components_by_moves()
         current_dense_move_plot = self.extend_components_by_strip_lemma()
         self.extend_moves_by_composition_of_moves()
+        self.update_stats()
         self.num_rounds += 1
         self.maybe_show_plot(current_dense_move_plot)
 
+    def extend_component_by_continuity(self, component):
+        assert self.pts_of_discontinuity is not None
+        if self.pts_of_discontinuity is not True:
+            intervals = [interval_including_endpoints_if_continuous(interval, self.pts_of_discontinuity, None) for interval in component]
+            union_intervals = union_of_coho_intervals_minus_union_of_coho_intervals([intervals],[])
+            new_component = [open_interval(i[0],i[1]) for i in union_intervals]
+            return new_component
+        else:
+            # discontinuous everywhere
+            return component
+
+    def extend_components_by_continuity(self):
+        self.covered_components = [self.extend_component_by_continuity(component) for component in self.covered_components]
+
     def add_backward_moves(self):
         self.num_rounds = 0
-        move_keys = list(self.any_change_moves)
-        self.any_change_moves = set()
-        for dm in move_keys:
-            if dm[0] == 1:
-                forward_fdm = self.move_dict[dm]
-                backward_fdm = ~forward_fdm
-                self.add_move(backward_fdm)
-        # extend initial moves by continuity
-        for dm in self.move_dict.keys():
-           fdm = self.move_dict[dm]
-           self.move_dict[dm] = extended_initial_move_by_continuity(fdm, self.function_at_border)
-        if self.any_change_moves: # has new backward moves
-            # to see that unnecessary discontinuity marks have disappeared,
-            # need to set kwds['discontinuity_markers'] = True in FunctionalDirectedMove.plot()
-            # and call the following no matter self.any_change_moves is True or False
-            self.maybe_show_plot()
+        self.extend_components_by_continuity()
+        for dm in list(self.any_change_moves):
+            # For reflections coming from faces, this is a no-op.
+            # But we do this anyway, to be consistent for abstract moves diagram.
+            #if dm[0] == -1: continue
+            # extend initial moves by continuity
+            forward_fdm = self.move_dict[dm].reduced_by_components(self.covered_components, self.pts_of_discontinuity)
+            backward_fdm = ~forward_fdm
+            self.add_move(backward_fdm)
+        # to see that unnecessary discontinuity marks have disappeared,
+        # need to set kwds['discontinuity_markers'] = True in FunctionalDirectedMove.plot()
+        # and call the following no matter self.any_change_moves is True or False
+        self.maybe_show_plot()
         self.any_change_moves = set(self.move_dict.keys())
         self.sym_init_moves = copy(self.move_dict)
 
@@ -4281,6 +4359,8 @@ class DirectedMoveCompositionCompletion:
                 # do not show move diagram if there is no moves.
                 self.maybe_show_plot()
             self.add_backward_moves()
+            self.reduce_moves_by_components()
+        self.update_stats()
 
         while (self.any_change_components or self.any_change_moves) and (max_num_rounds is None or self.num_rounds < max_num_rounds):
             self.complete_one_round()
@@ -4304,7 +4384,7 @@ class DirectedMoveCompositionCompletion:
         else:
             return "<DirectedMoveCompositionCompletion (incomplete, {} rounds) with {} directed moves and {} covered components>".format(self.num_rounds, len(self.move_dict), len(self.covered_components))
 
-def directed_move_composition_completion(fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function_at_border=None, max_num_rounds=None, error_if_max_num_rounds_exceeded=True):
+def directed_move_composition_completion(fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function=None, pts_of_discontinuity=None, max_num_rounds=None, error_if_max_num_rounds_exceeded=True):
     """
     Only used in ``stuff_with_random_irrational_function()``.
     """
@@ -4312,7 +4392,8 @@ def directed_move_composition_completion(fdms, covered_components=[], proj_add_v
                                                    proj_add_vert = proj_add_vert, \
                                                    show_plots=show_plots, \
                                                    plot_background=plot_background, \
-                                                   function_at_border=function_at_border)
+                                                   function=function, \
+                                                   pts_of_discontinuity=pts_of_discontinuity)
     completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
     return completion.results()
 
@@ -4499,8 +4580,8 @@ def generate_directed_move_composition_completion(fn, show_plots=False, max_num_
                                                                         proj_add_vert = proj_add_vert,
                                                                         show_plots=show_plots,
                                                                         plot_background=plot_background,
-                                                                        function_at_border=fn)
-        # To show colorful components at borders and in extend_domain_of_move_by_adding_covered_intervals, need the function_at_border. Otherwise set it to default None
+                                                                        function=fn)
+        # To show colorful components at borders and in extend_domain_of_move_by_adding_covered_intervals, need the function. Otherwise set it to default None
         completion.complete(max_num_rounds=max_num_rounds, error_if_max_num_rounds_exceeded=error_if_max_num_rounds_exceeded)
     return completion.results()
 
@@ -4559,8 +4640,8 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
     if hasattr(fn, '_stability_orbits'):
         return
     fn._stability_orbits = []
-    fdms, covered_components= generate_directed_move_composition_completion(fn, show_plots=show_plots)
-
+    long_fdms, covered_components= generate_directed_move_composition_completion(fn, show_plots=show_plots)
+    fdms = [fdm.restricting(covered_components) for fdm in long_fdms]
     zero_perturbation_points = fn._completion.generate_zero_perturbation_points()
     decomposition = find_decomposition_into_intervals_with_same_moves(fdms, zero_perturbation_points )
     done_intervals = set()

@@ -483,3 +483,59 @@ def equiv7_example_2_crazy_perturbation():
     crazy_piece_2 = CrazyPiece((1/4, 1/2), generators, [(1/4, 1), (1/2, -1)])
     cp = PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
     return cp
+
+def equiv7_minimal_2_covered_2_uncovered():
+    """
+    A continuous minimal valid function that appears in Equiv VII.
+
+    Five 0-slopes, all uncovered, translation and reflection on all five.
+    (need one more equation)
+    """
+    # from functions_with_horizontal_slopes.sage example_7
+    bkpts0 = [0,3,4,7,8,11,12,13,14,15,16,17,18,19,20,21,22,25,26,29,30,33,49]
+    bkpts = [bkpt/49 for bkpt in bkpts0]
+    values0 = [0,3,2,5,4,7,6,6,7,7,8,8,9,9,10,10,9,12,11,14,13,16,0]
+    values = [value/16 for value in values0]
+    h = piecewise_function_from_breakpoints_and_values(bkpts, values)
+    return h
+
+def equiv7_example_3():
+    bkpt = [ x/10 for x in range(11) ]
+    value = [0, 3/9, 3/9, 3/9, 4/9, 5/9, 6/9, 6/9, 6/9, 9/9, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, value)
+
+def equiv7_example_xyz_1():
+    bkpt = [0,1/12,3/12,4/12,7/12,8/12,10/12,11/12,12/12]
+    value =[0,9/15,4/15,6/15,9/15,11/15,6/15,15/15,0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, value)
+
+def equiv7_example_xyz_2():
+    bkpt = [0,1/24,3/12,4/12,7/12,8/12,21/24,11/12,12/12]
+    value =[0,29/40,4/15,6/15,9/15,11/15,11/40,15/15,0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, value)
+
+def equiv7_example_xyz_3():
+    bkpt = [0,1/36,3/12,4/12,7/12,8/12,32/36,11/12,12/12]
+    value =[0,34/45,4/15,6/15,9/15,11/15,11/45,15/15,0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, value)
+
+# Examples with posterior moves
+def equiv7_example_post_1():
+    bkpt = [0, 1/18, 1/9, 1/6, 5/18, 1/3, 4/9, 1/2, 11/18, 2/3, 13/18, 7/9, 5/6, 17/18, 1]
+    value = [0, 3/4, 1/2, 3/4, 1/4, 1/2, 1/2, 3/4, 1/4, 1/2, 1/4, 1, 1/4, 3/4, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, value)
+
+def equiv7_example_post_2():
+    bkpt = [0, 1/9, 1/6, 2/9, 5/18, 1/3, 7/18, 4/9, 1/2, 5/9, 11/18, 13/18, 5/6, 8/9, 1]
+    value = [0, 2/3, 2/3, 1/3, 1/3, 2/3, 1/3, 2/3, 2/3, 1/3, 1/3, 1, 1/3, 2/3, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, value)
+
+def equiv7_example_post_3():
+    bkpt = [0, 1/18, 1/6, 2/9, 5/18, 1/3, 7/18, 4/9, 1/2, 5/9, 2/3, 13/18, 5/6, 8/9, 1]
+    value =[0, 2/3, 2/3, 1/3, 2/3, 2/3, 1/3, 1/3, 2/3, 1/3, 1/3, 1, 1/3, 2/3, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, value)
+
+def equiv7_example_post_4():
+    bkpt = [0, 1/9, 2/9, 1/3, 4/9, 5/9, 11/18, 2/3, 8/9, 17/18, 1]
+    value =[0, 1/2, 1/4, 3/4, 1/2, 1, 1/2, 3/4, 1/4, 1/2, 0]
+    return piecewise_function_from_breakpoints_and_values(bkpt, value)

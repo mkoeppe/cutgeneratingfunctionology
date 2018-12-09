@@ -886,33 +886,6 @@ def construct_field_and_test_point(function, var_name, var_value, default_args):
         test_point['merge'] = False
     return K, test_point
 
-def simplified_extremality_test(function):
-    """
-    A simplified version of the extremality test, which assumes that
-    the given function is minimal valid and has rational bkpts.
-    Return True or False, without computing the perturbations.
-    """
-    f = find_f(function, no_error_if_not_minimal_anyway=True)
-    covered_intervals = generate_covered_intervals(function)
-    uncovered_intervals = generate_uncovered_intervals(function)
-    if uncovered_intervals:
-        logging.info("Function has uncovered intervals, thus is NOT extreme.")
-        return False
-    else:
-        components = covered_intervals
-    field = function(0).parent().fraction_field()
-    symbolic = generate_symbolic(function, components, field=field)
-    equation_matrix = generate_additivity_equations(function, symbolic, field, f=f)
-    slope_jump_vects = equation_matrix.right_kernel_matrix()
-    sol_dim = slope_jump_vects.nrows()
-    if sol_dim > 0:
-        logging.info("Finite dimensional test: Solution space has dimension %s" % sol_dim)
-        logging.info("Thus the function is NOT extreme.")
-        return False
-    else:
-        logging.info("The function is extreme.")
-        return True
-
 ###########################################
 # Proof cells and proof complex:
 # the super class SemialgebraicComplex
@@ -2198,7 +2171,7 @@ def update_mccormicks_for_monomial(m, tightened_mip, monomial_list, v_dict, boun
 # Find region type and region color
 ####################################
 
-def find_region_type_igp(K, h, region_level='extreme', is_minimal=None, use_simplified_extremality_test=True):
+def find_region_type_igp(K, h, region_level='extreme', is_minimal=None):
     """
     Find the type of a igp function h in the :class:`ParametricRealField` K;
     (is it constructible? is it minimal? is it extreme?)
@@ -2234,18 +2207,14 @@ def find_region_type_igp(K, h, region_level='extreme', is_minimal=None, use_simp
     if region_level == 'constructible':
         return 'is_constructible'
     if is_minimal is None:
-        is_minimal = minimality_test(h, stop_if_fail=True)
+        is_minimal = minimality_test(h, full_certificates=False)
     if is_minimal:
         if region_level == 'minimal':
             return 'is_minimal'
-        if use_simplified_extremality_test:
-            is_extreme = simplified_extremality_test(h)
-        else:
-            is_extreme = extremality_test(h)
-        if is_extreme:
-            return 'is_extreme'
-        else:
+        generator = generate_perturbations(h, full_certificates=False)
+        for perturbation in generator:
             return 'not_extreme'
+        return 'is_extreme'
     else:
         return 'not_minimal'
 

@@ -180,3 +180,35 @@ def kzh_minimal_has_only_crazy_perturbation_1_perturbation():
     crazy_piece_1 = CrazyPiece((ucl, ucr), generators, [(ucl, 1), (ucr, -1)])
     crazy_piece_2 = CrazyPiece((f-ucr, f-ucl), generators, [(f-ucr, 1), (f-ucl, -1)])
     return PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
+
+def kzh_minimal_has_only_crazy_perturbation_1_check_subadditivity_slacks():
+    def generate_all_faces(fn):
+        zero_fn = FastPiecewise([(I, FastLinearFunction(0, 0)) for I, f in fn.list()], merge=False)
+        return generate_maximal_additive_faces_general(zero_fn)
+    def number_of_projections_intersecting(F, real_set):
+        return len([I for I in F.minimal_triple
+                    if not real_set.is_disjoint_from(realset_from_interval(I))])
+    h = kzh_minimal_has_only_crazy_perturbation_1()
+    bkpts = h.end_points()
+    ucl = bkpts[17]
+    ucr = bkpts[18]
+    f = bkpts[37]
+    special_intervals = RealSet.open(ucl, ucr) + RealSet.open(f - ucr, f - ucl)
+    s = delta_pi_general(h, bkpts[39], 1 + ucl - bkpts[39], (-1, 0, 0))
+    assert s == 19/23998
+    logging.debug("s = {}".format(s))
+    for F in generate_all_faces(h):
+        n_F = number_of_projections_intersecting(F, special_intervals)
+        if n_F:
+            logging.debug("{} n_F = {}".format(F, n_F))
+            deltas = [ delta_pi_of_face(h, vertex[0], vertex[1], F)
+                       for vertex in F.vertices ]
+            deltas = sorted(unique_list(deltas))
+            if deltas == [0]:
+                logging.debug("... additive face")
+            else:
+                logging.debug("... Delta pi values {}".format(deltas))
+                assert deltas[0] >= n_F * s
+                if deltas[0] == n_F * s:
+                    logging.debug("... tight")
+                    assert len(deltas) > 1  # strict for at least one vertex
