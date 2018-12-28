@@ -4671,10 +4671,12 @@ def merge_with_key_xeps_delta(*iterables):
         return xeps, delta
     if six.PY2:
         # merge does not support 'key'
-        yield from merge(*iterables)
+        for i in merge(*iterables):
+            yield i
     else:
         # Python >= 3.5 has 'key'
-        yield from merge(*iterables, key = xeps_delta)
+        for i in merge(*iterables, key = xeps_delta):
+            yield i
 
 def scan_domains_of_moves(functional_directed_moves):
      scans = [ scan_coho_interval_list(fdm.intervals(), fdm) for fdm in functional_directed_moves ]
