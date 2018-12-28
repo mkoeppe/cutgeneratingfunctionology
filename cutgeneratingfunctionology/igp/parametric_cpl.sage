@@ -1,4 +1,3 @@
-from __future__ import print_function
 from six.moves import range
 def cpl_n_group_function(n, cpleq=False, merge=True):
     return CPLFunctionsFactory(n, cpleq, merge)

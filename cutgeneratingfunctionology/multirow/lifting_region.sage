@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
 import itertools
 from sage.geometry.integral_points import rectangular_box_points
 from six.moves import range

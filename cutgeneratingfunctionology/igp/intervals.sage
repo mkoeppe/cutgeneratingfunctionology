@@ -2,7 +2,6 @@
 ## A lightweight representation of closed bounded intervals, possibly empty or degenerate.
 ##
 
-from __future__ import absolute_import
 def interval_sum(int1, int2):
     """
     Return the sum of two intervals.

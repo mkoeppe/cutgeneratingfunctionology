@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from sage.geometry.integral_points import rectangular_box_points
 from sage.geometry.polyhedron.plot import cyclic_sort_vertices_2d
 from sage.geometry.polyhedron.parent import Polyhedra

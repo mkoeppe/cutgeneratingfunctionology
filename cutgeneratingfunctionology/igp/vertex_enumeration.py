@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
 from six.moves import range
 def vertex_enumeration(polytope, exp_dim=-1, vetime=False):
     """

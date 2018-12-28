@@ -1,5 +1,5 @@
-from __future__ import print_function
 from six.moves import range
+
 def fn_variable(q, x):
     return 'fn_%s' % int(x*q)
 

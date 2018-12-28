@@ -1,5 +1,4 @@
 
-from __future__ import absolute_import
 import sage.rings.number_field.number_field
 from sage.rings.number_field.number_field import NumberField_absolute, NumberField_quadratic
 

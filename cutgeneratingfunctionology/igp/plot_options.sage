@@ -1,7 +1,7 @@
 
-from __future__ import absolute_import
 from six.moves import map
 from six.moves import range
+
 def plot_no_legend(f, *args, **kwds):
     # really should rather use plot_kwds_hook everywhere in functions.sage
     plot_kwds_hook_no_legend(kwds)

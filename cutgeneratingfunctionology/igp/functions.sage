@@ -4,8 +4,6 @@
     sage: from cutgeneratingfunctionology.igp import *
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
 import itertools
 from six.moves import map
 from six.moves import range

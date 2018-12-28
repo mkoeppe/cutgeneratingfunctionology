@@ -3,8 +3,8 @@
 # use code in kslope_mip.sage
 ##########################################
 
-from __future__ import print_function
 from six.moves import range
+
 def print_trivial_additive_points_2q(filename, q, f, a):
     """
     EXAMPLES::
