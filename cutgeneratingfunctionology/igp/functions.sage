@@ -4665,9 +4665,20 @@ def plot_walk_in_completion_diagram(seed, walk_dict):
         delete_one_time_plot_kwds(kwds)
     return g
 
+def merge_with_key_xeps_delta(*iterables):
+    def xeps_delta(xeps_delta_index):
+        xeps, delta, tag = xeps_delta_index
+        return xeps, delta
+    if six.PY2:
+        # merge does not support 'key'
+        yield from merge(*iterables)
+    else:
+        # Python >= 3.5 has 'key'
+        yield from merge(*iterables, key = xeps_delta)
+
 def scan_domains_of_moves(functional_directed_moves):
      scans = [ scan_coho_interval_list(fdm.intervals(), fdm) for fdm in functional_directed_moves ]
-     return merge(*scans)
+     return merge_with_key_xeps_delta(*scans)
 
 def projections_of_additive_vertices(function):
     proj_add_vert = set()
@@ -4683,12 +4694,12 @@ def scan_zero_perturbation_point(x):
 
 def scan_zero_perturbation_points(zero_perturbation_points):
     scans = [ scan_zero_perturbation_point(x) for x in zero_perturbation_points ]
-    return  merge(*scans)
+    return merge_with_key_xeps_delta(*scans)
 
 def find_decomposition_into_intervals_with_same_moves(functional_directed_moves, zero_perturbation_points=set()):
     scan_of_zero_perturbation_points = scan_zero_perturbation_points(zero_perturbation_points)
-    scan = merge(scan_domains_of_moves(functional_directed_moves), \
-                 scan_of_zero_perturbation_points)
+    scan = merge_with_key_xeps_delta(scan_domains_of_moves(functional_directed_moves),
+                                scan_of_zero_perturbation_points)
     moves = set()
     (on_x, on_epsilon) = (None, None)
     for ((x, epsilon), delta, move) in scan:
