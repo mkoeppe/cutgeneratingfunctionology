@@ -1,10 +1,3 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 def phi_forward_3_slope(b=4/5, lambda_1=4/9, lambda_2=2/3, field=None):
     """
     Summary:
@@ -17,7 +10,9 @@ def phi_forward_3_slope(b=4/5, lambda_1=4/9, lambda_2=2/3, field=None):
     Function is known to be extreme under the conditions:
         0 <= lambda_1 <= 1/2, 0 <= lambda_2 <= 1, b>3, 0 < lambda_1 * f + lambda_2 * (f - 1) < lambda_1 * f, f=frac(b).
 
-    Examples:
+    Examples::
+
+        sage: from cutgeneratingfunctionology.dff import *
         sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
         sage: h=phi_forward_3_slope()
         sage: extremality_test_dff(h)
@@ -55,7 +50,9 @@ def phi_2_slope(b=3/5, lambda_1=1/6, field=None):
     Function is known to be extreme under the conditions:
         0 < lambda_1 <=1, lambda_1 < f/(1 - f), b>3, f=frac(b).
 
-    Examples:
+    Examples::
+
+        sage: from cutgeneratingfunctionology.dff import *
         sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
         sage: h=phi_2_slope()
         sage: extremality_test_dff(h)
@@ -105,6 +102,7 @@ def phi_bj_1(c=3/2):
     Examples:
         [1] p.25, Fig 2.4 ::
 
+            sage: from cutgeneratingfunctionology.dff import *
             sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
             sage: h=phi_bj_1(3/2)
             sage: superadditive_test(h)
@@ -135,6 +133,7 @@ def phi_simple(c=3/2):
     Examples:
         [1] p.22, Fig 2.1 ::
 
+            sage: from cutgeneratingfunctionology.dff import *
             sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
             sage: h=phi_simple(3/2)
             sage: superadditive_test(h)
@@ -167,7 +166,8 @@ def phi_ccm_1(c=3/2):
 
     Examples:
         [1] p.29, Fig 2.5 ::
-            
+
+            sage: from cutgeneratingfunctionology.dff import *
             sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
             sage: h=phi_ccm_1(3/2)
             sage: extremality_test_dff(h)
@@ -206,7 +206,8 @@ def phi_fs_1(k=3):
 
     Examples:
         [1] p.35, Fig 2.6 ::
-            
+
+            sage: from cutgeneratingfunctionology.dff import *
             sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
             sage: h=phi_fs_1(3)
             sage: extremality_test_dff(h)
@@ -237,7 +238,8 @@ def phi_vb_2(k=3):
 
     Examples:
         [1] p.40, Fig 2.8 ::
-            
+
+            sage: from cutgeneratingfunctionology.dff import *
             sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
             sage: h=phi_vb_2(3)
             sage: extremality_test_dff(h)
@@ -286,7 +288,8 @@ def phi_ll_1(c=3/2,k=5):
 
     Examples:
         [1] p.42, Fig 2.9 ::
-            
+
+            sage: from cutgeneratingfunctionology.dff import *
             sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
             sage: h=phi_ll_1(3/2, 5)
             sage: maximality_test_dff(h)
@@ -328,7 +331,8 @@ def phi_ll_2(c=3/2,k=5):
 
     Examples:
         [1] p.42, Fig 2.9 ::
-            
+
+            sage: from cutgeneratingfunctionology.dff import *
             sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
             sage: h=phi_ll_2(3/2, 5)
             sage: maximality_test_dff(h)
@@ -400,7 +404,8 @@ def phi_dg_1(c=3/2,k=5):
 
     Examples:
         [1] p.44, Fig 2.11 ::
-            
+
+            sage: from cutgeneratingfunctionology.dff import *
             sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
             sage: h=phi_dg_1(3/2, 5)
             sage: extremality_test_dff(h)

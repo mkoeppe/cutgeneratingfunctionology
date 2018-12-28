@@ -92,6 +92,7 @@ def volume_of_lifting_region(B, f=None, show_plots=False):
     """
     Examples::
 
+        sage: from cutgeneratingfunctionology.multirow import *
         sage: M11 = Polyhedron(vertices=[[-1, 0, 0], [0, 0, 2], [0, 2, 0], [1, 0, 0], [1, 2, 2], [2, 0, 2]])
         sage: volume_of_lifting_region(M11)
         11/12

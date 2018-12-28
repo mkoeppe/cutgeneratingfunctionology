@@ -1,9 +1,3 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
 from sage.geometry.integral_points import rectangular_box_points
 from sage.geometry.polyhedron.plot import cyclic_sort_vertices_2d
 from sage.geometry.polyhedron.parent import Polyhedra
@@ -15,6 +9,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.multirow import *
         sage: square = Polyhedron(vertices = itertools.product([0, 1], repeat=2))
         sage: R.<x,y>=PolynomialRing(QQ)
         sage: h1 = PiecewisePolynomial_polyhedral([(square, x+y)])
@@ -437,6 +432,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         """
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.multirow import *
             sage: R.<x,y>=PolynomialRing(QQ)
             sage: hp = PiecewisePolynomial_polyhedral([(polytopes.hypercube(2), x+y)])
             sage: hn = PiecewisePolynomial_polyhedral([(polytopes.hypercube(2), -x-y)])
@@ -477,6 +473,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         """
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.multirow import *
             sage: R.<x,y>=PolynomialRing(QQ)
             sage: hp = PiecewisePolynomial_polyhedral([(polytopes.hypercube(2), x+y)])
             sage: hn = PiecewisePolynomial_polyhedral([(polytopes.hypercube(2), -x-y)])
@@ -517,7 +514,8 @@ class PiecewisePolynomial_polyhedral(SageObject):
     def plot(self, domain=None, alpha=0.5, projection=False, **kwds):
         """
         EXAMPLES::
-        
+
+            sage: from cutgeneratingfunctionology.multirow import *
             sage: logging.disable(logging.INFO)
             sage: fn = hildebrand_discont_3_slope_1()
             sage: h = piecewise_polynomial_polyhedral_from_fast_piecewise(fn)
@@ -584,7 +582,8 @@ class PiecewisePolynomial_polyhedral(SageObject):
     def plot_projection(self, domain=None, group_triangulation=False, show_values_on_vertices=False, **kwds):
         """     
         EXAMPLES::
-        
+
+            sage: from cutgeneratingfunctionology.multirow import *
             sage: logging.disable(logging.INFO)
             sage: fn = hildebrand_discont_3_slope_1()
             sage: h = piecewise_polynomial_polyhedral_from_fast_piecewise(fn)
@@ -731,7 +730,8 @@ class PiecewisePolynomial_polyhedral(SageObject):
         Return the composition PiecewisePolynomial_polyhedral function x -> self(A*x+b).
         
         EXAMPLES::
-        
+
+            sage: from cutgeneratingfunctionology.multirow import *
             sage: logging.disable(logging.INFO)
             sage: fn = hildebrand_discont_3_slope_1()
             sage: h = piecewise_polynomial_polyhedral_from_fast_piecewise(fn)
@@ -774,6 +774,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         """
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.multirow import *
             sage: M = matrix([[0,1/4,1/2],[1/4,1/2,3/4],[1/2,3/4,1]])  # q=3
             sage: h = PiecewisePolynomial_polyhedral.from_values_on_group_triangulation(M) # grid=(1/qZ)^2
 
@@ -861,6 +862,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.multirow import *
             sage: logging.disable(logging.INFO)
             sage: fn = gmic()
             sage: h = piecewise_polynomial_polyhedral_from_fast_piecewise(fn)
@@ -971,6 +973,7 @@ def sublinear_function_from_slopes(slopes):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.multirow import *
         sage: sublin_function = sublinear_function_from_slopes([(0, 1), (0, -1), (1, 0), (-1, 0)])
         sage: sublin_function(10,10)
         10
@@ -994,6 +997,7 @@ def sublinear_function_from_polyhedron_and_point(polyhedron, pt):
     EXAMPLES:
     [2012-Basu-Cornuejols-Koeppe] Unique Minimal Liftings for Simplicial Polytopes - Figure 1-b::
 
+        sage: from cutgeneratingfunctionology.multirow import *
         sage: polyhedron = Polyhedron(vertices=[(0,0),(0,2),(2,0)])
         sage: pt = (1/2, 1/2)
         sage: sublin_function = sublinear_function_from_polyhedron_and_point(polyhedron, pt)
@@ -1043,6 +1047,7 @@ def subadditive_function_from_sublinear_function(sublin_function):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.multirow import *
         sage: sublin_function = sublinear_function_from_slopes([(0, 1), (0, -1), (1, 0), (-1, 0)])
         sage: subadd_function = subadditive_function_from_sublinear_function(sublin_function)
         sage: subadd_function(10,10) == subadd_function(0,0)
@@ -1088,6 +1093,7 @@ def subadditive_function_from_slopes(slopes):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.multirow import *
         sage: subadd_function = subadditive_function_from_slopes([(0, 1), (0, -1), (1, 0), (-1, 0)])
         sage: subadd_function(10,10)
         0
@@ -1101,7 +1107,8 @@ def piecewise_polynomial_polyhedral_from_fast_piecewise(fn):
     Convert a FastPiecewise type function fn to a PiecewisePolynomial_polyhedral type one.
 
     EXAMPLES::
-        
+
+        sage: from cutgeneratingfunctionology.multirow import *
         sage: logging.disable(logging.INFO)
         sage: fn = gmic()
         sage: h = piecewise_polynomial_polyhedral_from_fast_piecewise(fn)
@@ -1128,6 +1135,7 @@ def subadditivity_slack_delta(h):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.multirow import *
         sage: logging.disable(logging.INFO)
         sage: fn = gmic(2/3)
         sage: h = piecewise_polynomial_polyhedral_from_fast_piecewise(fn)
@@ -1168,6 +1176,8 @@ def minimality_test_multirow(fn, f=None):
     for the (multi-row) group relaxation with the given `f`.
 
     Example::
+
+        sage: from cutgeneratingfunctionology.multirow import *
         sage: logging.disable(logging.WARN)             # Suppress output in automatic tests.
         sage: h = gmic(4/5)
         sage: fn = piecewise_polynomial_polyhedral_from_fast_piecewise(h)
@@ -1289,6 +1299,7 @@ def volume_of_additive_domain(h):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.multirow import *
         sage: logging.disable(logging.INFO)
         sage: fn = gmic()
         sage: h = piecewise_polynomial_polyhedral_from_fast_piecewise(fn)

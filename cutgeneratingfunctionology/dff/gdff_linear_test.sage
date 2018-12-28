@@ -1,10 +1,3 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 
 def phi_bj_1_quasi(c=3/2):
     n=floor(c)
@@ -88,6 +81,7 @@ def phi_bj_1_gdff(c=3/2,periods=3):
     Examples:
         [1] p.53, Fig 3.1 ::
 
+            sage: from cutgeneratingfunctionology.dff import *
             sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
             sage: h=phi_bj_1_gdff(c=3/2)
 

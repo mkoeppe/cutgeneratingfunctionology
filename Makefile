@@ -32,18 +32,19 @@ SAGEFILES =									\
 # 	cutgeneratingfunctionology/igp/parametric_cpl.sage			\
 
 
-## # Dual feasible functions
-## SAGEFILES +=					\
-## 	dff_functions.sage			\
-## 	dff_test_plot.sage			\
-## 	discontinuous_dff.sage			\
-## 	computer_based_search_naive_dff.sage	\
-## 	gdff_linear_test.sage
+# Dual feasible functions
+SAGEFILES +=								    \
+	cutgeneratingfunctionology/dff/dff_functions.sage		    \
+	cutgeneratingfunctionology/dff/dff_test_plot.sage		    \
+	cutgeneratingfunctionology/dff/discontinuous_dff.sage		    \
+	cutgeneratingfunctionology/dff/computer_based_search_naive_dff.sage \
+	cutgeneratingfunctionology/dff/gdff_linear_test.sage		    \
+	cutgeneratingfunctionology/dff/Gomory_conversion.sage
 
-## # Multirow
-## SAGEFILES +=					\
-## 	piecewise_functions.sage		\
-## 	lifting_region.sage
+# Multirow
+SAGEFILES +=								\
+	cutgeneratingfunctionology/multirow/piecewise_functions.sage	\
+	cutgeneratingfunctionology/multirow/lifting_region.sage
 
 all:
 	@echo "No need to 'make' anything. Just run it in Sage; see README.rst"
