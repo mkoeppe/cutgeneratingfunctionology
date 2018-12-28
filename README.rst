@@ -43,7 +43,7 @@ How to run the code in a local copy of Sage
 
 4. At the Sage prompt, type::
 
-    import igp; from igp import *
+    import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
 
 5. Follow the instructions and examples in `<demo.sage>`_.
 
