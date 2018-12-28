@@ -14,11 +14,11 @@
 # serve to show the default.
 
 # General information about the project.
-project = u"Infinite Group Relaxation Sage Code"
+project = u"cutgeneratingfunctionology"
 copyright = u'2013-2018, Chun Yu Hong, Matthias Koeppe, Yuan Zhou, Jiawei Wang'
 package_name = 'igp'
 package_folder = "../../"
-authors = u"2013-2016, Chun Yu Hong, Matthias Koeppe, Yuan Zhou, Jiawei Wang"
+authors = u"2013-2018, Chun Yu Hong, Matthias Koeppe, Yuan Zhou, Jiawei Wang"
 
 import sys
 import os

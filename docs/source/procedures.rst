@@ -1,9 +1,9 @@
 .. nodoctest
 
-Electronic compendium of procedures for the Gomory--Johnson model
+Electronic compendium of procedures for the 1-row Gomory--Johnson model
 =================================================================
 
-.. automodule:: procedures
+.. automodule:: cutgeneratingfunctionology.igp.procedures
    :members:
    :undoc-members:
    :show-inheritance:
