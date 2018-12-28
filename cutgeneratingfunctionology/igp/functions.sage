@@ -144,6 +144,8 @@ def generate_maximal_additive_faces(fn):
             
 additive_color = "mediumspringgreen"
 
+import six
+
 ### Create a new class representing a "face" (which knows its
 ### vertices, minimal triple, whether it's a translation/reflection,
 ### etc.; whether it's solid or dense).
@@ -299,9 +301,13 @@ class Face:
                self.vertices[0][0] + self.vertices[0][1] == self.vertices[1][0] + self.vertices[1][1]
     def __hash__(self):
         return sum([hash(x) for i in self.minimal_triple for x in i])
-    def __cmp__(left, right):
-        return cmp(left.minimal_triple, right.minimal_triple)
 
+    if six.PY2:
+        def __cmp__(left, right):
+            return cmp(left.minimal_triple, right.minimal_triple)
+    else:
+        def __eq__(left, right):
+            return left.minimal_triple == right.minimal_triple
 
 def plot_faces(faces, **kwds):
     p = Graphics()
