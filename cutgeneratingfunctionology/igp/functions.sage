@@ -343,6 +343,8 @@ def angle_cmp(a, b, center):
 
 import operator
 
+from six.moves import reduce
+    
 def convex_vert_list(vertices):
     if len(vertices) <= 3:
         return vertices
