@@ -664,8 +664,8 @@ def show_approximations(function, pi_pwl, pi_comb, pi_fill_in, pi_sym):
     return g
 
 def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
-    """
-    Given a continuous strong minimal function for the Gomory and Johnson infinite group problem with `f` in Q\Z, return an extreme 2-slope function pi_ext that approximates function with infinity norm distance less than epsilon.
+    r"""
+    Given a continuous strong minimal function for the Gomory and Johnson infinite group problem with `f \in Q\setminus Z`, return an extreme 2-slope function pi_ext that approximates function with infinity norm distance less than epsilon.
 
     See Theorem 2 [dense-2-slope].
 
@@ -747,7 +747,7 @@ def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
     return pi_sym
 
 def symmetric_2_slope_fill_in_irrational(function, epsilon, show_plots=False, f=None):
-    """
+    r"""
     Given a continuous piecewise linear strong minimal function for the Gomory and Johnson infinite
     group problem, return an extreme 2-slope function pi_ext that approximates function with infinity
     norm distance less than epsilon.
@@ -755,17 +755,17 @@ def symmetric_2_slope_fill_in_irrational(function, epsilon, show_plots=False, f=
     This construction is a variant of Theorem 2 [dense-2-slope] (implemented in ``symmetric_2_slope_fill_in``),
     proposed by Yuan Zhou (2015, unpublished):
 
-    It turns out that if `\\pi` is piecewise linear, then in Theorem 2, `b`
+    It turns out that if `\pi` is piecewise linear, then in Theorem 2, `b`
     does not have to be a rational number. This is because when `q` is
-    large enough (precisely, when `1/q \leq \\delta/2` and 
-    `\\max\\{s^+, |s^-|\\}/q \leq \\epsilon/2`, 
+    large enough (precisely, when `1/q \leq \delta/2` and 
+    `\max\{s^+, |s^-|\}/q \leq \epsilon/2`, 
     where `s^+` and `s^-` are the most positive and the most
     negative slopes of pi_comb), doing a 2-slope fill-in on the
     pi_comb restricted to the grid (1/q)Z will give a pi_fill_in that
     always has pi_fill_in(`b`)=1, even though `b` is irrational and thus
-    is not in (1/q)Z.  For the same reason, `\\delta` and other breakpoints
+    is not in (1/q)Z.  For the same reason, `\delta` and other breakpoints
     of pi_comb in lemma 6 do not have to be rational numbers either. To
-    ensure pi_sym is well defined, consider `U=(1/q)Z \\cup \\{b/2, (b+1)/2\\}`
+    ensure pi_sym is well defined, consider `U=(1/q)Z \cup \{b/2, (b+1)/2\}`
     when constructing pi_fill_in. The proof follows verbatim.
 
     EXAMPLES::

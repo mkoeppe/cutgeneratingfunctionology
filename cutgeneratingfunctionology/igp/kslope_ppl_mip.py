@@ -52,9 +52,9 @@ def delta_expr(q, x, y):
     return Variable(x) + Variable(y) - Variable(z)
 
 def initial_vertices_color(q, f):
-    """
+    r"""
     paint green (`=0`) for vertices (`x \leq y`) corresonding to
-    `\\pi(0) = 0`, `\\pi(1) = 0` and reflection around `f/2` and `(1+f)/2`.
+    `\pi(0) = 0`, `\pi(1) = 0` and reflection around `f/2` and `(1+f)/2`.
 
     EXAMPLES::
 
@@ -82,9 +82,9 @@ def initial_vertices_color(q, f):
     return vertices_color
 
 def initial_faces_color_and_covered_intervals(q, f, vertices_color):
-    """
+    r"""
     Return initial faces_color and covered_intervals,
-    corresponding to `\\pi(0) = 0`, `\\pi(1) = 0` and reflection around `f/2` and `(1+f)/2`.
+    corresponding to `\pi(0) = 0`, `\pi(1) = 0` and reflection around `f/2` and `(1+f)/2`.
 
     EXAMPLES::
 
@@ -123,9 +123,9 @@ def initial_faces_color_and_covered_intervals(q, f, vertices_color):
     return faces_color, covered_intervals
 
 def initial_cs(q, f, vertices_color):
-    """
+    r"""
     Return the initial constraint system that defines 
-    the feasible region of `(\\pi(0), \\pi(1/q),\dots, \\pi(1))`.
+    the feasible region of `(\pi(0), \pi(1/q),\dots, \pi(1))`.
 
     EXAMPLES::
 
@@ -158,7 +158,7 @@ def initial_cs(q, f, vertices_color):
     return cs
 
 def initial_cs_matrix(q, f):
-    """
+    r"""
     Returns the matrix of the initial equality constraints' coefficients,
     for the purpose of estimating the dimension of the polytope in backtracking search.
 
@@ -189,7 +189,7 @@ def initial_cs_matrix(q, f):
     return cs_matrix
 
 def initial_mip(q, f, vertices_color):
-    """
+    r"""
     Set up a ``MixedIntegerLinearProgram()`` with respect to
     the trivial constraints and the subadditivity/additivity constraints
     specified by `q`, `f` and vertices_color.
@@ -246,7 +246,7 @@ def initial_mip(q, f, vertices_color):
 
 @cached_function
 def edges_around_vertex(q, v):
-    """
+    r"""
     Given a grid vertex v (assume that v[0] <= v[1], v is not on the border),
     returns a list of elements corresponding to the edges connected to v.
     Each element has the form ({a, b}, v'). 
@@ -295,7 +295,7 @@ def edges_around_vertex(q, v):
 
 @cached_function
 def faces_around_vertex(q, v):
-    """
+    r"""
     Given a grid vertex v (assume that v[0] <= v[1], v is not on the border),
     returns unit upper and lower triangles (only those with x <= y)
     and their vertices (only those with x <= y) that are around v.
@@ -348,7 +348,7 @@ def faces_around_vertex(q, v):
            ((xl, yl, 1), [(xl, yy), (xx, yy)])]
 
 def directly_covered_by_adding_face(last_covered_intervals, face, q, f):
-    """
+    r"""
     Computes incrementally new covered_intervals by adding a new face.
     Consider only directly covered and symmetry reflection regarding f.
 
@@ -373,7 +373,7 @@ def directly_covered_by_adding_face(last_covered_intervals, face, q, f):
     return covered_intervals
 
 def update_covered_uncovered_by_adding_face(last_covered_intervals, last_uncovered_intervals, face, q):
-    """
+    r"""
     Computes incrementally new covered_intervals and new uncovered_intervals 
     by adding a new green triangle.
 
@@ -405,7 +405,7 @@ def update_covered_uncovered_by_adding_face(last_covered_intervals, last_uncover
     return covered_intervals, uncovered_intervals
 
 def update_covered_uncovered_by_adding_edge(last_covered_intervals, last_uncovered_intervals, to_merge_set, q):
-    """
+    r"""
     Computes incrementally new covered_intervals and new uncovered_intervals, resulting from
     adding a new green edge that connects the elements in to_merge_set.
 
@@ -440,7 +440,7 @@ def update_covered_uncovered_by_adding_edge(last_covered_intervals, last_uncover
     return covered_intervals, uncovered_intervals
 
 def generate_to_cover(q, covered_intervals):
-    """
+    r"""
     Returns a sorted list {k | 0 <=k < q, [k, (k+1)] is uncovered}
     from coverd_intervals which is a list of componenents.
 
@@ -457,7 +457,7 @@ def generate_to_cover(q, covered_intervals):
     return sorted(list(to_cover))
 
 def generate_uncovered_set(q, uncovered_intervals):
-    """
+    r"""
     Returns set {k | 0 <=k < q, [k, (k+1)] is uncovered}
     from uncoverd_intervals which is a list of componenents.
 
@@ -474,7 +474,7 @@ def generate_uncovered_set(q, uncovered_intervals):
     return uncovered_set
 
 def generate_candidate_faces(q, f, covered_intervals, last_face=None, faces_color=None, sym=False):
-    """
+    r"""
     Returns a list of candidate_faces (lexicographically > last_face)
     to paint in next step, whose I, J are currently uncovered.
     Note that candidate_faces only takes faces with I <= J.
@@ -503,7 +503,7 @@ def generate_candidate_faces(q, f, covered_intervals, last_face=None, faces_colo
     return candidate_faces
 
 def num_slopes_at_best(q, f, covered_intervals, uncovered_intervals=None):
-    """
+    r"""
     Returns an upper bound on the final number of slopes,
     given current covered_intervals (and optionally, uncovered_intervals 
     that provides connected components of non-covered intervals).
@@ -531,7 +531,7 @@ def num_slopes_at_best(q, f, covered_intervals, uncovered_intervals=None):
     return uncovered_num + len(covered_intervals)
 
 def update_around_green_face(q, f, vertices_color, faces_color, covered_intervals, xxx_todo_changeme):
-    """
+    r"""
     Subfunction of ``paint_complex_combined_mip()``, etc.
 
     Painting triangle (x, y, w) from white to green induces some new green triangles around it.
@@ -562,7 +562,7 @@ def update_around_green_face(q, f, vertices_color, faces_color, covered_interval
     return True, covered_intervals, changed_vertices, changed_faces
 
 def update_implied_faces_pol(q, f, vertices_color, changed_vertices, faces_color, changed_faces, covered_intervals, polytope):
-    """
+    r"""
     Subfunction of ``paint_complex_combined_pol()``, etc.
 
     Look for implied additive vertices and faces, given PPL polytope.
@@ -588,7 +588,7 @@ def update_implied_faces_pol(q, f, vertices_color, changed_vertices, faces_color
     return True, covered_intervals
 
 def update_implied_faces_mip(q, f, vertices_color, changed_vertices, faces_color, changed_faces, covered_intervals, sym=False):
-    """
+    r"""
     Subfunction of ``paint_complex_combined_mip()``.
 
     Look for implied additive vertices and faces, given MILP m.
@@ -620,10 +620,10 @@ def update_implied_faces_mip(q, f, vertices_color, changed_vertices, faces_color
 
 
 def paint_complex_heuristic(k_slopes, q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, cs):
-    """
+    r"""
     Paint triangles green in a 2d-complex, until all intervals are covered.
 
-    Return the polytope which defines the feasible region of `(\\pi(0), \\pi(1/q),\dots,\\pi(1))` for that paint_complex_heuristic
+    Return the polytope which defines the feasible region of `(\pi(0), \pi(1/q),\dots,\pi(1))` for that paint_complex_heuristic
 
     Heuristic: 
         - I, J projections of the next face to paint are chosen from currently uncovered intervals.
@@ -682,9 +682,9 @@ def paint_complex_heuristic(k_slopes, q, f, vertices_color, faces_color, last_co
         faces_color[face] = 1
 
 def initial_covered_uncovered(q, f, vertices_color):
-    """
+    r"""
     Returns initial covered_intervals and uncovered_intervals,
-    corresponding to `\\pi(0) = 0`, `\\pi(1) = 0` and reflection around `f/2` and `(1+f)/2`.
+    corresponding to `\pi(0) = 0`, `\pi(1) = 0` and reflection around `f/2` and `(1+f)/2`.
 
     EXAMPLES::
 
@@ -707,7 +707,7 @@ def initial_covered_uncovered(q, f, vertices_color):
     return covered_intervals, uncovered_intervals
 
 def update_around_green_vertex(q, xxx_todo_changeme1, vertices_color, covered_intervals, uncovered_intervals):
-    """
+    r"""
     Painting vertex (x, y) from white to green induces some new green triangles and edges around this vertex.
     Returns new covered_intervals and uncovered_intervals corresponding to these changes.
 
@@ -742,7 +742,7 @@ def update_around_green_vertex(q, xxx_todo_changeme1, vertices_color, covered_in
     return covered_intervals, uncovered_intervals
 
 def generate_vertex_values(k_slopes , q, polytope,  v_set=set([]), exp_dim=-1, vetime=False):
-    """
+    r"""
     Enumerate the vertices of the polytope.
 
     Return the vertices (numerators) that were not in v_set and have at least k_slopes.
@@ -767,7 +767,7 @@ def generate_vertex_values(k_slopes , q, polytope,  v_set=set([]), exp_dim=-1, v
                 yield v_n
 
 def h_from_vertex_values(v_n):
-    """
+    r"""
     Construct the piecewise linear function from vertex.
 
     EXAMPLES::
@@ -786,7 +786,7 @@ def h_from_vertex_values(v_n):
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def search_kslope_example(k_slopes, q, f, mode='combined'):
-    """
+    r"""
     Search for extreme functions that have required number of slope values.
     Return integer function values at breakpoints.
 
@@ -794,7 +794,7 @@ def search_kslope_example(k_slopes, q, f, mode='combined'):
     - If mode is 'heuristic', use ``paint_complex_heuristic()`` to paint;
     - If mode is 'naive', enumerate vertex-fuctions and check whether all invervals are covered;
     - If mode is 'sym', restrict to the special 2d-diagram such as ``kzh_6_slope_fulldim_covers_2()`` and ``kzh_6_slope_fulldim_covers_3()``:
-        - `q = 2f`, `f \\bmod 2 = 1`;
+        - `q = 2f`, `f \bmod 2 = 1`;
         - symmetry between left and right parts of f;
         - 2d-diagram is white in the middle;
 
@@ -860,7 +860,7 @@ def search_kslope_example(k_slopes, q, f, mode='combined'):
 import time
 
 def dim_cs_matrix(q, changed_vertices, cs_matrix):
-    """
+    r"""
     Append the new additivity equations corresponding to 
     green vertices in changed_vertices to the cs_matrix.
     Output the new_cs_matrix and its co-dimension.
@@ -876,7 +876,7 @@ def dim_cs_matrix(q, changed_vertices, cs_matrix):
     return d, new_cs_matrix
 
 def paint_complex_combined_pol(k_slopes, q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, cs, cs_matrix):
-    """
+    r"""
     Combine 'heuristic' backtracking search (using PPL) with vertex enumeration.
     If q - rank(cs_matrix) <= dim_threshold, stop backtracking search.
     Enumerate and check vertex functions then.
@@ -925,7 +925,7 @@ def paint_complex_combined_pol(k_slopes, q, f, vertices_color, faces_color, last
         faces_color[face] = 1
 
 def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last_covered_intervals, candidate_faces, cs_matrix, sym=False):
-    """
+    r"""
     Combine 'heuristic' backracting search (using MILP library) with vertex enumeration.
     If q - rank(cs_matrix) <= dim_threshold, stop backtracking search.
     Enumerate and check vertex functions then.
@@ -1028,7 +1028,7 @@ def set_subadd_lower_bound(xxx_todo_changeme2):
         m.add_constraint(2 * delta[(x, y+1)] + delta[(x+w, y+w)], min = eps)
 
 def all_intervals_covered(q, f, values, last_covered_intervals):
-    """
+    r"""
     Input:
         - values: [pi(0), pi(1/q), .. pi(1)]
         - last_covered_intervals: covered_intervals after painting complex
@@ -1089,7 +1089,7 @@ def all_intervals_covered(q, f, values, last_covered_intervals):
     return False
 
 def update_directly_cover(q, x, add_v, was_face, was_connected, covered_intervals, uncovered_intervals):
-    """
+    r"""
     Subroutine of ``all_intervals_covered()``.
 
     Can the interval [x, x+1]/q be directly covered?
@@ -1110,7 +1110,7 @@ def update_directly_cover(q, x, add_v, was_face, was_connected, covered_interval
     return covered_intervals, uncovered_intervals
 
 def update_undirectly_cover(q, x, add_v, was_face, was_connected, covered_intervals, uncovered_intervals):
-    """
+    r"""
     Subroutine of ``all_intervals_covered()``.
 
     Can the interval [x, x+1]/q be undirectly covered? 
@@ -1140,7 +1140,7 @@ def update_undirectly_cover(q, x, add_v, was_face, was_connected, covered_interv
     return covered_intervals, uncovered_intervals
 
 def white_strip(q, f, x, add_v):
-    """
+    r"""
     Subroutine of ``all_intervals_covered()``.
 
     Check if column and diagonal strip of x are all white.
@@ -1160,7 +1160,7 @@ def white_strip(q, f, x, add_v):
 
 #@cached_function
 def vertices_of_face(face):
-    """
+    r"""
     Return 3 vertices of the given triangle face.
     """
     (x, y, w) = face
@@ -1168,7 +1168,7 @@ def vertices_of_face(face):
 
 #@cached_function
 def connected_pair_of_face(face, q):
-    """
+    r"""
     Return 2 translation and 1 reflection corresponding to 3 edges of the given triangle face.
     """
     (x, y, w) = face
@@ -1176,7 +1176,7 @@ def connected_pair_of_face(face, q):
 
 #@cached_function
 def translation_pair(x, y, q):
-    """
+    r"""
     Return the translation (2 components (first < second), they are connected)
     corresponding to the horizontal edge ( (x, y), (x + 1, y) )
     """
@@ -1321,7 +1321,7 @@ def save_plot(q, hh, destdir = output_dir+"sym_mode_2d_diagrams/"):
     logging.disable(logging.NOTSET)
 
 def measure_stats_detail(q, f):
-    """
+    r"""
     Provides data for scatter plot.
     """
     vertices_color = initial_vertices_color(q, f);
@@ -1357,7 +1357,7 @@ def measure_stats_detail(q, f):
     return t, ZZ(num), slope, extreme, vdenominator, sdenominator     
     
 def write_stats_detail(q, fdestdir=None):
-    """
+    r"""
     Provides data for scatter plot.
     """
     if destdir is None:
@@ -1442,7 +1442,7 @@ def times_in_naive_search(k, q, f):
 
 
 def generate_extreme_functions_for_finite_group(q, f):
-    """
+    r"""
     A generator that enumerates the interpolations of the extreme
     functions for the cyclic group problem `R_{f/q}(1/q \Z, \Z)`.
     """

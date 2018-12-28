@@ -389,7 +389,7 @@ def delta_pi_of_face(fn, x, y, F):
             - fn.which_function(generic_point(F.minimal_triple[2]))(fractional(x + y)))
 
 def containing_eps_1d(x, interval):
-    """
+    r"""
     Input:  
 
     - `x`: the projection of vertex `v` (of a face `F`), 

@@ -312,7 +312,7 @@ def plot_faces(faces, **kwds):
     return p
 
 def plot_trivial_2d_diagram_with_grid(function, xgrid=None, ygrid=None): 
-    """
+    r"""
     Returns a plot of the 2d complex with vertices marked that 
     have `\Delta \pi = 0`.  
 
@@ -1077,7 +1077,7 @@ def find_f(fn, no_error_if_not_minimal_anyway=False):
     raise ValueError("The given function has no breakpoint where the function takes value 1, so cannot determine f.  Provide parameter f to minimality_test or extremality_test.")
 
 def minimality_test(fn, show_plots=False, f=None, full_certificates=True):
-    """
+    r"""
     Checks if fn is minimal with respect to the group relaxation with the given `f`.  
 
     Assume that `0 \leq fn \leq 1`. This function calls ``subadditivity_test`` and ``symmetric_test``.
@@ -1649,7 +1649,7 @@ class FastPiecewise (PiecewisePolynomial):
         return [None, None, None]
 
     def limit(self, x0, epsilon):
-        """
+        r"""
         returns limit (from right if `\epsilon > 0`, from left if `\epsilon < 0`) value at `x_0`;
         if `\epsilon = 0`, returns value at `x_0`.
 
@@ -3756,7 +3756,7 @@ def last_lifted(fn):
     return fn
 
 def piecewise_function_from_robert_txt_file(filename):
-    """The .txt files have 4 rows.  
+    r"""The .txt files have 4 rows.  
     
     - 1st row = `Y` values
 

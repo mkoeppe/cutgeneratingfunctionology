@@ -4,7 +4,7 @@ def fn_variable(q, x):
     return 'fn_%s' % int(x*q)
 
 def face_variable(q, face):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -38,7 +38,7 @@ def face_variable(q, face):
         return 'd_%s_%s' %(int(face.minimal_triple[0][0]*q), int(face.minimal_triple[1][0]*q))
          
 def variable_face(q, s):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -75,7 +75,7 @@ def variable_face(q, s):
         return Face(([x], [y], [x+y]))
 
 def vertex_variable(q, v):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -85,7 +85,7 @@ def vertex_variable(q, v):
     return 'p_%s_%s' % (int(v[0]*q), int(v[1]*q))
 
 def variable_vertex(q, s):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -100,7 +100,7 @@ def variable_vertex(q, s):
     return (x, y)
 
 def print_logical_constraints(filename, q, face):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -120,7 +120,7 @@ def print_logical_constraints(filename, q, face):
     print('<= 0', file=filename)
    
 def print_xy_swapped_constraints(filename, q, face):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -133,7 +133,7 @@ def print_xy_swapped_constraints(filename, q, face):
 
 
 def print_fn_bounds(filename, q):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -148,7 +148,7 @@ def print_fn_bounds(filename, q):
         print('0 <= %s <= 1' % fn_variable(q, x), file=filename)
 
 def print_fn_minimality_test(filename, q, f, m=0):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -193,7 +193,7 @@ def print_fn_minimality_test(filename, q, f, m=0):
                                                             fn_variable(q, z), vertex_variable(q, (x, y))), file=filename)
 
 def print_trivial_additive_points(filename, q, f):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -232,7 +232,7 @@ def print_trivial_additive_points(filename, q, f):
     #print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a))
 
 def move_variable(q, x, z):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -242,7 +242,7 @@ def move_variable(q, x, z):
     return 'm_%s_%s' % (int(x * q), int(z * q))
 
 def covered_i_variable(q, z, i):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -252,7 +252,7 @@ def covered_i_variable(q, z, i):
     return 'c_%s_%s' % (int(z * q), i)
 
 def translation_i_variable(q, x, z, i):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -262,7 +262,7 @@ def translation_i_variable(q, x, z, i):
     return 't_%s_%s_%s' % (int(x * q), int(z * q), i)
 
 def reflection_i_variable(q, x, z, i):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -272,7 +272,7 @@ def reflection_i_variable(q, x, z, i):
     return 'r_%s_%s_%s' % (int(x * q), int(z * q), i)
 
 def print_directly_covered_constraints(filename, q, z):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -330,7 +330,7 @@ def print_directly_covered_constraints(filename, q, z):
     #print >> filename, '>= %s' % (2*q -1)
 
 def print_move_constraints(filename, q, x, z):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -361,7 +361,7 @@ def print_move_constraints(filename, q, x, z):
                                               face_variable(q, backward_move), m_x_z), file=filename)
 
 def print_translation_i_constraints(filename, q, x, z, i):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -378,7 +378,7 @@ def print_translation_i_constraints(filename, q, x, z, i):
     print('%s - %s - %s <= 0' % (t_x_z_i, c_x_last, m_x_z), file=filename)
     
 def print_reflection_i_constraints(filename, q, x, z, i):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -395,7 +395,7 @@ def print_reflection_i_constraints(filename, q, x, z, i):
     print('%s - %s - %s <= 0' % (r_x_z_i, c_x_last, face_variable(q, move)), file=filename)
     
 def print_undirectly_covered_i_constraints(filename, q, z, i):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -426,7 +426,7 @@ def print_undirectly_covered_i_constraints(filename, q, z, i):
     print('>= %s' % (2 - 2 * q), file=filename)     
 
 def print_obj_max_slope_slack(filename, kslopes):
-    """
+    r"""
     slope_slack = s_0 - s_(kslopes-1)
 
     EXAMPLES::
@@ -438,7 +438,7 @@ def print_obj_max_slope_slack(filename, kslopes):
     print('s_0 - s_%s' % (kslopes - 1), end=' ', file=filename)
 
 def print_obj_max_slope_slack_with_weights(filename, kslopes, weights):
-    """
+    r"""
     slope_slack_with_weights = \sum_{0 <= i <= kslopes-2} {weights[i] * (s_i - s_(i+1))}
 
     EXAMPLES::
@@ -456,7 +456,7 @@ def print_obj_max_slope_slack_with_weights(filename, kslopes, weights):
             print('+ %s s_%s - %s s_%s' % (weights[i], i, weights[i], i+1), end=' ', file=filename)
 
 def print_obj_max_subadd_slack(filename, q, weight=1): #is a constant!
-    """
+    r"""
     subadd_slack = q * (\sum_x {fn(x)}) = q * (q - 1)
 
     EXAMPLES::
@@ -471,7 +471,7 @@ def print_obj_max_subadd_slack(filename, q, weight=1): #is a constant!
         print('+ %s %s' % (weight, fn_variable(q, x)), end=' ', file=filename)
 
 def print_obj_min_undirectly_covered_times(filename, q, step=None, weight=1):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -489,7 +489,7 @@ def print_obj_min_undirectly_covered_times(filename, q, step=None, weight=1):
                     print('+ %s %s' % (weight, reflection_i_variable(q, x, z, step)), end=' ', file=filename)
 
 def print_obj_min_covered_times_max_subadd_slack(filename, q, maxstep=None):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -522,7 +522,7 @@ def print_obj_min_add_points(filename, q, weight=1):
                 print('+ %s %s' % ( weight, vertex_variable(q, (x, y)) ), end=' ', file=filename)
 
 def print_obj_min_directly_covered_times(filename, q, weight=1):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -557,7 +557,7 @@ def all_faces(q):
     return faces_2d, faces_diag, faces_hor, faces_ver, faces_0d
 
 def write_lpfile(q, f, kslopes, maxstep=None, m=0, type_cover=None, weights=[]):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -581,16 +581,16 @@ def write_lpfile(q, f, kslopes, maxstep=None, m=0, type_cover=None, weights=[]):
 
     faces_2d, faces_diag, faces_hor, faces_ver, faces_0d = all_faces(q)
 
-    print('\ MIP model with q = %s, f = %s, num of slopes = %s, small_m = %s' % (q, f, kslopes, m), file=filename)
+    print(r'\ MIP model with q = %s, f = %s, num of slopes = %s, small_m = %s' % (q, f, kslopes, m), file=filename)
     if type_cover == 'fulldim':
-        print('\ without non-trivial 0d and 1d maximal faces.', file=filename)
+        print(r'\ without non-trivial 0d and 1d maximal faces.', file=filename)
     elif type_cover == 'fulldim_covers':
-        print('\ without any translation/reflection except for the symmetry reflection.', file=filename)
+        print(r'\ without any translation/reflection except for the symmetry reflection.', file=filename)
     else:
-        print('\ maximum number of steps in covering = %s.' % maxstep, file=filename)
+        print(r'\ maximum number of steps in covering = %s.' % maxstep, file=filename)
 
     if weights:
-        print('\obj = max_slope_slack with weights %s.' % weights, file=filename)
+        print(r'\obj = max_slope_slack with weights %s.' % weights, file=filename)
 
     print('Maximize', file=filename)
     #print >> filename, 0
@@ -685,7 +685,7 @@ def write_lpfile(q, f, kslopes, maxstep=None, m=0, type_cover=None, weights=[]):
     filename.close()
 
 def painted_faces_and_funciton_from_solution(filename, q):
-    """
+    r"""
     Read the solution file, return colored faces and the function fn (inexact floating point).
 
     EXAMPLES::
@@ -717,7 +717,7 @@ def painted_faces_and_funciton_from_solution(filename, q):
     return faces, fn
 
 def refind_function_from_lpsolution(filename, q, f):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -737,7 +737,7 @@ def refind_function_from_lpsolution(filename, q, f):
     return h_list
 
 def slope_variable(k):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -747,7 +747,7 @@ def slope_variable(k):
     return 's_%s' % k
 
 def interval_slope_variable(j, k):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -757,7 +757,7 @@ def interval_slope_variable(j, k):
     return 'i_%s_s_%s' % (j, k)
 
 def print_slope_constraints(filename, q, kslopes, m=0):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -813,7 +813,7 @@ def print_slope_constraints(filename, q, kslopes, m=0):
         print('>= 1', file=filename)
 
 def print_slope_bounds(filename, q, kslopes):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -826,7 +826,7 @@ def print_slope_bounds(filename, q, kslopes):
         print('%s <= %s <= %s' % (-q, slope_variable(k), q), file=filename)
 
 def print_no_maximal_faces_diag(filename, q, f, faces_diag):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -853,7 +853,7 @@ def print_no_maximal_faces_diag(filename, q, f, faces_diag):
             print('%s + %s - %s <= 1' % (var_l, var_u, var_d), file=filename)
 
 def print_no_maximal_faces_hor(filename, q, f, faces_hor):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -880,7 +880,7 @@ def print_no_maximal_faces_hor(filename, q, f, faces_hor):
             print('%s + %s - %s <= 1' % (var_l, var_u, var_h), file=filename)
 
 def print_no_maximal_faces_ver(filename, q, f, faces_ver):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -907,7 +907,7 @@ def print_no_maximal_faces_ver(filename, q, f, faces_ver):
             print('%s + %s - %s <= 1' % (var_l, var_u, var_v), file=filename)
 
 def print_no_maximal_faces_0d(filename, q, f, faces_0d):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -939,7 +939,7 @@ def print_no_maximal_faces_0d(filename, q, f, faces_0d):
 
 ########### Copy from 2q_search.sage #############
 def plot_painted_faces(q, faces):
-    """
+    r"""
     (Ignore please.)
     Return a plot of the 2d complex of q-grid with green faces.
     """
@@ -959,7 +959,7 @@ def plot_painted_faces(q, faces):
     return p
 
 def generate_additive_vertices_from_faces(q, faces):
-    """
+    r"""
     Return the set of points (x<=y) on q*q 2d-grid that are covered by faces.
 
     EXAMPLES::
@@ -998,7 +998,7 @@ def generate_additive_vertices_from_faces(q, faces):
     return additive_vertices
     
 def generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices):
-    """
+    r"""
     Return the equalities (by additivity) and inequalities (by subadditivity)
     that the slope variables must satisfy.
 
@@ -1076,7 +1076,7 @@ def generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices):
     return ieqdic, eqndic
 
 def generate_vertex_function(q, ff, fn_sym, additive_vertices, kslopes=3):
-    """
+    r"""
     Generate real valued functions which correspond to vertices 
     of the polytope defined by ``[ieqs, eqns] = generate_ieqs_and_eqns(..)``
 

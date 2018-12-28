@@ -1,6 +1,6 @@
 from six.moves import range
 def gmic(f=4/5, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - Name: GMIC (Gomory mixed integer cut);
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method;
@@ -9,7 +9,7 @@ def gmic(f=4/5, field=None, conditioncheck=True):
         - (Although only extremality has been established in literature, the same proof shows that) gmic is a facet.
 
     Parameters:
-        f (real) \in (0,1).
+        f (real) `\in (0,1)`.
 
     Examples: 
         [61] p.343, Fig. 1, Example 1 ::
@@ -43,7 +43,7 @@ def gmic(f=4/5, field=None, conditioncheck=True):
 
 
 def gj_2_slope(f=3/5, lambda_1=1/6, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - Name: Gomory--Johnson's 2-Slope;
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method;
@@ -52,7 +52,7 @@ def gj_2_slope(f=3/5, lambda_1=1/6, field=None, conditioncheck=True):
         - gj_2_slope is a facet.
 
     Parameters:
-        * f (real) \in (0,1);      
+        * f (real) `\in (0,1)`;      
         * lambda_1 (real) in (0,1].
 
     Function is known to be extreme under the conditions:
@@ -97,7 +97,7 @@ def gj_2_slope(f=3/5, lambda_1=1/6, field=None, conditioncheck=True):
 
 
 def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - Name: Gomory--Johnson's 2-Slope-repeat;
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method;
@@ -106,12 +106,12 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
         - gj_2_slope_repeat is a facet.
 
     Parameters:
-        * f (real) \in (0,1);       
+        * f (real) `\in (0,1)`;       
         * s_positive, s_negative (real);
         * m, n >= 2 (integer).
 
     Function is known to be extreme under the conditions:
-        * 0 < f < 1;
+        * `0 < f < 1`;
         * s_positive > 1/f;  s_negative < 1/(f - 1);
         * m >= (s_positive - s_positive*s_negative*f) / (s_positive - s_negative);
         * n >= (- s_negative + s_positive*s_negative*(f - 1)) / (s_positive - s_negative).
@@ -307,7 +307,7 @@ class KfNStepMir(ExtremeFunctionsFactory):
         return 'extreme'
 
     def __call__(self, f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
-        """
+        r"""
         Summary:
             - Name: Kianfar-Fathi's n-Step MIR;
             - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
@@ -316,8 +316,8 @@ class KfNStepMir(ExtremeFunctionsFactory):
             - (Although only extremality has been established in literature, the same proof shows that) ``kf_n_step_mir`` is a facet.
 
         Parameters:
-            * f (real) \in (0,1);
-            * a (list of reals, with length = n) \in (0,f).
+            * f (real) `\in (0,1)`;
+            * a (list of reals, with length = n) `\in (0,f)`.
 
         Function is known to be extreme under the conditions:
             * 0 < a[1] < f < 1 == a[0];
@@ -380,7 +380,7 @@ class KfNStepMir(ExtremeFunctionsFactory):
 kf_n_step_mir = KfNStepMir()
 
 def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditioncheck=True):
-    """
+    r"""
     Summary: 
         - Name: Gomory--Johnson' Forward 3-Slope;
         - Infinite (or Finite); Dim = 1; Slopes = 3; Continuous; Analysis of subadditive polytope method;
@@ -389,8 +389,8 @@ def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditionc
         - gj_forward_3_slope is a facet.
 
     Parameters:
-        * f (real) \in (0,1);
-        * lambda_1, lambda_2 (real) \in (0,1).
+        * f (real) `\in (0,1)`;
+        * lambda_1, lambda_2 (real) `\in (0,1)`.
 
     Function is known to be extreme under the conditions:
         * 0 <= lambda_1 <= 1/2;
@@ -446,7 +446,7 @@ def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditionc
     return h
 
 def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - Name: Dey--Richard--Li--Miller's Backward 3-Slope;
         - Infinite; Dim = 1; Slopes = 3; Continuous; Group relations method;
@@ -455,7 +455,7 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
         - (Although only extremality has been established in literature, the same proof shows that) drlm_backward_3_slope is a facet.
 
     Parameters:
-        f, bkpt (real) \in (0,1).
+        f, bkpt (real) `\in (0,1)`.
 
     Function is known to be extreme under the conditions:
         f < bkpt < (1+f)/4 < 1.
@@ -530,7 +530,7 @@ class Dg2StepMirLimit(ExtremeFunctionsFactory):
             return 'extreme'
     
     def __call__(self, f=3/5, d=3, field=None, conditioncheck=True):
-        """
+        r"""
         Summary:
             - Name: Dash-Gunluk 2-Step MIR Limit;
             - Infinite; Dim = 1; Slopes = 1; Discontinuous; Simple sets method;
@@ -539,7 +539,7 @@ class Dg2StepMirLimit(ExtremeFunctionsFactory):
             - dg_2_step_mir_limit is a facet.
 
         Parameters:
-            * f (real) \in (0,1);
+            * f (real) `\in (0,1)`;
             * d (positive integer): number of slopes on [0,f).
 
         Function is known to be extreme under the conditions:
@@ -588,7 +588,7 @@ class Dg2StepMirLimit(ExtremeFunctionsFactory):
 dg_2_step_mir_limit = Dg2StepMirLimit()
 
 def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - Name: Dey--Richard--Li--Miller's 2-Slope Limit;
         - Infinite; Dim = 1; Slopes = 1; Discontinuous; Group relations method;
@@ -597,7 +597,7 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, c
         - (Although only extremality has been established in literature, the same proof shows that) drlm_2_slope_limit is a facet.
 
     Parameters:
-        * f (real) \in (0,1);
+        * f (real) `\in (0,1)`;
         * nb_pieces_left (positive integer) : number of linear pieces to the left of f;
         * nb_pieces_right (positive integer) : number of linear pieces to the right of f.
 
@@ -652,7 +652,7 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, c
     return psi
 
 def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - Name: Dey--Richard--Li--Miller's 3-Slope Limit;
         - Infinite; Dim = 1; Slopes = 2; Discontinuous; Group relations method;
@@ -661,7 +661,7 @@ def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
         - (Although only extremality has been established in literature, the same proof shows that) drlm_3_slope_limit is a facet.
 
     Parameters:
-        f (real) \in (0,1);
+        f (real) `\in (0,1)`;
 
     Function is known to be extreme under the conditions:
         0 < f < 1/3.
@@ -702,7 +702,7 @@ def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
     return kappa
 
 def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
-    """
+    r"""
     return function psi, a counterexample to Gomory--Johnson's conjecture
     constructed by Basu--Conforti--Cornuejols--Zambelli [IR1].
 
@@ -714,7 +714,7 @@ def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
 
     Parameters:
 
-    - f (real) \in (0,1);
+    - f (real) `\in (0,1)`;
     - q (real), q > 2: ratio of the geometric series;
     - eta (real), 0 <= eta < 1: to control the series sum;
     - maxiter (integer): maximum number of iterations;
@@ -787,14 +787,14 @@ def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
 
 
 def generate_example_e_for_psi_n(f=2/3, n=7, q=4, eta=1/1000):
-    """
+    r"""
     Return the first n terms of a geometric series e that satisfies 
     0 < ... < e[n] <= e[n - 1] <= ... <= e[1] <= e[0] <= 1 - f and \sum_{i = 0}^{\infty} {2^i * e[i]} <= f.
 
     This can be used in psi_n_in_bccz_counterexample_construction(f, [e[0],...,e[n-1]]), so that the function constructed is extreme.
 
     Parameters:
-        - f (real) \in (0,1);
+        - f (real) `\in (0,1)`;
         - n (integer);
         - q (real), q > 2: ratio of the geometric series;
         - eta (real), 0 <= eta < 1: to control the series sum, \sum_{i = 0}^{\infty} {2^i * e[i]} <= (1 - eta)*f.
@@ -829,7 +829,7 @@ def generate_example_e_for_psi_n(f=2/3, n=7, q=4, eta=1/1000):
 
 
 def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None, conditioncheck=True):
-    """
+    r"""
     Summary: 
         - Name: psi_n in the construction of BCCZ's counterexample to GJ's conjecture;
         - Infinite; Dim = 1; Slopes = 2; Continuous;  Analysis of subadditive polytope method.
@@ -837,7 +837,7 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
         - Proven extreme [IR1] p.35, thm.4.7.
 
     Note:
-        The (uniform) limit \psi = \lim_{n to \infty} \psi_n is well defined if \sum_{i = 0}^{\infty} {2^i * e[i]} < f.
+        The (uniform) limit `\psi = \lim_{n to \infty} \psi_n` is well defined if `\sum_{i = 0}^{\infty} {2^i * e[i]} < f`.
 
         The (uniform) limit \psi is a continuous facet, but is not piecewise linear. A counterexample of GJ's conjecture.
 
@@ -846,8 +846,8 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
         psi_n_in_bccz_counterexample_construction() is a special case of kf_n_step_mir(), with f=f, a = [1, (f + e[0])/2, (f - e[0] + 2*e[1])/4, ...]
 
     Parameters:
-        * f (real) \in (0,1);
-        * e (list of reals, with length = n) \in (0,f).
+        * f (real) `\in (0,1)`;
+        * e (list of reals, with length = n) `\in (0,f)`.
 
     Function is known to be extreme under the conditions:
         * 0 < f < 1;
@@ -918,7 +918,7 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
     return h
 
 def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), field=None):
-    """
+    r"""
     Summary:
         - Name: Basu-Hildebrand-Koeppe's irrational function.
         - Infinite; Dim = 1; Slopes = 3; Continuous;  Covered intervals and equivariant perturbation.
@@ -927,7 +927,7 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
         - (Although only extremality has been established in literature, the same proof shows that), bhk_irrational is a facet.
 
     Parameters:
-        * f (real) \in (0,1);
+        * f (real) `\in (0,1)`;
         * d1 (real): length of the positive slope;
         * d2 (real): length of the zero slopes;
         * a0 (real): length of the first zig-zag;
@@ -1040,11 +1040,11 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
 def bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), c2=0, field=None):
-    """
+    r"""
     A version of the irrational function with non-zero second slope
 
     Parameters:
-        * f (real) \in (0,1);
+        * f (real) `\in (0,1)`;
         * d1 (real): length of the positive slopes;
         * d2 (real): length of the slant (c2) slopes;
         * a0 (real): length of the first zig-zag;
@@ -1151,7 +1151,7 @@ def bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
 def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), alpha=95/100, field=None):
-    """
+    r"""
     A version of the irrational function with non-zero second slope,
     obtained by forming a convex combination of a modified version of the irrational function with the GMI cut.
     Constructed by Chun Yu Hong, 2013.
@@ -1202,11 +1202,11 @@ def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/
     return alpha * bhk + (1 - alpha) * gmi
 
 def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, conditioncheck=True, condition_according_to_literature=False, merge=True):
-    """
+    r"""
     This 4-slope function is shown [KChen_thesis] to be a facet.
 
     Parameters:
-        * f (real) \in (0,1);
+        * f (real) `\in (0,1)`;
         * s_pos, s_neg (real): positive slope and negative slope
         * lam1, lam2 (real).
 
@@ -1419,7 +1419,7 @@ class LlStrongFractional(ExtremeFunctionsFactory):
             return 'extreme'
 
     def __call__(self, f=2/3, field=None, conditioncheck=True):
-        """
+        r"""
         Letchford--Lodi's strong fractional cut.
 
         EXAMPLES::
@@ -1498,7 +1498,7 @@ class LlStrongFractional(ExtremeFunctionsFactory):
 ll_strong_fractional = LlStrongFractional()
 
 def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
-    """
+    r"""
     A family of extreme functions with an arbitrary number `k` of slopes. (k >= 2)
 
     Function is known to be extreme under the condition:
@@ -1557,7 +1557,7 @@ extreme_function_with_world_record_number_of_slopes = bcdsp_arbitrary_slope
 
 class bcds_discontinuous_everywhere:
 
-    """
+    r"""
     An extreme function whose graph is dense in R \times [0,1].
 
     Reference:
@@ -1583,7 +1583,7 @@ class bcds_discontinuous_everywhere:
             return Graphics()
 
 def kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19, field=None, conditioncheck=True):
-    """
+    r"""
     New extreme function discovered by computer based search followed by parametric search.
     It has 3 slopes in the general case.
 
@@ -1621,7 +1621,7 @@ def kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19, field=None, conditionche
     return h
 
 def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=True):
-    """
+    r"""
     New extreme function discovered by computer based search followed by parametric search.
     The function looks like ``gj_forward_3_slope`` + ``drlm_backward_3_slope``.
 
@@ -1664,7 +1664,7 @@ def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=
 
 
 def kzh_4_slope_param_extreme_1(f=13/18, a=7/18, b=1/18, field=None, conditioncheck=True):
-    """
+    r"""
     New extreme function discovered by computer based search followed by parametric search.
     The function looks like ``gj_forward_3_slope`` + ``kzh_3_slope_param_extreme_1``.
 

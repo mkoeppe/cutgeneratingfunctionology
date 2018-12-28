@@ -6,7 +6,7 @@
 from six.moves import range
 
 def print_trivial_additive_points_2q(filename, q, f, a):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -47,7 +47,7 @@ def print_trivial_additive_points_2q(filename, q, f, a):
     print('%s = 0' % vertex_variable(q, (b - a + 1/q, a)), file=filename)
 
 def write_lpfile_2q(q, f, a, kslopes, maxstep=None, m=0):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -79,7 +79,7 @@ def write_lpfile_2q(q, f, a, kslopes, maxstep=None, m=0):
         for yy in range(q+1):
             faces_0d.append( Face(([xx/q], [yy/q], [(xx+yy)/q])) )
 
-    print('\ MIP model with q = %s, f = %s, a = %s, num of slopes = %s, maxstep of tran/refl = %s, small_m = %s' % (q, f, a, kslopes, maxstep, m), file=filename)
+    print(r'\ MIP model with q = %s, f = %s, a = %s, num of slopes = %s, maxstep of tran/refl = %s, small_m = %s' % (q, f, a, kslopes, maxstep, m), file=filename)
 
     print('Maximize', file=filename)
     #print >> filename, 0
@@ -161,7 +161,7 @@ def write_lpfile_2q(q, f, a, kslopes, maxstep=None, m=0):
     filename.close()
 
 def print_slope_constraints_2q(filename, q, f, a, kslopes, m=0):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -248,7 +248,7 @@ def print_slope_constraints_2q(filename, q, f, a, kslopes, m=0):
                                                       interval_slope_variable(j, k) ), file=filename)
 
 def refind_function_from_lpsolution_2q(filename, q, f, a):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *

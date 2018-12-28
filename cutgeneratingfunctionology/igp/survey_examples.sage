@@ -2,7 +2,7 @@ from six.moves import range
 ## Various examples of functions that appear in the survey.
 
 def not_minimal_1(): # was not_minimal.sage
-    """
+    r"""
     A non-minimal function.
 
     EXAMPLES::
@@ -16,7 +16,7 @@ def not_minimal_1(): # was not_minimal.sage
     return piecewise_function_from_breakpoints_and_values([0, 1/5, 2/5, 4/5, 1], [0, 1/5, 3/5, 1, 0])
 
 def not_minimal_2(): # was not_minimal_2.sage
-    """
+    r"""
     A non-minimal function.
 
     EXAMPLES::
@@ -30,7 +30,7 @@ def not_minimal_2(): # was not_minimal_2.sage
     return piecewise_function_from_breakpoints_and_values([0, 1/5, 2/5, 3/5, 4/5, 1], [0, 1/5, 1/2, 4/5, 1, 0])
 
 def not_extreme_1(): # was symmetric_rational_function1.sage
-    """
+    r"""
     A non-extreme, minimal function.
 
     EXAMPLES::
@@ -48,7 +48,7 @@ def not_extreme_1(): # was symmetric_rational_function1.sage
     return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes)
 
 def drlm_not_extreme_1():
-    """Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
+    r"""Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
     On the extreme inequalities of infinite group problems,
     Mathematical Programming 121 (2009), no. 1, 145-170,
     https://doi:10.1007/s10107-008-0229-6.
@@ -72,7 +72,7 @@ def drlm_not_extreme_1():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def drlm_not_extreme_2():
-    """
+    r"""
     Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
     On the extreme inequalities of infinite group problems,
     Mathematical Programming 121 (2009), no. 1, 145-170,
@@ -109,7 +109,7 @@ def drlm_not_extreme_2():
                           [singleton_interval(1),f7]])
 
 def phi_s_in_drlm_not_extreme_2(s=10):
-    """Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
+    r"""Example from S. S. Dey, J.-P. P. Richard, Y. Li, and L. A. Miller,
     On the extreme inequalities of infinite group problems,
     Mathematical Programming 121 (2009), no. 1, 145-170,
     https://doi:10.1007/s10107-008-0229-6.
@@ -154,7 +154,7 @@ def phi_s_in_drlm_not_extreme_2(s=10):
 #                          [closed_interval(g, 1),f8]])
 
 def bhk_irrational_extreme_limit_to_rational_nonextreme(n=Infinity):
-    """
+    r"""
     A sequence of ``bhk_irrational`` functions, each extreme, indexed by n = 1, 2, ...
     whose limit (n = Infinity) is a ``bhk_irrational`` function with rational parameters, 
     and hence not extreme. 
@@ -183,7 +183,7 @@ def bhk_irrational_extreme_limit_to_rational_nonextreme(n=Infinity):
     return bhk_irrational(delta=(del1, del2))
 
 def drlm_gj_2_slope_extreme_limit_to_nonextreme(s=Infinity):
-    """
+    r"""
     A sequence of ``phi_s_in_drlm_not_extreme_2`` functions, each extreme,
     indexed by s, (where s is a real number, s = abs(negative_slope) and s > 2)
     whose limit (s = Infinity) is a ``drlm_not_extreme_2`` function which is not extreme.
@@ -207,7 +207,7 @@ def drlm_gj_2_slope_extreme_limit_to_nonextreme(s=Infinity):
     return drlm_not_extreme_2()
 
 def drlm_2_slope_limit_1_1(f=1/2, nb_pieces_left=1, nb_pieces_right=1):
-    """
+    r"""
     An iconic choice of parameters in ``drlm_2_slope_limit``.
 
     EXAMPLES::
@@ -221,7 +221,7 @@ def drlm_2_slope_limit_1_1(f=1/2, nb_pieces_left=1, nb_pieces_right=1):
     return drlm_2_slope_limit(f=f, nb_pieces_left=nb_pieces_left, nb_pieces_right=nb_pieces_right)
 
 def chen_3_slope_not_extreme(f=1/2, lam=8):
-    """
+    r"""
     A continuous 3-slope function, constructed by K. Chen in his Ph.D. thesis [KChen_thesis].
     The function has non-degenerate intervals with a zero derivative.
 
@@ -234,7 +234,7 @@ def chen_3_slope_not_extreme(f=1/2, lam=8):
     See the discussion in [KZh2015b, section 3].
 
     Parameters:
-        * f (real) \in (0,1);
+        * f (real) `\in (0,1)`;
         * lam (real): the first slope has length 1/lam.
 
     Requirement:
@@ -272,10 +272,10 @@ def chen_3_slope_not_extreme(f=1/2, lam=8):
     return  piecewise_function_from_breakpoints_and_values(bkpts, values)
 
 def dr_projected_sequential_merge_3_slope(f=2/3, lambda_1=1/2, lambda_2=1/2, n=1):
-    """
-    Construct the one-dimensional projected sequential merge inequality: `h = g \\lozenge_n^1 \\xi`, where
+    r"""
+    Construct the one-dimensional projected sequential merge inequality: `h = g \lozenge_n^1 \xi`, where
         * `g =` ``multiplicative_homomorphism(gj_forward_3_slope(f=f, lambda_1=lambda_1, lambda_2=lambda_2),-1);``
-        * `\\xi =` ``gmic(f/n)``.
+        * `\xi =` ``gmic(f/n)``.
 
     See ``projected_sequential_merge()``.
 
@@ -295,7 +295,7 @@ def dr_projected_sequential_merge_3_slope(f=2/3, lambda_1=1/2, lambda_2=1/2, n=1
     return h
 
 def gomory_fractional(f=4/5):
-    """
+    r"""
     The Gomory fractional cut.  
     Not minimal.
 
@@ -316,7 +316,7 @@ def gomory_fractional(f=4/5):
     return gf
 
 def ll_strong_fractional_bad_figure_3():
-    """
+    r"""
     Corresponds to Figure 3 in Letchford-Lodi (2002); divided by its
     value at f=2/3 to normalize.
 
@@ -337,7 +337,7 @@ def ll_strong_fractional_bad_figure_3():
     return h * (1/f)
 
 def ll_strong_fractional_bad_figure_3_corrected():
-    """
+    r"""
     Corresponds to what Figure 3 in Letchford-Lodi (2002) should have
     looked like; divided by its value at f=2/3 to normalize.
 
@@ -358,7 +358,7 @@ def ll_strong_fractional_bad_figure_3_corrected():
     return h * (1/f)
 
 def california_ip():
-    """
+    r"""
     The California Integer Programming cut, to be plotted with rgbcolor=(192, 54, 44).
     Not minimal.
     """
@@ -379,7 +379,7 @@ def california_ip():
     return FastPiecewise(pieces)
 
 def kzh_2q_example_1():
-    """
+    r"""
     A continuous 4-slope non-extreme function, whose restriction to
     1/2q is extreme, thereby showing that an oversampling factor of 3
     is optimal.
@@ -417,7 +417,7 @@ def kzh_2q_example_1():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def zhou_two_sided_discontinuous_cannot_assume_any_continuity():
-    """
+    r"""
     This function is two-sided discontinuous at the origin.  The
     extremality test then cannot assume any left or right continuity
     of the perturbation function at the breakpoints, even if such
@@ -445,7 +445,7 @@ def zhou_two_sided_discontinuous_cannot_assume_any_continuity():
 ## Example functions that appear in the paper Equivariant perturbation V.
 
 def equiv5_random_discont_1():
-    """
+    r"""
     A randomly generated discontinuous function that appears in Equiv V.
     """
     return discontinuous_interpolation([0, 1/5, 2/5, 3/5, 4/5],
@@ -453,7 +453,7 @@ def equiv5_random_discont_1():
 
 ## Example functions that appear in the paper Equivariant perturbation VII.
 def equiv7_example_1():
-    """
+    r"""
     One-sided discontinuous minimal valid function that appears in Equiv VII example 7.8.
 
     EXAMPLES::
@@ -471,9 +471,9 @@ def equiv7_example_1():
     return FastPiecewise([singleton_piece(0, 0),open_piece((0, 1/2), (1/2, 1/2)),closed_piece((1/2, 1),(1,0))])
 
 def equiv7_example_2_crazy_perturbation():
-    """
+    r"""
     An effective perturbation function for the two-sided discontinuous function
-    `\\pi_2 =` ``minimal_no_covered_interval()`` that appears in Equiv VII example 7.9.
+    `\pi_2 =` ``minimal_no_covered_interval()`` that appears in Equiv VII example 7.9.
 
     This perturbation is bounded, but is not Lipschitz continuous on the interval
     `(0, 1/2)`. In fact, it is a highly discontinuous "locally microperiodic"
@@ -497,7 +497,7 @@ def equiv7_example_2_crazy_perturbation():
     return cp
 
 def equiv7_minimal_2_covered_2_uncovered():
-    """
+    r"""
     A continuous minimal valid function that appears in Equiv VII.
 
     Five 0-slopes, all uncovered, translation and reflection on all five.
