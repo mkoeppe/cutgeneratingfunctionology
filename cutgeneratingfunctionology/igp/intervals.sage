@@ -1,11 +1,3 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
-
 ## 
 ## A lightweight representation of closed bounded intervals, possibly empty or degenerate.
 ##
@@ -29,6 +21,7 @@ def interval_intersection(int1, int2):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: interval_intersection([1], [2])
         []
         sage: interval_intersection([1,3], [2,4])
@@ -93,6 +86,7 @@ def element_of_int(x,int):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: element_of_int(1, [])
         False
         sage: element_of_int(1, [1])
@@ -125,6 +119,7 @@ def interval_to_endpoints(int):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: interval_to_endpoints([1])
         (1, 1)
         sage: interval_to_endpoints([1,3])
@@ -149,6 +144,7 @@ def find_interior_intersection(list1, list2):
     
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: find_interior_intersection([[1, 2], [3, 4]], [[2, 3], [4, 5]])
         False
         sage: find_interior_intersection([[1, 2], [3, 5]], [[2, 4]])
@@ -176,6 +172,7 @@ def interval_minus_union_of_intervals(interval, remove_list):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: interval_minus_union_of_intervals([0, 10], [[-1, 0], [2, 3], [9,11]]) 
         [[0, 2], [3, 9]]
         sage: interval_minus_union_of_intervals([0, 10], [[-1, 0], [2, 3]]) 
@@ -357,6 +354,7 @@ def scan_coho_interval_list(interval_list, tag=None, closure=False):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: list(scan_coho_interval_list([closed_or_open_or_halfopen_interval(1, 2, True, False), closed_or_open_or_halfopen_interval(2, 3, True, True)]))
         [((1, 0), -1, None), ((2, 0), -1, None), ((2, 0), 1, None), ((3, 1), 1, None)]
     """
@@ -403,6 +401,7 @@ def intersection_of_coho_intervals(interval_lists):
     
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: list(intersection_of_coho_intervals([[[1,2]], [[2,3]]]))
         [<Int{2}>]
         sage: list(intersection_of_coho_intervals([[[1,2], [2,3]], [[0,4]]]))
@@ -441,6 +440,7 @@ def coho_intervals_intersecting(a, b):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: coho_intervals_intersecting(singleton_interval(1), singleton_interval(1))
         True
         sage: coho_intervals_intersecting(singleton_interval(1), singleton_interval(2))
@@ -460,6 +460,7 @@ def coho_intervals_intersecting_full_dimensionally(a, b):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), singleton_interval(1))
         False
         sage: coho_intervals_intersecting_full_dimensionally(singleton_interval(1), singleton_interval(2))
@@ -510,6 +511,7 @@ def union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0,10]]], [[[2,2], [3,4]]])
         [<Int[0, 2)>, <Int(2, 3)>, <Int(4, 10]>]
         sage: union_of_coho_intervals_minus_union_of_coho_intervals([[[0, 10]]], [[[1, 7]], [[2, 5]]])

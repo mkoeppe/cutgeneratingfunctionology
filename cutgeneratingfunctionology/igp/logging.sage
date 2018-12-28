@@ -1,10 +1,3 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 import logging
 
 # this is a version of Python's StreamHandler which prints log

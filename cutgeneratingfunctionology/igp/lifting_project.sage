@@ -1,8 +1,3 @@
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 ### Experimental code.
 
 
@@ -10,6 +5,7 @@ def lift_on_uncovered_components(fn, show_plots=False, L=[]):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.info)
         sage: h = drlm_not_extreme_1()
         sage: hh = lift_on_uncovered_components(h)

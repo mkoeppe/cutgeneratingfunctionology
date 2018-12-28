@@ -4,7 +4,7 @@ Index of Extreme Functions
 """
 
 # extreme_functions_in_literature
-from igp import (gmic,
+from cutgeneratingfunctionology.igp import (gmic,
                  gj_2_slope,
                  gj_2_slope_repeat,
                  dg_2_step_mir,
@@ -22,7 +22,7 @@ from igp import (gmic,
                  rlm_dpl1_extreme_3a,
                  ll_strong_fractional)
    
-from igp import (hildebrand_5_slope_22_1,
+from cutgeneratingfunctionology.igp import (hildebrand_5_slope_22_1,
                  hildebrand_5_slope_24_1,
                  hildebrand_5_slope_28_1,
                  hildebrand_2_sided_discont_1_slope_1,
@@ -58,7 +58,7 @@ from igp import (hildebrand_5_slope_22_1,
                  kzh_28_slope_1,
                  kzh_28_slope_2)
 
-from igp import (mlr_cpl3_a_2_slope,
+from cutgeneratingfunctionology.igp import (mlr_cpl3_a_2_slope,
                  mlr_cpl3_b_3_slope,
                  mlr_cpl3_c_3_slope,
                  mlr_cpl3_d_3_slope,
@@ -73,9 +73,9 @@ from igp import (mlr_cpl3_a_2_slope,
                  mlr_cpl3_q_2_slope,
                  mlr_cpl3_r_2_slope)
 
-from igp import (bcdsp_arbitrary_slope,
+from cutgeneratingfunctionology.igp import (bcdsp_arbitrary_slope,
                  bcds_discontinuous_everywhere)
 
-from igp import (kzh_3_slope_param_extreme_1,
+from cutgeneratingfunctionology.igp import (kzh_3_slope_param_extreme_1,
                  kzh_3_slope_param_extreme_2,
                  kzh_4_slope_param_extreme_1)

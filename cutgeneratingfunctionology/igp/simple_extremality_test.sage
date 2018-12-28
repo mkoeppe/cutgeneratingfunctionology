@@ -1,10 +1,3 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 def generate_perturbations_simple(fn, show_plots=False, f=None, oversampling=3, order=None, full_certificates=True):
     """
     Generate (with "yield") perturbations for ``simple_finite_dimensional_extremality_test``. 
@@ -151,6 +144,7 @@ def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, ove
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO) # to disable output in automatic tests.
         sage: h = piecewise_function_from_breakpoints_and_values([0, 1/2, 1], [0, 1, 0])
         sage: simple_finite_dimensional_extremality_test(h, False)

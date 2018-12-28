@@ -1,10 +1,3 @@
-# Make sure current directory is in path.
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 #######################
 # interface mathematica
 #######################
@@ -16,6 +9,7 @@ def write_mathematica_constraints(eqs, ineqs, strict=True):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: P.<x,y,z>=QQ[]
         sage: eqs = [z]
         sage: ineqs = [-x, x-1, -y, y-1]
@@ -40,6 +34,7 @@ def write_mathematica_variables(var_name):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: var_name = ['x','y','z']
         sage: write_mathematica_variables(var_name)
         '{x, y, z}'
@@ -55,6 +50,7 @@ def find_instance_mathematica(condstr, var_name):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: condstr = 'z == 0 && -x < 0 && x - 1 < 0 && y - 1 < 0 && -y < 0'
         sage: var_name = ['x','y','z']
         sage: find_instance_mathematica(condstr, var_name)     # optional - mathematica

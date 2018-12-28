@@ -1,10 +1,3 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 def gmic(f=4/5, field=None, conditioncheck=True):
     """
     Summary:
@@ -20,6 +13,8 @@ def gmic(f=4/5, field=None, conditioncheck=True):
     Examples: 
         [61] p.343, Fig. 1, Example 1 ::
 
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = gmic(4/5)
             sage: extremality_test(h, False)
@@ -65,6 +60,8 @@ def gj_2_slope(f=3/5, lambda_1=1/6, field=None, conditioncheck=True):
 
     Examples: [61] p.354, Fig.6 ::
 
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = gj_2_slope(f=3/5, lambda_1=1/6)
         sage: extremality_test(h, False)
@@ -120,6 +117,8 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
 
     Examples: [61] p.354, Fig.7 ::
 
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3)
         sage: extremality_test(h, False)
@@ -170,6 +169,7 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
 #     Examples:
 #         [33] p.40, Fig.5 ::
 
+#             sage: from cutgeneratingfunctionology.igp import *
 #             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
 #             sage: h = dg_2_step_mir(f=4/5, alpha=3/10)
 #             sage: extremality_test(h, False)
@@ -246,6 +246,8 @@ class Dg2StepMir(ExtremeFunctionsFactory):
 
         Examples: [33] p.40, Fig.5 ::
 
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = dg_2_step_mir(f=4/5, alpha=3/10)
             sage: extremality_test(h, False)
@@ -330,6 +332,8 @@ class KfNStepMir(ExtremeFunctionsFactory):
 
         Examples: [74] p.333 - p.335, Fig.1 - Fig.6 ::
 
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = kf_n_step_mir(f=4/5, a=[1])
             sage: extremality_test(h, False)
@@ -399,6 +403,7 @@ def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditionc
     Examples:
         [61] p.360, Fig.8 ::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=1/3)
         sage: extremality_test(h, False)
         True
@@ -471,6 +476,7 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
         - Finite group --> Example 3.8 in [8] p.386,
         - Infinite group --> Interpolation using Equation 5 from [40] p.154 ::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: h = drlm_backward_3_slope(f=1/12, bkpt=2/12)
             sage: extremality_test(h, False)
             True
@@ -550,6 +556,7 @@ class Dg2StepMirLimit(ExtremeFunctionsFactory):
 
         Examples: [33] p.42, Fig.6 ::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
             sage: h = dg_2_step_mir_limit(f=3/5, d=3)
             sage: extremality_test(h, False)
@@ -599,6 +606,7 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, c
     Examples:
         [40] p.159 Fig.4 ::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
             sage: h = drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4)
             sage: extremality_test(h, False)
@@ -663,6 +671,7 @@ def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
     Examples:
         [40] p.162 Fig.5 ::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
             sage: h = drlm_3_slope_limit(f=1/5)
             sage: extremality_test(h, False)
@@ -724,6 +733,7 @@ def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
     Examples:
         quick exact evaluations::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: bccz_counterexample(f=2/3, q=4, eta=0, maxiter=10000)(r=1/5)
             21/40
             sage: bccz_counterexample(f=2/3, q=4, eta=0, maxiter=10000)(r=1/4)
@@ -846,6 +856,7 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
     Examples:
         [IR1]  p.30, fig.1::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24])
             sage: extremality_test(h, False)
@@ -938,6 +949,7 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
     Examples:
         [IR2]  p.34, thm.5.3::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.NOTSET) # enable INFO messages disabled by other doctests
             sage: h = bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200))
             INFO: ...
@@ -1061,6 +1073,7 @@ def bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2
 
     Examples::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), c2=1/16)
         sage: h2 = bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), alpha=95/100)
@@ -1144,6 +1157,7 @@ def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = bhk_gmi_irrational()
         sage: extremality_test(h, False)
@@ -1208,6 +1222,7 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
         The following example satisfies the extremality conditions according to [KChen_thesis],
         however it violates the subadditivity, and thus is not an extreme function::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/100, lam2=49/100, condition_according_to_literature=True)
             sage: h._claimed_parameter_attribute
@@ -1348,6 +1363,7 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
 
     Example: p.273, Fig.3-lowerleft ::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
         sage: h = rlm_dpl1_extreme_3a(f=1/4)
         sage: extremality_test(h, False)
@@ -1407,6 +1423,7 @@ class LlStrongFractional(ExtremeFunctionsFactory):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = ll_strong_fractional(f=2/3)
             sage: extremality_test(h, False)
@@ -1429,6 +1446,7 @@ class LlStrongFractional(ExtremeFunctionsFactory):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: f=2/3
             sage: l = ll_strong_fractional(f)
@@ -1489,6 +1507,7 @@ def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
 
     Examples::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = bcdsp_arbitrary_slope(f=1/2, k=2)
         sage: h == gmic(f=1/2)
@@ -1574,6 +1593,7 @@ def kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19, field=None, conditionche
 
     Examples::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19)
         sage: extremality_test(h)
@@ -1611,6 +1631,7 @@ def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=
 
     Examples::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9)
         sage: extremality_test(h)
@@ -1653,6 +1674,7 @@ def kzh_4_slope_param_extreme_1(f=13/18, a=7/18, b=1/18, field=None, conditionch
 
     Examples::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = kzh_4_slope_param_extreme_1(f=13/18, a=7/18, b=1/18)
         sage: extremality_test(h)

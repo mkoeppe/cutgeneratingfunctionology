@@ -1,14 +1,8 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 def not_minimal_3(): # this was a bug
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO); 
         sage: h = not_minimal_3()
         sage: minimality_test(h, False)
@@ -20,6 +14,7 @@ def not_minimal_wrong_range():
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO); 
         sage: h = not_minimal_wrong_range()
         sage: minimality_test(h, False)
@@ -31,6 +26,7 @@ def fake_f():
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO); 
         sage: h = fake_f()
         sage: minimality_test(h, f=4/5)
@@ -44,6 +40,7 @@ def limits_out_of_range():                                  # plotting bug
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO); 
         sage: h = limits_out_of_range()
         sage: minimality_test(h, False)
@@ -55,6 +52,7 @@ def chen_tricky_uncovered_intervals():
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO); 
         sage: h = chen_tricky_uncovered_intervals()
         sage: extremality_test(h, False)
@@ -66,6 +64,7 @@ def minimal_no_covered_interval():
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN) 
         sage: h = minimal_no_covered_interval()
         sage: extremality_test(h, False)
@@ -81,6 +80,7 @@ def minimal_has_uncovered_interval():
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: h = minimal_has_uncovered_interval()
         sage: extremality_test(h, False)
@@ -105,6 +105,7 @@ def lift_of_minimal_has_uncovered_interval():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: h = lift_of_minimal_has_uncovered_interval()
         sage: len(generate_covered_intervals(h) + generate_uncovered_intervals(h)) >= 2
@@ -116,6 +117,7 @@ def lift_of_minimal_no_covered_interval():
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: h = lift_of_minimal_no_covered_interval()
         sage: extremality_test(h)
@@ -127,6 +129,7 @@ def example7slopecoarse2():
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO); 
         sage: h = example7slopecoarse2()
         sage: extremality_test(h, False)
@@ -145,6 +148,7 @@ def example7slopecoarse2_lifted():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = example7slopecoarse2_lifted()
         sage: extremality_test(h, False)
@@ -156,6 +160,7 @@ def gmic_disjoint(f=4/5):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = gmic_disjoint(4/5)
         sage: extremality_test(h, False)
@@ -169,6 +174,7 @@ def gmic_disjoint_with_singletons(f=4/5):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = gmic_disjoint_with_singletons(4/5)
         sage: extremality_test(h, False)
@@ -189,7 +195,8 @@ def bhk_raises_plotting_error():
     at the borders of 2d diagrams.
 
     TESTS::
-    
+
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = bhk_raises_plotting_error()
         sage: g = plot_2d_diagram(h)
@@ -254,6 +261,7 @@ def minimal_has_uncovered_breakpoints():
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = minimal_has_uncovered_breakpoints()
         sage: finite_dimensional_extremality_test(h,show_all_perturbations = True)

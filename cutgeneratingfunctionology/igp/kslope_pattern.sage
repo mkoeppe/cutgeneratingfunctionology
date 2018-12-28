@@ -1,10 +1,3 @@
-# Make sure current directory is in path.
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 vertex_enumeration_dim_threshold = 10
 
 import sys
@@ -29,9 +22,8 @@ def pattern_setup_lp(l, more_ini_additive=False, objcoef=None, use_auxiliary_del
 
     EXAMPLES::
 
-        sage: import igp
-        sage: from igp import *
-        sage: fn = pattern_setup_lp(1, more_ini_additive=False, objcoef=None)
+        sage: import cutgeneratingfunctionology.igp as igp
+        sage: fn = igp.pattern_setup_lp(1, more_ini_additive=False, objcoef=None)
         sage: fn[28]
         2*x_0 + 12*x_1 + 14*x_2
         sage: igp.pattern_lp.number_of_variables()
@@ -112,6 +104,7 @@ def pattern_positive_zero_undecided_deltafn(vertices_color):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: l = 1; q, f = pattern_q_and_f(l, 0);
         sage: vertices_color = pattern_vertices_color(l, pattern=0, more_ini_additive=False)
         sage: print("glp_exact noise follows in old sage versions"); fn = pattern_setup_lp(l)
@@ -184,6 +177,7 @@ def pattern_positive_zero_undecided_deltafn_trivial(vertices_color):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: l = 1; q, f = pattern_q_and_f(l, 0);
         sage: vertices_color = pattern_vertices_color(l, pattern=0, more_ini_additive=False)
         sage: fn = pattern_setup_lp(l)
@@ -217,6 +211,7 @@ def pattern_will_form_edge(x, y, vertices_color):
     
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: l = 1; q, f = pattern_q_and_f(l, 0);
         sage: vertices_color = pattern_vertices_color(l, pattern=0, more_ini_additive=False)
         sage: pattern_will_form_edge(1, 1, vertices_color)
@@ -239,6 +234,7 @@ def tuple_of_deltafn(n, linfun):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: fn = pattern_setup_lp(1, more_ini_additive=False, objcoef=None)
         sage: linfun = fn[5]; linfun
         x_0 + 3*x_1 + x_2
@@ -270,8 +266,9 @@ def pattern_backtrack_polytope(l, k_slopes):
 
     EXAMPLES::
 
-        sage: import igp
-        sage: igp.vertex_enumeration_dim_threshold = 1
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: import cutgeneratingfunctionology.igp as igp
+        sage: vertex_enumeration_dim_threshold = 1
         sage: pattern_backtrack_polytope(1, 6) # long time
         #####  ...
         6
@@ -319,6 +316,7 @@ def convert_linfun_to_linexp(linfun):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: fn = pattern_setup_lp(1, more_ini_additive=False, objcoef=None)
         sage: linfun = fn[5]; linfun
         x_0 + 3*x_1 + x_2
@@ -419,6 +417,7 @@ def glpk_simplex_exact_solve(lp):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = False)
         sage: x, y = lp[0], lp[1]
         sage: lp.add_constraint(-2*x + y <= 1)
@@ -453,6 +452,7 @@ def pattern_glpk_lp(l, more_ini_additive=False, exact_arithmetic=True, simplex_f
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: print("glp_exact noise follows in old sage versions"); optval, optsol, k_slope, v = pattern_glpk_lp(1, objcoef=(12,55,0))
         glp_exact...
         sage: k_slope
@@ -511,6 +511,7 @@ def exact_optsol(b):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = False)
         sage: x, y = lp[0], lp[1]
         sage: lp.add_constraint(-2*x + y <= 1)
@@ -579,6 +580,7 @@ def pattern_ppl_lp(l, more_ini_additive=False, objcoef=None): #TOO SLOW
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: optval, optsol, k_slope, v, v_div = pattern_ppl_lp(1, objcoef=(12,55,0))
         sage: k_slope
         6
@@ -633,6 +635,7 @@ def pattern_glpk_test(l_list, more_ini_additive=False, exact_arithmetic=True, si
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: pattern_glpk_test(range(1,4),more_ini_additive=False, exact_arithmetic=False, simplex_first=False, reconstruct_rational=True)
         1 2 ...
         [2, 2, 2]
@@ -677,6 +680,7 @@ def pattern_q_and_f(l, pattern):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: pattern_q_and_f(1, pattern=0)
         (58, 29)
     """
@@ -704,6 +708,7 @@ def pattern_additive_vertices(l, pattern):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: additive_vertices = pattern_additive_vertices(1, pattern=0)
         sage: len(additive_vertices)
         31
@@ -787,6 +792,7 @@ def pattern_s(l, pattern):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: s = pattern_s(1, pattern=0)
         sage: s[0]
         x0
@@ -850,6 +856,7 @@ def pattern_fn(l, pattern):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: fn = pattern_fn(1, pattern=0)
         sage: fn[28]
         2*x0+12*x1+14*x2
@@ -877,6 +884,7 @@ def pattern_polytope(vertices_color, fn):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: vertices_color = pattern_vertices_color(1, pattern=0, more_ini_additive=False)
         sage: fn = pattern_fn(1, pattern=0)
         sage: pattern_polytope(vertices_color, fn)
@@ -920,6 +928,7 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: pattern_extreme(3, 4, 0, test_extremality=True, count_components=True)
         #####  ...
         q = 130; f = 65; num_components = 8; num_slopes = 8; divisor = 205; extreme = True

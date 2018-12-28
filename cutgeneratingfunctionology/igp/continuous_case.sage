@@ -1,10 +1,3 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 ########## Code for Continuous Case ###########
 
 def generate_nonsymmetric_vertices_continuous(fn, f):
@@ -44,7 +37,9 @@ def generate_overlapping_interval_indices(interval, breakpoints):
     Given breakpoints (a list of breakpoints which generate subintervals),
     return a list of indices of subintervals that have a nonempty intersection with interval.
 
-    Examples:
+    Examples::
+
+        sage: from cutgeneratingfunctionology.igp import *
         sage: generate_overlapping_interval_indices([1/3,2/3], [0,1/4,1/2,3/4,1])
         [1, 2]
         sage: generate_overlapping_interval_indices([1/3,2/3], [0,1/4,1/3,1/2,2/3])
@@ -67,6 +62,7 @@ def generate_maximal_additive_faces_continuous(function):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = gj_2_slope(f=4/5, lambda_1=1/6, conditioncheck=False)
         sage: generate_maximal_additive_faces_continuous(h)

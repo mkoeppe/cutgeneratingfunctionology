@@ -1,13 +1,7 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 """
     sage: import warnings
     sage: warnings.filterwarnings('ignore', 'Matplotlib is building the font cache using fc-list. This may take a moment.')
+    sage: from cutgeneratingfunctionology.igp import *
 """
 
 import itertools
@@ -43,6 +37,8 @@ def delta_pi(fn,x,y):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: fn = not_minimal_2()
         sage: delta_pi(fn, 1/5, 3/5)
@@ -150,6 +146,8 @@ class Face:
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: from cutgeneratingfunctionology.igp import *
         sage: F = Face([[1/5, 3/10], [3/4, 17/20], [1, 6/5]])
         sage: F.vertices
         [(1/5, 17/20), (3/10, 3/4), (3/10, 17/20), (1/5, 4/5), (1/4, 3/4)]
@@ -208,6 +206,8 @@ class Face:
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: from cutgeneratingfunctionology.igp import *
             sage: face_hor = Face([[2/5, 3/5],[4/5],[6/5,7/5]])
             sage: face_hor.directed_move_with_domain_and_codomain()
             ((1, -1/5), [<Int(2/5, 3/5)>], [<Int(1/5, 2/5)>])
@@ -241,6 +241,8 @@ class Face:
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: from cutgeneratingfunctionology.igp import *
             sage: face_hor = Face([[2/5, 3/5],[4/5],[6/5,7/5]])
             sage: face_hor.functional_directed_move()
             <FunctionalDirectedMove (1, -1/5) with domain [<Int(2/5, 3/5)>], range [<Int(1/5, 2/5)>]>
@@ -366,10 +368,12 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
 
     To show only a part of the diagram, use::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: plot_2d_diagram(h).show(xmin=0.25, xmax=0.35, ymin=0.25, ymax=0.35)  # not tested
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = FastPiecewise([[closed_interval(0,1/4), FastLinearFunction(4, 0)],
         ...                      [open_interval(1/4, 1), FastLinearFunction(4/3, -1/3)],
         ...                      [singleton_interval(1), FastLinearFunction(0,0)]])
@@ -386,8 +390,8 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
     if additive_color is None:
-        import igp
-        additive_color = igp.additive_color
+        import cutgeneratingfunctionology
+        additive_color = cutgeneratingfunctionology.igp.additive_color
     faces = generate_maximal_additive_faces(fn)
     p = Graphics()
     kwds = { 'legend_label': "Additive face" }
@@ -491,6 +495,8 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200, add
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = zhou_two_sided_discontinuous_cannot_assume_any_continuity()
         sage: g = plot_2d_diagram_with_cones(h)
@@ -535,6 +541,8 @@ def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, 
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = hildebrand_discont_3_slope_1()
         sage: g = plot_2d_diagram_additive_domain_sans_limits(h)
@@ -692,6 +700,8 @@ def interval_mod_1(interval):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: from cutgeneratingfunctionology.igp import *
         sage: interval_mod_1([1,6/5])
         [0, 1/5]
         sage: interval_mod_1([1,2])
@@ -727,6 +737,8 @@ def generate_covered_components(function):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = hildebrand_discont_3_slope_1()
         sage: generate_covered_components(h)
@@ -896,6 +908,7 @@ def number_of_components(fn):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: number_of_components(gmic())
         2
@@ -915,6 +928,7 @@ def slopes_intervals_dict(fn, ignore_nonlinear=False):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: slopes_intervals_dict(gmic(1/2))[2]
         [(0, 1/2)]
@@ -942,6 +956,7 @@ def number_of_slopes(fn):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: number_of_slopes(gmic())
         2
@@ -1066,6 +1081,7 @@ def minimality_test(fn, show_plots=False, f=None, full_certificates=True):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: minimality_test(piecewise_function_from_breakpoints_and_values([0,1/5,4/5,1],[0,1/2,1,0]))
         False
@@ -1130,6 +1146,7 @@ class FastPiecewise (PiecewisePolynomial):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = FastPiecewise([[(3/10, 15/40), FastLinearFunction(1, 0)], [(13/40, 14/40), FastLinearFunction(1, 0)]], merge=True)
         sage: len(h.intervals())
         1
@@ -1270,6 +1287,7 @@ class FastPiecewise (PiecewisePolynomial):
         """
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN) # Suppress output in automatic tests.
             sage: f = FastPiecewise([[open_interval(1,3), FastLinearFunction(0,3)]])
             sage: g =  FastPiecewise([[open_interval(1,2), FastLinearFunction(0,3)], [right_open_interval(2,3), FastLinearFunction(0,3)]], merge=False)
@@ -1321,6 +1339,7 @@ class FastPiecewise (PiecewisePolynomial):
         
         EXAMPLES::
         
+            sage: from cutgeneratingfunctionology.igp import *
             sage: f1(x) = 1
             sage: f2(x) = 2
             sage: f3(x) = 1-x
@@ -1340,6 +1359,7 @@ class FastPiecewise (PiecewisePolynomial):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: f1(x) = 1
             sage: f2(x) = 1-x
             sage: f3(x) = exp(x)
@@ -1365,6 +1385,7 @@ class FastPiecewise (PiecewisePolynomial):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: f1(x) = 1
             sage: f2(x) = 1-x
             sage: f3(x) = exp(x)
@@ -1390,6 +1411,7 @@ class FastPiecewise (PiecewisePolynomial):
         
         EXAMPLES::
         
+            sage: from cutgeneratingfunctionology.igp import *
             sage: f1(x) = 1
             sage: f2(x) = 1-x
             sage: f3(x) = exp(x)
@@ -1476,6 +1498,7 @@ class FastPiecewise (PiecewisePolynomial):
         
         EXAMPLES::
         
+            sage: from cutgeneratingfunctionology.igp import *
             sage: f1(x) = 1
             sage: f2(x) = 1-x
 
@@ -1572,6 +1595,7 @@ class FastPiecewise (PiecewisePolynomial):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: f1(x) = 1
             sage: f2(x) = 1-x
             sage: f3(x) = exp(x)
@@ -1624,6 +1648,7 @@ class FastPiecewise (PiecewisePolynomial):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: f1(x) = 1
             sage: f2(x) = 1-x
             sage: f3(x) = exp(x)
@@ -1677,6 +1702,7 @@ class FastPiecewise (PiecewisePolynomial):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: f = FastPiecewise([[singleton_interval(1), FastLinearFunction(0,17)]])
             sage: g = FastPiecewise([[[0,2], FastLinearFunction(0,2)]])
             sage: (f+g).list()
@@ -1733,6 +1759,7 @@ class FastPiecewise (PiecewisePolynomial):
         
         EXAMPLES::
         
+            sage: from cutgeneratingfunctionology.igp import *
             sage: f1(x) = 1
             sage: f2(x) = 1-x
             sage: f3(x) = exp(x)
@@ -1947,6 +1974,7 @@ class FastPiecewise (PiecewisePolynomial):
 
         TESTS::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: h1 = piecewise_function_from_breakpoints_and_slopes([0, 1/4, 1/2, 1], [1, 1, -1], merge=False)
             sage: h1.sha1()
             'c562cf38581076609876b1c4fab604756690db7b'
@@ -2051,6 +2079,7 @@ def is_all_QQ(values):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: is_QQ, QQ_values = is_all_QQ([1, 2/3])
         sage: is_QQ
         True
@@ -2252,6 +2281,7 @@ def piecewise_function_from_breakpoints_and_limits(bkpt, limits, field=None, mer
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN) # Suppress output in automatic tests.
         sage: bkpt = [0, 1/8, 3/8, 1/2, 5/8, 7/8, 1]
         sage: limits = [(0, 0, 1/2), (1/4, 1/4, 3/4), (3/4, 1/4, 3/4), (1, 1/2, 1), (3/4, 3/4, 3/4), (1/4, 1/4, 1/4), (0, 0, 1/2)]
@@ -2292,6 +2322,7 @@ def piecewise_function_from_breakpoints_slopes_and_jumps(bkpt, slopes, jumps, fi
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN) # Suppress output in automatic tests.
         sage: bkpt = [0, 1/8, 3/8, 1/2, 5/8, 7/8, 1]
         sage: slopes = [6, 2, 6, 2, -2, 2]
@@ -2343,6 +2374,7 @@ def limiting_slopes(fn):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN) # Suppress output in automatic tests.
         sage: limiting_slopes(gmic(f=4/5))
         (5/4, -5)
@@ -2495,6 +2527,7 @@ class FunctionalDirectedMove (FastPiecewise):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: h = FunctionalDirectedMove([[0.3, 0.4]], (1,0))
             sage: h.sign()
             1
@@ -2510,6 +2543,7 @@ class FunctionalDirectedMove (FastPiecewise):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: face_hor = Face([[2/5, 3/5],[4/5],[6/5,7/5]])
             sage: face_ver = Face([[4/5],[2/5, 3/5],[6/5,7/5]])
             sage: fdm_f = face_hor.functional_directed_move()
@@ -2559,6 +2593,7 @@ class FunctionalDirectedMove (FastPiecewise):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: h = FunctionalDirectedMove([[0.3, 0.4], [0.58, 0.68]], (1,0))
             sage: h.can_apply(0.3)
             True
@@ -2577,6 +2612,7 @@ class FunctionalDirectedMove (FastPiecewise):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: h = FunctionalDirectedMove([[0.3, 0.4], [0.58, 0.68]], (1,0))
             sage: h.apply_ignoring_domain(1/10)
             1/10
@@ -2603,6 +2639,7 @@ class FunctionalDirectedMove (FastPiecewise):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: h = FunctionalDirectedMove([[0.3, 0.4]], (-1, 1))
             sage: h.apply_to_coho_interval([1/10, 1/2])
             <Int[1/2, 9/10]>
@@ -2642,6 +2679,7 @@ class FunctionalDirectedMove (FastPiecewise):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: h = FunctionalDirectedMove([[0.3, 0.4]], (1, 0))
             sage: h.is_identity()
             True
@@ -2711,6 +2749,7 @@ class FunctionalDirectedMove (FastPiecewise):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: h = FunctionalDirectedMove([[3/5, 4/5]], (1, 1/5))
             sage: ~h
             <FunctionalDirectedMove (1, -1/5) with domain [(4/5, 1)], range [<Int[3/5, 4/5]>]>
@@ -2735,6 +2774,7 @@ class FunctionalDirectedMove (FastPiecewise):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: FunctionalDirectedMove([(5/10,7/10)],(1, 2/10)) * FunctionalDirectedMove([(2/10,4/10)],(1,2/10))
             <FunctionalDirectedMove (1, 2/5) with domain [(3/10, 2/5)], range [<Int[7/10, 4/5]>]>
 
@@ -2770,6 +2810,7 @@ def generate_symbolic(fn, components, field=None, f=None):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = hildebrand_discont_3_slope_1()
         sage: components =  generate_covered_intervals(h)
@@ -2954,6 +2995,7 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: h1 = drlm_not_extreme_2()
         sage: finite_dimensional_extremality_test(h1, show_plots=True)
@@ -3074,6 +3116,7 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it=1000, phase_1=Fa
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO) # to disable output in automatic tests.
         sage: h = piecewise_function_from_breakpoints_and_values([0, 1/2, 1], [0, 1, 0])
         sage: # This example has a unique candidate for "f", so we don't need to provide one.
@@ -3221,6 +3264,7 @@ def perturbation_polyhedron(fn, perturbs):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO) # to disable output in automatic tests.
         sage: h = not_extreme_1()
         sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
@@ -3326,6 +3370,7 @@ def perturbation_mip(fn, perturbs, solver=None, field=None):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO) # to disable output in automatic tests.
         sage: h = not_extreme_1()
         sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
@@ -3444,6 +3489,7 @@ def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_po
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN) # to disable output in automatic tests.
         sage: h = not_extreme_1()
         sage: h_lift = generate_lifted_functions(h, solver='ppl').next()
@@ -3499,6 +3545,7 @@ def perturbation_corresponding_to_vertex(perturbs, vertex):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO) # to disable output in automatic tests.
         sage: h = not_extreme_1()
         sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
@@ -3580,6 +3627,7 @@ def lift_extreme_function_for_finite_group_to_infinite_group(fn, show_plots = Fa
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.info)
         sage: h = drlm_not_extreme_1()
         sage: hh = lift_extreme_function_for_finite_group_to_infinite_group(h)
@@ -3740,6 +3788,7 @@ def random_piecewise_function(xgrid=10, ygrid=10, continuous_proba=1, symmetry=T
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = random_piecewise_function(10, 10)
         sage: h = random_piecewise_function(10, 10, continuous_proba=4/5, symmetry=True)
         sage: h = random_piecewise_function(10, 10, continuous_proba=4/5, symmetry=False)
@@ -3832,6 +3881,7 @@ def is_QQ_linearly_independent(*numbers):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)  # Suppress output in automatic tests.
         sage: is_QQ_linearly_independent()
         True
@@ -3881,6 +3931,7 @@ def compose_functional_directed_moves(A, B, show_plots=False):
     
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: compose_functional_directed_moves(FunctionalDirectedMove([(5/10,7/10)],(1, 2/10)),FunctionalDirectedMove([(2/10,4/10)],(1,2/10)))
         <FunctionalDirectedMove (1, 2/5) with domain [(3/10, 2/5)], range [<Int[7/10, 4/5]>]>
     """
@@ -3905,6 +3956,7 @@ def merge_functional_directed_moves(A, B, show_plots=False):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: merge_functional_directed_moves(
         ....:    FunctionalDirectedMove([(3/10, 7/20), (9/20, 1/2)], (1,0)),
         ....:    FunctionalDirectedMove([(3/10, 13/40)], (1,0)))
@@ -3983,6 +4035,7 @@ def check_for_strip_lemma_fastpath(m1, m2):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: t1 = 2/15; t2 = sqrt(2)/15; 
         sage: l1 = 4/15; u1 = 3/4 - t1; l2 = 1/3; u2 = 14/15-t2
@@ -3999,6 +4052,7 @@ def check_for_strip_lemma_linear_independence(m1, m2):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: t1 = 2/15; t2 = sqrt(2)/15; t3 = 3/15;
         sage: l1 = 4/15; u1 = 3/4 - t1; l2 = 1/3; u2 = 14/15-t2
@@ -4018,6 +4072,7 @@ def check_for_strip_lemma_small_translations(domain1, domain2, t1, t2):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: t1 = 2/15; t2 = sqrt(2)/15;
         sage: l1 = 4/15; u1 = 3/4 - t1; l2 = 1/3; u2 = 14/15-t2
@@ -4543,6 +4598,7 @@ def generate_directly_covered_components(fn):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = gj_2_slope(3/5,1/3)
         sage: generate_directly_covered_components(h)
@@ -4688,6 +4744,7 @@ def generate_uncovered_components(fn, show_plots=False):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = equiv7_example_1()
         sage: generate_uncovered_components(h)
@@ -4742,6 +4799,7 @@ def merit_index(fn):
 
     The merit index for GMIC is `2f^2 - 2f + 1` [RD]::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: def merit_index_gmic(f):
         ....:     return 2*f^2 - 2*f + 1
         sage: merit_index(gmic(1/4)) == merit_index_gmic(1/4)
@@ -4787,6 +4845,7 @@ def arithmetic_complexity(fn, f=None, q=None):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = gmic(7/9)
         sage: arithmetic_complexity(h)

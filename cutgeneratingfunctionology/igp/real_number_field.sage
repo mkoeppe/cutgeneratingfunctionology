@@ -1,9 +1,3 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
 
 import sage.rings.number_field.number_field
 from sage.rings.number_field.number_field import NumberField_absolute, NumberField_quadratic
@@ -150,6 +144,7 @@ class RealNumberField_absolute(NumberField_absolute):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: field, field_values, morphism = number_field_elements_from_algebraics((sqrt(2), sqrt(3)))
         sage: emb_field = RealNumberField(field.polynomial(), 'a', 
         ....:                 embedding=morphism(field.gen(0)),
@@ -234,6 +229,7 @@ class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: x, = nice_field_values([2^(1/2)])
             sage: sage_input(x)
             R.<y> = QQ[]
@@ -327,6 +323,7 @@ def RealNumberField(polynomial, name=None, latex_name=None, names=None, check=Tr
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: x=polygen(QQ)
         sage: K.<cbrt2> = RealNumberField(x^3 - 2, embedding=RIF(AA.polynomial_root(x^3-2, RIF(0,3))), exact_embedding=AA.polynomial_root(x^3-2, RIF(0,3)))
         sage: 6064/4813 < cbrt2 < 90325/71691

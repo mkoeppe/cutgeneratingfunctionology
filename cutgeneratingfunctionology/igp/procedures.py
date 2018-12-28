@@ -3,7 +3,7 @@ r"""
 Index of "procedures" that can be applied to transform extreme functions
 """
 
-from igp import (multiplicative_homomorphism,
+from cutgeneratingfunctionology.igp import (multiplicative_homomorphism,
                  automorphism,
                  projected_sequential_merge,
                  restrict_to_finite_group,

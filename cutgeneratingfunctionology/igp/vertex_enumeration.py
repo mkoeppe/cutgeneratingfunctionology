@@ -1,10 +1,3 @@
-# Make sure current directory is in path.
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 def vertex_enumeration(polytope, exp_dim=-1, vetime=False):
     """
     Returns the vertices of the polytope.
@@ -16,6 +9,7 @@ def vertex_enumeration(polytope, exp_dim=-1, vetime=False):
     
     EXAMPLE::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: x = Variable(0)
         sage: y = Variable(1)
         sage: cs = Constraint_System()
@@ -416,6 +410,7 @@ def lrs_lrsinput_pploutput(in_str):
     
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: cube_in_str = "cube\n*cube of side 2 centred at origin\nH-representation\nbegin\n6  4 rational" + "\n1 1 0 0\n1 0 1 0\n1 0 0 1\n1 -1 0 0\n1 0 -1 0\n1 0 0 -1\nend"
         sage: lrs_lrsinput_pploutput(cube_in_str)  # optional - lrslib
         Generator_System {point(1/1, 1/1, 1/1), point(-1/1, 1/1, 1/1), point(1/1, -1/1, 1/1), point(-1/1, -1/1, 1/1), point(1/1, 1/1, -1/1), point(-1/1, 1/1, -1/1), point(1/1, -1/1, -1/1), point(-1/1, -1/1, -1/1)}

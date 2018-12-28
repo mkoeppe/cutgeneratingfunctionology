@@ -1,10 +1,3 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 ## Various examples of functions that appear in the survey.
 
 def not_minimal_1(): # was not_minimal.sage
@@ -13,6 +6,7 @@ def not_minimal_1(): # was not_minimal.sage
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = not_minimal_1()
         sage: minimality_test(h, False)
@@ -26,6 +20,7 @@ def not_minimal_2(): # was not_minimal_2.sage
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = not_minimal_2()
         sage: minimality_test(h, False)
@@ -39,6 +34,7 @@ def not_extreme_1(): # was symmetric_rational_function1.sage
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = not_extreme_1()
         sage: minimality_test(h, False)
@@ -62,6 +58,7 @@ def drlm_not_extreme_1():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = drlm_not_extreme_1()
         sage: minimality_test(h, False)
@@ -88,6 +85,7 @@ def drlm_not_extreme_2():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
         sage: h = drlm_not_extreme_2()
         sage: minimality_test(h, False)
@@ -123,6 +121,7 @@ def phi_s_in_drlm_not_extreme_2(s=10):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = phi_s_in_drlm_not_extreme_2()
         sage: extremality_test(h, False)
@@ -161,6 +160,7 @@ def bhk_irrational_extreme_limit_to_rational_nonextreme(n=Infinity):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = bhk_irrational_extreme_limit_to_rational_nonextreme(1)
         sage: extremality_test(h, False)
@@ -189,6 +189,7 @@ def drlm_gj_2_slope_extreme_limit_to_nonextreme(s=Infinity):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = drlm_gj_2_slope_extreme_limit_to_nonextreme(3)
         sage: extremality_test(h, False)
@@ -210,6 +211,7 @@ def drlm_2_slope_limit_1_1(f=1/2, nb_pieces_left=1, nb_pieces_right=1):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
         sage: h = drlm_2_slope_limit_1_1()
         sage: extremality_test(h, False)
@@ -241,6 +243,7 @@ def chen_3_slope_not_extreme(f=1/2, lam=8):
     Examples:
         [KChen_thesis]  p.33, fig.7 NOT extreme::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = chen_3_slope_not_extreme(f=1/2, lam=8)
             sage: extremality_test(h, False)
@@ -277,6 +280,7 @@ def dr_projected_sequential_merge_3_slope(f=2/3, lambda_1=1/2, lambda_2=1/2, n=1
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = dr_projected_sequential_merge_3_slope()
         sage: extremality_test(h, False)
@@ -296,6 +300,7 @@ def gomory_fractional(f=4/5):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = gomory_fractional(f=4/5)
         sage: minimality_test(h, f=4/5)
@@ -318,6 +323,7 @@ def ll_strong_fractional_bad_figure_3():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = ll_strong_fractional_bad_figure_3()
         sage: minimality_test(h, False)
@@ -336,6 +342,7 @@ def ll_strong_fractional_bad_figure_3_corrected():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = ll_strong_fractional_bad_figure_3_corrected()
         sage: extremality_test(h, False)
@@ -381,6 +388,7 @@ def kzh_2q_example_1():
 
     Example::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_2q_example_1()
         sage: extremality_test(h)
         False
@@ -418,6 +426,7 @@ def zhou_two_sided_discontinuous_cannot_assume_any_continuity():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = zhou_two_sided_discontinuous_cannot_assume_any_continuity()
         sage: extremality_test(h)
         False
@@ -448,6 +457,7 @@ def equiv7_example_1():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h1 = equiv7_example_1()
         sage: generate_uncovered_components(h1)
@@ -470,6 +480,7 @@ def equiv7_example_2_crazy_perturbation():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = minimal_no_covered_interval()
         sage: cp = equiv7_example_2_crazy_perturbation()

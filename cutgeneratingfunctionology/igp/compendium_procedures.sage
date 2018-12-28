@@ -1,15 +1,9 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 def transform_coho_interval(interval, shift, divisor):
     """Shift interval by shift and then divide it by divisor.
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: transform_coho_interval([1, 3], 1, 2)
         [1, 2]
         sage: transform_coho_interval([1, 3], 1, -1)
@@ -62,6 +56,7 @@ def multiplicative_homomorphism(function, multiplier):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
         sage: h = multiplicative_homomorphism(gmic(f=4/5), 3)
         sage: extremality_test(h, False, f=4/15) # Provide f to suppress warning
@@ -95,6 +90,7 @@ def automorphism(function, factor=-1):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
         sage: h = automorphism(gmic(f=4/5))
         sage: extremality_test(h, False, f=1/5)
@@ -141,6 +137,7 @@ def projected_sequential_merge(g, n=1):
 
     Examples: [39]  p.311, fig.5 ::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)
             sage: g = multiplicative_homomorphism(gj_forward_3_slope(f=2/3, lambda_1=1/4, lambda_2=1/4), -1)
             sage: extremality_test(g, False)
@@ -177,6 +174,7 @@ def finite_group_order_from_function_f_oversampling_order(fn, f=None, oversampli
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: finite_group_order_from_function_f_oversampling_order(gmic(f=4/5), order=17)
         17
@@ -241,6 +239,7 @@ def restrict_to_finite_group(function, f=None, oversampling=None, order=None):
     
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: g = gj_2_slope()
         sage: extremality_test(g)
@@ -306,6 +305,7 @@ def interpolate_to_infinite_group(function, merge=True):
     
     The same as ``restrict_to_finite_group(drlm_not_extreme_1())``::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: h7 = discrete_function_from_points_and_values([0/7, 1/7, 2/7, 3/7, 4/7, 5/7, 6/7, 7/7], [0/10, 4/10, 8/10, 5/10, 2/10, 6/10, 10/10, 0/10])
         sage: finite_dimensional_extremality_test(h7)
@@ -354,6 +354,7 @@ def continuous_cut_generating_function_from_group_function(fn):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: continuous_cut_generating_function_from_group_function(gmic(4/5))
         piecewise(x|-->-5*x on (-oo, 0), x|-->0 on {0}, x|-->5/4*x on (0, +oo); x)
@@ -388,6 +389,7 @@ def two_slope_fill_in(function, order=None):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: h_dis = discrete_function_from_points_and_values([0,1/5,2/5,3/5,4/5,1],[0,1/2,1,1/2,1/2,0])
         sage: subadditivity_test(h_dis)
@@ -438,7 +440,8 @@ def generate_pi_pwl(function, epsilon, f=None, order=None):
     Output pi_pwl and the order `q`.
 
     EXAMPLE::
-    
+
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: h = piecewise_function_from_breakpoints_and_values([0,1/5,2/5,3/5,4/5,1],[0,1/2,1,1/2,1/2,0])
         sage: q, pi_pwl = generate_pi_pwl(h, 1/3)
@@ -474,6 +477,7 @@ def generate_pi_delta(f, delta):
 
     EXAMPLE::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: pi_delta = generate_pi_delta(2/5, 1/10)
         sage: plot_2d_diagram(pi_delta) # not tested
@@ -493,6 +497,7 @@ def generate_pi_comb(pi_pwl, epsilon, delta, f=None):
 
     EXAMPLE::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: pi_pwl = piecewise_function_from_breakpoints_and_values([0,1/5,2/5,3/5,4/5,1],[0,1/2,1,1/2,1/2, 0])
         sage: minimality_test(pi_pwl)
@@ -520,6 +525,7 @@ def find_gamma(fn):
 
     EXAMPLE::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: pi_delta = generate_pi_delta(2/5, 1/10)
         sage: find_gamma(pi_delta)
@@ -554,6 +560,7 @@ def generate_pi_fill_in(fn, q, f=None):
 
     EXAMPLE::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: pi_pwl = piecewise_function_from_breakpoints_and_values([0,1/5,2/5,3/5,4/5,1],[0,1/2,1,1/2,1/2, 0])
         sage: pi_comb = generate_pi_comb(pi_pwl, 1/3, 1/10)
@@ -600,6 +607,7 @@ def generate_pi_sym(fn, f=None):
 
     EXAMPLE::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: pi_pwl = piecewise_function_from_breakpoints_and_values([0,1/5,2/5,3/5,4/5,1],[0,1/2,1,1/2,1/2, 0])
         sage: pi_comb = generate_pi_comb(pi_pwl, 1/3, 1/10)
@@ -663,6 +671,7 @@ def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: function = piecewise_function_from_breakpoints_and_values([0,1/5,2/5,3/5,4/5,1],[0,1/2,1,1/2,1/2, 0])
         sage: extremality_test(function)
@@ -678,6 +687,7 @@ def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
 
     Show plots::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: pi_sym = symmetric_2_slope_fill_in(function, 1/8, True) #not tested
         sage: pi_sym = symmetric_2_slope_fill_in(function, 1/10, True) #not tested
 
@@ -758,6 +768,7 @@ def symmetric_2_slope_fill_in_irrational(function, epsilon, show_plots=False, f=
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: function = piecewise_function_from_breakpoints_and_values([0,2/5+1/sqrt(2)/10,3/5+1/sqrt(2)/10,4/5,1],[0,1,1/2,1/2,0])
         sage: minimality_test(function)
@@ -876,6 +887,7 @@ def injective_2_slope_fill_in(fn, epsilon=1, show_plots=False):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: fn = discrete_function_from_points_and_values([0,1/5,2/5,3/5,4/5,1],[0,1/2,1,1/2,1/2,0])
         sage: minimality_test(fn)

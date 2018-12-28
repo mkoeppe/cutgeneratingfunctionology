@@ -1,10 +1,3 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 """
     sage: import warnings
     sage: warnings.filterwarnings('ignore', 'Matplotlib is building the font cache using fc-list. This may take a moment.')
@@ -158,6 +151,7 @@ class ParametricRealFieldElement(FieldElement):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: K.<f> = ParametricRealField([1])
             sage: s = {f, K(1)}
@@ -188,6 +182,7 @@ class ParametricRealField(Field):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: K.<f> = ParametricRealField([4/5])
         sage: h = gmic(f, field=K)
@@ -444,6 +439,7 @@ class ParametricRealField(Field):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)
 
             sage: def foo(x,y):
@@ -494,6 +490,7 @@ def polynomial_to_linexpr(t, monomial_list, v_dict):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: P.<x,y,z> = QQ[]
         sage: monomial_list = []; v_dict = {};
         sage: t = 27/113 * x^2 + y*z + 1/2
@@ -551,6 +548,7 @@ def cs_of_eq_lt_poly(eq_poly, lt_poly):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: P.<f>=QQ[]
         sage: eq_poly =[]; lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
         sage: cs, monomial_list, v_dict = cs_of_eq_lt_poly(eq_poly, lt_poly)
@@ -581,6 +579,7 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: K.<f> = ParametricRealField([4/5])
         sage: h = gmic(f, field=K)
@@ -664,6 +663,7 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: P.<f>=QQ[]
         sage: eq_poly =[]; lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
         sage: cs, monomial_list, v_dict = cs_of_eq_lt_poly(eq_poly, lt_poly)
@@ -697,6 +697,7 @@ def read_simplified_leq_lin(K, level="factor"):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: K.<f> = ParametricRealField([4/5])
         sage: h = gmic(f, field=K)
         sage: _ = extremality_test(h)
@@ -734,6 +735,7 @@ def find_variable_mapping(leqs):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: P.<a,b,c>=QQ[]
         sage: find_variable_mapping([a+2*b+1])
@@ -795,6 +797,7 @@ def substitute_lins(lins, var_map, var_name, var_value):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: P.<x,y>=QQ[]
         sage: var_map = {y: y, x: 75/19*y}
@@ -827,6 +830,7 @@ def read_default_args(function, **opt_non_default):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: read_default_args(gmic)
         {'conditioncheck': True, 'f': 4/5, 'field': None}
         sage: read_default_args(drlm_backward_3_slope, **{'bkpt': 1/5})
@@ -853,6 +857,7 @@ def construct_field_and_test_point(function, var_name, var_value, default_args):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: function=gmic; var_name=['f']; var_value=[1/2];
         sage: default_args = read_default_args(function)
         sage: K, test_point = construct_field_and_test_point(function, var_name, var_value, default_args)
@@ -896,6 +901,7 @@ class SemialgebraicComplexComponent(SageObject):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: def foo(x,y):
         ....:     return (x+y < 2) and (y^2 < x)
@@ -919,6 +925,7 @@ class SemialgebraicComplexComponent(SageObject):
 
     Test variable elimination::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: complex = SemialgebraicComplex(foo, ['x','y'], max_iter=2, find_region_type=lambda r:r, default_var_bound=(-5,5))
         sage: K.<x,y> = ParametricRealField([1,1/2])
         sage: region_type = foo(*K.gens())
@@ -977,6 +984,7 @@ class SemialgebraicComplexComponent(SageObject):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)
             sage: K.<lam1,lam2>=ParametricRealField([3/10, 45/101])
             sage: h = chen_4_slope(K(7/10), K(2), K(-4), lam1, lam2)
@@ -1301,6 +1309,7 @@ class SemialgebraicComplex(SageObject):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
 
         sage: def vol(a,b):
@@ -1426,6 +1435,7 @@ class SemialgebraicComplex(SageObject):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
         """
@@ -1465,6 +1475,7 @@ class SemialgebraicComplex(SageObject):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
             sage: random_point = complex.generate_random_var_value()
@@ -1509,6 +1520,7 @@ class SemialgebraicComplex(SageObject):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
             sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y}
@@ -1533,6 +1545,7 @@ class SemialgebraicComplex(SageObject):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
             sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y}
@@ -1554,6 +1567,7 @@ class SemialgebraicComplex(SageObject):
  
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
             sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y}
@@ -1585,6 +1599,7 @@ class SemialgebraicComplex(SageObject):
  
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))            # optional - mathematica
             sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y}                          # optional - mathematica
@@ -1617,6 +1632,7 @@ class SemialgebraicComplex(SageObject):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
             sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=1/10, wall_crossing_method='heuristic', goto_lower_dim=True) # the cell {(x,y): x<y}
@@ -1673,6 +1689,7 @@ class SemialgebraicComplex(SageObject):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)                   # not tested
             sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))      # not tested
             sage: complex.shoot_random_points(100)                # not tested
@@ -1698,6 +1715,7 @@ class SemialgebraicComplex(SageObject):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(lambda x,y,z: min(x^2,y^2,z), ['x','y','z'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))    # not tested
             sage: complex.bfs_completion()                           # not tested
@@ -1735,6 +1753,7 @@ class SemialgebraicComplex(SageObject):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(lambda x,y,z: min(x^2,y^2,z), ['x','y','z'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))    # not tested
             sage: complex.bfs_completion(goto_lower_dim=True)        # not tested
@@ -1779,6 +1798,7 @@ class SemialgebraicComplex(SageObject):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])
             sage: complex.bfs_completion(var_value=[4/5,1/2],flip_ineq_step=1/20)    #long time
@@ -1811,6 +1831,7 @@ class SemialgebraicComplex(SageObject):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(lambda x,y: min(x^2+ 4*y^2, 4), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-3,3))    # optional - mathematica
             sage: complex.bfs_completion(check_completion=True, wall_crossing_method='mathematica', goto_lower_dim=True)                                                          # optional - mathematica
@@ -1856,6 +1877,7 @@ class SemialgebraicComplex(SageObject):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(lambda x,y: min(x+ 4*y, 4), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-5,5))    # optional - mathematica
             sage: complex.bfs_completion(var_value=[1,1])           # optional - mathematica
@@ -1935,6 +1957,7 @@ def gradient(ineq):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: P.<x,y>=QQ[]
         sage: gradient(2*x^2*y+x^3+4*y+5)
         [3*x^2 + 4*x*y, 2*x^2 + 4]
@@ -2100,6 +2123,7 @@ def update_mccormicks_for_monomial(m, tightened_mip, monomial_list, v_dict, boun
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: mip = MIP_Problem(3)
         sage: vx = Variable(0); vy = Variable(1); vxy = Variable(2)
         sage: mip.add_constraint(vx >= 0); mip.add_constraint(vx <= 1)
@@ -2179,6 +2203,7 @@ def find_region_type_igp(K, h, region_level='extreme', is_minimal=None):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: K.<f> = ParametricRealField([4/5])
         sage: h = gmic(f, field=K)
@@ -2239,6 +2264,7 @@ def claimed_region_type(igp_function=gmic, condition_according_to_literature=Tru
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: claimed_region_type(igp_function=chen_4_slope)
         'extreme'
@@ -2306,6 +2332,7 @@ def result_concrete_value(field, result):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: def vol(a,b):
         ....:     P = Polyhedron(ieqs=[(1,0,-1),(0,0,1),(1,-1,0),(0,1,0),(1,-a,-b)])
@@ -2328,6 +2355,7 @@ def result_symbolic_expression(field, result):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: def vol(a,b):
         ....:     P = Polyhedron(ieqs=[(1,0,-1),(0,0,1),(1,-1,0),(0,1,0),(1,-a,-b)])
@@ -2358,6 +2386,7 @@ def find_region_color(region_type):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: find_region_color('is_extreme')
         'blue'
         sage: find_region_color(False)
@@ -2404,6 +2433,7 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: P.<a,b>=QQ[]
         sage: find_point_flip_ineq_heuristic([1,1/2], a+b-2, [-a+b^2], 1/4)
         (11/8, 7/8)
@@ -2463,6 +2493,7 @@ def find_point_on_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step)
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: P.<a,b>=QQ[]
         sage: find_point_on_ineq_heuristic([1,1/2], a+b-2, [-a+b^2], 1/4)
         (5/4, 3/4)
@@ -2494,6 +2525,7 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, ineqs, flip_ineq_step):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: P.<a,b>=QQ[]
         sage: ineq = a+b-2
         sage: adjust_pt_to_satisfy_ineqs(vector([13/10,12/10]), ineq, [-a+b^2], 1/2)
@@ -2548,6 +2580,7 @@ class PolyhedralComplex(GenericCellComplex):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: pc = PolyhedralComplex([Polyhedron(base_ring=QQ, vertices=[(1/3, 1/3), (QQ(0), QQ(0)), (1/7, 2/7)]), Polyhedron(base_ring=QQ, vertices=[(1/7, 2/7), (QQ(0), QQ(0)), (QQ(0), 1/4)])])
         sage: [sage_input(pol) for pol in pc.cells_list()]
         [Polyhedron(... vertices=[(1/3, 1/3)]),
@@ -2773,6 +2806,7 @@ def embed_function_into_family(given_function, parametric_family, check_completi
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
         sage: embed_function_into_family(gmic(3/13), mlr_cpl3_a_2_slope)
         {'r0': 3/13, 'z1': 3/26}

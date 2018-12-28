@@ -1,10 +1,3 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 ########## Code for Discontinuous Case ###########
 
 nonzero_eps = { (-1,-1,-1), (-1, 1,-1), (-1, 1, 1), (-1, 1, 0), (-1, 0,-1), ( 1,-1,-1), \
@@ -370,6 +363,7 @@ def delta_pi_general(fn, x, y, (xeps, yeps, zeps)=(0,0,0)):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = piecewise_function_from_breakpoints_and_limits(
         ....:       bkpt=[0, 1/5, 2/5, 3/5, 4/5, 1], 

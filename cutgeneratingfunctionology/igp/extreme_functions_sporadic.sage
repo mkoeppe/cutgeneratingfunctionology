@@ -1,10 +1,3 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 ## "Sporadic" extreme functions (found by computer search, not part of a parametric family).
 
 def hildebrand_5_slope_22_1():
@@ -18,6 +11,7 @@ def hildebrand_5_slope_22_1():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = hildebrand_5_slope_22_1()
         sage: extremality_test(h, False)
@@ -40,6 +34,7 @@ def hildebrand_5_slope_24_1():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = hildebrand_5_slope_24_1()
         sage: extremality_test(h, False)
@@ -62,6 +57,7 @@ def hildebrand_5_slope_28_1():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = hildebrand_5_slope_28_1()
         sage: extremality_test(h, False)
@@ -82,6 +78,7 @@ def hildebrand_2_sided_discont_1_slope_1():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = hildebrand_2_sided_discont_1_slope_1()
         sage: extremality_test(h, False)
@@ -107,6 +104,7 @@ def hildebrand_2_sided_discont_2_slope_1():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = hildebrand_2_sided_discont_2_slope_1()
         sage: extremality_test(h, False)
@@ -134,6 +132,7 @@ def hildebrand_discont_3_slope_1():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = hildebrand_discont_3_slope_1()
         sage: extremality_test(h, False)
@@ -158,6 +157,7 @@ def kzh_5_slope_fulldim_1(): #renamed from extreme_5slope_no_0d_1d_1
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_5_slope_fulldim_1()
         sage: extremality_test(h)
         True
@@ -187,6 +187,7 @@ def kzh_5_slope_fulldim_2(): #renamed from extreme_5slope_no_0d_1d_2
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_5_slope_fulldim_2()
         sage: extremality_test(h)
         True
@@ -216,6 +217,7 @@ def kzh_5_slope_fulldim_3(): #renamed from extreme_5slope_no_0d_1d_3
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_5_slope_fulldim_3()
         sage: extremality_test(h)
         True
@@ -244,6 +246,7 @@ def kzh_5_slope_fulldim_4(): #renamed from extreme_5slope_no_0d_1d_4
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_5_slope_fulldim_4()
         sage: extremality_test(h)
         True
@@ -272,6 +275,7 @@ def kzh_5_slope_fulldim_5(): #renamed from extreme_5slope_no_0d_1d_5
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_5_slope_fulldim_5()
         sage: extremality_test(h)
         True
@@ -303,6 +307,7 @@ def kzh_5_slope_fulldim_covers_1(): #renamed from extreme_5slope_no_transrefl or
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_5_slope_fulldim_covers_1()
         sage: extremality_test(h)
         True
@@ -334,6 +339,7 @@ def kzh_5_slope_fulldim_covers_2(): # renamed from fulldim_covers_5slope_q22_1()
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_5_slope_fulldim_covers_2()
         sage: extremality_test(h)
         True
@@ -364,6 +370,7 @@ def kzh_5_slope_fulldim_covers_3(): # renamed from fulldim_covers_5slope_q22_2()
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_5_slope_fulldim_covers_3()
         sage: extremality_test(h)
         True
@@ -394,6 +401,7 @@ def kzh_5_slope_fulldim_covers_4(): # renamed from fulldim_covers_5slope_q22_3()
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_5_slope_fulldim_covers_4()
         sage: extremality_test(h)
         True
@@ -424,6 +432,7 @@ def kzh_5_slope_fulldim_covers_5(): # renamed from fulldim_covers_5slope_q22_4()
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_5_slope_fulldim_covers_5()
         sage: extremality_test(h)
         True
@@ -454,6 +463,7 @@ def kzh_5_slope_fulldim_covers_6(): # renamed from fulldim_covers_5slope_q22_5()
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_5_slope_fulldim_covers_6()
         sage: extremality_test(h)
         True
@@ -478,6 +488,7 @@ def kzh_6_slope_fulldim_covers_1(): # renamed from fulldim_covers_6slope_q25_1()
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_6_slope_fulldim_covers_1()
         sage: extremality_test(h)
         True
@@ -508,6 +519,7 @@ def kzh_6_slope_fulldim_covers_2(): # renamed from fulldim_covers_6slope_q26_1()
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_6_slope_fulldim_covers_2()
         sage: extremality_test(h)
         True
@@ -539,6 +551,7 @@ def kzh_6_slope_fulldim_covers_3(): # renamed from fulldim_covers_6slope_q38_1()
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_6_slope_fulldim_covers_3()
         sage: extremality_test(h)
         True
@@ -570,6 +583,7 @@ def kzh_6_slope_fulldim_covers_4():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_6_slope_fulldim_covers_4()
         sage: extremality_test(h)
         True
@@ -599,6 +613,7 @@ def kzh_6_slope_fulldim_covers_5():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_6_slope_fulldim_covers_5()
         sage: extremality_test(h)
         True
@@ -656,6 +671,7 @@ def kzh_7_slope_1():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_7_slope_1()
         sage: extremality_test(h)
         True
@@ -682,6 +698,7 @@ def kzh_7_slope_2():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_7_slope_2()
         sage: extremality_test(h)
         True
@@ -708,6 +725,7 @@ def kzh_7_slope_3():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_7_slope_3()
         sage: extremality_test(h)
         True
@@ -734,6 +752,7 @@ def kzh_7_slope_4():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_7_slope_4()
         sage: extremality_test(h)
         True
@@ -780,6 +799,7 @@ def kzh_6_slope_1():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_6_slope_1()
         sage: extremality_test(h)
         True
@@ -806,6 +826,7 @@ def kzh_10_slope_1():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_10_slope_1()
         sage: extremality_test(h)
         True
@@ -834,6 +855,7 @@ def kzh_28_slope_1():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_28_slope_1()
         sage: number_of_slopes(h)
         28
@@ -865,6 +887,7 @@ def kzh_28_slope_2():
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = kzh_28_slope_2()
         sage: number_of_slopes(h)
         28

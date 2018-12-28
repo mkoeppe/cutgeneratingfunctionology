@@ -1,10 +1,3 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 # Reminder: need coerce all input to common RNF.
 
 class CrazyPiece:
@@ -186,6 +179,7 @@ def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = kzh_minimal_has_only_crazy_perturbation_1()
         sage: bkpts = h.end_points()
@@ -348,6 +342,7 @@ def minimality_test_randomized(fn, orig_function=None, max_iterations=None):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = kzh_minimal_has_only_crazy_perturbation_1()
         sage: bkpts = h.end_points()

@@ -1,10 +1,3 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 ## FIXME: Its __name__ is "Fast..." but nobody so far has timed
 ## its performance against the other options. --Matthias
 class FastLinearFunction :

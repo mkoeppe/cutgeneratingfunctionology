@@ -1,10 +1,3 @@
-# Make sure current directory is in path.  
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 def cpl_n_group_function(n, cpleq=False, merge=True):
     return CPLFunctionsFactory(n, cpleq, merge)
 

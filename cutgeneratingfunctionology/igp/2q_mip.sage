@@ -1,10 +1,3 @@
-# Make sure current directory is in path.
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 ##########################################
 # MIP approach to search for 2q example
 # use code in kslope_mip.sage
@@ -14,6 +7,7 @@ def print_trivial_additive_points_2q(filename, q, f, a):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: print_trivial_additive_points_2q(sys.stdout, 3, 2/3, 1/3)
         p_0_0 = 0
         p_0_1 = 0
@@ -54,6 +48,7 @@ def write_lpfile_2q(q, f, a, kslopes, maxstep=None, m=0):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: write_lpfile_2q(37, 25/37, 11/37, 4, maxstep=2, m=4) # not tested
     """
     if maxstep is None:
@@ -167,6 +162,7 @@ def print_slope_constraints_2q(filename, q, f, a, kslopes, m=0):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: print_slope_constraints_2q(sys.stdout, 4, 3/4, 2/4, 3, m=0)
         s_0 - s_1 >= 0
         s_1 - s_2 >= 0
@@ -253,6 +249,7 @@ def refind_function_from_lpsolution_2q(filename, q, f, a):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: h = refind_function_from_lpsolution_2q('solution_2q_example_m4.sol', 37, 25/37, 11/37) # not tested
     """
     faces, fn = painted_faces_and_funciton_from_solution(filename, q)

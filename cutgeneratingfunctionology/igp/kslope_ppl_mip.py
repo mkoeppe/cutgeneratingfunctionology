@@ -1,10 +1,3 @@
-# Make sure current directory is in path.
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 # polyhedral computation library:
 # http://www.sagemath.org/doc/reference/libs/sage/libs/ppl.html#sage.libs.ppl.Polyhedron.minimize
 
@@ -64,6 +57,7 @@ def initial_vertices_color(q, f):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: initial_vertices_color(5, 3)
         array([[0, 0, 0, 0, 0, 0],
                [1, 1, 0, 1, 1, 0],
@@ -93,6 +87,7 @@ def initial_faces_color_and_covered_intervals(q, f, vertices_color):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: q=5; f=3;
         sage: vertices_color = initial_vertices_color(q, f);
         sage: faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
@@ -133,6 +128,7 @@ def initial_cs(q, f, vertices_color):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: q=5; f=3;
         sage: vertices_color = initial_vertices_color(q, f);
         sage: cs = initial_cs(q, f, vertices_color)
@@ -167,6 +163,7 @@ def initial_cs_matrix(q, f):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: initial_cs_matrix(5, 3)
         [ 1  0  0  0  0]
         [ 0  0  0  1  0]
@@ -204,11 +201,10 @@ def initial_mip(q, f, vertices_color):
 
     EXAMPLES::
 
-        sage: import igp
-        sage: from igp import *
+        sage: import cutgeneratingfunctionology.igp as igp
         sage: q=5; f=3;
-        sage: vertices_color = initial_vertices_color(q, f);
-        sage: initial_mip(q, f, vertices_color)
+        sage: vertices_color = igp.initial_vertices_color(q, f);
+        sage: igp.initial_mip(q, f, vertices_color)
         sage: igp.m.number_of_variables()
         16
         sage: igp.delta[1,1]
@@ -258,6 +254,7 @@ def edges_around_vertex(q, v):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: edges_around_vertex(5, (1, 3))
         [({0, 3}, (0, 3)),
          ({3, 4}, (1, 4)),
@@ -304,6 +301,7 @@ def faces_around_vertex(q, v):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: faces_around_vertex(5, (1, 2))
         [((0, 2, 0), [(0, 2), (1, 2), (0, 3)]),
          ((0, 2, 1), [(1, 2), (0, 3), (1, 3)]),
@@ -355,6 +353,7 @@ def directly_covered_by_adding_face(last_covered_intervals, face, q, f):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: last_covered_intervals = [set([0,2]), set([3,4])]
         sage: face = (1, 1, 1)
         sage: directly_covered_by_adding_face(last_covered_intervals, face, 5, 3)
@@ -379,6 +378,7 @@ def update_covered_uncovered_by_adding_face(last_covered_intervals, last_uncover
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: last_covered_intervals = [set([0,2]), set([3,4])]
         sage: last_uncovered_intervals = [set([1])]
         sage: face = (1, 1, 1)
@@ -410,6 +410,7 @@ def update_covered_uncovered_by_adding_edge(last_covered_intervals, last_uncover
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: last_covered_intervals = [set([0,2]), set([3,4])]
         sage: last_uncovered_intervals = [set([1])]
         sage: to_merge_set = set([0, 1])
@@ -444,6 +445,7 @@ def generate_to_cover(q, covered_intervals):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: covered_intervals = [set([0,2]), set([3,4])]
         sage: generate_to_cover(5, covered_intervals)
         [1]
@@ -460,6 +462,7 @@ def generate_uncovered_set(q, uncovered_intervals):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: uncovered_intervals = [set([0,2]), set([3,4])]
         sage: generate_uncovered_set(5, uncovered_intervals)
         {0, 2, 3, 4}
@@ -477,6 +480,7 @@ def generate_candidate_faces(q, f, covered_intervals, last_face=None, faces_colo
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: q = 5; f = 3;
         sage: vertices_color = initial_vertices_color(q, f);
         sage: faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
@@ -505,6 +509,7 @@ def num_slopes_at_best(q, f, covered_intervals, uncovered_intervals=None):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: covered_intervals = [set([0,2])]
         sage: uncovered_intervals = [set([1]), set([3,4])]
         sage: num_slopes_at_best(5, 3, covered_intervals)
@@ -625,6 +630,7 @@ def paint_complex_heuristic(k_slopes, q, f, vertices_color, faces_color, last_co
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: q = 5; f = 3; k_slopes = 2;
         sage: vertices_color = initial_vertices_color(q, f);
         sage: faces_color, covered_intervals = initial_faces_color_and_covered_intervals(q, f, vertices_color)
@@ -680,6 +686,7 @@ def initial_covered_uncovered(q, f, vertices_color):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: q=5; f=3;
         sage: vertices_color = initial_vertices_color(q, f);
         sage: initial_covered_uncovered(q, f, vertices_color)
@@ -704,6 +711,7 @@ def update_around_green_vertex(q, (x, y), vertices_color, covered_intervals, unc
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: q = 5; f = 3;
         sage: vertices_color = initial_vertices_color(q, f);
         sage: (covered_intervals, uncovered_intervals) = ([set([0, 2]), set([3, 4])], [set([1])]);
@@ -738,6 +746,7 @@ def generate_vertex_values(k_slopes , q, polytope,  v_set=set([]), exp_dim=-1, v
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: q = 5; f = 3; k_slopes = 2;
         sage: vertices_color = initial_vertices_color(q, f);
         sage: cs = initial_cs(q, f, vertices_color)
@@ -760,6 +769,7 @@ def h_from_vertex_values(v_n):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: v_n = (0, 2, 4, 6, 3, 0)
         sage: h = h_from_vertex_values(v_n)
@@ -787,6 +797,7 @@ def search_kslope_example(k_slopes, q, f, mode='combined'):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: q=5; f=3; k_slopes = 2;
         sage: list(search_kslope_example(k_slopes, q, f, mode='combined'))
         [(0, 2, 4, 6, 3, 0), (0, 3, 1, 4, 2, 0)]

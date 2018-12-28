@@ -1,10 +1,3 @@
-# Make sure current directory is in path.
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 class PiecewiseQuasiPeriodic(FastPiecewise):
     """
     Returns a piecewise quasi-periodic function from a list of (interval, function) pairs.
@@ -17,6 +10,7 @@ class PiecewiseQuasiPeriodic(FastPiecewise):
         """
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO) # to disable output in automatic tests.
             sage: q = PiecewiseQuasiPeriodic([[(0,1/2), FastLinearFunction(3,0)],[(1/2,3/2), FastLinearFunction(-1,2)]])
             sage: q.period
@@ -53,6 +47,7 @@ class PiecewiseQuasiPeriodic(FastPiecewise):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO) # to disable output in automatic tests.
             sage: q = PiecewiseQuasiPeriodic([[(0,1/2), FastLinearFunction(3,0)],[(1/2,3/2), FastLinearFunction(-1,2)]])
             sage: q(3/2)
@@ -93,6 +88,7 @@ class PiecewiseQuasiPeriodic(FastPiecewise):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: q = PiecewiseQuasiPeriodic([[(0,1/2), FastLinearFunction(3,0)],[(1/2,3/2), FastLinearFunction(-1,2)]])
             sage: p = plot(q)
 

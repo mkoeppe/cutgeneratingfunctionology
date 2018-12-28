@@ -1,10 +1,3 @@
-# Make sure current directory is in path.
-# That's not true while doctesting (sage -t).
-if '' not in sys.path:
-    sys.path = [''] + sys.path
-
-from igp import *
-
 def cpl3_function(r0, z1, o1, o2):
     """
     Construct a CPL3= function.
@@ -17,6 +10,7 @@ def cpl3_function(r0, z1, o1, o2):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
         sage: p = cpl3_function(r0=1/7, z1=1/7, o1=1/4, o2=1/12)
         sage: p
@@ -52,6 +46,7 @@ def superadditive_lifting_function_from_group_function(fn, f=None):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
         sage: fn = mlr_cpl3_d_3_slope(r0=1/7, z1=1/7)
         sage: phi = superadditive_lifting_function_from_group_function(fn)
@@ -79,6 +74,7 @@ def group_function_from_superadditive_lifting_function(phi, f=None):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
         sage: phi = cpl3_function(r0=1/7, z1=1/7, o1=1/4, o2=1/12)
         sage: fn = group_function_from_superadditive_lifting_function(phi)
@@ -128,6 +124,7 @@ def mlr_cpl3_a_2_slope(r0=3/13, z1=3/26, field=None, conditioncheck=True):
     Examples:
         page 183, Fig 2, point a::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h = mlr_cpl3_a_2_slope(r0=3/13, z1=3/26)
             sage: extremality_test(h)
@@ -176,6 +173,7 @@ def mlr_cpl3_b_3_slope(r0=3/26, z1=1/13, field=None, conditioncheck=True):
     Examples:
         page 183, Fig 2, point b::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_b_3_slope(r0=3/26, z1=1/13)
             sage: extremality_test(h1)
@@ -233,6 +231,7 @@ def mlr_cpl3_c_3_slope(r0=5/24, z1=1/12, field=None, conditioncheck=True):
     Examples:
         page 183, Fig 2, point c::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_c_3_slope(r0=5/24, z1=1/12)
             sage: extremality_test(h1)
@@ -285,6 +284,7 @@ def mlr_cpl3_d_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
     Examples:
         p.183, Fig 2, point d1::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_d_3_slope(r0=1/6, z1=1/12)
             sage: extremality_test(h1)
@@ -344,6 +344,7 @@ def mlr_cpl3_f_2_or_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
     Examples:
         page 184, Fig 3, point f1 and f2::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_f_2_or_3_slope(r0=1/6, z1=1/6)
             sage: extremality_test(h1, f=1/6)
@@ -399,6 +400,7 @@ def mlr_cpl3_g_3_slope(r0=1/12, z1=None, field=None, conditioncheck=True):
     Examples:
         page 184, Fig 3, point g::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_g_3_slope(r0=1/12, z1=5/24)
             sage: extremality_test(h1)
@@ -456,6 +458,7 @@ def mlr_cpl3_h_2_slope(r0=1/4, z1=1/6, field=None, conditioncheck=True):
     Examples:
         page 183, Fig 2, point h::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_h_2_slope(r0=1/4, z1=1/6)
             sage: extremality_test(h1)
@@ -505,6 +508,7 @@ def mlr_cpl3_k_2_slope(r0=7/27, z1=4/27, field=None, conditioncheck=True):
     Examples:
         page 185, Fig 4, point k1::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h = mlr_cpl3_k_2_slope(r0=7/27, z1=4/27)
             sage: extremality_test(h)
@@ -558,6 +562,7 @@ def mlr_cpl3_l_2_slope(r0=8/25, z1=None, field=None, conditioncheck=True):
     Examples:
         page 185, Fig 4, point l::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_l_2_slope(r0=8/25, z1=4/25)
             sage: extremality_test(h1)
@@ -617,6 +622,7 @@ def mlr_cpl3_n_3_slope(r0=9/25, z1=2/25, field=None, conditioncheck=True):
     Examples:
         page 185, Fig 4, point n2::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_n_3_slope(r0=9/25, z1=2/25)
             sage: extremality_test(h1)
@@ -671,6 +677,7 @@ def mlr_cpl3_o_2_slope(r0=3/8, z1=None, field=None, conditioncheck=True):
     Examples:
         page 186, Fig 5, point o::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_o_2_slope(r0=3/8, z1=1/8)
             sage: extremality_test(h1, f=3/8)
@@ -730,6 +737,7 @@ def mlr_cpl3_p_2_slope(r0=5/12, z1=None, field=None, conditioncheck=True):
     Examples:
         page 186, Fig 5, point p1 and p2::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_p_2_slope(r0=5/12, z1=1/12)
             sage: extremality_test(h1, f=5/12)
@@ -786,6 +794,7 @@ def mlr_cpl3_q_2_slope(r0=5/12, z1=3/24, field=None, conditioncheck=True):
     Examples:
         page 186, Fig 5, point q::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h1 = mlr_cpl3_q_2_slope(r0=5/12, z1=3/24)
             sage: extremality_test(h1)
@@ -838,6 +847,7 @@ def mlr_cpl3_r_2_slope(r0=3/7, z1=1/7, field=None, conditioncheck=True):
     Examples:
         page 185, Fig , point r::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
             sage: h = mlr_cpl3_r_2_slope(r0=3/7, z1=1/7)
             sage: extremality_test(h)
@@ -930,10 +940,13 @@ def cpl3_4(f=8497/126000, z1=499/42000, z2=27863/126000, field=None, conditionch
     The function is extreme under the condtions:
     f + 4*z1 + 4*z2 - 1 <= 0 && -z1 < 0 && -f < 0 && 2*f + 2*z1 - z2 <= 0
 
-    sage: f=1/18; z1=1/25; z2=7/36
-    sage: h = cpl3_4(f,z1,z2)
-    sage: extremality_test(h)
-    True
+    TESTS::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: f=1/18; z1=1/25; z2=7/36
+        sage: h = cpl3_4(f,z1,z2)
+        sage: extremality_test(h)
+        True
     """
     # 4-slope, new.
     # looks like automorphism(gj_forward_3_slope), but has 2 positive slopes.
