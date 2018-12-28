@@ -1,5 +1,7 @@
 ## Module
 
+from __future__ import print_function
+
 from sage.all import *
 del SetPartitionsAk
 del SetPartitionsBk
