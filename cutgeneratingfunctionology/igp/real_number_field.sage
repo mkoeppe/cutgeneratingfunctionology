@@ -243,12 +243,12 @@ class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
         def maybe_ZZ(x):
             try:
                 return ZZ(x)
-            except TypeError, ValueError:
+            except (TypeError, ValueError):
                 return x
 
         try:
             return sib(self.parent())(maybe_ZZ(QQ(self)))
-        except TypeError, ValueError:
+        except (TypeError, ValueError):
             return sib(self.parent())([maybe_ZZ(x) for x in self.list()])
 
 class RealNumberField_quadratic(NumberField_quadratic):
