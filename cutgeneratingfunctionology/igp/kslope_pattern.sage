@@ -1,3 +1,7 @@
+from __future__ import absolute_import
+from __future__ import print_function
+from six.moves import range
+from six.moves import zip
 vertex_enumeration_dim_threshold = 10
 
 import sys
@@ -67,7 +71,7 @@ def pattern_setup_lp(l, more_ini_additive=False, objcoef=None, use_auxiliary_del
             for y in range(x, q - x + 1):
                 # cannot use mutable key: deltafn = fn[x] + fn[y] - fn[x + y]
                 deltafn = tuple_of_deltafn(l+2, fn[x] + fn[y] - fn[x + y])
-                if deltafn in deltafn_dic.keys():
+                if deltafn in list(deltafn_dic.keys()):
                     deltafn_dic[deltafn].append((x,y))
                 else:
                     deltafn_dic[deltafn] = [(x,y)]
@@ -489,7 +493,7 @@ def pattern_glpk_lp(l, more_ini_additive=False, exact_arithmetic=True, simplex_f
             optval += QQ(b.objective_coefficient(i)) * optsol[i]
     else:
         optsol = pattern_lp.get_values(var_slope)
-        slopes = optsol.values()
+        slopes = list(optsol.values())
         k_slope = len(set(slopes) | set([-i for i in slopes]))
     v = [0]
     for i in range(1, q):
@@ -535,7 +539,7 @@ def exact_optsol(b):
     A = matrix(QQ, ncol + nrow, ncol + nrow, sparse = True)
     for i in range(nrow):
         r = b.row(i)
-        for (j, c) in itertools.izip(r[0], r[1]):
+        for (j, c) in zip(r[0], r[1]):
             A[i, j] = QQ(c)
         A[i, ncol + i] = -1
     n = nrow
@@ -647,7 +651,7 @@ def pattern_glpk_test(l_list, more_ini_additive=False, exact_arithmetic=True, si
                                                     exact_arithmetic=exact_arithmetic, simplex_first = simplex_first, \
                                                     reconstruct_rational=reconstruct_rational);
         cpu_t = time.clock();
-        print l, k, cpu_t - start_cpu_t
+        print(l, k, cpu_t - start_cpu_t)
         slopes.append(k)
     return slopes
 
@@ -661,11 +665,11 @@ def pattern_ppl_test(l_list, more_ini_additive=False):
         try:
             optval, optsol, k, v_ppl, v_div = pattern_ppl_lp(l, more_ini_additive=more_ini_additive);
             cpu_t = time.clock();
-            print l, k, cpu_t - start_cpu_t
+            print(l, k, cpu_t - start_cpu_t)
             slopes.append(k)
         except ValueError:
             cpu_t = time.clock();
-            print l, "NA", cpu_t - start_cpu_t
+            print(l, "NA", cpu_t - start_cpu_t)
             slopes.append(-1)
     return slopes
 
@@ -991,16 +995,16 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
                     info += "h = h_from_vertex_values(v_n)\n"
                 else:
                     info += "h = pattern%s_sym_fn(l, sv)\n" % pattern  # this function only exists for pattern=0
-                print "##### ", destdir + sage_name
-                print info,
+                print("##### ", destdir + sage_name)
+                print(info, end=' ')
                 with open(destdir + sage_name, "w") as sage_file:
-                    print >> sage_file, info
+                    print(info, file=sage_file)
                 if show_plots: # and h_is_extreme:
                     name = "%sq%s_%s.png" %(num, q, id)
                     g = plot_2d_diagram(h, colorful=True)
                     figsize = 10 * l
                     g.save(destdir + name, figsize = figsize, show_legend=False)
-                    print "# Plot saved in", destdir + name
+                    print("# Plot saved in", destdir + name)
     logging.disable(logging.NOTSET)
     #return vv, nn
     if len(nn) > 0:
@@ -1071,7 +1075,7 @@ def plot_pattern(l, vertices_color=None, more_ini_additive=True, show_plots=True
                 g += points([(i,j)], color='springgreen')
                 pts.add((i,j))
     if show_plots:
-        g.show(gridlines=[range(q+1),range(q+1)],gridlinesstyle=dict(color="grey", linestyle=":"),figsize=10*l)
+        g.show(gridlines=[list(range(q+1)),list(range(q+1))],gridlinesstyle=dict(color="grey", linestyle=":"),figsize=10*l)
     else:
         return g
 
@@ -1098,6 +1102,6 @@ def check_pattern_polytope_has_full_dim(l):
         d = sum(linearity[0:i])
         p = sage.libs.ppl.point(sum([Variable(j) for j in range(i)]), d)
         if not polytope.relation_with(p).implies(sage.libs.ppl.Poly_Gen_Relation.subsumes()):
-            print "vector [1]*%s+[0]*%s is not in the polytope" % (i, l+2-i)
+            print("vector [1]*%s+[0]*%s is not in the polytope" % (i, l+2-i))
             return False
     return True

@@ -1,3 +1,4 @@
+from six.moves import range
 ## "Sporadic" extreme functions (found by computer search, not part of a parametric family).
 
 def hildebrand_5_slope_22_1():

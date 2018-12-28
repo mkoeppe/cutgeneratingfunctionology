@@ -3,6 +3,7 @@ r"""
 Index of "procedures" that can be applied to transform extreme functions
 """
 
+from __future__ import absolute_import
 from cutgeneratingfunctionology.igp import (multiplicative_homomorphism,
                  automorphism,
                  projected_sequential_merge,

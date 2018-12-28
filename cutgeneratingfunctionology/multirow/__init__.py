@@ -1,5 +1,6 @@
 ## Module
 
+from __future__ import absolute_import
 from sage.all import *
 del SetPartitionsAk
 del SetPartitionsBk

@@ -2,6 +2,7 @@
 ## A lightweight representation of closed bounded intervals, possibly empty or degenerate.
 ##
 
+from __future__ import absolute_import
 def interval_sum(int1, int2):
     """
     Return the sum of two intervals.
@@ -126,13 +127,13 @@ def interval_to_endpoints(int):
         (1, 3)
     """
     if len(int) == 0:
-        raise ValueError, "An empty interval does not have a pair representation"
+        raise ValueError("An empty interval does not have a pair representation")
     elif len(int) == 1:
         return (int[0], int[0])
     elif len(int) == 2:
         return (int[0], int[1])
     else:
-        raise ValueError, "Not an interval: %s" % (int,)
+        raise ValueError("Not an interval: %s" % (int,))
 
 # Assume the lists of intervals are sorted.                
 def find_interior_intersection(list1, list2):
@@ -234,13 +235,13 @@ def right_open_interval(a, b):
 
 def coho_interval_from_interval(int):
     if len(int) == 0:
-        raise ValueError, "An empty interval does not have a coho_interval representation"
+        raise ValueError("An empty interval does not have a coho_interval representation")
     elif len(int) == 1:
         return singleton_interval(int[0])
     elif len(int) == 2:
         return closed_interval(int[0], int[1])
     else:
-        raise ValueError, "Not an interval: %s" % (int,)
+        raise ValueError("Not an interval: %s" % (int,))
 
 def realset_from_interval(int):
     if len(int) == 0:
@@ -250,7 +251,7 @@ def realset_from_interval(int):
     elif len(int) == 2:
         return RealSet.closed(int[0], int[1])
     else:
-        raise ValueError, "Not an interval: %s" % (int,)
+        raise ValueError("Not an interval: %s" % (int,))
 
 def interval_length(interval):
     """
@@ -287,7 +288,7 @@ def coho_interval_left_endpoint_with_epsilon(i, closure=False):
     and epsilon is 0 if the interval is left closed and 1 otherwise.
     """
     if len(i) == 0:
-        raise ValueError, "An empty interval does not have a left endpoint."
+        raise ValueError("An empty interval does not have a left endpoint.")
     elif len(i) <= 2:
         # old-fashioned closed interval or singleton
         return i[0], 0 # Scanning from the left, turn on at left endpoint.
@@ -301,7 +302,7 @@ def coho_interval_right_endpoint_with_epsilon(i, closure=False):
     and epsilon is 1 if the interval is right closed and 0 otherwise.
     """
     if len(i) == 0:
-        raise ValueError, "An empty interval does not have a right endpoint."
+        raise ValueError("An empty interval does not have a right endpoint.")
     elif len(i) == 1:
         # old-fashioned singleton
         return i[0], 1 # Scanning from the left, turn off at that point plus epsilon

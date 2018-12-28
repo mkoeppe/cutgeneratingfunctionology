@@ -1,3 +1,4 @@
+from six.moves import range
 def cpl3_function(r0, z1, o1, o2):
     """
     Construct a CPL3= function.
@@ -27,7 +28,7 @@ def cpl3_function(r0, z1, o1, o2):
         - [1] L. A. Miller, Y. Li, and J.-P. P. Richard, New Inequalities for Finite and Infinite Group Problems from Approximate Lifting, Naval Research Logistics 55 (2008), no.2, 172-191, doi:10.1002/nav.20275
     """
     if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)) or (bool(z1 == (1-r0)/4) & bool(o1 + o2 != 1/2)):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     if not (bool(0 <= o1) & bool(0 <= o2) & bool(o1+o2 <= 1/2)):
         logging.info("Conditions for a CPL-3 function are NOT satisfied.")
 
@@ -58,7 +59,7 @@ def superadditive_lifting_function_from_group_function(fn, f=None):
     if f is None:
         f = find_f(fn)
     if not bool(0 < f < 1):
-        raise ValueError, "Bad parameter 'f'. Unable to construct the function."
+        raise ValueError("Bad parameter 'f'. Unable to construct the function.")
     
     bkpt = fn._end_points
     phi_at_bkpt = [bkpt[i]-fn(bkpt[i])*f for i in range(len(bkpt))]
@@ -92,7 +93,7 @@ def group_function_from_superadditive_lifting_function(phi, f=None):
                 m = phi(bkpt[i])-bkpt[i]
                 f = bkpt[i]
     if not bool(0 < f < 1):
-        raise ValueError, "Bad parameter 'f'. Unable to construct the function."
+        raise ValueError("Bad parameter 'f'. Unable to construct the function.")
 
     fn_at_bkpt = [(bkpt[i]-phi(bkpt[i]))/f for i in range(len(bkpt))]
     list_of_pairs = []
@@ -141,7 +142,7 @@ def mlr_cpl3_a_2_slope(r0=3/13, z1=3/26, field=None, conditioncheck=True):
     """
     if conditioncheck:
         if not bool(0 < r0 < 1):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         if not bool(0 <= z1 < 1):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -196,7 +197,7 @@ def mlr_cpl3_b_3_slope(r0=3/26, z1=1/13, field=None, conditioncheck=True):
     """
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(3*r0 + 8*z1 <= 1)):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -251,7 +252,7 @@ def mlr_cpl3_c_3_slope(r0=5/24, z1=1/12, field=None, conditioncheck=True):
     """
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         if not bool(3*r0 + 4*z1 <= 1):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -308,7 +309,7 @@ def mlr_cpl3_d_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
         z1 = r0/2
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 == 2*z1) & bool(r0+8*z1 <= 1)):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -367,7 +368,7 @@ def mlr_cpl3_f_2_or_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
         z1 = (1-r0)/5
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 <= z1) & bool(r0+5*z1 == 1)):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -424,7 +425,7 @@ def mlr_cpl3_g_3_slope(r0=1/12, z1=None, field=None, conditioncheck=True):
         z1 = (1-2*r0)/4
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 < z1) & bool(2*r0 + 4*z1 == 1)):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -476,7 +477,7 @@ def mlr_cpl3_h_2_slope(r0=1/4, z1=1/6, field=None, conditioncheck=True):
     """
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 + 4*z1 <= 1 < 2*r0 + 4*z1)):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -526,7 +527,7 @@ def mlr_cpl3_k_2_slope(r0=7/27, z1=4/27, field=None, conditioncheck=True):
         z1 = (1-r0)/5
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 <= 2*z1) & bool(r0+5*z1==1)):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -586,7 +587,7 @@ def mlr_cpl3_l_2_slope(r0=8/25, z1=None, field=None, conditioncheck=True):
         z1 = r0/2
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 == 2*z1) & bool(6*z1<=1<7*z1)):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -644,7 +645,7 @@ def mlr_cpl3_n_3_slope(r0=9/25, z1=2/25, field=None, conditioncheck=True):
     """
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 > 2*z1) & bool(r0+8*z1<=1)):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -701,7 +702,7 @@ def mlr_cpl3_o_2_slope(r0=3/8, z1=None, field=None, conditioncheck=True):
         z1 = (1-2*r0)/2
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 >= 2*z1) & bool(2*r0+2*z1==1)):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -761,7 +762,7 @@ def mlr_cpl3_p_2_slope(r0=5/12, z1=None, field=None, conditioncheck=True):
         z1 = (1-2*r0)/2
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 > 2*z1) & bool(2*r0+2*z1==1)):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -816,7 +817,7 @@ def mlr_cpl3_q_2_slope(r0=5/12, z1=3/24, field=None, conditioncheck=True):
     """
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 > 2*z1) & bool(r0+4*z1 <= 1 < r0+5*z1)):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -862,7 +863,7 @@ def mlr_cpl3_r_2_slope(r0=3/7, z1=1/7, field=None, conditioncheck=True):
     """
     if conditioncheck:
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 > 2*z1) & bool(r0+4*z1<=1<=2*r0+2*z1)):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:

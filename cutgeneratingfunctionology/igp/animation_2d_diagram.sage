@@ -12,5 +12,5 @@ def plot_beams_of_one_face(face):
         elif coho_interval_contained_in_coho_interval(K, [1,2]):
             g += polygon([(1, K[0]-1), (1, K[1]-1), (K[1] - 1, 1), (K[0] - 1, 1)], color='yellow', fill=True, alpha=0.35, zorder=-5)
         else:
-            raise ValueError, "Bad face: %s" % face
+            raise ValueError("Bad face: %s" % face)
     return g

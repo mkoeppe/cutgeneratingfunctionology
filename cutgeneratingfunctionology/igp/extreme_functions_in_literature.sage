@@ -1,3 +1,4 @@
+from six.moves import range
 def gmic(f=4/5, field=None, conditioncheck=True):
     """
     Summary:
@@ -30,7 +31,7 @@ def gmic(f=4/5, field=None, conditioncheck=True):
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
     if not bool(0 < f < 1):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     claimed_parameter_attribute = None
     if conditioncheck:
         claimed_parameter_attribute = 'extreme'
@@ -79,7 +80,7 @@ def gj_2_slope(f=3/5, lambda_1=1/6, field=None, conditioncheck=True):
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
     if not (bool(0 < f < 1) & bool(0 < lambda_1 < f/(1 - f))):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     claimed_parameter_attribute = None
     if conditioncheck:
         if not (bool(lambda_1 <= 1)):
@@ -130,7 +131,7 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
     if not (bool(0 < f < 1) & (m >= 2) & (n >= 2) & bool (s_positive > 1 / f) & bool(s_negative < 1/(f - 1))):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     claimed_parameter_attribute = None
     if conditioncheck:
         if not (bool(m >= (s_positive - s_positive*s_negative*f) / (s_positive - s_negative)) & bool(n >= (- s_negative + s_positive*s_negative*(f - 1)) / (s_positive - s_negative))):
@@ -208,7 +209,7 @@ class ExtremeFunctionsFactory:
     def check_conditions(self, *args, **kwargs):  ### could be in superclass
         c = self.claimed_parameter_attributes(*args, **kwargs)
         if c == 'not_constructible':
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         elif c == 'constructible':
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
@@ -263,7 +264,7 @@ class Dg2StepMir(ExtremeFunctionsFactory):
         if conditioncheck:
             self.check_conditions(f, alpha)
         if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         rho = f - alpha * floor(f / alpha)
         tau = ceil(f / alpha)
         s_positive = (1 - rho*tau) / (rho*tau*(1 - f))
@@ -424,11 +425,11 @@ def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditionc
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
     """
     if not bool(0 < f < 1):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     a = lambda_1 * f / 2
     a1 = a + lambda_2 * (f - 1) / 2
     if not bool(0 < a1 < a < f / 2):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     claimed_parameter_attribute = None
     if conditioncheck:
         # note the discrepancy with the published literature
@@ -499,7 +500,7 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
       http://dx.doi.org/10.1016/j.orl.2015.06.004
     """
     if not bool(0 < f < bkpt < 1 + f - bkpt < 1):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     claimed_parameter_attribute = None
     if conditioncheck:
         #if not ((f in QQ) & (bkpt in QQ) & bool(0 < f < bkpt < ((1 + f)/4) < 1)):
@@ -570,7 +571,7 @@ class Dg2StepMirLimit(ExtremeFunctionsFactory):
         if conditioncheck:
             self.check_conditions(f, d)
         if not (bool(0 < f < 1) & (d >= 1)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         f = nice_field_values([f], field)[0]
         field = f.parent()
         pieces = []
@@ -619,7 +620,7 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, c
     m = nb_pieces_left
     d = nb_pieces_right
     if not ((m in ZZ) & (d in ZZ) & (m >= 1) & (d >= 1) & bool(0 < f < 1)):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     claimed_parameter_attribute = None
     if conditioncheck:
         if not bool(m*(1 - f) <= d*f):
@@ -682,7 +683,7 @@ def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
                 Mathematical Programming 121 (2010) 145-170.
     """
     if not bool(0 < f < 1):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     claimed_parameter_attribute = None
     if conditioncheck:
         if not bool(0 < f < 1/3):
@@ -753,7 +754,7 @@ def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
       http://dx.doi.org/10.1016/j.orl.2015.06.004
     """
     if not (bool(0 < f < 1) & bool(q > 2) & bool(0 <= eta < 1)):
-        raise ValueError, "Bad parameters."
+        raise ValueError("Bad parameters.")
     def evaluate_psi_at_r(r):
         if r == 0:
             return 0
@@ -780,7 +781,7 @@ def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
                 logging.warn("Reaching max number of iterations, return approximate psi(%s)" %r)
             return (y_left + y_right)/2 - (r - (x_left + x_right)/2) / (1 - f)
         else:
-            raise ValueError, "outside domain"
+            raise ValueError("outside domain")
     logging.warn("This function is not piecewise linear; code for handling this function is not implemented.")
     return evaluate_psi_at_r
 
@@ -820,7 +821,7 @@ def generate_example_e_for_psi_n(f=2/3, n=7, q=4, eta=1/1000):
     if n == 0:
         return []
     if not (bool(0 < f < 1) & bool(q > 2) & bool(0 <= eta < 1)):
-        raise ValueError, "Bad parameters."
+        raise ValueError("Bad parameters.")
     x = (1 - eta)*(q - 2) / q * min(f, 1 - f)
     # or take x = min((1 - eta)*(q - 2)*f / q , 1 - f) 
     e = [x / q^i for i in range(n)]
@@ -874,7 +875,7 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
                     Mathematical Programming Ser. A 133 (2012), 25-38.
     """
     if not bool(0 < f < 1):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     claimed_parameter_attribute = None
     n = len(e)
     if n == 0:
@@ -888,14 +889,14 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
     b = [f]
     sum_e = 0
     if not bool(0 < e[0]):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     t = bool(e[0] <= 1 - f)
     for i in range(0, n):
         a.append((b[i] + e[i]) / 2)
         b.append((b[i] - e[i]) / 2)
         sum_e = sum_e + (2^i) * e[i]
         if not (bool(e[i] > 0) & bool(sum_e < f)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         if not (i == 0) | bool(e[i] <= e[i-1]):
             t = False
     if conditioncheck:
@@ -998,7 +999,7 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
     """
     if not (bool(0 < f < 1) and bool(d1 > 0) and bool(d2 > 0) and bool(a0 > 0) 
             and all(bool(deltai > 0) for deltai in delta) and bool(d1 + d2 < f) and (sum(delta) < f/2 - d2/4 - 3*a0/2) ):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     if len(delta) < 2:
         logging.info("Conditions for extremality are NOT satisfied.")
     elif len(delta) == 2:
@@ -1088,7 +1089,7 @@ def bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2
     """
     if not (bool(0 < f < 1) and bool(d1 > 0) and bool(d2 > 0) and bool(a0 > 0)
             and all(bool(deltai > 0) for deltai in delta) and bool(d1 + d2 < f)):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
 
     d3 = f - d1 - d2
     c3 = -1/(1-f)
@@ -1101,16 +1102,16 @@ def bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2
     d32 = d3/2 - d31
 
     if bool(d32 < 0):
-        raise ValueError, "Bad parameters. Unable to construct the function. "
+        raise ValueError("Bad parameters. Unable to construct the function. ")
 
     a0_max = min(f - d2/2, d1 + d2/2 + 2*d31) / 3  # since A > 0 and d12 > 0
 
     if not bool(d31 < a0 < a0_max):
-        raise ValueError, "Bad parameters. %s < a0 < %s is not satisfied. Unable to construct the function." % (d31, a0_max)
+        raise ValueError("Bad parameters. %s < a0 < %s is not satisfied. Unable to construct the function." % (d31, a0_max))
 
     sumdelta_max = (f/2 - d2/4 - 3*a0/2) * c1 / (c1 - c2) # since d32 > 0
     if not bool(sum(delta) < sumdelta_max):
-        raise ValueError, "Bad parameters. sum(delta) < %s is not satisfied. Unable to construct the function." % sumdelta_max
+        raise ValueError("Bad parameters. sum(delta) < %s is not satisfied. Unable to construct the function." % sumdelta_max)
 
     a0_min = (2*(c1-c2)/(c1-c3) * d2 + d2 / 2 + d1) / 5 # since d11 >= d12
     c2_min = -1 / (1 - f) # since c2 >= c3
@@ -1166,7 +1167,7 @@ def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/
     if not (bool(0 < f < 1) and bool(d1 > 0) and bool(d2 > 0) and bool(a0 > 0) and (len(delta) >= 2) \
             and bool(min(delta) > 0) and bool(d1 + d2 < f) and (sum(delta) < f/2 - d2/4 - 3*a0/2) \
             and bool(0 < alpha < 1)):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     # FIXME: Extremality condition ?
     d3 = f - d1 - d2
     c2 = 0
@@ -1273,7 +1274,7 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
     """     
     if not (bool(0 < f < 1) and bool(s_pos >= 1/f) and bool(s_neg <= 1/(f - 1)) \
                             and bool(0 <= lam1 <= 1) and bool(0 <= lam2 <= 1)):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     claimed_parameter_attribute = None
     if conditioncheck:
         if condition_according_to_literature:
@@ -1309,7 +1310,7 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
 
 def chen_4_slope_reworded(f=7/10, aa=19/240, a=7/80, c=77/80, cc=29/30,field=None, conditioncheck=True, condition_according_to_literature=False, merge=False):
     if not (bool(0 < aa < a < f/2) and bool((1+f)/2 < c < cc < 1)):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     claimed_parameter_attribute = None
     v = (a*aa*cc - a*aa - (a*aa*cc - aa^2 - (a*aa - aa^2)*c)*f)/(((a - aa)*c - a*cc + aa)*f^2 - ((a - aa)*c - a*cc + aa)*f)
     w = (a*cc^2 + a*c - (a*c + a)*cc - (a*cc^2 + (a - aa)*c - ((a - aa)*c + a + aa)*cc + aa)*f)/(((a - aa)*c - a*cc + aa)*f^2 - ((a - aa)*c - a*cc + aa)*f)
@@ -1385,7 +1386,7 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
        http://dx.doi.org/10.1016/j.orl.2015.06.004
     """
     if not bool(0 < f < 1):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     claimed_parameter_attribute = None
     if conditioncheck:
         if bool(f < 1/3):
@@ -1481,7 +1482,7 @@ class LlStrongFractional(ExtremeFunctionsFactory):
         if conditioncheck:
             self.check_conditions(f)
         if not bool(0 < f < 1):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         f = nice_field_values([f], field)[0]
         field = f.parent()
         k = ceil(1/f) -1
@@ -1530,7 +1531,7 @@ def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
          [arbitrary_num_slopes] A. Basu, M. Conforti, M. Di Summa, and J. Paat, Extreme Functions with an Arbitrary Number of Slopes, 2015, http://www.ams.jhu.edu/~abasu9/papers/infinite-slopes.pdf, to appear in Proceedings of IPCO 2016.
     """
     if not bool(0 < f < 1) or k not in ZZ or k < 2:
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     claimed_parameter_attribute = None
     if conditioncheck:
         if not bool(0 < f <= 1/2):
@@ -1603,7 +1604,7 @@ def kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19, field=None, conditionche
         True
     """
     if not bool(0 < f < f+a < (1+f-b)/2 < (1+f+b)/2 < 1-a < 1):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     claimed_parameter_attribute = None
     if conditioncheck:
         if not bool(0 <= a and  0 <= b <= f and 3*f+4*a-b-1 <= 0):
@@ -1644,7 +1645,7 @@ def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=
         False
     """
     if not bool(0 < a < f < 1 and 0 < b < 1-f):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     claimed_parameter_attribute = None
     if conditioncheck:
         if not bool(2*b - a <= f <= a + b and f <= (1+a-b)/2):
@@ -1687,7 +1688,7 @@ def kzh_4_slope_param_extreme_1(f=13/18, a=7/18, b=1/18, field=None, conditionch
     v = (3*b+1)/f/3;
     c = (1/4*f - 1/4*a - 1/2*b)
     if not bool(0 < b < (f-a)/2 < f < (1+f-b)/2-c < (1+f-b)/2 < 1):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     claimed_parameter_attribute = None
     if conditioncheck:
         if not bool(b > 0 and -3*f + 2*a + 3*b + 1 < 0 and  f - 2*a < 0 \

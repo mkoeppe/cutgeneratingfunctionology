@@ -1,3 +1,5 @@
+from six.moves import range
+from six.moves import zip
 ########## Code for Continuous Case ###########
 
 def generate_nonsymmetric_vertices_continuous(fn, f):
@@ -51,10 +53,10 @@ def generate_overlapping_interval_indices(interval, breakpoints):
     if i!=0:
         i=i-1
     if j>=len(breakpoints) or breakpoints[-1]==interval[1]:
-        return range(i,len(breakpoints)-1)
+        return list(range(i,len(breakpoints)-1))
     if breakpoints[j]==interval[1]:
         j=j+1
-    return range(i,j)
+    return list(range(i,j))
     #for k in range(i,j):
         #yield k
 
@@ -256,11 +258,11 @@ def generate_symbolic_continuous(function, components, field=None, f=None):
         vector_space = VectorSpace(field, n)
     unit_vectors = vector_space.basis()    
     intervals_and_slopes = []
-    for component, slope in itertools.izip(components, unit_vectors):
+    for component, slope in zip(components, unit_vectors):
         intervals_and_slopes.extend([ (interval, slope) for interval in component ])
     #intervals in components are coho intervals.
     #was: intervals_and_slopes.sort()
-    intervals_and_slopes.sort(key=lambda (i, s): coho_interval_left_endpoint_with_epsilon(i))
+    intervals_and_slopes.sort(key=lambda i_s: coho_interval_left_endpoint_with_epsilon(i_s[0]))
     if field is None:
         bkpt = [ interval[0] for interval, slope in intervals_and_slopes ] + [1]
         bkpt = nice_field_values(bkpt)

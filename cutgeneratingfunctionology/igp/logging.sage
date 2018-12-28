@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import logging
 
 # this is a version of Python's StreamHandler which prints log
@@ -42,9 +44,9 @@ if not logging.getLogger().handlers:
 
 def logger(func):
     def inner(*args, **kwargs): #1
-        print "Arguments to %s were: %s, %s" % (func, args, kwargs)
+        print("Arguments to %s were: %s, %s" % (func, args, kwargs))
         result = func(*args, **kwargs) #2
-        print "Result is: %s" % (result)
+        print("Result is: %s" % (result))
         return result
         
     return inner

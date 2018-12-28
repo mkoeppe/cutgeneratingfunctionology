@@ -1,3 +1,4 @@
+from six.moves import range
 def phi_forward_3_slope(b=4/5, lambda_1=4/9, lambda_2=2/3, field=None):
     """
     Summary:
@@ -24,7 +25,7 @@ def phi_forward_3_slope(b=4/5, lambda_1=4/9, lambda_2=2/3, field=None):
     a = lambda_1 * f / 2
     a1 = a + lambda_2 * (f - 1) / 2
     if not bool(0 < f < 1) & bool(0 < a1 < a < f / 2):
-        raise ValueError, "Bad parameters. Unable to construct the function."    
+        raise ValueError("Bad parameters. Unable to construct the function.")    
     bkpts = [0, a1, a, f - a, f - a1, f]
     values = [0, (lambda_1 + lambda_2)/2, lambda_1 / 2, 1 - lambda_1 / 2, 1 - (lambda_1 + lambda_2)/2, 1]
     bkpt=[]
@@ -62,7 +63,7 @@ def phi_2_slope(b=3/5, lambda_1=1/6, field=None):
     n=floor(b)
     f=b-n
     if not (bool(0 < f < 1) & bool(0 < lambda_1 < f/(1 - f))) & bool(lambda_1<=1):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     la=f-lambda_1/(1+lambda_1)
     bkpt=[]
     bkpts = [0, (f - lambda_1*(1 - f))/2, (f + lambda_1*(1 - f))/2, f]

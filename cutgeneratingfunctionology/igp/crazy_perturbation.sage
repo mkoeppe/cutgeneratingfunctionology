@@ -1,3 +1,4 @@
+from six.moves import range
 # Reminder: need coerce all input to common RNF.
 
 class CrazyPiece:
@@ -157,8 +158,8 @@ def is_in_ZZ_span(x, generators):
         numbers = nice_field_values(numbers, RealNumberField)
         if not is_NumberFieldElement(numbers[0]):
             if is_all_QQ(numbers):
-                raise ValueError, "generators are not Q-linear independent"
-            raise ValueError, "Q-linear independence test only implemented for algebraic numbers"
+                raise ValueError("generators are not Q-linear independent")
+            raise ValueError("Q-linear independence test only implemented for algebraic numbers")
     x = numbers[0]
     generators = numbers[1::]
     lgens = [g.list() for g in generators]
@@ -242,7 +243,7 @@ def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
                 possible = (cp.pwl.limit(x, xeps) + cp.pwl.limit(y, yeps) == cp(fractional(z))) \
                            and check_move_on_crazy_pieces((-1, z), cp.find_crazy_piece(x, xeps), cp.find_crazy_piece(y, yeps))
             else:
-                raise ValueError, "Something Wrong in enumerating limits"
+                raise ValueError("Something Wrong in enumerating limits")
             if not possible:
                 #return (x, y, z, xeps, yeps, zeps)
                 if not show_plots:
@@ -258,7 +259,8 @@ def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
         g.show(figsize=40)
     return epsilon
 
-def check_move_on_crazy_pieces((move_sign, move_dist), cp1, cp2):
+def check_move_on_crazy_pieces(xxx_todo_changeme, cp1, cp2):
+    (move_sign, move_dist) = xxx_todo_changeme
     if (cp1 is None) and (cp2 is not None) or (cp1 is not None) and (cp2 is None):
         return False
     elif (cp1 is not None) and (cp2 is not None):
@@ -318,7 +320,7 @@ def random_test_number(fn):
     return x
 
 def random_6_tuple(fn):
-    eps_tuples = dic_eps_to_cone.keys() # 13 possibilities.
+    eps_tuples = list(dic_eps_to_cone.keys()) # 13 possibilities.
     while True:
         (xeps, yeps, zeps)=eps_tuples[randint(0, 12)]
         if randint(0, 1) == 0:

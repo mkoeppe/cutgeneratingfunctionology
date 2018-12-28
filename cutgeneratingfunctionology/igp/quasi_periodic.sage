@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from six.moves import range
 class PiecewiseQuasiPeriodic(FastPiecewise):
     """
     Returns a piecewise quasi-periodic function from a list of (interval, function) pairs.

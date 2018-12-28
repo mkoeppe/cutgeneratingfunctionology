@@ -1,3 +1,4 @@
+from six.moves import range
 def maximality_test_dff(f):
     if f.is_continuous():
         return maximality_test_continuous_dff(f)
@@ -291,7 +292,8 @@ def superadditivity_test_continuous(fn):
 def delta_pi_for_nonmodule_one(fn,x,y):
     return fn(x)+fn(y)-fn(x+y)
 
-def delta_pi_general_dff(fn, x, y, (xeps, yeps, zeps)=(0,0,0)):
+def delta_pi_general_dff(fn, x, y, xxx_todo_changeme=(0,0,0)):
+    (xeps, yeps, zeps) = xxx_todo_changeme
     return fn.limit(x, xeps) + fn.limit(y, yeps) - fn.limit(x + y, zeps)
 
 def modified_delta_pi_dff(fn, fn_values, pts, i, j):

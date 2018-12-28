@@ -1,3 +1,5 @@
+from __future__ import print_function
+from six.moves import range
 def cpl_n_group_function(n, cpleq=False, merge=True):
     return CPLFunctionsFactory(n, cpleq, merge)
 
@@ -42,9 +44,9 @@ class CPLFunctionsFactory:
         else:
             zz = [z[0] for i in range(self._n-1)]
         if not (bool(0 < f < 1) & bool(all(0 < zi for zi in zz)) & bool (sum(zz) <= (1-f)/2)):
-            raise ValueError, "Bad parameters. Unable to construct the function."
+            raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(0 <= oi for oi in o) & bool(sum(o) <= 1/2)):
-             raise ValueError, "Bad thetas parameters. function value outside [0,1]."
+             raise ValueError("Bad thetas parameters. function value outside [0,1].")
         if sum(zz) < (1-f)/2:
             m = self._n
         else:
@@ -262,7 +264,7 @@ def generate_thetas_of_region(r):
         coefficients_of_thetas.append(coeffs)
         constants.append(rhs)
     coeff_matrix = matrix(coefficients_of_thetas) # dim = m * (n-1)
-    rows_indicies_subsets = Set(range(m)).subsets(n-1)
+    rows_indicies_subsets = Set(list(range(m))).subsets(n-1)
     thetas = []  # can't use set becasue of the difference between '==' and 'is'
     for rows_indicies in rows_indicies_subsets:
         indices = list(rows_indicies)
@@ -436,7 +438,7 @@ def save_cpl_extreme_theta_regions(thetas_and_regions, name="cpl_theta"):
     k = 0
     for (theta, components) in thetas_and_regions.items():
         k += 1
-        print (k, theta)
+        print((k, theta))
         if len(str(theta)) < 100:
             title = "extreme point %s:  theta = %s" % (k, theta)
         else:

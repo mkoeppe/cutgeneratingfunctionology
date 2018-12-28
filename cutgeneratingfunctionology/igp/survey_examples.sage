@@ -1,3 +1,4 @@
+from six.moves import range
 ## Various examples of functions that appear in the survey.
 
 def not_minimal_1(): # was not_minimal.sage
@@ -262,7 +263,7 @@ def chen_3_slope_not_extreme(f=1/2, lam=8):
     - [KZh2015b] M. Koeppe and Y. Zhou, An electronic compendium of extreme functions for the Gomory-Johnson infinite group problem, Operations Research Letters, 2015, http://dx.doi.org/10.1016/j.orl.2015.06.004
     """
     if not (bool(0 < f < 1) and (lam > 3*max(1/f, 1 /(1-f)))):
-        raise ValueError, "Bad parameters. Unable to construct the function."
+        raise ValueError("Bad parameters. Unable to construct the function.")
     alpha = f / 2 - 3 / (2*lam)
     beta = 1/2 - f/2 - 3 / (2*lam)
     bkpts = [0, 1/lam, 1/lam + alpha, 2/lam + alpha, 2/lam + 2*alpha, f, \

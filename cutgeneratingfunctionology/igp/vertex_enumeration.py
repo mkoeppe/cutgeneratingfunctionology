@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+from __future__ import print_function
+from six.moves import range
 def vertex_enumeration(polytope, exp_dim=-1, vetime=False):
     """
     Returns the vertices of the polytope.
@@ -64,17 +67,17 @@ def write_panda_format_cs(cs, fname=None, newcode=True):
         filename = sys.stdout
     if newcode:
         panda_string = convert_pplcs_to_panda(cs)
-        print >> filename, panda_string
+        print(panda_string, file=filename)
     else:
-        print >> filename, 'Inequalities:'
+        print('Inequalities:', file=filename)
         for c in cs:
             for x in c.coefficients():
-                print >> filename, -x,
-            print >> filename, -c.inhomogeneous_term()
+                print(-x, end=' ', file=filename)
+            print(-c.inhomogeneous_term(), file=filename)
             if c.is_equality():
                 for x in c.coefficients():
-                    print >> filename, x,
-                print >> filename, c.inhomogeneous_term()
+                    print(x, end=' ', file=filename)
+                print(c.inhomogeneous_term(), file=filename)
     if fname:
         filename.close()
     return
@@ -131,7 +134,7 @@ def write_porta_format_cs(cs, q=None, f=None, fname=None):
     else:
         filename = sys.stdout
     porta_string = convert_pplcs_to_porta(cs, q=q, f=f)
-    print >> filename, porta_string
+    print(porta_string, file=filename)
     if fname:
         filename.close()
     return
@@ -188,7 +191,7 @@ def write_lrs_format_cs(cs, fname=None):
     else:
         filename = sys.stdout
     lrs_string = convert_pplcs_to_lrs(cs, fname=fname)
-    print >> filename, lrs_string
+    print(lrs_string, file=filename)
     if fname:
         filename.close()
     return
@@ -243,8 +246,8 @@ def convert_lrs_to_ppl(lrs_string):
     def expect_in_cddout(expected_string):
         l = cddout.pop(0).strip()
         if l != expected_string:
-            raise ValueError, ('Error while parsing cdd output: expected "'
-                               +expected_string+'" but got "'+l+'".\n' )
+            raise ValueError('Error while parsing cdd output: expected "'
+                               +expected_string+'" but got "'+l+'".\n')
     # nested function
     def cdd_linearities():
         l = cddout[0].split()
@@ -354,14 +357,14 @@ def lrs_redund(in_str, verbose=False):
     #    raise NotImplementedError
 
     in_filename = tmp_filename()
-    in_file = file(in_filename,'w')
+    in_file = open(in_filename,'w')
     in_file.write(in_str)
     in_file.close()
-    if verbose: print in_str
+    if verbose: print(in_str)
     redund_procs = Popen(['redund',in_filename],stdin = PIPE, stdout=PIPE, stderr=PIPE)
     out_str, err = redund_procs.communicate()
     if verbose:
-        print out_str
+        print(out_str)
     return out_str
 
 def remove_redundancy_from_cs(cs, verbose=False, return_lrs=False):
@@ -387,15 +390,15 @@ def lrs_lrs(in_str, verbose=False):
     #          'for this function to work'
     #    raise NotImplementedError
     in_filename = tmp_filename()
-    in_file = file(in_filename,'w')
+    in_file = open(in_filename,'w')
     in_file.write(in_str)
     in_file.close()
-    if verbose: print in_str
+    if verbose: print(in_str)
 
     redund_procs = Popen(['lrs',in_filename],stdin = PIPE, stdout=PIPE, stderr=PIPE)
     out_str, err = redund_procs.communicate()
     if verbose:
-        print out_str
+        print(out_str)
     return out_str
 
 def lrs_lrsinput_pploutput(in_str):
@@ -429,15 +432,15 @@ def lcdd_rational(in_str, verbose=False):
     Input: cdd format in_str; Output: cdd format out_str;
     """
     in_filename = tmp_filename()
-    in_file = file(in_filename,'w')
+    in_file = open(in_filename,'w')
     in_file.write(in_str)
     in_file.close()
     if verbose: 
-        print in_str
+        print(in_str)
     redund_procs = Popen(['lcdd_gmp',in_filename],stdin = PIPE, stdout=PIPE, stderr=PIPE)
     out_str, err = redund_procs.communicate()
     if verbose:
-        print out_str
+        print(out_str)
     return out_str
 
 
@@ -466,7 +469,7 @@ def write_normaliz_format_cs(cs, fname=None):
     else:
         filename = sys.stdout
     normaliz_string = convert_pplcs_to_normaliz(cs)
-    print >> filename, normaliz_string
+    print(normaliz_string, file=filename)
     if fname:
         filename.close()
     return

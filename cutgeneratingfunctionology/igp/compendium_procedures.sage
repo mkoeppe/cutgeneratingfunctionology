@@ -1,3 +1,5 @@
+from six.moves import range
+from six.moves import zip
 def transform_coho_interval(interval, shift, divisor):
     """Shift interval by shift and then divide it by divisor.
 
@@ -66,11 +68,11 @@ def multiplicative_homomorphism(function, multiplier):
         True
     """
     if not multiplier in ZZ or multiplier == 0:
-        raise ValueError, "Bad parameter multiplier, needs to be a nonzero integer."
+        raise ValueError("Bad parameter multiplier, needs to be a nonzero integer.")
     elif multiplier > 0:
-        i_range = range(multiplier)
+        i_range = list(range(multiplier))
     else: # multiplier < 0
-        i_range = range(multiplier, 0)
+        i_range = list(range(multiplier, 0))
     # This really wants to be in a compose method of FastLinear.
     new_pairs = [ transform_piece(piece, i, multiplier)
                   for piece in function.list() \
@@ -102,13 +104,13 @@ def automorphism(function, factor=-1):
     if function.is_discrete():
         order = finite_group_order_from_function_f_oversampling_order(function, oversampling=None)
         if gcd(order, factor) != 1:
-            raise ValueError, "factor must be coprime with the group order, %s" % order
+            raise ValueError("factor must be coprime with the group order, %s" % order)
         new_pairs = [ singleton_piece(fractional(x * factor), y)
-                      for x, y in itertools.izip(function.end_points(), function.values_at_end_points()) ]
+                      for x, y in zip(function.end_points(), function.values_at_end_points()) ]
         return FastPiecewise(new_pairs)
     else:
         if abs(factor) != 1:
-            raise ValueError, "factor must be +1 or -1 (the default) in the infinite group case."
+            raise ValueError("factor must be +1 or -1 (the default) in the infinite group case.")
         return multiplicative_homomorphism(function, -1)
 
 def projected_sequential_merge(g, n=1):
@@ -188,7 +190,7 @@ def finite_group_order_from_function_f_oversampling_order(fn, f=None, oversampli
     if not order is None:
         return order
     if not order is None and not oversampling is None:
-        raise ValueError, "Only one of the order and oversampling parameters may be provided."
+        raise ValueError("Only one of the order and oversampling parameters may be provided.")
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
     bkpt_f = fn.end_points()
@@ -209,7 +211,7 @@ def finite_group_order_from_function_f_oversampling_order(fn, f=None, oversampli
                 logging.info("This is a continuous function; because oversampling factor is >= 3, the extremality test on the restricted function will be equivalent to the extremality test on the original function.")
             return grid_nb
     else:
-        raise ValueError, "This is a function with irrational breakpoints or f, so no natural finite group order is available; need to provide an order parameter."
+        raise ValueError("This is a function with irrational breakpoints or f, so no natural finite group order is available; need to provide an order parameter.")
 
 def restrict_to_finite_group(function, f=None, oversampling=None, order=None):
     """Restrict the given function to the cyclic group of given order.
@@ -461,7 +463,7 @@ def generate_pi_pwl(function, epsilon, f=None, order=None):
         if not f:
             f = find_f(function)
         if not f in QQ:
-            raise ValueError, "f is not a rational number."
+            raise ValueError("f is not a rational number.")
         order = f.denominator()
         smax = max([abs(fn._slope) for (i, fn) in function.list()])
         q = ceil(smax/epsilon/order/2) * order
@@ -485,7 +487,7 @@ def generate_pi_delta(f, delta):
         True
     """
     if not 0 < delta < min([f/2, (1-f)/2]):
-        raise ValueError, "Bad parameter delta, needs to be a sufficiently small positive number."
+        raise ValueError("Bad parameter delta, needs to be a sufficiently small positive number.")
     pi_delta = piecewise_function_from_breakpoints_and_values([0, delta, f-delta, f, f+delta, 1-delta, 1], [0, 1/2, 1/2, 1, 1/2, 1/2, 0])
     return pi_delta
 
@@ -623,7 +625,7 @@ def generate_pi_sym(fn, f=None):
     if f is None:
         f = find_f(fn)
     if not (fn(f/2) == fn((1+f)/2) == 1/2):
-        raise ValueError, "Unable to generate pi_sym due to fn(f/2) or fn((1+f)/2) not being 1/2."
+        raise ValueError("Unable to generate pi_sym due to fn(f/2) or fn((1+f)/2) not being 1/2.")
     bkpts_left = [x for x in fn.end_points() if x < f/2]
     values_left = [fn(x) for x in bkpts_left]
     bkpts_right = [x for x in fn.end_points() if x > (1+f)/2]

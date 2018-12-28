@@ -1,4 +1,5 @@
 
+from __future__ import absolute_import
 import sage.rings.number_field.number_field
 from sage.rings.number_field.number_field import NumberField_absolute, NumberField_quadratic
 
@@ -32,7 +33,7 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
             return 0
         result = cmp(left.embedded(), right.embedded())
         if result == 0:
-            raise NotImplementedError, "Precision of real interval field not sufficient to continue"
+            raise NotImplementedError("Precision of real interval field not sufficient to continue")
         return result
 
     def _richcmp_(left, right, op):    # In Sage 7.1, need to specialize this function.
@@ -46,7 +47,7 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
 
         result = cmp(left.embedded(), right.embedded())
         if result == 0:
-            raise NotImplementedError, "Precision of real interval field not sufficient to continue"
+            raise NotImplementedError("Precision of real interval field not sufficient to continue")
         if op == op_LT or op == op_LE:
             return result < 0
         else:
@@ -90,7 +91,7 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
     def _maxima_(self, session=None):
         symbolic = getattr(self, '_symbolic', None)
         if symbolic is None:
-            raise NotImplementedError, "Cannot make %s a Maxima number" % self
+            raise NotImplementedError("Cannot make %s a Maxima number" % self)
         else:
             return symbolic._maxima_()
 
@@ -282,7 +283,7 @@ class RealNumberField_quadratic(NumberField_quadratic):
                 from sage.rings.real_double import RDF
                 self._standard_embedding = RDF.has_coerce_map_from(self) and RDF(rootD) > 0
             else:
-                raise DataError, "RealNumberField_quadratic needs a positive discriminant"
+                raise DataError("RealNumberField_quadratic needs a positive discriminant")
 
         # we reset _NumberField_generic__gen has the flag standard_embedding
         # might be modified

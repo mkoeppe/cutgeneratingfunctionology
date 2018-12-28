@@ -1,6 +1,8 @@
 ## Module
 
-from __future__ import print_function
+#from __future__ import print_function, absolute_import
+
+from __future__ import absolute_import
 
 from sage.all import *
 del SetPartitionsAk
@@ -73,7 +75,7 @@ igp_load(igp_dir + "bug_examples.sage")
 igp_load(igp_dir + "lifting_project.sage")
 igp_load(igp_dir + "plot_options.sage")
 
-import extreme_functions, procedures
+from . import extreme_functions, procedures
 
 try:
     igp_load(igp_dir + "config.sage")

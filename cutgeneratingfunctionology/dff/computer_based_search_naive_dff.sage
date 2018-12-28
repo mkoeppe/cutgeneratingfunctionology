@@ -1,3 +1,4 @@
+from six.moves import range
 def search_example_continuous_dff(q):
     lp = MixedIntegerLinearProgram(base_ring=QQ)
     x = lp.new_variable()

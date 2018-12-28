@@ -3,10 +3,13 @@
     sage: warnings.filterwarnings('ignore', 'Matplotlib is building the font cache using fc-list. This may take a moment.')
 """
 
+from __future__ import absolute_import
 import sage.structure.element
 from sage.structure.element import FieldElement
 
 from sage.libs.ppl import Variable, Constraint, Linear_Expression, Constraint_System, NNC_Polyhedron, Poly_Con_Relation, Poly_Gen_Relation, Generator, MIP_Problem
+from six.moves import zip
+from six.moves import range
 poly_is_included = Poly_Con_Relation.is_included()
 #strictly_intersects = Poly_Con_Relation.strictly_intersects()
 point_is_included = Poly_Gen_Relation.subsumes()
@@ -29,7 +32,7 @@ class ParametricRealFieldElement(FieldElement):
 
     def __init__(self, value, symbolic=None, parent=None):
         if parent is None:
-            raise ValueError, "ParametricRealFieldElement invoked with parent=None. That's asking for trouble"
+            raise ValueError("ParametricRealFieldElement invoked with parent=None. That's asking for trouble")
         FieldElement.__init__(self, parent) ## this is so that canonical_coercion works.
         ## Test coercing the value to RR, so that we do not try to build a ParametricRealFieldElement
         ## from something like a tuple or vector or list or variable of a polynomial ring
@@ -50,7 +53,7 @@ class ParametricRealFieldElement(FieldElement):
 
     def _cmp_(left, right):
         if not left.parent() is right.parent():
-            raise TypeError, "comparing elements from different fields"
+            raise TypeError("comparing elements from different fields")
         result = cmp(left._val, right._val)
         if result == 0:
             left.parent().record_to_eq(left.sym() - right.sym())
@@ -174,7 +177,7 @@ def is_parametric_element(x):
 from sage.rings.ring import Field
 import sage.rings.number_field.number_field_base as number_field_base
 from sage.structure.coerce_maps import CallableConvertMap
-from itertools import izip
+
 
 class ParametricRealField(Field):
     """
@@ -296,7 +299,7 @@ class ParametricRealField(Field):
         self._eq_factor = set([])
         self._lt_factor = set([])
         vnames = PolynomialRing(QQ, names).fraction_field().gens();
-        self._gens = [ ParametricRealFieldElement(value, name, parent=self) for (value, name) in izip(values, vnames) ]
+        self._gens = [ ParametricRealFieldElement(value, name, parent=self) for (value, name) in zip(values, vnames) ]
         self._names = tuple(names)
         self._values = tuple(values)
 
@@ -348,7 +351,7 @@ class ParametricRealField(Field):
             return ParametricRealFieldElement(QQ_elt, parent=self)
             #return self.element_class(self, QQ_elt)
         except ValueError:
-            raise TypeError, "ParametricRealField called with element %s" % elt
+            raise TypeError("ParametricRealField called with element %s" % elt)
 
     def _coerce_impl(self, x):
         return self._element_constructor_(x)
@@ -683,7 +686,7 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None):
         # take care of this.
         gcd_c = gcd(gcd(coeff), c.inhomogeneous_term())
         # constraint is written with '>', while lt_poly records '<' relation
-        t = sum([-(x/gcd_c)*y for x, y in itertools.izip(coeff, monomial_list)]) - c.inhomogeneous_term()/gcd_c
+        t = sum([-(x/gcd_c)*y for x, y in zip(coeff, monomial_list)]) - c.inhomogeneous_term()/gcd_c
         if c.is_equality():
             mineq.append(t)
         else:
@@ -755,7 +758,7 @@ def find_variable_mapping(leqs):
 
     """
     if not leqs:
-        raise ValueError, "equations are not provided."
+        raise ValueError("equations are not provided.")
     variables = leqs[0].args()
     var_map = {}
     for v in variables:
@@ -1071,7 +1074,7 @@ class SemialgebraicComplexComponent(SageObject):
                 bounds_x = bounds_for_plotting(x, var_bounds[0], self.parent.default_var_bound)
                 bounds_y = bounds_for_plotting(y, var_bounds[1], self.parent.default_var_bound)
             else:
-                raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
+                raise NotImplementedError("Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region.")
         else:
             d = 0
             var_pt = []
@@ -1085,7 +1088,7 @@ class SemialgebraicComplexComponent(SageObject):
                         var_pt.append(yy)
                         bounds_y = bounds_for_plotting(y, var_bounds[i], self.parent.default_var_bound)
                     else:
-                        raise NotImplementedError, "Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region."
+                        raise NotImplementedError("Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region.")
                 else:
                     if not is_value_in_interval(z, var_bounds[i]):
                         return g
@@ -1681,7 +1684,7 @@ class SemialgebraicComplex(SageObject):
                 (wall_crossing_method == 'heuristic_with_check'):
                 new_component.lin = walls
             self.points_to_test.update(new_points)
-            new_component.neighbor_points = new_points.keys()
+            new_component.neighbor_points = list(new_points.keys())
         self.components.append(new_component)
 
     def shoot_random_points(self, num, var_bounds=None, max_failings=1000):
@@ -1985,20 +1988,22 @@ def point_satisfies_bddleq_bddlin(var_value, bddleq, bddlin, strict=True):
             return False
     return True
 
-def is_value_in_interval(v, (lb, ub)):
+def is_value_in_interval(v, xxx_todo_changeme):
     """
     Return whether lb <= v <= ub.
 
     ``None`` is considered as -Infinity and +Infinity for lb and ub, respectively. 
     """
+    (lb, ub) = xxx_todo_changeme
     if v is None:
         return (lb is None) or (ub is None) or (lb <= ub)
     return ((lb is None) or (lb <= v)) and ((ub is None) or (v <= ub))
 
-def bounds_for_plotting(v, (lb, ub), default_var_bound):
+def bounds_for_plotting(v, xxx_todo_changeme1, default_var_bound):
     """
     If lower and upper exist, then return them; otherwise return default variable bounds.
     """
+    (lb, ub) = xxx_todo_changeme1
     if not lb is None:
         l = lb - 0.01
     else:
@@ -2306,7 +2311,7 @@ def claimed_region_type(igp_function=gmic, condition_according_to_literature=Tru
     # make condition_according_to_literature a keyword argument of the function claimed_region_type,
     # update its value in test_point.
     # in particular, use condition_according_to_literature=True to obtain the (false) claimed region of chen_4_slope according to literature.
-    if test_point.has_key('condition_according_to_literature'):
+    if 'condition_according_to_literature' in test_point:
         test_point['condition_according_to_literature'] = condition_according_to_literature
     if not isinstance(igp_function, ExtremeFunctionsFactory):
         try:
@@ -2628,8 +2633,8 @@ class PolyhedralComplex(GenericCellComplex):
             raise ValueError
         if not cells_dict:
             return
-        self._dim = cells_dict.keys()[-1]
-        self._ambient_dim = cells_dict.values()[0][0].ambient_dim()
+        self._dim = list(cells_dict.keys())[-1]
+        self._ambient_dim = list(cells_dict.values())[0][0].ambient_dim()
 
         #TODO: partial
         self._partial = kwds.get('partial', False)
@@ -2771,7 +2776,7 @@ class PolyhedralComplex(GenericCellComplex):
 
     def union_as_polyhedron(self):
         if not self.is_convex():
-            raise ValueError, "The polyhedral complex is not convex."
+            raise ValueError("The polyhedral complex is not convex.")
         return self._polyhedron
 
     def has_maximal_cell(self, c):

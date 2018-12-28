@@ -4,7 +4,14 @@
     sage: from cutgeneratingfunctionology.igp import *
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
+from six.moves import map
+from six.moves import range
+from six.moves import zip
+from functools import reduce
+from six.moves import input
 
 def unique_list(iterator):
     """
@@ -158,7 +165,7 @@ class Face:
         if not vertices:
             vertices = verts(triple[0], triple[1], triple[2])
             if not vertices:
-                raise NotImplementedError, "An empty face. This could mean need to shift triple[2] by (1,1). Not implemented."
+                raise NotImplementedError("An empty face. This could mean need to shift triple[2] by (1,1). Not implemented.")
         self.vertices = vertices
         i, j, k = projections(vertices)
         self.minimal_triple = minimal_triple = (i, j, k)
@@ -349,7 +356,7 @@ def convex_vert_list(vertices):
     if len(vertices) <= 3:
         return vertices
     else:
-        center = reduce(operator.add, map(vector, vertices)) / len(vertices)
+        center = reduce(operator.add, list(map(vector, vertices))) / len(vertices)
         return sorted(vertices, cmp = lambda a,b: angle_cmp(a, b, center))
 
 def plot_kwds_hook(kwds):
@@ -692,7 +699,7 @@ def plot_projections_of_one_face(face, IJK_kwds):
         elif coho_interval_contained_in_coho_interval(K, [1,2]):
             g += polygon([(1, K[0]-1), (1, K[1]-1), (1 + proj_plot_width, K[1] - 1 - proj_plot_width), (1 + proj_plot_width, K[0] - 1 - proj_plot_width)], **IJK_kwds[2])
         else:
-            raise ValueError, "Bad face: %s" % face
+            raise ValueError("Bad face: %s" % face)
         delete_one_time_plot_kwds(IJK_kwds[2])
     return g
     
@@ -733,7 +740,7 @@ def interval_mod_1(interval):
         assert not(interval[0] < 1 and interval[1] > 1) 
         return interval
     else:
-        raise ValueError, "Not an interval: %s" % interval
+        raise ValueError("Not an interval: %s" % interval)
 
 def generate_covered_components(function):
     """
@@ -995,7 +1002,7 @@ def plot_with_colored_slopes(fn):
     Returns a plot of fn, with pieces of different slopes in different colors.
     """
     slopes_dict = slopes_intervals_dict(fn, ignore_nonlinear=True)
-    return plot_covered_intervals(fn, slopes_dict.values(), labels=[ "Slope %s" % s for s in slopes_dict.keys() ])
+    return plot_covered_intervals(fn, list(slopes_dict.values()), labels=[ "Slope %s" % s for s in slopes_dict.keys() ])
 
 ### Minimality check.
 
@@ -1055,7 +1062,7 @@ def find_f(fn, no_error_if_not_minimal_anyway=False):
             if no_error_if_not_minimal_anyway:
                 logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
                 return None
-            raise ValueError, "The given function does not stay in the range of [0, 1], so cannot determine f.  Provide parameter f to minimality_test or extremality_test."
+            raise ValueError("The given function does not stay in the range of [0, 1], so cannot determine f.  Provide parameter f to minimality_test or extremality_test.")
     for x in fn.end_points():
         if fn(x) == 1:
             if not f is None:
@@ -1069,7 +1076,7 @@ def find_f(fn, no_error_if_not_minimal_anyway=False):
     if no_error_if_not_minimal_anyway:
         logging.info('pi is not minimal because it has no breakpoint where the function takes value 1.')
         return None
-    raise ValueError, "The given function has no breakpoint where the function takes value 1, so cannot determine f.  Provide parameter f to minimality_test or extremality_test."
+    raise ValueError("The given function has no breakpoint where the function takes value 1, so cannot determine f.  Provide parameter f to minimality_test or extremality_test.")
 
 def minimality_test(fn, show_plots=False, f=None, full_certificates=True):
     """
@@ -1164,7 +1171,7 @@ class FastPiecewise (PiecewisePolynomial):
     """
     def __init__(self, list_of_pairs, var=None, periodic_extension=True, merge=True):
         # Sort intervals according to their left endpoints; In case of equality, place single point before interval. 
-        list_of_pairs = sorted(list_of_pairs, key = lambda (i, f): coho_interval_left_endpoint_with_epsilon(i))
+        list_of_pairs = sorted(list_of_pairs, key = lambda i_f: coho_interval_left_endpoint_with_epsilon(i_f[0]))
         if merge:
             merged_list_of_pairs = []
             intervals_to_scan = []
@@ -1479,7 +1486,7 @@ class FastPiecewise (PiecewisePolynomial):
         ith = self._ith_at_end_points
         i = bisect_left(endpts, x0)
         if i >= len(endpts):
-            raise ValueError,"Value not defined at point %s, outside of domain." % x0
+            raise ValueError("Value not defined at point %s, outside of domain." % x0)
         if x0 == endpts[i]:
             if self._values_at_end_points[i] is not None:
                 if self.functions()[ith[i]](x0) == self._values_at_end_points[i]:
@@ -1487,12 +1494,12 @@ class FastPiecewise (PiecewisePolynomial):
                 else:
                     return self.functions()[ith[i]+1]
             else:
-                raise ValueError,"Value not defined at point %s, outside of domain." % x0
+                raise ValueError("Value not defined at point %s, outside of domain." % x0)
         if i == 0:
-            raise ValueError,"Value not defined at point %s, outside of domain." % x0
+            raise ValueError("Value not defined at point %s, outside of domain." % x0)
         if is_pt_in_interval(self._intervals[ith[i]],x0):
             return self.functions()[ith[i]]
-        raise ValueError,"Value not defined at point %s, outside of domain." % x0
+        raise ValueError("Value not defined at point %s, outside of domain." % x0)
 
     def __call__(self,x0):
         """
@@ -1573,7 +1580,7 @@ class FastPiecewise (PiecewisePolynomial):
         ith = self._ith_at_end_points
         i = bisect_left(endpts, x0)
         if i >= len(endpts):
-            raise ValueError,"Value not defined at point %s, outside of domain." % x0
+            raise ValueError("Value not defined at point %s, outside of domain." % x0)
         if x0 == endpts[i]:
             if self._values_at_end_points[i] is not None:
                 result = self._values_at_end_points[i]
@@ -1581,15 +1588,15 @@ class FastPiecewise (PiecewisePolynomial):
                     self._call_cache[x0] = result
                 return result
             else:
-                raise ValueError,"Value not defined at point %s, outside of domain." % x0
+                raise ValueError("Value not defined at point %s, outside of domain." % x0)
         if i == 0:
-            raise ValueError,"Value not defined at point %s, outside of domain." % x0
+            raise ValueError("Value not defined at point %s, outside of domain." % x0)
         if is_pt_in_interval(self._intervals[ith[i]],x0):
             result = self.functions()[ith[i]](x0)
             if hasattr(self, '_call_cache'):
                 self._call_cache[x0] = result
             return result
-        raise ValueError,"Value not defined at point %s, outside of domain." % x0
+        raise ValueError("Value not defined at point %s, outside of domain." % x0)
 
     def limits(self, x0):
         """
@@ -1686,7 +1693,7 @@ class FastPiecewise (PiecewisePolynomial):
         """
         result =self.limits(x0)[epsilon]
         if result is None:
-            raise ValueError,"Value not defined at point %s%s, outside of domain." % (x0, print_sign(epsilon))
+            raise ValueError("Value not defined at point %s%s, outside of domain." % (x0, print_sign(epsilon)))
         return result
 
     def which_function_on_interval(self, interval):
@@ -1950,7 +1957,7 @@ class FastPiecewise (PiecewisePolynomial):
     def __repr__(self):
         global show_values_of_fastpiecewise
         rep = "<FastPiecewise with %s parts, " % len(self._functions)
-        for interval, function in itertools.izip(self._intervals, self._functions):
+        for interval, function in zip(self._intervals, self._functions):
             rep += "\n " + repr(interval) + "\t" + repr(function)
             if show_values_of_fastpiecewise:
                 rep += "\t values: " + repr([function(interval[0]), function(interval[1])])
@@ -1987,7 +1994,7 @@ class FastPiecewise (PiecewisePolynomial):
         """
         from hashlib import sha1
         self_merged = self * 1            # in case we were constructed with merge=False!
-        data = zip(self_merged.end_points(), self_merged.limits_at_end_points())
+        data = list(zip(self_merged.end_points(), self_merged.limits_at_end_points()))
         is_rational, _ = is_all_QQ(flatten(data))
         if not is_rational:
             logging.warn("For functions with non-rational data, cannot guarantee a stable SHA-1 hash.")
@@ -2013,7 +2020,7 @@ class FastPiecewise (PiecewisePolynomial):
                                  r'\text{slope}']) + r'\\']
         s += ['  \\midrule']
         end_points = self.end_points()
-        for index, (bkpt, limits) in enumerate(itertools.izip(end_points, self.limits_at_end_points())):
+        for index, (bkpt, limits) in enumerate(zip(end_points, self.limits_at_end_points())):
             latex_limits = [ labeled_latex(x) for x in limits ]
             for eps in [-1, +1]:
                 if limits[eps] == limits[0]:
@@ -2164,9 +2171,9 @@ def nice_field_values(symb_values, field=None):
             embedded_field = RealNumberField(number_field.polynomial(), number_field.variable_name(), \
                                              embedding=embedded_generator, exact_embedding=symbolic_generator)
             hom = number_field.hom([embedded_field.gen(0)])
-            embedded_field_values = map(hom, number_field_values)
+            embedded_field_values = list(map(hom, number_field_values))
             # Store symbolic expression
-            for emb, symb in itertools.izip(embedded_field_values, symb_values):
+            for emb, symb in zip(embedded_field_values, symb_values):
                 if symb in SR and type(emb) == RealNumberFieldElement:
                     emb._symbolic = symb
             # Transform given data
@@ -2230,7 +2237,7 @@ def piecewise_function_from_breakpoints_and_values(bkpt, values, field=None, mer
     - If merge is ``True`` (the default), adjacent pieces of equal slopes are merged into one.
     """
     if len(bkpt)!=len(values):
-        raise ValueError, "Need to have the same number of breakpoints and values."
+        raise ValueError("Need to have the same number of breakpoints and values.")
     slopes = [ (values[i+1]-values[i])/(bkpt[i+1]-bkpt[i]) if bkpt[i+1] != bkpt[i] else 0 for i in range(len(bkpt)-1) ]
     return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field, merge=merge)
 
@@ -2245,7 +2252,7 @@ def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None, mer
     - If merge is ``True`` (the default), adjacent pieces of equal slopes are merged into one.
     """
     if len(bkpt)!=len(slopes)+1:
-        raise ValueError, "Need to have one breakpoint more than slopes."
+        raise ValueError("Need to have one breakpoint more than slopes.")
     values = [0]
     for i in range(1, len(bkpt)):
         values.append(values[i-1] + slopes[i - 1] * (bkpt[i] - bkpt[i-1]))
@@ -2262,12 +2269,12 @@ def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes
     - If merge is ``True`` (the default), adjacent pieces of equal slopes are merged into one.
     """
     if len(interval_lengths)!=len(slopes):
-        raise ValueError, "Number of given interval_lengths and slopes needs to be equal."
+        raise ValueError("Number of given interval_lengths and slopes needs to be equal.")
     bkpt = []
     bkpt.append(0)
     for i in range(len(interval_lengths)):
         if interval_lengths[i] < 0:
-            raise ValueError, "Interval lengths must be non-negative."
+            raise ValueError("Interval lengths must be non-negative.")
         bkpt.append(bkpt[i]+interval_lengths[i])
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field, merge=merge)
 
@@ -2299,7 +2306,7 @@ def piecewise_function_from_breakpoints_and_limits(bkpt, limits, field=None, mer
         2/5
     """
     if len(bkpt)!=len(limits):
-        raise ValueError, "Need to have the same number of breakpoints and limits."
+        raise ValueError("Need to have the same number of breakpoints and limits.")
     n = len(bkpt)
     mid, right, left = [limit[0] for limit in limits], [limit[1] for limit in limits], [limit[-1] for limit in limits]
     symb_values = bkpt + mid + right + left
@@ -2333,9 +2340,9 @@ def piecewise_function_from_breakpoints_slopes_and_jumps(bkpt, slopes, jumps, fi
     """
     n = len(bkpt)
     if n != len(slopes)+1:
-        raise ValueError, "Need to have one breakpoint more than slopes."
+        raise ValueError("Need to have one breakpoint more than slopes.")
     if 2*(n-1) != len(jumps):
-        raise ValueError, "Need to have number of jumps = 2 * number of slopes."
+        raise ValueError("Need to have number of jumps = 2 * number of slopes.")
     symb_values = bkpt + slopes + jumps
     field_values = nice_field_values(symb_values, field)
     bkpt, slopes, jumps = field_values[0:n], field_values[n:2*n-1], field_values[2*n-1:]
@@ -2364,7 +2371,7 @@ def discrete_function_from_points_and_values(points, values, field=None):
     field_values = nice_field_values(symb_values, field)
     points, values = field_values[0:len(points)], field_values[-len(values):]
     pieces = [ (singleton_interval(point), FastLinearFunction(0, value))
-               for point, value in itertools.izip(points, values) ]
+               for point, value in zip(points, values) ]
     return FastPiecewise(pieces)
 
 def limiting_slopes(fn):
@@ -2423,7 +2430,7 @@ def approx_discts_function(perturbation_list, stability_interval, field=default_
         template_values = copy(perturbation_template_values)
     elif perturbation_style == slopes_proportional_to_limiting_slopes_for_positive_epsilon:
         if function is None:
-            raise ValueError, "This perturbation_style needs to know function"
+            raise ValueError("This perturbation_style needs to know function")
         slope_plus, slope_minus = limiting_slopes(function)
         current_slope = function.which_function(perturb_points[0])._slope
         template_bkpts = [0, (current_slope - slope_minus)/(slope_plus - slope_minus), 1]
@@ -2431,14 +2438,14 @@ def approx_discts_function(perturbation_list, stability_interval, field=default_
         template_values = [0, 1, 0]
     elif perturbation_style == slopes_proportional_to_limiting_slopes_for_negative_epsilon:
         if function is None:
-            raise ValueError, "This perturbation_style needs to know function"
+            raise ValueError("This perturbation_style needs to know function")
         slope_plus, slope_minus = limiting_slopes(function)
         current_slope = function.which_function(perturb_points[0])._slope
         template_bkpts = [0, (slope_plus - current_slope)/(slope_plus - slope_minus), 1]
         #print slope_plus, slope_minus, current_slope, template_bkpts
         template_values = [0, 1, 0]
     else:
-        raise ValueError, "Unknown perturbation_style: %s" % perturbation_style
+        raise ValueError("Unknown perturbation_style: %s" % perturbation_style)
     pos_pert_bkpts = [(2 * x - 1) * stability_interval.b  for x in template_bkpts]
     pos_pert_values = [x for x in template_values]
     neg_pert_bkpts =  [(1 - 2 * x) * stability_interval.b  for x in template_bkpts[::-1]]
@@ -2666,7 +2673,7 @@ class FunctionalDirectedMove (FastPiecewise):
             result = closed_or_open_or_halfopen_interval(directed_move[1] - interval[1], directed_move[1] - interval[0], \
                                                          interval.right_closed, interval.left_closed)
         else:
-            raise ValueError, "Move not valid: %s" % list(move)
+            raise ValueError("Move not valid: %s" % list(move))
         return result
 
     def range_intervals(self):
@@ -2889,8 +2896,8 @@ def basic_perturbation(fn, index):
         try: 
             return fn._perturbations[index-1]
         except IndexError:
-            raise IndexError, "Bad perturbation index"
-    raise ValueError, "No perturbations"
+            raise IndexError("Bad perturbation index")
+    raise ValueError("No perturbations")
 
 def plot_perturbation_diagram(fn, perturbation=None, xmin=0, xmax=1):
     """
@@ -3662,7 +3669,7 @@ def lift_extreme_function_for_finite_group_to_infinite_group(fn, show_plots = Fa
     f = find_f(fn, no_error_if_not_minimal_anyway=True)
     fdms, covered_components= generate_directed_move_composition_completion(fn, show_plots=show_plots)
     for pert_fin in  generate_perturbations_finite_dimensional(fn, show_plots=show_plots, f=f):
-        raise ValueError, "The given function is not extreme for the finite group (1/%s)Z" % q
+        raise ValueError("The given function is not extreme for the finite group (1/%s)Z" % q)
     uncovered_intervals = generate_uncovered_intervals(fn)
     if show_plots:
         logging.info("Plotting covered intervals...")
@@ -3714,7 +3721,7 @@ def lift_extreme_function_for_finite_group_to_infinite_group(fn, show_plots = Fa
                     if epsilon_interval[1] == 1:
                         lifted_functions.append(perturbed + perturbation)
         if not lifted_functions:
-                raise ValueError, "can not find continuous perturbation"
+                raise ValueError("can not find continuous perturbation")
         all_lifting = lifted_functions
     lifted_functions = []
     for h in all_lifting:
@@ -3741,7 +3748,7 @@ def lift_until_extreme(fn, show_plots = False, pause = False, covered_length=Tru
         fn = next
         next = lift(fn, show_plots=False , use_all_perturbations=use_all_perturbations, **kwds)  #show_plots=show_plots
         if pause and next != fn:
-            raw_input("Press enter to continue")
+            input("Press enter to continue")
     return next
 
 ##############
@@ -3769,13 +3776,13 @@ def piecewise_function_from_robert_txt_file(filename):
     with open(filename) as f:
         yvalues = [QQ(x) for x in f.readline().split()]
         xvalues = [QQ(x) for x in f.readline().split()]
-        if xvalues != range(len(yvalues)):
-            raise ValueError, "Line 2 (xvalues) need to be consecutive integers"
+        if xvalues != list(range(len(yvalues))):
+            raise ValueError("Line 2 (xvalues) need to be consecutive integers")
         xscale = len(xvalues)
         xf = QQ(f.readline())
         yf = QQ(f.readline())
     if yvalues[xf] != yf:
-        raise ValueError, "Lines 3/4 on f and value at f are not consistent with line 1."
+        raise ValueError("Lines 3/4 on f and value at f are not consistent with line 1.")
     return piecewise_function_from_breakpoints_and_values([ x / xscale for x in xvalues ] + [1], [y / yf for y in yvalues] + [0])
 
 def random_piecewise_function(xgrid=10, ygrid=10, continuous_proba=1, symmetry=True):
@@ -3926,7 +3933,7 @@ def is_QQ_linearly_independent(*numbers):
             is_QQ, QQ_numbers = is_all_QQ(numbers)
             if is_QQ:
                 return False
-            raise ValueError, "Q-linear independence test only implemented for algebraic numbers"
+            raise ValueError("Q-linear independence test only implemented for algebraic numbers")
     coordinate_matrix = matrix(QQ, [x.list() for x in numbers])
     return rank(coordinate_matrix) == len(numbers)
 
@@ -3968,7 +3975,7 @@ def merge_functional_directed_moves(A, B, show_plots=False):
         <FunctionalDirectedMove (1, 0) with domain [(3/10, 7/20), (9/20, 1/2)], range [<Int[3/10, 7/20]>, <Int[9/20, 1/2]>]>
     """
     if A.directed_move != B.directed_move:
-        raise ValueError, "Cannot merge, moves have different operations"
+        raise ValueError("Cannot merge, moves have different operations")
     C = FunctionalDirectedMove(\
                                A.intervals() + B.intervals(),  # constructor takes care of merging
                                A.directed_move)
@@ -3996,7 +4003,7 @@ def plot_covered_component_as_rectangles(component, **kwds):
 
 def plot_covered_components_as_rectangles(components):
     g = Graphics()
-    for component, color in itertools.izip(components, rainbow(len(components))):
+    for component, color in zip(components, rainbow(len(components))):
         g += plot_covered_component_as_rectangles(component, rgbcolor=color, frame_color='grey')
     return g
 
@@ -4202,7 +4209,7 @@ class DirectedMoveCompositionCompletion:
         return sum(len(c) for c in self.covered_components)
 
     def num_directed_move_intervals(self):
-        return sum(len(m.intervals()) for m in self.move_dict.itervalues())
+        return sum(len(m.intervals()) for m in six.itervalues(self.move_dict))
 
     def max_component_intervals(self):
         return self._max_component_intervals
@@ -4315,7 +4322,7 @@ class DirectedMoveCompositionCompletion:
 
     def extend_components_by_strip_lemma(self):
         global crazy_perturbations_warning
-        all_move_keys = self.move_dict.keys()
+        all_move_keys = list(self.move_dict.keys())
         strip_lemma_intervals = []
         for dm_a in all_move_keys:
             for dm_b in all_move_keys:
@@ -4353,7 +4360,7 @@ class DirectedMoveCompositionCompletion:
                 continue                            # move has been killed
             # compose move a with b from sym_init_moves
             for (dm_b, b) in self.sym_init_moves.items():
-                if not self.move_dict.has_key(dm_b):
+                if dm_b not in self.move_dict:
                     continue                        # move has been killed
                 c = compose_functional_directed_moves(a, b)
                 if c:
@@ -4426,7 +4433,7 @@ class DirectedMoveCompositionCompletion:
             self.complete_one_round()
         if max_num_rounds is not None and self.num_rounds == max_num_rounds:
             if error_if_max_num_rounds_exceeded:
-                raise MaximumNumberOfIterationsReached, "Reached %d rounds of the completion procedure, found %d directed moves and %d covered components, stopping." % (self.num_rounds, len(self.move_dict), len(self.covered_components))
+                raise MaximumNumberOfIterationsReached("Reached %d rounds of the completion procedure, found %d directed moves and %d covered components, stopping." % (self.num_rounds, len(self.move_dict), len(self.covered_components)))
             else:
                 logging.info("Reached %d rounds of the completion procedure, found %d directed moves and %d covered components, stopping." % (self.num_rounds, len(self.move_dict), len(self.covered_components)))
         else:
@@ -4436,7 +4443,7 @@ class DirectedMoveCompositionCompletion:
 
 
     def results(self):
-        return self.move_dict.values(), self.covered_components
+        return list(self.move_dict.values()), self.covered_components
     
     def __repr__(self):
         if self.is_complete:
@@ -4695,7 +4702,7 @@ def find_decomposition_into_intervals_with_same_moves(functional_directed_moves,
         elif delta == 0:                       # a zero perturbation point (including sign contradiction point)
             pass
         else:
-            raise ValueError, "Bad scan item"
+            raise ValueError("Bad scan item")
 
 def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=False, max_num_it=None):
     if hasattr(fn, '_stability_orbits'):
@@ -4783,12 +4790,12 @@ def stuff_with_random_irrational_function():
     while True:
         del1 = randint(1, 100) / 1000
         del2 = randint(1, 60) / 1000
-        print "del1 = %s, del2 = %s" % (del1, del2)
+        print("del1 = %s, del2 = %s" % (del1, del2))
         try:
             h = the_irrational_function_t1_t2(del1=del1, del2=del2)
             break
         except ValueError:
-            print "... parameters do not describe a function, retrying."
+            print("... parameters do not describe a function, retrying.")
     dmoves = generate_functional_directed_moves(h)
     fdms, _ = directed_move_composition_completion(dmoves, max_num_rounds=None)
     plot_directed_moves(fdms).show(figsize=40)
@@ -4886,4 +4893,4 @@ def arithmetic_complexity(fn, f=None, q=None):
         v_denominator = [denominator(y) for y in v]
         return lcm(v_denominator)
     else:
-        raise ValueError, "This is a function has irrational value on (1/%s)Z, so the arithmetic_complexity is not available." % q
+        raise ValueError("This is a function has irrational value on (1/%s)Z, so the arithmetic_complexity is not available." % q)

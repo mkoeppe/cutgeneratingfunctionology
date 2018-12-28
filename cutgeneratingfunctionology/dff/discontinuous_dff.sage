@@ -1,3 +1,5 @@
+from six.moves import range
+from six.moves import zip
 nonzero_eps = { (-1,-1,-1), (-1, 1,-1), (-1, 1, 1), (-1, 1, 0), (-1, 0,-1), ( 1,-1,-1), \
                 ( 1,-1, 1), ( 1,-1, 0), ( 1, 1, 1), ( 1, 0, 1), ( 0,-1,-1), ( 0, 1, 1) }
 continuous_xy_eps = { (-1,-1,-1), (1, 1, 1) }
@@ -212,9 +214,9 @@ def maximality_test_general_dff(fn):
 def generate_symbolic_general_dff(function, components):
     n=len(components)
     intervals_and_slopes = []
-    for component, slope in itertools.izip(components, range(n)):
+    for component, slope in zip(components, list(range(n))):
         intervals_and_slopes.extend([ (interval, slope) for interval in component ])
-    intervals_and_slopes.sort(key=lambda (i, s):coho_interval_left_endpoint_with_epsilon(i))
+    intervals_and_slopes.sort(key=lambda i_s:coho_interval_left_endpoint_with_epsilon(i_s[0]))
     field=function(0).parent().fraction_field()
     bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
     limits = [function.limits(x) for x in bkpt]

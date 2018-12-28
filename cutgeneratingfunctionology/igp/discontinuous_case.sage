@@ -1,3 +1,5 @@
+from six.moves import range
+from six.moves import zip
 ########## Code for Discontinuous Case ###########
 
 nonzero_eps = { (-1,-1,-1), (-1, 1,-1), (-1, 1, 1), (-1, 1, 0), (-1, 0,-1), ( 1,-1,-1), \
@@ -134,7 +136,7 @@ def epstriple_to_cone(epstriple):
     try:
         return dic_eps_to_cone[epstriple]
     except KeyError:
-        raise ValueError,"The limit epstriple %s does not exist." % epstriple
+        raise ValueError("The limit epstriple %s does not exist." % epstriple)
 
 def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03):
     """
@@ -160,7 +162,7 @@ def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03):
         p += line([orig, orig + ray1 * r / ray1.norm()], color='white', zorder=-4, thickness=3)
         p += line([orig, orig + ray2 * r / ray2.norm()], color='white', zorder=-4, thickness=3)
     else:
-        raise ValueError, "The cone %s is not well defined." % cone
+        raise ValueError("The cone %s is not well defined." % cone)
     return p
 
 def plot_2d_additive_limit_vertices(fn):
@@ -198,11 +200,11 @@ def generate_symbolic_general(function, components, field=None, f=None):
         f = find_f(function)
     n = len(components)
     intervals_and_slopes = []
-    for component, slope in itertools.izip(components, range(n)):
+    for component, slope in zip(components, list(range(n))):
         intervals_and_slopes.extend([ (interval, slope) for interval in component ])
     #intervals in components are coho intervals.
     #was: intervals_and_slopes.sort()
-    intervals_and_slopes.sort(key=lambda (i, s): coho_interval_left_endpoint_with_epsilon(i))
+    intervals_and_slopes.sort(key=lambda i_s: coho_interval_left_endpoint_with_epsilon(i_s[0]))
     bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
     limits = [function.limits(x) for x in bkpt]
     if function.is_two_sided_discontinuous():
@@ -357,7 +359,7 @@ def find_epsilon_interval_general(fn, perturb):
     logging.info("Finding epsilon interval for perturbation... done.  Interval is %s", [best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound])
     return best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound
 
-def delta_pi_general(fn, x, y, (xeps, yeps, zeps)=(0,0,0)):
+def delta_pi_general(fn, x, y, xxx_todo_changeme=(0,0,0)):
     r"""
     return delta_pi = fn(x, xeps) + fn(y, yeps) - fn(z, zeps).
 
@@ -375,6 +377,7 @@ def delta_pi_general(fn, x, y, (xeps, yeps, zeps)=(0,0,0)):
         sage: delta_pi_general(h, 2/5, 4/5, (-1, 0, -1))
         -2/5
     """
+    (xeps, yeps, zeps) = xxx_todo_changeme
     return fn.limit(fractional(x), xeps) + fn.limit(fractional(y), yeps) - fn.limit(fractional(x + y), zeps)
 
 def delta_pi_of_face(fn, x, y, F):

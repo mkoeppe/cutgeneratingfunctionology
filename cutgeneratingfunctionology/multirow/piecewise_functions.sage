@@ -1,6 +1,8 @@
+from __future__ import absolute_import
 from sage.geometry.integral_points import rectangular_box_points
 from sage.geometry.polyhedron.plot import cyclic_sort_vertices_2d
 from sage.geometry.polyhedron.parent import Polyhedra
+from six.moves import range
 
 
 class PiecewisePolynomial_polyhedral(SageObject):
@@ -97,7 +99,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
             self._fundamental_domain = None
             for (p, f) in polyhedron_function_pairs:
                 d = p.dim()
-                if self._stratification.has_key(d):
+                if d in self._stratification:
                     self._stratification[d].add((p, f))
                 else:
                     self._stratification[d] = set([(p, f)])
@@ -121,7 +123,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
                         shift_f = f(tuple(vector(self._polynomial_ring.gens())-v))
                         shift_f = self._polynomial_ring(shift_f)
                         d_p = shift_p.dim()
-                        if self._stratification.has_key(d_p):
+                        if d_p in self._stratification:
                             self._stratification[d_p].add((shift_p, shift_f))
                         else:
                             self._stratification[d_p] = set([(shift_p, shift_f)])
@@ -165,7 +167,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
                 intersection = p.intersection(box) # not empty.
                 d = intersection.dim()
                 if d == p.dim(): # need this, otherwise bug hildebrand_2_sided_discont_2_slope_1(0) has two values 0 and 2*x + 3/4. 
-                    if self._stratification.has_key(d):
+                    if d in self._stratification:
                         self._stratification[d].add((intersection, f))
                     else:
                         self._stratification[d] = set([(intersection, f)])
@@ -414,7 +416,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
                     if not shift_p.intersection(domain).is_empty():
                         shift_f = self._polynomial_ring(f(tuple(vector(self._polynomial_ring.gens())-v)))
                         selfpairs.append((shift_p, shift_f))
-            selfpairs.sort(key=lambda (p,f):p.dim())
+            selfpairs.sort(key=lambda p_f:p_f[0].dim())
         else:
             selfpairs = self.pairs()
         pairs = []

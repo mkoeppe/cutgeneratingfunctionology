@@ -1,3 +1,4 @@
+from six.moves import range
 ### Experimental code.
 
 
@@ -172,7 +173,7 @@ def perturbation_lim_slopes_mip(fn, perturbation_components=None, solver=None):
             else:
                 pert_lim_slopes[1][interval.a] = sb
                 pert_lim_slopes[-1][interval.b] = sa
-    bkpt = uniq(fn.end_points()+pert_lim_slopes[1].keys()+pert_lim_slopes[-1].keys())
+    bkpt = uniq(fn.end_points()+list(pert_lim_slopes[1].keys())+list(pert_lim_slopes[-1].keys()))
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt]
     slope2 = [(fn(fractional(bkpt2[i+1])) - fn(fractional(bkpt2[i]))) / (bkpt2[i+1] - bkpt2[i]) for i in range(len(bkpt2)-1)]
     fn_lim_slopes = {1:{}, -1:{}, 0:{}}
@@ -230,7 +231,7 @@ def perturbation_interior_slopes_bounds(fn, perturbation_components=None):
             else:
                 pert_lim_slopes[1][interval.a] = sb
                 pert_lim_slopes[-1][interval.b] = sa
-    bkpt = uniq(fn.end_points()+pert_lim_slopes[1].keys()+pert_lim_slopes[-1].keys())
+    bkpt = uniq(fn.end_points()+list(pert_lim_slopes[1].keys())+list(pert_lim_slopes[-1].keys()))
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt]
     slope2 = [(fn(fractional(bkpt2[i+1])) - fn(fractional(bkpt2[i]))) / (bkpt2[i+1] - bkpt2[i]) for i in range(len(bkpt2)-1)]
     fn_lim_slopes = {1:{}, -1:{}, 0:{}}

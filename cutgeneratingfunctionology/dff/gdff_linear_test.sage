@@ -1,3 +1,4 @@
+from six.moves import range
 
 def phi_bj_1_quasi(c=3/2):
     n=floor(c)

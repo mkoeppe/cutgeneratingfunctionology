@@ -1,3 +1,5 @@
+from __future__ import print_function
+from six.moves import range
 def fn_variable(q, x):
     return 'fn_%s' % int(x*q)
 
@@ -110,12 +112,12 @@ def print_logical_constraints(filename, q, face):
         l_1_1 - p_1_1 - p_1_2 - p_2_1 <= 0     
     """
     for v in face.vertices:
-        print >> filename, '%s - %s >= 0' %(face_variable(q, face), vertex_variable(q, v))
+        print('%s - %s >= 0' %(face_variable(q, face), vertex_variable(q, v)), file=filename)
     v = face.vertices[0]
-    print >> filename, '%s' % face_variable(q, face),
+    print('%s' % face_variable(q, face), end=' ', file=filename)
     for v in face.vertices:
-        print >> filename, '- %s' % vertex_variable(q, v),
-    print >> filename, '<= 0'
+        print('- %s' % vertex_variable(q, v), end=' ', file=filename)
+    print('<= 0', file=filename)
    
 def print_xy_swapped_constraints(filename, q, face):
     """
@@ -127,7 +129,7 @@ def print_xy_swapped_constraints(filename, q, face):
         sage: print_xy_swapped_constraints(sys.stdout, 7, face)
         p_1_2 - p_2_1 = 0
     """
-    print >> filename, '%s - %s = 0' %(face_variable(q, face), face_variable(q, x_y_swapped_face(face)))
+    print('%s - %s = 0' %(face_variable(q, face), face_variable(q, x_y_swapped_face(face))), file=filename)
 
 
 def print_fn_bounds(filename, q):
@@ -143,7 +145,7 @@ def print_fn_bounds(filename, q):
     """
     bkpt = [x/q for x in range(q+1)]
     for x in bkpt:
-        print >> filename, '0 <= %s <= 1' % fn_variable(q, x)
+        print('0 <= %s <= 1' % fn_variable(q, x), file=filename)
 
 def print_fn_minimality_test(filename, q, f, m=0):
     """
@@ -163,18 +165,18 @@ def print_fn_minimality_test(filename, q, f, m=0):
         fn_2 + fn_2 - fn_1 - 2 p_2_2 <= 0
     """
     # fn(0) = 0
-    print >> filename, '%s = 0' % fn_variable(q, 0)
+    print('%s = 0' % fn_variable(q, 0), file=filename)
     # fn(f) = 1
     #print >> filename, '%s = 1' % fn_variable(q, f)
     bkpt = [x/q for x in range(q+1)]
     # symmetric conditions
     x = 0
     while x <= f/2:
-        print >> filename, '%s + %s = 1' % (fn_variable(q, x), fn_variable(q, f - x))
+        print('%s + %s = 1' % (fn_variable(q, x), fn_variable(q, f - x)), file=filename)
         x += 1/q
     x = f
     while x <= (1+f)/2:
-        print >> filename, '%s + %s = 1' % (fn_variable(q, x), fn_variable(q, 1 + f - x))
+        print('%s + %s = 1' % (fn_variable(q, x), fn_variable(q, 1 + f - x)), file=filename)
         x += 1/q 
     # strict-subadditivity and additivity conditions
     for i in range(1, q):
@@ -183,12 +185,12 @@ def print_fn_minimality_test(filename, q, f, m=0):
             y = bkpt[j]
             z = fractional(x + y)
             if m == 0:
-                print >> filename, '%s + %s - %s >= 0' %(fn_variable(q, x), fn_variable(q, y), fn_variable(q, z))
+                print('%s + %s - %s >= 0' %(fn_variable(q, x), fn_variable(q, y), fn_variable(q, z)), file=filename)
             else:
-                print >> filename, '%s + %s - %s - %s %s >= 0' %(fn_variable(q, x), fn_variable(q, y), fn_variable(q, z), \
-                                                                 RR(1 / m), vertex_variable(q, (x, y)))
-            print >> filename, '%s + %s - %s - 2 %s <= 0' %(fn_variable(q, x), fn_variable(q, y), \
-                                                            fn_variable(q, z), vertex_variable(q, (x, y)))
+                print('%s + %s - %s - %s %s >= 0' %(fn_variable(q, x), fn_variable(q, y), fn_variable(q, z), \
+                                                                 RR(1 / m), vertex_variable(q, (x, y))), file=filename)
+            print('%s + %s - %s - 2 %s <= 0' %(fn_variable(q, x), fn_variable(q, y), \
+                                                            fn_variable(q, z), vertex_variable(q, (x, y))), file=filename)
 
 def print_trivial_additive_points(filename, q, f):
     """
@@ -212,18 +214,18 @@ def print_trivial_additive_points(filename, q, f):
     bkpt = [x/q for x in range(q+1)]
     # border x = 0 and border y = 0 are green
     for x in bkpt:
-        print >> filename, '%s = 0' % vertex_variable(q, (0, x))
+        print('%s = 0' % vertex_variable(q, (0, x)), file=filename)
     for x in bkpt[1::]:
-        print >> filename, '%s = 0' % vertex_variable(q, (x, 1))
+        print('%s = 0' % vertex_variable(q, (x, 1)), file=filename)
     # diagonals corresponding to f
     for x in bkpt:
         if x < f:
-            print >> filename, '%s = 0' % vertex_variable(q, (x, f - x))
+            print('%s = 0' % vertex_variable(q, (x, f - x)), file=filename)
         elif x == f:
-            print >> filename, '%s = 0' % vertex_variable(q, (x, f - x))
-            print >> filename, '%s = 0' % vertex_variable(q, (x, f - x + 1))
+            print('%s = 0' % vertex_variable(q, (x, f - x)), file=filename)
+            print('%s = 0' % vertex_variable(q, (x, f - x + 1)), file=filename)
         elif x > f:
-            print >> filename, '%s = 0' % vertex_variable(q, (x, f - x + 1))
+            print('%s = 0' % vertex_variable(q, (x, f - x + 1)), file=filename)
 
     #b = f - a
     #print >> filename, '%s = 0' % vertex_variable(q, (b - a + 1/q, a - 1/q))
@@ -295,9 +297,9 @@ def print_directly_covered_constraints(filename, q, z):
     for y in bkpt:
         # I projection: l_zz,yy and u_zz,yy
         l = face_variable(q, Face(([z, z+1/q], [y, y+1/q], [z + y, z + y + 1/q])))
-        print >> filename, '%s - %s <= 0' % (c_z_0, l)
+        print('%s - %s <= 0' % (c_z_0, l), file=filename)
         u = face_variable(q, Face(([z, z+1/q], [y, y+1/q], [z + y + 1/q, z + y + 2/q])))
-        print >> filename, '%s - %s <= 0' % (c_z_0, u)
+        print('%s - %s <= 0' % (c_z_0, u), file=filename)
         variable_list += [l, u]
     for x in bkpt:
         # K projection: l_xx,zz-xx
@@ -305,7 +307,7 @@ def print_directly_covered_constraints(filename, q, z):
         if y < 0:
             y += 1
         l = face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y, x + y + 1/q])))
-        print >> filename, '%s - %s <= 0' % (c_z_0, l)
+        print('%s - %s <= 0' % (c_z_0, l), file=filename)
         variable_list += [l]
     for x in bkpt:
         # K projection: u_xx,zz-xx-1
@@ -313,13 +315,13 @@ def print_directly_covered_constraints(filename, q, z):
         if y < 0:
             y += 1
         u = face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y + 1/q, x + y + 2/q])))
-        print >> filename, '%s - %s <= 0' % (c_z_0, u)
+        print('%s - %s <= 0' % (c_z_0, u), file=filename)
         variable_list += [u]
     assert len(variable_list) == 4*q
-    print >> filename, '%s' % c_z_0,
+    print('%s' % c_z_0, end=' ', file=filename)
     for lu in variable_list:
-        print >> filename, '- %s' % lu,
-    print >> filename, '>= %s' % (1 - 4*q)
+        print('- %s' % lu, end=' ', file=filename)
+    print('>= %s' % (1 - 4*q), file=filename)
 
     ## want: I,J projections don't intersect with each other
     ## problem: this model has no feasible solution.
@@ -353,10 +355,10 @@ def print_move_constraints(filename, q, x, z):
     # m_x_z = min(forward_move, backward_move)
     # m_x_z == 0 only if forward_move == 0 or backward_move == 0,
     # i.e. m_x_z + 1 >= forward_move + backward_move
-    print >> filename, '%s - %s <= 0' % (m_x_z, face_variable(q, forward_move))
-    print >> filename, '%s - %s <= 0' % (m_x_z, face_variable(q, backward_move))
-    print >> filename, '%s + %s - %s <= 1' % (face_variable(q, forward_move), \
-                                              face_variable(q, backward_move), m_x_z)
+    print('%s - %s <= 0' % (m_x_z, face_variable(q, forward_move)), file=filename)
+    print('%s - %s <= 0' % (m_x_z, face_variable(q, backward_move)), file=filename)
+    print('%s + %s - %s <= 1' % (face_variable(q, forward_move), \
+                                              face_variable(q, backward_move), m_x_z), file=filename)
 
 def print_translation_i_constraints(filename, q, x, z, i):
     """
@@ -371,9 +373,9 @@ def print_translation_i_constraints(filename, q, x, z, i):
     c_x_last = covered_i_variable(q, x, i-1)
     m_x_z = move_variable(q, x, z)
     t_x_z_i =  translation_i_variable(q, x, z, i)
-    print >> filename, '%s - %s <= 0' % (c_x_last, t_x_z_i)
-    print >> filename, '%s - %s <= 0' % (m_x_z, t_x_z_i)
-    print >> filename, '%s - %s - %s <= 0' % (t_x_z_i, c_x_last, m_x_z)
+    print('%s - %s <= 0' % (c_x_last, t_x_z_i), file=filename)
+    print('%s - %s <= 0' % (m_x_z, t_x_z_i), file=filename)
+    print('%s - %s - %s <= 0' % (t_x_z_i, c_x_last, m_x_z), file=filename)
     
 def print_reflection_i_constraints(filename, q, x, z, i):
     """
@@ -387,10 +389,10 @@ def print_reflection_i_constraints(filename, q, x, z, i):
     """
     c_x_last = covered_i_variable(q, x, i-1)
     r_x_z_i =  reflection_i_variable(q, x, z, i)
-    print >> filename, '%s - %s <= 0' % (c_x_last, r_x_z_i)
+    print('%s - %s <= 0' % (c_x_last, r_x_z_i), file=filename)
     move = Face(([x, x + 1/q], [z, z + 1/q], [x + z + 1/q])) # d_xx,zz
-    print >> filename, '%s - %s <= 0' % (face_variable(q, move), r_x_z_i)
-    print >> filename, '%s - %s - %s <= 0' % (r_x_z_i, c_x_last, face_variable(q, move))
+    print('%s - %s <= 0' % (face_variable(q, move), r_x_z_i), file=filename)
+    print('%s - %s - %s <= 0' % (r_x_z_i, c_x_last, face_variable(q, move)), file=filename)
     
 def print_undirectly_covered_i_constraints(filename, q, z, i):
     """
@@ -408,20 +410,20 @@ def print_undirectly_covered_i_constraints(filename, q, z, i):
     bkpt = [x/q for x in range(q)]
     c_z_now = covered_i_variable(q, z, i)
     c_z_last = covered_i_variable(q, z, i-1)
-    print >> filename, '%s - %s <= 0' % (c_z_now, c_z_last)
+    print('%s - %s <= 0' % (c_z_now, c_z_last), file=filename)
     variable_list = [c_z_last]
     for x in bkpt:
         if x != z:
             t_x_z_i = translation_i_variable(q, x, z, i)
             r_x_z_i = reflection_i_variable(q, x, z, i)
-            print >> filename, '%s - %s <= 0' % (c_z_now, t_x_z_i)
-            print >> filename, '%s - %s <= 0' % (c_z_now, r_x_z_i)
+            print('%s - %s <= 0' % (c_z_now, t_x_z_i), file=filename)
+            print('%s - %s <= 0' % (c_z_now, r_x_z_i), file=filename)
             variable_list += [t_x_z_i, r_x_z_i]
     assert len(variable_list) == 2 * q - 1
-    print >> filename, '%s' % c_z_now,
+    print('%s' % c_z_now, end=' ', file=filename)
     for v in variable_list:
-         print >> filename, '- %s' % v,
-    print >> filename, '>= %s' % (2 - 2 * q)     
+         print('- %s' % v, end=' ', file=filename)
+    print('>= %s' % (2 - 2 * q), file=filename)     
 
 def print_obj_max_slope_slack(filename, kslopes):
     """
@@ -433,7 +435,7 @@ def print_obj_max_slope_slack(filename, kslopes):
         sage: print_obj_max_slope_slack(sys.stdout, 5)
         s_0 - s_4
     """
-    print >> filename, 's_0 - s_%s' % (kslopes - 1),
+    print('s_0 - s_%s' % (kslopes - 1), end=' ', file=filename)
 
 def print_obj_max_slope_slack_with_weights(filename, kslopes, weights):
     """
@@ -448,10 +450,10 @@ def print_obj_max_slope_slack_with_weights(filename, kslopes, weights):
         + 1 s_0 - 1 s_1 + 2 s_1 - 2 s_2 + 2 s_2 - 2 s_3 + 1 s_3 - 1 s_4
     """
     if not weights:
-        print >> filename, 's_0 - s_%s' % (kslopes - 1),
+        print('s_0 - s_%s' % (kslopes - 1), end=' ', file=filename)
     else:
         for i in range(kslopes - 1):
-            print >> filename, '+ %s s_%s - %s s_%s' % (weights[i], i, weights[i], i+1),
+            print('+ %s s_%s - %s s_%s' % (weights[i], i, weights[i], i+1), end=' ', file=filename)
 
 def print_obj_max_subadd_slack(filename, q, weight=1): #is a constant!
     """
@@ -464,9 +466,9 @@ def print_obj_max_subadd_slack(filename, q, weight=1): #is a constant!
         1 fn_0 + 1 fn_1 + 1 fn_2 
     """
     bkpt = [x/q for x in range(q)]
-    print >> filename, '%s %s' % (weight, fn_variable(q, bkpt[0])),
+    print('%s %s' % (weight, fn_variable(q, bkpt[0])), end=' ', file=filename)
     for x in bkpt[1::]:
-        print >> filename, '+ %s %s' % (weight, fn_variable(q, x)),
+        print('+ %s %s' % (weight, fn_variable(q, x)), end=' ', file=filename)
 
 def print_obj_min_undirectly_covered_times(filename, q, step=None, weight=1):
     """
@@ -483,8 +485,8 @@ def print_obj_min_undirectly_covered_times(filename, q, step=None, weight=1):
         for x in bkpt:
             for z in bkpt:
                 if x != z:
-                    print >> filename, '+ %s %s' % (weight, translation_i_variable(q, x, z, step)),
-                    print >> filename, '+ %s %s' % (weight, reflection_i_variable(q, x, z, step)),
+                    print('+ %s %s' % (weight, translation_i_variable(q, x, z, step)), end=' ', file=filename)
+                    print('+ %s %s' % (weight, reflection_i_variable(q, x, z, step)), end=' ', file=filename)
 
 def print_obj_min_covered_times_max_subadd_slack(filename, q, maxstep=None):
     """
@@ -508,7 +510,7 @@ def print_obj_5slope22(filename, q, weight=1):
     for x in bkpt:
         for y in bkpt:
             if x <= y and h(x) + h(y) != h(fractional(x + y)):
-                print >> filename, '+ %s %s' % ( weight, vertex_variable(q, (x, y)) ),
+                print('+ %s %s' % ( weight, vertex_variable(q, (x, y)) ), end=' ', file=filename)
                 #m += 1
     #print m
 
@@ -517,7 +519,7 @@ def print_obj_min_add_points(filename, q, weight=1):
     for x in bkpt:
         for y in bkpt:
             if x <= y:
-                print >> filename, '+ %s %s' % ( weight, vertex_variable(q, (x, y)) ),
+                print('+ %s %s' % ( weight, vertex_variable(q, (x, y)) ), end=' ', file=filename)
 
 def print_obj_min_directly_covered_times(filename, q, weight=1):
     """
@@ -530,8 +532,8 @@ def print_obj_min_directly_covered_times(filename, q, weight=1):
     bkpt = [x/q for x in range(q)]
     for x in bkpt:
         for y in bkpt:
-            print >> filename, '+ %s %s + %s %s' % ( weight, face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y, x + y + 1/q]))), \
-                                                     weight, face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y + 1/q, x + y + 2/q]))) ),
+            print('+ %s %s + %s %s' % ( weight, face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y, x + y + 1/q]))), \
+                                                     weight, face_variable(q, Face(([x, x+1/q], [y, y+1/q], [x + y + 1/q, x + y + 2/q]))) ), end=' ', file=filename)
 def all_faces(q):
     faces_2d = []
     faces_diag = []
@@ -579,18 +581,18 @@ def write_lpfile(q, f, kslopes, maxstep=None, m=0, type_cover=None, weights=[]):
 
     faces_2d, faces_diag, faces_hor, faces_ver, faces_0d = all_faces(q)
 
-    print >> filename, '\ MIP model with q = %s, f = %s, num of slopes = %s, small_m = %s' % (q, f, kslopes, m)
+    print('\ MIP model with q = %s, f = %s, num of slopes = %s, small_m = %s' % (q, f, kslopes, m), file=filename)
     if type_cover == 'fulldim':
-        print >> filename, '\ without non-trivial 0d and 1d maximal faces.'
+        print('\ without non-trivial 0d and 1d maximal faces.', file=filename)
     elif type_cover == 'fulldim_covers':
-        print >> filename, '\ without any translation/reflection except for the symmetry reflection.'
+        print('\ without any translation/reflection except for the symmetry reflection.', file=filename)
     else:
-        print >> filename, '\ maximum number of steps in covering = %s.' % maxstep
+        print('\ maximum number of steps in covering = %s.' % maxstep, file=filename)
 
     if weights:
-        print >> filename, '\obj = max_slope_slack with weights %s.' % weights
+        print('\obj = max_slope_slack with weights %s.' % weights, file=filename)
 
-    print >> filename, 'Maximize'
+    print('Maximize', file=filename)
     #print >> filename, 0
     print_obj_max_slope_slack_with_weights(filename, kslopes, weights)
     #print_obj_max_slope_slack(filename, kslopes)
@@ -600,9 +602,9 @@ def write_lpfile(q, f, kslopes, maxstep=None, m=0, type_cover=None, weights=[]):
     #print_obj_min_covered_times_max_subadd_slack(filename, q, maxstep=maxstep)
     #print_obj_5slope22(filename, q, weight=1)
     #print_obj_min_add_points(filename, q, weight=1)
-    print >> filename
+    print(file=filename)
 
-    print >> filename, 'Subject to'
+    print('Subject to', file=filename)
     for face in faces_2d + faces_diag + faces_hor + faces_ver:
         #if face.minimal_triple[0][0] <= face.minimal_triple[1][0]:
             print_logical_constraints(filename, q, face)
@@ -643,43 +645,43 @@ def write_lpfile(q, f, kslopes, maxstep=None, m=0, type_cover=None, weights=[]):
     # all intervals are covered (consider symmetry).
     z = 0
     while z < f/2:
-        print >> filename, '%s + %s <= 1' % (covered_i_variable(q, z, maxstep - 1), \
-                                             covered_i_variable(q, f - z - 1/q, maxstep - 1))
+        print('%s + %s <= 1' % (covered_i_variable(q, z, maxstep - 1), \
+                                             covered_i_variable(q, f - z - 1/q, maxstep - 1)), file=filename)
         z += 1/q
     z = f
     while z < (1+f)/2:
-        print >> filename, '%s + %s <= 1' % (covered_i_variable(q, z, maxstep - 1), \
-                                             covered_i_variable(q, 1 + f - z - 1/q, maxstep - 1))
+        print('%s + %s <= 1' % (covered_i_variable(q, z, maxstep - 1), \
+                                             covered_i_variable(q, 1 + f - z - 1/q, maxstep - 1)), file=filename)
         z += 1/q
 
     print_slope_constraints(filename, q, kslopes, m)
           
-    print >> filename, 'Bounds'
+    print('Bounds', file=filename)
     print_fn_bounds(filename, q)
     print_slope_bounds(filename, q, kslopes)
 
-    print >> filename, 'Binary'
+    print('Binary', file=filename)
     for face in faces_2d + faces_diag + faces_hor + faces_ver + faces_0d :
-        print >> filename, face_variable(q, face),
+        print(face_variable(q, face), end=' ', file=filename)
 
     for z in range(q):
         for step in range(maxstep):
-            print >> filename, 'c_%s_%s' % (z, step),
+            print('c_%s_%s' % (z, step), end=' ', file=filename)
     for z in range(q):
         for x in range(q):
             if x != z:
                 if maxstep > 1:
-                    print >> filename, 'm_%s_%s' % (x, z),
+                    print('m_%s_%s' % (x, z), end=' ', file=filename)
                 for step in range(1, maxstep):
-                    print >> filename, 't_%s_%s_%s' % (x, z, step),
-                    print >> filename, 'r_%s_%s_%s' % (x, z, step),
+                    print('t_%s_%s_%s' % (x, z, step), end=' ', file=filename)
+                    print('r_%s_%s_%s' % (x, z, step), end=' ', file=filename)
 
     for k in range(kslopes):
         for j in range(q):
-            print >> filename, '%s' % interval_slope_variable(j, k),
+            print('%s' % interval_slope_variable(j, k), end=' ', file=filename)
         
-    print >> filename
-    print >> filename, 'End'
+    print(file=filename)
+    print('End', file=filename)
     filename.close()
 
 def painted_faces_and_funciton_from_solution(filename, q):
@@ -782,33 +784,33 @@ def print_slope_constraints(filename, q, kslopes, m=0):
     # s_0 > s_1 > ... > s_kslopes-1
     for k in range(0, kslopes - 1):
         if m == 0:
-            print >> filename, '%s - %s >= 0' % (slope_variable(k), slope_variable(k+1))
+            print('%s - %s >= 0' % (slope_variable(k), slope_variable(k+1)), file=filename)
         else:
-            print >> filename, '%s - %s >= %s' % (slope_variable(k), slope_variable(k+1), RR(q/m))
+            print('%s - %s >= %s' % (slope_variable(k), slope_variable(k+1), RR(q/m)), file=filename)
 
     # first interval has the largest positive slope s_0
-    print >> filename, 's_0 - %s fn_1 = 0' % q
-    print >> filename, 'i_0_s_0 = 1'
+    print('s_0 - %s fn_1 = 0' % q, file=filename)
+    print('i_0_s_0 = 1', file=filename)
     # last interval has slope s_kslopes-1
-    print >> filename, 's_%s + %s fn_%s = 0' % (kslopes - 1, q, q - 1)
-    print >> filename, 'i_%s_s_%s = 1' % (q - 1, kslopes - 1)
+    print('s_%s + %s fn_%s = 0' % (kslopes - 1, q, q - 1), file=filename)
+    print('i_%s_s_%s = 1' % (q - 1, kslopes - 1), file=filename)
     # Condition: s_k + q(fn_j - fn_(j+1)) = 0 iff i_j_s_k = 1
     # ==> 1) s_k + q * fn_j - q * fn_(j+1) <= 2*q * (1 - i_j_s_k)
     # ==> 2) s_k + q * fn_j - q * fn_(j+1) >= - 2*q * (1 - i_j_s_k)
     # ==> 3) sum i_j_s_k over k = 1
     for j in range(1, q-1):
         for k in range(kslopes):
-            print >> filename, 's_%s + %s fn_%s - %s fn_%s + %s %s <= %s' % (k, q, j, q, j + 1, 2*q, interval_slope_variable(j, k), 2*q)
-            print >> filename, 's_%s + %s fn_%s - %s fn_%s - %s %s >= %s' % (k, q, j, q, j + 1, 2*q, interval_slope_variable(j, k), -2*q)
+            print('s_%s + %s fn_%s - %s fn_%s + %s %s <= %s' % (k, q, j, q, j + 1, 2*q, interval_slope_variable(j, k), 2*q), file=filename)
+            print('s_%s + %s fn_%s - %s fn_%s - %s %s >= %s' % (k, q, j, q, j + 1, 2*q, interval_slope_variable(j, k), -2*q), file=filename)
     for j in range(q):
         for k in range(kslopes):
-            print >> filename, '+ %s' % interval_slope_variable(j, k),
-        print >> filename, '= 1'
+            print('+ %s' % interval_slope_variable(j, k), end=' ', file=filename)
+        print('= 1', file=filename)
     # Condition: sum i_j_s_k over j >= 1
     for k in range(kslopes):
         for j in range(q):
-            print >> filename, '+ %s' % interval_slope_variable(j, k),
-        print >> filename, '>= 1'
+            print('+ %s' % interval_slope_variable(j, k), end=' ', file=filename)
+        print('>= 1', file=filename)
 
 def print_slope_bounds(filename, q, kslopes):
     """
@@ -821,7 +823,7 @@ def print_slope_bounds(filename, q, kslopes):
         -3 <= s_2 <= 3
     """
     for k in range(kslopes):
-        print >> filename, '%s <= %s <= %s' % (-q, slope_variable(k), q)
+        print('%s <= %s <= %s' % (-q, slope_variable(k), q), file=filename)
 
 def print_no_maximal_faces_diag(filename, q, f, faces_diag):
     """
@@ -848,7 +850,7 @@ def print_no_maximal_faces_diag(filename, q, f, faces_diag):
             var_u = face_variable(q, face_u)
             # var_d == 0 iff var_l == 0 or var_u == 0,
             # i.e. var_d + 1 >= var_l + var_u
-            print >> filename, '%s + %s - %s <= 1' % (var_l, var_u, var_d)
+            print('%s + %s - %s <= 1' % (var_l, var_u, var_d), file=filename)
 
 def print_no_maximal_faces_hor(filename, q, f, faces_hor):
     """
@@ -875,7 +877,7 @@ def print_no_maximal_faces_hor(filename, q, f, faces_hor):
             var_u = face_variable(q, face_u)
             # var_h == 0 only if var_l == 0 or var_u == 0,
             # i.e. var_h + 1 >= var_l + var_u
-            print >> filename, '%s + %s - %s <= 1' % (var_l, var_u, var_h)
+            print('%s + %s - %s <= 1' % (var_l, var_u, var_h), file=filename)
 
 def print_no_maximal_faces_ver(filename, q, f, faces_ver):
     """
@@ -902,7 +904,7 @@ def print_no_maximal_faces_ver(filename, q, f, faces_ver):
             var_u = face_variable(q, face_u)
             # var_v == 0 only if var_l == 0 or var_u == 0,
             # i.e. var_v + 1 >= var_l + var_u
-            print >> filename, '%s + %s - %s <= 1' % (var_l, var_u, var_v)
+            print('%s + %s - %s <= 1' % (var_l, var_u, var_v), file=filename)
 
 def print_no_maximal_faces_0d(filename, q, f, faces_0d):
     """
@@ -932,7 +934,7 @@ def print_no_maximal_faces_0d(filename, q, f, faces_0d):
             d2 = 'd_%s_%s' % (xx, yy - 1)
             # p == 0 only if at least one of h1, h2, v1, v2, d1, d2 is 0
             # i.e. p + 5 >= h1 + h2 + v1 + v2 + d1 + d2
-            print >> filename, '%s + %s + %s + %s + %s + %s - %s <= 5' % (h1, h2, v1, v2, d1, d2, p)
+            print('%s + %s + %s + %s + %s + %s - %s <= 5' % (h1, h2, v1, v2, d1, d2, p), file=filename)
 
 
 ########### Copy from 2q_search.sage #############
@@ -1091,7 +1093,7 @@ def generate_vertex_function(q, ff, fn_sym, additive_vertices, kslopes=3):
         True
     """
     ieqdic, eqndic = generate_ieqs_and_eqns(q, ff, fn_sym, additive_vertices)
-    p = Polyhedron(ieqs = ieqdic.keys(), eqns = eqndic.keys())
+    p = Polyhedron(ieqs = list(ieqdic.keys()), eqns = list(eqndic.keys()))
     if not p.is_empty():
         #if p.n_vertices() > 1:
         #    print p.Vrepresentation()

@@ -1,3 +1,4 @@
+from six.moves import range
 def generate_perturbations_simple(fn, show_plots=False, f=None, oversampling=3, order=None, full_certificates=True):
     """
     Generate (with "yield") perturbations for ``simple_finite_dimensional_extremality_test``. 

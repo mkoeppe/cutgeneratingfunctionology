@@ -1,5 +1,8 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 from sage.geometry.integral_points import rectangular_box_points
+from six.moves import range
     
 def random_point_in_polytope(B):
     vertices= B.vertices_list()
@@ -154,11 +157,11 @@ def is_volume_affine_in_f(B, num_tests=10):
     A = Matrix([v+[1] for v in vertices])
     Y = vector([volume_of_lifting_region(B, v, False) for v in vertices])
     X = A.solve_right(Y)
-    print X
+    print(X)
     for i in range(num_tests):
         f = random_point_in_polytope(B)
         vol = volume_of_lifting_region(B, f, False)
-        print i, f, vol
+        print(i, f, vol)
         if not vector(f+(1,)) * X == vol:
             return False
     return True

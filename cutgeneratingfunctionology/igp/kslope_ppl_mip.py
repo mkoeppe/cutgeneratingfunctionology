@@ -11,12 +11,15 @@
 # only record vertex (x,y) and face = (x, y, w) with x <= y.
 # polytope defines the feasible region of (\pi(0), \pi(1/q),..., \pi(1)).
 
+from __future__ import absolute_import
+from __future__ import print_function
 from sage.libs.ppl import C_Polyhedron, Constraint, Constraint_System, Generator, Generator_System, Variable, \
                           Poly_Con_Relation, MIP_Problem, Linear_Expression
 ## Can't import 'point' -- clashes with plot2d point
 import numpy
 from sage.numerical.mip import MixedIntegerLinearProgram, MIPVariable, MIPSolverException
 import sage.numerical.backends.glpk_backend as backend
+from six.moves import range
 
 poly_is_included = Poly_Con_Relation.is_included()
 
@@ -520,7 +523,7 @@ def num_slopes_at_best(q, f, covered_intervals, uncovered_intervals=None):
     if uncovered_intervals is None:
         #uncovered_num = q - sum([len(component) for component in covered_intervals])
         # consider connected components in uncovered_intervals
-        to_cover = set(range(0, (f + 1) / 2) + range(f, (f + q + 1) / 2))
+        to_cover = set(list(range(0, (f + 1) / 2)) + list(range(f, (f + q + 1) / 2)))
         for component in covered_intervals:
             to_cover -= component
         uncovered_num = len(to_cover)
@@ -529,7 +532,7 @@ def num_slopes_at_best(q, f, covered_intervals, uncovered_intervals=None):
         uncovered_num = len(uncovered_intervals)
     return uncovered_num + len(covered_intervals)
 
-def update_around_green_face(q, f, vertices_color, faces_color, covered_intervals, (x, y, w)):
+def update_around_green_face(q, f, vertices_color, faces_color, covered_intervals, xxx_todo_changeme):
     """
     Subfunction of ``paint_complex_combined_mip()``, etc.
 
@@ -538,6 +541,7 @@ def update_around_green_face(q, f, vertices_color, faces_color, covered_interval
     If there is non_candidate among new green faces, return ``(False, None, changed_vertices, changed_faces)``.
     Otherwise, return ``(True, updated covered_intervals, changed_vertices, changed_faces)``.
     """
+    (x, y, w) = xxx_todo_changeme
     changed_vertices = []
     changed_faces = []
     if x < y:
@@ -704,7 +708,7 @@ def initial_covered_uncovered(q, f, vertices_color):
                                         vertices_color, covered_intervals, uncovered_intervals)
     return covered_intervals, uncovered_intervals
 
-def update_around_green_vertex(q, (x, y), vertices_color, covered_intervals, uncovered_intervals):
+def update_around_green_vertex(q, xxx_todo_changeme1, vertices_color, covered_intervals, uncovered_intervals):
     """
     Painting vertex (x, y) from white to green induces some new green triangles and edges around this vertex.
     Returns new covered_intervals and uncovered_intervals corresponding to these changes.
@@ -723,6 +727,7 @@ def update_around_green_vertex(q, (x, y), vertices_color, covered_intervals, unc
         sage: update_around_green_vertex(q, (x, y), vertices_color, covered_intervals, uncovered_intervals)
         ([{0, 2}, {1, 3, 4}], [])
     """
+    (x, y) = xxx_todo_changeme1
     was_v = set([])
     for (face, vertices) in faces_around_vertex(q, (x, y)):
         if all(vertices_color[v] == 0 for v in vertices):
@@ -824,7 +829,7 @@ def search_kslope_example(k_slopes, q, f, mode='combined'):
         vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix = initialization_sym(q, f)
         if not candidate_faces:
             # imposing too much initial green, candidate_faces is empty, but still have uncovered.
-            raise ValueError, "imposing too much initial green, candidate_faces is empty, but still have uncovered."
+            raise ValueError("imposing too much initial green, candidate_faces is empty, but still have uncovered.")
             gen = gen_initial_polytope_sym(q, f, vertices_color, covered_intervals)
         else:
             gen = paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs_matrix, sym=True)
@@ -832,7 +837,7 @@ def search_kslope_example(k_slopes, q, f, mode='combined'):
         cs = initial_cs(q, f, vertices_color)
         polytope = C_Polyhedron(cs)
     else:
-        raise ValueError, "mode must be one of {'heuristic', 'combined', 'naive', 'sym'}."
+        raise ValueError("mode must be one of {'heuristic', 'combined', 'naive', 'sym'}.")
     v_set = set([])
     if mode == 'combined' or mode == 'sym':
         #global filename
@@ -1009,15 +1014,16 @@ def paint_complex_combined_mip(k_slopes, q, f, vertices_color, faces_color, last
         faces_color[(x1, y1, w1)] = 1
         if sym:
             faces_color[(q - y1 - 1, q - x1 - 1, 1 - w1)] = 1
-    m.remove_constraints(range(the_last_constraint,  m.number_of_constraints()))
+    m.remove_constraints(list(range(the_last_constraint,  m.number_of_constraints())))
 
 eps = QQ(1)/4
 
-def set_subadd_lower_bound((x, y, w)):
+def set_subadd_lower_bound(xxx_todo_changeme2):
     r"""
     Set the triangle to explicitly white
     by adding the constraint `\sum_{(x,y) \in \text{vertices}}{\Delta\pi(x,y)} \geq \epsilon`.
     """
+    (x, y, w) = xxx_todo_changeme2
     if x < y:
         m.add_constraint(delta[(x+1, y)] + delta[(x, y+1)] + delta[(x+w, y+w)], min = eps)
     else:
@@ -1124,7 +1130,7 @@ def update_undirectly_cover(q, x, add_v, was_face, was_connected, covered_interv
                                    covered_intervals, uncovered_intervals, set(connected), q)
                 if not uncovered_intervals:
                     return covered_intervals, uncovered_intervals
-    for y in range(x) + range(x + 1, q):
+    for y in list(range(x)) + list(range(x + 1, q)):
         # reflection
         connected = sort_pair(x, y)
         if add_v[x, y + 1] and add_v[x + 1, y] and not connected in was_connected:
@@ -1148,7 +1154,7 @@ def white_strip(q, f, x, add_v):
             for u in [xx, (xx - y) % q]:
                 if add_v[u, y] and add_v[u + 1, y]:
                     return False
-        for y in range(xx) + range(xx + 1, q):
+        for y in list(range(xx)) + list(range(xx + 1, q)):
             # reflection except for symmetry
             if add_v[xx, y + 1] and add_v[xx + 1, y] and ((xx + y + 1) % q != f):
                 return False
@@ -1383,29 +1389,29 @@ def write_stats_detail(q, fdestdir=None):
         max_denominator_v.append(max(vdenominator))
         max_denominator_s.append(max(sdenominator)) 
 
-    print >> filename, "t_enumeration =",
-    print >> filename, sage_input(t_enumeration)
-    print >> filename
-    print >> filename, "n_vertex =",
-    print >> filename, sage_input(n_vertex)
-    print >> filename
-    print >> filename, "n_slope =",
-    print >> filename, sage_input(n_slope)
-    print >> filename
-    print >> filename, "is_extreme =",
-    print >> filename, sage_input(is_extreme)
-    print >> filename
-    print >> filename, "denominator_v =",
-    print >> filename, sage_input(denominator_v)
-    print >> filename
-    print >> filename, "denominator_s =",
-    print >> filename, sage_input(denominator_s)
-    print >> filename
-    print >> filename, "max_denominator_v =",
-    print >> filename, sage_input(max_denominator_v)
-    print >> filename
-    print >> filename, "max_denominator_s =",
-    print >> filename, sage_input(max_denominator_s)
+    print("t_enumeration =", end=' ', file=filename)
+    print(sage_input(t_enumeration), file=filename)
+    print(file=filename)
+    print("n_vertex =", end=' ', file=filename)
+    print(sage_input(n_vertex), file=filename)
+    print(file=filename)
+    print("n_slope =", end=' ', file=filename)
+    print(sage_input(n_slope), file=filename)
+    print(file=filename)
+    print("is_extreme =", end=' ', file=filename)
+    print(sage_input(is_extreme), file=filename)
+    print(file=filename)
+    print("denominator_v =", end=' ', file=filename)
+    print(sage_input(denominator_v), file=filename)
+    print(file=filename)
+    print("denominator_s =", end=' ', file=filename)
+    print(sage_input(denominator_s), file=filename)
+    print(file=filename)
+    print("max_denominator_v =", end=' ', file=filename)
+    print(sage_input(max_denominator_v), file=filename)
+    print(file=filename)
+    print("max_denominator_s =", end=' ', file=filename)
+    print(sage_input(max_denominator_s), file=filename)
     
     if destdir:
         filename.close()
@@ -1413,7 +1419,7 @@ def write_stats_detail(q, fdestdir=None):
 
 def time_to_find_first_extreme(k, q, f, mode='combined'):
     st = os.times(); 
-    v = search_kslope_example(k, q, f, mode=mode).next(); 
+    v = next(search_kslope_example(k, q, f, mode=mode)); 
     et = os.times(); 
     t = sum([et[i]-st[i] for i in range(4)]);
     return t, v
