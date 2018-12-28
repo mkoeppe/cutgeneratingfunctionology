@@ -3499,7 +3499,7 @@ def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_po
         sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN) # to disable output in automatic tests.
         sage: h = not_extreme_1()
-        sage: h_lift = generate_lifted_functions(h, solver='ppl').next()
+        sage: h_lift = next(generate_lifted_functions(h, solver='ppl'))
         sage: extremality_test(h_lift)
         True
 
@@ -3508,7 +3508,7 @@ def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_po
 
         sage: h = not_extreme_1()
         sage: gen = generate_lifted_functions(h, solver='InteractiveLP')
-        sage: h_lift = gen.next()
+        sage: h_lift = next(gen)
         sage: extremality_test(h_lift)
         True
 
@@ -3519,7 +3519,7 @@ def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_po
 
         sage: h = chen_tricky_uncovered_intervals()
         sage: gen = generate_lifted_functions(h, perturbs=None, solver='InteractiveLP', field=None)
-        sage: h_lift = gen.next()
+        sage: h_lift = next(gen)
         sage: extremality_test(h_lift)
         True
 

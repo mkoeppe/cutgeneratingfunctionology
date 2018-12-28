@@ -1552,10 +1552,10 @@ class SemialgebraicComplex(SageObject):
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
             sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y}
-            sage: cell = complex.cells_containing_point([2,3]).next()
+            sage: cell = next(complex.cells_containing_point([2,3]))
             sage: cell.var_value
             [1, 2]
-            sage: cell = complex.cells_containing_point([sqrt(2), sqrt(3)]).next()
+            sage: cell = next(complex.cells_containing_point([sqrt(2), sqrt(3)]))
             sage: cell.var_value
             [1, 2]
         """

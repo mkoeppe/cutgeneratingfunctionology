@@ -140,7 +140,7 @@ def kzh_minimal_has_only_crazy_perturbation_1():
         A more general way of lifting 'hmin' is to call the following generator. (Use Sage Polyhedron if 'use_polyhedron' is set to ``False``. Use LP if with random objective function if 'use_polyhedron' is set to ``True``.) Unfortunately, this method is too slow. With ``use_polyhedron=False``, it takes 15-20 mins to find a lifted function::
 
             sage: gen = generate_lifted_functions(hmin, perturbs=perturbs, use_polyhedron=False) # not tested
-            sage: h = gen.next() # not tested
+            sage: h = next(gen) # not tested
     """
     # The following numbers do not correspond to h in docstring. To check.
     [sqrt2, o] = nice_field_values([sqrt(2), 1])

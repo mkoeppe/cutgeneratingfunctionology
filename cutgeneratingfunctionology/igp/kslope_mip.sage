@@ -1088,7 +1088,7 @@ def generate_vertex_function(q, ff, fn_sym, additive_vertices, kslopes=3):
         sage: components=[[[0, 1/3]], [[1/3, 1]]]
         sage: fn_sym = generate_symbolic_continuous(None, components, field=QQ)
         sage: additive_vertices = {(0, 0), (0, 1/3), (0, 2/3), (0, 1), (1/3, 1), (2/3, 2/3), (2/3, 1), (1, 1)}
-        sage: h = generate_vertex_function(q, ff, fn_sym, additive_vertices, kslopes=2).next()
+        sage: h = next(generate_vertex_function(q, ff, fn_sym, additive_vertices, kslopes=2))
         sage: h == gmic(1/3)
         True
     """
