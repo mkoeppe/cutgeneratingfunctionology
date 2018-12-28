@@ -375,15 +375,15 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
 
         sage: from cutgeneratingfunctionology.igp import *
         sage: h = FastPiecewise([[closed_interval(0,1/4), FastLinearFunction(4, 0)],
-        ...                      [open_interval(1/4, 1), FastLinearFunction(4/3, -1/3)],
-        ...                      [singleton_interval(1), FastLinearFunction(0,0)]])
+        ....:                    [open_interval(1/4, 1), FastLinearFunction(4/3, -1/3)],
+        ....:                    [singleton_interval(1), FastLinearFunction(0,0)]])
         sage: plot_2d_diagram(h)
         Graphics object ...
         sage: h = FastPiecewise([[closed_interval(0,1/4), FastLinearFunction(4, 0)],
-        ...                      [open_interval(1/4,1/2), FastLinearFunction(3, -3/4)],
-        ...                      [closed_interval(1/2, 3/4), FastLinearFunction(-2, 7/4)],
-        ...                      [open_interval(3/4,1), FastLinearFunction(3, -2)],
-        ...                      [singleton_interval(1), FastLinearFunction(0,0)]])
+        ....:                    [open_interval(1/4,1/2), FastLinearFunction(3, -3/4)],
+        ....:                    [closed_interval(1/2, 3/4), FastLinearFunction(-2, 7/4)],
+        ....:                    [open_interval(3/4,1), FastLinearFunction(3, -2)],
+        ....:                    [singleton_interval(1), FastLinearFunction(0,0)]])
         sage: plot_2d_diagram(h)
         Graphics object ...
     """
@@ -1368,12 +1368,12 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f6(x) = x-3
             sage: f7(x) = 7
             sage: f = FastPiecewise([[right_open_interval(0,1),f1],
-            ...                      [right_open_interval(1,2),f2],
-            ...                      [open_interval(2,3),f3],
-            ...                      [singleton_interval(3),f4],
-            ...                      [left_open_interval(3,6),f5],
-            ...                      [open_interval(6,7),f6],
-            ...                      [(9,10),f7]])
+            ....:                    [right_open_interval(1,2),f2],
+            ....:                    [open_interval(2,3),f3],
+            ....:                    [singleton_interval(3),f4],
+            ....:                    [left_open_interval(3,6),f5],
+            ....:                    [open_interval(6,7),f6],
+            ....:                    [(9,10),f7]])
             sage: f.values_at_end_points()
             [1, 0, None, 4, sin(12), None, 7, 7]
         """
@@ -1394,12 +1394,12 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f6(x) = x-3
             sage: f7(x) = 7
             sage: f = FastPiecewise([[right_open_interval(0,1),f1],
-            ...                      [right_open_interval(1,2),f2],
-            ...                      [open_interval(2,3),f3],
-            ...                      [singleton_interval(3),f4],
-            ...                      [left_open_interval(3,6),f5],
-            ...                      [open_interval(6,7),f6],
-            ...                      [(9,10),f7]], periodic_extension= False)
+            ....:                    [right_open_interval(1,2),f2],
+            ....:                    [open_interval(2,3),f3],
+            ....:                    [singleton_interval(3),f4],
+            ....:                    [left_open_interval(3,6),f5],
+            ....:                    [open_interval(6,7),f6],
+            ....:                    [(9,10),f7]], periodic_extension= False)
             sage: f.limits_at_end_points()
             [[1, 1, None], [0, 0, 1], [None, e^2, -1], [4, sin(6), e^3], [sin(12), 3, sin(12)], [None, None, 4], [7, 7, None], [7, None, 7]]
         """
@@ -1417,9 +1417,9 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f3(x) = exp(x)
             sage: f4(x) = sin(2*x)
             sage: f = FastPiecewise([[(0,1),f1],
-            ...                      [(1,2),f2],
-            ...                      [(2,3),f3],
-            ...                      [(3,10),f4]])
+            ....:                    [(1,2),f2],
+            ....:                    [(2,3),f3],
+            ....:                    [(3,10),f4]])
             sage: f.which_function(0.5) is f1
             True
             sage: f.which_function(1) in [f1, f2]
@@ -1437,9 +1437,9 @@ class FastPiecewise (PiecewisePolynomial):
             ...
             ValueError: Value not defined at point 11, outside of domain.
             sage: f = FastPiecewise([[right_open_interval(0,1),f1],
-            ...                      [right_open_interval(1,2),f2],
-            ...                      [right_open_interval(2,3),f3],
-            ...                      [closed_interval(3,10),f4]])
+            ....:                    [right_open_interval(1,2),f2],
+            ....:                    [right_open_interval(2,3),f3],
+            ....:                    [closed_interval(3,10),f4]])
             sage: f.which_function(0.5) is f1
             True
             sage: f.which_function(1) is f2
@@ -1449,7 +1449,7 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f.which_function(3) is f4
             True
             sage: f = FastPiecewise([[open_interval(0,1),f1],
-            ...                      [right_open_interval(2,3),f3]])
+            ....:                    [right_open_interval(2,3),f3]])
             sage: f.which_function(0)
             Traceback (most recent call last):
             ...
@@ -1505,9 +1505,9 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f3(x) = exp(x)
             sage: f4(x) = sin(2*x)
             sage: f = FastPiecewise([[(0,1),f1],
-            ...                      [(1,2),f2],
-            ...                      [(2,3),f3],
-            ...                      [(3,10),f4]])
+            ....:                    [(1,2),f2],
+            ....:                    [(2,3),f3],
+            ....:                    [(3,10),f4]])
             sage: f(0.5)
             1
             sage: f(1)
@@ -1525,9 +1525,9 @@ class FastPiecewise (PiecewisePolynomial):
             ...
             ValueError: Value not defined at point 11, outside of domain.
             sage: f = FastPiecewise([[right_open_interval(0,1),f1],
-            ...                      [right_open_interval(1,2),f2],
-            ...                      [right_open_interval(2,3),f3],
-            ...                      [closed_interval(3,10),f4]])
+            ....:                    [right_open_interval(1,2),f2],
+            ....:                    [right_open_interval(2,3),f3],
+            ....:                    [closed_interval(3,10),f4]])
             sage: f(0.5)
             1
             sage: f(1)
@@ -1537,7 +1537,7 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f(3)
             sin(6)
             sage: f = FastPiecewise([[open_interval(0,1),f1],
-            ...                      [right_open_interval(2,3),f3]])
+            ....:                    [right_open_interval(2,3),f3]])
             sage: f(0)
             Traceback (most recent call last):
             ...
@@ -1604,12 +1604,12 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f6(x) = x-3
             sage: f7(x) = 7
             sage: f = FastPiecewise([[right_open_interval(0,1),f1],
-            ...                      [right_open_interval(1,2),f2],
-            ...                      [open_interval(2,3),f3],
-            ...                      [singleton_interval(3),f4],
-            ...                      [left_open_interval(3,6),f5],
-            ...                      [open_interval(6,7),f6],
-            ...                      [(9,10),f7]], periodic_extension=False)
+            ....:                    [right_open_interval(1,2),f2],
+            ....:                    [open_interval(2,3),f3],
+            ....:                    [singleton_interval(3),f4],
+            ....:                    [left_open_interval(3,6),f5],
+            ....:                    [open_interval(6,7),f6],
+            ....:                    [(9,10),f7]], periodic_extension=False)
             sage: f.limits(1/2)
             [1, 1, 1]
             sage: f.limits(1)
@@ -1784,9 +1784,9 @@ class FastPiecewise (PiecewisePolynomial):
             sage: f = FastPiecewise([[(-1,0), f1],[(0,1), f2]])
             sage: p = f.plot(legend_label='$f(x)$')
             sage: lines = [
-            ...     line
-            ...     for line in p._objects
-            ...     if line.options()['legend_label'] is not None ]
+            ....:   line
+            ....:   for line in p._objects
+            ....:   if line.options()['legend_label'] is not None ]
             sage: len(lines)
             1
 

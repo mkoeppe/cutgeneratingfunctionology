@@ -637,7 +637,7 @@ def paint_complex_heuristic(k_slopes, q, f, vertices_color, faces_color, last_co
         sage: cs = initial_cs(q, f, vertices_color)
         sage: candidate_faces = generate_candidate_faces(q, f, covered_intervals)
         sage: for result_polytope in paint_complex_heuristic(k_slopes, q, f, vertices_color, faces_color, covered_intervals, candidate_faces, cs):
-        ...       result_polytope.minimized_generators()
+        ....:     result_polytope.minimized_generators()
         Generator_System {point(0/6, 2/6, 4/6, 6/6, 3/6, 0/6)}
         Generator_System {point(0/4, 3/4, 1/4, 4/4, 2/4, 0/4)}
     """
