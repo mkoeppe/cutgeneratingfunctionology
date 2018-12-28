@@ -1113,7 +1113,8 @@ def piecewise_polynomial_polyhedral_from_fast_piecewise(fn):
         sage: fn = gmic()
         sage: h = piecewise_polynomial_polyhedral_from_fast_piecewise(fn)
     """
-    PR.<x> = PolynomialRing(QQ,1)
+    PR = PolynomialRing(QQ, 1, names=('x',))
+    x = PR.gen()
     bkpts = fn.end_points()
     limits = fn.limits_at_end_points()
     pairs = []
@@ -1294,7 +1295,7 @@ def minimality_test_multirow(fn, f=None):
 
 def volume_of_additive_domain(h):
     """
-    Return the volume of x * y \in [0,1]^(2d) such that h(x) + h(y) = h((x+y) mod Z^d)
+    Return the volume of `x * y \in [0,1]^(2d)` such that `h(x) + h(y) = h((x+y) mod Z^d)`
     For d=1, the result = (merit index of h) / 2.
 
     EXAMPLES::

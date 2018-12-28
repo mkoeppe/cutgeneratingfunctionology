@@ -270,7 +270,7 @@ def generate_thetas_of_region(r):
         if rows.rank() != (n - 1):
             continue
         rhs = vector([constants[i] for i in indices])
-        sol = rows \ rhs
+        sol = rows * BackslashOperator() * rhs
         theta = tuple(get_pretty_fraction_polynomial(fp) for fp in sol)
         if all(theta != t for t in thetas):
             thetas.append(theta)

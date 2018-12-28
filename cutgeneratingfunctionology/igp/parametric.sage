@@ -1055,7 +1055,8 @@ class SemialgebraicComplexComponent(SageObject):
             else:
                 var_bounds.append(self.bounds[i])
         bounds_y = (y, -0.01, 0.01)
-        Q.<xx, yy> = QQ[]
+        Q = QQ['xx, yy']
+        xx, yy = Q._first_ngens(2)
         if not slice_value:
             d = len(self.var_value)
             if d == 1:
