@@ -5,7 +5,7 @@ from sage.rings.number_field.number_field import NumberField_absolute, NumberFie
 import sage.rings.number_field.number_field_element
 from sage.rings.number_field.number_field_element import NumberFieldElement_absolute
 
-from sage.structure.richcmp import op_EQ, op_NE, op_LE, op_GE, op_LT
+from sage.structure.richcmp import op_EQ, op_NE, op_LE, op_GE, op_LT, richcmp_not_equal
 
 class RealNumberFieldElement(NumberFieldElement_absolute):
 
@@ -17,25 +17,7 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
             self._embedded = e = embedding(self)
         return e
 
-    ## def __cmp__(left, right):   # Before trac 17890, need to specialize this function.
-    ##     #print "__cmp__", left, right
-    ##     if NumberFieldElement_absolute.__cmp__(left, right) == 0:
-    ##         return 0
-    ##     result = cmp(left.embedded(), right.embedded())
-    ##     if result == 0:
-    ##         raise NotImplementedError, "Precision of real interval field not sufficient to continue"
-    ##     return result
-
-    def _cmp_(left, right):    # After trac 17890, need to specialize this function.
-        #print "_cmp_", left, right
-        if NumberFieldElement_absolute._cmp_(left, right) == 0:
-            return 0
-        result = cmp(left.embedded(), right.embedded())
-        if result == 0:
-            raise NotImplementedError("Precision of real interval field not sufficient to continue")
-        return result
-
-    def _richcmp_(left, right, op):    # In Sage 7.1, need to specialize this function.
+    def _richcmp_(left, right, op):    # In Sage >= 7.1, need to specialize this function.
         #print "_richcmp_", left, right, op
         if NumberFieldElement._richcmp_(left, right, op_EQ):
             return op == op_EQ or op == op_LE or op == op_GE
@@ -44,13 +26,9 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
         elif op == op_EQ:
             return False
 
-        result = cmp(left.embedded(), right.embedded())
-        if result == 0:
+        if left.embedded() == right.embedded():
             raise NotImplementedError("Precision of real interval field not sufficient to continue")
-        if op == op_LT or op == op_LE:
-            return result < 0
-        else:
-            return result > 0
+        return richcmp_not_equal(left.embedded(), right.embedded(), op)
     
     def __abs__(self):
         if self.sign() >= 0:
