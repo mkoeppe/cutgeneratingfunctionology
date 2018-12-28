@@ -2002,7 +2002,7 @@ class FastPiecewise (PiecewisePolynomial):
         is_rational, _ = is_all_QQ(flatten(data))
         if not is_rational:
             logging.warn("For functions with non-rational data, cannot guarantee a stable SHA-1 hash.")
-        stable_str = str(data)
+        stable_str = six.b(str(data))
         return sha1(stable_str).hexdigest()
 
     def _latex_(self, table=False, labels={}):
