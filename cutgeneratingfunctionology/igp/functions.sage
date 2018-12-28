@@ -3847,13 +3847,16 @@ def random_piecewise_function(xgrid=10, ygrid=10, continuous_proba=1, symmetry=T
             pieces += [piece2[i], piece1[i+1]]
         return FastPiecewise(pieces, merge=True)
 
+import six
+
 def is_all_QQ_fastpath(values):
     """
     This version does not do the full check whether it can be coerced to ``QQ``,
     which is slow for ``RealNumberField``.
     """
     for x in values:
-        if not isinstance(x, (int, long, Rational, Integer)):
+        if not (isinstance(x, (Rational, Integer))
+                or type(x) in six.integer_types):
             return False
     return True
 
