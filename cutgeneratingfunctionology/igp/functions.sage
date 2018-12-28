@@ -3635,7 +3635,7 @@ def lift_extreme_function_for_finite_group_to_infinite_group(fn, show_plots = Fa
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: logging.disable(logging.info)
+        sage: logging.disable(logging.INFO)
         sage: h = drlm_not_extreme_1()
         sage: hh = lift_extreme_function_for_finite_group_to_infinite_group(h)
         sage: len(hh)

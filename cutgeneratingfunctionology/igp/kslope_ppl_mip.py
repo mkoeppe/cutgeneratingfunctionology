@@ -1307,7 +1307,7 @@ output_dir = "./"
 
 def save_plot(q, hh, destdir = output_dir+"sym_mode_2d_diagrams/"):
     mkdir_p(destdir)
-    logging.disable(logging.info)
+    logging.disable(logging.INFO)
     for i in range(len(hh)):
         v_n = hh[i]
         h = h_from_vertex_values(v_n)

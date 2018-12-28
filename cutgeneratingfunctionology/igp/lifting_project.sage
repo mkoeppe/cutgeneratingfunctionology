@@ -7,7 +7,7 @@ def lift_on_uncovered_components(fn, show_plots=False, L=[]):
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: logging.disable(logging.info)
+        sage: logging.disable(logging.INFO)
         sage: h = drlm_not_extreme_1()
         sage: hh = lift_on_uncovered_components(h)
         sage: len(hh)                     # not tested - wrong doctest
