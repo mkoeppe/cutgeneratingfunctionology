@@ -1,5 +1,5 @@
-import igp
-from igp import *
+import cutgeneratingfunctionology.igp as igp
+from cutgeneratingfunctionology.igp import *
 
 try:
     destdir = algo_paper_output_dir  # defined in config.sage

@@ -1,10 +1,9 @@
 ################################
 ###  Software-paper
 ################################
-#yzh@Yuans-MacBook group-relaxation-sage-code (master) $ sage
 
-import igp
-from igp import *
+import cutgeneratingfunctionology.igp as igp
+from cutgeneratingfunctionology.igp import *
 
 destdir = "survey_graphics/software_paper_graphics/"
 ftype = ".pdf"
