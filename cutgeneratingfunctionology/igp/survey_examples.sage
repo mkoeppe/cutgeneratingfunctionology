@@ -375,7 +375,7 @@ def california_ip():
               [(6/7, QQ(1)), FastLinearFunction(-QQ(7), QQ(7))]]
     pieces += [ transform_piece_to_interval(piece, [5/14, 6/7], [-2, 2]) 
                 for piece in ggb.list() ]
-    logging.warn("This function is not piecewise linear; code for handling this function is not implemented.")
+    logging.warning("This function is not piecewise linear; code for handling this function is not implemented.")
     return FastPiecewise(pieces)
 
 def kzh_2q_example_1():

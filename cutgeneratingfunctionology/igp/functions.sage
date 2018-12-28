@@ -171,7 +171,7 @@ class Face:
         self.minimal_triple = minimal_triple = (i, j, k)
         #self._warned_about_non_minimal_triple = False
         #if is_known_to_be_minimal and not triples_equal(minimal_triple, triple) and not self._warned_about_non_minimal_triple:
-        #    logging.warn("Provided triple was not minimal: %s reduces to %s" % (triple, minimal_triple))
+        #    logging.warning("Provided triple was not minimal: %s reduces to %s" % (triple, minimal_triple))
         #    self._warned_about_non_minimal_triple = True
             # FIXME: Check why (i,j,k) != (i,j,k+1) can happen.
 
@@ -1256,7 +1256,7 @@ class FastPiecewise (PiecewisePolynomial):
                 values_at_end_points[-1] = right_value        
         if periodic_extension and limits_at_end_points != []:
             #if values_at_end_points[0] != values_at_end_points[-1]:
-            #    logging.warn("Function is actually not periodically extendable.")
+            #    logging.warning("Function is actually not periodically extendable.")
             #    periodic_extension = False
             #else:
                 limits_at_end_points[0][-1] = limits_at_end_points[-1][-1]
@@ -2001,7 +2001,7 @@ class FastPiecewise (PiecewisePolynomial):
         data = list(zip(self_merged.end_points(), self_merged.limits_at_end_points()))
         is_rational, _ = is_all_QQ(flatten(data))
         if not is_rational:
-            logging.warn("For functions with non-rational data, cannot guarantee a stable SHA-1 hash.")
+            logging.warning("For functions with non-rational data, cannot guarantee a stable SHA-1 hash.")
         stable_str = six.b(str(data))
         return sha1(stable_str).hexdigest()
 
@@ -2222,7 +2222,7 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
         if bkpt[i] > bkpt[i+1]:
             raise ValueError("Breakpoints are not sorted in increasing order.")
         elif bkpt[i] == bkpt[i+1]:
-            logging.warn("Degenerate interval occurs at breakpoint %s" % bkpt[i])
+            logging.warning("Degenerate interval occurs at breakpoint %s" % bkpt[i])
             if values[i] != values[i+1]:
                 raise ValueError("Degeneration leads to a discontinuous function.")
         else:
@@ -3048,7 +3048,7 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn
         uncovered_intervals = generate_uncovered_intervals(function)
         if uncovered_intervals:
             if warn_about_uncovered_intervals:
-                logging.warn("There are non-covered intervals, so this does NOT prove extremality.")
+                logging.warning("There are non-covered intervals, so this does NOT prove extremality.")
         else:
             logging.info("Thus the function is extreme.")
     return not seen_perturbation
@@ -4338,7 +4338,7 @@ class DirectedMoveCompositionCompletion:
                 d = check_for_strip_lemma_fastpath(a, b)
                 if d:
                     if crazy_perturbations_warning:
-                        logging.warn("This function is two-sided discontinuous at the origin. Crazy perturbations might exist.")
+                        logging.warning("This function is two-sided discontinuous at the origin. Crazy perturbations might exist.")
                     self.any_change_components = True
                     strip_lemma_intervals += d
                     logging.info("New dense move from strip lemma: %s" % d)

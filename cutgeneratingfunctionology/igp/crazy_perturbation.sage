@@ -8,9 +8,9 @@ class CrazyPiece:
         # assume that generators QQ linearly independent
         self.generators = generators
         if not is_QQ_linearly_independent(*generators):
-            logging.warn("Generators are not linearly independent over Q.")
+            logging.warning("Generators are not linearly independent over Q.")
         if len(generators) < 2:
-            logging.warn("The group is not dense.")
+            logging.warning("The group is not dense.")
         self.hermite_form_generators = find_hermite_form_generators(generators)
         # cosets is a list of (coset_repr, shift),
         # assume coset_repr represent distinct cosets;
@@ -19,11 +19,11 @@ class CrazyPiece:
         for i in range(len(cosets)):
             (r, s) = cosets[i]
             if s == 0:
-                logging.warn("Have shift = 0.")
+                logging.warning("Have shift = 0.")
             for j in range(i):
                 rr = cosets[j][0]
                 if is_in_ZZ_span(r-rr, generators):
-                    logging.warn("Not unique coset representative.")
+                    logging.warning("Not unique coset representative.")
 
     def __call__(self, x):
         x = fractional(x)
@@ -267,7 +267,7 @@ def check_move_on_crazy_pieces(xxx_todo_changeme, cp1, cp2):
         #compare if the groups on cp1 and cp2 are the same
         # TODO: set up these subgroups in a high-level way in Sage, and compare.
         if not cp1.hermite_form_generators == cp2.hermite_form_generators:
-            logging.warn("Different groups. Open question.")
+            logging.warning("Different groups. Open question.")
             return False
         if move_sign == 1:
             return (all((s == cp2(r + move_dist)) for (r, s) in cp1.cosets) \

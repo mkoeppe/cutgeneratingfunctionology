@@ -317,7 +317,7 @@ class ParametricRealField(Field):
         logging.info("Initialized {}".format(self))
 
     def __copy__(self):
-        logging.warn("copy(%s) is invoked" % self)
+        logging.warning("copy(%s) is invoked" % self)
         Kcopy = self.__class__(self._values, self._names)
         Kcopy._eq.update(self._eq)
         Kcopy._lt.update(self._lt)
@@ -723,7 +723,7 @@ def read_simplified_leq_lin(K, level="factor"):
         leq = list(K.get_eq())
         lin = list(K.get_lt())
     if leq:
-        logging.warn("equation list %s is not empty!" % leq)
+        logging.warning("equation list %s is not empty!" % leq)
     return leq, lin
 
 def find_variable_mapping(leqs):
@@ -773,7 +773,7 @@ def find_variable_mapping(leqs):
                     if j != i:
                         leqs[j] = leqs[j].subs(var_map)
                 break
-        #logging.warn("Can't solve for %s in the system %s == 0, %s < 0. Heurist wall crossing may fail." % (v, leqs, lins))
+        #logging.warning("Can't solve for %s in the system %s == 0, %s < 0. Heurist wall crossing may fail." % (v, leqs, lins))
         return [l for l in leqs if l != 0], var_map
     for i in range(n): #range(n-1, -1, -1):
         for v in variables:     
@@ -1025,7 +1025,7 @@ class SemialgebraicComplexComponent(SageObject):
                        (bounds[i][1] is not None) and ((ub is None) or (ub - bounds[i][1] > 0.001)):
                         tightened = True
             if max_iter != 0 and bounds_propagation_iter >= max_iter:
-                logging.warn("max number %s of bounds propagation iterations has attained." % max_iter)
+                logging.warning("max number %s of bounds propagation iterations has attained." % max_iter)
             bounds_propagation_iter += 1
         #print bounds_propagation_iter
         return bounds, tightened_mip
@@ -1589,7 +1589,7 @@ class SemialgebraicComplex(SageObject):
                 num_failings += 1
             else:
                 return var_value
-        logging.warn("The complex has %s cells. Cannot find one more uncovered point by shooting %s random points" % (len(self.components), max_failings))
+        logging.warning("The complex has %s cells. Cannot find one more uncovered point by shooting %s random points" % (len(self.components), max_failings))
         return None
 
     def find_uncovered_point_mathematica(self, strict=True, bddleq=[], bddlin=[], bddstrict=True):
@@ -1656,7 +1656,7 @@ class SemialgebraicComplex(SageObject):
         for l in bddleq:
             # need to put these equations in K, so call comparaison.
             if not l(*K.gens()) == 0:
-                logging.warn("Test point %s doesn't satisfy %s == 0." % (var_value, l))
+                logging.warning("Test point %s doesn't satisfy %s == 0." % (var_value, l))
                 return
         try:
             h = self.function(**test_point)
@@ -1674,7 +1674,7 @@ class SemialgebraicComplex(SageObject):
                     pert_value = tuple(var_value[i] - gradient(l)[i](var_value) / 1000 for i in range(len(var_value)))
                     if not pert_value in self.points_to_test:
                         self.points_to_test[pert_value] = copy(bddleq)
-            logging.warn("The cell around %s defined by %s ==0 and %s <0  has more equations than bddleq %s" %(new_component.var_value, new_component.leq, new_component.lin, bddleq))
+            logging.warning("The cell around %s defined by %s ==0 and %s <0  has more equations than bddleq %s" %(new_component.var_value, new_component.leq, new_component.lin, bddleq))
             return
         if (flip_ineq_step != 0) and (region_type != 'stop'):
             # when using random shooting, don't generate neighbour points; don't remove redundant walls.
@@ -1865,7 +1865,7 @@ class SemialgebraicComplex(SageObject):
             else: # assume that check_completion is an integer.
                 uncovered_pt = self.find_uncovered_random_point(max_failings=max_failings)
             if uncovered_pt is not None:
-                logging.warn("After bfs, the complex has uncovered point %s." % (uncovered_pt,))
+                logging.warning("After bfs, the complex has uncovered point %s." % (uncovered_pt,))
                 allow_dim_degeneracy = allow_dim_degeneracy and goto_lower_dim
                 self.bfs_completion(var_value=uncovered_pt, \
                                     flip_ineq_step=flip_ineq_step, \

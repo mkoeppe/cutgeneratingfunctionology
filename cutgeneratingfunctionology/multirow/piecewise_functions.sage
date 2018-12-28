@@ -1273,7 +1273,7 @@ def minimality_test_multirow(fn, f=None):
                 raise ValueError("The function does not have value one.")
             f = list(preimage_one[0].vertices()[0])
             if len(preimage_one) > 1 or len(preimage_one[0].Vrepresentation()) > 1:
-                logging.warn("There is more than one point where the function takes the value 1; using f = %s.  Provide parameter f to minimality_test or extremality_test if you want a different f." % f)
+                logging.warning("There is more than one point where the function takes the value 1; using f = %s.  Provide parameter f to minimality_test or extremality_test if you want a different f." % f)
             fn._f = f
     else:
         f = list(f)

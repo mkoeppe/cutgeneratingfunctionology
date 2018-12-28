@@ -778,11 +778,11 @@ def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
                 z = z / q
                 n += 1
             if n == maxiter:
-                logging.warn("Reaching max number of iterations, return approximate psi(%s)" %r)
+                logging.warning("Reaching max number of iterations, return approximate psi(%s)" %r)
             return (y_left + y_right)/2 - (r - (x_left + x_right)/2) / (1 - f)
         else:
             raise ValueError("outside domain")
-    logging.warn("This function is not piecewise linear; code for handling this function is not implemented.")
+    logging.warning("This function is not piecewise linear; code for handling this function is not implemented.")
     return evaluate_psi_at_r
 
 
