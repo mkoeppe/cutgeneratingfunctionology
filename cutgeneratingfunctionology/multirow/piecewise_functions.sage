@@ -128,8 +128,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
                             self._stratification[d_p] = set([(shift_p, shift_f)])
         self._is_piecewise_linear = True
         self._pairs = []
-        # sort pairs by decreasing dim. Equiv to polyhedron_function_pairs.sort(key=lambda (p,f):p.dim())
-        for (d_p, pf_set) in self._stratification.items():
+        for (d_p, pf_set) in sorted(self._stratification.items()): # sort by increasing dim
             pf_list = list(pf_set)
             for i in range(len(pf_list)):
                 p, f = pf_list[i]
@@ -170,7 +169,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
                         self._stratification[d].add((intersection, f))
                     else:
                         self._stratification[d] = set([(intersection, f)])
-            self._pairs = list(itertools.chain.from_iterable(list(v) for v in self._stratification.values()))
+            self._pairs = list(itertools.chain.from_iterable(list(v) for k, v in sorted(self._stratification.items())))
         self._is_continuous = is_continuous
         if is_continuous:    # FIXME: Call self.is_continuous(is_continuous), which does the same?
             d = self._pairs[-1][0].dim()
