@@ -1,6 +1,6 @@
 from six.moves import range
 def generate_perturbations_simple(fn, show_plots=False, f=None, oversampling=3, order=None, full_certificates=True):
-    """
+    r"""
     Generate (with "yield") perturbations for ``simple_finite_dimensional_extremality_test``. 
     """
     if f is None:
@@ -131,7 +131,7 @@ def discontinuous_interpolation(pts, mid, right, left):
     return FastPiecewise(pieces)
 
 def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, oversampling=3, order=None, show_all_perturbations=False, full_certificates=True):
-    """
+    r"""
     Simple finite dimensional extremality test for fn that does not go
     through the whole machinery of covered intervals etc., but rather
     sets up a grid 1/mq, where q is the lcm of the breakpoint

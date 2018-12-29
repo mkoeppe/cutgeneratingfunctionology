@@ -1,6 +1,6 @@
 from six.moves import range
 def phi_forward_3_slope(b=4/5, lambda_1=4/9, lambda_2=2/3, field=None):
-    """
+    r"""
     Summary:
         - Dim = 1; Slopes = 3; Continuous. 
 
@@ -40,7 +40,7 @@ def phi_forward_3_slope(b=4/5, lambda_1=4/9, lambda_2=2/3, field=None):
 
 
 def phi_2_slope(b=3/5, lambda_1=1/6, field=None):
-    """
+    r"""
     Summary:
         - Dim = 1; Slopes = 2; Continuous. 
 
@@ -77,20 +77,20 @@ def phi_2_slope(b=3/5, lambda_1=1/6, field=None):
     return piecewise_function_from_breakpoints_and_values(bkpt, values, field=field)
 
 def w_2slope_3covered_nonextreme():
-    """
+    r"""
     A continuous 2-slope nonextreme function with 3 covered components. 
     """
     return FastPiecewise([[(QQ(0), 1/10), FastLinearFunction(QQ(0), QQ(0))], [(1/10, 3/20), FastLinearFunction(5/2, -1/4)], [(3/20, 1/4), FastLinearFunction(QQ(0), 1/8)], [(1/4, 7/20), FastLinearFunction(5/2, -1/2)], [(7/20, 2/5), FastLinearFunction(QQ(0), 3/8)], [(2/5, 9/20), FastLinearFunction(5/2, -5/8)], [(9/20, 11/20), FastLinearFunction(QQ(0), 1/2)], [(11/20, 3/5), FastLinearFunction(5/2, -7/8)], [(3/5, 13/20), FastLinearFunction(QQ(0), 5/8)], [(13/20, 3/4), FastLinearFunction(5/2, -QQ(1))], [(3/4, 17/20), FastLinearFunction(QQ(0), 7/8)], [(17/20, 9/10), FastLinearFunction(5/2, -5/4)], [(9/10, QQ(1)), FastLinearFunction(QQ(0), QQ(1))]])  
 
 def w_2slope_3covered():
-    """
+    r"""
     A continuous 2-slope extreme function with 3 covered components.
     """
     return FastPiecewise([[(QQ(0), 1/14), FastLinearFunction(QQ(0), QQ(0))], [(1/14, 3/28), FastLinearFunction(7/3, -1/6)], [(3/28, 5/28), FastLinearFunction(QQ(0), 1/12)], [(5/28, 1/4), FastLinearFunction(7/3, -1/3)], [(1/4, 2/7), FastLinearFunction(QQ(0), 1/4)], [(2/7, 9/28), FastLinearFunction(7/3, -5/12)], [(9/28, 11/28), FastLinearFunction(QQ(0), 1/3)], [(11/28, 3/7), FastLinearFunction(7/3, -7/12)], [(3/7, 13/28), FastLinearFunction(QQ(0), 5/12)], [(13/28, 15/28), FastLinearFunction(7/3, -2/3)], [(15/28, 4/7), FastLinearFunction(QQ(0), 7/12)], [(4/7, 17/28), FastLinearFunction(7/3, -3/4)], [(17/28, 19/28), FastLinearFunction(QQ(0), 2/3)], [(19/28, 5/7), FastLinearFunction(7/3, -11/12)], [(5/7, 3/4), FastLinearFunction(QQ(0), 3/4)], [(3/4, 23/28), FastLinearFunction(7/3, -QQ(1))], [(23/28, 25/28), FastLinearFunction(QQ(0), 11/12)], [(25/28, 13/14), FastLinearFunction(7/3, -7/6)], [(13/14, QQ(1)), FastLinearFunction(QQ(0), QQ(1))]])
 
 
 def phi_bj_1(c=3/2):
-    """
+    r"""
     Summary:
         - Name: f_BJ_1;
         - Dim= 1; Slopes = 2; Continuous;
@@ -123,7 +123,7 @@ def phi_bj_1(c=3/2):
     return piecewise_function_from_interval_lengths_and_slopes(interval, slope)
 
 def phi_simple(c=3/2):
-    """
+    r"""
     Summary:
         - Dim= 1; Slopes = 1; Discontinuous;
         - Not maximal.     
@@ -156,7 +156,7 @@ def phi_simple(c=3/2):
     return FastPiecewise(pieces)
 
 def phi_ccm_1(c=3/2):
-    """
+    r"""
     Summary:
         - Name: f_CCM_1;
         - Dim= 1; Slopes = 1; Discontinuous;
@@ -197,7 +197,7 @@ def phi_ccm_1(c=3/2):
     return FastPiecewise(pieces)
 
 def phi_fs_1(k=3):
-    """
+    r"""
     Summary:
         - Name: f_FS_1;
         - Dim= 1; Slopes = 1; Discontinuous.    
@@ -228,7 +228,7 @@ def phi_fs_1(k=3):
     return FastPiecewise(pieces)
 
 def phi_vb_2(k=3):
-    """
+    r"""
     Summary:
         - Name: f_VB_2;
         - Dim= 1; Slopes = 1; Discontinuous;  
@@ -278,7 +278,7 @@ def phi_vb_2(k=3):
         return FastPiecewise(pieces)
 
 def phi_ll_1(c=3/2,k=5):
-    """
+    r"""
     Summary:
         - Name: f_LL_1;
         - Dim= 1; Slopes = 1; Discontinuous.    
@@ -318,7 +318,7 @@ def phi_ll_1(c=3/2,k=5):
     return FastPiecewise(pieces)
 
 def phi_ll_2(c=3/2,k=5):
-    """
+    r"""
     Summary:
         - Name: f_LL_2;
         - Dim= 1; Slopes = 1; Discontinuous.    
@@ -391,7 +391,7 @@ def phi_ll_2(c=3/2,k=5):
     return FastPiecewise(pieces)
 
 def phi_dg_1(c=3/2,k=5):
-    """
+    r"""
     Summary:
         - Name: f_DG_1;
         - Dim= 1; Slopes = 1; Discontinuous.    

@@ -3,7 +3,7 @@
 ##
 
 def interval_sum(int1, int2):
-    """
+    r"""
     Return the sum of two intervals.
     """
     if len(int1) == 1 and len(int2) == 1:
@@ -16,7 +16,7 @@ def interval_sum(int1, int2):
         return [int1[0]+int2[0],int1[1]+int2[1]]
 
 def interval_intersection(int1, int2):
-    """
+    r"""
     Return the intersection of two intervals.
 
     EXAMPLES::
@@ -65,7 +65,7 @@ def interval_intersection(int1, int2):
             return [max0,min1]
 
 def interval_empty(interval):
-    """
+    r"""
     Determine whether an interval is empty.            
     """
     if len(interval) == 0:
@@ -74,14 +74,14 @@ def interval_empty(interval):
         return False
 
 def interval_equal(int1, int2):
-    """
+    r"""
     Determine whether two intervals are equal.
     (This ignores whether the intervals are represented as tuples or lists.)
     """
     return tuple(int1) == tuple(int2)
 
 def element_of_int(x,int):
-    """
+    r"""
     Determine whether value `x` is inside the interval int.
 
     EXAMPLES::
@@ -113,7 +113,7 @@ def element_of_int(x,int):
         return False
 
 def interval_to_endpoints(int):
-    """
+    r"""
     Convert a possibly degenerate interval to a pair (a,b)
     of its endpoints, suitable for specifying pieces of a ``FastPiecewise``.
 
@@ -136,7 +136,7 @@ def interval_to_endpoints(int):
 
 # Assume the lists of intervals are sorted.                
 def find_interior_intersection(list1, list2):
-    """
+    r"""
     Tests whether list1 and list2 contain a pair of intervals
     whose interiors intersect.
 
@@ -163,7 +163,7 @@ def find_interior_intersection(list1, list2):
     return False
 
 def interval_minus_union_of_intervals(interval, remove_list):
-    """Compute a list of intervals that represent the
+    r"""Compute a list of intervals that represent the
     set difference of interval and the union of the 
     intervals in remove_list.
 
@@ -201,7 +201,7 @@ class closed_or_open_or_halfopen_interval (_closed_or_open_or_halfopen_interval)
         return "<Int" + r + ">"
 
     def _sage_input_(self, sib, coerced):
-        """
+        r"""
         Produce an expression which will reproduce this value when evaluated.
         """
         if self.a == self.b and self.left_closed and self.right_closed:
@@ -253,7 +253,7 @@ def realset_from_interval(int):
         raise ValueError("Not an interval: %s" % (int,))
 
 def interval_length(interval):
-    """
+    r"""
     Determine the length of the given interval.
 
     interval can be old-fashioned or coho.
@@ -266,7 +266,7 @@ def interval_length(interval):
         return 0
 
 def is_pt_in_interval(i, x0):
-    """
+    r"""
     retrun whether the point x0 is contained in the (ordinary or coho) interval i.
     """
     if len(i) == 2:
@@ -282,7 +282,7 @@ def is_pt_in_interval(i, x0):
             return bool(i.a < x0 < i.b)
 
 def coho_interval_left_endpoint_with_epsilon(i, closure=False):
-    """Return (x, epsilon)
+    r"""Return (x, epsilon)
     where x is the left endpoint
     and epsilon is 0 if the interval is left closed and 1 otherwise.
     """
@@ -296,7 +296,7 @@ def coho_interval_left_endpoint_with_epsilon(i, closure=False):
         return i.a, 0 if (i.left_closed or closure) else 1
 
 def coho_interval_right_endpoint_with_epsilon(i, closure=False):
-    """Return (x, epsilon)
+    r"""Return (x, epsilon)
     where x is the right endpoint
     and epsilon is 1 if the interval is right closed and 0 otherwise.
     """
@@ -318,7 +318,7 @@ def coho_interval_contained_in_coho_interval(I, J):
     return J[0] <= I[0] and I[1] <= J[1]
 
 def scan_coho_interval_left_endpoints(interval_list, tag=None, closure=False):
-    """Generate events of the form ``(x, epsilon), delta=-1, tag``.
+    r"""Generate events of the form ``(x, epsilon), delta=-1, tag``.
 
     This assumes that interval_list is sorted from left to right,
     and that the intervals are pairwise disjoint.
@@ -327,7 +327,7 @@ def scan_coho_interval_left_endpoints(interval_list, tag=None, closure=False):
         yield coho_interval_left_endpoint_with_epsilon(i, closure), -1, tag
 
 def scan_coho_interval_right_endpoints(interval_list, tag=None, closure=False):
-    """Generate events of the form ``(x, epsilon), delta=+1, tag``.
+    r"""Generate events of the form ``(x, epsilon), delta=+1, tag``.
 
     This assumes that interval_list is sorted from left to right,
     and that the intervals are pairwise disjoint.
@@ -336,7 +336,7 @@ def scan_coho_interval_right_endpoints(interval_list, tag=None, closure=False):
         yield coho_interval_right_endpoint_with_epsilon(i, closure), +1, tag
 
 def scan_coho_interval_list(interval_list, tag=None, closure=False):
-    """Generate events of the form ``(x, epsilon), delta, tag``.
+    r"""Generate events of the form ``(x, epsilon), delta, tag``.
 
     This assumes that interval_list is sorted, and 
     that the intervals are pairwise disjoint. (disjoint needed?)
@@ -362,7 +362,7 @@ def scan_coho_interval_list(interval_list, tag=None, closure=False):
                  scan_coho_interval_right_endpoints(interval_list, tag, closure))
 
 ## def scan_set_difference(a, b):
-##     """`a` and `b` should be event generators."""
+##     r"""`a` and `b` should be event generators."""
 
 from heapq import *
 
@@ -392,7 +392,7 @@ def scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, r
     assert remove_indicator == 0, "remove_indicator should be zero at the end of the scan"
 
 def intersection_of_coho_intervals(interval_lists):
-    """Compute the intersection of the union of intervals. 
+    r"""Compute the intersection of the union of intervals. 
     Actually returns a generator.
     
     Each interval_list must be sorted, but intervals may overlap.  In
@@ -435,7 +435,7 @@ def intersection_of_coho_intervals(interval_lists):
     assert all(on == 0 for on in interval_indicators) # no unbounded intervals
 
 def coho_intervals_intersecting(a, b):
-    """
+    r"""
     Determine if the two intervals intersect in at least 1 point.
 
     EXAMPLES::
@@ -455,7 +455,7 @@ def coho_intervals_intersecting(a, b):
     return len(intervals) == 1
 
 def coho_intervals_intersecting_full_dimensionally(a, b):
-    """
+    r"""
     Determine if the two intervals intersect in a proper interval.
 
     EXAMPLES::
@@ -477,7 +477,7 @@ def coho_intervals_intersecting_full_dimensionally(a, b):
     return len(intervals) == 1 and interval_length(intervals[0]) > 0
 
 def coho_interval_list_from_scan(scan, old_fashioned_closed_intervals=False):
-    """Actually returns a generator."""
+    r"""Actually returns a generator."""
     indicator = 0
     (on_x, on_epsilon) = (None, None)
     for ((x, epsilon), delta, tag) in scan:
@@ -502,7 +502,7 @@ def coho_interval_list_from_scan(scan, old_fashioned_closed_intervals=False):
     assert indicator == 0
 
 def union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove_lists, old_fashioned_closed_intervals=False, remove_closure=False):
-    """Compute a list of closed/open/half-open intervals that represent
+    r"""Compute a list of closed/open/half-open intervals that represent
     the set difference of interval and the union of the intervals in
     remove_lists.
 
@@ -525,7 +525,7 @@ def union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, remove
     return list(gen)
 
 def proper_interval_list_from_scan(scan):
-    """Return a generator of the proper intervals [a, b], a<b, in the scan.
+    r"""Return a generator of the proper intervals [a, b], a<b, in the scan.
 
     This ignores whether intervals are open/closed/half-open.
     """

@@ -67,7 +67,7 @@ def maximality_test_quasi(phi):
 
 
 def phi_bj_1_gdff(c=3/2,periods=3):
-    """
+    r"""
     Summary:
         - Name: f_BJ_1;
         - Dim= 1; Slopes = 2; Continuous;
@@ -114,7 +114,7 @@ def phi_bj_1_gdff(c=3/2,periods=3):
 
 
 def phi_s_delta(delta=1/10, s=3/2,inf=5):
-    """
+    r"""
     Create a family of piecewise linear general DFFs, which have breakpoints: [-inf,-delta, 0, delta, 1-delta,1,1+delta,inf] and slopes: [s,2s,0,1/(1-s*delta),0,2s,s] in each affine piece. The function is maximal if delta is small and s is large.
 
     """
@@ -127,7 +127,7 @@ def phi_s_delta(delta=1/10, s=3/2,inf=5):
     return piecewise_function_from_breakpoints_and_values(bkpt, values)    
 
 def is_superadditive_almost_strict(delta=1/10,s=3/2,inf=5):
-    """
+    r"""
     Check if the special general DFF is almost strictly superadditive, which means that \phi(x+y)-\phi(x)-\phi(y)>t for (x,y) not near three lines: x=0, y=0, x+y=1.
     """
     phi=phi_s_delta(delta, s,inf)
@@ -155,7 +155,7 @@ def is_superadditive_almost_strict(delta=1/10,s=3/2,inf=5):
     return True
 
 def maximality_test_gdff_linear(phi):
-    """
+    r"""
     Check whether a given piecewise linear function is a maximal general DFF.
     """ 
     bkpt=phi.end_points()
@@ -173,7 +173,7 @@ def maximality_test_gdff_linear(phi):
     return False
 
 def symmetry_test_gdff_linear(phi):
-    """
+    r"""
     Check whether a given piecewise linear function satisfies \phi(x)+\phi(1-x)=1.
     """
     bkpt=phi.end_points()
@@ -188,7 +188,7 @@ def symmetry_test_gdff_linear(phi):
 
 
 def superadditivity_test_gdff_linear(phi):
-    """
+    r"""
     Check whether a given piecewise linear function is superadditive.
     """
     bkpt=phi.end_points()
@@ -213,7 +213,7 @@ def superadditivity_test_gdff_linear(phi):
     return True
 
 def linear_extension_from_cdff(phi,inf=5):
-    """
+    r"""
     Extend a maximal classical DFF to a maximal general DFF using linear extension. Proposition 3.12.
     """
     if not maximality_test_dff(phi):
@@ -240,7 +240,7 @@ def linear_extension_from_cdff(phi,inf=5):
     return FastPiecewise(pieces)
     
 def find_0index(phi):
-    """
+    r"""
     find the index of 0 in the breakpoints.
     """
     bkpt=phi.end_points()  

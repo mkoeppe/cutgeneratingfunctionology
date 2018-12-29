@@ -85,7 +85,7 @@ def pwl_compose(f,g):
 
 
 def find_epsilon_interval_continuous_dff(fn, perturb):
-    """Compute the interval [minus_epsilon, plus_epsilon] such that 
+    r"""Compute the interval [minus_epsilon, plus_epsilon] such that 
     (fn + epsilon * perturb) is superadditive for epsilon in this interval.
     Assumes that fn is superadditive.
     If one of the epsilons is 0, the function bails out early and returns 0, 0.
@@ -187,7 +187,7 @@ def generate_additivity_equations_dff_continuous(function, symbolic, field):
 
 
 def extremality_test_continuous_dff(fn):
-    """Still in progress
+    r"""Still in progress
     """
     covered_intervals=generate_covered_intervals(fn)
     uncovered_intervals=generate_uncovered_intervals(fn)
@@ -276,7 +276,7 @@ def generate_nonsuperadditive_vertices_continuous(fn, reduced=True):
                 generate_type_2_vertices_for_nonmodule_one(fn, operator.gt)))
 
 def superadditivity_test_continuous(fn):
-    """
+    r"""
     Check if `fn` is superadditive.
     """
     result = True
@@ -304,7 +304,7 @@ def modified_delta_pi2_dff(fn, fn_values2, pts, i, j):
 
 
 def generate_type_1_vertices_for_nonmodule_one(fn, comparison):
-    """Output 6-tuples (x, y, z,xeps, yeps, zeps).
+    r"""Output 6-tuples (x, y, z,xeps, yeps, zeps).
     """
     bkpt = fn.end_points()
     return ( (x, y, x+y, 0, 0, 0) for x in bkpt for y in bkpt if x+y<=1 and comparison(delta_pi_for_nonmodule_one(fn,x,y), 0) ) 
@@ -329,7 +329,7 @@ def generate_nonsymmetric_vertices_continuous_dff(fn):
 
 
 def plot_2d_complex_dff(function,show_tag=True):
-    """
+    r"""
     Return a plot of the horizonal lines, vertical lines, and diagonal lines of the complex.
     """
     bkpt = function.end_points()
@@ -499,7 +499,7 @@ def plot_2d_diagram_dff_no_lable(fn, show_function=True, show_projections=True, 
 
 
 def plot_projections_at_borders_no_lable(fn):
-    """
+    r"""
     Plot the projections p1(F), p2(F), p3(F) of all full-dimensional
     additive faces F of `fn` as gray shadows: p1(F) at the top border,
     p2(F) at the left border, p3(F) at the bottom and the right
@@ -545,7 +545,7 @@ def plot_projections_at_borders_no_lable(fn):
 
 
 def plot_function_at_borders_no_lable(fn, color='blue', covered_components=None):
-    """
+    r"""
     Plot the function twice, on the upper and the left border, 
     to decorate 2d diagrams.
     """

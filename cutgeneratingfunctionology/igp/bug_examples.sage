@@ -1,5 +1,5 @@
 def not_minimal_3(): # this was a bug
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -11,7 +11,7 @@ def not_minimal_3(): # this was a bug
     return piecewise_function_from_breakpoints_and_values([0,1/5,4/5,1],[0,1/2,1,0])
 
 def not_minimal_wrong_range():
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -23,7 +23,7 @@ def not_minimal_wrong_range():
     return piecewise_function_from_breakpoints_and_values([0,1/2,1], [0,2,0])
 
 def fake_f():
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -37,7 +37,7 @@ def fake_f():
     return piecewise_function_from_breakpoints_and_values([0,1/5,3/5,4/5,1],[0,1,0,1,0])
 
 def limits_out_of_range():                                  # plotting bug
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -49,7 +49,7 @@ def limits_out_of_range():                                  # plotting bug
     return FastPiecewise([[singleton_interval(0), FastLinearFunction(0,0)], [open_interval(0, 1/2), FastLinearFunction(6, -1)], [closed_interval(1/2,1), FastLinearFunction(-2, 2)]], merge=False)
 
 def chen_tricky_uncovered_intervals():
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -61,7 +61,7 @@ def chen_tricky_uncovered_intervals():
     return chen_3_slope_not_extreme(f=1/sqrt(3), lam=10)    
 
 def minimal_no_covered_interval():
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -77,7 +77,7 @@ def minimal_no_covered_interval():
                           [singleton_interval(1), FastLinearFunction(0, 0)]], merge=True)
 
 def minimal_has_uncovered_interval():
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -97,7 +97,7 @@ def minimal_has_uncovered_interval():
                           [singleton_interval(1), FastLinearFunction(0,0)]], merge=True)
 
 def lift_of_minimal_has_uncovered_interval():
-    """
+    r"""
     This function was obtained by:
     ``sage_input(lift(minimal_has_uncovered_interval()))``
 
@@ -114,7 +114,7 @@ def lift_of_minimal_has_uncovered_interval():
     return FastPiecewise([[singleton_interval(QQ(0)), FastLinearFunction(QQ(0), QQ(0))], [open_interval(0, 1/8), FastLinearFunction(QQ(0), 3/4)], [singleton_interval(1/8), FastLinearFunction(QQ(0), 1/2)], [open_interval(1/8, 1/4), FastLinearFunction(QQ(0), 1/4)], [singleton_interval(1/4), FastLinearFunction(QQ(0), QQ(1))], [left_open_interval(1/4, 1/2), FastLinearFunction(QQ(0), 1/2)], [left_open_interval(1/2, 9/16), FastLinearFunction(QQ(4), -3/2)], [left_open_interval(9/16, 11/16), FastLinearFunction(-QQ(4), QQ(3))], [left_open_interval(11/16, 3/4), FastLinearFunction(QQ(4), -5/2)], [open_interval(3/4, 1), FastLinearFunction(QQ(0), 1/2)], [singleton_interval(1), FastLinearFunction(QQ(0), QQ(0))]])
 
 def lift_of_minimal_no_covered_interval():
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -126,7 +126,7 @@ def lift_of_minimal_no_covered_interval():
     return FastPiecewise([[singleton_interval(QQ(0)), FastLinearFunction(-QQ(2), QQ(0))], [left_open_interval(0, 1/16), FastLinearFunction(-QQ(2), 1/2)], [left_open_interval(1/16, 3/32), FastLinearFunction(QQ(10), -1/4)], [left_open_interval(3/32, 1/8), FastLinearFunction(-QQ(14), QQ(2))], [left_open_interval(1/8, 3/8), FastLinearFunction(QQ(2), QQ(0))], [left_open_interval(3/8, 13/32), FastLinearFunction(-QQ(14), QQ(6))], [left_open_interval(13/32, 7/16), FastLinearFunction(QQ(10), -15/4)], [open_interval(7/16, 1/2), FastLinearFunction(-QQ(2), 3/2)], [singleton_interval(1/2), FastLinearFunction(-QQ(2), QQ(2))], [left_open_interval(1/2, 5/8), FastLinearFunction(QQ(2), -1/2)], [left_open_interval(5/8, 7/8), FastLinearFunction(-QQ(2), QQ(2))], [open_interval(7/8, 1), FastLinearFunction(QQ(2), -3/2)], [singleton_interval(1), FastLinearFunction(QQ(2), -QQ(2))]])
 
 def example7slopecoarse2():
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -142,7 +142,7 @@ def example7slopecoarse2():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def example7slopecoarse2_lifted():
-    """
+    r"""
     obtained via: 
     ``h = example7slopecoarse2()``; ``hl = lift_until_extreme(h, use_all_perturbations=False, use_largest_absolute_epsilon=True)``; ``example7slopecoarse2_lifted() == h._lifted._lifted``.
 
@@ -157,7 +157,7 @@ def example7slopecoarse2_lifted():
     return FastPiecewise([[(QQ(0), 1/24), FastLinearFunction(QQ(18), QQ(0))], [left_open_interval(1/24, 1/16), FastLinearFunction(-QQ(6), QQ(1))], [left_open_interval(1/16, 1/12), FastLinearFunction(-QQ(18), 7/4)], [left_open_interval(1/12, 5/48), FastLinearFunction(QQ(18), -5/4)], [left_open_interval(5/48, 1/8), FastLinearFunction(QQ(6), QQ(0))], [left_open_interval(1/8, 1/6), FastLinearFunction(-QQ(6), 3/2)], [left_open_interval(1/6, 5/24), FastLinearFunction(QQ(6), -1/2)], [left_open_interval(5/24, 7/24), FastLinearFunction(-QQ(6), QQ(2))], [left_open_interval(7/24, 1/3), FastLinearFunction(QQ(6), -3/2)], [left_open_interval(1/3, 3/8), FastLinearFunction(-QQ(6), 5/2)], [left_open_interval(3/8, 19/48), FastLinearFunction(QQ(6), -QQ(2))], [left_open_interval(19/48, 5/12), FastLinearFunction(QQ(18), -27/4)], [left_open_interval(5/12, 7/16), FastLinearFunction(-QQ(18), 33/4)], [left_open_interval(7/16, 11/24), FastLinearFunction(-QQ(6), QQ(3))], [left_open_interval(11/24, 1/2), FastLinearFunction(QQ(18), -QQ(8))], [left_open_interval(1/2, 13/24), FastLinearFunction(-QQ(18), QQ(10))], [left_open_interval(13/24, 7/12), FastLinearFunction(QQ(6), -QQ(3))], [left_open_interval(7/12, 5/8), FastLinearFunction(-QQ(6), QQ(4))], [left_open_interval(5/8, 2/3), FastLinearFunction(QQ(6), -7/2)], [left_open_interval(2/3, 5/6), FastLinearFunction(QQ(0), 1/2)], [left_open_interval(5/6, 7/8), FastLinearFunction(QQ(6), -9/2)], [left_open_interval(7/8, 11/12), FastLinearFunction(-QQ(6), QQ(6))], [left_open_interval(11/12, 23/24), FastLinearFunction(QQ(6), -QQ(5))], [left_open_interval(23/24, QQ(1)), FastLinearFunction(-QQ(18), QQ(18))]])
 
 def gmic_disjoint(f=4/5):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -171,7 +171,7 @@ def gmic_disjoint(f=4/5):
     return FastPiecewise(pieces, merge=False)
 
 def gmic_disjoint_with_singletons(f=4/5):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -187,7 +187,7 @@ def gmic_disjoint_with_singletons(f=4/5):
     return FastPiecewise(pieces, merge=False)
 
 def bhk_raises_plotting_error():
-    """
+    r"""
     There were some problems when plotting the 2d-diagram of functions having
     irrational data coerced into a (non-quadratic) ``RealNumberField``.
 
@@ -258,7 +258,7 @@ def bhk_raises_plotting_error():
     return bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200, sqrt(3)/200), field=None)
 
 def minimal_has_uncovered_breakpoints():
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -275,7 +275,7 @@ def minimal_has_uncovered_breakpoints():
     return h
 
 def plotting_2d_diagram_bug_example():
-    """
+    r"""
     This is not a subadditive function. Additivity appears in the interior of some face, but not over the entire face.
 
     It caused a trouble in ``generate_maximal_additive_faces_continuous`` and in ``plotting_2d_diagram``. Namely, define ``face = generate_maximal_additive_faces(h)`` (see [47]); we observed that ``face.vertices`` and ``face.minimal_triple`` do not match. The problem has now been fixed.

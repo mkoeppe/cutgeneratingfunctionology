@@ -38,7 +38,7 @@ class CrazyPiece:
         return CrazyPiece(self.interval, self.generators, new_cosets)
 
     def __mul__(self, other):
-        """
+        r"""
         Multiply self by a scalar.
         """
         # assume scalar multiplication
@@ -87,7 +87,7 @@ class PiecewiseCrazyFunction:
         return PiecewiseCrazyFunction(-self.pwl, [-cp  for cp in self.crazy_pieces])
 
     def __mul__(self, other):
-        """
+        r"""
         Multiply self by a scalar.
         """
         # assume scalar multiplication
@@ -177,7 +177,7 @@ def find_hermite_form_generators(generators):
     return (matrix(QQ,lgens).hermite_form())
 
 def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -341,7 +341,7 @@ def random_6_tuple(fn):
             pass
 
 def minimality_test_randomized(fn, orig_function=None, max_iterations=None):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *

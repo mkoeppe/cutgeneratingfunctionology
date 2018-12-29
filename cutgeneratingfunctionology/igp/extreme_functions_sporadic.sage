@@ -2,7 +2,7 @@ from six.moves import range
 ## "Sporadic" extreme functions (found by computer search, not part of a parametric family).
 
 def hildebrand_5_slope_22_1():
-    """
+    r"""
     One of Hildebrand's 5-slope functions.
 
     They held the world record regarding the number of slopes until
@@ -25,7 +25,7 @@ def hildebrand_5_slope_22_1():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def hildebrand_5_slope_24_1():
-    """
+    r"""
     One of Hildebrand's 5-slope functions.
 
     They held the world record regarding the number of slopes until
@@ -48,7 +48,7 @@ def hildebrand_5_slope_24_1():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def hildebrand_5_slope_28_1():
-    """
+    r"""
     One of Hildebrand's 5-slope functions.
 
     They held the world record regarding the number of slopes until
@@ -71,7 +71,7 @@ def hildebrand_5_slope_28_1():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def hildebrand_2_sided_discont_1_slope_1():
-    """
+    r"""
     The first known example of function that is discontinuous on both
     sides of the origin but is also extreme.
 
@@ -97,7 +97,7 @@ def hildebrand_2_sided_discont_1_slope_1():
 
 
 def hildebrand_2_sided_discont_2_slope_1():
-    """
+    r"""
     The second known example of function that is discontinuous on both
     sides of the origin but is also extreme.  This one has 2 slopes.
 
@@ -126,7 +126,7 @@ def hildebrand_2_sided_discont_2_slope_1():
                           singleton_piece(1, 0)])
 
 def hildebrand_discont_3_slope_1():
-    """
+    r"""
     This is a very new discontinuous 3-slope function that is extreme.
 
     Constructed by Robert Hildebrand (2013, unpublished).
@@ -148,7 +148,7 @@ def hildebrand_discont_3_slope_1():
                           singleton_piece(1, 0)])
 
 def kzh_5_slope_fulldim_1(): #renamed from extreme_5slope_no_0d_1d_1
-    """
+    r"""
     A continuous 5-slope extreme function without any 0-d or 1-d
     maximal additive faces except for the symmetry reflection or x=0
     or y=0.
@@ -178,7 +178,7 @@ def kzh_5_slope_fulldim_1(): #renamed from extreme_5slope_no_0d_1d_1
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_5_slope_fulldim_2(): #renamed from extreme_5slope_no_0d_1d_2
-    """
+    r"""
     A continuous 5-slope extreme function without any 0-d or 1-d
     maximal additive faces except for the symmetry reflection or x=0
     or y=0.
@@ -208,7 +208,7 @@ def kzh_5_slope_fulldim_2(): #renamed from extreme_5slope_no_0d_1d_2
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_5_slope_fulldim_3(): #renamed from extreme_5slope_no_0d_1d_3
-    """
+    r"""
     A continuous 5-slope extreme function without any 0-d or 1-d
     maximal additive faces except for the symmetry reflection or x=0
     or y=0.
@@ -238,7 +238,7 @@ def kzh_5_slope_fulldim_3(): #renamed from extreme_5slope_no_0d_1d_3
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_5_slope_fulldim_4(): #renamed from extreme_5slope_no_0d_1d_4
-    """
+    r"""
     5-slope extreme function without any 0-d or 1-d maximal additive faces
     except for the symmetry reflection or x=0 or y=0.
 
@@ -267,7 +267,7 @@ def kzh_5_slope_fulldim_4(): #renamed from extreme_5slope_no_0d_1d_4
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_5_slope_fulldim_5(): #renamed from extreme_5slope_no_0d_1d_5
-    """
+    r"""
     5-slope extreme function without any 0-d or 1-d maximal additive faces
     except for the symmetry reflection or x=0 or y=0.
 
@@ -296,7 +296,7 @@ def kzh_5_slope_fulldim_5(): #renamed from extreme_5slope_no_0d_1d_5
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_5_slope_fulldim_covers_1(): #renamed from extreme_5slope_no_transrefl or from fulldim_covers_5slope_q22_6()
-    """
+    r"""
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
 
@@ -329,7 +329,7 @@ def kzh_5_slope_fulldim_covers_1(): #renamed from extreme_5slope_no_transrefl or
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_5_slope_fulldim_covers_2(): # renamed from fulldim_covers_5slope_q22_1()
-    """
+    r"""
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -361,7 +361,7 @@ def kzh_5_slope_fulldim_covers_2(): # renamed from fulldim_covers_5slope_q22_1()
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_5_slope_fulldim_covers_3(): # renamed from fulldim_covers_5slope_q22_2()
-    """
+    r"""
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -392,7 +392,7 @@ def kzh_5_slope_fulldim_covers_3(): # renamed from fulldim_covers_5slope_q22_2()
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_5_slope_fulldim_covers_4(): # renamed from fulldim_covers_5slope_q22_3()
-    """
+    r"""
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -423,7 +423,7 @@ def kzh_5_slope_fulldim_covers_4(): # renamed from fulldim_covers_5slope_q22_3()
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_5_slope_fulldim_covers_5(): # renamed from fulldim_covers_5slope_q22_4()
-    """
+    r"""
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -454,7 +454,7 @@ def kzh_5_slope_fulldim_covers_5(): # renamed from fulldim_covers_5slope_q22_4()
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_5_slope_fulldim_covers_6(): # renamed from fulldim_covers_5slope_q22_5()
-    """
+    r"""
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -479,7 +479,7 @@ def kzh_5_slope_fulldim_covers_6(): # renamed from fulldim_covers_5slope_q22_5()
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_6_slope_fulldim_covers_1(): # renamed from fulldim_covers_6slope_q25_1()
-    """
+    r"""
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -510,7 +510,7 @@ def kzh_6_slope_fulldim_covers_1(): # renamed from fulldim_covers_6slope_q25_1()
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_6_slope_fulldim_covers_2(): # renamed from fulldim_covers_6slope_q26_1()
-    """
+    r"""
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -541,7 +541,7 @@ def kzh_6_slope_fulldim_covers_2(): # renamed from fulldim_covers_6slope_q26_1()
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_6_slope_fulldim_covers_3(): # renamed from fulldim_covers_6slope_q38_1()
-    """
+    r"""
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -573,7 +573,7 @@ def kzh_6_slope_fulldim_covers_3(): # renamed from fulldim_covers_6slope_q38_1()
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_6_slope_fulldim_covers_4():
-    """
+    r"""
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -603,7 +603,7 @@ def kzh_6_slope_fulldim_covers_4():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_6_slope_fulldim_covers_5():
-    """
+    r"""
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -664,7 +664,7 @@ def kzh_5_slope_q22_f2_1():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_7_slope_1():
-    """
+    r"""
     A 7-slope extreme function.
 
     This example was found by computer-based search
@@ -691,7 +691,7 @@ def kzh_7_slope_1():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_7_slope_2():
-    """
+    r"""
     A 7-slope extreme function.
 
     This example was found by computer-based search
@@ -718,7 +718,7 @@ def kzh_7_slope_2():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_7_slope_3():
-    """
+    r"""
     A 7-slope extreme function.
 
     This example was found by computer-based search
@@ -745,7 +745,7 @@ def kzh_7_slope_3():
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_7_slope_4():
-    """
+    r"""
     A 7-slope extreme function.
 
     This example was found by computer-based search
@@ -790,7 +790,7 @@ def pattern0_sym_fn(l, sv):
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_6_slope_1():
-    """
+    r"""
     A 6-slope extreme function.
 
     Its two-dimensional polyhedral complex includes special patterns.
@@ -817,7 +817,7 @@ def kzh_6_slope_1():
     return pattern0_sym_fn(l, sv)
 
 def kzh_10_slope_1():
-    """
+    r"""
     A 10-slope extreme function.
 
     Its two-dimensional polyhedral complex includes special patterns.
@@ -844,7 +844,7 @@ def kzh_10_slope_1():
     return pattern0_sym_fn(l, sv)
 
 def kzh_28_slope_1():
-    """
+    r"""
     A 28-slope extreme function.
 
     This example was found by computer-based search
@@ -876,7 +876,7 @@ def kzh_28_slope_1():
     return pattern0_sym_fn(l, sv)
 
 def kzh_28_slope_2():
-    """
+    r"""
     A 28-slope extreme function.
 
     This example was found by computer-based search

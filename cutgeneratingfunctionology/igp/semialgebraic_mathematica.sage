@@ -4,7 +4,7 @@ from six.moves import range
 #######################
 
 def write_mathematica_constraints(eqs, ineqs, strict=True):
-    """
+    r"""
     Write polynomial constraints in the mathematica format.
     Notice that the string ends with ' && '; in practice, often take condstr[:-4]
 
@@ -30,7 +30,7 @@ def write_mathematica_constraints(eqs, ineqs, strict=True):
     return condstr
 
 def write_mathematica_variables(var_name):
-    """
+    r"""
     Write the variables in the Mathematica format.
 
     EXAMPLES::
@@ -46,7 +46,7 @@ def write_mathematica_variables(var_name):
     return '{' + varstr + '}'
 
 def find_instance_mathematica(condstr, var_name):
-    """
+    r"""
     Call the Mathematica's ``FindInstance`` to get a point that satisfies the given conditions.
 
     EXAMPLES::

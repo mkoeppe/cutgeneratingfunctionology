@@ -90,7 +90,7 @@ def volume_of_union_of_polytopes(polyhedra):
     return vol
         
 def volume_of_lifting_region(B, f=None, show_plots=False):
-    """
+    r"""
     Examples::
 
         sage: from cutgeneratingfunctionology.multirow import *

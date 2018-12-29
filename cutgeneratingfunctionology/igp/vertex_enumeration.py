@@ -1,6 +1,6 @@
 from six.moves import range
 def vertex_enumeration(polytope, exp_dim=-1, vetime=False):
-    """
+    r"""
     Returns the vertices of the polytope.
 
     - Do preprocessing if exp_dim >= igp.exp_dim_prep, i.e., call the function redund provided by lrslib to remove redundant inequalities.
@@ -231,7 +231,7 @@ def read_lrs_to_cs_or_gs(fname):
     return convert_lrs_to_ppl(lrs_string)
 
 def convert_lrs_to_ppl(lrs_string):
-    """
+    r"""
     Convert lrs format H-representation to ppl cs;
     or lrs format V-representation (of a polytope) to ppl gs.
 
@@ -257,14 +257,14 @@ def convert_lrs_to_ppl(lrs_string):
 
     # nested function
     def cdd_convert(string, field=QQ):
-        """
+        r"""
         Converts the cdd output string to a QQ numerical value.
         """
         return [field(x) for x in string.split()]
 
     # nested function
     def find_in_cddout(expected_string):
-        """
+        r"""
         Find the expected string in a list of strings, and
         truncates ``cddout`` to start at that point. Returns
         ``False`` if search fails.
@@ -339,7 +339,7 @@ from sage.misc.temporary_file import tmp_filename
 from subprocess import Popen, PIPE
 
 def lrs_redund(in_str, verbose=False):
-    """
+    r"""
     To remove redundant inequalities from an H-representation or
     input points that are not vertices from a V-representation
     use the command 'redund' from lrslib.
@@ -366,7 +366,7 @@ def lrs_redund(in_str, verbose=False):
     return out_str
 
 def remove_redundancy_from_cs(cs, verbose=False, return_lrs=False):
-    """
+    r"""
     Remove redundant inequalities from cs using the command 'redund' from lrslib.
     Return the new cs without redundancy
     in ppl format if return_lrs==False (default), or in lrs format if return_lrs==True 
@@ -379,7 +379,7 @@ def remove_redundancy_from_cs(cs, verbose=False, return_lrs=False):
         return convert_lrs_to_ppl(out_str)
 
 def lrs_lrs(in_str, verbose=False):
-    """
+    r"""
     Use the command 'lrs' from lrslib.
     Input: lrs format in_str; Output: lrs format out_str;
     """
@@ -418,13 +418,13 @@ def lrs_lrsinput_pploutput(in_str):
         sage: lrs_q5f3_str = "lrs_q5f3\nH-representation\nlinearity 5 1 2 3 13 21\nbegin\n21 7 rational" + "\n0 1 0 0 0 0 0\n0 0 0 0 0 0 1\n-1 0 0 0 1 0 0\n0 0 1 0 0 0 0\n1 0 -1 0 0 0 0\n0 0 0 1 0 0 0\n1 0 0 -1 0 0 0\n0 0 0 0 1 0 0" + "\n1 0 0 0 -1 0 0\n0 0 0 0 0 1 0\n1 0 0 0 0 -1 0\n0 0 2 -1 0 0 0\n0 0 1 1 -1 0 0\n0 0 1 0 1 -1 0\n0 -1 1 0 0 1 0" + "\n0 0 0 2 0 -1 0\n0 -1 0 1 1 0 0\n0 0 -1 1 0 1 0\n0 0 -1 0 2 0 0\n0 0 0 -1 1 1 0\n0 0 0 0 1 -2 0\nend"
         sage: lrs_lrsinput_pploutput(lrs_q5f3_str)  # optional - lrslib
         Generator_System {point(0/6, 2/6, 4/6, 6/6, 3/6, 0/6), point(0/4, 3/4, 1/4, 4/4, 2/4, 0/4)}    
-    """
+    r"""
     v_lrs_str = lrs_lrs(in_str)
     extreme_points = convert_lrs_to_ppl(v_lrs_str)
     return extreme_points
    
 def lcdd_rational(in_str, verbose=False):
-    """
+    r"""
     Use the command ``lcdd_gmp`` from cddlib.
 
     Input: cdd format in_str; Output: cdd format out_str;

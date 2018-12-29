@@ -96,7 +96,7 @@ def pattern_setup_lp(l, more_ini_additive=False, objcoef=None, use_auxiliary_del
     return fn
 
 def pattern_positive_zero_undecided_deltafn(vertices_color):
-    """
+    r"""
     According to the prescribled painting, compute the lists positive_deltafn, zero_deltafn and undecided_deltafn.
 
     zero_deltafn does not include the implied zero deltafn.
@@ -162,7 +162,7 @@ def pattern_positive_zero_undecided_deltafn(vertices_color):
     return positive_deltafn, zero_deltafn, undecided_deltafn
 
 def pattern_positive_zero_undecided_deltafn_trivial(vertices_color):
-    """
+    r"""
     Compute the list zero_deltafn of deltafn that corresponds to green vertices on the prescribled painting.
 
     The other deltafn are put in the list undecided_deltafn.
@@ -313,7 +313,7 @@ def pattern_backtrack_polytope(l, k_slopes):
             return max_num_slopes
 
 def convert_linfun_to_linexp(linfun):
-    """
+    r"""
     convert MILP's ``Linear_Function`` to PPL's ``Linear_Expression``.
 
     EXAMPLES::
@@ -754,7 +754,7 @@ def pattern_additive_vertices(l, pattern):
     return changed_vertices
 
 def pattern_more_additive_vertices(l, pattern):
-    """
+    r"""
     Extra additive points, to be added to ``pattern_additive_vertices`` to reduce the dimension.
     Experimental code.
     """
@@ -956,7 +956,7 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
     nn = []
     destdir = output_dir+"sym_mode_2d_diagrams/"+"patterns_%s/" % pattern
     mkdir_p(destdir)
-    logging.disable(logging.INFO)
+    logging.disable(logging.info)
     #print polytope
     for v in vertex_enumeration(polytope, exp_dim=exp_dim, vetime=False):
         #v.coefficients() is numerator of component's slope value

@@ -112,7 +112,7 @@ class RealNumberFieldElement(NumberFieldElement_absolute):
         return self._hash
 
 class RealNumberField_absolute(NumberField_absolute):
-    """
+    r"""
     A ``RealNumberField`` knows its embedding into a ``RealIntervalField``
     and use that for ``<``, ``>`` comparisons.
     ``==`` comparison is exact, using the underlying numberfield.
@@ -156,7 +156,7 @@ class RealNumberField_absolute(NumberField_absolute):
 
     def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None,
                  assume_disc_small=False, maximize_at_primes=None, exact_embedding=None):
-        """
+        r"""
         Create a real number field.
         """
         NumberField_absolute.__init__(self, polynomial, name=name, check=check,
@@ -202,7 +202,7 @@ class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
         return self._hash
 
     def _sage_input_(self, sib, coerced):
-        """
+        r"""
         Produce an expression which will reproduce this value when evaluated.
 
         EXAMPLES::
@@ -232,7 +232,7 @@ class RealNumberFieldElement_quadratic(NumberFieldElement_quadratic):
 class RealNumberField_quadratic(NumberField_quadratic):
     def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None,
                  assume_disc_small=False, maximize_at_primes=None, exact_embedding=None):
-        """
+        r"""
         Create a real number field.
         """
         #### This is copy/paste from number_field.py, Sage 5.11,
@@ -281,7 +281,7 @@ class RealNumberField_quadratic(NumberField_quadratic):
                    self.variable_name(), self.polynomial(), self.gen(0).embedded())
 
     def _sage_input_(self, sib, coerced):
-        """
+        r"""
         Produce an expression which will reproduce this value when evaluated.
         """
         p = sib.name('RealNumberField')(self.polynomial(), embedding=RR(self.gen(0)), name='a')
@@ -292,7 +292,7 @@ class RealNumberField_quadratic(NumberField_quadratic):
 
 def RealNumberField(polynomial, name=None, latex_name=None, names=None, check=True, embedding=None,
                     assume_disc_small=False, maximize_at_primes=None, exact_embedding=None):
-    """
+    r"""
     A ``NumberField`` embedded into the real numbers, for which comparisons work according tothe embedding.
 
     This may not be necessary any more in Sage 7.1 after :trac:`17830`; but see :trac:`20184`.

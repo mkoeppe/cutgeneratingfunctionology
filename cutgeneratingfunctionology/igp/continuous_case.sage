@@ -16,7 +16,7 @@ def generate_nonsymmetric_vertices_continuous(fn, f):
             yield (x, y, 0, 0)
 
 def generate_type_1_vertices_continuous(fn, comparison, bkpt=None):
-    """Output 6-tuples (x, y, z,xeps, yeps, zeps).
+    r"""Output 6-tuples (x, y, z,xeps, yeps, zeps).
     """
     if bkpt is None:
         bkpt = fn.end_points()
@@ -35,7 +35,7 @@ def modified_delta_pi2(fn, fn_values2, pts, i, j):
     return fn_values2[i] + fn(fractional(pts[j] - pts[i])) - fn_values2[j]  
 
 def generate_overlapping_interval_indices(interval, breakpoints):
-    """
+    r"""
     Given breakpoints (a list of breakpoints which generate subintervals),
     return a list of indices of subintervals that have a nonempty intersection with interval.
 
@@ -61,7 +61,7 @@ def generate_overlapping_interval_indices(interval, breakpoints):
         #yield k
 
 def generate_maximal_additive_faces_continuous(function):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -181,7 +181,7 @@ def generate_maximal_additive_faces_continuous(function):
     return faces
 
 def find_epsilon_interval_continuous(fn, perturb):
-    """Compute the interval [minus_epsilon, plus_epsilon] such that 
+    r"""Compute the interval [minus_epsilon, plus_epsilon] such that 
     (fn + epsilon * perturb) is subadditive for epsilon in this interval.
     Assumes that fn is subadditive.
 
@@ -245,7 +245,7 @@ def find_epsilon_interval_continuous(fn, perturb):
     return best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound
 
 def generate_symbolic_continuous(function, components, field=None, f=None):
-    """
+    r"""
     Construct a vector-space-valued piecewise linear function
     compatible with the given function.  Each of the components of
     the function has a slope that is a basis vector of the vector

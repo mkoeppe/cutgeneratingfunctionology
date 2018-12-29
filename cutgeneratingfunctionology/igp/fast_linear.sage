@@ -50,7 +50,7 @@ class FastLinearFunction :
             return '<FastLinearFunction (%s)*x + (%s)>' % (self._slope, self._intercept)
 
     def _sage_input_(self, sib, coerced):
-        """
+        r"""
         Produce an expression which will reproduce this value when evaluated.
         """
         return sib.name('FastLinearFunction')(sib(self._slope), sib(self._intercept))

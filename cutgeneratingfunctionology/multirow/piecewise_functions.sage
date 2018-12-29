@@ -5,7 +5,7 @@ from six.moves import range
 
 
 class PiecewisePolynomial_polyhedral(SageObject):
-    """
+    r"""
     Define a piecewise polynomial function using pairs of (polyhedron, function).
 
     EXAMPLES::
@@ -185,7 +185,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         return id(self)
 
     def __eq__(self, other):
-        """
+        r"""
         Assume that self and other have the same domain (=union of the polyhedra). Return True if self == other on the domain.
         """
         if self._periodic_extension != other._periodic_extension:
@@ -202,7 +202,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         return True
 
     def is_continuous(self, is_continuous=None):
-        """
+        r"""
         return if the function is continuous.
         """
         if not self._is_continuous is None:
@@ -250,7 +250,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         return self._dim
 
     def __add__(self, other):
-        """
+        r"""
         Add self and another piecewise function.
         The sum is a function defined on the intersection of the domain of self and the domain of other.
         """
@@ -279,7 +279,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         return result
 
     def __mul__(self, other):
-        """
+        r"""
         Multiply self by a scalar or another piecewise function.
         The product is a function defined on the intersection of the domain of self and the domain of other.
         """
@@ -339,7 +339,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         raise ValueError("Point x is outside the domain of the function.")
 
     def limit(self, x, polyhedron=None):
-        """
+        r"""
         Return the limit of self at x approaching from the relative interior of polyhedron,
         where the input polyhedron is contained in the domain of some piece of the function.
         if polyhedron=None, then return the function value at x.
@@ -350,7 +350,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         return f(tuple(x))
 
     def which_function(self, x=None, polyhedron=None):
-        """
+        r"""
         Return the function of the (first) piece whose domain contains x, if polyhedron=None;
         return the function of the (first) piece whose domain contains polyhedron, otherwise.
         """
@@ -393,7 +393,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
                 raise ValueError("The given polyhedron is not contained in any of the polyhedra where the function is defined.")
 
     def restricted_to_domain(self, domain):
-        """
+        r"""
         Return a PiecewisePolynomial_polyhedral which is self restricted to domain, where domain is a given polyhedron.
         """
         if self._is_continuous:
@@ -430,7 +430,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         return PiecewisePolynomial_polyhedral(pairs, periodic_extension=False, is_continuous=is_continuous, check_consistency=False)
 
     def max(self, other, *arg):
-        """
+        r"""
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.multirow import *
@@ -471,7 +471,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         return result.max(arg[0], *arg[1::])
 
     def min(self, other, *arg):
-        """
+        r"""
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.multirow import *
@@ -513,7 +513,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
             
 
     def plot(self, domain=None, alpha=0.5, projection=False, **kwds):
-        """
+        r"""
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.multirow import *
@@ -581,7 +581,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         return g
 
     def plot_projection(self, domain=None, group_triangulation=False, show_values_on_vertices=False, **kwds):
-        """     
+        r"""     
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.multirow import *
@@ -693,7 +693,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         return g
 
     def limiting_slopes(self, x=None):
-        """
+        r"""
         Return the gradients of the affine functions on the full-dim polyhedron whose closure contains x.
         """
         if not self._is_piecewise_linear:
@@ -718,7 +718,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         return list(slopes)
 
     def translation(self, t):
-        """
+        r"""
         Return the translated PiecewisePolynomial_polyhedral function x -> self(x+t).
         """
         v = vector(t)
@@ -726,7 +726,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         return PiecewisePolynomial_polyhedral(pairs, periodic_extension=self._periodic_extension, is_continuous=self._is_continuous, check_consistency=False)
 
     def affine_linear_embedding(self, A, b=None):
-        """
+        r"""
         Given full row rank matrix A and vector b (default b = 0). 
         Return the composition PiecewisePolynomial_polyhedral function x -> self(A*x+b).
         
@@ -772,7 +772,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
 
     @classmethod
     def from_values_on_group_triangulation(cls, M):
-        """
+        r"""
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.multirow import *
@@ -813,13 +813,13 @@ class PiecewisePolynomial_polyhedral(SageObject):
         return result
 
     def is_non_negative(self):
-        """
+        r"""
         Return True if self >= 0 everywhere.
         """
         return self.is_lower_bounded_by(0)
 
     def is_lower_bounded_by(self, x):
-        """
+        r"""
         Return True if self >= x everywhere.
         """
         if not self._is_piecewise_linear:
@@ -832,7 +832,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         return True
 
     def is_upper_bounded_by(self, x):
-        """
+        r"""
         Return True if self <= x everywhere.
         """
         if not self._is_piecewise_linear:
@@ -845,7 +845,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         return True
 
     def is_constantly_equal_to(self, x):
-        """
+        r"""
         Return True if self == x everywhere.
         """
         if not self._is_piecewise_linear:
@@ -858,7 +858,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         return True
 
     def preimage(self, value):
-        """
+        r"""
         Return closure of the preimage, as a list of polyhedra, of the given value under the map self.
 
         EXAMPLES::
@@ -918,7 +918,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
         return preimages
 
     def intersection_of_domains(self, other):
-        """
+        r"""
         Return a list of (polyhedron, f1, f2) where polyhedorn is the intersection of two polyhedra in the domains of self and of other, and f1 and f2 are the polynomial functions of self and other on the intersection.
         The polyhedral domains in self and other are ordered according to decreasing dimension.
         """
@@ -948,7 +948,7 @@ def div_Zk(x):
     return vector(floor(xi) for xi in x)
 
 def affine_map_for_affine_hull(p):
-        """
+        r"""
         Return the an affine map x -> A*x+b that maps the affine space of p to the ambient space of p.
         The affine space of p (in the ambient space) is equal to {A(x) + b for x in the projected space}.
         This is adapted from sage.geometry.polyhedron.base.affine_hull. 
@@ -969,7 +969,7 @@ def affine_map_for_affine_hull(p):
         return A.transpose(), vector(A.base_ring(), p.vertices()[0])
 
 def sublinear_function_from_slopes(slopes):
-    """
+    r"""
     Return a sublinear PiecewisePolynomial_polyhedral function whose gradients at the orgin are given by the parameter slopes.
 
     EXAMPLES::
@@ -991,7 +991,7 @@ def sublinear_function_from_slopes(slopes):
     return sublin_function
 
 def sublinear_function_from_polyhedron_and_point(polyhedron, pt):
-    """
+    r"""
     Construct sublinear function phi given a full-dimensional polyhedron and an interior point f.
     Notice that the vector f for the group relaxation problem equals to (- pt) mod Z.
 
@@ -1043,7 +1043,7 @@ def sublinear_function_from_polyhedron_and_point(polyhedron, pt):
 
 #FIXME: Rename to trivial_fill_in or trivial_lifting....
 def subadditive_function_from_sublinear_function(sublin_function):
-    """
+    r"""
     Trivial fill-in? Return a Zk-periodic PiecewisePolynomial_polyhedral function.
 
     EXAMPLES::
@@ -1088,7 +1088,7 @@ def subadditive_function_from_sublinear_function(sublin_function):
     return subadd_function
 
 def subadditive_function_from_slopes(slopes):
-    """
+    r"""
     Return a Zk-periodic subadditive PiecewisePolynomial_polyhedral function 
     whose gradients at the orgin are give by the parameter slopes.
 
@@ -1104,7 +1104,7 @@ def subadditive_function_from_slopes(slopes):
     return subadd_function
     
 def piecewise_polynomial_polyhedral_from_fast_piecewise(fn):
-    """
+    r"""
     Convert a FastPiecewise type function fn to a PiecewisePolynomial_polyhedral type one.
 
     EXAMPLES::
@@ -1131,7 +1131,7 @@ def piecewise_polynomial_polyhedral_from_fast_piecewise(fn):
     return PiecewisePolynomial_polyhedral(pairs, periodic_extension=True, is_continuous=fn._is_continuous, check_consistency=True)
 
 def subadditivity_slack_delta(h):
-    """
+    r"""
     Return the subadditivity slack function Delta: (x, y) -> h(x) + h(y) - h(x+y) 
     of the given PiecewisePolynomial_polyhedral function h.
 
@@ -1173,7 +1173,7 @@ def subadditivity_slack_delta(h):
     return delta
 
 def minimality_test_multirow(fn, f=None):
-    """
+    r"""
     Test if the input PiecewisePolynomial_polyhedral function `fn` is a minimal function 
     for the (multi-row) group relaxation with the given `f`.
 
@@ -1295,7 +1295,7 @@ def minimality_test_multirow(fn, f=None):
     return True
 
 def volume_of_additive_domain(h):
-    """
+    r"""
     Return the volume of `x * y \in [0,1]^(2d)` such that `h(x) + h(y) = h((x+y) mod Z^d)`
     For d=1, the result = (merit index of h) / 2.
 

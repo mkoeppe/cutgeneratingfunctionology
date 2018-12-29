@@ -23,7 +23,7 @@ dic_eps_to_cone = { (-1,-1,-1): [(-1, 0), (0, -1)], \
                   }
 
 def generate_type_1_vertices_general(fn, comparison, reduced=True, bkpt=None):
-    """A generator of vertieces.
+    r"""A generator of vertieces.
 
     ``..._general`` refers to the fact that it outputs 6-tuples (x,y,z,xeps,yeps,zeps).
     
@@ -59,7 +59,7 @@ def generate_type_1_vertices_general(fn, comparison, reduced=True, bkpt=None):
                        yield (x, y, x+y, xeps, yeps, zeps)
 
 def generate_type_2_vertices_general(fn, comparison, reduced=True, bkpt=None):
-    """
+    r"""
     A generator of vertices.
 
     When reduced is:
@@ -104,7 +104,7 @@ def generate_type_2_vertices_general(fn, comparison, reduced=True, bkpt=None):
                        yield (x, y, x+y, xeps, yeps, zeps)
 
 def generate_nonsymmetric_vertices_general(fn, f):
-    """
+    r"""
     Generate vertices (x, y, xeps, yeps) that violate ``symmetric_test``.
     """
     bkpt = fn.end_points()
@@ -128,7 +128,7 @@ def generate_nonsymmetric_vertices_general(fn, f):
                 yield (x, y, 1, -1)
 
 def epstriple_to_cone(epstriple):
-    """
+    r"""
     Convert (xeps, yeps, zeps) to the corresponding cone.
 
     13 cases, see ``dic_eps_to_cone``.
@@ -139,7 +139,7 @@ def epstriple_to_cone(epstriple):
         raise ValueError("The limit epstriple %s does not exist." % epstriple)
 
 def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03):
-    """
+    r"""
     plot a cone or a ray or a point 
     """
     orig = vector(RDF, (x, y))
@@ -166,7 +166,7 @@ def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03):
     return p
 
 def plot_2d_additive_limit_vertices(fn):
-    """
+    r"""
     Temporary code. Show additivity information on a 2d-diagram
     """
     p = plot_2d_complex(fn)
@@ -187,7 +187,7 @@ def plot_2d_additive_limit_vertices(fn):
     return p
 
 def generate_symbolic_general(function, components, field=None, f=None):
-    """
+    r"""
     Construct a vector-space-valued piecewise linear function
     compatible with the given function.  
 
@@ -240,7 +240,7 @@ def generate_symbolic_general(function, components, field=None, f=None):
     return symbolic_function
 
 def generate_additivity_equations_general(function, symbolic, field, f=None, bkpt=None):
-    """
+    r"""
     Using additivity, set up a finite-dimensional system of linear equations
     that must be satisfied by any perturbation.
     """
@@ -264,7 +264,7 @@ def generate_additivity_equations_general(function, symbolic, field, f=None, bkp
     return M[pivot_r]
 
 def find_epsilon_interval_general(fn, perturb):
-    """Compute the interval [minus_epsilon, plus_epsilon] such that
+    r"""Compute the interval [minus_epsilon, plus_epsilon] such that
     (fn + epsilon * perturb) is subadditive for epsilon in this interval.
     Assumes that fn is subadditive.
 
@@ -376,7 +376,7 @@ def delta_pi_general(fn, x, y, xxx_todo_changeme=(0,0,0)):
         0
         sage: delta_pi_general(h, 2/5, 4/5, (-1, 0, -1))
         -2/5
-    """
+    r"""
     (xeps, yeps, zeps) = xxx_todo_changeme
     return fn.limit(fractional(x), xeps) + fn.limit(fractional(y), yeps) - fn.limit(fractional(x + y), zeps)
 
@@ -412,7 +412,7 @@ def containing_eps_1d(x, interval):
         return [0]
 
 def generate_containing_eps_triple(vertex, triple):
-    """
+    r"""
     Given vertex `v` of face `F`, and the 3-projection-interval triple of `F`.
     Return the approaching limits {(xeps, yeps, zeps)}
     pointing inwards at `v` from containing faces of `F`,
@@ -424,7 +424,7 @@ def generate_containing_eps_triple(vertex, triple):
     return [(xeps, yeps, zeps) for xeps in xeps_list for yeps in yeps_list for zeps in zeps_list]
 
 def is_additive_face(fn, face):
-    """
+    r"""
     Test whether the given face is additive 
     by taking the appropriate limits (pointing inwards) at the vertices.
     """

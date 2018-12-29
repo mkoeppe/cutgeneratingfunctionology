@@ -178,7 +178,7 @@ def symmetry_test_general_dff(fn):
     return result
 
 def superadditivity_test_general(fn):
-    """
+    r"""
     Check if `fn` is superadditive.
     """
     result = True
@@ -373,7 +373,7 @@ def generate_perturbations_finite_dimensional_general_dff(f):
         yield perturbation
 
 def extremality_test_general_dff(fn):
-    """Still in progress
+    r"""Still in progress
     """
     covered_intervals=generate_covered_intervals(fn)
     uncovered_intervals=generate_uncovered_intervals(fn)

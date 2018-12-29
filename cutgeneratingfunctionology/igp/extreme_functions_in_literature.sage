@@ -151,7 +151,7 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
     return h
 
 # def dg_2_step_mir(f=4/5, alpha=3/10, field=None, conditioncheck=True):
-#     """
+#     r"""
 #     Summary:
 #         - Name: Dash-Gunluk's 2-Step MIR;
 #         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
@@ -229,7 +229,7 @@ class Dg2StepMir(ExtremeFunctionsFactory):
             return 'extreme'
 
     def __call__(self, f=4/5, alpha=3/10, field=None, conditioncheck=True):
-        """
+        r"""
         Summary:
             - Name: Dash-Gunluk's 2-Step MIR;
             - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;

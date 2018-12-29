@@ -1,6 +1,6 @@
 from six.moves import range
 class PiecewiseQuasiPeriodic(FastPiecewise):
-    """
+    r"""
     Returns a piecewise quasi-periodic function from a list of (interval, function) pairs.
     Decomposes a piecewise quasi-periodic function into a periodic function and a linear function.
 
@@ -8,7 +8,7 @@ class PiecewiseQuasiPeriodic(FastPiecewise):
     """
 
     def __init__(self, list_of_pairs, quasiperiodic_extension=True):
-        """
+        r"""
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.igp import *
@@ -43,7 +43,7 @@ class PiecewiseQuasiPeriodic(FastPiecewise):
         self._quasiperiodic_extension = quasiperiodic_extension
 
     def __call__(self, x0):
-        """
+        r"""
         Evaluats self at x0.
 
         EXAMPLES::
@@ -80,7 +80,7 @@ class PiecewiseQuasiPeriodic(FastPiecewise):
         return value_at_shifted_x0
 
     def plot(self, *args, **kwds):
-        """
+        r"""
         Returns the plot of self.
 
         Keyword arguments are passed onto the plot command for each piece

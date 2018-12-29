@@ -1,6 +1,6 @@
 from six.moves import range
 def kzh_discontinuous_bhk_irrational(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=1/1000, c2=0, y1=1/10, y2=1/50, field=None):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -78,7 +78,7 @@ def kzh_discontinuous_bhk_irrational(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ra
     return h_temp - h_below + h_above + move_shift
 
 def kzh_minimal_has_only_crazy_perturbation_1():
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -161,7 +161,7 @@ def kzh_minimal_has_only_crazy_perturbation_1():
     return FastPiecewise(pieces)
 
 def kzh_minimal_has_only_crazy_perturbation_1_perturbation():
-    """
+    r"""
     A crazy perturbation for ``kzh_minimal_has_only_crazy_perturbation_1``.
     """
     h = kzh_minimal_has_only_crazy_perturbation_1()

@@ -12,7 +12,7 @@ from functools import reduce
 from six.moves import input
 
 def unique_list(iterator):
-    """
+    r"""
     Returns the list of the elements in the iterator without repetition.
     """
     l = []
@@ -24,7 +24,7 @@ def unique_list(iterator):
     return l
 
 def fractional(num):
-    """
+    r"""
     Reduces a number modulo `1`.
     """
     parent = num.parent()
@@ -37,7 +37,7 @@ def fractional(num):
     return num
 
 def delta_pi(fn,x,y):
-    """
+    r"""
     Computes the slack in subaddivity. See also ``delta_pi_general`` for discontinuous case.
 
     EXAMPLES::
@@ -52,7 +52,7 @@ def delta_pi(fn,x,y):
     return fn(fractional(x))+fn(fractional(y))-fn(fractional(x+y))
 
 def plot_2d_complex(function):
-    """
+    r"""
     Returns a plot of the horizonal lines, vertical lines, and diagonal lines of the complex.
     """
     bkpt = function.end_points()
@@ -82,7 +82,7 @@ def plot_2d_complex(function):
 ##
 
 def projection(vertices,linear_form):
-    """
+    r"""
     Computes the projection of vertices based on the linear form.
 
     vertices is a list of vertices (2-tuples).
@@ -104,13 +104,13 @@ def projection(vertices,linear_form):
         return [min(temp), max(temp)]
 
 def projections(vertices):
-    """
+    r"""
     Computes `F(I,J,K)`.
     """
     return [projection(vertices, [1,0]),projection(vertices, [0,1]),projection(vertices, [1,1])]    
 
 def verts(I1, J1, K1):
-    """
+    r"""
     Computes the vertices based on `I, J` and `K`.
     """
     temp = []
@@ -150,7 +150,7 @@ import six
 ### vertices, minimal triple, whether it's a translation/reflection,
 ### etc.; whether it's solid or dense).
 class Face:
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -202,7 +202,7 @@ class Face:
         return self.is_1D()
         
     def directed_move_with_domain_and_codomain(self):
-        """
+        r"""
         Maps a horizontal or vertical edge to a forward translation move.  Maps a diagonal edge to a reflection move.
 
         .. NOTE::
@@ -243,7 +243,7 @@ class Face:
             raise ValueError("Face does not correspond to a directed move: %s" % self)
 
     def functional_directed_move(self, is_backward_translation=False):
-        """
+        r"""
         Returns the (forward by default or backward if ``is_backward_translation=True``) translation move if given a horizontal/vertical edge, or the reflection move if given a diagonal edge.
 
         EXAMPLES::
@@ -367,7 +367,7 @@ def plot_kwds_hook(kwds):
     pass
 
 def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal=False, f=None, colorful=False, additive_color=None, function_color="blue"):
-    """
+    r"""
     Returns a plot of the 2d complex (`\\Delta P`) of fn with shaded
     additive faces, i.e., faces where `\\Delta \\pi = 0`.
     
@@ -484,7 +484,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     return p
 
 def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
-    """
+    r"""
     Colorful decoration.
 
     Plot fn on covered intervals with different colors according to slope values,
@@ -505,7 +505,7 @@ def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
     return p
 
 def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200, additive_color=additive_color, function_color="blue"):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -551,7 +551,7 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200, add
     return g
 
 def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, additive_color=additive_color, function_color='blue', **kwds):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -578,7 +578,7 @@ def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, 
     return g
 
 def plot_function_at_borders(fn, color='blue', legend_label="Function pi", covered_components=None, **kwds):
-    """
+    r"""
     Plot the function twice, on the upper and the left border, 
     to decorate 2d diagrams.
     """
@@ -631,7 +631,7 @@ proj_plot_alpha = 0.35
 #proj_plot_alpha = 1
 
 def plot_projections_at_borders(fn):
-    """
+    r"""
     Plot the projections `p_1(F), p_2(F), p_3(F)` of all full-dimensional
     additive faces `F` of fn as gray shadows:
 
@@ -708,7 +708,7 @@ def plot_projections_of_one_face(face, IJK_kwds):
     return g
     
 def interval_mod_1(interval):
-    """
+    r"""
     Represent the given proper interval modulo `1` as a subinterval of `[0,1]`.
 
     EXAMPLES::
@@ -747,7 +747,7 @@ def interval_mod_1(interval):
         raise ValueError("Not an interval: %s" % interval)
 
 def generate_covered_components(function):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -815,7 +815,7 @@ def latex_tick_formatter_y(y):
         return "$%s$" % latex(y)
 
 def ticks_keywords(function, y_ticks_for_breakpoints=False, extra_xticks=[], extra_yticks=[1]):
-    """
+    r"""
     Compute ``plot`` keywords for displaying the ticks.
     """
     xticks = function.end_points()
@@ -852,7 +852,7 @@ def delete_one_time_plot_kwds(kwds):
 
 def plot_covered_intervals(function, covered_components=None, uncovered_color='black', labels=None,
                            show_one_point_overlap_markers=None, **plot_kwds):
-    """
+    r"""
     Returns a plot of the covered and uncovered intervals of the function.
     """
     if covered_components is None:
@@ -914,7 +914,7 @@ def plot_directly_covered_intervals(function, uncovered_color='black', labels=No
     return plot_covered_intervals(function, components, uncovered_color=uncovered_color, labels=labels, **plot_kwds)
 
 def number_of_components(fn):
-    """
+    r"""
     Returns the number of connected components of fn.
 
     This is an upper bound on ``number_of_slopes``.
@@ -936,7 +936,7 @@ def number_of_components(fn):
     return len(covered_components)
 
 def slopes_intervals_dict(fn, ignore_nonlinear=False):
-    """
+    r"""
     Returns a dictionary that maps a slope value to a list of intervals with that slope.
 
     EXAMPLES::
@@ -961,7 +961,7 @@ def slopes_intervals_dict(fn, ignore_nonlinear=False):
     return slopes_dict
 
 def number_of_slopes(fn):
-    """
+    r"""
     Returns the number of different slopes of fn.
 
     If fn is discrete, this is defined as the number of different slopes
@@ -1002,7 +1002,7 @@ def number_of_slopes(fn):
     return len(slopes_intervals_dict(fn))
 
 def plot_with_colored_slopes(fn):
-    """
+    r"""
     Returns a plot of fn, with pieces of different slopes in different colors.
     """
     slopes_dict = slopes_intervals_dict(fn, ignore_nonlinear=True)
@@ -1011,7 +1011,7 @@ def plot_with_colored_slopes(fn):
 ### Minimality check.
 
 def subadditivity_test(fn, full_certificates=True):
-    """
+    r"""
     Check if fn is subadditive.
     """
     result = True
@@ -1029,7 +1029,7 @@ def subadditivity_test(fn, full_certificates=True):
     return result
 
 def symmetric_test(fn, f, full_certificates=True):
-    """
+    r"""
     Check if fn is symmetric.
     """
     result = True
@@ -1055,7 +1055,7 @@ def symmetric_test(fn, f, full_certificates=True):
     return result
 
 def find_f(fn, no_error_if_not_minimal_anyway=False):
-    """
+    r"""
     Find the value of `f` for the given function .
     """
     if hasattr(fn, '_f'):
@@ -1150,7 +1150,7 @@ from bisect import bisect_left
 show_values_of_fastpiecewise =  True
 
 class FastPiecewise (PiecewisePolynomial):
-    """
+    r"""
     Returns a piecewise function from a list of (interval, function)
     pairs.
 
@@ -1297,7 +1297,7 @@ class FastPiecewise (PiecewisePolynomial):
         return id(self)
 
     def __eq__(self, other):
-        """
+        r"""
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.igp import *
@@ -1329,25 +1329,25 @@ class FastPiecewise (PiecewisePolynomial):
         return (difference.intervals() == domain) and any(fn == FastLinearFunction(0,0) for fn in difference.functions())
 
     def is_continuous(self):
-        """
+        r"""
         return if the function is continuous
         """
         return self._is_continuous
 
     def is_two_sided_discontinuous(self):
-        """
+        r"""
         return if the function is discontinuous at 0+ and at 1-.
         """
         return self._is_two_sided_discontinuous
         
     def is_discrete(self):
-        """
+        r"""
         Return if the function is discrete, i.e., all pieces are singletons
         """
         return all(interval_length(interval) == 0 for interval in self.intervals())
 
     def end_points(self):
-        """
+        r"""
         Returns a list of all interval endpoints for this function.
         
         EXAMPLES::
@@ -1367,7 +1367,7 @@ class FastPiecewise (PiecewisePolynomial):
         return self._end_points
 
     def values_at_end_points(self):
-        """
+        r"""
         Returns a list of function values at all endpoints for this function.
 
         EXAMPLES::
@@ -1393,7 +1393,7 @@ class FastPiecewise (PiecewisePolynomial):
         return self._values_at_end_points
 
     def limits_at_end_points(self):
-        """
+        r"""
         Returns a list of 3-tuples [function value, right limit, left limit] at all endpoints for this function.
 
         EXAMPLES::
@@ -1419,7 +1419,7 @@ class FastPiecewise (PiecewisePolynomial):
         return self._limits_at_end_points
 
     def which_function(self, x0):
-        """
+        r"""
         Returns the function piece used to evaluate self at `x_0`.
         
         EXAMPLES::
@@ -1506,7 +1506,7 @@ class FastPiecewise (PiecewisePolynomial):
         raise ValueError("Value not defined at point %s, outside of domain." % x0)
 
     def __call__(self,x0):
-        """
+        r"""
         Evaluates self at `x_0`. 
         
         EXAMPLES::
@@ -1603,7 +1603,7 @@ class FastPiecewise (PiecewisePolynomial):
         raise ValueError("Value not defined at point %s, outside of domain." % x0)
 
     def limits(self, x0):
-        """
+        r"""
         returns [function value at `x_0`, function value at `x_0^+`, function value at `x_0^-`].
 
         EXAMPLES::
@@ -1707,7 +1707,7 @@ class FastPiecewise (PiecewisePolynomial):
         return self.which_function(x)
 
     def __add__(self,other):
-        """
+        r"""
         Add self and another piecewise function.
 
         In contrast to ``PiecewisePolynomial.__add__``, this does not do zero extension of domains.
@@ -1737,7 +1737,7 @@ class FastPiecewise (PiecewisePolynomial):
         return FastPiecewise([[interval, -f] for interval,f in self.list()], merge=True)
         
     def __mul__(self,other):
-        """
+        r"""
         Multiply self by a scalar or another piecewise function.
 
         In contrast to ``PiecewisePolynomial.__mul__``, this does not do zero extension of domains.
@@ -1763,7 +1763,7 @@ class FastPiecewise (PiecewisePolynomial):
     ## (see doctests below).  Also adds plotting of single points
     ## and discontinuity markers.
     def plot(self, *args, **kwds):
-        """
+        r"""
         Returns the plot of self.
         
         Keyword arguments are passed onto the plot command for each piece
@@ -1932,7 +1932,7 @@ class FastPiecewise (PiecewisePolynomial):
         return g
 
     def is_continuous_defined(self, xmin=0, xmax=1):
-        """
+        r"""
         return ``True`` if self is defined on [xmin, xmax] and is continuous on [xmin, xmax].
         """
         bkpt = self._end_points
@@ -1969,7 +1969,7 @@ class FastPiecewise (PiecewisePolynomial):
         return rep
 
     def _sage_input_(self, sib, coerced):
-        """
+        r"""
         Produce an expression which will reproduce this value when evaluated.
         """
         # FIXME: Add keyword arguments
@@ -1978,7 +1978,7 @@ class FastPiecewise (PiecewisePolynomial):
         return sib.name('FastPiecewise')(sib(self.list()))
 
     def sha1(self):
-        """
+        r"""
         Return a SHA-1 hash of the function.
 
         The hash is intended to stay stable even when the code is updated.
@@ -2082,7 +2082,7 @@ def can_coerce_to_QQ(x):
     return False
 
 def is_all_QQ(values):
-    """
+    r"""
     Check if all numbers in the list ``values`` are (or can be converted to) rationals.
 
     Returns a tuple of two values:
@@ -2114,7 +2114,7 @@ def is_all_QQ(values):
     return is_rational, values
 
 def nice_field_values(symb_values, field=None):
-    """
+    r"""
     Coerce the real numbers in the list symb_values into a convenient common field
     and return a list, parallel to symb_values, of the coerced values.
 
@@ -2193,7 +2193,7 @@ def nice_field_values(symb_values, field=None):
 
 #@logger
 def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field=None, merge=True):
-    """
+    r"""
     Create a continuous piecewise function from bkpt, slopes, and values.
 
     - bkpt and values are two parallel lists; it is assumed that bkpt is sorted in increasing order. 
@@ -2231,7 +2231,7 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
     return FastPiecewise(pieces, merge=merge)
 
 def piecewise_function_from_breakpoints_and_values(bkpt, values, field=None, merge=True):
-    """
+    r"""
     Create a continuous piecewise function from bkpt and values.
 
     - bkpt and values are two parallel lists; assuming bpkt is sorted (increasing).
@@ -2246,7 +2246,7 @@ def piecewise_function_from_breakpoints_and_values(bkpt, values, field=None, mer
     return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field, merge=merge)
 
 def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None, merge=True):
-    """
+    r"""
     Create a continuous piecewise function from bkpt and slopes.
 
     - bkpt and slopes are two parallel lists (except that bkpt is one element longer); assuming bpkt is sorted (increasing).  The function always has value `0` on ``bkpt[0]``.  
@@ -2263,7 +2263,7 @@ def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None, mer
     return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field, merge=merge)
 
 def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=None, merge=True):
-    """
+    r"""
     Create a continuous piecewise function from interval_lengths and slopes.
 
     - The function always has value 0 on 0. interval_lengths and slopes are two parallel lists that define the function values to the right of 0.
@@ -2283,7 +2283,7 @@ def piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field, merge=merge)
 
 def piecewise_function_from_breakpoints_and_limits(bkpt, limits, field=None, merge=True):
-    """
+    r"""
     Create a continuous or discontinuous piecewise function from bkpt and limits.
 
     - bkpt and limits are two parallel lists.  Assume that bkpt is a sorted (increasing). limits is a list of tuple of 3 numbers (mid, right, left).
@@ -2324,7 +2324,7 @@ def piecewise_function_from_breakpoints_and_limits(bkpt, limits, field=None, mer
     return FastPiecewise(pieces, merge=merge)
 
 def piecewise_function_from_breakpoints_slopes_and_jumps(bkpt, slopes, jumps, field=None, merge=True):
-    """
+    r"""
     Create a continuous or discontinuous piecewise function from bkpt, slopes and jumps.
 
     - The function always has value 0 on the first breakpoint `0`. The list jumps describes the function value jumps on the left and the right endpoints of each slope.
@@ -2361,7 +2361,7 @@ def piecewise_function_from_breakpoints_slopes_and_jumps(bkpt, slopes, jumps, fi
     return FastPiecewise(pieces, merge=merge)
 
 def discrete_function_from_points_and_values(points, values, field=None):
-    """
+    r"""
     Create a function defined on a finite list of points. 
 
     points and values are two parallel lists.
@@ -2379,7 +2379,7 @@ def discrete_function_from_points_and_values(points, values, field=None):
     return FastPiecewise(pieces)
 
 def limiting_slopes(fn):
-    """
+    r"""
     Computes the limiting slopes on the right and the left side of the
     origin.
     
@@ -2505,7 +2505,7 @@ def find_epsilon_interval(fn, perturb):
         return find_epsilon_interval_general(fn, perturb)
 
 def find_largest_epsilon(fn, perturb):
-    """
+    r"""
     Compute the proper rescaling of a given perturbation function.
 
     If the largest epsilon is zero, we should try a different perturbation instead.
@@ -2521,7 +2521,7 @@ show_moves_with_discontinuity_markers = False
 
 class FunctionalDirectedMove (FastPiecewise):
     # FIXME: At the moment, does not reduce modulo 1, in contrast to old code!
-    """
+    r"""
     Return a pieceweise function to represent a functional directed move
     from a list of domain intervals and the functional directed move. 
     """
@@ -2535,7 +2535,7 @@ class FunctionalDirectedMove (FastPiecewise):
         return "<FunctionalDirectedMove %s with domain %s, range %s>" % (self.directed_move, self.intervals(), self.range_intervals())
 
     def sign(self):
-        """
+        r"""
         Return the sign of the move
 
         EXAMPLES::
@@ -2551,7 +2551,7 @@ class FunctionalDirectedMove (FastPiecewise):
         return True
 
     def additive_faces(self, is_backward_translation=False):
-        """
+        r"""
         Map ``FunctionalDirectedMove`` back to one-dimensional additive face(s) in the 2d-diagram.
 
         EXAMPLES::
@@ -2601,7 +2601,7 @@ class FunctionalDirectedMove (FastPiecewise):
         return self.directed_move[item]
 
     def can_apply(self, x):
-        """
+        r"""
         Determine if self can apply on `x`.
 
         EXAMPLES::
@@ -2620,7 +2620,7 @@ class FunctionalDirectedMove (FastPiecewise):
             return False
 
     def apply_ignoring_domain(self, x):
-        """
+        r"""
         Apply self on x by ignoring the domain (use modulo 1)
 
         EXAMPLES::
@@ -2644,7 +2644,7 @@ class FunctionalDirectedMove (FastPiecewise):
     def apply_to_coho_interval(self, interval, inverse=False):
         # This does not do error checking.  Some code depends on this fact!
         # FIXME: This should be made clear in the name of this function.
-        """
+        r"""
         Returns a range inverval from a given interval by applying the move.
  
         If the move sign is 1, the user can take the inverse of the operation,
@@ -2681,13 +2681,13 @@ class FunctionalDirectedMove (FastPiecewise):
         return result
 
     def range_intervals(self):
-        """
+        r"""
         Return the range intervals of self.
         """
         return [ self.apply_to_coho_interval(interval) for interval in self.intervals() ] 
 
     def is_identity(self):
-        """
+        r"""
         Determine whether self is a identity function or not.
 
         EXAMPLES::
@@ -2703,7 +2703,7 @@ class FunctionalDirectedMove (FastPiecewise):
         return self.directed_move[0] == 1 and self.directed_move[1] == 0
 
     def restricting(self, components):
-        """
+        r"""
         Returns a new move by removing ``self.restricted(component)`` for component in components.
         (The result may have the empty set as its domain.)
         """
@@ -2757,7 +2757,7 @@ class FunctionalDirectedMove (FastPiecewise):
         return FastPiecewise.plot(self, color=rgbcolor, *args, **kwds)
 
     def __invert__(self):
-        """
+        r"""
         Returns the (pseudo-)inverse of ``self``.
 
         EXAMPLES::
@@ -2782,7 +2782,7 @@ class FunctionalDirectedMove (FastPiecewise):
             return FunctionalDirectedMove(self.range_intervals(), self.directed_move)
 
     def __mul__(self, other):
-        """
+        r"""
         Compute the directed move that corresponds to the directed move ``self`` after ``other``. 
 
         EXAMPLES::
@@ -2796,7 +2796,7 @@ class FunctionalDirectedMove (FastPiecewise):
 
 @cached_function
 def generate_functional_directed_moves(fn):
-    """
+    r"""
     Compute the (translations and reflections) moves.
     """
     moves = dict()
@@ -2820,7 +2820,7 @@ def plot_walk(walk_dict, color="black", ymin=0, ymax=1, **kwds):
     return g
 
 def generate_symbolic(fn, components, field=None, f=None):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -2850,7 +2850,7 @@ def generate_additivity_equations(fn, symbolic, field, f=None, bkpt=None):
         return generate_additivity_equations_general(fn, symbolic, field, f=f, bkpt=bkpt)
 
 def rescale_to_amplitude(perturb, amplitude):
-    """For plotting purposes, rescale the function perturb so that its
+    r"""For plotting purposes, rescale the function perturb so that its
     maximum (supremum) absolute function value is amplitude.
     """
     current_amplitude = max([ abs(x) for limits in perturb.limits_at_end_points() for x in limits if x is not None])
@@ -2863,7 +2863,7 @@ def rescale_to_amplitude(perturb, amplitude):
 show_plots_figsize = 10
 
 def show_plot(graphics, show_plots, tag, object=None, **show_kwds):
-    """
+    r"""
     Display or save graphics.
 
     show_plots can be one of: 
@@ -2891,7 +2891,7 @@ def plot_rescaled_perturbation(perturb, xmin=0, xmax=1, **kwds):
 check_perturbation_plot_three_perturbations = True
 
 def basic_perturbation(fn, index):
-    """
+    r"""
     Get a basic perturbation of fn.  index counts from 1 (to match the labels in the diagrams). 
     """
     if not hasattr(fn, '_perturbations'):
@@ -2904,7 +2904,7 @@ def basic_perturbation(fn, index):
     raise ValueError("No perturbations")
 
 def plot_perturbation_diagram(fn, perturbation=None, xmin=0, xmax=1):
-    """
+    r"""
     Plot a perturbation of fn.
     
     perturbation is either a perturbation function, or an integer (which designates a basic perturbation of fn via ``basic_perturbation``).  If perturbation is not provided, it defaults to the perturbation indexed 1.
@@ -2958,7 +2958,7 @@ def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbatio
 
 def generate_perturbations_finite_dimensional(function, show_plots=False, f=None, full_certificates=True):
     ## FIXME: Perhaps we want an oversampling parameter as in generate_perturbations_simple??
-    """
+    r"""
     Generate (with ``yield``) perturbations for ``finite_dimensional_extremality_test``.
     """
     fdms, covered_components = generate_directed_move_composition_completion(function, show_plots=show_plots)
@@ -2999,7 +2999,7 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
 
 def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn_about_uncovered_intervals=True, 
                                         show_all_perturbations=False, full_certificates=True):
-    """
+    r"""
     Solve a homogeneous linear system of additivity equations with one
     slope variable for every component (including every non-covered
     interval) and one jump variable for each (left/right) discontinuity.
@@ -3066,7 +3066,7 @@ def generate_type_2_vertices(fn, comparison, reduced=True, bkpt=None):
         return generate_type_2_vertices_general(fn, comparison, reduced=reduced, bkpt=bkpt)
 
 def generate_additive_vertices(fn, reduced=True, bkpt=None):
-    """
+    r"""
     We are returning a set of 6-tuples `(x, y, z, xeps, yeps, zeps)`,
     so that duplicates are removed, and so the result can be cached for later use.
 
@@ -3081,7 +3081,7 @@ def generate_additive_vertices(fn, reduced=True, bkpt=None):
 
 @cached_function
 def generate_nonsubadditive_vertices(fn, reduced=True):
-    """
+    r"""
     We are returning a set of 6-tuples `(x, y, z, xeps, yeps, zeps)`,
     so that duplicates are removed, and so the result can be cached for later use.
 
@@ -3106,7 +3106,7 @@ class MaximumNumberOfIterationsReached(Exception):
 crazy_perturbations_warning = False
 
 def extremality_test(fn, show_plots = False, f=None, max_num_it=1000, phase_1=False, finite_dimensional_test_first=False, show_all_perturbations=False, crazy_perturbations=True, full_certificates=True):
-    """Check if fn is extreme for the group relaxation with the given `f`. 
+    r"""Check if fn is extreme for the group relaxation with the given `f`. 
 
     If fn is discrete, it has to be defined on a cyclic subgroup of
     the reals containing `1`, restricted to `[0, 1]`.  The group
@@ -3196,7 +3196,7 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it=1000, phase_1=Fa
     return not seen_perturbation
 
 def generate_perturbations(fn, show_plots=False, f=None, max_num_it=1000, finite_dimensional_test_first=False, full_certificates=True):
-    """
+    r"""
     Generate (with ``yield``) perturbations for ``extremality_test``.
     """
     if fn.is_discrete():
@@ -3248,7 +3248,7 @@ def generate_perturbations_equivariant(fn, show_plots=False, f=None, max_num_it=
     #    logging.info("Dense orbits in all non-covered intervals.")
 
 def plot_completion_diagram(fn, perturbation=None):
-    """
+    r"""
     Return a plot of the completion diagram.
     
     To view a part only, use::
@@ -3272,7 +3272,7 @@ def plot_completion_diagram(fn, perturbation=None):
     return fn._completion.plot(extra_graphics = g)
 
 def perturbation_polyhedron(fn, perturbs):
-    """
+    r"""
     Given fn  and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a polyhedron, one dimension for each basic perturbation, with the subadditivities.
 
     EXAMPLES::
@@ -3378,7 +3378,7 @@ def perturbation_polyhedron(fn, perturbs):
     return pert_polyhedron
 
 def perturbation_mip(fn, perturbs, solver=None, field=None):
-    """
+    r"""
     Given fn and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a mip, one dimension for each basic perturbation, with the subadditivities.
 
     EXAMPLES::
@@ -3495,7 +3495,7 @@ def perturbation_mip(fn, perturbs, solver=None, field=None):
     return mip
 
 def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_polyhedron=False):
-    """
+    r"""
     A generator of lifted functions.
 
     Set up a mip, one dimension for each basic perturbation, with the subadditivities. Shoot random directions as objective functions. Solve the mip. Lift the function by adding the perturbation that corresponds to the mip solution.
@@ -3555,7 +3555,7 @@ def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_po
         yield fn + perturb
 
 def perturbation_corresponding_to_vertex(perturbs, vertex):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -3637,7 +3637,7 @@ def lift(fn, show_plots = False, use_all_perturbations=True, use_largest_absolut
         return perturbed
 
 def lift_extreme_function_for_finite_group_to_infinite_group(fn, show_plots = False, show_all_lifting=True):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -3790,7 +3790,7 @@ def piecewise_function_from_robert_txt_file(filename):
     return piecewise_function_from_breakpoints_and_values([ x / xscale for x in xvalues ] + [1], [y / yf for y in yvalues] + [0])
 
 def random_piecewise_function(xgrid=10, ygrid=10, continuous_proba=1, symmetry=True):
-    """
+    r"""
     Return a random, continuous or discontinuous piecewise linear function defined on `[0, 1]` with breakpoints that are multiples of `\\frac{1}{xgrid}` and values that are multiples of `\\frac{1}{ygrid}`.
 
     - continuous_proba (a real number in `[0,1]`) indicates the probability that the function is (left/right) continuous at a breakpoint. 
@@ -3863,7 +3863,7 @@ def random_piecewise_function(xgrid=10, ygrid=10, continuous_proba=1, symmetry=T
 import six
 
 def is_all_QQ_fastpath(values):
-    """
+    r"""
     This version does not do the full check whether it can be coerced to ``QQ``,
     which is slow for ``RealNumberField``.
     """
@@ -3876,7 +3876,7 @@ def is_all_QQ_fastpath(values):
 from sage.rings.number_field.number_field_element import is_NumberFieldElement
 
 def is_all_the_same_number_field_fastpath(values):
-    """
+    r"""
     This version does not try coercions and compares fields using ``is``, rather than their comparison operator.
     """
     number_field_seen = None
@@ -3892,7 +3892,7 @@ def is_all_the_same_number_field_fastpath(values):
     return True
 
 def is_QQ_linearly_independent(*numbers):
-    """
+    r"""
     Test if numbers are linearly independent over ``QQ``.
 
     EXAMPLES::
@@ -3942,7 +3942,7 @@ def is_QQ_linearly_independent(*numbers):
     return rank(coordinate_matrix) == len(numbers)
 
 def compose_functional_directed_moves(A, B, show_plots=False):
-    """
+    r"""
     Compute the directed move that corresponds to the directed move `A` after `B`.
     
     EXAMPLES::
@@ -3969,7 +3969,7 @@ def compose_functional_directed_moves(A, B, show_plots=False):
     return result
 
 def merge_functional_directed_moves(A, B, show_plots=False):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -4045,7 +4045,7 @@ def partition_overlapping_components(given_component, components):
     return overlapping_components, remaining_components
 
 def check_for_strip_lemma_fastpath(m1, m2):
-    """
+    r"""
     Given two moves `m_1` and `m_2`, return the dense interval by trying to apply the strip lemma.
     Not used, because we want to add covered intervals back to the domains of moves so that L-U is large.
 
@@ -4065,7 +4065,7 @@ def check_for_strip_lemma_fastpath(m1, m2):
     return check_for_strip_lemma_small_translations(m1.intervals(), m2.intervals(), m1[1], m2[1])
 
 def check_for_strip_lemma_linear_independence(m1, m2):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -4085,7 +4085,7 @@ def check_for_strip_lemma_linear_independence(m1, m2):
             is_QQ_linearly_independent(m1[1], m2[1]))
 
 def check_for_strip_lemma_small_translations(domain1, domain2, t1, t2):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -4145,7 +4145,7 @@ show_covered_components_as_rectangles = False
 class DirectedMoveCompositionCompletion:
 
     def __init__(self, fdms=[], covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function=None, pts_of_discontinuity=None, show_zero_perturbation=True, show_kwds={}):
-        """
+        r"""
         Computation of the continuous closure of (the inverse semigroup generated by) a set of moves.
 
         Input for abstract move ensembles:
@@ -4201,7 +4201,7 @@ class DirectedMoveCompositionCompletion:
         self._show_zero_perturbation = show_zero_perturbation
 
     def update_stats(self):
-        """
+        r"""
         Update ``max_component_intervals`` and ``max_directed_move_intervals``.
         """
         self._max_component_intervals = max(self._max_component_intervals,
@@ -4222,7 +4222,7 @@ class DirectedMoveCompositionCompletion:
         return self._max_directed_move_intervals
 
     def add_move(self, fdm):
-        """
+        r"""
         Add a functional directed move to self.
         Merge or restrict functional directed move if necessary.
         """
@@ -4301,7 +4301,7 @@ class DirectedMoveCompositionCompletion:
             logging.info("Plotting... done")
 
     def extend_components_by_moves(self):
-        """
+        r"""
         Compose ``self.covered_components`` with the functional directed moves.
         """
         # try extending each component by applying all the moves
@@ -4371,7 +4371,7 @@ class DirectedMoveCompositionCompletion:
                     self.add_move(c)
 
     def reduce_moves_by_components(self):
-        """
+        r"""
         Reduce moves with ``self.covered_components``.
         """
         # NOTE: it does not modify any_change_moves even if longer moves are created.
@@ -4456,7 +4456,7 @@ class DirectedMoveCompositionCompletion:
             return "<DirectedMoveCompositionCompletion (incomplete, {} rounds) with {} directed moves and {} covered components>".format(self.num_rounds, len(self.move_dict), len(self.covered_components))
 
 def directed_move_composition_completion(fdms, covered_components=[], proj_add_vert=set(), show_plots=False, plot_background=None, function=None, pts_of_discontinuity=None, max_num_rounds=None, error_if_max_num_rounds_exceeded=True):
-    """
+    r"""
     Only used in ``stuff_with_random_irrational_function()``.
     """
     completion = DirectedMoveCompositionCompletion(fdms, covered_components=covered_components, \
@@ -4477,7 +4477,7 @@ def plot_completion_diagram_background(fn):
 strategical_covered_components = False
 
 def generate_covered_components_strategically(fn, show_plots=False):
-    """
+    r"""
     Return both directly and indirectly covered components.
 
     Set ``logging.getLogger().setLevel(logging.DEBUG)`` to see proof of covered components.
@@ -4611,7 +4611,7 @@ def generate_covered_components_strategically(fn, show_plots=False):
     return covered_components
 
 def generate_directly_covered_components(fn):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -4753,7 +4753,7 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
                       for (shifted_stability_intervals, walk_dict, to_do) in fn._stability_orbits ]))
 
 def zero_perturbation_partial_function(components, zero_perturbation_points):
-    """
+    r"""
     Compute the partial function for which the perturbation, modulo
     perturbations that are interpolations of values at breakpoints, is
     known to be zero.
@@ -4770,7 +4770,7 @@ def zero_perturbation_partial_function(components, zero_perturbation_points):
         return None
 
 def generate_uncovered_components(fn, show_plots=False):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *

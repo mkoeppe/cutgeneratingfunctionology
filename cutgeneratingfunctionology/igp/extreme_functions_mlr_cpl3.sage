@@ -1,6 +1,6 @@
 from six.moves import range
 def cpl3_function(r0, z1, o1, o2):
-    """
+    r"""
     Construct a CPL3= function.
 
     Parameters:
@@ -42,7 +42,7 @@ def cpl3_function(r0, z1, o1, o2):
     return PiecewiseQuasiPeriodic(list_of_pairs)
 
 def superadditive_lifting_function_from_group_function(fn, f=None):
-    """
+    r"""
     Convert a standard representation 'phi' (a superadditive quasiperiodic function) from a group representation 'fn' (a subadditive periodic function).
 
     EXAMPLES::
@@ -70,7 +70,7 @@ def superadditive_lifting_function_from_group_function(fn, f=None):
     return phi
 
 def group_function_from_superadditive_lifting_function(phi, f=None):
-    """
+    r"""
     Convert a group representation 'fn' (a subadditive periodic function) from a standard representation 'phi' (a superadditive quasiperiodic function).
 
     EXAMPLES::
@@ -103,7 +103,7 @@ def group_function_from_superadditive_lifting_function(phi, f=None):
     return fn
 
 def mlr_cpl3_a_2_slope(r0=3/13, z1=3/26, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - The group representation of the continuous piecewise linear lifting (CPL) function.
         - Infinity; Dim = 1; Slopes = 2 ; Continuous.
@@ -153,7 +153,7 @@ def mlr_cpl3_a_2_slope(r0=3/13, z1=3/26, field=None, conditioncheck=True):
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
 
 def mlr_cpl3_b_3_slope(r0=3/26, z1=1/13, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - The group representation of the continuous piecewise linear lifting (CPL) function.
         - Infinity; Dim = 1; Slopes = 3 ; Continuous.
@@ -212,7 +212,7 @@ def mlr_cpl3_b_3_slope(r0=3/26, z1=1/13, field=None, conditioncheck=True):
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
         
 def mlr_cpl3_c_3_slope(r0=5/24, z1=1/12, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - The group representation of the continuous piecewise linear lifting (CPL) function.
         - Infinity; Dim = 1; Slopes = 3 ; Continuous.
@@ -263,7 +263,7 @@ def mlr_cpl3_c_3_slope(r0=5/24, z1=1/12, field=None, conditioncheck=True):
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
    
 def mlr_cpl3_d_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - The group representation of the continuous piecewise linear lifting (CPL) function.
         - Infinity; Dim = 1; Slopes = 3 ; Continuous.
@@ -324,7 +324,7 @@ def mlr_cpl3_d_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
 
 def mlr_cpl3_f_2_or_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - The group representation of the continuous piecewise linear lifting (CPL) function.
         - Infinity; Dim = 1; Slopes = 2 or 3; Continuous.
@@ -383,7 +383,7 @@ def mlr_cpl3_f_2_or_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
 
 def mlr_cpl3_g_3_slope(r0=1/12, z1=None, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - The group representation of the continuous piecewise linear lifting (CPL) function.
         - Infinity; Dim = 1; Slopes = 3 ; Continuous.
@@ -439,7 +439,7 @@ def mlr_cpl3_g_3_slope(r0=1/12, z1=None, field=None, conditioncheck=True):
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
 
 def mlr_cpl3_h_2_slope(r0=1/4, z1=1/6, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - The group representation of the continuous piecewise linear lifting (CPL) function.
         - Infinity; Dim = 1; Slopes = 2 ; Continuous.
@@ -491,7 +491,7 @@ def mlr_cpl3_h_2_slope(r0=1/4, z1=1/6, field=None, conditioncheck=True):
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
 
 def mlr_cpl3_k_2_slope(r0=7/27, z1=4/27, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - The group representation of the continuous piecewise linear lifting (CPL) function.
         - Infinity; Dim = 1; Slopes = 2 ; Continuous.
@@ -541,7 +541,7 @@ def mlr_cpl3_k_2_slope(r0=7/27, z1=4/27, field=None, conditioncheck=True):
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
         
 def mlr_cpl3_l_2_slope(r0=8/25, z1=None, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - The group representation of the continuous piecewise linear lifting (CPL) function.
         - Infinity; Dim = 1; Slopes = 2 ; Continuous.
@@ -601,7 +601,7 @@ def mlr_cpl3_l_2_slope(r0=8/25, z1=None, field=None, conditioncheck=True):
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
 
 def mlr_cpl3_n_3_slope(r0=9/25, z1=2/25, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - The group representation of the continuous piecewise linear lifting (CPL) function.
         - Infinity; Dim = 1; Slopes = 3 ; Continuous.
@@ -660,7 +660,7 @@ def mlr_cpl3_n_3_slope(r0=9/25, z1=2/25, field=None, conditioncheck=True):
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
 
 def mlr_cpl3_o_2_slope(r0=3/8, z1=None, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - The group representation of the continuous piecewise linear lifting (CPL) function.
         - Infinity; Dim = 1; Slopes = 2 ; Continuous.
@@ -716,7 +716,7 @@ def mlr_cpl3_o_2_slope(r0=3/8, z1=None, field=None, conditioncheck=True):
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
         
 def mlr_cpl3_p_2_slope(r0=5/12, z1=None, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - The group representation of the continuous piecewise linear lifting (CPL) function.
         - Infinity; Dim = 1; Slopes = 2 ; Continuous.
@@ -776,7 +776,7 @@ def mlr_cpl3_p_2_slope(r0=5/12, z1=None, field=None, conditioncheck=True):
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
         
 def mlr_cpl3_q_2_slope(r0=5/12, z1=3/24, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - The group representation of the continuous piecewise linear lifting (CPL) function.
         - Infinity; Dim = 1; Slopes = 2 ; Continuous.
@@ -831,7 +831,7 @@ def mlr_cpl3_q_2_slope(r0=5/12, z1=3/24, field=None, conditioncheck=True):
     return piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=field)
 
 def mlr_cpl3_r_2_slope(r0=3/7, z1=1/7, field=None, conditioncheck=True):
-    """
+    r"""
     Summary:
         - The group representation of the continuous piecewise linear lifting (CPL) function.
         - Infinity; Dim = 1; Slopes = 2 ; Continuous.
@@ -937,7 +937,7 @@ def cpl3_3(f=9469/66000, z1=2869/66000, z2=24709/66000, field=None, conditionche
     return h
 
 def cpl3_4(f=8497/126000, z1=499/42000, z2=27863/126000, field=None, conditioncheck=True):
-    """
+    r"""
     The function is extreme under the condtions:
     f + 4*z1 + 4*z2 - 1 <= 0 && -z1 < 0 && -f < 0 && 2*f + 2*z1 - z2 <= 0
 

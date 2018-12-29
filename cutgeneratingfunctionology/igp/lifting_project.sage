@@ -3,7 +3,7 @@ from six.moves import range
 
 
 def lift_on_uncovered_components(fn, show_plots=False, L=[]):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
