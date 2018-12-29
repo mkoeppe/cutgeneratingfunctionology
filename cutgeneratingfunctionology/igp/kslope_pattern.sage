@@ -716,8 +716,8 @@ def pattern_additive_vertices(l, pattern):
         31
     """
     q, f = pattern_q_and_f(l, pattern)
-    f2 = int(f / 2)
-    f3 = int(f / 3)
+    f2 = f // 2
+    f3 = f // 3
     changed_vertices = []
     # impose some initial green vertices
     for k in range(f3 + 2, f2, 3):
@@ -759,8 +759,8 @@ def pattern_more_additive_vertices(l, pattern):
     Experimental code.
     """
     q, f = pattern_q_and_f(l, pattern)
-    f2 = int(f / 2)
-    f3 = int(f / 3)
+    f2 = f // 2
+    f3 = f // 3
     more_additivity = [(f3 + 2, q - 4), (f3 + 4, q - 10), (f2 - 2 , f2 - 2), (f3 + 4, q - 12), \
                        (f2 - 8, f2 - 8), (f2 - 17, f2 - 17), (f2 - 23, f2 - 23), \
                        (f3 + 8, q - 22), (f3 + 7, q - 19), (f2 - 14, f2 - 14)]
@@ -893,7 +893,7 @@ def pattern_polytope(vertices_color, fn):
         A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 6 points
     """
     q = len(fn) - 1
-    f = int(q / 2)
+    f = q // 2
     cs = Constraint_System()
     cs.insert(fn[0] == 0)
     cs.insert(fn[f] == 1)

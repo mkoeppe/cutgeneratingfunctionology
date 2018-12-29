@@ -171,8 +171,8 @@ def initial_cs_matrix(q, f):
         [ 0  1  1 -1  0]
         [ 0  0  0 -1  2]
     """
-    n1 = int(f / 2)
-    n2 = int((f + q) / 2) - f
+    n1 = f // 2
+    n2 = (f + q) // 2 - f
     cs_matrix = matrix(QQ, 2 + n1 + n2, q, sparse = True)
     # fn[0] = 0, fn[f] = 1
     cs_matrix[0, 0] = 1
@@ -521,7 +521,7 @@ def num_slopes_at_best(q, f, covered_intervals, uncovered_intervals=None):
     if uncovered_intervals is None:
         #uncovered_num = q - sum([len(component) for component in covered_intervals])
         # consider connected components in uncovered_intervals
-        to_cover = set(list(range(0, (f + 1) / 2)) + list(range(f, (f + q + 1) / 2)))
+        to_cover = set(list(range(0, (f + 1) // 2)) + list(range(f, (f + q + 1) // 2)))
         for component in covered_intervals:
             to_cover -= component
         uncovered_num = len(to_cover)
@@ -697,8 +697,8 @@ def initial_covered_uncovered(q, f, vertices_color):
     # lower-left and upper-right green triangle
     covered_intervals = [set([0, f-1]), set([f, q-1])]
     # consider reflection regarding f.
-    uncovered_intervals = [set([i, f - i - 1]) for i in range(1, (f + 1) / 2)]
-    uncovered_intervals += [set([i, q + f - i - 1]) for i in range(f + 1, (f + q + 1) / 2)]
+    uncovered_intervals = [set([i, f - i - 1]) for i in range(1, (f + 1) // 2)]
+    uncovered_intervals += [set([i, q + f - i - 1]) for i in range(f + 1, (f + q + 1) // 2)]
     for x in range(1, q):
         for y in range(x, q):
             if vertices_color[(x, y)] == 0:
@@ -1037,7 +1037,7 @@ def all_intervals_covered(q, f, values, last_covered_intervals):
     Incremental computation
     """
     to_cover = [i for i in generate_to_cover(q, last_covered_intervals) \
-                if (1 <= i < (f + 1) / 2) or ((f + 1) <=  i < (f + q + 1) / 2)]
+                if (1 <= i < (f + 1) // 2) or ((f + 1) <=  i < (f + q + 1) // 2)]
     if not to_cover:
         return True
     covered_intervals = copy(last_covered_intervals)
@@ -1071,7 +1071,7 @@ def all_intervals_covered(q, f, values, last_covered_intervals):
                         # x cannot be covered. not extreme function
                         return False
 
-    to_cover = [i for i in uncovered_set if (1 <= i < (f + 1) / 2) or ((f + 1) <=  i < (f + q + 1) / 2)]
+    to_cover = [i for i in uncovered_set if (1 <= i < (f + 1) // 2) or ((f + 1) <=  i < (f + q + 1) // 2)]
     # undirectly covered
     for x in to_cover:
         if x in uncovered_set:
@@ -1189,8 +1189,8 @@ def sort_pair(x, y):
         return (y, x)
     
 def initialization_sym(q, f):
-    f2 = int(f / 2)
-    f3 = int(f / 3)
+    f2 = f // 2
+    f3 = f // 3
     vertices_color = initial_vertices_color(q, f)
     # impose some initial green vertices
     changed_vertices = [(1, f2), (f2, f2)]
@@ -1327,7 +1327,7 @@ def measure_stats_detail(q, f):
     vertices_color = initial_vertices_color(q, f);
     cs = initial_cs(q, f, vertices_color)
     polytope = C_Polyhedron(cs)
-    exp_dim = int(q / 2) - 1
+    exp_dim = q // 2 - 1
     time_start = os.times()
     extreme_points = vertex_enumeration(polytope, exp_dim=exp_dim)
     time_end = os.times()
@@ -1376,7 +1376,7 @@ def write_stats_detail(q, fdestdir=None):
     max_denominator_v = []
     max_denominator_s = []
     
-    for f in range(1, int(q/2)+1):
+    for f in range(1, q // 2 + 1):
         t, num, slope, extreme, vdenominator, sdenominator = measure_stats_detail(q, f)
         t_enumeration.append(t)
         n_vertex.append(num)
@@ -1449,7 +1449,7 @@ def generate_extreme_functions_for_finite_group(q, f):
     vertices_color = initial_vertices_color(q, f)
     cs = initial_cs(q, f, vertices_color)
     polytope = C_Polyhedron(cs)
-    exp_dim = int(q / 2) - 1
+    exp_dim = q // 2 - 1
     extreme_points = vertex_enumeration(polytope, exp_dim=exp_dim)
     for v in extreme_points:
         v_n = v.coefficients()
