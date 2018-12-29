@@ -36,8 +36,8 @@ def pattern_setup_lp(l, more_ini_additive=False, objcoef=None, use_auxiliary_del
         MIPVariable ...
         sage: len(igp.deltafn_dic.items())
         92
-        sage: igp.deltafn_dic.items()[0]
-        ((2, 10, 13), [(25, 29), (25, 33)])
+        sage: igp.deltafn_dic[(2, 10, 13)]
+        [(25, 29), (25, 33)]
     """
     global pattern_lp, var_slope, var_delta, deltafn_dic
     q, f = pattern_q_and_f(l, 0)
