@@ -436,12 +436,9 @@ class PiecewisePolynomial_polyhedral(SageObject):
             sage: R.<x,y>=PolynomialRing(QQ)
             sage: hp = PiecewisePolynomial_polyhedral([(polytopes.hypercube(2), x+y)])
             sage: hn = PiecewisePolynomial_polyhedral([(polytopes.hypercube(2), -x-y)])
-            sage: PiecewisePolynomial_polyhedral.max(hp, hn)
-            <PiecewisePolynomial_polyhedral with 2 parts, 
-             domain: A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices: (A vertex at (1, -1), A vertex at (-1, 1), A vertex at (1, 1))
-             function: x + y
-             domain: A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices: (A vertex at (-1, 1), A vertex at (1, -1), A vertex at (-1, -1))
-             function: -x - y>
+            sage: pairs = PiecewisePolynomial_polyhedral.max(hp, hn).pairs()
+            sage: list(sorted( (sorted(P.vertices_list()), f) for (P, f) in pairs ))
+            [([[-1, -1], [-1, 1], [1, -1]], -x - y), ([[-1, 1], [1, -1], [1, 1]], x + y)]
         """
         if not (self._is_piecewise_linear and other._is_piecewise_linear):
             raise NotImplementedError("Not implemented for non-linear PiecewisePolynomial_polyhedral functions.")
@@ -477,12 +474,9 @@ class PiecewisePolynomial_polyhedral(SageObject):
             sage: R.<x,y>=PolynomialRing(QQ)
             sage: hp = PiecewisePolynomial_polyhedral([(polytopes.hypercube(2), x+y)])
             sage: hn = PiecewisePolynomial_polyhedral([(polytopes.hypercube(2), -x-y)])
-            sage: PiecewisePolynomial_polyhedral.min(hp, hn)
-            <PiecewisePolynomial_polyhedral with 2 parts, 
-             domain: A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices: (A vertex at (-1, 1), A vertex at (1, -1), A vertex at (-1, -1))
-             function: x + y
-             domain: A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices: (A vertex at (1, -1), A vertex at (-1, 1), A vertex at (1, 1))
-             function: -x - y>
+            sage: pairs = PiecewisePolynomial_polyhedral.min(hp, hn).pairs()
+            sage: list(sorted( (sorted(P.vertices_list()), f) for (P, f) in pairs ))
+            [([[-1, -1], [-1, 1], [1, -1]], x + y), ([[-1, 1], [1, -1], [1, 1]], -x - y)]
         """
         if not (self._is_piecewise_linear and other._is_piecewise_linear):
             raise NotImplementedError("Not implemented for non-linear PiecewisePolynomial_polyhedral functions.")
