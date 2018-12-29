@@ -956,7 +956,7 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
     nn = []
     destdir = output_dir+"sym_mode_2d_diagrams/"+"patterns_%s/" % pattern
     mkdir_p(destdir)
-    logging.disable(logging.info)
+    logging.disable(logging.INFO)
     #print polytope
     for v in vertex_enumeration(polytope, exp_dim=exp_dim, vetime=False):
         #v.coefficients() is numerator of component's slope value
