@@ -1385,25 +1385,25 @@ class SemialgebraicComplex(SageObject):
         sage: extc.is_face_to_face()
         True
         sage: boundary = extc.guess_boundary()
-        sage: boundary
-        [f - bkpt, -f + 4*bkpt - 1, -f]
+        sage: sorted(boundary, key=str)
+        [-f, -f + 4*bkpt - 1, f - bkpt]
         sage: extc.is_complete(bddlin=boundary,strict=True) # optional - mathematica
         False
         sage: extc.is_complete(bddlin=boundary,strict=False) # optional - mathematica
         True
         sage: pc = extc.polyhedral_complex()
-        sage: [sage_input(pol) for pol in pc.cells_list()]
-        [Polyhedron(... vertices=[(QQ(0), 1/4)]),
-         Polyhedron(... vertices=[(QQ(0), QQ(0))]),
-         Polyhedron(... vertices=[(1/3, 1/3)]),
-         Polyhedron(... vertices=[(1/7, 2/7)]),
-         Polyhedron(... vertices=[(1/3, 1/3), (1/7, 2/7)]),
-         Polyhedron(... vertices=[(QQ(0), QQ(0)), (QQ(0), 1/4)]),
-         Polyhedron(... vertices=[(QQ(0), QQ(0)), (1/7, 2/7)]),
-         Polyhedron(... vertices=[(QQ(0), 1/4), (1/7, 2/7)]),
-         Polyhedron(... vertices=[(QQ(0), QQ(0)), (1/3, 1/3)]),
-         Polyhedron(... vertices=[(1/7, 2/7), (QQ(0), QQ(0)), (QQ(0), 1/4)]),
-         Polyhedron(... vertices=[(1/3, 1/3), (QQ(0), QQ(0)), (1/7, 2/7)])]
+        sage: list(sorted( sorted(pol.vertices_list()) for pol in pc.cells_list() ))
+        [[[0, 0]],
+         [[0, 0], [0, 1/4]],
+         [[0, 0], [0, 1/4], [1/7, 2/7]],
+         [[0, 0], [1/7, 2/7]],
+         [[0, 0], [1/7, 2/7], [1/3, 1/3]],
+         [[0, 0], [1/3, 1/3]],
+         [[0, 1/4]],
+         [[0, 1/4], [1/7, 2/7]],
+         [[1/7, 2/7]],
+         [[1/7, 2/7], [1/3, 1/3]],
+         [[1/3, 1/3]]]
 
     Consider low-dimensional cells in the polyhedral case::
 
@@ -2588,18 +2588,18 @@ class PolyhedralComplex(GenericCellComplex):
 
         sage: from cutgeneratingfunctionology.igp import *
         sage: pc = PolyhedralComplex([Polyhedron(base_ring=QQ, vertices=[(1/3, 1/3), (QQ(0), QQ(0)), (1/7, 2/7)]), Polyhedron(base_ring=QQ, vertices=[(1/7, 2/7), (QQ(0), QQ(0)), (QQ(0), 1/4)])])
-        sage: [sage_input(pol) for pol in pc.cells_list()]
-        [Polyhedron(... vertices=[(1/3, 1/3)]),
-         Polyhedron(... vertices=[(QQ(0), QQ(0))]),
-         Polyhedron(... vertices=[(QQ(0), 1/4)]),
-         Polyhedron(... vertices=[(1/7, 2/7)]),
-         Polyhedron(... vertices=[(QQ(0), 1/4), (1/7, 2/7)]),
-         Polyhedron(... vertices=[(QQ(0), QQ(0)), (1/7, 2/7)]),
-         Polyhedron(... vertices=[(QQ(0), QQ(0)), (1/3, 1/3)]),
-         Polyhedron(... vertices=[(1/3, 1/3), (1/7, 2/7)]),
-         Polyhedron(... vertices=[(QQ(0), QQ(0)), (QQ(0), 1/4)]),
-         Polyhedron(... vertices=[(QQ(0), QQ(0)), (1/3, 1/3), (1/7, 2/7)]),
-         Polyhedron(... vertices=[(QQ(0), QQ(0)), (QQ(0), 1/4), (1/7, 2/7)])]
+        sage: list(sorted( sorted(pol.vertices_list()) for pol in pc.cells_list() ))
+        [[[0, 0]],
+         [[0, 0], [0, 1/4]],
+         [[0, 0], [0, 1/4], [1/7, 2/7]],
+         [[0, 0], [1/7, 2/7]],
+         [[0, 0], [1/7, 2/7], [1/3, 1/3]],
+         [[0, 0], [1/3, 1/3]],
+         [[0, 1/4]],
+         [[0, 1/4], [1/7, 2/7]],
+         [[1/7, 2/7]],
+         [[1/7, 2/7], [1/3, 1/3]],
+         [[1/3, 1/3]]]
         sage: pc.is_convex()
         True
         sage: p = pc.union_as_polyhedron()
