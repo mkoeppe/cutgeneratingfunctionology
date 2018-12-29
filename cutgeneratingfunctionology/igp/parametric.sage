@@ -15,7 +15,7 @@ point_is_included = Poly_Gen_Relation.subsumes()
 #con_saturates = Poly_Con_Relation.saturates()
 
 from sage.structure.sage_object import SageObject
-
+from sage.structure.richcmp import richcmp
 import time
 
 ###############################
@@ -50,22 +50,18 @@ class ParametricRealFieldElement(FieldElement):
     def val(self):
         return self._val
 
-    def _cmp_(left, right):
+    def _richcmp_(left, right, op):
         if not left.parent() is right.parent():
+            # shouldn't really happen, within coercion
             raise TypeError("comparing elements from different fields")
-        result = cmp(left._val, right._val)
-        if result == 0:
+        # Traditional cmp semantics.  Change this to get big-cell semantics.
+        if (left._val == right._val):
             left.parent().record_to_eq(left.sym() - right.sym())
-        elif result == -1:
+        elif (left._val < right._val):
             left.parent().record_to_lt(left.sym() - right.sym())
-        elif result == 1:
+        else:
             left.parent().record_to_lt(right.sym() - left.sym())
-        return result
-
-    __cmp__ = _cmp_
-
-    def __richcmp__(left, right, op):
-        result = left._val.__richcmp__(right._val, op)
+        result = richcmp(left._val, right._val, op)
         return result
 
     def __abs__(self):
@@ -76,7 +72,12 @@ class ParametricRealFieldElement(FieldElement):
 
     def sign(self):
         parent = self._val.parent()
-        return cmp(self._val, parent._zero_element)
+        if self._val == parent._zero_element:
+            return 0
+        elif self._val > parent._zero_element:
+            return 1
+        else:
+            return -1
 
     def floor(self):
         result = floor(self._val)
