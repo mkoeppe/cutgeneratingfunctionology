@@ -97,7 +97,7 @@ def pattern_setup_lp(l, more_ini_additive=False, objcoef=None, use_auxiliary_del
 
 def pattern_positive_zero_undecided_deltafn(vertices_color):
     r"""
-    According to the prescribled painting, compute the lists positive_deltafn, zero_deltafn and undecided_deltafn.
+    According to the prescribed painting, compute the lists positive_deltafn, zero_deltafn and undecided_deltafn.
 
     zero_deltafn does not include the implied zero deltafn.
     pattern_lp, vertices_color might be modified.
@@ -113,12 +113,12 @@ def pattern_positive_zero_undecided_deltafn(vertices_color):
         glp_exact...
         sage: print("glp_exact noise follows in old sage versions"); positive_deltafn, zero_deltafn, undecided_deltafn = pattern_positive_zero_undecided_deltafn(vertices_color)
         glp_exact...
-        sage: positive_deltafn
-        [(1, -1, 0), (1, 0, 1), (1, 0, -1), (1, 1, 0), (0, 1, -1), (1, 0, 0)]
+        sage: sorted(positive_deltafn)
+        [(0, 1, -1), (1, -1, 0), (1, 0, -1), (1, 0, 0), (1, 0, 1), (1, 1, 0)]
         sage: zero_deltafn
         [(0, 0, 0)]
-        sage: undecided_deltafn
-        [(1, 7, 12), (1, 2, 5), (1, 2, -3), (1, 1, -2), (1, 8, 13), (1, 11, 14)]
+        sage: sorted(undecided_deltafn)
+        [(1, 1, -2), (1, 2, -3), (1, 2, 5), (1, 7, 12), (1, 8, 13), (1, 11, 14)]
     """
     positive_deltafn = []
     zero_deltafn = []
