@@ -1569,6 +1569,7 @@ class bcds_discontinuous_everywhere:
         """
         Examples::
 
+            sage: from cutgeneratingfunctionology.igp import bcds_discontinuous_everywhere
             sage: h = bcds_discontinuous_everywhere()
             sage: delta_pi(h, 1/5+sqrt(3), 3/7+sqrt(1/3)) >= 0
             True
@@ -1613,7 +1614,7 @@ class kzh_lifted:
 
     """
     Reference:
-        Matthias Koeppe, Yuan Zhou. On the notions of facets, weak facets, and extreme functions of the Gomory–Johnson infinite group problem.
+        Matthias Koeppe, Yuan Zhou. On the notions of facets, weak facets, and extreme functions of the Gomory-Johnson infinite group problem.
     """
     def __init__(self,f=4/5,l=219/800,u=269/800,t1=77/7752*sqrt(2),t2=77/2584):
         self._f = f
