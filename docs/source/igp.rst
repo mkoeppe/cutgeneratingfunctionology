@@ -1,9 +1,9 @@
 .. nodoctest
 
-Infinite Group Relaxation Sage Code
-===================================
+Code for the 1-row Gomory--Johnson infinite group relaxation
+============================================================
 
-.. automodule:: igp
+.. automodule:: cutgeneratingfunctionology.igp
    :members:
    :undoc-members:
    :special-members:

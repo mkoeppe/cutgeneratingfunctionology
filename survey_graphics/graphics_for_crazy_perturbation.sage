@@ -1,6 +1,6 @@
 
-import igp
-from igp import *
+import cutgeneratingfunctionology.igp as igp
+from cutgeneratingfunctionology.igp import *
 
 destdir = "survey_graphics/crazy_perturbation_graphics/"
 ftype = ".png"
@@ -36,7 +36,7 @@ igp.rainbow = default_rainbow
 ## # note bhk_discontinuous is replaced by kzh_discontinuous_bhk_irrational
 
 ## sage: import igp
-## sage: from igp import *
+## sage: from cutgeneratingfunctionology.igp import *
 ## sage: load("bhk.sage")
 ## sage: delta =(1/199, sqrt(2)/199)
 ## sage: h = bhk_irrational(delta =(1/199, sqrt(2)/199))
@@ -325,7 +325,7 @@ igp.rainbow = default_rainbow
 
 
 ## sage: import igp
-## sage: from igp import *
+## sage: from cutgeneratingfunctionology.igp import *
 ## sage: load("bhk.sage")
 ## sage: hmin, (t1,t2), (ucl, ucr) = bhk_discontinuous(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=19/23998, c2=5/11999, y1=185/1846, y2=240/11999, field=None)
 ## INFO: 2016-04-11 02:40:27,881 Coerced into real number field: Real Number Field in `a` with defining polynomial y^2 - 2

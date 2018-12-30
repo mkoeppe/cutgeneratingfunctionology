@@ -7,8 +7,8 @@
 ## ArXiv: 1506.00017
 #############################
 
-import igp
-from igp import *
+import cutgeneratingfunctionology.igp as igp
+from cutgeneratingfunctionology.igp import *
 
 destdir = "survey_graphics/mip_notes_graphics/"
 

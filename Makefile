@@ -1,49 +1,50 @@
 SAGE=sage
 
-SAGEFILES =					\
-	bug_examples.sage			\
-	compendium_procedures.sage		\
-	continuous_case.sage			\
-	discontinuous_case.sage			\
-	discrete_case.sage			\
-	extreme_functions_in_literature.sage	\
-	extreme_functions_sporadic.sage		\
-	intervals.sage				\
-	real_number_field.sage			\
-	fast_linear.sage			\
-	functions.sage				\
-	parametric.sage				\
-	semialgebraic_mathematica.sage		\
-	simple_extremality_test.sage		\
-	survey_examples.sage			\
-	extreme_functions_mlr_cpl3.sage		\
-	quasi_periodic.sage			\
-	crazy_perturbation_examples.sage	\
-	crazy_perturbation.sage			\
-	kslope_ppl_mip.py			\
-	vertex_enumeration.py			\
-	kslope_pattern.sage			\
-	2q_mip.sage				\
-	kslope_mip.sage				\
-	animation_2d_diagram.sage		\
-	lifting_project.sage
+SAGEFILES =									\
+	cutgeneratingfunctionology/igp/bug_examples.sage			\
+	cutgeneratingfunctionology/igp/compendium_procedures.sage		\
+	cutgeneratingfunctionology/igp/continuous_case.sage			\
+	cutgeneratingfunctionology/igp/discontinuous_case.sage			\
+	cutgeneratingfunctionology/igp/discrete_case.sage			\
+	cutgeneratingfunctionology/igp/extreme_functions_in_literature.sage	\
+	cutgeneratingfunctionology/igp/extreme_functions_sporadic.sage		\
+	cutgeneratingfunctionology/igp/intervals.sage				\
+	cutgeneratingfunctionology/igp/real_number_field.sage			\
+	cutgeneratingfunctionology/igp/fast_linear.sage				\
+	cutgeneratingfunctionology/igp/functions.sage				\
+	cutgeneratingfunctionology/igp/parametric.sage				\
+	cutgeneratingfunctionology/igp/semialgebraic_mathematica.sage		\
+	cutgeneratingfunctionology/igp/simple_extremality_test.sage		\
+	cutgeneratingfunctionology/igp/survey_examples.sage			\
+	cutgeneratingfunctionology/igp/extreme_functions_mlr_cpl3.sage		\
+	cutgeneratingfunctionology/igp/quasi_periodic.sage			\
+	cutgeneratingfunctionology/igp/crazy_perturbation_examples.sage		\
+	cutgeneratingfunctionology/igp/crazy_perturbation.sage			\
+	cutgeneratingfunctionology/igp/kslope_ppl_mip.py			\
+	cutgeneratingfunctionology/igp/vertex_enumeration.py			\
+	cutgeneratingfunctionology/igp/kslope_pattern.sage			\
+	cutgeneratingfunctionology/igp/2q_mip.sage				\
+	cutgeneratingfunctionology/igp/kslope_mip.sage				\
+	cutgeneratingfunctionology/igp/animation_2d_diagram.sage		\
+	cutgeneratingfunctionology/igp/lifting_project.sage
 
 ## Don't test; currently broken
-# 	parametric_cpl.sage			\
+# 	cutgeneratingfunctionology/igp/parametric_cpl.sage			\
 
 
 # Dual feasible functions
-SAGEFILES +=					\
-	dff_functions.sage			\
-	dff_test_plot.sage			\
-	discontinuous_dff.sage			\
-	computer_based_search_naive_dff.sage	\
-	gdff_linear_test.sage
+SAGEFILES +=								    \
+	cutgeneratingfunctionology/dff/dff_functions.sage		    \
+	cutgeneratingfunctionology/dff/dff_test_plot.sage		    \
+	cutgeneratingfunctionology/dff/discontinuous_dff.sage		    \
+	cutgeneratingfunctionology/dff/computer_based_search_naive_dff.sage \
+	cutgeneratingfunctionology/dff/gdff_linear_test.sage		    \
+	cutgeneratingfunctionology/dff/Gomory_conversion.sage
 
 # Multirow
-SAGEFILES +=					\
-	piecewise_functions.sage		\
-	lifting_region.sage
+SAGEFILES +=								\
+	cutgeneratingfunctionology/multirow/piecewise_functions.sage	\
+	cutgeneratingfunctionology/multirow/lifting_region.sage
 
 all:
 	@echo "No need to 'make' anything. Just run it in Sage; see README.rst"
@@ -52,11 +53,11 @@ install:
 	@echo "No need to install anything. Just run it in Sage; see README.rst"
 
 check: check-encoding
-	$(SAGE) -tp 4 $(SAGEFILES)
+	PYTHONPATH=`pwd` $(SAGE) -tp 4 --force_lib $(SAGEFILES)
 
 check-long: check-encoding
 	cp .check-long-timings.json .tmp_check-long-timings.json
-	$(SAGE) -tp 4 --long --stats-path .tmp_check-long-timings.json $(SAGE_CHECK_FLAGS) $(SAGEFILES)
+	PYTHONPATH=`pwd` $(SAGE) -tp 4 --force_lib --long --stats-path .tmp_check-long-timings.json $(SAGE_CHECK_FLAGS) $(SAGEFILES)
 	rm .tmp_check-long-timings.json
 
 check-encoding:

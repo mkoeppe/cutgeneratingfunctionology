@@ -8,7 +8,8 @@
 ## Copy these commands into your Sage terminal session or notebook session.
 
 ## First load the code.
-import igp; from igp import *
+import cutgeneratingfunctionology.igp as igp
+from cutgeneratingfunctionology.igp import *
 
 ## First we load a function and store it in variable h.
 ##

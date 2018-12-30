@@ -1,5 +1,5 @@
-import igp
-from igp import *
+import cutgeneratingfunctionology.igp as igp
+from cutgeneratingfunctionology.igp import *
 
 destdir = "survey_graphics/extreme_notes_graphics/"
 
