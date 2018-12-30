@@ -3271,7 +3271,7 @@ def plot_completion_diagram(fn, perturbation=None):
         g += plot_walk_in_completion_diagram(perturbation._seed, perturbation._walk_list)
     return fn._completion.plot(extra_graphics = g)
 
-def perturbation_polyhedron(fn, perturbs):
+def perturbation_polyhedron(fn, perturbs, **kwds):
     r"""
     Given fn  and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a polyhedron, one dimension for each basic perturbation, with the subadditivities.
 
@@ -3337,6 +3337,11 @@ def perturbation_polyhedron(fn, perturbs):
         sage: extremality_test(h_lift)
         True
     """
+    (ieqs, eqns) = perturbation_polyhedron_ieqs_eqns(fn, perturbs)
+    pert_polyhedron = Polyhedron(ieqs = ieqs, eqns = eqns, **kwds)
+    return pert_polyhedron
+
+def perturbation_polyhedron_ieqs_eqns(fn, perturbs):
     bkpt = copy(fn.end_points())
     for pert in perturbs:
         bkpt += pert.end_points()
@@ -3374,8 +3379,7 @@ def perturbation_polyhedron(fn, perturbs):
             # else:
             #     eqnset.append(constraint_coef)
             #     # this is always true for basic perturbations coming from finite_dimensional_extremality_test().
-    pert_polyhedron = Polyhedron(ieqs = unique_list(ieqset), eqns = unique_list(eqnset))
-    return pert_polyhedron
+    return unique_list(ieqset), unique_list(eqnset)
 
 def perturbation_mip(fn, perturbs, solver=None, field=None):
     r"""
