@@ -1614,43 +1614,63 @@ class kzh_lifted:
 
     """
     Reference:
-        Matthias Koeppe, Yuan Zhou. On the notions of facets, weak facets, and extreme functions of the Gomory-Johnson infinite group problem.
+        Matthias Koeppe, Yuan Zhou. On the notions of facets, weak facets, and extreme functions of the Gomory–Johnson infinite group problem.
     """
     def __init__(self,f=4/5,l=219/800,u=269/800,t1=77/7752*sqrt(2),t2=77/2584):
         self._f = f
-        K.<a>=NumberField(x^2-2)
         self._l=l
         self._u=u
         self._t1=t1
         self._t2=t2
-        self.field=K
+        self.Cplus=set()
 
     def __call__(self, x):
+        """
+        Examples::
+
+            sage: h = kzh_lifted()
+            sage: bool(delta_pi(h, 1/5+sqrt(3), 3/7+sqrt(1/3)) >= 0)
+            True
+            sage: bool(delta_pi(h, -13/9, 3/7)>=0)
+            True
+            sage: bool(delta_pi(h, 19/8, 3/7-3*sqrt(101))>=0)
+            True
+            sage: bool(delta_pi(h, 19/8+sqrt(101/9), 3/7-1/3*sqrt(101))>=0)
+            True
+        """
+
         x=fractional(x)
         f=self._f
         l=self._l
         u=self._u
         t1=self._t1
         t2=self._t2
-        s=19/23998
+        s=QQ(19/23998)
         pi=kzh_minimal_has_only_crazy_perturbation_1()
         if x<l or u<x<f-u or x>f-l:
             return pi(x)
-        if l<x<u and is_in_C(self,x):
+        if l<x<u and self.is_in_C(x):
             return pi(x)
-        if f-u<x<f-l and is_in_C(self,f-x):
+        if f-u<x<f-l and self.is_in_C(f-x):
             return pi(x)
-        if l<x<u and is_in_Cplus(self,x):
+        if l<x<u and self.is_in_Cplus(x):
             return pi(x)+s
-        if f-u<x<f-l and is_in_Cplus(self,f-x):
+        if f-u<x<f-l and self.is_in_Cplus(f-x):
             return pi(x)+s
         return pi(x)-s
 
     def is_in_T(self, x):
         try:
-            x=self.field(x)
-            c1=x.list()[0]/self._t2
-            c2=x.list()[1]/(self._t1/sqrt(2))
+            t1,t2,xx=nice_field_values([self._t1,self._t2,x])
+            coe=xx.list()
+            # make sure x is properly embedded.
+            if not len(coe)==2:
+                return False
+            xxx=nice_field_values([coe[0]+coe[1]*sqrt(2)])[0]
+            if not xxx==xx:
+                return False
+            c1=coe[0]/self._t2
+            c2=coe[1]/(self._t1/sqrt(2))
             if c1 in ZZ and c2 in ZZ:
                 return True
             else: 
@@ -1664,18 +1684,28 @@ class kzh_lifted:
         u=self._u
         t1=self._t1
         t2=self._t2
-        if is_in_T(self,x-(l+u)/2) and is_in_T(self,x-(l+u-t1)/2) and is_in_T(self,x-(l+u-t2)/2):
+        if self.is_in_T(x-(l+u)/2) or self.is_in_T(x-(l+u-t1)/2) or self.is_in_T(x-(l+u-t2)/2):
             return True
         else:
             return False
-                
-        
+                      
     def is_in_Cplus(self,x): 
         f=self._f
         l=self._l
         u=self._u
         t1=self._t1
         t2=self._t2
+        phi_x=l+u-x
+        if self.is_in_T(x-phi_x):
+            self.Cplus.add(x)
+            return True
+        for v in self.Cplus:
+            if self.is_in_T(x-v):
+                return True
+            if self.is_in_T(phi_x-v):
+                return False
+        self.Cplus.add(x)
+        return True
 
 def partial_minimality_test(fn):
     if fn(0)==0 and partial_subadditivity_test(fn) and partial_symmetry_test(fn):
