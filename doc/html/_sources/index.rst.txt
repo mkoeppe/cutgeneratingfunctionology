@@ -1,13 +1,14 @@
-========================================
-igp: Infinite Group Relaxation Sage Code
-========================================
+====================================================================================================
+cutgeneratingfunctionology: Code for cut-generating functions in the Gomory-Johnson model and beyond
+====================================================================================================
 
 To use this module, you need to import it:: 
 
-    from igp import *
+    import cutgeneratingfunctionology.igp as igp
+    from cutgeneratingfunctionology.igp import *
 
-Code for the Gomory--Johnson Infinite Group Relaxation
-======================================================
+Code for the 1-row Gomory--Johnson Infinite Group Relaxation
+============================================================
 
 .. toctree::
    :maxdepth: 1
@@ -16,6 +17,21 @@ Code for the Gomory--Johnson Infinite Group Relaxation
    extreme_functions
    procedures
 
+Code for Classical and General Dual-Feasible Functions
+======================================================
+
+.. toctree::
+   :maxdepth: 1
+
+   dff
+
+Code for Multi-Row Models
+=========================
+
+.. toctree::
+   :maxdepth: 1
+
+   multirow
 
 Indices and Tables
 ==================
