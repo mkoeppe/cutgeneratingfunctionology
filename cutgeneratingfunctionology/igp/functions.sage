@@ -1001,12 +1001,13 @@ def number_of_slopes(fn):
         fn = interpolate_to_infinite_group(fn)
     return len(slopes_intervals_dict(fn))
 
-def plot_with_colored_slopes(fn):
+def plot_with_colored_slopes(fn, **plot_kwds):
     r"""
     Returns a plot of fn, with pieces of different slopes in different colors.
     """
     slopes_dict = slopes_intervals_dict(fn, ignore_nonlinear=True)
-    return plot_covered_intervals(fn, list(slopes_dict.values()), labels=[ "Slope %s" % s for s in slopes_dict.keys() ])
+    return plot_covered_intervals(fn, list(slopes_dict.values()), labels=[ "Slope %s" % s for s in slopes_dict.keys() ],
+                                  **plot_kwds)
 
 ### Minimality check.
 
