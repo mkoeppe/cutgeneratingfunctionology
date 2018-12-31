@@ -15,7 +15,6 @@ def gmic(f=4/5, field=None, conditioncheck=True):
         [61] p.343, Fig. 1, Example 1 ::
 
             sage: from cutgeneratingfunctionology.igp import *
-            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = gmic(4/5)
             sage: extremality_test(h, False)
@@ -61,7 +60,6 @@ def gj_2_slope(f=3/5, lambda_1=1/6, field=None, conditioncheck=True):
 
     Examples: [61] p.354, Fig.6 ::
 
-        sage: from cutgeneratingfunctionology.igp import *
         sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = gj_2_slope(f=3/5, lambda_1=1/6)
@@ -118,7 +116,6 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
 
     Examples: [61] p.354, Fig.7 ::
 
-        sage: from cutgeneratingfunctionology.igp import *
         sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3)
@@ -248,7 +245,6 @@ class Dg2StepMir(ExtremeFunctionsFactory):
         Examples: [33] p.40, Fig.5 ::
 
             sage: from cutgeneratingfunctionology.igp import *
-            sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = dg_2_step_mir(f=4/5, alpha=3/10)
             sage: extremality_test(h, False)
@@ -333,7 +329,6 @@ class KfNStepMir(ExtremeFunctionsFactory):
 
         Examples: [74] p.333 - p.335, Fig.1 - Fig.6 ::
 
-            sage: from cutgeneratingfunctionology.igp import *
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: h = kf_n_step_mir(f=4/5, a=[1])
