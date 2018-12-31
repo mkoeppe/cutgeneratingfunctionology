@@ -4,7 +4,9 @@ Index of Extreme Functions
 """
 
 # extreme_functions_in_literature
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+
+del print_function, absolute_import
 
 from cutgeneratingfunctionology.igp import (gmic,
                  gj_2_slope,
