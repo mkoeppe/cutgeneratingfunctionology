@@ -84,4 +84,7 @@ clean: clean-doc
 clean-doc:
 	cd docs && $(SAGE) -sh -c "make clean"
 
+demo.ipynb: demo.rst
+	$(SAGE) -rst2ipynb $< > $@
+
 .PHONY: all build install test coverage sdist pip-install pip-uninstall pip-develop clean clean-doc doc doc-pdf
