@@ -30,6 +30,12 @@ License
 The code is released under the GNU General Public License, version 2,
 or any later version as published by the Free Software Foundation. 
 
+Run it on mybinder.org
+----------------------
+
+.. image:: https://mybinder.org/badge_logo.svg :target: https://mybinder.org/v2/gh/mkoeppe/cutgeneratingfunctionology/master?filepath=demo.ipynb
+
+
 How to run the code in a local copy of Sage
 -------------------------------------------
 
@@ -69,7 +75,7 @@ How to run the code online via cloud.sagemath.com
 
 8. Type::
 
-    import igp; from igp import *
+    import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
 
    and hit shift+enter
 
