@@ -16,7 +16,7 @@
 # General information about the project.
 project = u"cutgeneratingfunctionology"
 copyright = u'2013-2018, Chun Yu Hong, Matthias Koeppe, Yuan Zhou, Jiawei Wang'
-package_name = 'igp'
+package_name = 'cutgeneratingfunctionology'
 package_folder = "../../"
 authors = u"2013-2018, Chun Yu Hong, Matthias Koeppe, Yuan Zhou, Jiawei Wang"
 
@@ -38,6 +38,9 @@ except ImportError:
 sys.path.append(os.path.abspath(package_folder))
 sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
 
+
+print("Using sys.path = {}".format(sys.path))
+
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -49,10 +52,9 @@ sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
 extensions = [
     #'sphinx.ext.autodoc',
     'sage_autodoc',
+    'sage_package.sphinx',
     'sphinx.ext.doctest',
-    'sphinx.ext.todo',
     'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
     'sphinx.ext.extlinks',
 ]
 
@@ -118,23 +120,12 @@ pygments_style = 'sphinx'
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
 
-pythonversion = sys.version.split(' ')[0]
-# Python and Sage trac ticket shortcuts. For example, :trac:`7549` .
-extlinks = {
-    'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
-    'trac': ('http://trac.sagemath.org/%s', 'trac ticket #'),
-    'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
-    'arxiv': ('http://arxiv.org/abs/%s', 'Arxiv '),
-    'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
-    'doi': ('https://dx.doi.org/%s', 'doi:'),
-    'mathscinet': ('http://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet ')
-    }
-
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+html_theme = 'sage'
+html_theme_path = ['themes']
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
