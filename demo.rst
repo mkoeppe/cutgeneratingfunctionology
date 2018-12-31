@@ -1,23 +1,23 @@
-Demonstration of how to use infinite-group-relaxation-code.
+=============================================
+ Demonstration of cutgeneratingfunctionology
+=============================================
 
 We interact with Sage using commands that basically follow standard
 Python syntax.  
 
 See http://www.sagemath.org/doc/tutorial/ for information on how to use Sage.
 
-Copy these commands into your Sage terminal session or notebook session.
+Copy these commands into your Sage terminal session or Jupyter notebook.
+
+
+Basic operations
+================
 
 First load the code::
 
     sage: import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
 
-First we load a function and store it in variable h.
-
-The functions are defined in the file
-extreme_functions_in_literature.sage
-
-Additional functions are defined in the file
-survey_examples.sage
+First we load a function and store it in variable ``h``.
 
 We start with the easiest function, the GMIC::
 
@@ -202,8 +202,30 @@ Many more ``mlr_cpl3_...`` functions::
     sage: gomory_fractional?
 
 
-There are also "procedures" operations that can be applied to
-extreme functions.  They are defined in compendium_procedures.sage.
+See the extreme function with the world-record number of different slopes::
+
+    sage: extreme_function_with_world_record_number_of_slopes?
+
+::
+
+    sage: h = extreme_function_with_world_record_number_of_slopes()
+
+::
+
+    sage: plot_with_colored_slopes(h, thickness=4).show(figsize=30)
+
+
+Use tab completion to see more example functions in the module
+``extreme_functions``::
+
+    sage: h = igp.extreme_functions.
+
+
+Procedures
+==========
+
+There are also "procedures", operations that can be applied to
+extreme functions.  
 
 First, the multiplicative homomorphism::
 
@@ -277,6 +299,16 @@ There's also this: ::
 
     sage: projected_sequential_merge?
 
+The module ``procedures`` has a catalog of all procedures.  Use tab
+completion to explore them::
+
+
+    sage: igp.procedures.
+
+
+Customizing the graphics
+========================
+
 
 Sometimes, for complicated functions, the graphics do not show
 enough detail.   ::
@@ -328,6 +360,9 @@ Approach 2: Increase the plotting figure size (the default is 10)::
     sage: extremality_test(h, True)
 
 
+Defining new functions
+======================
+
 Of course, we can define functions from scratch::
 
     sage: h = piecewise_function_from_breakpoints_and_values([0, 1/5, 2/5, 4/5, 1], [0, 1/5, 3/5, 1, 0]);
@@ -352,20 +387,3 @@ Here's another way::
 ::
 
     sage: extremality_test(h, True, show_all_perturbations=True)
-
-
-See the extreme function with the world-record number of different slopes::
-
-    sage: extreme_function_with_world_record_number_of_slopes?
-
-::
-
-    sage: h = extreme_function_with_world_record_number_of_slopes()
-
-::
-
-    sage: plot_with_colored_slopes(h, thickness=4).show(figsize=30)
-
-
-See extreme_functions_in_literature.sage and survey_examples.sage for many more examples.
-

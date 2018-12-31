@@ -52,7 +52,7 @@ How to run the code in a local copy of Sage
 
     import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
 
-5. Follow the instructions and examples in `<demo.sage>`_.
+5. Follow the instructions and examples in `<demo.rst>`_.
 
 
 How to run the code online via cloud.sagemath.com
