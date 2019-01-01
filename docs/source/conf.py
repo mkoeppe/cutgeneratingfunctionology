@@ -62,7 +62,7 @@ extensions = [
 ### from Sage src/doc/common/conf.py
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
-# through mathplotlib, so that it will be displayed in the HTML doc
+# through matplotlib, so that it will be displayed in the HTML doc
 plot_html_show_source_link = False
 plot_pre_code = """
 def sphinx_plot(plot):
@@ -77,7 +77,7 @@ def sphinx_plot(plot):
         mpl.rcParams['figure.dpi'] = 80
         mpl.rcParams['savefig.dpi'] = 100
         fn = tmp_filename(ext=".png")
-        plot.plot().save(fn)
+        plot.save(fn)
         img = mpimg.imread(fn)
         plt.imshow(img)
         plt.margins(0)
