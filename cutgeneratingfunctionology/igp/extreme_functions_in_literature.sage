@@ -22,7 +22,7 @@ def gmic(f=4/5, field=None, conditioncheck=True):
 
     .. PLOT::
 
-        sphinx_plot(igp.plot_with_colored_slopes(igp.gmic(QQ('4/5')), aspect_ratio=0.3))
+        sphinx_plot(igp.plot_with_colored_slopes(igp.gmic(QQ('4/5')), aspect_ratio=0.3, figsize=(8, 2.5)))
 
     Reference: 
         [55]: R.E. Gomory, An algorithm for the mixed integer problem, Tech. Report RM-2597, RAND Corporation, 1960.

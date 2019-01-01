@@ -62,27 +62,49 @@ extensions = [
 ### from Sage src/doc/common/conf.py
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
-# through matplotlib, so that it will be displayed in the HTML doc
+# through matplotlib, so that it will be displayed in the HTML doc.
 plot_html_show_source_link = False
 plot_pre_code = """
-def sphinx_plot(plot):
+def sphinx_plot(graphics, **kwds):
     import matplotlib.image as mpimg
     from sage.misc.temporary_file import tmp_filename
     import matplotlib.pyplot as plt
-    if os.environ.get('SAGE_SKIP_PLOT_DIRECTIVE', 'no') != 'yes':
-        import matplotlib as mpl
-        mpl.rcParams['image.interpolation'] = 'bilinear'
-        mpl.rcParams['image.resample'] = False
-        mpl.rcParams['figure.figsize'] = [8.0, 6.0]
-        mpl.rcParams['figure.dpi'] = 80
-        mpl.rcParams['savefig.dpi'] = 100
-        fn = tmp_filename(ext=".png")
-        plot.save(fn)
-        img = mpimg.imread(fn)
-        plt.imshow(img)
-        plt.margins(0)
-        plt.axis("off")
-        plt.tight_layout(pad=0)
+    ## Option handling is taken from Graphics.save
+    options = dict()
+    options.update(graphics.SHOW_OPTIONS)
+    options.update(graphics._extra_kwds)
+    options.update(kwds)
+    dpi = options.pop('dpi')
+    transparent = options.pop('transparent')
+    fig_tight = options.pop('fig_tight')
+    figsize = options.pop('figsize')
+    ## figsize handling is taken from Graphics.matplotlib()
+    if figsize is not None and not isinstance(figsize, (list, tuple)):
+        # in this case, figsize is a number and should be positive
+        try:
+            figsize = float(figsize) # to pass to mpl
+        except TypeError:
+            raise TypeError("figsize should be a positive number, not {0}".format(figsize))
+        if figsize > 0:
+            default_width, default_height=rcParams['figure.figsize']
+            figsize=(figsize, default_height*figsize/default_width)
+        else:
+            raise ValueError("figsize should be positive, not {0}".format(figsize))
+
+    if figsize is not None:
+        # then the figsize should be two positive numbers
+        if len(figsize) != 2:
+            raise ValueError("figsize should be a positive number "
+                             "or a list of two positive numbers, not {0}".format(figsize))
+        figsize = (float(figsize[0]),float(figsize[1])) # floats for mpl
+        if not (figsize[0] > 0 and figsize[1] > 0):
+            raise ValueError("figsize should be positive numbers, "
+                             "not {0} and {1}".format(figsize[0],figsize[1]))
+
+    plt.figure(figsize=figsize)
+    figure = graphics.matplotlib(figure=plt.gcf(), figsize=figsize, **options)
+    plt.tight_layout()
+    plt.show()
 
 from sage.all_cmdline import *
 import cutgeneratingfunctionology
