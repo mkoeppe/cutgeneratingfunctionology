@@ -695,7 +695,7 @@ def symmetric_2_slope_fill_in(function, epsilon, show_plots=False, f=None):
 
     Reference:
         [dense-2-slope] A. Basu, R. Hildebrand, and M. Molinaro, Minimal cut-generating functions are nearly extreme, 2015, http://www.ams.jhu.edu/~abasu9/papers/dense-2-slope.pdf, to appear in Proceedings of IPCO 2016.
-    r"""
+    """
     logging.disable(logging.INFO)
     if f is None:
         f = find_f(function)
