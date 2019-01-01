@@ -20,6 +20,10 @@ def gmic(f=4/5, field=None, conditioncheck=True):
             sage: extremality_test(h, False)
             True
 
+    .. PLOT::
+
+        sphinx_plot(cutgeneratingfunctionology.igp.gmic(QQ('4/5')).plot_with_colored_slopes(aspect_ratio=0.3))
+
     Reference: 
         [55]: R.E. Gomory, An algorithm for the mixed integer problem, Tech. Report RM-2597, RAND Corporation, 1960.
 
