@@ -1,0 +1,1 @@
+sphinx_plot(cutgeneratingfunctionology.igp.gmic(QQ('4/5')).plot_with_colored_slopes(aspect_ratio=0.3))

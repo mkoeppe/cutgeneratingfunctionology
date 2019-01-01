@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Code for the 1-row Gomory–Johnson infinite group relaxation &#8212; cutgeneratingfunctionology 1.2+git documentation</title>
-    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/sage.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
@@ -17,7 +17,62 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Electronic compendium of extreme functions for the 1-row Gomory–Johnson model" href="extreme_functions.html" />
-    <link rel="prev" title="cutgeneratingfunctionology: Code for cut-generating functions in the Gomory-Johnson model and beyond" href="index.html" /> 
+    <link rel="prev" title="cutgeneratingfunctionology: Code for cut-generating functions in the Gomory-Johnson model and beyond" href="index.html" />
+    <link rel="icon" href="_static/sageicon.png" type="image/x-icon" />
+    <!-- Thebe configuration for live code cells (https://github.com/minrk/thebelab)
+
+  If the page contains a code cell (a `pre` tag with a sage prompt), a
+  dedicated Activate button is added in the top right corner.
+
+  When pressed, the code cells are made active: the user can edit and
+  run them.
+
+  More specifically, when pressed (thebe_activate_button_function):
+
+  - the thebelab JavaScript library is fetched from the web;
+
+  - each code block containing a sage: prompt is made active (thebe_activate_cells)
+    (editable + Run button);
+
+  - if the page is served by a Jupyter server which has a sagemath
+    kernel, a local jupyter kernel is requested(thebe_bootstrap_local);
+
+  - otherwise a kernel is requested from mybinder (https://mybinder.org).
+  !-->
+<script type="text/x-thebe-config">
+  thebeConfig = {
+    binderOptions: {
+      repo: "sagemath/sage-binder-env",
+    },
+    stripPrompts: {
+      inPrompt: 'sage: ',
+      continuationPrompt: '....: ',
+      selector: 'pre:contains("sage: ")',
+    },
+    kernelOptions: {
+      name: "sagemath",
+    },
+    requestKernel: true
+  }
+</script>
+
+<!-- Load the Thebe activation and status field library  !-->
+<script src="_static/thebe_status_field.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="_static/thebe_status_field.css"/>
+
+<!-- Test whether some code cell contains Sage code
+     If yes, setup the ThebeLab activation and status field !-->
+<script>
+  $(function() {
+      var cellSelector = "pre:contains('sage: ')";
+      if ($(cellSelector).length > 0) {
+         $('<div class="thebe_status_field" style="position: fixed; right:0;"></div>')
+            .prependTo('div.body');
+         thebe_place_activate_button();
+      }
+  });
+</script>
+
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -34,7 +89,11 @@
         <li class="right" >
           <a href="index.html" title="cutgeneratingfunctionology: Code for cut-generating functions in the Gomory-Johnson model and beyond"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">cutgeneratingfunctionology 1.2+git documentation</a> &#187;</li> 
+  
+  <a href="http://www.sagemath.org"><img src="_static/sagelogo.png" style="vertical-align: middle" title="Sage Logo"></a>
+  
+        <li class="nav-item nav-item-0"><a href="index.html">cutgeneratingfunctionology 1.2+git documentation</a> &#187;</li>
+ 
       </ul>
     </div>  
 
@@ -157,7 +216,6 @@ With the default value of self._theta, it creates a gmic function:</p>
 </dl>
 <p>Examples: [33] p.40, Fig.5</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">dg_2_step_mir</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">10</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
@@ -415,7 +473,7 @@ Merge or restrict functional directed move if necessary.</p>
 <dl class="class">
 <dt id="cutgeneratingfunctionology.igp.DynamicStdErrStreamHandler">
 <em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">DynamicStdErrStreamHandler</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.DynamicStdErrStreamHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">logging.StreamHandler</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/logging.handlers.html#logging.StreamHandler" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">logging.StreamHandler</span></code></a></p>
 <p>A handler class which writes logging records, appropriately formatted,
 to a stream. Note that this class does not close the stream, as
 sys.stdout or sys.stderr may be used.</p>
@@ -1017,7 +1075,7 @@ segment of the plot.</p>
 and then open it in a graphics viewer such as GIMP.</p>
 <p>TESTS:</p>
 <p>We should not add each piece to the legend individually, since
-this creates duplicates (<a class="reference external" href="http://trac.sagemath.org/12651">trac ticket #12651</a>). This tests that only
+this creates duplicates (<a class="reference external" href="https://trac.sagemath.org/12651">trac ticket #12651</a>). This tests that only
 one of the graphics objects in the plot has a non-<code class="docutils literal notranslate"><span class="pre">None</span></code>
 <code class="docutils literal notranslate"><span class="pre">legend_label</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">f1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">=</span> <span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -1404,7 +1462,6 @@ kf_n_step_mir(f, [a[0], .. , a[n - 1]]) = kf_n_step_mir(f, [a[0], .. a[i - 1], a
 </dl>
 <p>Examples: [74] p.333 - p.335, Fig.1 - Fig.6</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kf_n_step_mir</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
@@ -1546,7 +1603,7 @@ except for limits at breakpoints.</dd>
 <dl class="class">
 <dt id="cutgeneratingfunctionology.igp.ParametricRealField">
 <em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">ParametricRealField</code><span class="sig-paren">(</span><em>values=()</em>, <em>names=()</em>, <em>allow_coercion_to_float=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sage.rings.ring.Field</span></code></p>
+<dd><p>Bases: <a class="reference external" href="http://doc.sagemath.org/html/en/reference/rings/sage/rings/ring.html#sage.rings.ring.Field" title="(in Sage Reference Manual: General Rings, Ideals, and Morphisms v8.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sage.rings.ring.Field</span></code></a></p>
 <p>A Metaprogramming trick for parameter space analysis.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
@@ -1802,7 +1859,7 @@ except for limits at breakpoints.</dd>
 <dl class="class">
 <dt id="cutgeneratingfunctionology.igp.ParametricRealFieldElement">
 <em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">ParametricRealFieldElement</code><span class="sig-paren">(</span><em>value</em>, <em>symbolic=None</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealFieldElement" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sage.structure.element.FieldElement</span></code></p>
+<dd><p>Bases: <a class="reference external" href="http://doc.sagemath.org/html/en/reference/structure/sage/structure/element.html#sage.structure.element.FieldElement" title="(in Sage Reference Manual: Parents and Elements v8.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sage.structure.element.FieldElement</span></code></a></p>
 <p>A <a class="reference internal" href="#cutgeneratingfunctionology.igp.ParametricRealFieldElement" title="cutgeneratingfunctionology.igp.ParametricRealFieldElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParametricRealFieldElement</span></code></a> stores a symbolic expression of the parameters in the problem and a concrete value, which is the evaluation of this expression on the given parameter tuple.</p>
 <p>When a comparison takes place on elements of the class, their concrete values are compared to compute the Boolean return value of the comparison. The constraint on the parameters that gives the same Boolean return value is recorded.</p>
 <dl class="method">
@@ -2088,7 +2145,7 @@ this has been fixed:</p>
 <dl class="class">
 <dt id="cutgeneratingfunctionology.igp.PolyhedralComplex">
 <em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">PolyhedralComplex</code><span class="sig-paren">(</span><em>maximal_cells</em>, <em>maximality_check=True</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.PolyhedralComplex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sage.homology.cell_complex.GenericCellComplex</span></code></p>
+<dd><p>Bases: <a class="reference external" href="http://doc.sagemath.org/html/en/reference/homology/sage/homology/cell_complex.html#sage.homology.cell_complex.GenericCellComplex" title="(in Sage Reference Manual: Cell complexes and their homology v8.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sage.homology.cell_complex.GenericCellComplex</span></code></a></p>
 <p>Define a PolyhedralComplex.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
@@ -2209,7 +2266,7 @@ this has been fixed:</p>
 <dt id="cutgeneratingfunctionology.igp.RealNumberField">
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">RealNumberField</code><span class="sig-paren">(</span><em>polynomial</em>, <em>name=None</em>, <em>latex_name=None</em>, <em>names=None</em>, <em>check=True</em>, <em>embedding=None</em>, <em>assume_disc_small=False</em>, <em>maximize_at_primes=None</em>, <em>exact_embedding=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.RealNumberField" title="Permalink to this definition">¶</a></dt>
 <dd><p>A <code class="docutils literal notranslate"><span class="pre">NumberField</span></code> embedded into the real numbers, for which comparisons work according tothe embedding.</p>
-<p>This may not be necessary any more in Sage 7.1 after <a class="reference external" href="http://trac.sagemath.org/17830">trac ticket #17830</a>; but see <a class="reference external" href="http://trac.sagemath.org/20184">trac ticket #20184</a>.</p>
+<p>This may not be necessary any more in Sage 7.1 after <a class="reference external" href="https://trac.sagemath.org/17830">trac ticket #17830</a>; but see <a class="reference external" href="https://trac.sagemath.org/20184">trac ticket #20184</a>.</p>
 <p>Some special tricks for speed and for pretty printing.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
@@ -2228,7 +2285,7 @@ this has been fixed:</p>
 <dl class="class">
 <dt id="cutgeneratingfunctionology.igp.RealNumberFieldElement">
 <em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">RealNumberFieldElement</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.RealNumberFieldElement" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sage.rings.number_field.number_field_element.NumberFieldElement_absolute</span></code></p>
+<dd><p>Bases: <a class="reference external" href="http://doc.sagemath.org/html/en/reference/number_fields/sage/rings/number_field/number_field_element.html#sage.rings.number_field.number_field_element.NumberFieldElement_absolute" title="(in Sage Reference Manual: Algebraic Numbers and Number Fields v8.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sage.rings.number_field.number_field_element.NumberFieldElement_absolute</span></code></a></p>
 <dl class="method">
 <dt id="cutgeneratingfunctionology.igp.RealNumberFieldElement.__abs__">
 <code class="descname">__abs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.RealNumberFieldElement.__abs__" title="Permalink to this definition">¶</a></dt>
@@ -2310,7 +2367,7 @@ this has been fixed:</p>
 <dl class="class">
 <dt id="cutgeneratingfunctionology.igp.RealNumberFieldElement_quadratic">
 <em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">RealNumberFieldElement_quadratic</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.RealNumberFieldElement_quadratic" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic</span></code></p>
+<dd><p>Bases: <a class="reference external" href="http://doc.sagemath.org/html/en/reference/number_fields/sage/rings/number_field/number_field_element_quadratic.html#sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic" title="(in Sage Reference Manual: Algebraic Numbers and Number Fields v8.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic</span></code></a></p>
 <dl class="method">
 <dt id="cutgeneratingfunctionology.igp.RealNumberFieldElement_quadratic.__hash__">
 <code class="descname">__hash__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.RealNumberFieldElement_quadratic.__hash__" title="Permalink to this definition">¶</a></dt>
@@ -2355,7 +2412,7 @@ this has been fixed:</p>
 <dl class="class">
 <dt id="cutgeneratingfunctionology.igp.RealNumberField_absolute">
 <em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">RealNumberField_absolute</code><span class="sig-paren">(</span><em>polynomial</em>, <em>name=None</em>, <em>latex_name=None</em>, <em>check=True</em>, <em>embedding=None</em>, <em>assume_disc_small=False</em>, <em>maximize_at_primes=None</em>, <em>exact_embedding=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.RealNumberField_absolute" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sage.rings.number_field.number_field.NumberField_absolute</span></code></p>
+<dd><p>Bases: <a class="reference external" href="http://doc.sagemath.org/html/en/reference/number_fields/sage/rings/number_field/number_field.html#sage.rings.number_field.number_field.NumberField_absolute" title="(in Sage Reference Manual: Algebraic Numbers and Number Fields v8.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sage.rings.number_field.number_field.NumberField_absolute</span></code></a></p>
 <p>A <code class="docutils literal notranslate"><span class="pre">RealNumberField</span></code> knows its embedding into a <code class="docutils literal notranslate"><span class="pre">RealIntervalField</span></code>
 and use that for <code class="docutils literal notranslate"><span class="pre">&lt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&gt;</span></code> comparisons.
 <code class="docutils literal notranslate"><span class="pre">==</span></code> comparison is exact, using the underlying numberfield.</p>
@@ -2415,7 +2472,7 @@ for the purpose of latexing.</p>
 <dl class="class">
 <dt id="cutgeneratingfunctionology.igp.RealNumberField_quadratic">
 <em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">RealNumberField_quadratic</code><span class="sig-paren">(</span><em>polynomial</em>, <em>name=None</em>, <em>latex_name=None</em>, <em>check=True</em>, <em>embedding=None</em>, <em>assume_disc_small=False</em>, <em>maximize_at_primes=None</em>, <em>exact_embedding=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.RealNumberField_quadratic" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sage.rings.number_field.number_field.NumberField_quadratic</span></code></p>
+<dd><p>Bases: <a class="reference external" href="http://doc.sagemath.org/html/en/reference/number_fields/sage/rings/number_field/number_field.html#sage.rings.number_field.number_field.NumberField_quadratic" title="(in Sage Reference Manual: Algebraic Numbers and Number Fields v8.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sage.rings.number_field.number_field.NumberField_quadratic</span></code></a></p>
 <p>Create a real number field.</p>
 <dl class="method">
 <dt id="cutgeneratingfunctionology.igp.RealNumberField_quadratic.__init__">
@@ -2439,7 +2496,7 @@ for the purpose of latexing.</p>
 <dl class="class">
 <dt id="cutgeneratingfunctionology.igp.SemialgebraicComplex">
 <em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">SemialgebraicComplex</code><span class="sig-paren">(</span><em>function</em>, <em>var_name</em>, <em>max_iter=2</em>, <em>find_region_type=None</em>, <em>default_var_bound=(-0.100000000000000</em>, <em>1.10000000000000)</em>, <em>bddleq=[]</em>, <em>bddlin=[]</em>, <em>kwds_dict={}</em>, <em>**opt_non_default</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.SemialgebraicComplex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sage.structure.sage_object.SageObject</span></code></p>
+<dd><p>Bases: <a class="reference external" href="http://doc.sagemath.org/html/en/reference/structure/sage/structure/sage_object.html#sage.structure.sage_object.SageObject" title="(in Sage Reference Manual: Parents and Elements v8.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sage.structure.sage_object.SageObject</span></code></a></p>
 <p>A proof complex for parameter space analysis.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
@@ -2901,7 +2958,7 @@ Return the <a class="reference internal" href="#cutgeneratingfunctionology.igp.P
 <dl class="class">
 <dt id="cutgeneratingfunctionology.igp.SemialgebraicComplexComponent">
 <em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">SemialgebraicComplexComponent</code><span class="sig-paren">(</span><em>parent</em>, <em>K</em>, <em>var_value</em>, <em>region_type</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.SemialgebraicComplexComponent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sage.structure.sage_object.SageObject</span></code></p>
+<dd><p>Bases: <a class="reference external" href="http://doc.sagemath.org/html/en/reference/structure/sage/structure/sage_object.html#sage.structure.sage_object.SageObject" title="(in Sage Reference Manual: Parents and Elements v8.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sage.structure.sage_object.SageObject</span></code></a></p>
 <p>A proof cell for parameter space analysis.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
@@ -3029,7 +3086,7 @@ slice_value has the same length as self.var_value.</p>
 <dl class="class">
 <dt id="cutgeneratingfunctionology.igp._closed_or_open_or_halfopen_interval">
 <em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">_closed_or_open_or_halfopen_interval</code><a class="headerlink" href="#cutgeneratingfunctionology.igp._closed_or_open_or_halfopen_interval" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
 <dl class="method">
 <dt id="cutgeneratingfunctionology.igp._closed_or_open_or_halfopen_interval.__getnewargs__">
 <code class="descname">__getnewargs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp._closed_or_open_or_halfopen_interval.__getnewargs__" title="Permalink to this definition">¶</a></dt>
@@ -3126,7 +3183,7 @@ right before the definition of <code class="docutils literal notranslate"><span 
 </pre></div>
 </div>
 <p>The inputs to the function must be hashable or they must define
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">sage.structure.sage_object.SageObject._cache_key()</span></code>.</p>
+<a class="reference external" href="http://doc.sagemath.org/html/en/reference/structure/sage/structure/sage_object.html#sage.structure.sage_object.SageObject._cache_key" title="(in Sage Reference Manual: Parents and Elements v8.5)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sage.structure.sage_object.SageObject._cache_key()</span></code></a>.</p>
 <p>TESTS:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">CachedFunction</span><span class="p">(</span><span class="n">number_of_partitions</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">g</span><span class="o">.</span><span class="vm">__name__</span>
@@ -4460,7 +4517,7 @@ each color in the list; the other choice is ‘rgbtuple’</li>
 <dt id="cutgeneratingfunctionology.igp.default_field">
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">default_field</code><span class="sig-paren">(</span><em>polynomial</em>, <em>name=None</em>, <em>latex_name=None</em>, <em>names=None</em>, <em>check=True</em>, <em>embedding=None</em>, <em>assume_disc_small=False</em>, <em>maximize_at_primes=None</em>, <em>exact_embedding=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.default_field" title="Permalink to this definition">¶</a></dt>
 <dd><p>A <code class="docutils literal notranslate"><span class="pre">NumberField</span></code> embedded into the real numbers, for which comparisons work according tothe embedding.</p>
-<p>This may not be necessary any more in Sage 7.1 after <a class="reference external" href="http://trac.sagemath.org/17830">trac ticket #17830</a>; but see <a class="reference external" href="http://trac.sagemath.org/20184">trac ticket #20184</a>.</p>
+<p>This may not be necessary any more in Sage 7.1 after <a class="reference external" href="https://trac.sagemath.org/17830">trac ticket #17830</a>; but see <a class="reference external" href="https://trac.sagemath.org/20184">trac ticket #20184</a>.</p>
 <p>Some special tricks for speed and for pretty printing.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
@@ -4496,7 +4553,7 @@ right before the definition of <code class="docutils literal notranslate"><span 
 </pre></div>
 </div>
 <p>The inputs to the function must be hashable or they must define
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">sage.structure.sage_object.SageObject._cache_key()</span></code>.</p>
+<a class="reference external" href="http://doc.sagemath.org/html/en/reference/structure/sage/structure/sage_object.html#sage.structure.sage_object.SageObject._cache_key" title="(in Sage Reference Manual: Parents and Elements v8.5)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sage.structure.sage_object.SageObject._cache_key()</span></code></a>.</p>
 <p>TESTS:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">CachedFunction</span><span class="p">(</span><span class="n">number_of_partitions</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">g</span><span class="o">.</span><span class="vm">__name__</span>
@@ -5327,7 +5384,7 @@ right before the definition of <code class="docutils literal notranslate"><span 
 </pre></div>
 </div>
 <p>The inputs to the function must be hashable or they must define
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">sage.structure.sage_object.SageObject._cache_key()</span></code>.</p>
+<a class="reference external" href="http://doc.sagemath.org/html/en/reference/structure/sage/structure/sage_object.html#sage.structure.sage_object.SageObject._cache_key" title="(in Sage Reference Manual: Parents and Elements v8.5)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sage.structure.sage_object.SageObject._cache_key()</span></code></a>.</p>
 <p>TESTS:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">CachedFunction</span><span class="p">(</span><span class="n">number_of_partitions</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">g</span><span class="o">.</span><span class="vm">__name__</span>
@@ -5809,7 +5866,7 @@ right before the definition of <code class="docutils literal notranslate"><span 
 </pre></div>
 </div>
 <p>The inputs to the function must be hashable or they must define
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">sage.structure.sage_object.SageObject._cache_key()</span></code>.</p>
+<a class="reference external" href="http://doc.sagemath.org/html/en/reference/structure/sage/structure/sage_object.html#sage.structure.sage_object.SageObject._cache_key" title="(in Sage Reference Manual: Parents and Elements v8.5)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sage.structure.sage_object.SageObject._cache_key()</span></code></a>.</p>
 <p>TESTS:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">CachedFunction</span><span class="p">(</span><span class="n">number_of_partitions</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">g</span><span class="o">.</span><span class="vm">__name__</span>
@@ -6494,7 +6551,6 @@ of the polytope defined by <code class="docutils literal notranslate"><span clas
 </dl>
 <p>Examples: [61] p.354, Fig.6</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">gj_2_slope</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">lambda_1</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">6</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
@@ -6546,7 +6602,6 @@ of the polytope defined by <code class="docutils literal notranslate"><span clas
 </dl>
 <p>Examples: [61] p.354, Fig.7</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">gj_2_slope_repeat</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">s_positive</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">s_negative</span><span class="o">=-</span><span class="mi">5</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
@@ -6649,7 +6704,6 @@ True</p>
 <dt>Examples: </dt>
 <dd><p class="first">[61] p.343, Fig. 1, Example 1</p>
 <div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">gmic</span><span class="p">(</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
@@ -6657,6 +6711,8 @@ True</p>
 </pre></div>
 </div>
 </dd>
+</dl>
+<dl class="docutils">
 <dt>Reference: </dt>
 <dd><p class="first">[55]: R.E. Gomory, An algorithm for the mixed integer problem, Tech. Report RM-2597, RAND Corporation, 1960.</p>
 <p>[57]: R.E. Gomory, Some polyhedra related to combinatorial problems, Linear Algebra and its Application 2 (1969) 451-558.</p>
@@ -9758,7 +9814,7 @@ by solving the LP (given objective funtion’s coefficient) using <code class="d
 <dt id="cutgeneratingfunctionology.igp.pattern_glpk_test">
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">pattern_glpk_test</code><span class="sig-paren">(</span><em>l_list</em>, <em>more_ini_additive=False</em>, <em>exact_arithmetic=True</em>, <em>simplex_first=True</em>, <em>reconstruct_rational=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.pattern_glpk_test" title="Permalink to this definition">¶</a></dt>
 <dd><p>Test the running times for <code class="docutils literal notranslate"><span class="pre">pattern_glpk_lp()</span></code> with <code class="docutils literal notranslate"><span class="pre">glp_simplex</span></code> + <code class="docutils literal notranslate"><span class="pre">glp_exact</span></code> + reconstruction.
-See table in <a class="reference external" href="http://trac.sagemath.org/18735">trac ticket #18735</a> comment 7.</p>
+See table in <a class="reference external" href="https://trac.sagemath.org/18735">trac ticket #18735</a> comment 7.</p>
 <p>Print l, number of slopes for the optimal solution, running time.
 Return a list of numbers of slopes.</p>
 <p>EXAMPLES:</p>
@@ -12636,12 +12692,106 @@ one-sided continuity is present in the function.</p>
         <li class="right" >
           <a href="index.html" title="cutgeneratingfunctionology: Code for cut-generating functions in the Gomory-Johnson model and beyond"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">cutgeneratingfunctionology 1.2+git documentation</a> &#187;</li> 
+  
+  <a href="http://www.sagemath.org"><img src="_static/sagelogo.png" style="vertical-align: middle" title="Sage Logo"></a>
+  
+        <li class="nav-item nav-item-0"><a href="index.html">cutgeneratingfunctionology 1.2+git documentation</a> &#187;</li>
+ 
       </ul>
     </div>
+    
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013-2018, Chun Yu Hong, Matthias Koeppe, Yuan Zhou, Jiawei Wang.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.6.
     </div>
+    <script type="text/javascript">
+/*global jQuery, window */
+/* Sphinx sidebar toggle.  Putting this code at the end of the body
+ * enables the toggle for the live, static, and offline docs.  Note:
+ * sage.misc.html.math_parse() eats jQuery's dollar-sign shortcut. */
+var jq = jQuery;
+jq(document).ready(function () {
+    var bar, bod, bg, fg, key, tog, wid_old, wid_new, resize, get_state, set_state;
+    bod = jq('div.bodywrapper');
+    bar = jq('div.sphinxsidebar');
+    tog = jq('<div class="sphinxsidebartoggle"></div>');
+
+    /* Delayed resize helper.  Not perfect but good enough. */
+    resize = function () {
+        setTimeout(function () {
+            tog.height(bod.height());
+        }, 100);
+    };
+    jq(window).resize(function () {
+        resize();
+    });
+
+    /* Setup and add the toggle. See Sphinx v0.5.1 default.css. */
+    fg = jq('div.sphinxsidebar p a').css('color') || 'rgb(152, 219, 204)';
+    bg = jq('div.document').css('background-color') || 'rgb(28, 78, 99)';
+    wid_old = '230px';
+    wid_new = '5px';
+    tog.css('background-color', bg)
+        .css('border-width', '0px')
+        .css('border-right', wid_new + ' ridge ' + bg)
+        .css('cursor', 'pointer')
+        .css('position', 'absolute')
+        .css('left', '-' + wid_new)
+        .css('top', '0px')
+        .css('width', wid_new);
+    bod.css('position', 'relative');
+    bod.prepend(tog);
+    resize();
+
+    /* Cookie helpers. */
+    key = 'sphinxsidebar=';
+    set_state = function (s) {
+        var date = new Date();
+        /* Expiry in 7 days. */
+        date.setTime(date.getTime() + (7 * 24 * 3600 * 1000));
+        document.cookie = key + encodeURIComponent(s) + '; expires=' +
+            date.toUTCString() + '; path=/';
+    };
+    get_state = function () {
+        var i, c, crumbs = document.cookie.split(';');
+        for (i = 0; i < crumbs.length; i += 1) {
+            c = crumbs[i].replace(/^\s+/, '');
+            if (c.indexOf(key) === 0) {
+                return decodeURIComponent(c.substring(key.length, c.length));
+            }
+        }
+        return null;
+    };
+
+    /* Event handlers. */
+    tog.mouseover(function (ev) {
+        tog.css('border-right-color', fg);
+    }).mouseout(function (ev) {
+        tog.css('border-right-color', bg);
+    }).click(function (ev) {
+        if (bod.hasClass('wide')) {
+            bod.removeClass('wide');
+            bod.css('margin-left', wid_old);
+            bar.css('width', wid_old);
+            bar.show();
+            set_state('visible');
+        } else {
+            set_state('hidden');
+            bar.hide();
+            bar.css('width', '0px');
+            bod.css('margin-left', wid_new);
+            bod.addClass('wide');
+        }
+        resize();
+    });
+
+    /* Hide the normally visible sidebar? */
+    if (get_state() === 'hidden') {
+        tog.trigger('click');
+    } else {
+        set_state('visible');
+    }
+});
+    </script>
   </body>
 </html>

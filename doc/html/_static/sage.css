@@ -1,12 +1,7 @@
-/*
- * classic.css_t
- * ~~~~~~~~~~~~~
- *
- * Sphinx stylesheet -- classic theme.
- *
- * :copyright: Copyright 2007-2018 by the Sphinx team, see AUTHORS.
- * :license: BSD, see LICENSE for details.
- *
+/**
+ * Sage stylesheet theme. This stylesheet is heavily borrowed from the
+ * Sphinx stylesheet default theme distributed as the file
+ * themes/default/static/default.css_t in Sphinx 0.6.3.
  */
 
 @import url("basic.css");
@@ -113,17 +108,10 @@ div.sphinxsidebar input {
     font-size: 1em;
 }
 
-
-
-/* -- hyperlink styles ------------------------------------------------------ */
+/* -- body styles ----------------------------------------------------------- */
 
 a {
     color: #45529B;
-    text-decoration: none;
-}
-
-a:visited {
-    color: #355f7c;
     text-decoration: none;
 }
 
@@ -131,9 +119,10 @@ a:hover {
     text-decoration: underline;
 }
 
-
-
-/* -- body styles ----------------------------------------------------------- */
+div.body p, div.body dd, div.body li {
+    text-align: justify;
+    line-height: 130%;
+}
 
 div.body h1,
 div.body h2,
@@ -142,12 +131,16 @@ div.body h4,
 div.body h5,
 div.body h6 {
     font-family: 'Trebuchet MS', sans-serif;
-    background-color: #EAEAF8;
     font-weight: normal;
     color: #20435c;
-    border-bottom: 1px solid #ccc;
     margin: 20px -20px 10px -20px;
     padding: 3px 0 3px 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+div.body h1,
+div.body h2 {
+    background-color: #EAEAF8;
 }
 
 div.body h1 { margin-top: 0; font-size: 200%; }
@@ -169,7 +162,7 @@ a.headerlink:hover {
     color: white;
 }
 
-div.body p, div.body dd, div.body li, div.body blockquote {
+div.body p, div.body dd, div.body li {
     text-align: justify;
     line-height: 130%;
 }
@@ -178,19 +171,12 @@ div.admonition p.admonition-title + p {
     display: inline;
 }
 
-div.admonition p {
-    margin-bottom: 5px;
-}
-
-div.admonition pre {
-    margin-bottom: 5px;
-}
-
-div.admonition ul, div.admonition ol {
-    margin-bottom: 5px;
-}
-
 div.note {
+    background-color: #eee;
+    border: 1px solid #ccc;
+}
+
+div.admonition-todo {
     background-color: #eee;
     border: 1px solid #ccc;
 }
@@ -209,6 +195,11 @@ div.warning {
     border: 1px solid #f66;
 }
 
+div.hint {
+    background-color: #D8F6CE;
+    border: 1px solid #31B404;
+}
+
 p.admonition-title {
     display: inline;
 }
@@ -217,45 +208,27 @@ p.admonition-title:after {
     content: ":";
 }
 
+/**
+ * Code block.
+ * The border colour should be a darker shade of the background colour.
+ * The hex code #E8D898 used below is a pale, light grayish amber.
+ */
 pre {
     padding: 5px;
     background-color: #FFFFE5;
     color: #333333;
     line-height: 120%;
-    border: 1px solid #ac9;
+    border: 1px solid #E8D898;
     border-left: none;
     border-right: none;
 }
 
-code {
-    background-color: #ecf0f3;
+/**
+ * Commands or code within text. The hex code #EAEAF8 used below is a
+ * pale, light grayish blue.
+ */
+tt {
+    background-color: #EAEAF8;
     padding: 0 1px 0 1px;
     font-size: 0.95em;
-}
-
-th {
-    background-color: #ede;
-}
-
-.warning code {
-    background: #efc2c2;
-}
-
-.note code {
-    background: #d6d6d6;
-}
-
-.viewcode-back {
-    font-family: sans-serif;
-}
-
-div.viewcode-block:target {
-    background-color: #f4debf;
-    border-top: 1px solid #ac9;
-    border-bottom: 1px solid #ac9;
-}
-
-div.code-block-caption {
-    color: #efefef;
-    background-color: #1c4e63;
 }
