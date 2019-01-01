@@ -105,6 +105,413 @@
   <div class="section" id="electronic-compendium-of-procedures-for-the-1-row-gomory-johnson-model">
 <h1>Electronic compendium of procedures for the 1-row Gomory–Johnson model<a class="headerlink" href="#electronic-compendium-of-procedures-for-the-1-row-gomory-johnson-model" title="Permalink to this headline">¶</a></h1>
 <span class="target" id="module-cutgeneratingfunctionology.igp.procedures"></span><p>Index of “procedures” that can be applied to transform extreme functions</p>
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.automorphism">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.</code><code class="descname">automorphism</code><span class="sig-paren">(</span><em>function</em>, <em>factor=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.automorphism" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply an automorphism.</p>
+<p>For the infinite group problem, apply the only nontrivial
+automorphism of the 1-dimensional infinite group problem to the
+given function, i.e., construct the function x -&gt; function(-x).
+See Johnson (1974) for a discussion of the automorphisms.</p>
+<p>In the finite group case, factor must be an integer coprime with
+the group order.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">automorphism</span><span class="p">(</span><span class="n">gmic</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">))</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">automorphism</span><span class="p">(</span><span class="n">restrict_to_finite_group</span><span class="p">(</span><span class="n">gmic</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">)),</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.</code><code class="descname">injective_2_slope_fill_in</code><span class="sig-paren">(</span><em>fn</em>, <em>epsilon=1</em>, <em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Input: a (continuous) minimal function fn for the infinite group problem, or a discrete minimal function for the finite group problem,  with rational breakpoints in 1/qZ and rational function values at the breakpoints. (weaker condition: rational breakpoints and the set {x: fn_interpolation(x)=1/2} is the union of some rational x and intervals.)
+Output: a two-slope extreme function fn2 such that fn2 = fn on 1/mqZ (and the infinity norm distance between fn and fn2 is less than epsilon).</p>
+<p>The function is obtained by putting upward and downward tents with slopes equal to the limiting slopes of the input function on top of some intervals between the points of the finite group of order mq = <code class="docutils literal notranslate"><span class="pre">injective_2_slope_fill_in_order</span></code>.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">discrete_function_from_points_and_values</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">not_extreme_1</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">find_infinity_norm_distance</span> <span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">fn2</span><span class="p">)</span>
+<span class="go">1/12</span>
+<span class="gp">sage: </span><span class="n">fn_app</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">20</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">finite_group_order_from_function_f_oversampling_order</span><span class="p">(</span><span class="n">fn_app</span><span class="p">)</span>
+<span class="go">160</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn_app</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">find_infinity_norm_distance</span> <span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">fn_app</span><span class="p">)</span>
+<span class="go">1/48</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">gmic</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">==</span> <span class="n">fn2</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span><span class="n">restrict_to_finite_group</span><span class="p">(</span><span class="n">minimal_has_uncovered_interval</span><span class="p">(),</span> <span class="n">order</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span><span class="n">restrict_to_finite_group</span><span class="p">(</span><span class="n">minimal_has_uncovered_interval</span><span class="p">(),</span> <span class="n">order</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">minimal_has_uncovered_breakpoints</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">example7slopecoarse2</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">number_of_slopes</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">lift_until_extreme_only_works_with_strict_subset_L</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">number_of_slopes</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>  <span class="c1">#long time</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">fn</span> <span class="o">=</span> <span class="n">lift_until_extreme_default_style_bug_example</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">fn2</span> <span class="o">=</span> <span class="n">injective_2_slope_fill_in</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>  <span class="c1"># q=52; q2=order=4004</span>
+<span class="gp">sage: </span><span class="n">finite_group_order_from_function_f_oversampling_order</span><span class="p">(</span><span class="n">fn2</span><span class="p">)</span>
+<span class="go">12012</span>
+</pre></div>
+</div>
+<p>Systematic testing:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">q</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="n">f</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">show_plots</span><span class="o">=</span><span class="bp">False</span>
+<span class="gp">sage: </span><span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">generate_extreme_functions_for_finite_group</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span> <span class="c1">#long time</span>
+<span class="go">....:     if number_of_slopes(h) &gt; 2:</span>
+<span class="go">....:         if show_plots: plot_2d_diagram(h, colorful=True)</span>
+<span class="go">....:         order = injective_2_slope_fill_in_order(h)</span>
+<span class="go">....:         if order &lt; 1000:</span>
+<span class="go">....:             i = injective_2_slope_fill_in(h, show_plots=show_plots)</span>
+<span class="go">....:             assert minimality_test(i)</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Reference:</dt>
+<dd>[injective_2_slope_fill_in] M. Koeppe and Y. Zhou, All Cyclic Group Facets Inject,
+manuscript, 2018.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.interpolate_to_infinite_group">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.</code><code class="descname">interpolate_to_infinite_group</code><span class="sig-paren">(</span><em>function</em>, <em>merge=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.interpolate_to_infinite_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate the given function to make it a function in the
+infinite group problem.</p>
+<p>function may be a function of a finite (cyclic) group problem, 
+represented as a <code class="docutils literal notranslate"><span class="pre">FastPiecewise</span></code> with singleton intervals within [0,1] as its parts.</p>
+<p>(function is actually allowed, however, to be more general; it can be any <code class="docutils literal notranslate"><span class="pre">FastPiecewise</span></code>.)</p>
+<p>See <code class="docutils literal notranslate"><span class="pre">restrict_to_finite_group</span></code> for a discussion of the relation of
+the finite and infinite group problem.</p>
+<p>If merge is <code class="docutils literal notranslate"><span class="pre">True</span></code> (the default), adjacent pieces of equal slopes are merged into one.</p>
+<p>EXAMPLES:</p>
+<p>The same as <code class="docutils literal notranslate"><span class="pre">restrict_to_finite_group(drlm_not_extreme_1())</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h7</span> <span class="o">=</span> <span class="n">discrete_function_from_points_and_values</span><span class="p">([</span><span class="mi">0</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span> <span class="mi">4</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span> <span class="mi">5</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span> <span class="mi">6</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span> <span class="mi">7</span><span class="o">/</span><span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="o">/</span><span class="mi">10</span><span class="p">])</span>
+<span class="gp">sage: </span><span class="n">finite_dimensional_extremality_test</span><span class="p">(</span><span class="n">h7</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">interpolate_to_infinite_group</span><span class="p">(</span><span class="n">h7</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">sage: </span><span class="n">h21</span> <span class="o">=</span> <span class="n">restrict_to_finite_group</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">oversampling</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">finite_dimensional_extremality_test</span><span class="p">(</span><span class="n">h21</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">sage: </span><span class="n">h28</span> <span class="o">=</span> <span class="n">restrict_to_finite_group</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">oversampling</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">finite_dimensional_extremality_test</span><span class="p">(</span><span class="n">h28</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">sage: </span><span class="n">h14</span> <span class="o">=</span> <span class="n">restrict_to_finite_group</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">oversampling</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># for this example, even factor 2 works!</span>
+<span class="gp">sage: </span><span class="n">finite_dimensional_extremality_test</span><span class="p">(</span><span class="n">h14</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.multiplicative_homomorphism">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.</code><code class="descname">multiplicative_homomorphism</code><span class="sig-paren">(</span><em>function</em>, <em>multiplier</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.multiplicative_homomorphism" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the function x -&gt; function(multiplier * x).</p>
+<p>multiplier must be a nonzero integer.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">multiplicative_homomorphism</span><span class="p">(</span><span class="n">gmic</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">15</span><span class="p">)</span> <span class="c1"># Provide f to suppress warning</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">multiplicative_homomorphism</span><span class="p">(</span><span class="n">gmic</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">),</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.projected_sequential_merge">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.</code><code class="descname">projected_sequential_merge</code><span class="sig-paren">(</span><em>g</em>, <em>n=1</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.projected_sequential_merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>construct the one-dimensional projected sequential merge inequality: “h = g &#64;_n^1 gmic” with <span class="math notranslate nohighlight">\(f = n r\)</span> in the first function <span class="math notranslate nohighlight">\(g\)</span> and <span class="math notranslate nohighlight">\(f = r\)</span> in the second function <code class="docutils literal notranslate"><span class="pre">gmic</span></code>.</p>
+<dl class="docutils">
+<dt>The notation <span class="math notranslate nohighlight">\(\\lozenge_n^1\)</span> is given in [39] p.305, def.12 &amp; eq.25 :</dt>
+<dd><span class="math notranslate nohighlight">\(h(x) = \\frac{1}{n+1}\\xi(x) + n g(\\lfloor(n + 1)  x - r \\xi(x)\\rfloor)\)</span>, where <span class="math notranslate nohighlight">\(\\xi =\)</span> <code class="docutils literal notranslate"><span class="pre">gmic(r)</span></code>.</dd>
+</dl>
+<p>Parameters:</p>
+<ul class="simple">
+<li><span class="math notranslate nohighlight">\(g\)</span> (real) a valid inequality;</li>
+<li><span class="math notranslate nohighlight">\(n\)</span> (integer).</li>
+</ul>
+<dl class="docutils">
+<dt>Function is known to be extreme under the conditions: c.f. [39] p.309, Lemma 1</dt>
+<dd><ol class="first last arabic simple">
+<li><span class="math notranslate nohighlight">\(g\)</span> is a facet-defining inequality, with <span class="math notranslate nohighlight">\(f=nr\)</span> ;</li>
+<li><span class="math notranslate nohighlight">\(E(g)\)</span> is unique up to scaling, c.f.[39] p.289, def.6 &amp; def.7 ;</li>
+<li><span class="math notranslate nohighlight">\([g]_{nr}\)</span> is nondecreasing, c.f.[39] p.290, def.8 (where <span class="math notranslate nohighlight">\(m=1\)</span>).</li>
+</ol>
+</dd>
+</dl>
+<p>Note:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">g</span> <span class="pre">=</span> <span class="pre">gj_forward_3_slope()</span></code> does not satisfy condition (3), but</li>
+<li><code class="docutils literal notranslate"><span class="pre">g</span> <span class="pre">=</span> <span class="pre">multiplicative_homomorphism(gj_forward_3_slope(),</span> <span class="pre">-1)</span></code> satisfies (3).</li>
+</ul>
+<p>Examples: [39]  p.311, fig.5</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">multiplicative_homomorphism</span><span class="p">(</span><span class="n">gj_forward_3_slope</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="n">lambda_1</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="n">lambda_2</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">projected_sequential_merge</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Reference:</dt>
+<dd><dl class="first last docutils">
+<dt>[39] SS Dey, JPP Richard, Relations between facets of low-and high-dimensional group problems,</dt>
+<dd>Mathematical programming 123 (2), 285-313.</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.restrict_to_finite_group">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.</code><code class="descname">restrict_to_finite_group</code><span class="sig-paren">(</span><em>function</em>, <em>f=None</em>, <em>oversampling=None</em>, <em>order=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.restrict_to_finite_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Restrict the given function to the cyclic group of given order.</p>
+<p>If order is not given, it defaults to the group generated by the
+breakpoints of function and <span class="math notranslate nohighlight">\(f\)</span> if these data are rational.
+However, if oversampling is given, it must be a positive
+integer; then the group generated by the breakpoints of function
+and <span class="math notranslate nohighlight">\(f\)</span> will be refined by that factor.</p>
+<p>If <span class="math notranslate nohighlight">\(f\)</span> is not provided, uses the one found by <code class="docutils literal notranslate"><span class="pre">find_f</span></code>.</p>
+<p>Assume in the following that <span class="math notranslate nohighlight">\(f\)</span> and all breakpoints of function
+lie in the cyclic group and that function is continuous.</p>
+<p>Then the restriction is valid if and only if function is valid.
+The restriction is minimal if and only if function is minimal.
+The restriction is extreme if function is extreme. 
+FIXME: Add reference.</p>
+<p>If, in addition oversampling &gt;= 3, then the following holds:
+The restriction is extreme if and only if function is extreme.
+This is Theorem 1.5 in [IR2].</p>
+<p>This oversampling factor of 3 is best possible, as demonstrated
+by function <code class="docutils literal notranslate"><span class="pre">kzh_2q_example_1</span></code> from [KZh2015a].</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">g</span> <span class="o">=</span> <span class="n">gj_2_slope</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">gf</span> <span class="o">=</span> <span class="n">restrict_to_finite_group</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">gf</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">finite_dimensional_extremality_test</span><span class="p">(</span><span class="n">gf</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">drlm_not_extreme_1</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">sage: </span><span class="n">h7</span> <span class="o">=</span> <span class="n">restrict_to_finite_group</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h7</span><span class="o">.</span><span class="n">end_points</span><span class="p">()</span>
+<span class="go">[0, 1/7, 2/7, 3/7, 4/7, 5/7, 6/7, 1]</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">h7</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">finite_dimensional_extremality_test</span><span class="p">(</span><span class="n">h7</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">h21</span> <span class="o">=</span> <span class="n">restrict_to_finite_group</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">oversampling</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">h21</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">finite_dimensional_extremality_test</span><span class="p">(</span><span class="n">h21</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">sage: </span><span class="n">h28</span> <span class="o">=</span> <span class="n">restrict_to_finite_group</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">28</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">h28</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">finite_dimensional_extremality_test</span><span class="p">(</span><span class="n">h28</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">sage: </span><span class="n">h5</span> <span class="o">=</span> <span class="n">restrict_to_finite_group</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">h5</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Reference:</dt>
+<dd><dl class="first docutils">
+<dt>[IR2] A. Basu, R. Hildebrand, and M. Koeppe, Equivariant perturbation in Gomory and Johnson’s infinite group problem.</dt>
+<dd><ol class="first last upperroman simple">
+<li>The one-dimensional case, Mathematics of Operations Research (2014), doi:10. 1287/moor.2014.0660</li>
+</ol>
+</dd>
+</dl>
+<p class="last">[KZh2015a] M. Koeppe and Y. Zhou, New computer-based search
+strategies for extreme functions of the Gomory–Johnson
+infinite group problem, 2015, e-print
+<a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.symmetric_2_slope_fill_in">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.</code><code class="descname">symmetric_2_slope_fill_in</code><span class="sig-paren">(</span><em>function</em>, <em>epsilon</em>, <em>show_plots=False</em>, <em>f=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.symmetric_2_slope_fill_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a continuous strong minimal function for the Gomory and Johnson infinite group problem with <span class="math notranslate nohighlight">\(f \in Q\setminus Z\)</span>, return an extreme 2-slope function pi_ext that approximates function with infinity norm distance less than epsilon.</p>
+<p>See Theorem 2 [dense-2-slope].</p>
+<p>See also: <code class="docutils literal notranslate"><span class="pre">symmetric_2_slope_fill_in_irrational</span></code>.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">function</span> <span class="o">=</span> <span class="n">piecewise_function_from_breakpoints_and_values</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">function</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">sage: </span><span class="n">epsilon</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">10</span>
+<span class="gp">sage: </span><span class="n">pi_sym</span> <span class="o">=</span> <span class="n">symmetric_2_slope_fill_in</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">find_infinity_norm_distance</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">pi_sym</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">epsilon</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">number_of_slopes</span><span class="p">(</span><span class="n">pi_sym</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">pi_sym</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Show plots:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">pi_sym</span> <span class="o">=</span> <span class="n">symmetric_2_slope_fill_in</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span> <span class="c1">#not tested</span>
+<span class="gp">sage: </span><span class="n">pi_sym</span> <span class="o">=</span> <span class="n">symmetric_2_slope_fill_in</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span> <span class="c1">#not tested</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Reference:</dt>
+<dd>[dense-2-slope] A. Basu, R. Hildebrand, and M. Molinaro, Minimal cut-generating functions are nearly extreme, 2015, <a class="reference external" href="http://www.ams.jhu.edu/~abasu9/papers/dense-2-slope.pdf">http://www.ams.jhu.edu/~abasu9/papers/dense-2-slope.pdf</a>, to appear in Proceedings of IPCO 2016.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.symmetric_2_slope_fill_in_irrational">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.</code><code class="descname">symmetric_2_slope_fill_in_irrational</code><span class="sig-paren">(</span><em>function</em>, <em>epsilon</em>, <em>show_plots=False</em>, <em>f=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.symmetric_2_slope_fill_in_irrational" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a continuous piecewise linear strong minimal function for the Gomory and Johnson infinite
+group problem, return an extreme 2-slope function pi_ext that approximates function with infinity
+norm distance less than epsilon.</p>
+<p>This construction is a variant of Theorem 2 [dense-2-slope] (implemented in <code class="docutils literal notranslate"><span class="pre">symmetric_2_slope_fill_in</span></code>),
+proposed by Yuan Zhou (2015, unpublished):</p>
+<p>It turns out that if <span class="math notranslate nohighlight">\(\pi\)</span> is piecewise linear, then in Theorem 2, <span class="math notranslate nohighlight">\(b\)</span>
+does not have to be a rational number. This is because when <span class="math notranslate nohighlight">\(q\)</span> is
+large enough (precisely, when <span class="math notranslate nohighlight">\(1/q \leq \delta/2\)</span> and 
+<span class="math notranslate nohighlight">\(\max\{s^+, |s^-|\}/q \leq \epsilon/2\)</span>, 
+where <span class="math notranslate nohighlight">\(s^+\)</span> and <span class="math notranslate nohighlight">\(s^-\)</span> are the most positive and the most
+negative slopes of pi_comb), doing a 2-slope fill-in on the
+pi_comb restricted to the grid (1/q)Z will give a pi_fill_in that
+always has pi_fill_in(<span class="math notranslate nohighlight">\(b\)</span>)=1, even though <span class="math notranslate nohighlight">\(b\)</span> is irrational and thus
+is not in (1/q)Z.  For the same reason, <span class="math notranslate nohighlight">\(\delta\)</span> and other breakpoints
+of pi_comb in lemma 6 do not have to be rational numbers either. To
+ensure pi_sym is well defined, consider <span class="math notranslate nohighlight">\(U=(1/q)Z \cup \{b/2, (b+1)/2\}\)</span>
+when constructing pi_fill_in. The proof follows verbatim.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">function</span> <span class="o">=</span> <span class="n">piecewise_function_from_breakpoints_and_values</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">/</span><span class="mi">5</span><span class="o">+</span><span class="mi">1</span><span class="o">/</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="o">+</span><span class="mi">1</span><span class="o">/</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">function</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">epsilon</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">10</span>
+<span class="gp">sage: </span><span class="n">pi_sym</span> <span class="o">=</span> <span class="n">symmetric_2_slope_fill_in_irrational</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">find_infinity_norm_distance</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">pi_sym</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">epsilon</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">number_of_slopes</span><span class="p">(</span><span class="n">pi_sym</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">pi_sym</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">drlm_backward_3_slope</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">61</span><span class="p">),</span> <span class="n">bkpt</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">61</span><span class="p">))</span>
+<span class="gp">sage: </span><span class="n">minimality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">sage: </span><span class="n">pi_sym</span> <span class="o">=</span> <span class="n">symmetric_2_slope_fill_in_irrational</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">find_infinity_norm_distance</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">pi_sym</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">10</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">number_of_slopes</span><span class="p">(</span><span class="n">pi_sym</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">pi_sym</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Show plots:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">pi_sym</span> <span class="o">=</span> <span class="n">symmetric_2_slope_fill_in_irrational</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span> <span class="c1">#not tested</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Reference:</dt>
+<dd>[dense-2-slope] A. Basu, R. Hildebrand, and M. Molinaro, Minimal cut-generating functions are nearly extreme, 2015, <a class="reference external" href="http://www.ams.jhu.edu/~abasu9/papers/dense-2-slope.pdf">http://www.ams.jhu.edu/~abasu9/papers/dense-2-slope.pdf</a>, to appear in Proceedings of IPCO 2016.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.two_slope_fill_in">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.</code><code class="descname">two_slope_fill_in</code><span class="sig-paren">(</span><em>function</em>, <em>order=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.two_slope_fill_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extend the given function to make it a 2-slope function in the
+infinite group problem.</p>
+<p>function may be a function of a finite (cyclic) group problem,
+represented as a <code class="docutils literal notranslate"><span class="pre">FastPiecewise</span></code> with singleton intervals within [0,1] as its parts.</p>
+<p>(function is actually allowed, however, to be more general; it can be any <code class="docutils literal notranslate"><span class="pre">FastPiecewise</span></code>. When the given function is a function for the infinite group problem, its <code class="docutils literal notranslate"><span class="pre">restrict_to_finite_group</span></code> with order=order would be considered.)</p>
+<p>[Johnson (1974), section 7; see also Gomory–Johnson (1972, I, II)] If function is a subadditive valid function for the finite group problem, then its 2-slope fill-in is a subadditive valid function for the infinite group problem.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h_dis</span> <span class="o">=</span> <span class="n">discrete_function_from_points_and_values</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+<span class="gp">sage: </span><span class="n">subadditivity_test</span><span class="p">(</span><span class="n">h_dis</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">h_fill</span> <span class="o">=</span> <span class="n">two_slope_fill_in</span><span class="p">(</span><span class="n">h_dis</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">subadditivity_test</span><span class="p">(</span><span class="n">h_fill</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">number_of_slopes</span><span class="p">(</span><span class="n">h_fill</span><span class="p">)</span>
+<span class="go">2</span>
+
+<span class="gp">sage: </span><span class="n">gmic</span><span class="p">()</span> <span class="o">==</span> <span class="n">two_slope_fill_in</span><span class="p">(</span><span class="n">gmic</span><span class="p">())</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 
 
