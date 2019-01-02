@@ -13,5 +13,5 @@ def get_all_version_names(mirror_url, idx = None, distribution = 'Ubuntu_14.04-x
         ans = re.findall('(sage-([0-9]*(?:\.[0-9]*)*)-%s.tar.bz2)'%distribution, site)
         for fname, ver in ans:
             if fname not in all_version_names:
-                all_version_names.append(fname)
+                all_version_names.append(subdir + fname)
     return all_version_names[idx]
