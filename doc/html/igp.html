@@ -3401,7 +3401,7 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 
 <dl class="class">
 <dt id="cutgeneratingfunctionology.igp.bcds_discontinuous_everywhere">
-<em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">bcds_discontinuous_everywhere</code><span class="sig-paren">(</span><em>f=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.bcds_discontinuous_everywhere" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">bcds_discontinuous_everywhere</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.bcds_discontinuous_everywhere" title="Permalink to this definition">¶</a></dt>
 <dd><p>An extreme function whose graph is dense in R times [0,1].</p>
 <dl class="docutils">
 <dt>Reference:</dt>
@@ -3410,11 +3410,24 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 <dl class="method">
 <dt id="cutgeneratingfunctionology.igp.bcds_discontinuous_everywhere.__call__">
 <code class="descname">__call__</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.bcds_discontinuous_everywhere.__call__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="n">bcds_discontinuous_everywhere</span><span class="p">,</span> <span class="n">delta_pi</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">bcds_discontinuous_everywhere</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">delta_pi</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="o">+</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="mi">3</span><span class="o">/</span><span class="mi">7</span><span class="o">+</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">delta_pi</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="o">-</span><span class="mi">13</span><span class="o">/</span><span class="mi">9</span><span class="o">+</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">17</span><span class="p">),</span> <span class="mi">3</span><span class="o">/</span><span class="mi">7</span><span class="o">-</span><span class="mi">3</span><span class="o">*</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">17</span><span class="p">))</span><span class="o">&gt;=</span><span class="mi">0</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">delta_pi</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="mi">19</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">7</span><span class="o">-</span><span class="mi">3</span><span class="o">*</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">101</span><span class="p">))</span><span class="o">&gt;=</span><span class="mi">0</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">delta_pi</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="mi">19</span><span class="o">/</span><span class="mi">8</span><span class="o">+</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">101</span><span class="o">/</span><span class="mi">9</span><span class="p">),</span> <span class="mi">3</span><span class="o">/</span><span class="mi">7</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="o">*</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">101</span><span class="p">))</span><span class="o">&gt;=</span><span class="mi">0</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="method">
 <dt id="cutgeneratingfunctionology.igp.bcds_discontinuous_everywhere.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>f=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.bcds_discontinuous_everywhere.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.bcds_discontinuous_everywhere.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -8126,6 +8139,67 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 </div>
 </dd></dl>
 
+<dl class="class">
+<dt id="cutgeneratingfunctionology.igp.kzh_extreme_and_weak_facet_but_not_facet">
+<em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">kzh_extreme_and_weak_facet_but_not_facet</code><span class="sig-paren">(</span><em>f=4/5</em>, <em>l=219/800</em>, <em>u=269/800</em>, <em>t1=77/7752*sqrt(2)</em>, <em>t2=77/2584</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.kzh_extreme_and_weak_facet_but_not_facet" title="Permalink to this definition">¶</a></dt>
+<dd><p>An extreme function and weak facet that is not a facet.</p>
+<p>This factory class generates a fresh function from an infinite family.
+The function depends on the sequence of its evaluations.</p>
+<p>TESTS:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_extreme_and_weak_facet_but_not_facet</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">hm</span> <span class="o">=</span> <span class="n">kzh_minimal_has_only_crazy_perturbation_1</span><span class="p">()</span><span class="o">+</span><span class="mi">1</span><span class="o">/</span><span class="mi">1000000</span><span class="o">*</span><span class="n">kzh_minimal_has_only_crazy_perturbation_1_perturbation</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">minimality_test_randomized</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">kzh_minimal_has_only_crazy_perturbation_1</span><span class="p">(),</span> <span class="n">hm</span><span class="p">,</span>
+<span class="go">....:                            limits=False, extra_cosets=[sqrt(3), -sqrt(3)],</span>
+<span class="go">....:                            max_iterations=10)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Reference:</dt>
+<dd>Matthias Koeppe, Yuan Zhou. On the notions of facets, weak facets, and extreme functions of the Gomory-Johnson infinite group problem.</dd>
+</dl>
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.kzh_extreme_and_weak_facet_but_not_facet.__call__">
+<code class="descname">__call__</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.kzh_extreme_and_weak_facet_but_not_facet.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="n">kzh_extreme_and_weak_facet_but_not_facet</span><span class="p">,</span> <span class="n">delta_pi</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_extreme_and_weak_facet_but_not_facet</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="nb">bool</span><span class="p">(</span><span class="n">delta_pi</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="o">+</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="mi">3</span><span class="o">/</span><span class="mi">7</span><span class="o">+</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="nb">bool</span><span class="p">(</span><span class="n">delta_pi</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="o">-</span><span class="mi">13</span><span class="o">/</span><span class="mi">9</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">7</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="nb">bool</span><span class="p">(</span><span class="n">delta_pi</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="mi">19</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">7</span><span class="o">-</span><span class="mi">3</span><span class="o">*</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">101</span><span class="p">))</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="nb">bool</span><span class="p">(</span><span class="n">delta_pi</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="mi">19</span><span class="o">/</span><span class="mi">8</span><span class="o">+</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">101</span><span class="o">/</span><span class="mi">9</span><span class="p">),</span> <span class="mi">3</span><span class="o">/</span><span class="mi">7</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="o">*</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">101</span><span class="p">))</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.kzh_extreme_and_weak_facet_but_not_facet.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>f=4/5</em>, <em>l=219/800</em>, <em>u=269/800</em>, <em>t1=77/7752*sqrt(2)</em>, <em>t2=77/2584</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.kzh_extreme_and_weak_facet_but_not_facet.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.kzh_extreme_and_weak_facet_but_not_facet.is_in_C">
+<code class="descname">is_in_C</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.kzh_extreme_and_weak_facet_but_not_facet.is_in_C" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.kzh_extreme_and_weak_facet_but_not_facet.is_in_Cplus">
+<code class="descname">is_in_Cplus</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.kzh_extreme_and_weak_facet_but_not_facet.is_in_Cplus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.kzh_extreme_and_weak_facet_but_not_facet.is_in_T">
+<code class="descname">is_in_T</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.kzh_extreme_and_weak_facet_but_not_facet.is_in_T" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="function">
 <dt id="cutgeneratingfunctionology.igp.kzh_minimal_has_only_crazy_perturbation_1">
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">kzh_minimal_has_only_crazy_perturbation_1</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.kzh_minimal_has_only_crazy_perturbation_1" title="Permalink to this definition">¶</a></dt>
@@ -8619,7 +8693,7 @@ G. Reinelt, G. Rinaldi, and L. A. Wolsey, eds.), Springer Berlin Heidelberg,
 
 <dl class="function">
 <dt id="cutgeneratingfunctionology.igp.minimality_test_randomized">
-<code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">minimality_test_randomized</code><span class="sig-paren">(</span><em>fn</em>, <em>orig_function=None</em>, <em>max_iterations=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.minimality_test_randomized" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">minimality_test_randomized</code><span class="sig-paren">(</span><em>fn</em>, <em>orig_function=None</em>, <em>testpoint_function=None</em>, <em>extra_cosets=[]</em>, <em>max_iterations=None</em>, <em>limits=True</em>, <em>lost_additivity_is_error=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.minimality_test_randomized" title="Permalink to this definition">¶</a></dt>
 <dd><p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
@@ -11212,7 +11286,7 @@ maximal additive faces.</p>
 
 <dl class="function">
 <dt id="cutgeneratingfunctionology.igp.random_6_tuple">
-<code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">random_6_tuple</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.random_6_tuple" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">random_6_tuple</code><span class="sig-paren">(</span><em>fn</em>, <em>extra_cosets=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.random_6_tuple" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -11235,7 +11309,7 @@ maximal additive faces.</p>
 
 <dl class="function">
 <dt id="cutgeneratingfunctionology.igp.random_test_number">
-<code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">random_test_number</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.random_test_number" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">random_test_number</code><span class="sig-paren">(</span><em>fn</em>, <em>extra_cosets=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.random_test_number" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
