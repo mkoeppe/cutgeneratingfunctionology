@@ -279,7 +279,7 @@ def check_move_on_crazy_pieces(xxx_todo_changeme, cp1, cp2):
         return True
 
 
-def random_test_number(fn):
+def random_test_number(fn, extra_cosets=[]):
     if randint(0, 5)==0:
         # Pick f
         try:
@@ -303,8 +303,8 @@ def random_test_number(fn):
         crazy_piece = crazy_pieces[randint(0, len(crazy_pieces)-1)]
         if randint(0, 0) == 0: # Always...
             # Pick from support of microperiodic
-            cosets = crazy_piece.cosets
-            coset = cosets[randint(0, len(cosets)-1)][0]
+            cosets = [ coset for (coset, value) in crazy_piece.cosets ] + extra_cosets
+            coset = cosets[randint(0, len(cosets)-1)]
         else:
             coset = ZZ(randint(0, 12345678)) / ZZ(randint(1, 1234567))
         generators = crazy_piece.generators
@@ -319,17 +319,17 @@ def random_test_number(fn):
     x = interval[0] + ZZ(randint(0, denom)) / denom * (interval[1] - interval[0])
     return x
 
-def random_6_tuple(fn):
+def random_6_tuple(fn, extra_cosets=[]):
     eps_tuples = list(dic_eps_to_cone.keys()) # 13 possibilities.
     while True:
         (xeps, yeps, zeps)=eps_tuples[randint(0, 12)]
         if randint(0, 1) == 0:
-            x = random_test_number(fn)
-            y = random_test_number(fn)
+            x = random_test_number(fn, extra_cosets=extra_cosets)
+            y = random_test_number(fn, extra_cosets=extra_cosets)
             z = x + y
         else:
-            x = random_test_number(fn)
-            z = randint(0, 1) + random_test_number(fn)
+            x = random_test_number(fn, extra_cosets=extra_cosets)
+            z = randint(0, 1) + random_test_number(fn, extra_cosets=extra_cosets)
             y = fractional(z - x)
         try:
             fn_x = fn.limit(x, xeps)
@@ -340,7 +340,7 @@ def random_6_tuple(fn):
             # if fn is a crazy function such that not all of fn_x, fn_y, fn_z exist, then restart the random generator.
             pass
 
-def minimality_test_randomized(fn, orig_function=None, max_iterations=None):
+def minimality_test_randomized(fn, orig_function=None, testpoint_function=None, extra_cosets=[], max_iterations=None, limits=True, lost_additivity_is_error=False):
     r"""
     EXAMPLES::
 
@@ -365,19 +365,35 @@ def minimality_test_randomized(fn, orig_function=None, max_iterations=None):
     """
     smallest_delta = 10
     num_it = 0
+    if testpoint_function is None:
+        testpoint_function = fn
+    f = find_f(testpoint_function)
     while max_iterations is None or num_it < max_iterations:
         num_it = num_it + 1
-        x, y, z, xeps, yeps, zeps = random_6_tuple(fn)
-        delta = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
+        x, y, z, xeps, yeps, zeps = random_6_tuple(testpoint_function, extra_cosets=extra_cosets)
+        if limits:
+            delta = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
+            if orig_function is not None:
+                delta_orig = delta_pi_general(orig_function, x, y, (xeps, yeps, zeps))
+        else:
+            xeps = yeps = zeps = 0
+            delta = delta_pi(fn, x, y)
+            if orig_function is not None:
+                delta_orig = delta_pi(orig_function, x, y)
         if delta < 0:
             logging.warning("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
             return False
+        if 0 < delta and (x + y == f or x + y == 1 + f) and zeps == 0:
+            # Symmetry violated
+            logging.warning("pi(%s%s) + pi(%s%s) - pi(%s%s) != 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
+            return False
         if 0 < delta and orig_function is not None:
-            if delta_pi_general(orig_function, x, y, (xeps, yeps, zeps)) == 0:
+            if delta_orig == 0:
                 logging.warning("Lost additivity: pi(%s%s) + pi(%s%s) - pi(%s%s) > 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
-                return False
+                if lost_additivity_is_error:
+                    return False
         if 0 == delta and orig_function is not None:
-            if delta_pi_general(orig_function, x, y, (xeps, yeps, zeps)) != 0:
+            if delta_orig != 0:
                 logging.info("New additivity: pi(%s%s) + pi(%s%s) - pi(%s%s) = 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
         if 0 < delta < smallest_delta:
             smallest_delta = delta
