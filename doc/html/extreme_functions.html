@@ -1527,6 +1527,44 @@ extreme functions of the Gomory–Johnson infinite group problem, 2015,
 e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">http://arxiv.org/abs/1506.00017</a> [math.OC].</p>
 </dd></dl>
 
+<dl class="class">
+<dt id="cutgeneratingfunctionology.igp.extreme_functions.kzh_extreme_and_weak_facet_but_not_facet">
+<em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">kzh_extreme_and_weak_facet_but_not_facet</code><span class="sig-paren">(</span><em>f=4/5</em>, <em>l=219/800</em>, <em>u=269/800</em>, <em>t1=77/7752*sqrt(2)</em>, <em>t2=77/2584</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.kzh_extreme_and_weak_facet_but_not_facet" title="Permalink to this definition">¶</a></dt>
+<dd><p>An extreme function and weak facet that is not a facet.</p>
+<p>This factory class generates a fresh function from an infinite family.
+The function depends on the sequence of its evaluations.</p>
+<p>TESTS:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">kzh_extreme_and_weak_facet_but_not_facet</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">hm</span> <span class="o">=</span> <span class="n">kzh_minimal_has_only_crazy_perturbation_1</span><span class="p">()</span><span class="o">+</span><span class="mi">1</span><span class="o">/</span><span class="mi">1000000</span><span class="o">*</span><span class="n">kzh_minimal_has_only_crazy_perturbation_1_perturbation</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">minimality_test_randomized</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">kzh_minimal_has_only_crazy_perturbation_1</span><span class="p">(),</span> <span class="n">hm</span><span class="p">,</span>
+<span class="go">....:                            limits=False, extra_cosets=[sqrt(3), -sqrt(3)],</span>
+<span class="go">....:                            max_iterations=10)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Reference:</dt>
+<dd>Matthias Koeppe, Yuan Zhou. On the notions of facets, weak facets, and extreme functions of the Gomory-Johnson infinite group problem.</dd>
+</dl>
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.extreme_functions.kzh_extreme_and_weak_facet_but_not_facet.is_in_C">
+<code class="descname">is_in_C</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.kzh_extreme_and_weak_facet_but_not_facet.is_in_C" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.extreme_functions.kzh_extreme_and_weak_facet_but_not_facet.is_in_Cplus">
+<code class="descname">is_in_Cplus</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.kzh_extreme_and_weak_facet_but_not_facet.is_in_Cplus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.extreme_functions.kzh_extreme_and_weak_facet_but_not_facet.is_in_T">
+<code class="descname">is_in_T</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.kzh_extreme_and_weak_facet_but_not_facet.is_in_T" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="function">
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.mlr_cpl3_a_2_slope">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">mlr_cpl3_a_2_slope</code><span class="sig-paren">(</span><em>r0=3/13</em>, <em>z1=3/26</em>, <em>field=None</em>, <em>conditioncheck=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.mlr_cpl3_a_2_slope" title="Permalink to this definition">¶</a></dt>
