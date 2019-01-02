@@ -78,6 +78,7 @@ from cutgeneratingfunctionology.igp import (mlr_cpl3_a_2_slope,
                  mlr_cpl3_r_2_slope)
 
 from cutgeneratingfunctionology.igp import (bcdsp_arbitrary_slope,
+                 kzh_extreme_and_weak_facet_but_not_facet,
                  bcds_discontinuous_everywhere)
 
 from cutgeneratingfunctionology.igp import (kzh_3_slope_param_extreme_1,
