@@ -24,10 +24,10 @@ igp.plot_kwds_hook = plot_kwds_hook_paper
 
 # Two independently configurable style options for moves diagrams.
 igp.show_translations_and_reflections_separately = False
-igp.show_translations_and_reflections_by_color = True
+#igp.show_translations_and_reflections_by_color = True     # is the default
 
-igp.show_covered_components_as_rectangles = True
-igp.show_moves_with_discontinuity_markers = True   ## do we want this?
+#igp.show_covered_components_as_rectangles = True          # is the default
+#igp.show_moves_with_discontinuity_markers = True          # is the default; do we want this?
 
 igp.show_plots_figsize = 10
 

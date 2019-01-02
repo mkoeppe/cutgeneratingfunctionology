@@ -2518,7 +2518,7 @@ def find_largest_epsilon(fn, perturb):
 ### Moves
 ###
 
-show_moves_with_discontinuity_markers = False
+show_moves_with_discontinuity_markers = True
 
 class FunctionalDirectedMove (FastPiecewise):
     # FIXME: At the moment, does not reduce modulo 1, in contrast to old code!
@@ -4144,8 +4144,8 @@ def plot_points_of_discontinuity_at_borders(pts_of_discontinuity):
     return g
 
 show_translations_and_reflections_separately = False
-show_translations_and_reflections_by_color = False
-show_covered_components_as_rectangles = False
+show_translations_and_reflections_by_color = True
+show_covered_components_as_rectangles = True
 
 class DirectedMoveCompositionCompletion:
 
