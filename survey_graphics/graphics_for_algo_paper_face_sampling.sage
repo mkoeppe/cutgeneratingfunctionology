@@ -227,6 +227,12 @@ completion = DirectedMoveCompositionCompletion(fdms=fdms,show_plots=fname_sample
 completion.complete()
 show_plot(completion.plot(), fname_sampled, tag='completion-final', **show_kwds)
 
+### Limits imply components
+xmax = 1
+ymax = 1
+show_kwds = copy(paper_plot_kwds)
+show_kwds.update({'ticks': [[], []], 'axes': False, 'frame': False})
+
 name = 'lim_tau_dense'
 fname = destdir + name + "-%s" + ftype
 t = [0, 1/64, 1/32, 1/16]
