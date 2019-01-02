@@ -7,10 +7,11 @@ def get_all_version_names(mirror_url, idx = None, distribution = 'Ubuntu_14.04-x
         idx = 0
     else:
         idx = int(idx)
-    site = urllib2.urlopen(mirror_url).read()
-    ans = re.findall('(sage-([0-9]*(?:\.[0-9]*)*)-%s.tar.bz2)'%distribution, site)
     all_version_names = []
-    for fname, ver in ans:
-        if fname not in all_version_names:
-            all_version_names.append(fname)
+    for subdir in ["", "old/"]:
+        site = urllib2.urlopen(mirror_url + subdir).read()
+        ans = re.findall('(sage-([0-9]*(?:\.[0-9]*)*)-%s.tar.bz2)'%distribution, site)
+        for fname, ver in ans:
+            if fname not in all_version_names:
+                all_version_names.append(fname)
     return all_version_names[idx]
