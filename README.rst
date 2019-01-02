@@ -30,6 +30,11 @@ License
 The code is released under the GNU General Public License, version 2,
 or any later version as published by the Free Software Foundation. 
 
+Documentation
+-------------
+
+http://mkoeppe.github.io/cutgeneratingfunctionology/doc/html/
+
 Run it on mybinder.org
 ----------------------
 

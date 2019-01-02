@@ -220,6 +220,9 @@ Use tab completion to see more example functions in the module
 
     sage: h = igp.extreme_functions.
 
+Also see the live manual at
+http://mkoeppe.github.io/cutgeneratingfunctionology/doc/html/extreme_functions.html
+
 
 Procedures
 ==========
@@ -305,7 +308,10 @@ completion to explore them::
 
     sage: igp.procedures.
 
+Also see the live manual at
+http://mkoeppe.github.io/cutgeneratingfunctionology/doc/html/procedures.html
 
+    
 Customizing the graphics
 ========================
 
