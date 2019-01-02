@@ -20,7 +20,6 @@ class SageTest(TestCommand):
 
 setup(
     name = "cutgeneratingfunctionology",
-    version = readfile("VERSION").strip(), # the VERSION file is shared with the documentation
     description='Sage code for computation and experimentation with cut-generating functions',
     long_description = readfile("README.rst"), # get the long description from the README
     long_description_content_type='text/x-rst', # https://packaging.python.org/guides/making-a-pypi-friendly-readme/
@@ -43,6 +42,11 @@ setup(
     packages = ['cutgeneratingfunctionology', 'cutgeneratingfunctionology.igp', 'cutgeneratingfunctionology.multirow', 'cutgeneratingfunctionology.dff', 'cutgeneratingfunctionology.spam', 'cutgeneratingfunctionology.igp.subadditivity_slack_diagrams', 'cutgeneratingfunctionology.igp.procedures'],
     include_package_data=True,     # to install the .sage files too
     cmdclass = {'test': SageTest}, # adding a special setup command for tests
-    setup_requires   = ['sage-package'],
     install_requires = ['sage-package', 'sphinx', 'sphinxcontrib-bibtex'],
+    setup_requires   = ['sage-package', 'setuptools_scm'],
+    use_scm_version={
+        'write_to': 'version.txt',
+        'version_scheme': 'post-release',
+        'local_scheme': 'dirty-tag'
+    },
 )
