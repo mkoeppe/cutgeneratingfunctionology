@@ -1555,7 +1555,6 @@ def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
 extreme_function_with_world_record_number_of_slopes = bcdsp_arbitrary_slope
 
 class bcds_discontinuous_everywhere:
-
     r"""
     An extreme function whose graph is dense in R \times [0,1].
 
@@ -1569,7 +1568,7 @@ class bcds_discontinuous_everywhere:
         """
         Examples::
 
-            sage: from cutgeneratingfunctionology.igp import bcds_discontinuous_everywhere
+            sage: from cutgeneratingfunctionology.igp import bcds_discontinuous_everywhere, delta_pi
             sage: h = bcds_discontinuous_everywhere()
             sage: delta_pi(h, 1/5+sqrt(3), 3/7+sqrt(1/3)) >= 0
             True
@@ -1610,11 +1609,27 @@ class bcds_discontinuous_everywhere:
         else:
             return Graphics()
 
-class kzh_lifted:
+class kzh_extreme_and_weak_facet_but_not_facet:
 
     """
+    An extreme function and weak facet that is not a facet.
+
+    This factory class generates a fresh function from an infinite family.
+    The function depends on the sequence of its evaluations.
+
+    TESTS::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: h = kzh_extreme_and_weak_facet_but_not_facet()
+        sage: hm = kzh_minimal_has_only_crazy_perturbation_1()+1/1000000*kzh_minimal_has_only_crazy_perturbation_1_perturbation()
+        sage: minimality_test_randomized(h, kzh_minimal_has_only_crazy_perturbation_1(), hm,
+        ....:                            limits=False, extra_cosets=[sqrt(3), -sqrt(3)],
+        ....:                            max_iterations=10)
+        True
+
     Reference:
-        Matthias Koeppe, Yuan Zhou. On the notions of facets, weak facets, and extreme functions of the Gomory–Johnson infinite group problem.
+        Matthias Koeppe, Yuan Zhou. On the notions of facets, weak facets, and extreme functions of the Gomory-Johnson infinite group problem.
     """
     def __init__(self,f=4/5,l=219/800,u=269/800,t1=77/7752*sqrt(2),t2=77/2584):
         self._f = f
@@ -1623,12 +1638,14 @@ class kzh_lifted:
         self._t1=t1
         self._t2=t2
         self.Cplus=set()
+        self.pi = kzh_minimal_has_only_crazy_perturbation_1()
 
     def __call__(self, x):
         """
         Examples::
 
-            sage: h = kzh_lifted()
+            sage: from cutgeneratingfunctionology.igp import kzh_extreme_and_weak_facet_but_not_facet, delta_pi
+            sage: h = kzh_extreme_and_weak_facet_but_not_facet()
             sage: bool(delta_pi(h, 1/5+sqrt(3), 3/7+sqrt(1/3)) >= 0)
             True
             sage: bool(delta_pi(h, -13/9, 3/7)>=0)
@@ -1646,7 +1663,7 @@ class kzh_lifted:
         t1=self._t1
         t2=self._t2
         s=QQ(19/23998)
-        pi=kzh_minimal_has_only_crazy_perturbation_1()
+        pi=self.pi
         if x<l or u<x<f-u or x>f-l:
             return pi(x)
         if l<x<u and self.is_in_C(x):
@@ -1706,47 +1723,6 @@ class kzh_lifted:
                 return False
         self.Cplus.add(x)
         return True
-
-def partial_minimality_test(fn):
-    if fn(0)==0 and partial_subadditivity_test(fn) and partial_symmetry_test(fn):
-        return True
-    else:
-        return False
-
-def generate_one_random_aa_number(degree=4):
-    p=ZZ[x].random_element(degree)
-    try: 
-        K.<a>=NumberField(p)
-        return AA(a)
-    except ValueError:
-        generate_one_random_aa_number(degree)
-    
-    
-def generate_random_aa_numbers(degree=4,n=100):
-    res=[]
-    for i in range(n):
-        res.append(generate_one_random_aa_number(degree))
-    return res
-    
-
-def partial_symmetry_test(fn):
-    points=generate_random_aa_numbers()
-    for x in points:
-        if fn(x)+fn(self._f-x)!=1:
-            return False
-    return True
-
-def partial_subadditivity_test(fn):
-    points=generate_random_aa_numbers()
-    for x in points:
-        for y in points:
-            if fn(x)+fn(y)<fn(x+y):
-                return False
-    return True
-
-    
-        
-        
 
 def kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19, field=None, conditioncheck=True):
     r"""
