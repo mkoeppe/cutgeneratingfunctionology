@@ -1,0 +1,53 @@
+<!-- Thebe configuration for live code cells (https://github.com/minrk/thebelab)
+
+  If the page contains a code cell (a `pre` tag with a sage prompt), a
+  dedicated Activate button is added in the top right corner.
+
+  When pressed, the code cells are made active: the user can edit and
+  run them.
+
+  More specifically, when pressed (thebe_activate_button_function):
+
+  - the thebelab JavaScript library is fetched from the web;
+
+  - each code block containing a sage: prompt is made active (thebe_activate_cells)
+    (editable + Run button);
+
+  - if the page is served by a Jupyter server which has a sagemath
+    kernel, a local jupyter kernel is requested(thebe_bootstrap_local);
+
+  - otherwise a kernel is requested from mybinder (https://mybinder.org).
+  !-->
+<script type="text/x-thebe-config">
+  thebeConfig = {
+    binderOptions: {
+      repo: "sagemath/sage-binder-env",
+    },
+    stripPrompts: {
+      inPrompt: 'sage: ',
+      continuationPrompt: '....: ',
+      selector: 'pre:contains("sage: ")',
+    },
+    kernelOptions: {
+      name: "sagemath",
+    },
+    requestKernel: true
+  }
+</script>
+
+<!-- Load the Thebe activation and status field library  !-->
+<script src="{{ pathto('_static/thebe_status_field.js', 1) }}" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="{{ pathto('_static/thebe_status_field.css', 1) }}"/>
+
+<!-- Test whether some code cell contains Sage code
+     If yes, setup the ThebeLab activation and status field !-->
+<script>
+  $(function() {
+      var cellSelector = "pre:contains('sage: ')";
+      if ($(cellSelector).length > 0) {
+         $('<div class="thebe_status_field" style="position: fixed; right:0;"></div>')
+            .prependTo('div.body');
+         thebe_place_activate_button();
+      }
+  });
+</script>
