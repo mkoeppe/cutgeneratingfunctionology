@@ -1,0 +1,5 @@
+Note:
+
+- The files thebe_status_field.js and .css are taken verbatim from the
+  examples directory of the thebelab sources, with with one change;
+  see commit bf3dd0c.

@@ -1,5 +1,5 @@
-import igp
-from igp import *
+import cutgeneratingfunctionology.igp as igp
+from cutgeneratingfunctionology.igp import *
 
 destdir = "/Users/mkoeppe/Dropbox/basu-hildebrand-koeppe-papers-for-yuan/algo-paper/slides/"
 

@@ -13,7 +13,7 @@ if [ "${SAGE_AGE}" == "-1" ]; then
  mkdir -p SageMath
  sudo sage -pip install sphinxcontrib-websupport
 else
-  SAGE_IMAGE=`python2 -c "import sage_version; print sage_version.get_all_version_names('${SAGE_SERVER}index.html',${SAGE_AGE})"`
+  SAGE_IMAGE=`python2 -c "import sage_version; print sage_version.get_all_version_names('${SAGE_SERVER}',${SAGE_AGE})"`
   cd $HOME
   echo "Obtaining Sage image:" ${SAGE_IMAGE}
   if [ ! -x SageMath/sage ] ; then

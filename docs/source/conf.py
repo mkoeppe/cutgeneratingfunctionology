@@ -14,11 +14,11 @@
 # serve to show the default.
 
 # General information about the project.
-project = u"Infinite Group Relaxation Sage Code"
+project = u"cutgeneratingfunctionology"
 copyright = u'2013-2018, Chun Yu Hong, Matthias Koeppe, Yuan Zhou, Jiawei Wang'
-package_name = 'igp'
+package_name = 'cutgeneratingfunctionology'
 package_folder = "../../"
-authors = u"2013-2016, Chun Yu Hong, Matthias Koeppe, Yuan Zhou, Jiawei Wang"
+authors = u"2013-2018, Chun Yu Hong, Matthias Koeppe, Yuan Zhou, Jiawei Wang"
 
 import sys
 import os
@@ -38,6 +38,9 @@ except ImportError:
 sys.path.append(os.path.abspath(package_folder))
 sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
 
+
+print("Using sys.path = {}".format(sys.path))
+
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -49,12 +52,67 @@ sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
 extensions = [
     #'sphinx.ext.autodoc',
     'sage_autodoc',
+    'sage_package.sphinx',
     'sphinx.ext.doctest',
-    'sphinx.ext.todo',
     'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
     'sphinx.ext.extlinks',
+    'matplotlib.sphinxext.plot_directive'
 ]
+
+### from Sage src/doc/common/conf.py
+# This code is executed before each ".. PLOT::" directive in the Sphinx
+# documentation. It defines a 'sphinx_plot' function that displays a Sage object
+# through matplotlib, so that it will be displayed in the HTML doc.
+plot_html_show_source_link = False
+plot_pre_code = """
+def sphinx_plot(graphics, **kwds):
+    import matplotlib.image as mpimg
+    from sage.misc.temporary_file import tmp_filename
+    import matplotlib.pyplot as plt
+    ## Option handling is taken from Graphics.save
+    options = dict()
+    options.update(graphics.SHOW_OPTIONS)
+    options.update(graphics._extra_kwds)
+    options.update(kwds)
+    dpi = options.pop('dpi')
+    transparent = options.pop('transparent')
+    fig_tight = options.pop('fig_tight')
+    figsize = options.pop('figsize')
+    ## figsize handling is taken from Graphics.matplotlib()
+    if figsize is not None and not isinstance(figsize, (list, tuple)):
+        # in this case, figsize is a number and should be positive
+        try:
+            figsize = float(figsize) # to pass to mpl
+        except TypeError:
+            raise TypeError("figsize should be a positive number, not {0}".format(figsize))
+        if figsize > 0:
+            default_width, default_height=rcParams['figure.figsize']
+            figsize=(figsize, default_height*figsize/default_width)
+        else:
+            raise ValueError("figsize should be positive, not {0}".format(figsize))
+
+    if figsize is not None:
+        # then the figsize should be two positive numbers
+        if len(figsize) != 2:
+            raise ValueError("figsize should be a positive number "
+                             "or a list of two positive numbers, not {0}".format(figsize))
+        figsize = (float(figsize[0]),float(figsize[1])) # floats for mpl
+        if not (figsize[0] > 0 and figsize[1] > 0):
+            raise ValueError("figsize should be positive numbers, "
+                             "not {0} and {1}".format(figsize[0],figsize[1]))
+
+    plt.figure(figsize=figsize)
+    figure = graphics.matplotlib(figure=plt.gcf(), figsize=figsize, **options)
+    plt.tight_layout()
+    plt.show()
+
+from sage.all_cmdline import *
+import cutgeneratingfunctionology
+from cutgeneratingfunctionology import *
+"""
+
+plot_html_show_formats = False
+
 
 # Add any paths that contain templates here, relative to this directory.
 # templates_path = ['_templates']
@@ -118,34 +176,17 @@ pygments_style = 'sphinx'
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
 
-pythonversion = sys.version.split(' ')[0]
-# Python and Sage trac ticket shortcuts. For example, :trac:`7549` .
-extlinks = {
-    'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
-    'trac': ('http://trac.sagemath.org/%s', 'trac ticket #'),
-    'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
-    'arxiv': ('http://arxiv.org/abs/%s', 'Arxiv '),
-    'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
-    'doi': ('https://dx.doi.org/%s', 'doi:'),
-    'mathscinet': ('http://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet ')
-    }
-
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+html_theme = 'sage'
+html_theme_path = ['../themes']
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {}
-
-
-# Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
-#html_theme_path = [os.path.join(SAGE_DOC_SRC, 'common', 'themes')]
-html_theme_path = [os.path.join(SAGE_DOC_SRC, 'common', 'themes', 'sage')]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
