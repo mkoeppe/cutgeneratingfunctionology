@@ -585,7 +585,7 @@ volume_of_lifting_region(polyhedron, pt, True) returns 41/60, which is less than
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">polyhedron</span> <span class="o">=</span> <span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[[</span><span class="o">-</span><span class="mi">3</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span> <span class="mi">21</span><span class="o">/</span><span class="mi">13</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">4</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">]])</span>
 <span class="gp">sage: </span><span class="n">pt</span> <span class="o">=</span> <span class="n">vector</span><span class="p">((</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
 <span class="gp">sage: </span><span class="n">sublin_function</span> <span class="o">=</span> <span class="n">sublinear_function_from_polyhedron_and_point</span><span class="p">(</span><span class="n">polyhedron</span><span class="p">,</span> <span class="n">pt</span><span class="p">)</span>
-<span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">=</span> <span class="n">subadditive_function_from_sublinear_function</span><span class="p">(</span><span class="n">sublin_function</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">=</span> <span class="n">trivial_fill_in</span><span class="p">(</span><span class="n">sublin_function</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="n">mod_Zk</span><span class="p">(</span><span class="o">-</span><span class="n">pt</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">minimality_test_multirow</span><span class="p">(</span><span class="n">subadd_function</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>  <span class="c1">#long time #3 mins #violate the symmetry condition.</span>
 <span class="go">False</span>
@@ -598,7 +598,7 @@ volume_of_lifting_region(polyhedron, pt, True) returns 41/60, which is less than
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">M1</span> <span class="o">=</span><span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="p">,[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">]])</span>
 <span class="gp">sage: </span><span class="n">pt</span> <span class="o">=</span> <span class="n">vector</span><span class="p">((</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 <span class="gp">sage: </span><span class="n">sublin_function</span> <span class="o">=</span> <span class="n">sublinear_function_from_polyhedron_and_point</span><span class="p">(</span><span class="n">M1</span><span class="p">,</span> <span class="n">pt</span><span class="p">)</span>
-<span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">=</span> <span class="n">subadditive_function_from_sublinear_function</span><span class="p">(</span><span class="n">sublin_function</span><span class="p">)</span> <span class="c1"># long time</span>
+<span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">=</span> <span class="n">trivial_fill_in</span><span class="p">(</span><span class="n">sublin_function</span><span class="p">)</span> <span class="c1"># long time</span>
 <span class="gp">sage: </span><span class="n">f</span> <span class="o">=</span> <span class="n">mod_Zk</span><span class="p">(</span><span class="o">-</span><span class="n">pt</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">minimality_test_multirow</span><span class="p">(</span><span class="n">subadd_function</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="n">f</span><span class="p">)</span> <span class="c1"># not tested # never terminates, uses a lot of memory</span>
 <span class="go">True</span>
@@ -649,20 +649,6 @@ whose gradients at the orgin are give by the parameter slopes.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="cutgeneratingfunctionology.multirow.subadditive_function_from_sublinear_function">
-<code class="descclassname">cutgeneratingfunctionology.multirow.</code><code class="descname">subadditive_function_from_sublinear_function</code><span class="sig-paren">(</span><em>sublin_function</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.multirow.subadditive_function_from_sublinear_function" title="Permalink to this definition">¶</a></dt>
-<dd><p>Trivial fill-in? Return a Zk-periodic PiecewisePolynomial_polyhedral function.</p>
-<p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.multirow</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="gp">sage: </span><span class="n">sublin_function</span> <span class="o">=</span> <span class="n">sublinear_function_from_slopes</span><span class="p">([(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)])</span>
-<span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">=</span> <span class="n">subadditive_function_from_sublinear_function</span><span class="p">(</span><span class="n">sublin_function</span><span class="p">)</span>
-<span class="gp">sage: </span><span class="n">subadd_function</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span> <span class="o">==</span> <span class="n">subadd_function</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
-<span class="go">True</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
 <dt id="cutgeneratingfunctionology.multirow.subadditivity_slack_delta">
 <code class="descclassname">cutgeneratingfunctionology.multirow.</code><code class="descname">subadditivity_slack_delta</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.multirow.subadditivity_slack_delta" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the subadditivity slack function Delta: (x, y) -&gt; h(x) + h(y) - h(x+y) 
@@ -697,7 +683,7 @@ Notice that the vector f for the group relaxation problem equals to (- pt) mod Z
 <span class="gp">sage: </span><span class="n">sublin_function</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">polyhedron</span> <span class="o">-</span> <span class="n">vector</span><span class="p">(</span><span class="n">pt</span><span class="p">))</span> <span class="c1"># not tested</span>
 <span class="gp">sage: </span><span class="n">sublin_function</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span>
 <span class="go">1</span>
-<span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">=</span> <span class="n">subadditive_function_from_sublinear_function</span><span class="p">(</span><span class="n">sublin_function</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">=</span> <span class="n">trivial_fill_in</span><span class="p">(</span><span class="n">sublin_function</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">==</span> <span class="n">subadditive_function_from_slopes</span><span class="p">(</span><span class="n">subadd_function</span><span class="o">.</span><span class="n">limiting_slopes</span><span class="p">())</span>
 <span class="go">True</span>
 <span class="gp">sage: </span><span class="n">subadd_function</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span> <span class="c1">#not tested</span>
@@ -708,7 +694,7 @@ Notice that the vector f for the group relaxation problem equals to (- pt) mod Z
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">polyhedron</span> <span class="o">=</span> <span class="n">Polyhedron</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="p">[[</span><span class="o">-</span><span class="mi">3</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span> <span class="mi">21</span><span class="o">/</span><span class="mi">13</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">4</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">]])</span>
 <span class="gp">sage: </span><span class="n">pt</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">sublin_function</span> <span class="o">=</span> <span class="n">sublinear_function_from_polyhedron_and_point</span><span class="p">(</span><span class="n">polyhedron</span><span class="p">,</span> <span class="n">pt</span><span class="p">)</span>
-<span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">=</span> <span class="n">subadditive_function_from_sublinear_function</span><span class="p">(</span><span class="n">sublin_function</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">=</span> <span class="n">trivial_fill_in</span><span class="p">(</span><span class="n">sublin_function</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -723,6 +709,20 @@ Notice that the vector f for the group relaxation problem equals to (- pt) mod Z
 <span class="gp">sage: </span><span class="n">sublin_function</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
 <span class="go">10</span>
 <span class="gp">sage: </span><span class="n">sublin_function</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="n">polytopes</span><span class="o">.</span><span class="n">hypercube</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="c1"># not tested</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.multirow.trivial_fill_in">
+<code class="descclassname">cutgeneratingfunctionology.multirow.</code><code class="descname">trivial_fill_in</code><span class="sig-paren">(</span><em>sublin_function</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.multirow.trivial_fill_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trivial fill-in. Return a Zk-periodic PiecewisePolynomial_polyhedral function.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.multirow</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">sublin_function</span> <span class="o">=</span> <span class="n">sublinear_function_from_slopes</span><span class="p">([(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)])</span>
+<span class="gp">sage: </span><span class="n">subadd_function</span> <span class="o">=</span> <span class="n">trivial_fill_in</span><span class="p">(</span><span class="n">sublin_function</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">subadd_function</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span> <span class="o">==</span> <span class="n">subadd_function</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">True</span>
 </pre></div>
 </div>
 </dd></dl>
