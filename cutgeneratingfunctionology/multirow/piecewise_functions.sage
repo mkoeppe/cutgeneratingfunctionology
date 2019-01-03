@@ -998,7 +998,7 @@ def sublinear_function_from_polyhedron_and_point(polyhedron, pt):
         sage: sublin_function.plot(polyhedron - vector(pt)) # not tested
         sage: sublin_function((1-1/2, 1-1/2))
         1
-        sage: subadd_function = subadditive_function_from_sublinear_function(sublin_function)
+        sage: subadd_function = trivial_fill_in(sublin_function)
         sage: subadd_function == subadditive_function_from_slopes(subadd_function.limiting_slopes())
         True
         sage: subadd_function.plot() #not tested
@@ -1009,7 +1009,7 @@ def sublinear_function_from_polyhedron_and_point(polyhedron, pt):
         sage: polyhedron = Polyhedron(vertices=[[-3/13, 21/13], [1 - 4/10, 3], [3/2, 3/4]])
         sage: pt = (1/2, 2)
         sage: sublin_function = sublinear_function_from_polyhedron_and_point(polyhedron, pt)
-        sage: subadd_function = subadditive_function_from_sublinear_function(sublin_function)
+        sage: subadd_function = trivial_fill_in(sublin_function)
     """
     pt = vector(pt)
     if not polyhedron.interior_contains(pt):
@@ -1034,16 +1034,15 @@ def sublinear_function_from_polyhedron_and_point(polyhedron, pt):
     sublin_function = PiecewisePolynomial_polyhedral(pairs, is_continuous=True, check_consistency=False)
     return sublin_function
 
-#FIXME: Rename to trivial_fill_in or trivial_lifting....
-def subadditive_function_from_sublinear_function(sublin_function):
+def trivial_fill_in(sublin_function):
     r"""
-    Trivial fill-in? Return a Zk-periodic PiecewisePolynomial_polyhedral function.
+    Trivial fill-in. Return a Zk-periodic PiecewisePolynomial_polyhedral function.
 
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.multirow import *
         sage: sublin_function = sublinear_function_from_slopes([(0, 1), (0, -1), (1, 0), (-1, 0)])
-        sage: subadd_function = subadditive_function_from_sublinear_function(sublin_function)
+        sage: subadd_function = trivial_fill_in(sublin_function)
         sage: subadd_function(10,10) == subadd_function(0,0)
         True
     """
@@ -1066,15 +1065,20 @@ def subadditive_function_from_sublinear_function(sublin_function):
         region = (box + (-p)).intersection(half_space)
         translations = [t for t in region.integral_points() if region.interior_contains(t)]+[opt_solution]
         for t in translations:
-            intersection = box.intersection(p + vector(t))
-            vertices = set(tuple(v) for v in intersection.vertices())
-            for pp in subadd_function.polyhedra():
-                for v in pp.vertices():
-                    if intersection.contains(v):
-                        vertices.add(tuple(v))
-            for v in vertices:
-                if subadd_function(v) > f(v) - f(list(t)):
-                    subadd_function = subadd_function.min(sublin_function.translation(t).restricted_to_domain(box))
+            tp = p + vector(t)
+            checked_vertices = set([])
+            translate_t = False
+            domain_subadd_function = subadd_function.polyhedra()
+            for pp in domain_subadd_function:
+                for v in tp.intersection(pp).vertices():
+                    if tuple(v) in checked_vertices:
+                        continue
+                    if subadd_function(tuple(v)) > f(tuple(v)) - f(tuple(t)):
+                        subadd_function = subadd_function.min(sublin_function.translation(t).restricted_to_domain(box))
+                        translate_t = True
+                        break
+                    checked_vertices.add(tuple(v))
+                if translate_t:
                     break
     subadd_function._periodic_extension = True
     subadd_function._fundamental_domain = box
@@ -1093,7 +1097,7 @@ def subadditive_function_from_slopes(slopes):
         0
     """
     sublin_function = sublinear_function_from_slopes(slopes)
-    subadd_function = subadditive_function_from_sublinear_function(sublin_function)
+    subadd_function = trivial_fill_in(sublin_function)
     return subadd_function
     
 def piecewise_polynomial_polyhedral_from_fast_piecewise(fn):
@@ -1226,7 +1230,7 @@ def minimality_test_multirow(fn, f=None):
         sage: polyhedron = Polyhedron(vertices=[[-3/13, 21/13], [1 - 4/10, 3], [3/2, 3/4]])
         sage: pt = vector((1/2, 2))
         sage: sublin_function = sublinear_function_from_polyhedron_and_point(polyhedron, pt)
-        sage: subadd_function = subadditive_function_from_sublinear_function(sublin_function)
+        sage: subadd_function = trivial_fill_in(sublin_function)
         sage: f = mod_Zk(-pt)
         sage: minimality_test_multirow(subadd_function, f=f)  #long time #3 mins #violate the symmetry condition.
         False
@@ -1239,7 +1243,7 @@ def minimality_test_multirow(fn, f=None):
         sage: M1 =Polyhedron(vertices=[[0, 0, 0] ,[2, 0, 0],[0, 3, 0],[0, 0, 6]])
         sage: pt = vector((1/4, 1/2, 3))
         sage: sublin_function = sublinear_function_from_polyhedron_and_point(M1, pt)
-        sage: subadd_function = subadditive_function_from_sublinear_function(sublin_function) # long time
+        sage: subadd_function = trivial_fill_in(sublin_function) # long time
         sage: f = mod_Zk(-pt)
         sage: minimality_test_multirow(subadd_function, f=f) # not tested # never terminates, uses a lot of memory
         True
