@@ -246,13 +246,13 @@ class SubadditivityTestTree :
                 self.leaf_set.discard(node)
                 self.leaf_set.update({node.left_child,node.right_child})
 
-    def next_level(self, node_set,find_min=True,stop_only_if_strict=True,**kwds):
+    def next_level(self, node_set,search_method='BB',find_min=True,stop_only_if_strict=True,**kwds):
         """
         Generate nodes in the next level.
         """
         next_level=set()
         for node in node_set:
-            self.node_branching(node,find_min,stop_only_if_strict,**kwds)
+            self.node_branching(node,search_method=search_method,find_min=find_min,stop_only_if_strict=stop_only_if_strict,**kwds)
             if node.left_child:
                 next_level.update({node.left_child,node.right_child})
         return next_level
@@ -352,7 +352,8 @@ class SubadditivityTestTree :
         kwds = { 'legend_label1': "indivisible face" , 'legend_label2': "strict subadditive divisible face"}
         legend=[0,0]
         for node in self.leaf_set:
-            region=Polyhedron(vertices=node.vertices)
+            v=[ver[:-1] for ver in node.vertices]
+            region=Polyhedron(vertices=v)
             p+=region.projection().render_outline_2d()
             if colorful:
                 if not node.is_divisible():
@@ -417,7 +418,7 @@ def find_bkpts_index_from_zero_to_one(bkpts,interval):
         i=i+1
     return i,j
 
-def plot_2d_regions(fn,colorful=False,find_min=True,stop_only_if_strict=True,**kwds):
+def plot_2d_regions(fn,colorful=False,search_method='BB',find_min=True,stop_only_if_strict=True,**kwds):
     T=SubadditivityTestTree(fn)
     p=Graphics()
     # current_level=T.complete_node_set results in error: Set changed size during iteration
@@ -425,13 +426,14 @@ def plot_2d_regions(fn,colorful=False,find_min=True,stop_only_if_strict=True,**k
     while current_level:
         p+=plot_2d_regions_in_one_level(current_level,colorful=colorful)
         p.show()
-        next_level=T.next_level(current_level,find_min,stop_only_if_strict,**kwds)
+        next_level=T.next_level(current_level,search_method=search_method,find_min=find_min,stop_only_if_strict=stop_only_if_strict,**kwds)
         current_level=next_level
 
 def plot_2d_regions_in_one_level(node_set,colorful=False,**kwds):
     p=Graphics()
     for node in node_set:
-        region=Polyhedron(vertices=node.vertices)
+        v=[ver[:-1] for ver in node.vertices]
+        region=Polyhedron(vertices=v)
         p+=region.projection().render_outline_2d()
         if colorful:
             if not node.is_divisible():
