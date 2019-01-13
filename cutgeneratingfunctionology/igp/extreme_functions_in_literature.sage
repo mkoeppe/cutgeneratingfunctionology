@@ -1,6 +1,13 @@
 from six.moves import range
 def gmic(f=4/5, field=None, conditioncheck=True):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = gmic()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     Summary:
         - Name: GMIC (Gomory mixed integer cut);
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method;
@@ -19,10 +26,6 @@ def gmic(f=4/5, field=None, conditioncheck=True):
             sage: h = gmic(4/5)
             sage: extremality_test(h, False)
             True
-
-    .. PLOT::
-
-        sphinx_plot(igp.plot_with_colored_slopes(igp.gmic(QQ('4/5')), aspect_ratio=0.3, figsize=(8, 2.5)))
 
     Reference: 
         [55]: R.E. Gomory, An algorithm for the mixed integer problem, Tech. Report RM-2597, RAND Corporation, 1960.
@@ -47,6 +50,13 @@ def gmic(f=4/5, field=None, conditioncheck=True):
 
 def gj_2_slope(f=3/5, lambda_1=1/6, field=None, conditioncheck=True):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = gj_2_slope()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     Summary:
         - Name: Gomory--Johnson's 2-Slope;
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method;
@@ -100,6 +110,13 @@ def gj_2_slope(f=3/5, lambda_1=1/6, field=None, conditioncheck=True):
 
 def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, conditioncheck=True):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = gj_2_slope_repeat()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     Summary:
         - Name: Gomory--Johnson's 2-Slope-repeat;
         - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Analysis of subadditive polytope method;
@@ -218,6 +235,45 @@ class ExtremeFunctionsFactory:
 
 class Dg2StepMir(ExtremeFunctionsFactory):
 
+    r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = dg_2_step_mir()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
+    Summary:
+        - Name: Dash-Gunluk's 2-Step MIR;
+        - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
+        - Discovered [33]  p.39 def.8, Fig.5;
+        - Proven extreme (for infinite group) [60] p.377, thm.3.3.
+        - dg_2_step_mir is a facet.
+
+    Parameters:
+        * f (real) in (0,1);
+        * alpha (real) in (0,f).
+
+    Function is known to be extreme under the conditions:
+        * 0 < alpha < f < 1;
+        * f / alpha < ceil(f / alpha) <= 1 / alpha.
+
+    Examples: [33] p.40, Fig.5 ::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = dg_2_step_mir(f=4/5, alpha=3/10)
+        sage: extremality_test(h, False)
+        True
+
+    Reference:
+        [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
+            Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
+            (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
+
+        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
+    """
+
     def __init__(self):
         pass
 
@@ -230,37 +286,6 @@ class Dg2StepMir(ExtremeFunctionsFactory):
             return 'extreme'
 
     def __call__(self, f=4/5, alpha=3/10, field=None, conditioncheck=True):
-        r"""
-        Summary:
-            - Name: Dash-Gunluk's 2-Step MIR;
-            - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
-            - Discovered [33]  p.39 def.8, Fig.5;
-            - Proven extreme (for infinite group) [60] p.377, thm.3.3.
-            - dg_2_step_mir is a facet.
-
-        Parameters:
-            * f (real) in (0,1);
-            * alpha (real) in (0,f).
-
-        Function is known to be extreme under the conditions:
-            * 0 < alpha < f < 1;
-            * f / alpha < ceil(f / alpha) <= 1 / alpha.
-
-        Examples: [33] p.40, Fig.5 ::
-
-            sage: from cutgeneratingfunctionology.igp import *
-            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-            sage: h = dg_2_step_mir(f=4/5, alpha=3/10)
-            sage: extremality_test(h, False)
-            True
-
-        Reference:
-            [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
-                Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
-                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
-
-            [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
-        """
         if conditioncheck:
             self.check_conditions(f, alpha)
         if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
@@ -288,6 +313,67 @@ def interval_length_n_step_mir(n, m, a, b):
 
 class KfNStepMir(ExtremeFunctionsFactory):
 
+    r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kf_n_step_mir()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
+    Summary:
+        - Name: Kianfar-Fathi's n-Step MIR;
+        - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
+        - Discovered [74]  p.328, def.3, thm.2;
+        - Proven extreme (for infinite group) [60] p.377, thm.3.3.
+        - (Although only extremality has been established in literature, the same proof shows that) ``kf_n_step_mir`` is a facet.
+
+    Parameters:
+        * f (real) `\in (0,1)`;
+        * a (list of reals, with length = n) `\in (0,f)`.
+
+    Function is known to be extreme under the conditions:
+        * 0 < a[1] < f < 1 == a[0];
+        * a[i] > 0, for i = 0, 1, ... , n-1;
+        * b[i - 1] / a[i] < ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i],  for i = 1, 2, ... , n-1;
+    where,
+        * b[0] = f;
+        * b[i] = b[i - 1] - a[i] * floor(b[i - 1] / a[i]),  for i = 1, 2, ... , n-1.
+
+    Note:
+        if a[i] > b[i-1] for some i, then the kf_n_step_mir function degenerates, i.e.
+        kf_n_step_mir(f, [a[0], .. , a[n - 1]]) = kf_n_step_mir(f, [a[0], .. a[i - 1], a[i + 1], ... , a[n - 1]])
+
+    Examples: [74] p.333 - p.335, Fig.1 - Fig.6 ::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = kf_n_step_mir(f=4/5, a=[1])
+        sage: extremality_test(h, False)
+        True
+        sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10])
+        sage: extremality_test(h, False)
+        True
+        sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100])
+        sage: extremality_test(h, False)
+        True
+        sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100, 3/100])
+        sage: extremality_test(h, False)
+        True
+        sage: h = kf_n_step_mir(f=4/5, a=[1, 45/100, 2/10, 558/10000, 11/1000])
+        sage: extremality_test(h, False)
+        True
+        sage: h = kf_n_step_mir(f=4/5, a=[1, 48/100, 19/100, 8/100, 32/1000, 12/1000])
+        sage: extremality_test(h, False)
+        True
+
+    Reference:
+        [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
+
+        [74]: K. Kianfar and Y. Fathi, Generalized mixed integer rounding valid inequalities:
+                Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313-346.
+    """
+
     def __init__(self):
         pass
 
@@ -307,59 +393,6 @@ class KfNStepMir(ExtremeFunctionsFactory):
         return 'extreme'
 
     def __call__(self, f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
-        r"""
-        Summary:
-            - Name: Kianfar-Fathi's n-Step MIR;
-            - Infinite (or Finite); Dim = 1; Slopes = 2; Continuous; Simple sets method;
-            - Discovered [74]  p.328, def.3, thm.2;
-            - Proven extreme (for infinite group) [60] p.377, thm.3.3.
-            - (Although only extremality has been established in literature, the same proof shows that) ``kf_n_step_mir`` is a facet.
-
-        Parameters:
-            * f (real) `\in (0,1)`;
-            * a (list of reals, with length = n) `\in (0,f)`.
-
-        Function is known to be extreme under the conditions:
-            * 0 < a[1] < f < 1 == a[0];
-            * a[i] > 0, for i = 0, 1, ... , n-1;
-            * b[i - 1] / a[i] < ceil(b[i - 1] / a[i]) <= a[i - 1] / a[i],  for i = 1, 2, ... , n-1;
-        where,
-            * b[0] = f;
-            * b[i] = b[i - 1] - a[i] * floor(b[i - 1] / a[i]),  for i = 1, 2, ... , n-1.
-
-        Note:
-            if a[i] > b[i-1] for some i, then the kf_n_step_mir function degenerates, i.e.
-            kf_n_step_mir(f, [a[0], .. , a[n - 1]]) = kf_n_step_mir(f, [a[0], .. a[i - 1], a[i + 1], ... , a[n - 1]])
-
-        Examples: [74] p.333 - p.335, Fig.1 - Fig.6 ::
-
-            sage: from cutgeneratingfunctionology.igp import *
-            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-            sage: h = kf_n_step_mir(f=4/5, a=[1])
-            sage: extremality_test(h, False)
-            True
-            sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10])
-            sage: extremality_test(h, False)
-            True
-            sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100])
-            sage: extremality_test(h, False)
-            True
-            sage: h = kf_n_step_mir(f=4/5, a=[1, 3/10, 8/100, 3/100])
-            sage: extremality_test(h, False)
-            True
-            sage: h = kf_n_step_mir(f=4/5, a=[1, 45/100, 2/10, 558/10000, 11/1000])
-            sage: extremality_test(h, False)
-            True
-            sage: h = kf_n_step_mir(f=4/5, a=[1, 48/100, 19/100, 8/100, 32/1000, 12/1000])
-            sage: extremality_test(h, False)
-            True
-
-        Reference:
-            [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
-
-            [74]: K. Kianfar and Y. Fathi, Generalized mixed integer rounding valid inequalities:
-                    Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313-346.
-        """
         if conditioncheck:
             self.check_conditions(f, a)
         b = []
@@ -378,9 +411,23 @@ class KfNStepMir(ExtremeFunctionsFactory):
 
 kf_n_step_mir = KfNStepMir()
 
+
 def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditioncheck=True):
+    # FIXME: What is the relation between the parameters shown in the figure (taken from param graphics) and the construction parameters?
     r"""
-    Summary: 
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = gj_forward_3_slope()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), ticks=[h.end_points(),[]], tick_formatter=[["$0$","$a'$","$a$","$b$","$b'$","$f$","$1$"], []], thickness=2)
+        slope_formatter = ["$s^+$", "$s^-$", "$\\frac{1}{f}$", "$s^-$", "$s^+$", "$s^-$"]
+        for i in range(len(h.end_points())-1):
+            x = (h.end_points()[i] + h.end_points()[i+1])/2 -1/50
+            y = h(x) +1/10
+            g += text(slope_formatter[i], (x, y), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='left',color='black')
+        sphinx_plot(g)
+
+    Summary:
         - Name: Gomory--Johnson' Forward 3-Slope;
         - Infinite (or Finite); Dim = 1; Slopes = 3; Continuous; Analysis of subadditive polytope method;
         - Discovered [61] p.359, Construction.3, Fig.8;
@@ -446,6 +493,13 @@ def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditionc
 
 def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = drlm_backward_3_slope()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     Summary:
         - Name: Dey--Richard--Li--Miller's Backward 3-Slope;
         - Infinite; Dim = 1; Slopes = 3; Continuous; Group relations method;
@@ -530,6 +584,13 @@ class Dg2StepMirLimit(ExtremeFunctionsFactory):
     
     def __call__(self, f=3/5, d=3, field=None, conditioncheck=True):
         r"""
+        .. PLOT::
+
+            from cutgeneratingfunctionology.igp import *
+            h = dg_2_step_mir_limit()
+            g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+            sphinx_plot(g)
+
         Summary:
             - Name: Dash-Gunluk 2-Step MIR Limit;
             - Infinite; Dim = 1; Slopes = 1; Discontinuous; Simple sets method;
@@ -588,6 +649,13 @@ dg_2_step_mir_limit = Dg2StepMirLimit()
 
 def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, conditioncheck=True):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = drlm_2_slope_limit()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     Summary:
         - Name: Dey--Richard--Li--Miller's 2-Slope Limit;
         - Infinite; Dim = 1; Slopes = 1; Discontinuous; Group relations method;
@@ -652,6 +720,13 @@ def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, c
 
 def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = drlm_3_slope_limit()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     Summary:
         - Name: Dey--Richard--Li--Miller's 3-Slope Limit;
         - Infinite; Dim = 1; Slopes = 2; Discontinuous; Group relations method;
@@ -702,6 +777,13 @@ def drlm_3_slope_limit(f=1/5, field=None, conditioncheck=True):
 
 def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = bccz_counterexample()
+        g = plot(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     return function psi, a counterexample to Gomory--Johnson's conjecture
     constructed by Basu--Conforti--Cornuejols--Zambelli [IR1].
 
@@ -918,6 +1000,13 @@ def psi_n_in_bccz_counterexample_construction(f=2/3, e=[1/12, 1/24], field=None,
 
 def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), field=None):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = bhk_irrational()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=1, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     Summary:
         - Name: Basu-Hildebrand-Koeppe's irrational function.
         - Infinite; Dim = 1; Slopes = 3; Continuous;  Covered intervals and equivariant perturbation.
@@ -1040,6 +1129,13 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
 
 def bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), c2=0, field=None):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = bhk_slant_irrational()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=1, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     A version of the irrational function with non-zero second slope
 
     Parameters:
@@ -1151,6 +1247,13 @@ def bhk_slant_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2
 
 def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200), alpha=95/100, field=None):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = bhk_gmi_irrational()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=1, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     A version of the irrational function with non-zero second slope,
     obtained by forming a convex combination of a modified version of the irrational function with the GMI cut.
     Constructed by Chun Yu Hong, 2013.
@@ -1202,6 +1305,13 @@ def bhk_gmi_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/
 
 def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, conditioncheck=True, condition_according_to_literature=False, merge=True):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = chen_4_slope()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     This 4-slope function is shown [KChen_thesis] to be a facet.
 
     Parameters:
@@ -1348,6 +1458,13 @@ def chen_4_slope_reworded(f=7/10, aa=19/240, a=7/80, c=77/80, cc=29/30,field=Non
 
 def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = rlm_dpl1_extreme_3a()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     From Richard--Li--Miller [RLM2009].
 
     For 0 < f < 1/3, by Thm.28, the DPL1 function \phi (whose corresponding h is shown on p.273, Fig.3-lowerleft) is "extreme" (not the usual definition).
@@ -1419,6 +1536,13 @@ class LlStrongFractional(ExtremeFunctionsFactory):
 
     def __call__(self, f=2/3, field=None, conditioncheck=True):
         r"""
+        .. PLOT::
+
+            from cutgeneratingfunctionology.igp import *
+            h = ll_strong_fractional()
+            g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+            sphinx_plot(g)
+
         Letchford--Lodi's strong fractional cut.
 
         EXAMPLES::
@@ -1498,6 +1622,13 @@ ll_strong_fractional = LlStrongFractional()
 
 def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = bcdsp_arbitrary_slope()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     A family of extreme functions with an arbitrary number `k` of slopes. (k >= 2)
 
     Function is known to be extreme under the condition:
@@ -1556,6 +1687,13 @@ extreme_function_with_world_record_number_of_slopes = bcdsp_arbitrary_slope
 
 class bcds_discontinuous_everywhere:
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = bcds_discontinuous_everywhere()
+        g = h.plot(show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, ticks=[[1],[1]], tick_formatter=[["$1$", "$1$"]])
+        sphinx_plot(g)
+
     An extreme function whose graph is dense in R \times [0,1].
 
     Reference:
@@ -1612,6 +1750,13 @@ class bcds_discontinuous_everywhere:
 class kzh_extreme_and_weak_facet_but_not_facet:
 
     """
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_extreme_and_weak_facet_but_not_facet()
+        g = h.plot(show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h.pi))
+        sphinx_plot(g)
+
     An extreme function and weak facet that is not a facet.
 
     This factory class generates a fresh function from an infinite family.
@@ -1676,6 +1821,9 @@ class kzh_extreme_and_weak_facet_but_not_facet:
             return pi(x)+s
         return pi(x)-s
 
+    def plot(self, *args, **kwds):
+        return plot_with_colored_slopes(self.pi, **kwds)
+
     def is_in_T(self, x):
         try:
             t1,t2,xx=nice_field_values([self._t1,self._t2,x])
@@ -1726,6 +1874,13 @@ class kzh_extreme_and_weak_facet_but_not_facet:
 
 def kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19, field=None, conditioncheck=True):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_3_slope_param_extreme_1()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     New extreme function discovered by computer based search followed by parametric search.
     It has 3 slopes in the general case.
 
@@ -1764,6 +1919,13 @@ def kzh_3_slope_param_extreme_1(f=6/19, a=1/19, b=5/19, field=None, conditionche
 
 def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=True):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_3_slope_param_extreme_2()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     New extreme function discovered by computer based search followed by parametric search.
     The function looks like ``gj_forward_3_slope`` + ``drlm_backward_3_slope``.
 
@@ -1807,6 +1969,13 @@ def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=
 
 def kzh_4_slope_param_extreme_1(f=13/18, a=7/18, b=1/18, field=None, conditioncheck=True):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_4_slope_param_extreme_1()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     New extreme function discovered by computer based search followed by parametric search.
     The function looks like ``gj_forward_3_slope`` + ``kzh_3_slope_param_extreme_1``.
 

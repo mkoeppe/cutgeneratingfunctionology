@@ -8,3 +8,7 @@ Electronic compendium of extreme functions for the 1-row Gomory--Johnson model
    :undoc-members:
    :show-inheritance:
    :imported-members:
+
+   .. autodata:: kf_n_step_mir
+
+   .. autodata:: dg_2_step_mir_limit
