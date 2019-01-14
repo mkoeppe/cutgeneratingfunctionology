@@ -397,22 +397,22 @@ def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditionc
     Examples:
         [61] p.360, Fig.8 ::
 
-        sage: from cutgeneratingfunctionology.igp import *
-        sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=1/3)
-        sage: extremality_test(h, False)
-        True
-        sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3)
-        sage: extremality_test(h, False)
-        True
-        sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=1)
-        sage: extremality_test(h, False)
-        True
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=1/3)
+            sage: extremality_test(h, False)
+            True
+            sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3)
+            sage: extremality_test(h, False)
+            True
+            sage: h = gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=1)
+            sage: extremality_test(h, False)
+            True
 
         Try irrational case ::
 
-        sage: h = gj_forward_3_slope(f=sqrt(17)/5, lambda_1=2*sqrt(5)/9, lambda_2=2/sqrt(10))
-        sage: extremality_test(h, False)
-        True
+            sage: h = gj_forward_3_slope(f=sqrt(17)/5, lambda_1=2*sqrt(5)/9, lambda_2=2/sqrt(10))
+            sage: extremality_test(h, False)
+            True
 
     Reference:
         [61]: R.E. Gomory and E.L. Johnson, T-space and cutting planes, Mathematical Programming 96 (2003) 341-375.
