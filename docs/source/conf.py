@@ -112,7 +112,7 @@ from cutgeneratingfunctionology import *
 """
 
 plot_html_show_formats = False
-
+plot_formats = ['svg']
 
 # Add any paths that contain templates here, relative to this directory.
 # templates_path = ['_templates']
