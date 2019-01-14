@@ -62,6 +62,15 @@ class SubadditivityTestTreeNode :
         beta_K=max(self.K_values())
         return alpha_I+alpha_J-beta_K
 
+    def delta_pi_trivial_affine_lower_bound(self):
+        slope_I=(self.I_values()[0]-self.I_values()[-1])/(self.I_bkpts()[0]-self.I_bkpts()[-1])
+        slope_J=(self.J_values()[0]-self.J_values()[-1])/(self.J_bkpts()[0]-self.J_bkpts()[-1])
+        slope_K=(self.K_values()[0]-self.K_values()[-1])/(self.K_bkpts()[0]-self.K_bkpts()[-1])
+        return self.delta_pi_fast_affine_lower_bound(slope_I,slope_J,slope_K)
+
+    def delta_pi_fast_lower_bound(self):
+        return max(self.delta_pi_constant_lower_bound(),self.delta_pi_trivial_affine_lower_bound())
+
     def delta_pi_affine_lower_bound(self,solver='Coin'):
         p = MixedIntegerLinearProgram(maximization=True, solver=solver)
         v = p.new_variable()
@@ -76,23 +85,7 @@ class SubadditivityTestTreeNode :
         for v in self.vertices:
             x, y, z=v[0], v[1], v[0]+v[1]
             p.add_constraint(deltamin<=m1*x+b1+m2*y+b2-m3*z-b3)
-        try:
-            p.solve()
-        except MIPSolverException:
-            p = MixedIntegerLinearProgram(maximization=True, solver='Coin')
-            v = p.new_variable()
-            m1, b1, m2, b2, m3, b3, deltamin= v['m1'], v['b1'], v['m2'], v['b2'], v['m3'], v['b3'], v['deltamin']
-            p.set_objective(deltamin)
-            for i in range(len(self.I_values())):
-                p.add_constraint(m1*self.I_bkpts()[i]+b1<=self.I_values()[i])
-            for j in range(len(self.J_values())):
-                p.add_constraint(m2*self.J_bkpts()[j]+b2<=self.J_values()[j])
-            for k in range(len(self.K_values())):
-                p.add_constraint(m3*self.K_bkpts()[k]+b3>=self.K_values()[k])
-            for v in self.vertices:
-                x, y, z=v[0], v[1], v[0]+v[1]
-                p.add_constraint(deltamin<=m1*x+b1+m2*y+b2-m3*z-b3)
-            p.solve()
+        p.solve()
         # deal with precision problem.
         m_I=QQ(p.get_values(m1))
         m_J=QQ(p.get_values(m2))
@@ -115,10 +108,12 @@ class SubadditivityTestTreeNode :
         """
         if hasattr(self,'_delta_pi_lb'):
             return self._delta_pi_lb
-        if len(self.I_bkpts())+len(self.J_bkpts())+len(self.K_bkpts())<=max_number_of_bkpts:
+        if max_number_of_bkpts==0:
+            lower_bound=self.delta_pi_constant_lower_bound()
+        elif len(self.I_bkpts())+len(self.J_bkpts())+len(self.K_bkpts())<=max_number_of_bkpts:
             lower_bound=self.delta_pi_affine_lower_bound(solver=solver)
         else:
-            lower_bound=self.delta_pi_constant_lower_bound()
+            lower_bound=self.delta_pi_fast_lower_bound()
         self._delta_pi_lb=lower_bound
         return lower_bound
 
