@@ -863,8 +863,8 @@ def plot_covered_intervals(function, covered_components=None, uncovered_color='b
     # The uncovered intervals is by default plotted in black.
     colors = rainbow(len(covered_components))
     graph = Graphics()
-    kwds = copy(plot_kwds)
-    kwds.update(ticks_keywords(function))
+    kwds = copy(ticks_keywords(function))
+    kwds.update(plot_kwds)
     if uncovered_intervals:
         kwds.update({'legend_label': "not covered"})
         plot_kwds_hook(kwds)
