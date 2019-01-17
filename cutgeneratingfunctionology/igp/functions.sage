@@ -4005,15 +4005,29 @@ def plot_directed_moves(dmoves, **kwds):
 def _plot_component_rectangle(domain, range, **kwds):
     "Default colors are for strip lemma rectangles (densely covered)"
     corners = ((domain[0], range[0]), (domain[1], range[0]), (domain[1], range[1]), (domain[0], range[1]))
-    return polygon(corners, rgbcolor=kwds.get("rgbcolor", "cyan"), alpha=0.5) + polygon(corners, color=kwds.get("frame_color", "red"), fill=False)
+    rgbcolor = kwds.pop("rgbcolor", "cyan")
+    frame_color = kwds.pop("frame_color", "red")
+    kwds.pop("edgecolor", None)
+    g = polygon(corners, rgbcolor=rgbcolor, edgecolor=rgbcolor, alpha=0.5, **kwds)
+    delete_one_time_plot_kwds(kwds)
+    g += polygon(corners, color=frame_color, fill=False, **kwds)
+    return g
 
 def plot_covered_component_as_rectangles(component, **kwds):
-    return sum([_plot_component_rectangle(domain, range, **kwds) for domain in component for range in component])
-
-def plot_covered_components_as_rectangles(components):
     g = Graphics()
-    for component, color in zip(components, rainbow(len(components))):
-        g += plot_covered_component_as_rectangles(component, rgbcolor=color, frame_color='grey')
+    for domain in component:
+        for range in component:
+            g += _plot_component_rectangle(domain, range, **kwds)
+            delete_one_time_plot_kwds(kwds)
+    return g
+
+def plot_covered_components_as_rectangles(components, **kwds):
+    g = Graphics()
+    for i, (component, color) in enumerate(zip(components, rainbow(len(components)))):
+        g += plot_covered_component_as_rectangles(component,
+                                                  rgbcolor=color, frame_color='grey',
+                                                  legend_label='Covered component {}'.format(i + 1),
+                                                  **kwds)
     return g
 
 def reduce_covered_components(covered_components):
