@@ -518,6 +518,53 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
     return h
 
 class Dg2StepMirLimit(ExtremeFunctionsFactory):
+
+    r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = dg_2_step_mir_limit()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
+    Summary:
+        - Name: Dash-Gunluk 2-Step MIR Limit;
+        - Infinite; Dim = 1; Slopes = 1; Discontinuous; Simple sets method;
+        - Discovered [33] p.41, def.12;
+        - Proven extreme [33] p.43, lemma 14.
+        - dg_2_step_mir_limit is a facet.
+
+    Parameters:
+        * f (real) `\in (0,1)`;
+        * d (positive integer): number of slopes on [0,f).
+
+    Function is known to be extreme under the conditions:
+        * 0 < f < 1;
+        * d >= ceil(1 / (1 - f)) - 1.
+
+    Note:
+        This is the limit function as alpha in dg_2_step_mir()
+        tends (from left) to f/d, where d is integer;
+        cf. [33] p.42, lemma 13.
+
+        It's a special case of ``drlm_2_slope_limit()``:
+
+        ``dg_2_step_mir_limit(f, d) = multiplicative_homomorphism(drlm_2_slope_limit(f=1-f, nb_pieces_left=1, nb_pieces_right=d), -1)``.
+
+    Examples: [33] p.42, Fig.6 ::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
+        sage: h = dg_2_step_mir_limit(f=3/5, d=3)
+        sage: extremality_test(h, False)
+        True
+
+    Reference:
+        [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
+                Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
+                (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
+    """
+
     def __init__(self):
         pass
 
@@ -530,51 +577,6 @@ class Dg2StepMirLimit(ExtremeFunctionsFactory):
             return 'extreme'
     
     def __call__(self, f=3/5, d=3, field=None, conditioncheck=True):
-        r"""
-        .. PLOT::
-
-            from cutgeneratingfunctionology.igp import *
-            h = dg_2_step_mir_limit()
-            g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
-            sphinx_plot(g)
-
-        Summary:
-            - Name: Dash-Gunluk 2-Step MIR Limit;
-            - Infinite; Dim = 1; Slopes = 1; Discontinuous; Simple sets method;
-            - Discovered [33] p.41, def.12;
-            - Proven extreme [33] p.43, lemma 14.
-            - dg_2_step_mir_limit is a facet.
-
-        Parameters:
-            * f (real) `\in (0,1)`;
-            * d (positive integer): number of slopes on [0,f).
-
-        Function is known to be extreme under the conditions:
-            * 0 < f < 1;
-            * d >= ceil(1 / (1 - f)) - 1.
-
-        Note:
-            This is the limit function as alpha in dg_2_step_mir()
-            tends (from left) to f/d, where d is integer;
-            cf. [33] p.42, lemma 13.
-
-            It's a special case of ``drlm_2_slope_limit()``:
-
-            ``dg_2_step_mir_limit(f, d) = multiplicative_homomorphism(drlm_2_slope_limit(f=1-f, nb_pieces_left=1, nb_pieces_right=d), -1)``.
-
-        Examples: [33] p.42, Fig.6 ::
-
-            sage: from cutgeneratingfunctionology.igp import *
-            sage: logging.disable(logging.WARN) # Suppress warning about experimental discontinuous code.
-            sage: h = dg_2_step_mir_limit(f=3/5, d=3)
-            sage: extremality_test(h, False)
-            True
-
-        Reference:
-            [33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,
-                    Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
-                    (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
-        """     
         if conditioncheck:
             self.check_conditions(f, d)
         if not (bool(0 < f < 1) & (d >= 1)):
@@ -728,7 +730,8 @@ def bccz_counterexample(f=2/3, q=4, eta=1/1000, maxiter=10000):
 
         from cutgeneratingfunctionology.igp import *
         h = bccz_counterexample()
-        g = plot(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        h = psi_n_in_bccz_counterexample_construction(e=generate_example_e_for_psi_n(n=7))
+        g = plot(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=1, **only_f_ticks_keywords(h))
         sphinx_plot(g)
 
     return function psi, a counterexample to Gomory--Johnson's conjecture
@@ -1638,7 +1641,7 @@ class bcds_discontinuous_everywhere:
 
         from cutgeneratingfunctionology.igp import *
         h = bcds_discontinuous_everywhere()
-        g = h.plot(show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, ticks=[[1],[1]], tick_formatter=[["$1$", "$1$"]])
+        g = h.plot(show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, ticks=[[QQ('1/2'), 1],[1]], tick_formatter=[[r'$f=\frac{1}{2}$', "$1$"], ["$1$"]])
         sphinx_plot(g)
 
     An extreme function whose graph is dense in R \times [0,1].
