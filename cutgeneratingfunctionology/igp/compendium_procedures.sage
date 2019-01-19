@@ -117,8 +117,8 @@ def projected_sequential_merge(g, n=1):
     r"""
     construct the one-dimensional projected sequential merge inequality: "h = g @_n^1 gmic" with `f = n r` in the first function `g` and `f = r` in the second function ``gmic``.
 
-    The notation `\\lozenge_n^1` is given in [39] p.305, def.12 & eq.25 :
-        `h(x) = \\frac{1}{n+1}\\xi(x) + n g(\\lfloor(n + 1)  x - r \\xi(x)\\rfloor)`, where `\\xi =` ``gmic(r)``.
+    The notation `\lozenge_n^1` is given in [39] p.305, def.12 & eq.25 :
+        `h(x) = \frac{1}{n+1}\xi(x) + n g(\lfloor(n + 1)  x - r \xi(x)\rfloor)`, where `\xi =` ``gmic(r)``.
 
     Parameters:
         
@@ -519,10 +519,10 @@ def generate_pi_comb(pi_pwl, epsilon, delta, f=None):
 def find_gamma(fn):
     r"""
     Subfunction of the procedure ``symmetric_2_slope_fill_in()``.
-    find gamma>0 such that `\\Delta\\pi(x, y) > \\gamma`
-    for all `(x,y)` in `[0,1]^2 \\setminus (E_{\\delta} \\cup E_f \\cup E_{1+f})`.
+    find gamma>0 such that `\Delta\pi(x, y) > \gamma`
+    for all `(x,y)` in `[0,1]^2 \setminus (E_{\delta} \cup E_f \cup E_{1+f})`.
 
-    `fn` may be `\\pi_\\delta` in Lemma 5 or `\\pi_{comb}` in Lemma 4 [dense-2-slope],
+    `fn` may be `\pi_\delta` in Lemma 5 or `\pi_{comb}` in Lemma 4 [dense-2-slope],
     with sufficiently small delta as described in the proof of the lemma.
 
     EXAMPLE::
@@ -557,7 +557,7 @@ def find_delta(fn, f, q):
 def generate_pi_fill_in(fn, q, f=None):
     r"""
     Subfunction of the procedure ``symmetric_2_slope_fill_in()``.
-    Return the fill-in function pi_fill_in of fn with respect to (1/q)Z and the sublinear function `g(r) = \\max(s_p r, s_m r)`.
+    Return the fill-in function pi_fill_in of fn with respect to (1/q)Z and the sublinear function `g(r) = \max(s_p r, s_m r)`.
     See the first phase in the proof of Lemma 6 [dense-2-slope].
 
     EXAMPLE::
