@@ -1,4 +1,4 @@
 from cutgeneratingfunctionology.igp import *
-h = kzh_3_slope_param_extreme_1()
+h = gmic()
 g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
 sphinx_plot(g)

@@ -180,12 +180,63 @@ kf_n_step_mir(f, [a[0], .. , a[n - 1]]) = kf_n_step_mir(f, [a[0], .. a[i - 1], a
 <dl class="data">
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.dg_2_step_mir_limit">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">dg_2_step_mir_limit</code><em class="property"> = &lt;cutgeneratingfunctionology.igp.Dg2StepMirLimit instance&gt;</em><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.dg_2_step_mir_limit" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><div class="figure">
+<img alt="_images/extreme_functions-2.svg" src="_images/extreme_functions-2.svg" /></div>
+<dl class="docutils">
+<dt>Summary:</dt>
+<dd><ul class="first last simple">
+<li>Name: Dash-Gunluk 2-Step MIR Limit;</li>
+<li>Infinite; Dim = 1; Slopes = 1; Discontinuous; Simple sets method;</li>
+<li>Discovered [33] p.41, def.12;</li>
+<li>Proven extreme [33] p.43, lemma 14.</li>
+<li>dg_2_step_mir_limit is a facet.</li>
+</ul>
+</dd>
+<dt>Parameters:</dt>
+<dd><ul class="first last simple">
+<li>f (real) <span class="math notranslate nohighlight">\(\in (0,1)\)</span>;</li>
+<li>d (positive integer): number of slopes on [0,f).</li>
+</ul>
+</dd>
+<dt>Function is known to be extreme under the conditions:</dt>
+<dd><ul class="first last simple">
+<li>0 &lt; f &lt; 1;</li>
+<li>d &gt;= ceil(1 / (1 - f)) - 1.</li>
+</ul>
+</dd>
+<dt>Note:</dt>
+<dd><p class="first">This is the limit function as alpha in dg_2_step_mir()
+tends (from left) to f/d, where d is integer;
+cf. [33] p.42, lemma 13.</p>
+<p>It’s a special case of <code class="docutils literal notranslate"><span class="pre">drlm_2_slope_limit()</span></code>:</p>
+<p class="last"><code class="docutils literal notranslate"><span class="pre">dg_2_step_mir_limit(f,</span> <span class="pre">d)</span> <span class="pre">=</span> <span class="pre">multiplicative_homomorphism(drlm_2_slope_limit(f=1-f,</span> <span class="pre">nb_pieces_left=1,</span> <span class="pre">nb_pieces_right=d),</span> <span class="pre">-1)</span></code>.</p>
+</dd>
+</dl>
+<p>Examples: [33] p.42, Fig.6</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span> <span class="c1"># Suppress warning about experimental discontinuous code.</span>
+<span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">dg_2_step_mir_limit</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Reference:</dt>
+<dd><dl class="first last docutils">
+<dt>[33]: S. Dash and O. Gunluk, Valid inequalities based on simple mixed-integer sets.,</dt>
+<dd>Proceedings 10th Conference on Integer Programming and Combinatorial Optimization
+(D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="function">
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.bccz_counterexample">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">bccz_counterexample</code><span class="sig-paren">(</span><em>f=2/3</em>, <em>q=4</em>, <em>eta=1/1000</em>, <em>maxiter=10000</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.bccz_counterexample" title="Permalink to this definition">¶</a></dt>
-<dd><p>return function psi, a counterexample to Gomory–Johnson’s conjecture
+<dd><div class="figure">
+<img alt="_images/extreme_functions-3.svg" src="_images/extreme_functions-3.svg" /></div>
+<p>return function psi, a counterexample to Gomory–Johnson’s conjecture
 constructed by Basu–Conforti–Cornuejols–Zambelli [IR1].</p>
 <p>psi is a continuous facet (hence extreme), but is not piecewise linear. cf. [IR1]</p>
 <p>It can be considered as an absolutely continuous, measurable, non-piecewise linear
@@ -240,7 +291,9 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 <dl class="class">
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.bcds_discontinuous_everywhere">
 <em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">bcds_discontinuous_everywhere</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.bcds_discontinuous_everywhere" title="Permalink to this definition">¶</a></dt>
-<dd><p>An extreme function whose graph is dense in R times [0,1].</p>
+<dd><div class="figure">
+<img alt="_images/extreme_functions-4.svg" src="_images/extreme_functions-4.svg" /></div>
+<p>An extreme function whose graph is dense in R times [0,1].</p>
 <dl class="docutils">
 <dt>Reference:</dt>
 <dd>[bcds_discontinous_everywhere] Amitabh Basu, Michele Conforti, Marco Di Summa, An extreme function which is nonnegative and discontinuous everywhere, arXiv:1802.01499 [math.OC]</dd>
@@ -256,7 +309,7 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.bcdsp_arbitrary_slope">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">bcdsp_arbitrary_slope</code><span class="sig-paren">(</span><em>f=1/2</em>, <em>k=4</em>, <em>field=None</em>, <em>conditioncheck=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.bcdsp_arbitrary_slope" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/extreme_functions-4.svg" src="_images/extreme_functions-4.svg" /></div>
+<img alt="_images/extreme_functions-5.svg" src="_images/extreme_functions-5.svg" /></div>
 <p>A family of extreme functions with an arbitrary number <span class="math notranslate nohighlight">\(k\)</span> of slopes. (k &gt;= 2)</p>
 <dl class="docutils">
 <dt>Function is known to be extreme under the condition:</dt>
@@ -294,7 +347,7 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.bhk_gmi_irrational">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">bhk_gmi_irrational</code><span class="sig-paren">(</span><em>f=4/5</em>, <em>d1=3/5</em>, <em>d2=1/10</em>, <em>a0=3/20</em>, <em>delta=(1/200</em>, <em>1/200*sqrt(2))</em>, <em>alpha=19/20</em>, <em>field=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.bhk_gmi_irrational" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/extreme_functions-5.svg" src="_images/extreme_functions-5.svg" /></div>
+<img alt="_images/extreme_functions-6.svg" src="_images/extreme_functions-6.svg" /></div>
 <p>A version of the irrational function with non-zero second slope,
 obtained by forming a convex combination of a modified version of the irrational function with the GMI cut.
 Constructed by Chun Yu Hong, 2013.</p>
@@ -312,7 +365,7 @@ Constructed by Chun Yu Hong, 2013.</p>
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.bhk_irrational">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">bhk_irrational</code><span class="sig-paren">(</span><em>f=4/5</em>, <em>d1=3/5</em>, <em>d2=1/10</em>, <em>a0=3/20</em>, <em>delta=(1/200</em>, <em>1/200*sqrt(2))</em>, <em>field=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.bhk_irrational" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/extreme_functions-6.svg" src="_images/extreme_functions-6.svg" /></div>
+<img alt="_images/extreme_functions-7.svg" src="_images/extreme_functions-7.svg" /></div>
 <dl class="docutils">
 <dt>Summary:</dt>
 <dd><ul class="first last simple">
@@ -413,7 +466,7 @@ Constructed by Chun Yu Hong, 2013.</p>
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.bhk_slant_irrational">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">bhk_slant_irrational</code><span class="sig-paren">(</span><em>f=4/5</em>, <em>d1=3/5</em>, <em>d2=1/10</em>, <em>a0=3/20</em>, <em>delta=(1/200</em>, <em>1/200*sqrt(2))</em>, <em>c2=0</em>, <em>field=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.bhk_slant_irrational" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/extreme_functions-7.svg" src="_images/extreme_functions-7.svg" /></div>
+<img alt="_images/extreme_functions-8.svg" src="_images/extreme_functions-8.svg" /></div>
 <p>A version of the irrational function with non-zero second slope</p>
 <dl class="docutils">
 <dt>Parameters:</dt>
@@ -475,7 +528,7 @@ Constructed by Chun Yu Hong, 2013.</p>
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.chen_4_slope">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">chen_4_slope</code><span class="sig-paren">(</span><em>f=7/10</em>, <em>s_pos=2</em>, <em>s_neg=-4</em>, <em>lam1=1/4</em>, <em>lam2=1/4</em>, <em>field=None</em>, <em>conditioncheck=True</em>, <em>condition_according_to_literature=False</em>, <em>merge=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.chen_4_slope" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/extreme_functions-8.svg" src="_images/extreme_functions-8.svg" /></div>
+<img alt="_images/extreme_functions-9.svg" src="_images/extreme_functions-9.svg" /></div>
 <p>This 4-slope function is shown [KChen_thesis] to be a facet.</p>
 <dl class="docutils">
 <dt>Parameters:</dt>
@@ -561,7 +614,7 @@ lam2 &lt;= 1/2;
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.drlm_2_slope_limit">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">drlm_2_slope_limit</code><span class="sig-paren">(</span><em>f=3/5</em>, <em>nb_pieces_left=3</em>, <em>nb_pieces_right=4</em>, <em>field=None</em>, <em>conditioncheck=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.drlm_2_slope_limit" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/extreme_functions-9.svg" src="_images/extreme_functions-9.svg" /></div>
+<img alt="_images/extreme_functions-10.svg" src="_images/extreme_functions-10.svg" /></div>
 <dl class="docutils">
 <dt>Summary:</dt>
 <dd><ul class="first last simple">
@@ -604,7 +657,7 @@ lam2 &lt;= 1/2;
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.drlm_3_slope_limit">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">drlm_3_slope_limit</code><span class="sig-paren">(</span><em>f=1/5</em>, <em>field=None</em>, <em>conditioncheck=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.drlm_3_slope_limit" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/extreme_functions-10.svg" src="_images/extreme_functions-10.svg" /></div>
+<img alt="_images/extreme_functions-11.svg" src="_images/extreme_functions-11.svg" /></div>
 <dl class="docutils">
 <dt>Summary:</dt>
 <dd><ul class="first last simple">
@@ -644,7 +697,7 @@ lam2 &lt;= 1/2;
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.drlm_backward_3_slope">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">drlm_backward_3_slope</code><span class="sig-paren">(</span><em>f=1/12</em>, <em>bkpt=1/6</em>, <em>field=None</em>, <em>conditioncheck=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.drlm_backward_3_slope" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/extreme_functions-11.svg" src="_images/extreme_functions-11.svg" /></div>
+<img alt="_images/extreme_functions-12.svg" src="_images/extreme_functions-12.svg" /></div>
 <dl class="docutils">
 <dt>Summary:</dt>
 <dd><ul class="first last simple">
@@ -706,7 +759,7 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.gj_2_slope">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">gj_2_slope</code><span class="sig-paren">(</span><em>f=3/5</em>, <em>lambda_1=1/6</em>, <em>field=None</em>, <em>conditioncheck=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.gj_2_slope" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/extreme_functions-12.svg" src="_images/extreme_functions-12.svg" /></div>
+<img alt="_images/extreme_functions-13.svg" src="_images/extreme_functions-13.svg" /></div>
 <dl class="docutils">
 <dt>Summary:</dt>
 <dd><ul class="first last simple">
@@ -756,7 +809,7 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.gj_2_slope_repeat">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">gj_2_slope_repeat</code><span class="sig-paren">(</span><em>f=3/5</em>, <em>s_positive=4</em>, <em>s_negative=-5</em>, <em>m=4</em>, <em>n=3</em>, <em>field=None</em>, <em>conditioncheck=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.gj_2_slope_repeat" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/extreme_functions-13.svg" src="_images/extreme_functions-13.svg" /></div>
+<img alt="_images/extreme_functions-14.svg" src="_images/extreme_functions-14.svg" /></div>
 <dl class="docutils">
 <dt>Summary:</dt>
 <dd><ul class="first last simple">
@@ -803,7 +856,7 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.gj_forward_3_slope">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">gj_forward_3_slope</code><span class="sig-paren">(</span><em>f=4/5</em>, <em>lambda_1=4/9</em>, <em>lambda_2=2/3</em>, <em>field=None</em>, <em>conditioncheck=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.gj_forward_3_slope" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/extreme_functions-14.svg" src="_images/extreme_functions-14.svg" /></div>
+<img alt="_images/extreme_functions-15.svg" src="_images/extreme_functions-15.svg" /></div>
 <dl class="docutils">
 <dt>Summary:</dt>
 <dd><ul class="first last simple">
@@ -860,7 +913,7 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.gmic">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">gmic</code><span class="sig-paren">(</span><em>f=4/5</em>, <em>field=None</em>, <em>conditioncheck=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.gmic" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/extreme_functions-15.svg" src="_images/extreme_functions-15.svg" /></div>
+<img alt="_images/extreme_functions-16.svg" src="_images/extreme_functions-16.svg" /></div>
 <dl class="docutils">
 <dt>Summary:</dt>
 <dd><ul class="first last simple">
@@ -1062,7 +1115,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.kzh_3_slope_param_extreme_1">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">kzh_3_slope_param_extreme_1</code><span class="sig-paren">(</span><em>f=6/19</em>, <em>a=1/19</em>, <em>b=5/19</em>, <em>field=None</em>, <em>conditioncheck=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.kzh_3_slope_param_extreme_1" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/extreme_functions-16.svg" src="_images/extreme_functions-16.svg" /></div>
+<img alt="_images/extreme_functions-17.svg" src="_images/extreme_functions-17.svg" /></div>
 <p>New extreme function discovered by computer based search followed by parametric search.
 It has 3 slopes in the general case.</p>
 <p>Parameters: real numbers <span class="math notranslate nohighlight">\(f\)</span>, <span class="math notranslate nohighlight">\(a\)</span>, <span class="math notranslate nohighlight">\(b\)</span>, where <span class="math notranslate nohighlight">\(a\)</span> is the length of the first interval right to <span class="math notranslate nohighlight">\(f\)</span> and <span class="math notranslate nohighlight">\(b\)</span> is the length of interval centered at <span class="math notranslate nohighlight">\((1+f)/2\)</span>.</p>
@@ -1087,7 +1140,7 @@ It has 3 slopes in the general case.</p>
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.kzh_3_slope_param_extreme_2">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">kzh_3_slope_param_extreme_2</code><span class="sig-paren">(</span><em>f=5/9</em>, <em>a=1/3</em>, <em>b=2/9</em>, <em>field=None</em>, <em>conditioncheck=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.kzh_3_slope_param_extreme_2" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/extreme_functions-17.svg" src="_images/extreme_functions-17.svg" /></div>
+<img alt="_images/extreme_functions-18.svg" src="_images/extreme_functions-18.svg" /></div>
 <p>New extreme function discovered by computer based search followed by parametric search.
 The function looks like <code class="docutils literal notranslate"><span class="pre">gj_forward_3_slope</span></code> + <code class="docutils literal notranslate"><span class="pre">drlm_backward_3_slope</span></code>.</p>
 <p>Parameters: real numbers <span class="math notranslate nohighlight">\(f\)</span>, <span class="math notranslate nohighlight">\(a\)</span>, <span class="math notranslate nohighlight">\(b\)</span>, where <span class="math notranslate nohighlight">\(a\)</span> is the length of interval centered at <span class="math notranslate nohighlight">\(f/2\)</span>, and <span class="math notranslate nohighlight">\(b\)</span> is the length of interval centered at <span class="math notranslate nohighlight">\((1+f)/2\)</span>.</p>
@@ -1115,7 +1168,7 @@ The function looks like <code class="docutils literal notranslate"><span class="
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.kzh_4_slope_param_extreme_1">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">kzh_4_slope_param_extreme_1</code><span class="sig-paren">(</span><em>f=13/18</em>, <em>a=7/18</em>, <em>b=1/18</em>, <em>field=None</em>, <em>conditioncheck=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.kzh_4_slope_param_extreme_1" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/extreme_functions-18.svg" src="_images/extreme_functions-18.svg" /></div>
+<img alt="_images/extreme_functions-19.svg" src="_images/extreme_functions-19.svg" /></div>
 <p>New extreme function discovered by computer based search followed by parametric search.
 The function looks like <code class="docutils literal notranslate"><span class="pre">gj_forward_3_slope</span></code> + <code class="docutils literal notranslate"><span class="pre">kzh_3_slope_param_extreme_1</span></code>.</p>
 <p>Parameters: real numbers <span class="math notranslate nohighlight">\(f\)</span>, <span class="math notranslate nohighlight">\(a\)</span>, <span class="math notranslate nohighlight">\(b\)</span>, where <span class="math notranslate nohighlight">\(a\)</span> is the length of interval centered at <span class="math notranslate nohighlight">\(f/2\)</span>, and <span class="math notranslate nohighlight">\(b\)</span> is the first bkpt, which is also the length of interval centered at <span class="math notranslate nohighlight">\((1+f)/2\)</span>.</p>
@@ -1637,7 +1690,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.kzh_extreme_and_weak_facet_but_not_facet">
 <em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">kzh_extreme_and_weak_facet_but_not_facet</code><span class="sig-paren">(</span><em>f=4/5</em>, <em>l=219/800</em>, <em>u=269/800</em>, <em>t1=77/7752*sqrt(2)</em>, <em>t2=77/2584</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.kzh_extreme_and_weak_facet_but_not_facet" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/extreme_functions-19.svg" src="_images/extreme_functions-19.svg" /></div>
+<img alt="_images/extreme_functions-20.svg" src="_images/extreme_functions-20.svg" /></div>
 <p>An extreme function and weak facet that is not a facet.</p>
 <p>This factory class generates a fresh function from an infinite family.
 The function depends on the sequence of its evaluations.</p>
@@ -2432,7 +2485,7 @@ The given slope is (2*z1-10*z1*r0+r0)/(r0*(1-2*r0)*(4*z1-1+r0)) while the correc
 <dt id="cutgeneratingfunctionology.igp.extreme_functions.rlm_dpl1_extreme_3a">
 <code class="descclassname">cutgeneratingfunctionology.igp.extreme_functions.</code><code class="descname">rlm_dpl1_extreme_3a</code><span class="sig-paren">(</span><em>f=1/4</em>, <em>field=None</em>, <em>conditioncheck=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.extreme_functions.rlm_dpl1_extreme_3a" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/extreme_functions-20.svg" src="_images/extreme_functions-20.svg" /></div>
+<img alt="_images/extreme_functions-21.svg" src="_images/extreme_functions-21.svg" /></div>
 <p>From Richard–Li–Miller [RLM2009].</p>
 <p>For 0 &lt; f &lt; 1/3, by Thm.28, the DPL1 function phi (whose corresponding h is shown on p.273, Fig.3-lowerleft) is “extreme” (not the usual definition).</p>
 <p>See def.19 for the definition of DPLn, which is a special family of discontinuous piecewise linear functions.
