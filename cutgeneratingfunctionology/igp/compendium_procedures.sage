@@ -56,16 +56,12 @@ def multiplicative_homomorphism(function, multiplier):
 
         from cutgeneratingfunctionology.igp import *
 
-        def procedure_graph(procedure_name, fn, g=None):
+        def procedure_graph(fn, g):
             G1 = plot_with_colored_slopes(fn, show_legend=False, **only_f_ticks_keywords(fn))
-            if g is None:
-                proc = eval(procedure_name)
-                g = proc(fn)
             G2 = plot_with_colored_slopes(g, show_legend=False, **only_f_ticks_keywords(g))
             sphinx_plot(graphics_array([G1, G2]), figsize=(8, 1.5))
-            #sphinx_plot(G1); sphinx_plot(G2)
 
-        procedure_graph('multiplicative_homomorphism', gmic(), multiplicative_homomorphism(gmic(), 3))
+        procedure_graph(gmic(), multiplicative_homomorphism(gmic(), 3))
 
     Construct the function x -> function(multiplier * x). 
 
@@ -97,10 +93,33 @@ def multiplicative_homomorphism(function, multiplier):
 def automorphism(function, factor=-1):
     r"""Apply an automorphism.
 
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+
+        def procedure_graph(fn, g):
+            G1 = plot_with_colored_slopes(fn, show_legend=False, **only_f_ticks_keywords(fn))
+            G2 = plot_with_colored_slopes(g, show_legend=False, **only_f_ticks_keywords(g))
+            sphinx_plot(graphics_array([G1, G2]), figsize=(8, 1.5))
+
+        procedure_graph(gmic(), automorphism(gmic()))
+
     For the infinite group problem, apply the only nontrivial
     automorphism of the 1-dimensional infinite group problem to the
     given function, i.e., construct the function x -> function(-x).
     See Johnson (1974) for a discussion of the automorphisms.
+
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+
+        def procedure_graph(fn, g):
+            G1 = plot_with_colored_slopes(fn, show_legend=False, **only_f_ticks_keywords(fn))
+            G2 = plot_with_colored_slopes(g, show_legend=False, **only_f_ticks_keywords(g))
+            sphinx_plot(graphics_array([G1, G2]), figsize=(8, 1.5))
+
+        h = restrict_to_finite_group(gmic(f=QQ('4/5')))
+        procedure_graph(h, automorphism(h, 2))
 
     In the finite group case, factor must be an integer coprime with
     the group order.
@@ -130,7 +149,21 @@ def automorphism(function, factor=-1):
 
 def projected_sequential_merge(g, n=1):
     r"""
-    construct the one-dimensional projected sequential merge inequality: "h = g @_n^1 gmic" with `f = n r` in the first function `g` and `f = r` in the second function ``gmic``.
+    Construct the one-dimensional projected sequential merge inequality.
+
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+
+        def procedure_graph(fn, g):
+            G1 = plot_with_colored_slopes(fn, show_legend=False, **only_f_ticks_keywords(fn))
+            G2 = plot_with_colored_slopes(g, show_legend=False, **only_f_ticks_keywords(g))
+            sphinx_plot(graphics_array([G1, G2]), figsize=(8, 1.5))
+
+        h = multiplicative_homomorphism(gj_forward_3_slope(), -1)
+        procedure_graph(h, projected_sequential_merge(h))
+
+    `h = g \lozenge_n^1 gmic` with `f = n r` in the first function `g` and `f = r` in the second function ``gmic``.
 
     The notation `\lozenge_n^1` is given in [39] p.305, def.12 & eq.25 :
         `h(x) = \frac{1}{n+1}\xi(x) + n g(\lfloor(n + 1)  x - r \xi(x)\rfloor)`, where `\xi =` ``gmic(r)``.
@@ -154,18 +187,18 @@ def projected_sequential_merge(g, n=1):
 
     Examples: [39]  p.311, fig.5 ::
 
-            sage: from cutgeneratingfunctionology.igp import *
-            sage: logging.disable(logging.INFO)
-            sage: g = multiplicative_homomorphism(gj_forward_3_slope(f=2/3, lambda_1=1/4, lambda_2=1/4), -1)
-            sage: extremality_test(g, False)
-            True
-            sage: h = projected_sequential_merge(g, n=1)
-            sage: extremality_test(h, False)
-            True
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: g = multiplicative_homomorphism(gj_forward_3_slope(f=2/3, lambda_1=1/4, lambda_2=1/4), -1)
+        sage: extremality_test(g, False)
+        True
+        sage: h = projected_sequential_merge(g, n=1)
+        sage: extremality_test(h, False)
+        True
 
     Reference:
         [39] SS Dey, JPP Richard, Relations between facets of low-and high-dimensional group problems,
-             Mathematical programming 123 (2), 285-313.
+             Mathematical Programming 123 (2), 285-313.
     """
     f = find_f(g)
     r = f / n
@@ -231,6 +264,18 @@ def finite_group_order_from_function_f_oversampling_order(fn, f=None, oversampli
 def restrict_to_finite_group(function, f=None, oversampling=None, order=None):
     r"""Restrict the given function to the cyclic group of given order.
     
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+
+        def procedure_graph(fn, g):
+            G1 = plot_with_colored_slopes(fn, show_legend=False, **only_f_ticks_keywords(fn))
+            G2 = plot_with_colored_slopes(g, show_legend=False, **only_f_ticks_keywords(g))
+            sphinx_plot(graphics_array([G1, G2]), figsize=(8, 1.5))
+
+        h = gj_2_slope(f=QQ('3/5'), lambda_1=QQ('1/2'))
+        procedure_graph(h, restrict_to_finite_group(h))
+
     If order is not given, it defaults to the group generated by the
     breakpoints of function and `f` if these data are rational.
     However, if oversampling is given, it must be a positive
@@ -247,12 +292,24 @@ def restrict_to_finite_group(function, f=None, oversampling=None, order=None):
     The restriction is extreme if function is extreme. 
     FIXME: Add reference.
 
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+
+        def procedure_graph(fn, g):
+            G1 = plot_with_colored_slopes(fn, show_legend=False, **only_f_ticks_keywords(fn))
+            G2 = plot_with_colored_slopes(g, show_legend=False, **only_f_ticks_keywords(g))
+            sphinx_plot(graphics_array([G1, G2]), figsize=(8, 1.5))
+
+        h = gj_2_slope(f=QQ('3/5'), lambda_1=QQ('1/2'))
+        procedure_graph(h, restrict_to_finite_group(h, oversampling=3))
+
     If, in addition oversampling >= 3, then the following holds:
     The restriction is extreme if and only if function is extreme.
     This is Theorem 1.5 in [IR2].
 
     This oversampling factor of 3 is best possible, as demonstrated
-    by function ``kzh_2q_example_1`` from [KZh2015a].
+    by function :func:`kzh_2q_example_1` from [KZh2015a].
     
     EXAMPLES::
 
@@ -306,7 +363,19 @@ def restrict_to_finite_group(function, f=None, oversampling=None, order=None):
 
 def interpolate_to_infinite_group(function, merge=True):
     r"""Interpolate the given function to make it a function in the
-    infinite group problem.  
+    infinite group problem.
+
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+
+        def procedure_graph(fn, g):
+            G1 = plot_with_colored_slopes(fn, show_legend=False, **only_f_ticks_keywords(fn))
+            G2 = plot_with_colored_slopes(g, show_legend=False, **only_f_ticks_keywords(g))
+            sphinx_plot(graphics_array([G1, G2]), figsize=(8, 1.5))
+
+        h = restrict_to_finite_group(gmic())
+        procedure_graph(h, interpolate_to_infinite_group(h))
 
     function may be a function of a finite (cyclic) group problem, 
     represented as a ``FastPiecewise`` with singleton intervals within [0,1] as its parts.
