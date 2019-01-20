@@ -141,10 +141,10 @@ def projected_sequential_merge(g, n=1):
 
     - `n` (integer).
 
-    Function is known to be extreme under the conditions: c.f. [39] p.309, Lemma 1
+    Function is known to be extreme under the conditions: cf. [39] p.309, Lemma 1
         (1) `g` is a facet-defining inequality, with `f=nr` ;
-        (2) `E(g)` is unique up to scaling, c.f.[39] p.289, def.6 & def.7 ;
-        (3) `[g]_{nr}` is nondecreasing, c.f.[39] p.290, def.8 (where `m=1`).
+        (2) `E(g)` is unique up to scaling, cf. [39] p.289, def.6 & def.7 ;
+        (3) `[g]_{nr}` is nondecreasing, cf. [39] p.290, def.8 (where `m=1`).
 
     Note:
         
