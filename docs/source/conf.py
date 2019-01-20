@@ -119,12 +119,11 @@ def sphinx_plot(graphics, **kwds):
             g.matplotlib(figure=figure, sub=subplot, **g_options)
     else:
         figure = graphics.matplotlib(figure=plt.gcf(), figsize=figsize, **options)
-    plt.tight_layout()
+    plt.tight_layout(pad=0)
+    plt.margins(0)
     plt.show()
 
 from sage.all_cmdline import *
-import cutgeneratingfunctionology
-from cutgeneratingfunctionology import *
 """
 
 plot_html_show_formats = False
