@@ -71,13 +71,14 @@ def sphinx_plot(graphics, **kwds):
     import matplotlib.pyplot as plt
     ## Option handling is taken from Graphics.save
     options = dict()
-    options.update(graphics.SHOW_OPTIONS)
-    options.update(graphics._extra_kwds)
+    if not isinstance(graphics, sage.plot.graphics.GraphicsArray):
+        options.update(graphics.SHOW_OPTIONS)
+        options.update(graphics._extra_kwds)
     options.update(kwds)
-    dpi = options.pop('dpi')
-    transparent = options.pop('transparent')
-    fig_tight = options.pop('fig_tight')
-    figsize = options.pop('figsize')
+    dpi = options.pop('dpi', None)
+    transparent = options.pop('transparent', None)
+    fig_tight = options.pop('fig_tight', None)
+    figsize = options.pop('figsize', None)
     ## figsize handling is taken from Graphics.matplotlib()
     if figsize is not None and not isinstance(figsize, (list, tuple)):
         # in this case, figsize is a number and should be positive
@@ -102,7 +103,22 @@ def sphinx_plot(graphics, **kwds):
                              "not {0} and {1}".format(figsize[0],figsize[1]))
 
     plt.figure(figsize=figsize)
-    figure = graphics.matplotlib(figure=plt.gcf(), figsize=figsize, **options)
+    if isinstance(graphics, sage.plot.graphics.GraphicsArray):
+        ## from GraphicsArray.save
+        figure = plt.gcf()
+        rows = graphics.nrows()
+        cols = graphics.ncols()
+        for i, g in enumerate(graphics):
+            subplot = figure.add_subplot(rows, cols, i + 1)
+            g_options = copy(options)
+            g_options.update(g.SHOW_OPTIONS)
+            g_options.update(g._extra_kwds)
+            g_options.pop('dpi', None)
+            g_options.pop('transparent', None)
+            g_options.pop('fig_tight', None)
+            g.matplotlib(figure=figure, sub=subplot, **g_options)
+    else:
+        figure = graphics.matplotlib(figure=plt.gcf(), figsize=figsize, **options)
     plt.tight_layout()
     plt.show()
 
