@@ -109,10 +109,14 @@
 <dt id="cutgeneratingfunctionology.igp.procedures.automorphism">
 <code class="descclassname">cutgeneratingfunctionology.igp.procedures.</code><code class="descname">automorphism</code><span class="sig-paren">(</span><em>function</em>, <em>factor=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.automorphism" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply an automorphism.</p>
+<div class="figure">
+<img alt="_images/procedures-1.svg" src="_images/procedures-1.svg" /></div>
 <p>For the infinite group problem, apply the only nontrivial
 automorphism of the 1-dimensional infinite group problem to the
 given function, i.e., construct the function x -&gt; function(-x).
 See Johnson (1974) for a discussion of the automorphisms.</p>
+<div class="figure">
+<img alt="_images/procedures-2.svg" src="_images/procedures-2.svg" /></div>
 <p>In the finite group case, factor must be an integer coprime with
 the group order.</p>
 <p>EXAMPLES:</p>
@@ -223,6 +227,8 @@ manuscript, 2018.</dd>
 <code class="descclassname">cutgeneratingfunctionology.igp.procedures.</code><code class="descname">interpolate_to_infinite_group</code><span class="sig-paren">(</span><em>function</em>, <em>merge=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.interpolate_to_infinite_group" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interpolate the given function to make it a function in the
 infinite group problem.</p>
+<div class="figure">
+<img alt="_images/procedures-3.svg" src="_images/procedures-3.svg" /></div>
 <p>function may be a function of a finite (cyclic) group problem, 
 represented as a <code class="docutils literal notranslate"><span class="pre">FastPiecewise</span></code> with singleton intervals within [0,1] as its parts.</p>
 <p>(function is actually allowed, however, to be more general; it can be any <code class="docutils literal notranslate"><span class="pre">FastPiecewise</span></code>.)</p>
@@ -256,7 +262,7 @@ the finite and infinite group problem.</p>
 <dt id="cutgeneratingfunctionology.igp.procedures.multiplicative_homomorphism">
 <code class="descclassname">cutgeneratingfunctionology.igp.procedures.</code><code class="descname">multiplicative_homomorphism</code><span class="sig-paren">(</span><em>function</em>, <em>multiplier</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.multiplicative_homomorphism" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/procedures-1.svg" src="_images/procedures-1.svg" /></div>
+<img alt="_images/procedures-4.svg" src="_images/procedures-4.svg" /></div>
 <p>Construct the function x -&gt; function(multiplier * x).</p>
 <p>multiplier must be a nonzero integer.</p>
 <p>EXAMPLES:</p>
@@ -275,7 +281,10 @@ the finite and infinite group problem.</p>
 <dl class="function">
 <dt id="cutgeneratingfunctionology.igp.procedures.projected_sequential_merge">
 <code class="descclassname">cutgeneratingfunctionology.igp.procedures.</code><code class="descname">projected_sequential_merge</code><span class="sig-paren">(</span><em>g</em>, <em>n=1</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.projected_sequential_merge" title="Permalink to this definition">¶</a></dt>
-<dd><p>construct the one-dimensional projected sequential merge inequality: “h = g &#64;_n^1 gmic” with <span class="math notranslate nohighlight">\(f = n r\)</span> in the first function <span class="math notranslate nohighlight">\(g\)</span> and <span class="math notranslate nohighlight">\(f = r\)</span> in the second function <code class="docutils literal notranslate"><span class="pre">gmic</span></code>.</p>
+<dd><p>Construct the one-dimensional projected sequential merge inequality.</p>
+<div class="figure">
+<img alt="_images/procedures-5.svg" src="_images/procedures-5.svg" /></div>
+<p><span class="math notranslate nohighlight">\(h = g \lozenge_n^1 gmic\)</span> with <span class="math notranslate nohighlight">\(f = n r\)</span> in the first function <span class="math notranslate nohighlight">\(g\)</span> and <span class="math notranslate nohighlight">\(f = r\)</span> in the second function <code class="docutils literal notranslate"><span class="pre">gmic</span></code>.</p>
 <dl class="docutils">
 <dt>The notation <span class="math notranslate nohighlight">\(\lozenge_n^1\)</span> is given in [39] p.305, def.12 &amp; eq.25 :</dt>
 <dd><span class="math notranslate nohighlight">\(h(x) = \frac{1}{n+1}\xi(x) + n g(\lfloor(n + 1)  x - r \xi(x)\rfloor)\)</span>, where <span class="math notranslate nohighlight">\(\xi =\)</span> <code class="docutils literal notranslate"><span class="pre">gmic(r)</span></code>.</dd>
@@ -314,7 +323,7 @@ the finite and infinite group problem.</p>
 <dt>Reference:</dt>
 <dd><dl class="first last docutils">
 <dt>[39] SS Dey, JPP Richard, Relations between facets of low-and high-dimensional group problems,</dt>
-<dd>Mathematical programming 123 (2), 285-313.</dd>
+<dd>Mathematical Programming 123 (2), 285-313.</dd>
 </dl>
 </dd>
 </dl>
@@ -324,6 +333,8 @@ the finite and infinite group problem.</p>
 <dt id="cutgeneratingfunctionology.igp.procedures.restrict_to_finite_group">
 <code class="descclassname">cutgeneratingfunctionology.igp.procedures.</code><code class="descname">restrict_to_finite_group</code><span class="sig-paren">(</span><em>function</em>, <em>f=None</em>, <em>oversampling=None</em>, <em>order=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.restrict_to_finite_group" title="Permalink to this definition">¶</a></dt>
 <dd><p>Restrict the given function to the cyclic group of given order.</p>
+<div class="figure">
+<img alt="_images/procedures-6.svg" src="_images/procedures-6.svg" /></div>
 <p>If order is not given, it defaults to the group generated by the
 breakpoints of function and <span class="math notranslate nohighlight">\(f\)</span> if these data are rational.
 However, if oversampling is given, it must be a positive
@@ -336,11 +347,13 @@ lie in the cyclic group and that function is continuous.</p>
 The restriction is minimal if and only if function is minimal.
 The restriction is extreme if function is extreme. 
 FIXME: Add reference.</p>
+<div class="figure">
+<img alt="_images/procedures-7.svg" src="_images/procedures-7.svg" /></div>
 <p>If, in addition oversampling &gt;= 3, then the following holds:
 The restriction is extreme if and only if function is extreme.
 This is Theorem 1.5 in [IR2].</p>
 <p>This oversampling factor of 3 is best possible, as demonstrated
-by function <code class="docutils literal notranslate"><span class="pre">kzh_2q_example_1</span></code> from [KZh2015a].</p>
+by function <code class="xref py py-func docutils literal notranslate"><span class="pre">kzh_2q_example_1()</span></code> from [KZh2015a].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
