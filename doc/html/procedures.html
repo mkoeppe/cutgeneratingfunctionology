@@ -255,7 +255,9 @@ the finite and infinite group problem.</p>
 <dl class="function">
 <dt id="cutgeneratingfunctionology.igp.procedures.multiplicative_homomorphism">
 <code class="descclassname">cutgeneratingfunctionology.igp.procedures.</code><code class="descname">multiplicative_homomorphism</code><span class="sig-paren">(</span><em>function</em>, <em>multiplier</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.multiplicative_homomorphism" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct the function x -&gt; function(multiplier * x).</p>
+<dd><div class="figure">
+<img alt="_images/procedures-1.svg" src="_images/procedures-1.svg" /></div>
+<p>Construct the function x -&gt; function(multiplier * x).</p>
 <p>multiplier must be a nonzero integer.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
@@ -275,8 +277,8 @@ the finite and infinite group problem.</p>
 <code class="descclassname">cutgeneratingfunctionology.igp.procedures.</code><code class="descname">projected_sequential_merge</code><span class="sig-paren">(</span><em>g</em>, <em>n=1</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.projected_sequential_merge" title="Permalink to this definition">¶</a></dt>
 <dd><p>construct the one-dimensional projected sequential merge inequality: “h = g &#64;_n^1 gmic” with <span class="math notranslate nohighlight">\(f = n r\)</span> in the first function <span class="math notranslate nohighlight">\(g\)</span> and <span class="math notranslate nohighlight">\(f = r\)</span> in the second function <code class="docutils literal notranslate"><span class="pre">gmic</span></code>.</p>
 <dl class="docutils">
-<dt>The notation <span class="math notranslate nohighlight">\(\\lozenge_n^1\)</span> is given in [39] p.305, def.12 &amp; eq.25 :</dt>
-<dd><span class="math notranslate nohighlight">\(h(x) = \\frac{1}{n+1}\\xi(x) + n g(\\lfloor(n + 1)  x - r \\xi(x)\\rfloor)\)</span>, where <span class="math notranslate nohighlight">\(\\xi =\)</span> <code class="docutils literal notranslate"><span class="pre">gmic(r)</span></code>.</dd>
+<dt>The notation <span class="math notranslate nohighlight">\(\lozenge_n^1\)</span> is given in [39] p.305, def.12 &amp; eq.25 :</dt>
+<dd><span class="math notranslate nohighlight">\(h(x) = \frac{1}{n+1}\xi(x) + n g(\lfloor(n + 1)  x - r \xi(x)\rfloor)\)</span>, where <span class="math notranslate nohighlight">\(\xi =\)</span> <code class="docutils literal notranslate"><span class="pre">gmic(r)</span></code>.</dd>
 </dl>
 <p>Parameters:</p>
 <ul class="simple">
@@ -284,11 +286,11 @@ the finite and infinite group problem.</p>
 <li><span class="math notranslate nohighlight">\(n\)</span> (integer).</li>
 </ul>
 <dl class="docutils">
-<dt>Function is known to be extreme under the conditions: c.f. [39] p.309, Lemma 1</dt>
+<dt>Function is known to be extreme under the conditions: cf. [39] p.309, Lemma 1</dt>
 <dd><ol class="first last arabic simple">
 <li><span class="math notranslate nohighlight">\(g\)</span> is a facet-defining inequality, with <span class="math notranslate nohighlight">\(f=nr\)</span> ;</li>
-<li><span class="math notranslate nohighlight">\(E(g)\)</span> is unique up to scaling, c.f.[39] p.289, def.6 &amp; def.7 ;</li>
-<li><span class="math notranslate nohighlight">\([g]_{nr}\)</span> is nondecreasing, c.f.[39] p.290, def.8 (where <span class="math notranslate nohighlight">\(m=1\)</span>).</li>
+<li><span class="math notranslate nohighlight">\(E(g)\)</span> is unique up to scaling, cf. [39] p.289, def.6 &amp; def.7 ;</li>
+<li><span class="math notranslate nohighlight">\([g]_{nr}\)</span> is nondecreasing, cf. [39] p.290, def.8 (where <span class="math notranslate nohighlight">\(m=1\)</span>).</li>
 </ol>
 </dd>
 </dl>

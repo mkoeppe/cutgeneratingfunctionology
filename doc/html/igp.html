@@ -5508,9 +5508,9 @@ Assumes that fn is subadditive.</p>
 <dt id="cutgeneratingfunctionology.igp.find_gamma">
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">find_gamma</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.find_gamma" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subfunction of the procedure <code class="docutils literal notranslate"><span class="pre">symmetric_2_slope_fill_in()</span></code>.
-find gamma&gt;0 such that <span class="math notranslate nohighlight">\(\\Delta\\pi(x, y) &gt; \\gamma\)</span>
-for all <span class="math notranslate nohighlight">\((x,y)\)</span> in <span class="math notranslate nohighlight">\([0,1]^2 \\setminus (E_{\\delta} \\cup E_f \\cup E_{1+f})\)</span>.</p>
-<p><span class="math notranslate nohighlight">\(fn\)</span> may be <span class="math notranslate nohighlight">\(\\pi_\\delta\)</span> in Lemma 5 or <span class="math notranslate nohighlight">\(\\pi_{comb}\)</span> in Lemma 4 [dense-2-slope],
+find gamma&gt;0 such that <span class="math notranslate nohighlight">\(\Delta\pi(x, y) &gt; \gamma\)</span>
+for all <span class="math notranslate nohighlight">\((x,y)\)</span> in <span class="math notranslate nohighlight">\([0,1]^2 \setminus (E_{\delta} \cup E_f \cup E_{1+f})\)</span>.</p>
+<p><span class="math notranslate nohighlight">\(fn\)</span> may be <span class="math notranslate nohighlight">\(\pi_\delta\)</span> in Lemma 5 or <span class="math notranslate nohighlight">\(\pi_{comb}\)</span> in Lemma 4 [dense-2-slope],
 with sufficiently small delta as described in the proof of the lemma.</p>
 <p>EXAMPLE:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
@@ -6294,7 +6294,7 @@ return a list of indices of subintervals that have a nonempty intersection with 
 <dt id="cutgeneratingfunctionology.igp.generate_pi_fill_in">
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">generate_pi_fill_in</code><span class="sig-paren">(</span><em>fn</em>, <em>q</em>, <em>f=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.generate_pi_fill_in" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subfunction of the procedure <code class="docutils literal notranslate"><span class="pre">symmetric_2_slope_fill_in()</span></code>.
-Return the fill-in function pi_fill_in of fn with respect to (1/q)Z and the sublinear function <span class="math notranslate nohighlight">\(g(r) = \\max(s_p r, s_m r)\)</span>.
+Return the fill-in function pi_fill_in of fn with respect to (1/q)Z and the sublinear function <span class="math notranslate nohighlight">\(g(r) = \max(s_p r, s_m r)\)</span>.
 See the first phase in the proof of Lemma 6 [dense-2-slope].</p>
 <p>EXAMPLE:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
@@ -9546,7 +9546,9 @@ The given slope is (2*z1-10*z1*r0+r0)/(r0*(1-2*r0)*(4*z1-1+r0)) while the correc
 <dl class="function">
 <dt id="cutgeneratingfunctionology.igp.multiplicative_homomorphism">
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">multiplicative_homomorphism</code><span class="sig-paren">(</span><em>function</em>, <em>multiplier</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.multiplicative_homomorphism" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct the function x -&gt; function(multiplier * x).</p>
+<dd><div class="figure">
+<img alt="_images/igp-24.svg" src="_images/igp-24.svg" /></div>
+<p>Construct the function x -&gt; function(multiplier * x).</p>
 <p>multiplier must be a nonzero integer.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
@@ -11203,8 +11205,8 @@ maximal additive faces.</p>
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">projected_sequential_merge</code><span class="sig-paren">(</span><em>g</em>, <em>n=1</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.projected_sequential_merge" title="Permalink to this definition">¶</a></dt>
 <dd><p>construct the one-dimensional projected sequential merge inequality: “h = g &#64;_n^1 gmic” with <span class="math notranslate nohighlight">\(f = n r\)</span> in the first function <span class="math notranslate nohighlight">\(g\)</span> and <span class="math notranslate nohighlight">\(f = r\)</span> in the second function <code class="docutils literal notranslate"><span class="pre">gmic</span></code>.</p>
 <dl class="docutils">
-<dt>The notation <span class="math notranslate nohighlight">\(\\lozenge_n^1\)</span> is given in [39] p.305, def.12 &amp; eq.25 :</dt>
-<dd><span class="math notranslate nohighlight">\(h(x) = \\frac{1}{n+1}\\xi(x) + n g(\\lfloor(n + 1)  x - r \\xi(x)\\rfloor)\)</span>, where <span class="math notranslate nohighlight">\(\\xi =\)</span> <code class="docutils literal notranslate"><span class="pre">gmic(r)</span></code>.</dd>
+<dt>The notation <span class="math notranslate nohighlight">\(\lozenge_n^1\)</span> is given in [39] p.305, def.12 &amp; eq.25 :</dt>
+<dd><span class="math notranslate nohighlight">\(h(x) = \frac{1}{n+1}\xi(x) + n g(\lfloor(n + 1)  x - r \xi(x)\rfloor)\)</span>, where <span class="math notranslate nohighlight">\(\xi =\)</span> <code class="docutils literal notranslate"><span class="pre">gmic(r)</span></code>.</dd>
 </dl>
 <p>Parameters:</p>
 <ul class="simple">
@@ -11212,11 +11214,11 @@ maximal additive faces.</p>
 <li><span class="math notranslate nohighlight">\(n\)</span> (integer).</li>
 </ul>
 <dl class="docutils">
-<dt>Function is known to be extreme under the conditions: c.f. [39] p.309, Lemma 1</dt>
+<dt>Function is known to be extreme under the conditions: cf. [39] p.309, Lemma 1</dt>
 <dd><ol class="first last arabic simple">
 <li><span class="math notranslate nohighlight">\(g\)</span> is a facet-defining inequality, with <span class="math notranslate nohighlight">\(f=nr\)</span> ;</li>
-<li><span class="math notranslate nohighlight">\(E(g)\)</span> is unique up to scaling, c.f.[39] p.289, def.6 &amp; def.7 ;</li>
-<li><span class="math notranslate nohighlight">\([g]_{nr}\)</span> is nondecreasing, c.f.[39] p.290, def.8 (where <span class="math notranslate nohighlight">\(m=1\)</span>).</li>
+<li><span class="math notranslate nohighlight">\(E(g)\)</span> is unique up to scaling, cf. [39] p.289, def.6 &amp; def.7 ;</li>
+<li><span class="math notranslate nohighlight">\([g]_{nr}\)</span> is nondecreasing, cf. [39] p.290, def.8 (where <span class="math notranslate nohighlight">\(m=1\)</span>).</li>
 </ol>
 </dd>
 </dl>
@@ -11622,7 +11624,7 @@ with the previous elements in <code class="docutils literal notranslate"><span c
 <dt id="cutgeneratingfunctionology.igp.rlm_dpl1_extreme_3a">
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">rlm_dpl1_extreme_3a</code><span class="sig-paren">(</span><em>f=1/4</em>, <em>field=None</em>, <em>conditioncheck=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.rlm_dpl1_extreme_3a" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure">
-<img alt="_images/igp-24.svg" src="_images/igp-24.svg" /></div>
+<img alt="_images/igp-25.svg" src="_images/igp-25.svg" /></div>
 <p>From Richard–Li–Miller [RLM2009].</p>
 <p>For 0 &lt; f &lt; 1/3, by Thm.28, the DPL1 function phi (whose corresponding h is shown on p.273, Fig.3-lowerleft) is “extreme” (not the usual definition).</p>
 <p>See def.19 for the definition of DPLn, which is a special family of discontinuous piecewise linear functions.
