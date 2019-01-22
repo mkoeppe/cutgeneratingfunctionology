@@ -4,6 +4,34 @@ import Queue as queue
 import itertools
 import numpy as np
 
+def verts_new(I1, J1, K1):
+    """
+    Computes the vertices based on `I1, J1` and `K1`.
+    """
+    temp =set()
+    for i in I1:
+        for j in J1:
+            if element_of_int(i+j,K1):
+                temp.add((i,j,i+j))
+    for i in I1:
+        for k in K1:
+            if element_of_int(k-i,J1):
+                temp.add((i,k-i,k))
+    for j in J1:
+        for k in K1:
+            if element_of_int(k-j,I1):
+                temp.add((k-j,j,k))
+    if len(temp) > 0:
+        return temp
+
+def projections_new(vertices):
+    """
+    Computes `F(I,J,K)`.
+    """
+    if vertices:
+        l=zip(*vertices)
+        return [[min(l[0]),max(l[0])],[min(l[1]),max(l[1])],[min(l[2]),max(l[2])]]
+
 class SubadditivityTestTreeNode :
 
     def __init__(self, fn, level, intervals):
@@ -293,7 +321,7 @@ class SubadditivityTestTree :
         return self.min
 
     def generate_maximal_additive_faces(self,search_method='BB',**kwds):
-        epsilon=QQ(1)/1000000
+        epsilon=QQ(1)/100000000
         if search_method=='BFS' or search_method=='DFS':
             self.unfathomed_node_list.put((0,self.root))
         elif search_method=='BB':
