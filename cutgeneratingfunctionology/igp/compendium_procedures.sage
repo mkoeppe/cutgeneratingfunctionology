@@ -971,6 +971,8 @@ def injective_2_slope_fill_in(fn, epsilon=1, show_plots=False):
 
     The function is obtained by putting upward and downward tents with slopes equal to the limiting slopes of the input function on top of some intervals between the points of the finite group of order mq = ``injective_2_slope_fill_in_order``.
 
+    This construction was introduced in :cite:`koeppe-zhou:cyclic-group-facets-inject`.
+
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -1047,10 +1049,6 @@ def injective_2_slope_fill_in(fn, epsilon=1, show_plots=False):
         ....:         if order < 1000:
         ....:             i = injective_2_slope_fill_in(h, show_plots=show_plots)
         ....:             assert minimality_test(i)
-
-    Reference:
-        [injective_2_slope_fill_in] M. Koeppe and Y. Zhou, All Cyclic Group Facets Inject,
-        manuscript, 2018.
 
     """
     if show_plots:

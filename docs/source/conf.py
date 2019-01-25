@@ -56,7 +56,8 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.coverage',
     'sphinx.ext.extlinks',
-    'matplotlib.sphinxext.plot_directive'
+    'matplotlib.sphinxext.plot_directive',
+    'sphinxcontrib.bibtex'
 ]
 
 ### from Sage src/doc/common/conf.py

@@ -960,8 +960,8 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
     Summary:
         - Name: Basu-Hildebrand-Koeppe's irrational function.
         - Infinite; Dim = 1; Slopes = 3; Continuous;  Covered intervals and equivariant perturbation.
-        - Discovered [IR2]  p.33, section.5.2, fig.9-10.
-        - Proven extreme [IR2] p.34, thm.5.3.
+        - Discovered :cite:`basu-hildebrand-koeppe:equivariant` p.33, section.5.2, fig.9-10.
+        - Proven extreme :cite:`basu-hildebrand-koeppe:equivariant` p.34, thm.5.3.
         - (Although only extremality has been established in literature, the same proof shows that), bhk_irrational is a facet.
 
     Parameters:
@@ -986,7 +986,7 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
         * A0 = f/2 - a0/2 + d2/4.
 
     Examples:
-        [IR2]  p.34, thm.5.3::
+        :cite:`basu-hildebrand-koeppe:equivariant`  p.34, thm.5.3::
 
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.NOTSET) # enable INFO messages disabled by other doctests
@@ -996,7 +996,7 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
             INFO: ...
             True
 
-        [IR2]  thm 5.4: Not extreme for rational data::
+        :cite:`basu-hildebrand-koeppe:equivariant`  thm 5.4: Not extreme for rational data::
 
             sage: h = bhk_irrational(delta=[1/200, 3/200])
             INFO: ...
@@ -1005,7 +1005,7 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
             INFO: ... Total: 1 stability orbit...
             False
 
-        A generalization with 3 zigzags instead of 2 as in [IR2]::
+        A generalization with 3 zigzags instead of 2 as in :cite:`basu-hildebrand-koeppe:equivariant`::
 
             sage: h = bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, 6* sqrt(2)/200, 1/500))
             INFO: ...
@@ -1030,10 +1030,6 @@ def bhk_irrational(f=4/5, d1=3/5, d2=1/10, a0=15/100, delta=(1/200, sqrt(2)/200)
             sage: minimality_test(h2)
             INFO: ...
             True
-
-    Reference:
-        [IR2] A. Basu, R. Hildebrand, and M. Koeppe, Equivariant perturbation in Gomory and Johnson's infinite group problem.
-                I. The one-dimensional case, Mathematics of Operations Research (2014), doi:10.1287/moor.2014.0660
     """
     if not (bool(0 < f < 1) and bool(d1 > 0) and bool(d2 > 0) and bool(a0 > 0) 
             and all(bool(deltai > 0) for deltai in delta) and bool(d1 + d2 < f) and (sum(delta) < f/2 - d2/4 - 3*a0/2) ):
