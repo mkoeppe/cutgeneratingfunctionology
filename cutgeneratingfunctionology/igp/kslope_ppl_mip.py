@@ -1444,7 +1444,7 @@ def times_in_naive_search(k, q, f):
 def generate_extreme_functions_for_finite_group(q, f):
     r"""
     A generator that enumerates the interpolations of the extreme
-    functions for the cyclic group problem `R_{f/q}(1/q \Z, \Z)`.
+    functions for the cyclic group problem `R_{f/q}(1/q \ZZ, \ZZ)`.
     """
     vertices_color = initial_vertices_color(q, f)
     cs = initial_cs(q, f, vertices_color)
