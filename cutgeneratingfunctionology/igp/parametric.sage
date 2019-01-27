@@ -179,6 +179,12 @@ import sage.rings.number_field.number_field_base as number_field_base
 from sage.structure.coerce_maps import CallableConvertMap
 
 
+class ParametricRealFieldFrozenError(ValueError):
+    pass
+
+
+from contextlib import contextmanager
+
 class ParametricRealField(Field):
     r"""
     A Metaprogramming trick for parameter space analysis.
@@ -303,6 +309,9 @@ class ParametricRealField(Field):
         self._names = tuple(names)
         self._values = tuple(values)
 
+        self._frozen = False
+        self._record = True
+
         # do the computation of the polyhedron incrementally,
         # rather than first building a huge list and then in a second step processing it.
         # the polyhedron defined by all constraints in self._eq/lt_factor
@@ -355,6 +364,73 @@ class ParametricRealField(Field):
 
     def _coerce_impl(self, x):
         return self._element_constructor_(x)
+
+    def freeze(self):
+        self._frozen = True
+
+    def unfreeze(self):
+        self._frozen = False
+
+    @contextmanager
+    def frozen(self):
+        was_frozen = self._frozen
+        self._frozen = True
+        try:
+            yield True
+        finally:
+            self._frozen = was_frozen
+
+    @contextmanager
+    def unfrozen(self):
+        was_frozen = self._frozen
+        self._frozen = False
+        try:
+            yield True
+        finally:
+            self._frozen = was_frozen
+
+    @contextmanager
+    def off_the_record(self):
+        was_recording = self._record
+        self._record = False
+        try:
+            yield True
+        finally:
+            self._record = was_recording
+
+    @contextmanager
+    def temporary_assumptions(self):
+        save_eq = self._eq
+        self._eq = copy(save_eq)
+        save_lt = self._lt
+        self._lt = copy(save_lt)
+        save_eq_poly = self._eq_poly
+        self._eq_poly = copy(save_eq_poly)
+        save_lt_poly = self._lt_poly
+        self._lt_poly = copy(save_lt_poly)
+        save_eq_factor = self._eq_factor
+        self._eq_factor = copy(save_eq_factor)
+        save_lt_factor = self._lt_factor
+        self._lt_factor = copy(save_lt_factor)
+        save_polyhedron = self.polyhedron
+        self.polyhedron = copy(save_polyhedron)
+        save_monomial_list = self.monomial_list
+        self.monomial_list = copy(self.monomial_list)
+        save_v_dict = self.v_dict
+        self.v_dict = copy(self.v_dict)
+        try:
+            yield True
+        finally:
+            self._eq = save_eq
+            self._lt = save_lt
+            self._eq_poly = save_eq_poly
+            self._lt_poly = save_lt_poly
+            self._eq_factor = save_eq_factor
+            self._lt_factor = save_lt_factor
+            self.polyhedron = save_polyhedron
+            self.monomial_list = save_monomial_list
+            self.v_dict = save_v_dict
+
     def get_eq(self):
         return self._eq
     def get_lt(self):
@@ -368,17 +444,22 @@ class ParametricRealField(Field):
     def get_lt_factor(self):
         return self._lt_factor
     def record_to_eq(self, comparison):
+        if not self._record:
+            return
         if not comparison in QQ and not comparison in self._eq:
+            self.record_poly(comparison.numerator())
+            self.record_poly(comparison.denominator())
             logging.debug("New element in %s._eq: %s" % (repr(self), comparison))
             self._eq.add(comparison)
+
+    def record_to_lt(self, comparison):
+        if not self._record:
+            return
+        if not comparison in QQ and not comparison in self._lt:
             self.record_poly(comparison.numerator())
             self.record_poly(comparison.denominator())
-    def record_to_lt(self, comparison):
-        if not comparison in QQ and not comparison in self._lt:
             logging.debug("New element in %s._lt: %s" % (repr(self), comparison))
             self._lt.add(comparison)
-            self.record_poly(comparison.numerator())
-            self.record_poly(comparison.denominator())
     def record_poly(self, poly):
         if not poly in QQ and poly.degree() > 0:
             v = poly(self._values)
@@ -425,6 +506,8 @@ class ParametricRealField(Field):
         else:
             add_new_element = not self.polyhedron.relation_with(constraint_to_add).implies(poly_is_included)
         if add_new_element:
+            if self._frozen:
+                raise ParametricRealFieldFrozenError()
             self.polyhedron.add_constraint(constraint_to_add)
             #print " add new constraint, %s" %self.polyhedron.constraints()
             if op == operator.lt:
