@@ -1,22 +1,32 @@
 from cutgeneratingfunctionology.igp import *
 
-KK.<inv_mq, u_prime, v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 1, 1/4, -1/8, 1/8, 1/2, -1/4])
+KK.<inv_mq, u_prime, v_prime, pi_u_prime, pi_v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 1, 1/4, 1/8, 1/4, 1/16, 1/8, 1/2, -1/4])
 
 assert inv_mq > 0
 
 s = [s_1, s_2, s_3]
 w_prime = u_prime + v_prime
+pi_w_prime = pi_u_prime + pi_v_prime
+
+## Acute angle, top left.
 
 assert s_2 <= s_1
 assert s_2 <= s_3
 
 I = [u_prime, u_prime + inv_mq]
-J = [v_prime - 2*inv_mq, v_prime - inv_mq]
+J = [v_prime - 2*inv_mq, v_prime - inv_mq]; JJ = [v_prime - 2*inv_mq, v_prime - inv_mq, v_prime]
 K = [w_prime - inv_mq, w_prime]
 IJK = (I, J, K)
 
-pi = [ piecewise_function_from_breakpoints_and_slopes(IJK[i], [s[i]], field=ParametricRealField)
-       for i in range(3) ]
+pi = [piecewise_function_from_breakpoints_and_values(I,
+                                                     [ pi_u_prime + (x - u_prime) * s[0] for x in I ],
+                                                     field=ParametricRealField),
+      piecewise_function_from_breakpoints_and_values(JJ,
+                                                     [ pi_v_prime + (y - v_prime) * s[1] for y in JJ ],
+                                                     field=ParametricRealField, merge=False),
+      piecewise_function_from_breakpoints_and_values(K,
+                                                     [ pi_w_prime + (z - w_prime) * s[2] for z in K ],
+                                                     field=ParametricRealField)]
 
 d1_plus, d2_plus, d3_plus = d_plus  = [ inv_mq * (s_i - s_m) / (s_p - s_m) for s_i in s ]
 d1_minus, d2_minus, d3_minus = d_minus = [ inv_mq * (s_p - s_i) / (s_p - s_m) for s_i in s ]
@@ -36,9 +46,20 @@ signs = (+1, +1, +1)
 phi = [None, None, None]
 for i in range(3):
     end_points = pi[i].end_points()
-    assert len(end_points) == 2
-    phi[i] = piecewise_function_from_breakpoints_and_slopes([end_points[0], end_points[0] + d_plusminus[signs[i]][i], end_points[1]],
-                                                            [s_plusminus[signs[i]], s_plusminus[-signs[i]]], merge=False, field=ParametricRealField)
+    x = end_points[0]
+    fx = pi[i](end_points[0])
+    b = [x]
+    v = [fx]
+    for j in range(1, len(end_points)):
+        for k in [signs[i], -signs[i]]:
+            x  += d_plusminus[k][i]
+            fx += d_plusminus[k][i] * s_plusminus[k]
+            b.append(x)
+            v.append(fx)
+        assert x == end_points[j]
+        assert fx == pi[i](x)
+    phi[i] = piecewise_function_from_breakpoints_and_values(b, v,
+                                                            merge=False, field=ParametricRealField)
 
 def plot_fun_IJK(pi, phi):
     plots = [ pi[i].plot(color='black', **ticks_keywords(pi[i]))
@@ -73,8 +94,16 @@ assert P23[0] > I[1]             # outside F
 #assert P12[0] + P12[1] < K[0]  # unknown
 assert P13[1] >= y
 
-#with KK.temporary_assumptions():
-with KK.unfrozen():
-    assert P13[1] <= J[1]
-#phi[1](P13[1])
-delta_IJK
+with KK.temporary_assumptions():
+    with KK.unfrozen():
+        assert P13[1] <= J[1]
+    #phi[1](P13[1])
+    assert phi[0](P13[0]) - phi[0](u_prime) == d1_plus * s_p
+    assert phi[2](P13[0] + P13[1]) - phi[2](u_prime + v_prime) == d3_minus * (- s_m)
+
+    assert delta_IJK(phi, P13) >= 0
+
+with KK.temporary_assumptions():
+    with KK.unfrozen():
+        assert P12[0] + P12[1] >= K[0]
+    assert delta_IJK(phi, P12) >= 0
