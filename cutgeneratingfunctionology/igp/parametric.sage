@@ -506,15 +506,18 @@ class ParametricRealField(Field):
         else:
             add_new_element = not self.polyhedron.relation_with(constraint_to_add).implies(poly_is_included)
         if add_new_element:
+            if op == operator.lt:
+                formatted_constraint = "%s < 0" % fac
+            else:
+                formatted_constraint = "%s == 0" % fac
             if self._frozen:
-                raise ParametricRealFieldFrozenError()
+                raise ParametricRealFieldFrozenError("Cannot prove that constraint is implied: {} ".format(formatted_constraint))
             self.polyhedron.add_constraint(constraint_to_add)
             #print " add new constraint, %s" %self.polyhedron.constraints()
+            logging.info("New constraint: {}".format(formatted_constraint))
             if op == operator.lt:
-                logging.info("New constraint: %s < 0" % fac)
                 self._lt_factor.add(fac)
             else:
-                logging.info("New constraint: %s == 0" % fac)
                 self._eq_factor.add(fac)
 
     def make_proof_cell(self, **opt):
