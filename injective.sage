@@ -1,0 +1,80 @@
+from cutgeneratingfunctionology.igp import *
+
+KK.<inv_mq, u_prime, v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 1, 1/4, -1/8, 1/8, 1/2, -1/4])
+
+assert inv_mq > 0
+
+s = [s_1, s_2, s_3]
+w_prime = u_prime + v_prime
+
+assert s_2 <= s_1
+assert s_2 <= s_3
+
+I = [u_prime, u_prime + inv_mq]
+J = [v_prime - 2*inv_mq, v_prime - inv_mq]
+K = [w_prime - inv_mq, w_prime]
+IJK = (I, J, K)
+
+pi = [ piecewise_function_from_breakpoints_and_slopes(IJK[i], [s[i]], field=ParametricRealField)
+       for i in range(3) ]
+
+d1_plus, d2_plus, d3_plus = d_plus  = [ inv_mq * (s_i - s_m) / (s_p - s_m) for s_i in s ]
+d1_minus, d2_minus, d3_minus = d_minus = [ inv_mq * (s_p - s_i) / (s_p - s_m) for s_i in s ]
+assert all(d_plus[i] > 0 and d_minus[i] > 0 and d_plus[i] + d_minus[i] == inv_mq for i in range(3))
+
+KK.freeze()
+
+d_plusminus = [ None, d_plus, d_minus ]
+s_plusminus = [ None, s_p, s_m ]
+
+# Trivial consequences of the slope inequalities
+assert d2_plus <= d1_plus and d2_plus <= d3_plus
+assert d2_minus >= d1_minus and d2_minus >= d3_minus
+
+signs = (+1, +1, +1)
+
+phi = [None, None, None]
+for i in range(3):
+    end_points = pi[i].end_points()
+    assert len(end_points) == 2
+    phi[i] = piecewise_function_from_breakpoints_and_slopes([end_points[0], end_points[0] + d_plusminus[signs[i]][i], end_points[1]],
+                                                            [s_plusminus[signs[i]], s_plusminus[-signs[i]]], merge=False, field=ParametricRealField)
+
+def plot_fun_IJK(pi, phi):
+    plots = [ pi[i].plot(color='black', **ticks_keywords(pi[i]))
+              + phi[i].plot(color='red', **ticks_keywords(phi[i]))
+              for i in range(3) ]
+
+    return graphics_array(plots)
+
+def delta_IJK(pi, xy):
+    x, y = xy
+    return pi[0](x) + pi[1](y) - pi[2](x+y)
+
+## with K.off_the_record():
+##     plot_fun_IJK(pi, phi).show(figsize=[8,2.5])
+
+F = Face([I, J, K])
+
+(x, y, z) = [ phi_i.end_points()[1] for phi_i in phi ]
+
+P12 = (x, y)
+P13 = (x, z - x)
+P23 = (z - y, y)
+
+g = F.plot()
+g += line([[x, 0], [x, 1]], color='grey')
+g += line([[0, y], [1, y]], color='grey')
+g += line([(0, z), (z, 0)], color='grey')
+g += points([P12, P13, P23], zorder=10)
+g.show()
+
+assert P23[0] > I[1]             # outside F
+#assert P12[0] + P12[1] < K[0]  # unknown
+assert P13[1] >= y
+
+#with KK.temporary_assumptions():
+with KK.unfrozen():
+    assert P13[1] <= J[1]
+#phi[1](P13[1])
+delta_IJK
