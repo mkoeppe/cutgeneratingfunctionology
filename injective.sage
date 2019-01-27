@@ -1,5 +1,49 @@
 from cutgeneratingfunctionology.igp import *
 
+### Library.
+
+def construct_phi(pi, signs):
+    phi = [None, None, None]
+    for i in range(3):
+        end_points = pi[i].end_points()
+        x = end_points[0]
+        fx = pi[i](end_points[0])
+        b = [x]
+        v = [fx]
+        for j in range(1, len(end_points)):
+            for k in [signs[i], -signs[i]]:
+                x  += d_plusminus[k][i]
+                fx += d_plusminus[k][i] * s_plusminus[k]
+                b.append(x)
+                v.append(fx)
+            assert x == end_points[j]
+            assert fx == pi[i](x)
+        phi[i] = piecewise_function_from_breakpoints_and_values(b, v,
+                                                                merge=False, field=ParametricRealField)
+    return phi
+
+def plot_case(phi, pts):
+    g = F.plot()
+    g += line([[x, 0], [x, 1]], color='grey', legend_label='Complex Delta P_phi')
+    g += line([[0, y], [1, y]], color='grey')
+    g += line([(0, z), (z, 0)], color='grey')
+    g += points(pts, zorder=10)
+    return g
+
+
+def plot_fun_IJK(pi, phi):
+    plots = [ pi[i].plot(color='black', **ticks_keywords(pi[i]))
+              + phi[i].plot(color='red', **ticks_keywords(phi[i]))
+              for i in range(3) ]
+
+    return graphics_array(plots)
+
+def delta_IJK(pi, xy):
+    x, y = xy
+    return pi[0](x) + pi[1](y) - pi[2](x+y)
+
+### Cases.
+
 KK.<inv_mq, u_prime, v_prime, pi_u_prime, pi_v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 1, 1/4, 1/8, 1/4, 1/16, 1/8, 1/2, -1/4])
 
 assert inv_mq > 0
@@ -17,6 +61,7 @@ I = [u_prime, u_prime + inv_mq]
 J = [v_prime - 2*inv_mq, v_prime - inv_mq]; JJ = [v_prime - 2*inv_mq, v_prime - inv_mq, v_prime]
 K = [w_prime - inv_mq, w_prime]
 IJK = (I, J, K)
+F = Face([I, J, K])
 
 pi = [piecewise_function_from_breakpoints_and_values(I,
                                                      [ pi_u_prime + (x - u_prime) * s[0] for x in I ],
@@ -43,39 +88,10 @@ assert d2_minus >= d1_minus and d2_minus >= d3_minus
 
 signs = (+1, +1, +1)
 
-phi = [None, None, None]
-for i in range(3):
-    end_points = pi[i].end_points()
-    x = end_points[0]
-    fx = pi[i](end_points[0])
-    b = [x]
-    v = [fx]
-    for j in range(1, len(end_points)):
-        for k in [signs[i], -signs[i]]:
-            x  += d_plusminus[k][i]
-            fx += d_plusminus[k][i] * s_plusminus[k]
-            b.append(x)
-            v.append(fx)
-        assert x == end_points[j]
-        assert fx == pi[i](x)
-    phi[i] = piecewise_function_from_breakpoints_and_values(b, v,
-                                                            merge=False, field=ParametricRealField)
-
-def plot_fun_IJK(pi, phi):
-    plots = [ pi[i].plot(color='black', **ticks_keywords(pi[i]))
-              + phi[i].plot(color='red', **ticks_keywords(phi[i]))
-              for i in range(3) ]
-
-    return graphics_array(plots)
-
-def delta_IJK(pi, xy):
-    x, y = xy
-    return pi[0](x) + pi[1](y) - pi[2](x+y)
-
 ## with K.off_the_record():
 ##     plot_fun_IJK(pi, phi).show(figsize=[8,2.5])
 
-F = Face([I, J, K])
+phi = construct_phi(pi, signs)
 
 (x, y, z) = [ phi_i.end_points()[1] for phi_i in phi ]
 
@@ -83,17 +99,11 @@ P12 = (x, y)
 P13 = (x, z - x)
 P23 = (z - y, y)
 
-g = F.plot()
-g += line([[x, 0], [x, 1]], color='grey')
-g += line([[0, y], [1, y]], color='grey')
-g += line([(0, z), (z, 0)], color='grey')
-g += points([P12, P13, P23], zorder=10)
-g.show()
+plot_case(phi, [P12, P13, P23]).show(legend_title='Signs {}'.format([print_sign(s) for s in signs]))
 
 assert P23[0] > I[1]             # outside F
-#assert P12[0] + P12[1] < K[0]  # unknown
-assert P13[1] >= y
 
+assert P13[1] >= y
 with KK.temporary_assumptions():
     with KK.unfrozen():
         assert P13[1] <= J[1]
@@ -103,6 +113,7 @@ with KK.temporary_assumptions():
 
     assert delta_IJK(phi, P13) >= 0
 
+#assert P12[0] + P12[1] < K[0]  # unknown
 with KK.temporary_assumptions():
     with KK.unfrozen():
         assert P12[0] + P12[1] >= K[0]
