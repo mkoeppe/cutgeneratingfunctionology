@@ -128,7 +128,7 @@ from sage.all_cmdline import *
 """
 
 plot_html_show_formats = False
-plot_formats = ['svg']
+plot_formats = ['svg', 'pdf', 'png']
 
 # Add any paths that contain templates here, relative to this directory.
 # templates_path = ['_templates']
