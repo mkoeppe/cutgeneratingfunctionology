@@ -27,7 +27,7 @@ def plot_case(phi, pts):
     g += line([[x, 0], [x, 1]], color='grey', legend_label='Complex Delta P_phi')
     g += line([[0, y], [1, y]], color='grey')
     g += line([(0, z), (z, 0)], color='grey')
-    g += points(pts, zorder=10)
+    g += points([ p[0:2] for p in pts], zorder=10)
     return g
 
 
@@ -39,7 +39,8 @@ def plot_fun_IJK(pi, phi):
     return graphics_array(plots)
 
 def delta_IJK(pi, xy):
-    x, y = xy
+    x = xy[0]
+    y = xy[1]
     return pi[0](x) + pi[1](y) - pi[2](x+y)
 
 ### Cases.
@@ -79,7 +80,7 @@ assert all(d_plus[i] > 0 and d_minus[i] > 0 and d_plus[i] + d_minus[i] == inv_mq
 
 KK.freeze()
 
-d_plusminus = [ None, d_plus, d_minus ]
+d_plusminus = [ None, d_plus, d_minus ]   # index by 1, -1.
 s_plusminus = [ None, s_p, s_m ]
 
 # Trivial consequences of the slope inequalities
@@ -118,3 +119,33 @@ with KK.temporary_assumptions():
     with KK.unfrozen():
         assert P12[0] + P12[1] >= K[0]
     assert delta_IJK(phi, P12) >= 0
+
+####
+signs = (+1, -1, -1)
+phi = construct_phi(pi, signs)
+
+(x, y, z) = [ phi_i.end_points()[1] for phi_i in phi ]
+
+P12 = (x, y, x + y)
+P13 = (x, z - x, z)
+P23 = (z - y, y, z)
+
+plot_case(phi, [P12, P13, P23]).show(legend_title='Signs {}'.format([print_sign(s) for s in signs]))
+
+with KK.temporary_assumptions():
+    with KK.unfrozen():
+        assert P13 in F #assert P13[1] <= J[1]
+    with KK.temporary_assumptions():
+        with KK.unfrozen():
+            assert P13[1] > y
+        assert delta_IJK(phi, P13) >= 0
+    # other case todo
+
+with KK.temporary_assumptions():
+    with KK.unfrozen():
+        assert P12 in F #P12[2] >= K[0]
+    with KK.temporary_assumptions():
+        with KK.unfrozen():
+            assert P12[2] < z
+        assert delta_IJK(phi, P12) >= 0
+    # other case todo
