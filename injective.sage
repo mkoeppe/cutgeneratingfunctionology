@@ -152,7 +152,6 @@ with KK.temporary_assumptions():
         with KK.unfrozen():
             assert P12[2] < z
         assert delta_IJK(phi, P12) >= 0
-    # other case todo
     with KK.temporary_assumptions():
         with KK.changed_values(s_3=2/5):
             with KK.unfrozen():
@@ -162,3 +161,12 @@ with KK.temporary_assumptions():
 with KK.temporary_assumptions():
     with KK.unfrozen():
         assert P23 in F #P12[2] >= K[0]
+    with KK.temporary_assumptions():
+        with KK.unfrozen():
+            assert P23[0] > x
+        assert delta_IJK(phi, P12) >= 0
+    with KK.temporary_assumptions():
+        with KK.changed_values(s_2=-1/5):
+            with KK.unfrozen():
+                assert P23[0] < x
+            assert delta_IJK(phi, P12) >= 0
