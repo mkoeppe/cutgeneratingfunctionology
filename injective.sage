@@ -151,18 +151,40 @@ with KK.temporary_assumptions():
         assert delta_IJK(phi, P13) >= 0
 
 with KK.temporary_assumptions():
-    KK.change_values(s_2=-1/5)
-    plot_case(phi, [P12, P13, P23]).show(legend_title='Signs {}'.format([print_sign(s) for s in signs]))
-    with KK.unfrozen():
-        assert P23[0] < x
-    assert P13[1] < y
-    assert P12[2] > z
+    with KK.changed_values(s_2=-1/5):
+        plot_case(phi, [P12, P13, P23]).show(legend_title='Signs {}'.format([print_sign(s) for s in signs]))
+        with KK.unfrozen():
+            assert P23[0] < x
+        assert P13[1] < y
+        assert P12[2] > z
 
-    assert P12 in F
-    assert delta_IJK(phi, P12) >= 0
+        assert P12 in F
+        assert delta_IJK(phi, P12) >= 0
 
-    assert P13 in F
-    assert delta_IJK(phi, P13) >= 0
+        assert P13 in F
+        assert delta_IJK(phi, P13) >= 0
 
-    assert P23 in F
-    assert delta_IJK(phi, P23) >= 0
+        assert P23 in F
+        assert delta_IJK(phi, P23) >= 0
+
+####
+signs = (-1, +1, -1)
+phi = construct_phi(pi, signs)
+
+(x, y, z) = [ phi_i.end_points()[1] for phi_i in phi ]
+
+P12 = (x, y, x + y)
+P13 = (x, z - x, z)
+P23 = (z - y, y, z)
+
+assert P12 not in F
+
+with KK.changed_values(s_3=1/3):
+    with KK.temporary_assumptions():
+        with KK.unfrozen():
+            assert P23 in F
+        assert delta_IJK(phi, P23) >= 0
+    with KK.temporary_assumptions():
+        with KK.unfrozen():
+            assert P13 in F
+        assert delta_IJK(phi, P13) >= 0

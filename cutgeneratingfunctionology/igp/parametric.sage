@@ -535,15 +535,14 @@ class ParametricRealField(Field):
                 self.record_to_lt_poly(-poly)
     def record_to_eq_poly(self, poly):
         if not poly in self._eq_poly:
-            self._eq_poly.add(poly)
             for (fac, d) in poly.factor():
                 # record the factor if it's zero
                 if fac(self._values) == 0 and not fac in self._eq_factor:
                     self.record_factor(fac, operator.eq)
+            self._eq_poly.add(poly)
 
     def record_to_lt_poly(self, poly):
         if not poly in self._lt_poly:
-            self._lt_poly.add(poly)
             for (fac, d) in poly.factor():
                 # record the factor if it's raised to an odd power.
                 if d % 2 == 1:
@@ -553,6 +552,7 @@ class ParametricRealField(Field):
                         new_fac = -fac
                     if not new_fac in self._lt_factor:
                         self.record_factor(new_fac, operator.lt)
+            self._lt_poly.add(poly)
 
     def record_factor(self, fac, op):
         #print "add %s, %s to %s" % (fac, op, self.polyhedron.constraints())
