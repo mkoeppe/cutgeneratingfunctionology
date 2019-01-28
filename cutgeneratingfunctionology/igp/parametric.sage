@@ -209,6 +209,9 @@ from sage.structure.coerce_maps import CallableConvertMap
 class ParametricRealFieldFrozenError(ValueError):
     pass
 
+class ParametricRealFieldInconsistencyError(ValueError):
+    pass
+
 
 from contextlib import contextmanager
 
@@ -335,7 +338,10 @@ class ParametricRealField(Field):
         vnames = PolynomialRing(QQ, names).fraction_field().gens();
         self._gens = [ ParametricRealFieldElement(value, name, parent=self) for (value, name) in zip(values, vnames) ]
         self._names = tuple(names)
-        self._values = tuple(values)
+        if mutable_values:
+            self._values = list(values)
+        else:
+            self._values = tuple(values)
 
         self._frozen = False
         self._record = True
@@ -420,6 +426,32 @@ class ParametricRealField(Field):
     ## def wallcross_to_lt(self, comparison):
     ##     record_to_lt(self, comparison)
     ##     ..... compute new testpoint, error if fail.
+
+    def change_values(self, **values):
+        if not self._mutable_values:
+            raise ValueError("ParametricRealField is set up with mutable_values=False")
+        new_values = copy(self._values)
+        for key, value in values.items():
+            new_values[self._names.index(key)] = value
+        ### Check that values satisfy all constraints.
+        rational_list = [ QQ(m(new_values)) for m in self.monomial_list ]
+        num_list = [x.numerator() for x in rational_list]
+        den_list = [x.denominator() for x in rational_list]
+        common_den = lcm(den_list)
+        coef = [common_den // den_list[i] * num_list[i] for i in range(len(rational_list))]
+        pt = sage.libs.ppl.point(Linear_Expression(coef, 0), common_den)
+        if not self.polyhedron.relation_with(pt).implies(point_is_included):
+            raise ParametricRealFieldInconsistencyError("New test point {} does not satisfy the recorded constraints".format(self.new_values))
+        self._values = new_values
+
+    @contextmanager
+    def changed_values(self, **values):
+        save_values = self._values
+        try:
+            self.change_values(**values)
+            yield True
+        finally:
+            self._values = save_values
 
     @contextmanager
     def off_the_record(self):

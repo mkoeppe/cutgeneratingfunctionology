@@ -139,11 +139,11 @@ with KK.temporary_assumptions():
         with KK.unfrozen():
             assert P13[1] > y
         assert delta_IJK(phi, P13) >= 0
-    # other case todo
-    ## with KK.temporary_assumptions():
-    ##     with KK.unfrozen():
-    ##         # wallcrossing
-    ##         KK._
+    with KK.temporary_assumptions():
+        with KK.changed_values(s_2=-1/5):
+            with KK.unfrozen():
+                assert P13[1] < y
+            assert delta_IJK(phi, P13) >= 0
 
 with KK.temporary_assumptions():
     with KK.unfrozen():
@@ -153,6 +153,11 @@ with KK.temporary_assumptions():
             assert P12[2] < z
         assert delta_IJK(phi, P12) >= 0
     # other case todo
+    with KK.temporary_assumptions():
+        with KK.changed_values(s_3=2/5):
+            with KK.unfrozen():
+                assert P12[2] > z
+            assert delta_IJK(phi, P12) >= 0
 
 with KK.temporary_assumptions():
     with KK.unfrozen():
