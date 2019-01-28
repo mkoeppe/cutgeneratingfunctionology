@@ -132,41 +132,37 @@ P23 = (z - y, y, z)
 
 plot_case(phi, [P12, P13, P23]).show(legend_title='Signs {}'.format([print_sign(s) for s in signs]))
 
+# There are 2 combinatorial types of the 2d diagram.
 with KK.temporary_assumptions():
     with KK.unfrozen():
-        assert P13 in F #assert P13[1] <= J[1]
+        assert P23[0] > x
+    assert P13[1] > y
+    assert P12[2] < z
+
+    assert P12 in F
+    assert delta_IJK(phi, P12) >= 0
+
+    assert P23 in F
+    assert delta_IJK(phi, P23) >= 0
+
     with KK.temporary_assumptions():
         with KK.unfrozen():
-            assert P13[1] > y
+            assert P13 in F #assert P13[1] <= J[1]
         assert delta_IJK(phi, P13) >= 0
-    with KK.temporary_assumptions():
-        with KK.changed_values(s_2=-1/5):
-            with KK.unfrozen():
-                assert P13[1] < y
-            assert delta_IJK(phi, P13) >= 0
 
 with KK.temporary_assumptions():
+    KK.change_values(s_2=-1/5)
+    plot_case(phi, [P12, P13, P23]).show(legend_title='Signs {}'.format([print_sign(s) for s in signs]))
     with KK.unfrozen():
-        assert P12 in F #P12[2] >= K[0]
-    with KK.temporary_assumptions():
-        with KK.unfrozen():
-            assert P12[2] < z
-        assert delta_IJK(phi, P12) >= 0
-    with KK.temporary_assumptions():
-        with KK.changed_values(s_3=2/5):
-            with KK.unfrozen():
-                assert P12[2] > z
-            assert delta_IJK(phi, P12) >= 0
+        assert P23[0] < x
+    assert P13[1] < y
+    assert P12[2] > z
 
-with KK.temporary_assumptions():
-    with KK.unfrozen():
-        assert P23 in F #P12[2] >= K[0]
-    with KK.temporary_assumptions():
-        with KK.unfrozen():
-            assert P23[0] > x
-        assert delta_IJK(phi, P12) >= 0
-    with KK.temporary_assumptions():
-        with KK.changed_values(s_2=-1/5):
-            with KK.unfrozen():
-                assert P23[0] < x
-            assert delta_IJK(phi, P12) >= 0
+    assert P12 in F
+    assert delta_IJK(phi, P12) >= 0
+
+    assert P13 in F
+    assert delta_IJK(phi, P13) >= 0
+
+    assert P23 in F
+    assert delta_IJK(phi, P23) >= 0
