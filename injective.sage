@@ -45,7 +45,7 @@ def delta_IJK(pi, xy):
 
 ### Cases.
 
-KK.<inv_mq, u_prime, v_prime, pi_u_prime, pi_v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 1, 1/4, 1/8, 1/4, 1/16, 1/8, 1/2, -1/4])
+KK.<inv_mq, u_prime, v_prime, pi_u_prime, pi_v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 1, 1/4, 1/8, 1/4, 1/16, 1/8, 1/2, -1/4], mutable_values=True)
 
 assert inv_mq > 0
 
@@ -140,6 +140,10 @@ with KK.temporary_assumptions():
             assert P13[1] > y
         assert delta_IJK(phi, P13) >= 0
     # other case todo
+    ## with KK.temporary_assumptions():
+    ##     with KK.unfrozen():
+    ##         # wallcrossing
+    ##         KK._
 
 with KK.temporary_assumptions():
     with KK.unfrozen():
@@ -149,3 +153,7 @@ with KK.temporary_assumptions():
             assert P12[2] < z
         assert delta_IJK(phi, P12) >= 0
     # other case todo
+
+with KK.temporary_assumptions():
+    with KK.unfrozen():
+        assert P23 in F #P12[2] >= K[0]

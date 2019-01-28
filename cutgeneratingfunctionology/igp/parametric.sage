@@ -38,7 +38,8 @@ class ParametricRealFieldElement(FieldElement):
         ## or something else that does not make any sense.
         if not isinstance(value, sage.interfaces.mathematica.MathematicaElement):
             RR(value)
-        self._val = value
+        if not parent._mutable_values:
+            self._val = value
         if symbolic is None:
             self._sym = value # changed to not coerce into SR. -mkoeppe
         else:
@@ -48,20 +49,26 @@ class ParametricRealFieldElement(FieldElement):
         return self._sym
 
     def val(self):
-        return self._val
+        try:
+            return self._val
+        except AttributeError:
+            try:
+                return self._sym(self.parent()._values)  # evaluate rational function
+            except TypeError:                            # a constant
+                return self._sym
 
     def _richcmp_(left, right, op):
         if not left.parent() is right.parent():
             # shouldn't really happen, within coercion
             raise TypeError("comparing elements from different fields")
         # Traditional cmp semantics.  Change this to get big-cell semantics.
-        if (left._val == right._val):
+        if (left.val() == right.val()):
             left.parent().record_to_eq(left.sym() - right.sym())
-        elif (left._val < right._val):
+        elif (left.val() < right.val()):
             left.parent().record_to_lt(left.sym() - right.sym())
         else:
             left.parent().record_to_lt(right.sym() - left.sym())
-        result = richcmp(left._val, right._val, op)
+        result = richcmp(left.val(), right.val(), op)
         return result
 
     def __abs__(self):
@@ -71,27 +78,27 @@ class ParametricRealFieldElement(FieldElement):
             return -self
 
     def sign(self):
-        parent = self._val.parent()
-        if self._val == parent._zero_element:
+        parent = self.val().parent()
+        if self.val() == parent._zero_element:
             return 0
-        elif self._val > parent._zero_element:
+        elif self.val() > parent._zero_element:
             return 1
         else:
             return -1
 
     def floor(self):
-        result = floor(self._val)
+        result = floor(self.val())
         result <= self < result + 1
         return result
 
     def ceil(self):
-        result = ceil(self._val)
+        result = ceil(self.val())
         result - 1 < self <= result
         return result
 
     def __float__(self):
         if self.parent().allow_coercion_to_float:
-            return float(self._val)
+            return float(self.val())
         else:
             raise ValueError("Conversion to float is not allowed")
 
@@ -111,15 +118,15 @@ class ParametricRealFieldElement(FieldElement):
     def _add_(self, other):
         if not isinstance(other, ParametricRealFieldElement):
             other = ParametricRealFieldElement(other, parent=self.parent())
-        return ParametricRealFieldElement(self._val + other._val, self._sym + other._sym, parent=self.parent())
+        return ParametricRealFieldElement(self.val() + other.val(), self._sym + other._sym, parent=self.parent())
 
     def _sub_(self, other):
         if not isinstance(other, ParametricRealFieldElement):
             other = ParametricRealFieldElement(other, parent=self.parent())
-        return ParametricRealFieldElement(self._val - other._val, self._sym - other._sym, parent=self.parent())
+        return ParametricRealFieldElement(self.val() - other.val(), self._sym - other._sym, parent=self.parent())
 
     def __neg__(self):
-        return ParametricRealFieldElement(-self._val, -self._sym, parent=self.parent())
+        return ParametricRealFieldElement(-self.val(), -self._sym, parent=self.parent())
 
     def _mul_(self, other):
         if not isinstance(other, ParametricRealFieldElement):
@@ -128,12 +135,12 @@ class ParametricRealFieldElement(FieldElement):
             except TypeError:
                 # For example when other is a vector
                 return other * self
-        return ParametricRealFieldElement(self._val * other._val, self._sym * other._sym, parent=self.parent())
+        return ParametricRealFieldElement(self.val() * other.val(), self._sym * other._sym, parent=self.parent())
 
     def _div_(self, other):
         if not isinstance(other, ParametricRealFieldElement):
             other = ParametricRealFieldElement(other, parent=self.parent())
-        return ParametricRealFieldElement(self._val / other._val, self._sym / other._sym, parent=self.parent())
+        return ParametricRealFieldElement(self.val() / other.val(), self._sym / other._sym, parent=self.parent())
 
     def __hash__(self):
         r"""
@@ -141,7 +148,7 @@ class ParametricRealFieldElement(FieldElement):
         elements that would compare equal have the same hash value. 
 
         The constant hash function would do the job.  Instead we use the
-        hash of the ._val (because equality implies equality of _val).
+        hash of the .val() (because equality implies equality of _val).
         It is not correct to use the hash of the ._sym, or to compare
         the __repr__, because then the user could check for equality
         (for example, by testing the cardinality of a set, as in the
@@ -167,7 +174,7 @@ class ParametricRealFieldElement(FieldElement):
             sage: len(s)
             2
         """
-        return hash(self._val)
+        return hash(self.val())
 
 def is_parametric_element(x):
     # We avoid using isinstance here so that this is robust even if parametric.sage is reloaded.
@@ -294,8 +301,9 @@ class ParametricRealField(Field):
     """
     Element = ParametricRealFieldElement
 
-    def __init__(self, values=(), names=(), allow_coercion_to_float=True):
+    def __init__(self, values=(), names=(), allow_coercion_to_float=True, mutable_values=False):
         Field.__init__(self, self)
+        self._mutable_values = mutable_values
         self._zero_element = ParametricRealFieldElement(0, parent=self)
         self._one_element =  ParametricRealFieldElement(1, parent=self)
         self._eq = set([])
@@ -322,8 +330,8 @@ class ParametricRealField(Field):
         self.v_dict = {}
         self.allow_coercion_to_float = allow_coercion_to_float
         if allow_coercion_to_float:
-            RDF.register_coercion(sage.structure.coerce_maps.CallableConvertMap(self, RDF, lambda x: RDF(x._val), parent_as_first_arg=False))
-            RR.register_coercion(sage.structure.coerce_maps.CallableConvertMap(self, RR, lambda x: RR(x._val), parent_as_first_arg=False))
+            RDF.register_coercion(sage.structure.coerce_maps.CallableConvertMap(self, RDF, lambda x: RDF(x.val()), parent_as_first_arg=False))
+            RR.register_coercion(sage.structure.coerce_maps.CallableConvertMap(self, RR, lambda x: RR(x.val()), parent_as_first_arg=False))
         logging.info("Initialized {}".format(self))
 
     def __copy__(self):
@@ -388,6 +396,10 @@ class ParametricRealField(Field):
             yield True
         finally:
             self._frozen = was_frozen
+
+    ## def wallcross_to_lt(self, comparison):
+    ##     record_to_lt(self, comparison)
+    ##     ..... compute new testpoint, error if fail.
 
     @contextmanager
     def off_the_record(self):
@@ -2434,7 +2446,7 @@ def result_concrete_value(field, result):
         sage: result_concrete_value(K, result)
         (1/12,)
     """
-    concrete_value = tuple(elt._val if hasattr(elt, '_val') else elt for elt in flatten([result]))
+    concrete_value = tuple(elt.val() if hasattr(elt, 'val') else elt for elt in flatten([result]))
     return concrete_value
 
 def result_symbolic_expression(field, result):
