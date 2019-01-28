@@ -441,7 +441,7 @@ class ParametricRealField(Field):
         coef = [common_den // den_list[i] * num_list[i] for i in range(len(rational_list))]
         pt = sage.libs.ppl.point(Linear_Expression(coef, 0), common_den)
         if not self.polyhedron.relation_with(pt).implies(point_is_included):
-            raise ParametricRealFieldInconsistencyError("New test point {} does not satisfy the recorded constraints".format(self.new_values))
+            raise ParametricRealFieldInconsistencyError("New test point {} does not satisfy the recorded constraints".format(new_values))
         self._values = new_values
 
     @contextmanager
