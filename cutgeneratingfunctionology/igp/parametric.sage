@@ -33,12 +33,12 @@ class ParametricRealFieldElement(FieldElement):
         if parent is None:
             raise ValueError("ParametricRealFieldElement invoked with parent=None. That's asking for trouble")
         FieldElement.__init__(self, parent) ## this is so that canonical_coercion works.
-        ## Test coercing the value to RR, so that we do not try to build a ParametricRealFieldElement
-        ## from something like a tuple or vector or list or variable of a polynomial ring
-        ## or something else that does not make any sense.
-        if not isinstance(value, sage.interfaces.mathematica.MathematicaElement):
-            RR(value)
-        if not parent._mutable_values:
+        if not parent._mutable_values and value is not None:
+            ## Test coercing the value to RR, so that we do not try to build a ParametricRealFieldElement
+            ## from something like a tuple or vector or list or variable of a polynomial ring
+            ## or something else that does not make any sense.
+            if not isinstance(value, sage.interfaces.mathematica.MathematicaElement):
+                RR(value)
             self._val = value
         if symbolic is None:
             self._sym = value # changed to not coerce into SR. -mkoeppe
@@ -118,15 +118,27 @@ class ParametricRealFieldElement(FieldElement):
     def _add_(self, other):
         if not isinstance(other, ParametricRealFieldElement):
             other = ParametricRealFieldElement(other, parent=self.parent())
-        return ParametricRealFieldElement(self.val() + other.val(), self._sym + other._sym, parent=self.parent())
+        try:
+            val = self._val + other._val
+        except AttributeError:
+            val = None
+        return ParametricRealFieldElement(val, self._sym + other._sym, parent=self.parent())
 
     def _sub_(self, other):
         if not isinstance(other, ParametricRealFieldElement):
             other = ParametricRealFieldElement(other, parent=self.parent())
-        return ParametricRealFieldElement(self.val() - other.val(), self._sym - other._sym, parent=self.parent())
+        try:
+            val = self._val - other._val
+        except AttributeError:
+            val = None
+        return ParametricRealFieldElement(val, self._sym - other._sym, parent=self.parent())
 
     def __neg__(self):
-        return ParametricRealFieldElement(-self.val(), -self._sym, parent=self.parent())
+        try:
+            val = -self.val()
+        except AttributeError:
+            val = None
+        return ParametricRealFieldElement(val, -self._sym, parent=self.parent())
 
     def _mul_(self, other):
         if not isinstance(other, ParametricRealFieldElement):
@@ -135,12 +147,20 @@ class ParametricRealFieldElement(FieldElement):
             except TypeError:
                 # For example when other is a vector
                 return other * self
-        return ParametricRealFieldElement(self.val() * other.val(), self._sym * other._sym, parent=self.parent())
+        try:
+            val = self.val() * other.val()
+        except AttributeError:
+            val = None
+        return ParametricRealFieldElement(val, self._sym * other._sym, parent=self.parent())
 
     def _div_(self, other):
         if not isinstance(other, ParametricRealFieldElement):
             other = ParametricRealFieldElement(other, parent=self.parent())
-        return ParametricRealFieldElement(self.val() / other.val(), self._sym / other._sym, parent=self.parent())
+        try:
+            val = self.val() / other.val()
+        except AttributeError:
+            val = None
+        return ParametricRealFieldElement(val, self._sym / other._sym, parent=self.parent())
 
     def __hash__(self):
         r"""
