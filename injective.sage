@@ -45,7 +45,7 @@ def delta_IJK(pi, xy):
 
 ### Cases.
 
-KK.<inv_mq, u_prime, v_prime, pi_u_prime, pi_v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 1, 1/4, 1/8, 1/4, 1/16, 1/8, 1/2, -1/4], mutable_values=True)
+KK.<inv_mq, u_prime, v_prime, pi_u_prime, pi_v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 1, 1/4, 1/8, 1/4, 1/16, 1/8, 1/2, -1/4], mutable_values=True, allow_refinement=False)
 
 assert inv_mq > 0
 
@@ -87,6 +87,7 @@ s_plusminus = [ None, s_p, s_m ]
 assert d2_plus <= d1_plus and d2_plus <= d3_plus
 assert d2_minus >= d1_minus and d2_minus >= d3_minus
 
+####
 signs = (+1, +1, +1)
 
 ## with K.off_the_record():
@@ -188,3 +189,7 @@ with KK.changed_values(s_3=1/3):
         with KK.unfrozen():
             assert P13 in F
         assert delta_IJK(phi, P13) >= 0
+
+####
+signs = (-1, +1, +1)
+#phi

@@ -212,6 +212,8 @@ class ParametricRealFieldFrozenError(ValueError):
 class ParametricRealFieldInconsistencyError(ValueError):
     pass
 
+class ParametricRealFieldRefinementError(ValueError):
+    pass
 
 from contextlib import contextmanager
 
@@ -324,9 +326,10 @@ class ParametricRealField(Field):
     """
     Element = ParametricRealFieldElement
 
-    def __init__(self, values=(), names=(), allow_coercion_to_float=True, mutable_values=False):
+    def __init__(self, values=(), names=(), allow_coercion_to_float=True, mutable_values=False, allow_refinement=True):
         Field.__init__(self, self)
         self._mutable_values = mutable_values
+        self._allow_refinement = allow_refinement
         self._zero_element = ParametricRealFieldElement(0, parent=self)
         self._one_element =  ParametricRealFieldElement(1, parent=self)
         self._eq = set([])
@@ -542,20 +545,44 @@ class ParametricRealField(Field):
             self._eq_poly.add(poly)
 
     def record_to_lt_poly(self, poly):
+        """
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)
+            sage: K.<f> = ParametricRealField([4/5], allow_refinement=False)
+            sage: f * (1 - f) > 0
+            Traceback (most recent call last):
+            ...
+            ParametricRealFieldRefinementError...
+        """
         if not poly in self._lt_poly:
-            for (fac, d) in poly.factor():
+            factors = poly.factor()
+            lt_factors = []
+            for (fac, d) in factors:
                 # record the factor if it's raised to an odd power.
                 if d % 2 == 1:
                     if fac(self._values) < 0:
                         new_fac = fac
                     else:
                         new_fac = -fac
-                    if not new_fac in self._lt_factor:
-                        self.record_factor(new_fac, operator.lt)
+                    lt_factors.append(new_fac)
+            if not self._allow_refinement:
+                lt_factors = [ lt_fac for lt_fac in lt_factors if not self.is_factor_known(lt_fac, operator.lt) ]
+                if len(lt_factors) > 1:
+                    # or just record the product
+                    raise ParametricRealFieldRefinementError("{} < 0 has several new factors: {}".format(poly, lt_factors))
+            for new_fac in lt_factors:
+                self.record_factor(new_fac, operator.lt)
             self._lt_poly.add(poly)
 
-    def record_factor(self, fac, op):
-        #print "add %s, %s to %s" % (fac, op, self.polyhedron.constraints())
+    def is_factor_known(self, fac, op):
+        if op == operator.lt:
+            if fac in self._lt_factor:
+                return True
+        else:
+            if fac in self._eq_factor:
+                return True
         space_dim_old = len(self.monomial_list)
         linexpr = polynomial_to_linexpr(fac, self.monomial_list, self.v_dict)
         space_dim_to_add = len(self.monomial_list) - space_dim_old
@@ -566,13 +593,19 @@ class ParametricRealField(Field):
         #print "constraint_to_add = %s" % constraint_to_add
         if space_dim_to_add:
             self.polyhedron.add_space_dimensions_and_embed(space_dim_to_add)
-            add_new_element = True
+            return False
         else:
-            add_new_element = not self.polyhedron.relation_with(constraint_to_add).implies(poly_is_included)
-        if add_new_element:
+            return self.polyhedron.relation_with(constraint_to_add).implies(poly_is_included)
+
+    def record_factor(self, fac, op):
+        #print "add %s, %s to %s" % (fac, op, self.polyhedron.constraints())
+        if not self.is_factor_known(fac, op):
+            linexpr = polynomial_to_linexpr(fac, self.monomial_list, self.v_dict)
             if op == operator.lt:
+                constraint_to_add = (linexpr < 0)
                 formatted_constraint = "%s < 0" % fac
             else:
+                constraint_to_add = (linexpr == 0)
                 formatted_constraint = "%s == 0" % fac
             if self._frozen:
                 raise ParametricRealFieldFrozenError("Cannot prove that constraint is implied: {} ".format(formatted_constraint))
