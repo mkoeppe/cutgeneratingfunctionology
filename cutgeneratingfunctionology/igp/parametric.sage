@@ -15,12 +15,28 @@ point_is_included = Poly_Gen_Relation.subsumes()
 #con_saturates = Poly_Con_Relation.saturates()
 
 from sage.structure.sage_object import SageObject
-from sage.structure.richcmp import richcmp
+from sage.structure.richcmp import richcmp, op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE
 import time
 
 ###############################
 # Parametric Real Number Field
 ###############################
+
+def format_richcmp_op(op):
+    if op == op_LT:
+        return '<'
+    elif op == op_LE:
+        return '<='
+    elif op == op_EQ:
+        return '=='
+    elif op == op_NE:
+        return '!='
+    elif op == op_GT:
+        return '>'
+    elif op == op_GE:
+        return '<'
+    else:
+        raise ValueError("{} is not a valid richcmp operator".format(op))
 
 class ParametricRealFieldElement(FieldElement):
     r"""
@@ -61,6 +77,24 @@ class ParametricRealFieldElement(FieldElement):
         if not left.parent() is right.parent():
             # shouldn't really happen, within coercion
             raise TypeError("comparing elements from different fields")
+        if left.parent()._big_cells:
+            result = richcmp(left.val(), right.val(), op)
+            if (result and op == op_LT) or (not result and op == op_GE):
+                left.parent().record_to_lt(left.sym() - right.sym())
+                return result
+            elif (result and op == op_GT) or (not result and op == op_LE):
+                left.parent().record_to_lt(right.sym() - left.sym())
+                return result
+            elif (result and op == op_EQ) or (not result and op == op_NE):
+                left.parent().record_to_eq(left.sym() - right.sym())
+                return result
+            # TODO: When record_to_le is implemented, can also handle
+            # op_LE, op_GE but still not op_NE.  Could of course record NE by squaring.
+            elif not left.parent()._allow_refinement:
+                raise ParametricRealFieldRefinementError("{} {} {} ({}) cannot be recorded without refinement".format(left.sym(), format_richcmp_op(op), right.sym(), result))
+            else:
+                # Fall thru to traditional cmp semantics, refining cells.
+                pass
         # Traditional cmp semantics.  Change this to get big-cell semantics.
         if (left.val() == right.val()):
             left.parent().record_to_eq(left.sym() - right.sym())
@@ -68,8 +102,7 @@ class ParametricRealFieldElement(FieldElement):
             left.parent().record_to_lt(left.sym() - right.sym())
         else:
             left.parent().record_to_lt(right.sym() - left.sym())
-        result = richcmp(left.val(), right.val(), op)
-        return result
+        return richcmp(left.val(), right.val(), op)
 
     def __abs__(self):
         if self.sign() >= 0:
@@ -326,10 +359,17 @@ class ParametricRealField(Field):
     """
     Element = ParametricRealFieldElement
 
-    def __init__(self, values=(), names=(), allow_coercion_to_float=True, mutable_values=False, allow_refinement=True):
+    def __init__(self, values=(), names=(), allow_coercion_to_float=True, mutable_values=False, allow_refinement=True, big_cells=None):
         Field.__init__(self, self)
         self._mutable_values = mutable_values
         self._allow_refinement = allow_refinement
+        if big_cells is None:
+            if allow_refinement:
+                big_cells = False # old default
+            else:
+                big_cells = True
+        self._big_cells = big_cells
+
         self._zero_element = ParametricRealFieldElement(0, parent=self)
         self._one_element =  ParametricRealFieldElement(1, parent=self)
         self._eq = set([])
@@ -514,6 +554,7 @@ class ParametricRealField(Field):
         if not self._record:
             return
         if not comparison in QQ and not comparison in self._eq:
+            # TODO: This needs revision for _big_cells=True and _allow_refinement=False
             self.record_poly(comparison.numerator())
             self.record_poly(comparison.denominator())
             logging.debug("New element in %s._eq: %s" % (repr(self), comparison))
@@ -523,6 +564,7 @@ class ParametricRealField(Field):
         if not self._record:
             return
         if not comparison in QQ and not comparison in self._lt:
+            # TODO: This needs revision for _big_cells=True and _allow_refinement=False
             self.record_poly(comparison.numerator())
             self.record_poly(comparison.denominator())
             logging.debug("New element in %s._lt: %s" % (repr(self), comparison))
