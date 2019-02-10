@@ -141,11 +141,11 @@ class ParametricRealFieldElement(FieldElement):
                 pass
         # Traditional cmp semantics.  Change this to get big-cell semantics.
         if (left.val() == right.val()):
-            left.parent().record_to_eq(left.sym() - right.sym())
+            left.parent().assume_comparison(left.sym(), operator.eq, right.sym())
         elif (left.val() < right.val()):
-            left.parent().record_to_lt(left.sym() - right.sym())
+            left.parent().assume_comparison(left.sym(), operator.lt, right.sym())
         else:
-            left.parent().record_to_lt(right.sym() - left.sym())
+            left.parent().assume_comparison(right.sym(), operator.lt, left.sym())
         return richcmp(left.val(), right.val(), op)
 
     def __abs__(self):
@@ -329,10 +329,6 @@ class ParametricRealField(Field):
         sage: R = f._sym.parent().ring()
         sage: sorted([ p for p in K.get_lt() if p in R ])   # filter out the rational function 1/(f^2 - f), which is normalized differently starting Sage 8.4b2
         [-2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2]
-        sage: K.get_eq_poly()
-        set()
-        sage: K.get_lt_poly()
-        {-2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2, f^2 - f}
         sage: K.get_eq_factor()
         set()
         sage: K.get_lt_factor()
@@ -349,15 +345,6 @@ class ParametricRealField(Field):
          f - 1,
          -1/2*f*lam - 1/2*f + 1/2*lam,
          f*lam - lam}
-        sage: K.get_lt_poly()
-        {-lam,
-         lam - 1,
-         -f,
-         f - 1,
-         -f*lam - f + lam,
-         -1/2*f*lam - 1/2*f + 1/2*lam,
-         f*lam - lam,
-         1/2*f^2*lam + 1/2*f^2 - f*lam - 1/2*f + 1/2*lam}
         sage: K.get_lt_factor()
         {-lam, lam - 1, -f, f - 1, -f*lam - f + lam}
 
@@ -435,8 +422,6 @@ class ParametricRealField(Field):
         self._one_element =  ParametricRealFieldElement(1, parent=self)
         self._eq = set([])
         self._lt = set([])
-        self._eq_poly = set([])
-        self._lt_poly = set([])
         self._eq_factor = set([])
         self._lt_factor = set([])
         self._sym_field = PolynomialRing(QQ, names).fraction_field()
@@ -470,8 +455,6 @@ class ParametricRealField(Field):
         Kcopy = self.__class__(self._values, self._names)
         Kcopy._eq.update(self._eq)
         Kcopy._lt.update(self._lt)
-        Kcopy._eq_poly.update(self._eq_poly)
-        Kcopy._lt_poly.update(self._lt_poly)
         Kcopy._eq_factor.update(self._eq_factor)
         Kcopy._lt_factor.update(self._lt_factor)
         return Kcopy
@@ -573,10 +556,6 @@ class ParametricRealField(Field):
         self._eq = copy(save_eq)
         save_lt = self._lt
         self._lt = copy(save_lt)
-        save_eq_poly = self._eq_poly
-        self._eq_poly = copy(save_eq_poly)
-        save_lt_poly = self._lt_poly
-        self._lt_poly = copy(save_lt_poly)
         save_eq_factor = self._eq_factor
         self._eq_factor = copy(save_eq_factor)
         save_lt_factor = self._lt_factor
@@ -592,8 +571,6 @@ class ParametricRealField(Field):
         finally:
             self._eq = save_eq
             self._lt = save_lt
-            self._eq_poly = save_eq_poly
-            self._lt_poly = save_lt_poly
             self._eq_factor = save_eq_factor
             self._lt_factor = save_lt_factor
             self.polyhedron = save_polyhedron
@@ -604,21 +581,38 @@ class ParametricRealField(Field):
         return self._eq
     def get_lt(self):
         return self._lt
-    def get_eq_poly(self):
-        return self._eq_poly
-    def get_lt_poly(self):
-        return self._lt_poly
+
     def get_eq_factor(self):
         return self._eq_factor
     def get_lt_factor(self):
         return self._lt_factor
 
     def assume_comparison(self, lhs, op, rhs = 0):
+        r"""
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)
+            sage: K.<f> = ParametricRealField([4/5], allow_refinement=False)
+            sage: f * (1 - f) > 0
+            Traceback (most recent call last):
+            ...
+            ParametricRealFieldRefinementError...
+        """
         if not self._record:
             return
         comparison = lhs - rhs
-        ## if comparison in QQ:
-        ##     # Fast path ....
+        if op == operator.eq:
+            if comparison in self._eq:
+                return
+        elif op == operator.lt:
+            if comparison in self._lt:
+                return
+        base_ring = self._sym_field.base_ring()
+        if comparison in base_ring:
+            if not op(comparison, 0):
+                raise ParametricRealFieldInconsistencyError("New constant constraint {} {} {} is not satisfied".format(lhs, op, rhs))
+            return
         comparison = self._sym_field(comparison)
         if not op(comparison(self._values), 0):
             raise ParametricRealFieldInconsistencyError("New constraint {} {} {} is not satisfied by the test point".format(lhs, op, rhs))
@@ -633,7 +627,7 @@ class ParametricRealField(Field):
                         return
         if op == operator.eq:
             if len(factors) == 1:
-                record_factor(fac)
+                self.record_factor(fac, operator.eq)
             else:
                 if self._allow_refinement:
                     # Record all factors for which testpoint gives zero.
@@ -643,17 +637,20 @@ class ParametricRealField(Field):
                                 self.record_factor(fac, operator.eq)
                 else:
                     raise ParametricRealFieldRefinementError("{} == 0 has several new factors: {}".format(comparison, factors))
+            logging.debug("New element in %s._eq: %s" % (repr(self), comparison))
+            self._eq.add(comparison)
         elif op == operator.lt:
             lt_factors = []
             # None of the factors can be zero because the strict comparison holds for the test point.
             for (fac, d) in factors:
                 # record the factor if it's raised to an odd power.
-                if d % 2 == 1:
-                    if fac(self._values) < 0:
-                        new_fac = fac
-                    else:
-                        new_fac = -fac
-                    lt_factors.append(new_fac)
+                if fac not in self._sym_field.base_ring():
+                    if d % 2 == 1:
+                        if fac(self._values) < 0:
+                            new_fac = fac
+                        else:
+                            new_fac = -fac
+                        lt_factors.append(new_fac)
             if not self._allow_refinement:
                 lt_factors = [ lt_fac for lt_fac in lt_factors if not self.is_factor_known(lt_fac, operator.lt) ]
                 if len(lt_factors) > 1:
@@ -661,76 +658,10 @@ class ParametricRealField(Field):
                     raise ParametricRealFieldRefinementError("{} < 0 has several new factors: {}".format(comparison, lt_factors))
             for new_fac in lt_factors:
                 self.record_factor(new_fac, operator.lt)
-        else:
-            raise NotImplementedError("Not implemented operator: {}".format(op))
-
-    def record_to_eq(self, comparison):
-        if not self._record:
-            return
-        if not comparison in QQ and not comparison in self._eq:
-            # TODO: This needs revision for _big_cells=True and _allow_refinement=False
-            self.record_poly(comparison.numerator())
-            self.record_poly(comparison.denominator())
-            logging.debug("New element in %s._eq: %s" % (repr(self), comparison))
-            self._eq.add(comparison)
-
-    def record_to_lt(self, comparison):
-        if not self._record:
-            return
-        if not comparison in QQ and not comparison in self._lt:
-            # TODO: This needs revision for _big_cells=True and _allow_refinement=False
-            self.record_poly(comparison.numerator())
-            self.record_poly(comparison.denominator())
             logging.debug("New element in %s._lt: %s" % (repr(self), comparison))
             self._lt.add(comparison)
-    def record_poly(self, poly):
-        if not poly in QQ and poly.degree() > 0:
-            v = poly(self._values)
-            if v == 0:
-                self.record_to_eq_poly(poly)
-            elif v < 0:
-                self.record_to_lt_poly(poly)
-            else:
-                self.record_to_lt_poly(-poly)
-    def record_to_eq_poly(self, poly):
-        if not poly in self._eq_poly:
-            for (fac, d) in poly.factor():
-                # record the factor if it's zero
-                if fac(self._values) == 0 and not fac in self._eq_factor:
-                    self.record_factor(fac, operator.eq)
-            self._eq_poly.add(poly)
-
-    def record_to_lt_poly(self, poly):
-        """
-        EXAMPLES::
-
-            sage: from cutgeneratingfunctionology.igp import *
-            sage: logging.disable(logging.INFO)
-            sage: K.<f> = ParametricRealField([4/5], allow_refinement=False)
-            sage: f * (1 - f) > 0
-            Traceback (most recent call last):
-            ...
-            ParametricRealFieldRefinementError...
-        """
-        if not poly in self._lt_poly:
-            factors = poly.factor()
-            lt_factors = []
-            for (fac, d) in factors:
-                # record the factor if it's raised to an odd power.
-                if d % 2 == 1:
-                    if fac(self._values) < 0:
-                        new_fac = fac
-                    else:
-                        new_fac = -fac
-                    lt_factors.append(new_fac)
-            if not self._allow_refinement:
-                lt_factors = [ lt_fac for lt_fac in lt_factors if not self.is_factor_known(lt_fac, operator.lt) ]
-                if len(lt_factors) > 1:
-                    # or just record the product
-                    raise ParametricRealFieldRefinementError("{} < 0 has several new factors: {}".format(poly, lt_factors))
-            for new_fac in lt_factors:
-                self.record_factor(new_fac, operator.lt)
-            self._lt_poly.add(poly)
+        else:
+            raise NotImplementedError("Not implemented operator: {}".format(op))
 
     def is_factor_known(self, fac, op):
         if op == operator.lt:
@@ -928,13 +859,6 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
         sage: K.<f> = ParametricRealField([4/5])
         sage: h = gmic(f, field=K)
         sage: _ = extremality_test(h)
-        sage: eq_poly = K.get_eq_poly()
-        sage: lt_poly = K.get_lt_poly()
-        sage: (eq_poly, lt_poly)
-        (set(), {-2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2, f^2 - f})
-        sage: simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly)
-        ([], [f - 1, -2*f + 1, f^2 - f])
-
         sage: eq_factor = K.get_eq_factor()
         sage: lt_factor = K.get_lt_factor()
         sage: (eq_factor, lt_factor)
@@ -944,14 +868,10 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
 
         sage: K.<f, lam> = ParametricRealField([4/5, 1/6])
         sage: h = gj_2_slope(f, lam, field=K, conditioncheck=False)
-        sage: leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_poly(), K.get_lt_poly())
-        sage: set(lin)
-        {-lam, f - 1, -f*lam - f + lam, f*lam - lam, f^2*lam + f^2 - 2*f*lam - f + lam}
         sage: leq, lin = simplify_eq_lt_poly_via_ppl(list(K.get_eq_factor()), list(K.get_lt_factor()))
         sage: set(lin)
         {-lam, -f, f - 1, -f*lam - f + lam}
 
-        sage: # _ = extremality_test(h); eq_poly, lt_poly = K.get_eq_poly(), K.get_lt_poly()
         sage: R = f._sym.parent().ring()
         sage: f, lam = R(f._sym), R(lam._sym)
         sage: eq_poly, lt_poly = {}, {-lam, -1/2*lam, -1/2*lam - 1/2, 1/4*lam - 1/4, 1/2*lam - 1/2, -2*f, -2*f + 1, -f, -f - 1, f - 2, f - 1, 2*f - 2, -2*f*lam + f + 2*lam - 1, -3/2*f*lam - 1/2*f + 3/2*lam, -3/2*f*lam + 1/2*f + 3/2*lam - 1, -f*lam + lam - 1, -f*lam - f + lam, -f*lam + f + lam - 2, -f*lam + f + lam - 1, -1/2*f*lam - 3/2*f + 1/2*lam, -1/2*f*lam - 3/2*f + 1/2*lam + 1, -1/2*f*lam - 1/2*f + 1/2*lam, -1/2*f*lam - 1/2*f + 1/2*lam - 1, -1/2*f*lam + 1/2*f + 1/2*lam - 2, -1/2*f*lam + 1/2*f + 1/2*lam - 1, -1/2*f*lam + 3/2*f + 1/2*lam - 2, -1/4*f*lam - 1/4*f + 1/4*lam, 1/2*f*lam - 3/2*f - 1/2*lam, 1/2*f*lam - 3/2*f - 1/2*lam + 1, 1/2*f*lam - 1/2*f - 1/2*lam, 1/2*f*lam - 1/2*f - 1/2*lam - 1, 1/2*f*lam + 1/2*f - 1/2*lam - 2, 1/2*f*lam + 1/2*f - 1/2*lam - 1, 1/2*f*lam + 3/2*f - 1/2*lam - 2, f*lam - lam, f*lam - lam - 1, f*lam - f - lam, f*lam + f - lam - 2, f*lam + f - lam - 1, 3/2*f*lam - 1/2*f - 3/2*lam, 3/2*f*lam + 1/2*f - 3/2*lam - 1, 1/2*f^2*lam + 1/2*f^2 - f*lam - 1/2*f + 1/2*lam}
@@ -978,10 +898,6 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
         sage: K.<f,alpha> = ParametricRealField([4/5, 3/10])             # Bad example! parameter region = {given point}.
         sage: h=dg_2_step_mir(f, alpha, field=K, conditioncheck=False)
         sage: _ = extremality_test(h)
-        sage: leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_poly(), K.get_lt_poly())
-        sage: set(leq), set(lin)
-        ({-10*alpha + 3, -5*f + 4}, {5*f^2 - 10*f*alpha - 1})
-
         sage: leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
         sage: set(leq), set(lin)
         ({-10*alpha + 3, -5*f + 4}, set())
@@ -989,9 +905,6 @@ def simplify_eq_lt_poly_via_ppl(eq_poly, lt_poly):
         sage: K.<f> = ParametricRealField([1/5])
         sage: h = drlm_3_slope_limit(f, conditioncheck=False)
         sage: _ = extremality_test(h)
-        sage: leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_poly(), K.get_lt_poly())
-        sage: set(leq), set(lin)
-        (set(), {-f, 3*f - 1, -f^2 - f})
         sage: leq, lin = simplify_eq_lt_poly_via_ppl(list(K.get_eq_factor()), list(K.get_lt_factor()))
         sage: set(leq), set(lin)
         (set(), {-f, 3*f - 1})
@@ -1059,8 +972,6 @@ def read_simplified_leq_lin(K, level="factor"):
         # Since we update K.polyhedron incrementally,
         # just read leq and lin from its minimized constraint system.
         leq, lin = read_leq_lin_from_polyhedron(K.polyhedron, K.monomial_list, K.v_dict)
-    elif level == "poly":
-        leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_poly(), K.get_lt_poly())
     else:
         leq = list(K.get_eq())
         lin = list(K.get_lt())
