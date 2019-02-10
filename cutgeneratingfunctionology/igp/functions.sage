@@ -130,13 +130,15 @@ def verts(I1, J1, K1):
     if len(temp) > 0:
         return temp
 
+equiv7_mode = False
+
 def generate_maximal_additive_faces(fn):
     if hasattr(fn, '_maximal_additive_faces'):
         return fn._maximal_additive_faces
     if fn.is_discrete():
         result = generate_maximal_additive_faces_discrete(fn)
-    #elif fn.is_continuous():
-    #    result = generate_maximal_additive_faces_continuous(fn)
+    elif fn.is_continuous() and not equiv7_mode:
+        result = generate_maximal_additive_faces_continuous(fn)
     else:
         result = generate_maximal_additive_faces_general(fn)
     fn._maximal_additive_faces = result
@@ -2715,36 +2717,61 @@ class FunctionalDirectedMove (FastPiecewise):
     def reduced_by_components(self, covered_components, pts_of_discontinuity=True):
         domain_move = [interval_including_endpoints_if_continuous(interval, pts_of_discontinuity, self) for interval in self.intervals()]
         covered_domains = []
-        for component in covered_components:
-            preimages =  [ self.apply_to_coho_interval(interval, inverse=True) for interval in component ]
-            preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
-            covered_domain = list(intersection_of_coho_intervals([component, preimages]))
-            covered_domains.append(covered_domain) #list of open sets in the new version
-        domain_component_open = union_of_coho_intervals_minus_union_of_coho_intervals(covered_domains,[])
-        domain_component = union_of_coho_intervals_minus_union_of_coho_intervals([[interval_including_endpoints_if_continuous(interval, pts_of_discontinuity, self) for interval in domain_component_open]],[])
-        domains = []
-        for j in domain_component:
-            keep = False
-            for i in domain_move:
-                if coho_intervals_intersecting(i, j):
-                    # extend to the boundary of covered interval.
-                    keep = True
-                    break
-            if keep:
-                domains.append(j)
-        extended_domains = union_of_coho_intervals_minus_union_of_coho_intervals([domain_move, domains], [])
-        reduced_domains = []
-        for i in extended_domains:
-            i_open = open_interval(i[0], i[1])
-            keep = True
-            for j in domain_component_open:
-                if coho_interval_contained_in_coho_interval(i_open, j):
-                    # remove interval i from domain if it is fully covered.
-                    keep = False
-                    break
-            if keep:
-                reduced_domains.append(i)
-        open_domains = [open_interval(i[0],i[1]) for i in reduced_domains]
+        if equiv7_mode:
+            for component in covered_components:
+                preimages =  [ self.apply_to_coho_interval(interval, inverse=True) for interval in component ]
+                preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
+                covered_domain = list(intersection_of_coho_intervals([component, preimages]))
+                covered_domains.append(covered_domain) #list of open sets in the new version
+            domain_component_open = union_of_coho_intervals_minus_union_of_coho_intervals(covered_domains,[])
+            domain_component = union_of_coho_intervals_minus_union_of_coho_intervals([[interval_including_endpoints_if_continuous(interval, pts_of_discontinuity, self) for interval in domain_component_open]],[])
+            domains = []
+            for j in domain_component:
+                keep = False
+                for i in domain_move:
+                    if coho_intervals_intersecting(i, j):
+                        # extend to the boundary of covered interval.
+                        keep = True
+                        break
+                if keep:
+                    domains.append(j)
+            extended_domains = union_of_coho_intervals_minus_union_of_coho_intervals([domain_move, domains], [])
+            reduced_domains = []
+            for i in extended_domains:
+                i_open = open_interval(i[0], i[1])
+                keep = True
+                for j in domain_component_open:
+                    if coho_interval_contained_in_coho_interval(i_open, j):
+                        # remove interval i from domain if it is fully covered.
+                        keep = False
+                        break
+                if keep:
+                    reduced_domains.append(i)
+            open_domains = [open_interval(i[0],i[1]) for i in reduced_domains]
+        else:
+            for component in covered_components:
+                preimages =  [ self.apply_to_coho_interval(interval, inverse=True) for interval in component ]
+                preimages.sort(key=coho_interval_left_endpoint_with_epsilon)
+                restricted_domain = intersection_of_coho_intervals([component, preimages])
+                covered_domain = [interval_including_endpoints_if_continuous(interval, pts_of_discontinuity, self) for interval in restricted_domain]
+                covered_domains.append(covered_domain)
+            domain_component = union_of_coho_intervals_minus_union_of_coho_intervals(covered_domains,[])
+            domain_component_indices = set([])
+            domain_move_indices = set(range(len(domain_move)))
+            domains = []
+            for index_i in list(domain_move_indices):
+                i = domain_move[index_i]
+                for index_j in range(len(domain_component)):
+                    j = domain_component[index_j]
+                    if coho_interval_contained_in_coho_interval(i, j):
+                        # remove interval i from domain if it is fully covered.
+                        domain_move_indices.remove(index_i)
+                    elif coho_intervals_intersecting(i, j):
+                        # extend to the boundary of covered interval.
+                        domain_component_indices.add(index_j)
+            domains = [[domain_move[index_i] for index_i in sorted(domain_move_indices)], [domain_component[index_j] for index_j in sorted(domain_component_indices)]]
+            union_domains = union_of_coho_intervals_minus_union_of_coho_intervals(domains, [])
+            open_domains = [open_interval(i[0],i[1]) for i in union_domains]
         return FunctionalDirectedMove(open_domains, self.directed_move)
 
     def plot(self, rgbcolor=None, color=None, *args, **kwds):
