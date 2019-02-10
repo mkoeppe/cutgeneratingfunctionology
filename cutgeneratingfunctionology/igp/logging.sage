@@ -19,14 +19,14 @@ class DynamicStdErrStreamHandler(logging.StreamHandler):
     def flush(self):
         try:
             self.stream = sys.stderr
-        except NameError:                                   # happens at exit in terminal
+        except (NameError, AttributeError):                                   # happens at exit in terminal
             pass
         self.parent_class.flush(self)
 
     def emit(self, record):
         try:
             self.stream = sys.stderr
-        except NameError:                                   # happens at exit in terminal
+        except (NameError, AttributeError):                                   # happens at exit in terminal
             pass
         self.parent_class.emit(self, record)
 
