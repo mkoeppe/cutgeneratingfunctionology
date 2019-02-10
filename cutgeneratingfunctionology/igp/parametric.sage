@@ -34,7 +34,7 @@ def format_richcmp_op(op):
     elif op == op_GT:
         return '>'
     elif op == op_GE:
-        return '<'
+        return '>='
     else:
         raise ValueError("{} is not a valid richcmp operator".format(op))
 
