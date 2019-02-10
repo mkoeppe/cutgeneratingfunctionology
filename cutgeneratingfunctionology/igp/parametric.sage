@@ -90,6 +90,28 @@ class ParametricRealFieldElement(FieldElement):
                 return self._sym
 
     def _richcmp_(left, right, op):
+        r"""
+        Examples for traditional cmp semantics::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<f> = ParametricRealField([0], big_cells=False, allow_refinement=True)
+            sage: f >= 0
+            True
+            sage: K._eq
+            {f}
+
+        Examples for big_cells semantics::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<f> = ParametricRealField([0], big_cells=True, allow_refinement=False)
+            sage: f >= 0
+            Traceback (most recent call last):
+            ...
+            ParametricRealFieldRefinementError: f >= 0 (True) cannot be recorded without refinement
+
+        """
         if not left.parent() is right.parent():
             # shouldn't really happen, within coercion
             raise TypeError("comparing elements from different fields")
