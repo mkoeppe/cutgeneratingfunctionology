@@ -187,8 +187,25 @@ class ParametricRealFieldElement(FieldElement):
         return ParametricRealFieldElement(val, self._sym * other._sym, parent=self.parent())
 
     def _div_(self, other):
+        r"""
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<f> = ParametricRealField([0])
+            sage: 1 / f
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Division by 0 in ParametricRealField
+            sage: f / f
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Division by 0 in ParametricRealField
+        """
         if not isinstance(other, ParametricRealFieldElement):
             other = ParametricRealFieldElement(other, parent=self.parent())
+        if other == 0:
+            raise ZeroDivisionError("Division by 0 in ParametricRealField")
         try:
             val = self.val() / other.val()
         except AttributeError:
