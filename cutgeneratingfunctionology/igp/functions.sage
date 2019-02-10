@@ -130,7 +130,7 @@ def verts(I1, J1, K1):
     if len(temp) > 0:
         return temp
 
-equiv7_mode = False
+equiv7_mode = True
 
 def generate_maximal_additive_faces(fn):
     if hasattr(fn, '_maximal_additive_faces'):
