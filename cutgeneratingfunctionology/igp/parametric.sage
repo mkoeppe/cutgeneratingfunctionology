@@ -127,10 +127,16 @@ class ParametricRealFieldElement(FieldElement):
                 left.parent().assume_comparison(left.sym() - right.sym(), operator.lt)
                 return result
             elif true_op == op_GT:
-                left.parent().assume_comparison(right.sym() - left.sym(), operator.lt)
+                left.parent().assume_comparison(left.sym() - right.sym(), operator.gt)
                 return result
             elif true_op == op_EQ:
                 left.parent().assume_comparison(left.sym() - right.sym(), operator.eq)
+                return result
+            elif true_op == op_LE:
+                left.parent().assume_comparison(left.sym() - right.sym(), operator.le)
+                return result
+            elif true_op == op_GE:
+                left.parent().assume_comparison(left.sym() - right.sym(), operator.ge)
                 return result
             # TODO: When record_to_le is implemented, can also handle
             # op_LE, op_GE but still not op_NE.  Could of course record NE by squaring, or by "multiplied with dummy variable equals 1".
@@ -422,8 +428,10 @@ class ParametricRealField(Field):
         self._one_element =  ParametricRealFieldElement(1, parent=self)
         self._eq = set([])
         self._lt = set([])
+        self._le = set([])
         self._eq_factor = set([])
         self._lt_factor = set([])
+        self._le_factor = set([])
         self._sym_field = PolynomialRing(QQ, names).fraction_field()
         vnames = self._sym_field.gens()
         self._gens = [ ParametricRealFieldElement(value, name, parent=self) for (value, name) in zip(values, vnames) ]
@@ -455,8 +463,10 @@ class ParametricRealField(Field):
         Kcopy = self.__class__(self._values, self._names)
         Kcopy._eq.update(self._eq)
         Kcopy._lt.update(self._lt)
+        Kcopy._le.update(self._le)
         Kcopy._eq_factor.update(self._eq_factor)
         Kcopy._lt_factor.update(self._lt_factor)
+        Kcopy._le_factor.update(self._le_factor)
         return Kcopy
 
     def _first_ngens(self, n):
@@ -556,10 +566,14 @@ class ParametricRealField(Field):
         self._eq = copy(save_eq)
         save_lt = self._lt
         self._lt = copy(save_lt)
+        save_le = self._le
+        self._le = copy(save_le)
         save_eq_factor = self._eq_factor
         self._eq_factor = copy(save_eq_factor)
         save_lt_factor = self._lt_factor
         self._lt_factor = copy(save_lt_factor)
+        save_le_factor = self._le_factor
+        self._le_factor = copy(save_le_factor)
         save_polyhedron = self.polyhedron
         self.polyhedron = copy(save_polyhedron)
         save_monomial_list = self.monomial_list
@@ -571,8 +585,10 @@ class ParametricRealField(Field):
         finally:
             self._eq = save_eq
             self._lt = save_lt
+            self._le = save_le
             self._eq_factor = save_eq_factor
             self._lt_factor = save_lt_factor
+            self._le_factor = save_le_factor
             self.polyhedron = save_polyhedron
             self.monomial_list = save_monomial_list
             self.v_dict = save_v_dict
@@ -581,11 +597,15 @@ class ParametricRealField(Field):
         return self._eq
     def get_lt(self):
         return self._lt
+    def get_le(self):
+        return self._le
 
     def get_eq_factor(self):
         return self._eq_factor
     def get_lt_factor(self):
         return self._lt_factor
+    def get_le_factor(self):
+        return self._le_factor
 
     def assume_comparison(self, lhs, op, rhs = 0):
         r"""
@@ -598,15 +618,54 @@ class ParametricRealField(Field):
             Traceback (most recent call last):
             ...
             ParametricRealFieldRefinementError...
+            sage: K.<f> = ParametricRealField([4/5], allow_refinement=False)
+            sage: f > 0
+            True
+            sage: 1 - f > 0
+            True
+
+            sage: K.<f> = ParametricRealField([4/5], allow_refinement=False)
+            sage: f * (f - 4/5) == 0
+            Traceback (most recent call last):
+            ...
+            ParametricRealFieldRefinementError...
+            sage: f == 4/5
+            True
+            sage: f * (f - 4/5) == 0
+            True
+
+            sage: K.<f> = ParametricRealField([4/5], allow_refinement=False)
+            sage: f * (f - 4/5) >= 0
+            Traceback (most recent call last):
+            ...
+            ParametricRealFieldRefinementError...
+            sage: f == 4/5
+            True
+            sage: f * (f - 4/5) >= 0
+            True
+
+            sage: K.<f> = ParametricRealField([4/5], allow_refinement=False)
+            sage: K.assume_comparison(1/f.sym(), operator.eq, 1/f.sym())
         """
         if not self._record:
             return
+        if op == operator.gt:
+            op = operator.lt
+            lhs, rhs = rhs, lhs
+        elif op == operator.ge:
+            op = operator.le
+            lhs, rhs = rhs, lhs
         comparison = lhs - rhs
+        # FIXME: This may cancel denominators.  If assume_comparison is called from _richcmp_, that's fine because
+        # _div_ records denominators.
         if op == operator.eq:
             if comparison in self._eq:
                 return
         elif op == operator.lt:
             if comparison in self._lt:
+                return
+        elif op == operator.le:
+            if comparison in self._le:
                 return
         base_ring = self._sym_field.base_ring()
         if comparison in base_ring:
@@ -641,27 +700,83 @@ class ParametricRealField(Field):
             self._eq.add(comparison)
         elif op == operator.lt:
             lt_factors = []
-            # None of the factors can be zero because the strict comparison holds for the test point.
             for (fac, d) in factors:
                 # record the factor if it's raised to an odd power.
                 if fac not in self._sym_field.base_ring():
                     if d % 2 == 1:
-                        if fac(self._values) < 0:
+                        val = fac(self._values)
+                        if val < 0:
                             new_fac = fac
-                        else:
+                        elif val > 0:
                             new_fac = -fac
+                        else:
+                            # For operator.lt, cannot happen because the strict comparison holds for the test point.
+                            assert op != operator.lt
                         lt_factors.append(new_fac)
             if not self._allow_refinement:
-                lt_factors = [ lt_fac for lt_fac in lt_factors if not self.is_factor_known(lt_fac, operator.lt) ]
+                lt_factors = [ lt_fac for lt_fac in lt_factors if not self.is_factor_known(lt_fac, op) ]
                 if len(lt_factors) > 1:
                     # or just record the product
                     raise ParametricRealFieldRefinementError("{} < 0 has several new factors: {}".format(comparison, lt_factors))
             for new_fac in lt_factors:
-                self.record_factor(new_fac, operator.lt)
+                self.record_factor(new_fac, op)
+            logging.debug("New element in %s._lt: %s" % (repr(self), comparison))
+            self._lt.add(comparison)
+        elif op == operator.le:
+            lt_factors = []
+            eq_factors = []
+            le_factors = []
+            # For operator.le....
+            for (fac, d) in factors:
+                if fac not in self._sym_field.base_ring():
+                    if d % 2 == 1:
+                        # odd power
+                        val = fac(self._values)
+                        if val > 0:
+                            fac = -fac
+                        if val == 0:
+                            if self.is_factor_known(fac, operator.le):
+                                new_fac = fac
+                            elif self.is_factor_known(-fac, operator.le):
+                                new_fac = -fac
+                            else:
+                                # arbitrary choice
+                                new_fac = fac
+                        else:
+                            if self.is_factor_known(new_fac, operator.lt):
+                                pass
+                            else:
+                                # Even if self.is_factor_known(new_fac, operator.le), need to record 
+                                le_factors.append(new_fac)
+                    else:
+                        # even power
+                        
+                        
+            if not self._allow_refinement:
+                lt_factors = [ lt_fac for lt_fac in lt_factors if not self.is_factor_known(lt_fac, op) ]
+                if len(lt_factors) > 1:
+                    # or just record the product
+                    raise ParametricRealFieldRefinementError("{} < 0 has several new factors: {}".format(comparison, lt_factors))
+            for new_fac in lt_factors:
+                self.record_factor(new_fac, op)
             logging.debug("New element in %s._lt: %s" % (repr(self), comparison))
             self._lt.add(comparison)
         else:
             raise NotImplementedError("Not implemented operator: {}".format(op))
+
+    def _constraint_spacedim_to_add(self, fac, op):
+        space_dim_old = len(self.monomial_list)
+        linexpr = polynomial_to_linexpr(fac, self.monomial_list, self.v_dict)
+        space_dim_to_add = len(self.monomial_list) - space_dim_old
+        if op == operator.lt:
+            constraint_to_add = (linexpr < 0)
+        elif op == operator.eq:
+            constraint_to_add = (linexpr == 0)
+        elif op == operator.le:
+            constraint_to_add = (linexpr <= 0)
+        else:
+            raise ValueError("{} is not a supported operator".format(op))
+        return constraint_to_add, space_dim_to_add
 
     def is_factor_known(self, fac, op):
         if op == operator.lt:
@@ -670,15 +785,12 @@ class ParametricRealField(Field):
         elif op == operator.eq:
             if fac in self._eq_factor:
                 return True
+        elif op == operator.le:
+            if fac in self._le_factor:
+                return True
         else:
             raise ValueError("{} is not a supported operator".format(op))
-        space_dim_old = len(self.monomial_list)
-        linexpr = polynomial_to_linexpr(fac, self.monomial_list, self.v_dict)
-        space_dim_to_add = len(self.monomial_list) - space_dim_old
-        if op == operator.lt:
-            constraint_to_add = (linexpr < 0)
-        else:
-            constraint_to_add = (linexpr == 0)
+        constraint_to_add, space_dim_to_add = self._constraint_spacedim_to_add(fac, op)
         #print "constraint_to_add = %s" % constraint_to_add
         if space_dim_to_add:
             self.polyhedron.add_space_dimensions_and_embed(space_dim_to_add)
@@ -689,13 +801,15 @@ class ParametricRealField(Field):
     def record_factor(self, fac, op):
         #print "add %s, %s to %s" % (fac, op, self.polyhedron.constraints())
         if not self.is_factor_known(fac, op):
-            linexpr = polynomial_to_linexpr(fac, self.monomial_list, self.v_dict)
+            constraint_to_add, _ = self._constraint_spacedim_to_add(fac, op)
             if op == operator.lt:
-                constraint_to_add = (linexpr < 0)
                 formatted_constraint = "%s < 0" % fac
-            else:
-                constraint_to_add = (linexpr == 0)
+            elif op == operator.eq:
                 formatted_constraint = "%s == 0" % fac
+            elif op == operator.le:
+                formatted_constraint = "%s <= 0" % fac
+            else:
+                raise ValueError("{} is not a supported operator".format(op))
             if self._frozen:
                 raise ParametricRealFieldFrozenError("Cannot prove that constraint is implied: {} ".format(formatted_constraint))
             self.polyhedron.add_constraint(constraint_to_add)
@@ -703,8 +817,12 @@ class ParametricRealField(Field):
             logging.info("New constraint: {}".format(formatted_constraint))
             if op == operator.lt:
                 self._lt_factor.add(fac)
-            else:
+            elif op == operator.eq:
                 self._eq_factor.add(fac)
+            elif op == operator.le:
+                self._le_factor.add(fac)
+            else:
+                raise ValueError("{} is not a supported operator".format(op))
 
     def make_proof_cell(self, **opt):
         r"""
