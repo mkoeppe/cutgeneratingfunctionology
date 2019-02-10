@@ -22,6 +22,22 @@ import time
 # Parametric Real Number Field
 ###############################
 
+def richcmp_op_negation(op):
+    if op == op_LT:
+        return op_GE
+    elif op == op_LE:
+        return op_GT
+    elif op == op_EQ:
+        return op_NE
+    elif op == op_NE:
+        return op_EQ
+    elif op == op_GT:
+        return op_LE
+    elif op == op_GE:
+        return op_LT
+    else:
+        raise ValueError("{} is not a valid richcmp operator".format(op))
+
 def format_richcmp_op(op):
     if op == op_LT:
         return '<'
@@ -79,13 +95,19 @@ class ParametricRealFieldElement(FieldElement):
             raise TypeError("comparing elements from different fields")
         if left.parent()._big_cells:
             result = richcmp(left.val(), right.val(), op)
-            if (result and op == op_LT) or (not result and op == op_GE):
+            if result:
+                true_op = op
+            else:
+                true_op = richcmp_op_negation(op)
+            if true_op == op_LT:
+                # left.sym() - right.sym() may cancel denominators, but that is
+                # OK because _div_ makes sure that denominators are nonzero.
                 left.parent().record_to_lt(left.sym() - right.sym())
                 return result
-            elif (result and op == op_GT) or (not result and op == op_LE):
+            elif true_op == op_GT:
                 left.parent().record_to_lt(right.sym() - left.sym())
                 return result
-            elif (result and op == op_EQ) or (not result and op == op_NE):
+            elif true_op == op_EQ:
                 left.parent().record_to_eq(left.sym() - right.sym())
                 return result
             # TODO: When record_to_le is implemented, can also handle
