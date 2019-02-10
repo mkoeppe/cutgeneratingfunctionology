@@ -371,8 +371,8 @@ Constructed by Chun Yu Hong, 2013.</p>
 <dd><ul class="first last simple">
 <li>Name: Basu-Hildebrand-Koeppe’s irrational function.</li>
 <li>Infinite; Dim = 1; Slopes = 3; Continuous;  Covered intervals and equivariant perturbation.</li>
-<li>Discovered [IR2]  p.33, section.5.2, fig.9-10.</li>
-<li>Proven extreme [IR2] p.34, thm.5.3.</li>
+<li>Discovered [basu-hildebrand-koeppe:equivariant] p.33, section.5.2, fig.9-10.</li>
+<li>Proven extreme [basu-hildebrand-koeppe:equivariant] p.34, thm.5.3.</li>
 <li>(Although only extremality has been established in literature, the same proof shows that), bhk_irrational is a facet.</li>
 </ul>
 </dd>
@@ -404,7 +404,7 @@ Constructed by Chun Yu Hong, 2013.</p>
 </ul>
 </dd>
 <dt>Examples:</dt>
-<dd><p class="first">[IR2]  p.34, thm.5.3:</p>
+<dd><p class="first">[basu-hildebrand-koeppe:equivariant]  p.34, thm.5.3:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">)</span> <span class="c1"># enable INFO messages disabled by other doctests</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">bhk_irrational</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d1</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d2</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="n">a0</span><span class="o">=</span><span class="mi">15</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">200</span><span class="p">))</span>
@@ -414,7 +414,7 @@ Constructed by Chun Yu Hong, 2013.</p>
 <span class="go">True</span>
 </pre></div>
 </div>
-<p>[IR2]  thm 5.4: Not extreme for rational data:</p>
+<p>[basu-hildebrand-koeppe:equivariant]  thm 5.4: Not extreme for rational data:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">bhk_irrational</span><span class="p">(</span><span class="n">delta</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">200</span><span class="p">])</span>
 <span class="go">INFO: ...</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
@@ -423,7 +423,7 @@ Constructed by Chun Yu Hong, 2013.</p>
 <span class="go">False</span>
 </pre></div>
 </div>
-<p>A generalization with 3 zigzags instead of 2 as in [IR2]:</p>
+<p>A generalization with 3 zigzags instead of 2 as in [basu-hildebrand-koeppe:equivariant]:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">bhk_irrational</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d1</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d2</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="n">a0</span><span class="o">=</span><span class="mi">15</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span> <span class="mi">6</span><span class="o">*</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">500</span><span class="p">))</span>
 <span class="go">INFO: ...</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="c1"># not tested - takes 20min on Macbook Pro 2.7Ghz Core i7</span>
@@ -449,15 +449,6 @@ Constructed by Chun Yu Hong, 2013.</p>
 <span class="go">True</span>
 </pre></div>
 </div>
-</dd>
-<dt>Reference:</dt>
-<dd><dl class="first last docutils">
-<dt>[IR2] A. Basu, R. Hildebrand, and M. Koeppe, Equivariant perturbation in Gomory and Johnson’s infinite group problem.</dt>
-<dd><ol class="first last upperroman simple">
-<li>The one-dimensional case, Mathematics of Operations Research (2014), doi:10.1287/moor.2014.0660</li>
-</ol>
-</dd>
-</dl>
 </dd>
 </dl>
 </dd></dl>

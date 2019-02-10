@@ -138,6 +138,7 @@ the group order.</p>
 <dd><p>Input: a (continuous) minimal function fn for the infinite group problem, or a discrete minimal function for the finite group problem,  with rational breakpoints in 1/qZ and rational function values at the breakpoints. (weaker condition: rational breakpoints and the set {x: fn_interpolation(x)=1/2} is the union of some rational x and intervals.)
 Output: a two-slope extreme function fn2 such that fn2 = fn on 1/mqZ (and the infinity norm distance between fn and fn2 is less than epsilon).</p>
 <p>The function is obtained by putting upward and downward tents with slopes equal to the limiting slopes of the input function on top of some intervals between the points of the finite group of order mq = <code class="docutils literal notranslate"><span class="pre">injective_2_slope_fill_in_order</span></code>.</p>
+<p>This construction was introduced in [koeppe-zhou:cyclic-group-facets-inject].</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
@@ -215,11 +216,6 @@ Output: a two-slope extreme function fn2 such that fn2 = fn on 1/mqZ (and the in
 <span class="go">....:             assert minimality_test(i)</span>
 </pre></div>
 </div>
-<dl class="docutils">
-<dt>Reference:</dt>
-<dd>[injective_2_slope_fill_in] M. Koeppe and Y. Zhou, All Cyclic Group Facets Inject,
-manuscript, 2018.</dd>
-</dl>
 </dd></dl>
 
 <dl class="function">

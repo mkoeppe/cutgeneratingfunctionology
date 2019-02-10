@@ -11,13 +11,13 @@ cutgeneratingfunctionology: Code for cut-generating functions in the Gomory-John
     g.set_legend_options(title="Moves closure of equiv7_example_xyz_2()")
     sphinx_plot(g)
 
+Code for the 1-row Gomory--Johnson Infinite Group Relaxation
+============================================================
+
 To use this module, you need to import it:: 
 
     import cutgeneratingfunctionology.igp as igp
     from cutgeneratingfunctionology.igp import *
-
-Code for the 1-row Gomory--Johnson Infinite Group Relaxation
-============================================================
 
 .. toctree::
    :maxdepth: 1
@@ -29,6 +29,11 @@ Code for the 1-row Gomory--Johnson Infinite Group Relaxation
 Code for Classical and General Dual-Feasible Functions
 ======================================================
 
+To use this module, you need to import it:: 
+
+    import cutgeneratingfunctionology.dff as dff
+    from cutgeneratingfunctionology.dff import *
+
 .. toctree::
    :maxdepth: 1
 
@@ -37,10 +42,23 @@ Code for Classical and General Dual-Feasible Functions
 Code for Multi-Row Models
 =========================
 
+To use this module, you need to import it:: 
+
+    import cutgeneratingfunctionology.multirow as multirow
+    from cutgeneratingfunctionology.multirow import *
+
 .. toctree::
    :maxdepth: 1
 
    multirow
+
+Bibliography
+============
+
+.. toctree::
+   :maxdepth: 1
+
+   zzz_bib
 
 Indices and Tables
 ==================
