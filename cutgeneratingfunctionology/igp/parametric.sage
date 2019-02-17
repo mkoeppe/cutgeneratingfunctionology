@@ -832,7 +832,7 @@ class ParametricRealField(Field):
                         if val < 0:
                             lt_factors.append(fac)
                         else: #have val > 0 because val==0 cannot happen
-                            lt_factors.append(fac)
+                            lt_factors.append(-fac)
                     else:
                         even_factors.append(fac)
             if not self._allow_refinement:
