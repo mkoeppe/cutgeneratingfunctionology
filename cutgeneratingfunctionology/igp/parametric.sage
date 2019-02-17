@@ -609,18 +609,57 @@ class ParametricRealField(Field):
 
     def assume_comparison(self, lhs, op, rhs = 0):
         r"""
-        TESTS for allow_refinement=True:
-
-        Strict inequalities::
+        TESTS for consistency checks::
 
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)
+            sage: K.<f> = ParametricRealField([4/5])
+            sage: K.assume_comparison(f.sym(), operator.gt, 1)
+            Traceback (most recent call last):
+            ...
+            ParametricRealFieldInconsistencyError...
+            sage: K.assume_comparison(f.sym(), operator.gt, 1)
+            Traceback (most recent call last):
+            ...
+            ParametricRealFieldInconsistencyError...
+
+        We do not record an assumption regarding the nonvanishing of
+        denominators::
+
+            sage: K.<f> = ParametricRealField([4/5])
+            sage: assert f < 1
+            sage: K.freeze()
+            sage: K.assume_comparison(1/f.sym(), operator.gt, 1)
+
+        Therefore, also the implicit cancellation in the field of rational
+        functions does not change semantics when we transform lhs op rhs
+        to lhs - rhs op 0::
+
+            sage: K.<f> = ParametricRealField([4/5])
+            sage: K.freeze()
+            sage: K.assume_comparison(1/f.sym(), operator.eq, 1/f.sym())
+
+        User code should not rely on these semantics; assume_comparison
+        should be called only for operands that do not have vanishing
+        denominators.
+
+            sage: K.<f> = ParametricRealField([4/5])
+            sage: assert 0 < f < 1
+            sage: K.freeze()
+            sage: K.assume_comparison(1/f.sym(), operator.gt, 1)
+
+
+        TESTS for allow_refinement=True:
+
+        Strict inequalities - even-multiplicity factors do matter::
+
             sage: K.<f> = ParametricRealField([4/5])
             sage: K.freeze()
             sage: f^2 > 0
             Traceback (most recent call last):
             ...
             ParametricRealFieldFrozenError...
+
 
         TESTS for allow_refinement=False:
 
@@ -639,7 +678,7 @@ class ParametricRealField(Field):
             sage: 1 - f > 0
             True
 
-        Strict inequalities - even-multiplicity factors matter::
+        Strict inequalities - even-multiplicity factors do matter::
 
             sage: K.<f> = ParametricRealField([4/5], allow_refinement=False)
             sage: f^2 > 0
@@ -672,8 +711,6 @@ class ParametricRealField(Field):
             sage: f * (f - 4/5) >= 0
             True
 
-            sage: K.<f> = ParametricRealField([4/5], allow_refinement=False)
-            sage: K.assume_comparison(1/f.sym(), operator.eq, 1/f.sym())
         """
         if not self._record:
             return
