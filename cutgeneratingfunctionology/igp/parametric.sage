@@ -1089,8 +1089,10 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None):
         t = sum([-(x/gcd_c)*y for x, y in zip(coeff, monomial_list)]) - c.inhomogeneous_term()/gcd_c
         if c.is_equality():
             mineq.append(t)
-        else:
+        elif c.is_strict_inequality():
             minlt.append(t)
+        else:
+            raise NotImplementedError("Non-strict inequality in NNC polyhedron")
     # note that polynomials in mineq and minlt can have leading coefficient != 1
     return mineq, minlt
 
