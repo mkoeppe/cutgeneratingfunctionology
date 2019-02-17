@@ -1503,6 +1503,9 @@ class FastPiecewise (PiecewisePolynomial):
             ...
             ValueError: Value not defined at point 3, outside of domain.
         """
+        return self.which_pair(x0)[1]
+
+    def which_pair(self, x0):
         endpts = self.end_points()
         ith = self._ith_at_end_points
         i = bisect_left(endpts, x0)
@@ -1511,15 +1514,15 @@ class FastPiecewise (PiecewisePolynomial):
         if x0 == endpts[i]:
             if self._values_at_end_points[i] is not None:
                 if self.functions()[ith[i]](x0) == self._values_at_end_points[i]:
-                    return self.functions()[ith[i]]
+                    return self.intervals()[ith[i]], self.functions()[ith[i]]
                 else:
-                    return self.functions()[ith[i]+1]
+                    return self.intervals()[ith[i]+1], self.functions()[ith[i]+1]
             else:
                 raise ValueError("Value not defined at point %s, outside of domain." % x0)
         if i == 0:
             raise ValueError("Value not defined at point %s, outside of domain." % x0)
         if is_pt_in_interval(self._intervals[ith[i]],x0):
-            return self.functions()[ith[i]]
+            return self.intervals()[ith[i]], self.functions()[ith[i]]
         raise ValueError("Value not defined at point %s, outside of domain." % x0)
 
     def __call__(self,x0):
@@ -1590,12 +1593,27 @@ class FastPiecewise (PiecewisePolynomial):
             Traceback (most recent call last):
             ...
             ValueError: Value not defined at point 3, outside of domain.
+
+        Big cell parametrics::
+
+            sage: K.<f> = ParametricRealField([4/5], big_cells=True)
+            sage: h = gmic(f)
+            sage: h(4/5)
+
         """
         # fast path
         if hasattr(self, '_call_cache'):
             result = self._call_cache.get(x0)
             if result is not None:
                 return result
+        elif isinstance(self._domain_ring, ParametricRealField):
+            # Big Cells!
+            with self._domain_ring.off_the_record():
+                interval, function = self.which_pair(x0)
+            if not is_pt_in_interval(interval, x0):
+                raise AssertionError
+            return function(x0)
+
         # Remember that intervals are sorted according to their left endpoints; singleton has priority.
         endpts = self.end_points()
         ith = self._ith_at_end_points
