@@ -184,6 +184,12 @@ class Face:
         xyz = (point[0], point[1], point[0] + point[1])
         return all(element_of_int(xyz[i], self.minimal_triple[i]) for i in range(3))
 
+    def interior_contains(self, point):
+        if not self.is_2D():
+            return False
+        xyz = (point[0], point[1], point[0] + point[1])
+        return all(self.minimal_triple[i][0] < xyz[i] < self.minimal_triple[i][1] for i in range(3))
+
     def plot(self, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color=None, edge_thickness=2, *args, **kwds):
         y = var('y')
         trip = self.minimal_triple
