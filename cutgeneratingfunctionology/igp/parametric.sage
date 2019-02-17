@@ -523,12 +523,10 @@ class ParametricRealField(Field):
     ##     record_to_lt(self, comparison)
     ##     ..... compute new testpoint, error if fail.
 
-    def change_values(self, **values):
-        if not self._mutable_values:
-            raise ValueError("ParametricRealField is set up with mutable_values=False")
-        new_values = copy(self._values)
-        for key, value in values.items():
-            new_values[self._names.index(key)] = value
+    def is_point_consistent(self, new_values):
+        """
+        Check whether ``new_values`` satisfies all recorded assumptions.
+        """
         ### Check that values satisfy all constraints.
         rational_list = [ QQ(m(new_values)) for m in self.monomial_list ]
         num_list = [x.numerator() for x in rational_list]
@@ -536,18 +534,47 @@ class ParametricRealField(Field):
         common_den = lcm(den_list)
         coef = [common_den // den_list[i] * num_list[i] for i in range(len(rational_list))]
         pt = sage.libs.ppl.point(Linear_Expression(coef, 0), common_den)
-        if not self.polyhedron.relation_with(pt).implies(point_is_included):
+        return self.polyhedron.relation_with(pt).implies(point_is_included)
+
+    def change_values(self, **values):
+        if not self._mutable_values:
+            raise ValueError("ParametricRealField is set up with mutable_values=False")
+        new_values = copy(self._values)
+        for key, value in values.items():
+            new_values[self._names.index(key)] = value
+        ### Check that values satisfy all constraints.
+        if not self.is_point_consistent(new_values):
             raise ParametricRealFieldInconsistencyError("New test point {} does not satisfy the recorded constraints".format(new_values))
         self._values = new_values
 
     @contextmanager
     def changed_values(self, **values):
+        """
+        Context manager for temporarily switching to another consistent test point.
+
+        This requires setting up the field with ``mutable_values=True``.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<f> = ParametricRealField([4/5], mutable_values=True)
+            sage: 0 <= f <= 1
+            True
+            sage: with K.changed_values(f=1/5):
+            ....:     assert f <= 1/2
+            Traceback (most recent call last):
+            ...
+            ParametricRealFieldInconsistencyError: Old test point... does not satisfy the recorded constraints
+        """
         save_values = self._values
         try:
             self.change_values(**values)
             yield True
         finally:
-            self._values = save_values  # FIXME: Need to check that it's still consistent.
+            self._values = save_values
+            if not self.is_point_consistent(save_values):
+                raise ParametricRealFieldInconsistencyError("Old test point {} does not satisfy the recorded constraints".format(save_values))
 
     @contextmanager
     def off_the_record(self):
