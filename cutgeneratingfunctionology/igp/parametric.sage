@@ -791,9 +791,8 @@ class ParametricRealField(Field):
             sign = factors.unit().sign()
             lt_factors = []
             eq_factors = []
+            even_factors = []
             for (fac, d) in factors:
-                #if d > 0 and self.is_factor_known(fac, operator.eq):
-                #    return
                 if d % 2 == 1:
                     if self.is_factor_known(fac, operator.lt):
                         sign = -sign
@@ -807,9 +806,16 @@ class ParametricRealField(Field):
                             lt_factors.append(fac)
                         if val > 0:
                             lt_factors.append(-fac)
+                else:
+                    if not self.is_factor_known(fac, operator.lt) and not self.is_factor_known(-fac, operator.lt):
+                        even_factors.append(fac)
             if not self._allow_refinement:
-                if len(lt_factors) + len(eq_factors) > 1:
-                    raise ParametricRealFieldRefinementError("{} <= 0 has several new factors: {}".format(comparison, lt_factors+eq_factors))
+                if len(even_factors) + len(lt_factors) + len(eq_factors) > 1:
+                    raise ParametricRealFieldRefinementError("{} <= 0 has several new factors: {}".format(comparison, even_factor+lt_factors+eq_factors))
+                if even_factors:
+                    if sign < 0:
+                        assert even_factors[0](self._values)==0
+                        self.record_factor(even_factors[0], operator.eq)
                 if lt_factors:
                     self.record_factor(lt_factors[0], op)
                 if eq_factors:
@@ -818,6 +824,9 @@ class ParametricRealField(Field):
                     elif sign < 0:
                         self.record_factor(-eq_factors[0], op)
             else:
+                for new_fac in even_factors:
+                    if new_fac(self._values) == 0:
+                        self.record_factor(new_fac, operator.eq)
                 for new_fac in lt_factors:
                     self.record_factor(new_fac, operator.le)
                 for new_fac in eq_factors:
