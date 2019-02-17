@@ -2388,22 +2388,22 @@ def point_satisfies_bddleq_bddlin(var_value, bddleq, bddlin, strict=True):
             return False
     return True
 
-def is_value_in_interval(v, xxx_todo_changeme):
+def is_value_in_interval(v, lb_ub):
     r"""
     Return whether lb <= v <= ub.
 
     ``None`` is considered as -Infinity and +Infinity for lb and ub, respectively. 
     """
-    (lb, ub) = xxx_todo_changeme
+    (lb, ub) = lb_ub
     if v is None:
         return (lb is None) or (ub is None) or (lb <= ub)
     return ((lb is None) or (lb <= v)) and ((ub is None) or (v <= ub))
 
-def bounds_for_plotting(v, xxx_todo_changeme1, default_var_bound):
+def bounds_for_plotting(v, lb_ub, default_var_bound):
     r"""
     If lower and upper exist, then return them; otherwise return default variable bounds.
     """
-    (lb, ub) = xxx_todo_changeme1
+    (lb, ub) = lb_ub
     if not lb is None:
         l = lb - 0.01
     else:
