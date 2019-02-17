@@ -824,26 +824,33 @@ class ParametricRealField(Field):
             self._eq.add(comparison)
         elif op == operator.lt:
             lt_factors = []
+            even_factors = []
             for (fac, d) in factors:
-                # record the factor if it's raised to an odd power.
-                if fac not in self._sym_field.base_ring():
+                if not self.is_factor_known(fac, operator.lt) and not self.is_factor_known(-fac, operator.lt):
                     if d % 2 == 1:
                         val = fac(self._values)
                         if val < 0:
-                            new_fac = fac
-                        elif val > 0:
-                            new_fac = -fac
-                        else:
-                            # For operator.lt, cannot happen because the strict comparison holds for the test point.
-                            assert op != operator.lt
-                        lt_factors.append(new_fac)
+                            lt_factors.append(fac)
+                        else: #have val > 0 because val==0 cannot happen
+                            lt_factors.append(fac)
+                    else:
+                        even_factors.append(fac)
             if not self._allow_refinement:
-                lt_factors = [ lt_fac for lt_fac in lt_factors if not self.is_factor_known(lt_fac, op) ]
                 if len(lt_factors) > 1:
                     # or just record the product
                     raise ParametricRealFieldRefinementError("{} < 0 has several new factors: {}".format(comparison, lt_factors))
             for new_fac in lt_factors:
                 self.record_factor(new_fac, op)
+            for new_fac in even_factors:
+                if not self.is_factor_known(new_fac, operator.lt) and not self.is_factor_known(-new_fac, operator.lt):
+                    if not self._allow_refinement:
+                        raise ParametricRealFieldRefinementError("{} < 0 has factor {} != 0".format(comparison, new_fac))
+                    else:
+                        val = new_fac(self._values)
+                        if val < 0:
+                            self.record_factor(new_fac, operator.lt)
+                        else: #have val > 0 because val==0 cannot happen
+                            self.record_factor(-new_fac, operator.lt)
             logging.debug("New element in %s._lt: %s" % (repr(self), comparison))
             self._lt.add(comparison)
         elif op == operator.le:
@@ -892,44 +899,6 @@ class ParametricRealField(Field):
                     self.record_factor(new_fac, operator.eq)
             logging.debug("New element in %s._le: %s" % (repr(self), comparison))
             self._le.add(comparison)
-            # lt_factors = []
-            # eq_factors = []
-            # le_factors = []
-            # # For operator.le....
-            # for (fac, d) in factors:
-            #     if fac not in self._sym_field.base_ring():
-            #         if d % 2 == 1:
-            #             # odd power
-            #             val = fac(self._values)
-            #             if val > 0:
-            #                 fac = -fac
-            #             if val == 0:
-            #                 if self.is_factor_known(fac, operator.le):
-            #                     new_fac = fac
-            #                 elif self.is_factor_known(-fac, operator.le):
-            #                     new_fac = -fac
-            #                 else:
-            #                     # arbitrary choice
-            #                     new_fac = fac
-            #             else:
-            #                 if self.is_factor_known(new_fac, operator.lt):
-            #                     pass
-            #                 else:
-            #                     # Even if self.is_factor_known(new_fac, operator.le), need to record 
-            #                     le_factors.append(new_fac)
-            #         else:
-            #             # even power
-                        
-                        
-            # if not self._allow_refinement:
-            #     lt_factors = [ lt_fac for lt_fac in lt_factors if not self.is_factor_known(lt_fac, op) ]
-            #     if len(lt_factors) > 1:
-            #         # or just record the product
-            #         raise ParametricRealFieldRefinementError("{} < 0 has several new factors: {}".format(comparison, lt_factors))
-            # for new_fac in lt_factors:
-            #     self.record_factor(new_fac, op)
-            #     logging.debug("New element in %s._lt: %s" % (repr(self), comparison))
-            #     self._lt.add(comparison)
         else:
             raise NotImplementedError("Not implemented operator: {}".format(op))
 
