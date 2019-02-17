@@ -954,11 +954,30 @@ class ParametricRealField(Field):
             else:
                 for new_fac in even_factors:
                     if new_fac(self._values) == 0:
-                        self.record_factor(new_fac, operator.eq)
+                        eq_factors.append(new_fac)
                 for new_fac in lt_factors:
                     self.record_factor(new_fac, operator.le)
-                for new_fac in eq_factors:
-                    self.record_factor(new_fac, operator.eq)
+                    sign = -sign 
+                if not self._big_cells:
+                    for new_fac in eq_factors:
+                        self.record_factor(new_fac, operator.eq)
+                else: #self._big_cells is True, self._allow_refinement is True.
+                    undecided_eq = []
+                    for new_fac in eq_factors:
+                        if self.is_factor_known(new_fac, operator.le):
+                            sign = -sign
+                        elif not self.is_factor_known(-new_fac, operator.le):
+                            undecided_eq.append(new_fac) #potentially record new_fac >=0, keep the sign
+                    if not undecided_eq:
+                        if sign > 0:
+                            self.record_factor(new_fac, operator.eq) #overwrite last le factor to eq
+                    else:
+                        if sign < 0:
+                            self.record_factor(-undecided_eq[0], operator.le)
+                        else:
+                            self.record_factor(undecided_eq[0], operator.le)
+                        for new_fac in undecided_eq[1::]:
+                            self.record_factor(-new_fac, operator.le)
             logging.debug("New element in %s._le: %s" % (repr(self), comparison))
             self._le.add(comparison)
         else:
