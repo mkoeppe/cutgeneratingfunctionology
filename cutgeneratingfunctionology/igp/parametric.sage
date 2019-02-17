@@ -845,9 +845,9 @@ class ParametricRealField(Field):
                         even_factors.append(fac)
             if not self._allow_refinement:
                 if len(even_factors) + len(lt_factors) + len(eq_factors) > 1:
-                    raise ParametricRealFieldRefinementError("{} <= 0 has several new factors: {}".format(comparison, even_factor+lt_factors+eq_factors))
+                    raise ParametricRealFieldRefinementError("{} <= 0 has several new factors: {}".format(comparison, even_factors+lt_factors+eq_factors))
                 if even_factors:
-                    if sign < 0:
+                    if sign > 0:
                         assert even_factors[0](self._values)==0
                         self.record_factor(even_factors[0], operator.eq)
                 if lt_factors:
