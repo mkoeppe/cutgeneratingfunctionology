@@ -609,7 +609,22 @@ class ParametricRealField(Field):
 
     def assume_comparison(self, lhs, op, rhs = 0):
         r"""
-        EXAMPLES::
+        TESTS for allow_refinement=True:
+
+        Strict inequalities::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)
+            sage: K.<f> = ParametricRealField([4/5])
+            sage: K.freeze()
+            sage: f^2 > 0
+            Traceback (most recent call last):
+            ...
+            ParametricRealFieldFrozenError...
+
+        TESTS for allow_refinement=False:
+
+        Strict inequalities::
 
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)
@@ -624,6 +639,17 @@ class ParametricRealField(Field):
             sage: 1 - f > 0
             True
 
+        Strict inequalities - even-multiplicity factors matter::
+
+            sage: K.<f> = ParametricRealField([4/5], allow_refinement=False)
+            sage: f^2 > 0
+            Traceback (most recent call last):
+            ...
+            ParametricRealFieldRefinementError...
+
+
+        Equalities::
+
             sage: K.<f> = ParametricRealField([4/5], allow_refinement=False)
             sage: f * (f - 4/5) == 0
             Traceback (most recent call last):
@@ -633,6 +659,8 @@ class ParametricRealField(Field):
             True
             sage: f * (f - 4/5) == 0
             True
+
+        Weak inequalities::
 
             sage: K.<f> = ParametricRealField([4/5], allow_refinement=False)
             sage: f * (f - 4/5) >= 0
