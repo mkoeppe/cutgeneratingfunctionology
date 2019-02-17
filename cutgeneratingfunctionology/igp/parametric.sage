@@ -138,20 +138,18 @@ class ParametricRealFieldElement(FieldElement):
             elif true_op == op_GE:
                 left.parent().assume_comparison(left.sym() - right.sym(), operator.ge)
                 return result
-            # TODO: When record_to_le is implemented, can also handle
-            # op_LE, op_GE but still not op_NE.  Could of course record NE by squaring, or by "multiplied with dummy variable equals 1".
-            elif not left.parent()._allow_refinement:
-                raise ParametricRealFieldRefinementError("{} {} {} ({}) cannot be recorded without refinement".format(left.sym(), format_richcmp_op(op), right.sym(), result))
+            elif true_op == op_NE:
+                left.parent().assume_comparison(left.sym() - right.sym(), operator.ne)
             else:
-                # Fall thru to traditional cmp semantics, refining cells.
-                pass
-        # Traditional cmp semantics.  Change this to get big-cell semantics.
-        if (left.val() == right.val()):
-            left.parent().assume_comparison(left.sym(), operator.eq, right.sym())
-        elif (left.val() < right.val()):
-            left.parent().assume_comparison(left.sym(), operator.lt, right.sym())
+                raise ValueError("{} is not a valid richcmp operator".format(op))
         else:
-            left.parent().assume_comparison(right.sym(), operator.lt, left.sym())
+            # Traditional cmp semantics.
+            if (left.val() == right.val()):
+                left.parent().assume_comparison(left.sym(), operator.eq, right.sym())
+            elif (left.val() < right.val()):
+                left.parent().assume_comparison(left.sym(), operator.lt, right.sym())
+            else:
+                left.parent().assume_comparison(right.sym(), operator.lt, left.sym())
         return richcmp(left.val(), right.val(), op)
 
     def __abs__(self):
@@ -700,6 +698,7 @@ class ParametricRealField(Field):
 
             sage: K.<f> = ParametricRealField([4], allow_refinement=False)
             sage: f >= 3
+            True
             sage: f * (f - 1) * (f - 2) * (f - 4) == 0
             True
 
@@ -745,6 +744,18 @@ class ParametricRealField(Field):
             ...
             ParametricRealFieldRefinementError...
 
+        Not-equal::
+
+            sage: K.<x> = ParametricRealField([1], allow_refinement=False)
+            sage: x != 0
+            Traceback (most recent call last):
+            ...
+            ParametricRealFieldRefinementError...
+            sage: x >= 0
+            True
+            sage: x != 0
+            True
+
         """
         if not self._record:
             return
@@ -754,6 +765,10 @@ class ParametricRealField(Field):
         elif op == operator.ge:
             op = operator.le
             lhs, rhs = rhs, lhs
+        elif op == operator.ne:
+            op = operator.lt
+            lhs = - (lhs - rhs) ** 2
+            rhs = 0
         comparison = lhs - rhs
         # FIXME: This may cancel denominators.  If assume_comparison is called from _richcmp_, that's fine because
         # _div_ records denominators.
@@ -784,17 +799,27 @@ class ParametricRealField(Field):
                     # Comparison is already known true, nothing to record.
                         return
         if op == operator.eq:
-            if len(factors) == 1:
-                self.record_factor(fac, operator.eq)
+            eq_factors = []
+            ne_factors = []
+            # Record all factors for which testpoint gives zero.
+            for (fac, d) in factors:
+                if d > 0:
+                    if self.is_factor_known(fac, operator.lt) or self.is_factor_known(-fac, operator.lt):
+                        pass
+                    elif fac(self._values).is_zero():
+                        eq_factors.append(fac)
+                    else:
+                        ne_factors.append(fac)
+            assert len(eq_factors) > 0
+            if self._allow_refinement:
+                # Record all factors for which testpoint gives zero.
+                for fac in eq_factors:
+                    self.record_factor(fac, operator.eq)
             else:
-                if self._allow_refinement:
-                    # Record all factors for which testpoint gives zero.
-                    for (fac, d) in factors:
-                        if d > 0:
-                            if fac(self._values).is_zero():
-                                self.record_factor(fac, operator.eq)
-                else:
-                    raise ParametricRealFieldRefinementError("{} == 0 has several new factors: {}".format(comparison, factors))
+                all_factors = eq_factors + ne_factors
+                if len(all_factors) > 1:
+                    raise ParametricRealFieldRefinementError("{} == 0 has several new factors: {}".format(comparison, all_factors))
+                self.record_factor(all_factors[0], op)
             logging.debug("New element in %s._eq: %s" % (repr(self), comparison))
             self._eq.add(comparison)
         elif op == operator.lt:
