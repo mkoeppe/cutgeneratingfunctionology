@@ -1278,6 +1278,15 @@ class FastPiecewise (PiecewisePolynomial):
             # We do not wish to keep a call cache when the breakpoints are
             # parametric, because that may create `mysterious' proof cells.
             self._call_cache = dict()
+            if end_points:
+                self._domain_ring = end_points[0].parent().fraction_field()
+            else:
+                self._domain_ring = QQ
+        else:
+            for x in end_points:
+                if is_parametric_element(x):
+                    if isinstance(x.parent(), ParametricRealField):
+                        self._domain_ring = x.parent()
 
         is_continuous = True
         if len(end_points) == 1 and end_points[0] is None:
