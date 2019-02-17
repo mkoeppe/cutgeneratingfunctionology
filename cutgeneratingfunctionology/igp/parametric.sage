@@ -125,23 +125,19 @@ class ParametricRealFieldElement(FieldElement):
                 # left.sym() - right.sym() may cancel denominators, but that is
                 # OK because _div_ makes sure that denominators are nonzero.
                 left.parent().assume_comparison(left.sym() - right.sym(), operator.lt)
-                return result
             elif true_op == op_GT:
                 left.parent().assume_comparison(left.sym() - right.sym(), operator.gt)
-                return result
             elif true_op == op_EQ:
                 left.parent().assume_comparison(left.sym() - right.sym(), operator.eq)
-                return result
             elif true_op == op_LE:
                 left.parent().assume_comparison(left.sym() - right.sym(), operator.le)
-                return result
             elif true_op == op_GE:
                 left.parent().assume_comparison(left.sym() - right.sym(), operator.ge)
-                return result
             elif true_op == op_NE:
                 left.parent().assume_comparison(left.sym() - right.sym(), operator.ne)
             else:
                 raise ValueError("{} is not a valid richcmp operator".format(op))
+            return result
         else:
             # Traditional cmp semantics.
             if (left.val() == right.val()):
@@ -150,7 +146,7 @@ class ParametricRealFieldElement(FieldElement):
                 left.parent().assume_comparison(left.sym(), operator.lt, right.sym())
             else:
                 left.parent().assume_comparison(right.sym(), operator.lt, left.sym())
-        return richcmp(left.val(), right.val(), op)
+            return richcmp(left.val(), right.val(), op)
 
     def __abs__(self):
         if self.sign() >= 0:
