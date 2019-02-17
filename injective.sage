@@ -106,7 +106,7 @@ plot_case(phi, [P12, P13, P23]).show(legend_title='Signs {}'.format([print_sign(
 assert P23[0] > I[1]             # outside F
 
 assert P13[1] >= y
-with KK.temporary_assumptions():
+with KK.temporary_assumptions(case_id="MMM a"):
     with KK.unfrozen():
         assert P13[1] <= J[1]
     #phi[1](P13[1])
@@ -116,7 +116,7 @@ with KK.temporary_assumptions():
     assert delta_IJK(phi, P13) >= 0
 
 #assert P12[0] + P12[1] < K[0]  # unknown
-with KK.temporary_assumptions():
+with KK.temporary_assumptions(case_id="MMM b"):
     with KK.unfrozen():
         assert P12[0] + P12[1] >= K[0]
     assert delta_IJK(phi, P12) >= 0
@@ -134,7 +134,7 @@ P23 = (z - y, y, z)
 plot_case(phi, [P12, P13, P23]).show(legend_title='Signs {}'.format([print_sign(s) for s in signs]))
 
 # There are 2 combinatorial types of the 2d diagram.
-with KK.temporary_assumptions():
+with KK.temporary_assumptions(case_id="MWW a"):
     with KK.unfrozen():
         assert P23[0] > x
     assert P13[1] > y
@@ -151,7 +151,7 @@ with KK.temporary_assumptions():
             assert P13 in F #assert P13[1] <= J[1]
         assert delta_IJK(phi, P13) >= 0
 
-with KK.temporary_assumptions():
+with KK.temporary_assumptions(case_id="MWW b"):
     with KK.changed_values(s_2=-1/5):
         plot_case(phi, [P12, P13, P23]).show(legend_title='Signs {}'.format([print_sign(s) for s in signs]))
         with KK.unfrozen():
@@ -181,11 +181,11 @@ P23 = (z - y, y, z)
 assert P12 not in F
 
 with KK.changed_values(s_3=1/3):
-    with KK.temporary_assumptions():
+    with KK.temporary_assumptions(case_id="WMW a"):
         with KK.unfrozen():
             assert P23 in F
         assert delta_IJK(phi, P23) >= 0
-    with KK.temporary_assumptions():
+    with KK.temporary_assumptions(case_id="WMW b"):
         with KK.unfrozen():
             assert P13 in F
         assert delta_IJK(phi, P13) >= 0
