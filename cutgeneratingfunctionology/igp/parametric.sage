@@ -586,7 +586,9 @@ class ParametricRealField(Field):
             self._record = was_recording
 
     @contextmanager
-    def temporary_assumptions(self):
+    def temporary_assumptions(self, case_id=None):
+        if case_id is not None:
+            logging.info("Entering case {}.".format(case_id))
         save_eq = self._eq
         self._eq = copy(save_eq)
         save_lt = self._lt
@@ -617,6 +619,8 @@ class ParametricRealField(Field):
             self.polyhedron = save_polyhedron
             self.monomial_list = save_monomial_list
             self.v_dict = save_v_dict
+            if case_id is not None:
+                logging.info("Finished case {}.".format(case_id))
 
     def get_eq(self):
         return self._eq
