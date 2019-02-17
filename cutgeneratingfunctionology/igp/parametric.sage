@@ -107,9 +107,9 @@ class ParametricRealFieldElement(FieldElement):
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
             sage: K.<f> = ParametricRealField([0], big_cells=True, allow_refinement=False)
             sage: f >= 0
-            Traceback (most recent call last):
-            ...
-            ParametricRealFieldRefinementError: f >= 0 (True) cannot be recorded without refinement
+            True
+            sage: K._le
+            {-f}
 
         """
         if not left.parent() is right.parent():
@@ -617,19 +617,19 @@ class ParametricRealField(Field):
             sage: K.assume_comparison(f.sym(), operator.gt, 1)
             Traceback (most recent call last):
             ...
-            ParametricRealFieldInconsistencyError...
-            sage: K.assume_comparison(f.sym(), operator.gt, 1)
+            ParametricRealFieldInconsistencyError: New constraint...
+            sage: K.assume_comparison(K(0).sym(), operator.gt, 1)
             Traceback (most recent call last):
             ...
-            ParametricRealFieldInconsistencyError...
+            ParametricRealFieldInconsistencyError: New constant constraint...
 
-        We do not record an assumption regarding the nonvanishing of
-        denominators::
+        User code should not rely on whether assumptions regarding
+        the nonvanishing of denominators are recorded::
 
             sage: K.<f> = ParametricRealField([4/5])
             sage: assert f < 1
             sage: K.freeze()
-            sage: K.assume_comparison(1/f.sym(), operator.gt, 1)
+            sage: K.assume_comparison(1/f.sym(), operator.gt, 1)   # not tested
 
         Therefore, also the implicit cancellation in the field of rational
         functions does not change semantics when we transform lhs op rhs
@@ -639,9 +639,8 @@ class ParametricRealField(Field):
             sage: K.freeze()
             sage: K.assume_comparison(1/f.sym(), operator.eq, 1/f.sym())
 
-        User code should not rely on these semantics; assume_comparison
-        should be called only for operands that do not have vanishing
-        denominators.
+        User code should call assume_comparison only for operands that do
+        not have vanishing denominators.
 
             sage: K.<f> = ParametricRealField([4/5])
             sage: assert 0 < f < 1
@@ -699,6 +698,11 @@ class ParametricRealField(Field):
             sage: f * (f - 4/5) == 0
             True
 
+            sage: K.<f> = ParametricRealField([4], allow_refinement=False)
+            sage: f >= 3
+            sage: f * (f - 1) * (f - 2) * (f - 4) == 0
+            True
+
         Weak inequalities::
 
             sage: K.<f> = ParametricRealField([4/5], allow_refinement=False)
@@ -710,6 +714,36 @@ class ParametricRealField(Field):
             True
             sage: f * (f - 4/5) >= 0
             True
+
+            sage: K.<x,y> = ParametricRealField([2, 3], allow_refinement=False)
+            sage: x >= 2
+            True
+            sage: x^2 * (x - 1) * y >= 0
+            True
+
+        Weak inequalities - Even-multiplicity factors do matter::
+
+            sage: K.<o> = ParametricRealField([0], allow_refinement=False)
+            sage: o^2 <= 0
+            True
+            sage: K.freeze()
+            sage: o == 0
+            True
+
+            sage: K.<x> = ParametricRealField([0], allow_refinement=False)
+            sage: x^2 >= 0
+            True
+            sage: K.freeze()
+            sage: x == 0
+            Traceback (most recent call last):
+            ...
+            ParametricRealFieldFrozenError...
+
+            sage: K.<f> = ParametricRealField([2], allow_refinement=False)
+            sage: f^2 * (1 - f) <= 0    # disjunction 0 union [1, oo).
+            Traceback (most recent call last):
+            ...
+            ParametricRealFieldRefinementError...
 
         """
         if not self._record:
@@ -788,7 +822,7 @@ class ParametricRealField(Field):
             logging.debug("New element in %s._lt: %s" % (repr(self), comparison))
             self._lt.add(comparison)
         elif op == operator.le:
-            sign = factors.unit().sign()
+            sign = base_ring(factors.unit()).sign()
             lt_factors = []
             eq_factors = []
             even_factors = []
