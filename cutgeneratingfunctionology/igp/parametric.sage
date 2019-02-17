@@ -549,7 +549,7 @@ class ParametricRealField(Field):
             self.change_values(**values)
             yield True
         finally:
-            self._values = save_values
+            self._values = save_values  # FIXME: Need to check that it's still consistent.
 
     @contextmanager
     def off_the_record(self):
