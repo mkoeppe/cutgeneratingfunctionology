@@ -634,6 +634,12 @@ class ParametricRealField(Field):
 
     def assume_comparison(self, lhs, op, rhs = 0):
         r"""
+        Record the assumption ``lhs op rhs``.
+
+        If this assumption is not satisfied by the current test point,
+        a ``ParametricRealFieldInconsistencyError`` is raised.
+
+
         TESTS for consistency checks::
 
             sage: from cutgeneratingfunctionology.igp import *
@@ -783,6 +789,11 @@ class ParametricRealField(Field):
             sage: x != 0
             True
 
+            sage: K.<x> = ParametricRealField([-1], allow_refinement=False)
+            sage: x <= 0
+            True
+            sage: x != 0
+            True
         """
         if not self._record:
             return
