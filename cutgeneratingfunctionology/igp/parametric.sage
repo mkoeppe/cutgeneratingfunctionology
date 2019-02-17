@@ -882,7 +882,12 @@ class ParametricRealField(Field):
             for new_fac in even_factors:
                 if not self.is_factor_known(new_fac, operator.lt) and not self.is_factor_known(-new_fac, operator.lt):
                     if not self._allow_refinement:
-                        raise ParametricRealFieldRefinementError("{} < 0 has factor {} != 0".format(comparison, new_fac))
+                        if self.is_factor_known(new_fac, operator.le):
+                            self.record_factor(new_fac, operator.lt)
+                        elif self.is_factor_known(-new_fac, operator.le):
+                            self.record_factor(-new_fac, operator.lt)
+                        else:
+                            raise ParametricRealFieldRefinementError("{} < 0 has factor {} != 0".format(comparison, new_fac))
                     else:
                         val = new_fac(self._values)
                         if val < 0:
