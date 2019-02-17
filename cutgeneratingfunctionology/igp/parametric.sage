@@ -690,6 +690,25 @@ class ParametricRealField(Field):
             ...
             ParametricRealFieldFrozenError...
 
+        Weak inequalities::
+
+            sage: K.<f> = ParametricRealField([4/5], big_cells=True)
+            sage: f >= 4/5
+            True
+            sage: K.freeze()
+            sage: f == 4/5
+            Traceback (most recent call last):
+            ...
+            ParametricRealFieldFrozenError...
+
+            sage: K.<f> = ParametricRealField([4/5], big_cells=True)
+            sage: f <= 4/5
+            True
+            sage: K.freeze()
+            sage: f == 4/5
+            Traceback (most recent call last):
+            ...
+            ParametricRealFieldFrozenError...
 
         TESTS for allow_refinement=False:
 
