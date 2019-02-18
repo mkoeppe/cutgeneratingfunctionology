@@ -2,6 +2,8 @@ from cutgeneratingfunctionology.igp import *
 
 ### Library.
 
+MW = [None, 'M', 'W']
+
 def construct_phi(pi, signs):
     phi = [None, None, None]
     for i in range(3):
@@ -30,6 +32,22 @@ def plot_case(phi, pts):
     g += points([ p[0:2] for p in pts], zorder=10)
     return g
 
+def setup_case(*signs):
+    global phi, x, y, z, P12, P13, P23
+
+    ## with K.off_the_record():
+    ##     plot_fun_IJK(pi, phi).show(figsize=[8,2.5])
+
+    phi = construct_phi(pi, signs)
+
+    (x, y, z) = [ phi_i.end_points()[1] for phi_i in phi ]
+
+    P12 = (x, y, x + y)
+    P13 = (x, z - x, z)
+    P23 = (z - y, y, z)
+
+    plot_case(phi, [P12, P13, P23]).show(legend_title='Signs {}'.format([MW[s] for s in signs]))
+
 
 def plot_fun_IJK(pi, phi):
     plots = [ pi[i].plot(color='black', **ticks_keywords(pi[i]))
@@ -55,7 +73,7 @@ s = [s_1, s_2, s_3]
 w_prime = u_prime + v_prime
 pi_w_prime = pi_u_prime + pi_v_prime
 
-## Acute angle, top left.
+## (b) Acute angle, top left.
 
 assert s_2 <= s_1
 assert s_2 <= s_3
@@ -78,9 +96,11 @@ pi = [piecewise_function_from_breakpoints_and_values(I,
 
 d1_plus, d2_plus, d3_plus = d_plus  = [ inv_mq * (s_i - s_m) / (s_p - s_m) for s_i in s ]
 d1_minus, d2_minus, d3_minus = d_minus = [ inv_mq * (s_p - s_i) / (s_p - s_m) for s_i in s ]
-assert all(d_plus[i] > 0 and d_minus[i] > 0 and d_plus[i] + d_minus[i] == inv_mq for i in range(3))
+assert all(d_plus[i] > 0 and d_minus[i] > 0 for i in range(3))
 
 KK.freeze()
+
+assert all(d_plus[i] + d_minus[i] == inv_mq for i in range(3))
 
 d_plusminus = [ None, d_plus, d_minus ]   # index by 1, -1.
 s_plusminus = [ None, s_p, s_m ]
@@ -90,25 +110,13 @@ assert d2_plus <= d1_plus and d2_plus <= d3_plus
 assert d2_minus >= d1_minus and d2_minus >= d3_minus
 
 ####
-signs = (+1, +1, +1)
 
-## with K.off_the_record():
-##     plot_fun_IJK(pi, phi).show(figsize=[8,2.5])
-
-phi = construct_phi(pi, signs)
-
-(x, y, z) = [ phi_i.end_points()[1] for phi_i in phi ]
-
-P12 = (x, y)
-P13 = (x, z - x)
-P23 = (z - y, y)
-
-plot_case(phi, [P12, P13, P23]).show(legend_title='Signs {}'.format([print_sign(s) for s in signs]))
+setup_case(+1, +1, +1)
 
 assert P23[0] >= I[1]             # not in interior of F
 
 assert P13[1] >= y
-with KK.temporary_assumptions(case_id="MMM a"):
+with KK.temporary_assumptions(case_id="b'2 MMM a"):
     with KK.unfrozen():
         assert P13[1] < J[1]
     #phi[1](P13[1])
@@ -118,25 +126,16 @@ with KK.temporary_assumptions(case_id="MMM a"):
     assert delta_IJK(phi, P13) >= 0
 
 #assert P12[0] + P12[1] < K[0]  # unknown
-with KK.temporary_assumptions(case_id="MMM b"):
+with KK.temporary_assumptions(case_id="b'2 MMM b"):
     with KK.unfrozen():
         assert P12[0] + P12[1] > K[0]
     assert delta_IJK(phi, P12) >= 0
 
 ####
-signs = (+1, -1, -1)
-phi = construct_phi(pi, signs)
-
-(x, y, z) = [ phi_i.end_points()[1] for phi_i in phi ]
-
-P12 = (x, y, x + y)
-P13 = (x, z - x, z)
-P23 = (z - y, y, z)
-
-plot_case(phi, [P12, P13, P23]).show(legend_title='Signs {}'.format([print_sign(s) for s in signs]))
+setup_case(+1, -1, -1)
 
 # There are 2 combinatorial types of the 2d diagram.
-with KK.temporary_assumptions(case_id="MWW a"):
+with KK.temporary_assumptions(case_id="b'3 MWW a"):
     with KK.unfrozen():
         assert P23[0] > x
     assert P13[1] > y
@@ -154,8 +153,8 @@ with KK.temporary_assumptions(case_id="MWW a"):
         assert delta_IJK(phi, P13) >= 0
 
 with KK.changed_values(s_2=-1/5):
-    with KK.temporary_assumptions(case_id="MWW b"):
-        plot_case(phi, [P12, P13, P23]).show(legend_title='Signs {}'.format([print_sign(s) for s in signs]))
+    with KK.temporary_assumptions(case_id="b'3 MWW b"):
+        plot_case(phi, [P12, P13, P23]).show(legend_title="Case b'3 MWW b")
         with KK.unfrozen():
             assert P23[0] < x
         assert P13[1] < y
@@ -171,23 +170,16 @@ with KK.changed_values(s_2=-1/5):
         assert delta_IJK(phi, P23) >= 0
 
 ####
-signs = (-1, +1, -1)
-phi = construct_phi(pi, signs)
-
-(x, y, z) = [ phi_i.end_points()[1] for phi_i in phi ]
-
-P12 = (x, y, x + y)
-P13 = (x, z - x, z)
-P23 = (z - y, y, z)
+setup_case(-1, +1, -1)
 
 assert not F.interior_contains(P12)
 
 with KK.changed_values(s_3=1/3):
-    with KK.temporary_assumptions(case_id="WMW a"):
+    with KK.temporary_assumptions(case_id="b'4 WMW a"):
         with KK.unfrozen():
             assert F.interior_contains(P23)
         assert delta_IJK(phi, P23) >= 0
-    with KK.temporary_assumptions(case_id="WMW b"):
+    with KK.temporary_assumptions(case_id="b'4 WMW b"):
         with KK.unfrozen():
             assert F.interior_contains(P13)
         assert delta_IJK(phi, P13) >= 0
