@@ -45,9 +45,11 @@ def delta_IJK(pi, xy):
 
 ### Cases.
 
-KK.<inv_mq, u_prime, v_prime, pi_u_prime, pi_v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 1, 1/4, 1/8, 1/4, 1/16, 1/8, 1/2, -1/4], mutable_values=True, big_cells=True, allow_refinement=True)   # should be false
+KK.<inv_mq, u_prime, v_prime, pi_u_prime, pi_v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 1, 1/4, 1/8, 1/4, 1/16, 1/8, 1/2, -1/4], mutable_values=True, big_cells=True, allow_refinement=False)
 
 assert inv_mq > 0
+
+assert s_p > s_m
 
 s = [s_1, s_2, s_3]
 w_prime = u_prime + v_prime
@@ -103,12 +105,12 @@ P23 = (z - y, y)
 
 plot_case(phi, [P12, P13, P23]).show(legend_title='Signs {}'.format([print_sign(s) for s in signs]))
 
-assert P23[0] > I[1]             # outside F
+assert P23[0] >= I[1]             # not in interior of F
 
 assert P13[1] >= y
 with KK.temporary_assumptions(case_id="MMM a"):
     with KK.unfrozen():
-        assert P13[1] <= J[1]
+        assert P13[1] < J[1]
     #phi[1](P13[1])
     assert phi[0](P13[0]) - phi[0](u_prime) == d1_plus * s_p
     assert phi[2](P13[0] + P13[1]) - phi[2](u_prime + v_prime) == d3_minus * (- s_m)
@@ -118,7 +120,7 @@ with KK.temporary_assumptions(case_id="MMM a"):
 #assert P12[0] + P12[1] < K[0]  # unknown
 with KK.temporary_assumptions(case_id="MMM b"):
     with KK.unfrozen():
-        assert P12[0] + P12[1] >= K[0]
+        assert P12[0] + P12[1] > K[0]
     assert delta_IJK(phi, P12) >= 0
 
 ####
@@ -148,11 +150,11 @@ with KK.temporary_assumptions(case_id="MWW a"):
 
     with KK.temporary_assumptions():
         with KK.unfrozen():
-            assert P13 in F #assert P13[1] <= J[1]
+            assert F.interior_contains(P13) #assert P13[1] <= J[1]
         assert delta_IJK(phi, P13) >= 0
 
-with KK.temporary_assumptions(case_id="MWW b"):
-    with KK.changed_values(s_2=-1/5):
+with KK.changed_values(s_2=-1/5):
+    with KK.temporary_assumptions(case_id="MWW b"):
         plot_case(phi, [P12, P13, P23]).show(legend_title='Signs {}'.format([print_sign(s) for s in signs]))
         with KK.unfrozen():
             assert P23[0] < x
@@ -178,16 +180,16 @@ P12 = (x, y, x + y)
 P13 = (x, z - x, z)
 P23 = (z - y, y, z)
 
-assert P12 not in F
+assert not F.interior_contains(P12)
 
 with KK.changed_values(s_3=1/3):
     with KK.temporary_assumptions(case_id="WMW a"):
         with KK.unfrozen():
-            assert P23 in F
+            assert F.interior_contains(P23)
         assert delta_IJK(phi, P23) >= 0
     with KK.temporary_assumptions(case_id="WMW b"):
         with KK.unfrozen():
-            assert P13 in F
+            assert F.interior_contains(P13)
         assert delta_IJK(phi, P13) >= 0
 
 ####
