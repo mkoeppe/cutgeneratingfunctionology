@@ -1599,6 +1599,12 @@ class FastPiecewise (PiecewisePolynomial):
             sage: K.<f> = ParametricRealField([4/5], big_cells=True)
             sage: h = gmic(f)
             sage: h(4/5)
+            (4/5/f)~
+            sage: with K.frozen():
+            ....:     f == 4/5
+            Traceback (most recent call last):
+            ...
+            ParametricRealFieldFrozenError...
 
         """
         # fast path
