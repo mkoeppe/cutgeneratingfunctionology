@@ -150,7 +150,9 @@ with KK.temporary_assumptions(case_id="b'3 MWW Type I"):
 
     with KK.temporary_assumptions():
         with KK.unfrozen():
-            assert F.interior_contains(P13) #assert P13[1] <= J[1]
+            assert P13[1] < J[1]
+        assert F.interior_contains(P13)
+        assert phi[1].which_function(P13[1])._slope == s_p
         assert delta_IJK(phi, P13) >= 0
 
 with KK.changed_values(s_2=-1/5):
@@ -162,12 +164,15 @@ with KK.changed_values(s_2=-1/5):
         assert P12[2] > z
 
         assert P12 in F
+        assert phi[2].which_function(P12[2])._slope == s_p
         assert delta_IJK(phi, P12) >= 0
 
         assert P13 in F
+        assert phi[1].which_function(P13[1])._slope == s_m
         assert delta_IJK(phi, P13) >= 0
 
         assert P23 in F
+        assert phi[0].which_function(P23[0])._slope == s_p
         assert delta_IJK(phi, P23) >= 0
 
 ####
