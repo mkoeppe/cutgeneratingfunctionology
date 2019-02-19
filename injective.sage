@@ -184,8 +184,10 @@ with KK.changed_values(s_3=1/3):
     with KK.temporary_assumptions(case_id="b'4 WMW P23"):
         with KK.unfrozen():
             assert F.interior_contains(P23)
+        assert phi[0].which_function(P23[0])._slope == s_p
         assert delta_IJK(phi, P23) >= 0
     with KK.temporary_assumptions(case_id="b'4 WMW P13"):
         with KK.unfrozen():
             assert F.interior_contains(P13)
+        assert phi[1].which_function(P13[1])._slope == s_m
         assert delta_IJK(phi, P13) >= 0
