@@ -116,26 +116,27 @@ setup_case(+1, +1, +1)
 assert P23[0] >= I[1]             # not in interior of F
 
 assert P13[1] >= y
-with KK.temporary_assumptions(case_id="b'2 MMM a"):
+with KK.temporary_assumptions(case_id="b'2 MMM P13"):
     with KK.unfrozen():
         assert P13[1] < J[1]
     #phi[1](P13[1])
     assert phi[0](P13[0]) - phi[0](u_prime) == d1_plus * s_p
-    assert phi[2](P13[0] + P13[1]) - phi[2](u_prime + v_prime) == d3_minus * (- s_m)
+    assert phi[2](P13[2]) - phi[2](w_prime) == d3_minus * (- s_m)
 
     assert delta_IJK(phi, P13) >= 0
 
 #assert P12[0] + P12[1] < K[0]  # unknown
-with KK.temporary_assumptions(case_id="b'2 MMM b"):
+with KK.temporary_assumptions(case_id="b'2 MMM P12"):
     with KK.unfrozen():
-        assert P12[0] + P12[1] > K[0]
+        assert P12[2] > K[0]
+    assert phi[2].which_function(P12[2])._slope == s_p
     assert delta_IJK(phi, P12) >= 0
 
 ####
 setup_case(+1, -1, -1)
 
 # There are 2 combinatorial types of the 2d diagram.
-with KK.temporary_assumptions(case_id="b'3 MWW a"):
+with KK.temporary_assumptions(case_id="b'3 MWW Type I"):
     with KK.unfrozen():
         assert P23[0] > x
     assert P13[1] > y
@@ -153,8 +154,8 @@ with KK.temporary_assumptions(case_id="b'3 MWW a"):
         assert delta_IJK(phi, P13) >= 0
 
 with KK.changed_values(s_2=-1/5):
-    with KK.temporary_assumptions(case_id="b'3 MWW b"):
-        plot_case(phi, [P12, P13, P23]).show(legend_title="Case b'3 MWW b")
+    with KK.temporary_assumptions(case_id="b'3 MWW Type II"):
+        plot_case(phi, [P12, P13, P23]).show(legend_title="Case b'3 MWW Type II")
         with KK.unfrozen():
             assert P23[0] < x
         assert P13[1] < y
@@ -175,15 +176,11 @@ setup_case(-1, +1, -1)
 assert not F.interior_contains(P12)
 
 with KK.changed_values(s_3=1/3):
-    with KK.temporary_assumptions(case_id="b'4 WMW a"):
+    with KK.temporary_assumptions(case_id="b'4 WMW P23"):
         with KK.unfrozen():
             assert F.interior_contains(P23)
         assert delta_IJK(phi, P23) >= 0
-    with KK.temporary_assumptions(case_id="b'4 WMW b"):
+    with KK.temporary_assumptions(case_id="b'4 WMW P13"):
         with KK.unfrozen():
             assert F.interior_contains(P13)
         assert delta_IJK(phi, P13) >= 0
-
-####
-signs = (-1, +1, +1)
-#phi
