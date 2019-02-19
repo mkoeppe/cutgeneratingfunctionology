@@ -44,10 +44,13 @@ class FastLinearFunction :
     def __repr__(self):
         # Following the Sage convention of returning a pretty-printed
         # expression in __repr__ (rather than __str__).
-        try:
-            return '<FastLinearFunction ' + sage.misc.misc.repr_lincomb([('x', self._slope), (1, self._intercept)], strip_one = True) + '>'
-        except TypeError:
-            return '<FastLinearFunction (%s)*x + (%s)>' % (self._slope, self._intercept)
+        if not(is_parametric_element(self._slope) or is_parametric_element(self._intercept)):
+            # repr_lincomb tests for 0, don't do this for parametric elements.
+            try:
+                return '<FastLinearFunction ' + sage.misc.misc.repr_lincomb([('x', self._slope), (1, self._intercept)], strip_one = True) + '>'
+            except TypeError:
+                pass
+        return '<FastLinearFunction (%s)*x + (%s)>' % (self._slope, self._intercept)
 
     def _sage_input_(self, sib, coerced):
         r"""
