@@ -63,6 +63,85 @@ def delta_IJK(pi, xy):
 
 ### Cases.
 
+########################################
+## (a') Right angle, bottom left.
+########################################
+
+##def setup_a_prime():
+
+KK.<inv_mq, u_prime, v_prime, pi_u_prime, pi_v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 0, 1/4, 1/8, 1/3, 1/8, -1/8, 1/2, -1/4], mutable_values=True, big_cells=True, allow_refinement=False)
+
+assert inv_mq > 0
+
+assert s_p > s_m
+
+s = [s_1, s_2, s_3]
+w_prime = u_prime + v_prime
+pi_w_prime = pi_u_prime + pi_v_prime
+
+assert s_1 >= s_3
+assert s_2 >= s_3
+
+I = [u_prime, u_prime + inv_mq]
+J = [v_prime, v_prime + inv_mq];
+K = [w_prime + inv_mq, w_prime + 2 * inv_mq]; #K2 = [w_prime] + K
+IJK = (I, J, K)
+F = Face([I, J, K])
+
+pi = [piecewise_function_from_breakpoints_and_values(I,
+                                                     [ pi_u_prime + (x - u_prime) * s[0] for x in I ],
+                                                     field=ParametricRealField),
+      piecewise_function_from_breakpoints_and_values(J,
+                                                     [ pi_v_prime + (y - v_prime) * s[1] for y in J ],
+                                                     field=ParametricRealField),
+      piecewise_function_from_breakpoints_and_values(K,
+                                                     [ pi_w_prime + (z - w_prime) * s[2] for z in K ],
+                                                     field=ParametricRealField, merge=False)]
+
+d1_plus, d2_plus, d3_plus = d_plus  = [ inv_mq * (s_i - s_m) / (s_p - s_m) for s_i in s ]
+d1_minus, d2_minus, d3_minus = d_minus = [ inv_mq * (s_p - s_i) / (s_p - s_m) for s_i in s ]
+assert all(d_plus[i] > 0 and d_minus[i] > 0 for i in range(3))
+
+KK.freeze()
+
+assert all(d_plus[i] + d_minus[i] == inv_mq for i in range(3))
+
+d_plusminus = [ None, d_plus, d_minus ]   # index by 1, -1.
+s_plusminus = [ None, s_p, s_m ]
+
+####
+setup_case(+1, +1, +1)
+
+assert P13 in F
+assert P23 in F
+
+with KK.temporary_assumptions(case_id="a' MMM Type I"):
+    with KK.unfrozen():
+        assert P12[2] >= z
+    assert P12 in F
+    assert delta_IJK(phi, P12) >= 0
+    assert delta_IJK(phi, P13) >= 0
+    assert delta_IJK(phi, P23) >= 0
+
+with KK.changed_values(s_3=1/10):
+    with KK.temporary_assumptions(case_id="a' MMM Type II"):
+        plot_case(phi, [P12, P13, P23]).show(legend_title="Case a' MMM Type II")
+        with KK.unfrozen():
+            assert K[0] < P12[2] < z
+        assert P12 in F
+        assert delta_IJK(phi, P12) >= 0
+        assert delta_IJK(phi, P13) >= 0
+        assert delta_IJK(phi, P23) >= 0
+
+setup_case(+1, -1, -1)
+#.....
+
+
+
+########################################
+## (b') Acute angle, top left.
+########################################
+
 KK.<inv_mq, u_prime, v_prime, pi_u_prime, pi_v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 1, 1/4, 1/8, 1/4, 1/16, 1/8, 1/2, -1/4], mutable_values=True, big_cells=True, allow_refinement=False)
 
 assert inv_mq > 0
@@ -73,13 +152,11 @@ s = [s_1, s_2, s_3]
 w_prime = u_prime + v_prime
 pi_w_prime = pi_u_prime + pi_v_prime
 
-## (b) Acute angle, top left.
-
 assert s_2 <= s_1
 assert s_2 <= s_3
 
 I = [u_prime, u_prime + inv_mq]
-J = [v_prime - 2*inv_mq, v_prime - inv_mq]; JJ = [v_prime - 2*inv_mq, v_prime - inv_mq, v_prime]
+J = [v_prime - 2*inv_mq, v_prime - inv_mq]; J2 = [v_prime - 2*inv_mq, v_prime - inv_mq, v_prime]
 K = [w_prime - inv_mq, w_prime]
 IJK = (I, J, K)
 F = Face([I, J, K])
@@ -87,8 +164,8 @@ F = Face([I, J, K])
 pi = [piecewise_function_from_breakpoints_and_values(I,
                                                      [ pi_u_prime + (x - u_prime) * s[0] for x in I ],
                                                      field=ParametricRealField),
-      piecewise_function_from_breakpoints_and_values(JJ,
-                                                     [ pi_v_prime + (y - v_prime) * s[1] for y in JJ ],
+      piecewise_function_from_breakpoints_and_values(J2,
+                                                     [ pi_v_prime + (y - v_prime) * s[1] for y in J2 ],
                                                      field=ParametricRealField, merge=False),
       piecewise_function_from_breakpoints_and_values(K,
                                                      [ pi_w_prime + (z - w_prime) * s[2] for z in K ],
