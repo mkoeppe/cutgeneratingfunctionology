@@ -73,55 +73,63 @@ def delta_IJK(pi, xy):
 ## (a') Right angle, bottom left.
 ########################################
 
-##def setup_a_prime():
+def setup_pi_case_aprime():
+    global KK, inv_mq, u_prime, v_prime, w_prime, pi_u_prime, pi_v_prime, pi_w_prime, s_1, s_2, s_3, s_p, s_m
+    KK.<inv_mq, u_prime, v_prime, pi_u_prime, pi_v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 0, 1/4, 1/8, 1/3, 1/8, -1/8, 1/2, -1/4], mutable_values=True, big_cells=True, allow_refinement=False)
 
-KK.<inv_mq, u_prime, v_prime, pi_u_prime, pi_v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 0, 1/4, 1/8, 1/3, 1/8, -1/8, 1/2, -1/4], mutable_values=True, big_cells=True, allow_refinement=False)
+    assert inv_mq > 0
 
-assert inv_mq > 0
+    assert s_p > s_m
 
-assert s_p > s_m
+    global s
+    s = [s_1, s_2, s_3]
+    w_prime = u_prime + v_prime
+    pi_w_prime = pi_u_prime + pi_v_prime
 
-s = [s_1, s_2, s_3]
-w_prime = u_prime + v_prime
-pi_w_prime = pi_u_prime + pi_v_prime
+    assert s_1 >= s_3
+    assert s_2 >= s_3
 
-assert s_1 >= s_3
-assert s_2 >= s_3
+    global I, J, K, IJK, F, pi
+    I = [u_prime, u_prime + inv_mq]
+    J = [v_prime, v_prime + inv_mq];
+    K = [w_prime + inv_mq, w_prime + 2 * inv_mq]; #K2 = [w_prime] + K
+    IJK = (I, J, K)
+    F = Face([I, J, K])
 
-I = [u_prime, u_prime + inv_mq]
-J = [v_prime, v_prime + inv_mq];
-K = [w_prime + inv_mq, w_prime + 2 * inv_mq]; #K2 = [w_prime] + K
-IJK = (I, J, K)
-F = Face([I, J, K])
+    global pi
+    pi = [piecewise_function_from_breakpoints_and_values(I,
+                                                         [ pi_u_prime + (x - u_prime) * s[0] for x in I ],
+                                                         field=ParametricRealField),
+          piecewise_function_from_breakpoints_and_values(J,
+                                                         [ pi_v_prime + (y - v_prime) * s[1] for y in J ],
+                                                         field=ParametricRealField),
+          piecewise_function_from_breakpoints_and_values(K,
+                                                         [ pi_w_prime + (z - w_prime) * s[2] for z in K ],
+                                                         field=ParametricRealField, merge=False)]
 
-pi = [piecewise_function_from_breakpoints_and_values(I,
-                                                     [ pi_u_prime + (x - u_prime) * s[0] for x in I ],
-                                                     field=ParametricRealField),
-      piecewise_function_from_breakpoints_and_values(J,
-                                                     [ pi_v_prime + (y - v_prime) * s[1] for y in J ],
-                                                     field=ParametricRealField),
-      piecewise_function_from_breakpoints_and_values(K,
-                                                     [ pi_w_prime + (z - w_prime) * s[2] for z in K ],
-                                                     field=ParametricRealField, merge=False)]
+    global d1_plus, d2_plus, d3_plus, d_plus, d1_minus, d2_minus, d3_minus, d_minus, d_plusminus, s_plusminus
+    d1_plus, d2_plus, d3_plus = d_plus  = [ inv_mq * (s_i - s_m) / (s_p - s_m) for s_i in s ]
+    d1_minus, d2_minus, d3_minus = d_minus = [ inv_mq * (s_p - s_i) / (s_p - s_m) for s_i in s ]
+    assert all(d_plus[i] > 0 and d_minus[i] > 0 for i in range(3))
 
-d1_plus, d2_plus, d3_plus = d_plus  = [ inv_mq * (s_i - s_m) / (s_p - s_m) for s_i in s ]
-d1_minus, d2_minus, d3_minus = d_minus = [ inv_mq * (s_p - s_i) / (s_p - s_m) for s_i in s ]
-assert all(d_plus[i] > 0 and d_minus[i] > 0 for i in range(3))
+    KK.freeze()
 
-KK.freeze()
+    assert all(d_plus[i] + d_minus[i] == inv_mq for i in range(3))
 
-assert all(d_plus[i] + d_minus[i] == inv_mq for i in range(3))
-
-d_plusminus = [ None, d_plus, d_minus ]   # index by 1, -1.
-s_plusminus = [ None, s_p, s_m ]
+    d_plusminus = [ None, d_plus, d_minus ]   # index by 1, -1.
+    s_plusminus = [ None, s_p, s_m ]
 
 ####
-setup_case(+1, +1, +1)
 
-assert P13 in F
-assert P23 in F
+def setup_case_aprime_MMM():
+    setup_pi_case_aprime()
+    setup_case(+1, +1, +1)
+    assert P13 in F
+    assert P23 in F
 
-with KK.temporary_assumptions(case_id="a' MMM Type I"):
+def setup_case_aprime_MMM_type_I():
+    logging.info("a' MMM Type I")
+    setup_case_aprime_MMM()
     with KK.unfrozen():
         assert P12[2] >= z
     assert P12 in F
@@ -129,18 +137,43 @@ with KK.temporary_assumptions(case_id="a' MMM Type I"):
     assert delta_IJK(phi, P13) >= 0
     assert delta_IJK(phi, P23) >= 0
 
-with KK.changed_values(s_3=1/10):
-    with KK.temporary_assumptions(case_id="a' MMM Type II"):
-        plot_case(phi, [P12, P13, P23]).show(legend_title="Case a' MMM Type II")
-        with KK.unfrozen():
-            assert K[0] < P12[2] < z
-        assert P12 in F
-        assert delta_IJK(phi, P12) >= 0
-        assert delta_IJK(phi, P13) >= 0
-        assert delta_IJK(phi, P23) >= 0
+setup_case_aprime_MMM_type_I()
 
-setup_case(+1, -1, -1)
-#.....
+def setup_case_aprime_MMM_type_II(show_plots=False):
+    logging.info("a' MMM Type II")
+    setup_case_aprime_MMM()
+    KK.change_values(s_3=1/10)
+    if show_plots:
+        plot_case(phi, [P12, P13, P23]).show(legend_title="Case a' MMM Type II")
+    with KK.unfrozen():
+        assert K[0] < P12[2] < z
+    assert P12 in F
+    assert delta_IJK(phi, P12) >= 0
+    assert delta_IJK(phi, P13) >= 0
+    assert delta_IJK(phi, P23) >= 0
+
+setup_case_aprime_MMM_type_II()
+
+def setup_case_aprime_MWW(show_plots=False):
+    logging.info("a' MWW")
+    setup_pi_case_aprime()
+    setup_case(+1, -1, -1)
+    KK.change_values(s_3=1/10)
+
+    assert P23[0] >= I[1]
+
+    with KK.temporary_assumptions(case_id="a' MWW P12"):
+        with KK.unfrozen():
+            assert P12[2] >= K[0]
+        assert delta_IJK(phi, P12) >= 0
+
+    with KK.temporary_assumptions(case_id="a' MWW P13"):
+        with KK.unfrozen():
+            assert P13[1] <= J[1]
+        assert delta_IJK(phi, P13) >= 0
+
+setup_case_aprime_MWW()
+
 
 
 
