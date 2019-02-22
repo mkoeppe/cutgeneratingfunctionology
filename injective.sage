@@ -247,7 +247,7 @@ def setup_case_bprime3_MWW_type_I():
             assert P13[1] < J[1]
         assert F.interior_contains(P13)
         assert phi[1].which_function(P13[1])._slope == s_p
-        assert delta_IJK(phi, P13) >= 0
+        assert delta_IJK(phi, P13) == inv_mq * (s_p - s_2) >= 0
 
 setup_case_bprime3_MWW_type_I()
 
