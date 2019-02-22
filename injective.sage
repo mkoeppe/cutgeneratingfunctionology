@@ -142,52 +142,60 @@ setup_case(+1, -1, -1)
 ## (b') Acute angle, top left.
 ########################################
 
-KK.<inv_mq, u_prime, v_prime, pi_u_prime, pi_v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 1, 1/4, 1/8, 1/4, 1/16, 1/8, 1/2, -1/4], mutable_values=True, big_cells=True, allow_refinement=False)
+def setup_pi_case_b():
+    global KK, inv_mq, u_prime, v_prime, w_prime, pi_u_prime, pi_v_prime, pi_w_prime, s_1, s_2, s_3, s_p, s_m
+    KK.<inv_mq, u_prime, v_prime, pi_u_prime, pi_v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 1, 1/4, 1/8, 1/4, 1/16, 1/8, 1/2, -1/4], mutable_values=True, big_cells=True, allow_refinement=False)
 
-assert inv_mq > 0
+    assert inv_mq > 0
 
-assert s_p > s_m
+    assert s_p > s_m
 
-s = [s_1, s_2, s_3]
-w_prime = u_prime + v_prime
-pi_w_prime = pi_u_prime + pi_v_prime
+    global s
+    s = [s_1, s_2, s_3]
 
-assert s_2 <= s_1
-assert s_2 <= s_3
+    w_prime = u_prime + v_prime
+    pi_w_prime = pi_u_prime + pi_v_prime
 
-I = [u_prime, u_prime + inv_mq]
-J = [v_prime - 2*inv_mq, v_prime - inv_mq]; J2 = [v_prime - 2*inv_mq, v_prime - inv_mq, v_prime]
-K = [w_prime - inv_mq, w_prime]
-IJK = (I, J, K)
-F = Face([I, J, K])
+    assert s_2 <= s_1
+    assert s_2 <= s_3
 
-pi = [piecewise_function_from_breakpoints_and_values(I,
-                                                     [ pi_u_prime + (x - u_prime) * s[0] for x in I ],
-                                                     field=ParametricRealField),
-      piecewise_function_from_breakpoints_and_values(J2,
-                                                     [ pi_v_prime + (y - v_prime) * s[1] for y in J2 ],
-                                                     field=ParametricRealField, merge=False),
-      piecewise_function_from_breakpoints_and_values(K,
-                                                     [ pi_w_prime + (z - w_prime) * s[2] for z in K ],
-                                                     field=ParametricRealField)]
+    global I, J, K, IJK, F, pi
+    I = [u_prime, u_prime + inv_mq]
+    J = [v_prime - 2*inv_mq, v_prime - inv_mq]; J2 = [v_prime - 2*inv_mq, v_prime - inv_mq, v_prime]
+    K = [w_prime - inv_mq, w_prime]
+    IJK = (I, J, K)
+    F = Face([I, J, K])
 
-d1_plus, d2_plus, d3_plus = d_plus  = [ inv_mq * (s_i - s_m) / (s_p - s_m) for s_i in s ]
-d1_minus, d2_minus, d3_minus = d_minus = [ inv_mq * (s_p - s_i) / (s_p - s_m) for s_i in s ]
-assert all(d_plus[i] > 0 and d_minus[i] > 0 for i in range(3))
+    global pi
+    pi = [piecewise_function_from_breakpoints_and_values(I,
+                                                         [ pi_u_prime + (x - u_prime) * s[0] for x in I ],
+                                                         field=ParametricRealField),
+          piecewise_function_from_breakpoints_and_values(J2,
+                                                         [ pi_v_prime + (y - v_prime) * s[1] for y in J2 ],
+                                                         field=ParametricRealField, merge=False),
+          piecewise_function_from_breakpoints_and_values(K,
+                                                         [ pi_w_prime + (z - w_prime) * s[2] for z in K ],
+                                                         field=ParametricRealField)]
 
-KK.freeze()
+    global d1_plus, d2_plus, d3_plus, d_plus, d1_minus, d2_minus, d3_minus, d_minus, d_plusminus, s_plusminus
+    d1_plus, d2_plus, d3_plus = d_plus  = [ inv_mq * (s_i - s_m) / (s_p - s_m) for s_i in s ]
+    d1_minus, d2_minus, d3_minus = d_minus = [ inv_mq * (s_p - s_i) / (s_p - s_m) for s_i in s ]
+    assert all(d_plus[i] > 0 and d_minus[i] > 0 for i in range(3))
 
-assert all(d_plus[i] + d_minus[i] == inv_mq for i in range(3))
+    KK.freeze()
 
-d_plusminus = [ None, d_plus, d_minus ]   # index by 1, -1.
-s_plusminus = [ None, s_p, s_m ]
+    assert all(d_plus[i] + d_minus[i] == inv_mq for i in range(3))
 
-# Trivial consequences of the slope inequalities
-assert d2_plus <= d1_plus and d2_plus <= d3_plus
-assert d2_minus >= d1_minus and d2_minus >= d3_minus
+    d_plusminus = [ None, d_plus, d_minus ]   # index by 1, -1.
+    s_plusminus = [ None, s_p, s_m ]
+
+    # Trivial consequences of the slope inequalities
+    assert d2_plus <= d1_plus and d2_plus <= d3_plus
+    assert d2_minus >= d1_minus and d2_minus >= d3_minus
 
 ####
 
+setup_pi_case_b()
 setup_case(+1, +1, +1)
 
 assert P23[0] >= I[1]             # not in interior of F
@@ -212,17 +220,22 @@ with KK.temporary_assumptions(case_id="b'2 MMM P12"):
 ####
 setup_case(+1, -1, -1)
 
-# There are 2 combinatorial types of the 2d diagram.
-with KK.temporary_assumptions(case_id="b'3 MWW Type I"):
+def setup_case_bprime3_MWW():
+    setup_pi_case_b()
+    setup_case(+1, -1, -1)
+    assert P12 in F
+    assert P23 in F
+
+def setup_case_bprime3_MWW_type_I():
+    logging.info("b'3 MWW Type I")
+    setup_case_bprime3_MWW()
     with KK.unfrozen():
         assert P23[0] > x
     assert P13[1] > y
     assert P12[2] < z
 
-    assert P12 in F
     assert delta_IJK(phi, P12) >= 0
 
-    assert P23 in F
     assert delta_IJK(phi, P23) >= 0
 
     with KK.temporary_assumptions():
@@ -232,27 +245,33 @@ with KK.temporary_assumptions(case_id="b'3 MWW Type I"):
         assert phi[1].which_function(P13[1])._slope == s_p
         assert delta_IJK(phi, P13) >= 0
 
-with KK.changed_values(s_2=-1/5):
-    with KK.temporary_assumptions(case_id="b'3 MWW Type II"):
+setup_case_bprime3_MWW_type_I()
+
+def setup_case_bprime3_MWW_type_II(show_plots=False):
+    logging.info("Case b'3 MWW Type II")
+    setup_case_bprime3_MWW()
+    KK.change_values(s_2=-1/5)
+    if show_plots:
         plot_case(phi, [P12, P13, P23]).show(legend_title="Case b'3 MWW Type II")
-        with KK.unfrozen():
-            assert P23[0] < x
-        assert P13[1] < y
-        assert P12[2] > z
+    with KK.unfrozen():
+        assert P23[0] < x
+    assert P13[1] < y
+    assert P12[2] > z
 
-        assert P12 in F
-        assert phi[2].which_function(P12[2])._slope == s_p
-        assert delta_IJK(phi, P12) >= 0
+    assert phi[2].which_function(P12[2])._slope == s_p
+    assert delta_IJK(phi, P12) >= 0
 
-        assert P13 in F
-        assert phi[1].which_function(P13[1])._slope == s_m
-        assert delta_IJK(phi, P13) >= 0
+    assert P13 in F
+    assert phi[1].which_function(P13[1])._slope == s_m
+    assert delta_IJK(phi, P13) >= 0
 
-        assert P23 in F
-        assert phi[0].which_function(P23[0])._slope == s_p
-        assert delta_IJK(phi, P23) >= 0
+    assert phi[0].which_function(P23[0])._slope == s_p
+    assert delta_IJK(phi, P23) >= 0
+
+setup_case_bprime3_MWW_type_II()
 
 ####
+setup_pi_case_b()
 setup_case(-1, +1, -1)
 
 assert not F.interior_contains(P12)
