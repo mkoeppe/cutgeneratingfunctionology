@@ -5,6 +5,8 @@ from cutgeneratingfunctionology.igp import *
 MW = [None, 'M', 'W']
 
 def construct_phi(pi, signs):
+    global IJK_plusminus
+    IJK_plusminus = [None, [None, None, None], [None, None, None]]
     phi = [None, None, None]
     for i in range(3):
         end_points = pi[i].end_points()
@@ -14,10 +16,12 @@ def construct_phi(pi, signs):
         v = [fx]
         for j in range(1, len(end_points)):
             for k in [signs[i], -signs[i]]:
+                old_x = x
                 x  += d_plusminus[k][i]
                 fx += d_plusminus[k][i] * s_plusminus[k]
                 b.append(x)
                 v.append(fx)
+                IJK_plusminus[k][i] = [min(old_x, x), max(old_x, x)]
             assert x == end_points[j]
             assert fx == pi[i](x)
         phi[i] = piecewise_function_from_breakpoints_and_values(b, v,
@@ -161,7 +165,7 @@ def setup_pi_case_b():
 
     global I, J, K, IJK, F, pi
     I = [u_prime, u_prime + inv_mq]
-    J = [v_prime - 2*inv_mq, v_prime - inv_mq]; J2 = [v_prime - 2*inv_mq, v_prime - inv_mq, v_prime]
+    J = [v_prime - 2*inv_mq, v_prime - inv_mq]; #J2 = [v_prime - 2*inv_mq, v_prime - inv_mq, v_prime]
     K = [w_prime - inv_mq, w_prime]
     IJK = (I, J, K)
     F = Face([I, J, K])
@@ -170,8 +174,8 @@ def setup_pi_case_b():
     pi = [piecewise_function_from_breakpoints_and_values(I,
                                                          [ pi_u_prime + (x - u_prime) * s[0] for x in I ],
                                                          field=ParametricRealField),
-          piecewise_function_from_breakpoints_and_values(J2,
-                                                         [ pi_v_prime + (y - v_prime) * s[1] for y in J2 ],
+          piecewise_function_from_breakpoints_and_values(J,
+                                                         [ pi_v_prime + (y - v_prime) * s[1] for y in J ],
                                                          field=ParametricRealField, merge=False),
           piecewise_function_from_breakpoints_and_values(K,
                                                          [ pi_w_prime + (z - w_prime) * s[2] for z in K ],
@@ -254,18 +258,22 @@ def setup_case_bprime3_MWW_type_II(show_plots=False):
     if show_plots:
         plot_case(phi, [P12, P13, P23]).show(legend_title="Case b'3 MWW Type II")
     with KK.unfrozen():
-        assert P23[0] < x
-    assert P13[1] < y
-    assert P12[2] > z
+        assert P23[0] <= x
+    assert z - y == P23[0] <= x
+    assert P13[1] <= y
+    assert P12[2] >= z
 
-    assert phi[2].which_function(P12[2])._slope == s_p
+    #assert phi[2].which_function(P12[2])._slope == s_p      # does not work at breakpoints!
+    assert is_pt_in_interval(IJK_plusminus[+1][2], P12[2])
     assert delta_IJK(phi, P12) >= 0
 
     assert P13 in F
-    assert phi[1].which_function(P13[1])._slope == s_m
+    #assert phi[1].which_function(P13[1])._slope == s_m
+    assert is_pt_in_interval(IJK_plusminus[-1][1], P13[1])
     assert delta_IJK(phi, P13) >= 0
 
-    assert phi[0].which_function(P23[0])._slope == s_p
+    #assert phi[0].which_function(P23[0])._slope == s_p
+    assert is_pt_in_interval(IJK_plusminus[+1][0], P23[0])
     assert delta_IJK(phi, P23) >= 0
 
 setup_case_bprime3_MWW_type_II()
