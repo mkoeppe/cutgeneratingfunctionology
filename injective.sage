@@ -63,6 +63,8 @@ def plot_fun_IJK(pi, phi):
 def delta_IJK(pi, xy):
     x = xy[0]
     y = xy[1]
+    if len(xy) == 3:
+        assert x + y == xy[2]
     return pi[0](x) + pi[1](y) - pi[2](x+y)
 
 ### Cases.
