@@ -148,7 +148,7 @@ setup_case(+1, -1, -1)
 ## (b') Acute angle, top left.
 ########################################
 
-def setup_pi_case_b():
+def setup_pi_case_bprime():
     global KK, inv_mq, u_prime, v_prime, w_prime, pi_u_prime, pi_v_prime, pi_w_prime, s_1, s_2, s_3, s_p, s_m
     KK.<inv_mq, u_prime, v_prime, pi_u_prime, pi_v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 1, 1/4, 1/8, 1/4, 1/16, 1/8, 1/2, -1/4], mutable_values=True, big_cells=True, allow_refinement=False)
 
@@ -201,7 +201,7 @@ def setup_pi_case_b():
 
 ####
 
-setup_pi_case_b()
+setup_pi_case_bprime()
 setup_case(+1, +1, +1)
 
 assert P23[0] >= I[1]             # not in interior of F
@@ -227,7 +227,7 @@ with KK.temporary_assumptions(case_id="b'2 MMM P12"):
 setup_case(+1, -1, -1)
 
 def setup_case_bprime3_MWW():
-    setup_pi_case_b()
+    setup_pi_case_bprime()
     setup_case(+1, -1, -1)
     assert P12 in F
     assert P23 in F
@@ -281,7 +281,7 @@ def setup_case_bprime3_MWW_type_II(show_plots=False):
 setup_case_bprime3_MWW_type_II()
 
 ####
-setup_pi_case_b()
+setup_pi_case_bprime()
 setup_case(-1, +1, -1)
 
 assert not F.interior_contains(P12)
