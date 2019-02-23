@@ -311,6 +311,9 @@ class ParametricRealFieldRefinementError(ValueError):
 
 from contextlib import contextmanager
 
+class FactorUndetermined(Exception):
+    pass
+
 class ParametricRealField(Field):
     r"""
     A Metaprogramming trick for parameter space analysis.
@@ -632,7 +635,33 @@ class ParametricRealField(Field):
     def get_le_factor(self):
         return self._le_factor
 
-    def assume_comparison(self, lhs, op, rhs = 0):
+    def _eval_factor(self, fac):
+        """
+        Evaluate ``fac`` on the test point.
+
+        If there is no test point or the test point has some ``None`` coordinates
+        that are needed for the evaluation, raise ``FactorUndetermined``.
+        """
+        base_ring = self._sym_field.base_ring()
+        if fac in base_ring:
+            return base_ring(fac)
+        if self._values is not None:
+            try:
+                return fac(self._values)
+            except TypeError:             # 'None' components
+                pass
+        raise FactorUndetermined()
+
+    def _factor_sign(self, fac):
+        """
+        Determine the sign of ``fac`` evaluated on the test point.
+
+        If there is no test point or the test point has some ``None`` coordinates
+        that are needed for the evaluation, raise ``FactorUndetermined``.
+        """
+        return sign(self._eval_factor(fac))
+
+    def assume_comparison(self, lhs, op, rhs=0):
         r"""
         Record the assumption ``lhs op rhs``.
 
