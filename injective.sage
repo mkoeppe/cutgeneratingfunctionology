@@ -146,7 +146,7 @@ def setup_case_aprime_MMM_type_II(show_plots=False):
     if show_plots:
         plot_case(phi, [P12, P13, P23]).show(legend_title="Case a' MMM Type II")
     with KK.unfrozen():
-        assert K[0] < P12[2] < z
+        assert K[0] < P12[2] < z     # FIXME: first inequality ok to assert?
     assert P12 in F
     assert delta_IJK(phi, P12) >= 0
     assert delta_IJK(phi, P13) >= 0
@@ -164,16 +164,31 @@ def setup_case_aprime_MWW(show_plots=False):
 
     with KK.temporary_assumptions(case_id="a' MWW P12"):
         with KK.unfrozen():
-            assert P12[2] >= K[0]
+            assert P12[2] > K[0]
         assert delta_IJK(phi, P12) >= 0
 
     with KK.temporary_assumptions(case_id="a' MWW P13"):
         with KK.unfrozen():
-            assert P13[1] <= J[1]
+            assert P13[1] < J[1]
         assert delta_IJK(phi, P13) >= 0
 
 setup_case_aprime_MWW()
 
+def setup_case_aprime_MMW(show_plots=False):
+
+    setup_pi_case_aprime()
+    setup_case(+1, +1, -1)
+    KK.change_values(s_3=1/10)
+    with KK.temporary_assumptions(case_id="a' MMW Type I"):
+        with KK.unfrozen():
+            assert P12[2] < z
+        with KK.temporary_assumptions():
+            with KK.unfrozen():
+                assert P12[2] > K[0]
+            assert delta_IJK(phi, P12) >= 0
+
+    assert P13[1] >= J[1]
+    assert P23[0] >= I[1]
 
 
 
