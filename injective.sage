@@ -36,8 +36,10 @@ def plot_case(phi, pts):
     g += points([ p[0:2] for p in pts], zorder=10)
     return g
 
-def setup_case(*signs):
+def setup_case(sign1, sign2, sign3, show_plots=False):
     global phi, x, y, z, P12, P13, P23
+
+    signs = (sign1, sign2, sign3)
 
     ## with K.off_the_record():
     ##     plot_fun_IJK(pi, phi).show(figsize=[8,2.5])
@@ -50,7 +52,8 @@ def setup_case(*signs):
     P13 = (x, z - x, z)
     P23 = (z - y, y, z)
 
-    plot_case(phi, [P12, P13, P23]).show(legend_title='Signs {}'.format([MW[s] for s in signs]))
+    if show_plots:
+        plot_case(phi, [P12, P13, P23]).show(legend_title='Signs {}'.format([MW[s] for s in signs]))
 
 
 def plot_fun_IJK(pi, phi):
