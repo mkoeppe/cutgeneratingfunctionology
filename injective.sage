@@ -130,8 +130,8 @@ def setup_case_aprime_MMM():
     assert P13 in F
     assert P23 in F
 
-def setup_case_aprime_MMM_type_I():
-    logging.info("a' MMM Type I")
+def setup_case_aprime1_MMM_type_I():
+    logging.info("a'1 MMM Type I")
     setup_case_aprime_MMM()
     with KK.unfrozen():
         assert P12[2] >= z
@@ -140,10 +140,10 @@ def setup_case_aprime_MMM_type_I():
     assert delta_IJK(phi, P13) >= 0
     assert delta_IJK(phi, P23) >= 0
 
-setup_case_aprime_MMM_type_I()
+setup_case_aprime1_MMM_type_I()
 
-def setup_case_aprime_MMM_type_II(show_plots=False):
-    logging.info("a' MMM Type II")
+def setup_case_aprime2_MMM_type_II(show_plots=False):
+    logging.info("a'2 MMM Type II")
     setup_case_aprime_MMM()
     KK.change_values(s_3=1/10)
     if show_plots:
@@ -155,7 +155,7 @@ def setup_case_aprime_MMM_type_II(show_plots=False):
     assert delta_IJK(phi, P13) >= 0
     assert delta_IJK(phi, P23) >= 0
 
-setup_case_aprime_MMM_type_II()
+setup_case_aprime2_MMM_type_II()
 
 def setup_case_aprime_MWW(show_plots=False):
     logging.info("a' MWW")
