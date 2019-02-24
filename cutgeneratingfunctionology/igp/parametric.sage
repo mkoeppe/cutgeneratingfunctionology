@@ -84,10 +84,7 @@ class ParametricRealFieldElement(FieldElement):
         try:
             return self._val
         except AttributeError:
-            try:
-                return self._sym(self.parent()._values)  # evaluate rational function
-            except TypeError:                            # a constant
-                return self._sym
+            return self.parent()._eval_factor(self._sym)
 
     def _richcmp_(left, right, op):
         r"""
