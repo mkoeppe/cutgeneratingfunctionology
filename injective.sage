@@ -163,21 +163,27 @@ def setup_case_aprime_MWW(show_plots=False):
     setup_case(+1, -1, -1)
     KK.change_values(s_3=1/10)
 
-    assert P23[0] >= I[1]
+    assert P12[2] <= z
 
     with KK.temporary_assumptions(case_id="a' MWW P12"):
         with KK.unfrozen():
             assert P12[2] > K[0]
+
         assert delta_IJK(phi, P12) == inv_mq * (s_1 - s_3) >= 0
 
     with KK.temporary_assumptions(case_id="a' MWW P13"):
         with KK.unfrozen():
             assert P13[1] < J[1]
+        assert x - u_prime > z - u_prime - v_prime - inv_mq
+        assert is_pt_in_interval(IJK_plusminus[+1][1], P13[1])
         assert delta_IJK(phi, P13) == inv_mq * ((s_p - s_3) + (s_2 - s_3)) >= 0
+
+    assert P23[0] >= I[1]
+
 
 setup_case_aprime_MWW()
 
-def setup_case_aprime_MMW(show_plots=False):
+def setup_case_aprime_MMW(show_plots=False):   ## trivial
 
     setup_pi_case_aprime()
     setup_case(+1, +1, -1)
