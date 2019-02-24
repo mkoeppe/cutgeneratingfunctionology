@@ -130,33 +130,31 @@ def setup_case_aprime_MMM():
     assert P13 in F
     assert P23 in F
 
-def setup_case_aprime1_MMM_type_I():
+def setup_case_aprime1_MMM_type_I(show_plots=False):
     logging.info("a'1 MMM Type I")
     setup_case_aprime_MMM()
+    KK.change_values(s_3=1/10)
+    if show_plots:
+        plot_case(phi, [P12, P13, P23]).show(legend_title="Case a' MMM Type I")
     with KK.unfrozen():
-        assert P12[2] >= z
-    assert P12 in F
-    assert delta_IJK(phi, P12) >= 0
-    assert delta_IJK(phi, P13) >= 0
-    assert delta_IJK(phi, P23) >= 0
+        assert P12[2] <= z
+    with KK.temporary_assumptions():
+        with KK.unfrozen():
+            assert K[0] < P12[2]
+        assert P12 in F
+        assert delta_IJK(phi, P12) == inv_mq * (s_p - s_3) >= 0
+    assert delta_IJK(phi, P13) == delta_IJK(phi, P23) == inv_mq * ((s_1 - s_3) + (s_2 - s_3)) >= 0
 
 setup_case_aprime1_MMM_type_I()
 
 def setup_case_aprime2_MMM_type_II(show_plots=False):
     logging.info("a'2 MMM Type II")
     setup_case_aprime_MMM()
-    KK.change_values(s_3=1/10)
-    if show_plots:
-        plot_case(phi, [P12, P13, P23]).show(legend_title="Case a' MMM Type II")
     with KK.unfrozen():
-        assert P12[2] < z     # FIXME: first inequality ok to assert?
-    with KK.temporary_assumptions():
-        with KK.unfrozen():
-            assert K[0] < P12[2]
-        assert P12 in F
-        assert delta_IJK(phi, P12) >= 0
-    assert delta_IJK(phi, P13) >= 0
-    assert delta_IJK(phi, P23) >= 0
+        assert P12[2] > z
+    assert P12 in F
+    assert delta_IJK(phi, P12) == inv_mq * ((s_1 - s_3) + (s_2 - s_3)) >= 0
+    assert delta_IJK(phi, P13) == delta_IJK(phi, P23) == inv_mq * (s_p - s_3) >= 0
 
 setup_case_aprime2_MMM_type_II()
 
