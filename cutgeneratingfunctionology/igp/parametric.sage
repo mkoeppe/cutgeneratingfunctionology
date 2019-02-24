@@ -407,7 +407,7 @@ class ParametricRealField(Field):
     """
     Element = ParametricRealFieldElement
 
-    def __init__(self, values=(), names=(), allow_coercion_to_float=True, mutable_values=False, allow_refinement=True, big_cells=None):
+    def __init__(self, values=None, names=(), allow_coercion_to_float=True, mutable_values=False, allow_refinement=True, big_cells=None):
         Field.__init__(self, self)
         self._mutable_values = mutable_values
         self._allow_refinement = allow_refinement
@@ -427,6 +427,10 @@ class ParametricRealField(Field):
         self._lt_factor = set([])
         self._le_factor = set([])
         self._sym_field = PolynomialRing(QQ, names).fraction_field()
+        if values is None:
+            values = [ None for n in names ]
+        else:
+            assert len(values) == len(names)
         vnames = self._sym_field.gens()
         self._gens = [ ParametricRealFieldElement(value, name, parent=self) for (value, name) in zip(values, vnames) ]
         self._names = tuple(names)
@@ -547,6 +551,51 @@ class ParametricRealField(Field):
         if not self.is_point_consistent(new_values):
             raise ParametricRealFieldInconsistencyError("New test point {} does not satisfy the recorded constraints".format(new_values))
         self._values = new_values
+
+    def remove_test_point(self):
+        self._values = [ None for n in self._names ]
+
+    def find_test_point(self):
+        """
+        Sets a new test point that is consistent with the recorded constraints.
+        This can fail.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<x,y,z> = ParametricRealField([1, 2, 3], mutable_values=True, big_cells=True, allow_refinement=False)
+            sage: assert 0 <= x <= y <= z <= 6
+            sage: K.remove_test_point()
+            sage: K.find_test_point()
+            sage: x.val(), y.val(), z.val()
+            (3/2, 3, 9/2)
+
+            sage: K.<x,y,z> = ParametricRealField(mutable_values=True, big_cells=True, allow_refinement=False)
+            sage: K.assume_comparison(0, operator.le, x.sym())
+            sage: K.assume_comparison(x.sym(), operator.le, y.sym())
+            sage: K.assume_comparison(y.sym(), operator.le, z.sym())
+            sage: K.assume_comparison(z.sym(), operator.le, 4)
+            sage: K.find_test_point()
+            sage: x.val(), y.val(), z.val()
+            (1, 2, 3)
+        """
+        def to_point(g):
+            den = g.divisor()
+            return vector(QQ, ( QQ(x)/den for x in g.coefficients() ))
+        def to_vector(g):
+            return vector(QQ, ( QQ(x) for x in g.coefficients() ))
+        points = [ to_point(g) for g in self.polyhedron.generators()
+                   if g.is_point() or g.is_closure_point() ]
+        rays = [ to_vector(g) for g in self.polyhedron.generators()
+                 if g.is_ray() ]
+        if points:
+            p = sum(points) / len(points)
+            if rays:
+                p += sum(rays) / len(rays)
+            self.change_values(**{str(m): x for m, x in zip(self.monomial_list, p) })
+            return
+        raise NotImplementedError("find_test_point implementation cannot handle this case")
 
     @contextmanager
     def changed_values(self, **values):
