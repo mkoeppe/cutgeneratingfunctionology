@@ -1,3 +1,7 @@
+"""
+"""
+
+
 from cutgeneratingfunctionology.igp import *
 
 ### Library.
@@ -80,17 +84,13 @@ def setup_pi_case_aprime():
     global KK, inv_mq, u_prime, v_prime, w_prime, pi_u_prime, pi_v_prime, pi_w_prime, s_1, s_2, s_3, s_p, s_m
     KK.<inv_mq, u_prime, v_prime, pi_u_prime, pi_v_prime, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 0, 1/4, 1/8, 1/3, 1/8, -1/8, 1/2, -1/4], mutable_values=True, big_cells=True, allow_refinement=False)
 
-    assert inv_mq > 0
-
+    assert 0 < inv_mq < 1
     assert s_p > s_m
 
     global s
     s = [s_1, s_2, s_3]
     w_prime = u_prime + v_prime
     pi_w_prime = pi_u_prime + pi_v_prime
-
-    assert s_1 >= s_3
-    assert s_2 >= s_3
 
     global I, J, K, IJK, F, pi
     I = [u_prime, u_prime + inv_mq]
@@ -110,12 +110,19 @@ def setup_pi_case_aprime():
                                                          [ pi_w_prime + (z - w_prime) * s[2] for z in K ],
                                                          field=ParametricRealField, merge=False)]
 
+    assert delta_IJK(pi, (u_prime+inv_mq, v_prime)) >= 0   # s_1 >= s_3
+    assert delta_IJK(pi, (u_prime, v_prime+inv_mq)) >= 0   # s_2 >= s_3
+
     global d1_plus, d2_plus, d3_plus, d_plus, d1_minus, d2_minus, d3_minus, d_minus, d_plusminus, s_plusminus
     d1_plus, d2_plus, d3_plus = d_plus  = [ inv_mq * (s_i - s_m) / (s_p - s_m) for s_i in s ]
     d1_minus, d2_minus, d3_minus = d_minus = [ inv_mq * (s_p - s_i) / (s_p - s_m) for s_i in s ]
     assert all(d_plus[i] > 0 and d_minus[i] > 0 for i in range(3))
 
     KK.freeze()
+
+    assert delta_IJK(pi, (u_prime, v_prime)) == 0
+    assert delta_IJK(pi, (u_prime+inv_mq, v_prime)) == inv_mq * (s_1 - s_3) >= 0
+    assert delta_IJK(pi, (u_prime, v_prime+inv_mq)) == inv_mq * (s_2 - s_3) >= 0
 
     assert all(d_plus[i] + d_minus[i] == inv_mq for i in range(3))
 
@@ -202,9 +209,6 @@ def setup_pi_case_bprime():
     w_prime = u_prime + v_prime
     pi_w_prime = pi_u_prime + pi_v_prime
 
-    assert s_2 <= s_1
-    assert s_2 <= s_3
-
     global I, J, K, IJK, F, pi
     I = [u_prime, u_prime + inv_mq]
     J = [v_prime - 2*inv_mq, v_prime - inv_mq]; #J2 = [v_prime - 2*inv_mq, v_prime - inv_mq, v_prime]
@@ -223,12 +227,19 @@ def setup_pi_case_bprime():
                                                          [ pi_w_prime + (z - w_prime) * s[2] for z in K ],
                                                          field=ParametricRealField)]
 
+    assert delta_IJK(pi, (u_prime, v_prime-inv_mq)) >= 0          # s_2 <= s_1
+    assert delta_IJK(pi, (u_prime+inv_mq, v_prime-inv_mq)) >= 0   # s_2 <= s_3
+
     global d1_plus, d2_plus, d3_plus, d_plus, d1_minus, d2_minus, d3_minus, d_minus, d_plusminus, s_plusminus
     d1_plus, d2_plus, d3_plus = d_plus  = [ inv_mq * (s_i - s_m) / (s_p - s_m) for s_i in s ]
     d1_minus, d2_minus, d3_minus = d_minus = [ inv_mq * (s_p - s_i) / (s_p - s_m) for s_i in s ]
     assert all(d_plus[i] > 0 and d_minus[i] > 0 for i in range(3))
 
     KK.freeze()
+
+    assert delta_IJK(pi, (u_prime, v_prime)) == 0
+    assert delta_IJK(pi, (u_prime, v_prime-inv_mq)) == inv_mq * (s_3 - s_2) >= 0
+    assert delta_IJK(pi, (u_prime+inv_mq, v_prime-inv_mq)) == inv_mq * (s_1 - s_2) >= 0
 
     assert all(d_plus[i] + d_minus[i] == inv_mq for i in range(3))
 
