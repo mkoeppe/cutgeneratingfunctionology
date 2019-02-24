@@ -157,8 +157,8 @@ def setup_case_aprime2_MMM_type_II(show_plots=False):
 
 setup_case_aprime2_MMM_type_II()
 
-def setup_case_aprime_MWW(show_plots=False):
-    logging.info("a' MWW")
+def setup_case_aprime3_MWW(show_plots=False):
+    logging.info("a'3 MWW")
     setup_pi_case_aprime()
     setup_case(+1, -1, -1)
     KK.change_values(s_3=1/10)
@@ -180,37 +180,7 @@ def setup_case_aprime_MWW(show_plots=False):
 
     assert P23[0] >= I[1]
 
-
-setup_case_aprime_MWW()
-
-
-
-## # Finding a test point for MMW:
-##     setup_pi_case_aprime()
-##     setup_case(+1, +1, -1)
-##     KK.change_values(s_1=None, s_2=None, s_3=None)
-##     with KK.unfrozen():
-##         assert s_p > 0 > s_m
-##         KK.assume_comparison(P23[0].sym(), operator.lt, I[1].sym())
-##         KK.assume_comparison(P13[1].sym(), operator.lt, J[1].sym())
-##     KK.find_test_point()
-
-def setup_case_aprime_MMW(show_plots=False):   ## trivial
-
-    setup_pi_case_aprime()
-    setup_case(+1, +1, -1)
-    KK.change_values(s_3=1/10)
-    with KK.temporary_assumptions(case_id="a' MMW Type I"):
-        with KK.unfrozen():
-            assert P12[2] < z
-        with KK.temporary_assumptions():
-            with KK.unfrozen():
-                assert P12[2] > K[0]
-            assert delta_IJK(phi, P12) >= 0
-
-    assert P13[1] >= J[1]
-    assert P23[0] >= I[1]
-
+setup_case_aprime3_MWW()
 
 
 ########################################
@@ -270,30 +240,33 @@ def setup_pi_case_bprime():
 
 ####
 
-setup_pi_case_bprime()
-setup_case(+1, +1, +1)
+def setup_case_bprime2_MMM():
+    logging.info("b'2 MMM")
+    setup_pi_case_bprime()
+    setup_case(+1, +1, +1)
 
-assert P23[0] >= I[1]             # not in interior of F
+    assert P23[0] >= I[1]             # not in interior of F
 
-assert P13[1] >= y
-with KK.temporary_assumptions(case_id="b'2 MMM P13"):
-    with KK.unfrozen():
-        assert P13[1] < J[1]
-    #phi[1](P13[1])
-    assert phi[0](P13[0]) - phi[0](u_prime) == d1_plus * s_p
-    assert phi[2](P13[2]) - phi[2](w_prime) == d3_minus * (- s_m)
+    assert P13[1] >= y
+    with KK.temporary_assumptions(case_id="b'2 MMM P13"):
+        with KK.unfrozen():
+            assert P13[1] < J[1]
+        #phi[1](P13[1])
+        assert phi[0](P13[0]) - phi[0](u_prime) == d1_plus * s_p
+        assert phi[2](P13[2]) - phi[2](w_prime) == d3_minus * (- s_m)
 
-    assert delta_IJK(phi, P13) >= 0
+        assert delta_IJK(phi, P13) >= 0
 
-#assert P12[0] + P12[1] < K[0]  # unknown
-with KK.temporary_assumptions(case_id="b'2 MMM P12"):
-    with KK.unfrozen():
-        assert P12[2] > K[0]
-    assert phi[2].which_function(P12[2])._slope == s_p
-    assert delta_IJK(phi, P12) >= 0
+    #assert P12[0] + P12[1] < K[0]  # unknown
+    with KK.temporary_assumptions(case_id="b'2 MMM P12"):
+        with KK.unfrozen():
+            assert P12[2] > K[0]
+        assert phi[2].which_function(P12[2])._slope == s_p
+        assert delta_IJK(phi, P12) >= 0
+
+setup_case_bprime2_MMM()
 
 ####
-setup_case(+1, -1, -1)
 
 def setup_case_bprime3_MWW():
     setup_pi_case_bprime()
@@ -350,19 +323,24 @@ def setup_case_bprime3_MWW_type_II(show_plots=False):
 setup_case_bprime3_MWW_type_II()
 
 ####
-setup_pi_case_bprime()
-setup_case(-1, +1, -1)
 
-assert not F.interior_contains(P12)
+def setup_case_bprime4_WMW():
+    logging.info("Case b'4 WMW")
+    setup_pi_case_bprime()
+    setup_case(-1, +1, -1)
 
-with KK.changed_values(s_3=1/3):
-    with KK.temporary_assumptions(case_id="b'4 WMW P23"):
-        with KK.unfrozen():
-            assert F.interior_contains(P23)
-        assert phi[0].which_function(P23[0])._slope == s_p
-        assert delta_IJK(phi, P23) >= 0
-    with KK.temporary_assumptions(case_id="b'4 WMW P13"):
-        with KK.unfrozen():
-            assert F.interior_contains(P13)
-        assert phi[1].which_function(P13[1])._slope == s_m
-        assert delta_IJK(phi, P13) >= 0
+    assert not F.interior_contains(P12)
+
+    with KK.changed_values(s_3=1/3):
+        with KK.temporary_assumptions(case_id="b'4 WMW P23"):
+            with KK.unfrozen():
+                assert F.interior_contains(P23)
+            assert phi[0].which_function(P23[0])._slope == s_p
+            assert delta_IJK(phi, P23) >= 0
+        with KK.temporary_assumptions(case_id="b'4 WMW P13"):
+            with KK.unfrozen():
+                assert F.interior_contains(P13)
+            assert phi[1].which_function(P13[1])._slope == s_m
+            assert delta_IJK(phi, P13) >= 0
+
+setup_case_bprime4_WMW()
