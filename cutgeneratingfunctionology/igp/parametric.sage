@@ -523,6 +523,11 @@ class ParametricRealField(Field):
         """
         Check whether ``new_values`` satisfies all recorded assumptions.
         """
+        if new_values is None:
+            return True
+        if any(x is None for x in new_values):
+            logging.warning("Consistency checking not implemented if some test point coordinates are None")
+            return True
         ### Check that values satisfy all constraints.
         rational_list = [ QQ(m(new_values)) for m in self.monomial_list ]
         num_list = [x.numerator() for x in rational_list]
@@ -647,7 +652,7 @@ class ParametricRealField(Field):
                 return fac(self._values)
             except TypeError:             # 'None' components
                 pass
-        raise FactorUndetermined()
+        raise FactorUndetermined("{} cannot be evaluated because the test point is not complete".format(fac))
 
     def _factor_sign(self, fac):
         """
@@ -870,8 +875,11 @@ class ParametricRealField(Field):
                 raise ParametricRealFieldInconsistencyError("New constant constraint {} {} {} is not satisfied".format(lhs, op, rhs))
             return
         comparison = self._sym_field(comparison)
-        if not op(self._eval_factor(comparison), 0):
-            raise ParametricRealFieldInconsistencyError("New constraint {} {} {} is not satisfied by the test point".format(lhs, op, rhs))
+        try:
+            if not op(self._eval_factor(comparison), 0):
+                raise ParametricRealFieldInconsistencyError("New constraint {} {} {} is not satisfied by the test point".format(lhs, op, rhs))
+        except FactorUndetermined:
+            pass
         if comparison.is_zero():
             return
         factors = comparison.factor()
@@ -912,25 +920,37 @@ class ParametricRealField(Field):
             logging.debug("New element in %s._eq: %s" % (repr(self), comparison))
             self._eq.add(comparison)
         elif op == operator.lt:
+            sign = base_ring(factors.unit()).sign()
             lt_factors = []
             even_factors = []
+            unknown_factors = []
             for (fac, d) in factors:
                 if not self.is_factor_known(fac, operator.lt) and not self.is_factor_known(-fac, operator.lt):
                     if d % 2 == 1:
-                        fac_sign = self._factor_sign(fac)
-                        if fac_sign == -1:
-                            lt_factors.append(fac)
-                        else:
-                            assert fac_sign == +1  #have val > 0 because val==0 cannot happen
-                            lt_factors.append(-fac)
+                        try:
+                            fac_sign = self._factor_sign(fac)
+                            if fac_sign == -1:
+                                lt_factors.append(fac)
+                            else:
+                                assert fac_sign == +1  #have val > 0 because val==0 cannot happen
+                                lt_factors.append(-fac)
+                        except FactorUndetermined:
+                            unknown_factors.append(fac)
                     else:
                         even_factors.append(fac)
             if not self._allow_refinement:
-                if len(lt_factors) > 1:
+                if len(lt_factors) + len(unknown_factors) > 1:
                     # or just record the product
                     raise ParametricRealFieldRefinementError("{} < 0 has several new factors: {}".format(comparison, lt_factors))
             for new_fac in lt_factors:
                 self.record_factor(new_fac, op)
+            if len(unknown_factors) > 1:
+                raise NotImplementedError()
+            if unknown_factors:
+                if sign > 0:
+                    self.record_factor(unknown_factors[0], op)
+                elif sign < 0:
+                    self.record_factor(-unknown_factors[0], op)
             for new_fac in even_factors:
                 if not self.is_factor_known(new_fac, operator.lt) and not self.is_factor_known(-new_fac, operator.lt):
                     if not self._allow_refinement:
@@ -954,6 +974,7 @@ class ParametricRealField(Field):
             lt_factors = []
             eq_factors = []
             even_factors = []
+            unknown_factors = []
             for (fac, d) in factors:
                 if d % 2 == 1:
                     if self.is_factor_known(fac, operator.lt):
@@ -961,19 +982,22 @@ class ParametricRealField(Field):
                     elif self.is_factor_known(-fac, operator.lt):
                         pass
                     else:
-                        fac_sign = self._factor_sign(fac)
-                        if fac_sign == 0:
-                            eq_factors.append(fac)
-                        elif fac_sign == -1:
-                            lt_factors.append(fac)
-                        else:
-                            assert fac_sign == +1
-                            lt_factors.append(-fac)
+                        try:
+                            fac_sign = self._factor_sign(fac)
+                            if fac_sign == 0:
+                                eq_factors.append(fac)
+                            elif fac_sign == -1:
+                                lt_factors.append(fac)
+                            else:
+                                assert fac_sign == +1
+                                lt_factors.append(-fac)
+                        except FactorUndetermined:
+                            unknown_factors.append(fac)
                 else:
                     if not self.is_factor_known(fac, operator.lt) and not self.is_factor_known(-fac, operator.lt):
                         even_factors.append(fac)
             if not self._allow_refinement:
-                if len(even_factors) + len(lt_factors) + len(eq_factors) > 1:
+                if len(even_factors) + len(lt_factors) + len(eq_factors) + len(unknown_factors) > 1:
                     raise ParametricRealFieldRefinementError("{} <= 0 has several new factors: {}".format(comparison, even_factors+lt_factors+eq_factors))
                 if even_factors:
                     if sign > 0:
@@ -986,7 +1010,14 @@ class ParametricRealField(Field):
                         self.record_factor(eq_factors[0], op)
                     elif sign < 0:
                         self.record_factor(-eq_factors[0], op)
+                if unknown_factors:
+                    if sign > 0:
+                        self.record_factor(unknown_factors[0], op)
+                    elif sign < 0:
+                        self.record_factor(-unknown_factors[0], op)
             else:
+                if len(unknown_factors) > 1:
+                    raise NotImplementedError()
                 for new_fac in even_factors:
                     if self._factor_sign(new_fac) == 0:
                         eq_factors.append(new_fac)
