@@ -183,6 +183,18 @@ def setup_case_aprime_MWW(show_plots=False):
 
 setup_case_aprime_MWW()
 
+
+
+## # Finding a test point for MMW:
+##     setup_pi_case_aprime()
+##     setup_case(+1, +1, -1)
+##     KK.change_values(s_1=None, s_2=None, s_3=None)
+##     with KK.unfrozen():
+##         assert s_p > 0 > s_m
+##         KK.assume_comparison(P23[0].sym(), operator.lt, I[1].sym())
+##         KK.assume_comparison(P13[1].sym(), operator.lt, J[1].sym())
+##     KK.find_test_point()
+
 def setup_case_aprime_MMW(show_plots=False):   ## trivial
 
     setup_pi_case_aprime()
