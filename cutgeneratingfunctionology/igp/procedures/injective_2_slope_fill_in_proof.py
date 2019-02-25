@@ -154,9 +154,9 @@ def setup_pi_case_aprime():
 
 ####
 
-def setup_case_aprime_MMM():
+def setup_case_aprime_MMM(show_plots=False):
     setup_pi_case_aprime()
-    setup_case(+1, +1, +1)
+    setup_case(+1, +1, +1, show_plots=show_plots)
     assert P13 in F
     assert P23 in F
 
@@ -177,7 +177,7 @@ def setup_case_aprime1_MMM_type_I(show_plots=False):
 
 def setup_case_aprime2_MMM_type_II(show_plots=False):
     logging.info("a'2 MMM Type II")
-    setup_case_aprime_MMM()
+    setup_case_aprime_MMM(show_plots=show_plots)
     with KK.unfrozen():
         assert P12[2] > z
     assert P12 in F
@@ -189,6 +189,8 @@ def setup_case_aprime3_MWW(show_plots=False):
     setup_pi_case_aprime()
     setup_case(+1, -1, -1)
     KK.change_values(s_3=1/10)
+    if show_plots:
+        plot_case(phi, [P12, P13, P23]).show(legend_title="Case a' MWW")
 
     assert P12[2] <= z
 
@@ -272,10 +274,10 @@ def setup_pi_case_bprime():
 
 ####
 
-def setup_case_bprime2_MMM():
+def setup_case_bprime2_MMM(show_plots=False):
     logging.info("b'2 MMM")
     setup_pi_case_bprime()
-    setup_case(+1, +1, +1)
+    setup_case(+1, +1, +1, show_plots=show_plots)
 
     assert P23[0] >= I[1]             # not in interior of F
 
@@ -298,13 +300,13 @@ def setup_case_bprime2_MMM():
 
 ####
 
-def setup_case_bprime3_MWW():
+def setup_case_bprime3_MWW(show_plots=False):
     setup_pi_case_bprime()
-    setup_case(+1, -1, -1)
+    setup_case(+1, -1, -1, show_plots=show_plots)
     assert P12 in F
     assert P23 in F
 
-def setup_case_bprime3_MWW_type_I():
+def setup_case_bprime3_MWW_type_I(show_plots=False):
     logging.info("b'3 MWW Type I")
     setup_case_bprime3_MWW()
     with KK.unfrozen():
@@ -350,10 +352,10 @@ def setup_case_bprime3_MWW_type_II(show_plots=False):
 
 ####
 
-def setup_case_bprime4_WMW():
+def setup_case_bprime4_WMW(show_plots=False):
     logging.info("Case b'4 WMW")
     setup_pi_case_bprime()
-    setup_case(-1, +1, -1)
+    setup_case(-1, +1, -1, show_plots=show_plots)
 
     assert not F.interior_contains(P12)
 
