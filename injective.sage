@@ -120,7 +120,6 @@ def setup_pi_case_aprime():
 
     KK.freeze()
 
-    assert delta_IJK(pi, (u, v)) == 0
     assert delta_IJK(pi, (u+inv_mq, v)) == inv_mq * (s_1 - s_3) >= 0
     assert delta_IJK(pi, (u, v+inv_mq)) == inv_mq * (s_2 - s_3) >= 0
 
@@ -237,7 +236,6 @@ def setup_pi_case_bprime():
 
     KK.freeze()
 
-    assert delta_IJK(pi, (u, v)) == 0
     assert delta_IJK(pi, (u, v-inv_mq)) == inv_mq * (s_3 - s_2) >= 0
     assert delta_IJK(pi, (u+inv_mq, v-inv_mq)) == inv_mq * (s_1 - s_2) >= 0
 
