@@ -4,6 +4,21 @@ Automatic verification of the paper "All Cyclic Group Facets Inject".
 We check cases (a') and (b') of the subadditivity proof
 in the paper :cite:`koeppe-zhou:cyclic-group-facets-inject`
 through symbolic computation.
+
+::
+
+    sage: from cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof import *
+    sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
+
+    sage: setup_case_aprime1_MMM_type_I()
+    sage: setup_case_aprime2_MMM_type_II()
+    sage: setup_case_aprime3_MWW()
+
+    sage: setup_case_bprime2_MMM()
+    sage: setup_case_bprime3_MWW_type_I()
+    sage: setup_case_bprime3_MWW_type_II()
+    sage: setup_case_bprime4_WMW()
+
 """
 
 from cutgeneratingfunctionology.igp import *
@@ -160,8 +175,6 @@ def setup_case_aprime1_MMM_type_I(show_plots=False):
         assert delta_IJK(phi, P12) == inv_mq * (s_p - s_3) >= 0
     assert delta_IJK(phi, P13) == delta_IJK(phi, P23) == inv_mq * ((s_1 - s_3) + (s_2 - s_3)) >= 0
 
-setup_case_aprime1_MMM_type_I()
-
 def setup_case_aprime2_MMM_type_II(show_plots=False):
     logging.info("a'2 MMM Type II")
     setup_case_aprime_MMM()
@@ -170,8 +183,6 @@ def setup_case_aprime2_MMM_type_II(show_plots=False):
     assert P12 in F
     assert delta_IJK(phi, P12) == inv_mq * ((s_1 - s_3) + (s_2 - s_3)) >= 0
     assert delta_IJK(phi, P13) == delta_IJK(phi, P23) == inv_mq * (s_p - s_3) >= 0
-
-setup_case_aprime2_MMM_type_II()
 
 def setup_case_aprime3_MWW(show_plots=False):
     logging.info("a'3 MWW")
@@ -195,9 +206,6 @@ def setup_case_aprime3_MWW(show_plots=False):
         assert delta_IJK(phi, P13) == inv_mq * ((s_p - s_3) + (s_2 - s_3)) >= 0
 
     assert P23[0] >= I[1]
-
-setup_case_aprime3_MWW()
-
 
 ########################################
 ## (b') Acute angle, top left.
@@ -288,8 +296,6 @@ def setup_case_bprime2_MMM():
         assert phi[2].which_function(P12[2])._slope == s_p
         assert delta_IJK(phi, P12) >= 0
 
-setup_case_bprime2_MMM()
-
 ####
 
 def setup_case_bprime3_MWW():
@@ -317,8 +323,6 @@ def setup_case_bprime3_MWW_type_I():
         assert phi[1].which_function(P13[1])._slope == s_p
         assert delta_IJK(phi, P13) == inv_mq * (s_p - s_2) >= 0
 
-setup_case_bprime3_MWW_type_I()
-
 def setup_case_bprime3_MWW_type_II(show_plots=False):
     logging.info("Case b'3 MWW Type II")
     setup_case_bprime3_MWW()
@@ -344,8 +348,6 @@ def setup_case_bprime3_MWW_type_II(show_plots=False):
     assert is_pt_in_interval(IJK_plusminus[+1][0], P23[0])
     assert delta_IJK(phi, P23) >= 0
 
-setup_case_bprime3_MWW_type_II()
-
 ####
 
 def setup_case_bprime4_WMW():
@@ -366,5 +368,3 @@ def setup_case_bprime4_WMW():
                 assert F.interior_contains(P13)
             assert phi[1].which_function(P13[1])._slope == s_m
             assert delta_IJK(phi, P13) >= 0
-
-setup_case_bprime4_WMW()
