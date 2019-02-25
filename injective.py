@@ -82,7 +82,12 @@ def delta_IJK(pi, xy):
 
 def setup_pi_case_aprime():
     global KK, inv_mq, u, v, w, pi_u, pi_v, pi_w, s_1, s_2, s_3, s_p, s_m
-    KK.<inv_mq, u, v, pi_u, pi_v, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 0, 1/4, 1/8, 1/3, 1/8, -1/8, 1/2, -1/4], mutable_values=True, big_cells=True, allow_refinement=False)
+    KK = ParametricRealField([QQ('1/6'), QQ('0'), QQ('0'), QQ('1/4'), QQ('1/8'),
+                              QQ('1/3'), QQ('1/8'), QQ('-1/8'), QQ('1/2'), QQ('-1/4')],
+                             names=['inv_mq', 'u', 'v', 'pi_u', 'pi_v',
+                                    's_1', 's_2', 's_3', 's_p', 's_m'],
+                             mutable_values=True, big_cells=True, allow_refinement=False)
+    inv_mq, u, v, pi_u, pi_v, s_1, s_2, s_3, s_p, s_m = KK.gens()
 
     assert 0 < inv_mq < 1
     assert s_p > s_m
@@ -196,7 +201,12 @@ setup_case_aprime3_MWW()
 
 def setup_pi_case_bprime():
     global KK, inv_mq, u, v, w, pi_u, pi_v, pi_w, s_1, s_2, s_3, s_p, s_m
-    KK.<inv_mq, u, v, pi_u, pi_v, s_1, s_2, s_3, s_p, s_m> = ParametricRealField([1/6, 0, 1, 1/4, 1/8, 1/4, 1/16, 1/8, 1/2, -1/4], mutable_values=True, big_cells=True, allow_refinement=False)
+    KK = ParametricRealField([QQ('1/6'), QQ('0'), QQ('1'), QQ('1/4'), QQ('1/8'),
+                              QQ('1/4'), QQ('1/16'), QQ('1/8'), QQ('1/2'), QQ('-1/4')],
+                             names=['inv_mq', 'u', 'v', 'pi_u', 'pi_v',
+                                    's_1', 's_2', 's_3', 's_p', 's_m'],
+                             mutable_values=True, big_cells=True, allow_refinement=False)
+    inv_mq, u, v, pi_u, pi_v, s_1, s_2, s_3, s_p, s_m = KK.gens()
 
     assert inv_mq > 0
 
@@ -308,7 +318,7 @@ setup_case_bprime3_MWW_type_I()
 def setup_case_bprime3_MWW_type_II(show_plots=False):
     logging.info("Case b'3 MWW Type II")
     setup_case_bprime3_MWW()
-    KK.change_values(s_2=-1/5)
+    KK.change_values(s_2=QQ('-1/5'))
     if show_plots:
         plot_case(phi, [P12, P13, P23]).show(legend_title="Case b'3 MWW Type II")
     with KK.unfrozen():
@@ -341,7 +351,7 @@ def setup_case_bprime4_WMW():
 
     assert not F.interior_contains(P12)
 
-    with KK.changed_values(s_3=1/3):
+    with KK.changed_values(s_3=QQ('1/3')):
         with KK.temporary_assumptions(case_id="b'4 WMW P23"):
             with KK.unfrozen():
                 assert F.interior_contains(P23)
