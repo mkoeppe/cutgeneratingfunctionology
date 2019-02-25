@@ -1,6 +1,10 @@
 """
-"""
+Automatic verification of the paper "All Cyclic Group Facets Inject".
 
+We check cases (a') and (b') of the subadditivity proof
+in the paper :cite:`koeppe-zhou:cyclic-group-facets-inject`
+through symbolic computation.
+"""
 
 from cutgeneratingfunctionology.igp import *
 
