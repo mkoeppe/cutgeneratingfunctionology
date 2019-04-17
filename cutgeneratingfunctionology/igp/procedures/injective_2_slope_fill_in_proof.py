@@ -172,7 +172,7 @@ def setup_case_aprime1_MMM_type_I(show_plots=False):
         with KK.unfrozen():
             assert K[0] < P12[2]
         assert P12 in F
-        assert delta_IJK(phi, P12) == inv_mq * (s_p - s_3) >= 0
+        assert delta_IJK(phi, P12) == d_minus[2] * (s_p - s_m) == inv_mq * (s_p - s_3) >= 0
     assert delta_IJK(phi, P13) == delta_IJK(phi, P23) == inv_mq * ((s_1 - s_3) + (s_2 - s_3)) >= 0
 
 def setup_case_aprime2_MMM_type_II(show_plots=False):
