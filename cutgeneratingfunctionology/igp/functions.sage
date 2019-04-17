@@ -180,6 +180,16 @@ class Face:
     def __repr__(self):
         return '<Face ' + repr(self.minimal_triple) + '>'
 
+    def __contains__(self, point):
+        xyz = (point[0], point[1], point[0] + point[1])
+        return all(element_of_int(xyz[i], self.minimal_triple[i]) for i in range(3))
+
+    def interior_contains(self, point):
+        if not self.is_2D():
+            return False
+        xyz = (point[0], point[1], point[0] + point[1])
+        return all(self.minimal_triple[i][0] < xyz[i] < self.minimal_triple[i][1] for i in range(3))
+
     def plot(self, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color=None, edge_thickness=2, *args, **kwds):
         y = var('y')
         trip = self.minimal_triple
@@ -1268,6 +1278,15 @@ class FastPiecewise (PiecewisePolynomial):
             # We do not wish to keep a call cache when the breakpoints are
             # parametric, because that may create `mysterious' proof cells.
             self._call_cache = dict()
+            if end_points:
+                self._domain_ring = end_points[0].parent().fraction_field()
+            else:
+                self._domain_ring = QQ
+        else:
+            for x in end_points:
+                if is_parametric_element(x):
+                    if isinstance(x.parent(), ParametricRealField):
+                        self._domain_ring = x.parent()
 
         is_continuous = True
         if len(end_points) == 1 and end_points[0] is None:
@@ -1484,6 +1503,9 @@ class FastPiecewise (PiecewisePolynomial):
             ...
             ValueError: Value not defined at point 3, outside of domain.
         """
+        return self.which_pair(x0)[1]
+
+    def which_pair(self, x0):
         endpts = self.end_points()
         ith = self._ith_at_end_points
         i = bisect_left(endpts, x0)
@@ -1492,15 +1514,15 @@ class FastPiecewise (PiecewisePolynomial):
         if x0 == endpts[i]:
             if self._values_at_end_points[i] is not None:
                 if self.functions()[ith[i]](x0) == self._values_at_end_points[i]:
-                    return self.functions()[ith[i]]
+                    return self.intervals()[ith[i]], self.functions()[ith[i]]
                 else:
-                    return self.functions()[ith[i]+1]
+                    return self.intervals()[ith[i]+1], self.functions()[ith[i]+1]
             else:
                 raise ValueError("Value not defined at point %s, outside of domain." % x0)
         if i == 0:
             raise ValueError("Value not defined at point %s, outside of domain." % x0)
         if is_pt_in_interval(self._intervals[ith[i]],x0):
-            return self.functions()[ith[i]]
+            return self.intervals()[ith[i]], self.functions()[ith[i]]
         raise ValueError("Value not defined at point %s, outside of domain." % x0)
 
     def __call__(self,x0):
@@ -1571,12 +1593,33 @@ class FastPiecewise (PiecewisePolynomial):
             Traceback (most recent call last):
             ...
             ValueError: Value not defined at point 3, outside of domain.
+
+        Big cell parametrics::
+
+            sage: K.<f> = ParametricRealField([4/5], big_cells=True)
+            sage: h = gmic(f)
+            sage: h(4/5)
+            (4/5/f)~
+            sage: with K.frozen():
+            ....:     f == 4/5
+            Traceback (most recent call last):
+            ...
+            ParametricRealFieldFrozenError...
+
         """
         # fast path
         if hasattr(self, '_call_cache'):
             result = self._call_cache.get(x0)
             if result is not None:
                 return result
+        elif isinstance(self._domain_ring, ParametricRealField):
+            # Big Cells!
+            with self._domain_ring.off_the_record():
+                interval, function = self.which_pair(x0)
+            if not is_pt_in_interval(interval, x0):
+                raise AssertionError
+            return function(x0)
+
         # Remember that intervals are sorted according to their left endpoints; singleton has priority.
         endpts = self.end_points()
         ith = self._ith_at_end_points

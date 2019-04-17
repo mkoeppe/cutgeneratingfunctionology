@@ -26,7 +26,8 @@ SAGEFILES =									\
 	cutgeneratingfunctionology/igp/2q_mip.sage				\
 	cutgeneratingfunctionology/igp/kslope_mip.sage				\
 	cutgeneratingfunctionology/igp/animation_2d_diagram.sage		\
-	cutgeneratingfunctionology/igp/lifting_project.sage
+	cutgeneratingfunctionology/igp/lifting_project.sage			\
+	cutgeneratingfunctionology/igp/procedures/injective_2_slope_fill_in_proof.py
 
 ## Don't test; currently broken
 # 	cutgeneratingfunctionology/igp/parametric_cpl.sage			\
