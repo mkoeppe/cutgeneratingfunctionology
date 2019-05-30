@@ -592,7 +592,7 @@ def plot_2d_diagram_with_cones_dff(fn, show_function=True):
     g=plot_2d_complex_dff(fn)
     if show_function:
         g += plot_function_at_borders(fn)
-    bkpt = uniq(copy(fn.end_points()))
+    bkpt = fn.end_points()
     kwds = { 'legend_label' : "Superadditivity violated" }
     plot_kwds_hook(kwds)
     type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y and x+y<=1]

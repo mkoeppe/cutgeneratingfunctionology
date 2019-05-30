@@ -197,9 +197,8 @@ def kzh_minimal_has_only_crazy_perturbation_1_check_subadditivity_slacks():
         n_F = number_of_projections_intersecting(F, special_intervals)
         if n_F:
             logging.debug("{} n_F = {}".format(F, n_F))
-            deltas = [ delta_pi_of_face(h, vertex[0], vertex[1], F)
-                       for vertex in F.vertices ]
-            deltas = sorted(unique_list(deltas))
+            deltas = sorted(set( delta_pi_of_face(h, vertex[0], vertex[1], F)
+                                 for vertex in F.vertices ))
             if deltas == [0]:
                 logging.debug("... additive face")
             else:

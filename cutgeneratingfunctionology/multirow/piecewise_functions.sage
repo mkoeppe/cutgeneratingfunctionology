@@ -530,7 +530,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
             pwl = self
         else:
             pwl = self.restricted_to_domain(domain)
-        slopes = uniq([tuple(f.monomial_coefficient(xi) for xi in pwl._polynomial_ring.gens()) for (p, f) in pwl.pairs() if p.dim() > 0])
+        slopes = sorted(set([tuple(f.monomial_coefficient(xi) for xi in pwl._polynomial_ring.gens()) for (p, f) in pwl.pairs() if p.dim() > 0]))
         slope_color = {}
         for i in range(len(slopes)):
             slope_color[slopes[i]] = rainbow(len(slopes))[i]
@@ -608,7 +608,7 @@ class PiecewisePolynomial_polyhedral(SageObject):
             pwl = self
         else:
             pwl = self.restricted_to_domain(domain)
-        slopes = uniq([tuple(f.monomial_coefficient(xi) for xi in pwl._polynomial_ring.gens()) for f in pwl.functions()])
+        slopes = sorted(set([tuple(f.monomial_coefficient(xi) for xi in pwl._polynomial_ring.gens()) for f in pwl.functions()]))
         slope_color = {}
         for i in range(len(slopes)):
             slope_color[slopes[i]] = rainbow(len(slopes))[i]

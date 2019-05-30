@@ -42,7 +42,7 @@ def no_labels_ticks_keywords(function, y_ticks_for_breakpoints=False):
         ytick_formatter = xtick_formatter
     else:
         #yticks = 1/5
-        yticks = uniq([ y for limits in function.limits_at_end_points() for y in limits if y is not None ])
+        yticks = sorted(set([ y for limits in function.limits_at_end_points() for y in limits if y is not None ]))
         ytick_formatter = [ latex_formatter_or_empty(y) for y in yticks]
     return {'ticks': [xticks, yticks],
             'gridlines': True,

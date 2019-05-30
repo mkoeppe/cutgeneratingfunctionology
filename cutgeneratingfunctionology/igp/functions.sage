@@ -533,7 +533,7 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200, add
     g = plot_2d_complex(fn)
     if show_function:
         g += plot_function_at_borders(fn, color=function_color)
-    bkpt = uniq(copy(fn.end_points()))
+    bkpt = fn.end_points()
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
     type_2_vertices = [(x, z-x, z) for x in bkpt for z in bkpt2 if x < z < 1+x]
@@ -837,7 +837,7 @@ def ticks_keywords(function, y_ticks_for_breakpoints=False, extra_xticks=[], ext
             xticks.append(f)
     except ValueError:
         pass
-    xticks = uniq(list(extra_xticks) + xticks)
+    xticks = sorted(set(list(extra_xticks) + xticks))
     xtick_formatter = [ latex_tick_formatter_x(x) for x in xticks ]
     #xtick_formatter = 'latex'  # would not show rationals as fractions
     ytick_formatter = None
@@ -845,7 +845,7 @@ def ticks_keywords(function, y_ticks_for_breakpoints=False, extra_xticks=[], ext
         yticks = xticks
     else:
         #yticks = 1/5
-        yticks = uniq(list(extra_yticks) + [ y for limits in function.limits_at_end_points() for y in limits if y is not None ])
+        yticks = sorted(set(list(extra_yticks) + [ y for limits in function.limits_at_end_points() for y in limits if y is not None ]))
     ytick_formatter = [ latex_tick_formatter_y(y) for y in yticks ]
     ## FIXME: Can we influence ticks placement as well so that labels don't overlap?
     ## or maybe rotate labels 90 degrees?

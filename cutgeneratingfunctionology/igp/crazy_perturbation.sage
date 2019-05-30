@@ -52,7 +52,7 @@ class CrazyPiece:
 
     def range(self):
         shifts =  [s for (r, s) in self.cosets]
-        return uniq(shifts+[0])
+        return unique_list(shifts+[0])
 
 
 class PiecewiseCrazyFunction:
@@ -129,7 +129,7 @@ class PiecewiseCrazyFunction:
         bkpts = copy(self.pwl.end_points())
         for crazy_piece in self.crazy_pieces:
             bkpts += [crazy_piece.interval[0], crazy_piece.interval[1]]
-        return uniq(bkpts)
+        return sorted(set(bkpts))
 
     def limit(self, x0, epsilon):
         x0 = fractional(x0)
@@ -203,7 +203,7 @@ def find_epsilon_for_crazy_perturbation(fn, cp, show_plots=False):
         1/6
     """
     # assume fn is a subadditive pwl function, cp (crazy perturbation) is a non_zero PiecewiseCrazyFunction with cp(0)=cp(f)=0.
-    bkpt = uniq(copy(fn.end_points())+cp.end_points())
+    bkpt = sorted(set(copy(fn.end_points())+cp.end_points()))
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     type_1_vertices = [(x, y, x+y) for x in bkpt for y in bkpt if x <= y]
     type_2_vertices = [(x, z-x, z) for x in bkpt for z in bkpt2 if x < z < 1+x]
