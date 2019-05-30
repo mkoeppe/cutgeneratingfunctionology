@@ -407,6 +407,7 @@ def find_all_bkpts_in_the_interval(bkpts,interval):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: fn=gj_2_slope()
         sage: bkpts=fn.end_points()
