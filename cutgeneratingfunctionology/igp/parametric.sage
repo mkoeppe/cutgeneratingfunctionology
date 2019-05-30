@@ -6,7 +6,12 @@
 import sage.structure.element
 from sage.structure.element import FieldElement
 
-from sage.libs.ppl import Variable, Constraint, Linear_Expression, Constraint_System, NNC_Polyhedron, Poly_Con_Relation, Poly_Gen_Relation, Generator, MIP_Problem
+try:
+    from ppl import Variable, Constraint, Linear_Expression, Constraint_System, NNC_Polyhedron, Poly_Con_Relation, Poly_Gen_Relation, Generator, MIP_Problem, point as ppl_point
+except ImportError:
+    # old Sage
+    from sage.libs.ppl import Variable, Constraint, Linear_Expression, Constraint_System, NNC_Polyhedron, Poly_Con_Relation, Poly_Gen_Relation, Generator, MIP_Problem, point as ppl_point
+
 from six.moves import zip
 from six.moves import range
 poly_is_included = Poly_Con_Relation.is_included()
@@ -538,7 +543,7 @@ class ParametricRealField(Field):
         den_list = [x.denominator() for x in rational_list]
         common_den = lcm(den_list)
         coef = [common_den // den_list[i] * num_list[i] for i in range(len(rational_list))]
-        pt = sage.libs.ppl.point(Linear_Expression(coef, 0), common_den)
+        pt = ppl_point(Linear_Expression(coef, 0), common_den)
         return self.polyhedron.relation_with(pt).implies(point_is_included)
 
     def change_values(self, **values):

@@ -11,9 +11,14 @@
 # only record vertex (x,y) and face = (x, y, w) with x <= y.
 # polytope defines the feasible region of (\pi(0), \pi(1/q),..., \pi(1)).
 
-from sage.libs.ppl import C_Polyhedron, Constraint, Constraint_System, Generator, Generator_System, Variable, \
+try:
+    from ppl import C_Polyhedron, Constraint, Constraint_System, Generator, Generator_System, Variable, \
                           Poly_Con_Relation, MIP_Problem, Linear_Expression
-## Can't import 'point' -- clashes with plot2d point
+except ImportError:
+    # old Sage
+    from sage.libs.ppl import C_Polyhedron, Constraint, Constraint_System, Generator, Generator_System, Variable, \
+                          Poly_Con_Relation, MIP_Problem, Linear_Expression
+    ## Can't import 'point' -- clashes with plot2d point
 import numpy
 from sage.numerical.mip import MixedIntegerLinearProgram, MIPVariable, MIPSolverException
 import sage.numerical.backends.glpk_backend as backend

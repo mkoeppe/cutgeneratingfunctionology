@@ -293,7 +293,7 @@ def convert_lrs_to_ppl(lrs_string):
         den_list = [x.denominator() for x in rational_list]
         common_den = lcm(den_list)
         coef = [int(common_den / den_list[i]) * num_list[i] for i in range(len(rational_list))]
-        return sage.libs.ppl.point(Linear_Expression(coef, 0), common_den)
+        return ppl_point(Linear_Expression(coef, 0), common_den)
 
     if find_in_cddout('V-representation'):
         # Suppose it's the V-representation of a polytope.

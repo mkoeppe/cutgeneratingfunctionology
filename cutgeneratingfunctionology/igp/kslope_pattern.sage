@@ -5,6 +5,12 @@ vertex_enumeration_dim_threshold = 10
 import sys
 sys.setrecursionlimit(50000)
 
+try:
+    from ppl import Variable, Constraint, Linear_Expression, Constraint_System, NNC_Polyhedron, Poly_Con_Relation, Poly_Gen_Relation, Generator, MIP_Problem, point as ppl_point
+except ImportError:
+    # old Sage
+    from sage.libs.ppl import Variable, Constraint, Linear_Expression, Constraint_System, NNC_Polyhedron, Poly_Con_Relation, Poly_Gen_Relation, Generator, MIP_Problem, point as ppl_point
+
 def pattern_setup_lp(l, more_ini_additive=False, objcoef=None, use_auxiliary_delta=True):
     r"""
     Set up a ``MixedIntegerLinearProgram()`` with respect to the prescribled painting,
@@ -1098,8 +1104,8 @@ def check_pattern_polytope_has_full_dim(l):
     #        return False
     for i in range(1,l+3):
         d = sum(linearity[0:i])
-        p = sage.libs.ppl.point(sum([Variable(j) for j in range(i)]), d)
-        if not polytope.relation_with(p).implies(sage.libs.ppl.Poly_Gen_Relation.subsumes()):
+        p = ppl_point(sum([Variable(j) for j in range(i)]), d)
+        if not polytope.relation_with(p).implies(Poly_Gen_Relation.subsumes()):
             print("vector [1]*%s+[0]*%s is not in the polytope" % (i, l+2-i))
             return False
     return True
