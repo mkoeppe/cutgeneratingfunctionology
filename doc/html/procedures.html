@@ -16,7 +16,7 @@
     <script type="text/javascript" src="_static/MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Code for classical and general dual-feasible functions" href="dff.html" />
+    <link rel="next" title="Automatic verification of the paper “All Cyclic Group Facets Inject”" href="procedures_injective_2_slope_fill_in_proof.html" />
     <link rel="prev" title="Electronic compendium of extreme functions for the 1-row Gomory–Johnson model" href="extreme_functions.html" />
     <link rel="icon" href="_static/sageicon.png" type="image/x-icon" />
     <!-- Thebe configuration for live code cells (https://github.com/minrk/thebelab)
@@ -84,7 +84,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="dff.html" title="Code for classical and general dual-feasible functions"
+          <a href="procedures_injective_2_slope_fill_in_proof.html" title="Automatic verification of the paper “All Cyclic Group Facets Inject”"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="extreme_functions.html" title="Electronic compendium of extreme functions for the 1-row Gomory–Johnson model"
@@ -102,9 +102,9 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="electronic-compendium-of-procedures-for-the-1-row-gomory-johnson-model">
-<h1>Electronic compendium of procedures for the 1-row Gomory–Johnson model<a class="headerlink" href="#electronic-compendium-of-procedures-for-the-1-row-gomory-johnson-model" title="Permalink to this headline">¶</a></h1>
-<span class="target" id="module-cutgeneratingfunctionology.igp.procedures"></span><p>Index of “procedures” that can be applied to transform extreme functions</p>
+  <div class="section" id="module-cutgeneratingfunctionology.igp.procedures">
+<span id="electronic-compendium-of-procedures-for-the-1-row-gomory-johnson-model"></span><h1>Electronic compendium of procedures for the 1-row Gomory–Johnson model<a class="headerlink" href="#module-cutgeneratingfunctionology.igp.procedures" title="Permalink to this headline">¶</a></h1>
+<p>Index of “procedures” that can be applied to transform extreme functions</p>
 <dl class="function">
 <dt id="cutgeneratingfunctionology.igp.procedures.automorphism">
 <code class="descclassname">cutgeneratingfunctionology.igp.procedures.</code><code class="descname">automorphism</code><span class="sig-paren">(</span><em>function</em>, <em>factor=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.automorphism" title="Permalink to this definition">¶</a></dt>
@@ -138,7 +138,7 @@ the group order.</p>
 <dd><p>Input: a (continuous) minimal function fn for the infinite group problem, or a discrete minimal function for the finite group problem,  with rational breakpoints in 1/qZ and rational function values at the breakpoints. (weaker condition: rational breakpoints and the set {x: fn_interpolation(x)=1/2} is the union of some rational x and intervals.)
 Output: a two-slope extreme function fn2 such that fn2 = fn on 1/mqZ (and the infinity norm distance between fn and fn2 is less than epsilon).</p>
 <p>The function is obtained by putting upward and downward tents with slopes equal to the limiting slopes of the input function on top of some intervals between the points of the finite group of order mq = <code class="docutils literal notranslate"><span class="pre">injective_2_slope_fill_in_order</span></code>.</p>
-<p>This construction was introduced in [koeppe-zhou:cyclic-group-facets-inject].</p>
+<p>This construction was introduced in <a class="reference internal" href="zzz_bib.html#koeppe-zhou-cyclic-group-facets-inject" id="id1">[KoppeZ18]</a>.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
@@ -523,6 +523,14 @@ represented as a <code class="docutils literal notranslate"><span class="pre">Fa
 </div>
 </dd></dl>
 
+<div class="section" id="related-correctness-proof">
+<h2>Related correctness proof<a class="headerlink" href="#related-correctness-proof" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="procedures_injective_2_slope_fill_in_proof.html">Automatic verification of the paper “All Cyclic Group Facets Inject”</a></li>
+</ul>
+</div>
+</div>
 </div>
 
 
@@ -531,12 +539,20 @@ represented as a <code class="docutils literal notranslate"><span class="pre">Fa
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Electronic compendium of procedures for the 1-row Gomory–Johnson model</a><ul>
+<li><a class="reference internal" href="#related-correctness-proof">Related correctness proof</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="extreme_functions.html"
                         title="previous chapter">Electronic compendium of extreme functions for the 1-row Gomory–Johnson model</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="dff.html"
-                        title="next chapter">Code for classical and general dual-feasible functions</a></p>
+  <p class="topless"><a href="procedures_injective_2_slope_fill_in_proof.html"
+                        title="next chapter">Automatic verification of the paper “All Cyclic Group Facets Inject”</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -570,7 +586,7 @@ represented as a <code class="docutils literal notranslate"><span class="pre">Fa
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="dff.html" title="Code for classical and general dual-feasible functions"
+          <a href="procedures_injective_2_slope_fill_in_proof.html" title="Automatic verification of the paper “All Cyclic Group Facets Inject”"
              >next</a> |</li>
         <li class="right" >
           <a href="extreme_functions.html" title="Electronic compendium of extreme functions for the 1-row Gomory–Johnson model"

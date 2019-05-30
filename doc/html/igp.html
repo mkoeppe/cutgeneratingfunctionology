@@ -527,6 +527,11 @@ sys.stdout or sys.stderr may be used.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="cutgeneratingfunctionology.igp.Face.__contains__">
+<code class="descname">__contains__</code><span class="sig-paren">(</span><em>point</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.Face.__contains__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="cutgeneratingfunctionology.igp.Face.__hash__">
 <code class="descname">__hash__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.Face.__hash__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -600,6 +605,11 @@ sys.stdout or sys.stderr may be used.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="cutgeneratingfunctionology.igp.Face.interior_contains">
+<code class="descname">interior_contains</code><span class="sig-paren">(</span><em>point</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.Face.interior_contains" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="cutgeneratingfunctionology.igp.Face.is_0D">
 <code class="descname">is_0D</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.Face.is_0D" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -638,6 +648,18 @@ sys.stdout or sys.stderr may be used.</p>
 <dt id="cutgeneratingfunctionology.igp.Face.plot">
 <code class="descname">plot</code><span class="sig-paren">(</span><em>rgbcolor=(0.000000000000000</em>, <em>0.980392156862745</em>, <em>0.603921568627451)</em>, <em>fill_color=None</em>, <em>edge_thickness=2</em>, <em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.Face.plot" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="cutgeneratingfunctionology.igp.FactorUndetermined">
+<em class="property">exception </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">FactorUndetermined</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.FactorUndetermined" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">exceptions.Exception</span></code></p>
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.FactorUndetermined.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.FactorUndetermined.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -815,6 +837,18 @@ Rather, the result is only defined on the intersection of the domains.</p>
 <span class="gt">Traceback (most recent call last):</span>
 <span class="c">...</span>
 <span class="gr">ValueError</span>: <span class="n">Value not defined at point 3, outside of domain.</span>
+</pre></div>
+</div>
+<p>Big cell parametrics:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sage: K.&lt;f&gt; = ParametricRealField([4/5], big_cells=True)
+sage: h = gmic(f)
+sage: h(4/5)
+(4/5/f)~
+sage: with K.frozen():
+....:     f == 4/5
+Traceback (most recent call last):
+...
+ParametricRealFieldFrozenError...
 </pre></div>
 </div>
 </dd></dl>
@@ -1234,6 +1268,11 @@ this has been fixed:</p>
 <code class="descname">which_function_on_interval</code><span class="sig-paren">(</span><em>interval</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.FastPiecewise.which_function_on_interval" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.FastPiecewise.which_pair">
+<code class="descname">which_pair</code><span class="sig-paren">(</span><em>x0</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.FastPiecewise.which_pair" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -1610,7 +1649,7 @@ except for limits at breakpoints.</dd>
 
 <dl class="class">
 <dt id="cutgeneratingfunctionology.igp.ParametricRealField">
-<em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">ParametricRealField</code><span class="sig-paren">(</span><em>values=()</em>, <em>names=()</em>, <em>allow_coercion_to_float=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">ParametricRealField</code><span class="sig-paren">(</span><em>values=None</em>, <em>names=()</em>, <em>allow_coercion_to_float=True</em>, <em>mutable_values=False</em>, <em>allow_refinement=True</em>, <em>big_cells=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="http://doc.sagemath.org/html/en/reference/rings/sage/rings/ring.html#sage.rings.ring.Field" title="(in Sage Reference Manual: General Rings, Ideals, and Morphisms v8.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sage.rings.ring.Field</span></code></a></p>
 <p>A Metaprogramming trick for parameter space analysis.</p>
 <p>EXAMPLES:</p>
@@ -1626,10 +1665,6 @@ except for limits at breakpoints.</dd>
 <span class="gp">sage: </span><span class="n">R</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">_sym</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span><span class="o">.</span><span class="n">ring</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="nb">sorted</span><span class="p">([</span> <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">K</span><span class="o">.</span><span class="n">get_lt</span><span class="p">()</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">R</span> <span class="p">])</span>   <span class="c1"># filter out the rational function 1/(f^2 - f), which is normalized differently starting Sage 8.4b2</span>
 <span class="go">[-2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2]</span>
-<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">get_eq_poly</span><span class="p">()</span>
-<span class="go">set()</span>
-<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">get_lt_poly</span><span class="p">()</span>
-<span class="go">{-2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2, f^2 - f}</span>
 <span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">get_eq_factor</span><span class="p">()</span>
 <span class="go">set()</span>
 <span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">get_lt_factor</span><span class="p">()</span>
@@ -1646,15 +1681,6 @@ except for limits at breakpoints.</dd>
 <span class="go"> f - 1,</span>
 <span class="go"> -1/2*f*lam - 1/2*f + 1/2*lam,</span>
 <span class="go"> f*lam - lam}</span>
-<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">get_lt_poly</span><span class="p">()</span>
-<span class="go">{-lam,</span>
-<span class="go"> lam - 1,</span>
-<span class="go"> -f,</span>
-<span class="go"> f - 1,</span>
-<span class="go"> -f*lam - f + lam,</span>
-<span class="go"> -1/2*f*lam - 1/2*f + 1/2*lam,</span>
-<span class="go"> f*lam - lam,</span>
-<span class="go"> 1/2*f^2*lam + 1/2*f^2 - f*lam - 1/2*f + 1/2*lam}</span>
 <span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">get_lt_factor</span><span class="p">()</span>
 <span class="go">{-lam, lam - 1, -f, f - 1, -f*lam - f + lam}</span>
 
@@ -1728,7 +1754,7 @@ except for limits at breakpoints.</dd>
 
 <dl class="method">
 <dt id="cutgeneratingfunctionology.igp.ParametricRealField.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>values=()</em>, <em>names=()</em>, <em>allow_coercion_to_float=True</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>values=None</em>, <em>names=()</em>, <em>allow_coercion_to_float=True</em>, <em>mutable_values=False</em>, <em>allow_refinement=True</em>, <em>big_cells=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1752,9 +1778,30 @@ except for limits at breakpoints.</dd>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField._constraint_spacedim_to_add">
+<code class="descname">_constraint_spacedim_to_add</code><span class="sig-paren">(</span><em>fac</em>, <em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField._constraint_spacedim_to_add" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="cutgeneratingfunctionology.igp.ParametricRealField._element_constructor_">
 <code class="descname">_element_constructor_</code><span class="sig-paren">(</span><em>elt</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField._element_constructor_" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField._eval_factor">
+<code class="descname">_eval_factor</code><span class="sig-paren">(</span><em>fac</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField._eval_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate <code class="docutils literal notranslate"><span class="pre">fac</span></code> on the test point.</p>
+<p>If there is no test point or the test point has some <code class="docutils literal notranslate"><span class="pre">None</span></code> coordinates
+that are needed for the evaluation, raise <code class="docutils literal notranslate"><span class="pre">FactorUndetermined</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField._factor_sign">
+<code class="descname">_factor_sign</code><span class="sig-paren">(</span><em>fac</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField._factor_sign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the sign of <code class="docutils literal notranslate"><span class="pre">fac</span></code> evaluated on the test point.</p>
+<p>If there is no test point or the test point has some <code class="docutils literal notranslate"><span class="pre">None</span></code> coordinates
+that are needed for the evaluation, raise <code class="docutils literal notranslate"><span class="pre">FactorUndetermined</span></code>.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="cutgeneratingfunctionology.igp.ParametricRealField._first_ngens">
@@ -1764,6 +1811,245 @@ except for limits at breakpoints.</dd>
 <dl class="method">
 <dt id="cutgeneratingfunctionology.igp.ParametricRealField.add_initial_space_dim">
 <code class="descname">add_initial_space_dim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.add_initial_space_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField.assume_comparison">
+<code class="descname">assume_comparison</code><span class="sig-paren">(</span><em>lhs</em>, <em>op</em>, <em>rhs=0</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.assume_comparison" title="Permalink to this definition">¶</a></dt>
+<dd><p>Record the assumption <code class="docutils literal notranslate"><span class="pre">lhs</span> <span class="pre">op</span> <span class="pre">rhs</span></code>.</p>
+<p>If this assumption is not satisfied by the current test point,
+a <code class="docutils literal notranslate"><span class="pre">ParametricRealFieldInconsistencyError</span></code> is raised.</p>
+<p>TESTS for consistency checks:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.&lt;</span><span class="n">f</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ParametricRealField</span><span class="p">([</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">])</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">assume_comparison</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">sym</span><span class="p">(),</span> <span class="n">operator</span><span class="o">.</span><span class="n">gt</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ParametricRealFieldInconsistencyError</span>: <span class="n">New constraint...</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">assume_comparison</span><span class="p">(</span><span class="n">K</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sym</span><span class="p">(),</span> <span class="n">operator</span><span class="o">.</span><span class="n">gt</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ParametricRealFieldInconsistencyError</span>: <span class="n">New constant constraint...</span>
+</pre></div>
+</div>
+<p>User code should not rely on whether assumptions regarding
+the nonvanishing of denominators are recorded:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">K</span><span class="o">.&lt;</span><span class="n">f</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ParametricRealField</span><span class="p">([</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">])</span>
+<span class="gp">sage: </span><span class="k">assert</span> <span class="n">f</span> <span class="o">&lt;</span> <span class="mi">1</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">freeze</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">assume_comparison</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">f</span><span class="o">.</span><span class="n">sym</span><span class="p">(),</span> <span class="n">operator</span><span class="o">.</span><span class="n">gt</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>   <span class="c1"># not tested</span>
+</pre></div>
+</div>
+<p>Therefore, also the implicit cancellation in the field of rational
+functions does not change semantics when we transform lhs op rhs
+to lhs - rhs op 0:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">K</span><span class="o">.&lt;</span><span class="n">f</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ParametricRealField</span><span class="p">([</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">])</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">freeze</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">assume_comparison</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">f</span><span class="o">.</span><span class="n">sym</span><span class="p">(),</span> <span class="n">operator</span><span class="o">.</span><span class="n">eq</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">f</span><span class="o">.</span><span class="n">sym</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>User code should call assume_comparison only for operands that do
+not have vanishing denominators.</p>
+<blockquote>
+<div>sage: K.&lt;f&gt; = ParametricRealField([4/5])
+sage: assert 0 &lt; f &lt; 1
+sage: K.freeze()
+sage: K.assume_comparison(1/f.sym(), operator.gt, 1)</div></blockquote>
+<p>TESTS for allow_refinement=True:</p>
+<p>Strict inequalities - even-multiplicity factors do matter:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sage: K.&lt;f&gt; = ParametricRealField([4/5])
+sage: K.freeze()
+sage: f^2 &gt; 0
+Traceback (most recent call last):
+...
+ParametricRealFieldFrozenError...
+</pre></div>
+</div>
+<p>Weak inequalities:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sage: K.&lt;f&gt; = ParametricRealField([4/5], big_cells=True)
+sage: f &gt;= 4/5
+True
+sage: K.freeze()
+sage: f == 4/5
+Traceback (most recent call last):
+...
+ParametricRealFieldFrozenError...
+
+sage: K.&lt;f&gt; = ParametricRealField([4/5], big_cells=True)
+sage: f &lt;= 4/5
+True
+sage: K.freeze()
+sage: f == 4/5
+Traceback (most recent call last):
+...
+ParametricRealFieldFrozenError...
+</pre></div>
+</div>
+<p>TESTS for allow_refinement=False:</p>
+<p>Strict inequalities:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sage: from cutgeneratingfunctionology.igp import *
+sage: logging.disable(logging.INFO)
+sage: K.&lt;f&gt; = ParametricRealField([4/5], allow_refinement=False)
+sage: f * (1 - f) &gt; 0
+Traceback (most recent call last):
+...
+ParametricRealFieldRefinementError...
+sage: K.&lt;f&gt; = ParametricRealField([4/5], allow_refinement=False)
+sage: f &gt; 0
+True
+sage: 1 - f &gt; 0
+True
+</pre></div>
+</div>
+<p>Strict inequalities - even-multiplicity factors do matter:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sage: K.&lt;f&gt; = ParametricRealField([4/5], allow_refinement=False)
+sage: f^2 &gt; 0
+Traceback (most recent call last):
+...
+ParametricRealFieldRefinementError...
+</pre></div>
+</div>
+<p>Equalities:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sage: K.&lt;f&gt; = ParametricRealField([4/5], allow_refinement=False)
+sage: f * (f - 4/5) == 0
+Traceback (most recent call last):
+...
+ParametricRealFieldRefinementError...
+sage: f == 4/5
+True
+sage: f * (f - 4/5) == 0
+True
+
+sage: K.&lt;f&gt; = ParametricRealField([4], allow_refinement=False)
+sage: f &gt;= 3
+True
+sage: f * (f - 1) * (f - 2) * (f - 4) == 0
+True
+</pre></div>
+</div>
+<p>Weak inequalities:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sage: K.&lt;f&gt; = ParametricRealField([4/5], allow_refinement=False)
+sage: f * (f - 4/5) &gt;= 0
+Traceback (most recent call last):
+...
+ParametricRealFieldRefinementError...
+sage: f == 4/5
+True
+sage: f * (f - 4/5) &gt;= 0
+True
+
+sage: K.&lt;x,y&gt; = ParametricRealField([2, 3], allow_refinement=False)
+sage: x &gt;= 2
+True
+sage: x^2 * (x - 1) * y &gt;= 0
+True
+</pre></div>
+</div>
+<p>Weak inequalities - Even-multiplicity factors do matter:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sage: K.&lt;o&gt; = ParametricRealField([0], allow_refinement=False)
+sage: o^2 &lt;= 0
+True
+sage: K.freeze()
+sage: o == 0
+True
+
+sage: K.&lt;x&gt; = ParametricRealField([0], allow_refinement=False)
+sage: x^2 &gt;= 0
+True
+sage: K.freeze()
+sage: x == 0
+Traceback (most recent call last):
+...
+ParametricRealFieldFrozenError...
+
+sage: K.&lt;f&gt; = ParametricRealField([2], allow_refinement=False)
+sage: f^2 * (1 - f) &lt;= 0    # disjunction 0 union [1, oo).
+Traceback (most recent call last):
+...
+ParametricRealFieldRefinementError...
+</pre></div>
+</div>
+<p>Not-equal:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sage: K.&lt;x&gt; = ParametricRealField([1], allow_refinement=False)
+sage: x != 0
+Traceback (most recent call last):
+...
+ParametricRealFieldRefinementError...
+sage: x &gt;= 0
+True
+sage: x != 0
+True
+
+sage: K.&lt;x&gt; = ParametricRealField([-1], allow_refinement=False)
+sage: x &lt;= 0
+True
+sage: x != 0
+True
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField.change_values">
+<code class="descname">change_values</code><span class="sig-paren">(</span><em>**values</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.change_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField.changed_values">
+<code class="descname">changed_values</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.changed_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Context manager for temporarily switching to another consistent test point.</p>
+<p>This requires setting up the field with <code class="docutils literal notranslate"><span class="pre">mutable_values=True</span></code>.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.&lt;</span><span class="n">f</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ParametricRealField</span><span class="p">([</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">],</span> <span class="n">mutable_values</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">f</span> <span class="o">&lt;=</span> <span class="mi">1</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="k">with</span> <span class="n">K</span><span class="o">.</span><span class="n">changed_values</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">):</span>
+<span class="go">....:     assert f &lt;= 1/2</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ParametricRealFieldInconsistencyError</span>: <span class="n">Old test point... does not satisfy the recorded constraints</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField.find_test_point">
+<code class="descname">find_test_point</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.find_test_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets a new test point that is consistent with the recorded constraints.
+This can fail.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.&lt;</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ParametricRealField</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">mutable_values</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">big_cells</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">allow_refinement</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="n">z</span> <span class="o">&lt;=</span> <span class="mi">6</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">remove_test_point</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">find_test_point</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">x</span><span class="o">.</span><span class="n">val</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">val</span><span class="p">(),</span> <span class="n">z</span><span class="o">.</span><span class="n">val</span><span class="p">()</span>
+<span class="go">(3/2, 3, 9/2)</span>
+
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.&lt;</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ParametricRealField</span><span class="p">(</span><span class="n">mutable_values</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">big_cells</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">allow_refinement</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">assume_comparison</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">operator</span><span class="o">.</span><span class="n">le</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">sym</span><span class="p">())</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">assume_comparison</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">sym</span><span class="p">(),</span> <span class="n">operator</span><span class="o">.</span><span class="n">le</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">sym</span><span class="p">())</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">assume_comparison</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">sym</span><span class="p">(),</span> <span class="n">operator</span><span class="o">.</span><span class="n">le</span><span class="p">,</span> <span class="n">z</span><span class="o">.</span><span class="n">sym</span><span class="p">())</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">assume_comparison</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">sym</span><span class="p">(),</span> <span class="n">operator</span><span class="o">.</span><span class="n">le</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">find_test_point</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="n">x</span><span class="o">.</span><span class="n">val</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">val</span><span class="p">(),</span> <span class="n">z</span><span class="o">.</span><span class="n">val</span><span class="p">()</span>
+<span class="go">(1, 2, 3)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField.freeze">
+<code class="descname">freeze</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.freeze" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField.frozen">
+<code class="descname">frozen</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.frozen" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1777,8 +2063,13 @@ except for limits at breakpoints.</dd>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="cutgeneratingfunctionology.igp.ParametricRealField.get_eq_poly">
-<code class="descname">get_eq_poly</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.get_eq_poly" title="Permalink to this definition">¶</a></dt>
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField.get_le">
+<code class="descname">get_le</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.get_le" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField.get_le_factor">
+<code class="descname">get_le_factor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.get_le_factor" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1792,9 +2083,15 @@ except for limits at breakpoints.</dd>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="cutgeneratingfunctionology.igp.ParametricRealField.get_lt_poly">
-<code class="descname">get_lt_poly</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.get_lt_poly" title="Permalink to this definition">¶</a></dt>
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField.is_factor_known">
+<code class="descname">is_factor_known</code><span class="sig-paren">(</span><em>fac</em>, <em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.is_factor_known" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField.is_point_consistent">
+<code class="descname">is_point_consistent</code><span class="sig-paren">(</span><em>new_values</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.is_point_consistent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether <code class="docutils literal notranslate"><span class="pre">new_values</span></code> satisfies all recorded assumptions.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="cutgeneratingfunctionology.igp.ParametricRealField.make_proof_cell">
@@ -1833,33 +2130,33 @@ except for limits at breakpoints.</dd>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField.off_the_record">
+<code class="descname">off_the_record</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.off_the_record" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="cutgeneratingfunctionology.igp.ParametricRealField.record_factor">
 <code class="descname">record_factor</code><span class="sig-paren">(</span><em>fac</em>, <em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.record_factor" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="cutgeneratingfunctionology.igp.ParametricRealField.record_poly">
-<code class="descname">record_poly</code><span class="sig-paren">(</span><em>poly</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.record_poly" title="Permalink to this definition">¶</a></dt>
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField.remove_test_point">
+<code class="descname">remove_test_point</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.remove_test_point" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="cutgeneratingfunctionology.igp.ParametricRealField.record_to_eq">
-<code class="descname">record_to_eq</code><span class="sig-paren">(</span><em>comparison</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.record_to_eq" title="Permalink to this definition">¶</a></dt>
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField.temporary_assumptions">
+<code class="descname">temporary_assumptions</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.temporary_assumptions" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="cutgeneratingfunctionology.igp.ParametricRealField.record_to_eq_poly">
-<code class="descname">record_to_eq_poly</code><span class="sig-paren">(</span><em>poly</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.record_to_eq_poly" title="Permalink to this definition">¶</a></dt>
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField.unfreeze">
+<code class="descname">unfreeze</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.unfreeze" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="cutgeneratingfunctionology.igp.ParametricRealField.record_to_lt">
-<code class="descname">record_to_lt</code><span class="sig-paren">(</span><em>comparison</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.record_to_lt" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="cutgeneratingfunctionology.igp.ParametricRealField.record_to_lt_poly">
-<code class="descname">record_to_lt_poly</code><span class="sig-paren">(</span><em>poly</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.record_to_lt_poly" title="Permalink to this definition">¶</a></dt>
+<dt id="cutgeneratingfunctionology.igp.ParametricRealField.unfrozen">
+<code class="descname">unfrozen</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealField.unfrozen" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1886,7 +2183,7 @@ except for limits at breakpoints.</dd>
 <dd><p>The hash function of these elements must be so that 
 elements that would compare equal have the same hash value.</p>
 <p>The constant hash function would do the job.  Instead we use the
-hash of the ._val (because equality implies equality of _val).
+hash of the .val() (because equality implies equality of _val).
 It is not correct to use the hash of the ._sym, or to compare
 the __repr__, because then the user could check for equality
 (for example, by testing the cardinality of a set, as in the
@@ -1936,7 +2233,21 @@ field, by <code class="docutils literal notranslate"><span class="pre">nice_fiel
 <dl class="method">
 <dt id="cutgeneratingfunctionology.igp.ParametricRealFieldElement._div_">
 <code class="descname">_div_</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealFieldElement._div_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>EXAMPLES:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.&lt;</span><span class="n">f</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ParametricRealField</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+<span class="gp">sage: </span><span class="mi">1</span> <span class="o">/</span> <span class="n">f</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ZeroDivisionError</span>: <span class="n">Division by 0 in ParametricRealField</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">/</span> <span class="n">f</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ZeroDivisionError</span>: <span class="n">Division by 0 in ParametricRealField</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="method">
 <dt id="cutgeneratingfunctionology.igp.ParametricRealFieldElement._latex_">
@@ -1956,7 +2267,27 @@ field, by <code class="docutils literal notranslate"><span class="pre">nice_fiel
 <dl class="method">
 <dt id="cutgeneratingfunctionology.igp.ParametricRealFieldElement._richcmp_">
 <code class="descname">_richcmp_</code><span class="sig-paren">(</span><em>left</em>, <em>right</em>, <em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealFieldElement._richcmp_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Examples for traditional cmp semantics:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.&lt;</span><span class="n">f</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ParametricRealField</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">big_cells</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">allow_refinement</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">_eq</span>
+<span class="go">{f}</span>
+</pre></div>
+</div>
+<p>Examples for big_cells semantics:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.&lt;</span><span class="n">f</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ParametricRealField</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">big_cells</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">allow_refinement</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">sage: </span><span class="n">f</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+<span class="go">True</span>
+<span class="gp">sage: </span><span class="n">K</span><span class="o">.</span><span class="n">_le</span>
+<span class="go">{-f}</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="method">
 <dt id="cutgeneratingfunctionology.igp.ParametricRealFieldElement._sub_">
@@ -1987,6 +2318,42 @@ field, by <code class="docutils literal notranslate"><span class="pre">nice_fiel
 <dt id="cutgeneratingfunctionology.igp.ParametricRealFieldElement.val">
 <code class="descname">val</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealFieldElement.val" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealFieldFrozenError">
+<em class="property">exception </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">ParametricRealFieldFrozenError</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealFieldFrozenError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">exceptions.ValueError</span></code></p>
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealFieldFrozenError.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealFieldFrozenError.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealFieldInconsistencyError">
+<em class="property">exception </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">ParametricRealFieldInconsistencyError</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealFieldInconsistencyError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">exceptions.ValueError</span></code></p>
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealFieldInconsistencyError.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealFieldInconsistencyError.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealFieldRefinementError">
+<em class="property">exception </em><code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">ParametricRealFieldRefinementError</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealFieldRefinementError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">exceptions.ValueError</span></code></p>
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.ParametricRealFieldRefinementError.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.ParametricRealFieldRefinementError.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -3519,8 +3886,8 @@ Constructed by Chun Yu Hong, 2013.</p>
 <dd><ul class="first last simple">
 <li>Name: Basu-Hildebrand-Koeppe’s irrational function.</li>
 <li>Infinite; Dim = 1; Slopes = 3; Continuous;  Covered intervals and equivariant perturbation.</li>
-<li>Discovered [basu-hildebrand-koeppe:equivariant] p.33, section.5.2, fig.9-10.</li>
-<li>Proven extreme [basu-hildebrand-koeppe:equivariant] p.34, thm.5.3.</li>
+<li>Discovered <a class="reference internal" href="zzz_bib.html#basu-hildebrand-koeppe-equivariant" id="id5">[BHKoppe14]</a> p.33, section.5.2, fig.9-10.</li>
+<li>Proven extreme <a class="reference internal" href="zzz_bib.html#basu-hildebrand-koeppe-equivariant" id="id6">[BHKoppe14]</a> p.34, thm.5.3.</li>
 <li>(Although only extremality has been established in literature, the same proof shows that), bhk_irrational is a facet.</li>
 </ul>
 </dd>
@@ -3552,7 +3919,7 @@ Constructed by Chun Yu Hong, 2013.</p>
 </ul>
 </dd>
 <dt>Examples:</dt>
-<dd><p class="first">[basu-hildebrand-koeppe:equivariant]  p.34, thm.5.3:</p>
+<dd><p class="first"><a class="reference internal" href="zzz_bib.html#basu-hildebrand-koeppe-equivariant" id="id7">[BHKoppe14]</a>  p.34, thm.5.3:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">)</span> <span class="c1"># enable INFO messages disabled by other doctests</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">bhk_irrational</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d1</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d2</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="n">a0</span><span class="o">=</span><span class="mi">15</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">200</span><span class="p">))</span>
@@ -3562,7 +3929,7 @@ Constructed by Chun Yu Hong, 2013.</p>
 <span class="go">True</span>
 </pre></div>
 </div>
-<p>[basu-hildebrand-koeppe:equivariant]  thm 5.4: Not extreme for rational data:</p>
+<p><a class="reference internal" href="zzz_bib.html#basu-hildebrand-koeppe-equivariant" id="id8">[BHKoppe14]</a>  thm 5.4: Not extreme for rational data:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">bhk_irrational</span><span class="p">(</span><span class="n">delta</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">200</span><span class="p">])</span>
 <span class="go">INFO: ...</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
@@ -3571,7 +3938,7 @@ Constructed by Chun Yu Hong, 2013.</p>
 <span class="go">False</span>
 </pre></div>
 </div>
-<p>A generalization with 3 zigzags instead of 2 as in [basu-hildebrand-koeppe:equivariant]:</p>
+<p>A generalization with 3 zigzags instead of 2 as in <a class="reference internal" href="zzz_bib.html#basu-hildebrand-koeppe-equivariant" id="id9">[BHKoppe14]</a>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">bhk_irrational</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d1</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d2</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="n">a0</span><span class="o">=</span><span class="mi">15</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span> <span class="mi">6</span><span class="o">*</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">500</span><span class="p">))</span>
 <span class="go">INFO: ...</span>
 <span class="gp">sage: </span><span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="c1"># not tested - takes 20min on Macbook Pro 2.7Ghz Core i7</span>
@@ -3706,7 +4073,7 @@ at the borders of 2d diagrams.</p>
 
 <dl class="function">
 <dt id="cutgeneratingfunctionology.igp.bounds_for_plotting">
-<code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">bounds_for_plotting</code><span class="sig-paren">(</span><em>v</em>, <em>xxx_todo_changeme1</em>, <em>default_var_bound</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.bounds_for_plotting" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">bounds_for_plotting</code><span class="sig-paren">(</span><em>v</em>, <em>lb_ub</em>, <em>default_var_bound</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.bounds_for_plotting" title="Permalink to this definition">¶</a></dt>
 <dd><p>If lower and upper exist, then return them; otherwise return default variable bounds.</p>
 </dd></dl>
 
@@ -4232,7 +4599,7 @@ pair for a mixed integer problem.</p>
 <span class="gp">sage: </span><span class="n">linexp</span> <span class="o">=</span> <span class="n">convert_linfun_to_linexp</span><span class="p">(</span><span class="n">linfun</span><span class="p">);</span> <span class="n">linexp</span>
 <span class="go">x0+3*x1+x2</span>
 <span class="gp">sage: </span><span class="nb">type</span><span class="p">(</span><span class="n">linexp</span><span class="p">)</span>
-<span class="go">&lt;type &#39;sage.libs.ppl.Linear_Expression&#39;&gt;</span>
+<span class="go">&lt;type &#39;...Linear_Expression&#39;&gt;</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -5351,7 +5718,7 @@ and their vertices (only those with x &lt;= y) that are around v.</p>
 <dl class="attribute">
 <dt id="cutgeneratingfunctionology.igp.fast_linear_function">
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">fast_linear_function</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.fast_linear_function" title="Permalink to this definition">¶</a></dt>
-<dd><p>alias of <a class="reference internal" href="#cutgeneratingfunctionology.igp.FastLinearFunction" title="cutgeneratingfunctionology.igp.FastLinearFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">FastLinearFunction</span></code></a></p>
+<dd><p>alias of <a class="reference internal" href="#cutgeneratingfunctionology.igp.FastLinearFunction" title="cutgeneratingfunctionology.igp.FastLinearFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">cutgeneratingfunctionology.igp.FastLinearFunction</span></code></a></p>
 </dd></dl>
 
 <dl class="function">
@@ -5766,6 +6133,11 @@ interval) and one jump variable for each (left/right) discontinuity.</p>
 <dl class="function">
 <dt id="cutgeneratingfunctionology.igp.fn_variable">
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">fn_variable</code><span class="sig-paren">(</span><em>q</em>, <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.fn_variable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.format_richcmp_op">
+<code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">format_richcmp_op</code><span class="sig-paren">(</span><em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.format_richcmp_op" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -7104,7 +7476,7 @@ Varibles of the MILP are fn[0], …, fn[q], and auxiliary variables delta[x, y].
 <dd><p>Input: a (continuous) minimal function fn for the infinite group problem, or a discrete minimal function for the finite group problem,  with rational breakpoints in 1/qZ and rational function values at the breakpoints. (weaker condition: rational breakpoints and the set {x: fn_interpolation(x)=1/2} is the union of some rational x and intervals.)
 Output: a two-slope extreme function fn2 such that fn2 = fn on 1/mqZ (and the infinity norm distance between fn and fn2 is less than epsilon).</p>
 <p>The function is obtained by putting upward and downward tents with slopes equal to the limiting slopes of the input function on top of some intervals between the points of the finite group of order mq = <code class="docutils literal notranslate"><span class="pre">injective_2_slope_fill_in_order</span></code>.</p>
-<p>This construction was introduced in [koeppe-zhou:cyclic-group-facets-inject].</p>
+<p>This construction was introduced in <a class="reference internal" href="zzz_bib.html#koeppe-zhou-cyclic-group-facets-inject" id="id10">[KoppeZ18]</a>.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
@@ -7484,7 +7856,7 @@ which is slow for <code class="docutils literal notranslate"><span class="pre">R
 
 <dl class="function">
 <dt id="cutgeneratingfunctionology.igp.is_value_in_interval">
-<code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">is_value_in_interval</code><span class="sig-paren">(</span><em>v</em>, <em>xxx_todo_changeme</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.is_value_in_interval" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">is_value_in_interval</code><span class="sig-paren">(</span><em>v</em>, <em>lb_ub</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.is_value_in_interval" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return whether lb &lt;= v &lt;= ub.</p>
 <p><code class="docutils literal notranslate"><span class="pre">None</span></code> is considered as -Infinity and +Infinity for lb and ub, respectively.</p>
 </dd></dl>
@@ -10038,9 +10410,9 @@ In this case, <code class="docutils literal notranslate"><span class="pre">patte
 <span class="go">6</span>
 <span class="gp">sage: </span><span class="n">optsol</span>
 <span class="go">point(11/47, 7/47, -5/47)</span>
-<span class="gp">sage: </span><span class="n">optval</span>
+<span class="gp">sage: </span><span class="n">QQ</span><span class="p">(</span><span class="n">optval</span><span class="p">)</span>
 <span class="go">11</span>
-<span class="gp">sage: </span><span class="n">v_div</span>
+<span class="gp">sage: </span><span class="n">QQ</span><span class="p">(</span><span class="n">v_div</span><span class="p">)</span>
 <span class="go">47</span>
 </pre></div>
 </div>
@@ -10753,6 +11125,37 @@ maximal additive faces.</p>
 <span class="go">[x^2, y*z, x]</span>
 <span class="gp">sage: </span><span class="n">v_dict</span>
 <span class="go">{x: 2, y*z: 1, x^2: 0}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.ppl_point">
+<code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">ppl_point</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.ppl_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a point.</p>
+<p>INPUT:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">expression</span></code> – a <code class="xref py py-class docutils literal notranslate"><span class="pre">Linear_Expression</span></code> or something
+convertible to it (<code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code> or integer).</li>
+<li><code class="docutils literal notranslate"><span class="pre">divisor</span></code> – an integer.</li>
+</ul>
+<p>OUTPUT:</p>
+<p>A new <code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code> representing the point.</p>
+<p>Raises a <code class="docutils literal notranslate"><span class="pre">ValueError`</span> <span class="pre">if</span> <span class="pre">``divisor==0</span></code>.</p>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ppl</span> <span class="k">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Variable</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">y</span><span class="o">+</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">point(0/3, 2/3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="n">y</span><span class="o">+</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">point(0/3, 1/3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">point()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">PPL::point(e, d):</span>
+<span class="go">d == 0.</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -11611,6 +12014,11 @@ with the previous elements in <code class="docutils literal notranslate"><span c
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="cutgeneratingfunctionology.igp.richcmp_op_negation">
+<code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">richcmp_op_negation</code><span class="sig-paren">(</span><em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.richcmp_op_negation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="cutgeneratingfunctionology.igp.right_open_interval">
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">right_open_interval</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.right_open_interval" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -11867,13 +12275,6 @@ Remove redundant inequalities using PPL.</p>
 <span class="gp">sage: </span><span class="n">K</span><span class="o">.&lt;</span><span class="n">f</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ParametricRealField</span><span class="p">([</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">])</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">gmic</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="n">K</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">_</span> <span class="o">=</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-<span class="gp">sage: </span><span class="n">eq_poly</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">get_eq_poly</span><span class="p">()</span>
-<span class="gp">sage: </span><span class="n">lt_poly</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">get_lt_poly</span><span class="p">()</span>
-<span class="gp">sage: </span><span class="p">(</span><span class="n">eq_poly</span><span class="p">,</span> <span class="n">lt_poly</span><span class="p">)</span>
-<span class="go">(set(), {-2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2, f^2 - f})</span>
-<span class="gp">sage: </span><span class="n">simplify_eq_lt_poly_via_ppl</span><span class="p">(</span><span class="n">eq_poly</span><span class="p">,</span> <span class="n">lt_poly</span><span class="p">)</span>
-<span class="go">([], [f - 1, -2*f + 1, f^2 - f])</span>
-
 <span class="gp">sage: </span><span class="n">eq_factor</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">get_eq_factor</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">lt_factor</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">get_lt_factor</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="p">(</span><span class="n">eq_factor</span><span class="p">,</span> <span class="n">lt_factor</span><span class="p">)</span>
@@ -11883,14 +12284,10 @@ Remove redundant inequalities using PPL.</p>
 
 <span class="gp">sage: </span><span class="n">K</span><span class="o">.&lt;</span><span class="n">f</span><span class="p">,</span> <span class="n">lam</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ParametricRealField</span><span class="p">([</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">6</span><span class="p">])</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">gj_2_slope</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="n">K</span><span class="p">,</span> <span class="n">conditioncheck</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="gp">sage: </span><span class="n">leq</span><span class="p">,</span> <span class="n">lin</span> <span class="o">=</span> <span class="n">simplify_eq_lt_poly_via_ppl</span><span class="p">(</span><span class="n">K</span><span class="o">.</span><span class="n">get_eq_poly</span><span class="p">(),</span> <span class="n">K</span><span class="o">.</span><span class="n">get_lt_poly</span><span class="p">())</span>
-<span class="gp">sage: </span><span class="nb">set</span><span class="p">(</span><span class="n">lin</span><span class="p">)</span>
-<span class="go">{-lam, f - 1, -f*lam - f + lam, f*lam - lam, f^2*lam + f^2 - 2*f*lam - f + lam}</span>
 <span class="gp">sage: </span><span class="n">leq</span><span class="p">,</span> <span class="n">lin</span> <span class="o">=</span> <span class="n">simplify_eq_lt_poly_via_ppl</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">K</span><span class="o">.</span><span class="n">get_eq_factor</span><span class="p">()),</span> <span class="nb">list</span><span class="p">(</span><span class="n">K</span><span class="o">.</span><span class="n">get_lt_factor</span><span class="p">()))</span>
 <span class="gp">sage: </span><span class="nb">set</span><span class="p">(</span><span class="n">lin</span><span class="p">)</span>
 <span class="go">{-lam, -f, f - 1, -f*lam - f + lam}</span>
 
-<span class="gp">sage: </span><span class="c1"># _ = extremality_test(h); eq_poly, lt_poly = K.get_eq_poly(), K.get_lt_poly()</span>
 <span class="gp">sage: </span><span class="n">R</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">_sym</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span><span class="o">.</span><span class="n">ring</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">f</span><span class="p">,</span> <span class="n">lam</span> <span class="o">=</span> <span class="n">R</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">_sym</span><span class="p">),</span> <span class="n">R</span><span class="p">(</span><span class="n">lam</span><span class="o">.</span><span class="n">_sym</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">eq_poly</span><span class="p">,</span> <span class="n">lt_poly</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{</span><span class="o">-</span><span class="n">lam</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="n">f</span><span class="p">,</span> <span class="o">-</span><span class="n">f</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">+</span> <span class="n">f</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">+</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">+</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">+</span> <span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="n">f</span> <span class="o">+</span> <span class="n">lam</span><span class="p">,</span> <span class="o">-</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">+</span> <span class="n">f</span> <span class="o">+</span> <span class="n">lam</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">+</span> <span class="n">f</span> <span class="o">+</span> <span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">+</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="o">*</span><span class="n">f</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="o">*</span><span class="n">lam</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">+</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="n">lam</span><span class="p">,</span> <span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="n">f</span> <span class="o">-</span> <span class="n">lam</span><span class="p">,</span> <span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">+</span> <span class="n">f</span> <span class="o">-</span> <span class="n">lam</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">+</span> <span class="n">f</span> <span class="o">-</span> <span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">-</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">-</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">^</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="o">^</span><span class="mi">2</span> <span class="o">-</span> <span class="n">f</span><span class="o">*</span><span class="n">lam</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="n">lam</span><span class="p">}</span>
@@ -11917,10 +12314,6 @@ Remove redundant inequalities using PPL.</p>
 <span class="gp">sage: </span><span class="n">K</span><span class="o">.&lt;</span><span class="n">f</span><span class="p">,</span><span class="n">alpha</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ParametricRealField</span><span class="p">([</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">10</span><span class="p">])</span>             <span class="c1"># Bad example! parameter region = {given point}.</span>
 <span class="gp">sage: </span><span class="n">h</span><span class="o">=</span><span class="n">dg_2_step_mir</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="n">K</span><span class="p">,</span> <span class="n">conditioncheck</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">_</span> <span class="o">=</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-<span class="gp">sage: </span><span class="n">leq</span><span class="p">,</span> <span class="n">lin</span> <span class="o">=</span> <span class="n">simplify_eq_lt_poly_via_ppl</span><span class="p">(</span><span class="n">K</span><span class="o">.</span><span class="n">get_eq_poly</span><span class="p">(),</span> <span class="n">K</span><span class="o">.</span><span class="n">get_lt_poly</span><span class="p">())</span>
-<span class="gp">sage: </span><span class="nb">set</span><span class="p">(</span><span class="n">leq</span><span class="p">),</span> <span class="nb">set</span><span class="p">(</span><span class="n">lin</span><span class="p">)</span>
-<span class="go">({-10*alpha + 3, -5*f + 4}, {5*f^2 - 10*f*alpha - 1})</span>
-
 <span class="gp">sage: </span><span class="n">leq</span><span class="p">,</span> <span class="n">lin</span> <span class="o">=</span> <span class="n">simplify_eq_lt_poly_via_ppl</span><span class="p">(</span><span class="n">K</span><span class="o">.</span><span class="n">get_eq_factor</span><span class="p">(),</span> <span class="n">K</span><span class="o">.</span><span class="n">get_lt_factor</span><span class="p">())</span>
 <span class="gp">sage: </span><span class="nb">set</span><span class="p">(</span><span class="n">leq</span><span class="p">),</span> <span class="nb">set</span><span class="p">(</span><span class="n">lin</span><span class="p">)</span>
 <span class="go">({-10*alpha + 3, -5*f + 4}, set())</span>
@@ -11928,9 +12321,6 @@ Remove redundant inequalities using PPL.</p>
 <span class="gp">sage: </span><span class="n">K</span><span class="o">.&lt;</span><span class="n">f</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ParametricRealField</span><span class="p">([</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">])</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">drlm_3_slope_limit</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">conditioncheck</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">_</span> <span class="o">=</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-<span class="gp">sage: </span><span class="n">leq</span><span class="p">,</span> <span class="n">lin</span> <span class="o">=</span> <span class="n">simplify_eq_lt_poly_via_ppl</span><span class="p">(</span><span class="n">K</span><span class="o">.</span><span class="n">get_eq_poly</span><span class="p">(),</span> <span class="n">K</span><span class="o">.</span><span class="n">get_lt_poly</span><span class="p">())</span>
-<span class="gp">sage: </span><span class="nb">set</span><span class="p">(</span><span class="n">leq</span><span class="p">),</span> <span class="nb">set</span><span class="p">(</span><span class="n">lin</span><span class="p">)</span>
-<span class="go">(set(), {-f, 3*f - 1, -f^2 - f})</span>
 <span class="gp">sage: </span><span class="n">leq</span><span class="p">,</span> <span class="n">lin</span> <span class="o">=</span> <span class="n">simplify_eq_lt_poly_via_ppl</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">K</span><span class="o">.</span><span class="n">get_eq_factor</span><span class="p">()),</span> <span class="nb">list</span><span class="p">(</span><span class="n">K</span><span class="o">.</span><span class="n">get_lt_factor</span><span class="p">()))</span>
 <span class="gp">sage: </span><span class="nb">set</span><span class="p">(</span><span class="n">leq</span><span class="p">),</span> <span class="nb">set</span><span class="p">(</span><span class="n">lin</span><span class="p">)</span>
 <span class="go">(set(), {-f, 3*f - 1})</span>
@@ -12279,7 +12669,7 @@ represented as a <code class="docutils literal notranslate"><span class="pre">Fa
 <dd><p>Input: a (continuous) minimal function fn for the infinite group problem, or a discrete minimal function for the finite group problem,  with rational breakpoints in 1/qZ and rational function values at the breakpoints. (weaker condition: rational breakpoints and the set {x: fn_interpolation(x)=1/2} is the union of some rational x and intervals.)
 Output: a two-slope extreme function fn2 such that fn2 = fn on 1/mqZ (and the infinity norm distance between fn and fn2 is less than epsilon).</p>
 <p>The function is obtained by putting upward and downward tents with slopes equal to the limiting slopes of the input function on top of some intervals between the points of the finite group of order mq = <code class="docutils literal notranslate"><span class="pre">injective_2_slope_fill_in_order</span></code>.</p>
-<p>This construction was introduced in [koeppe-zhou:cyclic-group-facets-inject].</p>
+<p>This construction was introduced in <a class="reference internal" href="zzz_bib.html#koeppe-zhou-cyclic-group-facets-inject" id="id13">[KoppeZ18]</a>.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>

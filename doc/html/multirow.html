@@ -16,6 +16,7 @@
     <script type="text/javascript" src="_static/MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Bibliography on cutgeneratingfunctionology" href="zzz_bib.html" />
     <link rel="prev" title="Code for classical and general dual-feasible functions" href="dff.html" />
     <link rel="icon" href="_static/sageicon.png" type="image/x-icon" />
     <!-- Thebe configuration for live code cells (https://github.com/minrk/thebelab)
@@ -82,6 +83,9 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="zzz_bib.html" title="Bibliography on cutgeneratingfunctionology"
+             accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="dff.html" title="Code for classical and general dual-feasible functions"
              accesskey="P">previous</a> |</li>
@@ -630,6 +634,37 @@ volume_of_lifting_region(polyhedron, pt, True) returns 41/60, which is less than
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="cutgeneratingfunctionology.multirow.ppl_point">
+<code class="descclassname">cutgeneratingfunctionology.multirow.</code><code class="descname">ppl_point</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.multirow.ppl_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a point.</p>
+<p>INPUT:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">expression</span></code> – a <code class="xref py py-class docutils literal notranslate"><span class="pre">Linear_Expression</span></code> or something
+convertible to it (<code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code> or integer).</li>
+<li><code class="docutils literal notranslate"><span class="pre">divisor</span></code> – an integer.</li>
+</ul>
+<p>OUTPUT:</p>
+<p>A new <code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code> representing the point.</p>
+<p>Raises a <code class="docutils literal notranslate"><span class="pre">ValueError`</span> <span class="pre">if</span> <span class="pre">``divisor==0</span></code>.</p>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ppl</span> <span class="k">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Variable</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">y</span><span class="o">+</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">point(0/3, 2/3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="n">y</span><span class="o">+</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">point(0/3, 1/3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">point()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">PPL::point(e, d):</span>
+<span class="go">d == 0.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="cutgeneratingfunctionology.multirow.random_point_in_polytope">
 <code class="descclassname">cutgeneratingfunctionology.multirow.</code><code class="descname">random_point_in_polytope</code><span class="sig-paren">(</span><em>B</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.multirow.random_point_in_polytope" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -779,6 +814,9 @@ For d=1, the result = (merit index of h) / 2.</p>
   <h4>Previous topic</h4>
   <p class="topless"><a href="dff.html"
                         title="previous chapter">Code for classical and general dual-feasible functions</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="zzz_bib.html"
+                        title="next chapter">Bibliography on cutgeneratingfunctionology</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -811,6 +849,9 @@ For d=1, the result = (merit index of h) / 2.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="zzz_bib.html" title="Bibliography on cutgeneratingfunctionology"
+             >next</a> |</li>
         <li class="right" >
           <a href="dff.html" title="Code for classical and general dual-feasible functions"
              >previous</a> |</li>

@@ -17,7 +17,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Code for multi-row models" href="multirow.html" />
-    <link rel="prev" title="Electronic compendium of procedures for the 1-row Gomory–Johnson model" href="procedures.html" />
+    <link rel="prev" title="Automatic verification of the paper “All Cyclic Group Facets Inject”" href="procedures_injective_2_slope_fill_in_proof.html" />
     <link rel="icon" href="_static/sageicon.png" type="image/x-icon" />
     <!-- Thebe configuration for live code cells (https://github.com/minrk/thebelab)
 
@@ -87,7 +87,7 @@
           <a href="multirow.html" title="Code for multi-row models"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="procedures.html" title="Electronic compendium of procedures for the 1-row Gomory–Johnson model"
+          <a href="procedures_injective_2_slope_fill_in_proof.html" title="Automatic verification of the paper “All Cyclic Group Facets Inject”"
              accesskey="P">previous</a> |</li>
   
   <a href="http://www.sagemath.org"><img src="_static/sagelogo.png" style="vertical-align: middle" title="Sage Logo"></a>
@@ -734,6 +734,37 @@ borders.</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="cutgeneratingfunctionology.dff.ppl_point">
+<code class="descclassname">cutgeneratingfunctionology.dff.</code><code class="descname">ppl_point</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.dff.ppl_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a point.</p>
+<p>INPUT:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">expression</span></code> – a <code class="xref py py-class docutils literal notranslate"><span class="pre">Linear_Expression</span></code> or something
+convertible to it (<code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code> or integer).</li>
+<li><code class="docutils literal notranslate"><span class="pre">divisor</span></code> – an integer.</li>
+</ul>
+<p>OUTPUT:</p>
+<p>A new <code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code> representing the point.</p>
+<p>Raises a <code class="docutils literal notranslate"><span class="pre">ValueError`</span> <span class="pre">if</span> <span class="pre">``divisor==0</span></code>.</p>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ppl</span> <span class="k">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Variable</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">y</span><span class="o">+</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">point(0/3, 2/3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="n">y</span><span class="o">+</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">point(0/3, 1/3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">point()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">PPL::point(e, d):</span>
+<span class="go">d == 0.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="cutgeneratingfunctionology.dff.pwl_compose">
 <code class="descclassname">cutgeneratingfunctionology.dff.</code><code class="descname">pwl_compose</code><span class="sig-paren">(</span><em>f</em>, <em>g</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.dff.pwl_compose" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -838,8 +869,8 @@ borders.</p>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="procedures.html"
-                        title="previous chapter">Electronic compendium of procedures for the 1-row Gomory–Johnson model</a></p>
+  <p class="topless"><a href="procedures_injective_2_slope_fill_in_proof.html"
+                        title="previous chapter">Automatic verification of the paper “All Cyclic Group Facets Inject”</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="multirow.html"
                         title="next chapter">Code for multi-row models</a></p>
@@ -879,7 +910,7 @@ borders.</p>
           <a href="multirow.html" title="Code for multi-row models"
              >next</a> |</li>
         <li class="right" >
-          <a href="procedures.html" title="Electronic compendium of procedures for the 1-row Gomory–Johnson model"
+          <a href="procedures_injective_2_slope_fill_in_proof.html" title="Automatic verification of the paper “All Cyclic Group Facets Inject”"
              >previous</a> |</li>
   
   <a href="http://www.sagemath.org"><img src="_static/sagelogo.png" style="vertical-align: middle" title="Sage Logo"></a>
