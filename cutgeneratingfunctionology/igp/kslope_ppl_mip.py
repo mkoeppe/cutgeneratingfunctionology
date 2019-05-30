@@ -769,7 +769,7 @@ def generate_vertex_values(k_slopes , q, polytope,  v_set=set([]), exp_dim=-1, v
         if num >= k_slopes:
             if not tuple(v_n) in v_set:
                 v_set.add(tuple(v_n))
-                yield v_n
+                yield tuple(ZZ(x) for x in v_n)
 
 def h_from_vertex_values(v_n):
     r"""

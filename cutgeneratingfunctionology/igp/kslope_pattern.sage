@@ -333,7 +333,7 @@ def convert_linfun_to_linexp(linfun):
         sage: linexp = convert_linfun_to_linexp(linfun); linexp
         x0+3*x1+x2
         sage: type(linexp)
-        <type 'sage.libs.ppl.Linear_Expression'>
+        <type '...Linear_Expression'>
     """
     return sum([ Variable(i)*j for i,j in linfun.dict().items() if i != -1])
 
@@ -594,9 +594,9 @@ def pattern_ppl_lp(l, more_ini_additive=False, objcoef=None): #TOO SLOW
         6
         sage: optsol
         point(11/47, 7/47, -5/47)
-        sage: optval
+        sage: QQ(optval)
         11
-        sage: v_div
+        sage: QQ(v_div)
         47
     """
     pattern = 0
@@ -993,7 +993,7 @@ def pattern_extreme(l, k_slopes, pattern=0, show_plots=False,
                 sage_name = "%sq%s_%s.sage" %(num, q, id)
                 info = "q = %s; f = %s; num_components = %r; num_slopes = %s; divisor = %s; extreme = %r\n" % (q, f, num_components, num, v.divisor(), h_is_extreme)
                 info += "l = %s; " % l
-                info += "sv = %s\n" % (v.coefficients(),)
+                info += "sv = %s\n" % (tuple(ZZ(x) for x in v.coefficients()),)
                 if pattern != 0:
                     info += "v_n = %s\n" % (v_n,)
                     info += "h = h_from_vertex_values(v_n)\n"

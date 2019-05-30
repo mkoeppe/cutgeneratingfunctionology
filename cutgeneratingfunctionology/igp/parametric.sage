@@ -1397,7 +1397,7 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None):
         # take care of this.
         gcd_c = gcd(gcd(coeff), c.inhomogeneous_term())
         # constraint is written with '>', while lt_poly records '<' relation
-        t = sum([-(x/gcd_c)*y for x, y in zip(coeff, monomial_list)]) - c.inhomogeneous_term()/gcd_c
+        t = sum([-QQ(x/gcd_c)*y for x, y in zip(coeff, monomial_list)]) - QQ(c.inhomogeneous_term()/gcd_c)
         if c.is_equality():
             mineq.append(t)
         elif c.is_strict_inequality():
@@ -2772,7 +2772,7 @@ def find_lower_bound_of_linexpr(mip, linexpr):
     """
     mip.set_objective_function(linexpr)
     try:
-        lb = mip.optimal_value()
+        lb = QQ(mip.optimal_value())
     except ValueError:
         # unbounded
         lb = None
@@ -2787,7 +2787,7 @@ def find_upper_bound_of_linexpr(mip, linexpr):
     """
     mip.set_objective_function(-linexpr)
     try:
-        ub = -mip.optimal_value()
+        ub = -QQ(mip.optimal_value())
     except ValueError:
         # unbounded
         ub = None
