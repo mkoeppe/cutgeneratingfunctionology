@@ -73,6 +73,8 @@ igp_load(igp_dir + "bug_examples.sage")
 igp_load(igp_dir + "lifting_project.sage")
 igp_load(igp_dir + "plot_options.sage")
 
+igp_load(igp_dir + "formulation.sage")
+
 from . import extreme_functions, procedures
 
 try:
