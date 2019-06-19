@@ -2671,6 +2671,116 @@ class SemialgebraicComplex(SageObject):
 ###########################################
 # Helper functions for SemialgebraicComplex
 ###########################################
+
+def bounds_propagation_product(x_bounds,y_bounds):
+    r"""
+    Return the bounds of x*y.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: x_bounds=(-1,3)
+        sage: y_bounds=(3,None)
+        sage: bounds_propagation_product(x_bounds,y_bounds)
+        (None,None)
+        sage: x_bounds=(0,3)
+        sage: y_bounds=(-3,5)
+        sage: bounds_propagation_product(x_bounds,y_bounds)
+        (-9,15)
+    """
+    x_lb,x_ub = x_bounds
+    y_lb,y_ub = y_bounds
+    if x_lb is None:
+        x_lb=(-1,None)
+    else:
+        x_lb=(0,x_lb)
+    if x_ub is None:
+        x_ub=(1,None)
+    else:
+        x_ub=(0,x_ub)
+    if y_lb is None:
+        y_lb=(-1,None)
+    else:
+        y_lb=(0,y_lb)
+    if y_ub is None:
+        y_ub=(1,None)
+    else:
+        y_ub=(0,y_ub)
+    c=[]
+    c1=product_symbolic(x_lb,y_lb)
+    if c1[0]==0:
+        c.append(c1[1])
+    c2=product_symbolic(x_lb,y_ub)
+    if c2[0]==0:
+        c.append(c2[1])
+    c3=product_symbolic(x_ub,y_lb)
+    if c3[0]==0:
+        c.append(c3[1])
+    c4=product_symbolic(x_ub,y_ub)
+    if c4[0]==0:
+        c.append(c4[1])
+    if c1==(-1,None) or c2==(-1,None) or c3==(-1,None) or c4==(-1,None):
+        lb=None
+    else:
+        lb=min(c)
+    if c1==(1,None) or c2==(1,None) or c3==(1,None) or c4==(1,None):
+        ub=None
+    else:
+        ub=max(c)
+    return (lb,ub)
+
+def product_symbolic(x,y):
+    r"""
+    Return x*y include positive infinity (1,None) and negative infinity (-1,None).
+    """
+    if x==(1,None):
+        if y==(1,None) or y[1]>0:
+            return (1,None)
+        elif y==(-1,None) or y[1]<0:
+            return (-1,None)
+        else:
+            return (0,0)
+    elif x==(-1,None):
+        if y==(1,None) or y[1]>0:
+            return (-1,None)
+        elif y==(-1,None) or y[1]<0:
+            return (1,None)
+        else:
+            return (0,0)
+    elif x[1]==0:
+        return (0,0)
+    else:
+        if (y==(1,None) and x[1]>0) or (y==(-1,None) and x[1]<0):
+            return (1,None)
+        elif (y==(1,None) and x[1]<0) or (y==(-1,None) and x[1]>0):
+            return (-1,None)
+        else:
+            return (0,x[1]*y[1])
+
+def bounds_propagation_sum(x_bounds,y_bounds):
+    r"""
+    Return the bounds of x+y.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: x_bounds=(-1,3)
+        sage: y_bounds=(3,None)
+        sage: bounds_propagation_sum(x_bounds,y_bounds)
+        (2,None)
+    """
+    x_lb,x_ub = x_bounds
+    y_lb,y_ub = y_bounds
+    if x_lb is None or y_lb is None:
+        x_plus_y_lb=None
+    else:
+        x_plus_y_lb=x_lb+y_lb
+    if x_ub is None or y_ub is None:
+        x_plus_y_ub=None
+    else:
+        x_plus_y_ub=x_ub+y_ub
+    return (x_plus_y_lb,x_plus_y_ub)
+
 def gradient(ineq):
     r"""
     Return the gradient of the polynomial ineq.
