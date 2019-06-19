@@ -455,6 +455,8 @@ class ParametricRealField(Field):
         self.monomial_list = []
         # a dictionary that maps each monomial to the index of its corresponding Variable in self.polyhedron
         self.v_dict = {}
+        # records the bounds of the monomials in self.monomial_list
+        self.bounds=[]
         self.allow_coercion_to_float = allow_coercion_to_float
         if allow_coercion_to_float:
             RDF.register_coercion(sage.structure.coerce_maps.CallableConvertMap(self, RDF, lambda x: RDF(x.val()), parent_as_first_arg=False))
@@ -662,6 +664,8 @@ class ParametricRealField(Field):
         self.monomial_list = copy(self.monomial_list)
         save_v_dict = self.v_dict
         self.v_dict = copy(self.v_dict)
+        save_bounds= self.bounds
+        self.bounds= copy(self.bounds)
         try:
             yield True
         finally:
@@ -674,6 +678,7 @@ class ParametricRealField(Field):
             self.polyhedron = save_polyhedron
             self.monomial_list = save_monomial_list
             self.v_dict = save_v_dict
+            self.bounds = save_bounds
             if case_id is not None:
                 logging.info("Finished case {}.".format(case_id))
 
