@@ -1232,7 +1232,6 @@ class ParametricRealField(Field):
         for m in self.monomial_list:
             update_mccormicks_for_monomial(m, self.mip, self.polyhedron, self.monomial_list, self.v_dict, self.bounds)
 
-
 ###############################
 # Simplify polynomials
 ###############################
@@ -1677,9 +1676,10 @@ class SemialgebraicComplexComponent(SageObject):
         self.region_type = region_type
         self.monomial_list = K.monomial_list
         self.v_dict = K.v_dict
-        #self.polyhedron = K.polyhedron
+        self.polyhedron = K.polyhedron
         #space_dim_old = len(self.monomial_list)
-        self.bounds, tightened_mip = self.bounds_propagation(K.polyhedron, self.parent.max_iter)
+        tightened_mip = construct_mip_of_nnc_polyhedron(K.polyhedron)
+        self.bounds, tightened_mip = self.bounds_propagation(K.polyhedron, tightened_mip, self.parent.max_iter)
         # Unimplemented
         # dim_to_add =  len(self.monomial_list) - space_dim_old:
         # if dim_to_add > 0:
@@ -1709,7 +1709,7 @@ class SemialgebraicComplexComponent(SageObject):
         s += ")"
         return s
 
-    def bounds_propagation(self, polyhedron, max_iter):
+    def bounds_propagation(self, polyhedron, tightened_mip, max_iter):
         r"""
         Compute LP bounds for variables and then do upward and downward bounds propagation until
         max_iter is attained or no more changes of bounds occur.
@@ -1731,7 +1731,7 @@ class SemialgebraicComplexComponent(SageObject):
             sage: c.lin
             [21*lam1 - 8, 19*lam1 - 75*lam2, 2*lam2 - 1, -2*lam1 + lam2]
         """
-        tightened_mip = construct_mip_of_nnc_polyhedron(polyhedron)
+        # tightened_mip = construct_mip_of_nnc_polyhedron(polyhedron)
         # Compute LP bounds first
         bounds = [find_bounds_of_variable(tightened_mip, i) for i in range(len(self.monomial_list))]
 
@@ -1743,7 +1743,7 @@ class SemialgebraicComplexComponent(SageObject):
             tightened = False
             # upward bounds propagation
             for m in self.monomial_list:
-                if update_mccormicks_for_monomial(m, tightened_mip, self.monomial_list, self.v_dict, bounds, new_monomials_allowed=False):
+                if update_mccormicks_for_monomial(m, tightened_mip, self.polyhedron, self.monomial_list, self.v_dict, bounds, new_monomials_allowed=False):
                     # If we allow update_mccormicks_for_monomial to create new monomials and
                     # hence lift the extended space, try with optional argument
                     # new_monomials_allowed=True
