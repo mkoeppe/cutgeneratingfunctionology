@@ -114,6 +114,7 @@ class ParametricRealFieldElement(FieldElement):
             {-f}
 
         """
+        #op[0]
         if not left.parent() is right.parent():
             # shouldn't really happen, within coercion
             raise TypeError("comparing elements from different fields")
@@ -145,9 +146,9 @@ class ParametricRealFieldElement(FieldElement):
             if (left.val() == right.val()):
                 left.parent().assume_comparison(left.sym(), operator.eq, right.sym())
             elif (left.val() < right.val()):
-                left.parent().assume_comparison(left.sym(), operator.lt, right.sym())
+                left.parent().assume_comparison(left.sym(), operator.le, right.sym())
             else:
-                left.parent().assume_comparison(right.sym(), operator.lt, left.sym())
+                left.parent().assume_comparison(right.sym(), operator.le, left.sym())
             return richcmp(left.val(), right.val(), op)
 
     def __abs__(self):
@@ -451,12 +452,14 @@ class ParametricRealField(Field):
         # rather than first building a huge list and then in a second step processing it.
         # the polyhedron defined by all constraints in self._eq/lt_factor
         self.polyhedron = NNC_Polyhedron(0, 'universe')
+        # a MIP problem corresponding to polyhedron
+        self.mip=construct_mip_of_nnc_polyhedron(self.polyhedron)
         # records the monomials that appear in self._eq/lt_factor
         self.monomial_list = []
         # a dictionary that maps each monomial to the index of its corresponding Variable in self.polyhedron
         self.v_dict = {}
         # records the bounds of the monomials in self.monomial_list
-        self.bounds=[]
+        self.bounds = []
         self.allow_coercion_to_float = allow_coercion_to_float
         if allow_coercion_to_float:
             RDF.register_coercion(sage.structure.coerce_maps.CallableConvertMap(self, RDF, lambda x: RDF(x.val()), parent_as_first_arg=False))
@@ -660,12 +663,14 @@ class ParametricRealField(Field):
         self._le_factor = copy(save_le_factor)
         save_polyhedron = self.polyhedron
         self.polyhedron = copy(save_polyhedron)
+        save_mip = self.mip
+        self.mip = copy(save_mip)
         save_monomial_list = self.monomial_list
         self.monomial_list = copy(self.monomial_list)
         save_v_dict = self.v_dict
         self.v_dict = copy(self.v_dict)
-        save_bounds= self.bounds
-        self.bounds= copy(self.bounds)
+        save_bounds = self.bounds
+        self.bounds = copy(self.bounds)
         try:
             yield True
         finally:
@@ -676,6 +681,7 @@ class ParametricRealField(Field):
             self._lt_factor = save_lt_factor
             self._le_factor = save_le_factor
             self.polyhedron = save_polyhedron
+            self.mip = save_mip
             self.monomial_list = save_monomial_list
             self.v_dict = save_v_dict
             self.bounds = save_bounds
@@ -1138,6 +1144,7 @@ class ParametricRealField(Field):
         #print "constraint_to_add = %s" % constraint_to_add
         if space_dim_to_add:
             self.polyhedron.add_space_dimensions_and_embed(space_dim_to_add)
+            self.mip.add_space_dimensions_and_embed(space_dim_to_add)
             return False
         else:
             return self.polyhedron.relation_with(constraint_to_add).implies(poly_is_included)
@@ -1157,6 +1164,7 @@ class ParametricRealField(Field):
             if self._frozen:
                 raise ParametricRealFieldFrozenError("Cannot prove that constraint is implied: {} ".format(formatted_constraint))
             self.polyhedron.add_constraint(constraint_to_add)
+            self.mip.add_constraint(constraint_to_add)
             #print " add new constraint, %s" %self.polyhedron.constraints()
             logging.info("New constraint: {}".format(formatted_constraint))
             if op == operator.lt:
@@ -1216,6 +1224,14 @@ class ParametricRealField(Field):
         self.monomial_list = list(P.gens())
         self.v_dict = {P.gens()[i]:i for i in range(n)}
         self.polyhedron = NNC_Polyhedron(n,'universe')
+
+    def bounds_update(self):
+        self.bounds = [find_bounds_of_variable(self.mip,i) for i in range(len(self.monomial_list))]
+
+    def mip_update(self):
+        for m in self.monomial_list:
+            update_mccormicks_for_monomial(m, self.mip, self.polyhedron, self.monomial_list, self.v_dict, self.bounds)
+
 
 ###############################
 # Simplify polynomials
@@ -2917,7 +2933,7 @@ def is_not_a_downstairs_wall(c, mip):
     lb = find_lower_bound_of_linexpr(mip, linexpr)
     return bool(lb >  0)
 
-def add_mccormick_bound(mip, x3, x1, x2, c1, c2, is_lowerbound):
+def add_mccormick_bound(mip, polyhedron, x3, x1, x2, c1, c2, is_lowerbound):
     r"""
     Try adding x3 > c1*x1 + c2*x2 - c1*c2 (if is_lowerbound, else x3 < c1*x1 + c2*x2 - c1*c2) to mip.
     Return True this new constraint is not redundnant.
@@ -2933,6 +2949,7 @@ def add_mccormick_bound(mip, x3, x1, x2, c1, c2, is_lowerbound):
             return False
         else:
             mip.add_constraint(linexpr >= 0)
+            polyhedron.add_constraint(linexpr >= 0)
             return True
     else:
         ub = find_upper_bound_of_linexpr(mip, linexpr)
@@ -2940,9 +2957,10 @@ def add_mccormick_bound(mip, x3, x1, x2, c1, c2, is_lowerbound):
             return False
         else:
             mip.add_constraint(linexpr <= 0)
+            polyhedron.add_constraint(linexpr <= 0)
             return True
 
-def update_mccormicks_for_monomial(m, tightened_mip, monomial_list, v_dict, bounds, new_monomials_allowed=False):
+def update_mccormicks_for_monomial(m, tightened_mip, polyhedron, monomial_list, v_dict, bounds, new_monomials_allowed=False):
     r"""
     Do recursive McCormicks on the monomial m.
 
@@ -3011,13 +3029,13 @@ def update_mccormicks_for_monomial(m, tightened_mip, monomial_list, v_dict, boun
         v_2 = Variable(i_2)
         lb_1, ub_1 = bounds[i_1]
         lb_2, ub_2 = bounds[i_2]
-        if add_mccormick_bound(tightened_mip, v, v_1, v_2, lb_2, lb_1, True):
+        if add_mccormick_bound(tightened_mip, polyhedron, v, v_1, v_2, lb_2, lb_1, True):
             tightened = True
-        if add_mccormick_bound(tightened_mip, v, v_1, v_2, ub_2, ub_1, True):
+        if add_mccormick_bound(tightened_mip, polyhedron, v, v_1, v_2, ub_2, ub_1, True):
             tightened = True
-        if add_mccormick_bound(tightened_mip, v, v_1, v_2, lb_2, ub_1, False):
+        if add_mccormick_bound(tightened_mip, polyhedron, v, v_1, v_2, lb_2, ub_1, False):
             tightened = True
-        if add_mccormick_bound(tightened_mip, v, v_1, v_2, ub_2, lb_1, False):
+        if add_mccormick_bound(tightened_mip, polyhedron, v, v_1, v_2, ub_2, lb_1, False):
             tightened = True
     if tightened:
         bounds[i] = find_bounds_of_variable(tightened_mip, i)
