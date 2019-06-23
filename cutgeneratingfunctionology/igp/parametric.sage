@@ -146,9 +146,9 @@ class ParametricRealFieldElement(FieldElement):
             if (left.val() == right.val()):
                 left.parent().assume_comparison(left.sym(), operator.eq, right.sym())
             elif (left.val() < right.val()):
-                left.parent().assume_comparison(left.sym(), operator.le, right.sym())
+                left.parent().assume_comparison(left.sym(), operator.lt, right.sym())
             else:
-                left.parent().assume_comparison(right.sym(), operator.le, left.sym())
+                left.parent().assume_comparison(right.sym(), operator.lt, left.sym())
             return richcmp(left.val(), right.val(), op)
 
     def __abs__(self):
