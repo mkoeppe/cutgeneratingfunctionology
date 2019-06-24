@@ -1120,13 +1120,16 @@ class ParametricRealField(Field):
         space_dim_to_add = len(self.monomial_list) - space_dim_old
         if op == operator.lt:
             constraint_to_add = (linexpr < 0)
+            closed_constraint_to_add = (linexpr <= 0)
         elif op == operator.eq:
             constraint_to_add = (linexpr == 0)
+            closed_constraint_to_add = (linexpr == 0)
         elif op == operator.le:
             constraint_to_add = (linexpr <= 0)
+            closed_constraint_to_add = (linexpr <= 0)
         else:
             raise ValueError("{} is not a supported operator".format(op))
-        return constraint_to_add, space_dim_to_add
+        return constraint_to_add, closed_constraint_to_add, space_dim_to_add
 
     def is_factor_known(self, fac, op):
         if op == operator.lt:
@@ -1140,7 +1143,7 @@ class ParametricRealField(Field):
                 return True
         else:
             raise ValueError("{} is not a supported operator".format(op))
-        constraint_to_add, space_dim_to_add = self._constraint_spacedim_to_add(fac, op)
+        constraint_to_add, _ , space_dim_to_add = self._constraint_spacedim_to_add(fac, op)
         #print "constraint_to_add = %s" % constraint_to_add
         if space_dim_to_add:
             self.polyhedron.add_space_dimensions_and_embed(space_dim_to_add)
@@ -1152,7 +1155,7 @@ class ParametricRealField(Field):
     def record_factor(self, fac, op):
         #print "add %s, %s to %s" % (fac, op, self.polyhedron.constraints())
         if not self.is_factor_known(fac, op):
-            constraint_to_add, _ = self._constraint_spacedim_to_add(fac, op)
+            constraint_to_add, closed_constraint_to_add, _ = self._constraint_spacedim_to_add(fac, op)
             if op == operator.lt:
                 formatted_constraint = "%s < 0" % fac
             elif op == operator.eq:
@@ -1164,7 +1167,7 @@ class ParametricRealField(Field):
             if self._frozen:
                 raise ParametricRealFieldFrozenError("Cannot prove that constraint is implied: {} ".format(formatted_constraint))
             self.polyhedron.add_constraint(constraint_to_add)
-            self.mip.add_constraint(constraint_to_add)
+            self.mip.add_constraint(closed_constraint_to_add)
             #print " add new constraint, %s" %self.polyhedron.constraints()
             logging.info("New constraint: {}".format(formatted_constraint))
             if op == operator.lt:
