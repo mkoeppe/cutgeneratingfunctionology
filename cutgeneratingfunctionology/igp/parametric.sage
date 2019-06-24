@@ -663,8 +663,9 @@ class ParametricRealField(Field):
         self._le_factor = copy(save_le_factor)
         save_polyhedron = self.polyhedron
         self.polyhedron = copy(save_polyhedron)
-        save_mip = self.mip
-        self.mip = copy(save_mip)
+        # copying mip raises TypeError: no default __reduce__ due to non-trivial __cinit__
+        # save_mip = self.mip
+        # self.mip = copy(save_mip)
         save_monomial_list = self.monomial_list
         self.monomial_list = copy(self.monomial_list)
         save_v_dict = self.v_dict
