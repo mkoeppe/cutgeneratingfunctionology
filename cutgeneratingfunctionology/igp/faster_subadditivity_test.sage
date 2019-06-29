@@ -1,6 +1,6 @@
 from itertools import chain
 
-import Queue as queue
+import queue as queue
 import itertools
 import numpy as np
 
@@ -29,7 +29,7 @@ def projections_new(vertices):
     Computes `F(I,J,K)`.
     """
     if vertices:
-        l=zip(*vertices)
+        l=list(zip(*vertices))
         return [[min(l[0]),max(l[0])],[min(l[1]),max(l[1])],[min(l[2]),max(l[2])]]
 
 class SubadditivityTestTreeNode :
@@ -181,7 +181,7 @@ class SubadditivityTestTreeNode :
             new_bkpt=self.K_bkpts()[floor(len(self.K_bkpts())/2)]
             return [self.intervals[0],self.intervals[1],[self.intervals[2][0],new_bkpt]],[self.intervals[0],self.intervals[1],[new_bkpt,self.intervals[2][1]]]
         else:
-            raise ValueError, "Indivisible Region."
+            raise ValueError("Indivisible Region.")
 
     def is_divisible(self):
         if len(self.I_bkpts())==2 and len(self.J_bkpts())==2 and len(self.K_bkpts())==2:
@@ -263,7 +263,7 @@ class SubadditivityTestTree :
                     else:
                         self.unfathomed_node_list.put((node.right_child.delta_pi_upper_bound(),node.right_child))
                 else:
-                    raise ValueError, "Can't recognize search_method."
+                    raise ValueError("Can't recognize search_method.")
                 self.height=max(self.height,node.left_child.level)
                 self.complete_node_set.update({node.left_child,node.right_child})
                 self.leaf_set.discard(node)
@@ -286,7 +286,7 @@ class SubadditivityTestTree :
         elif search_method=='BB':
             self.unfathomed_node_list.put((self.root.delta_pi_lower_bound(**kwds),self.root))
         else:
-            raise ValueError, "Can't recognize search_method."
+            raise ValueError("Can't recognize search_method.")
         while not self.unfathomed_node_list.empty():
             current_node=self.unfathomed_node_list.get()[1]
             for v in current_node.vertices:
@@ -310,7 +310,7 @@ class SubadditivityTestTree :
         elif search_method=='BB':
             self.unfathomed_node_list.put((self.root.delta_pi_lower_bound(**kwds),self.root))
         else:
-            raise ValueError, "Can't recognize search_method."
+            raise ValueError("Can't recognize search_method.")
         while not self.unfathomed_node_list.empty():
             current_node=self.unfathomed_node_list.get()[1]
             upper_bound=current_node.delta_pi_upper_bound()
@@ -327,7 +327,7 @@ class SubadditivityTestTree :
         elif search_method=='BB':
             self.unfathomed_node_list.put((self.root.delta_pi_lower_bound(**kwds),self.root))
         else:
-            raise ValueError, "Can't recognize search_method."
+            raise ValueError("Can't recognize search_method.")
         while not self.unfathomed_node_list.empty():
             current_node=self.unfathomed_node_list.get()[1]
             if current_node.is_divisible():
@@ -535,7 +535,7 @@ def find_best_slope_intercept(X,Y,lower_bound=True,solver='Coin',norm='one'):
             for i in range(len(X)):
                 p.add_constraint(z>=m*X[i]+b-Y[i]>=0)
     else:
-        raise ValueError, "Can't recognize norm."
+        raise ValueError("Can't recognize norm.")
     p.solve()
     return p.get_values(m),p.get_values(b)
 
@@ -619,7 +619,7 @@ def find_branching_bkpt(fn,I_index,extended=False,branching_point_selection='med
                 best_bkpt=bkpts[k]
         return best_bkpt
     else:
-        raise ValueError, "Can't recognize branching_point_selection."
+        raise ValueError("Can't recognize branching_point_selection.")
 
 def find_branching_direction(fn,I,J,K,I_index,J_index,K_index):
     lenI=I[1]-I[0]
@@ -667,7 +667,7 @@ def delta_pi_min(fn,I,J,K,approximation='constant',norm='one',branching_point_se
         if lower_bound>0:
             return lower_bound
     else:
-        raise ValueError, "Can't recognize approximation."
+        raise ValueError("Can't recognize approximation.")
     upper_bound=min(delta_pi(fn,v[0],v[1]) for v in vertices)
     if upper_bound<0:
         return upper_bound
