@@ -246,7 +246,7 @@ class SubadditivityTestTree:
         self.complete_node_set=set([self.root])
         self.leaf_set=set([self.root])
         # the order of unfathomed nodes matters, like DFS or BFS
-        self.unfathomed_node_list=queue.PriorityQueue()
+        self.unfathomed_node_list=queue.PriorityQueue()    # FIXME: Not compatible with python3 because nodes are not comparable - see https://docs.python.org/3/library/queue.html
         self.nonsubadditive_vertices=set()
         self.additive_vertices=set()
         self.maximal_additive_faces=set()
