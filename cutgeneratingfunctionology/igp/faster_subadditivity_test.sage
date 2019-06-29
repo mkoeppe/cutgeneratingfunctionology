@@ -214,7 +214,27 @@ class SubadditivityTestTreeNode :
             return True
 
 
-class SubadditivityTestTree :
+class SubadditivityTestTree:
+
+    """
+    Class for spatial branch and bound for subadditivity testing.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: h = not_minimal_1()
+        sage: T = SubadditivityTestTree(h, objective_limit=-1000)
+        sage: T.minimum(max_number_of_bkpts=0, search_method='BB')
+        -1/5
+        sage: T = SubadditivityTestTree(h)
+        sage: T.is_subadditive()
+        False
+        sage: h = kzh_7_slope_1()
+        sage: T = SubadditivityTestTree(h)
+        sage: T.is_subadditive()
+        True
+    """
 
     def __init__(self,fn,intervals=[[0,1],[0,1],[0,2]],global_upper_bound=0,objective_limit=0):
         self.function=fn
@@ -442,15 +462,28 @@ def find_bkpts_index_from_zero_to_one(bkpts,interval):
         i=i+1
     return i,j
 
-def plot_2d_regions(fn,colorful=False,search_method='BB',find_min=True,stop_only_if_strict=True,**kwds):
+def plot_2d_regions(fn,colorful=False,search_method='BB',find_min=True,stop_only_if_strict=True, show_plots=True, **kwds):
+    # FIXME: This should really be integrated to the class via 'show_plots'.
+    """
+    Visualize the subadditivity test based on spatial branch and bound.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: h = kzh_7_slope_1()
+        sage: plot_2d_regions(h, colorful=True)      # not tested
+    """
     T=SubadditivityTestTree(fn)
     p=Graphics()
     # current_level=T.complete_node_set results in error: Set changed size during iteration
     current_level=set([T.root])
+    level_index = 0
     while current_level:
         p+=plot_2d_regions_in_one_level(current_level,colorful=colorful)
-        p.show()
+        show_plots(p, show_plots=show_plots, tag='bb-{}'.format(level_index))
         next_level=T.next_level(current_level,search_method=search_method,find_min=find_min,stop_only_if_strict=stop_only_if_strict,**kwds)
+        level_index += 1
         current_level=next_level
 
 def plot_2d_regions_in_one_level(node_set,colorful=False,**kwds):
