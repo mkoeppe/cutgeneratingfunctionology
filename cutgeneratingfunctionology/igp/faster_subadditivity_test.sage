@@ -6,7 +6,7 @@ import numpy as np
 
 def verts_new(I1, J1, K1):
     """
-    Computes the vertices based on `I1, J1` and `K1`.
+    Computes the vertices based on `I1, J1` and `K1` as a list of 3-tuples (x, y, x+y).
     """
     temp =set()
     for i in I1:
@@ -39,7 +39,7 @@ class SubadditivityTestTreeNode :
         self.intervals=intervals
         self.level=level
         self.function=fn
-        self.vertices=verts(*intervals)
+        self.vertices=verts_new(*intervals)
         self.projections=projections(self.vertices)
         self.left_child=None
         self.right_child=None
@@ -644,7 +644,7 @@ def delta_pi_min(fn,I,J,K,approximation='constant',norm='one',branching_point_se
     """
     bkpts1=fn.end_points()
     bkpts2=fn.end_points()[:-1]+[1+bkpt for bkpt in fn.end_points()]
-    vertices=verts(I,J,K)
+    vertices=verts_new(I,J,K)
     if len(vertices)==0:
         return 100
     elif len(vertices)==1:
