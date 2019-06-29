@@ -927,7 +927,7 @@ def plot_directly_covered_intervals(function, uncovered_color='black', labels=No
 
 def number_of_components(fn):
     r"""
-    Returns the number of connected components of fn.
+    Returns the number of connected covered components of fn.
 
     This is an upper bound on ``number_of_slopes``.
 
