@@ -1,4 +1,9 @@
 from six.moves import range
+
+"""
+Catalog of cDFFs.
+"""
+
 def phi_forward_3_slope(b=4/5, lambda_1=4/9, lambda_2=2/3, field=None):
     r"""
     Summary:
@@ -15,7 +20,9 @@ def phi_forward_3_slope(b=4/5, lambda_1=4/9, lambda_2=2/3, field=None):
 
         sage: from cutgeneratingfunctionology.dff import *
         sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
-        sage: h=phi_forward_3_slope()
+        sage: h = phi_forward_3_slope()
+        sage: maximality_test_dff(h)
+        True
         sage: extremality_test_dff(h)
         False
 
@@ -78,13 +85,37 @@ def phi_2_slope(b=3/5, lambda_1=1/6, field=None):
 
 def w_2slope_3covered_nonextreme():
     r"""
-    A continuous 2-slope nonextreme function with 3 covered components. 
+    A continuous 2-slope nonextreme function with 3 covered components.
+
+    TESTS::
+
+        sage: from cutgeneratingfunctionology.dff import *
+        sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
+        sage: phi = w_2slope_3covered_nonextreme()
+        sage: maximality_test_dff(phi)
+        True
+        sage: extremality_test_dff(phi)
+        False
+        sage: number_of_components(phi)
+        3
+        sage: generate_uncovered_components(phi)
+        []
     """
     return FastPiecewise([[(QQ(0), 1/10), FastLinearFunction(QQ(0), QQ(0))], [(1/10, 3/20), FastLinearFunction(5/2, -1/4)], [(3/20, 1/4), FastLinearFunction(QQ(0), 1/8)], [(1/4, 7/20), FastLinearFunction(5/2, -1/2)], [(7/20, 2/5), FastLinearFunction(QQ(0), 3/8)], [(2/5, 9/20), FastLinearFunction(5/2, -5/8)], [(9/20, 11/20), FastLinearFunction(QQ(0), 1/2)], [(11/20, 3/5), FastLinearFunction(5/2, -7/8)], [(3/5, 13/20), FastLinearFunction(QQ(0), 5/8)], [(13/20, 3/4), FastLinearFunction(5/2, -QQ(1))], [(3/4, 17/20), FastLinearFunction(QQ(0), 7/8)], [(17/20, 9/10), FastLinearFunction(5/2, -5/4)], [(9/10, QQ(1)), FastLinearFunction(QQ(0), QQ(1))]])  
 
 def w_2slope_3covered():
     r"""
     A continuous 2-slope extreme function with 3 covered components.
+
+    TESTS::
+
+        sage: from cutgeneratingfunctionology.dff import *
+        sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
+        sage: phi = w_2slope_3covered()
+        sage: maximality_test_dff(phi)
+        True
+        sage: extremality_test_dff(phi)
+        True
     """
     return FastPiecewise([[(QQ(0), 1/14), FastLinearFunction(QQ(0), QQ(0))], [(1/14, 3/28), FastLinearFunction(7/3, -1/6)], [(3/28, 5/28), FastLinearFunction(QQ(0), 1/12)], [(5/28, 1/4), FastLinearFunction(7/3, -1/3)], [(1/4, 2/7), FastLinearFunction(QQ(0), 1/4)], [(2/7, 9/28), FastLinearFunction(7/3, -5/12)], [(9/28, 11/28), FastLinearFunction(QQ(0), 1/3)], [(11/28, 3/7), FastLinearFunction(7/3, -7/12)], [(3/7, 13/28), FastLinearFunction(QQ(0), 5/12)], [(13/28, 15/28), FastLinearFunction(7/3, -2/3)], [(15/28, 4/7), FastLinearFunction(QQ(0), 7/12)], [(4/7, 17/28), FastLinearFunction(7/3, -3/4)], [(17/28, 19/28), FastLinearFunction(QQ(0), 2/3)], [(19/28, 5/7), FastLinearFunction(7/3, -11/12)], [(5/7, 3/4), FastLinearFunction(QQ(0), 3/4)], [(3/4, 23/28), FastLinearFunction(7/3, -QQ(1))], [(23/28, 25/28), FastLinearFunction(QQ(0), 11/12)], [(25/28, 13/14), FastLinearFunction(7/3, -7/6)], [(13/14, QQ(1)), FastLinearFunction(QQ(0), QQ(1))]])
 
@@ -100,13 +131,22 @@ def phi_bj_1(c=3/2):
     Parameters:
         c (real) \in [1,positive infinity).
 
-    Examples:
-        [1] p.25, Fig 2.4 ::
+    EXAMPLES:
+
+    [1] p.25, Fig 2.4 ::
 
             sage: from cutgeneratingfunctionology.dff import *
             sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
             sage: h=phi_bj_1(3/2)
             sage: superadditive_test(h)
+            True
+            sage: extremality_test_dff(h)
+            False
+
+    Extreme case::
+
+            sage: h=phi_bj_1(5/2)
+            sage: extremality_test_dff(h)
             True
 
     References:
@@ -139,6 +179,8 @@ def phi_simple(c=3/2):
             sage: h=phi_simple(3/2)
             sage: superadditive_test(h)
             True
+            sage: maximality_test_dff(h)
+            False
 
     References:
    
@@ -327,7 +369,7 @@ def phi_ll_2(c=3/2,k=5):
         k (positive integer);
         c (real) \in [1,positive infinity).
 
-    Function is know to be maximal under the conditions:
+    Function is known to be maximal under the conditions:
         c is not an integer and k >= ceil(1/frac(c))
 
     Examples:
@@ -338,6 +380,8 @@ def phi_ll_2(c=3/2,k=5):
             sage: h=phi_ll_2(3/2, 5)
             sage: maximality_test_dff(h)
             True
+            sage: extremality_test_dff(h)
+            False
 
     References:
    
@@ -409,6 +453,8 @@ def phi_dg_1(c=3/2,k=5):
             sage: from cutgeneratingfunctionology.dff import *
             sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
             sage: h=phi_dg_1(3/2, 5)
+            sage: maximality_test_dff(h)
+            True
             sage: extremality_test_dff(h)
             False
 

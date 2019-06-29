@@ -1,6 +1,23 @@
 from six.moves import range
 
+"""
+Code for general DFFs (domain R).
+"""
+
 def phi_bj_1_quasi(c=3/2):
+    r"""
+    Quasiperiodic gDFF.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.dff import *
+        sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
+        sage: phi = phi_bj_1_quasi()
+        sage: restricted_maximality_test_quasi(phi)
+        True
+        sage: strong_maximality_test_quasi(phi)
+        True
+    """
     n=floor(c)
     beta=c-n
     a=beta/c
@@ -25,7 +42,8 @@ def strongly_maximality_test_quasi(phi):
     else:
         return True
 
-    
+# legacy name
+strong_maximality_test_quasi = strongly_maximality_test_quasi
 
 def maximality_test_quasi(phi):
     bkpt=phi.end_points()
@@ -66,8 +84,10 @@ def maximality_test_quasi(phi):
          
 
 
-def phi_bj_1_gdff(c=3/2,periods=3):
+def phi_bj_1_gdff(c=3/2, periods=3):
     r"""
+    Quasiperiodic gDFF (restricted to a finite number of periods).
+
     Summary:
         - Name: f_BJ_1;
         - Dim= 1; Slopes = 2; Continuous;
@@ -113,9 +133,25 @@ def phi_bj_1_gdff(c=3/2,periods=3):
 
 
 
-def phi_s_delta(delta=1/10, s=3/2,inf=5):
+def phi_s_delta(delta=1/10, s=3/2, inf=5):
     r"""
-    Create a family of piecewise linear general DFFs, which have breakpoints: [-inf,-delta, 0, delta, 1-delta,1,1+delta,inf] and slopes: [s,2s,0,1/(1-s*delta),0,2s,s] in each affine piece. The function is maximal if delta is small and s is large.
+    A restricted maximal continuous piecewise linear gDFF used in the proof of the approximation theorem.
+
+    The function has domain R and is linear outside the interval [-delta, 1+delta].
+    It is represented by its restriction to a finite interval [-inf, inf].
+
+    The breakpoints are: [-inf,-delta, 0, delta, 1-delta,1,1+delta,inf] and slopes: [s,2s,0,1/(1-s*delta),0,2s,s] in each affine piece. 
+
+    The function is maximal if delta is small and s is large.
+
+    EXAMPLES:
+
+    Default parameters satisfy the conditions from the proof of the approximation theorem::
+
+        sage: delta = 1/10
+        sage: s = 3/2
+        sage: s > 1 and 0 < delta < min((s - 1) / (2 * s), 1/3)
+        True
 
     """
     s_m=1/(1-2*delta)
@@ -126,9 +162,20 @@ def phi_s_delta(delta=1/10, s=3/2,inf=5):
     values =[v1, -delta*s1, 0, 0, 1, 1, 1+delta*s1, v2]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)    
 
-def is_superadditive_almost_strict(delta=1/10,s=3/2,inf=5):
+def is_superadditive_almost_strict(delta=1/10, s=3/2, inf=5):
     r"""
-    Check if the special general DFF is almost strictly superadditive, which means that \phi(x+y)-\phi(x)-\phi(y)>t for (x,y) not near three lines: x=0, y=0, x+y=1.
+    Check if the special general DFF ``phi_s_delta`` from the proof
+    of the approximation theorem is almost strictly superadditive, which
+    means that `\phi(x+y)-\phi(x)-\phi(y)>t` for `(x,y)` not near three
+    lines: `x=0`, `y=0`, `x+y=1`.
+
+    EXAMPLES:
+
+    Default parameters::
+
+        sage: from cutgeneratingfunctionology.dff import is_superadditive_almost_strict
+        sage: is_superadditive_almost_strict()
+        True
     """
     phi=phi_s_delta(delta, s,inf)
     # Here we choose t=delta as the threshold of strict superadditivity.
@@ -153,6 +200,11 @@ def is_superadditive_almost_strict(delta=1/10,s=3/2,inf=5):
                 if phi(x)+phi(y)>phi(z)-t:
                     return False
     return True
+
+"""
+gDFFs that are linear outside of a compact interval.
+"""
+
 
 def maximality_test_gdff_linear(phi):
     r"""

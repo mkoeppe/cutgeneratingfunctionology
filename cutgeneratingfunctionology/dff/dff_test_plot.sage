@@ -1,17 +1,31 @@
+"""
+Classic Dual-Feasible Functions (cDFF):  Maximality and extremality test; plotting.
+"""
+
 from six.moves import range
+
 def maximality_test_dff(f):
+    """
+    Test whether a piecewise linear cDFF is maximal.
+    """
     if f.is_continuous():
         return maximality_test_continuous_dff(f)
     else:
         return maximality_test_general_dff(f)
 
 def extremality_test_dff(f):
+    """
+    Test whether a piecewise linear cDFF is extreme.
+    """
     if f.is_continuous():
         return extremality_test_continuous_dff(f)
     else:
         return extremality_test_general_dff(f)
 
 def superadditive_test(f):
+    """
+    Test whether a piecewise linear cDFF is superadditive.
+    """
     if f.is_continuous():
         return superadditivity_test_continuous(f)
     else:
@@ -189,7 +203,7 @@ def generate_additivity_equations_dff_continuous(function, symbolic, field):
 def extremality_test_continuous_dff(fn):
     r"""Still in progress
     """
-    covered_intervals=generate_covered_intervals(fn)
+    covered_intervals=generate_covered_intervals(fn)        # FIXME: DFF?
     uncovered_intervals=generate_uncovered_intervals(fn)
     if not maximality_test_continuous_dff(fn):
         logging.info("Not maximal, thus NOT extreme.")
@@ -428,6 +442,7 @@ def plot_2d_diagram_dff(fn, show_function=True, show_projections=True, known_max
     return p
 
 def plot_2d_diagram_dff_no_lable(fn, show_function=True, show_projections=True, known_maximal=False, colorful=False):
+    # Version of plot_2d_diagram_dff without legend_label.
     faces = generate_maximal_additive_faces_dff(fn)
     p = Graphics()
     if colorful:
@@ -499,6 +514,7 @@ def plot_2d_diagram_dff_no_lable(fn, show_function=True, show_projections=True, 
 
 
 def plot_projections_at_borders_no_lable(fn):
+    # Copy of plot_projections_of_faces from functions.sage that does not do legend_label
     r"""
     Plot the projections p1(F), p2(F), p3(F) of all full-dimensional
     additive faces F of `fn` as gray shadows: p1(F) at the top border,
@@ -545,6 +561,7 @@ def plot_projections_at_borders_no_lable(fn):
 
 
 def plot_function_at_borders_no_lable(fn, color='blue', covered_components=None):
+    # Copy of plot_function_at_borders which does not add 'legend_label'.
     r"""
     Plot the function twice, on the upper and the left border, 
     to decorate 2d diagrams.
@@ -643,10 +660,15 @@ def plot_2d_diagram_with_cones_dff(fn, show_function=True):
     return g
 
 def generate_maximal_additive_faces_dff(fn):
+    if hasattr(fn, '_maximal_additive_faces'):
+        return fn._maximal_additive_faces
     if fn.is_continuous():
         result = generate_maximal_additive_faces_continuous_dff(fn)
     else:
         result = generate_maximal_additive_faces_general_dff(fn)
+    # FIXME: The following line is crucial.
+    # Various functions from the IGP module are reused
+    # and will only give correct results for DFF if this attribute is precomputed!
     fn._maximal_additive_faces = result
     return result
 

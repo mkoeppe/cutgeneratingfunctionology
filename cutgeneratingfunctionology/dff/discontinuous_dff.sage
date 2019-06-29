@@ -1,3 +1,11 @@
+r"""
+Classic DFFs, case of discontinuous piecewise functions.
+
+The word "general" in this file refers to the (possibly) discontinuous
+case, not to "general DFFs" (gDFFs).
+"""
+
+
 from six.moves import range
 from six.moves import zip
 nonzero_eps = { (-1,-1,-1), (-1, 1,-1), (-1, 1, 1), (-1, 1, 0), (-1, 0,-1), ( 1,-1,-1), \
