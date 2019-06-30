@@ -84,6 +84,8 @@ def search_example_general_dff(q):
             yield h
 
 
+## Another implmementation, using PPL.
+
 def initial_cs_dff(q):
     cs=Constraint_System()
     fn=[Variable(i) for i in range(q+1)]
@@ -143,6 +145,8 @@ def search_kslope_example_general_dff(k_slopes,q):
         uncovered_intervals=generate_uncovered_intervals(h)
         if not uncovered_intervals:
             yield h   
+
+##
 
 def h_from_vertex_values_general(l):
     q=(len(l)+1)/3
