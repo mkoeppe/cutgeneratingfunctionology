@@ -1,5 +1,20 @@
 from six.moves import range
 def search_example_continuous_dff(q):
+    """
+    Generator for the extreme continuous piecewise linear cDFFs on the 1/q grid.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.dff import *
+        sage: logging.disable(logging.WARN)   # Suppress output in automatic tests.
+        sage: max_q = 13
+        sage: dffs_by_q = [ list(search_example_continuous_dff(q)) for q in range(max_q+1) ]
+        sage: [ len(dffs) for dffs in dffs_by_q ]
+        [0, 1, 1, 1, 1, 2, 1, 3, 3, 3, 3, 7, 6, 8]
+        sage: [ len([ phi for phi in dffs if not is_bj(phi) ]) for dffs in dffs_by_q ]
+        [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 4, 2]
+
+    """
     lp = MixedIntegerLinearProgram(base_ring=QQ)
     x = lp.new_variable()
     for i in range(q+1):
@@ -16,11 +31,25 @@ def search_example_continuous_dff(q):
     v=p.vertices()
     for k in range(len(v)):
         h=h_from_vertex_values(v[k])
+        generate_maximal_additive_faces_dff(h)  # set attribute
         uncovered_intervals=generate_uncovered_intervals(h)
         if not uncovered_intervals:
             yield h
 
 def search_example_general_dff(q): 
+    """
+    Generator for the extreme, possibly discontinuous piecewise linear cDFFs on the 1/q grid.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.dff import *
+        sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
+        sage: max_q = 7
+        sage: dffs_by_q = [ list(search_example_general_dff(q)) for q in range(max_q+1) ]
+        sage: [ len(dffs) for dffs in dffs_by_q ]
+        [1, 1, 2, 3, 7, 11, 14, 44]
+    """
+
     lp = MixedIntegerLinearProgram(base_ring=QQ)
     fn = lp.new_variable()
     for i in range(3*q-1):
@@ -49,6 +78,7 @@ def search_example_general_dff(q):
     v=p.vertices()
     for k in range(len(v)):
         h=h_from_vertex_values_general(v[k])
+        generate_maximal_additive_faces_dff(h)  # set attribute
         uncovered_intervals=generate_uncovered_intervals(h)
         if not uncovered_intervals:
             yield h
