@@ -33,7 +33,7 @@ def restricted_maximality_test_quasi(phi):
     else:
         return False
 
-def strongly_maximality_test_quasi(phi):
+def strong_maximality_test_quasi(phi):
     if not restricted_maximality_test_quasi(phi):
         return False
     limit_values=phi.limits_at_end_points()
@@ -43,7 +43,7 @@ def strongly_maximality_test_quasi(phi):
         return True
 
 # legacy name
-strong_maximality_test_quasi = strongly_maximality_test_quasi
+strongly_maximality_test_quasi = strong_maximality_test_quasi
 
 def maximality_test_quasi(phi):
     bkpt=phi.end_points()
