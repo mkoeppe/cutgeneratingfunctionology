@@ -200,20 +200,28 @@ def generate_additivity_equations_dff_continuous(function, symbolic, field):
 
 
 
-def extremality_test_continuous_dff(fn):
-    r"""Still in progress
+def extremality_test_continuous_dff(fn, show_plots=False):
+    r"""
+    DFF extremality test, continuous case.
     """
-    covered_intervals=generate_covered_intervals(fn)        # FIXME: DFF?
-    uncovered_intervals=generate_uncovered_intervals(fn)
     if not maximality_test_continuous_dff(fn):
         logging.info("Not maximal, thus NOT extreme.")
         return False
+    # Generate the maximal additive faces, which will set the attribute.
+    # This is not strictly necessary because, due to the symmetry condition,
+    # IGP faces (I, J, K) with K subset of [1,2]
+    # map to (1-I, 1-J, 2-K), where K subset of [0,1]. 
+    # Hence the covered components are exactly the same as those
+    # that would be computed by igp.generate_maximal_additive_faces().
+    generate_maximal_additive_faces_dff(fn)
+    covered_intervals=generate_covered_intervals(fn)
+    uncovered_intervals=generate_uncovered_intervals(fn)
     if uncovered_intervals:
         gen=generate_perturbations_equivariant_continuous_dff(fn)
         for perturbation in gen:
             epsilon_interval = find_epsilon_interval_continuous_dff(fn, perturbation)
             epsilon = min(abs(epsilon_interval[0]), abs(epsilon_interval[1]))
-            if epsilon>0:
+            if epsilon>0:   # FIXME: Should be an assertion!
                 logging.info("Not extreme")
                 return False
     gen=generate_perturbations_finite_dimensional_continuous_dff(fn)
@@ -349,7 +357,7 @@ def plot_2d_complex_dff(function,show_tag=True):
     bkpt = function.end_points()
     x = var('x')
     p = Graphics()
-    kwd = ticks_keywords(function, True)
+    kwd = ticks_keywords(function, True)  # FIXME: This is for IGP and a warning from find_f will be generated
     if show_tag:
         kwd['legend_label'] = "Complex Delta pi"
     plot_kwds_hook(kwd)
@@ -674,20 +682,26 @@ def generate_maximal_additive_faces_dff(fn):
 
 
 def generate_maximal_additive_faces_continuous_dff(function):
+    """
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.dff import *
+        sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
+        sage: h=phi_bj_1(3/2)
+        sage: generate_maximal_additive_faces_continuous_dff(h)
+        [<Face ([0, 1/3], [0, 1/3], [0, 1/3])>,
+         <Face ([0], [1/3, 2/3], [1/3, 2/3])>,
+         <Face ([1/3, 2/3], [0], [1/3, 2/3])>,
+         <Face ([0, 1/3], [2/3, 1], [2/3, 1])>,
+         <Face ([2/3, 1], [0, 1/3], [2/3, 1])>,
+         <Face ([1/3, 2/3], [1/3, 2/3], [1])>]
+    """
     logging.info("Computing maximal additive faces...")
     bkpt = function.end_points()     
-   
-    I_list = []
-    J_list = []
-    K_list = []
-    
     intervals = []
-    
     for i in range(len(bkpt)-1):
         intervals.append([bkpt[i],bkpt[i+1]])
-    I_list = intervals
-    J_list = intervals
-    K_list = intervals
+    I_list = J_list = K_list = intervals
     
     additive_face = {}
     additive_vertices = {}
@@ -697,7 +711,7 @@ def generate_maximal_additive_faces_continuous_dff(function):
             IplusJ = interval_sum(I_list[i],J_list[j])
             for k in generate_overlapping_interval_indices(IplusJ, bkpt):
                 # Check if int(I+J) intersects int(K) is non-empty.
-                if len(interval_intersection(interval_sum(I_list[i],J_list[j]),K_list[k])) == 2:
+                if len(interval_intersection(IplusJ, K_list[k])) == 2:
                     temp_verts = verts(I_list[i],J_list[j],K_list[k])
                     temp = []
                     keep = False
@@ -707,6 +721,7 @@ def generate_maximal_additive_faces_continuous_dff(function):
                                 temp.append(vertex)
                                 keep = True
                     if len(temp) == 2:
+                        # edge
                         if temp[0][0] == temp[1][0]:
                             if temp[1][0] == I_list[i][0]:
                                 if (i-1,j,k) in additive_face:
@@ -720,9 +735,13 @@ def generate_maximal_additive_faces_continuous_dff(function):
                             else:
                                 keep = False
                         elif temp[0][0] + temp[0][1] == temp[1][0] + temp[1][1]: 
+                            # diagonal
                             if temp[1][0] + temp[1][1] == K_list[k][0]:
                                 if (i,j,k-1) in additive_face:
                                     keep = False
+                            elif temp[1][0] + temp[1][1] == 1:
+                                # Part of the big diagonal edge!
+                                pass
                             else:
                                 keep = False
                         else:
