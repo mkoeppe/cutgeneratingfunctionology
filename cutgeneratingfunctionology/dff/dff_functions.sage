@@ -576,4 +576,16 @@ def phi_dg_1(c=3/2, k=5):
     return FastPiecewise(pieces)
 
 
+def phi_x():
+    """
+    The trivial cDFF phi(x) = x.
 
+    TESTS::
+
+        sage: from cutgeneratingfunctionology.dff import *
+        sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
+        sage: phi = phi_x()
+        sage: extremality_test_dff(phi)
+        True
+    """
+    return piecewise_function_from_breakpoints_and_values([0, 1], [0, 1])
