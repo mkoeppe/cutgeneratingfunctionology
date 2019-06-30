@@ -763,13 +763,19 @@ def generate_covered_components(function):
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = hildebrand_discont_3_slope_1()
         sage: generate_covered_components(h)
         [[<Int(0, 1/8)>, <Int(3/8, 1/2)>],
          [<Int(1/8, 3/8)>, <Int(1/2, 5/8)>, <Int(7/8, 1)>],
          [<Int(5/8, 7/8)>]]
+
+    Also covered components that come from the strip lemma
+    in the irrational case are included::
+
+        sage: h = bhk_irrational()
+        sage: len(generate_covered_components(h))
+        3
     """
     if hasattr(function,  "_completion"):
         return function._completion.covered_components
