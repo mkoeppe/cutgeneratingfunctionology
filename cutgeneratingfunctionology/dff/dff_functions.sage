@@ -6,6 +6,13 @@ Catalog of cDFFs.
 
 def phi_forward_3_slope(b=4/5, lambda_1=4/9, lambda_2=2/3, field=None):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_forward_3_slope()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Dim = 1; Slopes = 3; Continuous. 
 
@@ -14,7 +21,7 @@ def phi_forward_3_slope(b=4/5, lambda_1=4/9, lambda_2=2/3, field=None):
         lambda_1, lambda_2 (real) in (0,1].
 
     Function is known to be extreme under the conditions:
-        0 <= lambda_1 <= 1/2, 0 <= lambda_2 <= 1, b>3, 0 < lambda_1 * f + lambda_2 * (f - 1) < lambda_1 * f, f=frac(b).
+        0 <= lambda_1 <= 1/2, 0 <= lambda_2 <= 1, b>3, 0 < lambda_1 * f + lambda_2 * (f - 1) < lambda_1 * f, f = frac(b).
 
     Examples::
 
@@ -25,6 +32,12 @@ def phi_forward_3_slope(b=4/5, lambda_1=4/9, lambda_2=2/3, field=None):
         True
         sage: extremality_test_dff(h)
         False
+
+    Extreme case::
+
+        sage: h = phi_forward_3_slope(b=19/5, lambda_1=4/9, lambda_2=2/3)
+        sage: extremality_test_dff(h)
+        True
 
     """
     n=floor(b)
@@ -48,6 +61,13 @@ def phi_forward_3_slope(b=4/5, lambda_1=4/9, lambda_2=2/3, field=None):
 
 def phi_2_slope(b=3/5, lambda_1=1/6, field=None):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_2_slope()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Dim = 1; Slopes = 2; Continuous. 
 
@@ -85,7 +105,16 @@ def phi_2_slope(b=3/5, lambda_1=1/6, field=None):
 
 def w_2slope_3covered_nonextreme():
     r"""
-    A continuous 2-slope nonextreme function with 3 covered components.
+    A continuous 2-slope nonextreme cDFF with 3 covered components.
+
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = w_2slope_3covered_nonextreme()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
+    Constructed by Jiawei Wang (2018).
 
     TESTS::
 
@@ -105,7 +134,16 @@ def w_2slope_3covered_nonextreme():
 
 def w_2slope_3covered():
     r"""
-    A continuous 2-slope extreme function with 3 covered components.
+    A continuous 2-slope extreme cDFF with 3 covered components.
+
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = w_2slope_3covered()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
+    Constructed by Jiawei Wang (2018).
 
     TESTS::
 
@@ -116,12 +154,21 @@ def w_2slope_3covered():
         True
         sage: extremality_test_dff(phi)
         True
+        sage: number_of_components(phi)
+        3
     """
     return FastPiecewise([[(QQ(0), 1/14), FastLinearFunction(QQ(0), QQ(0))], [(1/14, 3/28), FastLinearFunction(7/3, -1/6)], [(3/28, 5/28), FastLinearFunction(QQ(0), 1/12)], [(5/28, 1/4), FastLinearFunction(7/3, -1/3)], [(1/4, 2/7), FastLinearFunction(QQ(0), 1/4)], [(2/7, 9/28), FastLinearFunction(7/3, -5/12)], [(9/28, 11/28), FastLinearFunction(QQ(0), 1/3)], [(11/28, 3/7), FastLinearFunction(7/3, -7/12)], [(3/7, 13/28), FastLinearFunction(QQ(0), 5/12)], [(13/28, 15/28), FastLinearFunction(7/3, -2/3)], [(15/28, 4/7), FastLinearFunction(QQ(0), 7/12)], [(4/7, 17/28), FastLinearFunction(7/3, -3/4)], [(17/28, 19/28), FastLinearFunction(QQ(0), 2/3)], [(19/28, 5/7), FastLinearFunction(7/3, -11/12)], [(5/7, 3/4), FastLinearFunction(QQ(0), 3/4)], [(3/4, 23/28), FastLinearFunction(7/3, -QQ(1))], [(23/28, 25/28), FastLinearFunction(QQ(0), 11/12)], [(25/28, 13/14), FastLinearFunction(7/3, -7/6)], [(13/14, QQ(1)), FastLinearFunction(QQ(0), QQ(1))]])
 
 
 def phi_bj_1(c=3/2):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_bj_1()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Name: f_BJ_1;
         - Dim= 1; Slopes = 2; Continuous;
@@ -164,6 +211,13 @@ def phi_bj_1(c=3/2):
 
 def phi_simple(c=3/2):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_simple()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=False)
+        sphinx_plot(g)
+
     Summary:
         - Dim= 1; Slopes = 1; Discontinuous;
         - Not maximal.     
@@ -199,6 +253,13 @@ def phi_simple(c=3/2):
 
 def phi_ccm_1(c=3/2):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_ccm_1()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Name: f_CCM_1;
         - Dim= 1; Slopes = 1; Discontinuous;
@@ -240,6 +301,13 @@ def phi_ccm_1(c=3/2):
 
 def phi_fs_1(k=3):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_fs_1()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Name: f_FS_1;
         - Dim= 1; Slopes = 1; Discontinuous.    
@@ -271,6 +339,13 @@ def phi_fs_1(k=3):
 
 def phi_vb_2(k=3):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_vb_2()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Name: f_VB_2;
         - Dim= 1; Slopes = 1; Discontinuous;  
@@ -321,6 +396,13 @@ def phi_vb_2(k=3):
 
 def phi_ll_1(c=3/2,k=5):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_ll_1()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Name: f_LL_1;
         - Dim= 1; Slopes = 1; Discontinuous.    
@@ -361,6 +443,13 @@ def phi_ll_1(c=3/2,k=5):
 
 def phi_ll_2(c=3/2,k=5):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_ll_2()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Name: f_LL_2;
         - Dim= 1; Slopes = 1; Discontinuous.    
@@ -434,8 +523,15 @@ def phi_ll_2(c=3/2,k=5):
         pieces.append([closed_interval(1-(m-i-1)/c-l1,1-(m-i-1)/c), FastLinearFunction(0,1-(m-1-i)/n)])    
     return FastPiecewise(pieces)
 
-def phi_dg_1(c=3/2,k=5):
+def phi_dg_1(c=3/2, k=5):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_dg_1()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Name: f_DG_1;
         - Dim= 1; Slopes = 1; Discontinuous.    
