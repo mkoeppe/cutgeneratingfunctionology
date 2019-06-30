@@ -792,16 +792,23 @@ def generate_covered_components(function):
     if strategical_covered_components:
         covered_components = generate_covered_components_strategically(function)
         return covered_components
+    # Rational case.  We run a special version of the code in
+    # generate_directed_move_composition_completion here,
+    # which only runs extend_components_by_moves and does not
+    # supply proj_add_vert.  (Why?)
+    #proj_add_vert = projections_of_additive_vertices(function)
     functional_directed_moves = generate_functional_directed_moves(function)
     covered_components = generate_directly_covered_components(function)
     completion = DirectedMoveCompositionCompletion(functional_directed_moves,
                                                    covered_components=covered_components,
+                                                   #proj_add_vert=proj_add_vert,
                                                    function=function)
     completion.add_backward_moves()
     while completion.any_change_components:
         completion.extend_components_by_moves()
         completion.num_rounds += 1
     completion.is_complete = True
+    #function._completion = completion
     logging.info("Completion finished.  Found %d covered components."
                  % len(completion.covered_components))
     return completion.covered_components
