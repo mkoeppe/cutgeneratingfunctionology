@@ -1,5 +1,5 @@
 import cutgeneratingfunctionology.igp as igp
-from cutgeneratingfunctionology.igp import *
+from cutgeneratingfunctionology.dff import *
 
 try:
     destdir = dff_output_dir
@@ -8,6 +8,8 @@ except Exception:
 
 
 ## Set up style - no "legend"
+
+paper_plot_kwds = {}
 
 def plot_kwds_hook_paper(kwds):
     plot_kwds_hook_no_legend(kwds)
@@ -148,6 +150,13 @@ g.save(destdir + "continuous_2slope_3covered.png")
 
 ## Figure 5
 ##phi_s_delta.png
-## The graph of $\phi_{s,\delta}$ for $s=\frac{1}{5}$ and $\delta=2$
+## The graph of $\phi_{s,\delta}$ for $s=\frac{1}{5}$ and $\delta=2$  <--- Caption was wrong
+
+K = ParametricRealField([QQ('1/5'), 2], names=['delta', 's'])
+delta, s = K.gens()
+phi = phi_s_delta(delta, s)
+g = plot_with_colored_slopes(phi, thickness=2, figsize=(8, 2.5))
+g.save(destdir + "phi_s=2_delta=1_5.png", xmin=-1, xmax=2, ymin=-1.5, ymax=2.5, aspect_ratio=0.3)
+
 
 ## Not used, no script, but in Dropbox: 2d_diagram_phi_s=2_delta=1_5.png

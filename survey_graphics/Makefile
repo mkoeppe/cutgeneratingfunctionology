@@ -41,3 +41,6 @@ algo-paper-graphics: algo-paper-graphics-functions algo-paper-graphics-strip_lem
 
 algo-paper-graphics-%: graphics_for_algo_paper_%.sage
 	(cd .. && sage -c 'sys.path = [""] + sys.path; load("survey_graphics/$<")')
+
+dff-graphics: dff_graphics.sage
+	(cd .. && sage -c 'sys.path = [""] + sys.path; load("survey_graphics/dff_graphics.sage")')
