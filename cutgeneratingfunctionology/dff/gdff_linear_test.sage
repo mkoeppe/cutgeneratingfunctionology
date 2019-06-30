@@ -137,6 +137,17 @@ def phi_s_delta(delta=1/10, s=3/2, inf=5):
     r"""
     A restricted maximal continuous piecewise linear gDFF used in the proof of the approximation theorem.
 
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        import cutgeneratingfunctionology.igp as igp
+        K = ParametricRealField([QQ('1/5'), 2], names=['delta', 's'])
+        delta, s = K.gens()
+        phi = phi_s_delta(delta, s)
+        igp.plot_kwds_hook = plot_kwds_hook_no_legend
+        g = plot_with_colored_slopes(phi, thickness=2, figsize=(8, 2.5))
+        sphinx_plot(g, xmin=-1, xmax=2, ymin=-1.5, ymax=2.5, aspect_ratio=0.3)
+
     The function has domain R and is linear outside the interval [-delta, 1+delta].
     It is represented by its restriction to a finite interval [-inf, inf].
 
@@ -153,6 +164,12 @@ def phi_s_delta(delta=1/10, s=3/2, inf=5):
         sage: s > 1 and 0 < delta < min((s - 1) / (2 * s), 1/3)
         True
 
+    Parameters as in the paper::
+
+        sage: s = 2; delta=1/5
+        sage: s > 1 and 0 < delta < min((s - 1) / (2 * s), 1/3)
+        True
+
     """
     s_m=1/(1-2*delta)
     s1=2*s
@@ -160,9 +177,28 @@ def phi_s_delta(delta=1/10, s=3/2, inf=5):
     v1=-delta*s1-s*(inf-delta)
     v2=1+delta*s1+s*(inf-1-delta)
     values =[v1, -delta*s1, 0, 0, 1, 1, 1+delta*s1, v2]
-    return piecewise_function_from_breakpoints_and_values(bkpt, values)    
+    return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
-def is_superadditive_almost_strict(delta=1/10, s=3/2, inf=5):
+def phi_s_delta_check_claim(delta, s):
+    r"""
+    Check the claim regarding ``phi_s_delta``.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.dff import *
+        sage: logging.disable(logging.INFO)
+        sage: phi_s_delta_check_claim(delta=1/10, s=3/2)
+        True
+
+    """
+    if not (s > 1 and 0 < delta < min((s - 1) / (2 * s), 1/3)):
+        # Outside of region of parameters for which we claim
+        # "almost strict" superadditivity.
+        return 'outside'
+    else:
+        return phi_s_delta_is_superadditive_almost_strict(delta, s)
+
+def phi_s_delta_is_superadditive_almost_strict(delta=1/10, s=3/2, inf=5):
     r"""
     Check if the special general DFF ``phi_s_delta`` from the proof
     of the approximation theorem is almost strictly superadditive, which
@@ -173,9 +209,22 @@ def is_superadditive_almost_strict(delta=1/10, s=3/2, inf=5):
 
     Default parameters::
 
-        sage: from cutgeneratingfunctionology.dff import is_superadditive_almost_strict
+        sage: from cutgeneratingfunctionology.dff import *
+        sage: logging.disable(logging.INFO)
         sage: is_superadditive_almost_strict()
         True
+
+    Computer proof for all parameters.  We work with inv_s = `s^{-1}`
+    instead of `s`.  Then everything lies in the box `0 < s^{-1} < 1`
+    and `0 < \delta < 1/3`::
+
+        sage: def check(delta, inv_s): return phi_s_delta_check_claim(delta, 1/inv_s)
+        sage: complex = SemialgebraicComplex(check, ['delta', 'inv_s'], find_region_type=return_result, default_var_bound=(0, 1))
+        sage: complex.bfs_completion(var_value=[1/2, 1/2], check_completion=False, goto_lower_dim=False)
+        sage: complex.plot()     # not tested
+        sage: all(comp.region_type in {'outside', True} for comp in complex.components)
+        True
+
     """
     phi=phi_s_delta(delta, s,inf)
     # Here we choose t=delta as the threshold of strict superadditivity.
@@ -200,6 +249,9 @@ def is_superadditive_almost_strict(delta=1/10, s=3/2, inf=5):
                 if phi(x)+phi(y)>phi(z)-t:
                     return False
     return True
+
+# This name is used in ...
+is_superadditive_almost_strict = phi_s_delta_is_superadditive_almost_strict
 
 """
 gDFFs that are linear outside of a compact interval.
@@ -302,6 +354,9 @@ def find_0index(phi):
 
 
 def two_slope_approximation_gdff_linear(phi,epsilon):
+    r"""
+    Construct an extreme two-slope approximation to the restricted maximal gDFF phi.
+    """
     bkpt=phi.end_points()
     limiting_values=phi.limits_at_end_points()
     inf=-bkpt[0]
