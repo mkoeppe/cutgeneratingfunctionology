@@ -34,6 +34,7 @@ def superadditive_test(f):
 
 
 def is_equal(f,h):
+    # FIXME: Should fix the problem in FastPiecewise.__eq__ instead.
     bkpt1=f.end_points()
     bkpt2=h.end_points()
     if bkpt1!=bkpt2 or f.limits_at_end_points()!=h.limits_at_end_points():
@@ -221,16 +222,16 @@ def extremality_test_continuous_dff(fn, show_plots=False):
         for perturbation in gen:
             epsilon_interval = find_epsilon_interval_continuous_dff(fn, perturbation)
             epsilon = min(abs(epsilon_interval[0]), abs(epsilon_interval[1]))
-            if epsilon>0:   # FIXME: Should be an assertion!
-                logging.info("Not extreme")
-                return False
-    gen=generate_perturbations_finite_dimensional_continuous_dff(fn)
+            assert epsilon > 0
+            logging.info("Not extreme")
+            return False
+    gen = generate_perturbations_finite_dimensional_continuous_dff(fn)
     for perturbation in gen:
         epsilon_interval = find_epsilon_interval_continuous_dff(fn, perturbation)
         epsilon = min(abs(epsilon_interval[0]), abs(epsilon_interval[1]))
-        if epsilon>0:
-            logging.info("Not extreme")
-            return False
+        assert epsilon > 0
+        logging.info("Not extreme")
+        return False
     logging.info("extreme")
     return True
     
