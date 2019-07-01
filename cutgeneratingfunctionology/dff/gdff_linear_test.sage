@@ -190,6 +190,16 @@ def phi_s_delta_check_claim(delta, s):
         sage: phi_s_delta_check_claim(delta=1/10, s=3/2)
         True
 
+    Computer proof for all parameters.  We work with inv_s = `s^{-1}`
+    instead of `s`.  Then everything lies in the box `0 < s^{-1} < 1`
+    and `0 < \delta < 1/3`::
+
+        sage: def check(delta, inv_s): return phi_s_delta_check_claim(delta, 1/inv_s)
+        sage: complex = SemialgebraicComplex(check, ['delta', 'inv_s'], find_region_type=return_result, default_var_bound=(0, 1))
+        sage: complex.bfs_completion(var_value=[1/2, 1/2], check_completion=False, goto_lower_dim=False)
+        sage: complex.plot()     # not tested
+        sage: all(comp.region_type in {'outside', True} for comp in complex.components)
+        True
     """
     if not (s > 1 and 0 < delta < min((s - 1) / (2 * s), 1/3)):
         # Outside of region of parameters for which we claim
@@ -211,18 +221,7 @@ def phi_s_delta_is_superadditive_almost_strict(delta=1/10, s=3/2, inf=5):
 
         sage: from cutgeneratingfunctionology.dff import *
         sage: logging.disable(logging.INFO)
-        sage: is_superadditive_almost_strict()
-        True
-
-    Computer proof for all parameters.  We work with inv_s = `s^{-1}`
-    instead of `s`.  Then everything lies in the box `0 < s^{-1} < 1`
-    and `0 < \delta < 1/3`::
-
-        sage: def check(delta, inv_s): return phi_s_delta_check_claim(delta, 1/inv_s)
-        sage: complex = SemialgebraicComplex(check, ['delta', 'inv_s'], find_region_type=return_result, default_var_bound=(0, 1))
-        sage: complex.bfs_completion(var_value=[1/2, 1/2], check_completion=False, goto_lower_dim=False)
-        sage: complex.plot()     # not tested
-        sage: all(comp.region_type in {'outside', True} for comp in complex.components)
+        sage: phi_s_delta_is_superadditive_almost_strict()
         True
 
     """
