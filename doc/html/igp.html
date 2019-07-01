@@ -4931,6 +4931,12 @@ each color in the list; the other choice is ‘rgbtuple’</li>
 </dd></dl>
 
 <dl class="function">
+<dt id="cutgeneratingfunctionology.igp.default_igp_ticks_keywords">
+<code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">default_igp_ticks_keywords</code><span class="sig-paren">(</span><em>function, y_ticks_for_breakpoints=False, extra_xticks=[], extra_yticks=[1]</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.default_igp_ticks_keywords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute <code class="docutils literal notranslate"><span class="pre">plot</span></code> keywords for displaying the ticks.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="cutgeneratingfunctionology.igp.delete_one_time_plot_kwds">
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">delete_one_time_plot_kwds</code><span class="sig-paren">(</span><em>kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.delete_one_time_plot_kwds" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -6226,13 +6232,19 @@ that should be considered for testing the additivity of <span class="math notran
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">generate_covered_components</code><span class="sig-paren">(</span><em>function</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.generate_covered_components" title="Permalink to this definition">¶</a></dt>
 <dd><p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">hildebrand_discont_3_slope_1</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">generate_covered_components</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="go">[[&lt;Int(0, 1/8)&gt;, &lt;Int(3/8, 1/2)&gt;],</span>
 <span class="go"> [&lt;Int(1/8, 3/8)&gt;, &lt;Int(1/2, 5/8)&gt;, &lt;Int(7/8, 1)&gt;],</span>
 <span class="go"> [&lt;Int(5/8, 7/8)&gt;]]</span>
+</pre></div>
+</div>
+<p>Also covered components that come from the strip lemma
+in the irrational case are included:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">bhk_irrational</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">generate_covered_components</span><span class="p">(</span><span class="n">h</span><span class="p">))</span>
+<span class="go">3</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -6250,13 +6262,19 @@ Set <code class="docutils literal notranslate"><span class="pre">show_plots=True
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">generate_covered_intervals</code><span class="sig-paren">(</span><em>function</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.generate_covered_intervals" title="Permalink to this definition">¶</a></dt>
 <dd><p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 <span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">hildebrand_discont_3_slope_1</span><span class="p">()</span>
 <span class="gp">sage: </span><span class="n">generate_covered_components</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="go">[[&lt;Int(0, 1/8)&gt;, &lt;Int(3/8, 1/2)&gt;],</span>
 <span class="go"> [&lt;Int(1/8, 3/8)&gt;, &lt;Int(1/2, 5/8)&gt;, &lt;Int(7/8, 1)&gt;],</span>
 <span class="go"> [&lt;Int(5/8, 7/8)&gt;]]</span>
+</pre></div>
+</div>
+<p>Also covered components that come from the strip lemma
+in the irrational case are included:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="n">h</span> <span class="o">=</span> <span class="n">bhk_irrational</span><span class="p">()</span>
+<span class="gp">sage: </span><span class="nb">len</span><span class="p">(</span><span class="n">generate_covered_components</span><span class="p">(</span><span class="n">h</span><span class="p">))</span>
+<span class="go">3</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -10039,7 +10057,7 @@ that provides connected components of non-covered intervals).</p>
 <dl class="function">
 <dt id="cutgeneratingfunctionology.igp.number_of_components">
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">number_of_components</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.number_of_components" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the number of connected components of fn.</p>
+<dd><p>Returns the number of connected covered components of fn.</p>
 <p>This is an upper bound on <code class="docutils literal notranslate"><span class="pre">number_of_slopes</span></code>.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
