@@ -839,7 +839,7 @@ def latex_tick_formatter_y(y):
     else:
         return "$%s$" % latex(y)
 
-def ticks_keywords(function, y_ticks_for_breakpoints=False, extra_xticks=[], extra_yticks=[1]):
+def default_igp_ticks_keywords(function, y_ticks_for_breakpoints=False, extra_xticks=[], extra_yticks=[1]):
     r"""
     Compute ``plot`` keywords for displaying the ticks.
     """
@@ -866,6 +866,8 @@ def ticks_keywords(function, y_ticks_for_breakpoints=False, extra_xticks=[], ext
 
             'gridlines': True, \
             'tick_formatter': [xtick_formatter, ytick_formatter]}
+
+ticks_keywords = default_igp_ticks_keywords
 
 def delete_one_time_plot_kwds(kwds):
     if 'legend_label' in kwds:
@@ -2989,6 +2991,8 @@ def basic_perturbation(fn, index):
             raise IndexError("Bad perturbation index")
     raise ValueError("No perturbations")
 
+check_perturbation_plot_rescaled_perturbation = True
+
 def plot_perturbation_diagram(fn, perturbation=None, xmin=0, xmax=1):
     r"""
     Plot a perturbation of fn.
@@ -3005,7 +3009,10 @@ def plot_perturbation_diagram(fn, perturbation=None, xmin=0, xmax=1):
         perturbation = basic_perturbation(fn, perturbation)
     epsilon_interval = find_epsilon_interval(fn, perturbation)
     epsilon = min(abs(epsilon_interval[0]), abs(epsilon_interval[1]))
-    p = plot_rescaled_perturbation(perturbation, xmin=xmin, xmax=xmax)
+    if check_perturbation_plot_rescaled_perturbation:
+        p = plot_rescaled_perturbation(perturbation, xmin=xmin, xmax=xmax)
+    else:
+        p = Graphics()
     if check_perturbation_plot_three_perturbations:
         p += plot(fn + epsilon_interval[0] * perturbation, xmin=xmin, xmax=xmax, color='red', legend_label="-perturbed (min)")
         p += plot(fn + epsilon_interval[1] * perturbation, xmin=xmin, xmax=xmax, color='blue', legend_label="+perturbed (max)")
