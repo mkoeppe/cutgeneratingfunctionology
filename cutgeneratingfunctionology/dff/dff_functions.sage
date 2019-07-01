@@ -1,6 +1,18 @@
 from six.moves import range
+
+"""
+Catalog of cDFFs.
+"""
+
 def phi_forward_3_slope(b=4/5, lambda_1=4/9, lambda_2=2/3, field=None):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_forward_3_slope()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Dim = 1; Slopes = 3; Continuous. 
 
@@ -9,15 +21,23 @@ def phi_forward_3_slope(b=4/5, lambda_1=4/9, lambda_2=2/3, field=None):
         lambda_1, lambda_2 (real) in (0,1].
 
     Function is known to be extreme under the conditions:
-        0 <= lambda_1 <= 1/2, 0 <= lambda_2 <= 1, b>3, 0 < lambda_1 * f + lambda_2 * (f - 1) < lambda_1 * f, f=frac(b).
+        0 <= lambda_1 <= 1/2, 0 <= lambda_2 <= 1, b>3, 0 < lambda_1 * f + lambda_2 * (f - 1) < lambda_1 * f, f = frac(b).
 
     Examples::
 
         sage: from cutgeneratingfunctionology.dff import *
         sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
-        sage: h=phi_forward_3_slope()
+        sage: h = phi_forward_3_slope()
+        sage: maximality_test_dff(h)
+        True
         sage: extremality_test_dff(h)
         False
+
+    Extreme case::
+
+        sage: h = phi_forward_3_slope(b=19/5, lambda_1=4/9, lambda_2=2/3)
+        sage: extremality_test_dff(h)
+        True
 
     """
     n=floor(b)
@@ -41,6 +61,13 @@ def phi_forward_3_slope(b=4/5, lambda_1=4/9, lambda_2=2/3, field=None):
 
 def phi_2_slope(b=3/5, lambda_1=1/6, field=None):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_2_slope()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Dim = 1; Slopes = 2; Continuous. 
 
@@ -78,19 +105,70 @@ def phi_2_slope(b=3/5, lambda_1=1/6, field=None):
 
 def w_2slope_3covered_nonextreme():
     r"""
-    A continuous 2-slope nonextreme function with 3 covered components. 
+    A continuous 2-slope nonextreme cDFF with 3 covered components.
+
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = w_2slope_3covered_nonextreme()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
+    Constructed by Jiawei Wang (2018).
+
+    TESTS::
+
+        sage: from cutgeneratingfunctionology.dff import *
+        sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
+        sage: phi = w_2slope_3covered_nonextreme()
+        sage: maximality_test_dff(phi)
+        True
+        sage: extremality_test_dff(phi)
+        False
+        sage: number_of_components(phi)
+        3
+        sage: generate_uncovered_components(phi)
+        []
     """
     return FastPiecewise([[(QQ(0), 1/10), FastLinearFunction(QQ(0), QQ(0))], [(1/10, 3/20), FastLinearFunction(5/2, -1/4)], [(3/20, 1/4), FastLinearFunction(QQ(0), 1/8)], [(1/4, 7/20), FastLinearFunction(5/2, -1/2)], [(7/20, 2/5), FastLinearFunction(QQ(0), 3/8)], [(2/5, 9/20), FastLinearFunction(5/2, -5/8)], [(9/20, 11/20), FastLinearFunction(QQ(0), 1/2)], [(11/20, 3/5), FastLinearFunction(5/2, -7/8)], [(3/5, 13/20), FastLinearFunction(QQ(0), 5/8)], [(13/20, 3/4), FastLinearFunction(5/2, -QQ(1))], [(3/4, 17/20), FastLinearFunction(QQ(0), 7/8)], [(17/20, 9/10), FastLinearFunction(5/2, -5/4)], [(9/10, QQ(1)), FastLinearFunction(QQ(0), QQ(1))]])  
 
 def w_2slope_3covered():
     r"""
-    A continuous 2-slope extreme function with 3 covered components.
+    A continuous 2-slope extreme cDFF with 3 covered components.
+
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = w_2slope_3covered()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
+    Constructed by Jiawei Wang (2018).
+
+    TESTS::
+
+        sage: from cutgeneratingfunctionology.dff import *
+        sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
+        sage: phi = w_2slope_3covered()
+        sage: maximality_test_dff(phi)
+        True
+        sage: extremality_test_dff(phi)
+        True
+        sage: number_of_components(phi)
+        3
     """
     return FastPiecewise([[(QQ(0), 1/14), FastLinearFunction(QQ(0), QQ(0))], [(1/14, 3/28), FastLinearFunction(7/3, -1/6)], [(3/28, 5/28), FastLinearFunction(QQ(0), 1/12)], [(5/28, 1/4), FastLinearFunction(7/3, -1/3)], [(1/4, 2/7), FastLinearFunction(QQ(0), 1/4)], [(2/7, 9/28), FastLinearFunction(7/3, -5/12)], [(9/28, 11/28), FastLinearFunction(QQ(0), 1/3)], [(11/28, 3/7), FastLinearFunction(7/3, -7/12)], [(3/7, 13/28), FastLinearFunction(QQ(0), 5/12)], [(13/28, 15/28), FastLinearFunction(7/3, -2/3)], [(15/28, 4/7), FastLinearFunction(QQ(0), 7/12)], [(4/7, 17/28), FastLinearFunction(7/3, -3/4)], [(17/28, 19/28), FastLinearFunction(QQ(0), 2/3)], [(19/28, 5/7), FastLinearFunction(7/3, -11/12)], [(5/7, 3/4), FastLinearFunction(QQ(0), 3/4)], [(3/4, 23/28), FastLinearFunction(7/3, -QQ(1))], [(23/28, 25/28), FastLinearFunction(QQ(0), 11/12)], [(25/28, 13/14), FastLinearFunction(7/3, -7/6)], [(13/14, QQ(1)), FastLinearFunction(QQ(0), QQ(1))]])
 
 
 def phi_bj_1(c=3/2):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_bj_1()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Name: f_BJ_1;
         - Dim= 1; Slopes = 2; Continuous;
@@ -100,13 +178,22 @@ def phi_bj_1(c=3/2):
     Parameters:
         c (real) \in [1,positive infinity).
 
-    Examples:
-        [1] p.25, Fig 2.4 ::
+    EXAMPLES:
+
+    [1] p.25, Fig 2.4 ::
 
             sage: from cutgeneratingfunctionology.dff import *
             sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
             sage: h=phi_bj_1(3/2)
             sage: superadditive_test(h)
+            True
+            sage: extremality_test_dff(h)
+            False
+
+    Extreme case::
+
+            sage: h=phi_bj_1(5/2)
+            sage: extremality_test_dff(h)
             True
 
     References:
@@ -124,6 +211,13 @@ def phi_bj_1(c=3/2):
 
 def phi_simple(c=3/2):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_simple()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=False)
+        sphinx_plot(g)
+
     Summary:
         - Dim= 1; Slopes = 1; Discontinuous;
         - Not maximal.     
@@ -139,6 +233,8 @@ def phi_simple(c=3/2):
             sage: h=phi_simple(3/2)
             sage: superadditive_test(h)
             True
+            sage: maximality_test_dff(h)
+            False
 
     References:
    
@@ -157,6 +253,13 @@ def phi_simple(c=3/2):
 
 def phi_ccm_1(c=3/2):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_ccm_1()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Name: f_CCM_1;
         - Dim= 1; Slopes = 1; Discontinuous;
@@ -198,6 +301,13 @@ def phi_ccm_1(c=3/2):
 
 def phi_fs_1(k=3):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_fs_1()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Name: f_FS_1;
         - Dim= 1; Slopes = 1; Discontinuous.    
@@ -229,6 +339,13 @@ def phi_fs_1(k=3):
 
 def phi_vb_2(k=3):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_vb_2()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Name: f_VB_2;
         - Dim= 1; Slopes = 1; Discontinuous;  
@@ -279,6 +396,13 @@ def phi_vb_2(k=3):
 
 def phi_ll_1(c=3/2,k=5):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_ll_1()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Name: f_LL_1;
         - Dim= 1; Slopes = 1; Discontinuous.    
@@ -319,6 +443,13 @@ def phi_ll_1(c=3/2,k=5):
 
 def phi_ll_2(c=3/2,k=5):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_ll_2()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Name: f_LL_2;
         - Dim= 1; Slopes = 1; Discontinuous.    
@@ -327,7 +458,7 @@ def phi_ll_2(c=3/2,k=5):
         k (positive integer);
         c (real) \in [1,positive infinity).
 
-    Function is know to be maximal under the conditions:
+    Function is known to be maximal under the conditions:
         c is not an integer and k >= ceil(1/frac(c))
 
     Examples:
@@ -338,6 +469,8 @@ def phi_ll_2(c=3/2,k=5):
             sage: h=phi_ll_2(3/2, 5)
             sage: maximality_test_dff(h)
             True
+            sage: extremality_test_dff(h)
+            False
 
     References:
    
@@ -390,8 +523,15 @@ def phi_ll_2(c=3/2,k=5):
         pieces.append([closed_interval(1-(m-i-1)/c-l1,1-(m-i-1)/c), FastLinearFunction(0,1-(m-1-i)/n)])    
     return FastPiecewise(pieces)
 
-def phi_dg_1(c=3/2,k=5):
+def phi_dg_1(c=3/2, k=5):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.dff import *
+        h = phi_dg_1()
+        g = plot_2d_diagram_dff_no_lable(h, colorful=True)
+        sphinx_plot(g)
+
     Summary:
         - Name: f_DG_1;
         - Dim= 1; Slopes = 1; Discontinuous.    
@@ -409,6 +549,8 @@ def phi_dg_1(c=3/2,k=5):
             sage: from cutgeneratingfunctionology.dff import *
             sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
             sage: h=phi_dg_1(3/2, 5)
+            sage: maximality_test_dff(h)
+            True
             sage: extremality_test_dff(h)
             False
 
@@ -434,4 +576,16 @@ def phi_dg_1(c=3/2,k=5):
     return FastPiecewise(pieces)
 
 
+def phi_x():
+    """
+    The trivial cDFF phi(x) = x.
 
+    TESTS::
+
+        sage: from cutgeneratingfunctionology.dff import *
+        sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
+        sage: phi = phi_x()
+        sage: extremality_test_dff(phi)
+        True
+    """
+    return piecewise_function_from_breakpoints_and_values([0, 1], [0, 1])

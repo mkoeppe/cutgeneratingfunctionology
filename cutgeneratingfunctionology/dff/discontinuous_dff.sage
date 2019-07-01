@@ -1,3 +1,11 @@
+r"""
+Classic DFFs, case of discontinuous piecewise functions.
+
+The word "general" in this file refers to the (possibly) discontinuous
+case, not to "general DFFs" (gDFFs).
+"""
+
+
 from six.moves import range
 from six.moves import zip
 nonzero_eps = { (-1,-1,-1), (-1, 1,-1), (-1, 1, 1), (-1, 1, 0), (-1, 0,-1), ( 1,-1,-1), \
@@ -21,6 +29,23 @@ dic_eps_to_cone = { (-1,-1,-1): [(-1, 0), (0, -1)], \
                   }
 
 def generate_maximal_additive_faces_general_dff(function):
+    """
+    Compute the additive faces of a cDFF.
+
+    General code suitable for the continuous and discontinuous case.
+
+    TESTS:
+
+    Make sure that the face corresponding to the symmetry condition
+    is included::
+
+        sage: from cutgeneratingfunctionology.dff import *
+        sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
+        sage: h = phi_bj_1(3/2)
+        sage: generate_maximal_additive_faces_general_dff(h)
+        [..., <Face ([1/3, 2/3], [1/3, 2/3], [1])>]
+
+    """
     logging.info("Computing maximal additive faces...")
     bkpt = function.end_points()
     n = len(bkpt) - 1
@@ -60,6 +85,12 @@ def generate_maximal_additive_faces_general_dff(function):
                         faces.append(face)
                         if i != j:
                             faces.append(x_y_swapped_face(face))
+            if is_pt_in_interval(interval_K, 1):
+                face = Face( (I_list[i], J_list[j], [1]) )
+                if is_additive_face(function, face): 
+                    faces.append(face)
+                    if i != j:
+                        faces.append(x_y_swapped_face(face))
 
     # 0D faces
     additive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices_general_dff(function) if x != 1 and y != 1}
@@ -372,8 +403,9 @@ def generate_perturbations_finite_dimensional_general_dff(f):
         perturbation = slope_jump * symbolic
         yield perturbation
 
-def extremality_test_general_dff(fn):
-    r"""Still in progress
+def extremality_test_general_dff(fn, show_plots=False):
+    r"""
+    DFF extremality test, discontinuous case.
     """
     covered_intervals=generate_covered_intervals(fn)
     uncovered_intervals=generate_uncovered_intervals(fn)

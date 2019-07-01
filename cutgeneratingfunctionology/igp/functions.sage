@@ -763,13 +763,19 @@ def generate_covered_components(function):
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = hildebrand_discont_3_slope_1()
         sage: generate_covered_components(h)
         [[<Int(0, 1/8)>, <Int(3/8, 1/2)>],
          [<Int(1/8, 3/8)>, <Int(1/2, 5/8)>, <Int(7/8, 1)>],
          [<Int(5/8, 7/8)>]]
+
+    Also covered components that come from the strip lemma
+    in the irrational case are included::
+
+        sage: h = bhk_irrational()
+        sage: len(generate_covered_components(h))
+        3
     """
     if hasattr(function,  "_completion"):
         return function._completion.covered_components
@@ -786,16 +792,23 @@ def generate_covered_components(function):
     if strategical_covered_components:
         covered_components = generate_covered_components_strategically(function)
         return covered_components
+    # Rational case.  We run a special version of the code in
+    # generate_directed_move_composition_completion here,
+    # which only runs extend_components_by_moves and does not
+    # supply proj_add_vert.  (Why?)
+    #proj_add_vert = projections_of_additive_vertices(function)
     functional_directed_moves = generate_functional_directed_moves(function)
     covered_components = generate_directly_covered_components(function)
     completion = DirectedMoveCompositionCompletion(functional_directed_moves,
                                                    covered_components=covered_components,
+                                                   #proj_add_vert=proj_add_vert,
                                                    function=function)
     completion.add_backward_moves()
     while completion.any_change_components:
         completion.extend_components_by_moves()
         completion.num_rounds += 1
     completion.is_complete = True
+    #function._completion = completion
     logging.info("Completion finished.  Found %d covered components."
                  % len(completion.covered_components))
     return completion.covered_components
@@ -826,7 +839,7 @@ def latex_tick_formatter_y(y):
     else:
         return "$%s$" % latex(y)
 
-def ticks_keywords(function, y_ticks_for_breakpoints=False, extra_xticks=[], extra_yticks=[1]):
+def default_igp_ticks_keywords(function, y_ticks_for_breakpoints=False, extra_xticks=[], extra_yticks=[1]):
     r"""
     Compute ``plot`` keywords for displaying the ticks.
     """
@@ -853,6 +866,8 @@ def ticks_keywords(function, y_ticks_for_breakpoints=False, extra_xticks=[], ext
 
             'gridlines': True, \
             'tick_formatter': [xtick_formatter, ytick_formatter]}
+
+ticks_keywords = default_igp_ticks_keywords
 
 def delete_one_time_plot_kwds(kwds):
     if 'legend_label' in kwds:
@@ -927,7 +942,7 @@ def plot_directly_covered_intervals(function, uncovered_color='black', labels=No
 
 def number_of_components(fn):
     r"""
-    Returns the number of connected components of fn.
+    Returns the number of connected covered components of fn.
 
     This is an upper bound on ``number_of_slopes``.
 
@@ -2976,6 +2991,8 @@ def basic_perturbation(fn, index):
             raise IndexError("Bad perturbation index")
     raise ValueError("No perturbations")
 
+check_perturbation_plot_rescaled_perturbation = True
+
 def plot_perturbation_diagram(fn, perturbation=None, xmin=0, xmax=1):
     r"""
     Plot a perturbation of fn.
@@ -2992,7 +3009,10 @@ def plot_perturbation_diagram(fn, perturbation=None, xmin=0, xmax=1):
         perturbation = basic_perturbation(fn, perturbation)
     epsilon_interval = find_epsilon_interval(fn, perturbation)
     epsilon = min(abs(epsilon_interval[0]), abs(epsilon_interval[1]))
-    p = plot_rescaled_perturbation(perturbation, xmin=xmin, xmax=xmax)
+    if check_perturbation_plot_rescaled_perturbation:
+        p = plot_rescaled_perturbation(perturbation, xmin=xmin, xmax=xmax)
+    else:
+        p = Graphics()
     if check_perturbation_plot_three_perturbations:
         p += plot(fn + epsilon_interval[0] * perturbation, xmin=xmin, xmax=xmax, color='red', legend_label="-perturbed (min)")
         p += plot(fn + epsilon_interval[1] * perturbation, xmin=xmin, xmax=xmax, color='blue', legend_label="+perturbed (max)")

@@ -1397,7 +1397,7 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None):
         # take care of this.
         gcd_c = gcd(gcd(coeff), c.inhomogeneous_term())
         # constraint is written with '>', while lt_poly records '<' relation
-        t = sum([-QQ(x/gcd_c)*y for x, y in zip(coeff, monomial_list)]) - QQ(c.inhomogeneous_term()/gcd_c)
+        t = sum([-QQ(x)/gcd_c*y for x, y in zip(coeff, monomial_list)]) - QQ(c.inhomogeneous_term())/gcd_c
         if c.is_equality():
             mineq.append(t)
         elif c.is_strict_inequality():
