@@ -2420,6 +2420,15 @@ class SemialgebraicComplex(SageObject):
             return tuple([0]*len(self.var_name))
         return find_instance_mathematica(condstr[:-4], self.var_name)
 
+    def construct_field_and_test_point(self, var_value, bddleq=[]):
+        K, test_point = construct_field_and_test_point(self.function, self.var_name, var_value, self.default_args)
+        K.add_initial_space_dim() #so that the parameters self.var_name are the first ones in the monomial list. Needed for variable elimination.
+        for l in bddleq:
+            # need to put these equations in K, so call comparaison.
+            if not l(*K.gens()) == 0:
+                logging.warning("Test point %s doesn't satisfy %s == 0." % (var_value, l))
+        return K, test_point
+
     def add_new_component(self, var_value, bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False, allow_dim_degeneracy=False):
         r"""
         Compute one proof cell around var_value. Append this cell to the complex.
@@ -2446,13 +2455,7 @@ class SemialgebraicComplex(SageObject):
             sage: complex.points_to_test                              # optional - mathematica
             {(19/20, 1): []}
         """
-        K, test_point = construct_field_and_test_point(self.function, self.var_name, var_value, self.default_args)
-        K.add_initial_space_dim() #so that the parameters self.var_name are the first ones in the monomial list. Needed for variable elimination.
-        for l in bddleq:
-            # need to put these equations in K, so call comparaison.
-            if not l(*K.gens()) == 0:
-                logging.warning("Test point %s doesn't satisfy %s == 0." % (var_value, l))
-                return
+        K, test_point = self.construct_field_and_test_point(var_value, bddleq)
         try:
             h = self.function(**test_point)
         except Exception: # Dangerous!!
