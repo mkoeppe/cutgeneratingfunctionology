@@ -112,6 +112,26 @@ class ParametricRealFieldElement(FieldElement):
             True
             sage: K._le
             {-f}
+            sage: K._le_factor
+            {-f}
+            sage: K._eq_factor
+            set()
+            sage: K._lt_factor
+            set()
+
+        Examples for big_cells=True, allow_refinement=True::
+
+            sage: K.<f> = ParametricRealField([1], big_cells=True, allow_refinement=True)
+            sage: f >= 0
+            True
+            sage: K._le
+            {-f}
+            sage: K._le_factor
+            {-f}
+            sage: K._eq_factor
+            set()
+            sage: K._lt_factor
+            set()
 
         """
         if not left.parent() is right.parent():
