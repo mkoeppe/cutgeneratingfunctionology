@@ -151,19 +151,102 @@ class ParametricRealFieldElement(FieldElement):
             return richcmp(left.val(), right.val(), op)
 
     def __abs__(self):
-        if self.sign() >= 0:
-            return self
+        """
+        Examples for traditional cmp semantics::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<f> = ParametricRealField([-1], big_cells=False, allow_refinement=True)
+            sage: abs(f) + abs(-f)
+            (-2*f)~
+            sage: K._lt
+            {f}
+
+        Examples for big_cells semantics::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<f> = ParametricRealField([-1], big_cells=True, allow_refinement=True)
+            sage: abs(f) + abs(-f)
+            (-2*f)~
+            sage: K._lt
+            set()
+            sage: K._le
+            {f}
+
+        """
+        preferred_sign = 1
+        if self.parent()._big_cells:
+            with self.parent().off_the_record():
+                if self >= 0:
+                    preferred_sign = 1
+                else:
+                    preferred_sign = -1
+        if preferred_sign == 1:
+            if self >= 0:
+                return self
+            else:
+                return -self
         else:
-            return -self
+            if self <= 0:
+                return -self
+            else:
+                return self
 
     def sign(self):
-        parent = self.val().parent()
-        if self.val() == parent._zero_element:
-            return 0
-        elif self.val() > parent._zero_element:
-            return 1
+        """
+        Examples for traditional cmp semantics::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<f, z> = ParametricRealField([-1, 0], big_cells=False, allow_refinement=True)
+            sage: sign(f)
+            -1
+            sage: sign(z)
+            0
+            sage: K._lt
+            {f}
+            sage: K._le
+            set()
+            sage: K._eq
+            {z}
+
+        Examples for big_cells semantics::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<f, z> = ParametricRealField([-1, 0], big_cells=True, allow_refinement=True)
+            sage: sign(f)
+            -1
+            sage: sign(z)
+            0
+            sage: K._lt
+            {f}
+            sage: K._le
+            set()
+            sage: K._eq
+            {z}
+
+        """
+        if self.parent()._big_cells:
+            preferred_sign = sign(self.val())    # off the record
         else:
+            preferred_sign = 1
+        if preferred_sign == 1:
+            if self > 0:
+                return 1
+        elif preferred_sign == -1:
+            if self < 0:
+                return -1
+        else:
+            if self == 0:
+                return 0
+        if self > 0:
+            return 1
+        elif self < 0:
             return -1
+        else:
+            return 0
 
     def floor(self):
         result = floor(self.val())
