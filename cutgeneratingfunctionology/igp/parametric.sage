@@ -419,6 +419,9 @@ from contextlib import contextmanager
 class FactorUndetermined(Exception):
     pass
 
+big_cells_default = None
+allow_refinement_default = True
+
 class ParametricRealField(Field):
     r"""
     A Metaprogramming trick for parameter space analysis.
@@ -515,10 +518,14 @@ class ParametricRealField(Field):
     """
     Element = ParametricRealFieldElement
 
-    def __init__(self, values=None, names=(), allow_coercion_to_float=True, mutable_values=False, allow_refinement=True, big_cells=None):
+    def __init__(self, values=None, names=(), allow_coercion_to_float=True, mutable_values=False, allow_refinement=None, big_cells=None):
         Field.__init__(self, self)
         self._mutable_values = mutable_values
+        if allow_refinement is None:
+            allow_refinement = allow_refinement_default
         self._allow_refinement = allow_refinement
+        if big_cells is None:
+            big_cells = big_cells_default
         if big_cells is None:
             if allow_refinement:
                 big_cells = False # old default
