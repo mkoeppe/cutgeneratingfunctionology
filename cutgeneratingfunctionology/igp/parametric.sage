@@ -231,7 +231,7 @@ class ParametricRealFieldElement(FieldElement):
             sage: K._eq
             {z}
 
-        Examples for big_cells semantics::
+        Test that the same result is obtained in big_cells, allow_refinement=True semantics::
 
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
@@ -247,6 +247,21 @@ class ParametricRealFieldElement(FieldElement):
             sage: K._eq
             {z}
 
+        Test that the same result is obtained for big_cells, allow_refinement=False semantics::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<f, z> = ParametricRealField([-1, 0], big_cells=True, allow_refinement=False)
+            sage: sign(f)
+            -1
+            sage: sign(z)
+            0
+            sage: K._lt
+            {f}
+            sage: K._le
+            set()
+            sage: K._eq
+            {z}
         """
         if self.parent()._big_cells:
             preferred_sign = sign(self.val())    # off the record
