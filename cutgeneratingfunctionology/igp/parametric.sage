@@ -1152,6 +1152,7 @@ class ParametricRealField(Field):
                                 eq_factors.append(fac)
                             elif fac_sign == -1:
                                 lt_factors.append(fac)
+                                sign = -sign
                             else:
                                 assert fac_sign == +1
                                 lt_factors.append(-fac)
@@ -1187,7 +1188,6 @@ class ParametricRealField(Field):
                         eq_factors.append(new_fac)
                 for new_fac in lt_factors:
                     self.record_factor(new_fac, operator.le)
-                    sign = -sign 
                 if not self._big_cells:
                     for new_fac in eq_factors:
                         self.record_factor(new_fac, operator.eq)
