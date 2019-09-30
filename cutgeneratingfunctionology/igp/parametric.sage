@@ -1533,7 +1533,8 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None):
         elif c.is_strict_inequality():
             minlt.append(t)
         else:
-            raise NotImplementedError("Non-strict inequality in NNC polyhedron")
+            logging.warning("Non-strict inequality in NNC polyhedron, recording strict inequality instead")
+            minlt.append(t)
     # note that polynomials in mineq and minlt can have leading coefficient != 1
     return mineq, minlt
 
