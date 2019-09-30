@@ -23,6 +23,8 @@ from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp, op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE
 import time
 
+debug_new_factors = False
+
 ###############################
 # Parametric Real Number Field
 ###############################
@@ -1287,6 +1289,9 @@ class ParametricRealField(Field):
                 self._le_factor.add(fac)
             else:
                 raise ValueError("{} is not a supported operator".format(op))
+            if debug_new_factors:
+                import pdb
+                pdb.set_trace()
 
     def make_proof_cell(self, **opt):
         r"""
