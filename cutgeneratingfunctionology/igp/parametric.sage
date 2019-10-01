@@ -1657,7 +1657,7 @@ def substitute_lins(lins, var_map, var_name, var_value):
     K.add_initial_space_dim() # needed?
     for l in lins:
         ineq = l.parent()(l.subs(var_map))
-        ineq(K.gens())< 0 #always True
+        ineq(K.gens())<= 0 #always True
     leq, lin = read_simplified_leq_lin(K)
     return lin
 
