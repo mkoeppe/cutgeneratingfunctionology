@@ -47,6 +47,9 @@ SAGEFILES +=								\
 	cutgeneratingfunctionology/multirow/piecewise_functions.sage	\
 	cutgeneratingfunctionology/multirow/lifting_region.sage
 
+SAGEFILES +=									\
+	cutgeneratingfunctionology/spam/basic_semialgebraic.py
+
 all:
 	@echo "No need to 'make' anything. Just run it in Sage; see README.rst"
 

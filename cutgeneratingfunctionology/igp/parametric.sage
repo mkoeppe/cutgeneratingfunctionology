@@ -23,6 +23,8 @@ from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp, op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE
 import time
 
+from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+
 debug_new_factors = False
 
 ###############################
@@ -552,9 +554,11 @@ class ParametricRealField(Field):
 
         self._zero_element = ParametricRealFieldElement(0, parent=self)
         self._one_element =  ParametricRealFieldElement(1, parent=self)
+        ## REFACTOR: Replace this by an instance of BasicSemialgebraicSet_eq_lt_le_sets
         self._eq = set([])
         self._lt = set([])
         self._le = set([])
+        ## REFACTOR: Replace this by another instance of BasicSemialgebraicSet_eq_lt_le_sets
         self._eq_factor = set([])
         self._lt_factor = set([])
         self._le_factor = set([])
@@ -666,6 +670,7 @@ class ParametricRealField(Field):
             return True
         ### Check that values satisfy all constraints.
         rational_list = [ QQ(m(new_values)) for m in self.monomial_list ]
+        ## REFACTOR: Use BasicSemialgebraicSet.__contains__
         num_list = [x.numerator() for x in rational_list]
         den_list = [x.denominator() for x in rational_list]
         common_den = lcm(den_list)
