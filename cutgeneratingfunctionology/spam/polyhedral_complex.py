@@ -230,3 +230,8 @@ class PolyhedralComplex(GenericCellComplex):
         if c in self._non_maximal_cells_given[d]:
             return True
         return False
+
+    def plot(self, **kwds):
+        return sum(cell.plot()
+                   for stratum in self.maximal_cells().values()
+                   for cell in stratum)
