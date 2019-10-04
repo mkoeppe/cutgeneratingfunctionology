@@ -2760,6 +2760,15 @@ class SemialgebraicComplex(SageObject):
         subcomplex.num_plotted_components = 0
         return subcomplex
 
+    def subcomplexes_of_cells_with_given_region_types(self):
+        """
+        Return a dictionary mapping region types to subcomplexes.
+        """
+        region_types = set(c.region_type for c in self.components)
+        return { region_type:
+                 self.subcomplex_of_cells_with_given_region_types({region_type})
+                 for region_type in region_types }
+
     def guess_boundary(self):
         extlin = [l for c in self.components if c.leq==[] for l in c.lin]
         boundaries = set(extlin).difference(set([-l for l in extlin]))
