@@ -49,6 +49,7 @@ SAGEFILES +=								\
 
 SAGEFILES +=									\
 	cutgeneratingfunctionology/spam/basic_semialgebraic.py			\
+	cutgeneratingfunctionology/spam/big_cells.py				\
 	cutgeneratingfunctionology/spam/polyhedral_complex.py
 
 all:
