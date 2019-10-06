@@ -121,6 +121,21 @@ def is_min_le(iterable, value, key=None, field=None):
         sage: K._le_factor, K._lt_factor
         ({b - 3}, {-a + b})
 
+    If ``allow_refinement`` is False, the same example yields an error.
+
+        sage: K.<a,b> = ParametricRealField([2, 1], big_cells=True, allow_refinement=False)
+        sage: big_cells.is_min_le([a, b], 3)
+        Traceback (most recent call last):
+        ...
+        ParametricRealFieldRefinementError: ...
+
+    Another example with ``allow_refinement`` False::
+
+        sage: K.<a,b> = ParametricRealField([2, 1], big_cells=True, allow_refinement=False)
+        sage: assert b >= 0
+        sage: big_cells.is_min_le([2*b, b], 3)
+        True
+
     In fact, the big cells form a cover (arrangement), not a complex;
     there is a full-dimensional intersection::
 
@@ -156,11 +171,13 @@ def is_min_le(iterable, value, key=None, field=None):
         is_le = min_v <= value
     if is_le:
         assert min_v <= value    # records
-        ## if field._allow_refinement:
-        ##     assert min_v <= value    # records
-        ##     assert min_v <=
-        ## else:
-        ##     assert
+        if not field._allow_refinement:
+            from cutgeneratingfunctionology.igp import ParametricRealFieldFrozenError, ParametricRealFieldRefinementError
+            try:
+                with field.frozen():
+                    assert all(min_v <= iv[1] for iv in iv_list)
+            except ParametricRealFieldFrozenError:
+                raise ParametricRealFieldRefinementError("is_min_le")
     else:
         assert all(iv[1] > value for iv in iv_list)   # records
     return is_le
