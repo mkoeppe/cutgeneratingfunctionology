@@ -36,6 +36,11 @@ class PolyhedralComplex(GenericCellComplex):
         (An inequality (1, -4) x + 1 >= 0,
          An inequality (-1, 1) x + 0 >= 0,
          An inequality (1, 0) x + 0 >= 0)
+
+    TESTS::
+
+        sage: pc.face_poset()     # known bug
+
     """
     def __init__(self, maximal_cells, maximality_check=True, **kwds):
         r"""
