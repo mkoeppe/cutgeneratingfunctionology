@@ -171,39 +171,98 @@ class PolyhedralComplex(GenericCellComplex):
         return [face for face in k_faces if k_faces.count(face)==1]
 
     def is_convex(self):
+        """
+        sage: pc = PolyhedralComplex([Polyhedron(base_ring=QQ, vertices=[[1,0],[0,1]],
+        ....: rays=[[1,0],[0,1]])])
+        sage: pc.is_convex()
+        True
+        sage: pc = PolyhedralComplex([Polyhedron(base_ring=QQ, vertices=[[1,0,0],[0,1,0]],
+        ....: rays=[[1,0,0],[0,1,0]])])
+        sage: pc.is_convex()
+        True
+        sage: pc = PolyhedralComplex([Polyhedron(base_ring=QQ, vertices=[[-1,0],[1,0]],
+        ....: lines=[[0,1]])])
+        sage: pc.is_convex()
+        True
+        sage: pc = PolyhedralComplex([Polyhedron(base_ring=QQ, vertices=[[1,0],[0,1]],
+        ....: rays=[[1,0],[0,1]]),Polyhedron(base_ring=QQ, vertices=[[1,0],[0,-1]],
+        ....: rays=[[1,0],[0,-1]])])
+        sage: pc.is_convex()
+        False
+        sage: pc = PolyhedralComplex([Polyhedron(base_ring=QQ, vertices=[[0,0]],
+        ....: rays=[[1,0],[-1,1]]),Polyhedron(base_ring=QQ, vertices=[[0,0]],
+        ....: rays=[[1,0],[-1,-1]])])
+        sage: pc.is_convex()
+        False
+        sage: pc = PolyhedralComplex([Polyhedron(base_ring=QQ, vertices=[[0,0,0]],
+        ....: rays=[[1,0,0],[-1,1,0]]),Polyhedron(base_ring=QQ, vertices=[[0,0,0]],
+        ....: rays=[[1,0,0],[-1,-1,0]])])
+        sage: pc.is_convex()
+        False
+        sage: pc = PolyhedralComplex([Polyhedron(base_ring=QQ, vertices=[[0,0,0]],rays=[[1,0,0],[0,1,0],[0,0,-1]]),
+        ....: Polyhedron(base_ring=QQ, vertices=[[0,0,0]],rays=[[1,0,0],[0,-1,0],[0,0,-1]]),
+        ....: Polyhedron(base_ring=QQ, vertices=[[0,0,0]],rays=[[1,0,0],[0,-1,0],[0,0,1]]),
+        ....: Polyhedron(base_ring=QQ, vertices=[[0,0,0]],rays=[[-1,0,0],[0,-1,0],[0,0,-1]]),
+        ....: Polyhedron(base_ring=QQ, vertices=[[0,0,0]],rays=[[-1,0,0],[0,-1,0],[0,0,1]]),
+        ....: Polyhedron(base_ring=QQ, vertices=[[0,0,0]],rays=[[-1,0,0],[0,1,0],[0,0,-1]]),
+        ....: Polyhedron(base_ring=QQ, vertices=[[0,0,0]],rays=[[-1,0,0],[0,1,0],[0,0,1]])])
+        sage: pc.is_convex()
+        False
+        """
         if hasattr(self, '_is_convex'):
             return self._is_convex
         if not self.is_pure():
             self._is_convex = False
             return False
         if not self.is_full_dimensional():
-            # If they lie in different subspaces, can't be convex. When they all lie in the same subspace, the you orient the boundary halfspaces toward a strict convex combination of the vertices. Then you check whether all vertices are contained. After you made sure that the affine hulls of the cells are the same, it does not matter that is not full dimensional.
-            raise NotImplementedError
-        # assume self is bounded.
+            from sage.modules.free_module import span
+            face = self._maximal_cells[self._dim][0]
+            affine_space = span(face.equations_list(), face.base_ring())
+            for face in self._maximal_cells[self._dim][1::]:
+                if span(face.equations_list(), face.base_ring()) != affine_space:
+                    self._is_convex = False
+                    return False
+            # # If they lie in different subspaces, can't be convex. When they all lie in the same subspace, then you orient the boundary halfspaces toward a strict convex combination of the vertices. Then you check whether all vertices are contained. After you made sure that the affine hulls of the cells are the same, it does not matter that is not full dimensional.
         boundaries = self.boundary_cells()
-        vertices = set([]) #FIXME: rays? lines?
-        for cell in boundaries:
+        vertices = set([])
+        rays = set([])
+        # lines are useless, because they are in the affine space of each boundary cell.
+        for cell in boundaries: # is that enough, or need vertices of all cells? I think that is enough.
             for v in cell.vertices_list():
                 vv = vector(v)
                 vv.set_immutable()
                 vertices.add(vv)
+        for cell in self._maximal_cells[self._dim]:
+            for r in cell.rays_list():
+                rr = vector(r)
+                rr.set_immutable()
+                rays.add(rr)
         center = sum(vertices) / len(vertices)
         for cell in boundaries:
-            equation = cell.equations_list()[0] # full-dim, cell has only one equation.
-            coeff = vector(equation[1::])
-            const = equation[0]
-            if const + coeff * center > 0:
-                for v in vertices:
-                    if const + coeff * v < 0:
-                        self._is_convex = False
-                        return False
-            elif const + coeff * center < 0:
-                for v in vertices:
-                    if const + coeff * v > 0:
-                        self._is_convex = False
-                        return False
-            else:
-                raise ValueError
+            for equation in cell.equations_list(): # if not full-dim, cell has more than one equaiton.
+                coeff = vector(equation[1::])
+                const = equation[0]
+                if const + coeff * center == 0:
+                    sign = 0
+                elif const + coeff * center > 0:
+                    sign = 1
+                    for v in vertices:
+                        if const + coeff * v < 0:
+                            self._is_convex = False
+                            return False
+                elif const + coeff * center < 0:
+                    sign = -1
+                    for v in vertices:
+                        if const + coeff * v > 0:
+                            self._is_convex = False
+                            return False
+                for r in rays:
+                    if sign == 0:
+                        sign = coeff * r
+                    else:
+                        if sign * (coeff * r) < 0:
+                            self._is_convex = False
+                            return False
         self._is_convex = True
         self._polyhedron = Polyhedron(vertices=vertices)
         return True
