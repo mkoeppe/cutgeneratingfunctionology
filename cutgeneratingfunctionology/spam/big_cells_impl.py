@@ -61,6 +61,23 @@ def big_cells_min(iterable, key=None, field=None):
         sage: sorted(K._le_factor, key=str)
         [-a + b, b - 2]
 
+     If ``allow_refinement`` is False, the same example yields an error.
+
+        sage: K.<a,b> = ParametricRealField([2, 1], big_cells=True, allow_refinement=False)
+        sage: big_cells.min([a, b, 2])
+        Traceback (most recent call last):
+        ...
+        ParametricRealFieldRefinementError: ...
+        sage: assert a <= 2
+        sage: assert b <= 2
+        sage: big_cells.min([a, b, 2])
+        Traceback (most recent call last):
+        ...
+        ParametricRealFieldRefinementError: ...
+        sage: assert b <= a
+        sage: big_cells.min([a, b, 2])
+        b~
+
     Compared to ``min``, this function aims to create bigger
     parameter cells::
 
@@ -90,7 +107,15 @@ def big_cells_min(iterable, key=None, field=None):
         field = _common_parametric_real_field(iv_list, key=lambda iv: iv[1])
     with field.off_the_record():
         min_i, min_v = min(iv_list, key=lambda iv: iv[1])
-    assert all(min_v <= iv[1] for iv in iv_list)   # records
+    if field._allow_refinement:
+        assert all(min_v <= iv[1] for iv in iv_list)   # records
+    else:
+        from cutgeneratingfunctionology.igp import ParametricRealFieldFrozenError, ParametricRealFieldRefinementError
+        try:
+            with field.frozen():
+                assert all(min_v <= iv[1] for iv in iv_list)
+        except ParametricRealFieldFrozenError:
+            raise ParametricRealFieldRefinementError("big_cells_min")
     return min_i
 
 def is_min_le(iterable, value, key=None, field=None):
@@ -128,6 +153,13 @@ def is_min_le(iterable, value, key=None, field=None):
         Traceback (most recent call last):
         ...
         ParametricRealFieldRefinementError: ...
+
+    The same example with the addtional condition a <= 3.
+
+        sage: K.<a,b> = ParametricRealField([2, 1], big_cells=True, allow_refinement=False)
+        sage: assert a <= 3
+        sage: big_cells.is_min_le([a, b], 3)
+        True
 
     Another example with ``allow_refinement`` False::
 
@@ -169,15 +201,29 @@ def is_min_le(iterable, value, key=None, field=None):
     with field.off_the_record():
         min_i, min_v = min(iv_list, key=lambda iv: iv[1])
         is_le = min_v <= value
-    if is_le:
-        assert min_v <= value    # records
-        if not field._allow_refinement:
-            from cutgeneratingfunctionology.igp import ParametricRealFieldFrozenError, ParametricRealFieldRefinementError
+    if field._allow_refinement:
+        if is_le:
+            assert min_v <= value    # records
+        else:
+            assert all(iv[1] > value for iv in iv_list)   # records
+    else:
+        from cutgeneratingfunctionology.igp import ParametricRealFieldFrozenError, ParametricRealFieldRefinementError
+        if is_le:
+            is_le_satisfied = False
+            for iv in iv_list:
+                try:
+                    with field.frozen():
+                        assert iv[1] <= value
+                    is_le_satisfied = True
+                    break
+                except ParametricRealFieldFrozenError:
+                    pass
+            if not is_le_satisfied:
+                raise ParametricRealFieldRefinementError("is_min_le")
+        else:
             try:
                 with field.frozen():
-                    assert all(min_v <= iv[1] for iv in iv_list)
+                    assert all(iv[1] > value for iv in iv_list)
             except ParametricRealFieldFrozenError:
                 raise ParametricRealFieldRefinementError("is_min_le")
-    else:
-        assert all(iv[1] > value for iv in iv_list)   # records
     return is_le
