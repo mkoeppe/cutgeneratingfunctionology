@@ -172,6 +172,8 @@ class PolyhedralComplex(GenericCellComplex):
 
     def is_convex(self):
         """
+        sage: from cutgeneratingfunctionology.spam.polyhedral_complex import PolyhedralComplex
+        sage: from sage.geometry.polyhedron.constructor import Polyhedron
         sage: pc = PolyhedralComplex([Polyhedron(base_ring=QQ, vertices=[[1,0],[0,1]],
         ....: rays=[[1,0],[0,1]])])
         sage: pc.is_convex()
