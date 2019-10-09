@@ -105,6 +105,9 @@ def big_cells_min(iterable, key=None, field=None):
     iv_list = [ (i, key(i)) for i in iterable ]
     if field is None:
         field = _common_parametric_real_field(iv_list, key=lambda iv: iv[1])
+    from cutgeneratingfunctionology.igp import ParametricRealField
+    if not isinstance(field, ParametricRealField):
+        field = trivial_parametric_real_field
     with field.off_the_record():
         min_i, min_v = min(iv_list, key=lambda iv: iv[1])
     if field._allow_refinement:
