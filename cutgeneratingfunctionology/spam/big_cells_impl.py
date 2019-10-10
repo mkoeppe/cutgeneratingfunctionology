@@ -119,6 +119,7 @@ def big_cells_min(iterable, key=None, field=None):
                 assert all(min_v <= iv[1] for iv in iv_list)
         except ParametricRealFieldFrozenError:
             raise ParametricRealFieldRefinementError("big_cells_min")
+        # cannot have AssertionError because we compare to min_v 
     return min_i
 
 def is_min_le(iterable, value, key=None, field=None):
@@ -217,6 +218,7 @@ def is_min_le(iterable, value, key=None, field=None):
             if is_le:
                 is_le_satisfied = False
                 for iv in iv_list:
+                    # if one element is known to be <= value, then nothing to record.
                     try:
                         with field.frozen():
                             assert iv[1] <= value
@@ -224,12 +226,41 @@ def is_min_le(iterable, value, key=None, field=None):
                         break
                     except ParametricRealFieldFrozenError:
                         pass
+                    except AssertionError:
+                        pass
                 if not is_le_satisfied:
+                    for iv in iv_list:
+                        with field.off_the_record():
+                            if iv[1] > value:
+                                continue
+                        # at least one of the iv is <= value. 
+                        adding_iv_is_enough = True
+                        for iv_other in iv_list:
+                            if iv is iv_other:
+                                continue
+                            with field.temporary_assumptions():
+                                if not iv_other[1] <= value:
+                                    # not implemented. need to change test point etc. FIXME: bug exmaple
+                                    #sage: K.<a,b> = ParametricRealField([4, 1], big_cells=True, allow_refinement=False)
+                                    #sage: big_cells.is_min_le([3/4*a, 1/4*a], 2)
+                                    #True
+                                    raise ParametricRealFieldRefinementError("is_min_le")
+                                # now iv_other[1] <= value is recorded temporarily.
+                                try:
+                                    with field.frozen():
+                                        assert iv[1] <= value # always true becaus of the above check.
+                                except ParametricRealFieldFrozenError:
+                                    adding_iv_is_enough = False
+                                    break
+                        if adding_iv_is_enough:
+                            break # with adding_iv_is_enough = True, and iv
+                    if adding_iv_is_enough:
+                        assert iv[1] <= value # record
+                    else:
+                        raise ParametricRealFieldRefinementError("is_min_le")
                     # new region = current region \cap ({iv_list[0][1] <= value} \cup ... \cup {iv_list[-1][1] <= value})
                     # when not is_le_satisfied, asserting each iv_list[0][1] <= value would cut the current region of the field.
                     # Let X = current region \cap {iv_list[0][1] > value} \cap ... \cap {iv_list[-1][1]>value is empty,
-                    # don't raise error if X is empty or if X = current region \cap {iv_list[0][i] <= value} for some i.
-                    # don't know how to check this.
-                    # FIXME:
-                    raise ParametricRealFieldRefinementError("is_min_le")
+                    # don't raise error if X is empty or if X = current region \cap {iv_list[0][i] > value} for some i.
+                    # don't know how to check this. FIXME.
     return is_le
