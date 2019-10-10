@@ -668,6 +668,8 @@ class ParametricRealField(Field):
         if new_values is None:
             return True
         if any(x is None for x in new_values):
+            if all(x is None for x in new_values):
+                return True
             logging.warning("Consistency checking not implemented if some test point coordinates are None")
             return True
         ### Check that values satisfy all constraints.
@@ -692,7 +694,52 @@ class ParametricRealField(Field):
         self._values = new_values
 
     def remove_test_point(self):
+        """
+        Switch ``self`` to test-point free mode.
+
+        This requires a ParametricRealField set up with ``mutable_values=True``.
+
+        Not many things are implemented in this mode::
+
+        EXAMPLE::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<a,b> = ParametricRealField([4, 1], big_cells=True, mutable_values=True, allow_refinement=False)
+            sage: with K.changed_values():
+            ....:     K.remove_test_point()
+            ....:     with K.temporary_assumptions():
+            ....:         K.assume_comparison(a.sym(), operator.le, 3)
+            ....:         a <= 4
+            Traceback (most recent call last):
+            ...
+            FactorUndetermined: a cannot be evaluated because the test point is not complete...
+        """
         self._values = [ None for n in self._names ]
+
+    @contextmanager
+    def removed_test_point(self):
+        """
+        Context manager for temporarily switching to test-point free mode.
+
+        This requires a ParametricRealField set up with ``mutable_values=True``.
+
+        EXAMPLE::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<a> = ParametricRealField([4], big_cells=True, mutable_values=True, allow_refinement=False)
+            sage: with K.removed_test_point():
+            ....:     with K.temporary_assumptions():
+            ....:         K.assume_comparison(a.sym(), operator.le, 3)
+            ....:         K.find_test_point()
+            ....:         with K.frozen():
+            ....:             a <= 4
+            True
+        """
+        with self.changed_values():
+            self.remove_test_point()
+            yield True
 
     def find_test_point(self):
         """
@@ -835,7 +882,7 @@ class ParametricRealField(Field):
         base_ring = self._sym_field.base_ring()
         if fac in base_ring:
             return base_ring(fac)
-        if self._values is not None:
+        if self._values is not None and not all(x is None for x in self._values):
             try:
                 return fac(self._values)
             except TypeError:             # 'None' components
