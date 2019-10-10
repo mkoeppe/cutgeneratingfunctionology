@@ -27,6 +27,7 @@ from cutgeneratingfunctionology.spam.basic_semialgebraic import *
 from cutgeneratingfunctionology.spam.polyhedral_complex import PolyhedralComplex
 
 debug_new_factors = False
+debug_cell_exceptions = False
 
 ###############################
 # Parametric Real Number Field
@@ -2514,6 +2515,8 @@ class SemialgebraicComplex(SageObject):
             h = self.function(**test_point)
         except Exception: # Dangerous!!
             # Function is non-contructible at this random point.
+            if debug_cell_exceptions:
+                import pdb; pdb.post_mortem()
             h = None
         region_type = self.find_region_type(K, h)
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
