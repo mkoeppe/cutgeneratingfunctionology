@@ -536,6 +536,25 @@ class ParametricRealField(Field):
         sage: f[0]*f[1] <= 4
         True
 
+    Test-point free mode (limited functionality)::
+
+        sage: K.<a, b> = ParametricRealField(None, mutable_values=True)
+        sage: a <= 2
+        Traceback (most recent call last):
+        ...
+        FactorUndetermined: a cannot be evaluated because the test point is not complete
+        sage: K.assume_comparison(a.sym(), operator.le, 3)
+
+    Partial test point mode::
+
+        sage: K.<a, b> = ParametricRealField([None, 1], mutable_values=True)
+        sage: a <= 2
+        Traceback (most recent call last):
+        ...
+        FactorUndetermined: a cannot be evaluated because the test point is not complete
+        sage: b <= 11
+        True
+
     """
     Element = ParametricRealFieldElement
 
@@ -744,7 +763,8 @@ class ParametricRealField(Field):
     def find_test_point(self):
         """
         Sets a new test point that is consistent with the recorded constraints.
-        This can fail.
+
+        This can fail with ``NotImplementedError'' or ``ParametricRealFieldInconsistencyError''.
 
         EXAMPLES::
 
