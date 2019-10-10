@@ -211,7 +211,7 @@ class PolyhedralComplex(GenericCellComplex):
         sage: pc.is_convex()
         False
         """
-        if hasattr(self, '_is_convex'):
+        if hasattr(self, '_is_convex'): # FIXME: bad! _is_convex can not be changed later.
             return self._is_convex
         if not self.is_pure():
             self._is_convex = False
@@ -228,6 +228,7 @@ class PolyhedralComplex(GenericCellComplex):
         boundaries = self.boundary_cells()
         vertices = set([])
         rays = set([])
+        lines = set([])
         # lines are useless, because they are in the affine space of each boundary cell.
         for cell in boundaries: # is that enough, or need vertices of all cells? I think that is enough.
             for v in cell.vertices_list():
@@ -239,6 +240,10 @@ class PolyhedralComplex(GenericCellComplex):
                 rr = vector(r)
                 rr.set_immutable()
                 rays.add(rr)
+            for l in cell.lines_list():
+                ll = vector(l)
+                ll.set_immutable()
+                lines.add(ll)
         center = sum(vertices) / len(vertices)
         for cell in boundaries:
             for equation in cell.equations_list(): # if not full-dim, cell has more than one equaiton.
@@ -266,7 +271,7 @@ class PolyhedralComplex(GenericCellComplex):
                             self._is_convex = False
                             return False
         self._is_convex = True
-        self._polyhedron = Polyhedron(vertices=vertices)
+        self._polyhedron = Polyhedron(vertices=vertices,rays=rays,lines=lines)
         return True
 
     def union_as_polyhedron(self):
