@@ -215,20 +215,15 @@ def is_min_le(iterable, value, key=None, field=None):
             assert min_v <= value    # records
         else:
             from cutgeneratingfunctionology.igp import ParametricRealFieldFrozenError, ParametricRealFieldRefinementError
-            if is_le:
-                is_le_satisfied = False
+            if is_le:    # always True in this branch
                 for iv in iv_list:
                     # if one element is known to be <= value, then nothing to record.
                     try:
                         with field.frozen():
-                            assert iv[1] <= value
-                        is_le_satisfied = True
-                        break
+                            if iv[1] <= value return True
                     except ParametricRealFieldFrozenError:
                         pass
-                    except AssertionError:
-                        pass
-                if not is_le_satisfied:
+                if True:
                     for iv in iv_list:
                         with field.off_the_record():
                             if iv[1] > value:
