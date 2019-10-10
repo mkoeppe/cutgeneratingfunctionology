@@ -668,6 +668,8 @@ class ParametricRealField(Field):
         if new_values is None:
             return True
         if any(x is None for x in new_values):
+            if all(x is None for x in new_values):
+                return True
             logging.warning("Consistency checking not implemented if some test point coordinates are None")
             return True
         ### Check that values satisfy all constraints.
@@ -835,7 +837,7 @@ class ParametricRealField(Field):
         base_ring = self._sym_field.base_ring()
         if fac in base_ring:
             return base_ring(fac)
-        if self._values is not None:
+        if self._values is not None and not all(x is None for x in self._values):
             try:
                 return fac(self._values)
             except TypeError:             # 'None' components
