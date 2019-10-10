@@ -204,29 +204,32 @@ def is_min_le(iterable, value, key=None, field=None):
     with field.off_the_record():
         min_i, min_v = min(iv_list, key=lambda iv: iv[1])
         is_le = min_v <= value
-    if field._allow_refinement:
-        if is_le:
+    # is_min_le is a comparison, not a computation.
+    # when allow_refinement=False, comparisons are allowed to record;
+    # this one should record the convex region; but if the region was non-convex, it would raise an error.
+    if not is_le:
+        assert all(iv[1] > value for iv in iv_list)   # records
+    else:
+        if field._allow_refinement:
             assert min_v <= value    # records
         else:
-            assert all(iv[1] > value for iv in iv_list)   # records
-    else:
-        from cutgeneratingfunctionology.igp import ParametricRealFieldFrozenError, ParametricRealFieldRefinementError
-        if is_le:
-            is_le_satisfied = False
-            for iv in iv_list:
-                try:
-                    with field.frozen():
-                        assert iv[1] <= value
-                    is_le_satisfied = True
-                    break
-                except ParametricRealFieldFrozenError:
-                    pass
-            if not is_le_satisfied:
-                raise ParametricRealFieldRefinementError("is_min_le")
-        else:
-            try:
-                with field.frozen():
-                    assert all(iv[1] > value for iv in iv_list)
-            except ParametricRealFieldFrozenError:
-                raise ParametricRealFieldRefinementError("is_min_le")
+            from cutgeneratingfunctionology.igp import ParametricRealFieldFrozenError, ParametricRealFieldRefinementError
+            if is_le:
+                is_le_satisfied = False
+                for iv in iv_list:
+                    try:
+                        with field.frozen():
+                            assert iv[1] <= value
+                        is_le_satisfied = True
+                        break
+                    except ParametricRealFieldFrozenError:
+                        pass
+                if not is_le_satisfied:
+                    # new region = current region \cap ({iv_list[0][1] <= value} \cup ... \cup {iv_list[-1][1] <= value})
+                    # when not is_le_satisfied, asserting each iv_list[0][1] <= value would cut the current region of the field.
+                    # Let X = current region \cap {iv_list[0][1] > value} \cap ... \cap {iv_list[-1][1]>value is empty,
+                    # don't raise error if X is empty or if X = current region \cap {iv_list[0][i] <= value} for some i.
+                    # don't know how to check this.
+                    # FIXME:
+                    raise ParametricRealFieldRefinementError("is_min_le")
     return is_le
