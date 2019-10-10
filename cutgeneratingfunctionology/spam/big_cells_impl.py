@@ -263,4 +263,8 @@ def is_min_le(iterable, value, key=None, field=None):
                     # Let X = current region \cap {iv_list[0][1] > value} \cap ... \cap {iv_list[-1][1]>value is empty,
                     # don't raise error if X is empty or if X = current region \cap {iv_list[0][i] > value} for some i.
                     # don't know how to check this. FIXME.
+                    #FIXME: bug exmaple for X is empty case.
+                    #sage: K.<a,b> = ParametricRealField([4, 1], big_cells=True, allow_refinement=False)
+                    #sage: big_cells.is_min_le([a+2, 2-a, b+2, 2-b], 2)
+                    #True
     return is_le
