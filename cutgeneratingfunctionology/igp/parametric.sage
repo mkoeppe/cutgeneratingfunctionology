@@ -1099,6 +1099,20 @@ class ParametricRealField(Field):
             True
             sage: x != 0
             True
+
+        Known bug. A contradiction it is not recorded in factors::
+
+            sage: K.<a,b> = ParametricRealField([2, 1], big_cells=True, mutable_values=True,
+            ....: allow_refinement=False)
+            sage: assert b>0
+            sage: K.remove_test_point()
+            sage: K.assume_comparison(b.sym(), operator.lt, 0)
+            sage: K._lt
+            {-b, b}
+            sage: K._lt_factor
+            {-b}   # should be {-b, b}
+            sage: K._eq
+            set()
         """
         if not self._record:
             return
