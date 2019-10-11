@@ -180,11 +180,17 @@ def is_min_le(iterable, value, key=None, field=None):
         sage: big_cells.is_min_le([a+2, 2-a, b+2, 2-b], 2)
         True
 
-    Previous bug example. Now fixed if ParametricRealField is set up with ``mutable_values=True``::
+    Previous bug examples. Now fixed if ParametricRealField is set up with ``mutable_values=True``::
 
         sage: K.<a,b> = ParametricRealField([4, 1], big_cells=True, mutable_values=True, allow_refinement=False)
         sage: big_cells.is_min_le([3/4*a, 1/4*a], 2)
         True
+
+        sage: K.<a,b> = ParametricRealField([4, 1], big_cells=True, mutable_values=True, allow_refinement=False)
+        sage: big_cells.is_min_le([a, b], 2) # not convex
+        Traceback (most recent call last):
+        ...
+        ParametricRealFieldRefinementError: ...
 
     In fact, the big cells form a cover (arrangement), not a complex;
     there is a full-dimensional intersection::
