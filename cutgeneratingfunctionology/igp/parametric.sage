@@ -602,10 +602,10 @@ class ParametricRealField(Field):
         # do the computation of the polyhedron incrementally,
         # rather than first building a huge list and then in a second step processing it.
         # the polyhedron defined by all constraints in self._eq/lt_factor
-        self.polyhedron = NNC_Polyhedron(0, 'universe')
+        self._polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(0)
         # records the monomials that appear in self._eq/lt_factor
         self.monomial_list = []
-        # a dictionary that maps each monomial to the index of its corresponding Variable in self.polyhedron
+        # a dictionary that maps each monomial to the index of its corresponding Variable in self._polyhedron
         self.v_dict = {}
         self.allow_coercion_to_float = allow_coercion_to_float
         if allow_coercion_to_float:
@@ -692,14 +692,7 @@ class ParametricRealField(Field):
             logging.warning("Consistency checking not implemented if some test point coordinates are None")
             return True
         ### Check that values satisfy all constraints.
-        rational_list = [ QQ(m(new_values)) for m in self.monomial_list ]
-        ## REFACTOR: Use BasicSemialgebraicSet.__contains__
-        num_list = [x.numerator() for x in rational_list]
-        den_list = [x.denominator() for x in rational_list]
-        common_den = lcm(den_list)
-        coef = [common_den // den_list[i] * num_list[i] for i in range(len(rational_list))]
-        pt = ppl_point(Linear_Expression(coef, 0), common_den)
-        return self.polyhedron.relation_with(pt).implies(point_is_included)
+        return [ m(new_values) for m in self.monomial_list ] in self._polyhedron
 
     def change_values(self, **values):
         if not self._mutable_values:
@@ -786,22 +779,8 @@ class ParametricRealField(Field):
             sage: x.val(), y.val(), z.val()
             (1, 2, 3)
         """
-        def to_point(g):
-            den = g.divisor()
-            return vector(QQ, ( QQ(x)/den for x in g.coefficients() ))
-        def to_vector(g):
-            return vector(QQ, ( QQ(x) for x in g.coefficients() ))
-        points = [ to_point(g) for g in self.polyhedron.generators()
-                   if g.is_point() or g.is_closure_point() ]
-        rays = [ to_vector(g) for g in self.polyhedron.generators()
-                 if g.is_ray() ]
-        if points:
-            p = sum(points) / len(points)
-            if rays:
-                p += sum(rays) / len(rays)
-            self.change_values(**{str(m): x for m, x in zip(self.monomial_list, p) })
-            return
-        raise NotImplementedError("find_test_point implementation cannot handle this case")
+        p = self._polyhedron.find_point()
+        self.change_values(**{str(m): x for m, x in zip(self.monomial_list, p) })
 
     @contextmanager
     def changed_values(self, **values):
@@ -857,8 +836,8 @@ class ParametricRealField(Field):
         self._lt_factor = copy(save_lt_factor)
         save_le_factor = self._le_factor
         self._le_factor = copy(save_le_factor)
-        save_polyhedron = self.polyhedron
-        self.polyhedron = copy(save_polyhedron)
+        save_polyhedron = self._polyhedron
+        self._polyhedron = copy(save_polyhedron)
         save_monomial_list = self.monomial_list
         self.monomial_list = copy(self.monomial_list)
         save_v_dict = self.v_dict
@@ -872,7 +851,7 @@ class ParametricRealField(Field):
             self._eq_factor = save_eq_factor
             self._lt_factor = save_lt_factor
             self._le_factor = save_le_factor
-            self.polyhedron = save_polyhedron
+            self._polyhedron = save_polyhedron
             self.monomial_list = save_monomial_list
             self.v_dict = save_v_dict
             if case_id is not None:
@@ -1317,19 +1296,11 @@ class ParametricRealField(Field):
         else:
             raise NotImplementedError("Not implemented operator: {}".format(op))
 
-    def _constraint_spacedim_to_add(self, fac, op):
+    def _linexpr_spacedim_to_add(self, fac):
         space_dim_old = len(self.monomial_list)
         linexpr = polynomial_to_linexpr(fac, self.monomial_list, self.v_dict)
         space_dim_to_add = len(self.monomial_list) - space_dim_old
-        if op == operator.lt:
-            constraint_to_add = (linexpr < 0)
-        elif op == operator.eq:
-            constraint_to_add = (linexpr == 0)
-        elif op == operator.le:
-            constraint_to_add = (linexpr <= 0)
-        else:
-            raise ValueError("{} is not a supported operator".format(op))
-        return constraint_to_add, space_dim_to_add
+        return linexpr, space_dim_to_add
 
     def is_factor_known(self, fac, op):
         if op == operator.lt:
@@ -1343,18 +1314,18 @@ class ParametricRealField(Field):
                 return True
         else:
             raise ValueError("{} is not a supported operator".format(op))
-        constraint_to_add, space_dim_to_add = self._constraint_spacedim_to_add(fac, op)
+        linexpr_to_add, space_dim_to_add = self._linexpr_spacedim_to_add(fac)
         #print "constraint_to_add = %s" % constraint_to_add
         if space_dim_to_add:
-            self.polyhedron.add_space_dimensions_and_embed(space_dim_to_add)
+            self._polyhedron.add_space_dimensions_and_embed(space_dim_to_add)
             return False
         else:
-            return self.polyhedron.relation_with(constraint_to_add).implies(poly_is_included)
+            return self._polyhedron.is_linear_constraint_valid(linexpr_to_add, op)
 
     def record_factor(self, fac, op):
         #print "add %s, %s to %s" % (fac, op, self.polyhedron.constraints())
         if not self.is_factor_known(fac, op):
-            constraint_to_add, _ = self._constraint_spacedim_to_add(fac, op)
+            linexpr_to_add, _ = self._linexpr_spacedim_to_add(fac)
             if op == operator.lt:
                 formatted_constraint = "%s < 0" % fac
             elif op == operator.eq:
@@ -1365,7 +1336,7 @@ class ParametricRealField(Field):
                 raise ValueError("{} is not a supported operator".format(op))
             if self._frozen:
                 raise ParametricRealFieldFrozenError("Cannot prove that constraint is implied: {} ".format(formatted_constraint))
-            self.polyhedron.add_constraint(constraint_to_add)
+            self._polyhedron.add_linear_constraint(linexpr_to_add, op)
             #print " add new constraint, %s" %self.polyhedron.constraints()
             logging.info("New constraint: {}".format(formatted_constraint))
             if op == operator.lt:
@@ -1427,7 +1398,7 @@ class ParametricRealField(Field):
         P = PolynomialRing(QQ, self._names)
         self.monomial_list = list(P.gens())
         self.v_dict = {P.gens()[i]:i for i in range(n)}
-        self.polyhedron = NNC_Polyhedron(n,'universe')
+        self._polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=n)
 
 ###############################
 # Simplify polynomials
@@ -1648,7 +1619,8 @@ def read_simplified_leq_lin(K, level="factor"):
         #leq, lin = simplify_eq_lt_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
         # Since we update K.polyhedron incrementally,
         # just read leq and lin from its minimized constraint system.
-        leq, lin = read_leq_lin_from_polyhedron(K.polyhedron, K.monomial_list, K.v_dict)
+        #### to REFACTOR
+        leq, lin = read_leq_lin_from_polyhedron(K._polyhedron._polyhedron, K.monomial_list, K.v_dict)
     else:
         leq = list(K.get_eq())
         lin = list(K.get_lt())
@@ -1876,7 +1848,8 @@ class SemialgebraicComplexComponent(SageObject):
         self.v_dict = K.v_dict
         #self.polyhedron = K.polyhedron
         #space_dim_old = len(self.monomial_list)
-        self.bounds, tightened_mip = self.bounds_propagation(K.polyhedron, self.parent.max_iter)
+        ## to REFACTOR:
+        self.bounds, tightened_mip = self.bounds_propagation(K._polyhedron._polyhedron, self.parent.max_iter)
         # Unimplemented
         # dim_to_add =  len(self.monomial_list) - space_dim_old:
         # if dim_to_add > 0:
@@ -1884,7 +1857,8 @@ class SemialgebraicComplexComponent(SageObject):
         #     K.polyhedron.add_space_dimensions_and_embed(dim_to_add)
         if self.parent.max_iter == 0:
             tightened_mip = None
-        leqs, lins = read_leq_lin_from_polyhedron(K.polyhedron, K.monomial_list, K.v_dict, tightened_mip)
+        ## to REFACTOR:
+        leqs, lins = read_leq_lin_from_polyhedron(K._polyhedron._polyhedron, K.monomial_list, K.v_dict, tightened_mip)
         if (leqs == []):
             P = PolynomialRing(QQ, parent.var_name)
             self.var_map = {g:g for g in P.gens()}
@@ -1921,7 +1895,7 @@ class SemialgebraicComplexComponent(SageObject):
             sage: K.<lam1,lam2>=ParametricRealField([3/10, 45/101])
             sage: h = chen_4_slope(K(7/10), K(2), K(-4), lam1, lam2)
             sage: region_type = find_region_type_igp(K, h)
-            sage: leq, lin = read_leq_lin_from_polyhedron(K.polyhedron, K.monomial_list, K.v_dict)
+            sage: leq, lin = read_leq_lin_from_polyhedron(K._polyhedron._polyhedron, K.monomial_list, K.v_dict)
             sage: lin
             [21*lam1 - 8, 19*lam1 - 75*lam2, -2*lam1 + lam2, 2*lam2 - 1]
             sage: c = K.make_proof_cell(region_type=region_type, function=h, find_region_type=None)
