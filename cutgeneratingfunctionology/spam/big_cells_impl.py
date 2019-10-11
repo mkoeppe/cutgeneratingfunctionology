@@ -219,7 +219,7 @@ def is_min_le(iterable, value, key=None, field=None):
                 # if one element is known to be <= value, then nothing to record.
                 try:
                     with field.frozen():
-                        if iv[1] <= value return True
+                        if iv[1] <= value: return True
                 except ParametricRealFieldFrozenError:
                     pass
             for iv in iv_list:
