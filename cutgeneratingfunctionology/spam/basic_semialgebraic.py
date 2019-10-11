@@ -231,10 +231,10 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
 
     """
     A basic semialgebraic set, represented in a straightforward way
-    as 3 sets of constraints.
+    as 3 finite sets of polynomial constraints `p(x) OP 0`.
     """
 
-    def __init__(self, ambient_dim):
+    def __init__(self, ambient_dim, ring=None, eq=[], lt=[], le=[]):
         """
         EXAMPLES::
 
@@ -242,13 +242,41 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
             sage: S = BasicSemialgebraicSet_eq_lt_le_sets(3)
 
         """
+        if ring is None:
+            polys = list(eq) + list(lt) + list(le)
+            if polys:
+                ring = polys[0].parent()
+        if ambient_dim is None:
+            ambient_dim = ring.ngens()
         super(BasicSemialgebraicSet_eq_lt_le_sets, self).__init__(ambient_dim)
-        self._eq = set([])
-        self._lt = set([])
-        self._le = set([])
+        self._ring = ring
+        self._eq = set(eq)
+        self._lt = set(lt)
+        self._le = set(le)
 
     def __copy__(self):
-        raise NotImplementedError()
+        """
+        Make a copy of ``self``.
+
+        TESTS:
+
+        Test that it is actually making a copy of the (mutable!) sets::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P = BasicSemialgebraicSet_eq_lt_le_sets(2)
+            sage: P._eq is copy(P)._eq
+            False
+            sage: P._lt is copy(P)._lt
+            False
+            sage: P._le is copy(P)._le
+            False
+        """
+        return self.__class__(self.ambient_dim(),
+                              self._ring,
+                              self._eq, self._lt, self._le)
+
+    ### TODO: Add implementations of more of the methods.
+
 
 ## (4) Later... introduce a class that takes care of the monomial lifting etc.
 
