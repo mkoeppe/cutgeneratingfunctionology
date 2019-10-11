@@ -14,10 +14,6 @@ except ImportError:
 
 from six.moves import zip
 from six.moves import range
-poly_is_included = Poly_Con_Relation.is_included()
-#strictly_intersects = Poly_Con_Relation.strictly_intersects()
-point_is_included = Poly_Gen_Relation.subsumes()
-#con_saturates = Poly_Con_Relation.saturates()
 
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp, op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE
