@@ -1117,7 +1117,7 @@ class ParametricRealField(Field):
         # FIXME: This may cancel denominators.  If assume_comparison is called from _richcmp_, that's fine because
         # _div_ records denominators.
         if op == operator.eq:
-            if comparison in self._eq:
+            if (comparison in self._eq) or (-comparison in self._eq):
                 return
         elif op == operator.lt:
             if comparison in self._lt:
@@ -1342,7 +1342,7 @@ class ParametricRealField(Field):
             if fac in self._lt_factor:
                 return True
         elif op == operator.eq:
-            if fac in self._eq_factor:
+            if (fac in self._eq_factor) or (-fac in self._eq_factor):
                 return True
         elif op == operator.le:
             if fac in self._le_factor:
