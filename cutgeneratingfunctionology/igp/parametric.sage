@@ -633,6 +633,9 @@ class ParametricRealField(Field):
         Kcopy._le_factor.update(self._le_factor)
         return Kcopy
 
+    def ppl_polyhedron(self):
+        return self._polyhedron._polyhedron
+
     def _first_ngens(self, n):
         for i in range(n):
             yield self._gens[i]
@@ -1652,7 +1655,7 @@ def read_simplified_leq_lin(K, level="factor"):
         # Since we update K.polyhedron incrementally,
         # just read leq and lin from its minimized constraint system.
         #### to REFACTOR
-        leq, lin = read_leq_lin_from_polyhedron(K._polyhedron._polyhedron, K.monomial_list, K.v_dict)
+        leq, lin = read_leq_lin_from_polyhedron(K.ppl_polyhedron(), K.monomial_list, K.v_dict)
     else:
         leq = list(K.get_eq())
         lin = list(K.get_lt())
@@ -1881,7 +1884,7 @@ class SemialgebraicComplexComponent(SageObject):
         #self.polyhedron = K.polyhedron
         #space_dim_old = len(self.monomial_list)
         ## to REFACTOR:
-        self.bounds, tightened_mip = self.bounds_propagation(K._polyhedron._polyhedron, self.parent.max_iter)
+        self.bounds, tightened_mip = self.bounds_propagation(K.ppl_polyhedron(), self.parent.max_iter)
         # Unimplemented
         # dim_to_add =  len(self.monomial_list) - space_dim_old:
         # if dim_to_add > 0:
@@ -1890,7 +1893,7 @@ class SemialgebraicComplexComponent(SageObject):
         if self.parent.max_iter == 0:
             tightened_mip = None
         ## to REFACTOR:
-        leqs, lins = read_leq_lin_from_polyhedron(K._polyhedron._polyhedron, K.monomial_list, K.v_dict, tightened_mip)
+        leqs, lins = read_leq_lin_from_polyhedron(K.ppl_polyhedron(), K.monomial_list, K.v_dict, tightened_mip)
         if (leqs == []):
             P = PolynomialRing(QQ, parent.var_name)
             self.var_map = {g:g for g in P.gens()}
@@ -1927,7 +1930,7 @@ class SemialgebraicComplexComponent(SageObject):
             sage: K.<lam1,lam2>=ParametricRealField([3/10, 45/101])
             sage: h = chen_4_slope(K(7/10), K(2), K(-4), lam1, lam2)
             sage: region_type = find_region_type_igp(K, h)
-            sage: leq, lin = read_leq_lin_from_polyhedron(K._polyhedron._polyhedron, K.monomial_list, K.v_dict)
+            sage: leq, lin = read_leq_lin_from_polyhedron(K.ppl_polyhedron(), K.monomial_list, K.v_dict)
             sage: lin
             [21*lam1 - 8, 19*lam1 - 75*lam2, -2*lam1 + lam2, 2*lam2 - 1]
             sage: c = K.make_proof_cell(region_type=region_type, function=h, find_region_type=None)
