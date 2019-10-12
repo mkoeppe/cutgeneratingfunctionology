@@ -1133,7 +1133,7 @@ class ParametricRealField(Field):
         comparison = self._sym_field(comparison)
         try:
             if not op(self._eval_factor(comparison), 0):
-                raise ParametricRealFieldInconsistencyError("New constraint {} {} {} is not satisfied by the test point".format(lhs, op, rhs))
+                raise ParametricRealFieldInconsistencyError("New constraint {} {}  {} is not satisfied by the test point".format(lhs, op, rhs))
         except FactorUndetermined:
             pass
         if comparison.is_zero():
@@ -1150,7 +1150,7 @@ class ParametricRealField(Field):
             ne_factors = []
             unknown_factors = []
             # Record all factors for which testpoint gives zero.
-            for (fac, d) in factors:
+            for (fac, d) in factors: #only one of -fac and fac is in the factorization.
                 if d > 0:
                     if self.is_factor_known(fac, operator.lt) or self.is_factor_known(-fac, operator.lt):
                         pass
@@ -1158,7 +1158,7 @@ class ParametricRealField(Field):
                         try:
                             fac_sign = self._factor_sign(fac)
                             if fac_sign == 0:
-                                eq_factors.append(fac)
+                                eq_factors.append(fac) # cannot happen that -fac was in.
                             else:
                                 ne_factors.append(fac)
                         except FactorUndetermined:
@@ -1180,9 +1180,9 @@ class ParametricRealField(Field):
             lt_factors = []
             even_factors = []
             unknown_factors = []
-            for (fac, d) in factors:
-                if self.is_factor_known(fac, operator.eq) or self.is_factor_known(-fac, operator.eq):
-                    raise ParametricRealFieldInconsistencyError("New constant constraint {} {} {} is not satisfied".format(lhs, op, rhs))
+            for (fac, d) in factors: #only one of -fac and fac is in the factorization.
+                if self.is_factor_known(fac, operator.eq):
+                    raise ParametricRealFieldInconsistencyError("New constraint {} {} {} is not satisfied".format(lhs, op, rhs))
                 if d % 2 == 1:
                     if self.is_factor_known(fac, operator.lt):
                         sign = -sign
@@ -1198,14 +1198,14 @@ class ParametricRealField(Field):
                                 lt_factors.append(-fac)
                             else:
                                 # assert fac_sign == 0
-                                raise ParametricRealFieldInconsistencyError("New constant constraint {} {} {} is not satisfied".format(lhs, op, rhs))
+                                raise ParametricRealFieldInconsistencyError("New constraint {} {} {} is not satisfied".format(lhs, op, rhs))
                         except FactorUndetermined:
                             unknown_factors.append(fac)
                 else:
                     if not self.is_factor_known(fac, operator.lt) and not self.is_factor_known(-fac, operator.lt):
                         even_factors.append(fac)
             if (sign == 1) and (not even_factors) and (not unknown_factors):
-                raise ParametricRealFieldInconsistencyError("New constant constraint {} {} {} is not satisfied".format(lhs, op, rhs))
+                raise ParametricRealFieldInconsistencyError("New constraint {} {} {} is not satisfied".format(lhs, op, rhs))
             if not self._allow_refinement:
                 if len(lt_factors) + len(unknown_factors) > 1:
                     # or just record the product
@@ -1236,7 +1236,7 @@ class ParametricRealField(Field):
                             self.record_factor(-new_fac, operator.lt)
                         else:
                             #assert fac_sign == 0
-                            raise ParametricRealFieldInconsistencyError("New constant constraint {} {} {} is not satisfied".format(lhs, op, rhs))
+                            raise ParametricRealFieldInconsistencyError("New constraint {} {} {} is not satisfied".format(lhs, op, rhs))
                     except FactorUndetermined:
                         # break the cell ? raise NotImplementedError()?
                         self.record_factor(new_fac, operator.lt)
@@ -1248,7 +1248,7 @@ class ParametricRealField(Field):
             eq_factors = []
             even_factors = []
             unknown_factors = []
-            for (fac, d) in factors:
+            for (fac, d) in factors: #only one of -fac and fac is in the factorization.
                 # self.is_factor_known(fac, operator.eq) or self.is_factor_known(-fac, operator.eq) were treated above already.
                 if d % 2 == 1:
                     if self.is_factor_known(fac, operator.lt):
@@ -1259,7 +1259,7 @@ class ParametricRealField(Field):
                         try:
                             fac_sign = self._factor_sign(fac)
                             if fac_sign == 0:
-                                eq_factors.append(fac)
+                                eq_factors.append(fac) # cannot happen that -fac was in.
                             elif fac_sign == -1:
                                 lt_factors.append(fac)
                                 sign = -sign
@@ -1272,7 +1272,7 @@ class ParametricRealField(Field):
                     if not self.is_factor_known(fac, operator.lt) and not self.is_factor_known(-fac, operator.lt):
                         even_factors.append(fac)
             if (sign == 1) and (not even_factors) and (not eq_factors) and (not unknown_factors):
-                raise ParametricRealFieldInconsistencyError("New constant constraint {} {} {} is not satisfied".format(lhs, op, rhs))
+                raise ParametricRealFieldInconsistencyError("New constraint {} {} {} is not satisfied".format(lhs, op, rhs))
             if not self._allow_refinement:
                 if len(even_factors) + len(lt_factors) + len(eq_factors) + len(unknown_factors) > 1:
                     raise ParametricRealFieldRefinementError("{} <= 0 has several new factors: {}".format(comparison, even_factors+lt_factors+eq_factors))
@@ -1303,7 +1303,8 @@ class ParametricRealField(Field):
                         if self._factor_sign(new_fac) == 0:
                             eq_factors.append(new_fac)
                     except FactorUndetermined:
-                        eq_factors.append(new_fac) #??? or pass?       
+                        eq_factors.append(new_fac) #??? or pass?
+                        #This doesn't matter for now because under this branch  self._allow_refinement=True, and testpoint value is not removed, so  the exception FactorUndetermined should not happen.  In the future if the code in big_cells_impl changes and this exception happens, it is still safer to eq_factors.append(new_fac). This could result in smaller cell (which is allowed). With "pass" it may raise error in corner cases, such as when the removed testpoint value was the only eq factor without which there would be a sign contradiction.
                 for new_fac in lt_factors:
                     self.record_factor(new_fac, operator.le)
                 if not self._big_cells:
