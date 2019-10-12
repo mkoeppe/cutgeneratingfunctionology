@@ -289,7 +289,7 @@ def is_min_le(iterable, value, key=None, field=None):
                                     field.assume_comparison(iv_other[1].sym(), operator.le, value)
                                     with field.frozen():
                                         field.assume_comparison(iv[1].sym(), operator.le, value)
-                                except ParametricRealFieldInconsistencyError, ParametricRealFieldFrozenError:
+                                except (ParametricRealFieldInconsistencyError, ParametricRealFieldFrozenError):
                                     adding_iv_is_enough = False
                                     break
                 if adding_iv_is_enough:
