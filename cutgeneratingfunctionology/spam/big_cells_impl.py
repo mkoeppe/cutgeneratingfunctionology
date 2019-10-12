@@ -285,11 +285,11 @@ def is_min_le(iterable, value, key=None, field=None):
                         #This requires a ParametricRealField set up with ``mutable_values=True``.
                         with field.removed_test_point():
                             with field.temporary_assumptions():
-                                field.assume_comparison(iv_other[1].sym(), operator.le, value)
                                 try:
+                                    field.assume_comparison(iv_other[1].sym(), operator.le, value)
                                     with field.frozen():
                                         field.assume_comparison(iv[1].sym(), operator.le, value)
-                                except ParametricRealFieldFrozenError:
+                                except ParametricRealFieldInconsistencyError, ParametricRealFieldFrozenError:
                                     adding_iv_is_enough = False
                                     break
                 if adding_iv_is_enough:
