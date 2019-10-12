@@ -2950,6 +2950,11 @@ def rescale_to_amplitude(perturb, amplitude):
 # Global figsize for all plots made by show_plots.
 show_plots_figsize = 10
 
+try:
+    from sage.plot.multigraphics import GraphicsArray
+except ImportError:
+    from sage.plot.graphics import GraphicsArray
+
 def show_plot(graphics, show_plots, tag, object=None, **show_kwds):
     r"""
     Display or save graphics.
@@ -2962,7 +2967,7 @@ def show_plot(graphics, show_plots, tag, object=None, **show_kwds):
     """
     show_kwds = copy(show_kwds)
     plot_kwds_hook(show_kwds)
-    if isinstance(graphics, sage.plot.graphics.GraphicsArray):
+    if isinstance(graphics, GraphicsArray):
         # GraphicsArrays can't have legends.
         plot_kwds_hook_no_legend(show_kwds)
     if show_plots_figsize is not None:
