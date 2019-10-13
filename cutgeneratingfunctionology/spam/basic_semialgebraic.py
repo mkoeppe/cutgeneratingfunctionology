@@ -125,6 +125,20 @@ class BasicSemialgebraicSet_base(Element):
         """
         # default implementation could go through self.closure_polyhedron()
 
+    def section(self, polynomial_map):
+        r"""
+        Define the semialgebraic set that is a section of ``self``.
+
+        ``polynomial_map`` is a vector, list, or tuple of `n` polynomials
+        defining a polynomial map `F` from some R^m to R^n where `n` is
+        ``self.ambient_dim()``.
+
+        This defines the section `X = \{ x \in R^m : F(x) \in Y \}`,
+        where `Y` is ``self``.
+
+        """
+        return BasicSemialgebraicSet_section(self, polynomial_map)
+
 ## (1) In the first step, we implement the following class.  Everything is linear.
 ## Rewrite all direct uses of PPL in ParametricRealFieldElement, ParametricRealField
 ## using method calls to this class.
@@ -374,6 +388,63 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
 
     ### TODO: Add implementations of more of the methods.
 
+
+class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
+
+    """
+    Section of another ``BasicSemialgebraicSet``.
+    """
+
+    def __init__(self, bsa, polynomial_map, ambient_dim=None):
+        """
+        EXAMPLES:
+
+        McCormick::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: PY.<x,y,xy> = QQ[]
+            sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(le=[-x, -y, -xy, x-2, y-3, xy-6])
+            sage: PX.<u,v> = QQ[]
+            sage: F = [u, v, u*v]
+            sage: section = bsa.section(F); section
+            BasicSemialgebraicSet_section(BasicSemialgebraicSet_eq_lt_le_sets(eq = [], lt = [], le = [-y, -x, xy - 6, y - 3, x - 2, -xy]), polynomial_map=[u, v, u*v])
+            sage: section.ambient_dim()
+            2
+            sage: sorted(section.eq_poly()), sorted(section.le_poly())
+            ([], [-v, v - 3, -u, u - 2, -u*v, u*v - 6])
+
+        An interval::
+
+            sage: PZ.<z> = QQ[]
+            sage: interval = bsa.section([1, 1, z])
+            sage: sorted(f for f in interval.le_poly() if f not in QQ)
+            [-z, z - 6]
+
+        """
+        if len(polynomial_map) != bsa.ambient_dim():
+            raise ValueError("polynomial_map must have the same length as the dimension of the underlying bsa")
+        if polynomial_map and ambient_dim is None:
+            ambient_dim = polynomial_map[0].parent().ngens()
+        if not all(poly.parent().ngens() == ambient_dim for poly in polynomial_map):
+            raise ValueError("elements in polynomial_map must come from a polynomial ring with the same number of variables as the ambient dimension")
+        super(BasicSemialgebraicSet_section, self).__init__(ambient_dim)
+        self._bsa = bsa
+        self._polynomial_map = polynomial_map
+
+    def eq_poly(self):
+        for p in self._bsa.eq_poly():
+            yield p(self._polynomial_map)
+
+    def le_poly(self):
+        for p in self._bsa.le_poly():
+            yield p(self._polynomial_map)
+
+    def lt_poly(self):
+        for p in self._bsa.lt_poly():
+            yield p(self._polynomial_map)
+
+    def _repr_(self):
+        return 'BasicSemialgebraicSet_section({}, polynomial_map={})'.format(self._bsa, self._polynomial_map)
 
 ## (4) Later... introduce a class that takes care of the monomial lifting etc.
 
