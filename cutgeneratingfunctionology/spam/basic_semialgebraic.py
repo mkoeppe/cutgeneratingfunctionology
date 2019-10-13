@@ -37,10 +37,37 @@ class BasicSemialgebraicSet_base(Element):
         return self._ambient_dim
 
     @abstract_method
+    def eq_poly(self):
+        r"""
+        Return a list, set, or iterator of the polynomials `f` in equations `f(x) = 0`
+        in the description of ``self``.
+
+        Together, ``eq_poly``, ``lt_poly``, and ``le_poly`` describe ``self``.
+        """
+
+    @abstract_method
+    def lt_poly(self):
+        r"""
+        Return a list, set, or iterator of the polynomials `f` in strict inequalities `f(x) < 0`
+        in the description of ``self``.
+
+        Together, ``eq_poly``, ``lt_poly``, and ``le_poly`` describe ``self``.
+        """
+
+    @abstract_method
+    def le_poly(self):
+        r"""
+        Return a list, set, or iterator of the polynomials `f` in inequalities `f(x) \leq 0`
+        in the description of ``self``.
+
+        Together, ``eq_poly``, ``lt_poly``, and ``le_poly`` describe ``self``.
+        """
+
     def __contains__(self, point):
         """
         Whether the set contains the ``point`` (vector).
         """
+        return all(f(point) == 0 for f in self.eq_poly()) and all(f(point) <= 0 for f in self.le_poly()) and all(f(point) < 0 for f in self.lt_poly())
 
     @abstract_method
     def closure_polyhedron(self):
@@ -129,7 +156,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         """
         return self.__class__(polyhedron=copy(self._polyhedron))
 
-    # override the abstract methods
+    # override the default implementation
     def __contains__(self, point):
         """
         Whether the set contains the ``point`` (vector).
@@ -142,6 +169,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         pt = ppl_point(Linear_Expression(coef, 0), common_den)
         return self._polyhedron.relation_with(pt).implies(point_is_included)
 
+    # override the abstract methods
     def find_point(self):
         """
         Find a point in ``self``.
@@ -276,11 +304,36 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
                               self._eq, self._lt, self._le)
 
     # override the abstract methods
-    def __contains__(self, x):
-        return all(f(x) == 0 for f in self._eq) and all(f(x) <= 0 for f in self._le) and all(f(x) < 0 for f in self._lt)
 
     def __repr__(self):
         return 'BasicSemialgebraicSet_eq_lt_le_sets(eq = {}, lt = {}, le = {})'.format(list(self._eq), list(self._lt), list(self._le))
+
+    def eq_poly(self):
+        r"""
+        Return a list, set, or iterator of the polynomials `f` in equations `f(x) = 0`
+        in the description of ``self``.
+
+        Together, ``eq_poly``, ``lt_poly``, and ``le_poly`` describe ``self``.
+        """
+        return self._eq
+
+    def lt_poly(self):
+        r"""
+        Return a list, set, or iterator of the polynomials `f` in strict inequalities `f(x) < 0`
+        in the description of ``self``.
+
+        Together, ``eq_poly``, ``lt_poly``, and ``le_poly`` describe ``self``.
+        """
+        return self._lt
+
+    def le_poly(self):
+        r"""
+        Return a list, set, or iterator of the polynomials `f` in inequalities `f(x) \leq 0`
+        in the description of ``self``.
+
+        Together, ``eq_poly``, ``lt_poly``, and ``le_poly`` describe ``self``.
+        """
+        return self._le
 
     ### TODO: Add implementations of more of the methods.
 
