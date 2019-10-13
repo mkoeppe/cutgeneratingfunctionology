@@ -58,7 +58,7 @@ def big_cells_min(iterable, key=None, field=None):
         sage: K.<a,b> = ParametricRealField([2, 1], big_cells=True, allow_refinement=True)
         sage: big_cells.min([a, b, 2])
         b~
-        sage: sorted(K._le_factor, key=str)
+        sage: sorted(K.get_le_factor(), key=str)
         [-a + b, b - 2]
 
      If ``allow_refinement`` is False, the same example yields an error.
@@ -137,7 +137,7 @@ def is_min_le(iterable, value, key=None, field=None):
         sage: K.<a,b> = ParametricRealField([2, 1], big_cells=True, allow_refinement=True)
         sage: big_cells.is_min_le([a, b], 3)
         True
-        sage: K._le_factor, K._lt_factor
+        sage: K.get_le_factor(), K.get_lt_factor()
         ({b - 3}, set())
 
     This is (necessarily) a refinement of the actual non-convex
@@ -147,7 +147,7 @@ def is_min_le(iterable, value, key=None, field=None):
         sage: K.<a,b> = ParametricRealField([2, 1], big_cells=True, allow_refinement=True)
         sage: min([a, b]) <= 3
         True
-        sage: K._le_factor, K._lt_factor
+        sage: K.get_le_factor(), K.get_lt_factor()
         ({b - 3}, {-a + b})
 
     If ``allow_refinement`` is False, the same example yields an error.

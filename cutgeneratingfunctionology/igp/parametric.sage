@@ -114,11 +114,11 @@ class ParametricRealFieldElement(FieldElement):
             True
             sage: K._le
             {-f}
-            sage: K._le_factor
+            sage: K.get_le_factor()
             {-f}
-            sage: K._eq_factor
+            sage: K.get_eq_factor()
             set()
-            sage: K._lt_factor
+            sage: K.get_lt_factor()
             set()
 
         Examples for big_cells=True, allow_refinement=True::
@@ -128,11 +128,11 @@ class ParametricRealFieldElement(FieldElement):
             True
             sage: K._le
             {-f}
-            sage: K._le_factor
+            sage: K.get_le_factor()
             {-f}
-            sage: K._eq_factor
+            sage: K.get_eq_factor()
             set()
-            sage: K._lt_factor
+            sage: K.get_lt_factor()
             set()
 
         """
@@ -1340,13 +1340,13 @@ class ParametricRealField(Field):
 
     def is_factor_known(self, fac, op):
         if op == operator.lt:
-            if fac in self._lt_factor:
+            if fac in self.get_lt_factor():
                 return True
         elif op == operator.eq:
-            if (fac in self._eq_factor) or (-fac in self._eq_factor):
+            if (fac in self.get_eq_factor()) or (-fac in self.get_eq_factor()):
                 return True
         elif op == operator.le:
-            if fac in self._le_factor:
+            if fac in self.get_le_factor():
                 return True
         else:
             raise ValueError("{} is not a supported operator".format(op))
@@ -3209,14 +3209,14 @@ def find_region_type_igp(K, h, region_level='extreme', is_minimal=None):
         sage: h = gmic(f, field=K)
         sage: find_region_type_igp(K, h)
         'is_extreme'
-        sage: K._lt_factor
+        sage: K.get_lt_factor()
         {-f, -f + 1/2, f - 1}
 
         sage: K.<f,bkpt>=ParametricRealField([1/7,3/7])
         sage: h = drlm_backward_3_slope(f, bkpt, field=K)
         sage: find_region_type_igp(K, h)
         'not_extreme'
-        sage: K._lt_factor
+        sage: K.get_lt_factor()
         {2*bkpt - 1,
          -f,
          -f + 2*bkpt - 1,
