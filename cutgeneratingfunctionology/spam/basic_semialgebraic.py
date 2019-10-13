@@ -234,7 +234,7 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
     as 3 finite sets of polynomial constraints `p(x) OP 0`.
     """
 
-    def __init__(self, ambient_dim, ring=None, eq=[], lt=[], le=[]):
+    def __init__(self, ambient_dim=None, ring=None, eq=[], lt=[], le=[]):
         """
         EXAMPLES::
 
@@ -246,7 +246,7 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
             polys = list(eq) + list(lt) + list(le)
             if polys:
                 ring = polys[0].parent()
-        if ambient_dim is None:
+        if (ambient_dim is None) and (ring is not None):
             ambient_dim = ring.ngens()
         super(BasicSemialgebraicSet_eq_lt_le_sets, self).__init__(ambient_dim)
         self._ring = ring
@@ -274,6 +274,13 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
         return self.__class__(self.ambient_dim(),
                               self._ring,
                               self._eq, self._lt, self._le)
+
+    # override the abstract methods
+    def __contains__(self, x):
+        return all(f(x) == 0 for f in self._eq) and all(f(x) <= 0 for f in self._le) and all(f(x) < 0 for f in self._lt)
+
+    def __repr__(self):
+        return 'BasicSemialgebraicSet_eq_lt_le_sets(eq = {}, lt = {}, le = {})'.format(list(self._eq), list(self._lt), list(self._le))
 
     ### TODO: Add implementations of more of the methods.
 
