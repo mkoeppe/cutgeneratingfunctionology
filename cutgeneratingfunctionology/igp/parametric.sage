@@ -1675,8 +1675,8 @@ def read_simplified_leq_llt_lle(K, level="factor"):
         bsa = read_bsa_from_polyhedron(K.ppl_polyhedron(), K.monomial_list, K.v_dict)
     else:
         bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=K.get_eq(), lt=K.get_lt(), le=K.get_le())
-    if bsa._le:
-        logging.warning("equation list %s is not empty!" % bsa._le)
+    if bsa._eq:
+        logging.warning("equation list %s is not empty!" % bsa._eq)
     return bsa
 
 def find_variable_mapping(leqs):
