@@ -588,11 +588,9 @@ class ParametricRealField(Field):
         self._eq = set([])
         self._lt = set([])
         self._le = set([])
-        ## REFACTOR: Replace this by another instance of BasicSemialgebraicSet_eq_lt_le_sets
-        self._eq_factor = set([])
-        self._lt_factor = set([])
-        self._le_factor = set([])
-        self._sym_field = PolynomialRing(QQ, names).fraction_field()
+        sym_ring = PolynomialRing(QQ, names)
+        self._factor_bsa = BasicSemialgebraicSet_eq_lt_le_sets(ring=sym_ring)
+        self._sym_field = sym_ring.fraction_field()
         if values is None:
             values = [ None for n in names ]
         else:
@@ -628,9 +626,7 @@ class ParametricRealField(Field):
         Kcopy._eq.update(self._eq)
         Kcopy._lt.update(self._lt)
         Kcopy._le.update(self._le)
-        Kcopy._eq_factor.update(self._eq_factor)
-        Kcopy._lt_factor.update(self._lt_factor)
-        Kcopy._le_factor.update(self._le_factor)
+        Kcopy._factor_bsa = copy(self._factor_bsa)
         return Kcopy
 
     def ppl_polyhedron(self):
@@ -842,12 +838,8 @@ class ParametricRealField(Field):
         self._lt = copy(save_lt)
         save_le = self._le
         self._le = copy(save_le)
-        save_eq_factor = self._eq_factor
-        self._eq_factor = copy(save_eq_factor)
-        save_lt_factor = self._lt_factor
-        self._lt_factor = copy(save_lt_factor)
-        save_le_factor = self._le_factor
-        self._le_factor = copy(save_le_factor)
+        save_factor_bsa = self._factor_bsa
+        self._factor_bsa = copy(save_factor_bsa)
         save_polyhedron = self._polyhedron
         self._polyhedron = copy(save_polyhedron)
         save_monomial_list = self.monomial_list
@@ -860,9 +852,7 @@ class ParametricRealField(Field):
             self._eq = save_eq
             self._lt = save_lt
             self._le = save_le
-            self._eq_factor = save_eq_factor
-            self._lt_factor = save_lt_factor
-            self._le_factor = save_le_factor
+            self._factor_bsa = save_factor_bsa
             self._polyhedron = save_polyhedron
             self.monomial_list = save_monomial_list
             self.v_dict = save_v_dict
@@ -877,11 +867,11 @@ class ParametricRealField(Field):
         return self._le
 
     def get_eq_factor(self):
-        return self._eq_factor
+        return self._factor_bsa.eq_poly()
     def get_lt_factor(self):
-        return self._lt_factor
+        return self._factor_bsa.lt_poly()
     def get_le_factor(self):
-        return self._le_factor
+        return self._factor_bsa.le_poly()
 
     def _eval_factor(self, fac):
         """
@@ -1375,14 +1365,7 @@ class ParametricRealField(Field):
             self._polyhedron.add_linear_constraint(linexpr_to_add, op)
             #print " add new constraint, %s" %self.polyhedron.constraints()
             logging.info("New constraint: {}".format(formatted_constraint))
-            if op == operator.lt:
-                self._lt_factor.add(fac)
-            elif op == operator.eq:
-                self._eq_factor.add(fac)
-            elif op == operator.le:
-                self._le_factor.add(fac)
-            else:
-                raise ValueError("{} is not a supported operator".format(op))
+            self._factor_bsa.add_polynomial_constraint(fac, op)
             if debug_new_factors:
                 import pdb
                 pdb.set_trace()

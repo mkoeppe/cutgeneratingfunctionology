@@ -84,17 +84,37 @@ class BasicSemialgebraicSet_base(Element):
 
     @abstract_method
     def add_linear_constraint(self, lhs, op):
+        ## right now lhs needs to be a PPL thing. to be changed, and add rhs.
         """
         ``lhs`` should be a vector of length ambient_dim.
         Add the constraint ``lhs`` * x ``op`` 0,
         where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
         ``operator.le``, ``operator.ge``.
         """
+        # default implementation should call add_polynomial_constraint
 
     @abstract_method
     def is_linear_constraint_valid(self, lhs, op):
+        ## right now lhs needs to be a PPL thing. to be changed, and add rhs.
         """
         Whether the constraint ``lhs`` * x ``op`` 0
+        is satisfied for all points of ``self``.
+        """
+        # default implementation should call is_linear_constraint_valid
+
+    @abstract_method
+    def add_polynomial_constraint(self, lhs, op):
+        """
+        ``lhs`` should be a polynomial.
+        Add the constraint ``lhs``(x) ``op`` 0,
+        where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
+        ``operator.le``, ``operator.ge``.
+        """
+
+    @abstract_method
+    def is_polynomial_constraint_valid(self, lhs, op):
+        """
+        Whether the constraint ``lhs`` * x ``op``
         is satisfied for all points of ``self``.
         """
 
@@ -334,6 +354,23 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
         Together, ``eq_poly``, ``lt_poly``, and ``le_poly`` describe ``self``.
         """
         return self._le
+
+    def add_polynomial_constraint(self, lhs, op):
+        """
+        ``lhs`` should be a polynomial.
+        Add the constraint ``lhs``(x) ``op`` 0,
+        where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
+        ``operator.le``, ``operator.ge``.
+        """
+        if op == operator.lt:
+            self._lt.add(lhs)
+        elif op == operator.eq:
+            self._eq.add(lhs)
+        elif op == operator.le:
+            self._le.add(lhs)
+        else:
+            raise ValueError("{} is not a supported operator".format(op))
+
 
     ### TODO: Add implementations of more of the methods.
 
