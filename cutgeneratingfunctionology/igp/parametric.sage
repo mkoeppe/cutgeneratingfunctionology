@@ -2393,7 +2393,7 @@ class SemialgebraicComplex(SageObject):
         6
         sage: boundary = extc.guess_boundary()                                      #long time
         sage: boundary                                                              #long time
-        [f - bkpt, -f + 4*bkpt - 1, -f]
+        [f - bkpt, -f, -f + 4*bkpt - 1]
         sage: extc.is_complete(bddlin=boundary,strict=True)                         #long time, optional - mathematica
         True
     """
