@@ -584,7 +584,7 @@ class ParametricRealField(Field):
 
         self._zero_element = ParametricRealFieldElement(0, parent=self)
         self._one_element =  ParametricRealFieldElement(1, parent=self)
-        ## REFACTOR: Replace this by an instance of BasicSemialgebraicSet_eq_lt_le_sets
+        ## REFACTOR: Maybe replace this by an instance of BasicSemialgebraicSet_eq_lt_le_sets - but careful - this class right now assumes polynomials
         self._eq = set([])
         self._lt = set([])
         self._le = set([])
@@ -1525,13 +1525,13 @@ def cs_of_eq_lt_le_poly(bsa):
     monomial_list = []
     v_dict ={}
     cs = Constraint_System()
-    for t in bsa._eq:
+    for t in bsa.eq_poly():
         linexpr = polynomial_to_linexpr(t, monomial_list, v_dict)
         cs.insert( linexpr == 0 )
-    for t in bsa._lt:
+    for t in bsa.lt_poly():
         linexpr = polynomial_to_linexpr(t, monomial_list, v_dict)
         cs.insert( linexpr < 0 )
-    for t in bsa._le:
+    for t in bsa.le_poly():
         linexpr = polynomial_to_linexpr(t, monomial_list, v_dict)
         cs.insert( linexpr <= 0 )
     return cs, monomial_list, v_dict
@@ -1539,7 +1539,7 @@ def cs_of_eq_lt_le_poly(bsa):
 def simplify_eq_lt_le_poly_via_ppl(bsa):
     r"""
     Given bsa as an instance of BasicSemialgebraicSet_eq_lt_le_sets,
-    Treat each monomial in bsa._eq/lt/le as a new variable.
+    Treat each monomial in bsa.eq_poly()/lt/le as a new variable.
     This gives a linear inequality system.
     Remove redundant inequalities using PPL.
     Return an instance of BasicSemialgebraicSet_eq_lt_le_sets.
@@ -1563,14 +1563,14 @@ def simplify_eq_lt_le_poly_via_ppl(bsa):
         sage: K.<f, lam> = ParametricRealField([4/5, 1/6])
         sage: h = gj_2_slope(f, lam, field=K, conditioncheck=False)
         sage: bsa = simplify_eq_lt_le_poly_via_ppl(BasicSemialgebraicSet_eq_lt_le_sets(eq=K.get_eq_factor(), lt=K.get_lt_factor(), le=K.get_le_factor()))
-        sage: bsa._lt
+        sage: bsa.lt_poly()
         {-lam, -f, f - 1, -f*lam - f + lam}
 
         sage: R = f._sym.parent().ring()
         sage: f, lam = R(f._sym), R(lam._sym)
         sage: eq_poly, lt_poly = {}, {-lam, -1/2*lam, -1/2*lam - 1/2, 1/4*lam - 1/4, 1/2*lam - 1/2, -2*f, -2*f + 1, -f, -f - 1, f - 2, f - 1, 2*f - 2, -2*f*lam + f + 2*lam - 1, -3/2*f*lam - 1/2*f + 3/2*lam, -3/2*f*lam + 1/2*f + 3/2*lam - 1, -f*lam + lam - 1, -f*lam - f + lam, -f*lam + f + lam - 2, -f*lam + f + lam - 1, -1/2*f*lam - 3/2*f + 1/2*lam, -1/2*f*lam - 3/2*f + 1/2*lam + 1, -1/2*f*lam - 1/2*f + 1/2*lam, -1/2*f*lam - 1/2*f + 1/2*lam - 1, -1/2*f*lam + 1/2*f + 1/2*lam - 2, -1/2*f*lam + 1/2*f + 1/2*lam - 1, -1/2*f*lam + 3/2*f + 1/2*lam - 2, -1/4*f*lam - 1/4*f + 1/4*lam, 1/2*f*lam - 3/2*f - 1/2*lam, 1/2*f*lam - 3/2*f - 1/2*lam + 1, 1/2*f*lam - 1/2*f - 1/2*lam, 1/2*f*lam - 1/2*f - 1/2*lam - 1, 1/2*f*lam + 1/2*f - 1/2*lam - 2, 1/2*f*lam + 1/2*f - 1/2*lam - 1, 1/2*f*lam + 3/2*f - 1/2*lam - 2, f*lam - lam, f*lam - lam - 1, f*lam - f - lam, f*lam + f - lam - 2, f*lam + f - lam - 1, 3/2*f*lam - 1/2*f - 3/2*lam, 3/2*f*lam + 1/2*f - 3/2*lam - 1, 1/2*f^2*lam + 1/2*f^2 - f*lam - 1/2*f + 1/2*lam}
         sage: bsa = simplify_eq_lt_le_poly_via_ppl(BasicSemialgebraicSet_eq_lt_le_sets(eq=eq_poly, lt=lt_poly))
-        sage: bsa._lt
+        sage: bsa.lt_poly()
         {-lam,
          lam - 1,
          -2*f*lam + f + 2*lam - 1,
@@ -1580,7 +1580,7 @@ def simplify_eq_lt_le_poly_via_ppl(bsa):
         sage: # eq_factor, lt_factor = K.get_eq_factor(), K.get_lt_factor()
         sage: eq_factor, lt_factor = {}, {-lam, lam - 1, 2*lam - 1, -f, f - 1, -3*f*lam - f + 3*lam, -f*lam - 3*f + lam + 2, -f*lam - f + lam, f*lam - 3*f - lam + 2, f*lam - f - lam, 3*f*lam - f - 3*lam, 3*f*lam + f - 3*lam - 2}
         sage: bsa = simplify_eq_lt_le_poly_via_ppl(BasicSemialgebraicSet_eq_lt_le_sets(eq=eq_factor, lt=lt_factor))
-        sage: bsa._lt
+        sage: bsa.lt_poly()
         {-lam,
          2*lam - 1,
          f - 1,
@@ -1593,14 +1593,14 @@ def simplify_eq_lt_le_poly_via_ppl(bsa):
         sage: h=dg_2_step_mir(f, alpha, field=K, conditioncheck=False)
         sage: _ = extremality_test(h)
         sage: bsa = simplify_eq_lt_le_poly_via_ppl(BasicSemialgebraicSet_eq_lt_le_sets(eq=K.get_eq_factor(), lt=K.get_lt_factor()))
-        sage: (bsa._eq, bsa._lt)
+        sage: (bsa.eq_poly(), bsa.lt_poly())
         ({-10*alpha + 3, -5*f + 4}, set())
 
         sage: K.<f> = ParametricRealField([1/5])
         sage: h = drlm_3_slope_limit(f, conditioncheck=False)
         sage: _ = extremality_test(h)
         sage: bsa = simplify_eq_lt_le_poly_via_ppl(BasicSemialgebraicSet_eq_lt_le_sets(eq=K.get_eq_factor(), lt=K.get_lt_factor()))
-        sage: (bsa._eq, bsa._lt)
+        sage: (bsa.eq_poly(), bsa.lt_poly())
         (set(), {-f, 3*f - 1})
     """
     cs, monomial_list, v_dict = cs_of_eq_lt_le_poly(bsa)
@@ -1675,8 +1675,8 @@ def read_simplified_leq_llt_lle(K, level="factor"):
         bsa = read_bsa_from_polyhedron(K.ppl_polyhedron(), K.monomial_list, K.v_dict)
     else:
         bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=K.get_eq(), lt=K.get_lt(), le=K.get_le())
-    if bsa._eq:
-        logging.warning("equation list %s is not empty!" % bsa._eq)
+    if bsa.eq_poly():
+        logging.warning("equation list %s is not empty!" % bsa.eq_poly())
     return bsa
 
 def find_variable_mapping(leqs):
@@ -1772,7 +1772,7 @@ def substitute_llt_lle(llt, lle, var_map, var_name, var_value):
         ineq = l.parent()(l.subs(var_map))
         ineq(K.gens())<= 0 #always True
     bsa = read_simplified_leq_llt_lle(K)
-    return list(bsa._lt), list(bsa._le)
+    return list(bsa.lt_poly()), list(bsa.le_poly())
 
 ######################################
 # Functions with ParametricRealField K
@@ -1913,13 +1913,13 @@ class SemialgebraicComplexComponent(SageObject):
             tightened_mip = None
         ## to REFACTOR:
         bsa = read_bsa_from_polyhedron(K.ppl_polyhedron(), K.monomial_list, K.v_dict, tightened_mip)
-        if not bsa._eq:
+        if not bsa.eq_poly():
             P = PolynomialRing(QQ, parent.var_name)
             self.var_map = {g:g for g in P.gens()}
             self.bsa = bsa
         else:
-            leq, self.var_map = find_variable_mapping(list(bsa._eq))
-            llt, lle = substitute_llt_lle(bsa._lt, bsa._le, self.var_map, self.parent.var_name, self.var_value)
+            leq, self.var_map = find_variable_mapping(list(bsa.eq_poly()))
+            llt, lle = substitute_llt_lle(bsa.lt_poly(), bsa.le_poly(), self.var_map, self.parent.var_name, self.var_value)
             self.bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=leq, lt=llt, le=lle)
         self.neighbor_points = []
 
@@ -1927,12 +1927,12 @@ class SemialgebraicComplexComponent(SageObject):
         s = "SemialgebraicComplexComponent(var_value={}, region_type={}".format(self.var_value, self.region_type)
         if self.is_polyhedral():
             s += ", polyhedral"
-        if self.bsa._eq:
-            s += ", {} eqs".format(len(self.bsa._eq))
-        if self.bsa._lt:
-            s += ", {} strict-ins".format(len(self.bsa._lt))
-        if self.bsa._le:
-            s += ", {} nonstrict-ins".format(len(self.bsa._le))
+        if self.bsa.eq_poly():
+            s += ", {} eqs".format(len(self.bsa.eq_poly()))
+        if self.bsa.lt_poly():
+            s += ", {} strict-ins".format(len(self.bsa.lt_poly()))
+        if self.bsa.le_poly():
+            s += ", {} nonstrict-ins".format(len(self.bsa.le_poly()))
         s += ")"
         return s
 
@@ -1952,10 +1952,10 @@ class SemialgebraicComplexComponent(SageObject):
             sage: h = chen_4_slope(K(7/10), K(2), K(-4), lam1, lam2)
             sage: region_type = find_region_type_igp(K, h)
             sage: bsa = read_bsa_from_polyhedron(K.ppl_polyhedron(), K.monomial_list, K.v_dict)
-            sage: bsa._lt
+            sage: bsa.lt_poly()
             {2*lam2 - 1, -2*lam1 + lam2, 19*lam1 - 75*lam2, 21*lam1 - 8}
             sage: c = K.make_proof_cell(region_type=region_type, function=h, find_region_type=None)
-            sage: c.bsa._lt
+            sage: c.bsa.lt_poly()
             {2*lam2 - 1, -2*lam1 + lam2, 19*lam1 - 75*lam2, 21*lam1 - 8}
         """
         tightened_mip = construct_mip_of_nnc_polyhedron(polyhedron)
@@ -2053,7 +2053,7 @@ class SemialgebraicComplexComponent(SageObject):
                         return g
                     var_pt.append(z)
         leqs = []
-        for leq in self.bsa._eq:
+        for leq in self.bsa.eq_poly():
             l = leq(var_pt)
             if l in QQ:
                 if l != 0:
@@ -2061,7 +2061,7 @@ class SemialgebraicComplexComponent(SageObject):
             else:
                 leqs.append(l)
         llts = []
-        for llt in (self.bsa._lt).union(self.parent.bddbsa._lt):
+        for llt in (self.bsa.lt_poly()).union(self.parent.bddbsa.lt_poly()):
             l = llt(var_pt)
             if l in QQ:
                 if l >= 0:
@@ -2069,7 +2069,7 @@ class SemialgebraicComplexComponent(SageObject):
             else:
                 llts.append(l)
         lles = []
-        for llt in (self.bsa._le).union(self.parent.bddbsa._le):
+        for llt in (self.bsa.le_poly()).union(self.parent.bddbsa.le_poly()):
             l = lle(var_pt)
             if l in QQ:
                 if l > 0:
@@ -2079,7 +2079,7 @@ class SemialgebraicComplexComponent(SageObject):
         bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=leqs, lt=llts, le=lles)
         if slice_value:
             bsa = simplify_eq_lt_le_poly_via_ppl(bsa)
-        constraints = [l(x, y) == 0 for l in bsa._eq] + [l(x, y) < 0 for l in bsa._lt] + [l(x, y) <= 0 for l in bsa._le]
+        constraints = [l(x, y) == 0 for l in bsa.eq_poly()] + [l(x, y) < 0 for l in bsa.lt_poly()] + [l(x, y) <= 0 for l in bsa.le_poly()]
         if (not constraints) or (constraints == [False]):
             # empty polytope
             return g
@@ -2123,14 +2123,14 @@ class SemialgebraicComplexComponent(SageObject):
         if 'ymax' in kwds:
             g.ymax(kwds['ymax'])
         constraints = []
-        for leq in self.bsa._eq:
+        for leq in self.bsa.eq_poly():
             l = leq(slice_value)
             if l in QQ:
                 if l != 0:
                     return g
             else:
                 constraints.append(l == 0)
-        for llt in self.bsa._lt + self.parent.bddbsa._lt:
+        for llt in self.bsa.lt_poly() + self.parent.bddbsa.lt_poly():
             l = llt(slice_value)
             if l in QQ:
                 if l >= 0:
@@ -2174,12 +2174,12 @@ class SemialgebraicComplexComponent(SageObject):
         """
         walls = []
         new_points = {}
-        if self.bsa._eq:
-            bddllt, bddlle = substitute_llt_lle(self.parent.bddbsa._lt, self.parent.bddbsa._le, self.var_map, self.parent.var_name, self.var_value)
+        if self.bsa.eq_poly():
+            bddllt, bddlle = substitute_llt_lle(self.parent.bddbsa.lt_poly(), self.parent.bddbsa.le_poly(), self.var_map, self.parent.var_name, self.var_value)
             bddlin = bddllt+bddlle
         else:
-            bddlin = list(self.parent.bddbsa._lt)+list(self.parent.bddbsa._le)
-        selflin = list(self.bsa._lt)+list(self.bsa._le)
+            bddlin = list(self.parent.bddbsa.lt_poly())+list(self.parent.bddbsa.le_poly())
+        selflin = list(self.bsa.lt_poly())+list(self.bsa.le_poly())
         # decide which inequalities among self.lin are walls (irredundant).
         for i in range(len(selflin)):
             ineq = selflin[i]
@@ -2188,8 +2188,8 @@ class SemialgebraicComplexComponent(SageObject):
                 continue
             if wall_crossing_method == 'mathematica':
                 ineqs = walls + ineqs
-                condstr_others = write_mathematica_constraints(self.bsa._eq, ineqs)
-                # maybe shouldn't put self.bsa._eq into FindInstance, but solve using var_map later.
+                condstr_others = write_mathematica_constraints(self.bsa.eq_poly(), ineqs)
+                # maybe shouldn't put self.bsa.eq_poly() into FindInstance, but solve using var_map later.
                 condstr_ineq = '0<'+str(ineq)+'<'+str(flip_ineq_step)
                 pt_across_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.parent.var_name)
             else:
@@ -2201,13 +2201,13 @@ class SemialgebraicComplexComponent(SageObject):
                 pt = find_point_flip_ineq_heuristic(self.var_value, ineq, ineqs, flip_ineq_step)
                 if pt is None:
                     if wall_crossing_method == 'heuristic_with_check':
-                        condstr = write_mathematica_constraints(self.bsa._eq, ineqs) + \
+                        condstr = write_mathematica_constraints(self.bsa.eq_poly(), ineqs) + \
                                   '0<'+str(ineq)+'<'+str(flip_ineq_step) # Need the last inequality? see hyperbole ex.
                         pt_across_wall = find_instance_mathematica(condstr, self.parent.var_name)
                     else:
                         pt_across_wall = None
                 else:
-                    if self.bsa._eq:
+                    if self.bsa.eq_poly():
                         pt_across_wall = tuple(self.var_map[v](pt) for v in ineq.args())
                     else:
                         pt_across_wall = pt
@@ -2217,7 +2217,7 @@ class SemialgebraicComplexComponent(SageObject):
             walls.append(ineq)
             if not ((wall_crossing_method == 'heuristic_with_check') and (pt is None)):
                 # Hope that the new pt_across_wall is in a general position, so that running the function on it does not generate new equations. Otherwise bfs got stuck in low dimension. Two solutions: take smaller flip_ineq_step, or do bfs with check_completion=True.
-                new_points[pt_across_wall] = list(self.bsa._eq)
+                new_points[pt_across_wall] = list(self.bsa.eq_poly())
             if goto_lower_dim is True:
                 pt_on_wall = None
                 if wall_crossing_method == 'mathematica':
@@ -2229,12 +2229,12 @@ class SemialgebraicComplexComponent(SageObject):
                     pt = find_point_on_ineq_heuristic(pt_across_wall, ineq, ineqs, flip_ineq_step)
                     if pt is None:
                         pt_on_wall = None
-                    elif self.bsa._eq:
+                    elif self.bsa.eq_poly():
                         pt_on_wall = tuple(self.var_map[v](pt) for v in ineq.args())
                     else:
                         pt_on_wall = pt
                 if not pt_on_wall is None:
-                    new_points[pt_on_wall] = list(self.bsa._eq) + [ineq]
+                    new_points[pt_on_wall] = list(self.bsa.eq_poly()) + [ineq]
         return walls, new_points
 
     def discard_redundant_inequalities(self, flip_ineq_step=0):
@@ -2272,7 +2272,7 @@ class SemialgebraicComplexComponent(SageObject):
         self.lin = walls
 
     def is_polyhedral(self):
-        for l in list(self.bsa._eq) + list(self.bsa._lt) + list(self.bsa._le):
+        for l in list(self.bsa.eq_poly()) + list(self.bsa.lt_poly()) + list(self.bsa.le_poly()):
             if l.degree() > 1:
                 return False
         return True
@@ -2280,8 +2280,8 @@ class SemialgebraicComplexComponent(SageObject):
     def sage_polyhedron(self):
         if not self.is_polyhedral():
             raise NotImplementedError("The cell is not polyhedral. Construct the polyhedron in the lifted space.")
-        ieqs = [ [-l.constant_coefficient()]+[-l.monomial_coefficient(m) for m in l.args()] for l in list(self.bsa._lt) + list(self.bsa._le) ]
-        eqns = [ [-l.constant_coefficient()]+[-l.monomial_coefficient(m) for m in l.args()] for l in self.bsa._eq ]
+        ieqs = [ [-l.constant_coefficient()]+[-l.monomial_coefficient(m) for m in l.args()] for l in list(self.bsa.lt_poly()) + list(self.bsa.le_poly()) ]
+        eqns = [ [-l.constant_coefficient()]+[-l.monomial_coefficient(m) for m in l.args()] for l in self.bsa.eq_poly() ]
         return Polyhedron(ieqs=ieqs, eqns=eqns)
 
 class SemialgebraicComplex(SageObject):
@@ -2452,7 +2452,7 @@ class SemialgebraicComplex(SageObject):
         - var_bounds can be a list of 2-tuples whose length equals to the number of parameters, or lambda functions.
         - It is used in random shooting method for functions like ``dg_2_step_mir``, which involve floor/ceil operations. We try to plot one layer for each n = floor(...) and superimpose the layers at the end to get the whole picture.
 
-        Notice that if self.bddbsa._eq is not empty, it never ends.
+        Notice that if self.bddbsa.eq_poly() is not empty, it never ends.
 
         EXAMPLES::
 
@@ -2592,7 +2592,7 @@ class SemialgebraicComplex(SageObject):
         else:
             condstr = write_mathematica_constraints(bddleq, bddlin, strict=bddstrict)
         for c in self.components:
-            condstr_c = write_mathematica_constraints(c.bsa._eq, (c.bsa._lt).union(c.bsa._le), strict=strict)
+            condstr_c = write_mathematica_constraints(c.bsa.eq_poly(), (c.bsa.lt_poly()).union(c.bsa.le_poly()), strict=strict)
             if condstr_c:
                 condstr += '!(' + condstr_c[:-4] + ') && '
             else:
@@ -2625,7 +2625,7 @@ class SemialgebraicComplex(SageObject):
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
             sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=1/10, wall_crossing_method='heuristic', goto_lower_dim=True) # the cell {(x,y): x<y}
-            sage: complex.components[0].bsa._lt
+            sage: complex.components[0].bsa.lt_poly()
             {x - y}
             sage: complex.points_to_test
             {(3/2, 3/2): [x - y], (31/20, 29/20): []}
@@ -2647,8 +2647,8 @@ class SemialgebraicComplex(SageObject):
             h = None
         region_type = self.find_region_type(K, h)
         new_component = SemialgebraicComplexComponent(self, K, var_value, region_type)
-        if not allow_dim_degeneracy and len(new_component.bsa._eq) != len(bddleq):
-            for l in new_component.bsa._eq:
+        if not allow_dim_degeneracy and len(new_component.bsa.eq_poly()) != len(bddleq):
+            for l in new_component.bsa.eq_poly():
                 if not l in bddleq:
                     pert_value = tuple(var_value[i] + gradient(l)[i](var_value) / 1000 for i in range(len(var_value)))
                     if not pert_value in self.points_to_test:
@@ -2656,14 +2656,14 @@ class SemialgebraicComplex(SageObject):
                     pert_value = tuple(var_value[i] - gradient(l)[i](var_value) / 1000 for i in range(len(var_value)))
                     if not pert_value in self.points_to_test:
                         self.points_to_test[pert_value] = copy(bddleq)
-            logging.warning("The cell around %s defined by %s ==0 and %s <0 and %s <= 0 has more equations than bddleq %s" %(new_component.var_value, new_component.bsa._eq, new_component.bsa._lt,new_component.bsa._le, bddleq))
+            logging.warning("The cell around %s defined by %s ==0 and %s <0 and %s <= 0 has more equations than bddleq %s" %(new_component.var_value, new_component.bsa.eq_poly(), new_component.bsa.lt_poly(),new_component.bsa.le_poly(), bddleq))
             return
         if (flip_ineq_step != 0) and (region_type != 'stop'):
             # when using random shooting, don't generate neighbour points; don't remove redundant walls.
             walls, new_points = new_component.find_walls_and_new_points(flip_ineq_step, wall_crossing_method, goto_lower_dim)
             if (wall_crossing_method == 'mathematica') or \
                 (wall_crossing_method == 'heuristic_with_check'):
-                new_component.bsa._lt = walls
+                new_component.bsa._lt = walls     # FIXME: Breaks abstraction
             self.points_to_test.update(new_points)
             new_component.neighbor_points = list(new_points.keys())
         self.components.append(new_component)
@@ -2835,7 +2835,7 @@ class SemialgebraicComplex(SageObject):
         if not self.points_to_test and not var_value:
             var_value = self.find_uncovered_random_point()
         if var_value:
-            self.points_to_test[tuple(var_value)] = list(self.bddbsa._eq)
+            self.points_to_test[tuple(var_value)] = list(self.bddbsa.eq_poly())
         while self.points_to_test: # and len(self.components)<10: #FIXME
             var_value, bddleq = self.points_to_test.popitem()
             var_value = list(var_value)
@@ -2900,7 +2900,7 @@ class SemialgebraicComplex(SageObject):
                  for region_type in region_types }
 
     def guess_boundary(self):
-        extlin = [l for c in self.components if not c.bsa._eq for l in list(c.bsa._lt) + list(c.bsa._le)]
+        extlin = [l for c in self.components if not c.bsa.eq_poly() for l in list(c.bsa.lt_poly()) + list(c.bsa.le_poly())]
         boundaries = set(extlin).difference(set([-l for l in extlin]))
         return list(boundaries)
 
