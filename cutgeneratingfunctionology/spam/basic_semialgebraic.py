@@ -21,7 +21,9 @@ except ImportError:
 
 from sage.numerical.mip import MixedIntegerLinearProgram, MIPVariable, MIPSolverException
 
-class BasicSemialgebraicSet_base(Element):
+from sage.structure.sage_object import SageObject
+
+class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if this should be facade parent, or an Element.
 
     """
     Abstract base class of mutable basic semialgebraic sets.
@@ -31,6 +33,7 @@ class BasicSemialgebraicSet_base(Element):
         """
         Initialize a basic semialgebraic set as the universe in ``ambient_dim``.
         """
+        super(BasicSemialgebraicSet_base, self).__init__()
         self._ambient_dim = ambient_dim
 
     def ambient_dim(self):
