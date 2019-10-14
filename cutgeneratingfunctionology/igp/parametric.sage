@@ -2052,7 +2052,7 @@ class SemialgebraicComplexComponent(SageObject):
             else:
                 llts.append(l)
         lles = []
-        for llt in (self.bsa.le_poly()).union(self.parent.bddbsa.le_poly()):
+        for lle in (self.bsa.le_poly()).union(self.parent.bddbsa.le_poly()):
             l = lle(var_pt)
             if l in QQ:
                 if l > 0:
