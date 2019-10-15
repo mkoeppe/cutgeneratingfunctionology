@@ -23,6 +23,8 @@ from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp, op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE
 import time
 
+debug_new_factors = False
+
 ###############################
 # Parametric Real Number Field
 ###############################
@@ -112,6 +114,26 @@ class ParametricRealFieldElement(FieldElement):
             True
             sage: K._le
             {-f}
+            sage: K._le_factor
+            {-f}
+            sage: K._eq_factor
+            set()
+            sage: K._lt_factor
+            set()
+
+        Examples for big_cells=True, allow_refinement=True::
+
+            sage: K.<f> = ParametricRealField([1], big_cells=True, allow_refinement=True)
+            sage: f >= 0
+            True
+            sage: K._le
+            {-f}
+            sage: K._le_factor
+            {-f}
+            sage: K._eq_factor
+            set()
+            sage: K._lt_factor
+            set()
 
         """
         if not left.parent() is right.parent():
@@ -151,19 +173,117 @@ class ParametricRealFieldElement(FieldElement):
             return richcmp(left.val(), right.val(), op)
 
     def __abs__(self):
-        if self.sign() >= 0:
-            return self
+        """
+        Examples for traditional cmp semantics::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<f> = ParametricRealField([-1], big_cells=False, allow_refinement=True)
+            sage: abs(f) + abs(-f)
+            (-2*f)~
+            sage: K._lt
+            {f}
+
+        Examples for big_cells semantics::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<f> = ParametricRealField([-1], big_cells=True, allow_refinement=True)
+            sage: abs(f) + abs(-f)
+            (-2*f)~
+            sage: K._lt
+            set()
+            sage: K._le
+            {f}
+
+        """
+        preferred_sign = 1
+        if self.parent()._big_cells:
+            with self.parent().off_the_record():
+                if self >= 0:
+                    preferred_sign = 1
+                else:
+                    preferred_sign = -1
+        if preferred_sign == 1:
+            if self >= 0:
+                return self
+            else:
+                return -self
         else:
-            return -self
+            if self <= 0:
+                return -self
+            else:
+                return self
 
     def sign(self):
-        parent = self.val().parent()
-        if self.val() == parent._zero_element:
-            return 0
-        elif self.val() > parent._zero_element:
-            return 1
+        """
+        Examples for traditional cmp semantics::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<f, z> = ParametricRealField([-1, 0], big_cells=False, allow_refinement=True)
+            sage: sign(f)
+            -1
+            sage: sign(z)
+            0
+            sage: K._lt
+            {f}
+            sage: K._le
+            set()
+            sage: K._eq
+            {z}
+
+        Test that the same result is obtained in big_cells, allow_refinement=True semantics::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<f, z> = ParametricRealField([-1, 0], big_cells=True, allow_refinement=True)
+            sage: sign(f)
+            -1
+            sage: sign(z)
+            0
+            sage: K._lt
+            {f}
+            sage: K._le
+            set()
+            sage: K._eq
+            {z}
+
+        Test that the same result is obtained for big_cells, allow_refinement=False semantics::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<f, z> = ParametricRealField([-1, 0], big_cells=True, allow_refinement=False)
+            sage: sign(f)
+            -1
+            sage: sign(z)
+            0
+            sage: K._lt
+            {f}
+            sage: K._le
+            set()
+            sage: K._eq
+            {z}
+        """
+        if self.parent()._big_cells:
+            preferred_sign = sign(self.val())    # off the record
         else:
+            preferred_sign = 1
+        if preferred_sign == 1:
+            if self > 0:
+                return 1
+        elif preferred_sign == -1:
+            if self < 0:
+                return -1
+        else:
+            if self == 0:
+                return 0
+        if self > 0:
+            return 1
+        elif self < 0:
             return -1
+        else:
+            return 0
 
     def floor(self):
         result = floor(self.val())
@@ -316,6 +436,9 @@ from contextlib import contextmanager
 class FactorUndetermined(Exception):
     pass
 
+big_cells_default = None
+allow_refinement_default = True
+
 class ParametricRealField(Field):
     r"""
     A Metaprogramming trick for parameter space analysis.
@@ -412,10 +535,14 @@ class ParametricRealField(Field):
     """
     Element = ParametricRealFieldElement
 
-    def __init__(self, values=None, names=(), allow_coercion_to_float=True, mutable_values=False, allow_refinement=True, big_cells=None):
+    def __init__(self, values=None, names=(), allow_coercion_to_float=True, mutable_values=False, allow_refinement=None, big_cells=None):
         Field.__init__(self, self)
         self._mutable_values = mutable_values
+        if allow_refinement is None:
+            allow_refinement = allow_refinement_default
         self._allow_refinement = allow_refinement
+        if big_cells is None:
+            big_cells = big_cells_default
         if big_cells is None:
             if allow_refinement:
                 big_cells = False # old default
@@ -1042,6 +1169,7 @@ class ParametricRealField(Field):
                                 eq_factors.append(fac)
                             elif fac_sign == -1:
                                 lt_factors.append(fac)
+                                sign = -sign
                             else:
                                 assert fac_sign == +1
                                 lt_factors.append(-fac)
@@ -1077,7 +1205,6 @@ class ParametricRealField(Field):
                         eq_factors.append(new_fac)
                 for new_fac in lt_factors:
                     self.record_factor(new_fac, operator.le)
-                    sign = -sign 
                 if not self._big_cells:
                     for new_fac in eq_factors:
                         self.record_factor(new_fac, operator.eq)
@@ -1162,6 +1289,9 @@ class ParametricRealField(Field):
                 self._le_factor.add(fac)
             else:
                 raise ValueError("{} is not a supported operator".format(op))
+            if debug_new_factors:
+                import pdb
+                pdb.set_trace()
 
     def make_proof_cell(self, **opt):
         r"""
@@ -1397,13 +1527,14 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None):
         # take care of this.
         gcd_c = gcd(gcd(coeff), c.inhomogeneous_term())
         # constraint is written with '>', while lt_poly records '<' relation
-        t = sum([-QQ(x/gcd_c)*y for x, y in zip(coeff, monomial_list)]) - QQ(c.inhomogeneous_term()/gcd_c)
+        t = sum([-QQ(x)/gcd_c*y for x, y in zip(coeff, monomial_list)]) - QQ(c.inhomogeneous_term())/gcd_c
         if c.is_equality():
             mineq.append(t)
         elif c.is_strict_inequality():
             minlt.append(t)
         else:
-            raise NotImplementedError("Non-strict inequality in NNC polyhedron")
+            logging.warning("Non-strict inequality in NNC polyhedron, recording strict inequality instead")
+            minlt.append(t)
     # note that polynomials in mineq and minlt can have leading coefficient != 1
     return mineq, minlt
 
@@ -1526,7 +1657,7 @@ def substitute_lins(lins, var_map, var_name, var_value):
     K.add_initial_space_dim() # needed?
     for l in lins:
         ineq = l.parent()(l.subs(var_map))
-        ineq(K.gens())< 0 #always True
+        ineq(K.gens())<= 0 #always True
     leq, lin = read_simplified_leq_lin(K)
     return lin
 
@@ -2337,6 +2468,15 @@ class SemialgebraicComplex(SageObject):
             return tuple([0]*len(self.var_name))
         return find_instance_mathematica(condstr[:-4], self.var_name)
 
+    def construct_field_and_test_point(self, var_value, bddleq=[]):
+        K, test_point = construct_field_and_test_point(self.function, self.var_name, var_value, self.default_args)
+        K.add_initial_space_dim() #so that the parameters self.var_name are the first ones in the monomial list. Needed for variable elimination.
+        for l in bddleq:
+            # need to put these equations in K, so call comparaison.
+            if not l(*K.gens()) == 0:
+                logging.warning("Test point %s doesn't satisfy %s == 0." % (var_value, l))
+        return K, test_point
+
     def add_new_component(self, var_value, bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False, allow_dim_degeneracy=False):
         r"""
         Compute one proof cell around var_value. Append this cell to the complex.
@@ -2363,13 +2503,7 @@ class SemialgebraicComplex(SageObject):
             sage: complex.points_to_test                              # optional - mathematica
             {(19/20, 1): []}
         """
-        K, test_point = construct_field_and_test_point(self.function, self.var_name, var_value, self.default_args)
-        K.add_initial_space_dim() #so that the parameters self.var_name are the first ones in the monomial list. Needed for variable elimination.
-        for l in bddleq:
-            # need to put these equations in K, so call comparaison.
-            if not l(*K.gens()) == 0:
-                logging.warning("Test point %s doesn't satisfy %s == 0." % (var_value, l))
-                return
+        K, test_point = self.construct_field_and_test_point(var_value, bddleq)
         try:
             h = self.function(**test_point)
         except Exception: # Dangerous!!

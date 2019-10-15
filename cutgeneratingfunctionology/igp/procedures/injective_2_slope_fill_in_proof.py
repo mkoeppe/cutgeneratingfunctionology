@@ -7,6 +7,7 @@ through symbolic computation.
 
 ::
 
+    sage: import cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof as proof
     sage: from cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof import *
     sage: logging.disable(logging.INFO) # Suppress output in automatic tests.
 

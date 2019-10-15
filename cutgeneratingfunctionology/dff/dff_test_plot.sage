@@ -1,17 +1,31 @@
+"""
+Classic Dual-Feasible Functions (cDFF):  Maximality and extremality test; plotting.
+"""
+
 from six.moves import range
+
 def maximality_test_dff(f):
+    """
+    Test whether a piecewise linear cDFF is maximal.
+    """
     if f.is_continuous():
         return maximality_test_continuous_dff(f)
     else:
         return maximality_test_general_dff(f)
 
 def extremality_test_dff(f):
+    """
+    Test whether a piecewise linear cDFF is extreme.
+    """
     if f.is_continuous():
         return extremality_test_continuous_dff(f)
     else:
         return extremality_test_general_dff(f)
 
 def superadditive_test(f):
+    """
+    Test whether a piecewise linear cDFF is superadditive.
+    """
     if f.is_continuous():
         return superadditivity_test_continuous(f)
     else:
@@ -20,6 +34,7 @@ def superadditive_test(f):
 
 
 def is_equal(f,h):
+    # FIXME: Should fix the problem in FastPiecewise.__eq__ instead.
     bkpt1=f.end_points()
     bkpt2=h.end_points()
     if bkpt1!=bkpt2 or f.limits_at_end_points()!=h.limits_at_end_points():
@@ -186,29 +201,37 @@ def generate_additivity_equations_dff_continuous(function, symbolic, field):
 
 
 
-def extremality_test_continuous_dff(fn):
-    r"""Still in progress
+def extremality_test_continuous_dff(fn, show_plots=False):
+    r"""
+    DFF extremality test, continuous case.
     """
-    covered_intervals=generate_covered_intervals(fn)
-    uncovered_intervals=generate_uncovered_intervals(fn)
     if not maximality_test_continuous_dff(fn):
         logging.info("Not maximal, thus NOT extreme.")
         return False
+    # Generate the maximal additive faces, which will set the attribute.
+    # This is not strictly necessary because, due to the symmetry condition,
+    # IGP faces (I, J, K) with K subset of [1,2]
+    # map to (1-I, 1-J, 2-K), where K subset of [0,1]. 
+    # Hence the covered components are exactly the same as those
+    # that would be computed by igp.generate_maximal_additive_faces().
+    generate_maximal_additive_faces_dff(fn)
+    covered_intervals=generate_covered_intervals(fn)
+    uncovered_intervals=generate_uncovered_intervals(fn)
     if uncovered_intervals:
         gen=generate_perturbations_equivariant_continuous_dff(fn)
         for perturbation in gen:
             epsilon_interval = find_epsilon_interval_continuous_dff(fn, perturbation)
             epsilon = min(abs(epsilon_interval[0]), abs(epsilon_interval[1]))
-            if epsilon>0:
-                logging.info("Not extreme")
-                return False
-    gen=generate_perturbations_finite_dimensional_continuous_dff(fn)
+            assert epsilon > 0
+            logging.info("Not extreme")
+            return False
+    gen = generate_perturbations_finite_dimensional_continuous_dff(fn)
     for perturbation in gen:
         epsilon_interval = find_epsilon_interval_continuous_dff(fn, perturbation)
         epsilon = min(abs(epsilon_interval[0]), abs(epsilon_interval[1]))
-        if epsilon>0:
-            logging.info("Not extreme")
-            return False
+        assert epsilon > 0
+        logging.info("Not extreme")
+        return False
     logging.info("extreme")
     return True
     
@@ -335,7 +358,7 @@ def plot_2d_complex_dff(function,show_tag=True):
     bkpt = function.end_points()
     x = var('x')
     p = Graphics()
-    kwd = ticks_keywords(function, True)
+    kwd = ticks_keywords(function, True)  # FIXME: This is for IGP and a warning from find_f will be generated
     if show_tag:
         kwd['legend_label'] = "Complex Delta pi"
     plot_kwds_hook(kwd)
@@ -428,6 +451,7 @@ def plot_2d_diagram_dff(fn, show_function=True, show_projections=True, known_max
     return p
 
 def plot_2d_diagram_dff_no_lable(fn, show_function=True, show_projections=True, known_maximal=False, colorful=False):
+    # Version of plot_2d_diagram_dff without legend_label.
     faces = generate_maximal_additive_faces_dff(fn)
     p = Graphics()
     if colorful:
@@ -499,6 +523,7 @@ def plot_2d_diagram_dff_no_lable(fn, show_function=True, show_projections=True, 
 
 
 def plot_projections_at_borders_no_lable(fn):
+    # Copy of plot_projections_of_faces from functions.sage that does not do legend_label
     r"""
     Plot the projections p1(F), p2(F), p3(F) of all full-dimensional
     additive faces F of `fn` as gray shadows: p1(F) at the top border,
@@ -545,6 +570,7 @@ def plot_projections_at_borders_no_lable(fn):
 
 
 def plot_function_at_borders_no_lable(fn, color='blue', covered_components=None):
+    # Copy of plot_function_at_borders which does not add 'legend_label'.
     r"""
     Plot the function twice, on the upper and the left border, 
     to decorate 2d diagrams.
@@ -643,29 +669,40 @@ def plot_2d_diagram_with_cones_dff(fn, show_function=True):
     return g
 
 def generate_maximal_additive_faces_dff(fn):
+    if hasattr(fn, '_maximal_additive_faces'):
+        return fn._maximal_additive_faces
     if fn.is_continuous():
         result = generate_maximal_additive_faces_continuous_dff(fn)
     else:
         result = generate_maximal_additive_faces_general_dff(fn)
+    # FIXME: The following line is crucial.
+    # Various functions from the IGP module are reused
+    # and will only give correct results for DFF if this attribute is precomputed!
     fn._maximal_additive_faces = result
     return result
 
 
 def generate_maximal_additive_faces_continuous_dff(function):
+    """
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.dff import *
+        sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
+        sage: h=phi_bj_1(3/2)
+        sage: generate_maximal_additive_faces_continuous_dff(h)
+        [<Face ([0, 1/3], [0, 1/3], [0, 1/3])>,
+         <Face ([0], [1/3, 2/3], [1/3, 2/3])>,
+         <Face ([1/3, 2/3], [0], [1/3, 2/3])>,
+         <Face ([0, 1/3], [2/3, 1], [2/3, 1])>,
+         <Face ([2/3, 1], [0, 1/3], [2/3, 1])>,
+         <Face ([1/3, 2/3], [1/3, 2/3], [1])>]
+    """
     logging.info("Computing maximal additive faces...")
     bkpt = function.end_points()     
-   
-    I_list = []
-    J_list = []
-    K_list = []
-    
     intervals = []
-    
     for i in range(len(bkpt)-1):
         intervals.append([bkpt[i],bkpt[i+1]])
-    I_list = intervals
-    J_list = intervals
-    K_list = intervals
+    I_list = J_list = K_list = intervals
     
     additive_face = {}
     additive_vertices = {}
@@ -675,7 +712,7 @@ def generate_maximal_additive_faces_continuous_dff(function):
             IplusJ = interval_sum(I_list[i],J_list[j])
             for k in generate_overlapping_interval_indices(IplusJ, bkpt):
                 # Check if int(I+J) intersects int(K) is non-empty.
-                if len(interval_intersection(interval_sum(I_list[i],J_list[j]),K_list[k])) == 2:
+                if len(interval_intersection(IplusJ, K_list[k])) == 2:
                     temp_verts = verts(I_list[i],J_list[j],K_list[k])
                     temp = []
                     keep = False
@@ -685,6 +722,7 @@ def generate_maximal_additive_faces_continuous_dff(function):
                                 temp.append(vertex)
                                 keep = True
                     if len(temp) == 2:
+                        # edge
                         if temp[0][0] == temp[1][0]:
                             if temp[1][0] == I_list[i][0]:
                                 if (i-1,j,k) in additive_face:
@@ -698,9 +736,13 @@ def generate_maximal_additive_faces_continuous_dff(function):
                             else:
                                 keep = False
                         elif temp[0][0] + temp[0][1] == temp[1][0] + temp[1][1]: 
+                            # diagonal
                             if temp[1][0] + temp[1][1] == K_list[k][0]:
                                 if (i,j,k-1) in additive_face:
                                     keep = False
+                            elif temp[1][0] + temp[1][1] == 1:
+                                # Part of the big diagonal edge!
+                                pass
                             else:
                                 keep = False
                         else:
