@@ -13,7 +13,8 @@ sage: extremality_test(h, phase_1=True)
 sage: g = plot(h,color='black', linestyle='-')+plot(h._perturbations[0]*4/3,color='magenta')+plot(h+h._perturbations[0]*4/3, color='blue', thickness=2)
 sage: g.save("lift_phase_1.png")
 
-sage: hh = lift(h) #hmin
+sage: hh = lift(h) # hmin
+#2019 update: lift function on the master branch has changed. Now use hmin = h+h._perturbations[0]*4/3
 sage: finite_dimensional_extremality_test(hh, show_all_perturbations=True)
 
 sage: g = plot(hh,color='black')+plot(hh._perturbations[0]*4/3,color='magenta')+plot(hh._perturbations[1]*2, color='cyan')
@@ -49,6 +50,7 @@ sage: lift_until_extreme(hh, show_plots=True, finite_dimensional_extremality_tes
 INFO: 2016-04-20 15:52:22,315 Finite dimensional test: Solution space has dimension 2
 INFO: 2016-04-20 15:52:22,324 Finding epsilon interval for perturbation... done.  Interval is [-2, 4/3]
 INFO: 2016-04-20 15:52:22,331 Finding epsilon interval for perturbation... done.  Interval is [-8/3, 2]
+# 2019 Update on master: finite_dimensional_extremality_test(hh, show_all_perturbations=True)
 sage: perturbs = hh._perturbations
 sage: P = perturbation_polyhedron(hh, perturbs)
 sage: P = perturbation_polyhedron(hh, perturbs)

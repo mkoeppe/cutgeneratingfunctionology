@@ -48,6 +48,12 @@ SAGEFILES +=								\
 	cutgeneratingfunctionology/multirow/piecewise_functions.sage	\
 	cutgeneratingfunctionology/multirow/lifting_region.sage
 
+SAGEFILES +=									\
+	cutgeneratingfunctionology/spam/basic_semialgebraic.py			\
+	cutgeneratingfunctionology/spam/big_cells.py				\
+	cutgeneratingfunctionology/spam/big_cells_impl.py			\
+	cutgeneratingfunctionology/spam/polyhedral_complex.py
+
 all:
 	@echo "No need to 'make' anything. Just run it in Sage; see README.rst"
 
