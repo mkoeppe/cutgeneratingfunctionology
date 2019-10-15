@@ -223,6 +223,9 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         """
         return self.__class__(polyhedron=copy(self._polyhedron))
 
+    def _repr_(self):
+        return 'BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(polyhedron={})'.format(self._polyhedron)
+
     # override the default implementation
     def __contains__(self, point):
         """
