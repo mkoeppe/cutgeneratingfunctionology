@@ -481,7 +481,7 @@ def plot_2d_regions(fn,colorful=False,search_method='BB',find_min=True,stop_only
     level_index = 0
     while current_level:
         p+=plot_2d_regions_in_one_level(current_level,colorful=colorful)
-        show_plots(p, show_plots=show_plots, tag='bb-{}'.format(level_index))
+        show_plot(p, show_plots=show_plots, tag='bb-{}'.format(level_index))
         next_level=T.next_level(current_level,search_method=search_method,find_min=find_min,stop_only_if_strict=stop_only_if_strict,**kwds)
         level_index += 1
         current_level=next_level
