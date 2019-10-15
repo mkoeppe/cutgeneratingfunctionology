@@ -507,11 +507,63 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
 
 ## (4) Later... introduce a class that takes care of the monomial lifting etc.
 
-class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_base):
+class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
 
     """
     A basic semialgebraic set that delegates to another semialgebraic set
     via a Veronese embedding (RLT).
     """
 
-    pass
+    def __init__(self, upstairs_bsa, monomial_list, v_dict, ambient_dim=None):
+        """
+        EXAMPLES:
+
+        Trivial initialization of the universe in dimension 3::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: upstairs_bsa_ppl = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=0)
+            sage: veronese = BasicSemialgebraicSet_veronese(upstairs_bsa_ppl, [], dict(), ambient_dim=3)
+            sage: veronese.ambient_space()
+            Vector space of dimension 3 over Rational Field
+
+        Adding initial space dimensions::
+
+            sage: names = ['u', 'v']
+            sage: n = len(names)
+            sage: P = PolynomialRing(QQ, names)
+            sage: monomial_list = list(P.gens())
+            sage: v_dict = {P.gens()[i]:i for i in range(n)}
+            sage: polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=n)
+            sage: veronese = BasicSemialgebraicSet_veronese(polyhedron, monomial_list, v_dict)
+            sage: veronese.ambient_space()
+            Vector space of dimension 2 over Rational Field
+
+        """
+        super(BasicSemialgebraicSet_veronese, self).__init__(upstairs_bsa, monomial_list,
+                                                             ambient_dim=ambient_dim)
+        self._v_dict = v_dict
+
+    def monomial_list(self):
+        """
+        A list that maps the index of each generator in ``self.upstairs()``
+        to a monomial.
+        """
+        return self._polynomial_map
+
+    def v_dict(self):
+        """
+        A dictionary that maps each monomial to the index of its corresponding generator
+        in ``self.upstairs()``.
+        """
+        return self._v_dict()
+
+    def add_polynomial_constraint(self, lhs, op):
+        """
+        ``lhs`` should be a polynomial.
+        Add the constraint ``lhs``(x) ``op`` 0,
+        where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
+        ``operator.le``, ``operator.ge``.
+        """
+        # Like polynomial_to_linexpr.
+        # Call self.upstairs().add_space_dimensions_and_embed when needed.
+        raise NotImplementedError()
