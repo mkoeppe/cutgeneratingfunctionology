@@ -439,7 +439,7 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
     Section of another ``BasicSemialgebraicSet``.
     """
 
-    def __init__(self, bsa, polynomial_map, ambient_dim=None):
+    def __init__(self, upstairs_bsa, polynomial_map, ambient_dim=None):
         """
         EXAMPLES:
 
@@ -473,15 +473,15 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
             Multivariate Polynomial Ring in no variables over Rational Field
 
         """
-        if len(polynomial_map) != bsa.ambient_dim():
+        if len(polynomial_map) != upstairs_bsa.ambient_dim():
             raise ValueError("polynomial_map must have the same length as the dimension of the underlying bsa")
         if polynomial_map and ambient_dim is None:
             ambient_dim = polynomial_map[0].parent().ngens()
         if not all(poly.parent().ngens() == ambient_dim for poly in polynomial_map):
             raise ValueError("elements in polynomial_map must come from a polynomial ring with the same number of variables as the ambient dimension")
-        base_ring = bsa.base_ring()
+        base_ring = upstairs_bsa.base_ring()
         super(BasicSemialgebraicSet_section, self).__init__(base_ring, ambient_dim)
-        self._bsa = bsa
+        self._upstairs_bsa = upstairs_bsa
         self._polynomial_map = polynomial_map
 
     def poly_ring(self):
@@ -491,19 +491,19 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
             return polynomial_map[0].parent()
 
     def eq_poly(self):
-        for p in self._bsa.eq_poly():
+        for p in self._upstairs_bsa.eq_poly():
             yield p(self._polynomial_map)
 
     def le_poly(self):
-        for p in self._bsa.le_poly():
+        for p in self._upstairs_bsa.le_poly():
             yield p(self._polynomial_map)
 
     def lt_poly(self):
-        for p in self._bsa.lt_poly():
+        for p in self._upstairs_bsa.lt_poly():
             yield p(self._polynomial_map)
 
     def _repr_(self):
-        return 'BasicSemialgebraicSet_section({}, polynomial_map={})'.format(self._bsa, self._polynomial_map)
+        return 'BasicSemialgebraicSet_section({}, polynomial_map={})'.format(self._upstairs_bsa, self._polynomial_map)
 
 ## (4) Later... introduce a class that takes care of the monomial lifting etc.
 
