@@ -589,7 +589,7 @@ class ParametricRealField(Field):
         self._lt = set([])
         self._le = set([])
         sym_ring = PolynomialRing(QQ, names)
-        self._factor_bsa = BasicSemialgebraicSet_eq_lt_le_sets(ring=sym_ring)
+        self._factor_bsa = BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=sym_ring)
         self._sym_field = sym_ring.fraction_field()
         if values is None:
             values = [ None for n in names ]
@@ -1588,10 +1588,10 @@ def simplify_eq_lt_le_poly_via_ppl(bsa):
     """
     cs, monomial_list, v_dict = cs_of_eq_lt_le_poly(bsa)
     p = NNC_Polyhedron(cs)
-    return read_bsa_from_polyhedron(p, monomial_list, v_dict)
+    return read_bsa_from_polyhedron(p, bsa.poly_ring(), monomial_list, v_dict)
 
 
-def read_bsa_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None):
+def read_bsa_from_polyhedron(p, poly_ring, monomial_list, v_dict, tightened_mip=None):
     r"""
     Given a PPL polyhedron p, map the minimal constraints system of p back to polynomial equations and inequalities in the orginal space. If a constraint in the minimal constraint system of p is not tight for the tightened_mip, then this constraint is discarded. Return an instance of BasicSemialgebraicSet_eq_lt_le_set;
 
@@ -1602,7 +1602,7 @@ def read_bsa_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None):
         sage: eq_poly =[]; lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
         sage: cs, monomial_list, v_dict = cs_of_eq_lt_le_poly(BasicSemialgebraicSet_eq_lt_le_sets(eq=eq_poly, lt=lt_poly))
         sage: p = NNC_Polyhedron(cs)
-        sage: read_bsa_from_polyhedron(p, monomial_list, v_dict)
+        sage: read_bsa_from_polyhedron(p, P, monomial_list, v_dict)
         BasicSemialgebraicSet_eq_lt_le_sets(eq = [], lt = [f - 1, f^2 - f, -2*f + 1], le = [])
     """
     mineq = []
@@ -1628,7 +1628,8 @@ def read_bsa_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None):
             #assert c.is_nonstrict_inequality()
             minle.append(t)
     # note that polynomials in mineq and minlt can have leading coefficient != 1
-    return BasicSemialgebraicSet_eq_lt_le_sets(eq=mineq, lt=minlt, le=minle)
+    
+    return BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=poly_ring, eq=mineq, lt=minlt, le=minle)
 
 def read_simplified_leq_llt_lle(K, level="factor"):
     r"""
@@ -1655,9 +1656,9 @@ def read_simplified_leq_llt_lle(K, level="factor"):
         # Since we update K.polyhedron incrementally,
         # just read leq and lin from its minimized constraint system.
         #### to REFACTOR
-        bsa = read_bsa_from_polyhedron(K.ppl_polyhedron(), K.monomial_list, K.v_dict)
+        bsa = read_bsa_from_polyhedron(K.ppl_polyhedron(), K._factor_bsa.poly_ring(), K.monomial_list, K.v_dict)
     else:
-        bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=K.get_eq(), lt=K.get_lt(), le=K.get_le())
+        bsa = BasicSemialgebraicSet_eq_lt_le_sets(base_ring=QQ, eq=K.get_eq(), lt=K.get_lt(), le=K.get_le())
     if bsa.eq_poly():
         logging.warning("equation list %s is not empty!" % bsa.eq_poly())
     return bsa
@@ -1895,7 +1896,7 @@ class SemialgebraicComplexComponent(SageObject):
         if self.parent.max_iter == 0:
             tightened_mip = None
         ## to REFACTOR:
-        bsa = read_bsa_from_polyhedron(K.ppl_polyhedron(), K.monomial_list, K.v_dict, tightened_mip)
+        bsa = read_bsa_from_polyhedron(K.ppl_polyhedron(), K._factor_bsa.poly_ring(), K.monomial_list, K.v_dict, tightened_mip)
         if not bsa.eq_poly():
             P = PolynomialRing(QQ, parent.var_name)
             self.var_map = {g:g for g in P.gens()}
@@ -1934,7 +1935,7 @@ class SemialgebraicComplexComponent(SageObject):
             sage: K.<lam1,lam2>=ParametricRealField([3/10, 45/101])
             sage: h = chen_4_slope(K(7/10), K(2), K(-4), lam1, lam2)
             sage: region_type = find_region_type_igp(K, h)
-            sage: bsa = read_bsa_from_polyhedron(K.ppl_polyhedron(), K.monomial_list, K.v_dict)
+            sage: bsa = read_bsa_from_polyhedron(K.ppl_polyhedron(), K._factor_bsa.poly_ring(), K.monomial_list, K.v_dict)
             sage: bsa.lt_poly()
             {2*lam2 - 1, -2*lam1 + lam2, 19*lam1 - 75*lam2, 21*lam1 - 8}
             sage: c = K.make_proof_cell(region_type=region_type, function=h, find_region_type=None)
@@ -2420,7 +2421,7 @@ class SemialgebraicComplex(SageObject):
             self.find_region_type = find_region_type
         self.default_var_bound = default_var_bound
         if bddbsa is None:
-            self.bddbsa =  BasicSemialgebraicSet_eq_lt_le_sets(self.d)
+            self.bddbsa =  BasicSemialgebraicSet_eq_lt_le_sets(QQ, self.d)
         else:
             self.bddbsa = bddbsa
 
