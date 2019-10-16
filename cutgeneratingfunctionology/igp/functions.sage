@@ -2277,7 +2277,7 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
     for i in range(len(bkpt)-1):
         if bkpt[i] > bkpt[i+1]:
             raise ValueError("Breakpoints are not sorted in increasing order.")
-        elif bkpt[i] == bkpt[i+1]:
+        elif bkpt[i] == bkpt[i+1]:  #hasattr(field, '_big_cells') and field._big_cells, should be off-record
             logging.warning("Degenerate interval occurs at breakpoint %s" % bkpt[i])
             if values[i] != values[i+1]:
                 raise ValueError("Degeneration leads to a discontinuous function.")
