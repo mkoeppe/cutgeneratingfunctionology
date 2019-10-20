@@ -134,6 +134,15 @@ def is_min_le(iterable, value, key=None, field=None):
         sage: from cutgeneratingfunctionology import igp
         sage: from cutgeneratingfunctionology.igp import ParametricRealField, result_symbolic_expression, SemialgebraicComplex
         sage: from cutgeneratingfunctionology.spam import big_cells
+
+    Trivial case::
+
+        sage: K.<a,b> = ParametricRealField([2, 1], big_cells=True, allow_refinement=True)
+        sage: big_cells.is_min_le([], 3)
+        True
+
+    A non-convex region::
+
         sage: K.<a,b> = ParametricRealField([2, 1], big_cells=True, allow_refinement=True)
         sage: big_cells.is_min_le([a, b], 3)
         True
@@ -232,6 +241,12 @@ def is_min_le(iterable, value, key=None, field=None):
     if key is None:
         key = lambda i: i
     iv_list = [ (i, key(i)) for i in iterable ]
+    # Fast path for trivial cases
+    if not iv_list:
+        return True
+    if len(iv_list) == 1:
+        return iv_list[1] <= value    # records
+    # Determine whether it's True or False.
     if field is None:
         field = _common_parametric_real_field(iv_list, key=lambda iv: iv[1])
     with field.off_the_record():
