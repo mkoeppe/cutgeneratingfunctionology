@@ -299,3 +299,23 @@ def is_min_le(iterable, value, key=None, field=None):
             else:
                 raise ParametricRealFieldRefinementError("is_min_le")
     return is_le
+
+def big_cells_sorted(iterable, field=None):
+    if field is None:
+        field = _common_parametric_real_field(iterable)
+    from cutgeneratingfunctionology.igp import ParametricRealField
+    if not isinstance(field, ParametricRealField):
+        field = trivial_parametric_real_field
+    with field.off_the_record():
+        sorted_list = sorted(iterable)
+    if field._allow_refinement:
+        assert all(sorted_list[i-1] <= sorted_list[i] for i in range(1,len(sorted_list)))   # records
+    else:
+        from cutgeneratingfunctionology.igp import ParametricRealFieldFrozenError, ParametricRealFieldRefinementError
+        try:
+            with field.frozen():
+                assert all(sorted_list[i-1] <= sorted_list[i] for i in range(1,len(sorted_list)))
+        except ParametricRealFieldFrozenError:
+            raise ParametricRealFieldRefinementError("big_cells_sorted")
+        # cannot have AssertionError because we sorted the list
+    return sorted_list
