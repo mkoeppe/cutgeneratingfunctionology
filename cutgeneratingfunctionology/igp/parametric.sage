@@ -438,7 +438,7 @@ class FactorUndetermined(Exception):
 
 allow_refinement_default = True
 big_cells_default = 'if_not_allow_refinement'
-mutable_values_default = 'if_big_cells'
+mutable_values_default = False
 
 class ParametricRealField(Field):
     r"""
@@ -533,7 +533,8 @@ class ParametricRealField(Field):
         sage: f[0]*f[1] <= 4
         True
 
-    Test-point free mode (limited functionality)::
+    Test-point free mode (limited functionality and MUCH slower because of many more polynoial
+    evaluations via libsingular)::
 
         sage: K.<a, b> = ParametricRealField(None, mutable_values=True)
         sage: a <= 2
@@ -588,6 +589,7 @@ class ParametricRealField(Field):
         self._eq = set([])
         self._lt = set([])
         self._le = set([])
+        #sym_ring = PolynomialRing(QQ, names, implementation='generic')
         sym_ring = PolynomialRing(QQ, names)
         self._factor_bsa = BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=sym_ring)
         self._sym_field = sym_ring.fraction_field()

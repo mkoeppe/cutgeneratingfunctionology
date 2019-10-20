@@ -192,6 +192,18 @@ def is_min_le(iterable, value, key=None, field=None):
         ...
         ParametricRealFieldRefinementError: ...
 
+    But we should avoid ``mutable_values=True`` because it is extremely slow::
+
+        sage: K.<a,b> = ParametricRealField([4, 1], big_cells=True, mutable_values=True, allow_refinement=False)
+        sage: big_cells.is_min_le([a] * 10000, 5)      # not tested
+        True
+
+    Test that many repeated values do not require quadratic running time::
+
+        sage: K.<a,b> = ParametricRealField([4, 1], big_cells=True, allow_refinement=False)
+        sage: big_cells.is_min_le([a] * 10000, 5)
+        True
+
     In fact, the big cells form a cover (arrangement), not a complex;
     there is a full-dimensional intersection::
 
