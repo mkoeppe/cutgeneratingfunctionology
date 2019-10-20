@@ -346,6 +346,8 @@ def is_min_le(iterable, value, key=None, field=None):
                                 break
                     else:
                         #This requires a ParametricRealField set up with ``mutable_values=True``.
+                        if not field._mutable_values:
+                            raise ParametricRealFieldRefinementError("is_min_le - this case would require a ParametricRealField set up with mutable_values=True")
                         with field.removed_test_point():
                             with field.temporary_assumptions():
                                 try:
