@@ -282,7 +282,7 @@ def is_min_le(iterable, value, key=None, field=None):
             if not iv_list:
                 return True
             if len(iv_list) == 1:
-                return iv_list[1] <= value    # records
+                return iv_list[0][1] <= value    # records
             # (4) Find all candidates for min according to test point, and
             # filter out all elements that are known >= some of these.
             with field.off_the_record():
@@ -303,7 +303,7 @@ def is_min_le(iterable, value, key=None, field=None):
                                 if not any(is_known_op(small_iv[1], operator.le, iv[1]) for small_iv in small) ]
             # (7) test fast path again
             if len(iv_list) == 1:
-                return iv_list[1] <= value    # records
+                return iv_list[0][1] <= value    # records
             # (8)
             # new region = current region \cap ({iv_list[0][1] <= value} \cup ... \cup {iv_list[-1][1] <= value})
             # when not is_le_satisfied, asserting each iv_list[0][1] <= value would cut the current region of the field.
