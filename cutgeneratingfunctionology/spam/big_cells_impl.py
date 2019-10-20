@@ -256,20 +256,55 @@ def is_min_le(iterable, value, key=None, field=None):
     # when allow_refinement=False, comparisons are allowed to record;
     # this one should record the convex region; but if the region was non-convex, it would raise an error.
     if not is_le:
+        # The "False" case is always convex and can just be recorded.
         assert all(iv[1] > value for iv in iv_list)   # records
     else:
+        # In the "True" case, we try hard to keep a large region.
         if field._allow_refinement:
             assert min_v <= value    # records
         else:
             from cutgeneratingfunctionology.igp import ParametricRealFieldFrozenError, ParametricRealFieldRefinementError, ParametricRealFieldInconsistencyError
             import operator
-            for iv in iv_list:
-                # if one element is known to be <= value, then nothing to record.
+            def is_known_op(lhs, op, rhs):
                 try:
                     with field.frozen():
-                        if iv[1] <= value: return True
+                        if op(lhs, value):
+                            return True
                 except ParametricRealFieldFrozenError:
-                    pass
+                    return False
+            # (1) if one element is known to be <= value, then nothing to record.
+            if any(is_known_op(v, operator.le, value) for i, v in iv_list):
+                return True
+            # (2) in one linear pass, filter out elements known to be > value.
+            iv_list = [ iv for iv in iv_list
+                        if not is_known_op(iv[1], operator.gt, value) ]
+            # (3) fast path for trivial cases
+            if not iv_list:
+                return True
+            if len(iv_list) == 1:
+                return iv_list[1] <= value    # records
+            # (4) Find all candidates for min according to test point, and
+            # filter out all elements that are known >= some of these.
+            with field.off_the_record():
+                small = []
+                large = []
+                for iv in iv_list:
+                    if iv[1] == min_v:
+                        small.append(iv)
+                    else:
+                        large.append(iv)
+            # (5) Attempt to self-reduce the list of candidates.
+            small_iv = small[0]
+            small = [ small_iv ] + [ iv for iv in small
+                                     if not is_known_op(small_iv[1], operator.le, iv[1]) ]
+            ##import pdb; pdb.set_trace()
+            # (6) Reduce large by small
+            iv_list = small + [ iv for iv in large
+                                if not any(is_known_op(small_iv[1], operator.le, iv[1]) for small_iv in small) ]
+            # (7) test fast path again
+            if len(iv_list) == 1:
+                return iv_list[1] <= value    # records
+            # (8)
             # new region = current region \cap ({iv_list[0][1] <= value} \cup ... \cup {iv_list[-1][1] <= value})
             # when not is_le_satisfied, asserting each iv_list[0][1] <= value would cut the current region of the field.
             # Let X = current region \cap {iv_list[0][1] > value} \cap ... \cap {iv_list[-1][1]>value is empty,
@@ -282,8 +317,9 @@ def is_min_le(iterable, value, key=None, field=None):
                             try:
                                 field.assume_comparison(iv[1].sym(), operator.gt, value)
                             except ParametricRealFieldInconsistencyError:
+                                ### FIXME: Isn't this the same that is tested in (1) above?
                                 return True
-            # don't raise error if X = current region \cap {iv_list[0][i] > value} for some i.
+            # (9) don't raise error if X = current region \cap {iv_list[0][i] > value} for some i.
             # that is, if one iv is enough.
             for iv in iv_list:
                 with field.off_the_record():
