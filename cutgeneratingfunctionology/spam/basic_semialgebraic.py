@@ -141,7 +141,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         """
         # default implementation could go through self.closure_polyhedron()
 
-    def section(self, polynomial_map):
+    def section(self, polynomial_map, bsa_class='section'):
         r"""
         Define the semialgebraic set that is a section of ``self``.
 
@@ -153,7 +153,32 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         where `Y` is ``self``.
 
         """
-        return BasicSemialgebraicSet_section(self, polynomial_map)
+        bsa_section = BasicSemialgebraicSet_section(self, polynomial_map)
+        if bsa_class == 'section':
+            bsa_class = BasicSemialgebraicSet_section
+        if bsa_class == BasicSemialgebraicSet_section:
+            return bsa_section
+        else:
+            return bsa_class.from_bsa(bsa_section)
+
+    def plot(self, alpha=0.5, plot_points=300, slice_value=None, **kwds):
+        r"""
+        Plot the semialgebraic set or a slice (section) of it.
+
+        - If slice_value is given, plot the slice of the cell according to the parameter values in slice_value that are not None. See examples in ``SemialgebraicComplex.plot()``.
+        - plot_points controls the quality of the plotting.
+
+        Plot the slice in (x,y)-space with z=4::
+
+            sage: complex.plot(slice_value=[None, None, 4])          # not tested
+
+        Plot the slice in (y,z)-space with x=4::
+
+            sage: complex.plot(slice_value=[4, None, None])          # not tested
+        """
+        ## Refactor SemialgebraicComplexComponent.plot and plot2dslice through this method.
+        raise NotImplementedError()
+
 
 ## (1) In the first step, we implement the following class.  Everything is linear.
 ## Rewrite all direct uses of PPL in ParametricRealFieldElement, ParametricRealField
