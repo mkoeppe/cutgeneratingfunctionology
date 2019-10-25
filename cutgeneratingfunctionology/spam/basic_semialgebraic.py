@@ -343,7 +343,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         Whether the constraint ``lhs`` * x + cst ``op`` 0
         is satisfied for all points of ``self``.
         """
-        lcd = lcm(lcm(x.denominator() for x in lhs), cst)
+        lcd = lcm(lcm(x.denominator() for x in lhs), cst.denominator())
         linexpr = Linear_Expression(lhs * lcd, cst * lhs)
         if op == operator.lt:
             constraint_to_add = (linexpr < 0)
@@ -366,7 +366,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
         ``operator.le``, ``operator.ge``.
         """
-        lcd = lcm(lcm(x.denominator() for x in lhs), cst)
+        lcd = lcm(lcm(x.denominator() for x in lhs), cst.denominator())
         linexpr = Linear_Expression(lhs * lcd, cst * lhs)
         if op == operator.lt:
             constraint_to_add = (linexpr < 0)
@@ -656,7 +656,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         A dictionary that maps each monomial to the index of its corresponding generator
         in ``self.upstairs()``.
         """
-        return self._v_dict()
+        return self._v_dict
 
     def add_polynomial_constraint(self, lhs, op):
         """
