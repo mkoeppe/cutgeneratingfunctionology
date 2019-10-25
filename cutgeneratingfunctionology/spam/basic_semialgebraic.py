@@ -382,6 +382,18 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
             raise ValueError("{} is not a supported operator".format(op))
         self._polyhedron.add_constraint(constraint_to_add)
 
+    def add_polynomial_constraint(self, lhs, op):
+        """
+        ``lhs`` should be a polynomial.
+        Add the constraint ``lhs``(x) ``op`` 0,
+        where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
+        ``operator.le``, ``operator.ge``.
+        """
+        if (not lhs in self.poly_ring()) or (lhs.degree() > 1):
+            raise ValueError("{} is not a valid linear polynomial.".format(lhs))
+        cst = f.constant_coefficient()
+        lhs_vector = vector(f.coefficient(x) for x in self.poly_ring.gens())
+        self.add_linear_constraint(lhs_vector, cst, op)
 
 ## (2) Then
 class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebraicSet_base):
