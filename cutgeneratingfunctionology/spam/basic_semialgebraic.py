@@ -259,15 +259,13 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
 
         Together, ``eq_poly``, ``lt_poly``, and ``le_poly`` describe ``self``.
         """
-        mineq = []
         for c in self._polyhedron.minimized_constraints():
             if c.is_equality():
                 coeff = c.coefficients()
                 # observe: coeffients in a constraint of NNC_Polyhedron could have gcd != 1. # take care of this.
                 gcd_c = gcd(gcd(coeff), c.inhomogeneous_term())
                 t = sum(QQ(x)/gcd_c*y for x, y in zip(coeff, self.poly_ring().gens())) + QQ(c.inhomogeneous_term())/gcd_c
-                mineq.append(t)
-        return mineq
+                yield t
 
     def lt_poly(self):
         r"""
@@ -276,15 +274,13 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
 
         Together, ``eq_poly``, ``lt_poly``, and ``le_poly`` describe ``self``.
         """
-        minlt = []
         for c in self._polyhedron.minimized_constraints():
             if c.is_strict_inequality():
                 coeff = c.coefficients()
                 gcd_c = gcd(gcd(coeff), c.inhomogeneous_term())
                 # constraint is written with '>', while lt_poly records '<' relation
                 t = sum(-QQ(x)/gcd_c*y for x, y in zip(coeff, self.poly_ring().gens())) - QQ(c.inhomogeneous_term())/gcd_c
-                minlt.append(t)
-        return minlt
+                yield t
 
     def le_poly(self):
         r"""
@@ -293,15 +289,13 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
 
         Together, ``eq_poly``, ``lt_poly``, and ``le_poly`` describe ``self``.
         """
-        minle = []
         for c in self._polyhedron.minimized_constraints():
             if c.is_nonstrict_inequality():
                 coeff = c.coefficients()
                 gcd_c = gcd(gcd(coeff), c.inhomogeneous_term())
                 # constraint is written with '>=', while lt_poly records '<=' relation
                 t = sum(-QQ(x)/gcd_c*y for x, y in zip(coeff, self.poly_ring().gens())) - QQ(c.inhomogeneous_term())/gcd_c
-                minle.append(t)
-        return minle
+                yield t
 
     # override the default implementation
     def __contains__(self, point):
