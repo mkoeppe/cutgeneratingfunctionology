@@ -391,8 +391,8 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         """
         if (not lhs in self.poly_ring()) or (lhs.degree() > 1):
             raise ValueError("{} is not a valid linear polynomial.".format(lhs))
-        cst = f.constant_coefficient()
-        lhs_vector = vector(f.coefficient(x) for x in self.poly_ring.gens())
+        cst = lhs.constant_coefficient()
+        lhs_vector = vector(lhs.coefficient(x) for x in self.poly_ring().gens())
         self.add_linear_constraint(lhs_vector, cst, op)
 
 ## (2) Then
@@ -664,6 +664,29 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         Add the constraint ``lhs``(x) ``op`` 0,
         where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
         ``operator.le``, ``operator.ge``.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: upstairs_bsa_ppl = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=0)
+            sage: veronese = BasicSemialgebraicSet_veronese(upstairs_bsa_ppl, [], dict(), ambient_dim=0)
+            sage: Q.<x0,x1,x2> = QQ[]
+            sage: lhs = 27/113 * x0^2 + x1*x2 + 1/2
+            sage: veronese.add_polynomial_constraint(lhs, operator.lt)
+            sage: list(veronese.lt_poly())
+            [54*x0^2 + 226*x1*x2 + 113]
+            sage: veronese.monomial_list()
+            [x0^2, x1*x2]
+            sage: veronese.v_dict()
+            {x1*x2: 1, x0^2: 0}
+            sage: lhs2 = x0 + 1/3*x1*x2
+            sage: veronese.add_polynomial_constraint(lhs2, operator.lt)
+            sage: list(veronese.lt_poly())
+            [54*x0^2 + 226*x1*x2 + 113, x1*x2 + 3*x0]
+            sage: veronese.monomial_list()
+            [x0^2, x1*x2, x0]
+            sage: veronese.v_dict()
+            {x0: 2, x1*x2: 1, x0^2: 0}
         """
         space_dim_to_add = 0
         upstairs_lhs_coeff = [0] * self.upstairs().ambient_dim()
@@ -685,4 +708,4 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         if space_dim_to_add:
             self.upstairs().add_space_dimensions_and_embed(space_dim_to_add)
         upstairs_lhs = sum(QQ(x)*y for x, y in zip(upstairs_lhs_coeff, self.upstairs().poly_ring().gens())) + QQ(upstairs_lhs_cst)
-        self.upstairs().add_polynomial_constraint(lhs, op)
+        self.upstairs().add_polynomial_constraint(upstairs_lhs, op)
