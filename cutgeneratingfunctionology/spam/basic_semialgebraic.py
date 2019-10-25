@@ -12,6 +12,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.arith.misc import gcd
 
 from copy import copy
+from itertools import chain
 import operator
 
 try:
@@ -144,6 +145,41 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         """
         If the topological closure is a polyhedron, return it in
         the form of a Sage polyhedron.  Otherwise raise an error.
+        """
+
+    def formal_closure(self, bsa_class='formal_closure'):
+        """
+        Return the basic semialgebraic set obtained by replacing all strict
+        inequalities by <= inequalities.  This is a superset of the topological closure.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: bsa = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=2)
+            sage: bsa.add_linear_constraint([1, 1], -3, operator.lt)
+            sage: list(bsa.lt_poly()), list(bsa.le_poly())
+            ([x0 + x1 - 3], [])
+            sage: closure = bsa.formal_closure(); closure
+            BasicSemialgebraicSet_formal_closure(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(...))
+            sage: list(closure.eq_poly()), list(closure.lt_poly()), list(closure.le_poly())
+            ([], [], [x0 + x1 - 3])
+            sage: closure = bsa.formal_closure(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron); closure
+            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(polyhedron=A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 ray, 1 line)
+            sage: list(closure.eq_poly()), list(closure.lt_poly()), list(closure.le_poly())
+            ([], [], [x0 + x1 - 3])
+        """
+        bsa_formal_closure = BasicSemialgebraicSet_formal_closure(self)
+        bsa_class = _bsa_class(bsa_class)
+        if bsa_class == BasicSemialgebraicSet_formal_closure:
+            return bsa_formal_closure
+        else:
+            return bsa_class.from_bsa(bsa_formal_closure)
+
+    @abstract_method
+    def closure(self, bsa_class):
+        """
+        Return the basic semialgebraic set that is the topological closure
+        of ``self``.
         """
 
     def add_space_dimensions_and_embed(self, space_dim_to_add):
@@ -305,6 +341,15 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
 
     def _repr_(self):
         return 'BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(polyhedron={})'.format(self._polyhedron)
+
+    def closure(self, bsa_class='formal_closure'):
+        """
+        Return the basic semialgebraic set that is the topological closure
+        of ``self``.
+        """
+        # Because our description consists of minimized constraints, the closure is
+        # just the formal closure.
+        return self.formal_closure(bsa_class=bsa_class)
 
     def eq_poly(self):
         r"""
@@ -482,6 +527,12 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
     def __copy__(self):
         raise NotImplementedError()
 
+    def closure(self, bsa_class='mip'):
+        """
+        Return the basic semialgebraic set that is the topological closure
+        of ``self``, which is ``self`` itself.
+        """
+        return self
 
 ## (3) Then introduce the following class to simplify the code in parametric.sage
 class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
@@ -798,3 +849,26 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             self.upstairs().add_space_dimensions_and_embed(space_dim_to_add)
         upstairs_lhs = sum(QQ(x)*y for x, y in zip(upstairs_lhs_coeff, self.upstairs().poly_ring().gens())) + QQ(upstairs_lhs_cst)
         self.upstairs().add_polynomial_constraint(upstairs_lhs, op)
+
+class BasicSemialgebraicSet_formal_closure(BasicSemialgebraicSet_base):
+
+    def __init__(self, upstairs_bsa):
+        base_ring = upstairs_bsa.base_ring()
+        ambient_dim = upstairs_bsa.ambient_dim()
+        super(BasicSemialgebraicSet_formal_closure, self).__init__(base_ring, ambient_dim)
+        self._upstairs_bsa = upstairs_bsa
+
+    def _repr_(self):
+        return 'BasicSemialgebraicSet_formal_closure({})'.format(self.upstairs())
+
+    def upstairs(self):
+        return self._upstairs_bsa
+
+    def eq_poly(self):
+        return self.upstairs().eq_poly()
+
+    def le_poly(self):
+        return chain(self.upstairs().le_poly(), self.upstairs().lt_poly())
+
+    def lt_poly(self):
+        return []
