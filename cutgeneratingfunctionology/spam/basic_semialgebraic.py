@@ -223,6 +223,18 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         is satisfied for all points of ``self``.
         """
 
+    def linear_function_upper_bound(self, form):
+        """
+        Find an upper bound for ``form`` (a vector) on ``self``.
+        """
+        return +Infinity
+
+    def linear_function_lower_bound(self, form):
+        """
+        Find a lower bound for ``form`` (a vector) on ``self``.
+        """
+        return -linear_function_upper_bound(self, -form)
+
     @abstract_method
     def find_point(self):
         """
