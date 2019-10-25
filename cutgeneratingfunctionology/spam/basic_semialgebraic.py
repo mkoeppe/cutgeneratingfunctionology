@@ -9,6 +9,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.all import QQ, ZZ
 from sage.rings.real_double import RDF
 from sage.misc.abstract_method import abstract_method
+from sage.arith.misc import gcd
 
 from copy import copy
 import operator
@@ -250,6 +251,57 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
 
     def _repr_(self):
         return 'BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(polyhedron={})'.format(self._polyhedron)
+
+    def eq_poly(self):
+        r"""
+        Return a list of the polynomials `f` in equations `f(x) = 0`
+        in the description of ``self``.
+
+        Together, ``eq_poly``, ``lt_poly``, and ``le_poly`` describe ``self``.
+        """
+        mineq = []
+        for c in self._polyhedron.minimized_constraints():
+            if c.is_equality():
+                coeff = c.coefficients()
+                # observe: coeffients in a constraint of NNC_Polyhedron could have gcd != 1. # take care of this.
+                gcd_c = gcd(gcd(coeff), c.inhomogeneous_term())
+                t = sum(QQ(x)/gcd_c*y for x, y in zip(coeff, self.poly_ring().gens())) + QQ(c.inhomogeneous_term())/gcd_c
+                mineq.append(t)
+        return mineq
+
+    def lt_poly(self):
+        r"""
+        Return a list of the polynomials `f` in strict inequalities `f(x) < 0`
+        in the description of ``self``.
+
+        Together, ``eq_poly``, ``lt_poly``, and ``le_poly`` describe ``self``.
+        """
+        minlt = []
+        for c in self._polyhedron.minimized_constraints():
+            if c.is_strict_inequality():
+                coeff = c.coefficients()
+                gcd_c = gcd(gcd(coeff), c.inhomogeneous_term())
+                # constraint is written with '>', while lt_poly records '<' relation
+                t = sum(-QQ(x)/gcd_c*y for x, y in zip(coeff, self.poly_ring().gens())) - QQ(c.inhomogeneous_term())/gcd_c
+                minlt.append(t)
+        return minlt
+
+    def le_poly(self):
+        r"""
+        Return a list of the polynomials `f` in inequalities `f(x) \leq 0`
+        in the description of ``self``.
+
+        Together, ``eq_poly``, ``lt_poly``, and ``le_poly`` describe ``self``.
+        """
+        minle = []
+        for c in self._polyhedron.minimized_constraints():
+            if c.is_nonstrict_inequality():
+                coeff = c.coefficients()
+                gcd_c = gcd(gcd(coeff), c.inhomogeneous_term())
+                # constraint is written with '>=', while lt_poly records '<=' relation
+                t = sum(-QQ(x)/gcd_c*y for x, y in zip(coeff, self.poly_ring().gens())) - QQ(c.inhomogeneous_term())/gcd_c
+                minle.append(t)
+        return minle
 
     # override the default implementation
     def __contains__(self, point):
