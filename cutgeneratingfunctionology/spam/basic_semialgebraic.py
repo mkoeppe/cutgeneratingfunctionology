@@ -582,6 +582,14 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
         self._upstairs_bsa = upstairs_bsa
         self._polynomial_map = polynomial_map
 
+    def __copy__(self):
+        """
+        Make a copy of ``self``.
+
+        """
+        return self.__class__(copy(self.upstairs()), copy(self.polynomial_map()),
+                              self.ambient_dim())
+
     def poly_ring(self):
         if not self._polynomial_map:
             return PolynomialRing(self.base_ring(), [])
@@ -606,13 +614,21 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
     def upstairs(self):
         return self._upstairs_bsa
 
+    def polynomial_map(self):
+        return self._polynomial_map
+
 ## (4) Later... introduce a class that takes care of the monomial lifting etc.
 
 class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
 
     """
     A basic semialgebraic set that delegates to another semialgebraic set
-    via a Veronese embedding (RLT).
+    via a Veronese embedding (reformulation-linearization, RLT).
+
+    Expand the polynomial in the standard monomial basis and replace each monomial by a new variable.
+    Record monomials in monomial_list and their corresponding variables in v_dict. The resulting
+    linear expression in the extended space will be provided as inequality or equation in
+    upstairs_bsa, which could, for example be represented by a PPL not-necessarily-closed polyhedron.
     """
 
     def __init__(self, upstairs_bsa, monomial_list, v_dict, ambient_dim=None):
@@ -643,6 +659,14 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         super(BasicSemialgebraicSet_veronese, self).__init__(upstairs_bsa, monomial_list,
                                                              ambient_dim=ambient_dim)
         self._v_dict = v_dict
+
+    def __copy__(self):
+        """
+        Make a copy of ``self``.
+
+        """
+        return self.__class__(copy(self.upstairs()), copy(self.polynomial_map()),
+                              copy(self.v_dict()), self.ambient_dim())
 
     def monomial_list(self):
         """
