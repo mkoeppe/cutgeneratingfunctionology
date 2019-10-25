@@ -1374,7 +1374,9 @@ class ParametricRealField(Field):
         space_dim_old = len(self.monomial_list)
         linexpr = polynomial_to_linexpr(fac, self.monomial_list, self.v_dict)
         space_dim_to_add = len(self.monomial_list) - space_dim_old
-        return linexpr, space_dim_to_add
+        lhs = vector(QQ, linexpr.coefficients())
+        cst = QQ(linexpr.inhomogeneous_term())
+        return lhs, cst, space_dim_to_add
 
     def is_factor_known(self, fac, op):
         if op == operator.lt:
@@ -1388,18 +1390,18 @@ class ParametricRealField(Field):
                 return True
         else:
             raise ValueError("{} is not a supported operator".format(op))
-        linexpr_to_add, space_dim_to_add = self._linexpr_spacedim_to_add(fac)
+        lhs, cst, space_dim_to_add = self._linexpr_spacedim_to_add(fac)
         #print "constraint_to_add = %s" % constraint_to_add
         if space_dim_to_add:
             self._polyhedron.add_space_dimensions_and_embed(space_dim_to_add)
             return False
         else:
-            return self._polyhedron.is_linear_constraint_valid(linexpr_to_add, op)
+            return self._polyhedron.is_linear_constraint_valid(lhs, cst, op)
 
     def record_factor(self, fac, op):
         #print "add %s, %s to %s" % (fac, op, self.polyhedron.constraints())
         if not self.is_factor_known(fac, op):
-            linexpr_to_add, _ = self._linexpr_spacedim_to_add(fac)
+            lhs, cst,  _ = self._linexpr_spacedim_to_add(fac)
             if op == operator.lt:
                 formatted_constraint = "%s < 0" % fac
             elif op == operator.eq:
@@ -1410,7 +1412,7 @@ class ParametricRealField(Field):
                 raise ValueError("{} is not a supported operator".format(op))
             if self._frozen:
                 raise ParametricRealFieldFrozenError("Cannot prove that constraint is implied: {} ".format(formatted_constraint))
-            self._polyhedron.add_linear_constraint(linexpr_to_add, op)
+            self._polyhedron.add_linear_constraint(lhs, cst, op)
             #print " add new constraint, %s" %self.polyhedron.constraints()
             logging.info("New constraint: {}".format(formatted_constraint))
             self._factor_bsa.add_polynomial_constraint(fac, op)

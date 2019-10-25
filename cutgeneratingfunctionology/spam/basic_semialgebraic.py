@@ -344,7 +344,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         is satisfied for all points of ``self``.
         """
         lcd = lcm(lcm(x.denominator() for x in lhs), cst.denominator())
-        linexpr = Linear_Expression(lhs * lcd, cst * lhs)
+        linexpr = Linear_Expression(lhs * lcd, cst * lcd)
         if op == operator.lt:
             constraint_to_add = (linexpr < 0)
         elif op == operator.gt:
@@ -367,7 +367,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         ``operator.le``, ``operator.ge``.
         """
         lcd = lcm(lcm(x.denominator() for x in lhs), cst.denominator())
-        linexpr = Linear_Expression(lhs * lcd, cst * lhs)
+        linexpr = Linear_Expression(lhs * lcd, cst * lcd)
         if op == operator.lt:
             constraint_to_add = (linexpr < 0)
         elif op == operator.gt:
