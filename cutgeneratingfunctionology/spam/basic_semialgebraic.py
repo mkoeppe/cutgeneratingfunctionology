@@ -41,6 +41,47 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         self._ambient_dim = ambient_dim
         self._base_ring = base_ring
 
+    @classmethod
+    def from_bsa(cls, bsa, **init_kwds):
+        """
+        Initialize a basic semialgebraic set of class ``cls`` to be the same
+        as ``bsa``.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: upstairs_bsa_ppl = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=0)
+            sage: veronese = BasicSemialgebraicSet_veronese(upstairs_bsa_ppl, [], dict(), ambient_dim=0)
+            sage: Q.<x0,x1,x2> = QQ[]
+            sage: lhs = 27/113 * x0^2 + x1*x2 + 1/2
+            sage: veronese.add_polynomial_constraint(lhs, operator.lt)
+            sage: list(veronese.lt_poly())
+            [54*x0^2 + 226*x1*x2 + 113]
+            sage: bsa_ell = BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(veronese)
+            sage: list(bsa_ell.lt_poly())
+            [54*x0^2 + 226*x1*x2 + 113]
+            sage: upstairs_bsa_ell = BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(upstairs_bsa_ppl)
+            sage: list(upstairs_bsa_ell.lt_poly())
+            [54*x0 + 226*x1 + 113]
+
+        Test that ``BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron`` supports this method::
+
+            sage: upstairs_bsa_ppl_again = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron.from_bsa(upstairs_bsa_ell)
+            sage: list(upstairs_bsa_ppl_again.lt_poly())
+            [54*x0 + 226*x1 + 113]
+
+        """
+        base_ring = init_kwds.pop('base_ring', bsa.base_ring())
+        ambient_dim = bsa.ambient_dim()
+        self = cls(base_ring=base_ring, ambient_dim=ambient_dim, **init_kwds)
+        for p in bsa.eq_poly():
+            self.add_polynomial_constraint(p, operator.eq)
+        for p in bsa.lt_poly():
+            self.add_polynomial_constraint(p, operator.lt)
+        for p in bsa.le_poly():
+            self.add_polynomial_constraint(p, operator.le)
+        return self
+
     def ambient_dim(self):
         return self._ambient_dim
 
@@ -200,7 +241,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
 
     """
 
-    def __init__(self, ambient_dim=None, polyhedron=None):
+    def __init__(self, ambient_dim=None, polyhedron=None, base_ring=None):
         r"""
         Initialize a basic semialgebraic set as the universe in
         ``ambient_dim``, or, if ``polyhedron`` (an ``NNC_Polyhedron``,
@@ -211,7 +252,10 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
             if polyhedron is None:
                 raise ValueError("at least one of ambient_dim and polyhedron must be provided")
             ambient_dim = polyhedron.space_dimension()
-        base_ring = QQ
+        if base_ring is None:
+            base_ring = QQ
+        if base_ring is not QQ:
+            raise ValueError("only base_ring=QQ is supported")
         super(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron, self).__init__(base_ring, ambient_dim)
         if polyhedron is None:
             self._polyhedron = NNC_Polyhedron(ambient_dim, 'universe')
