@@ -603,6 +603,9 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
     def _repr_(self):
         return 'BasicSemialgebraicSet_section({}, polynomial_map={})'.format(self._upstairs_bsa, self._polynomial_map)
 
+    def upstairs(self):
+        return self._upstairs_bsa
+
 ## (4) Later... introduce a class that takes care of the monomial lifting etc.
 
 class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
