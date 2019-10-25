@@ -25,6 +25,18 @@ from sage.numerical.mip import MixedIntegerLinearProgram, MIPVariable, MIPSolver
 from sage.structure.sage_object import SageObject
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
+def _bsa_class(bsa_class):
+    if isinstance(bsa_class, type):
+        return bsa_class
+    elif bsa_class == 'formal_closure':
+        return BasicSemialgebraicSet_formal_closure
+    elif bsa_class == 'section':
+        return BasicSemialgebraicSet_section
+    elif bsa_class == 'mip':
+        return BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram
+    else:
+        raise ValueError("unknown bsa class: {}".format(bsa_class))
+
 class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if this should be facade parent, or an Element.
 
     """
@@ -195,8 +207,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
 
         """
         bsa_section = BasicSemialgebraicSet_section(self, polynomial_map)
-        if bsa_class == 'section':
-            bsa_class = BasicSemialgebraicSet_section
+        bsa_class = _bsa_class(bsa_class)
         if bsa_class == BasicSemialgebraicSet_section:
             return bsa_section
         else:
