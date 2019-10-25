@@ -347,10 +347,14 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         linexpr = Linear_Expression(lhs * lcd, cst * lhs)
         if op == operator.lt:
             constraint_to_add = (linexpr < 0)
+        elif op == operator.gt:
+            constraint_to_add = (linexpr > 0)
         elif op == operator.eq:
             constraint_to_add = (linexpr == 0)
         elif op == operator.le:
             constraint_to_add = (linexpr <= 0)
+        elif op == operator.ge:
+            constraint_to_add = (linexpr >= 0)
         else:
             raise ValueError("{} is not a supported operator".format(op))
         return self._polyhedron.relation_with(constraint_to_add).implies(poly_is_included)
@@ -366,10 +370,14 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         linexpr = Linear_Expression(lhs * lcd, cst * lhs)
         if op == operator.lt:
             constraint_to_add = (linexpr < 0)
+        elif op == operator.gt:
+            constraint_to_add = (linexpr > 0)
         elif op == operator.eq:
             constraint_to_add = (linexpr == 0)
         elif op == operator.le:
             constraint_to_add = (linexpr <= 0)
+        elif op == operator.ge:
+            constraint_to_add = (linexpr >= 0)
         else:
             raise ValueError("{} is not a supported operator".format(op))
         self._polyhedron.add_constraint(constraint_to_add)
@@ -496,10 +504,14 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
         """
         if op == operator.lt:
             self._lt.add(lhs)
+        elif op == operator.gt:
+            self._lt.add(-lhs)
         elif op == operator.eq:
             self._eq.add(lhs)
         elif op == operator.le:
             self._le.add(lhs)
+        elif op == operator.ge:
+            self._le.add(-lhs)
         else:
             raise ValueError("{} is not a supported operator".format(op))
 
