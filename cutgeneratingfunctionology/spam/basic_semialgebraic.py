@@ -142,7 +142,6 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
 
     @abstract_method
     def add_linear_constraint(self, lhs, cst, op):
-        ## right now lhs needs to be a PPL thing. to be changed, and add rhs.
         """
         ``lhs`` should be a vector of length ambient_dim.
         Add the constraint ``lhs`` * x + cst ``op`` 0,
@@ -158,7 +157,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         Whether the constraint ``lhs`` * x + cst ``op`` 0
         is satisfied for all points of ``self``.
         """
-        # default implementation should call is_linear_constraint_valid
+        # default implementation should call is_polynomial_constraint_valid
 
     @abstract_method
     def add_polynomial_constraint(self, lhs, op):
@@ -439,12 +438,23 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         lhs_vector = vector(lhs.coefficient(x) for x in self.poly_ring().gens())
         self.add_linear_constraint(lhs_vector, cst, op)
 
+
+## class BasicSemialgebraicSet_polyhedral_ppl_MIP_Problem(BasicSemialgebraicSet_base):
+
+##     """
+##     A closed polyhedral basic semialgebraic set,
+##     represented by a PPL ``MIP_Problem``.
+##     """
+
+### do we need the above, or should we just use the below, using solver='ppl'?
+
+
 ## (2) Then
 class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebraicSet_base):
 
     """
-    A (possibly half-open) polyhedral basic semialgebraic set,
-    represented by a PPL ``NNC_Polyhedron``
+    A closed polyhedral basic semialgebraic set,
+    represented by a Sage ``MixedIntegerLinearProgram``.
     """
 
     def __init__(self, base_ring, ambient_dim, solver=None):
@@ -735,7 +745,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
 
         EXAMPLES::
 
-            sage: from cutgeneratingfunctionology.igp import *
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
             sage: upstairs_bsa_ppl = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=0)
             sage: veronese = BasicSemialgebraicSet_veronese(upstairs_bsa_ppl, [], dict(), ambient_dim=0)
             sage: Q.<x0,x1,x2> = QQ[]
