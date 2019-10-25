@@ -665,6 +665,24 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
         ``operator.le``, ``operator.ge``.
         """
-        # Like polynomial_to_linexpr.
-        # Call self.upstairs().add_space_dimensions_and_embed when needed.
-        raise NotImplementedError()
+        space_dim_to_add = 0
+        upstairs_lhs_coeff = [0] * self.upstairs().ambient_dim()
+        upstairs_lhs_cst = 0
+        for m in lhs.monomials():
+            coeffm = lhs.monomial_coefficient(m)
+            if m == 1:
+                upstairs_lhs_cst = coeffm
+            else:
+                nv = self.v_dict().get(m, None)
+                if nv is None:
+                    nv = len(self.monomial_list())
+                    self.v_dict()[m] = nv
+                    self.monomial_list().append(m)
+                    space_dim_to_add += 1
+                    upstairs_lhs_coeff.append(coeffm)
+                else:
+                    upstairs_lhs_coeff[nv] = coeffm
+        if space_dim_to_add:
+            self.upstairs().add_space_dimensions_and_embed(space_dim_to_add)
+        upstairs_lhs = sum(QQ(x)*y for x, y in zip(upstairs_lhs_coeff, self.upstairs().poly_ring().gens())) + QQ(upstairs_lhs_cst)
+        self.upstairs().add_polynomial_constraint(lhs, op)
