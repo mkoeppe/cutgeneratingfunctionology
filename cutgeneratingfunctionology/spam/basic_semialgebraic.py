@@ -577,26 +577,33 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         super(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron, self).add_space_dimensions_and_embed(space_dim_to_add)
         self._polyhedron.add_space_dimensions_and_embed(space_dim_to_add)
 
+    @staticmethod
+    def _ppl_constraint(lhs, cst, op):
+        """
+        Make a PPL ``Constraint`` ``lhs`` * x + cst ``op`` 0.
+        """
+        lcd = lcm(lcm(x.denominator() for x in lhs), cst.denominator())
+        linexpr = Linear_Expression(lhs * lcd, cst * lcd)
+        if op == operator.lt:
+            return (linexpr < 0)
+        elif op == operator.gt:
+            return (linexpr > 0)
+        elif op == operator.eq:
+            return (linexpr == 0)
+        elif op == operator.le:
+            return (linexpr <= 0)
+        elif op == operator.ge:
+            return (linexpr >= 0)
+        else:
+            raise ValueError("{} is not a supported operator".format(op))
+
     def is_linear_constraint_valid(self, lhs, cst, op):
         """
         Whether the constraint ``lhs`` * x + cst ``op`` 0
         is satisfied for all points of ``self``.
         """
-        lcd = lcm(lcm(x.denominator() for x in lhs), cst.denominator())
-        linexpr = Linear_Expression(lhs * lcd, cst * lcd)
-        if op == operator.lt:
-            constraint_to_add = (linexpr < 0)
-        elif op == operator.gt:
-            constraint_to_add = (linexpr > 0)
-        elif op == operator.eq:
-            constraint_to_add = (linexpr == 0)
-        elif op == operator.le:
-            constraint_to_add = (linexpr <= 0)
-        elif op == operator.ge:
-            constraint_to_add = (linexpr >= 0)
-        else:
-            raise ValueError("{} is not a supported operator".format(op))
-        return self._polyhedron.relation_with(constraint_to_add).implies(poly_is_included)
+        constraint = self._ppl_constraint(lhs, cst, op)
+        return self._polyhedron.relation_with(constraint).implies(poly_is_included)
 
     def add_linear_constraint(self, lhs, cst, op):
         """
@@ -605,21 +612,8 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
         ``operator.le``, ``operator.ge``.
         """
-        lcd = lcm(lcm(x.denominator() for x in lhs), cst.denominator())
-        linexpr = Linear_Expression(lhs * lcd, cst * lcd)
-        if op == operator.lt:
-            constraint_to_add = (linexpr < 0)
-        elif op == operator.gt:
-            constraint_to_add = (linexpr > 0)
-        elif op == operator.eq:
-            constraint_to_add = (linexpr == 0)
-        elif op == operator.le:
-            constraint_to_add = (linexpr <= 0)
-        elif op == operator.ge:
-            constraint_to_add = (linexpr >= 0)
-        else:
-            raise ValueError("{} is not a supported operator".format(op))
-        self._polyhedron.add_constraint(constraint_to_add)
+        constraint = self._ppl_constraint(lhs, cst, op)
+        self._polyhedron.add_constraint(constraint)
 
 
 ## class BasicSemialgebraicSet_polyhedral_ppl_MIP_Problem(BasicSemialgebraicSet_base):
