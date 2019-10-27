@@ -36,6 +36,8 @@ def _bsa_class(bsa_class):
         return BasicSemialgebraicSet_formal_closure
     elif bsa_class == 'section':
         return BasicSemialgebraicSet_section
+    elif bsa_class == 'ppl':
+        return BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron
     elif bsa_class == 'mip':
         return BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram
     else:
