@@ -8,6 +8,7 @@ from sage.structure.element import Element
 from sage.modules.free_module_element import vector
 from sage.rings.all import QQ, ZZ
 from sage.rings.real_double import RDF
+from sage.rings.infinity import Infinity
 from sage.misc.abstract_method import abstract_method
 from sage.arith.misc import gcd
 
@@ -238,14 +239,28 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         poly = sum(coeff * gen for coeff, gen in zip(lhs, self.poly_ring().gens())) + cst
         self.add_polynomial_constraint(poly, op)
 
-    @abstract_method
     def is_linear_constraint_valid(self, lhs, cst, op):
         """
         Whether the constraint ``lhs`` * x + cst ``op`` 0
         is satisfied for all points of ``self``.
+
+        This implementation uses ``linear_function_upper_bound``
+        and ``linear_function_lower_bound`` and raises an error
+        if the information provided does not suffice to decide
+        the validity of the constraint.
         """
-        # default implementation should try if linear_function_upper_bound
-        # gives a useful result and call is_polynomial_constraint_valid otherwise.
+        op_known = False
+        if op in (operator.lt, operator.le, operator.eq):
+            op_known = True
+            if not op(self.linear_function_upper_bound(lhs) + cst, 0):
+                raise NotImplementedError
+        if op in (operator.gt, operator.ge, operator.eq):  # eq appears in both conditions
+            op_known = True
+            if not op(self.linear_function_lower_bound(lhs) + cst, 0):
+                raise NotImplementedError
+        if not op_known:
+            raise ValueError("{} is not a supported operator".format(op))
+        return True
 
     @abstract_method
     def add_polynomial_constraint(self, lhs, op):
@@ -278,7 +293,6 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             +Infinity
 
         """
-        from sage.rings.infinity import Infinity
         return +Infinity
 
     def linear_function_lower_bound(self, form):
@@ -295,6 +309,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             -Infinity
 
         """
+        form = vector(form)
         return -self.linear_function_upper_bound(-form)
 
     @abstract_method
@@ -631,7 +646,8 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
 
     """
     A closed polyhedral basic semialgebraic set,
-    represented by a Sage ``MixedIntegerLinearProgram``.
+    represented by a Sage ``MixedIntegerLinearProgram``
+    with only continuous variables.
     """
 
     def __init__(self, base_ring, ambient_dim, solver=None):
@@ -643,10 +659,22 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
 
         """
         super(BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram, self).__init__(base_ring, ambient_dim)
-        self._mip = MixedIntegerLinearProgram(solver=solver)
+        self._mip = MixedIntegerLinearProgram(solver=solver, maximization=True)
 
     def __copy__(self):
         raise NotImplementedError()
+
+    def mip(self):
+        return self._mip
+
+    def mip_gens(self):
+        """
+        Return the components of the MIP variable corresponding to the
+        space dimensions.
+        """
+        mip_var = self.mip().default_variable()
+        for i in range(self.ambient_dim()):
+            yield mip_var[i]
 
     def closure(self, bsa_class='mip'):
         """
@@ -654,6 +682,101 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
         of ``self``, which is ``self`` itself.
         """
         return self
+
+    def is_linear_constraint_valid(self, lhs, cst, op):
+        """
+        Whether the constraint ``lhs`` * x + cst ``op`` 0
+        is satisfied for all points of ``self``.
+
+        In the current implementation, this raises ``NotImplementedError``
+        in unbounded/infeasible situations.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: S = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(QQ, 1, solver='ppl')
+            sage: S.add_linear_constraint([1], -1, operator.le)
+            sage: S.add_linear_constraint([1], 0, operator.ge)
+            sage: S.is_linear_constraint_valid([1], -2, operator.lt)
+            True
+            sage: S.is_linear_constraint_valid([1], -1, operator.lt)
+            False
+            sage: S.is_linear_constraint_valid([1], -1, operator.le)
+            True
+            sage: S.is_linear_constraint_valid([1], 1/2, operator.le)
+            False
+
+        """
+        try:
+            # Use the default implementation, which delegates to
+            # ``linear_function_upper_bound`` and
+            # ``linear_function_lower_bound``.
+            return super(BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram, self).is_linear_constraint_valid(lhs, cst, op)
+        except NotImplementedError:
+            # As long as ``linear_function_upper_bound`` cannot distinguish
+            # infeasible from unbounded, we have a problem here.
+            if self.linear_function_upper_bound(lhs) == Infinity or self.linear_function_lower_bound(lhs) == -Infinity:
+                raise NotImplementedError
+            # The default implementation checked
+            # ``linear_function_upper_bound`` and
+            # ``linear_function_lower_bound`` already.  These are the sup and
+            # inf in our case, and because we are a closed polyhedral set, this
+            # suffices to decide validity.
+            return False
+
+    def _mip_linear_function(self, form, cst=0):
+        """
+        Obtain a linear function object representing
+        ``form`` * x + ``cst``.
+        """
+        return self.mip().sum(coeff * gen for coeff, gen in zip(form, self.mip_gens())) + cst
+
+    def linear_function_upper_bound(self, form):
+        """
+        Find an upper bound for ``form`` (a vector) on ``self``.
+
+        In this implementation, this is done by solving the LP,
+        so this upper bound is the supremum.
+
+        However, if ``self`` is empty, this may return +oo
+        because we cannot distinguish infeasible from unbounded.
+
+        """
+        mip = self.mip()
+        objective = self._mip_linear_function(form)
+        mip.set_objective(objective)
+        try:
+            return mip.solve()
+        except MIPSolverException as e:
+            # FIXME: Here we should really distinguish infeasible and unbounded.
+            # Unfortunately there is no solver-independent protocol for this.
+            return +Infinity
+
+    def add_linear_constraint(self, lhs, cst, op):
+        """
+        Add the constraint ``lhs`` * x + cst ``op`` 0,
+        where ``lhs`` is a vector of length ``ambient_dim`` and
+        ``op`` is one of ``operator.eq``, ``operator.le``, ``operator.ge``.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: S = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(QQ, 1, solver='ppl')
+            sage: S.add_linear_constraint([1], -1, operator.lt)
+            Traceback (most recent call last):
+            ...
+            ValueError: strict < is not allowed, use <= instead
+            sage: S.add_linear_constraint([1], -1, operator.le)
+            sage: S.add_linear_constraint([1], 0, operator.ge)
+            sage: S.linear_function_upper_bound([1])
+            1
+            sage: S.linear_function_lower_bound([1])
+            0
+
+        """
+        constraint_lhs = self._mip_linear_function(lhs, cst)
+        constraint = op(constraint_lhs, 0)
+        self.mip().add_constraint(constraint)
 
 ## (3) Then introduce the following class to simplify the code in parametric.sage
 class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
