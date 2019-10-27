@@ -75,18 +75,23 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: veronese.add_polynomial_constraint(lhs, operator.lt)
             sage: list(veronese.lt_poly())
             [54*x0^2 + 226*x1*x2 + 113]
-            sage: bsa_ell = BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(veronese)
-            sage: list(bsa_ell.lt_poly())
+            sage: bsa_eq_lt_le_sets = BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(veronese)
+            sage: list(bsa_eq_lt_le_sets.lt_poly())
             [54*x0^2 + 226*x1*x2 + 113]
-            sage: upstairs_bsa_ell = BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(upstairs_bsa_ppl)
-            sage: list(upstairs_bsa_ell.lt_poly())
+            sage: upstairs_bsa_eq_lt_le_sets = BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(upstairs_bsa_ppl)
+            sage: list(upstairs_bsa_eq_lt_le_sets.lt_poly())
             [54*x0 + 226*x1 + 113]
 
         Test that ``BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron`` supports this method::
 
-            sage: upstairs_bsa_ppl_again = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron.from_bsa(upstairs_bsa_ell)
+            sage: upstairs_bsa_ppl_again = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron.from_bsa(upstairs_bsa_eq_lt_le_sets)
             sage: list(upstairs_bsa_ppl_again.lt_poly())
             [54*x0 + 226*x1 + 113]
+
+        Test that ``BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram``
+        supports this method and accepts keyword arguments::
+
+            sage: upstairs_bsa_mip = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram.from_bsa(upstairs_bsa_eq_lt_le_sets, solver='ppl')    # not tested - unfinished implementation
 
         """
         base_ring = init_kwds.pop('base_ring', bsa.base_ring())
