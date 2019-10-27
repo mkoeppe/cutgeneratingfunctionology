@@ -778,6 +778,62 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
         constraint = op(constraint_lhs, 0)
         self.mip().add_constraint(constraint)
 
+    def eq_poly(self):
+        """
+        Generate the polynomials `f` in equations `f(x) = 0`
+        in the description of ``self``.
+
+        Together, ``eq_poly`` and ``le_poly`` describe ``self``.
+        (``lt_poly`` gives the empty list because ``self`` is closed.)
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: S = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(QQ, 1, solver='ppl')
+            sage: S.add_linear_constraint([1], -1, operator.eq)
+            sage: sorted(S.eq_poly())
+            [x - 1]
+        """
+        poly_ring = self.poly_ring()
+        for lb, (indices, coeffs), ub in self.mip().constraints():
+            if lb == ub:
+                form = sum(coeff * poly_ring.gen(i) for i, coeff in zip(indices, coeffs))
+                yield form - ub
+
+    def le_poly(self):
+        """
+        Generate the polynomials `f` in inequalities `f(x) \leq 0`
+        in the description of ``self``.
+
+        Together, ``eq_poly`` and ``le_poly`` describe ``self``.
+        (``lt_poly`` gives the empty list because ``self`` is closed.)
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: S = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(QQ, 1, solver='ppl')
+            sage: S.add_linear_constraint([1], -1, operator.le)
+            sage: S.add_linear_constraint([1], 0, operator.ge)
+            sage: sorted(S.le_poly())
+            [-x, x - 1]
+        """
+        poly_ring = self.poly_ring()
+        for lb, (indices, coeffs), ub in self.mip().constraints():
+            if lb != ub:
+                form = sum(coeff * poly_ring.gen(i) for i, coeff in zip(indices, coeffs))
+                if lb not in (None, -Infinity):
+                    yield lb - form
+                if ub not in (None, +Infinity):
+                    yield form - ub
+
+    def lt_poly(self):
+        """
+        Return the empty list because ``self`` is closed.
+
+        Together, ``eq_poly`` and ``le_poly`` describe ``self``.
+        """
+        return []
+
 ## (3) Then introduce the following class to simplify the code in parametric.sage
 class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
 
