@@ -263,12 +263,12 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         is satisfied for all points of ``self``.
         """
 
-    # Subclasses should provide more useful bounds
     def linear_function_upper_bound(self, form):
         """
         Find an upper bound for ``form`` (a vector) on ``self``.
 
         The default implementation just returns +oo.
+        Subclasses should provide more useful bounds.
 
         EXAMPLES::
 
@@ -284,6 +284,8 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
     def linear_function_lower_bound(self, form):
         """
         Find a lower bound for ``form`` (a vector) on ``self``.
+
+        This implementation delegates to ``linear_function_upper_bound``.
 
         EXAMPLES::
 
@@ -776,6 +778,8 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
 
     """
     Section of another ``BasicSemialgebraicSet``.
+
+    See ``BasicSemialgebraicSet_base.section``.
     """
 
     def __init__(self, upstairs_bsa, polynomial_map, ambient_dim=None):
