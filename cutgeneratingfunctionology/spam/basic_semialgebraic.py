@@ -222,12 +222,12 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
 
     @abstract_method
     def is_linear_constraint_valid(self, lhs, cst, op):
-        ## right now lhs needs to be a PPL thing. to be changed, and add rhs.
         """
         Whether the constraint ``lhs`` * x + cst ``op`` 0
         is satisfied for all points of ``self``.
         """
-        # default implementation should call is_polynomial_constraint_valid
+        # default implementation should try if linear_function_upper_bound
+        # gives a useful result and call is_polynomial_constraint_valid otherwise.
 
     @abstract_method
     def add_polynomial_constraint(self, lhs, op):
