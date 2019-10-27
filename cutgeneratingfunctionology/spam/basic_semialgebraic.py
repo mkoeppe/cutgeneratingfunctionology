@@ -217,15 +217,26 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         """
         self._ambient_dim += space_dim_to_add
 
-    @abstract_method
     def add_linear_constraint(self, lhs, cst, op):
         """
-        ``lhs`` should be a vector of length ambient_dim.
         Add the constraint ``lhs`` * x + cst ``op`` 0,
-        where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
+        where ``lhs`` is a vector of length ``ambient_dim`` and
+        ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
         ``operator.le``, ``operator.ge``.
+
+        This implementation just calls ``self.add_polynomial_constraint``.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(base_ring=QQ, ambient_dim=2)
+            sage: lhs = vector(QQ, [1, 1])
+            sage: bsa.add_linear_constraint(lhs, -2, operator.lt)
+            sage: list(bsa.lt_poly())
+            [x0 + x1 - 2]
         """
-        # default implementation should call add_polynomial_constraint
+        poly = sum(coeff * gen for coeff, gen in zip(lhs, self.poly_ring().gens())) + cst
+        self.add_polynomial_constraint(poly, op)
 
     @abstract_method
     def is_linear_constraint_valid(self, lhs, cst, op):
@@ -340,14 +351,16 @@ class BasicSemialgebraicSet_polyhedral(BasicSemialgebraicSet_base):
 
     """
 
-    # Subclasses should define this method
     @abstract_method
     def add_linear_constraint(self, lhs, cst, op):
         """
-        ``lhs`` should be a vector of length ambient_dim.
         Add the constraint ``lhs`` * x + cst ``op`` 0,
-        where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
+        where ``lhs`` is a vector of length ``ambient_dim`` and
+        ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
         ``operator.le``, ``operator.ge``.
+
+        In subclasses of ``BasicSemialgebraicSet_polyhedral``,
+        this method should be defined.
         """
 
     def add_polynomial_constraint(self, lhs, op):
@@ -358,6 +371,9 @@ class BasicSemialgebraicSet_polyhedral(BasicSemialgebraicSet_base):
 
         ``lhs`` should be a linear polynomial that can be converted to
         an element of ``self.poly_ring()``.
+
+        This implementation checks that ``lhs`` is a linear polynomial
+        and then delegates to ``add_linear_constraint``.
 
         EXAMPLES::
 
