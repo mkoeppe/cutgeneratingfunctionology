@@ -331,6 +331,62 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         ## Refactor SemialgebraicComplexComponent.plot and plot2dslice through this method.
         raise NotImplementedError()
 
+class BasicSemialgebraicSet_polyhedral(BasicSemialgebraicSet_base):
+
+    """
+    An abstract class of polyhedral basic semialgebraic sets.
+
+    """
+
+    # Subclasses should define this method
+    @abstract_method
+    def add_linear_constraint(self, lhs, cst, op):
+        """
+        ``lhs`` should be a vector of length ambient_dim.
+        Add the constraint ``lhs`` * x + cst ``op`` 0,
+        where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
+        ``operator.le``, ``operator.ge``.
+        """
+
+    def add_polynomial_constraint(self, lhs, op):
+        """
+        Add the constraint ``lhs``(x) ``op`` 0,
+        where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
+        ``operator.le``, ``operator.ge``.
+
+        ``lhs`` should be a linear polynomial that can be converted to
+        an element of ``self.poly_ring()``.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(1)
+            sage: f = 2 * P.poly_ring().gen() + 1
+            sage: P.add_polynomial_constraint(f, operator.le)
+            sage: list(P.le_poly())
+            [2*x0 + 1]
+
+        With conversion of polynomials from different rings::
+
+            sage: R.<xyzzy> = QQ[]
+            sage: P.add_polynomial_constraint(xyzzy + 3, operator.lt)
+            sage: list(P.lt_poly())
+            [x0 + 3]
+
+        """
+        lhs = self.poly_ring()(lhs)   # convert if necessary
+        if lhs.degree() > 1:
+            raise ValueError("{} is not a valid linear polynomial.".format(lhs))
+        cst = lhs.constant_coefficient()
+        try:
+            lhs_vector = vector(lhs.coefficient(x) for x in self.poly_ring().gens())
+        except AttributeError:
+            # univariate polynomials (Polynomial_rational_flint) unfortunately
+            # have a different API that does not define "coefficient".
+            lhs_vector = [lhs[1]]  # coefficient of the linear term
+        self.add_linear_constraint(lhs_vector, cst, op)
+
+
 
 ## (1) In the first step, we implement the following class.  Everything is linear.
 ## Rewrite all direct uses of PPL in ParametricRealFieldElement, ParametricRealField
@@ -343,7 +399,7 @@ point_is_included = Poly_Gen_Relation.subsumes()
 
 from sage.arith.functions import lcm
 
-class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_base):
+class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_polyhedral):
 
     """
     A (possibly half-open) polyhedral basic semialgebraic set,
@@ -545,44 +601,6 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
             raise ValueError("{} is not a supported operator".format(op))
         self._polyhedron.add_constraint(constraint_to_add)
 
-    def add_polynomial_constraint(self, lhs, op):
-        """
-        Add the constraint ``lhs``(x) ``op`` 0,
-        where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
-        ``operator.le``, ``operator.ge``.
-
-        ``lhs`` should be a linear polynomial that can be converted to
-        an element of ``self.poly_ring()``.
-
-        EXAMPLES::
-
-            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
-            sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(1)
-            sage: f = 2 * P.poly_ring().gen() + 1
-            sage: P.add_polynomial_constraint(f, operator.le)
-            sage: list(P.le_poly())
-            [2*x0 + 1]
-
-        With conversion of polynomials from different rings::
-
-            sage: R.<xyzzy> = QQ[]
-            sage: P.add_polynomial_constraint(xyzzy + 3, operator.lt)
-            sage: list(P.lt_poly())
-            [x0 + 3]
-
-        """
-        lhs = self.poly_ring()(lhs)   # convert if necessary
-        if lhs.degree() > 1:
-            raise ValueError("{} is not a valid linear polynomial.".format(lhs))
-        cst = lhs.constant_coefficient()
-        try:
-            lhs_vector = vector(lhs.coefficient(x) for x in self.poly_ring().gens())
-        except AttributeError:
-            # univariate polynomials (Polynomial_rational_flint) unfortunately
-            # have a different API that does not define "coefficient".
-            lhs_vector = [lhs[1]]  # coefficient of the linear term
-        self.add_linear_constraint(lhs_vector, cst, op)
-
 
 ## class BasicSemialgebraicSet_polyhedral_ppl_MIP_Problem(BasicSemialgebraicSet_base):
 
@@ -595,7 +613,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
 
 
 ## (2) Then
-class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebraicSet_base):
+class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebraicSet_polyhedral):
 
     """
     A closed polyhedral basic semialgebraic set,
