@@ -27,6 +27,9 @@ from sage.structure.sage_object import SageObject
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 def _bsa_class(bsa_class):
+    """
+    Translate a class nickname to a class.
+    """
     if isinstance(bsa_class, type):
         return bsa_class
     elif bsa_class == 'formal_closure':
@@ -54,6 +57,8 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         self._ambient_dim = ambient_dim
         self._base_ring = base_ring
 
+    # Default implementation. Subclasses are encouraged to provide
+    # faster implementations.
     @classmethod
     def from_bsa(cls, bsa, **init_kwds):
         """
@@ -152,6 +157,10 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         Return the basic semialgebraic set obtained by replacing all strict
         inequalities by <= inequalities.  This is a superset of the topological closure.
 
+        By default, the formal closure is represented by an instance of class
+        ``BasicSemialgebraicSet_formal_closure``; use the argument ``bsa_class``
+        to choose another class.  See ``_bsa_class`` for the allowed class nicknames.
+
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
@@ -223,17 +232,37 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         is satisfied for all points of ``self``.
         """
 
+    # Subclasses should provide more useful bounds
     def linear_function_upper_bound(self, form):
         """
         Find an upper bound for ``form`` (a vector) on ``self``.
+
+        The default implementation just returns +oo.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: bsa = BasicSemialgebraicSet_base(QQ, 2)
+            sage: bsa.linear_function_upper_bound(vector(QQ, [1, 1]))
+            +Infinity
+
         """
+        from sage.rings.infinity import Infinity
         return +Infinity
 
     def linear_function_lower_bound(self, form):
         """
         Find a lower bound for ``form`` (a vector) on ``self``.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: bsa = BasicSemialgebraicSet_base(QQ, 2)
+            sage: bsa.linear_function_lower_bound(vector(QQ, [1, 1]))
+            -Infinity
+
         """
-        return -linear_function_upper_bound(self, -form)
+        return -self.linear_function_upper_bound(-form)
 
     @abstract_method
     def find_point(self):
@@ -252,6 +281,11 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
 
         This defines the section `X = \{ x \in R^m : F(x) \in Y \}`,
         where `Y` is ``self``.
+
+        By default, the section is represented by an instance of class
+        ``BasicSemialgebraicSet_section``; use the argument ``bsa_class``
+        to choose another class.  See ``_bsa_class`` for the allowed
+        class nicknames.
 
         """
         bsa_section = BasicSemialgebraicSet_section(self, polynomial_map)
@@ -863,6 +897,11 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         self.upstairs().add_polynomial_constraint(upstairs_lhs, op)
 
 class BasicSemialgebraicSet_formal_closure(BasicSemialgebraicSet_base):
+
+    r"""
+    Represent the formal closure (see method ``formal_closure``) of
+    another basic semialgebraic set ``upstairs_bsa``.
+    """
 
     def __init__(self, upstairs_bsa):
         base_ring = upstairs_bsa.base_ring()
