@@ -176,6 +176,19 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(polyhedron=A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 ray, 1 line)
             sage: list(closure.eq_poly()), list(closure.lt_poly()), list(closure.le_poly())
             ([], [], [x0 + x1 - 3])
+
+        In general, this is only a superset of the topological closure::
+
+            sage: R.<x> = QQ['x']
+            sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(lt={x, -x})
+            sage: formal_closure = bsa.formal_closure(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron)
+            sage: list(formal_closure.eq_poly())
+            [x0]
+            sage: bsa_ppl = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron.from_bsa(bsa)
+            sage: closure = bsa_ppl.closure()
+            sage: list(closure.eq_poly())
+            [-1]
+
         """
         bsa_formal_closure = BasicSemialgebraicSet_formal_closure(self)
         bsa_class = _bsa_class(bsa_class)
@@ -529,15 +542,40 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
 
     def add_polynomial_constraint(self, lhs, op):
         """
-        ``lhs`` should be a polynomial.
         Add the constraint ``lhs``(x) ``op`` 0,
         where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
         ``operator.le``, ``operator.ge``.
+
+        ``lhs`` should be a linear polynomial that can be converted to
+        an element of ``self.poly_ring()``.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(1)
+            sage: f = 2 * P.poly_ring().gen() + 1
+            sage: P.add_polynomial_constraint(f, operator.le)
+            sage: list(P.le_poly())
+            [2*x0 + 1]
+
+        With conversion of polynomials from different rings::
+
+            sage: R.<xyzzy> = QQ[]
+            sage: P.add_polynomial_constraint(xyzzy + 3, operator.lt)
+            sage: list(P.lt_poly())
+            [x0 + 3]
+
         """
-        if (not lhs in self.poly_ring()) or (lhs.degree() > 1):
+        lhs = self.poly_ring()(lhs)   # convert if necessary
+        if lhs.degree() > 1:
             raise ValueError("{} is not a valid linear polynomial.".format(lhs))
         cst = lhs.constant_coefficient()
-        lhs_vector = vector(lhs.coefficient(x) for x in self.poly_ring().gens())
+        try:
+            lhs_vector = vector(lhs.coefficient(x) for x in self.poly_ring().gens())
+        except AttributeError:
+            # univariate polynomials (Polynomial_rational_flint) unfortunately
+            # have a different API that does not define "coefficient".
+            lhs_vector = [lhs[1]]  # coefficient of the linear term
         self.add_linear_constraint(lhs_vector, cst, op)
 
 
