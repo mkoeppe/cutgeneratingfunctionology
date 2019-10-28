@@ -47,10 +47,13 @@ SAGEFILES +=								\
 	cutgeneratingfunctionology/multirow/piecewise_functions.sage	\
 	cutgeneratingfunctionology/multirow/lifting_region.sage
 
-SAGEFILES +=									\
-	cutgeneratingfunctionology/spam/basic_semialgebraic.py			\
-	cutgeneratingfunctionology/spam/big_cells.py				\
-	cutgeneratingfunctionology/spam/big_cells_impl.py			\
+SAGEFILES +=								\
+	cutgeneratingfunctionology/spam/basic_semialgebraic.py		\
+	cutgeneratingfunctionology/spam/semialgebraic_maple.py		\
+	cutgeneratingfunctionology/spam/semialgebraic_mathematica.py	\
+	cutgeneratingfunctionology/spam/semialgebraic_qepcad.py		\
+	cutgeneratingfunctionology/spam/big_cells.py			\
+	cutgeneratingfunctionology/spam/big_cells_impl.py		\
 	cutgeneratingfunctionology/spam/polyhedral_complex.py
 
 all:
