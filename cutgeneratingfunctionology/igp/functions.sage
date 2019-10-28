@@ -2061,9 +2061,9 @@ class FastPiecewise (PiecewisePolynomial):
         stable_str = six.b(str(data))
         return sha1(stable_str).hexdigest()
 
-    def _latex_(self, table=False, labels={}):
+    def _latex_(self, table=False, labels={}, name=r'\pi'):
         if not table:
-            return super(FastPiecewise, self)._latex_()
+            return super(FastPiecewise, self)._latex_()  # FIXME: This one does not handle half-open intervals
         from sage.misc.latex import latex
         def labeled_latex(x):
             return labels.get(x, latex(x))
@@ -2074,11 +2074,11 @@ class FastPiecewise (PiecewisePolynomial):
         s += [r'  \toprule']
         s += ['  ' + ' & '.join(['i',
                                  'x_i',
-                                 r'\pi(x_i^-)',
-                                 r'\pi(x_i)',
-                                 r'\pi(x_i^+)',
+                                 name + '(x_i^-)',
+                                 name + '(x_i)',
+                                 name + '(x_i^+)',
                                  r'\text{slope}']) + r'\\']
-        s += ['  \\midrule']
+        s += [r'  \midrule']
         end_points = self.end_points()
         for index, (bkpt, limits) in enumerate(zip(end_points, self.limits_at_end_points())):
             latex_limits = [ labeled_latex(x) for x in limits ]
