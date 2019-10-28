@@ -848,7 +848,25 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
 
             sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
             sage: S = BasicSemialgebraicSet_eq_lt_le_sets(QQ, 3)
-
+            sage: Q.<x0,x1,x2> = QQ[]
+            sage: lhs = 27/113 * x0^2 + x1*x2 + 1/2
+            sage: S.add_polynomial_constraint(lhs,operator.lt)
+            sage: lhs = 27*x0 + 2*x1 + 1
+            sage: S.add_polynomial_constraint(lhs,operator.gt)
+            sage: lhs = 27*x1 + 2*x1*x0 - 1/2
+            sage: S.add_polynomial_constraint(lhs,operator.eq)
+            sage: lhs = x1^3 + x0
+            sage: S.add_polynomial_constraint(lhs,operator.le)
+            sage: S
+            BasicSemialgebraicSet_eq_lt_le_sets(eq = [2*x0*x1 + 27*x1 - 1/2], lt = [27/113*x0^2 + x1*x2 + 1/2, -27*x0 - 2*x1 - 1], le = [x1^3 + x0])
+            sage: S.poly_ring()
+            Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
+            sage: S.eq_poly()
+            {2*x0*x1 + 27*x1 - 1/2}
+            sage: S.lt_poly()
+            {-27*x0 - 2*x1 - 1, 27/113*x0^2 + x1*x2 + 1/2}
+            sage: S.le_poly()
+            {x1^3 + x0}
         """
         if poly_ring is None:
             polys = list(eq) + list(lt) + list(le)
