@@ -178,6 +178,18 @@ def kzh_minimal_has_only_crazy_perturbation_1_perturbation():
     return PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
 
 def kzh_minimal_has_only_crazy_perturbation_1_check_subadditivity_slacks():
+    r"""
+    Check a claim in the proof of the theorem that ``kzh_minimal_has_only_crazy_perturbation_1``
+    is a weak facet (but not extreme, nor a facet).
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: logging.getLogger().setLevel(logging.DEBUG)     # not tested - for interactive use
+        sage: kzh_minimal_has_only_crazy_perturbation_1_check_subadditivity_slacks()
+
+    """
     def generate_all_faces(fn):
         zero_fn = FastPiecewise([(I, FastLinearFunction(0, 0)) for I, f in fn.list()], merge=False)
         return generate_maximal_additive_faces_general(zero_fn)
