@@ -713,10 +713,6 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
             # ``linear_function_lower_bound``.
             return super(BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram, self).is_linear_constraint_valid(lhs, cst, op)
         except NotImplementedError:
-            # As long as ``linear_function_upper_bound`` cannot distinguish
-            # infeasible from unbounded, we have a problem here.
-            if self.linear_function_upper_bound(lhs) == Infinity or self.linear_function_lower_bound(lhs) == -Infinity:
-                raise NotImplementedError
             # The default implementation checked
             # ``linear_function_upper_bound`` and
             # ``linear_function_lower_bound`` already.  These are the sup and
@@ -748,9 +744,14 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
         try:
             return mip.solve()
         except MIPSolverException as e:
-            # FIXME: Here we should really distinguish infeasible and unbounded.
-            # Unfortunately there is no solver-independent protocol for this.
-            return +Infinity
+            # Here we distinguish infeasible and unbounded.
+            mip_copy = copy(mip)
+            mip_copy.set_objective(1)
+            try:
+                mip_copy.solve()
+                return +Infinity
+            except MIPSolverException as e:
+                return -Infinity
 
     def add_linear_constraint(self, lhs, cst, op):
         """
