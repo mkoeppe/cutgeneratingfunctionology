@@ -448,6 +448,22 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         ``ambient_dim``, or, if ``polyhedron`` (an ``NNC_Polyhedron``,
         which after that belongs to this object) is provided, as
         that.
+        
+        TEST:
+        
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(2)
+            sage: P.add_linear_constraint([0,1],0,operator.ge)
+            sage: P.add_linear_constraint([1,0],0,operator.ge)
+            sage: P.add_linear_constraint([2,3],-6,operator.lt)
+            sage: P
+            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(polyhedron=A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 2 closure_points)
+            sage: sorted(P.eq_poly())
+            []
+            sage: sorted(P.lt_poly())
+            [2*x0 + 3*x1 - 6]
+            sage: sorted(P.le_poly())
+            [-x1, -x0]
         """
         if ambient_dim is None:
             if polyhedron is None:
@@ -568,6 +584,16 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
     def find_point(self):
         """
         Find a point in ``self``.
+        
+        EXAMPLES::
+        
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(2)
+            sage: P.add_linear_constraint([0,1],0,operator.ge)
+            sage: P.add_linear_constraint([1,0],0,operator.ge)
+            sage: P.add_linear_constraint([2,3],-6,operator.lt)
+            sage: P.find_point()
+            (1, 2/3)
         """
         def to_point(g):
             den = g.divisor()
@@ -616,6 +642,18 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         """
         Whether the constraint ``lhs`` * x + cst ``op`` 0
         is satisfied for all points of ``self``.
+        
+        EXAMPLES::
+        
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(2)
+            sage: P.add_linear_constraint([0,1],0,operator.ge)
+            sage: P.add_linear_constraint([1,0],0,operator.ge)
+            sage: P.add_linear_constraint([2,3],-6,operator.lt)
+            sage: P.is_linear_constraint_valid([1,1],-3,operator.lt)
+            True
+            sage: P.is_linear_constraint_valid([0,1],0,operator.gt)
+            False
         """
         constraint = self._ppl_constraint(lhs, cst, op)
         return self._polyhedron.relation_with(constraint).implies(poly_is_included)
@@ -626,6 +664,14 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         Add the constraint ``lhs`` * x + cst ``op`` 0,
         where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
         ``operator.le``, ``operator.ge``.
+        
+        EXAMPLES:
+        
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(2)
+            sage: P.add_linear_constraint([2,3],-6,operator.gt)
+            sage: sorted(P.lt_poly())
+            [-2*x0 - 3*x1 + 6]
         """
         constraint = self._ppl_constraint(lhs, cst, op)
         self._polyhedron.add_constraint(constraint)
