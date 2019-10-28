@@ -449,7 +449,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         which after that belongs to this object) is provided, as
         that.
         
-        TEST:
+        TEST::
         
             sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
             sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(2)
@@ -593,7 +593,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
             sage: P.add_linear_constraint([1,0],0,operator.ge)
             sage: P.add_linear_constraint([2,3],-6,operator.lt)
             sage: P.find_point()
-            (1, 2/3)
+            (11/10, 11/15)
         """
         def to_point(g):
             den = g.divisor()
@@ -665,7 +665,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
         ``operator.le``, ``operator.ge``.
         
-        EXAMPLES:
+        EXAMPLES::
         
             sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
             sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(2)
