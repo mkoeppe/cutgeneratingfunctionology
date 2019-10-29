@@ -1517,6 +1517,15 @@ class FastPiecewise (PiecewisePolynomial):
             Traceback (most recent call last):
             ...
             ValueError: Value not defined at point 3, outside of domain.
+
+        Test that it works correctly for functions set up with merge=False::
+
+            sage: f = FastPiecewise([[right_open_interval(0,1), FastLinearFunction(0, 0)],
+            ....:                    [right_open_interval(1,2), FastLinearFunction(1, -1)]],
+            ....:                   merge=False)
+            sage: f.which_function(1)
+            <FastLinearFunction x - 1>
+
         """
         return self.which_pair(x0)[1]
 
@@ -1528,7 +1537,7 @@ class FastPiecewise (PiecewisePolynomial):
             raise ValueError("Value not defined at point %s, outside of domain." % x0)
         if x0 == endpts[i]:
             if self._values_at_end_points[i] is not None:
-                if self.functions()[ith[i]](x0) == self._values_at_end_points[i]:
+                if is_pt_in_interval(self.intervals()[ith[i]], x0):
                     return self.intervals()[ith[i]], self.functions()[ith[i]]
                 else:
                     return self.intervals()[ith[i]+1], self.functions()[ith[i]+1]
