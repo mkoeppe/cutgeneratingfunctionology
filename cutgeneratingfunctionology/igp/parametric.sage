@@ -669,6 +669,7 @@ class ParametricRealField(Field):
             sage: sqrt2, = nice_field_values([sqrt(2)])
             sage: K.<f> = ParametricRealField([0], base_ring=sqrt2.parent())
             sage: f + sqrt2
+            (f + 1.414213562373095?)~
 
         This currently does not work for Sage's built-in embedded number field elements...
         """
