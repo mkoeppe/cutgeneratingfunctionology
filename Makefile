@@ -54,6 +54,7 @@ SAGEFILES +=								\
 	cutgeneratingfunctionology/spam/semialgebraic_qepcad.py		\
 	cutgeneratingfunctionology/spam/big_cells.py			\
 	cutgeneratingfunctionology/spam/big_cells_impl.py		\
+	cutgeneratingfunctionology/spam/real_set.py			\
 	cutgeneratingfunctionology/spam/polyhedral_complex.py
 
 all:

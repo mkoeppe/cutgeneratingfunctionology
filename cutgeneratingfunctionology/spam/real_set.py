@@ -75,6 +75,9 @@ AUTHORS:
 - Volker Braun (2013-06-22): Rewrite
 """
 
+# This version has been modified to avoid use of RLF,
+# which precludes use of complicated real fields such as ParametricRealField.
+
 #*****************************************************************************
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
@@ -90,7 +93,13 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
 from sage.rings.all import ZZ
-from sage.rings.real_lazy import LazyFieldElement, RLF
+
+##from sage.rings.real_lazy import LazyFieldElement, RLF
+LazyFieldElement = object  # Disable test whether something is an RLF element.
+def RLF(x):
+    # Do not convert to RLF.
+    return x
+
 from sage.rings.infinity import infinity, minus_infinity
 
 
@@ -125,6 +134,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet([0, oo])
             Traceback (most recent call last):
             ...
@@ -164,6 +174,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: I = RealSet(0, 1)[0]
             sage: I.is_empty()
             False
@@ -180,6 +191,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: I = RealSet(0, 1)[0]
             sage: I.is_point()
             False
@@ -196,17 +208,15 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: I = RealSet(0, 1)[0]
             sage: I.lower()
             0
             sage: I.upper()
             1
         """
-        if self._lower is minus_infinity:
-            return minus_infinity
-        else:
-            return self._lower._value
-    
+        return self._lower
+
     def upper(self):
         """
         Return the upper bound
@@ -217,16 +227,14 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: I = RealSet(0, 1)[0]
             sage: I.lower()
             0
             sage: I.upper()
             1
         """
-        if self._upper is infinity:
-            return infinity
-        else:
-            return self._upper._value
+        return self._upper
                 
     def lower_closed(self):
         """
@@ -238,6 +246,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: I = RealSet.open_closed(0, 1)[0];  I
             (0, 1]
             sage: I.lower_closed()
@@ -261,6 +270,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: I = RealSet.open_closed(0, 1)[0];  I
             (0, 1]
             sage: I.lower_closed()
@@ -284,6 +294,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: I = RealSet.open_closed(0, 1)[0];  I
             (0, 1]
             sage: I.lower_closed()
@@ -307,6 +318,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: I = RealSet.open_closed(0, 1)[0];  I
             (0, 1]
             sage: I.lower_closed()
@@ -330,6 +342,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: I1 = RealSet.open_closed(1, 3)[0];  I1
             (1, 3]
             sage: I2 = RealSet.open_closed(0, 5)[0];  I2
@@ -362,6 +375,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet.open_closed(0, 1)
             (0, 1]
             sage: RealSet.point(0)
@@ -392,6 +406,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet.open(0,1)[0].closure()
             [0, 1]
             sage: RealSet.open(-oo,1)[0].closure()
@@ -413,6 +428,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet.closed(0, 1)[0].interior()
             (0, 1)
             sage: RealSet.open_closed(-oo, 1)[0].interior()
@@ -433,6 +449,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: I1 = RealSet.open(0, 1)[0];  I1
             (0, 1)
             sage: I2 = RealSet.closed(1, 2)[0];  I2
@@ -481,6 +498,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: I1 = RealSet.open(0, 1)[0];  I1
             (0, 1)
             sage: I2 = RealSet.closed(1, 2)[0];  I2
@@ -534,6 +552,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: I1 = RealSet.open(0, 2)[0];  I1
             (0, 2)
             sage: I2 = RealSet.closed(1, 3)[0];  I2
@@ -593,6 +612,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: i = RealSet.open_closed(0,2)[0]; i
             (0, 2]
             sage: i.contains(0)
@@ -618,6 +638,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: i = RealSet.open_closed(0,2)[0]; i
             (0, 2]
             sage: 2 * i
@@ -679,6 +700,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: i = RealSet.open_closed(0,2)[0]; i
             (0, 2]
             sage: 2 * i
@@ -708,6 +730,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: R = RealSet(RealSet.open_closed(0,1), RealSet.closed_open(2,3)); R
             (0, 1] + [2, 3)
 
@@ -843,6 +866,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet(0,1)    # open set from two numbers
             (0, 1)
             sage: i = RealSet(0,1)[0]
@@ -893,6 +917,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: s = RealSet(RealSet.open_closed(0,1), RealSet.closed_open(2,3))
             sage: i = iter(s)
             sage: next(i)
@@ -910,6 +935,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: s = RealSet(RealSet.open_closed(0,1), RealSet.closed_open(2,3))
             sage: s.n_components()
             2
@@ -927,6 +953,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
            sage: RealSet([0, 0], [1, 1], [3, 3]).cardinality()
            3
            sage: RealSet(0,3).cardinality()
@@ -946,6 +973,7 @@ class RealSet(UniqueRepresentation, Parent):
         
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet(0, 1).is_empty()
             False
             sage: RealSet(0, 0).is_empty()
@@ -970,6 +998,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: s = RealSet(RealSet.open_closed(0,1), RealSet.closed_open(2,3))
             sage: s.get_interval(0)
             (0, 1]
@@ -1005,6 +1034,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: i1 = RealSet((0, 1))[0]
             sage: i2 = RealSet([1, 2])[0]
             sage: i3 = RealSet((2, 3))[0]
@@ -1052,6 +1082,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet(0, 1)._repr_()
             '(0, 1)'
         """
@@ -1068,6 +1099,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet._prep(1, 0)
             (0, 1)
             sage: RealSet._prep(oo)
@@ -1112,6 +1144,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet.open(1, 0)
             (0, 1)
         """
@@ -1134,6 +1167,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet.closed(1, 0)
             [0, 1]
         """
@@ -1155,6 +1189,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet.open(1, 0)
             (0, 1)
         """
@@ -1178,6 +1213,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet.open_closed(1, 0)
             (0, 1]
         """
@@ -1201,6 +1237,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet.closed_open(1, 0)
             [0, 1)
         """
@@ -1222,6 +1259,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet.unbounded_below_closed(1)
             (-oo, 1]
         """
@@ -1243,6 +1281,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet.unbounded_below_open(1)
             (-oo, 1)
         """
@@ -1265,6 +1304,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet.unbounded_above_closed(1)
             [1, +oo)
         """
@@ -1287,6 +1327,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet.unbounded_above_open(1)
             (1, +oo)
         """
@@ -1307,6 +1348,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: s1 = RealSet(0,2)
             sage: s2 = RealSet(1,3)
             sage: s1.union(s2)
@@ -1339,6 +1381,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: s1 = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s1
             (0, 2) + [10, +oo)
             sage: s2 = RealSet(1,3) + RealSet.unbounded_below_closed(-10);  s2
@@ -1381,6 +1424,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: s1 = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s1
             (0, 2) + [10, +oo)
             sage: s1.inf()
@@ -1405,6 +1449,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: s1 = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s1
             (0, 2) + [10, +oo)
             sage: s1.sup()
@@ -1429,6 +1474,7 @@ class RealSet(UniqueRepresentation, Parent):
         
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet(0,1).complement()
             (-oo, 0] + [1, +oo)
        
@@ -1477,6 +1523,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: s1 = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s1
             (0, 2) + [10, +oo)
             sage: s2 = RealSet(1,3) + RealSet.unbounded_below_closed(-10);  s2
@@ -1511,6 +1558,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: s = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s
             (0, 2) + [10, +oo)
             sage: s.contains(1)
@@ -1563,6 +1611,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: RealSet.open_closed(0, 1).an_element()
             1
             sage: RealSet(0, 1).an_element()
@@ -1605,6 +1654,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: s1 = RealSet((0, 1), (2, 3));  s1
             (0, 1) + (2, 3)
             sage: s2 = RealSet([1, 2]);  s2
@@ -1633,6 +1683,7 @@ class RealSet(UniqueRepresentation, Parent):
         
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: s1 = RealSet((0, 1), (2, 3))
             sage: s2 = RealSet((1, 2))
             sage: s3 = RealSet.point(3)
@@ -1658,6 +1709,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         TESTS::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: sage_input(RealSet())
             RealSet()
             sage: sage_input(RealSet.open(-oo, +oo))
@@ -1710,6 +1762,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: A = RealSet([0, 1/2], (2, infinity)); A
             [0, 1/2] + (2, +oo)
             sage: 2 * A
@@ -1734,6 +1787,7 @@ class RealSet(UniqueRepresentation, Parent):
 
         TESTS::
 
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: A = RealSet([0, 1/2], RealSet.unbounded_above_closed(2)); A
             [0, 1/2] + [2, +oo)
             sage: pi * A
