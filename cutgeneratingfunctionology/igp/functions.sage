@@ -2277,7 +2277,7 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
     for i in range(len(bkpt)-1):
         if bkpt[i] > bkpt[i+1]:
             raise ValueError("Breakpoints are not sorted in increasing order.")
-        elif bkpt[i] == bkpt[i+1]:
+        elif bkpt[i] == bkpt[i+1]:  #hasattr(field, '_big_cells') and field._big_cells, should be off-record
             logging.warning("Degenerate interval occurs at breakpoint %s" % bkpt[i])
             if values[i] != values[i+1]:
                 raise ValueError("Degeneration leads to a discontinuous function.")
@@ -2950,6 +2950,11 @@ def rescale_to_amplitude(perturb, amplitude):
 # Global figsize for all plots made by show_plots.
 show_plots_figsize = 10
 
+try:
+    from sage.plot.multigraphics import GraphicsArray
+except ImportError:
+    from sage.plot.graphics import GraphicsArray
+
 def show_plot(graphics, show_plots, tag, object=None, **show_kwds):
     r"""
     Display or save graphics.
@@ -2962,7 +2967,7 @@ def show_plot(graphics, show_plots, tag, object=None, **show_kwds):
     """
     show_kwds = copy(show_kwds)
     plot_kwds_hook(show_kwds)
-    if isinstance(graphics, sage.plot.graphics.GraphicsArray):
+    if isinstance(graphics, GraphicsArray):
         # GraphicsArrays can't have legends.
         plot_kwds_hook_no_legend(show_kwds)
     if show_plots_figsize is not None:
