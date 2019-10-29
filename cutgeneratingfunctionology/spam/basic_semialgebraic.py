@@ -41,6 +41,9 @@ def _bsa_class(bsa_class):
         return BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron
     elif bsa_class == 'mip':
         return BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram
+    elif bsa_class == 'linear_system':
+        from .basic_semialgebraic_linear_system import BasicSemialgebraicSet_polyhedral_linear_system
+        return BasicSemialgebraicSet_polyhedral_linear_system
     else:
         raise ValueError("unknown bsa class: {}".format(bsa_class))
 
@@ -319,6 +322,15 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         """
         # default implementation could go through self.closure_polyhedron()
 
+    @abstract_method
+    def coordinate_projection(self, coordinates, bsa_class='projection'):
+        """
+        Compute the projection to ``coordinates`` (a list or tuple of indices or
+        variables of ``self.poly_ring``).
+
+        This is a semialgebraic set, but in general not a basic semialgebraic set.
+        """
+
     def section(self, polynomial_map, bsa_class='section'):
         r"""
         Define the semialgebraic set that is a section of ``self``.
@@ -448,6 +460,22 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         ``ambient_dim``, or, if ``polyhedron`` (an ``NNC_Polyhedron``,
         which after that belongs to this object) is provided, as
         that.
+        
+        TEST::
+        
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(2)
+            sage: P.add_linear_constraint([0,1],0,operator.ge)
+            sage: P.add_linear_constraint([1,0],0,operator.ge)
+            sage: P.add_linear_constraint([2,3],-6,operator.lt)
+            sage: P
+            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(polyhedron=A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 2 closure_points)
+            sage: sorted(P.eq_poly())
+            []
+            sage: sorted(P.lt_poly())
+            [2*x0 + 3*x1 - 6]
+            sage: sorted(P.le_poly())
+            [-x1, -x0]
         """
         if ambient_dim is None:
             if polyhedron is None:
@@ -568,6 +596,16 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
     def find_point(self):
         """
         Find a point in ``self``.
+        
+        EXAMPLES::
+        
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(2)
+            sage: P.add_linear_constraint([0,1],0,operator.ge)
+            sage: P.add_linear_constraint([1,0],0,operator.ge)
+            sage: P.add_linear_constraint([2,3],-6,operator.lt)
+            sage: P.find_point()
+            (11/10, 11/15)
         """
         def to_point(g):
             den = g.divisor()
@@ -616,6 +654,18 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         """
         Whether the constraint ``lhs`` * x + cst ``op`` 0
         is satisfied for all points of ``self``.
+        
+        EXAMPLES::
+        
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(2)
+            sage: P.add_linear_constraint([0,1],0,operator.ge)
+            sage: P.add_linear_constraint([1,0],0,operator.ge)
+            sage: P.add_linear_constraint([2,3],-6,operator.lt)
+            sage: P.is_linear_constraint_valid([1,1],-3,operator.lt)
+            True
+            sage: P.is_linear_constraint_valid([0,1],0,operator.gt)
+            False
         """
         constraint = self._ppl_constraint(lhs, cst, op)
         return self._polyhedron.relation_with(constraint).implies(poly_is_included)
@@ -626,6 +676,14 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         Add the constraint ``lhs`` * x + cst ``op`` 0,
         where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
         ``operator.le``, ``operator.ge``.
+        
+        EXAMPLES::
+        
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(2)
+            sage: P.add_linear_constraint([2,3],-6,operator.gt)
+            sage: sorted(P.lt_poly())
+            [-2*x0 - 3*x1 + 6]
         """
         constraint = self._ppl_constraint(lhs, cst, op)
         self._polyhedron.add_constraint(constraint)
@@ -849,7 +907,25 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
 
             sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
             sage: S = BasicSemialgebraicSet_eq_lt_le_sets(QQ, 3)
-
+            sage: Q.<x0,x1,x2> = QQ[]
+            sage: lhs = 27/113 * x0^2 + x1*x2 + 1/2
+            sage: S.add_polynomial_constraint(lhs,operator.lt)
+            sage: lhs = 27*x0 + 2*x1 + 1
+            sage: S.add_polynomial_constraint(lhs,operator.gt)
+            sage: lhs = 27*x1 + 2*x1*x0 - 1/2
+            sage: S.add_polynomial_constraint(lhs,operator.eq)
+            sage: lhs = x1^3 + x0
+            sage: S.add_polynomial_constraint(lhs,operator.le)
+            sage: S
+            BasicSemialgebraicSet_eq_lt_le_sets(eq = [2*x0*x1 + 27*x1 - 1/2], lt = [27/113*x0^2 + x1*x2 + 1/2, -27*x0 - 2*x1 - 1], le = [x1^3 + x0])
+            sage: S.poly_ring()
+            Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
+            sage: S.eq_poly()
+            {2*x0*x1 + 27*x1 - 1/2}
+            sage: S.lt_poly()
+            {-27*x0 - 2*x1 - 1, 27/113*x0^2 + x1*x2 + 1/2}
+            sage: S.le_poly()
+            {x1^3 + x0}
         """
         if poly_ring is None:
             polys = list(eq) + list(lt) + list(le)
