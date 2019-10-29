@@ -4,6 +4,8 @@ Basic polyhedral semialgebraic sets represented as linear systems
 
 from __future__ import division, print_function, absolute_import
 
+from cutgeneratingfunctionology.spam.basic_semialgebraic import BasicSemialgebraicSet_base
+
 # Implement by rewriting code from formulations.sage on branch symbolic_FM. (FourierSystem, ...)
 
 class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base):
@@ -32,7 +34,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
         # ......
         super(BasicSemialgebraicSet_polyhedral_linear_system, self).__init__(base_ring, ambient_dim)
 
-    def coordinate_projection(self, coordinates, bsa_class='linear_system')
+    def coordinate_projection(self, coordinates, bsa_class='linear_system'):
         r"""
         Compute the projection to ``coordinates`` (a list or tuple of
         indices or variables of ``self.poly_ring``) as a new instance of
