@@ -41,6 +41,9 @@ def _bsa_class(bsa_class):
         return BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron
     elif bsa_class == 'mip':
         return BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram
+    elif bsa_class == 'linear_system':
+        from .basic_semialgebraic_linear_system import BasicSemialgebraicSet_polyhedral_linear_system
+        return BasicSemialgebraicSet_polyhedral_linear_system
     else:
         raise ValueError("unknown bsa class: {}".format(bsa_class))
 
@@ -318,6 +321,15 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         Find a point in ``self``.
         """
         # default implementation could go through self.closure_polyhedron()
+
+    @abstract_method
+    def coordinate_projection(self, coordinates, bsa_class='projection'):
+        """
+        Compute the projection to ``coordinates`` (a list or tuple of indices or
+        variables of ``self.poly_ring``).
+
+        This is a semialgebraic set, but in general not a basic semialgebraic set.
+        """
 
     def section(self, polynomial_map, bsa_class='section'):
         r"""
