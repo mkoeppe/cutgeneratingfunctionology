@@ -245,7 +245,7 @@ def number_of_projections_intersecting(F, real_set):
     This is the number `n_F` from facets-paper.
     """
     return len([I for I in F.minimal_triple
-                if not real_set.is_disjoint_from(realset_from_interval(I))])
+                if not real_set.is_disjoint_from(realset_from_interval(interval_mod_1(I)))])
 
 def generate_all_faces(fn):
     zero_fn = FastPiecewise([(I, FastLinearFunction(0, 0)) for I, f in fn.list()], merge=False)
