@@ -215,7 +215,7 @@ def param_piecewise(h, slope_names_dict={}):
         sage: h = gmic()
         sage: hp = param_piecewise(h, slope_names_dict={h.functions()[0]._slope: 'c1'})
         sage: hp.which_pair(1/10)
-        (((x0)~, (x1)~), <FastLinearFunction ((c1)~)*x + (0)>)
+        ((0, (x1)~), <FastLinearFunction ((c1)~)*x + (0)>)
     """
     # Replace the function by one that renames all breakpoints symbolically, purely for latexing
     bkpts = h.end_points()
