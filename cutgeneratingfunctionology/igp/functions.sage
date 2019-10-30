@@ -301,6 +301,16 @@ class Face:
             return union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(*I)], [open_interval(*J)], [open_interval(*K_mod_1)]],[])
         raise ValueError("Face does not give a covered component")
 
+    def dimension(self):
+        if self.is_0D():
+            return 0
+        elif self.is_1D():
+            return 1
+        elif self.is_2D():
+            return 2
+        else:
+            return -1
+
     def is_0D(self):
         return len(self.vertices) == 1
 

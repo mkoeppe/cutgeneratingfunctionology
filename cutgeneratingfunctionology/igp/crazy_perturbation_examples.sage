@@ -77,7 +77,7 @@ def kzh_discontinuous_bhk_irrational(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ra
     move_shift = FastPiecewise(move_pieces)
     return h_temp - h_below + h_above + move_shift
 
-def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None):
+def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **parametric_kwds):
     r"""
     EXAMPLES::
 
@@ -119,6 +119,10 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None):
         sage: h = kzh_minimal_has_only_crazy_perturbation_1(parametric=True)
         sage: h.which_pair(1/100)
         (<Int(0, (x1)~)>, <FastLinearFunction ((c3)~)*x + (0.1553846153846154?)>)
+        sage: h.which_pair(250/800)
+        (<Int(l~, u~)>, <FastLinearFunction ((c2)~)*x + (0.3482269355779649?)>)
+        sage: h.which_pair(1/2)
+        (<Int((f - u)~, (f - l)~)>, <FastLinearFunction ((c2)~)*x + (0.6514397033086091?)>)
 
     Note:
 
@@ -166,19 +170,33 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None):
         pieces.append(open_piece((bkpt_rat[i-1]*o+bkpt_irr[i-1]*sqrt2, lim_right_rat[i-1]*o+lim_right_irr[i-1]*sqrt2),(bkpt_rat[i]*o+bkpt_irr[i]*sqrt2, lim_left_rat[i]*o+lim_left_irr[i]*sqrt2)))
         pieces.append(singleton_piece(bkpt_rat[i]*o+bkpt_irr[i]*sqrt2, value_rat[i]*o+value_irr[i]*sqrt2))
     h = FastPiecewise(pieces)
+    def set_special_attributes(h):
+        bkpts = h.end_points()
+        h.ucl = bkpts[17]
+        h.ucr = bkpts[18]
+        h._f = bkpts[37]
+        h.t1 = bkpts[10]-bkpts[6]
+        h.t2 = bkpts[13]-bkpts[6]
+        from cutgeneratingfunctionology.spam.real_set import RealSet   # param-safe version of RealSet
+        h.special_intervals = RealSet.open(h.ucl, h.ucr) + RealSet.open(h._f - h.ucr, h._f - h.ucl)
+        h.s = delta_pi_general(h, bkpts[39], 1 + h.ucl - bkpts[39], (-1, 0, 0))
+        assert h.s == 19/23998
+    set_special_attributes(h)
     if parametric:
-        h = param_piecewise(h, slope_names_dict={35/13: 'c1', 5/11999: 'c2', -5: 'c3'})
-    # Store special attributes
-    bkpts = h.end_points()
-    h.ucl = bkpts[17]
-    h.ucr = bkpts[18]
-    h._f = bkpts[37]
-    h.t1 = bkpts[10]-bkpts[6]
-    h.t2 = bkpts[13]-bkpts[6]
-    from cutgeneratingfunctionology.spam.real_set import RealSet   # param-safe version of RealSet
-    h.special_intervals = RealSet.open(h.ucl, h.ucr) + RealSet.open(h._f - h.ucr, h._f - h.ucl)
-    h.s = delta_pi_general(h, bkpts[39], 1 + h.ucl - bkpts[39], (-1, 0, 0))
-    assert h.s == 19/23998
+        bkpt_names_dict = { bkpt: 'x{}'.format(i) for i, bkpt in enumerate(h.end_points())
+                            if bkpt not in (0, 1) }
+        bkpt_names_dict[h.ucl] = 'l'
+        bkpt_names_dict[h.ucr] = 'u'
+        bkpt_names_dict[h._f] = 'f'
+        slope_names_dict = {35/13: 'c1', 5/11999: 'c2', -5: 'c3'}
+        param_dict = param_dict_for_piecewise(h,
+                                              bkpt_names_dict=bkpt_names_dict,
+                                              slope_names_dict=slope_names_dict,
+                                              **parametric_kwds)
+        param_dict[h._f - h.ucl] = param_dict[h._f] - param_dict[h.ucl]
+        param_dict[h._f - h.ucr] = param_dict[h._f] - param_dict[h.ucr]
+        h = param_piecewise(h, param_dict=param_dict)
+        set_special_attributes(h)
     return h
 
 def kzh_minimal_has_only_crazy_perturbation_1_perturbation():
@@ -202,7 +220,22 @@ def kzh_minimal_has_only_crazy_perturbation_1_perturbation():
     crazy_piece_2 = CrazyPiece((h._f - h.ucr, h._f - h.ucl), generators, [(h._f - h.ucr, 1), (h._f - h.ucl, -1)])
     return PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
 
-def param_piecewise(h, slope_names_dict={}):
+def param_dict_for_piecewise(h, bkpt_names_dict=None, slope_names_dict={}, extra_names=[], extra_values=[], base_ring=None):
+    bkpts = h.end_points()
+    if base_ring is None:
+        base_ring = bkpts[0].parent()
+    if bkpt_names_dict is None:
+        bkpt_names_dict = { bkpt: 'x{}'.format(i) for i, bkpt in enumerate(bkpts) if bkpt not in (0, 1) }
+    names = list(bkpt_names_dict.values()) + list(slope_names_dict.values()) + extra_names
+    values = list(bkpt_names_dict.keys()) + list(slope_names_dict.keys()) + extra_values
+    K = ParametricRealField(names=names, values=values, base_ring=base_ring)
+    K._record = False   # FIXME: This should be part of public interface of ParametricRealField
+    values_gens = list(zip(values, K.gens()))
+    if extra_names:   # they don't take part in renaming!
+        values_gens = values_gens[:-len(extra_names)]
+    return dict(values_gens)
+
+def param_piecewise(h, param_dict=None, bkpt_names_dict=None, slope_names_dict={}, **param_dict_kwargs):
     """
     Replace the piecewise function h by one that renames all breakpoints, and optionally slopes,
     symbolically.  Useful for latexing or plotting functions that do not have convenient
@@ -217,23 +250,19 @@ def param_piecewise(h, slope_names_dict={}):
         sage: hp.which_pair(1/10)
         ((0, (x1)~), <FastLinearFunction ((c1)~)*x + (0)>)
     """
-    # Replace the function by one that renames all breakpoints symbolically, purely for latexing
-    bkpts = h.end_points()
-    param_bkpt_names = [ 'x{}'.format(i) for i, bkpt in enumerate(bkpts) ]
-    names = param_bkpt_names + slope_names_dict.values()
-    values = bkpts + slope_names_dict.keys()
-    K = ParametricRealField(names=names, values=values, base_ring=bkpts[0].parent())
-    K._record = False
-    param_dict = dict(zip(values, K.gens()))
-    param_dict[bkpts[0]] = bkpts[0]
-    param_dict[bkpts[-1]] = bkpts[-1]
+    if param_dict is None:
+        param_dict = param_dict_for_piecewise(h, bkpt_names_dict=bkpt_names_dict,
+                                              slope_names_dict=slope_names_dict,
+                                              **param_dict_kwargs)
+    def param(x):
+        return param_dict.get(x, x)
     def param_interval(interval):
         if len(interval) <= 2:
             # old fashioned interval
-            return [ param_dict[x] for x in interval ]
+            return [ param(x) for x in interval ]
         else:
             # coho interval
-            return closed_or_open_or_halfopen_interval(param_dict[interval.a], param_dict[interval.b],
+            return closed_or_open_or_halfopen_interval(param(interval.a), param(interval.b),
                                                        interval.left_closed, interval.right_closed)
     def param_function(function):
         return FastLinearFunction(param_dict.get(function._slope, function._slope), function._intercept)
@@ -275,6 +304,10 @@ def generate_intervals_and_two_sided_discontinuous_breakpoints(function):
             yield [bkpt[i], bkpt[i+1]]
 
 def generate_faces_with_projections_intersecting(function, real_set, break_symmetry=False):
+    for triple in generate_triples_with_projections_intersecting(function, real_set, break_symmetry=break_symmetry):
+        yield Face(triple)
+
+def generate_triples_with_projections_intersecting(function, real_set, break_symmetry=False, return_triples=False):
     """
     It breaks symmetry but produces duplicates.
 
@@ -309,20 +342,18 @@ def generate_faces_with_projections_intersecting(function, real_set, break_symme
     for I in I_nondisjoint_list:
         for J in I_list:
             for K in K_list:
-                F = check_face(I, J, K)
-                if F:
-                    yield F
+                if check_face(I, J, K):
+                    yield (I, J, K)
                     if not break_symmetry:
-                        yield Face((F.minimal_triple[1], F.minimal_triple[0], F.minimal_triple[2]))
+                        yield (J, I, K)
 
     for K in K_nondisjoint_list:
         for i, I in enumerate(I_disjoint_list):
             for J in I_disjoint_list[i:]:
-                F = check_face(I, J, K)
-                if F:
-                    yield F
+                if check_face(I, J, K):
+                    yield (I, J, K)
                     if not break_symmetry:
-                        yield Face((F.minimal_triple[1], F.minimal_triple[0], F.minimal_triple[2]))
+                        yield (J, I, K)
 
 def kzh_minimal_has_only_crazy_perturbation_1_check_subadditivity_slacks(parametric=False):
     r"""
