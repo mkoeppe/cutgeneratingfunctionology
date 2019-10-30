@@ -47,3 +47,6 @@ dff-graphics: dff_graphics.sage
 
 facets-paper-tables:
 	(cd .. && sage -c 'sys.path = [""] + sys.path; load("survey_graphics/tab_kzh_minimal_has_only_crazy_perturbation_1_delta_pi.sage")')
+
+facets-paper-graphics:
+	(cd ..  && sage -c 'sys.path = [""] + sys.path; load("survey_graphics/graphics_for_facets_paper.sage")')

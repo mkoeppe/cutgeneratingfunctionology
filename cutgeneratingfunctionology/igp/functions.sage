@@ -51,7 +51,7 @@ def delta_pi(fn,x,y):
     """
     return fn(fractional(x))+fn(fractional(y))-fn(fractional(x+y))
 
-def plot_2d_complex(function, continuous_color='grey', discontinuous_color='grey'):
+def plot_2d_complex(function, continuous_plot_kwds=None, discontinuous_plot_kwds=None):
     r"""
     Returns a plot of the horizontal lines, vertical lines, and diagonal lines of the complex.
     """
@@ -60,29 +60,45 @@ def plot_2d_complex(function, continuous_color='grey', discontinuous_color='grey
     p = Graphics()
     kwd = ticks_keywords(function, True)
     kwd['legend_label'] = "Complex Delta P"
-    plot_kwds_hook(kwd)
-    def color_at(x):
+    
+    if continuous_plot_kwds is None:
+        continuous_plot_kwds = {'color': 'grey'}
+    if discontinuous_plot_kwds is None:
+        discontinuous_plot_kwds = {'color': 'grey'}
+    continuous_plot_kwds.update(kwd)
+    discontinuous_plot_kwds.update(kwd)
+    plot_kwds_hook(continuous_plot_kwds)
+    plot_kwds_hook(discontinuous_plot_kwds)
+
+    def plot_kwds_at(x):
         l = function.limits(x)
         left_continuous = l[-1] is None or l[-1] == l[0]
         right_continuous = l[1] is None or l[1] == l[0]
         if left_continuous and right_continuous:
-            return continuous_color
+            return continuous_plot_kwds
         else:
-            return discontinuous_color
+            return discontinuous_plot_kwds
     ## We now use lambda functions instead of Sage symbolics for plotting, 
     ## as those give strange errors when combined with our RealNumberFieldElement.
     for i in range(1,len(bkpt)):
         #p += plot(lambda x: bkpt[i]-x, (x, 0, bkpt[i]), color='grey', **kwd)
-        p += line([(0,  bkpt[i]), (bkpt[i], 0)], color=color_at(bkpt[i]), **kwd)
-        kwd = {}
+        p += line([(0,  bkpt[i]), (bkpt[i], 0)], **plot_kwds_at(bkpt[i]))
+        delete_one_time_plot_kwds(continuous_plot_kwds)
+        delete_one_time_plot_kwds(discontinuous_plot_kwds)
     for i in range(1,len(bkpt)-1):
         #p += plot(lambda x: (1+bkpt[i]-x), (x, bkpt[i], 1), color='grey')
-        p += line([(bkpt[i], 1), (1, bkpt[i])], color=color_at(bkpt[i]))
+        p += line([(bkpt[i], 1), (1, bkpt[i])], **plot_kwds_at(bkpt[i]))
+        delete_one_time_plot_kwds(continuous_plot_kwds)
+        delete_one_time_plot_kwds(discontinuous_plot_kwds)
     for i in range(len(bkpt)):
-        p += plot(bkpt[i], (0, 1), color=color_at(bkpt[i]))
+        p += plot(bkpt[i], (0, 1), **plot_kwds_at(bkpt[i]))
+        delete_one_time_plot_kwds(continuous_plot_kwds)
+        delete_one_time_plot_kwds(discontinuous_plot_kwds)
     y=var('y')
     for i in range(len(bkpt)):
-        p += parametric_plot((bkpt[i],y),(y,0,1), color=color_at(bkpt[i]))
+        p += parametric_plot((bkpt[i],y), (y,0,1), **plot_kwds_at(bkpt[i]))
+        delete_one_time_plot_kwds(continuous_plot_kwds)
+        delete_one_time_plot_kwds(discontinuous_plot_kwds)
     return p
 
 ##

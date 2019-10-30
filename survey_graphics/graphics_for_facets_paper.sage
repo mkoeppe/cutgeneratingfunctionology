@@ -6,7 +6,7 @@ except Exception:
     #destdir = "survey_graphics/algo_paper_graphics/"
     destdir = "/Users/yzh/Dropbox/basu-hildebrand-koeppe-papers-for-yuan/algo-paper/graphics-for-facets-paper/"
 
-
+#ftype = ".pdf"
 
 ########## facet paper ###########
 
@@ -70,35 +70,47 @@ l=x[17]; u = x[18]; ll = x[19]; uu=x[20]; f=x[37]
 assert l + uu == f and u + ll == f
 w = u - l
 color1 = 'lightblue'
-color2 = 'blue'
-g = plot_2d_complex(h)
+color2 = 'mediumslateblue'
+color3 = 'darkblue'
+g = plot_2d_complex(h, continuous_plot_kwds={'color': 'lightgrey', 'zorder': -10}, discontinuous_plot_kwds={'color': 'lightgrey', 'zorder': -10}) # 'linestyle': 'dotted',
 g += plot_function_at_borders(h, covered_components=generate_covered_components(h), thickness=2)
-g += polygon([(0, l), (0, u), (1, u), (1, l)], color=color1,fill=True, zorder=-5)
-g += polygon([(0, ll), (0, uu), (1, uu), (1, ll)], color=color1,fill=True, zorder=-5)
-g += polygon([(ll,0), (uu,0), (uu,1), (ll,1)], color=color1,fill=True, zorder=-5)
-g += polygon([(l,0), (u,0), (u,1), (l,1)], color=color1,fill=True, zorder=-5)
-g += polygon([(l,0), (u,0), (0,u), (0,l)], color=color1,fill=True, zorder=-5)
-g += polygon([(ll,0), (uu,0), (0,uu), (0,ll)], color=color1,fill=True, zorder=-5)
-g += polygon([(l,1), (u,1), (1,u), (1,l)], color=color1,fill=True, zorder=-5)
-g += polygon([(ll,1), (uu,1), (1,uu), (1,ll)], color=color1,fill=True, zorder=-5)
-g += polygon([(l,1), (u,1), (u,1-w)], color=color2,fill=True, zorder=-5)
-g += polygon([(ll,1), (uu,1), (uu,1-w)], color=color2,fill=True, zorder=-5)
-g += polygon([(0,l), (0,u), (w,l)], color=color2,fill=True, zorder=-5)
-g += polygon([(0,ll), (0,uu), (w,ll)], color=color2,fill=True, zorder=-5)
-g += polygon([(1,l), (1,u), (1-w,u)], color=color2,fill=True, zorder=-5)
-g += polygon([(1,ll), (1,uu), (1-w,uu)], color=color2,fill=True, zorder=-5)
-g += polygon([(l,0), (u,0), (l,w)], color=color2,fill=True, zorder=-5)
-g += polygon([(ll,0), (uu,0), (ll,w)], color=color2,fill=True, zorder=-5)
-g += polygon([(l,l), (l,u), (u,u), (u,l)], color=color2,fill=True, zorder=-5)
-g += polygon([(ll,l), (ll,u), (uu,u), (uu,l)], color=color2,fill=True, zorder=-5)
-g += polygon([(l,ll), (l,uu), (u,uu), (u,ll)], color=color2,fill=True, zorder=-5)
-g += polygon([(ll,ll), (ll,uu), (uu,uu), (uu,ll)], color=color2,fill=True, zorder=-5)
-g += polygon([(l,ll-l), (l,uu-l), (u,uu-u), (u,ll-u)], color=color2,fill=True, zorder=-5)
-g += polygon([(ll-l,l), (uu-l,l), (uu-u,u), (ll-u,u)], color=color2,fill=True, zorder=-5)
-g += polygon([(ll,1+l-ll), (ll,1+u-ll), (uu,1+u-uu), (uu,1+l-uu)], color=color2,fill=True, zorder=-5)
-g += polygon([(1+l-ll,ll), (1+u-ll,ll), (1+u-uu,uu), (1+l-uu,uu)], color=color2,fill=True, zorder=-5)
+## g += polygon([(0, l), (0, u), (1, u), (1, l)], color=color1,fill=True, zorder=-5)
+## g += polygon([(0, ll), (0, uu), (1, uu), (1, ll)], color=color1,fill=True, zorder=-5)
+## g += polygon([(ll,0), (uu,0), (uu,1), (ll,1)], color=color1,fill=True, zorder=-5)
+## g += polygon([(l,0), (u,0), (u,1), (l,1)], color=color1,fill=True, zorder=-5)
+## g += polygon([(l,0), (u,0), (0,u), (0,l)], color=color1,fill=True, zorder=-5)
+## g += polygon([(ll,0), (uu,0), (0,uu), (0,ll)], color=color1,fill=True, zorder=-5)
+## g += polygon([(l,1), (u,1), (1,u), (1,l)], color=color1,fill=True, zorder=-5)
+## g += polygon([(ll,1), (uu,1), (1,uu), (1,ll)], color=color1,fill=True, zorder=-5)
+## g += polygon([(l,1), (u,1), (u,1-w)], color=color2,fill=True, zorder=-5)
+## g += polygon([(ll,1), (uu,1), (uu,1-w)], color=color2,fill=True, zorder=-5)
+## g += polygon([(0,l), (0,u), (w,l)], color=color2,fill=True, zorder=-5)
+## g += polygon([(0,ll), (0,uu), (w,ll)], color=color2,fill=True, zorder=-5)
+## g += polygon([(1,l), (1,u), (1-w,u)], color=color2,fill=True, zorder=-5)
+## g += polygon([(1,ll), (1,uu), (1-w,uu)], color=color2,fill=True, zorder=-5)
+## g += polygon([(l,0), (u,0), (l,w)], color=color2,fill=True, zorder=-5)
+## g += polygon([(ll,0), (uu,0), (ll,w)], color=color2,fill=True, zorder=-5)
+## g += polygon([(l,l), (l,u), (u,u), (u,l)], color=color2,fill=True, zorder=-5)
+## g += polygon([(ll,l), (ll,u), (uu,u), (uu,l)], color=color2,fill=True, zorder=-5)
+## g += polygon([(l,ll), (l,uu), (u,uu), (u,ll)], color=color2,fill=True, zorder=-5)
+## g += polygon([(ll,ll), (ll,uu), (uu,uu), (uu,ll)], color=color2,fill=True, zorder=-5)
+## g += polygon([(l,ll-l), (l,uu-l), (u,uu-u), (u,ll-u)], color=color2,fill=True, zorder=-5)
+## g += polygon([(ll-l,l), (uu-l,l), (uu-u,u), (ll-u,u)], color=color2,fill=True, zorder=-5)
+## g += polygon([(ll,1+l-ll), (ll,1+u-ll), (uu,1+u-uu), (uu,1+l-uu)], color=color2,fill=True, zorder=-5)
+## g += polygon([(1+l-ll,ll), (1+u-ll,ll), (1+u-uu,uu), (1+l-uu,uu)], color=color2,fill=True, zorder=-5)
 tk=[0,l,u,ll,uu,f,1];
 tkfx=[0,"$l$","$u$","$f-u$","","$f$","$1$"]  # omit f-l (doesn't fit)
 tkfy=[0,"$l$","$u$","$f-u$","$f-l$","$f$",""]  # omit 1 (doesn't fit)
 #g.show(ticks=[tk,tk], tick_formatter=[tkf, tkf], show_legend=False)
+
+all_special_faces = set(generate_faces_with_projections_intersecting(h, h.special_intervals, break_symmetry=False))
+for F in all_special_faces:
+    if F.is_2D():
+        if number_of_projections_intersecting(F, h.special_intervals) == 1:
+            g += F.plot(zorder=-5, fill_color=color1)
+        else:
+            g += F.plot(zorder=-5, fill_color=color2)
+    else:
+        g += F.plot(zorder=0, rgbcolor=color3, edge_thickness=1)
+
 g.save(destdir + '2d_crazy_nf_with_func' + ftype,ticks=[tk,tk], tick_formatter=[tkfx, tkfy], show_legend=False, figsize=igp.show_plots_figsize, **paper_plot_kwds)
