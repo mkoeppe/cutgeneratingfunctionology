@@ -51,9 +51,9 @@ def delta_pi(fn,x,y):
     """
     return fn(fractional(x))+fn(fractional(y))-fn(fractional(x+y))
 
-def plot_2d_complex(function):
+def plot_2d_complex(function, continuous_color='grey', discontinuous_color='grey'):
     r"""
-    Returns a plot of the horizonal lines, vertical lines, and diagonal lines of the complex.
+    Returns a plot of the horizontal lines, vertical lines, and diagonal lines of the complex.
     """
     bkpt = function.end_points()
     x = var('x')
@@ -61,20 +61,28 @@ def plot_2d_complex(function):
     kwd = ticks_keywords(function, True)
     kwd['legend_label'] = "Complex Delta P"
     plot_kwds_hook(kwd)
+    def color_at(x):
+        l = function.limits(x)
+        left_continuous = l[-1] is None or l[-1] == l[0]
+        right_continuous = l[1] is None or l[1] == l[0]
+        if left_continuous and right_continuous:
+            return continuous_color
+        else:
+            return discontinuous_color
     ## We now use lambda functions instead of Sage symbolics for plotting, 
     ## as those give strange errors when combined with our RealNumberFieldElement.
     for i in range(1,len(bkpt)):
         #p += plot(lambda x: bkpt[i]-x, (x, 0, bkpt[i]), color='grey', **kwd)
-        p += line([(0,  bkpt[i]), (bkpt[i], 0)], color='grey', **kwd)
+        p += line([(0,  bkpt[i]), (bkpt[i], 0)], color=color_at(bkpt[i]), **kwd)
         kwd = {}
     for i in range(1,len(bkpt)-1):
         #p += plot(lambda x: (1+bkpt[i]-x), (x, bkpt[i], 1), color='grey')
-        p += line([(bkpt[i], 1), (1, bkpt[i])], color='grey')
+        p += line([(bkpt[i], 1), (1, bkpt[i])], color=color_at(bkpt[i]))
     for i in range(len(bkpt)):
-        p += plot(bkpt[i], (0, 1), color='grey')
+        p += plot(bkpt[i], (0, 1), color=color_at(bkpt[i]))
     y=var('y')
     for i in range(len(bkpt)):
-        p += parametric_plot((bkpt[i],y),(y,0,1), color='grey')
+        p += parametric_plot((bkpt[i],y),(y,0,1), color=color_at(bkpt[i]))
     return p
 
 ##
