@@ -396,6 +396,17 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         s +=  ']' if self._upper_closed else ')'
         return s
 
+    def _latex_(self):
+        from sage.misc.latex import latex
+        if self.is_point():
+            return r'\{' + latex(self.lower()) + r'\}'
+        s =  '[' if self._lower_closed else '('
+        s += latex(self.lower())
+        s += ', '
+        s += latex(self.upper())
+        s +=  ']' if self._upper_closed else ')'
+        return s
+
     def closure(self):
         """
         Return the closure
@@ -1091,6 +1102,22 @@ class RealSet(UniqueRepresentation, Parent):
         else:
             # Switch to u'\u222A' (cup sign) with Python 3
             return ' + '.join(map(repr, self._intervals))
+
+    def _latex_(self):
+        """
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
+            sage: latex(RealSet(0, 1))
+            ( 0 , 1 )
+            sage: latex((RealSet(0, 1).union(RealSet.unbounded_above_closed(2))))
+            ( 0 , 1 ) \cup [ 2 , +\infty )
+        """
+        from sage.misc.latex import latex
+        if self.n_components() == 0:
+            return r'\emptyset'
+        else:
+            return r' \cup '.join(map(latex, self._intervals))
 
     @staticmethod
     def _prep(lower, upper=None):
