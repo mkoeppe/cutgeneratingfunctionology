@@ -113,6 +113,13 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None):
 
     Therefore, the function ``kzh_minimal_has_only_crazy_perturbation_1()`` is not extreme.
 
+    If ``parametric=True``, the breakpoints and slopes are given symbolic names.
+    This is useful for printing.
+
+        sage: h = kzh_minimal_has_only_crazy_perturbation_1(parametric=True)
+        sage: h.which_pair(1/100)
+        (<Int(0, (x1)~)>, <FastLinearFunction ((c3)~)*x + (0.1553846153846154?)>)
+
     Note:
 
         This example is obtained by the following code::
@@ -160,7 +167,7 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None):
         pieces.append(singleton_piece(bkpt_rat[i]*o+bkpt_irr[i]*sqrt2, value_rat[i]*o+value_irr[i]*sqrt2))
     h = FastPiecewise(pieces)
     if parametric:
-        h = param_piecewise(h)
+        h = param_piecewise(h, slope_names_dict={35/13: 'c1', 5/11999: 'c2', -5: 'c3'})
     # Store special attributes
     bkpts = h.end_points()
     h.ucl = bkpts[17]
@@ -218,6 +225,8 @@ def param_piecewise(h, slope_names_dict={}):
     K = ParametricRealField(names=names, values=values, base_ring=bkpts[0].parent())
     K._record = False
     param_dict = dict(zip(values, K.gens()))
+    param_dict[bkpts[0]] = bkpts[0]
+    param_dict[bkpts[-1]] = bkpts[-1]
     def param_interval(interval):
         if len(interval) <= 2:
             # old fashioned interval
