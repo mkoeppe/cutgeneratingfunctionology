@@ -339,7 +339,7 @@ def kzh_minimal_has_only_crazy_perturbation_1_check_subadditivity_slacks(paramet
     """
     h = kzh_minimal_has_only_crazy_perturbation_1(parametric=parametric)
     logging.debug("s = {}".format(h.s))
-    for F in generate_faces_with_projections_intersecting(h):
+    for F in generate_faces_with_projections_intersecting(h, h.special_intervals):
         n_F = number_of_projections_intersecting(F, h.special_intervals)
         assert n_F > 0
         if n_F:
