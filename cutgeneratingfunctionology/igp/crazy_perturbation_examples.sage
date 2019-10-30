@@ -77,7 +77,7 @@ def kzh_discontinuous_bhk_irrational(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ra
     move_shift = FastPiecewise(move_pieces)
     return h_temp - h_below + h_above + move_shift
 
-def kzh_minimal_has_only_crazy_perturbation_1():
+def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None):
     r"""
     EXAMPLES::
 
@@ -143,7 +143,7 @@ def kzh_minimal_has_only_crazy_perturbation_1():
             sage: h = next(gen) # not tested
     """
     # The following numbers do not correspond to h in docstring. To check.
-    [sqrt2, o] = nice_field_values([sqrt(2), 1])
+    [sqrt2, o] = nice_field_values([sqrt(2), 1], field=field)
     n = 41
     rnf = o.parent().fraction_field()
     bkpt_rat = [0, 101/5000, 60153/369200, 849/5000, 849/5000, 849/5000, 19/100, 281986521/1490645000, 40294/201875, 36999/184600, 19/100, 1051/5000, 1051/5000, 14199/64600, 1051/5000, 342208579/1490645000, 193799/807500, 219/800, 269/800, 371/800, 421/800, 452201/807500, 850307421/1490645000, 2949/5000, 37481/64600, 2949/5000, 2949/5000, 61/100, 110681/184600, 121206/201875, 910529479/1490645000, 61/100, 3151/5000, 3151/5000, 3151/5000, 235207/369200, 3899/5000, 4/5, 4101/5000, 4899/5000, 1]
@@ -158,26 +158,91 @@ def kzh_minimal_has_only_crazy_perturbation_1():
     for i in range(1,n):
         pieces.append(open_piece((bkpt_rat[i-1]*o+bkpt_irr[i-1]*sqrt2, lim_right_rat[i-1]*o+lim_right_irr[i-1]*sqrt2),(bkpt_rat[i]*o+bkpt_irr[i]*sqrt2, lim_left_rat[i]*o+lim_left_irr[i]*sqrt2)))
         pieces.append(singleton_piece(bkpt_rat[i]*o+bkpt_irr[i]*sqrt2, value_rat[i]*o+value_irr[i]*sqrt2))
-    return FastPiecewise(pieces)
+    h = FastPiecewise(pieces)
+    if parametric:
+        h = param_piecewise(h)
+    # Store special attributes
+    bkpts = h.end_points()
+    h.ucl = bkpts[17]
+    h.ucr = bkpts[18]
+    h._f = bkpts[37]
+    h.t1 = bkpts[10]-bkpts[6]
+    h.t2 = bkpts[13]-bkpts[6]
+    from cutgeneratingfunctionology.spam.real_set import RealSet   # param-safe version of RealSet
+    h.special_intervals = RealSet.open(h.ucl, h.ucr) + RealSet.open(h._f - h.ucr, h._f - h.ucl)
+    h.s = delta_pi_general(h, bkpts[39], 1 + h.ucl - bkpts[39], (-1, 0, 0))
+    assert h.s == 19/23998
+    return h
 
 def kzh_minimal_has_only_crazy_perturbation_1_perturbation():
     r"""
     A crazy perturbation for ``kzh_minimal_has_only_crazy_perturbation_1``.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: h = kzh_minimal_has_only_crazy_perturbation_1()
+        sage: cp = kzh_minimal_has_only_crazy_perturbation_1_perturbation()
+        sage: find_epsilon_for_crazy_perturbation(h, cp)
+        0.0003958663221935161?
+
     """
     h = kzh_minimal_has_only_crazy_perturbation_1()
-    bkpts = h.end_points()
-    t1 = bkpts[10]-bkpts[6]
-    t2 = bkpts[13]-bkpts[6]
-    f = bkpts[37]
-    ucl = bkpts[17]
-    ucr = bkpts[18]
-    generators = [t1, t2]
-    pwl = piecewise_function_from_breakpoints_and_slopes([0,1],[0])
-    crazy_piece_1 = CrazyPiece((ucl, ucr), generators, [(ucl, 1), (ucr, -1)])
-    crazy_piece_2 = CrazyPiece((f-ucr, f-ucl), generators, [(f-ucr, 1), (f-ucl, -1)])
+    generators = [h.t1, h.t2]
+    pwl = piecewise_function_from_breakpoints_and_slopes([0, 1], [0])
+    crazy_piece_1 = CrazyPiece((h.ucl, h.ucr), generators, [(h.ucl, 1), (h.ucr, -1)])
+    crazy_piece_2 = CrazyPiece((h._f - h.ucr, h._f - h.ucl), generators, [(h._f - h.ucr, 1), (h._f - h.ucl, -1)])
     return PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
 
-def kzh_minimal_has_only_crazy_perturbation_1_check_subadditivity_slacks():
+def param_piecewise(h, slope_names_dict={}):
+    """
+    Replace the piecewise function h by one that renames all breakpoints, and optionally slopes,
+    symbolically.  Useful for latexing or plotting functions that do not have convenient
+    parametric descriptions.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)                   # disable output for automatic tests
+        sage: h = gmic()
+        sage: hp = param_piecewise(h, slope_names_dict={h.functions()[0]._slope: 'c1'})
+        sage: hp.which_pair(1/10)
+        (((x0)~, (x1)~), <FastLinearFunction ((c1)~)*x + (0)>)
+    """
+    # Replace the function by one that renames all breakpoints symbolically, purely for latexing
+    bkpts = h.end_points()
+    param_bkpt_names = [ 'x{}'.format(i) for i, bkpt in enumerate(bkpts) ]
+    names = param_bkpt_names + slope_names_dict.values()
+    values = bkpts + slope_names_dict.keys()
+    K = ParametricRealField(names=names, values=values, base_ring=bkpts[0].parent())
+    K._record = False
+    param_dict = dict(zip(values, K.gens()))
+    def param_interval(interval):
+        if len(interval) <= 2:
+            # old fashioned interval
+            return [ param_dict[x] for x in interval ]
+        else:
+            # coho interval
+            return closed_or_open_or_halfopen_interval(param_dict[interval.a], param_dict[interval.b],
+                                                       interval.left_closed, interval.right_closed)
+    def param_function(function):
+        return FastLinearFunction(param_dict.get(function._slope, function._slope), function._intercept)
+    param_pieces = [ (param_interval(interval), param_function(function)) for interval, function in h.list() ]
+    return FastPiecewise(param_pieces)
+
+def number_of_projections_intersecting(F, real_set):
+    """
+    This is the number `n_F` from facets-paper.
+    """
+    return len([I for I in F.minimal_triple
+                if not real_set.is_disjoint_from(realset_from_interval(I))])
+
+def generate_all_faces(fn):
+    zero_fn = FastPiecewise([(I, FastLinearFunction(0, 0)) for I, f in fn.list()], merge=False)
+    return generate_maximal_additive_faces_general(zero_fn)
+
+def kzh_minimal_has_only_crazy_perturbation_1_check_subadditivity_slacks(parametric=False):
     r"""
     Check a claim in the proof of the theorem that ``kzh_minimal_has_only_crazy_perturbation_1``
     is a weak facet (but not extreme, nor a facet).
@@ -185,28 +250,15 @@ def kzh_minimal_has_only_crazy_perturbation_1_check_subadditivity_slacks():
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: logging.disable(logging.INFO)
+        sage: logging.disable(logging.INFO)                   # disable output for automatic tests
         sage: logging.getLogger().setLevel(logging.DEBUG)     # not tested - for interactive use
         sage: kzh_minimal_has_only_crazy_perturbation_1_check_subadditivity_slacks()
 
     """
-    def generate_all_faces(fn):
-        zero_fn = FastPiecewise([(I, FastLinearFunction(0, 0)) for I, f in fn.list()], merge=False)
-        return generate_maximal_additive_faces_general(zero_fn)
-    def number_of_projections_intersecting(F, real_set):
-        return len([I for I in F.minimal_triple
-                    if not real_set.is_disjoint_from(realset_from_interval(I))])
-    h = kzh_minimal_has_only_crazy_perturbation_1()
-    bkpts = h.end_points()
-    ucl = bkpts[17]
-    ucr = bkpts[18]
-    f = bkpts[37]
-    special_intervals = RealSet.open(ucl, ucr) + RealSet.open(f - ucr, f - ucl)
-    s = delta_pi_general(h, bkpts[39], 1 + ucl - bkpts[39], (-1, 0, 0))
-    assert s == 19/23998
-    logging.debug("s = {}".format(s))
+    h = kzh_minimal_has_only_crazy_perturbation_1(parametric=parametric)
+    logging.debug("s = {}".format(h.s))
     for F in generate_all_faces(h):
-        n_F = number_of_projections_intersecting(F, special_intervals)
+        n_F = number_of_projections_intersecting(F, h.special_intervals)
         if n_F:
             logging.debug("{} n_F = {}".format(F, n_F))
             deltas = sorted(set( delta_pi_of_face(h, vertex[0], vertex[1], F)
@@ -215,7 +267,7 @@ def kzh_minimal_has_only_crazy_perturbation_1_check_subadditivity_slacks():
                 logging.debug("... additive face")
             else:
                 logging.debug("... Delta pi values {}".format(deltas))
-                assert deltas[0] >= n_F * s
-                if deltas[0] == n_F * s:
+                assert deltas[0] >= n_F * h.s
+                if deltas[0] == n_F * h.s:
                     logging.debug("... tight")
                     assert len(deltas) > 1  # strict for at least one vertex
