@@ -251,6 +251,79 @@ def generate_all_faces(fn):
     zero_fn = FastPiecewise([(I, FastLinearFunction(0, 0)) for I, f in fn.list()], merge=False)
     return generate_maximal_additive_faces_general(zero_fn)
 
+def generate_intervals_and_two_sided_discontinuous_breakpoints(function):
+    """
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)                   # disable output for automatic tests
+        sage: h = kzh_minimal_has_only_crazy_perturbation_1(parametric=True)
+        sage: list(generate_intervals_and_two_sided_discontinuous_breakpoints(h))
+        [[0], [0, (x1)~], [(x1)~], [(x1)~, (x2)~], [(x2)~, (x3)~], [(x3)~],
+        ..., [(x39)~], [(x39)~, 1], [1]]
+
+    """
+    bkpt = function.end_points()
+    n = len(bkpt)
+    for i in range(n):
+        l = function.limits(bkpt[i])
+        left_continuous = l[-1] is None or l[-1] == l[0]
+        right_continuous = l[1] is None or l[1] == l[0]
+        if not left_continuous and not right_continuous:
+            yield [bkpt[i]]
+        if i+1 < n:
+            yield [bkpt[i], bkpt[i+1]]
+
+def generate_faces_with_projections_intersecting(function, real_set, break_symmetry=False):
+    """
+    It breaks symmetry but produces duplicates.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)                   # disable output for automatic tests
+        sage: h = kzh_minimal_has_only_crazy_perturbation_1(parametric=True)
+        sage: faces = set(generate_faces_with_projections_intersecting(h, h.special_intervals, break_symmetry=False))
+        sage: sum(F.plot(fill_color='lightblue', rgbcolor='blue') for F in faces).show(figsize=15, xmax=1) # not tested
+    """
+    # Adapted from generate_maximal_additive_faces_general
+
+    def plus1(I):
+        return [ x + 1 for x in I ]
+
+    I_list = list(generate_intervals_and_two_sided_discontinuous_breakpoints(function))
+    K_list = I_list + [ plus1(I) for I in I_list ]
+
+    I_disjoint_list = [ I for I in I_list if real_set.is_disjoint_from(realset_from_interval(I)) ]
+    I_nondisjoint_list = [ I for I in I_list if not real_set.is_disjoint_from(realset_from_interval(I)) ]
+    K_nondisjoint_list = I_nondisjoint_list + [ plus1(I) for I in I_nondisjoint_list ]
+
+    def check_face(I, J, K):
+        IplusJ = interval_sum(I, J)
+        if len(interval_intersection(IplusJ, K)) > 0:
+            F = Face((I, J, K))
+            n_F = number_of_projections_intersecting(F, real_set)
+            if n_F:
+                return F
+
+    for I in I_nondisjoint_list:
+        for J in I_list:
+            for K in K_list:
+                F = check_face(I, J, K)
+                if F:
+                    yield F
+                    if not break_symmetry:
+                        yield Face((F.minimal_triple[1], F.minimal_triple[0], F.minimal_triple[2]))
+
+    for K in K_nondisjoint_list:
+        for i, I in enumerate(I_disjoint_list):
+            for J in I_disjoint_list[i:]:
+                F = check_face(I, J, K)
+                if F:
+                    yield F
+                    if not break_symmetry:
+                        yield Face((F.minimal_triple[1], F.minimal_triple[0], F.minimal_triple[2]))
+
 def kzh_minimal_has_only_crazy_perturbation_1_check_subadditivity_slacks(parametric=False):
     r"""
     Check a claim in the proof of the theorem that ``kzh_minimal_has_only_crazy_perturbation_1``
@@ -266,8 +339,9 @@ def kzh_minimal_has_only_crazy_perturbation_1_check_subadditivity_slacks(paramet
     """
     h = kzh_minimal_has_only_crazy_perturbation_1(parametric=parametric)
     logging.debug("s = {}".format(h.s))
-    for F in generate_all_faces(h):
+    for F in generate_faces_with_projections_intersecting(h):
         n_F = number_of_projections_intersecting(F, h.special_intervals)
+        assert n_F > 0
         if n_F:
             logging.debug("{} n_F = {}".format(F, n_F))
             deltas = sorted(set( delta_pi_of_face(h, vertex[0], vertex[1], F)
