@@ -13,16 +13,20 @@ if 'faces' not in globals():
     faces = sorted(faces.items(), key=lambda fi: fi[0])
 
 def format_slack(slack):
-    if slack == h.s:
-        return r"\llap\bgroup$s = \bgroup\egroup$\egroup{:.4f}".format(float(slack))
-    elif slack == 0:
+    if slack == 0:
         return "0"
-    else:
-        return "{:.4f}".format(float(slack))
+    fs = "{:.3f}".format(float(slack))
+    if slack == h.s:
+        return r'\tightslack{' + fs + r'}'
+    return fs
 
 def format_interval(interval):
     l = latex(realset_from_interval(interval))
-    return l.replace(r'-', r'\,{-}\,').replace(r'+', r'\,{+}\,')  # reduce spacing
+    return l.replace(r'-', r'\compactop-').replace(r'+', r'\compactop+')  # reduce spacing
+
+def format_symbolic_slack(slack):
+    l = latex(SR(slack).collect(SR.var('x')).collect(SR.var('y')).subs(sqrt(1/2)==1/2*sqrt(2)))
+    return l.replace(r'- c', r'\compactop- c').replace(r'+ c', r'\compactop+ c')
 
 def format_interval_markup_special(interval):
     if not h.special_intervals.is_disjoint_from(realset_from_interval(interval_mod_1(interval))):
@@ -46,7 +50,7 @@ def tabulate_delta_pi(faces, dimension):
     else:
         raise ValueError("bad dimension")
 
-    num_columns = 4 + max_vertices
+    num_columns = 5 + max_vertices
 
     s += [r'\def\arraystretch{1.17}']
     s += [r'\begin{longtable}{*{%s}C}' % num_columns]
@@ -60,9 +64,10 @@ def tabulate_delta_pi(faces, dimension):
     ## head += ['  ' + ' & '.join([r'\multicolumn{3}{C}{F = F(I, J, K)}']) + r'\\']
     ## head += [r'  \cmidrule{1-3}']
     head += ['  ' + ' & '.join(['I', 'J', 'K',
-                             r'\Delta\pi_{F}, \ F = F(I, J, K)',
+                                r'n_F',
+                                r'\Delta\pi_{F}(x,y), \ (x,y) \in F = F(I, J, K)',
                              # [r'\Delta\pi_F(v_F^\bgroup{}{}{}\egroup)'.format(*[print_sign(e) for e in eps]) for eps in eps_list]    ### attributing vertices to their basis....... would need more work
-                             r'\multicolumn{%s}{C}{\Delta\pi_F(x,y), \ (x,y)\in\verts(F)}' % max_vertices
+                             r'\multicolumn{%s}{C}{\Delta\pi_F(u,v), \ (u,v)\in\verts(F)}' % max_vertices
                             ])
           + r'\\']
     head += [r'  \midrule']
@@ -87,7 +92,8 @@ def tabulate_delta_pi(faces, dimension):
             # Put a {} in front because the square brackets coming from formatting the intervals
             # would otherwise be taken as a latex optional argument for the preceding command!
             s += ['{}  ' + ' & '.join([ format_interval_markup_special(I) for I in triple ]
-                                    + [latex(delta_pi_of_face(h, x, y, F).sym())]
+                                    + [ latex(number_of_projections_intersecting(F, h.special_intervals)) ]
+                                    + [format_symbolic_slack(delta_pi_of_face(h, x, y, F).sym())]
                                     + [ format_slack(slack) for slack in slacks ])
                     + r'\\']
 
@@ -97,7 +103,10 @@ def tabulate_delta_pi(faces, dimension):
 with open('/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/tab_kzh_minimal_has_only_crazy_perturbation_delta_pi.tex', 'w') as f:
     f.write(r'%% Automatically generated.' + '\n')
     f.write(r'%% Preamble: \usepackage{longtable,booktabs,array}\newcolumntype{C}{>{$}c<{$}}' + '\n')
-    f.write(r'\providecommand\specialinterval[1]{{#1}\rlap{*}}' + '\n')
+    f.write(r'\providecommand\compactop[1]{\kern1pt{#1}\kern0.5pt\relax}' + '\n')
+    #f.write(r'\providecommand\specialinterval[1]{{#1}\rlap{*}}' + '\n')
+    f.write(r'\providecommand\specialinterval[1]{\hphantom*{#1}\text{*}}' + '\n')
+    f.write(r'\providecommand\tightslack[1]{\llap{$\triangleright$\,}{#1}}' + '\n')
     f.write(tabulate_delta_pi(faces, dimension=2))
     f.write(tabulate_delta_pi(faces, dimension=1))
     #f.write(tabulate_delta_pi(faces, dimension=0))    # empty!
