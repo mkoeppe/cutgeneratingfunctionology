@@ -1,3 +1,5 @@
+import cutgeneratingfunctionology.igp as igp; reload(igp); from cutgeneratingfunctionology.igp import *
+
 igp.default_field=SR
 h = kzh_minimal_has_only_crazy_perturbation_1()
 labels = {}
