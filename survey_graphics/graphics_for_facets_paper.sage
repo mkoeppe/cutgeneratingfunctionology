@@ -72,7 +72,7 @@ w = u - l
 color1 = 'lightblue'
 color2 = 'mediumslateblue'
 color3 = 'darkblue'
-g = plot_2d_complex(h, continuous_plot_kwds={'color': 'lightgrey', 'zorder': -10}, discontinuous_plot_kwds={'color': 'lightgrey', 'zorder': -10}) # 'linestyle': 'dotted',
+g = plot_2d_complex(h, continuous_plot_kwds={'color': 'grey', 'alpha': 0.3, 'zorder': -2}, discontinuous_plot_kwds={'color': 'grey', 'alpha': 0.3, 'zorder': -2}) # 'linestyle': 'dotted',  'zorder': -10
 g += plot_function_at_borders(h, covered_components=generate_covered_components(h), thickness=2)
 ## g += polygon([(0, l), (0, u), (1, u), (1, l)], color=color1,fill=True, zorder=-5)
 ## g += polygon([(0, ll), (0, uu), (1, uu), (1, ll)], color=color1,fill=True, zorder=-5)
