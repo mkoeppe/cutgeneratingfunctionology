@@ -359,7 +359,7 @@ def find_epsilon_interval_general(fn, perturb):
     logging.info("Finding epsilon interval for perturbation... done.  Interval is %s", [best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound])
     return best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound
 
-def delta_pi_general(fn, x, y, xxx_todo_changeme=(0,0,0)):
+def delta_pi_general(fn, x, y, xyz_eps=(0, 0, 0)):
     r"""
     return delta_pi = fn(x, xeps) + fn(y, yeps) - fn(z, zeps).
 
@@ -377,7 +377,7 @@ def delta_pi_general(fn, x, y, xxx_todo_changeme=(0,0,0)):
         sage: delta_pi_general(h, 2/5, 4/5, (-1, 0, -1))
         -2/5
     r"""
-    (xeps, yeps, zeps) = xxx_todo_changeme
+    xeps, yeps, zeps = xyz_eps
     return fn.limit(fractional(x), xeps) + fn.limit(fractional(y), yeps) - fn.limit(fractional(x + y), zeps)
 
 def delta_pi_of_face(fn, x, y, F):
