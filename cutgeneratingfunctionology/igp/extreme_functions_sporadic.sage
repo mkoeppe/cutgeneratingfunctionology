@@ -147,6 +147,20 @@ def hildebrand_discont_3_slope_1():
                           right_open_piece((7/8, 2/8), (1, 4/8)), 
                           singleton_piece(1, 0)])
 
+def discontinuous_facets_paper_example_psi_prime():
+    r"""
+    Example from the paper 'Facets, weak facets, and extreme functions.'
+    
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = discontinuous_facets_paper_example_psi_prime()
+        sage: extremality_test(h, False)
+        True
+    """
+    return discontinuous_interpolation([0,1/2,5/8,7/8],[0,1,3/4,1/4],[0,1/2,3/4,1/4],[1/2,1,3/4,1/4])
+
 def kzh_5_slope_fulldim_1(): #renamed from extreme_5slope_no_0d_1d_1
     r"""
     A continuous 5-slope extreme function without any 0-d or 1-d
