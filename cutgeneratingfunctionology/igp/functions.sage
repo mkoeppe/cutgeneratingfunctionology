@@ -2986,19 +2986,25 @@ def generate_symbolic(fn, components, field=None, f=None):
          [<Int(7/8, 1)>, <FastLinearFunction ((0,1,0,0,0))*x + ((1/4,-1/2,1/4,2,1))>],
          [<Int{1}>, <FastLinearFunction ((1/4,1/2,1/4,2,2))>]]   
     """
+    if field is None:
+        field = fn(0).parent().fraction_field()
     if fn.is_continuous() or fn.is_discrete():
         return generate_symbolic_continuous(fn, components, field=field, f=f)
     else:
         return generate_symbolic_general(fn, components, field=field, f=f)
 
-def generate_additivity_equations(fn, symbolic, field, f=None, bkpt=None,
-                                  reduce_system=None):
+def generate_additivity_equations(fn, symbolic, field=None, f=None, bkpt=None,
+                                  reduce_system=None, return_vertices=False):
     r"""
     Using additivity, set up a finite-dimensional system of linear equations
     that must be satisfied by any perturbation.
 
-    If ``reduce_system`` is True (then default when ``logging.DEBUG`` is enabled),
+    If ``reduce_system`` is True (the default when ``logging.DEBUG`` is enabled),
     remove redundant equations to make the system minimal.
+
+    If ``return_vertices`` is True, return a list of vertices in the form
+    ``(x, y, z, xeps, yeps, zeps)`` corresponding to the rows of the matrix.
+    There are two special labels: 'f' and '1' that can appear instead of a vertex.
 
     EXAMPLES::
 
@@ -3015,11 +3021,18 @@ def generate_additivity_equations(fn, symbolic, field, f=None, bkpt=None,
         [ 1/4  1/2  1/4    3    1]
         [ 1/8 -1/8    0    1    0]
         [   0  1/8 -1/8    2   -1]
+        sage: M, vs = generate_additivity_equations(h, symbolic, field=QQ, reduce_system=True, return_vertices=True)
+        sage: vs
+        ['f', '1', (0, 1/8, 1/8, -1, 0, -1), (1/8, 1/8, 1/4, 0, 0, 0), (3/8, 3/8, 3/4, 1, 1, 1)]
     """
+    if field is None:
+        field = fn(0).parent().fraction_field()
     if fn.is_continuous() or fn.is_discrete():
-        return generate_additivity_equations_continuous(fn, symbolic, field, f=f, bkpt=bkpt, reduce_system=reduce_system)
+        return generate_additivity_equations_continuous(fn, symbolic, field, f=f, bkpt=bkpt,
+                                                        reduce_system=reduce_system, return_vertices=return_vertices)
     else:
-        return generate_additivity_equations_general(fn, symbolic, field, f=f, bkpt=bkpt, reduce_system=reduce_system)
+        return generate_additivity_equations_general(fn, symbolic, field, f=f, bkpt=bkpt,
+                                                     reduce_system=reduce_system, return_vertices=return_vertices)
 
 def rescale_to_amplitude(perturb, amplitude):
     r"""For plotting purposes, rescale the function perturb so that its
