@@ -170,7 +170,7 @@ def generate_maximal_additive_faces(fn):
     fn._maximal_additive_faces = result
     return result
             
-additive_color = "mediumspringgreen"
+additive_fill_color = additive_color = "mediumspringgreen"
 
 import six
 
@@ -221,7 +221,7 @@ class Face:
         trip = self.minimal_triple
         vert = self.vertices
         if fill_color is None:
-            fill_color = additive_color
+            fill_color = additive_fill_color
         if self.is_0D():
             return point((trip[0][0], \
                           trip[1][0]), rgbcolor = rgbcolor, size = 30, **kwds)
@@ -453,6 +453,9 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     if additive_color is None:
         import cutgeneratingfunctionology
         additive_color = cutgeneratingfunctionology.igp.additive_color
+        additive_fill_color = cutgeneratingfunctionology.igp.additive_fill_color
+    else:
+        additive_fill_color = additive_color
     faces = generate_maximal_additive_faces(fn)
     p = Graphics()
     kwds = { 'legend_label': "Additive face" }
@@ -474,7 +477,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
             i = interval_color[j-1][1]
             p += face.plot(fill_color = colors[i], **kwds)
         else:
-            p += face.plot(rgbcolor = additive_color, fill_color = additive_color, **kwds)
+            p += face.plot(rgbcolor = additive_color, fill_color = additive_fill_color, **kwds)
         delete_one_time_plot_kwds(kwds)
 
     ### For non-subadditive functions, show the points where delta_pi is negative.
@@ -552,7 +555,8 @@ def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
                 p += line([(-(3/10)*y1, x1), (-(3/10)*y2, x2)], color=colors[i], zorder=-2, **kwds)
     return p
 
-def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200, additive_color=additive_color, function_color="blue"):
+def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200,
+                               additive_color=None, function_color="blue"):
     r"""
     EXAMPLES::
 
@@ -566,6 +570,9 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200, add
     """
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    if additive_color is None:
+        import cutgeneratingfunctionology
+        additive_color = cutgeneratingfunctionology.igp.additive_color
     g = plot_2d_complex(fn)
     if show_function:
         g += plot_function_at_borders(fn, color=function_color)
@@ -586,7 +593,12 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200, add
             g += point([(x, y), (y, x)], color=color, size=conesize, zorder=-1)
     else:
         for (x, y, z) in vertices:
-            for (xeps, yeps, zeps) in [(0,0,0)]+list(nonzero_eps):
+            eps_list = [(0,0,0)]+list(nonzero_eps)
+            delta_list = [ delta_pi_general(fn, x, y, xyz_eps) for xyz_eps in eps_list ]
+            if all(delta != 0 for delta in delta_list):
+                # Don't plot anything if there's no additivity or limit-additivity at a vertex
+                continue
+            for deltafn, (xeps, yeps, zeps) in zip(delta_list, eps_list):
                 deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
                 if deltafn > 0:
                     color = "white"

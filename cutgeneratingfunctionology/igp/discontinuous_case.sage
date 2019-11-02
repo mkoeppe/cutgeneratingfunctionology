@@ -138,11 +138,39 @@ def epstriple_to_cone(epstriple):
     except KeyError:
         raise ValueError("The limit epstriple %s does not exist." % epstriple)
 
-def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03):
+plot_limit_cone_style = 'sectors'
+plot_limit_cone_wrap = True
+plot_limit_cone_arrow_distance = 0.005
+plot_limit_cone_arrow_length = 0.055
+
+from cutgeneratingfunctionology.igp.subadditivity_slack_diagrams.limit_arrow import limit_arrow
+
+def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03, style=None):
     r"""
     plot a cone or a ray or a point 
     """
     orig = vector(RDF, (x, y))
+    if style is None:
+        style = plot_limit_cone_style
+    if style == 'arrows':
+        if color == 'white':
+            return Graphics()
+        if len(cone) == 0:
+            return point([orig], color=color, size=20, zorder=10)  # on top of the complex
+        else:
+            uv = sum(vector(QQ, ray) for ray in cone)
+            if plot_limit_cone_wrap:
+                def wrap(coord, direction):
+                    if coord == 0 and direction < 0:
+                        return 1
+                    if coord == 1 and direction > 0:
+                        return 0
+                    return coord
+                orig = vector(RDF, (wrap(s, t) for s, t in zip(orig, uv)))
+            uv /= uv.norm()
+            return limit_arrow(orig + (plot_limit_cone_arrow_length + plot_limit_cone_arrow_distance) * uv,
+                               orig + plot_limit_cone_arrow_distance * uv, color=color, arrowsize=3, zorder=10)
+    # default: 'sectors'
     if len(cone) == 0:
         p = point([orig], color=color, size=20, zorder=-1)
     elif len(cone) == 1:
