@@ -276,13 +276,16 @@ def generate_symbolic_continuous(function, components, field=None, f=None):
         logging.debug("Let v in R^%s.\nThe i-th entry of v represents the slope parameter on the i-th component of %s.\nSet up the symbolic function sym: [0,1] -> R^%s, so that pert(x) = sym(x) * v.\nThe symbolic function sym is %s." % (n, components, n, symbolic_function))
     return symbolic_function
 
-def generate_additivity_equations_continuous(function, symbolic, field, f=None, bkpt=None):
+def generate_additivity_equations_continuous(function, symbolic, field, f=None, bkpt=None,
+                                             reduce_system=None):
     if f is None:
         f = find_f(function)
     vs = list(generate_additive_vertices(function, bkpt=bkpt))
     equations = [symbolic(f), symbolic(field(1))]+[delta_pi(symbolic, x, y) for (x, y, z, xeps, yeps, zeps) in vs]
     M = matrix(field, equations)
-    if not logging.getLogger().isEnabledFor(logging.DEBUG):
+    if reduce_system is None:
+        reduce_system = logging.getLogger().isEnabledFor(logging.DEBUG)
+    if not reduce_system:
         return M
     pivot_r =  list(M.pivot_rows())
     for i in pivot_r:

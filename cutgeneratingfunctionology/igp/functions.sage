@@ -2974,11 +2974,35 @@ def generate_symbolic(fn, components, field=None, f=None):
     else:
         return generate_symbolic_general(fn, components, field=field, f=f)
 
-def generate_additivity_equations(fn, symbolic, field, f=None, bkpt=None):
+def generate_additivity_equations(fn, symbolic, field, f=None, bkpt=None,
+                                  reduce_system=None):
+    r"""
+    Using additivity, set up a finite-dimensional system of linear equations
+    that must be satisfied by any perturbation.
+
+    If ``reduce_system`` is True (then default when ``logging.DEBUG`` is enabled),
+    remove redundant equations to make the system minimal.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: h = hildebrand_discont_3_slope_1()
+        sage: components = generate_covered_intervals(h)
+        sage: symbolic = generate_symbolic(h, components, field=QQ)
+        sage: generate_additivity_equations(h, symbolic, field=QQ, reduce_system=False)
+        181 x 5 dense matrix ...
+        sage: generate_additivity_equations(h, symbolic, field=QQ, reduce_system=True)
+        [ 1/4  1/4    0    2    0]
+        [ 1/4  1/2  1/4    2    2]
+        [ 1/4  1/2  1/4    3    1]
+        [ 1/8 -1/8    0    1    0]
+        [   0  1/8 -1/8    2   -1]
+    """
     if fn.is_continuous() or fn.is_discrete():
-        return generate_additivity_equations_continuous(fn, symbolic, field, f=f, bkpt=bkpt)
+        return generate_additivity_equations_continuous(fn, symbolic, field, f=f, bkpt=bkpt, reduce_system=reduce_system)
     else:
-        return generate_additivity_equations_general(fn, symbolic, field, f=f, bkpt=bkpt)
+        return generate_additivity_equations_general(fn, symbolic, field, f=f, bkpt=bkpt, reduce_system=reduce_system)
 
 def rescale_to_amplitude(perturb, amplitude):
     r"""For plotting purposes, rescale the function perturb so that its

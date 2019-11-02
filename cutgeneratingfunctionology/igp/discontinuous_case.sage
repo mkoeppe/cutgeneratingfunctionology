@@ -239,7 +239,8 @@ def generate_symbolic_general(function, components, field=None, f=None):
         logging.debug("Let v in R^%s.\nThe i-th entry of v represents the slope parameter on the i-th component of %s if i<=%s, or the function value jump parameter at breakpoint if i>%s. (The symmetry condition is considered so as to reduce the number of jump parameters).\nSet up the symbolic function sym: [0,1] -> R^%s, so that pert(x) = sym(x) * v.\nThe symbolic function sym is %s." % (n + num_jumps, components, n, n, n + num_jumps,  symbolic_function))
     return symbolic_function
 
-def generate_additivity_equations_general(function, symbolic, field, f=None, bkpt=None):
+def generate_additivity_equations_general(function, symbolic, field, f=None, bkpt=None,
+                                          reduce_system=None):
     r"""
     Using additivity, set up a finite-dimensional system of linear equations
     that must be satisfied by any perturbation.
@@ -249,7 +250,9 @@ def generate_additivity_equations_general(function, symbolic, field, f=None, bkp
     vs = list(generate_additive_vertices(function, reduced = not function.is_two_sided_discontinuous(), bkpt=bkpt))
     equations = [symbolic(f), symbolic(field(1))]+[delta_pi_general(symbolic, x, y, (xeps, yeps, zeps)) for (x, y, z, xeps, yeps, zeps) in vs]
     M = matrix(field, equations)
-    if not logging.getLogger().isEnabledFor(logging.DEBUG):
+    if reduce_system is None:
+        reduce_system = logging.getLogger().isEnabledFor(logging.DEBUG)
+    if not reduce_system:
         return M
     pivot_r =  list(M.pivot_rows())
     for i in pivot_r:
