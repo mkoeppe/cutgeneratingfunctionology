@@ -51,6 +51,8 @@ def delta_pi(fn,x,y):
     """
     return fn(fractional(x))+fn(fractional(y))-fn(fractional(x+y))
 
+plot_2d_complex_discontinuous_kwds = plot_2d_complex_continuous_kwds = {'color': 'grey'}
+
 def plot_2d_complex(function, continuous_plot_kwds=None, discontinuous_plot_kwds=None):
     r"""
     Returns a plot of the horizontal lines, vertical lines, and diagonal lines of the complex.
@@ -62,9 +64,9 @@ def plot_2d_complex(function, continuous_plot_kwds=None, discontinuous_plot_kwds
     kwd['legend_label'] = "Complex Delta P"
     
     if continuous_plot_kwds is None:
-        continuous_plot_kwds = {'color': 'grey'}
+        continuous_plot_kwds = plot_2d_complex_continuous_kwds
     if discontinuous_plot_kwds is None:
-        discontinuous_plot_kwds = {'color': 'grey'}
+        discontinuous_plot_kwds = plot_2d_complex_discontinuous_kwds
     continuous_plot_kwds.update(kwd)
     discontinuous_plot_kwds.update(kwd)
     plot_kwds_hook(continuous_plot_kwds)
@@ -623,6 +625,8 @@ def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, 
         g += plot_function_at_borders(fn, color=function_color)
     return g
 
+plot_function_at_borders_kwds = {}
+
 def plot_function_at_borders(fn, color='blue', legend_label="Function pi", covered_components=None, **kwds):
     r"""
     Plot the function twice, on the upper and the left border, 
@@ -633,6 +637,7 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", cover
     limits = fn.limits_at_end_points()
     if not covered_components is None:
         color = 'black'
+    kwds.update(plot_function_at_borders_kwds)
     if limits[0][0] is not None and limits[0][0] != limits[0][1]:
         p += point([(0,1), (0,0)], color=color, size = 23, zorder=-1)
     for i in range(len(bkpt) - 1):
@@ -4815,7 +4820,7 @@ def generate_directly_covered_components(fn):
 generate_directly_covered_intervals = generate_directly_covered_components
 
 @cached_function
-def generate_directed_move_composition_completion(fn, show_plots=False, max_num_rounds=None, error_if_max_num_rounds_exceeded=True):
+def generate_directed_move_composition_completion(fn, show_plots=False, max_num_rounds=None, error_if_max_num_rounds_exceeded=True, plot_background=None):
     completion = getattr(fn, "_completion", None)
     if completion is None:
         functional_directed_moves = generate_functional_directed_moves(fn)
@@ -4826,10 +4831,9 @@ def generate_directed_move_composition_completion(fn, show_plots=False, max_num_
         else:
             covered_components = generate_directly_covered_components(fn)
         proj_add_vert = projections_of_additive_vertices(fn)
-        if show_plots:
-            plot_background = plot_completion_diagram_background(fn)
-        else:
-            plot_background = None
+        if plot_background is None:
+            if show_plots:
+                plot_background = plot_completion_diagram_background(fn)
         completion = fn._completion = DirectedMoveCompositionCompletion(functional_directed_moves,
                                                                         covered_components = covered_components,
                                                                         proj_add_vert = proj_add_vert,
