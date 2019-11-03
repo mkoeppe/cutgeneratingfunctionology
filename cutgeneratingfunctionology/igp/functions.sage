@@ -4232,13 +4232,15 @@ def is_QQ_linearly_independent(*numbers):
         return True
     elif len(numbers) == 1:
         return bool(numbers[0] != 0)
-    if is_parametric_element(numbers[0]):
-        is_independent = is_QQ_linearly_independent(*(x.val() for x in numbers))
-        #numbers[0].parent().record_independence_of_pair(numbers, is_independent)
-        return is_independent
     # fast path for rationals
     if is_all_QQ_fastpath(numbers):
         return False
+    # param
+    if any(is_parametric_element(x) for x in numbers):
+        field = None
+        is_independent = is_QQ_linearly_independent(*(result_concrete_value(field, numbers)))
+        #numbers[0].parent().record_independence_of_pair(numbers, is_independent)
+        return is_independent
     if not is_all_the_same_number_field_fastpath(numbers):
         # try to coerce to common number field
         numbers = nice_field_values(numbers, RealNumberField)
