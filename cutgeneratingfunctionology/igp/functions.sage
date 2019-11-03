@@ -3053,7 +3053,7 @@ def generate_symbolic(fn, components=None, field=None, f=None, show_plots=False)
     else:
         return generate_symbolic_general(fn, components, field=field, f=f)
 
-def plot_symbolic(sym, as_array=True, color='magenta', **kwds):
+def plot_symbolic(sym, indices=None, as_array=True, color='magenta', **kwds):
     """
     EXAMPLES:
 
@@ -3064,14 +3064,14 @@ def plot_symbolic(sym, as_array=True, color='magenta', **kwds):
         sage: logging.disable(logging.INFO)
         sage: h = not_extreme_1()
         sage: sym = generate_symbolic(h)
-        sage: plot_symbolic(sym, True, thickness=2, **ticks_keywords(h)).show(figsize=11)  # not tested
+        sage: plot_symbolic(sym, thickness=2, **ticks_keywords(h)).show(figsize=(6, 6))  # not tested
 
     Basis functions for the one-sided discontinuous case.  The first three are slopes,
     the last two are jumps.  Again they are monotonically increasing::
 
         sage: h = hildebrand_discont_3_slope_1()
         sage: sym = generate_symbolic(h)
-        sage: plot_symbolic(sym, True, thickness=2, **ticks_keywords(h)).show(figsize=11)  # not tested
+        sage: plot_symbolic(sym, thickness=2, **ticks_keywords(h)).show(figsize=(6, 6))  # not tested
 
     Basis functions for the two-sided discontinuous case.  Here we cannot assume continuity at any
     uncovered breakpoint, so nothing is gained by making them increasing functions.  Instead we choose
@@ -3079,17 +3079,21 @@ def plot_symbolic(sym, as_array=True, color='magenta', **kwds):
 
         sage: h = minimal_no_covered_interval()
         sage: sym = generate_symbolic(h)
-        sage: plot_symbolic(sym, True, thickness=2, **ticks_keywords(h)).show(figsize=11)  # not tested
+        sage: plot_symbolic(sym, thickness=2, **ticks_keywords(h)).show(figsize=(6, 6))  # not tested
 
     """
     space = sym(0).parent()
+    if indices is None:
+        indices = range(space.dimension())
+    legends = [ 'basis function {}'.format(i) for i in indices ]
+    vectors = [ space.gen(i) for i in indices ]
     if as_array:
-        plots = [ (v * sym).plot(color=color, legend_label='basis function {}'.format(i), **kwds)
-                  for i, v in enumerate(space.basis()) ]
+        plots = [ (v * sym).plot(color=color, legend_label=legend, **kwds)
+                  for legend, v in zip(legends, vectors) ]
         return graphics_array(plots, ncols=1)
     else:
-        plots = [ (v * sym).plot(color=color, legend_label='basis function {}'.format(i), **kwds)
-                  for (i, v), color in zip(enumerate(space.basis()), rainbow(space.dimension())) ]
+        plots = [ (v * sym).plot(color=color, legend_label=legend, **kwds)
+                  for legend, v, color in zip(legends, vectors, rainbow(len(vectors))) ]
         return sum(plots)
 
 def generate_additivity_equations(fn, symbolic, field=None, f=None, bkpt=None,
