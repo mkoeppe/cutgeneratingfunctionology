@@ -3011,6 +3011,20 @@ def plot_walk(walk_dict, color="black", ymin=0, ymax=1, **kwds):
         delete_one_time_plot_kwds(kwds)
     return g
 
+def generate_all_components(fn, show_plots=False):
+    fdms, covered_components = generate_directed_move_composition_completion(fn, show_plots=show_plots)
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+        logging.debug("The covered components are %s." % (covered_components))
+    uncovered_intervals = generate_uncovered_intervals(fn)
+    if uncovered_intervals:
+        uncovered_components = generate_uncovered_components(fn, show_plots=show_plots)
+        if logging.getLogger().isEnabledFor(logging.DEBUG):
+            logging.debug("The uncovered components are %s." % (uncovered_components))
+        components = covered_components + uncovered_components
+    else:
+        components = copy(covered_components)
+    return components
+
 def generate_symbolic(fn, components=None, field=None, f=None, show_plots=False):
     r"""
     EXAMPLES::
@@ -3033,17 +3047,7 @@ def generate_symbolic(fn, components=None, field=None, f=None, show_plots=False)
     if field is None:
         field = fn(0).parent().fraction_field()
     if components is None:
-        fdms, covered_components = generate_directed_move_composition_completion(fn, show_plots=show_plots)
-        if logging.getLogger().isEnabledFor(logging.DEBUG):
-            logging.debug("The covered components are %s." % (covered_components))
-        uncovered_intervals = generate_uncovered_intervals(fn)
-        if uncovered_intervals:
-            uncovered_components = generate_uncovered_components(fn, show_plots=show_plots)
-            if logging.getLogger().isEnabledFor(logging.DEBUG):
-                logging.debug("The uncovered components are %s." % (uncovered_components))
-            components = covered_components + uncovered_components
-        else:
-            components = copy(covered_components)
+        components = generate_all_components(fn)
     if fn.is_continuous() or fn.is_discrete():
         return generate_symbolic_continuous(fn, components, field=field, f=f)
     else:
