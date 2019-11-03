@@ -343,16 +343,27 @@ def generate_symbolic_general(function, components, field=None, f=None):
     return symbolic_function
 
 def generate_additivity_equations_general(function, symbolic, field, f=None, bkpt=None,
-                                          reduce_system=None, return_vertices=False):
+                                          reduce_system=None, return_vertices=False,
+                                          undefined_ok=False):
     r"""
     Using additivity, set up a finite-dimensional system of linear equations
     that must be satisfied by any perturbation.
     """
-    if f is None:
-        f = find_f(function)
     vs = list(generate_additive_vertices(function, reduced = not function.is_two_sided_discontinuous(), bkpt=bkpt))
-    equations = [symbolic(f), symbolic(field(1))]+[delta_pi_general(symbolic, x, y, (xeps, yeps, zeps)) for (x, y, z, xeps, yeps, zeps) in vs]
-    vs = ['f', '1'] + vs
+    def generate_labeled_equations():
+        yield 'f', symbolic(f)
+        yield '1', symbolic(field(1))
+        for (x, y, z, xeps, yeps, zeps) in vs:
+            try:
+                deltafn = delta_pi_general(symbolic, x, y, (xeps, yeps, zeps))
+            except ValueError:
+                if undefined_ok:
+                    pass
+                else:
+                    raise
+            yield (x, y, z, xeps, yeps, zeps), deltafn
+
+    vs, equations = zip(*generate_labeled_equations())
     M = matrix(field, equations)
     if reduce_system is None:
         reduce_system = logging.getLogger().isEnabledFor(logging.DEBUG)

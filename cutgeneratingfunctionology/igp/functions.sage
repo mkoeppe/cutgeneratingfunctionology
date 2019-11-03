@@ -3097,7 +3097,7 @@ def plot_symbolic(sym, indices=None, as_array=True, color='magenta', **kwds):
         return sum(plots)
 
 def generate_additivity_equations(fn, symbolic, field=None, f=None, bkpt=None,
-                                  reduce_system=None, return_vertices=False):
+                                  reduce_system=None, return_vertices=False, **args):
     r"""
     Using additivity, set up a finite-dimensional system of linear equations
     that must be satisfied by any perturbation.
@@ -3127,15 +3127,33 @@ def generate_additivity_equations(fn, symbolic, field=None, f=None, bkpt=None,
         sage: M, vs = generate_additivity_equations(h, symbolic, field=QQ, reduce_system=True, return_vertices=True)
         sage: vs
         ['f', '1', (0, 1/8, 1/8, -1, 0, -1), (1/8, 1/8, 1/4, 0, 0, 0), (3/8, 3/8, 3/4, 1, 1, 1)]
+
+    For two-sided discontinuous functions we use a different basis, in which we see
+    the structure of the subadditivity constraints::
+
+        sage: h = hildebrand_2_sided_discont_2_slope_1()
+        sage: symbolic = generate_symbolic(h)
+        sage: M, vs = generate_additivity_equations(h, symbolic, reduce_system=True, return_vertices=True)
+        sage: for row, v in zip(M, vs): print("Additive vertex {:30}  {}".format(v, row))
+        Additive vertex (0, 1/8, 1/8, -1, 1, 0)         (0, 0, 0, -1, 1, -1, 0, 0)
+        Additive vertex (0, 1/8, 1/8, 1, -1, 0)         (0, 0, 2, -1, 0, 0, 0, 0)
+        Additive vertex (0, 5/8, 5/8, -1, 0, -1)        (0, 0, 0, 0, 0, -2, 1, 0)
+        Additive vertex (0, 5/8, 5/8, 1, 0, 1)          (0, 0, 1, 0, 0, 0, 1, -1)
+        Additive vertex (1/8, 1/8, 1/4, -1, 1, 0)       (-1/16, 1/16, 1, 0, 1, 0, 0, 0)
+        Additive vertex (1/8, 1/8, 1/4, -1, 1, 1)       (0, 1/16, 1, 0, 2, 0, 0, 0)
+        Additive vertex (1/8, 1/8, 1/4, -1, -1, -1)     (-1/16, 1/8, 2, 0, -1, 0, 0, 0)
+        Additive vertex (1/8, 5/8, 3/4, 1, 0, 1)        (-1/16, 1/16, 0, 0, 1, 0, 1, 1)
     """
     if field is None:
         field = fn(0).parent().fraction_field()
+    if f is None:
+        f = find_f(fn)
     if fn.is_continuous() or fn.is_discrete():
         return generate_additivity_equations_continuous(fn, symbolic, field, f=f, bkpt=bkpt,
-                                                        reduce_system=reduce_system, return_vertices=return_vertices)
+                                                        reduce_system=reduce_system, return_vertices=return_vertices, **args)
     else:
         return generate_additivity_equations_general(fn, symbolic, field, f=f, bkpt=bkpt,
-                                                     reduce_system=reduce_system, return_vertices=return_vertices)
+                                                     reduce_system=reduce_system, return_vertices=return_vertices, **args)
 
 def rescale_to_amplitude(perturb, amplitude):
     r"""For plotting purposes, rescale the function perturb so that its
