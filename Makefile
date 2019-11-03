@@ -63,12 +63,14 @@ all:
 install:
 	@echo "No need to install anything. Just run it in Sage; see README.rst"
 
+CHECK_PARALLEL=4
+
 check: check-encoding
-	PYTHONPATH=`pwd` $(SAGE) -tp 4 --force_lib $(SAGEFILES)
+	PYTHONPATH=`pwd` $(SAGE) -tp $(CHECK_PARALLEL) --force_lib $(SAGEFILES)
 
 check-long: check-encoding
 	cp .check-long-timings.json .tmp_check-long-timings.json
-	PYTHONPATH=`pwd` $(SAGE) -tp 4 --force_lib --long --stats-path .tmp_check-long-timings.json $(SAGE_CHECK_FLAGS) $(SAGEFILES)
+	PYTHONPATH=`pwd` $(SAGE) -tp $(CHECK_PARALLEL) --force_lib --long --stats-path .tmp_check-long-timings.json $(SAGE_CHECK_FLAGS) $(SAGEFILES)
 	rm .tmp_check-long-timings.json
 
 check-encoding:
