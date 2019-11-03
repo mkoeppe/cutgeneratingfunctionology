@@ -240,8 +240,6 @@ def generate_symbolic_general(function, components, field=None, f=None):
     #intervals in components are coho intervals.
     #was: intervals_and_slopes.sort()
     intervals_and_slopes.sort(key=lambda i_s: coho_interval_left_endpoint_with_epsilon(i_s[0]))
-    bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
-    limits = [function.limits(x) for x in bkpt]
 
     if function.is_two_sided_discontinuous():
         # Use slopes and values at midpoints of intervals (including singletons).
@@ -268,14 +266,17 @@ def generate_symbolic_general(function, components, field=None, f=None):
                 midpoint_value_dict[reflection(interval)] = [(j_box[0], -1)]
                 j_box[0] += 1
             return midpoint_value_dict[interval]
-        for i, (interval, slope) in enumerate(intervals_and_slopes):
-            a = bkpt[i]
-            b = bkpt[i+1]
+        for interval, slope in intervals_and_slopes:
+            a = interval[0]
+            b = interval[1]
             assert a < b   # no singletons in components.
             midpoint_value_lincomb(a, a)   # allocates
             midpoint_value_lincomb(a, b)   # allocates
+            midpoint_value_lincomb(b, b)   # allocates
         dimension = j_box[0]
     else:
+        bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
+        limits = [function.limits(x) for x in bkpt]
         num_jumps = sum([x[0] != x[1] for x in limits[0:-1]])
         dimension = n + num_jumps
         num_left_jumps = sum([(function.limit(x,-1) != function(x)) for x in bkpt if x > 0 and x <= f/2]) + \
@@ -283,32 +284,38 @@ def generate_symbolic_general(function, components, field=None, f=None):
 
     #import pdb; pdb.set_trace()
     vector_space = VectorSpace(field, dimension)
-    unit_vectors = vector_space.basis()
-    slopes = [ unit_vectors[slope] for interval, slope in intervals_and_slopes ]
-    m = len(slopes)
     pieces = []
 
     if function.is_two_sided_discontinuous():
-        # Now we have the space
+        # Now we have the space.
         def midpoint_value(a, b):
             return vector_space.sum_of_terms(midpoint_value_lincomb(a, b))
-        for i in range(m):
-            a = bkpt[i]
-            b = bkpt[i+1]
+        def slope(slope_index):
+            return vector_space.gen(slope_index)
+        last_x = None
+        for interval, slope_index in intervals_and_slopes:
+            a = interval[0]
+            b = interval[1]
             assert a < b   # no singletons in components.
-            pieces.append((singleton_interval(a),
-                           FastLinearFunction(vector_space.zero(),
-                                              midpoint_value(a, a))))
+            if last_x is None or last_x < a:
+                pieces.append((singleton_interval(a),
+                               FastLinearFunction(vector_space.zero(), midpoint_value(a, a))))
             midpoint = (a + b) / 2
             # the function is: slope * (x - midpoint) + value_at_midpoint = slope * x + value_at_midpoint - slope * midpoint.
             pieces.append((open_interval(a, b),
-                           FastLinearFunction(slopes[i], midpoint_value(a, b) - slopes[i] * midpoint)))
-        pieces.append((singleton_interval(1), FastLinearFunction(vector_space.zero(), midpoint_value(0, 0))))
+                           FastLinearFunction(slope(slope_index),
+                                              midpoint_value(a, b) - slope(slope_index) * midpoint)))
+            pieces.append((singleton_interval(b),
+                           FastLinearFunction(vector_space.zero(), midpoint_value(b, b))))
+            last_x = b
         # FIXME: Add logging.debug with details on the variables.
     else:
         # Use slopes and jumps from left to right.
         # This uses known continuity to reduce the number of variables.
         # Warning: These basis functions are monotonically increasing and therefore NOT periodic.
+        unit_vectors = vector_space.basis()
+        slopes = [ unit_vectors[slope] for interval, slope in intervals_and_slopes ]
+        m = len(slopes)
         jumps = unit_vectors[n:]
         jump_vectors = jumps[0:num_left_jumps:] + jumps[num_left_jumps-1::-1] + jumps[num_left_jumps::] + jumps[:num_left_jumps-1:-1]
         assert len(jump_vectors) == 2 * num_jumps
