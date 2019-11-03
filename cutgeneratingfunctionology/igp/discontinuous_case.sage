@@ -251,7 +251,7 @@ def generate_symbolic_general(function, components, field=None, f=None):
         # Because in the two-sided discontinuous case we have jumps at every breakpoint,
         # there are no relations from continuity. 
         # In this basis, additivities are expressible with equations of small support.
-        j_box = [n]
+        j_box = [0]
         # Dictionary mapping an interval (a, b) to a list of pairs "(index, coeff)"
         # suitable for VectorSpace.sum_of_terms.
         midpoint_value_dict = { (x, x): []                        # Already fixed by symmetry
@@ -278,6 +278,11 @@ def generate_symbolic_general(function, components, field=None, f=None):
             midpoint_value_lincomb(a, a)   # allocates
             midpoint_value_lincomb(a, b)   # allocates
             midpoint_value_lincomb(b, b)   # allocates
+        slope_dict = {}
+        # Put slopes at the end.  They are dense columns.
+        for slope_index in range(n):
+            slope_dict[slope_index] = [(j_box[0], 1)]
+            j_box[0] += 1
         dimension = j_box[0]
     else:
         bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
@@ -296,7 +301,7 @@ def generate_symbolic_general(function, components, field=None, f=None):
         def midpoint_value(a, b):
             return vector_space.sum_of_terms(midpoint_value_lincomb(a, b))
         def slope(slope_index):
-            return vector_space.gen(slope_index)
+            return vector_space.sum_of_terms(slope_dict[slope_index])
         last_x = None
         for interval, slope_index in intervals_and_slopes:
             a = interval[0]
