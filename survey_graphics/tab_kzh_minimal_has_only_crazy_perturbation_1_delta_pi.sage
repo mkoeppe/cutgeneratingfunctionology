@@ -93,7 +93,7 @@ def tabulate_delta_pi(faces, dimension):
             # would otherwise be taken as a latex optional argument for the preceding command!
             s += ['{}  ' + ' & '.join([ format_interval_markup_special(I) for I in triple ]
                                     + [ latex(number_of_projections_intersecting(F, h.special_intervals)) ]
-                                    + [format_symbolic_slack(delta_pi_of_face(h, x, y, F).sym())]
+                                    + [format_symbolic_slack(delta_pi_of_face_symbolic(h, x, y, F).sym())]
                                     + [ format_slack(slack) for slack in slacks ])
                     + r'\\']
 
