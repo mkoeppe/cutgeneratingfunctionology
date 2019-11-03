@@ -226,7 +226,9 @@ def plot_2d_additive_limit_vertices(fn):
         p += point([(0,0)], color = "white", size = 50, zorder=-9)
     return p
 
-def generate_symbolic_general(function, components, field=None, f=None):
+generate_symbolic_two_sided_discontinuous_basis_functions = ('midpoints', 'slopes')
+
+def generate_symbolic_general(function, components, field=None, f=None, basis_functions=None):
     r"""
     Construct a vector-space-valued piecewise linear function
     compatible with the given function.  

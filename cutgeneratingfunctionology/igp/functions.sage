@@ -3630,6 +3630,8 @@ def perturbation_polyhedron(fn, perturbs, **kwds):
     The following function is 2-sided discontinous at the origin::
 
         sage: h = zhou_two_sided_discontinuous_cannot_assume_any_continuity()
+        sage: import cutgeneratingfunctionology.igp as igp
+        sage: igp.generate_symbolic_two_sided_discontinuous_basis_functions = ('slopes', 'jumps')   # Restore classic behavior
         sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
         False
         sage: perturbs = h._perturbations
