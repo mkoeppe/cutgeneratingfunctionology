@@ -351,6 +351,7 @@ def generate_symbolic_general(function, components, field=None, f=None, basis_fu
             logging.debug("Let v in R^%s.\nThe i-th entry of v represents the slope parameter on the i-th component of %s if i<=%s, or the function value jump parameter at breakpoint if i>%s. (The symmetry condition is considered so as to reduce the number of jump parameters).\n" % (n + num_jumps, components, n, n))
 
     symbolic_function = FastPiecewise(pieces, merge=True)
+    symbolic_function.basis = basis
     if logging.getLogger().isEnabledFor(logging.DEBUG):
         logging.debug("Set up the symbolic function sym: [0,1] -> R^%s, so that pert(x) = sym(x) * v.\nThe symbolic function sym is %s." % (dimension, symbolic_function))
     return symbolic_function
