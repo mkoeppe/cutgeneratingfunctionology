@@ -91,9 +91,9 @@ save_graphics(g, '2d_crazy_nf_with_func')
 
 #g = plot_2d_diagram(h, colorful=True, show_projections=False)
 g = plot_2d_diagram_additive_domain_sans_limits(h, show_function=False) + plot_2d_diagram_with_cones(h, show_function=False) + g_at_borders
-components = generate_covered_intervals(h)
+components = generate_covered_intervals(h)[:2]
 symbolic = generate_symbolic(h, components)
-M, vs = generate_additivity_equations(h, symbolic, reduce_system=True, return_vertices=True)
+M, vs = generate_additivity_equations(h, symbolic, reduce_system=True, return_vertices=True, undefined_ok=True)
 vs = [ v for v in vs if isinstance(v, tuple) ]   # omit special labels 'f', '1'
 g += sum(plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), color='black') for (x, y, z, xeps, yeps, zeps) in vs)
 save_graphics(g, 'kzh_crazy_2d_with_func')
