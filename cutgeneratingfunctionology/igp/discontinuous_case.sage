@@ -242,55 +242,69 @@ def generate_symbolic_general(function, components, field=None, f=None):
     intervals_and_slopes.sort(key=lambda i_s: coho_interval_left_endpoint_with_epsilon(i_s[0]))
     bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
     limits = [function.limits(x) for x in bkpt]
-    if function.is_two_sided_discontinuous():
-        num_jumps = len(bkpt) - 1
-        num_left_jumps = bkpt.index(f)   # this is assuming the interval right of f is in a component.
-    else:
-        num_jumps = sum([x[0] != x[1] for x in limits[0:-1]])
-        num_left_jumps = sum([(function.limit(x,-1) != function(x)) for x in bkpt if x > 0 and x <= f/2]) + \
-                         sum([(function.limit(x,1) != function(x)) for x in bkpt if x < f/2])
 
-    vector_space = VectorSpace(field, n + num_jumps)
-    unit_vectors = vector_space.basis()
-    slopes = [ unit_vectors[slope] for interval, slope in intervals_and_slopes ]
-    m = len(slopes)
-    pieces = []
     if function.is_two_sided_discontinuous():
         # Use slopes and values at midpoints of intervals (including singletons).
         # Because in the two-sided discontinuous case we have jumps at every breakpoint,
         # there are no relations from continuity. 
         # In this basis, additivities are expressible with equations of small support.
-        num_jumps -= 2
         j_box = [n]
-        midpoint_value_dict = { (x, x): vector_space.zero()        # Already fixed by symmetry
+        # Dictionary mapping an interval (a, b) to a list of pairs "(index, coeff)"
+        # suitable for VectorSpace.sum_of_terms.
+        midpoint_value_dict = { (x, x): []                        # Already fixed by symmetry
                                 for x in [0, f/2, f, (1+f)/2, 1] }
-        def midpoint_value(a, b):
-            "Allocate a variable to be the midpoint value on the interval."
-            interval = (a, b)
-            if interval in midpoint_value_dict:
-                return midpoint_value_dict[interval]
-            v = unit_vectors[j_box[0]]
-            j_box[0] += 1
-            midpoint_value_dict[interval] = v
+        def reflection(interval):
             if interval[0] == interval[1]:
                 a = fractional(f - interval[0])
-                reflection = (a, a)
+                return (a, a)
             else:
-                reflection = tuple(interval_mod_1([f - interval[1], f - interval[0]]))
-            midpoint_value_dict[reflection] = -v
-            return v
+                return tuple(interval_mod_1([f - interval[1], f - interval[0]]))
+        def midpoint_value_lincomb(a, b):
+            "Allocate a variable to be the midpoint value on the interval."
+            interval = (a, b)
+            if interval not in midpoint_value_dict:
+                v = [(j_box[0], 1)]     # (index, coefficient)
+                midpoint_value_dict[interval] = v
+                midpoint_value_dict[reflection(interval)] = [(j_box[0], -1)]
+                j_box[0] += 1
+            return midpoint_value_dict[interval]
+        for i, (interval, slope) in enumerate(intervals_and_slopes):
+            a = bkpt[i]
+            b = bkpt[i+1]
+            assert a < b   # no singletons in components.
+            midpoint_value_lincomb(a, a)   # allocates
+            midpoint_value_lincomb(a, b)   # allocates
+        dimension = j_box[0]
+    else:
+        num_jumps = sum([x[0] != x[1] for x in limits[0:-1]])
+        dimension = n + num_jumps
+        num_left_jumps = sum([(function.limit(x,-1) != function(x)) for x in bkpt if x > 0 and x <= f/2]) + \
+                         sum([(function.limit(x,1) != function(x)) for x in bkpt if x < f/2])
+
+    #import pdb; pdb.set_trace()
+    vector_space = VectorSpace(field, dimension)
+    unit_vectors = vector_space.basis()
+    slopes = [ unit_vectors[slope] for interval, slope in intervals_and_slopes ]
+    m = len(slopes)
+    pieces = []
+
+    if function.is_two_sided_discontinuous():
+        # Now we have the space
+        def midpoint_value(a, b):
+            return vector_space.sum_of_terms(midpoint_value_lincomb(a, b))
         for i in range(m):
             a = bkpt[i]
             b = bkpt[i+1]
             assert a < b   # no singletons in components.
             pieces.append((singleton_interval(a),
-                           FastLinearFunction(vector_space.zero(), midpoint_value(a, a))))
+                           FastLinearFunction(vector_space.zero(),
+                                              midpoint_value(a, a))))
             midpoint = (a + b) / 2
             # the function is: slope * (x - midpoint) + value_at_midpoint = slope * x + value_at_midpoint - slope * midpoint.
             pieces.append((open_interval(a, b),
                            FastLinearFunction(slopes[i], midpoint_value(a, b) - slopes[i] * midpoint)))
         pieces.append((singleton_interval(1), FastLinearFunction(vector_space.zero(), midpoint_value(0, 0))))
-        assert j_box[0] == vector_space.dimension()
+        # FIXME: Add logging.debug with details on the variables.
     else:
         # Use slopes and jumps from left to right.
         # This uses known continuity to reduce the number of variables.
@@ -313,9 +327,12 @@ def generate_symbolic_general(function, components, field=None, f=None):
                 j += 1
         assert j == 2 * num_jumps
         pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, current_value)])
+        if logging.getLogger().isEnabledFor(logging.DEBUG):
+            logging.debug("Let v in R^%s.\nThe i-th entry of v represents the slope parameter on the i-th component of %s if i<=%s, or the function value jump parameter at breakpoint if i>%s. (The symmetry condition is considered so as to reduce the number of jump parameters).\n" % (n + num_jumps, components, n, n))
+
     symbolic_function = FastPiecewise(pieces, merge=True)
     if logging.getLogger().isEnabledFor(logging.DEBUG):
-        logging.debug("Let v in R^%s.\nThe i-th entry of v represents the slope parameter on the i-th component of %s if i<=%s, or the function value jump parameter at breakpoint if i>%s. (The symmetry condition is considered so as to reduce the number of jump parameters).\nSet up the symbolic function sym: [0,1] -> R^%s, so that pert(x) = sym(x) * v.\nThe symbolic function sym is %s." % (n + num_jumps, components, n, n, n + num_jumps,  symbolic_function))
+        logging.debug("Set up the symbolic function sym: [0,1] -> R^%s, so that pert(x) = sym(x) * v.\nThe symbolic function sym is %s." % (dimension, symbolic_function))
     return symbolic_function
 
 def generate_additivity_equations_general(function, symbolic, field, f=None, bkpt=None,

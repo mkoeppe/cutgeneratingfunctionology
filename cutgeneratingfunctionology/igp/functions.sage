@@ -3049,7 +3049,7 @@ def generate_symbolic(fn, components=None, field=None, f=None, show_plots=False)
     else:
         return generate_symbolic_general(fn, components, field=field, f=f)
 
-def plot_symbolic(sym, as_array=True, **kwds):
+def plot_symbolic(sym, as_array=True, color='magenta', **kwds):
     """
     EXAMPLES:
 
@@ -3079,11 +3079,13 @@ def plot_symbolic(sym, as_array=True, **kwds):
 
     """
     space = sym(0).parent()
-    plots = [ (v * sym).plot(color=color, legend_label='basis function {}'.format(i), **kwds)
-               for (i, v), color in zip(enumerate(space.basis()), rainbow(space.dimension())) ]
     if as_array:
+        plots = [ (v * sym).plot(color=color, legend_label='basis function {}'.format(i), **kwds)
+                  for i, v in enumerate(space.basis()) ]
         return graphics_array(plots, ncols=1)
     else:
+        plots = [ (v * sym).plot(color=color, legend_label='basis function {}'.format(i), **kwds)
+                  for (i, v), color in zip(enumerate(space.basis()), rainbow(space.dimension())) ]
         return sum(plots)
 
 def generate_additivity_equations(fn, symbolic, field=None, f=None, bkpt=None,
