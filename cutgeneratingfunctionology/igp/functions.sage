@@ -3011,7 +3011,7 @@ def plot_walk(walk_dict, color="black", ymin=0, ymax=1, **kwds):
         delete_one_time_plot_kwds(kwds)
     return g
 
-def generate_symbolic(fn, components, field=None, f=None):
+def generate_symbolic(fn, components=None, field=None, f=None, show_plots=False):
     r"""
     EXAMPLES::
 
@@ -3032,10 +3032,59 @@ def generate_symbolic(fn, components, field=None, f=None):
     """
     if field is None:
         field = fn(0).parent().fraction_field()
+    if components is None:
+        fdms, covered_components = generate_directed_move_composition_completion(fn, show_plots=show_plots)
+        if logging.getLogger().isEnabledFor(logging.DEBUG):
+            logging.debug("The covered components are %s." % (covered_components))
+        uncovered_intervals = generate_uncovered_intervals(fn)
+        if uncovered_intervals:
+            uncovered_components = generate_uncovered_components(fn, show_plots=show_plots)
+            if logging.getLogger().isEnabledFor(logging.DEBUG):
+                logging.debug("The uncovered components are %s." % (uncovered_components))
+            components = covered_components + uncovered_components
+        else:
+            components = copy(covered_components)
     if fn.is_continuous() or fn.is_discrete():
         return generate_symbolic_continuous(fn, components, field=field, f=f)
     else:
         return generate_symbolic_general(fn, components, field=field, f=f)
+
+def plot_symbolic(sym, as_array=True, **kwds):
+    """
+    EXAMPLES:
+
+    Basis functions for the continuous case.  Note that they are monotonically increasing
+    and therefore not periodic functions::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: h = not_extreme_1()
+        sage: sym = generate_symbolic(h)
+        sage: plot_symbolic(sym, True, thickness=2, **ticks_keywords(h)).show(figsize=11)  # not tested
+
+    Basis functions for the one-sided discontinuous case.  The first three are slopes,
+    the last two are jumps.  Again they are monotonically increasing::
+
+        sage: h = hildebrand_discont_3_slope_1()
+        sage: sym = generate_symbolic(h)
+        sage: plot_symbolic(sym, True, thickness=2, **ticks_keywords(h)).show(figsize=11)  # not tested
+
+    Basis functions for the two-sided discontinuous case.  Here we cannot assume continuity at any
+    uncovered breakpoint, so nothing is gained by making them increasing functions.  Instead we choose
+    them as local on the components (and therefore periodic)::
+
+        sage: h = minimal_no_covered_interval()
+        sage: sym = generate_symbolic(h)
+        sage: plot_symbolic(sym, True, thickness=2, **ticks_keywords(h)).show(figsize=11)  # not tested
+
+    """
+    space = sym(0).parent()
+    plots = [ (v * sym).plot(color=color, legend_label='basis function {}'.format(i), **kwds)
+               for (i, v), color in zip(enumerate(space.basis()), rainbow(space.dimension())) ]
+    if as_array:
+        return graphics_array(plots, ncols=1)
+    else:
+        return sum(plots)
 
 def generate_additivity_equations(fn, symbolic, field=None, f=None, bkpt=None,
                                   reduce_system=None, return_vertices=False):
@@ -3200,24 +3249,13 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
     r"""
     Generate (with ``yield``) perturbations for ``finite_dimensional_extremality_test``.
     """
-    fdms, covered_components = generate_directed_move_composition_completion(function, show_plots=show_plots)
-    if logging.getLogger().isEnabledFor(logging.DEBUG):
-        logging.debug("The covered components are %s." % (covered_components))
-    uncovered_intervals = generate_uncovered_intervals(function)
-    if uncovered_intervals:
-        uncovered_components = generate_uncovered_components(function, show_plots=show_plots)
-        if logging.getLogger().isEnabledFor(logging.DEBUG):
-            logging.debug("The uncovered components are %s." % (uncovered_components))
-        components = covered_components + uncovered_components
-    else:
-        components = copy(covered_components)
     # FIXME: fraction_field() required because parent could be Integer
     # Ring.  This happens, for example, for three_slope_limit().  
     # We really should have a function to retrieve the field of
     # a FastPiecewise.  But now even .base_ring() fails because
     # FastLinearFunction does not have a .base_ring() method.
     field = function(0).parent().fraction_field()
-    symbolic = generate_symbolic(function, components, field=field, f=f)
+    symbolic = generate_symbolic(function, field=field, f=f, show_plots=show_plots)
     bkpt = merge_bkpt(function.end_points(), symbolic.end_points())
     equation_matrix = generate_additivity_equations(function, symbolic, field, f=f, bkpt=bkpt)
     if logging.getLogger().isEnabledFor(logging.DEBUG):
