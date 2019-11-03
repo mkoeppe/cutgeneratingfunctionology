@@ -23,7 +23,7 @@ dic_eps_to_cone = { (-1,-1,-1): [(-1, 0), (0, -1)], \
                   }
 
 def generate_type_1_vertices_general(fn, comparison, reduced=True, bkpt=None):
-    r"""A generator of vertieces.
+    r"""A generator of vertices.
 
     ``..._general`` refers to the fact that it outputs 6-tuples (x,y,z,xeps,yeps,zeps).
     

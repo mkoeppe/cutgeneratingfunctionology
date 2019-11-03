@@ -280,7 +280,7 @@ def generate_all_faces(fn):
     zero_fn = FastPiecewise([(I, FastLinearFunction(0, 0)) for I, f in fn.list()], merge=False)
     return generate_maximal_additive_faces_general(zero_fn)
 
-def generate_intervals_and_two_sided_discontinuous_breakpoints(function):
+def generate_intervals_and_two_sided_discontinuous_breakpoints(function, reduced=True):
     """
     EXAMPLES::
 
@@ -298,7 +298,7 @@ def generate_intervals_and_two_sided_discontinuous_breakpoints(function):
         l = function.limits(bkpt[i])
         left_continuous = l[-1] is None or l[-1] == l[0]
         right_continuous = l[1] is None or l[1] == l[0]
-        if not left_continuous and not right_continuous:
+        if not reduced or (not left_continuous and not right_continuous):
             yield [bkpt[i]]
         if i+1 < n:
             yield [bkpt[i], bkpt[i+1]]
@@ -307,7 +307,7 @@ def generate_faces_with_projections_intersecting(function, real_set, break_symme
     for triple in generate_triples_with_projections_intersecting(function, real_set, break_symmetry=break_symmetry):
         yield Face(triple)
 
-def generate_triples_with_projections_intersecting(function, real_set, break_symmetry=False, return_triples=False):
+def generate_triples_with_projections_intersecting(function, real_set, break_symmetry=False, reduced=True, return_triples=False):
     """
     It breaks symmetry but produces duplicates.
 
@@ -324,7 +324,7 @@ def generate_triples_with_projections_intersecting(function, real_set, break_sym
     def plus1(I):
         return [ x + 1 for x in I ]
 
-    I_list = list(generate_intervals_and_two_sided_discontinuous_breakpoints(function))
+    I_list = list(generate_intervals_and_two_sided_discontinuous_breakpoints(function, reduced=reduced))
     K_list = I_list + [ plus1(I) for I in I_list ]
 
     I_disjoint_list = [ I for I in I_list if real_set.is_disjoint_from(realset_from_interval(I)) ]
