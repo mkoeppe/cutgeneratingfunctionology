@@ -140,7 +140,7 @@ def epstriple_to_cone(epstriple):
 
 plot_limit_cone_style = 'sectors'
 plot_limit_cone_wrap = True
-plot_limit_cone_arrow_distance = 0.008
+plot_limit_cone_arrow_rel_distance = 0.008 / 0.055
 plot_limit_cone_arrow_length = 0.055
 
 from cutgeneratingfunctionology.igp.subadditivity_slack_diagrams.limit_arrow import limit_arrow
@@ -174,9 +174,14 @@ def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03, style=None):
                     return coord
                 orig = vector(RDF, (wrap(s, t) for s, t in zip(orig, uv)))
             uv = vector(RDF, uv)
-            uv /= uv.norm()
-            return limit_arrow(orig + (plot_limit_cone_arrow_length + plot_limit_cone_arrow_distance) * uv,
-                               orig + plot_limit_cone_arrow_distance * uv, color=color, arrowsize=3, zorder=10)
+            arrowsize = 3
+            if uv.norm() > plot_limit_cone_arrow_length:
+                uv = uv / uv.norm() * plot_limit_cone_arrow_length
+            elif uv.norm() < 0.33 * plot_limit_cone_arrow_length:
+                uv = uv / uv.norm() * 0.33 * plot_limit_cone_arrow_length
+                arrowsize = 1.5
+            return limit_arrow(orig + (1 + plot_limit_cone_arrow_rel_distance) * uv,
+                               orig + plot_limit_cone_arrow_rel_distance * uv, color=color, arrowsize=arrowsize, zorder=10)
     # default: 'sectors'
     if len(cone) == 0:
         p = point([orig], color=color, size=20, zorder=-1)

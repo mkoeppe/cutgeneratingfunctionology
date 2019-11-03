@@ -51,7 +51,7 @@ save_graphics(Ghl, '{}{}-lift1-2d_diagram_plus_limits'.format(name, liftname), *
 igp.show_plots_figsize = 12
 paper_plot_kwds['fontsize'] = 16
 igp.plot_function_at_borders_kwds = { 'thickness': 2 }
-igp.plot_limit_cone_arrow_distance = 8.0/igp.show_plots_figsize * plot_limit_cone_arrow_distance
+#igp.plot_limit_cone_arrow_distance = 8.0/igp.show_plots_figsize * plot_limit_cone_arrow_distance
 igp.plot_limit_cone_arrow_length = 8.0/igp.show_plots_figsize * plot_limit_cone_arrow_length
 
 ftype = ".png"
