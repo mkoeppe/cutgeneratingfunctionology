@@ -636,8 +636,6 @@ def plot_2d_diagram_with_face_cones(fn, show_function=True, f=None, conesize=200
     for F in faces:
         for v in F.vertices:
             deltafn = delta_pi_of_face(fn, v[0], v[1], F)
-            if deltafn < 0:
-                import pdb;  pdb.set_trace()
             color = color_for_delta(deltafn, additive_color=additive_color)
             g += plot_limit_cone_of_vertex_in_face(v[0], v[1], F, color)
 
