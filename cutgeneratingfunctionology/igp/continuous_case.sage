@@ -277,16 +277,20 @@ def generate_symbolic_continuous(function, components, field=None, f=None):
     return symbolic_function
 
 def generate_additivity_equations_continuous(function, symbolic, field, f=None, bkpt=None,
-                                             reduce_system=None):
+                                             reduce_system=None, return_vertices=False):
     if f is None:
         f = find_f(function)
     vs = list(generate_additive_vertices(function, bkpt=bkpt))
     equations = [symbolic(f), symbolic(field(1))]+[delta_pi(symbolic, x, y) for (x, y, z, xeps, yeps, zeps) in vs]
+    vs = ['f', '1'] + vs
     M = matrix(field, equations)
     if reduce_system is None:
         reduce_system = logging.getLogger().isEnabledFor(logging.DEBUG)
     if not reduce_system:
-        return M
+        if return_vertices:
+            return M, vs
+        else:
+            return M
     pivot_r =  list(M.pivot_rows())
     for i in pivot_r:
         if i == 0:
@@ -294,7 +298,12 @@ def generate_additivity_equations_continuous(function, symbolic, field, f=None, 
         elif i == 1:
             logging.debug("Condition pert(1) = 0 gives the equation\n%s * v = 0." % (symbolic(1)))
         else:
-            (x, y, z, xeps, yeps, zeps) = vs[i-2]
+            (x, y, z, xeps, yeps, zeps) = vs[i]
             eqn = equations[i]
             logging.debug("Condition pert(%s) + pert(%s) = pert(%s) gives the equation\n%s * v = 0." % (x, y, z, eqn))
-    return M[pivot_r]
+    M = M[pivot_r]
+    if return_vertices:
+        vs = [ vs[i] for i in pivot_r ]
+        return M, vs
+    else:
+        return M
