@@ -296,10 +296,14 @@ def generate_symbolic_general(function, components, field=None, f=None, basis_fu
     elif basis_functions == ('slopes', 'jumps'):
         bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
         limits = [function.limits(x) for x in bkpt]
-        num_jumps = sum([x[0] != x[1] for x in limits[0:-1]])
+        if function.is_two_sided_discontinuous():
+            num_jumps = len(bkpt) - 1
+            num_left_jumps = bkpt.index(f)   # this is assuming the interval right of f is in a component.
+        else:
+            num_jumps = sum([x[0] != x[1] for x in limits[0:-1]])
+            num_left_jumps = sum([(function.limit(x,-1) != function(x)) for x in bkpt if x > 0 and x <= f/2]) + \
+                             sum([(function.limit(x,1) != function(x)) for x in bkpt if x < f/2])
         dimension = n + num_jumps
-        num_left_jumps = sum([(function.limit(x,-1) != function(x)) for x in bkpt if x > 0 and x <= f/2]) + \
-                         sum([(function.limit(x,1) != function(x)) for x in bkpt if x < f/2])
     else:
         raise ValueError("this type of basis_functions is not supported")
 
