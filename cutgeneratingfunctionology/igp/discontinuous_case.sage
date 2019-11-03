@@ -140,10 +140,16 @@ def epstriple_to_cone(epstriple):
 
 plot_limit_cone_style = 'sectors'
 plot_limit_cone_wrap = True
-plot_limit_cone_arrow_distance = 0.005
+plot_limit_cone_arrow_distance = 0.008
 plot_limit_cone_arrow_length = 0.055
 
 from cutgeneratingfunctionology.igp.subadditivity_slack_diagrams.limit_arrow import limit_arrow
+
+def plot_limit_cone_of_vertex_in_face(x, y, F, color='red', r=0.03, style=None):
+    v = vector([x, y])
+    feasible_cone = Polyhedron(rays=[ vector(u) - v for u in F.vertices if vector(u) != v])
+    rays = feasible_cone.rays_list()
+    return plot_limit_cone_of_vertex(x, y, rays, color=color, r=r, style=style)
 
 def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03, style=None):
     r"""
@@ -158,7 +164,7 @@ def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03, style=None):
         if len(cone) == 0:
             return point([orig], color=color, size=20, zorder=10)  # on top of the complex
         else:
-            uv = sum(vector(QQ, ray) for ray in cone)
+            uv = sum(vector(ray) for ray in cone)
             if plot_limit_cone_wrap:
                 def wrap(coord, direction):
                     if coord == 0 and direction < 0:
@@ -167,6 +173,7 @@ def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03, style=None):
                         return 0
                     return coord
                 orig = vector(RDF, (wrap(s, t) for s, t in zip(orig, uv)))
+            uv = vector(RDF, uv)
             uv /= uv.norm()
             return limit_arrow(orig + (plot_limit_cone_arrow_length + plot_limit_cone_arrow_distance) * uv,
                                orig + plot_limit_cone_arrow_distance * uv, color=color, arrowsize=3, zorder=10)
@@ -421,12 +428,16 @@ def delta_pi_general(fn, x, y, xyz_eps=(0, 0, 0)):
     return fn.limit(fractional(x), xeps) + fn.limit(fractional(y), yeps) - fn.limit(fractional(x + y), zeps)
 
 def delta_pi_of_face(fn, x, y, F):
-    def generic_point(I):
-        a, b = interval_to_endpoints(I)
-        return fractional((a + b) / 2)
-    return (fn.which_function(generic_point(F.minimal_triple[0]))(fractional(x))
-            + fn.which_function(generic_point(F.minimal_triple[1]))(fractional(y))
-            - fn.which_function(generic_point(F.minimal_triple[2]))(fractional(x + y)))
+    def lim_mod_1(z, K):
+        ## Annoying code because we still haven't made FastPiecewise periodic!
+        fz = fractional(z)
+        if fz != z:
+            a, b = interval_to_endpoints(K)
+            K = [a + (fz - z), b + (fz - z)]
+        return fn.limit_within_relint(fz, K)
+    return (fn.limit_within_relint(x, F.minimal_triple[0])
+            + fn.limit_within_relint(y, F.minimal_triple[1])
+            - lim_mod_1(x + y, F.minimal_triple[2]))
 
 def containing_eps_1d(x, interval):
     r"""

@@ -182,7 +182,6 @@ class Face:
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: from cutgeneratingfunctionology.igp import *
         sage: F = Face([[1/5, 3/10], [3/4, 17/20], [1, 6/5]])
         sage: F.vertices
         [(1/5, 17/20), (3/10, 3/4), (3/10, 17/20), (1/5, 4/5), (1/4, 3/4)]
@@ -235,6 +234,9 @@ class Face:
             ## Sorting is necessary for this example:
             ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("data/dey-richard-not-extreme.txt"))
             return polygon(convex_vert_list(vert), color=fill_color, **kwds)
+
+    def polyhedron(self):
+        return Polyhedron(self.vertices)
 
     def is_directed_move(self):
         return self.is_1D()
@@ -538,7 +540,7 @@ def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
     r"""
     Colorful decoration.
 
-    Plot fn on covered intervals with different colors according to slope values,
+    Plot ``fn`` on covered intervals with different colors according to slope values,
     on the upper and the left border of the 2d diagrams.
     """
     p = Graphics()
@@ -555,24 +557,31 @@ def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
                 p += line([(-(3/10)*y1, x1), (-(3/10)*y2, x2)], color=colors[i], zorder=-2, **kwds)
     return p
 
-def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200,
-                               additive_color=None, function_color="blue"):
+def color_for_delta(deltafn, additive_color=None):
+    if additive_color is None:
+        import cutgeneratingfunctionology
+        additive_color = cutgeneratingfunctionology.igp.additive_color
+    if deltafn > 0:
+        return "white"
+    elif deltafn == 0:
+        return additive_color
+    else:
+        return "red"
+
+def plot_2d_diagram_with_eps_cones(fn, show_function=True, f=None, conesize=200,
+                                   additive_color=None, function_color="blue"):
     r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = zhou_two_sided_discontinuous_cannot_assume_any_continuity()
-        sage: g = plot_2d_diagram_with_cones(h)
+        sage: g = plot_2d_diagram_with_eps_cones(h)
         sage: h = not_minimal_2()
-        sage: g = plot_2d_diagram_with_cones(h)
+        sage: g = plot_2d_diagram_with_eps_cones(h)
     """
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
-    if additive_color is None:
-        import cutgeneratingfunctionology
-        additive_color = cutgeneratingfunctionology.igp.additive_color
     g = plot_2d_complex(fn)
     if show_function:
         g += plot_function_at_borders(fn, color=function_color)
@@ -584,12 +593,7 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200,
     if fn.is_continuous():
         for (x, y, z) in vertices:
             deltafn = delta_pi(fn, x, y)
-            if deltafn > 0:
-                color = "white"
-            elif deltafn == 0:
-                color = additive_color
-            else:
-                color = "red"
+            color = color_for_delta(deltafn, additive_color=additive_color)
             g += point([(x, y), (y, x)], color=color, size=conesize, zorder=-1)
     else:
         for (x, y, z) in vertices:
@@ -599,16 +603,47 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200,
                 # Don't plot anything if there's no additivity or limit-additivity at a vertex
                 continue
             for deltafn, (xeps, yeps, zeps) in zip(delta_list, eps_list):
-                deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
-                if deltafn > 0:
-                    color = "white"
-                elif deltafn == 0:
-                    color = additive_color
-                else:
-                    color = "red"
+                color = color_for_delta(deltafn, additive_color=additive_color)
                 g += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), color=color, r=0.03)
                 g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)), color=color, r=0.03)
     return g
+
+def plot_2d_diagram_with_face_cones(fn, show_function=True, f=None, conesize=200,
+                                    additive_color=None, function_color="blue"):
+    r"""
+    This shows larger cones, corresponding to enclosing faces rather than
+    cones corresponding to epsilons.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: h = zhou_two_sided_discontinuous_cannot_assume_any_continuity()
+        sage: g = plot_2d_diagram_with_face_cones(h)
+        sage: h = not_minimal_2()
+        sage: g = plot_2d_diagram_with_face_cones(h)
+    """
+    if f is None:
+        f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    g = plot_2d_complex(fn)
+    if show_function:
+        g += plot_function_at_borders(fn, color=function_color)
+
+    from cutgeneratingfunctionology.spam.real_set import RealSet   # param-safe version of RealSet
+    domain = RealSet([0, 1])
+    faces = set(Face(triple)
+                for triple in generate_triples_with_projections_intersecting(fn, domain, break_symmetry=False, reduced=False))
+    for F in faces:
+        for v in F.vertices:
+            deltafn = delta_pi_of_face(fn, v[0], v[1], F)
+            if deltafn < 0:
+                import pdb;  pdb.set_trace()
+            color = color_for_delta(deltafn, additive_color=additive_color)
+            g += plot_limit_cone_of_vertex_in_face(v[0], v[1], F, color)
+
+    return g
+
+plot_2d_diagram_with_cones = plot_2d_diagram_with_face_cones
 
 def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, additive_color=additive_color, function_color='blue', **kwds):
     r"""
@@ -1815,6 +1850,17 @@ class FastPiecewise (PiecewisePolynomial):
         if result is None:
             raise ValueError("Value not defined at point %s%s, outside of domain." % (x0, print_sign(epsilon)))
         return result
+
+    def limit_within_relint(self, x0, interval):
+        a, b = interval_to_endpoints(interval)
+        if x0 == a < b:
+            return self.limit(a, +1)
+        elif a < b == x0:
+            return self.limit(b, -1)
+        elif a <= x0 <= b:
+            return self(x0)
+        else:
+            raise ValueError("outside of face")
 
     def which_function_on_interval(self, interval):
         x = (interval[0] + interval[1]) / 2
