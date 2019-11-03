@@ -247,13 +247,13 @@ def generate_symbolic_general(function, components, field=None, f=None, basis_fu
     #intervals in components are coho intervals.
     #was: intervals_and_slopes.sort()
     intervals_and_slopes.sort(key=lambda i_s: coho_interval_left_endpoint_with_epsilon(i_s[0]))
+    basis = []
 
     if function.is_two_sided_discontinuous():
         # Use slopes and values at midpoints of intervals (including singletons).
         # Because in the two-sided discontinuous case we have jumps at every breakpoint,
         # there are no relations from continuity. 
         # In this basis, additivities are expressible with equations of small support.
-        j_box = [0]
         # Dictionary mapping an interval (a, b) to a list of pairs "(index, coeff)"
         # suitable for VectorSpace.sum_of_terms.
         midpoint_value_dict = { (x, x): []                        # Already fixed by symmetry
@@ -268,10 +268,11 @@ def generate_symbolic_general(function, components, field=None, f=None, basis_fu
             "Allocate a variable to be the midpoint value on the interval."
             interval = (a, b)
             if interval not in midpoint_value_dict:
-                v = [(j_box[0], 1)]     # (index, coefficient)
+                v = [(len(basis), 1)]     # (index, coefficient)
                 midpoint_value_dict[interval] = v
-                midpoint_value_dict[reflection(interval)] = [(j_box[0], -1)]
-                j_box[0] += 1
+                midpoint_value_dict[reflection(interval)] = [(len(basis), -1)]
+                midpoint = (a + b) / 2
+                basis.append(('function value at', midpoint))
             return midpoint_value_dict[interval]
         for interval, slope in intervals_and_slopes:
             a = interval[0]
@@ -283,9 +284,9 @@ def generate_symbolic_general(function, components, field=None, f=None, basis_fu
         slope_dict = {}
         # Put slopes at the end.  They are dense columns.
         for slope_index in range(n):
-            slope_dict[slope_index] = [(j_box[0], 1)]
-            j_box[0] += 1
-        dimension = j_box[0]
+            slope_dict[slope_index] = [(len(basis), 1)]
+            basis.append(('slope of component', slope_index))
+        dimension = len(basis)
     else:
         bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
         limits = [function.limits(x) for x in bkpt]
