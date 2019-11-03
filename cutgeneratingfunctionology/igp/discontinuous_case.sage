@@ -249,7 +249,13 @@ def generate_symbolic_general(function, components, field=None, f=None, basis_fu
     intervals_and_slopes.sort(key=lambda i_s: coho_interval_left_endpoint_with_epsilon(i_s[0]))
     basis = []
 
-    if function.is_two_sided_discontinuous():
+    if basis_functions is None:
+        if function.is_two_sided_discontinuous():
+            basis_functions = generate_symbolic_two_sided_discontinuous_basis_functions
+        else:
+            basis_functions = ('slopes', 'jumps')
+
+    if basis_functions == ('midpoints', 'slopes'):
         # Use slopes and values at midpoints of intervals (including singletons).
         # Because in the two-sided discontinuous case we have jumps at every breakpoint,
         # there are no relations from continuity. 
@@ -287,19 +293,21 @@ def generate_symbolic_general(function, components, field=None, f=None, basis_fu
             slope_dict[slope_index] = [(len(basis), 1)]
             basis.append(('slope of component', slope_index))
         dimension = len(basis)
-    else:
+    elif basis_functions == ('slopes', 'jumps'):
         bkpt = [ field(interval[0]) for interval, slope in intervals_and_slopes ] + [field(1)]
         limits = [function.limits(x) for x in bkpt]
         num_jumps = sum([x[0] != x[1] for x in limits[0:-1]])
         dimension = n + num_jumps
         num_left_jumps = sum([(function.limit(x,-1) != function(x)) for x in bkpt if x > 0 and x <= f/2]) + \
                          sum([(function.limit(x,1) != function(x)) for x in bkpt if x < f/2])
+    else:
+        raise ValueError("this type of basis_functions is not supported")
 
     #import pdb; pdb.set_trace()
     vector_space = VectorSpace(field, dimension)
     pieces = []
 
-    if function.is_two_sided_discontinuous():
+    if basis_functions == ('midpoints', 'slopes'):
         # Now we have the space.
         def midpoint_value(a, b):
             return vector_space.sum_of_terms(midpoint_value_lincomb(a, b))
