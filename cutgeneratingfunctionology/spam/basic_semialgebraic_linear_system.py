@@ -18,7 +18,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
     Also it is suitable for arbitrary real fields as the ``base_ring``, such as ``ParametricRealField``.
     """
 
-    def __init__(self, base_ring=None, ambient_dim=None, poly_ring=None, eq=[], lt=[], le=[]):
+    def __init__(self, base_ring=None, ambient_dim=None, poly_ring=None, eq=[], lt=[], le=[], ring_hom=None):
         r"""
         Initialize a closed polyhedral basic semialgebraic set.
 
@@ -28,12 +28,22 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
             sage: ls = BasicSemialgebraicSet_polyhedral_linear_system(QQ, 2)
 
         """
-        # Compute base_ring, ambient_dim from M if they are None but M is provided
-        # ......
+        polys = list(eq) + list(lt) + list(le)
+        #check if the polynomials are actually linear.
+        for e in polys:
+            if e.degree()>1:
+                raise ValueError("only suitable for linear system.")
         if poly_ring is None:
-            polys = list(eq) + list(lt) + list(le)
-            if polys:
-                poly_ring = polys[0].parent()
+            if polys is not None:
+                cm = sage.structure.element.get_coercion_model()
+                poly_ring = cm.common_parent(*polys)
+        else:
+            if polys is not None:
+                #convert polys into elements in poly_ring using a ring hommorphism.
+                old_ring_ngens = cm.common_parent(*polys).ngens()
+                eq = [e(ring_hom) for e in eq]
+                lt = [e(ring_hom) for e in lt]
+                le = [e(ring_hom) for e in le]
         if (ambient_dim is None) and (poly_ring is not None):
             ambient_dim = poly_ring.ngens()
             if base_ring is None and poly_ring is not None:
@@ -48,18 +58,19 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
         self._lt = set(lt)
         self._le = set(le)
 
-    def one_step_elimination(self, coordinate, degree = 1, bsa_class='linear_system'):
+    def one_step_elimination(self, coordinate, bsa_class='linear_system'):
         r"""
-        Compute the projection by eliminating ``coordinates^degree``  as a new instance of
+        Compute the projection by eliminating ``coordinates``  as a new instance of
         ``BasicSemialgebraicSet_polyhedral_linear_system``.
         """
         new_eq=[]
         new_lt=[]
         new_le=[]
+        # try to find a substitution of coordinate in equalities.
         sub=None
         for e in self._eq:
-            if self._base_ring(e.coefficient({coordinate: degree})) != 0:
-                sub = coordinate^degree - e/e.coefficient({coordinate: degree})
+            if e.monomial_coefficient(coordinate) != 0:
+                sub = coordinate - e/e.monomial_coefficient(coordinate)
                 break
         if sub is None:
             new_eq=self._eq
@@ -69,16 +80,16 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
             le_upper=[]
             
             for lt in self._lt:
-                if self._base_ring(lt.coefficient({coordinate: degree}))>0:
+                if self._base_ring(lt.coefficient({coordinate: 1}))>0:
                     lt_upper.append(lt)
-                elif self._base_ring(lt.coefficient({coordinate: degree}))<0:
+                elif self._base_ring(lt.coefficient({coordinate: 1}))<0:
                     lt_lower.append(lt)
                 else:
                     new_lt.append(lt)
             for le in self._le:
-                if self._base_ring(le.coefficient({coordinate: degree}))>0:
+                if self._base_ring(le.monomial_coefficient(coordinate))>0:
                     le_upper.append(le)
-                elif self._base_ring(le.coefficient({coordinate: degree}))<0:
+                elif self._base_ring(le.monomial_coefficient(coordinate))<0:
                     le_lower.append(le)
                 else:
                     new_le.append(le)
@@ -86,27 +97,27 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
             # compute less than or equal to inequality
             for l in le_lower:
                 for u in le_upper:
-                    new_le.append(l*u.coefficient({coordinate: degree})-(u*l.coefficient({coordinate: degree})))
+                    new_le.append(l*u.monomial_coefficient(coordinate)-(u*l.monomial_coefficient(coordinate)))
 
             # compute strictly less than inequality
             for l in le_lower:
                 for u in lt_upper:
-                    new_lt.append(l*u.coefficient({coordinate: degree})-(u*l.coefficient({coordinate: degree})))
+                    new_lt.append(l*u.monomial_coefficient(coordinate)-(u*l.monomial_coefficient(coordinate)))
             for l in lt_lower:
                 for u in le_upper:
-                    new_lt.append(l*u.coefficient({coordinate: degree})-(u*l.coefficient({coordinate: degree})))
+                    new_lt.append(l*u.monomial_coefficient(coordinate)-(u*l.monomial_coefficient(coordinate)))
             for l in lt_lower:
                 for u in lt_upper:
-                    new_lt.append(l*u.coefficient({coordinate: degree})-(u*l.coefficient({coordinate: degree})))
+                    new_lt.append(l*u.monomial_coefficient(coordinate)-(u*l.monomial_coefficient(coordinate)))
         else:
             for e in self._eq:
-                new_eq.append(e+e.coefficient({coordinate: degree})*(sub-coordinate^degree))
+                new_eq.append(e+e.monomial_coefficient(coordinate)*(sub-coordinate))
             for lt in self._lt:
-                new_lt.append(lt+lt.coefficient({coordinate: degree})*(sub-coordinate^degree))
+                new_lt.append(lt+lt.coefficient({coordinate: degree})*(sub-coordinate))
             for le in self._le:
-                new_le.append(le+le.coefficient({coordinate: degree})*(sub-coordinate^degree))
+                new_le.append(le+le.monomial_coefficient(coordinate)*(sub-coordinate))
         
-        return BasicSemialgebraicSet_polyhedral_linear_system(base_ring=self.base_ring, ambient_dim=self.ambient_dim()-1, poly_ring=self.poly_ring, eq=new_eq, lt=new_lt, le=new_le)
+        return BasicSemialgebraicSet_polyhedral_linear_system(base_ring=self.base_ring, ambient_dim=self.ambient_dim()-1, eq=new_eq, lt=new_lt, le=new_le)
     
                                                           
 
