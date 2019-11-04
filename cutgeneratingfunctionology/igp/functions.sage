@@ -3025,7 +3025,7 @@ def generate_all_components(fn, show_plots=False):
         components = copy(covered_components)
     return components
 
-def generate_symbolic(fn, components=None, field=None, f=None, show_plots=False):
+def generate_symbolic(fn, components=None, field=None, f=None, show_plots=False, **kwds):
     r"""
     EXAMPLES::
 
@@ -3049,9 +3049,9 @@ def generate_symbolic(fn, components=None, field=None, f=None, show_plots=False)
     if components is None:
         components = generate_all_components(fn)
     if fn.is_continuous() or fn.is_discrete():
-        return generate_symbolic_continuous(fn, components, field=field, f=f)
+        return generate_symbolic_continuous(fn, components, field=field, f=f, **kwds)
     else:
-        return generate_symbolic_general(fn, components, field=field, f=f)
+        return generate_symbolic_general(fn, components, field=field, f=f, **kwds)
 
 def plot_symbolic(sym, indices=None, as_array=True, color='magenta', **kwds):
     """
@@ -3128,11 +3128,11 @@ def generate_additivity_equations(fn, symbolic, field=None, f=None, bkpt=None,
         sage: vs
         ['f', '1', (0, 1/8, 1/8, -1, 0, -1), (1/8, 1/8, 1/4, 0, 0, 0), (3/8, 3/8, 3/4, 1, 1, 1)]
 
-    For two-sided discontinuous functions we use a different basis, in which we see
+    For two-sided discontinuous functions we can use a different basis, in which we see
     the structure of the subadditivity constraints::
 
         sage: h = hildebrand_2_sided_discont_2_slope_1()
-        sage: symbolic = generate_symbolic(h)
+        sage: symbolic = generate_symbolic(h, basis_functions=('midpoints', 'slopes'))
         sage: M, vs = generate_additivity_equations(h, symbolic, reduce_system=True, return_vertices=True)
         sage: for row, v in zip(M, vs): print("Additive vertex {:30}  {}".format(v, row))
         Additive vertex (0, 1/8, 1/8, -1, 1, 0)         (0, -1, 1, -1, 0, 0, 0, 0)

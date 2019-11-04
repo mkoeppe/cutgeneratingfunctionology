@@ -87,15 +87,36 @@ for F in all_special_faces:
     else:
         g += F.plot(zorder=0, rgbcolor=color3, edge_thickness=1)
 
+bkpt = h.end_points()
+vs6 = [(h.ucl, h.ucr, bkpt[31], 1, -1, 0),
+       (bkpt[10], (h._f - h.ucl) - bkpt[10], (h._f - h.ucl), 0, -1, -1)]
+g_vs6 = sum(plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), color='red') for (x, y, z, xeps, yeps, zeps) in vs6)
+
+g += g_vs6
+
 save_graphics(g, '2d_crazy_nf_with_func')
 
 #g = plot_2d_diagram(h, colorful=True, show_projections=False)
 g = plot_2d_diagram_additive_domain_sans_limits(h, show_function=False) + plot_2d_diagram_with_cones(h, show_function=False) + g_at_borders
+igp.generate_symbolic_two_sided_discontinuous_basis_functions = ('midpoints', 'slopes') ## New basis!
 components = generate_covered_intervals(h)[:2]
 symbolic = generate_symbolic(h, components)
 M, vs = generate_additivity_equations(h, symbolic, reduce_system=True, return_vertices=True, undefined_ok=True)
 vs = [ v for v in vs if isinstance(v, tuple) ]   # omit special labels 'f', '1'
+
+##### Trying to reproduce the same vertices as in appendix of Equi VI -- but they are not the same
+##### check the exact script (...strategic?...)
+## h = kzh_minimal_has_only_crazy_perturbation_1()
+## components6 = generate_covered_intervals(h)
+## igp.generate_symbolic_two_sided_discontinuous_basis_functions = ('slopes', 'jumps')   # Restore classic behavior
+## symbolic6 = generate_symbolic(h, components6)
+## M6, vs6 = generate_additivity_equations(h, symbolic6, reduce_system=True, return_vertices=True)
+## vs6 = [ v for v in vs6 if isinstance(v, tuple) ]   # omit special labels 'f', '1'
+## g += sum(plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), color='red') for (x, y, z, xeps, yeps, zeps) in vs6)
+
 g += sum(plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), color='black') for (x, y, z, xeps, yeps, zeps) in vs)
+g += g_vs6
+
 save_graphics(g, 'kzh_crazy_2d_with_func')
 
 igp.strategical_covered_components = False

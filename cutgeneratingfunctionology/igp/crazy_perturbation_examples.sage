@@ -107,10 +107,11 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
     functions with same slopes on the intervals of each covered component, defined
     outside of the special intervals::
 
-        sage: symbolic = generate_symbolic(h, proper_covered_components)
+        sage: symbolic = generate_symbolic(h, proper_covered_components, basis_functions=('midpoints', 'slopes'))
         sage: plot_symbolic(symbolic, ymin=-1.1, ymax=1.1).show(figsize=(4,40))      # not tested
 
-    ``symbolic`` is undefined on the special intervals::
+    Here we used the midpoints-and-slopes basis, which is "local."  It makes sure that ``symbolic``
+    is undefined on the special intervals::
 
         sage: symbolic((h.ucl + h.ucr) / 2)
         Traceback (most recent call last):
