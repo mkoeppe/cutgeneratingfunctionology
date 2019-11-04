@@ -5,6 +5,10 @@ Basic polyhedral semialgebraic sets represented as linear systems
 from __future__ import division, print_function, absolute_import
 
 from cutgeneratingfunctionology.spam.basic_semialgebraic import BasicSemialgebraicSet_base
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+import sage.structure.element
+
+cm = sage.structure.element.get_coercion_model()
 
 # Implement by rewriting code from formulations.sage on branch symbolic_FM. (FourierSystem, ...)
 
@@ -35,7 +39,6 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
                 raise ValueError("only suitable for linear system.")
         if poly_ring is None:
             if polys is not None:
-                cm = sage.structure.element.get_coercion_model()
                 poly_ring = cm.common_parent(*polys)
         else:
             if polys is not None:
@@ -54,15 +57,48 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
             poly_ring = PolynomialRing(base_ring, "x", ambient_dim)
         super(BasicSemialgebraicSet_polyhedral_linear_system, self).__init__(base_ring, ambient_dim)
         self._poly_ring = poly_ring
-        self._eq = set(eq)
-        self._lt = set(lt)
-        self._le = set(le)
+        self._base_ring = base_ring
+        temp_eq = set(eq).copy()
+        temp_lt = set(lt).copy()
+        temp_le = set(le).copy()
+        # remove redundent constant polynomial or check naive infeasibility.
+        for e in set(eq):
+            if e.parent() != poly_ring:
+                if base_ring(e) != base_ring(0):
+                    raise ValueError("Empty BasicSemialgebraicSet")
+                else:
+                    temp_eq.remove(e)
+        for lt in set(lt):
+            if lt.parent() != poly_ring:
+                if base_ring(lt) >= base_ring(0):
+                    raise ValueError("Empty BasicSemialgebraicSet")
+                else:
+                    temp_lt.remove(lt)
+        for le in set(le):
+            if le.parent() != poly_ring:
+                if base_ring(le) > base_ring(0):
+                    raise ValueError("Empty BasicSemialgebraicSet")
+                else:
+                    temp_le.remove(le)
+        self._eq = temp_eq
+        self._lt = temp_lt
+        self._le = temp_le
 
-    def one_step_elimination(self, coordinate, bsa_class='linear_system'):
+    def one_step_elimination(self, coordinate_index, bsa_class='linear_system'):
         r"""
         Compute the projection by eliminating ``coordinates``  as a new instance of
         ``BasicSemialgebraicSet_polyhedral_linear_system``.
         """
+        # create a new poly_ring with one less generator (coordinate).
+        if coordinate_index>=self._poly_ring.ngens():
+            raise ValueError("doesn't exist the elimination variable")
+        coordinate=self._poly_ring.gens()[coordinate_index]
+        variables_names=[str(self._poly_ring.gens()[i]) for i in range(self._poly_ring.ngens()) if i != coordinate_index]
+        new_poly_ring=PolynomialRing(self._base_ring,variables_names)
+        # create the ring hommorphism
+        ring_hom=[new_poly_ring.gens()[i] for i in range(new_poly_ring.ngens())]
+        ring_hom.insert(coordinate_index,0)
+        
         new_eq=[]
         new_lt=[]
         new_le=[]
@@ -80,9 +116,9 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
             le_upper=[]
             
             for lt in self._lt:
-                if self._base_ring(lt.coefficient({coordinate: 1}))>0:
+                if self._base_ring(lt.monomial_coefficient(coordinate))>0:
                     lt_upper.append(lt)
-                elif self._base_ring(lt.coefficient({coordinate: 1}))<0:
+                elif self._base_ring(lt.monomial_coefficient(coordinate))<0:
                     lt_lower.append(lt)
                 else:
                     new_lt.append(lt)
@@ -113,13 +149,11 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
             for e in self._eq:
                 new_eq.append(e+e.monomial_coefficient(coordinate)*(sub-coordinate))
             for lt in self._lt:
-                new_lt.append(lt+lt.coefficient({coordinate: degree})*(sub-coordinate))
+                new_lt.append(lt+lt.monomial_coefficient(coordinate)*(sub-coordinate))
             for le in self._le:
                 new_le.append(le+le.monomial_coefficient(coordinate)*(sub-coordinate))
         
-        return BasicSemialgebraicSet_polyhedral_linear_system(base_ring=self.base_ring, ambient_dim=self.ambient_dim()-1, eq=new_eq, lt=new_lt, le=new_le)
-    
-                                                          
+        return BasicSemialgebraicSet_polyhedral_linear_system(base_ring=self._base_ring, ambient_dim=self.ambient_dim()-1, poly_ring=new_poly_ring, eq=new_eq, lt=new_lt, le=new_le, ring_hom=ring_hom)
 
     def coordinate_projection(self, coordinates, bsa_class='linear_system'):
         r"""
@@ -131,6 +165,18 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
         The projection is a set in the space of those coordinates.
         """
         raise NotImplementedError()
+    
+    def base_ring(self):
+        r"""
+        Return the polynomial ring of self.
+        """
+        return self._base_ring
+    
+    def poly_ring(self):
+        r"""
+        Return the polynomial ring of self.
+        """
+        return self._poly_ring
 
     def eq_poly(self):
         r"""
