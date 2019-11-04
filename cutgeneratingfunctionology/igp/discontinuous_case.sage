@@ -341,21 +341,28 @@ def generate_symbolic_general(function, components, field=None, f=None, basis_fu
         unit_vectors = vector_space.basis()
         slopes = [ unit_vectors[slope] for interval, slope in intervals_and_slopes ]
         m = len(slopes)
-        jumps = unit_vectors[n:]
-        jump_vectors = jumps[0:num_left_jumps:] + jumps[num_left_jumps-1::-1] + jumps[num_left_jumps::] + jumps[:num_left_jumps-1:-1]
-        assert len(jump_vectors) == 2 * num_jumps
+        for slope_index in range(n):
+            basis.append(('slope of component', slope_index))
+        jumps = list(range(len(basis), len(basis) + num_jumps))
+        basis.extend([None] * num_jumps)
+        jump_coordinates = jumps[0:num_left_jumps:] + jumps[num_left_jumps-1::-1] + jumps[num_left_jumps::] + jumps[:num_left_jumps-1:-1]
+        assert len(jump_coordinates) == 2 * num_jumps
         # Set up symbolic function
         current_value = zeros = vector_space.zero()
         j = 0
         for i in range(m):
             pieces.append([singleton_interval(bkpt[i]), FastLinearFunction(zeros, current_value)])
             if function.is_two_sided_discontinuous() or limits[i][0] != limits[i][1]: # jump at bkpt[i]+
-                current_value += jump_vectors[j]
+                current_value += unit_vectors[jump_coordinates[j]]
+                if basis[jump_coordinates[j]] is None:
+                    basis[jump_coordinates[j]] = ('jump', bkpt[i], +1)
                 j += 1
             pieces.append([open_interval(bkpt[i], bkpt[i+1]), FastLinearFunction(slopes[i], current_value - slopes[i]*bkpt[i])])
             current_value += slopes[i] * (bkpt[i+1] - bkpt[i])
             if function.is_two_sided_discontinuous() or limits[i+1][-1] != limits[i+1][0]: # jump at bkpt[i+1]-
-                current_value += jump_vectors[j]
+                current_value += unit_vectors[jump_coordinates[j]]
+                if basis[jump_coordinates[j]] is None:
+                    basis[jump_coordinates[j]] = ('jump', bkpt[i+1], -1)
                 j += 1
         assert j == 2 * num_jumps
         pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, current_value)])
