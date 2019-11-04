@@ -157,14 +157,22 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
 
     def coordinate_projection(self, coordinates, bsa_class='linear_system'):
         r"""
-        Compute the projection to ``coordinates`` (a list or tuple of
+        Compute the projection after projecting out the ``coordinates`` (a list or tuple of
         indices or variables of ``self.poly_ring``) as a new instance of
-        ``BasicSemialgebraicSet_polyhedral_linear_system`` or the given
-        ``bsa_class``.
-
-        The projection is a set in the space of those coordinates.
+        ``BasicSemialgebraicSet_polyhedral_linear_system`` or the given ``bsa_class``.
         """
-        raise NotImplementedError()
+        res=self
+        for c in coordinates:
+            if not c in self._poly_ring.gens():
+                raise ValueError("Coordinate not found in the polynomial ring")
+        elimination_positions=[self._poly_ring.gens().index(c) for c in coordinates]
+        for i in range(len(elimination_positions)):
+            coordinate_index=elimination_positions[i]
+            res = res.one_step_elimination(coordinate_index)
+            for j in range(i+1,len(elimination_positions)):
+                if elimination_positions[j]>coordinate_index:
+                    elimination_positions[j]-=1
+        return res
     
     def base_ring(self):
         r"""
