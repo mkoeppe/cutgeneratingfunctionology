@@ -107,6 +107,6 @@ with open('/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/tab_
     #f.write(r'\providecommand\specialinterval[1]{{#1}\rlap{*}}' + '\n')
     f.write(r'\providecommand\specialinterval[1]{\hphantom*{#1}\text{*}}' + '\n')
     f.write(r'\providecommand\tightslack[1]{\llap{$\triangleright$\,}{#1}}' + '\n')
-    f.write(tabulate_delta_pi(faces, dimension=2))
-    f.write(tabulate_delta_pi(faces, dimension=1))
     #f.write(tabulate_delta_pi(faces, dimension=0))    # empty!
+    f.write(tabulate_delta_pi(faces, dimension=1))   # Comes first because used earlier.
+    f.write(tabulate_delta_pi(faces, dimension=2))

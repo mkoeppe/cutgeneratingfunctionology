@@ -87,12 +87,12 @@ for F in all_special_faces:
     else:
         g += F.plot(zorder=0, rgbcolor=color3, edge_thickness=1)
 
+## Vertices from the published proof in Equi VI:
 bkpt = h.end_points()
 vs6 = [(h.ucl, h.ucr, bkpt[31], 1, -1, 0),
        (bkpt[10], (h._f - h.ucl) - bkpt[10], (h._f - h.ucl), 0, -1, -1)]
 g_vs6 = sum(plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), color='red') for (x, y, z, xeps, yeps, zeps) in vs6)
-
-g += g_vs6
+#g += g_vs6
 
 save_graphics(g, '2d_crazy_nf_with_func')
 
