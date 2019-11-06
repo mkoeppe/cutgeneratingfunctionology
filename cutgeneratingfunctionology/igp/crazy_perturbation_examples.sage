@@ -320,7 +320,7 @@ def number_of_projections_intersecting(F, real_set):
 
 def generate_all_faces(fn):
     zero_fn = FastPiecewise([(I, FastLinearFunction(0, 0)) for I, f in fn.list()], merge=False)
-    return generate_maximal_additive_faces_general(zero_fn)
+    return generate_additive_faces_general(zero_fn)
 
 def generate_intervals_and_two_sided_discontinuous_breakpoints(function, reduced=True):
     """
@@ -361,7 +361,7 @@ def generate_triples_with_projections_intersecting(function, real_set, break_sym
         sage: faces = set(generate_faces_with_projections_intersecting(h, h.special_intervals, break_symmetry=False))
         sage: sum(F.plot(fill_color='lightblue', rgbcolor='blue') for F in faces).show(figsize=15, xmax=1) # not tested
     """
-    # Adapted from generate_maximal_additive_faces_general
+    # Adapted from generate_additive_faces_general
 
     def plus1(I):
         return [ x + 1 for x in I ]

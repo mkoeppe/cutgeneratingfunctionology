@@ -594,6 +594,7 @@ def generate_containing_eps_triple(vertex, triple):
     zeps_list = containing_eps_1d(vertex[0] + vertex[1], triple[2])
     return [(xeps, yeps, zeps) for xeps in xeps_list for yeps in yeps_list for zeps in zeps_list]
 
+# FIXME: Doctest this function
 def is_additive_face(fn, face):
     r"""
     Test whether the given face is additive 
@@ -629,8 +630,11 @@ def x_y_swapped_face(face):
     trip = face.minimal_triple
     return Face( (trip[1], trip[0], trip[2]), vertices=vert_sym )
 
-def generate_maximal_additive_faces_general(function):
-    logging.info("Computing maximal additive faces...")
+def generate_additive_faces_general(function):
+    """
+    Implementation of ``generate_additive_faces`` for discontinuous piecewise linear functions.
+    """
+    logging.info("Computing additive faces...")
     bkpt = function.end_points()
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     n = len(bkpt) - 1
@@ -683,5 +687,5 @@ def generate_maximal_additive_faces_general(function):
             face = Face(([y], [x], [x+y]))
             faces.append(face)
 
-    logging.info("Computing maximal additive faces... done")
+    logging.info("Computing additive faces... done")
     return faces

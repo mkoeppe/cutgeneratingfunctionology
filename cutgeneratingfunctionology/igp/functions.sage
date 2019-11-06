@@ -158,18 +158,99 @@ def verts(I1, J1, K1):
 
 equiv7_mode = False
 
+## FIXME: Document what it does when input is not subadditive.
 def generate_maximal_additive_faces(fn):
+    r"""Compute the list of maximal additive faces of the subadditive function ``fn``.
+
+    In the discontinuous case, this includes the faces determined by
+    limit-additivities as well: Additive faces are defined in the
+    discontinuous case according to
+    :cite:`hildebrand-koeppe-zhou:algo-paper`, Definition 9.7
+    ({def:set-of-additivities-and-limit-additivities-of-a-face-F}),
+    following Lemma 9.6 (lemma:additive-face-discontinuous): The face `E
+    \in \Delta\mathcal P` is additive if there exists an enclosing face
+    `F \in \Delta\mathcal P` such that for some (equivalently, all) `(x,
+    y) \in \mathop{\mathrm{rel int}}(E)`, the limit `\Delta``fn``_F(x,
+    y) = 0``.
+
+    The additive faces (together with the empty face) form a subcomplex
+    of `Delta\mathcal P`.  Thus, they are determined by the maximal
+    elements.
+
+    (However, in the current implementation, in the discontinuous case,
+    this function actually computes all additive faces, not just the
+    maximal ones.)
+
+    Note that `\Delta` ``fn`` is invariant under swapping `x` and `y`.
+    This function does not break this symmetry.
+"""
     if hasattr(fn, '_maximal_additive_faces'):
         return fn._maximal_additive_faces
     if fn.is_discrete():
-        result = generate_maximal_additive_faces_discrete(fn)
-    elif fn.is_continuous() and not equiv7_mode:
+        result = generate_additive_faces_discrete(fn)   # all 0-dimensional, so maximal
+    elif fn.is_continuous():
         result = generate_maximal_additive_faces_continuous(fn)
     else:
-        result = generate_maximal_additive_faces_general(fn)
+        result = generate_additive_faces_general(fn)
+        # FIXME: Filter out non-maximal faces
     fn._maximal_additive_faces = result
     return result
-            
+
+def generate_additive_faces(fn):
+    r"""
+    Return the list of all additive faces of the subadditive function ``fn``.
+
+    In the discontinuous case, this includes the faces determined by
+    limit-additivities as well: Additive faces are defined in the
+    discontinuous case according to
+    :cite:`hildebrand-koeppe-zhou:algo-paper`, Definition 9.7
+    ({def:set-of-additivities-and-limit-additivities-of-a-face-F}),
+    following Lemma 9.6 (lemma:additive-face-discontinuous): The face `E
+    \in \Delta\mathcal P` is additive if there exists an enclosing face
+    `F \in \Delta\mathcal P` such that for some (equivalently, all) `(x,
+    y) \in \mathop{\mathrm{rel int}}(E)`, the limit `\Delta``fn``_F(x,
+    y) = 0``.
+
+    The additive faces (together with the empty face) form a subcomplex
+    of `Delta\mathcal P`.  Thus, they are determined by the maximal
+    elements; these are provided by ``generate_maximal_additive_faces``.
+
+    Note that `\Delta` ``fn`` is invariant under swapping `x` and `y`.
+    This function does not break this symmetry.
+
+    See also: ``generate_additive_faces_sans_limits``.
+    """
+    if hasattr(fn, '_additive_faces'):
+        return fn._additive_faces
+    if fn.is_discrete():
+        result = generate_additive_faces_discrete(fn)
+    else:
+        result = generate_additive_faces_general(fn)
+    fn._additive_faces = result
+    return result
+
+def is_additive_face_sans_limits(fn, face):
+    r"""Test whether ``face`` is additive-sans-limits for ``fn``.
+
+    See ``generate_additive_faces_sans_limits``.
+    """
+    ver = face.vertices
+    n = len(ver)
+    mx, my = sum([x for (x,y) in ver])/n, sum([y for (x,y) in ver])/n
+    return delta_pi(fn, mx, my) == 0
+
+def generate_additive_faces_sans_limits(fn):
+    r"""
+    Yield all additive faces of the subadditive function ``fn`` without taking limits into consideration.
+
+    A face ``E`` is additive-sans-limits if for some (equivalently, all) `(x, y) \in \mathop{\mathrm{rel int}}(E)`, we have
+    `\Delta``fn``(x, y) = 0``.
+
+    """
+    for face in generate_additive_faces(fn):
+        if is_additive_face_sans_limits(fn, face):
+            yield face
+
 additive_fill_color = additive_color = "mediumspringgreen"
 
 import six
@@ -656,12 +737,8 @@ def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, 
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
     g = Graphics()
-    faces = generate_maximal_additive_faces(fn)
-    for face in faces:
-        ver = face.vertices
-        n = len(ver)
-        mx, my = sum([x for (x,y) in ver])/n, sum([y for (x,y) in ver])/n
-        if  delta_pi(fn, mx, my) == 0:
+    for face in generate_additive_faces_sans_limits(fn):
+        if is_additive_face_sans_limits(fn, face):
             g += face.plot(rgbcolor=additive_color, fill_color=additive_color, **kwds)
         else:
             g += face.plot(rgbcolor='white', fill_color='white', **kwds)
@@ -2992,7 +3069,7 @@ def generate_functional_directed_moves(fn):
     Compute the (translations and reflections) moves.
     """
     moves = dict()
-    for face in generate_maximal_additive_faces(fn):
+    for face in generate_additive_faces(fn) if equiv7_mode else generate_maximal_additive_faces(fn):
         if face.is_directed_move():
             fdm = face.functional_directed_move()
             if fdm.intervals():
