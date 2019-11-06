@@ -4880,21 +4880,40 @@ def plot_completion_diagram_background(fn):
 # Global variable ``strategical_covered_components`` to control whether generate_covered_components_strategically() is used in place of generate_covered_components.
 strategical_covered_components = False
 
-def generate_covered_components_strategically(fn, show_plots=False):
-    r"""
-    Return both directly and indirectly covered components.
+def generate_covered_components_strategically(fn, show_plots=False, additive_faces=None):
+    r"""Return both directly and indirectly covered components of ``fn``.
 
-    Set ``logging.getLogger().setLevel(logging.DEBUG)`` to see proof of covered components.
+    Directly covered components are obtained by using the interval lemma
+    (convex additivity domain lemma) on two-dimensional maximal additive
+    faces of ``fn``.
+
+    Indirectly covered components are obtained using the one-dimensional
+    maximal additive faces of ``fn``; this includes using
+    limit-additivities.  This is justified by Theorem 3.3 in
+    :cite:`koeppe-zhou:crazy-perturbation` (which covers the two-sided
+    discontinuous case).
+
+    If ``additive_faces`` is provided, use exactly these faces, assuming that
+    they are additive.
+
+    Set ``logging.getLogger().setLevel(logging.DEBUG)`` to see a human-readable 
+    proof of covered components.
+
     Set ``show_plots=True`` to visualize the proof.
-    """
-    if hasattr(fn, '_strategical_covered_components'):
+"""
+    if additive_faces is None and hasattr(fn, '_strategical_covered_components'):
         return fn._strategical_covered_components
     step = 0
     if show_plots:
         g = plot_2d_diagram(fn, function_color='black', additive_color="grey")
         show_plot(g, show_plots, tag=step , object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
-    faces = [ face for face in generate_maximal_additive_faces(fn) if face.is_2D() ]
-    edges = [ face for face in generate_maximal_additive_faces(fn) if face.is_horizontal() or face.is_diagonal() ] #face.is_1D() ]
+    if additive_faces is None:
+        use_faces = list(generate_maximal_additive_faces(fn))
+        edges = [ face for face in use_faces if face.is_horizontal() or face.is_diagonal() ] # break symmetry ]
+    else:
+        use_faces = list(additive_faces)
+        edges = [ face for face in use_faces if face.is_1D() ] # don't assume both face and x-y-swapped face are present in caller-provided list
+    faces = [ face for face in use_faces if face.is_2D() ]
     covered_components = []
     max_size = 1
     while max_size > 0:
@@ -5011,7 +5030,9 @@ def generate_covered_components_strategically(fn, show_plots=False):
             if logging.getLogger().isEnabledFor(logging.DEBUG):
                 logging.debug("Step %s: By merging components that are connected by the 1d additive %s, we obtain a larger covered component %s." % (step, edge, new_component))
             covered_components = remaining_components + [new_component]
-    fn._strategical_covered_components = covered_components
+    if additive_faces is None: # Don't cache if computation is done with provided list of faces
+
+        fn._strategical_covered_components = covered_components
     return covered_components
 
 def generate_directly_covered_components(fn):
