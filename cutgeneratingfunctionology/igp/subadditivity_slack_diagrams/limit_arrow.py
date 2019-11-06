@@ -28,12 +28,13 @@ class LimitArrow(Arrow):
         arrowsize = float(options.get('arrowsize', 5))
         #head_width = arrowsize * 0.5
         head_width = arrowsize * 0.7
+        tail_width = arrowsize * 0.7
         head_length = arrowsize * 2.0
         color = to_mpl_color(options['rgbcolor'])
         from matplotlib.patches import FancyArrowPatch
         p = FancyArrowPatch((self.xtail, self.ytail), (self.xhead, self.yhead),
                             lw=width,
-                            arrowstyle='%s,head_width=%s,head_length=%s' % (style, head_width, head_length),
+                            arrowstyle='%s,head_width=%s,head_length=%s,tail_width=%s' % (style, head_width, head_length, tail_width),
                             shrinkA=arrowshorten_end, shrinkB=arrowshorten_end,
                             fc=color, ec=color,
                             linestyle=get_matplotlib_linestyle(options['linestyle'], return_type='long'))
