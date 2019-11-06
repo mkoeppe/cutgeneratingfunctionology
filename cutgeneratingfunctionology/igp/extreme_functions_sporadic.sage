@@ -152,7 +152,6 @@ def hildebrand_discont_3_slope_1():
         sage: E_psi_prime = set(generate_additive_faces_sans_limits(psi_prime))
         sage: E_psi.issubset(E_psi_prime)
         True
-        sage: E_psi_prime.difference(E_psi)
         sage: sorted(E_psi_prime.difference(E_psi))
         [<Face ([0, 1/8], [0, 1/8], [1/8])>, <Face ([0, 1/8], [0, 1/8], [1/8, 1/4])>, ...]
 
