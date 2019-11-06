@@ -29,7 +29,7 @@ bb = point((1.1, 0.5), color='white', alpha=0)
 
 name = 'hildebrand_discont_3_slope_1'
 h = eval(name)()
-hl = discontinuous_facets_paper_example_psi_prime()
+hl = discontinuous_facets_paper_example_psi_prime(merge=False)
 liftname = ''
 
 Gh = (plot_2d_diagram_additive_domain_sans_limits(h, show_function=False) + plot_function_at_borders(h, color='black', thickness=2) + bb)

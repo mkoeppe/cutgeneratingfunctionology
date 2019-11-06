@@ -147,19 +147,27 @@ def hildebrand_discont_3_slope_1():
                           right_open_piece((7/8, 2/8), (1, 4/8)), 
                           singleton_piece(1, 0)])
 
-def discontinuous_facets_paper_example_psi_prime():
+def discontinuous_facets_paper_example_psi_prime(merge=True):
     r"""
-    Example from the paper 'Facets, weak facets, and extreme functions.'
-    
+    Example from the paper cite:`koeppe-zhou:discontinuous-facets`.
+    See ``hildebrand_discont_3_slope_1``.
+
+    If ``merge=False``, the function is set up on the same breakpoints
+    as ``hildebrand_discont_3_slope_1`` for an easier comparison of the
+    additive faces; if ``merge=True``, it is set up on a coarser set of breakpoints.
+
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-        sage: h = discontinuous_facets_paper_example_psi_prime()
-        sage: extremality_test(h, False)
+        sage: psi_prime = discontinuous_facets_paper_example_psi_prime()
+        sage: extremality_test(psi_prime, False)
         True
     """
-    return discontinuous_interpolation([0,1/2,5/8,7/8],[0,1,3/4,1/4],[0,1/2,3/4,1/4],[1/2,1,3/4,1/4])
+    return discontinuous_interpolation([0,   1/8, 3/8, 1/2, 5/8, 7/8],
+                                       [0,   1/4, 3/4, 1,   3/4, 1/4],
+                                       [0,   1/4, 3/4, 1/2, 3/4, 1/4],
+                                       [1/2, 1/4, 3/4, 1,   3/4, 1/4], merge=merge)
 
 def kzh_5_slope_fulldim_1(): #renamed from extreme_5slope_no_0d_1d_1
     r"""
