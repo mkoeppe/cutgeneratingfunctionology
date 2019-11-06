@@ -131,13 +131,42 @@ def hildebrand_discont_3_slope_1():
 
     Constructed by Robert Hildebrand (2013, unpublished).
 
+    A detailed extremality proof appears as an example in cite:`hong-koeppe-zhou:software-paper`.
+
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-        sage: h = hildebrand_discont_3_slope_1()
-        sage: extremality_test(h, False)
+        sage: psi = hildebrand_discont_3_slope_1()
+        sage: extremality_test(psi, False)
         True
+
+    In cite:`koeppe-zhou:discontinuous-facets`, it is shown that this function (called `psi`)
+    is neither a weak facets nor a facet, by showing that the function
+    `psi' = ``discontinuous_facets_paper_example_psi_prime()`` ` has a larger additivity
+    domain E (sans limits).
+
+        sage: psi = hildebrand_discont_3_slope_1()
+        sage: E_psi = set(generate_additive_faces_sans_limits(psi))
+        sage: psi_prime = discontinuous_facets_paper_example_psi_prime(merge=False)
+        sage: E_psi_prime = set(generate_additive_faces_sans_limits(psi_prime))
+        sage: E_psi.issubset(E_psi_prime)
+        True
+        sage: E_psi_prime.difference(E_psi)
+        sage: sorted(E_psi_prime.difference(E_psi))
+        [<Face ([0, 1/8], [0, 1/8], [1/8])>, <Face ([0, 1/8], [0, 1/8], [1/8, 1/4])>, ...]
+
+    In fact, if one uses only the faces of `psi` that are additive sans limits, then there is
+    one covered component only; two intervals remain uncovered::
+
+        sage: show_plots=False
+        sage: show_plots=True      # not tested
+        sage: generate_covered_components_strategically(psi, show_plots=show_plots,
+        ....:                                           additive_faces=E_psi)
+        [[<Int(1/8, 1/4)>, <Int(1/4, 3/8)>],
+         [<Int(5/8, 3/4)>, <Int(3/4, 7/8)>],
+         [<Int(0, 1/8)>, <Int(3/8, 1/2)>]]
+
     """
     return FastPiecewise([right_open_piece((0, 0), (1/8, 6/8)),
                           closed_piece((1/8, 2/8), (3/8, 6/8)),
