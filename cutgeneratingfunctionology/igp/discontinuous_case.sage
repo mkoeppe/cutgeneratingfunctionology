@@ -343,6 +343,9 @@ def generate_symbolic_general(function, components, field=None, f=None, basis_fu
             pieces.append((singleton_interval(b),
                            FastLinearFunction(vector_space.zero(), midpoint_value(b, b))))
             last_x = b
+        if last_x < 1:
+            pieces.append((singleton_interval(1),
+                           FastLinearFunction(vector_space.zero(), midpoint_value(1, 1))))
         # FIXME: Add logging.debug with details on the variables.
     else:
         # Use slopes and jumps from left to right.
