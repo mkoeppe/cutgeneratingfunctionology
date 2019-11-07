@@ -618,7 +618,10 @@ def is_additive_face(fn, face):
     if face.is_2D():
         for vertex in face.vertices:
             for eps_triple in generate_containing_eps_triple(vertex, face.minimal_triple):
-                if delta_pi_general(fn, vertex[0], vertex[1], eps_triple) != 0:
+                try: 
+                    if delta_pi_general(fn, vertex[0], vertex[1], eps_triple) != 0:
+                        return False
+                except ValueError: # undefined
                     return False
         return True
     elif face.is_1D():
@@ -628,16 +631,22 @@ def is_additive_face(fn, face):
         eps_triple_1 = generate_containing_eps_triple(vertex_1, face.minimal_triple)
         # FIXME: both eps_triple_0 and _1 have length 3? in compatible order? Yes.
         for i in range(3):
-            if delta_pi_general(fn, vertex_0[0], vertex_0[1], eps_triple_0[i]) == 0 and \
-               delta_pi_general(fn, vertex_1[0], vertex_1[1], eps_triple_1[i]) == 0:
-                return True
+            try:
+                if delta_pi_general(fn, vertex_0[0], vertex_0[1], eps_triple_0[i]) == 0 and \
+                   delta_pi_general(fn, vertex_1[0], vertex_1[1], eps_triple_1[i]) == 0:
+                    return True
+            except ValueError: # undefined
+                pass
         return False
     else:
         vertex = face.vertices[0]
-        for eps_triple in nonzero_eps:
-            if delta_pi_general(fn, vertex[0], vertex[1], eps_triple) == 0:
-                return False
-        return delta_pi_general(fn, vertex[0], vertex[1], (0,0,0)) == 0
+        for eps_triple in itertools.chain([(0,0,0)], nonzero_eps):
+            try:
+                if delta_pi_general(fn, vertex[0], vertex[1], eps_triple) == 0:
+                    return True
+            except ValueError: # undefined
+                pass
+        return False
 
 def x_y_swapped_face(face):
     vert = face.vertices

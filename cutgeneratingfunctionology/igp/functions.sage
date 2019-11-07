@@ -3752,14 +3752,26 @@ def perturbation_polyhedron_ieqs_eqns(fn, perturbs):
     for x in bkpt:
         for xeps in lim_xeps:
             valuefn = fn.limit(x, xeps)
-            valuep = [pert.limit(x, xeps) for pert in perturbs]
+            try:
+                valuep = [pert.limit(x, xeps) for pert in perturbs]
+            except ValueError:
+                if undefined_ok:
+                    continue
+                else:
+                    raise
             constraint_coef = tuple([valuefn]) + tuple(valuep)
             ieqset.append(constraint_coef)
     # record the subadditivity constraints
     for (x, y, z) in vertices:
         for (xeps, yeps, zeps) in [(0,0,0)]+limitingeps:
             deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
-            deltap = [delta_pi_general(pert, x, y, (xeps, yeps, zeps)) for pert in perturbs]
+            try:
+                deltap = [delta_pi_general(pert, x, y, (xeps, yeps, zeps)) for pert in perturbs]
+            except ValueError:
+                if undefined_ok:
+                    continue
+                else:
+                    raise
             constraint_coef = tuple([deltafn]) + tuple(deltap)
             ieqset.append(constraint_coef)
             # if deltafn > 0:
