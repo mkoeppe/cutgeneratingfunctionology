@@ -3467,6 +3467,15 @@ def generate_additive_vertices(fn, reduced=True, bkpt=None):
                 generate_type_1_vertices(fn, operator.eq, reduced=reduced, bkpt=bkpt),\
                 generate_type_2_vertices(fn, operator.eq, reduced=reduced, bkpt=bkpt)) )
 
+def generate_vertices_of_additive_faces_sans_limits(fn):
+    r"""
+    Compute the list of vertices of faces that are additive-sans-limits in the form of 6-tuples ``(x, y, z, xeps, yeps, zeps)``.
+    """
+    return unique_list((v[0], v[1], v[0]+v[1], eps[0], eps[1], eps[2])
+                       for F in generate_additive_faces_sans_limits(fn)
+                       for v in F.vertices
+                       for eps in generate_containing_eps_triple(v, F.minimal_triple))
+
 @cached_function
 def generate_nonsubadditive_vertices(fn, reduced=True):
     r"""
