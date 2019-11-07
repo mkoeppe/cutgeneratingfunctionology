@@ -3812,7 +3812,7 @@ def perturbation_polyhedron_ieqs_eqns(fn, perturbs, undefined_ok=False):
             #     # this is always true for basic perturbations coming from finite_dimensional_extremality_test().
     return unique_list(ieqset), unique_list(eqnset)
 
-def perturbation_mip(fn, perturbs, solver=None, field=None):
+def perturbation_mip(fn, perturbs, solver=None, field=None, undefined_ok=False):
     r"""
     Given fn and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a mip, one dimension for each basic perturbation, with the subadditivities.
 
@@ -3898,7 +3898,13 @@ def perturbation_mip(fn, perturbs, solver=None, field=None):
     for x in bkpt:
         for xeps in lim_xeps:
             valuefn = fn.limit(x, xeps)
-            valuep = [pert.limit(x, xeps) for pert in perturbs]
+            try:
+                valuep = [pert.limit(x, xeps) for pert in perturbs]
+            except ValueError:
+                if undefined_ok:
+                    continue
+                else:
+                    raise
             if all(coef == 0 for coef in valuep):
                 continue
             constraint_coef = tuple([valuefn]) + tuple(valuep)
@@ -3910,7 +3916,13 @@ def perturbation_mip(fn, perturbs, solver=None, field=None):
     for (x, y, z) in vertices:
         for (xeps, yeps, zeps) in [(0,0,0)]+limitingeps:
             deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
-            deltap = [delta_pi_general(pert, x, y, (xeps, yeps, zeps)) for pert in perturbs]
+            try:
+                deltap = [delta_pi_general(pert, x, y, (xeps, yeps, zeps)) for pert in perturbs]
+            except ValueError: # undefined
+                if undefined_ok:
+                    continue
+                else:
+                    raise
             if all(coef == 0 for coef in deltap):
                 continue
             constraint_coef = tuple([deltafn]) + tuple(deltap)
