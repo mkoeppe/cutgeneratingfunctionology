@@ -98,6 +98,21 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
         sage: extremality_test(h, crazy_perturbations=False)
         True
 
+    To attempt to reproduce the automatic proof of this fact that is given in
+    :cite:`koeppe-zhou:crazy-perturbation`, Appendix C, we can do the following::
+
+        sage: logging.getLogger().setLevel(logging.DEBUG)  # not tested - for interactive use
+        sage: import cutgeneratingfunctionology.igp as igp 
+        sage: igp.strategical_covered_components = True
+        sage: igp.show_values_of_fastpiecewise = False
+        sage: igp.show_RNFElement_by_embedding = False
+        sage: h = kzh_minimal_has_only_crazy_perturbation_1()
+        sage: extremality_test(h, crazy_perturbations=False)
+
+    Unfortunately, the details of the code have changed and it now makes different choices for
+    the full-rank subsystem, so the subsystem shown in the publication cannot be reproduced
+    with the current version of the code.
+
     Let's look a bit closer.  We take out the component that is only densely covered,
     consisting of the two special intervals::
 
