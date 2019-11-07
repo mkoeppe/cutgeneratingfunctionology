@@ -165,7 +165,7 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
         sage: additive_faces_sans_limits = generate_additive_faces_sans_limits(pi)
         sage: covered_components = generate_covered_components_strategically(pi, additive_faces=additive_faces_sans_limits)
         sage: uncovered_intervals = uncovered_intervals_from_covered_components(covered_components)
-        sage: uncovered_intervals == [open_interval(pi.ucl, h.ucr), open_interval(pi._f - pi.ucr, pi._f - pi.ucl)]
+        sage: uncovered_intervals == [open_interval(pi.ucl, pi.ucr), open_interval(pi._f - pi.ucr, pi._f - pi.ucl)]
         True
 
     The above is also done by ``facet_test``::
@@ -180,7 +180,7 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
 
         sage: len(pi._facet_solution_basis)
         5
-        sage: graphics_array([[kf.plot(color='magenta')] for b in h._facet_solution_basis])  # not tested
+        sage: graphics_array([[kf.plot(color='magenta')] for b in pi._facet_solution_basis])  # not tested
 
     We generate the functions corresponding to the vertices::
 
