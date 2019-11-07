@@ -740,10 +740,7 @@ def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, 
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
     g = Graphics()
     for face in generate_additive_faces_sans_limits(fn):
-        if is_additive_face_sans_limits(fn, face):
-            g += face.plot(rgbcolor=additive_color, fill_color=additive_color, **kwds)
-        else:
-            g += face.plot(rgbcolor='white', fill_color='white', **kwds)
+        g += face.plot(rgbcolor=additive_color, fill_color=additive_color, **kwds)
     g += plot_2d_complex(fn)
     if show_function:
         g += plot_function_at_borders(fn, color=function_color)
