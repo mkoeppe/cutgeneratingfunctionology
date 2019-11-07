@@ -3668,7 +3668,7 @@ def plot_completion_diagram(fn, perturbation=None):
         g += plot_walk_in_completion_diagram(perturbation._seed, perturbation._walk_list)
     return fn._completion.plot(extra_graphics = g)
 
-def perturbation_polyhedron(fn, perturbs, **kwds):
+def perturbation_polyhedron(fn, perturbs, undefined_ok=False, **kwds):
     r"""
     Given fn  and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a polyhedron, one dimension for each basic perturbation, with the subadditivities.
 
@@ -3736,11 +3736,11 @@ def perturbation_polyhedron(fn, perturbs, **kwds):
         sage: extremality_test(h_lift)
         True
     """
-    (ieqs, eqns) = perturbation_polyhedron_ieqs_eqns(fn, perturbs)
+    (ieqs, eqns) = perturbation_polyhedron_ieqs_eqns(fn, perturbs, undefined_ok=undefined_ok)
     pert_polyhedron = Polyhedron(ieqs = ieqs, eqns = eqns, **kwds)
     return pert_polyhedron
 
-def perturbation_polyhedron_ieqs_eqns(fn, perturbs):
+def perturbation_polyhedron_ieqs_eqns(fn, perturbs, undefined_ok=False):
     bkpt = copy(fn.end_points())
     for pert in perturbs:
         bkpt += pert.end_points()
@@ -3909,11 +3909,19 @@ def perturbation_mip(fn, perturbs, solver=None, field=None):
             #     # this is always true for basic perturbations coming from finite_dimensional_extremality_test().
     return mip
 
-def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_polyhedron=False):
+def generate_lifted_functions(fn, perturbs=None, use_polyhedron=False, **kwds):
     r"""
     A generator of lifted functions.
 
-    Set up a mip, one dimension for each basic perturbation, with the subadditivities. Shoot random directions as objective functions. Solve the mip. Lift the function by adding the perturbation that corresponds to the mip solution.
+    If ``use_polyhedron=False`` (the default), set up an LP (as a 
+    ``MixedIntegerLinearProgram``) with one dimension for 
+    each basic perturbation, with the subadditivities. Shoot random directions 
+    as objective functions. Solve the MIP. Lift the function by adding the 
+    perturbation that corresponds to the MIP solution. MIP solver keywords can be 
+    passed in ``kwds``.
+
+    If ``use_polyhedron=True``, set up a ``Polyhedron`` instead.  ``Polyhedron``
+    constructor keywords can be passed in ``kwds``.
 
     EXAMPLES::
 
@@ -3934,7 +3942,7 @@ def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_po
         True
 
     If the solver argument is not specified, the code can figure it out,
-    using field (base_ring).
+    using field (``base_ring``).
 
     The option ``solver=InteractiveLP`` is able to deal with irrational numbers::
 
@@ -3959,10 +3967,10 @@ def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_po
         finite_dimensional_extremality_test(fn, show_all_perturbations=True)
         perturbs = fn._perturbations
     if use_polyhedron:
-        pert_polyhedron = perturbation_polyhedron(fn, perturbs)
+        pert_polyhedron = perturbation_polyhedron(fn, perturbs, **kwds)
         vertices = pert_polyhedron.vertices()
     else:
-        pert_mip = perturbation_mip(fn, perturbs, solver=solver, field=field)
+        pert_mip = perturbation_mip(fn, perturbs, **kwds)
         vertices = generate_random_mip_sol(pert_mip)
     for vertex in vertices:
         logging.info("vertex = %s" % str(vertex))
