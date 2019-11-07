@@ -80,6 +80,7 @@ def kzh_discontinuous_bhk_irrational(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ra
 def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **parametric_kwds):
     r"""
     This function is a two-sided discontinuous piecewise linear minimal valid function
+    introduced in :cite:`koeppe-zhou:crazy-perturbation`
     which is not extreme, but which is not a convex combination of other piecewise linear minimal valid
     functions.  It has two special intervals `(l, u)` and `(f-u, f-l)`, on which every 
     nonzero perturbation is microperiodic (invariant under the action of a dense additive group).
@@ -152,6 +153,40 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
         0.0003958663221935161?
 
     Therefore, the function ``kzh_minimal_has_only_crazy_perturbation_1()`` is not extreme.
+
+    In :cite:`koeppe-zhou:discontinuous-facets`, it shown that
+    `\pi = ``kzh_minimal_has_only_crazy_perturbation_1()`` ` is a weak facet.
+    In the proof, we take an arbitrary minimal valid function `\pi'` with
+    `E(\pi) \subseteq E(\pi')`.  Because we have no control over the limit-additivities
+    of the function `\pi'`, all of our arguments have to use addivities-sans-limit of `\pi`. 
+    First we show that `\pi'` has to be affine linear on every non-special intervals of `\pi`.
+
+        sage: pi = kzh_minimal_has_only_crazy_perturbation_1()
+        sage: additive_faces_sans_limits = generate_additive_faces_sans_limits(pi)
+        sage: covered_components = generate_covered_components_strategically(pi, additive_faces=additive_faces_sans_limits)
+        sage: uncovered_intervals = uncovered_intervals_from_covered_components(covered_components)
+        sage: uncovered_intervals == [open_interval(pi.ucl, h.ucr), open_interval(pi._f - pi.ucr, pi._f - pi.ucl)]
+        True
+
+    The above is also done by ``facet_test``::
+
+        sage: facet_test(pi)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: facet_test does not know how to continue
+
+    ``facet_test`` also sets up a finite system, again only using additivities-sans-limit.
+    It has a nontrivial kernel::
+
+        sage: len(pi._facet_solution_basis)
+        5
+        sage: graphics_array([[kf.plot(color='magenta')] for b in h._facet_solution_basis])  # not tested
+
+    We generate the functions corresponding to the vertices::
+
+        sage: vertex_functions = list(generate_lifted_functions(pi, perturbs=pi._facet_solution_basis, use_polyhedron=True, undefined_ok=True, backend='normaliz'))
+
+    NOTE:
 
     If ``parametric=True``, the breakpoints and slopes are given symbolic names.
     This is useful for printing.
