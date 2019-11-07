@@ -1221,7 +1221,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         upstairs_lhs_coeff = [0] * self.upstairs().ambient_dim()
         upstairs_lhs_cst = 0
         for m in lhs.monomials():
-            coeffm = lhs.monomial_coefficient(m)
+            coeffm = QQ(lhs.monomial_coefficient(m))
             if m == 1:
                 upstairs_lhs_cst = coeffm
             else:
@@ -1236,7 +1236,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
                     upstairs_lhs_coeff[nv] = coeffm
         if space_dim_to_add:
             self.upstairs().add_space_dimensions_and_embed(space_dim_to_add)
-        upstairs_lhs = sum(QQ(x)*y for x, y in zip(upstairs_lhs_coeff, self.upstairs().poly_ring().gens())) + QQ(upstairs_lhs_cst)
+        upstairs_lhs = sum(x*y for x, y in zip(upstairs_lhs_coeff, self.upstairs().poly_ring().gens())) + upstairs_lhs_cst
         self.upstairs().add_polynomial_constraint(upstairs_lhs, op)
 
 class BasicSemialgebraicSet_formal_closure(BasicSemialgebraicSet_base):
