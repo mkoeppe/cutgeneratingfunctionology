@@ -422,9 +422,9 @@ def generate_additivity_equations_general(function, symbolic, field, f=None, bkp
             return M
     pivot_r =  list(M.pivot_rows())
     for i in pivot_r:
-        if i == 0:
+        if vs[i] == 'f':
             logging.debug("Condition pert(f) = 0 gives the equation\n%s * v = 0." % (symbolic(f)))
-        elif i == 1:
+        elif vs[i] == '1':
             logging.debug("Condition pert(1) = 0 gives the equation\n%s * v = 0." % (symbolic(field(1))))
         else:
             (x, y, z, xeps, yeps, zeps) = vs[i]
