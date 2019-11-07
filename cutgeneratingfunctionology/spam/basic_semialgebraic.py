@@ -11,6 +11,9 @@ from sage.rings.real_double import RDF
 from sage.rings.infinity import Infinity
 from sage.misc.abstract_method import abstract_method
 from sage.arith.misc import gcd
+from sage.plot.graphics import Graphics
+from sage.calculus.var import var
+from sage.plot.contour_plot import region_plot
 
 from copy import copy
 from itertools import chain
@@ -277,8 +280,13 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
     @abstract_method
     def is_polynomial_constraint_valid(self, lhs, op):
         """
-        Whether the constraint ``lhs`` * x ``op``
-        is satisfied for all points of ``self``.
+        Check if the constraint ``lhs``(x) ``op`` 0 is satisfied
+        for all points of ``self``, where ``lhs`` is a polynomial, and
+        ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
+        ``operator.le``, ``operator.ge``.
+
+        Raise an error if the information provided does not suffice to decide
+        the validity of the constraint.
         """
 
     def linear_function_upper_bound(self, form):
@@ -633,7 +641,8 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
     @staticmethod
     def _ppl_constraint(lhs, cst, op):
         """
-        Make a PPL ``Constraint`` ``lhs`` * x + cst ``op`` 0.
+        Make a PPL ``Constraint`` ``lhs`` * x + cst ``op`` 0,
+        where ``lhs`` is be a vector of length ambient_dim.
         """
         lcd = lcm(lcm(x.denominator() for x in lhs), cst.denominator())
         linexpr = Linear_Expression(lhs * lcd, cst * lcd)
@@ -653,7 +662,8 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
     def is_linear_constraint_valid(self, lhs, cst, op):
         """
         Whether the constraint ``lhs`` * x + cst ``op`` 0
-        is satisfied for all points of ``self``.
+        is satisfied for all points of ``self``,
+        where ``lhs`` is be a vector of length ambient_dim.
         
         EXAMPLES::
         
@@ -667,15 +677,16 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
             sage: P.is_linear_constraint_valid([0,1],0,operator.gt)
             False
         """
+        lhs = vector(lhs)
         constraint = self._ppl_constraint(lhs, cst, op)
         return self._polyhedron.relation_with(constraint).implies(poly_is_included)
 
     def add_linear_constraint(self, lhs, cst, op):
         """
-        ``lhs`` should be a vector of length ambient_dim.
         Add the constraint ``lhs`` * x + cst ``op`` 0,
-        where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
-        ``operator.le``, ``operator.ge``.
+        where ``lhs`` is a vector of length ambient_dim, and
+        ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
+        ``operator.le``, ``operator.ge``
         
         EXAMPLES::
         
@@ -792,9 +803,7 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
         In this implementation, this is done by solving the LP,
         so this upper bound is the supremum.
 
-        However, if ``self`` is empty, this may return +oo
-        because we cannot distinguish infeasible from unbounded.
-
+        If ``self`` is empty, this returns -oo
         """
         mip = self.mip()
         objective = self._mip_linear_function(form)
