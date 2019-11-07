@@ -702,9 +702,9 @@ def generate_additive_faces_general(function):
                             faces.append(x_y_swapped_face(face))
     # 0D faces
     additive_vertices = {(x,y) for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(function) if x != 1 and y != 1}
-    additive_vertices_seen = {vertex for face in faces for vertex in face.vertices}
-    additive_vertices_new = additive_vertices.difference(additive_vertices_seen)
-    for (x, y) in additive_vertices_new:
+    #dditive_vertices_seen = {vertex for face in faces for vertex in face.vertices}
+    #additive_vertices_new = additive_vertices.difference(additive_vertices_seen)
+    for (x, y) in additive_vertices:
         face = Face(([x], [y], [x+y]))
         faces.append(face)
         if x != y:

@@ -191,8 +191,17 @@ def generate_maximal_additive_faces(fn):
     elif fn.is_continuous():
         result = generate_maximal_additive_faces_continuous(fn)
     else:
-        result = generate_additive_faces_general(fn)
-        # FIXME: Filter out non-maximal faces
+        additive_faces = generate_additive_faces_general(fn)
+        additive_faces_2D = [F for F in additive_faces if F.is_2D()]
+        maximal_additive_face_1D = [F1 for F1 in additive_faces if F1.is_1D() and all(not set(F1.vertices).issubset(set(F2.vertices)) for F2 in additive_faces_2D)]
+        result = additive_faces_2D + maximal_additive_face_1D
+        for F0 in additive_faces:
+            if F0.is_0D():
+                v = F0.vertices[0]
+                if all(not v in set(F.vertices) for F in additive_faces_2D) and all(not v in set(F.vertices) for F in maximal_additive_face_1D):
+                    result.append(F0)
+        ####result = generate_additive_faces_general(fn)
+        ##### FIXME: Filter out non-maximal faces
     fn._maximal_additive_faces = result
     return result
 
@@ -248,6 +257,20 @@ def generate_additive_faces_sans_limits(fn):
 
     Such a face ``E`` is the convex hull of vertices `(x, y)` that have
     the limits `\Delta``fn``_E(x, y) = 0`.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: h = kzh_minimal_has_only_crazy_perturbation_1()
+        sage: x = h.end_points()
+        sage: F = Face(([x[6]],[1+x[4]-x[6]],[1+x[4]]))
+        sage: F in generate_additive_faces(h)
+        True
+        sage: F in generate_maximal_additive_faces(h)
+        False
+        sage: F in generate_additive_faces_sans_limits(h)
+        True
     """
     for face in generate_additive_faces(fn):
         if is_additive_face_sans_limits(fn, face):
