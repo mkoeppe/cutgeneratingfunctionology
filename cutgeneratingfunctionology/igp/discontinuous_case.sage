@@ -90,12 +90,17 @@ def generate_type_2_vertices_general(fn, comparison, reduced=True, bkpt=None):
                 k = k2
             else:
                 k = k2 - len(bkpt) + 1
-            if comparison(limits[i][0] + fn(y), limits[k][0]):
+            limits_x = limits[i]
+            limits_z = limits[k]
+            limits_y = fn.limits(y)
+            def check(xeps, yeps, zeps):
+                if all(l is not None for l in (limits_x[xeps], limits_y[yeps], limits_z[zeps])):
+                    if comparison(limits_x[xeps] + limits_y[yeps] - limits_z[zeps], 0):
+                        return True
+                return False
+            if check(0, 0, 0):
                 yield (x, y, z, 0, 0, 0)
             if not fn.is_continuous():
-                limits_x = limits[i]
-                limits_z = limits[k]
-                limits_y = fn.limits(y)
                 # no trouble at 0- and 1+ since 0 < y < 1.
                 if not (limits_y[0] == limits_y[1] == limits_y[-1]):
                     # then y is a in bkpt. this is done in type1check_general.
@@ -105,7 +110,7 @@ def generate_type_2_vertices_general(fn, comparison, reduced=True, bkpt=None):
                 else:
                     eps_to_check = nonzero_eps
                 for (xeps, yeps, zeps) in eps_to_check:
-                    if comparison(limits_x[xeps] + limits_y[yeps] - limits_z[zeps], 0):
+                    if check(xeps, yeps, zeps):
                        yield (x, y, x+y, xeps, yeps, zeps)
 
 def generate_nonsymmetric_vertices_general(fn, f):
