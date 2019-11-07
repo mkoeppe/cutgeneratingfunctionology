@@ -162,7 +162,7 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
     First we show that `\pi'` has to be affine linear on every non-special intervals of `\pi`.
 
         sage: pi = kzh_minimal_has_only_crazy_perturbation_1()
-        sage: additive_faces_sans_limits = generate_additive_faces_sans_limits(pi)
+        sage: additive_faces_sans_limits = list(generate_additive_faces_sans_limits(pi))
         sage: covered_components = generate_covered_components_strategically(pi, additive_faces=additive_faces_sans_limits)
         sage: uncovered_intervals = uncovered_intervals_from_covered_components(covered_components)
         sage: uncovered_intervals == [open_interval(pi.ucl, pi.ucr), open_interval(pi._f - pi.ucr, pi._f - pi.ucl)]
@@ -170,21 +170,35 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
 
     The above is also done by ``facet_test``::
 
+        sage: pi = kzh_minimal_has_only_crazy_perturbation_1()
         sage: facet_test(pi)
         Traceback (most recent call last):
         ...
         NotImplementedError: facet_test does not know how to continue
 
-    ``facet_test`` also sets up a finite system, again only using additivities-sans-limit.
-    It has a nontrivial kernel::
+    ``facet_test`` also sets up a finite system for a general partial function outside 
+    the special intervals, again only using additivities-sans-limit.
+    The system has a nontrivial kernel::
 
         sage: len(pi._facet_solution_basis)
         5
         sage: graphics_array([[kf.plot(color='magenta')] for b in pi._facet_solution_basis])  # not tested
 
+    Test that the slopes on all cosets on the special intervals are 0::
+
+        sage: all(all(b(x) == 0 for x in (pi.a0, pi.a1, pi.a2)) for b in pi._facet_solution_basis)
+        True
+
     We generate the functions corresponding to the vertices::
 
         sage: vertex_functions = list(generate_lifted_functions(pi, perturbs=pi._facet_solution_basis, use_polyhedron=True, undefined_ok=True, backend='normaliz'))
+
+    We check for any additional additivities-sans-limits::
+
+        sage: vf = vertex_functions[1]
+        sage: g_pi = plot_2d_diagram_additive_domain_sans_limits(pi)    # not tested
+        sage: g_vf = plot_2d_diagram_additive_domain_sans_limits(vf, additive_color='red', function_color='red') + g_pi    # not tested
+        sage: g_vf.show(figsize=24) # not tested
 
     NOTE:
 
@@ -252,8 +266,11 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
         h.ucl = bkpts[17]
         h.ucr = bkpts[18]
         h._f = bkpts[37]
-        h.t1 = bkpts[10]-bkpts[6]
-        h.t2 = bkpts[13]-bkpts[6]
+        h.a0 = bkpts[6]
+        h.a1 = bkpts[10]
+        h.a2 = bkpts[13]
+        h.t1 = h.a1 - h.a0
+        h.t2 = h.a2 - h.a0
         from cutgeneratingfunctionology.spam.real_set import RealSet   # param-safe version of RealSet
         h.special_intervals = RealSet.open(h.ucl, h.ucr) + RealSet.open(h._f - h.ucr, h._f - h.ucl)
         h.s = delta_pi_general(h, bkpts[39], 1 + h.ucl - bkpts[39], (-1, 0, 0))
