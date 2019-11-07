@@ -240,12 +240,14 @@ def is_additive_face_sans_limits(fn, face):
     return delta_pi(fn, mx, my) == 0
 
 def generate_additive_faces_sans_limits(fn):
-    r"""
-    Yield all additive faces of the subadditive function ``fn`` without taking limits into consideration.
+    r"""Yield all additive faces of the subadditive function ``fn`` without taking limits into consideration.
 
-    A face ``E`` is additive-sans-limits if for some (equivalently, all) `(x, y) \in \mathop{\mathrm{rel int}}(E)`, we have
-    `\Delta``fn``(x, y) = 0``.
+    A face ``E`` is additive-sans-limits if for some (equivalently, all)
+    `(x, y) \in \mathop{\mathrm{rel int}}(E)`, we have `\Delta``fn``(x,
+    y) = 0``.
 
+    Such a face ``E`` is the convex hull of vertices `(x, y)` that have
+    the limits `\Delta``fn``_E(x, y) = 0`.
     """
     for face in generate_additive_faces(fn):
         if is_additive_face_sans_limits(fn, face):
