@@ -321,7 +321,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
 
         """
         form = vector(form)
-        return -self.linear_function_upper_bound(-form)
+        return -(self.linear_function_upper_bound(-form))
 
     @abstract_method
     def find_point(self):
@@ -438,7 +438,7 @@ class BasicSemialgebraicSet_polyhedral(BasicSemialgebraicSet_base):
         except AttributeError:
             # univariate polynomials (Polynomial_rational_flint) unfortunately
             # have a different API that does not define "coefficient".
-            lhs_vector = [lhs[1]]  # coefficient of the linear term
+            lhs_vector = vector([lhs[1]])  # coefficient of the linear term
         self.add_linear_constraint(lhs_vector, cst, op)
 
 
@@ -696,6 +696,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
             sage: sorted(P.lt_poly())
             [-2*x0 - 3*x1 + 6]
         """
+        lhs = vector(lhs)
         constraint = self._ppl_constraint(lhs, cst, op)
         self._polyhedron.add_constraint(constraint)
 
