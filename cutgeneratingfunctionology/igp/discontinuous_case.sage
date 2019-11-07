@@ -44,19 +44,24 @@ def generate_type_1_vertices_general(fn, comparison, reduced=True, bkpt=None):
             x = bkpt[i]
             y = bkpt[j]
             z = fractional(x + y)
-            if comparison(limits[i][0] + limits[j][0], fn(z)):
+            limits_x = limits[i]
+            limits_y = limits[j]
+            limits_z = fn.limits(z)
+            def check(xeps, yeps, zeps):
+                if all(l is not None for l in (limits_x[xeps], limits_y[yeps], limits_z[zeps])):
+                    if comparison(limits_x[xeps] + limits_y[yeps] - limits_z[zeps], 0):
+                        return True
+                return False
+            if check(0, 0, 0):
                 yield (x, y, x+y, 0, 0, 0)
             if not fn.is_continuous():
-                limits_x = limits[i]
-                limits_y = limits[j]
-                limits_z = fn.limits(z)
                 if reduced and limits_x[0] == limits_x[1] == limits_x[-1] and limits_y[0] == limits_y[1] == limits_y[-1]:
                     eps_to_check = continuous_xy_eps # continuous at x and y
                 else:
                     eps_to_check = nonzero_eps
                 for (xeps, yeps, zeps) in eps_to_check:
-                    if comparison(limits_x[xeps] + limits_y[yeps] - limits_z[zeps], 0):
-                       yield (x, y, x+y, xeps, yeps, zeps)
+                    if check(xeps, yeps, zeps):
+                        yield (x, y, x+y, xeps, yeps, zeps)
 
 def generate_type_2_vertices_general(fn, comparison, reduced=True, bkpt=None):
     r"""
