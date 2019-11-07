@@ -659,6 +659,32 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         else:
             raise ValueError("{} is not a supported operator".format(op))
 
+    def linear_function_upper_bound(self, form):
+        """
+        Find an upper bound for ``form`` (a vector) on ``self``.
+        Tthis upper bound is the supremum.
+
+        If ``self`` is empty, it returns -oo
+        """
+        def to_point(g):
+            den = g.divisor()
+            return vector(QQ, ( QQ(x)/den for x in g.coefficients() ))
+        def to_vector(g):
+            return vector(QQ, ( QQ(x) for x in g.coefficients() ))
+        if self._polyhedron.is_empty():
+            return -Infinity
+        form = vector(form)
+        for g in self._polyhedron.generators():
+            if g.is_line():
+                if to_vector(g) * form != 0:
+                    return +Infinity
+            if g.is_ray():
+                if to_vector(g) * form > 0:
+                    return +Infinity
+        points = [ to_point(g) for g in self._polyhedron.generators()
+                   if g.is_point() or g.is_closure_point() ]
+        return max(p * form for p in points)
+
     def is_linear_constraint_valid(self, lhs, cst, op):
         """
         Whether the constraint ``lhs`` * x + cst ``op`` 0
