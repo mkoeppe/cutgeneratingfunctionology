@@ -3174,10 +3174,14 @@ def plot_symbolic(sym, indices=None, as_array=True, color='magenta', **kwds):
         return sum(plots)
 
 def generate_additivity_equations(fn, symbolic, field=None, f=None, bkpt=None,
-                                  reduce_system=None, return_vertices=False, **args):
+                                  reduce_system=None, return_vertices=False, vertices=None,
+                                  **args):
     r"""
     Using additivity, set up a finite-dimensional system of linear equations
     that must be satisfied by any perturbation.
+
+    Use ``vertices`` if provided, otherwise call uses the vertices obtained by
+    ``generate_additive_vertices``.
 
     If ``reduce_system`` is True (the default when ``logging.DEBUG`` is enabled),
     remove redundant equations to make the system minimal.
@@ -3227,10 +3231,10 @@ def generate_additivity_equations(fn, symbolic, field=None, f=None, bkpt=None,
         f = find_f(fn)
     if fn.is_continuous() or fn.is_discrete():
         return generate_additivity_equations_continuous(fn, symbolic, field, f=f, bkpt=bkpt,
-                                                        reduce_system=reduce_system, return_vertices=return_vertices, **args)
+                                                        reduce_system=reduce_system, return_vertices=return_vertices, vertices=vertices, **args)
     else:
         return generate_additivity_equations_general(fn, symbolic, field, f=f, bkpt=bkpt,
-                                                     reduce_system=reduce_system, return_vertices=return_vertices, **args)
+                                                     reduce_system=reduce_system, return_vertices=return_vertices, vertices=vertices, **args)
 
 def rescale_to_amplitude(perturb, amplitude):
     r"""For plotting purposes, rescale the function perturb so that its
@@ -3448,15 +3452,15 @@ def generate_type_2_vertices(fn, comparison, reduced=True, bkpt=None):
         return generate_type_2_vertices_general(fn, comparison, reduced=reduced, bkpt=bkpt)
 
 def generate_additive_vertices(fn, reduced=True, bkpt=None):
-    r"""
-    We are returning a set of 6-tuples `(x, y, z, xeps, yeps, zeps)`,
-    so that duplicates are removed, and so the result can be cached for later use.
+    r"""Return the list of additive vertices in the form of 6-tuples ``(x, y, z, xeps, yeps, zeps)``.
 
-    When reduced is: 
+    When reduced is:
 
-    - ``True``: only outputs fewer triples satisfying ``comparison`` relation, for the purpose of setting up the system of equations.
-    - ``False``: outputs all triples satisfying ``comparison`` relation, for the purpose of plotting ``additive_limit_vertices``.
+    - ``True``: only outputs fewer triples, for the purpose of setting up the system of equations.
+    - ``False``: outputs all triples, for the purpose of plotting ``additive_limit_vertices``.
     """
+    # Return a list instead of a generator so that the result can be cached.
+    # Using unique_list we remove duplicates.
     return unique_list(itertools.chain( \
                 generate_type_1_vertices(fn, operator.eq, reduced=reduced, bkpt=bkpt),\
                 generate_type_2_vertices(fn, operator.eq, reduced=reduced, bkpt=bkpt)) )

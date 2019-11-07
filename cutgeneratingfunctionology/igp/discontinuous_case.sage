@@ -377,12 +377,14 @@ def generate_symbolic_general(function, components, field=None, f=None, basis_fu
 
 def generate_additivity_equations_general(function, symbolic, field, f=None, bkpt=None,
                                           reduce_system=None, return_vertices=False,
-                                          undefined_ok=False):
+                                          undefined_ok=False, vertices=None):
     r"""
     Using additivity, set up a finite-dimensional system of linear equations
     that must be satisfied by any perturbation.
     """
-    vs = list(generate_additive_vertices(function, reduced = not function.is_two_sided_discontinuous(), bkpt=bkpt))
+    if vertices is None:
+        vertices = generate_additive_vertices(function, reduced = not function.is_two_sided_discontinuous(), bkpt=bkpt)
+    vs = list(vertices)
     def generate_labeled_equations():
         yield 'f', symbolic(f)
         yield '1', symbolic(field(1))

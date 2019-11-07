@@ -277,10 +277,12 @@ def generate_symbolic_continuous(function, components, field=None, f=None):
     return symbolic_function
 
 def generate_additivity_equations_continuous(function, symbolic, field, f=None, bkpt=None,
-                                             reduce_system=None, return_vertices=False):
+                                             reduce_system=None, return_vertices=False, vertices=None):
     if f is None:
         f = find_f(function)
-    vs = list(generate_additive_vertices(function, bkpt=bkpt))
+    if vertices is None:
+        vertices = generate_additive_vertices(function, bkpt=bkpt)
+    vs = list(vertices)
     equations = [symbolic(f), symbolic(field(1))]+[delta_pi(symbolic, x, y) for (x, y, z, xeps, yeps, zeps) in vs]
     vs = ['f', '1'] + vs
     M = matrix(field, equations)
