@@ -1265,6 +1265,47 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         upstairs_lhs = sum(x*y for x, y in zip(upstairs_lhs_coeff, self.upstairs().poly_ring().gens())) + upstairs_lhs_cst
         self.upstairs().add_polynomial_constraint(upstairs_lhs, op)
 
+    def is_polynomial_constraint_valid(self, lhs, op):
+        """
+        Check if the constraint ``lhs``(x) ``op`` 0 is satisfied 
+        for all points of ``self``, where ``lhs`` is a polynomial, and
+        ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
+        ``operator.le``, ``operator.ge``.
+
+        Raise an error if the information provided does not suffice to decide
+        the validity of the constraint.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: upstairs_bsa_ppl = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=0)
+            sage: veronese = BasicSemialgebraicSet_veronese(upstairs_bsa_ppl, [], dict(), ambient_dim=0)
+            sage: Q.<x0,x1,x2> = QQ[]
+            sage: lhs = 27/113 * x0^2 + x1*x2 + 1/2
+            sage: veronese.add_polynomial_constraint(lhs, operator.lt)
+            sage: veronese.is_polynomial_constraint_valid(lhs, operator.lt)
+            True
+            sage: lhs2 = x0 + 1/3*x1*x2
+            sage: veronese.is_polynomial_constraint_valid(lhs2, operator.lt)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError:
+        """
+        space_dim_to_add = 0
+        upstairs_lhs_coeff = [0] * self.upstairs().ambient_dim()
+        upstairs_lhs_cst = 0
+        for m in lhs.monomials():
+            coeffm = QQ(lhs.monomial_coefficient(m))
+            if m == 1:
+                upstairs_lhs_cst = coeffm
+            else:
+                nv = self.v_dict().get(m, None)
+                if nv is None:
+                    raise NotImplementedError
+                else:
+                    upstairs_lhs_coeff[nv] = coeffm
+        return self.upstairs().is_linear_constraint_valid(upstairs_lhs_coeff, upstairs_lhs_cst, op)
+
 class BasicSemialgebraicSet_formal_closure(BasicSemialgebraicSet_base):
 
     r"""
