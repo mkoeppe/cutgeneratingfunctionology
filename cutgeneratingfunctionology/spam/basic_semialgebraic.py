@@ -370,16 +370,66 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         - If slice_value is given, plot the slice of the cell according to the parameter values in slice_value that are not None. See examples in ``SemialgebraicComplex.plot()``.
         - plot_points controls the quality of the plotting.
 
-        Plot the slice in (x,y)-space with z=4::
+        EXAMPLES::
 
-            sage: complex.plot(slice_value=[None, None, 4])          # not tested
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: bsa = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=2)
+            sage: bsa.add_linear_constraint([1, 1], -1, operator.lt)
+            sage: bsa.plot()                                         # not tested
 
-        Plot the slice in (y,z)-space with x=4::
-
-            sage: complex.plot(slice_value=[4, None, None])          # not tested
+         Plot the slice in (x,y)-space with z=4::
+            sage: P.<x,y,z> = QQ[]
+            sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(le=[-x, -y, -z, x+y-1, z-6])
+            sage: bsa.plot(slice_value=[None, None, 4])              # not tested
         """
         ## Refactor SemialgebraicComplexComponent.plot and plot2dslice through this method.
-        raise NotImplementedError()
+        if (not slice_value) and (self.ambient_dim() != 2):
+            raise NotImplementedError("Plotting with dimension not equal to 2 is not implemented. Try `slice_value` to plot a slice.")
+        if slice_value:
+            if slice_value.count(None) != 2:
+                raise NotImplementedError("Plotting with dimension not equal to 2 is not implemented.")
+            PM = QQ['x','y']; (x, y) = PM.gens()  # invalid syntax PM.<x,y>=QQ[]
+            i = slice_value.index(None); slice_value[i] = x
+            j = slice_value.index(None); slice_value[j] = y
+            polynomial_map = [PM(pm) for pm in slice_value]
+            section = self.section(polynomial_map)
+            return section.plot(alpha=alpha, plot_points=plot_points, slice_value=None, **kwds)
+        g = Graphics()
+        if 'xmin' in kwds:
+            g.xmin(kwds['xmin'])
+        if 'xmax' in kwds:
+            g.xmax(kwds['xmax'])
+        if 'ymin' in kwds:
+            g.ymin(kwds['ymin'])
+        if 'ymax' in kwds:
+            g.ymax(kwds['ymax'])
+        xmin = self.linear_function_lower_bound([1,0])
+        xmax = self.linear_function_upper_bound([1,0])
+        ymin = self.linear_function_lower_bound([0,1])
+        ymax = self.linear_function_upper_bound([0,1])
+        if (xmin > xmax) or (ymin > ymax):
+            return g
+        if xmin is -Infinity:
+            xmin = kwds.get('xmin', 0)
+        if xmax is +Infinity:
+            xmax = kwds.get('xmax', 1)
+        if ymin is -Infinity:
+            ymin = kwds.get('ymin', 0)
+        if ymax is +Infinity:
+            ymax = kwds.get('ymax', 1)
+        x, y = var('x, y')
+        constraints = [l(x, y) == 0 for l in self.eq_poly()] + [l(x, y) < 0 for l in self.lt_poly()] + [l(x, y) <= 0 for l in self.le_poly()]
+        non_trivial_constraints = []
+        for c in constraints:
+            if c is False:
+                # empty polytope
+                return g
+            if not (c is True):
+                non_trivial_constraints.append(c)
+        g += region_plot(non_trivial_constraints, (x, xmin-0.01, xmax+0.01), (y, ymin-0.01, ymax+0.01),\
+                         alpha=alpha, plot_points=plot_points,\
+                         incol=kwds.get('color', 'blue'), bordercol=kwds.get('color', 'blue'))
+        return g
 
 class BasicSemialgebraicSet_polyhedral(BasicSemialgebraicSet_base):
 
