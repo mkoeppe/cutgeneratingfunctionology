@@ -1339,7 +1339,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             sage: veronese.is_polynomial_constraint_valid(lhs2, operator.lt)
             Traceback (most recent call last):
             ...
-            NotImplementedError:
+            NotImplementedError...
         """
         space_dim_to_add = 0
         upstairs_lhs_coeff = [0] * self.upstairs().ambient_dim()
