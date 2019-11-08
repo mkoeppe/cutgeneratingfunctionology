@@ -1416,7 +1416,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             NotImplementedError...
         """
         space_dim_to_add = 0
-        upstairs_lhs_coeff = [0] * self.upstairs().ambient_dim()
+        upstairs_lhs_coeff = [QQ(0)] * self.upstairs().ambient_dim()
         upstairs_lhs_cst = QQ(0)
         for m in lhs.monomials():
             coeffm = QQ(lhs.monomial_coefficient(m))
