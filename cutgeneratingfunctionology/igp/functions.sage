@@ -3510,6 +3510,7 @@ def generate_additive_vertices(fn, reduced=True, bkpt=None):
 def generate_vertices_of_additive_faces_sans_limits(fn):
     r"""
     Compute the list of vertices of faces that are additive-sans-limits in the form of 6-tuples ``(x, y, z, xeps, yeps, zeps)``.
+    Here ``z`` is not reduced modulo 1.
 
     TESTS::
 
@@ -3517,7 +3518,7 @@ def generate_vertices_of_additive_faces_sans_limits(fn):
         sage: logging.disable(logging.INFO)
         sage: h = kzh_minimal_has_only_crazy_perturbation_1()
         sage: x = h.end_points()
-        sage: (x[6], fractional(x[4]-x[6]), x[4], 0, 0, 0) in generate_vertices_of_additive_faces_sans_limits(h)
+        sage: (x[6], 1+x[4]-x[6], 1+x[4], 0, 0, 0) in generate_vertices_of_additive_faces_sans_limits(h)
         True
 
     """
