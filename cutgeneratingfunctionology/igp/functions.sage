@@ -249,7 +249,7 @@ def is_additive_face_sans_limits(fn, face):
     return delta_pi(fn, mx, my) == 0
 
 def generate_additive_faces_sans_limits(fn):
-    r"""Yield all additive faces of the subadditive function ``fn`` without taking limits into consideration.
+    r"""Return a list of all additive faces of the subadditive function ``fn`` without taking limits into consideration.
 
     A face ``E`` is additive-sans-limits if for some (equivalently, all)
     `(x, y) \in \mathop{\mathrm{rel int}}(E)`, we have `\Delta``fn``(x,
@@ -272,9 +272,10 @@ def generate_additive_faces_sans_limits(fn):
         sage: F in generate_additive_faces_sans_limits(h)
         True
     """
-    for face in generate_additive_faces(fn):
-        if is_additive_face_sans_limits(fn, face):
-            yield face
+    if not hasattr(fn, '_additive_faces_sans_limits'):
+        fn._additive_faces_sans_limits = [ face for face in generate_additive_faces(fn)
+                                           if is_additive_face_sans_limits(fn, face) ]
+    return fn._additive_faces_sans_limits
 
 additive_fill_color = additive_color = "mediumspringgreen"
 
