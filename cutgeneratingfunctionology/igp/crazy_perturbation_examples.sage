@@ -193,27 +193,10 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
 
     ``facet_test`` also sets up a finite system for a general partial function outside 
     the special intervals, again only using additivities-sans-limit.
-    The system has a nontrivial kernel::
+    Again this system has a full rank, and no nontrivial solution exists.
 
         sage: len(pi._facet_solution_basis)
-        5
-        sage: graphics_array([[kf.plot(color='magenta')] for b in pi._facet_solution_basis])  # not tested
-
-    Test that the slopes on all cosets on the special intervals are 0::
-
-        sage: all(all(b(x) == 0 for x in (pi.a0, pi.a1, pi.a2)) for b in pi._facet_solution_basis)
-        True
-
-    We generate the functions corresponding to the vertices::
-
-        sage: vertex_functions = list(generate_lifted_functions(pi, perturbs=pi._facet_solution_basis, use_polyhedron=True, undefined_ok=True, backend='normaliz'))
-
-    We check for any additional additivities-sans-limits::
-
-        sage: vf = vertex_functions[1]
-        sage: g_pi = plot_2d_diagram_additive_domain_sans_limits(pi)    # not tested
-        sage: g_vf = plot_2d_diagram_additive_domain_sans_limits(vf, additive_color='red', function_color='red') + g_pi    # not tested
-        sage: g_vf.show(figsize=24) # not tested
+        0
 
     NOTE:
 
