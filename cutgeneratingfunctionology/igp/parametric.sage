@@ -1373,14 +1373,6 @@ class ParametricRealField(Field):
         else:
             raise NotImplementedError("Not implemented operator: {}".format(op))
 
-    def _linexpr_spacedim_to_add(self, fac):
-        space_dim_old = len(self.monomial_list())
-        linexpr = polynomial_to_linexpr(fac, self.monomial_list(), self.v_dict())
-        space_dim_to_add = len(self.monomial_list()) - space_dim_old
-        lhs = vector(QQ, linexpr.coefficients())
-        cst = QQ(linexpr.inhomogeneous_term())
-        return lhs, cst, space_dim_to_add
-
     def is_factor_known(self, fac, op):
         for bsa in (self._factor_bsa, self._bsa):
             try:
@@ -1390,9 +1382,7 @@ class ParametricRealField(Field):
         return False
 
     def record_factor(self, fac, op):
-        #print "add %s, %s to %s" % (fac, op, self.polyhedron.constraints())
         if not self.is_factor_known(fac, op):
-            lhs, cst,  _ = self._linexpr_spacedim_to_add(fac)
             if op == operator.lt:
                 formatted_constraint = "%s < 0" % fac
             elif op == operator.eq:
@@ -1403,10 +1393,9 @@ class ParametricRealField(Field):
                 raise ValueError("{} is not a supported operator".format(op))
             if self._frozen:
                 raise ParametricRealFieldFrozenError("Cannot prove that constraint is implied: {} ".format(formatted_constraint))
-            self._polyhedron.add_linear_constraint(lhs, cst, op)
-            #print " add new constraint, %s" %self.polyhedron.constraints()
-            logging.info("New constraint: {}".format(formatted_constraint))
+            self._bsa.add_polynomial_constraint(fac, op)
             self._factor_bsa.add_polynomial_constraint(fac, op)
+            logging.info("New constraint: {}".format(formatted_constraint))
             if debug_new_factors:
                 import pdb
                 pdb.set_trace()
