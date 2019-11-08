@@ -483,12 +483,8 @@ class BasicSemialgebraicSet_polyhedral(BasicSemialgebraicSet_base):
         if lhs.degree() > 1:
             raise ValueError("{} is not a valid linear polynomial.".format(lhs))
         cst = lhs.constant_coefficient()
-        try:
-            lhs_vector = vector(lhs.coefficient(x) for x in self.poly_ring().gens())
-        except AttributeError:
-            # univariate polynomials (Polynomial_rational_flint) unfortunately
-            # have a different API that does not define "coefficient".
-            lhs_vector = vector([lhs[1]])  # coefficient of the linear term
+        lhs_vector = vector(lhs.monomial_coefficient(x) for x in self.poly_ring().gens())
+        # univariate polynomials (Polynomial_rational_flint) does not define "coefficient", but has "monomial_coefficient".
         self.add_linear_constraint(lhs_vector, cst, op)
 
 
