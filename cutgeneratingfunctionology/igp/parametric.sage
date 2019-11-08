@@ -848,10 +848,9 @@ class ParametricRealField(Field):
         self._le = copy(save_le)
         save_factor_bsa = self._factor_bsa
         self._factor_bsa = copy(save_factor_bsa)
-        save_polyhedron = self._polyhedron
-        self._polyhedron = copy(save_polyhedron)
         save_bsa = self._bsa
         self._bsa = copy(self._bsa)
+        self._polyhedron = self._bsa.upstairs()
         try:
             yield True
         finally:
@@ -859,8 +858,8 @@ class ParametricRealField(Field):
             self._lt = save_lt
             self._le = save_le
             self._factor_bsa = save_factor_bsa
-            self._polyhedron = save_polyhedron
             self._bsa = save_bsa
+            self._polyhedron = self._bsa.upstairs()
             if case_id is not None:
                 logging.info("Finished case {}.".format(case_id))
 
