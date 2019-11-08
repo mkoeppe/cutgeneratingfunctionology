@@ -887,14 +887,14 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
         mip.set_objective(objective)
         try:
             return mip.solve()
-        except MIPSolverException as e:
+        except MIPSolverException:
             # Here we distinguish infeasible and unbounded.
             mip_copy = copy(mip)
             mip_copy.set_objective(1)
             try:
                 mip_copy.solve()
                 return +Infinity
-            except MIPSolverException as e:
+            except MIPSolverException:
                 return -Infinity
 
     def add_linear_constraint(self, lhs, cst, op):
