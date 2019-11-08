@@ -3217,7 +3217,7 @@ def plot_symbolic(sym, indices=None, as_array=True, color='magenta', **kwds):
 
 def generate_additivity_equations(fn, symbolic, field=None, f=None, bkpt=None,
                                   reduce_system=None, return_vertices=False, vertices=None,
-                                  **args):
+                                  undefined_ok=False, **args):
     r"""
     Using additivity, set up a finite-dimensional system of linear equations
     that must be satisfied by any perturbation.
@@ -3271,12 +3271,13 @@ def generate_additivity_equations(fn, symbolic, field=None, f=None, bkpt=None,
         field = fn(0).parent().fraction_field()
     if f is None:
         f = find_f(fn)
-    if fn.is_continuous() or fn.is_discrete():
+    if not undefined_ok and (fn.is_continuous() or fn.is_discrete()):
         return generate_additivity_equations_continuous(fn, symbolic, field, f=f, bkpt=bkpt,
                                                         reduce_system=reduce_system, return_vertices=return_vertices, vertices=vertices, **args)
     else:
         return generate_additivity_equations_general(fn, symbolic, field, f=f, bkpt=bkpt,
-                                                     reduce_system=reduce_system, return_vertices=return_vertices, vertices=vertices, **args)
+                                                     reduce_system=reduce_system, return_vertices=return_vertices,
+                                                     vertices=vertices, undefined_ok=undefined_ok, **args)
 
 def rescale_to_amplitude(perturb, amplitude):
     r"""For plotting purposes, rescale the function perturb so that its
