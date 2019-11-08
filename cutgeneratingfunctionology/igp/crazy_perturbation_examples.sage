@@ -108,6 +108,10 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
         sage: igp.show_RNFElement_by_embedding = False
         sage: h = kzh_minimal_has_only_crazy_perturbation_1()
         sage: extremality_test(h, crazy_perturbations=False)
+        True
+        sage: igp.strategical_covered_components = False
+        sage: igp.show_values_of_fastpiecewise = True
+        sage: igp.show_RNFElement_by_embedding = True
 
     Unfortunately, the details of the code have changed and it now makes different choices for
     the full-rank subsystem, so the subsystem shown in the publication cannot be reproduced
