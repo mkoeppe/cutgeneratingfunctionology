@@ -5057,6 +5057,8 @@ def generate_covered_components_strategically(fn, show_plots=False, additive_fac
             K_mod_1 = interval_mod_1(K)
             component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* K_mod_1)]],[])
             if logging.getLogger().isEnabledFor(logging.DEBUG):
+                if hasattr(fn, "_faces_used"):
+                    fn._faces_used.append(face)
                 logging.debug("Step %s: Consider the 2d additive %s.\n%s is directly covered." % (step, face, component))
             if show_plots:
                 if fn.is_continuous():
@@ -5076,6 +5078,8 @@ def generate_covered_components_strategically(fn, show_plots=False, additive_fac
         elif max_face.is_1D():
             edge = max_face
             step += 1
+            if hasattr(fn, "_faces_used"):
+                fn._faces_used.append(edge)
             if logging.getLogger().isEnabledFor(logging.DEBUG):
                 logging.debug("Step %s: Consider the 1d additive %s." % (step, edge))
             fdm = edge.functional_directed_move()
@@ -5114,6 +5118,8 @@ def generate_covered_components_strategically(fn, show_plots=False, additive_fac
         if len(overlapping_components) > 1:
             new_component = union_of_coho_intervals_minus_union_of_coho_intervals(overlapping_components,[])
             step += 1
+            if hasattr(fn, "_faces_used"):
+                fn._faces_used.add(face)
             if logging.getLogger().isEnabledFor(logging.DEBUG):
                 logging.debug("Step %s: By merging components that overlap with projections of the 2d additive %s, we obtain a larger covered component %s" % (step, face, new_component))
             covered_components = remaining_components + [new_component]
@@ -5125,6 +5131,8 @@ def generate_covered_components_strategically(fn, show_plots=False, additive_fac
         if len(overlapping_components) > 1:
             new_component = union_of_coho_intervals_minus_union_of_coho_intervals(overlapping_components,[])
             step += 1
+            if hasattr(fn, "_faces_used"):
+                fn._faces_used.add(edge)
             if logging.getLogger().isEnabledFor(logging.DEBUG):
                 logging.debug("Step %s: By merging components that are connected by the 1d additive %s, we obtain a larger covered component %s." % (step, edge, new_component))
             covered_components = remaining_components + [new_component]

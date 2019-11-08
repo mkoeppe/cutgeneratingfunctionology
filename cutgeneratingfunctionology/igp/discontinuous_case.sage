@@ -428,6 +428,8 @@ def generate_additivity_equations_general(function, symbolic, field, f=None, bkp
             logging.debug("Condition pert(1) = 0 gives the equation\n%s * v = 0." % (symbolic(field(1))))
         else:
             (x, y, z, xeps, yeps, zeps) = vs[i]
+            if hasattr(function, "_vertices_used"):
+                function._vertices_used.append(vs[i])
             eqn = equations[i]
             logging.debug("Condition pert(%s%s) + pert(%s%s) = pert(%s%s) gives the equation\n%s * v = 0." % (x, print_sign(xeps),  y, print_sign(yeps), z, print_sign(zeps), eqn))
     M = M[pivot_r]
