@@ -220,6 +220,7 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
         This example is obtained by the following code::
 
             sage: import cutgeneratingfunctionology.igp as igp
+            sage: logging.disable(logging.WARN)
             sage: igp.generate_symbolic_two_sided_discontinuous_basis_functions = ('slopes', 'jumps')   # Restore classic behavior
             sage: hmin = kzh_discontinuous_bhk_irrational(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=19/23998, c2=5/11999, y1=185/1846, y2=240/11999, field=None) # long time
             sage: hlift = lift_until_extreme(hmin, use_all_perturbations=False, use_largest_absolute_epsilon=False) # long time
