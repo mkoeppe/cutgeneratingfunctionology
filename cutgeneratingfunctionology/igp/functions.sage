@@ -3125,8 +3125,15 @@ def generate_all_components(fn, show_plots=False):
         components = copy(covered_components)
     return components
 
-def generate_symbolic(fn, components=None, field=None, f=None, show_plots=False, **kwds):
+def generate_symbolic(fn, components=None, field=None, f=None, show_plots=False, basis_functions=None, **kwds):
     r"""
+    Construct a vector-space-valued piecewise linear function
+    compatible with the given function ``fn``.
+
+    Two systems of ``basis_functions`` are available:
+     - ``('slopes', 'jumps')``
+     - ``('midpoints', 'slopes')
+
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -3143,15 +3150,27 @@ def generate_symbolic(fn, components=None, field=None, f=None, show_plots=False,
           <FastLinearFunction ((0,0,1,0,0))*x + ((1/4,3/8,-5/8,2,1))>],
          [<Int(7/8, 1)>, <FastLinearFunction ((0,1,0,0,0))*x + ((1/4,-1/2,1/4,2,1))>],
          [<Int{1}>, <FastLinearFunction ((1/4,1/2,1/4,2,2))>]]   
+
+        sage: h = extreme_functions.drlm_backward_3_slope()
+        sage: sym = generate_symbolic(h, basis_functions=('midpoints', 'slopes'))
+        sage: sym.basis
+        [('function value at', 1/24),
+         ('function value at', 1/8),
+         ('function value at', 1/6),
+         ('function value at', 13/24),
+         ('slope of component', 0),
+         ('slope of component', 1),
+         ('slope of component', 2)]
+
     """
     if field is None:
         field = fn(0).parent().fraction_field()
     if components is None:
         components = generate_all_components(fn)
-    if fn.is_continuous() or fn.is_discrete():
+    if (fn.is_continuous() or fn.is_discrete()) and basis_functions in (None, ('slopes', 'jumps')):
         return generate_symbolic_continuous(fn, components, field=field, f=f, **kwds)
     else:
-        return generate_symbolic_general(fn, components, field=field, f=f, **kwds)
+        return generate_symbolic_general(fn, components, field=field, f=f, basis_functions=basis_functions, **kwds)
 
 def plot_symbolic(sym, indices=None, as_array=True, color='magenta', **kwds):
     """
