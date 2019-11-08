@@ -157,7 +157,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         """
         Whether the set contains the ``point`` (vector).
         """
-        return all(f(point) == 0 for f in self.eq_poly()) and all(f(point) <= 0 for f in self.le_poly()) and all(f(point) < 0 for f in self.lt_poly())
+        return all(f(*point) == 0 for f in self.eq_poly()) and all(f(*point) <= 0 for f in self.le_poly()) and all(f(*point) < 0 for f in self.lt_poly())
 
     @abstract_method
     def closure_polyhedron(self):
@@ -1219,7 +1219,7 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
         if not self._polynomial_map:
             return PolynomialRing(self.base_ring(), [])
         else:
-            return polynomial_map[0].parent()
+            return self._polynomial_map[0].parent()
 
     def eq_poly(self):
         for p in self._upstairs_bsa.eq_poly():
