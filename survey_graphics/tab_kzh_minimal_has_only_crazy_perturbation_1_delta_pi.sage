@@ -2,6 +2,40 @@ import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.ig
 
 if 'h' not in globals():
     h = kzh_minimal_has_only_crazy_perturbation_1(parametric=True, extra_names=['x', 'y'], extra_values=[0, 0])
+
+hh = kzh_minimal_has_only_crazy_perturbation_1()
+
+for fn in (h, hh):
+    fn._faces_used = []      # for instrumented code
+    fn._vertices_used = []   # for instrumented code
+    try:
+        facet_test(fn, known_extreme=True)
+    except NotImplementedError:
+        pass
+
+## We go to some length here to be able to reuse part of the proof published in Equi VI (Appendix).
+version="v0.9-274-g1342a5da"    # Version that reproduces published proof in Equi VI.
+faces_used_published = load("/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/auto_proof_crazy_example-{}_faces_used.sobj".format(version))
+p = hh(0).parent()
+faces_used_published = set( Face([ [ p(x) for x in I ] for I in T ]) for T in faces_used_published )
+# Unfortunately, our code cannot reproduce the same published faces for the covering test -- algorithm changed apparently!
+###  assert faces_used_published == set(h._faces_used)   # Not true
+# But we make sure that the published faces are all additive-sans-limits etc.
+assert faces_used_published.issubset(set(generate_additive_faces_sans_limits(hh)))
+covered_components_published = generate_covered_components_strategically(hh, additive_faces=faces_used_published)
+assert len(covered_components_published) == 2
+uncovered_intervals = uncovered_intervals_from_covered_components(covered_components_published)
+assert uncovered_intervals == [open_interval(hh.ucl, hh.ucr), open_interval(hh._f - hh.ucr, hh._f - hh.ucl)]
+# Convert to faces of h.
+additive_faces_sans_limits = set(generate_additive_faces_sans_limits(h))
+def convert_face(F):
+    for hF in additive_faces_sans_limits:
+        if F == hF:
+            return hF
+    raise ValueError("cannot convert face: {}".format(F))
+faces_used_published = set(convert_face(F) for F in faces_used_published)
+
+
 if 'all_special_faces' not in globals():
     all_special_faces = list(generate_triples_with_projections_intersecting(h, h.special_intervals, break_symmetry=True))
 
@@ -10,7 +44,6 @@ x, y = K.gens()[-2:]
 
 if 'faces' not in globals():
     faces = { Face(triple): triple for triple in all_special_faces }
-    faces = sorted(faces.items(), key=lambda fi: fi[0])
 
 def format_slack(slack):
     if slack == 0:
@@ -37,9 +70,10 @@ def format_interval_markup_special(interval):
 
 latex.add_package_to_preamble_if_available("booktabs")
 
-def tabulate_delta_pi(faces, dimension):
+def tabulate_delta_pi(faces, dimension=None, main_caption=None, extra_caption=None, label=None):
+    faces = sorted(faces.items(), key=lambda fi: fi[0])
     s = []
-    if dimension == 2:
+    if dimension is None or dimension == 2:
         # eps describing 2d cones of a vertex
         eps_list = [ eps for eps in nonzero_eps if all(e != 0 for e in eps) ]
         max_vertices = len(eps_list)
@@ -54,11 +88,13 @@ def tabulate_delta_pi(faces, dimension):
 
     s += [r'\def\arraystretch{1.17}']
     s += [r'\begin{longtable}{*{%s}C}' % num_columns]
-    main_caption = r'Subadditivity slacks $\Delta\pi_F$ for $\dim F=%s$ and $n_F>0$' % dimension
-    extra_caption = r'. An asterisk marks the special intervals.'
-    s += [r'\caption{' + main_caption + extra_caption + r'}']
+    if main_caption is not None:
+        if extra_caption is None:
+            extra_caption = ''
+        s += [r'\caption{' + main_caption + extra_caption + r'}']
     #  of the piecewise linear function $\pi$ = \sage{kzh\_minimal\_has\_only\_crazy\_perturbation\_1}()
-    s += [r'\label{tab:kzh_minimal_has_only_crazy_perturbation_1_delta_pi_dim_%s}\\' % dimension]
+    if label is not None:
+        s += [r'\label{%s}\\' % label]
 
     head  = [r'  \toprule']
     ## head += ['  ' + ' & '.join([r'\multicolumn{3}{C}{F = F(I, J, K)}']) + r'\\']
@@ -87,7 +123,7 @@ def tabulate_delta_pi(faces, dimension):
     for face, triple in faces:
 
         F = Face(triple)
-        if F.dimension() == dimension:
+        if dimension is None or F.dimension() == dimension:
             slacks = sorted(delta_pi_of_face(h, v[0], v[1], F) for v in F.vertices)
             # Put a {} in front because the square brackets coming from formatting the intervals
             # would otherwise be taken as a latex optional argument for the preceding command!
@@ -100,6 +136,7 @@ def tabulate_delta_pi(faces, dimension):
     s += [r'\end{longtable}']
     return '\n'.join(s)
 
+
 with open('/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/tab_kzh_minimal_has_only_crazy_perturbation_delta_pi.tex', 'w') as f:
     f.write(r'%% Automatically generated.' + '\n')
     f.write(r'%% Preamble: \usepackage{longtable,booktabs,array}\newcolumntype{C}{>{$}c<{$}}' + '\n')
@@ -107,6 +144,12 @@ with open('/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/tab_
     #f.write(r'\providecommand\specialinterval[1]{{#1}\rlap{*}}' + '\n')
     f.write(r'\providecommand\specialinterval[1]{\hphantom*{#1}\text{*}}' + '\n')
     f.write(r'\providecommand\tightslack[1]{\llap{$\triangleright$\,}{#1}}' + '\n')
-    #f.write(tabulate_delta_pi(faces, dimension=0))    # empty!
-    f.write(tabulate_delta_pi(faces, dimension=1))   # Comes first because used earlier.
-    f.write(tabulate_delta_pi(faces, dimension=2))
+    f.write(tabulate_delta_pi(faces_used_published,
+                              caption="Faces used for proving piecewise linearity outside of the special intervals",
+                              label='tab:kzh_minimal_has_only_crazy_perturbation_1_faces_used'))
+    for dimension in (1, 2):      # 1 comes first because used earlier. 0 is empty.
+        main_caption = r'Subadditivity slacks $\Delta\pi_F$ for $\dim F=%s$ and $n_F>0$' % dimension
+        extra_caption = r'. An asterisk marks the special intervals.'
+        label = r'tab:kzh_minimal_has_only_crazy_perturbation_1_delta_pi_dim_%s' % dimension
+        f.write(tabulate_delta_pi(faces, dimension=dimension, main_caption=main_caption, extra_caption=extra_caption,
+                                  label=label))
