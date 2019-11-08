@@ -3482,24 +3482,67 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn
             logging.info("Thus the function is extreme.")
     return not seen_perturbation
 
-def facet_test(fn, show_plots=False):
-    minimality_test(fn)
-    additive_faces_sans_limits = fn._additive_faces_sans_limits = generate_additive_faces_sans_limits(fn)
-    covered_components = fn._facet_covered_components = generate_covered_components_strategically(fn,
-                                                                                                  show_plots=show_plots,
-                                                                                                  additive_faces=additive_faces_sans_limits)
+def generate_facet_covered_components(fn, show_plots=False):
+    if not hasattr(fn, "_facet_covered_components"):
+        additive_faces_sans_limits = generate_additive_faces_sans_limits(fn)
+        fn._facet_covered_components = generate_covered_components_strategically(fn,
+                                                                                 show_plots=show_plots,
+                                                                                 additive_faces=additive_faces_sans_limits)
+    return fn._facet_covered_components
+
+def facet_test(fn, show_plots=False, known_minimal=False, known_extreme=False):
+    """
+    Test whether `fn` is a facet.
+
+    EXAMPLES:
+
+    Minimal, and all intervals are covered (sans limits), unique solution (sans limits), so a facet::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: h = extreme_functions.drlm_backward_3_slope(conditioncheck=False)
+        sage: facet_test(h)
+        True
+
+    Extreme function and continuous piecewise linear, so a facet::
+
+        sage: h = extreme_functions.bhk_irrational()
+        sage: facet_test(h)
+        True
+    """
+    if known_extreme:
+        known_minimal = True
+    if not known_minimal:
+        if not minimality_test(fn):
+            logging.info("Not minimal, so not a facet")
+            return False
+    if known_extreme and fn.is_continuous():
+        logging.info("Extreme function and continuous piecewise linear, so a facet.")
+        return True
+    additive_faces_sans_limits = generate_additive_faces_sans_limits(fn)
+    covered_components = generate_facet_covered_components(fn)
     uncovered_intervals = uncovered_intervals_from_covered_components(covered_components)
     if uncovered_intervals:
         logging.info("There are non-covered intervals: {}".format(uncovered_intervals))
     # Finite dimensional test.  Default basis functions do not handle the case of uncovered intervals.
     symbolic = fn._facet_symbolic = generate_symbolic(fn, covered_components, basis_functions=('midpoints', 'slopes'))
     vertices = fn._facet_vertices = generate_vertices_of_additive_faces_sans_limits(fn)
-    equation_matrix, used_vertices = generate_additivity_equations(fn, symbolic, reduce_system=True, return_vertices=True, undefined_ok=True, vertices=vertices)
+    equation_matrix, used_vertices = generate_additivity_equations(fn, symbolic, reduce_system=True,
+                                                                   return_vertices=True, undefined_ok=True, vertices=vertices)
     fn._facet_used_vertices = used_vertices
     if logging.getLogger().isEnabledFor(logging.DEBUG):
         logging.debug("Solve the linear system of equations:\n%s * v = 0." % (equation_matrix))
     solution_basis = fn._facet_solution_basis = [ b * symbolic for b in equation_matrix.right_kernel().basis() ]
-    logging.info("Finite dimensional test: Solution space has dimension %s." % len(solution_basis))
+    logging.info("Finite dimensional test (sans limits): Solution space has dimension %s." % len(solution_basis))
+    if not uncovered_intervals and not solution_basis:
+        logging.info("Minimal, and all intervals are covered (sans limits), unique solution (sans limits), so a facet.")
+        return True
+    if not extremality_test(fn):
+        logging.info("Not extreme, so not a facet.")
+        return False
+    if fn.is_continuous():
+        logging.info("Extreme function and continuous piecewise linear, so a facet.")
+        return True
     raise NotImplementedError("facet_test does not know how to continue")
 
 def generate_type_1_vertices(fn, comparison, reduced=True, bkpt=None):
