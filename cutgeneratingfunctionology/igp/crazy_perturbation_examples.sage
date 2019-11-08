@@ -286,13 +286,13 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
         bkpt_names_dict[h.ucr] = 'u'
         bkpt_names_dict[h._f] = 'f'
         slope_names_dict = {35/13: 'c1', 5/11999: 'c2', -5: 'c3'}
-        param_dict = param_dict_for_piecewise(h,
-                                              bkpt_names_dict=bkpt_names_dict,
-                                              slope_names_dict=slope_names_dict,
-                                              **parametric_kwds)
+        param_dict, K = param_dict_for_piecewise(h,
+                                                 bkpt_names_dict=bkpt_names_dict,
+                                                 slope_names_dict=slope_names_dict,
+                                                 **parametric_kwds)
         param_dict[h._f - h.ucl] = param_dict[h._f] - param_dict[h.ucl]
         param_dict[h._f - h.ucr] = param_dict[h._f] - param_dict[h.ucr]
-        h = param_piecewise(h, param_dict=param_dict)
+        h, K = param_piecewise(h, param_dict=param_dict, field=K)
         set_special_attributes(h)
     return h
 
@@ -330,9 +330,9 @@ def param_dict_for_piecewise(h, bkpt_names_dict=None, slope_names_dict={}, extra
     values_gens = list(zip(values, K.gens()))
     if extra_names:   # they don't take part in renaming!
         values_gens = values_gens[:-len(extra_names)]
-    return dict(values_gens)
+    return dict(values_gens), K
 
-def param_piecewise(h, param_dict=None, bkpt_names_dict=None, slope_names_dict={}, **param_dict_kwargs):
+def param_piecewise(h, param_dict=None, bkpt_names_dict=None, slope_names_dict={}, field=None, **param_dict_kwargs):
     """
     Replace the piecewise function h by one that renames all breakpoints, and optionally slopes,
     symbolically.  Useful for latexing or plotting functions that do not have convenient
@@ -343,16 +343,16 @@ def param_piecewise(h, param_dict=None, bkpt_names_dict=None, slope_names_dict={
         sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)                   # disable output for automatic tests
         sage: h = gmic()
-        sage: hp = param_piecewise(h, slope_names_dict={h.functions()[0]._slope: 'c1'})
+        sage: hp, K = param_piecewise(h, slope_names_dict={h.functions()[0]._slope: 'c1'})
         sage: hp.which_pair(1/10)
         ((0, (x1)~), <FastLinearFunction ((c1)~)*x + (0)>)
     """
     if param_dict is None:
-        param_dict = param_dict_for_piecewise(h, bkpt_names_dict=bkpt_names_dict,
-                                              slope_names_dict=slope_names_dict,
-                                              **param_dict_kwargs)
+        param_dict, field = param_dict_for_piecewise(h, bkpt_names_dict=bkpt_names_dict,
+                                                     slope_names_dict=slope_names_dict,
+                                                     **param_dict_kwargs)
     def param(x):
-        return param_dict.get(x, x)
+        return param_dict.get(x, field(x))
     def param_interval(interval):
         if len(interval) <= 2:
             # old fashioned interval
@@ -362,9 +362,9 @@ def param_piecewise(h, param_dict=None, bkpt_names_dict=None, slope_names_dict={
             return closed_or_open_or_halfopen_interval(param(interval.a), param(interval.b),
                                                        interval.left_closed, interval.right_closed)
     def param_function(function):
-        return FastLinearFunction(param_dict.get(function._slope, function._slope), function._intercept)
+        return FastLinearFunction(param(function._slope), field(function._intercept))
     param_pieces = [ (param_interval(interval), param_function(function)) for interval, function in h.list() ]
-    return FastPiecewise(param_pieces)
+    return FastPiecewise(param_pieces), field
 
 def number_of_projections_intersecting(F, real_set):
     """
