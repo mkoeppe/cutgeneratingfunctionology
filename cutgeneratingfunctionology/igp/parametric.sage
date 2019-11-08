@@ -1382,24 +1382,12 @@ class ParametricRealField(Field):
         return lhs, cst, space_dim_to_add
 
     def is_factor_known(self, fac, op):
-        if op == operator.lt:
-            if fac in self.get_lt_factor():
-                return True
-        elif op == operator.eq:
-            if (fac in self.get_eq_factor()) or (-fac in self.get_eq_factor()):
-                return True
-        elif op == operator.le:
-            if fac in self.get_le_factor():
-                return True
-        else:
-            raise ValueError("{} is not a supported operator".format(op))
-        lhs, cst, space_dim_to_add = self._linexpr_spacedim_to_add(fac)
-        #print "constraint_to_add = %s" % constraint_to_add
-        if space_dim_to_add:
-            self._polyhedron.add_space_dimensions_and_embed(space_dim_to_add)
-            return False
-        else:
-            return self._polyhedron.is_linear_constraint_valid(lhs, cst, op)
+        for bsa in (self._factor_bsa, self._bsa):
+            try:
+                return bsa.is_polynomial_constraint_valid(fac, op)
+            except NotImplementedError:
+                pass
+        return False
 
     def record_factor(self, fac, op):
         #print "add %s, %s to %s" % (fac, op, self.polyhedron.constraints())

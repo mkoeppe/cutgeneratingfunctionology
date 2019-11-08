@@ -1086,6 +1086,50 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
         """
         return self._le
 
+    def is_polynomial_constraint_valid(self, lhs, op):
+        """
+        Return True if the constraint ``lhs``(x) ``op`` 0 is a known valid
+        inequality for ``self``. Return ``NotImplementedError`` otherwise.
+        Input ``lhs`` is a polynomial, and ``op`` is one of ``operator.lt``,
+        ``operator.gt``, ``operator.eq``,``operator.le``, ``operator.ge``.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: S = BasicSemialgebraicSet_eq_lt_le_sets(QQ, 3)
+            sage: Q.<x0,x1,x2> = QQ[]
+            sage: lhs = 27/113 * x0^2 + x1*x2 + 1/2
+            sage: S.add_polynomial_constraint(lhs,operator.lt)
+            sage: S.is_polynomial_constraint_valid(lhs, operator.lt)
+            True
+            sage: S.is_polynomial_constraint_valid(lhs, operator.le)
+            True
+            sage: S.is_polynomial_constraint_valid(-lhs, operator.ge)
+            True
+            sage: S.is_polynomial_constraint_valid(lhs, operator.eq) #This equation is False but the code does not know.
+            Traceback (most recent call last):
+            ...
+            NotImplementedError...
+        """
+        if op == operator.lt:
+            if lhs in self.lt_poly():
+                return True
+        elif op == operator.gt:
+            if -lhs in self.lt_poly():
+                return True
+        elif op == operator.eq:
+            if (lhs in self.eq_poly()) or (-lhs in self.eq_poly()):
+                return True
+        elif op == operator.le:
+            if (lhs in self.le_poly()) or (lhs in self.lt_poly()):
+                return True
+        elif op == operator.ge:
+            if (-lhs in self.le_poly()) or (-lhs in self.lt_poly()):
+                return True
+        else:
+            raise ValueError("{} is not a supported operator".format(op))
+        raise NotImplementedError
+
     def add_polynomial_constraint(self, lhs, op):
         """
         ``lhs`` should be a polynomial.
