@@ -14,6 +14,7 @@ from sage.arith.misc import gcd
 from sage.plot.graphics import Graphics
 from sage.calculus.var import var
 from sage.plot.contour_plot import region_plot
+from sage.matrix.constructor import matrix
 
 from copy import copy
 from itertools import chain
@@ -1237,6 +1238,39 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
 
     def polynomial_map(self):
         return self._polynomial_map
+
+    def find_point(self):
+        """
+        Find a point in ``self``. FIXME: Lazy implementation. Raise NotImplementedError very often.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(3)
+            sage: P.add_linear_constraint([1,0,0],0,operator.ge)
+            sage: P.add_linear_constraint([0,1,0],0,operator.ge)
+            sage: P.add_linear_constraint([0,0,1],0,operator.ge)
+            sage: P.add_linear_constraint([1,0,0],-2,operator.le)
+            sage: P.add_linear_constraint([0,1,0],-3,operator.le)
+            sage: P.add_linear_constraint([0,0,1],-6,operator.le)
+            sage: Q.<u,v> = QQ[]
+            sage: F = [u, v, -3*u+4*v]
+            sage: section = P.section(F)
+            sage: pt = section.find_point()
+            sage: pt
+            (1, 3/2)
+            sage: pt in section
+            True
+        """
+        point_upstairs = self.upstairs().find_point()
+        for f in self.polynomial_map():
+            if f.degree() > 1:
+                raise NotImplementedError
+        A = matrix(QQ, [[f.monomial_coefficient(xi) for xi in self.poly_ring().gens()] for f in self.polynomial_map()])
+        try:
+            return A.solve_right(point_upstairs)
+        except ValueError:
+            raise NotImplementedError
 
 ## (4) Later... introduce a class that takes care of the monomial lifting etc.
 
