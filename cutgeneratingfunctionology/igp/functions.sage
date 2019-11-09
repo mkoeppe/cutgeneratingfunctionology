@@ -3529,6 +3529,7 @@ def facet_test(fn, show_plots=False, known_minimal=False, known_extreme=False):
     vertices = fn._facet_vertices = generate_vertices_of_additive_faces_sans_limits(fn)
     equation_matrix, used_vertices = generate_additivity_equations(fn, symbolic, reduce_system=True,
                                                                    return_vertices=True, undefined_ok=True, vertices=vertices)
+    fn._facet_equation_matrix = equation_matrix
     fn._facet_used_vertices = used_vertices
     if logging.getLogger().isEnabledFor(logging.DEBUG):
         logging.debug("Solve the linear system of equations:\n%s * v = 0." % (equation_matrix))
