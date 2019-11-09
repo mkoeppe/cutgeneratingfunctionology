@@ -197,6 +197,12 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
 
     ``facet_test`` also sets up a finite system for a general partial function outside 
     the special intervals, again only using additivities-sans-limit.
+
+        sage: len(list(b for t, b in h._facet_symbolic.basis if t == 'function value at' and b in h.end_points()))
+        19
+        sage: len(list(b for t, b in h._facet_symbolic.basis if t == 'function value at' and b not in h.end_points()))
+        20
+
     Again this system has a full rank, and no nontrivial solution exists.
 
         sage: len(pi._facet_solution_basis)
