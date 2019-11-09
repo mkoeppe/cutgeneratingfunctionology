@@ -568,13 +568,31 @@ def delta_pi_of_face(fn, x, y, F):
             + fn.limit_within_relint(y, F.minimal_triple[1])
             - lim_mod_1(x + y, F.minimal_triple[2]))
 
-def delta_pi_of_face_symbolic(fn, x, y, F):
+def delta_pi_of_face_symbolic(fn, x, y, F, simplify=False):
     def generic_point(I):
         a, b = interval_to_endpoints(I)
-        return fractional((a + b) / 2)
-    return (fn.which_function(generic_point(F.minimal_triple[0]))(x)
-            + fn.which_function(generic_point(F.minimal_triple[1]))(y)
-            - fn.which_function(generic_point(F.minimal_triple[2]))(x + y))
+        return (a + b) / 2
+    I, J, K = F.minimal_triple
+    I = result_concrete_value(None, I)
+    J = result_concrete_value(None, J)
+    K = result_concrete_value(None, K)
+    if simplify:
+        if len(I) == 1:
+            x = I[0]
+        if len(J) == 1:
+            y = J[0]
+        if len(K) == 1:
+            if len(I) > 1:
+                y = K[0] - x
+            elif len(J) > 1:
+                x = K[0] - y
+    if K[0] >= 1:
+        t = -1
+    else:
+        t = 0
+    return (fn.which_function(generic_point(I))(x)
+            + fn.which_function(generic_point(J))(y)
+            - fn.which_function(generic_point(K) + t)(x + y + t))
 
 def containing_eps_1d(x, interval, with_limits=True):
     r"""
