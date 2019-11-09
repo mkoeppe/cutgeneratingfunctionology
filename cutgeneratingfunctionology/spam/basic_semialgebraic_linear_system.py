@@ -40,8 +40,10 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
         for e in polys:
             if e.degree()>1:
                 raise ValueError("only suitable for linear system.")
-        if poly_ring is None and if polys is not None:
-            poly_ring = cm.common_parent(*polys)
+        if len(polys)>0:
+            proper_poly_ring = cm.common_parent(*polys)
+            if poly_ring != proper_poly_ring:
+                raise ValueError("not a proper poly_ring.")
         if ambient_dim is None:
             ambient_dim = poly_ring.ngens()
         if base_ring is None:
@@ -88,7 +90,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
         new_poly_ring=PolynomialRing(self._base_ring,variables_names)
         # create the ring hommorphism
         polynomial_map=[new_poly_ring.gens()[i] for i in range(new_poly_ring.ngens())]
-        polynomial_map.insert(coordinate_index,0)
+        polynomial_map.insert(coordinate_index,new_poly_ring(0))
         
         new_eq=[]
         new_lt=[]
@@ -144,13 +146,8 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
             for le in self._le:
                 new_le.append(le+le.monomial_coefficient(coordinate)*(sub-coordinate))
 
-        bsa=self.copy()
-        bsa._le=new_le
-        bsa._eq=new_eq
-        bsa._lt=new_lt
-        bsa_section=bsa.section(polynomial_map,bsa_class=bsa_class)
-        
-        return BasicSemialgebraicSet_polyhedral_linear_system(base_ring=self._base_ring, ambient_dim=self.ambient_dim()-1, poly_ring=new_poly_ring, eq=new_eq, lt=new_lt, le=new_le, ring_hom=ring_hom)
+        bsa = BasicSemialgebraicSet_polyhedral_linear_system(base_ring=self._base_ring, ambient_dim=self.ambient_dim(), poly_ring=self._poly_ring, eq=new_eq, lt=new_lt, le=new_le)
+        return bsa.section(polynomial_map,bsa_class=bsa_class,poly_ring=new_poly_ring)
 
     def coordinate_projection(self, coordinates, bsa_class='linear_system'):
         r"""

@@ -340,7 +340,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         This is a semialgebraic set, but in general not a basic semialgebraic set.
         """
 
-    def section(self, polynomial_map, bsa_class='section'):
+    def section(self, polynomial_map, bsa_class='section', **kwds):
         r"""
         Define the semialgebraic set that is a section of ``self``.
 
@@ -362,7 +362,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         if bsa_class == BasicSemialgebraicSet_section:
             return bsa_section
         else:
-            return bsa_class.from_bsa(bsa_section)
+            return bsa_class.from_bsa(bsa_section, **kwds)
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, **kwds):
         r"""
