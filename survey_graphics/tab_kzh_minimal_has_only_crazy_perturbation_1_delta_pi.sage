@@ -47,11 +47,19 @@ try:
     facet_test(h, known_extreme=True)
 except NotImplementedError:
     pass
+
 vertices_used = set(h._vertices_used)
-
-faces_of_vertices_used = set()
-for
-
+faces_of_vertices_used = {}
+for T in all_triples:
+    hF = Face(T)
+    for v in hF.vertices:
+        for eps in generate_containing_eps_triple(v, hF.minimal_triple, with_limits=False):
+            veps = (v[0], v[1], v[0]+v[1], eps[0], eps[1], eps[2])
+            if veps in vertices_used:
+                assert is_additive_face_sans_limits(h, hF)
+                faces_of_vertices_used[hF] = T
+                vertices_used.remove(veps)
+assert not vertices_used
 
 if 'all_special_faces' not in globals():
     all_special_faces = list(generate_triples_with_projections_intersecting(h, h.special_intervals, break_symmetry=True))
