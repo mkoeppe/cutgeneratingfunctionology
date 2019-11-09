@@ -7,6 +7,7 @@ from __future__ import division, print_function, absolute_import
 from cutgeneratingfunctionology.spam.basic_semialgebraic import BasicSemialgebraicSet_base
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 import sage.structure.element
+import operator
 
 cm = sage.structure.element.get_coercion_model()
 
@@ -169,6 +170,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
         for i in range(len(elimination_positions)):
             coordinate_index=elimination_positions[i]
             res = res.one_step_elimination(coordinate_index)
+            # update indices
             for j in range(i+1,len(elimination_positions)):
                 if elimination_positions[j]>coordinate_index:
                     elimination_positions[j]-=1
@@ -212,3 +214,24 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
         Together, ``eq_poly``, ``lt_poly``, and ``le_poly`` describe ``self``.
         """
         return self._le
+
+    def add_polynomial_constraint(self, lhs, op):
+        """
+        ``lhs`` should be a polynomial.
+        Add the constraint ``lhs``(x) ``op`` 0,
+        where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
+        ``operator.le``, ``operator.ge``.
+        """
+        if op == operator.lt:
+            self._lt.add(lhs)
+        elif op == operator.gt:
+            self._lt.add(-lhs)
+        elif op == operator.eq:
+            self._eq.add(lhs)
+        elif op == operator.le:
+            self._le.add(lhs)
+        elif op == operator.ge:
+            self._le.add(-lhs)
+        else:
+            raise ValueError("{} is not a supported operator".format(op))
+
