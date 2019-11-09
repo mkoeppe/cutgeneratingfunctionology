@@ -576,7 +576,7 @@ def delta_pi_of_face_symbolic(fn, x, y, F):
             + fn.which_function(generic_point(F.minimal_triple[1]))(y)
             - fn.which_function(generic_point(F.minimal_triple[2]))(x + y))
 
-def containing_eps_1d(x, interval):
+def containing_eps_1d(x, interval, with_limits=True):
     r"""
     Input:  
 
@@ -588,10 +588,16 @@ def containing_eps_1d(x, interval):
 
     Return: 
 
-    - The projection of approching limits (`\subseteq \{x^-, x, x^+\}`) that need to be considered at `v` for testing the additivity of `F`.
+    - The projection of approaching limits (`\subseteq \{x^-, x, x^+\}`) that need to be considered at `v` for testing the additivity of `F`.
+
+    If ``with_limits=False``, this computation is done for additivity of `F` sans limits.
+
     """
     if len(interval) == 1:
-        return [0, 1, -1]
+        if with_limits:
+            return [0, 1, -1]
+        else:
+            return [0]
     elif x == interval[0]:
         return [1]
     elif x == interval[1]:
@@ -599,16 +605,18 @@ def containing_eps_1d(x, interval):
     else:
         return [0]
 
-def generate_containing_eps_triple(vertex, triple):
+def generate_containing_eps_triple(vertex, triple, with_limits=True):
     r"""
-    Given vertex `v` of face `F`, and the 3-projection-interval triple of `F`.
+    Given vertex `v` of face `F`, and the 3-projection-interval triple (minimal triple) of `F`.
     Return the approaching limits {(xeps, yeps, zeps)}
     pointing inwards at `v` from containing faces of `F`,
     that should be considered for testing the additivity of `F`.
+
+    If ``with_limits=False``, this computation is done for additivity of `F` sans limits.
     """
-    xeps_list = containing_eps_1d(vertex[0], triple[0])
-    yeps_list = containing_eps_1d(vertex[1], triple[1])
-    zeps_list = containing_eps_1d(vertex[0] + vertex[1], triple[2])
+    xeps_list = containing_eps_1d(vertex[0], triple[0], with_limits=with_limits)
+    yeps_list = containing_eps_1d(vertex[1], triple[1], with_limits=with_limits)
+    zeps_list = containing_eps_1d(vertex[0] + vertex[1], triple[2], with_limits=with_limits)
     return [(xeps, yeps, zeps) for xeps in xeps_list for yeps in yeps_list for zeps in zeps_list]
 
 # FIXME: Doctest this function

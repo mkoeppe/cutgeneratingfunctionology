@@ -3589,7 +3589,7 @@ def generate_vertices_of_additive_faces_sans_limits(fn):
     return unique_list((v[0], v[1], v[0]+v[1], eps[0], eps[1], eps[2])
                        for F in generate_additive_faces_sans_limits(fn)
                        for v in F.vertices
-                       for eps in generate_containing_eps_triple(v, F.minimal_triple))
+                       for eps in generate_containing_eps_triple(v, F.minimal_triple, with_limits=False))
 
 @cached_function
 def generate_nonsubadditive_vertices(fn, reduced=True):
