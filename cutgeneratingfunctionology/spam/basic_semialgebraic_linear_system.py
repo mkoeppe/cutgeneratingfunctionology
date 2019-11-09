@@ -23,7 +23,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
     Also it is suitable for arbitrary real fields as the ``base_ring``, such as ``ParametricRealField``.
     """
 
-    def __init__(self, base_ring=None, ambient_dim=None, poly_ring=None, eq=[], lt=[], le=[], ring_hom=None):
+    def __init__(self, base_ring=None, ambient_dim=None, poly_ring=None, eq=[], lt=[], le=[]):
         r"""
         Initialize a closed polyhedral basic semialgebraic set.
 
@@ -33,29 +33,19 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
             sage: ls = BasicSemialgebraicSet_polyhedral_linear_system(QQ, 2)
 
         """
+        if poly_ring is None:
+            raise ValueError("must specify the poly_ring")
         polys = list(eq) + list(lt) + list(le)
         #check if the polynomials are actually linear.
         for e in polys:
             if e.degree()>1:
                 raise ValueError("only suitable for linear system.")
-        if poly_ring is None:
-            if polys is not None:
-                poly_ring = cm.common_parent(*polys)
-        else:
-            if polys is not None:
-                #convert polys into elements in poly_ring using a ring hommorphism.
-                old_ring_ngens = cm.common_parent(*polys).ngens()
-                eq = [e(ring_hom) for e in eq]
-                lt = [e(ring_hom) for e in lt]
-                le = [e(ring_hom) for e in le]
-        if (ambient_dim is None) and (poly_ring is not None):
+        if poly_ring is None and if polys is not None:
+            poly_ring = cm.common_parent(*polys)
+        if ambient_dim is None:
             ambient_dim = poly_ring.ngens()
-            if base_ring is None and poly_ring is not None:
-                base_ring = poly_ring.base_ring()
-        if ambient_dim is None or base_ring is None:
-            raise ValueError("if eq, lt, and le are all empty, must provide either poly_ring or both of base_ring and ambient_dim")
-        if poly_ring is None:
-            poly_ring = PolynomialRing(base_ring, "x", ambient_dim)
+        if base_ring is None:
+            base_ring = poly_ring.base_ring()
         super(BasicSemialgebraicSet_polyhedral_linear_system, self).__init__(base_ring, ambient_dim)
         self._poly_ring = poly_ring
         self._base_ring = base_ring
@@ -222,6 +212,11 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
         where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
         ``operator.le``, ``operator.ge``.
         """
+        if lhs.parent() != self._poly_ring:
+            try:
+                lhs = self._poly_ring(lhs)
+            except TypeError:
+                raise TypeError("can not convert lhs into self.poly_ring")
         if op == operator.lt:
             self._lt.add(lhs)
         elif op == operator.gt:
