@@ -30,7 +30,8 @@ assert uncovered_intervals == [open_interval(hh.ucl, hh.ucr), open_interval(hh._
 # Convert to faces of h.
 faces_used = {}
 from cutgeneratingfunctionology.spam.real_set import RealSet   # param-safe version of RealSet
-for T in generate_triples_with_projections_intersecting(h, RealSet([0, 1])):
+all_triples = list(generate_triples_with_projections_intersecting(h, RealSet([0, 1])))
+for T in all_triples:
     hF = Face(T)
     if hF in faces_used_published:
         faces_used[hF] = T
@@ -47,6 +48,10 @@ try:
 except NotImplementedError:
     pass
 vertices_used = set(h._vertices_used)
+
+faces_of_vertices_used = set()
+for
+
 
 if 'all_special_faces' not in globals():
     all_special_faces = list(generate_triples_with_projections_intersecting(h, h.special_intervals, break_symmetry=True))
@@ -65,20 +70,50 @@ def format_slack(slack):
         return r'\tightslack{' + fs + r'}'
     return fs
 
+def format_component_slope(F):
+    for I in F.minimal_triple:
+        if len(I) == 2:
+            return [latex(h.which_function((I[0] + I[1])/2)._slope)]
+    return [""]
+
+def format_vector(v):
+    assert len(v) == 2
+    return r'\ColVec{%s}{%s}' % (latex(v[0]), latex(v[1]))
+
+def format_vertices(F, show_used=False):
+    def is_used(v):
+        return any((v[0], v[1], v[0]+v[1], xeps, yeps, zeps) in vertices_used
+                   for xeps, yeps, zeps in generate_containing_eps_triple((v[0], v[1]), F.minimal_triple))
+    def format_vertex(v):
+        s = format_vector(v)
+        if show_used and is_used(v):
+            s = r'\llap{$\rightarrow$}' + s
+        return s
+    return [format_vertex(v) for v in F.vertices]
+
 def format_interval(interval):
     l = latex(realset_from_interval(interval))
     return l.replace(r'-', r'\compactop-').replace(r'+', r'\compactop+')  # reduce spacing
 
 def format_symbolic_slack(slack):
     l = latex(SR(slack).collect(SR.var('x')).collect(SR.var('y')).subs(sqrt(1/2)==1/2*sqrt(2)))
-    return l.replace(r'- c', r'\compactop- c').replace(r'+ c', r'\compactop+ c')
+    return l.replace(r'} - c', r'} \compactop- c').replace(r'} + c', r'} \compactop+ c')
+
+def format_face_symbolic_slack(F, slacks):
+    if not any(slacks):
+        return "0"
+    else:
+        return format_symbolic_slack(delta_pi_of_face_symbolic(h, x, y, F).sym())
+
+def specialinterval(s):
+    #return r'\text{\boldmath$' + s + r'$}'
+    return r'\specialinterval{' + s + r'}'
 
 def format_interval_markup_special(interval):
+    s = format_interval(interval)
     if not h.special_intervals.is_disjoint_from(realset_from_interval(interval_mod_1(interval))):
-        #return r'\text{\boldmath$' + format_interval(interval) + r'$}'
-        return r'\specialinterval{' + format_interval(interval) + r'}'
-    else:
-        return format_interval(interval)
+        s = specialinterval(s)
+    return s
 
 def format_face_triple(triple):
     return [ format_interval_markup_special(I) for I in triple ]
@@ -104,7 +139,7 @@ def format_interval_extra_fancy(nominal_I, minimal_I):
     else:
         s += r')'
     if not h.special_intervals.is_disjoint_from(realset_from_interval(interval_mod_1(minimal_I))):
-        s = r'\specialinterval{' + s + r'}'
+        s = specialinterval(s)
     return s
 
 def format_face_triple_extra_fancy(triple):
@@ -153,23 +188,26 @@ def end_longtable():
     s += [r'\end{longtable}']
     return '\n'.join(s)
 
-def tabulate_additive_faces(faces, **longtable_kwds):
+def tabulate_additive_faces(faces, dimension=None, **longtable_kwds):
     faces = sorted(faces.items(), key=lambda fi: fi[0])
     max_vertices = 6
     s = []
     s += [begin_longtable(columns=['I', 'J', 'K',
-                                   r'\Delta\pi_{F}(x,y), \ (x,y) \in F = F(I, J, K)',
+                                   #r'\Delta\pi_{F}(x,y), \ (x,y) \in F = F(I, J, K)',
+                                   r'\text{slope}',
                                    r'\multicolumn{%s}{C}{\verts(F)}' % max_vertices
                                    ],
                           num_columns = 4 + max_vertices,
                           **longtable_kwds)]
     for F, triple in faces:
-        s += ['{}  ' + ' & '.join(#format_face_triple(triple)
-                                      format_face_triple_extra_fancy(triple)
-                                + [format_symbolic_slack(delta_pi_of_face_symbolic(h, x, y, F).sym())]
-                                + [latex(v) for v in F.vertices]
-                                )
-              + r'\\']
+        if dimension is None or F.dimension() == dimension:
+            s += ['{}  ' + ' & '.join(#format_face_triple(triple)
+                                          format_face_triple_extra_fancy(triple)
+                                    #+ [format_symbolic_slack(delta_pi_of_face_symbolic(h, x, y, F).sym())]
+                                    + format_component_slope(F)
+                                    + format_vertices(F)
+                                    )
+                  + r'\\']
     s += [end_longtable()]
     return '\n'.join(s)
 
@@ -205,7 +243,7 @@ def tabulate_delta_pi(faces, dimension=None, **longtable_kwds):
             s += ['{}  ' + ' & '.join(#format_face_triple(triple)
                                       format_face_triple_extra_fancy(triple)
                                     + [ latex(number_of_projections_intersecting(F, h.special_intervals)) ]
-                                    + [format_symbolic_slack(delta_pi_of_face_symbolic(h, x, y, F).sym())]
+                                    + [ format_face_symbolic_slack(F, slacks) ]
                                     + [ format_slack(slack) for slack in slacks ])
                     + r'\\']
 
@@ -220,9 +258,14 @@ with open('/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/tab_
     #f.write(r'\providecommand\specialinterval[1]{{#1}\rlap{*}}' + '\n')
     f.write(r'\providecommand\specialinterval[1]{\hphantom*{#1}\text{*}}' + '\n')
     f.write(r'\providecommand\tightslack[1]{\llap{$\triangleright$\,}{#1}}' + '\n')
-    f.write(tabulate_additive_faces(faces_used,
-                              caption="Faces used for proving piecewise linearity outside of the special intervals",
-                              label='tab:kzh_minimal_has_only_crazy_perturbation_1_faces_used'))
+    for dimension in (2, 1):   # 2 comes first (directly covering)
+        caption = r'%s-dimensional faces $F$ with additivity on $%s$ for proving piecewise linearity outside of the special intervals' % ("One" if dimension == 1 else "Two",
+                                                                                                                                          r'\relint(F)' if dimension == 1 else r'\intr(F)')
+        label = 'tab:kzh_minimal_has_only_crazy_perturbation_1_faces_used_dim_%s' % dimension
+        f.write(tabulate_additive_faces(faces_used, dimension=dimension,
+                                        caption=caption, label=label))
+    # Used vertices
+
     for dimension in (1, 2):      # 1 comes first because used earlier. 0 is empty.
         caption = r'Subadditivity slacks $\Delta\pi_F$ for $\dim F=%s$ and $n_F>0$' % dimension
         extra_caption = r'. An asterisk marks the special intervals.'
