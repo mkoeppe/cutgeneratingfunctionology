@@ -180,17 +180,17 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
     of the function `\pi'`, all of our arguments have to use addivities-sans-limit of `\pi`. 
     First we show that `\pi'` has to be affine linear on every non-special intervals of `\pi`.
 
-        sage: pi = kzh_minimal_has_only_crazy_perturbation_1()
-        sage: additive_faces_sans_limits = list(generate_additive_faces_sans_limits(pi))
-        sage: covered_components = generate_covered_components_strategically(pi, additive_faces=additive_faces_sans_limits)
+        sage: h = kzh_minimal_has_only_crazy_perturbation_1()
+        sage: additive_faces_sans_limits = list(generate_additive_faces_sans_limits(h))
+        sage: covered_components = generate_covered_components_strategically(h, additive_faces=additive_faces_sans_limits)
         sage: uncovered_intervals = uncovered_intervals_from_covered_components(covered_components)
-        sage: uncovered_intervals == [open_interval(pi.ucl, pi.ucr), open_interval(pi._f - pi.ucr, pi._f - pi.ucl)]
+        sage: uncovered_intervals == [open_interval(h.ucl, h.ucr), open_interval(h._f - h.ucr, h._f - h.ucl)]
         True
 
     The above is also done by ``facet_test``::
 
-        sage: pi = kzh_minimal_has_only_crazy_perturbation_1()
-        sage: facet_test(pi)
+        sage: h = kzh_minimal_has_only_crazy_perturbation_1()
+        sage: facet_test(h)
         Traceback (most recent call last):
         ...
         NotImplementedError: facet_test does not know how to continue
@@ -205,7 +205,7 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
 
     Again this system has a full rank, and no nontrivial solution exists.
 
-        sage: len(pi._facet_solution_basis)
+        sage: len(h._facet_solution_basis)
         0
 
     NOTE:
