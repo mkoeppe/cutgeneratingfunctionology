@@ -152,16 +152,19 @@ plot_limit_cone_style = 'sectors'
 plot_limit_cone_wrap = True
 plot_limit_cone_arrow_rel_distance = 0.008 / 0.055
 plot_limit_cone_arrow_length = 0.055
+plot_limit_cone_width = 1
+plot_limit_cone_vertex_size = 20
 
 from cutgeneratingfunctionology.igp.subadditivity_slack_diagrams.limit_arrow import limit_arrow
 
-def plot_limit_cone_of_vertex_in_face(x, y, F, color='red', r=0.03, style=None):
+def plot_limit_cone_of_vertex_in_face(x, y, F, color='red', **kwds):
     v = vector([x, y])
     feasible_cone = Polyhedron(rays=[ vector(u) - v for u in F.vertices if vector(u) != v])
     rays = feasible_cone.rays_list()
-    return plot_limit_cone_of_vertex(x, y, rays, color=color, r=r, style=style)
+    return plot_limit_cone_of_vertex(x, y, rays, color=color, **kwds)
 
-def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03, style=None):
+def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03, style=None, zorder=None,
+                              width=None, vertex_size=None, **kwds):
     r"""
     plot a cone or a ray or a point 
     """
@@ -171,8 +174,15 @@ def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03, style=None):
     if style == 'arrows':
         if color == 'white':
             return Graphics()
+        if zorder is None:
+            zorder = 10
+        if width is None:
+            width = plot_limit_cone_width
+        if vertex_size is None:
+            vertex_size = plot_limit_cone_vertex_size
         if len(cone) == 0:
-            return point([orig], color=color, size=20, zorder=10)  # on top of the complex
+            return point([orig], color=color, size=plot_limit_cone_vertex_size,
+                         zorder=zorder, **kwds)  # on top of the complex
         else:
             uv = sum(vector(ray) for ray in cone)
             if plot_limit_cone_wrap:
@@ -191,8 +201,9 @@ def plot_limit_cone_of_vertex(x, y, cone, color='red', r=0.03, style=None):
                 uv = uv / uv.norm() * 0.33 * plot_limit_cone_arrow_length
                 arrowsize = 1.5
             return limit_arrow(orig + (1 + plot_limit_cone_arrow_rel_distance) * uv,
-                               orig + plot_limit_cone_arrow_rel_distance * uv, color=color, arrowsize=arrowsize, zorder=10)
-    # default: 'sectors'
+                               orig + plot_limit_cone_arrow_rel_distance * uv, color=color, arrowsize=arrowsize,
+                               zorder=zorder, width=width)
+    # default: 'sectors'.  FIXME: Ignores zorder.
     if len(cone) == 0:
         p = point([orig], color=color, size=20, zorder=-1)
     elif len(cone) == 1:
