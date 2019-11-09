@@ -87,8 +87,8 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
         variables_names=[str(self._poly_ring.gens()[i]) for i in range(self._poly_ring.ngens()) if i != coordinate_index]
         new_poly_ring=PolynomialRing(self._base_ring,variables_names)
         # create the ring hommorphism
-        ring_hom=[new_poly_ring.gens()[i] for i in range(new_poly_ring.ngens())]
-        ring_hom.insert(coordinate_index,0)
+        polynomial_map=[new_poly_ring.gens()[i] for i in range(new_poly_ring.ngens())]
+        polynomial_map.insert(coordinate_index,0)
         
         new_eq=[]
         new_lt=[]
@@ -143,6 +143,12 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
                 new_lt.append(lt+lt.monomial_coefficient(coordinate)*(sub-coordinate))
             for le in self._le:
                 new_le.append(le+le.monomial_coefficient(coordinate)*(sub-coordinate))
+
+        bsa=self.copy()
+        bsa._le=new_le
+        bsa._eq=new_eq
+        bsa._lt=new_lt
+        bsa_section=bsa.section(polynomial_map,bsa_class=bsa_class)
         
         return BasicSemialgebraicSet_polyhedral_linear_system(base_ring=self._base_ring, ambient_dim=self.ambient_dim()-1, poly_ring=new_poly_ring, eq=new_eq, lt=new_lt, le=new_le, ring_hom=ring_hom)
 
