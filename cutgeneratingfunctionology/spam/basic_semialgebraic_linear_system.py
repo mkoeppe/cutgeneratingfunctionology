@@ -29,8 +29,29 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
 
         EXAMPLES::
 
+            sage: import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
             sage: from cutgeneratingfunctionology.spam.basic_semialgebraic_linear_system import *
-            sage: ls = BasicSemialgebraicSet_polyhedral_linear_system(QQ, 2)
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: # One dimensional relu formulation.
+            sage: K.<L,U,W,b>=ParametricRealField([QQ(-2),QQ(2),QQ(1),QQ(1/2)])
+            sage: Q.<x0,x1,x,y,z>=K[]
+            sage: le = [x0+x1-x, -x0-x1+x, -y, W*x0-b*z+b, W*x1-y+b*z, -W*x1+y-b*z, x0+U*z-U, -x0-L*z+L, x1-U*z, -x1+L*z]
+            sage: bsa = BasicSemialgebraicSet_polyhedral_linear_system(poly_ring=Q, le=le)
+            sage: bsa_eliminated = bsa.coordinate_projection([x0,x1])
+            sage: bsa_eliminated.le_poly()
+            {0,
+            ((L - U)~)*z,
+            ((-L*W - b)~)*z + (L*W + b)~,
+            ((-L + U)~)*z + (L - U)~,
+            -y,
+            -y + ((L*W + b)~)*z,
+            y + ((-U*W - b)~)*z,
+            -x + L~,
+            -x + y + ((-L*W - b)~)*z + (L*W)~,
+            x + (-U)~,
+            x + ((-U*W - b)~)*z + b~,
+            x - y + (W*b)~,
+            x - y + ((U*W + b)~)*z + (-U*W)~}
 
         """
         if poly_ring is None:
@@ -193,7 +214,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
     def lt_poly(self):
         r"""
         Return a list, set, or iterator of the polynomials `f` in strict inequalities `f(x) < 0`
-            in the description of ``self``.
+        in the description of ``self``.
             
         Together, ``eq_poly``, ``lt_poly``, and ``le_poly`` describe ``self``.
         """
