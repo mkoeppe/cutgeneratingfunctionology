@@ -3537,7 +3537,7 @@ def facet_test(fn, show_plots=False, known_minimal=False, known_extreme=False):
     if not uncovered_intervals and not solution_basis:
         logging.info("Minimal, and all intervals are covered (sans limits), unique solution (sans limits), so a facet.")
         return True
-    if not extremality_test(fn):
+    if not known_extreme and not extremality_test(fn):
         logging.info("Not extreme, so not a facet.")
         return False
     if fn.is_continuous():
