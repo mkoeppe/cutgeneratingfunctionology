@@ -62,7 +62,7 @@ for T in all_triples:
 assert not vertices_used
 
 if 'all_special_faces' not in globals():
-    all_special_faces = list(generate_triples_with_projections_intersecting(h, h.special_intervals, break_symmetry=True))
+    all_special_faces = list(generate_triples_with_projections_intersecting(h, h.special_intervals, break_symmetry=True, halfopen_cover_only=True))
 
 K = h.end_points()[1].parent()
 x, y = K.gens()[-2:]

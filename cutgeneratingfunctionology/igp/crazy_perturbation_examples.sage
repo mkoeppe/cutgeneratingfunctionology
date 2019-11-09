@@ -383,14 +383,18 @@ def generate_all_faces(fn):
     zero_fn = FastPiecewise([(I, FastLinearFunction(0, 0)) for I, f in fn.list()], merge=False)
     return generate_additive_faces_general(zero_fn)
 
-def generate_intervals_and_two_sided_discontinuous_breakpoints(function, reduced=True):
+def generate_intervals_and_two_sided_discontinuous_breakpoints(function, halfopen_cover_only=False):
     """
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)                   # disable output for automatic tests
+
         sage: h = kzh_minimal_has_only_crazy_perturbation_1(parametric=True)
-        sage: list(generate_intervals_and_two_sided_discontinuous_breakpoints(h))
+        sage: list(generate_intervals_and_two_sided_discontinuous_breakpoints(h, halfopen_cover_only=False))
+        [[0], [0, (x1)~], [(x1)~], [(x1)~, (x2)~], [(x2)~], [(x2)~, (x3)~], [(x3)~],
+        ..., [(x39)~], [(x39)~, 1], [1]]
+        sage: list(generate_intervals_and_two_sided_discontinuous_breakpoints(h, halfopen_cover_only=True))
         [[0], [0, (x1)~], [(x1)~], [(x1)~, (x2)~], [(x2)~, (x3)~], [(x3)~],
         ..., [(x39)~], [(x39)~, 1], [1]]
 
@@ -401,16 +405,16 @@ def generate_intervals_and_two_sided_discontinuous_breakpoints(function, reduced
         l = function.limits(bkpt[i])
         left_continuous = l[-1] is None or l[-1] == l[0]
         right_continuous = l[1] is None or l[1] == l[0]
-        if not reduced or (not left_continuous and not right_continuous):
+        if not halfopen_cover_only or (not left_continuous and not right_continuous):
             yield [bkpt[i]]
         if i+1 < n:
             yield [bkpt[i], bkpt[i+1]]
 
-def generate_faces_with_projections_intersecting(function, real_set, break_symmetry=False):
-    for triple in generate_triples_with_projections_intersecting(function, real_set, break_symmetry=break_symmetry):
+def generate_faces_with_projections_intersecting(function, real_set, break_symmetry=False, halfopen_cover_only=False):
+    for triple in generate_triples_with_projections_intersecting(function, real_set, break_symmetry=break_symmetry, halfopen_cover_only=halfopen_cover_only):
         yield Face(triple)
 
-def generate_triples_with_projections_intersecting(function, real_set, break_symmetry=False, reduced=True, return_triples=False):
+def generate_triples_with_projections_intersecting(function, real_set, break_symmetry=False, halfopen_cover_only=False):
     """
     It breaks symmetry but produces duplicates.
 
@@ -427,7 +431,7 @@ def generate_triples_with_projections_intersecting(function, real_set, break_sym
     def plus1(I):
         return [ x + 1 for x in I ]
 
-    I_list = list(generate_intervals_and_two_sided_discontinuous_breakpoints(function, reduced=reduced))
+    I_list = list(generate_intervals_and_two_sided_discontinuous_breakpoints(function, halfopen_cover_only=halfopen_cover_only))
     K_list = I_list + [ plus1(I) for I in I_list ]
 
     I_disjoint_list = [ I for I in I_list if real_set.is_disjoint_from(realset_from_interval(I)) ]
@@ -473,7 +477,8 @@ def kzh_minimal_has_only_crazy_perturbation_1_check_subadditivity_slacks(paramet
     """
     h = kzh_minimal_has_only_crazy_perturbation_1(parametric=parametric)
     logging.debug("s = {}".format(h.s))
-    for F in generate_faces_with_projections_intersecting(h, h.special_intervals):
+    for F in generate_faces_with_projections_intersecting(h, h.special_intervals,
+                                                          halfopen_cover_only=True):
         n_F = number_of_projections_intersecting(F, h.special_intervals)
         assert n_F > 0
         if n_F:

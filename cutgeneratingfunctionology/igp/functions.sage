@@ -739,7 +739,7 @@ def plot_2d_diagram_with_face_cones(fn, show_function=True, f=None, conesize=200
     from cutgeneratingfunctionology.spam.real_set import RealSet   # param-safe version of RealSet
     domain = RealSet([0, 1])
     faces = set(Face(triple)
-                for triple in generate_triples_with_projections_intersecting(fn, domain, break_symmetry=False, reduced=False))
+                for triple in generate_triples_with_projections_intersecting(fn, domain, break_symmetry=False, halfopen_cover_only=False))
     for F in faces:
         for v in F.vertices:
             deltafn = delta_pi_of_face(fn, v[0], v[1], F)
