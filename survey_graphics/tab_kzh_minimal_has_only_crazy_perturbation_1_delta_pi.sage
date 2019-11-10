@@ -88,7 +88,7 @@ def format_vector(v):
     assert len(v) == 2
     return r'\ColVec{%s}{%s}' % (latex(v[0]), latex(v[1]))
 
-def format_vertices(F, show_used=False):
+def format_vertices(F, show_used=True):
     def is_used(v):
         return any((v[0], v[1], v[0]+v[1], xeps, yeps, zeps) in vertices_used
                    for xeps, yeps, zeps in generate_containing_eps_triple((v[0], v[1]), F.minimal_triple))

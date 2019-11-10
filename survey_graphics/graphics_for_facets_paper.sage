@@ -96,13 +96,24 @@ g_vs6 = sum(plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)
 
 save_graphics(g, '2d_crazy_nf_with_func')
 
+
+
+# figures for a poster-sized foldout
+ftype = ".pdf"
+save_kwds['figsize'] = igp.show_plots_figsize = 36
+igp.plot_limit_cone_arrow_rel_distance = 0
+
+h = kzh_minimal_has_only_crazy_perturbation_1()
+h._vertices_used = []     # otherwise not recorded
 #g = plot_2d_diagram(h, colorful=True, show_projections=False)
-g = plot_2d_diagram_additive_domain_sans_limits(h, show_function=False) + plot_2d_diagram_with_cones(h, show_function=False) + g_at_borders
-igp.generate_symbolic_two_sided_discontinuous_basis_functions = ('midpoints', 'slopes') ## New basis!
-components = generate_covered_intervals(h)[:2]
-symbolic = generate_symbolic(h, components)
-M, vs = generate_additivity_equations(h, symbolic, reduce_system=True, return_vertices=True, undefined_ok=True)
-vs = [ v for v in vs if isinstance(v, tuple) ]   # omit special labels 'f', '1'
+g = plot_2d_diagram_additive_domain_sans_limits(h, show_function=False, edge_thickness=4, vertex_size=45) + plot_2d_diagram_with_cones(h, show_function=False) + g_at_borders
+try:
+    logging.info("Running facet_test")
+    facet_test(h, known_extreme=True)
+except NotImplementedError as e:
+    logging.info("Exception: {}  (this is normal)".format(e))
+    pass
+vs = [ v for v in h._vertices_used ]
 
 ##### Trying to reproduce the same vertices as in appendix of Equi VI -- but they are not the same
 ##### check the exact script (...strategic?...)
@@ -114,25 +125,29 @@ vs = [ v for v in vs if isinstance(v, tuple) ]   # omit special labels 'f', '1'
 ## vs6 = [ v for v in vs6 if isinstance(v, tuple) ]   # omit special labels 'f', '1'
 ## g += sum(plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), color='red') for (x, y, z, xeps, yeps, zeps) in vs6)
 
-g += sum(plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), color='black') for (x, y, z, xeps, yeps, zeps) in vs)
-g += g_vs6
+# plot black arrows slightly larger and below
+g += sum(plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)),
+                                   color='black', zorder=9,
+                                   width=3, vertex_size=30)
+         for (x, y, z, xeps, yeps, zeps) in vs)
+#g += g_vs6
 
 save_graphics(g, 'kzh_crazy_2d_with_func')
 
-igp.strategical_covered_components = False
-h = kzh_minimal_has_only_crazy_perturbation_1()
-plot_background = polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey') + g_at_borders
-generate_directed_move_composition_completion(h, max_num_rounds=0, error_if_max_num_rounds_exceeded=False, plot_background=plot_background)
-g = h._completion.plot()
-save_graphics(g, 'kzh_crazy_moves_with_func')
+## igp.strategical_covered_components = False
+## h = kzh_minimal_has_only_crazy_perturbation_1()
+## plot_background = polygon2d([[0,0], [0,1], [1,1], [1,0]], fill=False, color='grey') + g_at_borders
+## generate_directed_move_composition_completion(h, max_num_rounds=0, error_if_max_num_rounds_exceeded=False, plot_background=plot_background)
+## g = h._completion.plot()
+## save_graphics(g, 'kzh_crazy_moves_with_func')
 
-igp.strategical_covered_components = True
-h = kzh_minimal_has_only_crazy_perturbation_1()
-generate_directed_move_composition_completion(h, max_num_rounds=0, error_if_max_num_rounds_exceeded=False, plot_background=plot_background)
-g = h._completion.plot()
-save_graphics(g, 'kzh_crazy_moves_strategic_with_func')
+## igp.strategical_covered_components = True
+## h = kzh_minimal_has_only_crazy_perturbation_1()
+## generate_directed_move_composition_completion(h, max_num_rounds=0, error_if_max_num_rounds_exceeded=False, plot_background=plot_background)
+## g = h._completion.plot()
+## save_graphics(g, 'kzh_crazy_moves_strategic_with_func')
 
-h = kzh_minimal_has_only_crazy_perturbation_1()
-generate_directed_move_composition_completion(h, plot_background=plot_background)
-g = h._completion.plot()
-save_graphics(g, 'kzh_crazy_completion_with_func')
+## h = kzh_minimal_has_only_crazy_perturbation_1()
+## generate_directed_move_composition_completion(h, plot_background=plot_background)
+## g = h._completion.plot()
+## save_graphics(g, 'kzh_crazy_completion_with_func')
