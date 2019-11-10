@@ -1,4 +1,7 @@
 from cutgeneratingfunctionology.igp import *
+
+load("survey_graphics/tab_functions.sage")
+
 h = hildebrand_discont_3_slope_1()
 h, K = param_piecewise(h)
 try:
@@ -8,6 +11,17 @@ except NotImplementedError as e:
     logging.info("Exception: {} (this is normal)".format(e))
     pass
 
+from cutgeneratingfunctionology.spam.real_set import RealSet
+all_triples = list(generate_triples_with_projections_intersecting(h, RealSet([0, 1])))
+veps_to_face_dict = {}
+for T in all_triples:
+    hF = Face(T)
+    if is_additive_face_sans_limits(h, hF):
+        for v in hF.vertices:
+            for eps in generate_containing_eps_triple(v, hF.minimal_triple, with_limits=False):
+                veps = (v[0], v[1], v[0]+v[1], eps[0], eps[1], eps[2])
+                veps_to_face_dict[veps] = hF
+
 def format_variable(variable):
     if variable[0] == 'slope of component':
         return r'\bar c_{%s}' % (1 + variable[1], )
@@ -16,8 +30,17 @@ def format_variable(variable):
     else:
         return latex(variable)
 
+def format_vector(v):
+    assert len(v) == 2
+    return r'\ColVec{%s}{%s}' % (latex(v[0]), latex(v[1]))
+
 def format_label(label):
-    return latex(label)
+    try:
+        x, y, z, eps_x, eps_y, eps_z = label
+        return format_face_triple_extra_fancy(veps_to_face_dict[label].minimal_triple, label) + [format_vector((x, y))]
+    except Exception as e:
+        logging.warn("format_label: {}".format(e))
+        return [r'\multicolumn{4}{l}{%s}' % latex(label)]
 
 def format_coefficient(coeff):
     if coeff == 0:
@@ -40,6 +63,11 @@ def begin_longtable(columns, num_columns=None, format=None, caption=None, extra_
     if label is not None:
         s += [r'\label{%s}\\' % label]
     head  = [r'  \toprule']
+    ###
+    head += [r'  ' + ' & '.join([r'\multicolumn{4}{c}{Eqn.~$\Delta\bar\pi_F(x, y)=0$, $F=F(I, J, K)$}',
+                                 r'\multicolumn{%s}{c}{Coefficients}' % (num_columns-4)]) + r'\\']
+    head += [r'  \cmidrule{1-4}\cmidrule{5-%s}' % num_columns]
+    ###
     head += ['  ' + ' & '.join(columns) + r'\\']
     head += [r'  \midrule']
     s += head
@@ -60,14 +88,14 @@ def end_longtable():
 def tabulate_finite_system(h):
 
     s = []
-    caption = r'Finite system'
+    caption = r'Homogeneous linear system'
     extra_caption = None
     label = 'tab:hildebrand_discont_3_slope_1_finite_system'
-    s += [begin_longtable(columns = [''] + [ format_variable(v) for v in h._facet_symbolic.basis ],
+    s += [begin_longtable(columns = ['I', 'J', 'K', '(x, y)'] + [ format_variable(v) for v in h._facet_symbolic.basis ],
                           caption=caption, extra_caption=extra_caption, label=label)]
 
     for label, row in zip(h._facet_used_vertices, h._facet_equation_matrix):
-        s += [r' & '.join([format_label(label)] + [ format_coefficient(coeff) for coeff in row ]) + r'\\']
+        s += [r'  \relax' + ' & '.join(format_label(label) + [ format_coefficient(coeff) for coeff in row ]) + r'\\']
 
     s += [end_longtable()]
     return '\n'.join(s)
