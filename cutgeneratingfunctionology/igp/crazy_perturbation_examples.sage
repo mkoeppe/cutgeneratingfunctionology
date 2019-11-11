@@ -288,6 +288,9 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
     if parametric:
         bkpt_names_dict = { bkpt: 'x{}'.format(i) for i, bkpt in enumerate(h.end_points())
                             if bkpt not in (0, 1) }
+        bkpt_names_dict[h.a0] = 'a0'
+        bkpt_names_dict[h.a1] = 'a1'
+        bkpt_names_dict[h.a2] = 'a2'
         bkpt_names_dict[h.ucl] = 'l'
         bkpt_names_dict[h.ucr] = 'u'
         bkpt_names_dict[h._f] = 'f'
