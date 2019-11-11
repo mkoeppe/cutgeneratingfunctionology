@@ -4,7 +4,7 @@ Basic polyhedral semialgebraic sets represented as linear systems
 
 from __future__ import division, print_function, absolute_import
 
-from cutgeneratingfunctionology.spam.basic_semialgebraic import BasicSemialgebraicSet_base
+from cutgeneratingfunctionology.spam.basic_semialgebraic import BasicSemialgebraicSet_base, BasicSemialgebraicSet_polyhedral
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 import sage.structure.element
 import operator
@@ -13,7 +13,7 @@ cm = sage.structure.element.get_coercion_model()
 
 # Implement by rewriting code from formulations.sage on branch symbolic_FM. (FourierSystem, ...)
 
-class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base):
+class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyhedral):
 
     """
     A closed polyhedral basic semialgebraic set.
@@ -197,12 +197,6 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
                     elimination_positions[j]-=1
         return res
     
-    def base_ring(self):
-        r"""
-        Return the polynomial ring of self.
-        """
-        return self._base_ring
-    
     def poly_ring(self):
         r"""
         Return the polynomial ring of self.
@@ -248,6 +242,8 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
                 lhs = self._poly_ring(lhs)
             except TypeError:
                 raise TypeError("can not convert lhs into self.poly_ring")
+        if lhs.degree() > 1:
+            raise ValueError("{} is not a valid linear polynomial.".format(lhs))
         if op == operator.lt:
             self._lt.add(lhs)
         elif op == operator.gt:
@@ -260,4 +256,16 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
             self._le.add(-lhs)
         else:
             raise ValueError("{} is not a supported operator".format(op))
+
+    def add_linear_constraint(self, lhs_vector, cst, op):
+        """
+        Add the constraint ``lhs`` * x + cst ``op`` 0,
+        where ``lhs`` is a vector of length ``ambient_dim`` and
+        ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
+        ``operator.le``, ``operator.ge``.
+        """
+        if len(lhs_vector) != self._ambient_dim:
+            raise ValueError("length of lhs_vector and ambient_dim do not match.")
+        lhs=sum(lhs_vector[i]*self.poly_ring().gens()[i] for i in range(len(lhs_vector)))+cst
+        self.add_polynomial_constraint(lhs, op)
 
