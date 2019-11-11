@@ -77,7 +77,7 @@ save_kwds = {'ticks': [tk, tk], 'tick_formatter': [tkfx, tkfy], 'show_legend': F
              'figsize': igp.show_plots_figsize}
 save_kwds.update(paper_plot_kwds)
 
-all_special_faces = set(generate_faces_with_projections_intersecting(h, h.special_intervals, break_symmetry=False))
+all_special_faces = set(generate_faces_with_projections_intersecting(h, h.special_intervals, break_symmetry=False, halfopen_cover_only=True))
 for F in all_special_faces:
     if F.is_2D():
         if number_of_projections_intersecting(F, h.special_intervals) == 1:

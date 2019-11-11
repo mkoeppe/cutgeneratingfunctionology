@@ -43,7 +43,10 @@ def format_interval_extra_fancy(nominal_I, minimal_I, number=None):
 
 def format_face_triple_extra_fancy(triple, vector=None):
     face = Face(triple)
-    xyz = [vector[0], vector[1], vector[0] + vector[1]]
+    if vector is None:
+        xyz = [None, None, None]
+    else:
+        xyz = [vector[0], vector[1], vector[0] + vector[1]]
     return [ format_interval_extra_fancy(nominal_I, minimal_I, number)
              for nominal_I, minimal_I, number in zip(triple, face.minimal_triple, xyz) ]
 
@@ -95,11 +98,17 @@ def end_longtable():
 
 def format_variable(variable, compact_head=False):
     if variable[0] == 'slope of component':
-        return r'\multicolumn{1}{C}{\bar c_{%s}}' % (1 + variable[1], )
+        slope_index = variable[1]
+        if hasattr(h, '_slope_names'):
+            l = r'\bar ' + h._slope_names[slope_index]
+        else:
+            l = r'\bar c_{%s}}' % (1 + slope_index, )
+        return r'\multicolumn{1}{C}{%s}' % l
     elif variable[0] == 'function value at':
         x = variable[1]
         if compact_head:
             if x in h.end_points():
+                l = None
                 if x == h.a0:
                     l = r'a_0\!'
                 elif x == h.a1:
@@ -107,9 +116,11 @@ def format_variable(variable, compact_head=False):
                 elif x == h.a2:
                     l = r'a_2\!'
                 else:
-                    l = latex(x)
-                if len(l) == 1 or l[0] == 'a':
-                    return r'\stackrel{%s}{\bullet}' % l
+                    lx = latex(x)
+                    if len(lx) == 1:
+                        l = lx
+                if l:
+                    return r'\stackrel{%s\vphantom{{}_0}}{\bullet}' % l
                 return r'\bullet'
             else:
                 return r'-'

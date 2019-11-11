@@ -1,5 +1,7 @@
 import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
 
+load("survey_graphics/tab_functions.sage")
+
 if 'h' not in globals():
     h = kzh_minimal_has_only_crazy_perturbation_1(parametric=True, extra_names=['x', 'y'], extra_values=[0, 0])
 
@@ -99,10 +101,6 @@ def format_vertices(F, show_used=True):
         return s
     return [format_vertex(v) for v in F.vertices]
 
-def format_interval(interval):
-    l = latex(realset_from_interval(interval))
-    return l.replace(r'-', r'\compactop-').replace(r'+', r'\compactop+')  # reduce spacing
-
 def format_symbolic_slack(slack):
     l = latex(SR(slack).collect(SR.var('x')).collect(SR.var('y')).subs(sqrt(1/2)==1/2*sqrt(2)))
     return l.replace(r'} - c', r'} \compactop- c').replace(r'} + c', r'} \compactop+ c')
@@ -125,35 +123,6 @@ def format_interval_markup_special(interval):
 
 def format_face_triple(triple):
     return [ format_interval_markup_special(I) for I in triple ]
-
-def format_interval_extra_fancy(nominal_I, minimal_I):
-    if len(nominal_I) < 2:
-        return format_interval(nominal_I)
-    s = ""
-    minimal_I = list(interval_to_endpoints(minimal_I))
-    if nominal_I[0] < minimal_I[0]:
-        s += r'\langle '
-    elif h.limit(fractional(nominal_I[0]), 0) == h.limit(fractional(nominal_I[0]), 1):
-        s += r'['
-    else:
-        s += r'('
-    s += latex(nominal_I[0]).replace(r'-', r'\compactop-').replace(r'+', r'\compactop+')  # reduce spacing
-    s += ", "
-    s += latex(nominal_I[1]).replace(r'-', r'\compactop-').replace(r'+', r'\compactop+')  # reduce spacing
-    if minimal_I[1] < nominal_I[1]:
-        s += r'\rangle '
-    elif h.limit(fractional(nominal_I[1]), 0) == h.limit(fractional(nominal_I[1]), -1):
-        s += r']'
-    else:
-        s += r')'
-    if not h.special_intervals.is_disjoint_from(realset_from_interval(interval_mod_1(minimal_I))):
-        s = specialinterval(s)
-    return s
-
-def format_face_triple_extra_fancy(triple):
-    face = Face(triple)
-    return [ format_interval_extra_fancy(nominal_I, minimal_I)
-             for nominal_I, minimal_I in zip(triple, face.minimal_triple) ]
 
 latex.add_package_to_preamble_if_available("booktabs")
 
@@ -269,11 +238,16 @@ with open('/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/tab_
     for dimension in (2, 1):   # 2 comes first (directly covering)
         caption = r'%s-dimensional faces $F$ with additivity on $%s$ for proving piecewise linearity outside of the special intervals' % ("One" if dimension == 1 else "Two",
                                                                                                                                           r'\relint(F)' if dimension == 1 else r'\intr(F)')
+        extra_caption = r'All intervals $I$, $J$, $K$ are closed and elements of the complex~$\P$; notation $\langle a, b\rangle$: endpoints are not reached by the projection of the face; $(a, b)$: function $\pi$ is discontinuous at the endpoints from within the interval; $[a, b]$ function $\pi$ is continuous at the endpoints within the interval.'
         label = 'tab:kzh_minimal_has_only_crazy_perturbation_1_faces_used_dim_%s' % dimension
         f.write(tabulate_additive_faces(faces_used, dimension=dimension,
-                                        caption=caption, label=label))
-    # Used vertices
-
+                                        caption=caption, extra_caption=extra_caption, label=label))
+    # Faces of vertices used for rank
+    caption = r'Faces $F$ with additivity on \relint(F) whose vertices form a full-rank homogeneous linear system'
+    label = 'tab:kzh_minimal_has_only_crazy_perturbation_1_faces_of_vertices_used'
+    f.write(tabulate_additive_faces(faces_of_vertices_used,
+                                    caption=caption, label=label))
+    #
     for dimension in (1, 2):      # 1 comes first because used earlier. 0 is empty.
         caption = r'Subadditivity slacks $\Delta\pi_F$ for $\dim F=%s$ and $n_F>0$' % dimension
         extra_caption = r'. An asterisk marks the special intervals.'
