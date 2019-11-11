@@ -283,7 +283,7 @@ def generate_symbolic_general(function, components, field=None, f=None, basis_fu
         # In this basis, additivities are expressible with equations of small support.
         # Dictionary mapping an interval (a, b) to a list of pairs "(index, coeff)"
         # suitable for VectorSpace.sum_of_terms.
-        midpoint_value_dict = { (x, x): []                        # Already fixed by symmetry
+        midpoint_value_dict = { x: []                        # Already fixed by symmetry
                                 for x in [0, f/2, f, (1+f)/2, 1] }
         def reflection(interval):
             if interval[0] == interval[1]:
@@ -294,13 +294,13 @@ def generate_symbolic_general(function, components, field=None, f=None, basis_fu
         def midpoint_value_lincomb(a, b):
             "Allocate a variable to be the midpoint value on the interval."
             interval = (a, b)
-            if interval not in midpoint_value_dict:
+            midpoint = fractional((a + b) / 2)
+            if midpoint not in midpoint_value_dict:
                 v = [(len(basis), 1)]     # (index, coefficient)
-                midpoint_value_dict[interval] = v
-                midpoint_value_dict[reflection(interval)] = [(len(basis), -1)]
-                midpoint = (a + b) / 2
+                midpoint_value_dict[midpoint] = v
+                midpoint_value_dict[fractional(f - midpoint)] = [(len(basis), -1)]
                 basis.append(('function value at', midpoint))
-            return midpoint_value_dict[interval]
+            return midpoint_value_dict[midpoint]
         for interval, slope in intervals_and_slopes:
             a = interval[0]
             b = interval[1]

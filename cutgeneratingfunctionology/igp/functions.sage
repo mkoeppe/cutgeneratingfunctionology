@@ -3154,10 +3154,8 @@ def generate_symbolic(fn, components=None, field=None, f=None, show_plots=False,
         sage: h = extreme_functions.drlm_backward_3_slope()
         sage: sym = generate_symbolic(h, basis_functions=('midpoints', 'slopes'))
         sage: sym.basis
-        [('function value at', 1/24),
-         ('function value at', 1/8),
+        [('function value at', 1/8),
          ('function value at', 1/6),
-         ('function value at', 13/24),
          ('slope of component', 0),
          ('slope of component', 1),
          ('slope of component', 2)]
@@ -3523,18 +3521,18 @@ def facet_test(fn, show_plots=False, known_minimal=False, known_extreme=False):
         sage: h._facet_symbolic.basis
         [('function value at', 0.01010000000000000?),
          ('function value at', 0.02020000000000000?), ...,
-         ('function value at', 0.9000000000000000?),
+         ('function value at', 0.8202000000000000?),
          ('slope of component', 0),
          ('slope of component', 1)]
         sage: [h._facet_symbolic.basis.index(('function value at', x)) for x in [h.a0, h.a1, h.a2]]
         [11, 19, 25]
         sage: h._facet_equation_matrix.column(11)
-        (0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0)
+        (0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0)
         sage: [ (variable, value) for variable, value in zip(h._facet_symbolic.basis, h._facet_equation_matrix[4]) if value ]
         [(('function value at', 0.01010000000000000?), 1),
          (('function value at', 0.1900000000000000?), 1),
-         (('function value at', 0.2022376116331226?), -1),
-         (('slope of component', 1), 0.00213761163312262?)]
+         (('function value at', 0.2071236354684422?), -1),
+         (('slope of component', 1), 0.00702363546844223?)]
 
     """
     if known_extreme:
