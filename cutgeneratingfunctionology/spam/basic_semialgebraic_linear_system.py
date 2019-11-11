@@ -79,19 +79,26 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_base)
         for e in set(eq):
             if e.parent() != poly_ring:
                 if base_ring(e) != base_ring(0):
-                    raise ValueError("Empty BasicSemialgebraicSet")
+                    #replace with an invalid inequality.
+                    temp_le={poly_ring(1)}
+                    temp_eq={}
+                    temp_lt={}
                 else:
                     temp_eq.remove(e)
         for lt in set(lt):
             if lt.parent() != poly_ring:
                 if base_ring(lt) >= base_ring(0):
-                    raise ValueError("Empty BasicSemialgebraicSet")
+                    temp_le={poly_ring(1)}
+                    temp_eq={}
+                    temp_lt={}
                 else:
                     temp_lt.remove(lt)
         for le in set(le):
             if le.parent() != poly_ring:
                 if base_ring(le) > base_ring(0):
-                    raise ValueError("Empty BasicSemialgebraicSet")
+                    temp_le={poly_ring(1)}
+                    temp_eq={}
+                    temp_lt={}
                 else:
                     temp_le.remove(le)
         self._eq = temp_eq
