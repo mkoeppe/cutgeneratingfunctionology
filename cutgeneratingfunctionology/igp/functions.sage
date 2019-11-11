@@ -3509,6 +3509,33 @@ def facet_test(fn, show_plots=False, known_minimal=False, known_extreme=False):
         sage: h = extreme_functions.bhk_irrational()
         sage: facet_test(h)
         True
+
+    The algorithm cannot handle all cases::
+
+        sage: h = kzh_minimal_has_only_crazy_perturbation_1()
+        sage: facet_test(h, known_extreme=True)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: facet_test does not know how to continue
+
+    As a side effect, ``facet_test`` stores some data in the function::
+
+        sage: h._facet_symbolic.basis
+        [('function value at', 0.01010000000000000?),
+         ('function value at', 0.02020000000000000?), ...,
+         ('function value at', 0.9000000000000000?),
+         ('slope of component', 0),
+         ('slope of component', 1)]
+        sage: [h._facet_symbolic.basis.index(('function value at', x)) for x in [h.a0, h.a1, h.a2]]
+        [11, 19, 25]
+        sage: h._facet_equation_matrix.column(11)
+        (0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0)
+        sage: [ (variable, value) for variable, value in zip(h._facet_symbolic.basis, h._facet_equation_matrix[4]) if value ]
+        [(('function value at', 0.01010000000000000?), 1),
+         (('function value at', 0.1900000000000000?), 1),
+         (('function value at', 0.2022376116331226?), -1),
+         (('slope of component', 1), 0.00213761163312262?)]
+
     """
     if known_extreme:
         known_minimal = True
