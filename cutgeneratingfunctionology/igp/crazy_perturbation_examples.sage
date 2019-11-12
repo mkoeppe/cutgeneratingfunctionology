@@ -301,6 +301,10 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
                                                  **parametric_kwds)
         param_dict[h._f - h.ucl] = param_dict[h._f] - param_dict[h.ucl]
         param_dict[h._f - h.ucr] = param_dict[h._f] - param_dict[h.ucr]
+        for ai in (h.a0, h.a1, h.a2):
+            param_dict[h._f - ai] = param_dict[h._f] - param_dict[ai]
+            param_dict[h._f - ai] = param_dict[h._f] - param_dict[ai]
+            param_dict[h._f - ai] = param_dict[h._f] - param_dict[ai]
         h, K = param_piecewise(h, param_dict=param_dict, field=K)
         set_special_attributes(h)
     return h
