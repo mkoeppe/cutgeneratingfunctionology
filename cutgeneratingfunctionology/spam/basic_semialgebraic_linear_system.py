@@ -6,6 +6,7 @@ from __future__ import division, print_function, absolute_import
 
 from cutgeneratingfunctionology.spam.basic_semialgebraic import BasicSemialgebraicSet_base, BasicSemialgebraicSet_polyhedral
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.geometry.polyhedron.all import *
 import sage.structure.element
 import operator
 
@@ -52,7 +53,21 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
             x + ((-U*W - b)~)*z + b~,
             x - y + (W*b)~,
             x - y + ((U*W + b)~)*z + (-U*W)~}
-
+            
+        A non-parametric example::
+            sage: D = polytopes.dodecahedron()
+            sage: D.dim()
+            3
+            sage: PR.<x0,x1,x2> = D.base_ring()[]
+            sage: bsa = from_polyhedron_to_linear_system(D,poly_ring=PR)
+            sage: set(D.vertices()) == set(bsa.to_polyhedron().vertices())
+            True
+            sage: # project out x1 variable
+            sage: proj_mat = matrix([[1,0,0],[0,0,1]])
+            sage: D_proj = Polyhedron(vertices = (proj_mat*D.vertices_matrix()).columns())
+            sage: bsa_proj = bsa.coordinate_projection([x1])
+            sage: set(D_proj.vertices()) == set(bsa_proj.to_polyhedron().vertices())
+            True
         """
         if poly_ring is None:
             raise ValueError("must specify the poly_ring")
@@ -268,4 +283,29 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
             raise ValueError("length of lhs_vector and ambient_dim do not match.")
         lhs=sum(lhs_vector[i]*self.poly_ring().gens()[i] for i in range(len(lhs_vector)))+cst
         self.add_polynomial_constraint(lhs, op)
+
+    def to_polyhedron(self, **kwds):
+        # not suitable for Paramatric field??
+        if len(self._lt)>0:
+            raise ValueError("Contain strict inequalities.")
+        ieqs=[]
+        eqns=[]
+        for le in self._le:
+            temp_le = [le.constant_coefficient()] + [le.monomial_coefficient(v) for v in self.poly_ring().gens()]
+            ieqs.append([-x for x in temp_le])
+        for eq in self._eq:
+            eqns.append([eq.constant_coefficient()] + [eq.monomial_coefficient(v) for v in self.poly_ring().gens()])
+        return Polyhedron(ieqs=ieqs, eqns=eqns, **kwds)
+
+def from_polyhedron_to_linear_system(p, poly_ring=None):
+    """
+    Convert a instance of Polyhedron to a instance of BasicSemialgebraicSet_polyhedral_linear_system
+    """
+    d = p.dim()
+    if poly_ring is None:
+        poly_ring = PolynomialRing(p.base_ring(), "x", p.ambient_dim())
+    bsa = BasicSemialgebraicSet_polyhedral_linear_system(poly_ring = poly_ring)
+    for lhs in p.inequalities_list():
+        bsa.add_linear_constraint(lhs[1:],lhs[0],operator.ge)
+    return bsa
 
