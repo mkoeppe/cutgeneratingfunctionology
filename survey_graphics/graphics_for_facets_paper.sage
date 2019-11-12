@@ -54,6 +54,9 @@ igp.plot_function_at_borders_kwds = { 'thickness': 2 }
 #igp.plot_limit_cone_arrow_distance = 8.0/igp.show_plots_figsize * plot_limit_cone_arrow_distance
 igp.plot_limit_cone_arrow_length = 8.0/igp.show_plots_figsize * plot_limit_cone_arrow_length
 
+g = plot_covered_intervals(h, thickness=2, **ticks_keywords(h))
+save_graphics(g, "{}-only-function".format(name), aspect_ratio=0.3, **paper_plot_kwds)
+
 ftype = ".png"
 
 h = kzh_minimal_has_only_crazy_perturbation_1()
@@ -70,9 +73,9 @@ igp.plot_2d_complex_continuous_kwds = igp.plot_2d_complex_discontinuous_kwds = {
 g = plot_2d_complex(h)
 g_at_borders = plot_function_at_borders(h, covered_components=generate_covered_components(h))
 g += g_at_borders
-tk=[0,l,u,ll,uu,f,1];
-tkfx=[0,"$l$","$u$","$f-u$","","$f$","$1$"]  # omit f-l (doesn't fit)
-tkfy=[0,"$l$","$u$","$f-u$","$f-l$","$f$",""]  # omit 1 (doesn't fit)
+tk = [0, h.a0, h.a1, h.a2, l, u, ll, uu, f-h.a2, f-h.a1, l+u, f, 1];
+tkfx=[0,"", "$a_1$", "", "$l$","$u$","$f-u$","","","$f-a_1$","","$f$","$1$"]  # omit f-l (doesn't fit)
+tkfy=[0,"$a_0$", "", "$a_2$", "$l$","$u$","$f-u$","$f-l$","$f-a_2$", "", "$f-a_0$","$f$",""]  # omit 1 (doesn't fit)
 save_kwds = {'ticks': [tk, tk], 'tick_formatter': [tkfx, tkfy], 'show_legend': False,
              'figsize': igp.show_plots_figsize}
 save_kwds.update(paper_plot_kwds)
@@ -85,7 +88,13 @@ for F in all_special_faces:
         else:
             g += F.plot(zorder=-5, fill_color=color2)
     else:
-        g += F.plot(zorder=0, rgbcolor=color3, edge_thickness=1)
+        if is_additive_face_sans_limits(h, F):
+            g += F.plot(zorder=10, rgbcolor=additive_color, edge_thickness=1)
+        else:
+            g += F.plot(zorder=10, rgbcolor=color3, edge_thickness=1)
+for z in tk:
+    g += line([(0, z), (z, 0)], linestyle="dotted", thickness=0.5, zorder=9, color='black')
+    g += line([(1, z), (z, 1)], linestyle="dotted", thickness=0.5, zorder=9, color='black')
 
 ## Vertices from the published proof in Equi VI:
 bkpt = h.end_points()
