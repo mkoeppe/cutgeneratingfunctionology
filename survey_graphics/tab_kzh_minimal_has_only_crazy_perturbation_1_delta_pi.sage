@@ -72,185 +72,48 @@ x, y = K.gens()[-2:]
 if 'faces' not in globals():
     faces = { Face(triple): triple for triple in all_special_faces }
 
-def format_slack(slack):
-    if slack == 0:
-        return "0"
-    fs = "{:.3f}".format(float(slack))
-    if slack == h.s:
-        return r'\tightslack{' + fs + r'}'
-    return fs
-
-def format_component_slope(F):
-    for I in F.minimal_triple:
-        if len(I) == 2:
-            return [latex(h.which_function((I[0] + I[1])/2)._slope)]
-    return [""]
-
-def format_vector(v):
-    assert len(v) == 2
-    return r'\ColVec{%s}{%s}' % (latex(v[0]), latex(v[1]))
-
-def format_vertices(F, show_used=True):
-    def is_used(v):
-        return any((v[0], v[1], v[0]+v[1], xeps, yeps, zeps) in vertices_used
-                   for xeps, yeps, zeps in generate_containing_eps_triple((v[0], v[1]), F.minimal_triple))
-    def format_vertex(v):
-        s = format_vector(v)
-        if show_used and is_used(v):
-            s = r'\llap{$\rightarrow$}' + s
-        return s
-    return [format_vertex(v) for v in F.vertices]
-
-def format_symbolic_slack(slack):
-    l = latex(SR(slack).collect(SR.var('x')).collect(SR.var('y')).subs(sqrt(1/2)==1/2*sqrt(2)))
-    return l.replace(r'} - c', r'} \compactop- c').replace(r'} + c', r'} \compactop+ c')
-
-def format_face_symbolic_slack(F, slacks):
-    if not any(slacks):
-        return "0"
-    else:
-        return format_symbolic_slack(delta_pi_of_face_symbolic(h, x, y, F).sym())
-
-def specialinterval(s):
-    #return r'\text{\boldmath$' + s + r'$}'
-    return r'\specialinterval{' + s + r'}'
-
-def format_interval_markup_special(interval):
-    s = format_interval(interval)
-    if not h.special_intervals.is_disjoint_from(realset_from_interval(interval_mod_1(interval))):
-        s = specialinterval(s)
-    return s
-
-def format_face_triple(triple):
-    return [ format_interval_markup_special(I) for I in triple ]
 
 latex.add_package_to_preamble_if_available("booktabs")
 
 
-def begin_longtable(columns, num_columns=None, format=None, caption=None, extra_caption=None, label=None):
-    if num_columns is None:
-        num_columns = len(columns)
-    if format is None:
-        format = r'*{%s}C' % num_columns
-    s = []
-    s += [r'\def\arraystretch{1.17}']
-    s += [r'\begin{longtable}{%s}' % format]
-    if caption is not None:
-        if extra_caption is None:
-            extra_caption = ''
-        s += [r'\caption{' + caption + extra_caption + r'}']
-    #  of the piecewise linear function $\pi$ = \sage{kzh\_minimal\_has\_only\_crazy\_perturbation\_1}()
-    if label is not None:
-        s += [r'\label{%s}\\' % label]
-
-    head  = [r'  \toprule']
-    ## head += ['  ' + ' & '.join([r'\multicolumn{3}{C}{F = F(I, J, K)}']) + r'\\']
-    ## head += [r'  \cmidrule{1-3}']
-    head += ['  ' + ' & '.join(columns) + r'\\']
-    head += [r'  \midrule']
-
-    s += head
-    s += [r'\endfirsthead']
-
-    s += [r'\caption{' + caption + r' (ctd.)}\\']
-    s += head
-    s += [r'\endhead']
-
-    s += [r'  \bottomrule']
-    s += [r'\endfoot']
-    return '\n'.join(s)
-
-def end_longtable():
-    s = []
-    s += [r'\end{longtable}']
-    return '\n'.join(s)
-
-def tabulate_additive_faces(faces, dimension=None, **longtable_kwds):
-    faces = sorted(faces.items(), key=lambda fi: fi[0])
-    max_vertices = 6
-    s = []
-    s += [begin_longtable(columns=['I', 'J', 'K',
-                                   #r'\Delta\pi_{F}(x,y), \ (x,y) \in F = F(I, J, K)',
-                                   r'\text{slope}',
-                                   r'\multicolumn{%s}{C}{\verts(F)}' % max_vertices
-                                   ],
-                          num_columns = 4 + max_vertices,
-                          **longtable_kwds)]
-    for F, triple in faces:
-        if dimension is None or F.dimension() == dimension:
-            s += ['{}  ' + ' & '.join(#format_face_triple(triple)
-                                          format_face_triple_extra_fancy(triple)
-                                    #+ [format_symbolic_slack(delta_pi_of_face_symbolic(h, x, y, F).sym())]
-                                    + format_component_slope(F)
-                                    + format_vertices(F)
-                                    )
-                  + r'\\']
-    s += [end_longtable()]
-    return '\n'.join(s)
-
-def tabulate_delta_pi(faces, dimension=None, **longtable_kwds):
-    faces = sorted(faces.items(), key=lambda fi: fi[0])
-    s = []
-    if dimension is None or dimension == 2:
-        # eps describing 2d cones of a vertex
-        eps_list = [ eps for eps in nonzero_eps if all(e != 0 for e in eps) ]
-        max_vertices = len(eps_list)
-    elif dimension == 1:
-        max_vertices = 2
-    elif dimension == 0:
-        max_vertices = 1
-    else:
-        raise ValueError("bad dimension")
-
-    s += [begin_longtable(columns=['I', 'J', 'K',
-                                   r'n_F',
-                                   r'\Delta\pi_{F}(x,y), \ (x,y) \in F = F(I, J, K)',
-                                   # [r'\Delta\pi_F(v_F^\bgroup{}{}{}\egroup)'.format(*[print_sign(e) for e in eps]) for eps in eps_list]    ### attributing vertices to their basis....... would need more work
-                                   r'\multicolumn{%s}{C}{\Delta\pi_F(u,v), \ (u,v)\in\verts(F)}' % max_vertices],
-                          num_columns = 5 + max_vertices,
-                          **longtable_kwds)]
-
-    for face, triple in faces:
-
-        F = Face(triple)
-        if dimension is None or F.dimension() == dimension:
-            slacks = sorted(delta_pi_of_face(h, v[0], v[1], F) for v in F.vertices)
-            # Put a {} in front because the square brackets coming from formatting the intervals
-            # would otherwise be taken as a latex optional argument for the preceding command!
-            s += ['{}  ' + ' & '.join(#format_face_triple(triple)
-                                      format_face_triple_extra_fancy(triple)
-                                    + [ latex(number_of_projections_intersecting(F, h.special_intervals)) ]
-                                    + [ format_face_symbolic_slack(F, slacks) ]
-                                    + [ format_slack(slack) for slack in slacks ])
-                    + r'\\']
-
-    s += [end_longtable()]
-    return '\n'.join(s)
-
-logging.warn("Writing tables")
-with open('/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/tab_kzh_minimal_has_only_crazy_perturbation_delta_pi.tex', 'w') as f:
+def write_header(f):
     f.write(r'%% Automatically generated.' + '\n')
     f.write(r'%% Preamble: \usepackage{longtable,booktabs,array}\newcolumntype{C}{>{$}c<{$}}' + '\n')
     f.write(r'\providecommand\compactop[1]{\kern0.2pt{#1}\kern0.2pt\relax}' + '\n')
     #f.write(r'\providecommand\specialinterval[1]{{#1}\rlap{*}}' + '\n')
     f.write(r'\providecommand\specialinterval[1]{\hphantom*{#1}\text{*}}' + '\n')
     f.write(r'\providecommand\tightslack[1]{\llap{$\triangleright$\,}{#1}}' + '\n')
+
+logging.warn("Writing tables")
+
+def write_tables():
     for dimension in (2, 1):   # 2 comes first (directly covering)
-        caption = r'%s-dimensional faces $F$ with additivity on $%s$ for proving piecewise linearity outside of the special intervals' % ("One" if dimension == 1 else "Two",
-                                                                                                                                          r'\relint(F)' if dimension == 1 else r'\intr(F)')
-        extra_caption = r'All intervals $I$, $J$, $K$ are closed and elements of the complex~$\P$; notation $\langle a, b\rangle$: endpoints are not reached by the projection of the face; $(a, b)$: function $\pi$ is discontinuous at the endpoints from within the interval; $[a, b]$ function $\pi$ is continuous at the endpoints within the interval.'
-        label = 'tab:kzh_minimal_has_only_crazy_perturbation_1_faces_used_dim_%s' % dimension
-        f.write(tabulate_additive_faces(faces_used, dimension=dimension,
-                                        caption=caption, extra_caption=extra_caption, label=label))
-    # Faces of vertices used for rank
-    caption = r'Faces $F$ with additivity on \relint(F) whose vertices form a full-rank homogeneous linear system'
-    label = 'tab:kzh_minimal_has_only_crazy_perturbation_1_faces_of_vertices_used'
-    f.write(tabulate_additive_faces(faces_of_vertices_used,
-                                    caption=caption, label=label))
-    #
-    for dimension in (1, 2):      # 1 comes first because used earlier. 0 is empty.
-        caption = r'Subadditivity slacks $\Delta\pi_F$ for $\dim F=%s$ and $n_F>0$' % dimension
-        extra_caption = r'. An asterisk marks the special intervals.'
-        label = r'tab:kzh_minimal_has_only_crazy_perturbation_1_delta_pi_dim_%s' % dimension
-        f.write(tabulate_delta_pi(faces, dimension=dimension, caption=caption, extra_caption=extra_caption,
-                                  label=label))
+        with open('/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/tab_kzh_minimal_has_only_crazy_perturbation_delta_pi_covering_dim{}.tex'.format(dimension), 'w') as f:
+            write_header(f)
+            caption = r'%s-dimensional faces $F$ with additivity on $%s$ for proving piecewise linearity outside of the special intervals' % ("One" if dimension == 1 else "Two",
+                                                                                                                                              r'\relint(F)' if dimension == 1 else r'\intr(F)')
+            extra_caption = r'. All intervals $I$, $J$, $K$ are closed and elements of the complex~$\P$; notation $\langle a, b\rangle$: endpoints are not reached by the projection of the face; $(a, b)$: function $\pi$ is one-sided discontinuous at the endpoints from within the interval; $[a, b]$: function $\pi$ is one-sided continuous at the endpoints from within the interval.'
+            label = 'tab:kzh_minimal_has_only_crazy_perturbation_1_faces_used_dim_%s' % dimension
+            f.write(tabulate_additive_faces(faces_used, dimension=dimension,
+                                            caption=caption, extra_caption=extra_caption, label=label))
+
+
+    with open('/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/tab_kzh_minimal_has_only_crazy_perturbation_delta_pi_rank.tex', 'w') as f:
+        write_header(f)
+        # Faces of vertices used for rank.
+        caption = r'Faces $F$ with additivity on $\relint(F)$ whose vertices form a full-rank homogeneous linear system'
+        label = 'tab:kzh_minimal_has_only_crazy_perturbation_1_faces_of_vertices_used'
+        f.write(tabulate_additive_faces(faces_of_vertices_used, show_used=True, show_slope=False, max_vertices=3,
+                                        coordinate_format=r'>{\tiny$}c<{$}', caption=caption, label=label))
+
+    with open('/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/tab_kzh_minimal_has_only_crazy_perturbation_delta_pi.tex', 'w') as f:
+        write_header(f)
+        #
+        for dimension in (1, 2):      # 1 comes first because used earlier. 0 is empty.
+            caption = r'Subadditivity slacks $\Delta\pi_F$ for $\dim F=%s$ and $n_F>0$' % dimension
+            extra_caption = r'. An asterisk marks the special intervals.'
+            label = r'tab:kzh_minimal_has_only_crazy_perturbation_1_delta_pi_dim_%s' % dimension
+            f.write(tabulate_delta_pi(faces, dimension=dimension, caption=caption, extra_caption=extra_caption,
+                                      label=label))
+
+write_tables()

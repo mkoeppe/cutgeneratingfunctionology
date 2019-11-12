@@ -7,6 +7,19 @@ def compactop(l):
 def format_interval(interval):
     return compactop(latex(realset_from_interval(interval)))
 
+def specialinterval(s):
+    #return r'\text{\boldmath$' + s + r'$}'
+    return r'\specialinterval{' + s + r'}'
+
+def format_interval_markup_special(interval):
+    s = format_interval(interval)
+    if not h.special_intervals.is_disjoint_from(realset_from_interval(interval_mod_1(interval))):
+        s = specialinterval(s)
+    return s
+
+def format_face_triple(triple):
+    return [ format_interval_markup_special(I) for I in triple ]
+
 def boldmath(s):
     return r'\text{\boldmath$' + s + '$}'
 
@@ -37,8 +50,9 @@ def format_interval_extra_fancy(nominal_I, minimal_I, number=None):
     if nominal_I[1] == number:
         right = boldmath(right)
     s = left + r', ' + right
-    ## if not h.special_intervals.is_disjoint_from(realset_from_interval(interval_mod_1(minimal_I))):
-    ##     s = specialinterval(s)
+    if hasattr(h, "special_intervals"):
+        if minimal_I[0] < minimal_I[1] and not h.special_intervals.is_disjoint_from(realset_from_interval(interval_mod_1(minimal_I))):
+            s = specialinterval(s)
     return s
 
 def format_face_triple_extra_fancy(triple, vector=None):
@@ -49,15 +63,20 @@ def format_face_triple_extra_fancy(triple, vector=None):
         xyz = [vector[0], vector[1], vector[0] + vector[1]]
     return [ format_interval_extra_fancy(nominal_I, minimal_I, number)
              for nominal_I, minimal_I, number in zip(triple, face.minimal_triple, xyz) ]
+format_face_triple_extra_fancy.columns = ['I', 'J', 'K']
+format_face_triple_extra_fancy.head = r'\multicolumn{3}{c}{Face $F = F(I, J, K)$}'
 
-def cmidrules(num_columns_list):
+def cmidrules(num_columns_list, start=1, truncate_right=False):
     s = ''
-    n = 1
+    n = start
     for num_columns in num_columns_list[:-1]:
         s += r'\cmidrule(r){%s-%s}' % (n, n + num_columns - 1)
         n += num_columns
     num_columns = num_columns_list[-1]
-    s += r'\cmidrule{%s-%s}' % (n, n + num_columns - 1)
+    if truncate_right:
+        s += r'\cmidrule(r){%s-%s}' % (n, n + num_columns - 1)
+    else:
+        s += r'\cmidrule{%s-%s}' % (n, n + num_columns - 1)
     return s
 
 def begin_longtable(columns=None, num_columns=None, column_head=None, format=None, caption=None,
@@ -108,19 +127,20 @@ def format_variable(variable, compact_head=False):
         x = variable[1]
         if compact_head:
             if x in h.end_points():
-                l = None
-                if x == h.a0:
-                    l = r'a_0\!'
-                elif x == h.a1:
-                    l = r'a_1\!'
-                elif x == h.a2:
-                    l = r'a_2\!'
-                else:
-                    lx = latex(x)
-                    if len(lx) == 1:
-                        l = lx
-                if l:
-                    return r'\stackrel{%s\vphantom{{}_0}}{\bullet}' % l
+                l = lx = latex(x)
+                # [-3] is the last one, just after 'f'.
+                if x in (h.a0, h.a1, h.a2, h.end_points()[1], h.end_points()[-3]) or len(l) == 1:
+                    if '_' in l:
+                        if len(l) > 3:
+                            l += r'\!\!\!'
+                        else:
+                            l += r'\!'
+                    else:
+                        l += r'\vphantom{{}_0}'
+                    s = r'\stackrel{%s}{\bullet}' % l
+                    if lx == 'u':
+                        s += r'\rlap{\ \normalsize$\wr$}'
+                    return s
                 return r'\bullet'
             else:
                 return r'-'
@@ -131,7 +151,8 @@ def format_variable(variable, compact_head=False):
 
 def format_vector(v):
     assert len(v) == 2
-    return r'\ColVec{%s}{%s}' % (latex(v[0]), latex(v[1]))
+    return [r'\ColVec{%s}{%s}' % (latex(v[0]), latex(v[1]))]
+format_vector.columns = [ r'' ]
 
 def veps_to_face_dict(h):
     if not hasattr(h, '_veps_to_face_dict'):
@@ -151,7 +172,7 @@ def veps_to_face_dict(h):
 def format_label_by_faces(label):
     try:
         x, y, z, eps_x, eps_y, eps_z = label
-        return format_face_triple_extra_fancy(veps_to_face_dict(h)[label].minimal_triple, label) + [format_vector((x, y))]
+        return format_face_triple_extra_fancy(veps_to_face_dict(h)[label].minimal_triple, label) + format_vector((x, y))
     except Exception as e:
         logging.warn("format_label: {}".format(e))
         return [r'\multicolumn{4}{l}{%s}' % latex(label)]
@@ -214,3 +235,140 @@ def tabulate_finite_system(h, label=None, format=None, caption=None, extra_capti
 
     s += [end_longtable()]
     return '\n'.join(s)
+
+
+
+
+def tabulate_additive_faces(faces, dimension=None, show_used=False, show_slope=True, max_vertices=None, coordinate_format='C', **longtable_kwds):
+    faces = sorted(faces.items(), key=lambda fi: fi[0])
+    if max_vertices is None:
+        if dimension == 1:
+            max_vertices = 2
+        else:
+            max_vertices = 3
+    s = []
+    format_vertex = format_vertex_by_veps
+    if show_used:
+        vertex_heads = [r'\multicolumn{%s}{c}{selected vertex}' % len(format_vertex.columns),
+                        r'\multicolumn{%s}{c}{other vertices of $F$}' % ((max_vertices - 1) * len(format_vertex.columns))]
+    else:
+        vertex_heads = [r'\multicolumn{%s}{c}{vertices of $F$}' % (max_vertices * len(format_vertex.columns))]
+    column_head = [r'  ' + ' & '.join([format_face_triple_extra_fancy.head] + ([r''] if show_slope else []) + vertex_heads) + r'\\']
+    if show_used:
+        column_head += [cmidrules([len(format_face_triple_extra_fancy.columns)], truncate_right=True)
+                        + cmidrules([len(format_vertex.columns), (max_vertices - 1) * len(format_vertex.columns)],
+                                    start=len(format_face_triple_extra_fancy.columns) + 1 + (1 if show_slope else 0))]
+    else:
+        column_head += [cmidrules([len(format_face_triple_extra_fancy.columns)], truncate_right=True)
+                    + cmidrules([max_vertices * len(format_vertex.columns) ], start=len(format_face_triple_extra_fancy.columns)+2)]
+    columns = format_face_triple_extra_fancy.columns + ( [r'\text{slope}'] if show_slope else [] ) + max_vertices * format_vertex.columns
+    column_head += ['  ' + ' & '.join(columns) + r'\\']
+    format = r'*{%s}C' % ((1 if show_slope else 0) + len(format_face_triple_extra_fancy.columns)) + max_vertices * (('*{%s}{%s}' % (len(format_vertex.columns), coordinate_format)) + r'@{\qquad}')
+    s += [begin_longtable(column_head=column_head,
+                          format=format,
+                          num_columns=len(columns),
+                          **longtable_kwds)]
+    for F, triple in faces:
+        if dimension is None or F.dimension() == dimension:
+            s += ['{}  ' + ' & '.join(#format_face_triple(triple)
+                                          format_face_triple_extra_fancy(triple)
+                                    #+ [format_symbolic_slack(delta_pi_of_face_symbolic(h, x, y, F).sym())]
+                                    + (format_component_slope(F) if show_slope else [])
+                                    + format_vertices(F, format_vertex=format_vertex, first_is_used=show_used)
+                                    )
+                  + r'\\']
+    s += [end_longtable()]
+    return '\n'.join(s)
+
+def tabulate_delta_pi(faces, dimension=None, show_used=False, max_vertices=None, **longtable_kwds):
+    faces = sorted(faces.items(), key=lambda fi: fi[0])
+    s = []
+    if max_vertices is None:
+        if dimension is None or dimension == 2:
+            # eps describing 2d cones of a vertex
+            eps_list = [ eps for eps in nonzero_eps if all(e != 0 for e in eps) ]
+            max_vertices = len(eps_list)
+        elif dimension == 1:
+            max_vertices = 2
+        elif dimension == 0:
+            max_vertices = 1
+        else:
+            raise ValueError("bad dimension")
+
+    format = (r'*{%s}C' % 4) + r'{>{\tiny$}c<{$}@{}}' + (r'*{%s}C' % max_vertices)
+    s += [begin_longtable(columns=['I', 'J', 'K',
+                                   r'n_F',
+                                   r'\multicolumn{1}{C}{\Delta\pi_{F}(x,y), \ (x,y) \in F = F(I, J, K)}',
+                                   # [r'\Delta\pi_F(v_F^\bgroup{}{}{}\egroup)'.format(*[print_sign(e) for e in eps]) for eps in eps_list]    ### attributing vertices to their basis....... would need more work
+                                   r'\multicolumn{%s}{C}{\Delta\pi_F(u,v), \ (u,v)\in\verts(F)}' % max_vertices],
+                          num_columns=5+max_vertices,
+                          format=format,
+                          **longtable_kwds)]
+
+    for face, triple in faces:
+
+        F = Face(triple)
+        if dimension is None or F.dimension() == dimension:
+            slacks = sorted(delta_pi_of_face(h, v[0], v[1], F) for v in F.vertices)
+            # Put a {} in front because the square brackets coming from formatting the intervals
+            # would otherwise be taken as a latex optional argument for the preceding command!
+            s += ['{}  ' + ' & '.join(#format_face_triple(triple)
+                                      format_face_triple_extra_fancy(triple)
+                                    + [ latex(number_of_projections_intersecting(F, h.special_intervals)) ]
+                                    + [ format_face_symbolic_slack(F, slacks) ]
+                                    + [ format_slack(slack) for slack in slacks ])
+                    + r'\\']
+
+    s += [end_longtable()]
+    return '\n'.join(s)
+
+def format_slack(slack):
+    if slack == 0:
+        return "0"
+    fs = "{:.3f}".format(float(slack))
+    if slack == h.s:
+        return r'\tightslack{' + fs + r'}'
+    return fs
+
+def format_component_slope(F):
+    for I in F.minimal_triple:
+        if len(I) == 2:
+            return [latex(h.which_function((I[0] + I[1])/2)._slope)]
+    return [""]
+
+def format_vector(v):
+    assert len(v) == 2
+    return r'\ColVec{%s}{%s}' % (latex(v[0]), latex(v[1]))
+
+def format_vertex_as_vector(veps):
+    return format_vector([veps[0], veps[1]])
+
+def format_vertex_by_veps(veps):
+    return format_label_by_veps(veps)
+format_vertex_by_veps.columns = [ r'\multicolumn{1}{C}{%s}' % s for s in [r'x', r'y'] ] + [r'\multicolumn{1}{C@{\qquad}}{%s}' % r'x+y']
+
+def format_vertices(F, format_vertex=format_vertex_as_vector, first_is_used=False):
+    vertices_used = set(h._vertices_used)
+    def format_it(i, v):
+        is_used = False
+        for xeps, yeps, zeps in generate_containing_eps_triple(v, F.minimal_triple):
+            veps = (v[0], v[1], v[0]+v[1], xeps, yeps, zeps)
+            if not first_is_used:
+                break
+            if veps in vertices_used:
+                is_used = True
+                break
+        if first_is_used:
+            assert is_used == (i == 0)
+        return format_vertex(veps)
+    return list(itertools.chain.from_iterable(format_it(i, v) for i, v in enumerate(F.vertices)))
+
+def format_symbolic_slack(slack):
+    l = latex(SR(slack).collect(SR.var('x')).collect(SR.var('y')).subs(sqrt(1/2)==1/2*sqrt(2)))
+    return l.replace(r'} - c', r'} \compactop- c').replace(r'} + c', r'} \compactop+ c')
+
+def format_face_symbolic_slack(F, slacks):
+    if not any(slacks):
+        return "0"
+    else:
+        return format_symbolic_slack(delta_pi_of_face_symbolic(h, x, y, F).sym())
