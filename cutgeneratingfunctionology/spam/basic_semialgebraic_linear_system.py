@@ -56,7 +56,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
             
         A non-parametric example::
             sage: D = polytopes.dodecahedron()
-            sage: D.dim()
+            sage: D.ambient_dim()
             3
             sage: PR.<x0,x1,x2> = D.base_ring()[]
             sage: bsa = from_polyhedron_to_linear_system(D,poly_ring=PR)
@@ -67,6 +67,23 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
             sage: D_proj = Polyhedron(vertices = (proj_mat*D.vertices_matrix()).columns())
             sage: bsa_proj = bsa.coordinate_projection([x1])
             sage: set(D_proj.vertices()) == set(bsa_proj.to_polyhedron().vertices())
+            True
+            
+        Another non-parametric example::
+            sage: b3 = polytopes.Birkhoff_polytope(3)
+            sage: b3.ambient_dim()
+            9
+            sage: b3.base_ring()
+            Integer Ring
+            sage: PR.<x0,x1,x2,x3,x4,x5,x6,x7,x8>=QQ[]            # need a larger ring for elimination
+            sage: bsa = from_polyhedron_to_linear_system(b3,PR)
+            sage: set(b3.vertices()) == set (bsa.to_polyhedron().vertices())
+            True
+            sage: # project out x0, x2, x4, x6, x8 variable
+            sage: proj_mat=matrix([[0,1,0,0,0,0,0,0,0],[0,0,0,1,0,0,0,0,0],[0,0,0,0,0,1,0,0,0],[0,0,0,0,0,0,0,1,0]])
+            sage: b3_proj = Polyhedron(vertices = (proj_mat*b3.vertices_matrix()).columns())
+            sage: bsa_proj = bsa.coordinate_projection([x0,x2,x4,x6,x8])
+            sage: set(b3_proj.vertices()) == set(bsa_proj.to_polyhedron().vertices())
             True
         """
         if poly_ring is None:
@@ -301,11 +318,12 @@ def from_polyhedron_to_linear_system(p, poly_ring=None):
     """
     Convert a instance of Polyhedron to a instance of BasicSemialgebraicSet_polyhedral_linear_system
     """
-    d = p.dim()
     if poly_ring is None:
         poly_ring = PolynomialRing(p.base_ring(), "x", p.ambient_dim())
     bsa = BasicSemialgebraicSet_polyhedral_linear_system(poly_ring = poly_ring)
     for lhs in p.inequalities_list():
         bsa.add_linear_constraint(lhs[1:],lhs[0],operator.ge)
+    for lhs in p.equations_list():
+        bsa.add_linear_constraint(lhs[1:],lhs[0],operator.eq)
     return bsa
 
