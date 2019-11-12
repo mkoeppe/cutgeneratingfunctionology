@@ -201,7 +201,7 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
         sage: len(list(b for t, b in h._facet_symbolic.basis if t == 'function value at' and b in h.end_points()))
         19
         sage: len(list(b for t, b in h._facet_symbolic.basis if t == 'function value at' and b not in h.end_points()))
-        20
+        18
 
     Again this system has a full rank, and no nontrivial solution exists.
 
