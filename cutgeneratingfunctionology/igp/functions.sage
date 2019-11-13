@@ -2414,7 +2414,7 @@ def nice_field_values(symb_values, field=None):
                 syms.append(element)  # changed to not do SR. -mkoeppe
                 vals.append(element)
         vals = nice_field_values(vals) #, field=RealNumberField)
-        if field == RealNumberField:
+        if field in (None, RealNumberField, ParametricRealField):
             field = found_field
         field_values = [ParametricRealFieldElement(vals[i],syms[i], parent=field) for i in range(len(symb_values))]
         return field_values
@@ -2426,6 +2426,8 @@ def nice_field_values(symb_values, field=None):
         logging.info("Rational case.")
         return field_values
     if field == RealNumberField and not is_rational:
+        if is_all_the_same_number_field_fastpath(symb_values):
+            return symb_values
         # Try to make it a RealNumberField:
         try:
             number_field, embedded_field_values, morphism = number_field_elements_from_algebraics(symb_values, embedded=True)
