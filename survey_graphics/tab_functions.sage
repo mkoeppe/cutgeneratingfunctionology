@@ -280,6 +280,18 @@ def tabulate_additive_faces(faces, dimension=None, show_used=False, show_slope=T
     s += [end_longtable()]
     return '\n'.join(s)
 
+
+if 'faces_used_notice_dict' not in globals():
+    faces_used_notice_dict = {}
+
+def format_used_notice(face, slacks):
+    if slacks[0] == h.s:
+        #return r'(\ref{claim:n_F}) tight'
+        return r'(tight)'
+    if face.minimal_triple[2] in ([h._f], [h._f + 1]):
+        return r'(symm.)'
+    return faces_used_notice_dict.get(face, None) or faces_used_notice_dict.get(x_y_swapped_face(face), r'')
+
 def tabulate_delta_pi(faces, dimension=None, show_used=False, max_vertices=None, **longtable_kwds):
     faces = sorted(faces.items(), key=lambda fi: fi[0])
     s = []
@@ -289,19 +301,21 @@ def tabulate_delta_pi(faces, dimension=None, show_used=False, max_vertices=None,
             eps_list = [ eps for eps in nonzero_eps if all(e != 0 for e in eps) ]
             max_vertices = len(eps_list)
         elif dimension == 1:
-            max_vertices = 2
+            max_vertices = 3   # yes, it's 2 but it formats more nicely with 3
         elif dimension == 0:
             max_vertices = 1
         else:
             raise ValueError("bad dimension")
 
-    format = (r'*{%s}C' % 4) + r'{>{\tiny$}c<{$}@{}}' + (r'*{%s}C' % max_vertices)
+    format = (r'*{%s}C' % 4) + r'{>{\tiny$}c<{$}}' + (r'*{%s}C' % max_vertices) + '@{}r'
     s += [begin_longtable(columns=['I', 'J', 'K',
                                    r'n_F',
                                    r'\multicolumn{1}{C}{\Delta\pi_{F}(x,y), \ (x,y) \in F = F(I, J, K)}',
                                    # [r'\Delta\pi_F(v_F^\bgroup{}{}{}\egroup)'.format(*[print_sign(e) for e in eps]) for eps in eps_list]    ### attributing vertices to their basis....... would need more work
-                                   r'\multicolumn{%s}{C}{\Delta\pi_F(u,v), \ (u,v)\in\verts(F)}' % max_vertices],
-                          num_columns=5+max_vertices,
+                                   r'\multicolumn{%s}{L}{\Delta\pi_F(u,v), \ (u,v)\in\verts(F)}' % max_vertices,
+                                   r''  # comment
+                                   ],
+                          num_columns=5+max_vertices + 1,
                           format=format,
                           **longtable_kwds)]
 
@@ -316,7 +330,10 @@ def tabulate_delta_pi(faces, dimension=None, show_used=False, max_vertices=None,
                                       format_face_triple_extra_fancy(triple)
                                     + [ latex(number_of_projections_intersecting(F, h.special_intervals)) ]
                                     + [ format_face_symbolic_slack(F, slacks) ]
-                                    + [ format_slack(slack) for slack in slacks ])
+                                    + [ format_slack(slack) for slack in slacks ]
+                                    + [ "" for i in range(max_vertices - len(slacks)) ]
+                                    + [ format_used_notice(F, slacks) ]
+                                      )
                     + r'\\']
 
     s += [end_longtable()]

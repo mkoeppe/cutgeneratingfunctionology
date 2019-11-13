@@ -75,6 +75,9 @@ if 'faces' not in globals():
 
 latex.add_package_to_preamble_if_available("booktabs")
 
+for a in h.a0, h.a1, h.a2:
+    faces_used_notice_dict[Face(([a], [h.ucl, h.ucr], [h._f - h.ucr, h._f - h.ucl]))] = r'(\ref{li:bar-pi-constant-on-cosets-on-special})'
+faces_used_notice_dict[Face(([h.ucl, h.ucr], [h.ucl, h.ucr], [h.ucl + h.ucr]))] = r'(\ref{li:bar-pi-additivities-on-special-at-z=l+u--pre})'
 
 def write_header(f):
     f.write(r'%% Automatically generated.' + '\n')
@@ -87,12 +90,14 @@ def write_header(f):
 logging.warn("Writing tables")
 
 def write_tables():
-    for dimension in (2, 1):   # 2 comes first (directly covering)
+    intervals_explainer = r'All intervals $I$, $J$, $K$ are closed and elements of the complex~$\P$; notation $\langle a, b\rangle$: endpoints are not reached by the projection of the face; $(a, b)$: function $\pi$ is one-sided discontinuous at the endpoints from within the interval; $[a, b]$: function $\pi$ is one-sided continuous at the endpoints from within the interval.'
+
+    for dimension in (2, 1):
         with open('/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/tab_kzh_minimal_has_only_crazy_perturbation_delta_pi_covering_dim{}.tex'.format(dimension), 'w') as f:
             write_header(f)
             caption = r'%s-dimensional faces $F$ with additivity on $%s$ for proving piecewise linearity outside of the special intervals' % ("One" if dimension == 1 else "Two",
                                                                                                                                               r'\relint(F)' if dimension == 1 else r'\intr(F)')
-            extra_caption = r'. All intervals $I$, $J$, $K$ are closed and elements of the complex~$\P$; notation $\langle a, b\rangle$: endpoints are not reached by the projection of the face; $(a, b)$: function $\pi$ is one-sided discontinuous at the endpoints from within the interval; $[a, b]$: function $\pi$ is one-sided continuous at the endpoints from within the interval.'
+            extra_caption = r'. ' + intervals_explainer
             label = 'tab:kzh_minimal_has_only_crazy_perturbation_1_faces_used_dim_%s' % dimension
             f.write(tabulate_additive_faces(faces_used, dimension=dimension,
                                             caption=caption, extra_caption=extra_caption, label=label))
@@ -101,17 +106,19 @@ def write_tables():
     with open('/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/tab_kzh_minimal_has_only_crazy_perturbation_delta_pi_rank.tex', 'w') as f:
         write_header(f)
         # Faces of vertices used for rank.
-        caption = r'Faces $F$ with additivity on $\relint(F)$ whose vertices form a full-rank homogeneous linear system'
+        caption = r'Faces $F$ with additivity on $\relint(F)$, one vertex of each providing an equation $\Delta\bar\pi_F(x, y)=0$'
+        extra_caption = r', to form a full-rank homogeneous linear system in the proof of \autoref{lemma:discontinuous_examples_2}. ' + intervals_explainer
         label = 'tab:kzh_minimal_has_only_crazy_perturbation_1_faces_of_vertices_used'
         f.write(tabulate_additive_faces(faces_of_vertices_used, show_used=True, show_slope=False, max_vertices=3,
-                                        coordinate_format=r'>{\tiny$}c<{$}', caption=caption, label=label))
+                                        coordinate_format=r'>{\tiny$}c<{$}',
+                                        caption=caption, extra_caption=extra_caption, label=label))
 
     with open('/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/tab_kzh_minimal_has_only_crazy_perturbation_delta_pi.tex', 'w') as f:
         write_header(f)
         #
         for dimension in (1, 2):      # 1 comes first because used earlier. 0 is empty.
             caption = r'Subadditivity slacks $\Delta\pi_F$ for $\dim F=%s$ and $n_F>0$' % dimension
-            extra_caption = r'. An asterisk marks the special intervals.'
+            extra_caption = r'. ' + intervals_explainer + ' An asterisk marks the special intervals.'
             label = r'tab:kzh_minimal_has_only_crazy_perturbation_1_delta_pi_dim_%s' % dimension
             f.write(tabulate_delta_pi(faces, dimension=dimension, caption=caption, extra_caption=extra_caption,
                                       label=label))
