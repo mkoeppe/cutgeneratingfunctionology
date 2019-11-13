@@ -673,9 +673,10 @@ class ParametricRealField(Field):
 
         This currently does not work for Sage's built-in embedded number field elements...
         """
+        from sage.rings.number_field.number_field_base import is_NumberField
         if isinstance(S, ParametricRealField) and self is not S:
             return None
-        if  S is sage.interfaces.mathematica.MathematicaElement or isinstance(S, RealNumberField_absolute) or isinstance(S, RealNumberField_quadratic) or AA.has_coerce_map_from(S):
+        if  S is sage.interfaces.mathematica.MathematicaElement or is_NumberField(S) or AA.has_coerce_map_from(S):
             # Does the test with MathematicaElement actually work?
             # We test whether S coerces into AA. This rules out inexact fields such as RDF.
             return CallableConvertMap(S, self, lambda s: ParametricRealFieldElement(s, parent=self), parent_as_first_arg=False)
