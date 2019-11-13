@@ -2329,6 +2329,8 @@ def print_sign(epsilon):
 
 default_precision = 53
 
+RealNumberField = "RealNumberField"
+
 default_field = RealNumberField   # can set to SR instead to keep fully symbolic
 
 def can_coerce_to_QQ(x):
@@ -2394,17 +2396,26 @@ def nice_field_values(symb_values, field=None):
     if field is False:
         # do nothing
         return symb_values
-    if isinstance(field, ParametricRealField):
+    ## FIXME: the following should really be replaced by proper coercion behavior of ParametricRealField.
+    if isinstance(field, ParametricRealField) or any(is_parametric_element(element) for element in symb_values):
         syms = []
         vals = []
+        found_field = None
         for element in symb_values:
             if is_parametric_element(element):
+                if found_field is None:
+                    found_field = element.parent()
+                else:
+                    if found_field != element.parent():
+                        raise TypeError("mixing different ParametricRealField instances is not allows")
                 syms.append(element.sym())
                 vals.append(element.val())
             else:
                 syms.append(element)  # changed to not do SR. -mkoeppe
                 vals.append(element)
         vals = nice_field_values(vals) #, field=RealNumberField)
+        if field == RealNumberField:
+            field = found_field
         field_values = [ParametricRealFieldElement(vals[i],syms[i], parent=field) for i in range(len(symb_values))]
         return field_values
 
@@ -2414,39 +2425,13 @@ def nice_field_values(symb_values, field=None):
     if is_rational:
         logging.info("Rational case.")
         return field_values
-    is_realnumberfield, field_values = is_all_the_same_real_number_field(symb_values)
-    if is_realnumberfield:
-        return field_values
-    if field == RealNumberField and not is_rational and not is_realnumberfield:
+    if field == RealNumberField and not is_rational:
         # Try to make it a RealNumberField:
         try:
-            all_values = [ AA(x) for x in symb_values ]
-            #global number_field, number_field_values, morphism, exact_generator, embedded_field, embedding_field, hom, embedded_field_values
-            number_field, number_field_values, morphism = number_field_elements_from_algebraics(all_values)
-            # Now upgrade to a RealNumberField
-            exact_generator = morphism(number_field.gen(0))
-            # Use our own RealNumberField.
-            symbolic_generator = SR(exact_generator)  # does not quite work --> we won't recover our nice symbolic expressions that way
-            if number_field.polynomial().degree() == 2:
-                embedding_field = RR  # using a RIF leads to strange infinite recursion
-            else:
-                embedding_field = RealIntervalField(default_precision)
-            embedded_generator = embedding_field(exact_generator)
-            embedded_field = RealNumberField(number_field.polynomial(), number_field.variable_name(), \
-                                             embedding=embedded_generator, exact_embedding=symbolic_generator)
-            hom = number_field.hom([embedded_field.gen(0)])
-            embedded_field_values = list(map(hom, number_field_values))
-            # Store symbolic expression
-            for emb, symb in zip(embedded_field_values, symb_values):
-                if symb in SR and type(emb) == RealNumberFieldElement:
-                    emb._symbolic = symb
-            # Transform given data
-            field_values = embedded_field_values
-            logging.info("Coerced into real number field: %s" % embedded_field)
-        except ValueError:
-            logging.info("Coercion to a real number field failed, keeping it symbolic")
-            pass
-        except TypeError:
+            number_field, embedded_field_values, morphism = number_field_elements_from_algebraics(symb_values, embedded=True)
+            logging.info("Coerced into real number field: %s" % number_field)
+            return embedded_field_values
+        except (NotImplementedError, ValueError, TypeError):
             logging.info("Coercion to a real number field failed, keeping it symbolic")
             pass
     return field_values
