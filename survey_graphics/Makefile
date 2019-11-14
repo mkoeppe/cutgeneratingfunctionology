@@ -44,3 +44,11 @@ algo-paper-graphics-%: graphics_for_algo_paper_%.sage
 
 dff-graphics: dff_graphics.sage
 	(cd .. && sage -c 'sys.path = [""] + sys.path; load("survey_graphics/dff_graphics.sage")')
+
+facets-paper-tables-%: tab_%.sage
+	(cd .. && sage -c 'sys.path = [""] + sys.path; load("survey_graphics/$<")')
+
+facets-paper-tables: facets-paper-tables-hildebrand_discont_3_slope_1_finite_system facets-paper-tables-kzh_minimal_has_only_crazy_perturbation_1_delta_pi facets-paper-tables-kzh_minimal_has_only_crazy_perturbation_1_finite_system
+
+facets-paper-graphics:
+	(cd ..  && sage -c 'sys.path = [""] + sys.path; load("survey_graphics/graphics_for_facets_paper.sage")')

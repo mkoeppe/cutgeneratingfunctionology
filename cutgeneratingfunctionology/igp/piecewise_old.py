@@ -83,6 +83,8 @@ from sage.symbolic.assumptions import assume, forget
 from sage.calculus.calculus import SR, maxima
 from sage.calculus.all import var
 
+from sage.structure.sage_object import SageObject
+
 def Piecewise(list_of_pairs, var=None):
     """
     Deprecated spelling of :func:`sage.functions.piecewise`.
@@ -125,7 +127,7 @@ def Piecewise(list_of_pairs, var=None):
     deprecation(14801, 'use lower-case piecewise instead')
     return PiecewisePolynomial(list_of_pairs, var=var)
 
-class PiecewisePolynomial:
+class PiecewisePolynomial (SageObject):
     """
     Returns a piecewise function from a list of (interval, function)
     pairs.

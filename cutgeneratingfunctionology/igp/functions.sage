@@ -51,30 +51,56 @@ def delta_pi(fn,x,y):
     """
     return fn(fractional(x))+fn(fractional(y))-fn(fractional(x+y))
 
-def plot_2d_complex(function):
+plot_2d_complex_discontinuous_kwds = plot_2d_complex_continuous_kwds = {'color': 'grey'}
+
+def plot_2d_complex(function, continuous_plot_kwds=None, discontinuous_plot_kwds=None):
     r"""
-    Returns a plot of the horizonal lines, vertical lines, and diagonal lines of the complex.
+    Returns a plot of the horizontal lines, vertical lines, and diagonal lines of the complex.
     """
     bkpt = function.end_points()
     x = var('x')
     p = Graphics()
     kwd = ticks_keywords(function, True)
     kwd['legend_label'] = "Complex Delta P"
-    plot_kwds_hook(kwd)
+    
+    if continuous_plot_kwds is None:
+        continuous_plot_kwds = plot_2d_complex_continuous_kwds
+    if discontinuous_plot_kwds is None:
+        discontinuous_plot_kwds = plot_2d_complex_discontinuous_kwds
+    continuous_plot_kwds.update(kwd)
+    discontinuous_plot_kwds.update(kwd)
+    plot_kwds_hook(continuous_plot_kwds)
+    plot_kwds_hook(discontinuous_plot_kwds)
+
+    def plot_kwds_at(x):
+        l = function.limits(x)
+        left_continuous = l[-1] is None or l[-1] == l[0]
+        right_continuous = l[1] is None or l[1] == l[0]
+        if left_continuous and right_continuous:
+            return continuous_plot_kwds
+        else:
+            return discontinuous_plot_kwds
     ## We now use lambda functions instead of Sage symbolics for plotting, 
     ## as those give strange errors when combined with our RealNumberFieldElement.
     for i in range(1,len(bkpt)):
         #p += plot(lambda x: bkpt[i]-x, (x, 0, bkpt[i]), color='grey', **kwd)
-        p += line([(0,  bkpt[i]), (bkpt[i], 0)], color='grey', **kwd)
-        kwd = {}
+        p += line([(0,  bkpt[i]), (bkpt[i], 0)], **plot_kwds_at(bkpt[i]))
+        delete_one_time_plot_kwds(continuous_plot_kwds)
+        delete_one_time_plot_kwds(discontinuous_plot_kwds)
     for i in range(1,len(bkpt)-1):
         #p += plot(lambda x: (1+bkpt[i]-x), (x, bkpt[i], 1), color='grey')
-        p += line([(bkpt[i], 1), (1, bkpt[i])], color='grey')
+        p += line([(bkpt[i], 1), (1, bkpt[i])], **plot_kwds_at(bkpt[i]))
+        delete_one_time_plot_kwds(continuous_plot_kwds)
+        delete_one_time_plot_kwds(discontinuous_plot_kwds)
     for i in range(len(bkpt)):
-        p += plot(bkpt[i], (0, 1), color='grey')
+        p += plot(bkpt[i], (0, 1), **plot_kwds_at(bkpt[i]))
+        delete_one_time_plot_kwds(continuous_plot_kwds)
+        delete_one_time_plot_kwds(discontinuous_plot_kwds)
     y=var('y')
     for i in range(len(bkpt)):
-        p += parametric_plot((bkpt[i],y),(y,0,1), color='grey')
+        p += parametric_plot((bkpt[i],y), (y,0,1), **plot_kwds_at(bkpt[i]))
+        delete_one_time_plot_kwds(continuous_plot_kwds)
+        delete_one_time_plot_kwds(discontinuous_plot_kwds)
     return p
 
 ##
@@ -132,19 +158,126 @@ def verts(I1, J1, K1):
 
 equiv7_mode = False
 
+## FIXME: Document what it does when input is not subadditive.
 def generate_maximal_additive_faces(fn):
+    r"""Compute the list of maximal additive faces of the subadditive function ``fn``.
+
+    In the discontinuous case, this includes the faces determined by
+    limit-additivities as well: Additive faces are defined in the
+    discontinuous case according to
+    :cite:`hildebrand-koeppe-zhou:algo-paper`, Definition 9.7
+    ({def:set-of-additivities-and-limit-additivities-of-a-face-F}),
+    following Lemma 9.6 (lemma:additive-face-discontinuous): The face `E
+    \in \Delta\mathcal P` is additive if there exists an enclosing face
+    `F \in \Delta\mathcal P` such that for some (equivalently, all) `(x,
+    y) \in \mathop{\mathrm{rel int}}(E)`, the limit `\Delta``fn``_F(x,
+    y) = 0``.
+
+    The additive faces (together with the empty face) form a subcomplex
+    of `Delta\mathcal P`.  Thus, they are determined by the maximal
+    elements.
+
+    (However, in the current implementation, in the discontinuous case,
+    this function actually computes all additive faces, not just the
+    maximal ones.)
+
+    Note that `\Delta` ``fn`` is invariant under swapping `x` and `y`.
+    This function does not break this symmetry.
+"""
     if hasattr(fn, '_maximal_additive_faces'):
         return fn._maximal_additive_faces
     if fn.is_discrete():
-        result = generate_maximal_additive_faces_discrete(fn)
-    elif fn.is_continuous() and not equiv7_mode:
+        result = generate_additive_faces_discrete(fn)   # all 0-dimensional, so maximal
+    elif fn.is_continuous():
         result = generate_maximal_additive_faces_continuous(fn)
     else:
-        result = generate_maximal_additive_faces_general(fn)
+        additive_faces = generate_additive_faces_general(fn)
+        additive_faces_2D = [F for F in additive_faces if F.is_2D()]
+        maximal_additive_face_1D = [F1 for F1 in additive_faces if F1.is_1D() and all(not set(F1.vertices).issubset(set(F2.vertices)) for F2 in additive_faces_2D)]
+        result = additive_faces_2D + maximal_additive_face_1D
+        for F0 in additive_faces:
+            if F0.is_0D():
+                v = F0.vertices[0]
+                if all(not v in set(F.vertices) for F in additive_faces_2D) and all(not v in set(F.vertices) for F in maximal_additive_face_1D):
+                    result.append(F0)
+        ####result = generate_additive_faces_general(fn)
+        ##### FIXME: Filter out non-maximal faces
     fn._maximal_additive_faces = result
     return result
-            
-additive_color = "mediumspringgreen"
+
+def generate_additive_faces(fn):
+    r"""
+    Return the list of all additive faces of the subadditive function ``fn``.
+
+    In the discontinuous case, this includes the faces determined by
+    limit-additivities as well: Additive faces are defined in the
+    discontinuous case according to
+    :cite:`hildebrand-koeppe-zhou:algo-paper`, Definition 9.7
+    ({def:set-of-additivities-and-limit-additivities-of-a-face-F}),
+    following Lemma 9.6 (lemma:additive-face-discontinuous): The face `E
+    \in \Delta\mathcal P` is additive if there exists an enclosing face
+    `F \in \Delta\mathcal P` such that for some (equivalently, all) `(x,
+    y) \in \mathop{\mathrm{rel int}}(E)`, the limit `\Delta``fn``_F(x,
+    y) = 0``.
+
+    The additive faces (together with the empty face) form a subcomplex
+    of `Delta\mathcal P`.  Thus, they are determined by the maximal
+    elements; these are provided by ``generate_maximal_additive_faces``.
+
+    Note that `\Delta` ``fn`` is invariant under swapping `x` and `y`.
+    This function does not break this symmetry.
+
+    See also: ``generate_additive_faces_sans_limits``.
+    """
+    if hasattr(fn, '_additive_faces'):
+        return fn._additive_faces
+    if fn.is_discrete():
+        result = generate_additive_faces_discrete(fn)
+    else:
+        result = generate_additive_faces_general(fn)
+    fn._additive_faces = result
+    return result
+
+def is_additive_face_sans_limits(fn, face):
+    r"""Test whether ``face`` is additive-sans-limits for ``fn``.
+
+    See ``generate_additive_faces_sans_limits``.
+    """
+    ver = face.vertices
+    n = len(ver)
+    mx, my = sum([x for (x,y) in ver])/n, sum([y for (x,y) in ver])/n
+    return delta_pi(fn, mx, my) == 0
+
+def generate_additive_faces_sans_limits(fn):
+    r"""Return a list of all additive faces of the subadditive function ``fn`` without taking limits into consideration.
+
+    A face ``E`` is additive-sans-limits if for some (equivalently, all)
+    `(x, y) \in \mathop{\mathrm{rel int}}(E)`, we have `\Delta``fn``(x,
+    y) = 0``.
+
+    Such a face ``E`` is the convex hull of vertices `(x, y)` that have
+    the limits `\Delta``fn``_E(x, y) = 0`.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: h = kzh_minimal_has_only_crazy_perturbation_1()
+        sage: x = h.end_points()
+        sage: F = Face(([x[6]],[1+x[4]-x[6]],[1+x[4]]))
+        sage: F in generate_additive_faces(h)
+        True
+        sage: F in generate_maximal_additive_faces(h)
+        False
+        sage: F in generate_additive_faces_sans_limits(h)
+        True
+    """
+    if not hasattr(fn, '_additive_faces_sans_limits'):
+        fn._additive_faces_sans_limits = [ face for face in generate_additive_faces(fn)
+                                           if is_additive_face_sans_limits(fn, face) ]
+    return fn._additive_faces_sans_limits
+
+additive_fill_color = additive_color = "mediumspringgreen"
 
 import six
 
@@ -155,7 +288,6 @@ class Face:
     r"""
     EXAMPLES::
 
-        sage: from cutgeneratingfunctionology.igp import *
         sage: from cutgeneratingfunctionology.igp import *
         sage: F = Face([[1/5, 3/10], [3/4, 17/20], [1, 6/5]])
         sage: F.vertices
@@ -190,15 +322,15 @@ class Face:
         xyz = (point[0], point[1], point[0] + point[1])
         return all(self.minimal_triple[i][0] < xyz[i] < self.minimal_triple[i][1] for i in range(3))
 
-    def plot(self, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color=None, edge_thickness=2, *args, **kwds):
+    def plot(self, rgbcolor=(0.0 / 255.0, 250.0 / 255.0, 154.0 / 255.0), fill_color=None, edge_thickness=2, vertex_size=30, *args, **kwds):
         y = var('y')
         trip = self.minimal_triple
         vert = self.vertices
         if fill_color is None:
-            fill_color = additive_color
+            fill_color = additive_fill_color
         if self.is_0D():
             return point((trip[0][0], \
-                          trip[1][0]), rgbcolor = rgbcolor, size = 30, **kwds)
+                          trip[1][0]), rgbcolor = rgbcolor, size=vertex_size, **kwds)
         elif self.is_horizontal():
             return line([(trip[0][0],trip[1][0]),(trip[0][1],trip[1][0])], rgbcolor = rgbcolor, thickness=edge_thickness, **kwds)
         elif self.is_vertical():
@@ -209,6 +341,9 @@ class Face:
             ## Sorting is necessary for this example:
             ## plot_2d_diagram(lift(piecewise_function_from_robert_txt_file("data/dey-richard-not-extreme.txt"))
             return polygon(convex_vert_list(vert), color=fill_color, **kwds)
+
+    def polyhedron(self):
+        return Polyhedron(self.vertices)
 
     def is_directed_move(self):
         return self.is_1D()
@@ -292,6 +427,16 @@ class Face:
             K_mod_1 = interval_mod_1(K)
             return union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(*I)], [open_interval(*J)], [open_interval(*K_mod_1)]],[])
         raise ValueError("Face does not give a covered component")
+
+    def dimension(self):
+        if self.is_0D():
+            return 0
+        elif self.is_1D():
+            return 1
+        elif self.is_2D():
+            return 2
+        else:
+            return -1
 
     def is_0D(self):
         return len(self.vertices) == 1
@@ -417,6 +562,9 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
     if additive_color is None:
         import cutgeneratingfunctionology
         additive_color = cutgeneratingfunctionology.igp.additive_color
+        additive_fill_color = cutgeneratingfunctionology.igp.additive_fill_color
+    else:
+        additive_fill_color = additive_color
     faces = generate_maximal_additive_faces(fn)
     p = Graphics()
     kwds = { 'legend_label': "Additive face" }
@@ -438,7 +586,7 @@ def plot_2d_diagram(fn, show_function=True, show_projections=True, known_minimal
             i = interval_color[j-1][1]
             p += face.plot(fill_color = colors[i], **kwds)
         else:
-            p += face.plot(rgbcolor = additive_color, fill_color = additive_color, **kwds)
+            p += face.plot(rgbcolor = additive_color, fill_color = additive_fill_color, **kwds)
         delete_one_time_plot_kwds(kwds)
 
     ### For non-subadditive functions, show the points where delta_pi is negative.
@@ -499,7 +647,7 @@ def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
     r"""
     Colorful decoration.
 
-    Plot fn on covered intervals with different colors according to slope values,
+    Plot ``fn`` on covered intervals with different colors according to slope values,
     on the upper and the left border of the 2d diagrams.
     """
     p = Graphics()
@@ -516,17 +664,28 @@ def plot_covered_components_at_borders(fn, covered_components=None, **kwds):
                 p += line([(-(3/10)*y1, x1), (-(3/10)*y2, x2)], color=colors[i], zorder=-2, **kwds)
     return p
 
-def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200, additive_color=additive_color, function_color="blue"):
+def color_for_delta(deltafn, additive_color=None):
+    if additive_color is None:
+        import cutgeneratingfunctionology
+        additive_color = cutgeneratingfunctionology.igp.additive_color
+    if deltafn > 0:
+        return "white"
+    elif deltafn == 0:
+        return additive_color
+    else:
+        return "red"
+
+def plot_2d_diagram_with_eps_cones(fn, show_function=True, f=None, conesize=200,
+                                   additive_color=None, function_color="blue"):
     r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = zhou_two_sided_discontinuous_cannot_assume_any_continuity()
-        sage: g = plot_2d_diagram_with_cones(h)
+        sage: g = plot_2d_diagram_with_eps_cones(h)
         sage: h = not_minimal_2()
-        sage: g = plot_2d_diagram_with_cones(h)
+        sage: g = plot_2d_diagram_with_eps_cones(h)
     """
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
@@ -541,26 +700,62 @@ def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200, add
     if fn.is_continuous():
         for (x, y, z) in vertices:
             deltafn = delta_pi(fn, x, y)
-            if deltafn > 0:
-                color = "white"
-            elif deltafn == 0:
-                color = additive_color
-            else:
-                color = "red"
+            color = color_for_delta(deltafn, additive_color=additive_color)
             g += point([(x, y), (y, x)], color=color, size=conesize, zorder=-1)
     else:
         for (x, y, z) in vertices:
-            for (xeps, yeps, zeps) in [(0,0,0)]+list(nonzero_eps):
-                deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
-                if deltafn > 0:
-                    color = "white"
-                elif deltafn == 0:
-                    color = additive_color
-                else:
-                    color = "red"
+            eps_list = [(0,0,0)]+list(nonzero_eps)
+            delta_list = [ delta_pi_general(fn, x, y, xyz_eps) for xyz_eps in eps_list ]
+            if all(delta != 0 for delta in delta_list):
+                # Don't plot anything if there's no additivity or limit-additivity at a vertex
+                continue
+            for deltafn, (xeps, yeps, zeps) in zip(delta_list, eps_list):
+                color = color_for_delta(deltafn, additive_color=additive_color)
                 g += plot_limit_cone_of_vertex(x, y, epstriple_to_cone((xeps, yeps, zeps)), color=color, r=0.03)
                 g += plot_limit_cone_of_vertex(y, x, epstriple_to_cone((yeps, xeps, zeps)), color=color, r=0.03)
     return g
+
+def plot_2d_diagram_with_face_cones(fn, show_function=True, f=None, conesize=200,
+                                    additive_color=None, function_color="blue"):
+    r"""
+    This shows larger cones, corresponding to enclosing faces rather than
+    cones corresponding to epsilons.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: h = zhou_two_sided_discontinuous_cannot_assume_any_continuity()
+        sage: g = plot_2d_diagram_with_face_cones(h)
+        sage: h = not_minimal_2()
+        sage: g = plot_2d_diagram_with_face_cones(h)
+    """
+    if f is None:
+        f = find_f(fn, no_error_if_not_minimal_anyway=True)
+    g = plot_2d_complex(fn)
+    if show_function:
+        g += plot_function_at_borders(fn, color=function_color)
+
+    from cutgeneratingfunctionology.spam.real_set import RealSet   # param-safe version of RealSet
+    domain = RealSet([0, 1])
+    faces = set(Face(triple)
+                for triple in generate_triples_with_projections_intersecting(fn, domain, break_symmetry=False, halfopen_cover_only=False))
+    for F in faces:
+        for v in F.vertices:
+            deltafn = delta_pi_of_face(fn, v[0], v[1], F)
+            color = color_for_delta(deltafn, additive_color=additive_color)
+            g += plot_limit_cone_of_vertex_in_face(v[0], v[1], F, color)
+
+    return g
+
+def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200,
+                               additive_color=None, function_color="blue"):
+    if fn.is_continuous():
+        plot_it = plot_2d_diagram_with_eps_cones
+    else:
+        plot_it = plot_2d_diagram_with_face_cones
+    return plot_it(fn, show_function=show_function, f=f, conesize=conesize,
+                   additive_color=additive_color, function_color=function_color)
 
 def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, additive_color=additive_color, function_color='blue', **kwds):
     r"""
@@ -575,19 +770,14 @@ def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, 
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
     g = Graphics()
-    faces = generate_maximal_additive_faces(fn)
-    for face in faces:
-        ver = face.vertices
-        n = len(ver)
-        mx, my = sum([x for (x,y) in ver])/n, sum([y for (x,y) in ver])/n
-        if  delta_pi(fn, mx, my) == 0:
-            g += face.plot(rgbcolor=additive_color, fill_color=additive_color, **kwds)
-        else:
-            g += face.plot(rgbcolor='white', fill_color='white', **kwds)
+    for face in generate_additive_faces_sans_limits(fn):
+        g += face.plot(rgbcolor=additive_color, fill_color=additive_color, **kwds)
     g += plot_2d_complex(fn)
     if show_function:
         g += plot_function_at_borders(fn, color=function_color)
     return g
+
+plot_function_at_borders_kwds = {}
 
 def plot_function_at_borders(fn, color='blue', legend_label="Function pi", covered_components=None, **kwds):
     r"""
@@ -599,6 +789,7 @@ def plot_function_at_borders(fn, color='blue', legend_label="Function pi", cover
     limits = fn.limits_at_end_points()
     if not covered_components is None:
         color = 'black'
+    kwds.update(plot_function_at_borders_kwds)
     if limits[0][0] is not None and limits[0][0] != limits[0][1]:
         p += point([(0,1), (0,0)], color=color, size = 23, zorder=-1)
     for i in range(len(bkpt) - 1):
@@ -1517,6 +1708,15 @@ class FastPiecewise (PiecewisePolynomial):
             Traceback (most recent call last):
             ...
             ValueError: Value not defined at point 3, outside of domain.
+
+        Test that it works correctly for functions set up with merge=False::
+
+            sage: f = FastPiecewise([[right_open_interval(0,1), FastLinearFunction(0, 0)],
+            ....:                    [right_open_interval(1,2), FastLinearFunction(1, -1)]],
+            ....:                   merge=False)
+            sage: f.which_function(1)
+            <FastLinearFunction x - 1>
+
         """
         return self.which_pair(x0)[1]
 
@@ -1528,7 +1728,7 @@ class FastPiecewise (PiecewisePolynomial):
             raise ValueError("Value not defined at point %s, outside of domain." % x0)
         if x0 == endpts[i]:
             if self._values_at_end_points[i] is not None:
-                if self.functions()[ith[i]](x0) == self._values_at_end_points[i]:
+                if is_pt_in_interval(self.intervals()[ith[i]], x0):
                     return self.intervals()[ith[i]], self.functions()[ith[i]]
                 else:
                     return self.intervals()[ith[i]+1], self.functions()[ith[i]+1]
@@ -1755,6 +1955,17 @@ class FastPiecewise (PiecewisePolynomial):
         if result is None:
             raise ValueError("Value not defined at point %s%s, outside of domain." % (x0, print_sign(epsilon)))
         return result
+
+    def limit_within_relint(self, x0, interval):
+        a, b = interval_to_endpoints(interval)
+        if x0 == a < b:
+            return self.limit(a, +1)
+        elif a < b == x0:
+            return self.limit(b, -1)
+        elif a <= x0 <= b:
+            return self(x0)
+        else:
+            raise ValueError("outside of face")
 
     def which_function_on_interval(self, interval):
         x = (interval[0] + interval[1]) / 2
@@ -2061,9 +2272,9 @@ class FastPiecewise (PiecewisePolynomial):
         stable_str = six.b(str(data))
         return sha1(stable_str).hexdigest()
 
-    def _latex_(self, table=False, labels={}):
+    def _latex_(self, table=False, labels={}, name=r'\pi'):
         if not table:
-            return super(FastPiecewise, self)._latex_()
+            return super(FastPiecewise, self)._latex_()  # FIXME: This one does not handle half-open intervals
         from sage.misc.latex import latex
         def labeled_latex(x):
             return labels.get(x, latex(x))
@@ -2074,11 +2285,11 @@ class FastPiecewise (PiecewisePolynomial):
         s += [r'  \toprule']
         s += ['  ' + ' & '.join(['i',
                                  'x_i',
-                                 r'\pi(x_i^-)',
-                                 r'\pi(x_i)',
-                                 r'\pi(x_i^+)',
+                                 name + '(x_i^-)',
+                                 name + '(x_i)',
+                                 name + '(x_i^+)',
                                  r'\text{slope}']) + r'\\']
-        s += ['  \\midrule']
+        s += [r'  \midrule']
         end_points = self.end_points()
         for index, (bkpt, limits) in enumerate(zip(end_points, self.limits_at_end_points())):
             latex_limits = [ labeled_latex(x) for x in limits ]
@@ -2277,7 +2488,7 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
     for i in range(len(bkpt)-1):
         if bkpt[i] > bkpt[i+1]:
             raise ValueError("Breakpoints are not sorted in increasing order.")
-        elif bkpt[i] == bkpt[i+1]:
+        elif bkpt[i] == bkpt[i+1]:  #hasattr(field, '_big_cells') and field._big_cells, should be off-record
             logging.warning("Degenerate interval occurs at breakpoint %s" % bkpt[i])
             if values[i] != values[i+1]:
                 raise ValueError("Degeneration leads to a discontinuous function.")
@@ -2888,7 +3099,7 @@ def generate_functional_directed_moves(fn):
     Compute the (translations and reflections) moves.
     """
     moves = dict()
-    for face in generate_maximal_additive_faces(fn):
+    for face in generate_additive_faces(fn) if equiv7_mode else generate_maximal_additive_faces(fn):
         if face.is_directed_move():
             fdm = face.functional_directed_move()
             if fdm.intervals():
@@ -2907,8 +3118,29 @@ def plot_walk(walk_dict, color="black", ymin=0, ymax=1, **kwds):
         delete_one_time_plot_kwds(kwds)
     return g
 
-def generate_symbolic(fn, components, field=None, f=None):
+def generate_all_components(fn, show_plots=False):
+    fdms, covered_components = generate_directed_move_composition_completion(fn, show_plots=show_plots)
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+        logging.debug("The covered components are %s." % (covered_components))
+    uncovered_intervals = generate_uncovered_intervals(fn)
+    if uncovered_intervals:
+        uncovered_components = generate_uncovered_components(fn, show_plots=show_plots)
+        if logging.getLogger().isEnabledFor(logging.DEBUG):
+            logging.debug("The uncovered components are %s." % (uncovered_components))
+        components = covered_components + uncovered_components
+    else:
+        components = copy(covered_components)
+    return components
+
+def generate_symbolic(fn, components=None, field=None, f=None, show_plots=False, basis_functions=None, **kwds):
     r"""
+    Construct a vector-space-valued piecewise linear function
+    compatible with the given function ``fn``.
+
+    Two systems of ``basis_functions`` are available:
+     - ``('slopes', 'jumps')``
+     - ``('midpoints', 'slopes')
+
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -2925,17 +3157,132 @@ def generate_symbolic(fn, components, field=None, f=None):
           <FastLinearFunction ((0,0,1,0,0))*x + ((1/4,3/8,-5/8,2,1))>],
          [<Int(7/8, 1)>, <FastLinearFunction ((0,1,0,0,0))*x + ((1/4,-1/2,1/4,2,1))>],
          [<Int{1}>, <FastLinearFunction ((1/4,1/2,1/4,2,2))>]]   
-    """
-    if fn.is_continuous() or fn.is_discrete():
-        return generate_symbolic_continuous(fn, components, field=field, f=f)
-    else:
-        return generate_symbolic_general(fn, components, field=field, f=f)
 
-def generate_additivity_equations(fn, symbolic, field, f=None, bkpt=None):
-    if fn.is_continuous() or fn.is_discrete():
-        return generate_additivity_equations_continuous(fn, symbolic, field, f=f, bkpt=bkpt)
+        sage: h = extreme_functions.drlm_backward_3_slope()
+        sage: sym = generate_symbolic(h, basis_functions=('midpoints', 'slopes'))
+        sage: sym.basis
+        [('function value at', 1/8),
+         ('function value at', 1/6),
+         ('slope of component', 0),
+         ('slope of component', 1),
+         ('slope of component', 2)]
+
+    """
+    if field is None:
+        field = fn(0).parent().fraction_field()
+    if components is None:
+        components = generate_all_components(fn)
+    if (fn.is_continuous() or fn.is_discrete()) and basis_functions in (None, ('slopes', 'jumps')):
+        return generate_symbolic_continuous(fn, components, field=field, f=f, **kwds)
     else:
-        return generate_additivity_equations_general(fn, symbolic, field, f=f, bkpt=bkpt)
+        return generate_symbolic_general(fn, components, field=field, f=f, basis_functions=basis_functions, **kwds)
+
+def plot_symbolic(sym, indices=None, as_array=True, color='magenta', **kwds):
+    """
+    EXAMPLES:
+
+    Basis functions for the continuous case.  Note that they are monotonically increasing
+    and therefore not periodic functions::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: h = not_extreme_1()
+        sage: sym = generate_symbolic(h)
+        sage: plot_symbolic(sym, thickness=2, **ticks_keywords(h)).show(figsize=(6, 6))  # not tested
+
+    Basis functions for the one-sided discontinuous case.  The first three are slopes,
+    the last two are jumps.  Again they are monotonically increasing::
+
+        sage: h = hildebrand_discont_3_slope_1()
+        sage: sym = generate_symbolic(h)
+        sage: plot_symbolic(sym, thickness=2, **ticks_keywords(h)).show(figsize=(6, 6))  # not tested
+
+    Basis functions for the two-sided discontinuous case.  Here we cannot assume continuity at any
+    uncovered breakpoint, so nothing is gained by making them increasing functions.  Instead we choose
+    them as local on the components (and therefore periodic)::
+
+        sage: h = minimal_no_covered_interval()
+        sage: sym = generate_symbolic(h)
+        sage: plot_symbolic(sym, thickness=2, **ticks_keywords(h)).show(figsize=(6, 6))  # not tested
+
+    """
+    space = sym(0).parent()
+    if indices is None:
+        indices = range(space.dimension())
+    legends = [ 'basis function {}'.format(i) for i in indices ]
+    vectors = [ space.gen(i) for i in indices ]
+    if as_array:
+        plots = [ (v * sym).plot(color=color, legend_label=legend, **kwds)
+                  for legend, v in zip(legends, vectors) ]
+        return graphics_array(plots, ncols=1)
+    else:
+        plots = [ (v * sym).plot(color=color, legend_label=legend, **kwds)
+                  for legend, v, color in zip(legends, vectors, rainbow(len(vectors))) ]
+        return sum(plots)
+
+def generate_additivity_equations(fn, symbolic, field=None, f=None, bkpt=None,
+                                  reduce_system=None, return_vertices=False, vertices=None,
+                                  undefined_ok=False, **args):
+    r"""
+    Using additivity, set up a finite-dimensional system of linear equations
+    that must be satisfied by any perturbation.
+
+    Use ``vertices`` if provided, otherwise call uses the vertices obtained by
+    ``generate_additive_vertices``.
+
+    If ``reduce_system`` is True (the default when ``logging.DEBUG`` is enabled),
+    remove redundant equations to make the system minimal.
+
+    If ``return_vertices`` is True, return a list of vertices in the form
+    ``(x, y, z, xeps, yeps, zeps)`` corresponding to the rows of the matrix.
+    There are two special labels: 'f' and '1' that can appear instead of a vertex.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: h = hildebrand_discont_3_slope_1()
+        sage: components = generate_covered_intervals(h)
+        sage: symbolic = generate_symbolic(h, components, field=QQ)
+        sage: generate_additivity_equations(h, symbolic, field=QQ, reduce_system=False)
+        181 x 5 dense matrix ...
+        sage: generate_additivity_equations(h, symbolic, field=QQ, reduce_system=True)
+        [ 1/4  1/4    0    2    0]
+        [ 1/4  1/2  1/4    2    2]
+        [ 1/4  1/2  1/4    3    1]
+        [ 1/8 -1/8    0    1    0]
+        [   0  1/8 -1/8    2   -1]
+        sage: M, vs = generate_additivity_equations(h, symbolic, field=QQ, reduce_system=True, return_vertices=True)
+        sage: vs
+        ['f', '1', (0, 1/8, 1/8, -1, 0, -1), (1/8, 1/8, 1/4, 0, 0, 0), (3/8, 3/8, 3/4, 1, 1, 1)]
+
+    For two-sided discontinuous functions we can use a different basis, in which we see
+    the structure of the subadditivity constraints::
+
+        sage: h = hildebrand_2_sided_discont_2_slope_1()
+        sage: symbolic = generate_symbolic(h, basis_functions=('midpoints', 'slopes'))
+        sage: M, vs = generate_additivity_equations(h, symbolic, reduce_system=True, return_vertices=True)
+        sage: for row, v in zip(M, vs): print("Additive vertex {:30}  {}".format(v, row))
+        Additive vertex (0, 1/8, 1/8, -1, 1, 0)         (0, -1, 1, -1, 0, 0, 0, 0)
+        Additive vertex (0, 1/8, 1/8, 1, -1, 0)         (2, -1, 0, 0, 0, 0, 0, 0)
+        Additive vertex (0, 5/8, 5/8, -1, 0, -1)        (0, 0, 0, -2, 1, 0, 0, 0)
+        Additive vertex (0, 5/8, 5/8, 1, 0, 1)          (1, 0, 0, 0, 1, -1, 0, 0)
+        Additive vertex (1/8, 1/8, 1/4, -1, 1, 0)       (1, 0, 1, 0, 0, 0, -1/16, 1/16)
+        Additive vertex (1/8, 1/8, 1/4, -1, 1, 1)       (1, 0, 2, 0, 0, 0, 0, 1/16)
+        Additive vertex (1/8, 1/8, 1/4, -1, -1, -1)     (2, 0, -1, 0, 0, 0, -1/16, 1/8)
+        Additive vertex (1/8, 5/8, 3/4, 1, 0, 1)        (0, 0, 1, 0, 1, 1, -1/16, 1/16)
+    """
+    if field is None:
+        field = fn(0).parent().fraction_field()
+    if f is None:
+        f = find_f(fn)
+    if not undefined_ok and (fn.is_continuous() or fn.is_discrete()):
+        return generate_additivity_equations_continuous(fn, symbolic, field, f=f, bkpt=bkpt,
+                                                        reduce_system=reduce_system, return_vertices=return_vertices, vertices=vertices, **args)
+    else:
+        return generate_additivity_equations_general(fn, symbolic, field, f=f, bkpt=bkpt,
+                                                     reduce_system=reduce_system, return_vertices=return_vertices,
+                                                     vertices=vertices, undefined_ok=undefined_ok, **args)
 
 def rescale_to_amplitude(perturb, amplitude):
     r"""For plotting purposes, rescale the function perturb so that its
@@ -2950,6 +3297,11 @@ def rescale_to_amplitude(perturb, amplitude):
 # Global figsize for all plots made by show_plots.
 show_plots_figsize = 10
 
+try:
+    from sage.plot.multigraphics import GraphicsArray
+except ImportError:
+    from sage.plot.graphics import GraphicsArray
+
 def show_plot(graphics, show_plots, tag, object=None, **show_kwds):
     r"""
     Display or save graphics.
@@ -2962,7 +3314,7 @@ def show_plot(graphics, show_plots, tag, object=None, **show_kwds):
     """
     show_kwds = copy(show_kwds)
     plot_kwds_hook(show_kwds)
-    if isinstance(graphics, sage.plot.graphics.GraphicsArray):
+    if isinstance(graphics, GraphicsArray):
         # GraphicsArrays can't have legends.
         plot_kwds_hook_no_legend(show_kwds)
     if show_plots_figsize is not None:
@@ -3054,24 +3406,13 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
     r"""
     Generate (with ``yield``) perturbations for ``finite_dimensional_extremality_test``.
     """
-    fdms, covered_components = generate_directed_move_composition_completion(function, show_plots=show_plots)
-    if logging.getLogger().isEnabledFor(logging.DEBUG):
-        logging.debug("The covered components are %s." % (covered_components))
-    uncovered_intervals = generate_uncovered_intervals(function)
-    if uncovered_intervals:
-        uncovered_components = generate_uncovered_components(function, show_plots=show_plots)
-        if logging.getLogger().isEnabledFor(logging.DEBUG):
-            logging.debug("The uncovered components are %s." % (uncovered_components))
-        components = covered_components + uncovered_components
-    else:
-        components = copy(covered_components)
     # FIXME: fraction_field() required because parent could be Integer
     # Ring.  This happens, for example, for three_slope_limit().  
     # We really should have a function to retrieve the field of
     # a FastPiecewise.  But now even .base_ring() fails because
     # FastLinearFunction does not have a .base_ring() method.
     field = function(0).parent().fraction_field()
-    symbolic = generate_symbolic(function, components, field=field, f=f)
+    symbolic = generate_symbolic(function, field=field, f=f, show_plots=show_plots)
     bkpt = merge_bkpt(function.end_points(), symbolic.end_points())
     equation_matrix = generate_additivity_equations(function, symbolic, field, f=f, bkpt=bkpt)
     if logging.getLogger().isEnabledFor(logging.DEBUG):
@@ -3146,6 +3487,97 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn
             logging.info("Thus the function is extreme.")
     return not seen_perturbation
 
+def generate_facet_covered_components(fn, show_plots=False):
+    if not hasattr(fn, "_facet_covered_components"):
+        additive_faces_sans_limits = generate_additive_faces_sans_limits(fn)
+        fn._facet_covered_components = generate_covered_components_strategically(fn,
+                                                                                 show_plots=show_plots,
+                                                                                 additive_faces=additive_faces_sans_limits)
+    return fn._facet_covered_components
+
+def facet_test(fn, show_plots=False, known_minimal=False, known_extreme=False):
+    """
+    Test whether `fn` is a facet.
+
+    EXAMPLES:
+
+    Minimal, and all intervals are covered (sans limits), unique solution (sans limits), so a facet::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: h = extreme_functions.drlm_backward_3_slope(conditioncheck=False)
+        sage: facet_test(h)
+        True
+
+    Extreme function and continuous piecewise linear, so a facet::
+
+        sage: h = extreme_functions.bhk_irrational()
+        sage: facet_test(h)
+        True
+
+    The algorithm cannot handle all cases::
+
+        sage: h = kzh_minimal_has_only_crazy_perturbation_1()
+        sage: facet_test(h, known_extreme=True)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: facet_test does not know how to continue
+
+    As a side effect, ``facet_test`` stores some data in the function::
+
+        sage: h._facet_symbolic.basis
+        [('function value at', 0.01010000000000000?),
+         ('function value at', 0.02020000000000000?), ...,
+         ('function value at', 0.8202000000000000?),
+         ('slope of component', 0),
+         ('slope of component', 1)]
+        sage: [h._facet_symbolic.basis.index(('function value at', x)) for x in [h.a0, h.a1, h.a2]]
+        [11, 19, 25]
+        sage: h._facet_equation_matrix.column(11)
+        (0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0)
+        sage: [ (variable, value) for variable, value in zip(h._facet_symbolic.basis, h._facet_equation_matrix[4]) if value ]
+        [(('function value at', 0.01010000000000000?), 1),
+         (('function value at', 0.1900000000000000?), 1),
+         (('function value at', 0.2071236354684422?), -1),
+         (('slope of component', 1), 0.00702363546844223?)]
+
+    """
+    if known_extreme:
+        known_minimal = True
+    if not known_minimal:
+        if not minimality_test(fn):
+            logging.info("Not minimal, so not a facet")
+            return False
+    if known_extreme and fn.is_continuous():
+        logging.info("Extreme function and continuous piecewise linear, so a facet.")
+        return True
+    additive_faces_sans_limits = generate_additive_faces_sans_limits(fn)
+    covered_components = generate_facet_covered_components(fn)
+    uncovered_intervals = uncovered_intervals_from_covered_components(covered_components)
+    if uncovered_intervals:
+        logging.info("There are non-covered intervals: {}".format(uncovered_intervals))
+    # Finite dimensional test.  Default basis functions do not handle the case of uncovered intervals.
+    symbolic = fn._facet_symbolic = generate_symbolic(fn, covered_components, basis_functions=('midpoints', 'slopes'))
+    vertices = fn._facet_vertices = generate_vertices_of_additive_faces_sans_limits(fn)
+    equation_matrix, used_vertices = generate_additivity_equations(fn, symbolic, reduce_system=True,
+                                                                   return_vertices=True, undefined_ok=True, vertices=vertices)
+    fn._facet_equation_matrix = equation_matrix
+    fn._facet_used_vertices = used_vertices
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+        logging.debug("Solve the linear system of equations:\n%s * v = 0." % (equation_matrix))
+    solution_basis = fn._facet_solution_basis = [ b * symbolic for b in equation_matrix.right_kernel().basis() ]
+    logging.info("Finite dimensional test (sans limits): Solution space has dimension %s." % len(solution_basis))
+    if not uncovered_intervals and not solution_basis:
+        logging.info("Minimal, and all intervals are covered (sans limits), unique solution (sans limits), so a facet.")
+        return True
+    if not known_extreme and not extremality_test(fn):
+        logging.info("Not extreme, so not a facet.")
+        return False
+    if fn.is_continuous():
+        logging.info("Extreme function and continuous piecewise linear, so a facet.")
+        return True
+    raise NotImplementedError("facet_test does not know how to continue")
+
 def generate_type_1_vertices(fn, comparison, reduced=True, bkpt=None):
     if fn.is_continuous() or fn.is_discrete():
         return generate_type_1_vertices_continuous(fn, comparison, bkpt=bkpt)
@@ -3159,18 +3591,38 @@ def generate_type_2_vertices(fn, comparison, reduced=True, bkpt=None):
         return generate_type_2_vertices_general(fn, comparison, reduced=reduced, bkpt=bkpt)
 
 def generate_additive_vertices(fn, reduced=True, bkpt=None):
-    r"""
-    We are returning a set of 6-tuples `(x, y, z, xeps, yeps, zeps)`,
-    so that duplicates are removed, and so the result can be cached for later use.
+    r"""Return the list of additive vertices in the form of 6-tuples ``(x, y, z, xeps, yeps, zeps)``.
 
-    When reduced is: 
+    When reduced is:
 
-    - ``True``: only outputs fewer triples satisfying ``comparison`` relation, for the purpose of setting up the system of equations.
-    - ``False``: outputs all triples satisfying ``comparison`` relation, for the purpose of plotting ``additive_limit_vertices``.
+    - ``True``: only outputs fewer triples, for the purpose of setting up the system of equations.
+    - ``False``: outputs all triples, for the purpose of plotting ``additive_limit_vertices``.
     """
+    # Return a list instead of a generator so that the result can be cached.
+    # Using unique_list we remove duplicates.
     return unique_list(itertools.chain( \
                 generate_type_1_vertices(fn, operator.eq, reduced=reduced, bkpt=bkpt),\
                 generate_type_2_vertices(fn, operator.eq, reduced=reduced, bkpt=bkpt)) )
+
+def generate_vertices_of_additive_faces_sans_limits(fn):
+    r"""
+    Compute the list of vertices of faces that are additive-sans-limits in the form of 6-tuples ``(x, y, z, xeps, yeps, zeps)``.
+    Here ``z`` is not reduced modulo 1.
+
+    TESTS::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: h = kzh_minimal_has_only_crazy_perturbation_1()
+        sage: x = h.end_points()
+        sage: (x[6], 1+x[4]-x[6], 1+x[4], 0, 0, 0) in generate_vertices_of_additive_faces_sans_limits(h)
+        True
+
+    """
+    return unique_list((v[0], v[1], v[0]+v[1], eps[0], eps[1], eps[2])
+                       for F in generate_additive_faces_sans_limits(fn)
+                       for v in F.vertices
+                       for eps in generate_containing_eps_triple(v, F.minimal_triple, with_limits=False))
 
 @cached_function
 def generate_nonsubadditive_vertices(fn, reduced=True):
@@ -3364,7 +3816,7 @@ def plot_completion_diagram(fn, perturbation=None):
         g += plot_walk_in_completion_diagram(perturbation._seed, perturbation._walk_list)
     return fn._completion.plot(extra_graphics = g)
 
-def perturbation_polyhedron(fn, perturbs, **kwds):
+def perturbation_polyhedron(fn, perturbs, undefined_ok=False, **kwds):
     r"""
     Given fn  and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a polyhedron, one dimension for each basic perturbation, with the subadditivities.
 
@@ -3418,6 +3870,8 @@ def perturbation_polyhedron(fn, perturbs, **kwds):
     The following function is 2-sided discontinous at the origin::
 
         sage: h = zhou_two_sided_discontinuous_cannot_assume_any_continuity()
+        sage: import cutgeneratingfunctionology.igp as igp
+        sage: igp.generate_symbolic_two_sided_discontinuous_basis_functions = ('slopes', 'jumps')   # Restore classic behavior
         sage: finite_dimensional_extremality_test(h, show_all_perturbations=True)
         False
         sage: perturbs = h._perturbations
@@ -3430,11 +3884,11 @@ def perturbation_polyhedron(fn, perturbs, **kwds):
         sage: extremality_test(h_lift)
         True
     """
-    (ieqs, eqns) = perturbation_polyhedron_ieqs_eqns(fn, perturbs)
+    (ieqs, eqns) = perturbation_polyhedron_ieqs_eqns(fn, perturbs, undefined_ok=undefined_ok)
     pert_polyhedron = Polyhedron(ieqs = ieqs, eqns = eqns, **kwds)
     return pert_polyhedron
 
-def perturbation_polyhedron_ieqs_eqns(fn, perturbs):
+def perturbation_polyhedron_ieqs_eqns(fn, perturbs, undefined_ok=False):
     bkpt = copy(fn.end_points())
     for pert in perturbs:
         bkpt += pert.end_points()
@@ -3457,14 +3911,26 @@ def perturbation_polyhedron_ieqs_eqns(fn, perturbs):
     for x in bkpt:
         for xeps in lim_xeps:
             valuefn = fn.limit(x, xeps)
-            valuep = [pert.limit(x, xeps) for pert in perturbs]
+            try:
+                valuep = [pert.limit(x, xeps) for pert in perturbs]
+            except ValueError:
+                if undefined_ok:
+                    continue
+                else:
+                    raise
             constraint_coef = tuple([valuefn]) + tuple(valuep)
             ieqset.append(constraint_coef)
     # record the subadditivity constraints
     for (x, y, z) in vertices:
         for (xeps, yeps, zeps) in [(0,0,0)]+limitingeps:
             deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
-            deltap = [delta_pi_general(pert, x, y, (xeps, yeps, zeps)) for pert in perturbs]
+            try:
+                deltap = [delta_pi_general(pert, x, y, (xeps, yeps, zeps)) for pert in perturbs]
+            except ValueError:
+                if undefined_ok:
+                    continue
+                else:
+                    raise
             constraint_coef = tuple([deltafn]) + tuple(deltap)
             ieqset.append(constraint_coef)
             # if deltafn > 0:
@@ -3474,7 +3940,7 @@ def perturbation_polyhedron_ieqs_eqns(fn, perturbs):
             #     # this is always true for basic perturbations coming from finite_dimensional_extremality_test().
     return unique_list(ieqset), unique_list(eqnset)
 
-def perturbation_mip(fn, perturbs, solver=None, field=None):
+def perturbation_mip(fn, perturbs, solver=None, field=None, undefined_ok=False):
     r"""
     Given fn and a list of basic perturbations that are pwl, satisfing the symmetry condition and pert(0)=pert(f)=0. Set up a mip, one dimension for each basic perturbation, with the subadditivities.
 
@@ -3560,7 +4026,13 @@ def perturbation_mip(fn, perturbs, solver=None, field=None):
     for x in bkpt:
         for xeps in lim_xeps:
             valuefn = fn.limit(x, xeps)
-            valuep = [pert.limit(x, xeps) for pert in perturbs]
+            try:
+                valuep = [pert.limit(x, xeps) for pert in perturbs]
+            except ValueError:
+                if undefined_ok:
+                    continue
+                else:
+                    raise
             if all(coef == 0 for coef in valuep):
                 continue
             constraint_coef = tuple([valuefn]) + tuple(valuep)
@@ -3572,7 +4044,13 @@ def perturbation_mip(fn, perturbs, solver=None, field=None):
     for (x, y, z) in vertices:
         for (xeps, yeps, zeps) in [(0,0,0)]+limitingeps:
             deltafn = delta_pi_general(fn, x, y, (xeps, yeps, zeps))
-            deltap = [delta_pi_general(pert, x, y, (xeps, yeps, zeps)) for pert in perturbs]
+            try:
+                deltap = [delta_pi_general(pert, x, y, (xeps, yeps, zeps)) for pert in perturbs]
+            except ValueError: # undefined
+                if undefined_ok:
+                    continue
+                else:
+                    raise
             if all(coef == 0 for coef in deltap):
                 continue
             constraint_coef = tuple([deltafn]) + tuple(deltap)
@@ -3591,11 +4069,19 @@ def perturbation_mip(fn, perturbs, solver=None, field=None):
             #     # this is always true for basic perturbations coming from finite_dimensional_extremality_test().
     return mip
 
-def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_polyhedron=False):
+def generate_lifted_functions(fn, perturbs=None, use_polyhedron=False, **kwds):
     r"""
     A generator of lifted functions.
 
-    Set up a mip, one dimension for each basic perturbation, with the subadditivities. Shoot random directions as objective functions. Solve the mip. Lift the function by adding the perturbation that corresponds to the mip solution.
+    If ``use_polyhedron=False`` (the default), set up an LP (as a 
+    ``MixedIntegerLinearProgram``) with one dimension for 
+    each basic perturbation, with the subadditivities. Shoot random directions 
+    as objective functions. Solve the MIP. Lift the function by adding the 
+    perturbation that corresponds to the MIP solution. MIP solver keywords can be 
+    passed in ``kwds``.
+
+    If ``use_polyhedron=True``, set up a ``Polyhedron`` instead.  ``Polyhedron``
+    constructor keywords can be passed in ``kwds``.
 
     EXAMPLES::
 
@@ -3616,7 +4102,7 @@ def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_po
         True
 
     If the solver argument is not specified, the code can figure it out,
-    using field (base_ring).
+    using field (``base_ring``).
 
     The option ``solver=InteractiveLP`` is able to deal with irrational numbers::
 
@@ -3641,10 +4127,10 @@ def generate_lifted_functions(fn, perturbs=None, solver=None, field=None, use_po
         finite_dimensional_extremality_test(fn, show_all_perturbations=True)
         perturbs = fn._perturbations
     if use_polyhedron:
-        pert_polyhedron = perturbation_polyhedron(fn, perturbs)
+        pert_polyhedron = perturbation_polyhedron(fn, perturbs, **kwds)
         vertices = pert_polyhedron.vertices()
     else:
-        pert_mip = perturbation_mip(fn, perturbs, solver=solver, field=field)
+        pert_mip = perturbation_mip(fn, perturbs, **kwds)
         vertices = generate_random_mip_sol(pert_mip)
     for vertex in vertices:
         logging.info("vertex = %s" % str(vertex))
@@ -4020,13 +4506,15 @@ def is_QQ_linearly_independent(*numbers):
         return True
     elif len(numbers) == 1:
         return bool(numbers[0] != 0)
-    if is_parametric_element(numbers[0]):
-        is_independent = is_QQ_linearly_independent(*(x.val() for x in numbers))
-        #numbers[0].parent().record_independence_of_pair(numbers, is_independent)
-        return is_independent
     # fast path for rationals
     if is_all_QQ_fastpath(numbers):
         return False
+    # param
+    if any(is_parametric_element(x) for x in numbers):
+        field = None
+        is_independent = is_QQ_linearly_independent(*(result_concrete_value(field, numbers)))
+        #numbers[0].parent().record_independence_of_pair(numbers, is_independent)
+        return is_independent
     if not is_all_the_same_number_field_fastpath(numbers):
         # try to coerce to common number field
         numbers = nice_field_values(numbers, RealNumberField)
@@ -4587,21 +5075,40 @@ def plot_completion_diagram_background(fn):
 # Global variable ``strategical_covered_components`` to control whether generate_covered_components_strategically() is used in place of generate_covered_components.
 strategical_covered_components = False
 
-def generate_covered_components_strategically(fn, show_plots=False):
-    r"""
-    Return both directly and indirectly covered components.
+def generate_covered_components_strategically(fn, show_plots=False, additive_faces=None):
+    r"""Return both directly and indirectly covered components of ``fn``.
 
-    Set ``logging.getLogger().setLevel(logging.DEBUG)`` to see proof of covered components.
+    Directly covered components are obtained by using the interval lemma
+    (convex additivity domain lemma) on two-dimensional maximal additive
+    faces of ``fn``.
+
+    Indirectly covered components are obtained using the one-dimensional
+    maximal additive faces of ``fn``; this includes using
+    limit-additivities.  This is justified by Theorem 3.3 in
+    :cite:`koeppe-zhou:crazy-perturbation` (which covers the two-sided
+    discontinuous case).
+
+    If ``additive_faces`` is provided, use exactly these faces, assuming that
+    they are additive.
+
+    Set ``logging.getLogger().setLevel(logging.DEBUG)`` to see a human-readable 
+    proof of covered components.
+
     Set ``show_plots=True`` to visualize the proof.
-    """
-    if hasattr(fn, '_strategical_covered_components'):
+"""
+    if additive_faces is None and hasattr(fn, '_strategical_covered_components'):
         return fn._strategical_covered_components
     step = 0
     if show_plots:
         g = plot_2d_diagram(fn, function_color='black', additive_color="grey")
         show_plot(g, show_plots, tag=step , object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
-    faces = [ face for face in generate_maximal_additive_faces(fn) if face.is_2D() ]
-    edges = [ face for face in generate_maximal_additive_faces(fn) if face.is_horizontal() or face.is_diagonal() ] #face.is_1D() ]
+    if additive_faces is None:
+        use_faces = list(generate_maximal_additive_faces(fn))
+        edges = [ face for face in use_faces if face.is_horizontal() or face.is_diagonal() ] # break symmetry ]
+    else:
+        use_faces = list(additive_faces)
+        edges = [ face for face in use_faces if face.is_1D() ] # don't assume both face and x-y-swapped face are present in caller-provided list
+    faces = [ face for face in use_faces if face.is_2D() ]
     covered_components = []
     max_size = 1
     while max_size > 0:
@@ -4647,6 +5154,8 @@ def generate_covered_components_strategically(fn, show_plots=False):
             K_mod_1 = interval_mod_1(K)
             component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* K_mod_1)]],[])
             if logging.getLogger().isEnabledFor(logging.DEBUG):
+                if hasattr(fn, "_faces_used"):
+                    fn._faces_used.append(face)
                 logging.debug("Step %s: Consider the 2d additive %s.\n%s is directly covered." % (step, face, component))
             if show_plots:
                 if fn.is_continuous():
@@ -4666,6 +5175,8 @@ def generate_covered_components_strategically(fn, show_plots=False):
         elif max_face.is_1D():
             edge = max_face
             step += 1
+            if hasattr(fn, "_faces_used"):
+                fn._faces_used.append(edge)
             if logging.getLogger().isEnabledFor(logging.DEBUG):
                 logging.debug("Step %s: Consider the 1d additive %s." % (step, edge))
             fdm = edge.functional_directed_move()
@@ -4704,6 +5215,8 @@ def generate_covered_components_strategically(fn, show_plots=False):
         if len(overlapping_components) > 1:
             new_component = union_of_coho_intervals_minus_union_of_coho_intervals(overlapping_components,[])
             step += 1
+            if hasattr(fn, "_faces_used"):
+                fn._faces_used.add(face)
             if logging.getLogger().isEnabledFor(logging.DEBUG):
                 logging.debug("Step %s: By merging components that overlap with projections of the 2d additive %s, we obtain a larger covered component %s" % (step, face, new_component))
             covered_components = remaining_components + [new_component]
@@ -4715,10 +5228,14 @@ def generate_covered_components_strategically(fn, show_plots=False):
         if len(overlapping_components) > 1:
             new_component = union_of_coho_intervals_minus_union_of_coho_intervals(overlapping_components,[])
             step += 1
+            if hasattr(fn, "_faces_used"):
+                fn._faces_used.add(edge)
             if logging.getLogger().isEnabledFor(logging.DEBUG):
                 logging.debug("Step %s: By merging components that are connected by the 1d additive %s, we obtain a larger covered component %s." % (step, edge, new_component))
             covered_components = remaining_components + [new_component]
-    fn._strategical_covered_components = covered_components
+    if additive_faces is None: # Don't cache if computation is done with provided list of faces
+
+        fn._strategical_covered_components = covered_components
     return covered_components
 
 def generate_directly_covered_components(fn):
@@ -4743,7 +5260,7 @@ def generate_directly_covered_components(fn):
 generate_directly_covered_intervals = generate_directly_covered_components
 
 @cached_function
-def generate_directed_move_composition_completion(fn, show_plots=False, max_num_rounds=None, error_if_max_num_rounds_exceeded=True):
+def generate_directed_move_composition_completion(fn, show_plots=False, max_num_rounds=None, error_if_max_num_rounds_exceeded=True, plot_background=None):
     completion = getattr(fn, "_completion", None)
     if completion is None:
         functional_directed_moves = generate_functional_directed_moves(fn)
@@ -4754,10 +5271,9 @@ def generate_directed_move_composition_completion(fn, show_plots=False, max_num_
         else:
             covered_components = generate_directly_covered_components(fn)
         proj_add_vert = projections_of_additive_vertices(fn)
-        if show_plots:
-            plot_background = plot_completion_diagram_background(fn)
-        else:
-            plot_background = None
+        if plot_background is None:
+            if show_plots:
+                plot_background = plot_completion_diagram_background(fn)
         completion = fn._completion = DirectedMoveCompositionCompletion(functional_directed_moves,
                                                                         covered_components = covered_components,
                                                                         proj_add_vert = proj_add_vert,

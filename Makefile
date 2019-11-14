@@ -47,18 +47,30 @@ SAGEFILES +=								\
 	cutgeneratingfunctionology/multirow/piecewise_functions.sage	\
 	cutgeneratingfunctionology/multirow/lifting_region.sage
 
+SAGEFILES +=								\
+	cutgeneratingfunctionology/spam/basic_semialgebraic.py		\
+	cutgeneratingfunctionology/spam/semialgebraic_maple.py		\
+	cutgeneratingfunctionology/spam/semialgebraic_mathematica.py	\
+	cutgeneratingfunctionology/spam/semialgebraic_qepcad.py		\
+	cutgeneratingfunctionology/spam/big_cells.py			\
+	cutgeneratingfunctionology/spam/big_cells_impl.py		\
+	cutgeneratingfunctionology/spam/real_set.py			\
+	cutgeneratingfunctionology/spam/polyhedral_complex.py
+
 all:
 	@echo "No need to 'make' anything. Just run it in Sage; see README.rst"
 
 install:
 	@echo "No need to install anything. Just run it in Sage; see README.rst"
 
+CHECK_PARALLEL=4
+
 check: check-encoding
-	PYTHONPATH=`pwd` $(SAGE) -tp 4 --force_lib $(SAGEFILES)
+	PYTHONPATH=`pwd` $(SAGE) -tp $(CHECK_PARALLEL) --force_lib $(SAGEFILES)
 
 check-long: check-encoding
 	cp .check-long-timings.json .tmp_check-long-timings.json
-	PYTHONPATH=`pwd` $(SAGE) -tp 4 --force_lib --long --stats-path .tmp_check-long-timings.json $(SAGE_CHECK_FLAGS) $(SAGEFILES)
+	PYTHONPATH=`pwd` $(SAGE) -tp $(CHECK_PARALLEL) --force_lib --long --stats-path .tmp_check-long-timings.json $(SAGE_CHECK_FLAGS) $(SAGEFILES)
 	rm .tmp_check-long-timings.json
 
 check-encoding:

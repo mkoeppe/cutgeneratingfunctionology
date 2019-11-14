@@ -43,7 +43,7 @@ def generate_maximal_additive_faces_general_dff(function):
         sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
         sage: h = phi_bj_1(3/2)
         sage: generate_maximal_additive_faces_general_dff(h)
-        [..., <Face ([1/3, 2/3], [1/3, 2/3], [1])>]
+        [..., <Face ([1/3, 2/3], [1/3, 2/3], [1])...>]
 
     """
     logging.info("Computing maximal additive faces...")

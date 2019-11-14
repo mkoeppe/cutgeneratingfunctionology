@@ -243,6 +243,7 @@ def coho_interval_from_interval(int):
         raise ValueError("Not an interval: %s" % (int,))
 
 def realset_from_interval(int):
+    from cutgeneratingfunctionology.spam.real_set import RealSet, InternalRealInterval
     if len(int) == 0:
         return RealSet()
     elif len(int) == 1:
@@ -250,7 +251,7 @@ def realset_from_interval(int):
     elif len(int) == 2:
         return RealSet.closed(int[0], int[1])
     else:
-        raise ValueError("Not an interval: %s" % (int,))
+        return RealSet(InternalRealInterval(int.a, int.left_closed, int.b, int.right_closed))
 
 def interval_length(interval):
     r"""
