@@ -240,7 +240,7 @@ def tabulate_finite_system(h, label=None, format=None, caption=None, extra_capti
 
 
 def tabulate_additive_faces(faces, dimension=None, show_used=False, show_slope=True, max_vertices=None, coordinate_format='C', **longtable_kwds):
-    faces = sorted(faces.items(), key=lambda fi: fi[0])
+
     if max_vertices is None:
         if dimension == 1:
             max_vertices = 2
@@ -268,7 +268,11 @@ def tabulate_additive_faces(faces, dimension=None, show_used=False, show_slope=T
                           format=format,
                           num_columns=len(columns),
                           **longtable_kwds)]
-    for F, triple in faces:
+
+    for triple in sorted(min(list(triple),
+                             [triple[1], triple[0], triple[2]])
+                         for face, triple in faces.items()):
+        F = Face(triple)
         if dimension is None or F.dimension() == dimension:
             s += ['{}  ' + ' & '.join(#format_face_triple(triple)
                                           format_face_triple_extra_fancy(triple)
@@ -293,7 +297,6 @@ def format_used_notice(face, slacks):
     return faces_used_notice_dict.get(face, None) or faces_used_notice_dict.get(x_y_swapped_face(face), r'')
 
 def tabulate_delta_pi(faces, dimension=None, show_used=False, max_vertices=None, **longtable_kwds):
-    faces = sorted(faces.items(), key=lambda fi: fi[0])
     s = []
     if max_vertices is None:
         if dimension is None or dimension == 2:
@@ -319,8 +322,9 @@ def tabulate_delta_pi(faces, dimension=None, show_used=False, max_vertices=None,
                           format=format,
                           **longtable_kwds)]
 
-    for face, triple in faces:
-
+    for triple in sorted(min(list(triple),
+                             [triple[1], triple[0], triple[2]])
+                         for face, triple in faces.items()):
         F = Face(triple)
         if dimension is None or F.dimension() == dimension:
             slacks = sorted(delta_pi_of_face(h, v[0], v[1], F) for v in F.vertices)
@@ -364,9 +368,14 @@ def format_vertex_by_veps(veps):
     return format_label_by_veps(veps)
 format_vertex_by_veps.columns = [ r'\multicolumn{1}{C}{%s}' % s for s in [r'x', r'y'] ] + [r'\multicolumn{1}{C@{\qquad}}{%s}' % r'x+y']
 
+def x_y_swapped_veps(veps):
+    x, y, z, xeps, yeps, zeps = veps
+    return y, x, z, yeps, xeps, zeps
+
 def format_vertices(F, format_vertex=format_vertex_as_vector, first_is_used=False):
-    vertices_used = set(h._vertices_used)
-    def format_it(i, v):
+    vertices_used = set(itertools.chain(h._vertices_used,
+                                        (x_y_swapped_veps(veps) for veps in h._vertices_used)))
+    def format_it(v):
         is_used = False
         for xeps, yeps, zeps in generate_containing_eps_triple(v, F.minimal_triple):
             veps = (v[0], v[1], v[0]+v[1], xeps, yeps, zeps)
@@ -375,10 +384,13 @@ def format_vertices(F, format_vertex=format_vertex_as_vector, first_is_used=Fals
             if veps in vertices_used:
                 is_used = True
                 break
-        if first_is_used:
-            assert is_used == (i == 0)
-        return format_vertex(veps)
-    return list(itertools.chain.from_iterable(format_it(i, v) for i, v in enumerate(F.vertices)))
+        return (0 if is_used else 1), (v[0], xeps, v[1], yeps, v[0]+v[1], zeps), format_vertex(veps)
+    formatted_list = sorted( format_it(v) for v in F.vertices )    # lex key
+    if first_is_used:
+        assert formatted_list[0][0] == 0
+        if len(formatted_list) > 1:
+            assert formatted_list[1][0] != 0
+    return list(itertools.chain.from_iterable(f for _, __, f in formatted_list))
 
 def format_symbolic_slack(slack):
     l = latex(SR(slack).collect(SR.var('x')).collect(SR.var('y')).subs(sqrt(1/2)==1/2*sqrt(2)))
