@@ -24,7 +24,7 @@ else:
 
 with open('/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/tab_kzh_minimal_has_only_crazy_perturbation_finite_system.tex', 'w') as f:
     f.write(r'%% Automatically generated.' + '\n')
-    caption = r'Homogeneous linear system for determining the restriction $\hat\pi$ of $\bar\pi$ to the non-special intervals in the proof of \autoref{lemma:discontinuous_examples_2}'
+    caption = r'Homogeneous linear system for determining the restriction of $\bar\pi$ to the non-special intervals in the proof of \autoref{lemma:discontinuous_examples_2}'
     format = r'*3{>{\tiny$}c<{$}@{}}@{\quad}*{%s}{>{\tiny$}c<{$}@{}}@{\quad}*{2}{>{\tiny$}c<{$}@{}}@{\quad}*2{>{\tiny$}c<{$}@{}}' % (len(h._facet_symbolic.basis) - 2 - 2)
     extra_caption = r'. The variables are the values of $\bar\pi$ at breakpoints ($\bullet$) and at midpoints of intervals between breakpoints ($-$), and the slopes $\bar c_1$, $\bar c_3$ of~$\bar\pi$ on the non-special intervals.  Matrix coefficients are abbreviated as ${+} = 1$, ${-} = -1$, and ${\cdot} = 0$.'
     f.write(tabulate_finite_system(h, label='tab:kzh_minimal_has_only_crazy_perturbation_finite_system', format=format, caption=caption, extra_caption=extra_caption))
