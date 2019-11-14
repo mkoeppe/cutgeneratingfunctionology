@@ -176,8 +176,8 @@ def format_label_by_faces(label):
     except Exception as e:
         logging.warn("format_label: {}".format(e))
         return [r'\multicolumn{4}{l}{%s}' % latex(label)]
-format_label_by_faces.columns = ['I', 'J', 'K', '(x, y)']
-format_label_by_faces.head = r'\multicolumn{4}{c}{Eqn.~$\Delta\bar\pi_F(x, y)=0$, $F=F(I, J, K)$}'
+format_label_by_faces.columns = ['I', 'J', 'K', '(u, v)']
+format_label_by_faces.head = r'\multicolumn{4}{c}{Eqn.~$\Delta\bar\pi_F(u, v)=0$, $F=F(I, J, K)$}'
 
 def format_label_by_veps(label):
     try:
@@ -188,8 +188,8 @@ def format_label_by_veps(label):
     except Exception as e:
         logging.warn("format_label: {}".format(e))
         return [r'\multicolumn{3}{l}{%s}' % latex(label)]
-format_label_by_veps.columns = [ r'\multicolumn{1}{C}{%s}' % s for s in ['x', 'y', 'x+y'] ]
-format_label_by_veps.head = r'\multicolumn{3}{c}{Eqn.~$\Delta\bar\pi_F(x, y)=0$}'
+format_label_by_veps.columns = [ r'\multicolumn{1}{C}{%s}' % s for s in ['u', 'v', 'u+v'] ]
+format_label_by_veps.head = r'\multicolumn{3}{c}{Eqn.~$\Delta\bar\pi_F(u, v)=0$}'
 
 
 def format_coefficient(coeff):
@@ -366,7 +366,7 @@ def format_vertex_as_vector(veps):
 
 def format_vertex_by_veps(veps):
     return format_label_by_veps(veps)
-format_vertex_by_veps.columns = [ r'\multicolumn{1}{C}{%s}' % s for s in [r'x', r'y'] ] + [r'\multicolumn{1}{C@{\qquad}}{%s}' % r'x+y']
+format_vertex_by_veps.columns = [ r'\multicolumn{1}{C}{%s}' % s for s in [r'u', r'v'] ] + [r'\multicolumn{1}{C@{\qquad}}{%s}' % r'u+v']
 
 def x_y_swapped_veps(veps):
     x, y, z, xeps, yeps, zeps = veps

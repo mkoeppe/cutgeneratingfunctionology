@@ -106,7 +106,7 @@ def write_tables():
     with open('/Users/mkoeppe/w/papers/basu-hildebrand-koeppe-papers/algo-paper/tab_kzh_minimal_has_only_crazy_perturbation_delta_pi_rank.tex', 'w') as f:
         write_header(f)
         # Faces of vertices used for rank.
-        caption = r'Faces $F$ with additivity on $\relint(F)$, one vertex of each providing an equation $\Delta\bar\pi_F(x, y)=0$'
+        caption = r'Faces $F$ with additivity on $\relint(F)$, one vertex of each providing an equation $\Delta\bar\pi_F(u, v)=0$'
         extra_caption = r', to form a full-rank homogeneous linear system in the proof of \autoref{lemma:discontinuous_examples_2}. ' + intervals_explainer
         label = 'tab:kzh_minimal_has_only_crazy_perturbation_1_faces_of_vertices_used'
         f.write(tabulate_additive_faces(faces_of_vertices_used, show_used=True, show_slope=False, max_vertices=3,
