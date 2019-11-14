@@ -330,14 +330,25 @@ def kzh_minimal_has_only_crazy_perturbation_1_perturbation():
     crazy_piece_2 = CrazyPiece((h._f - h.ucr, h._f - h.ucl), generators, [(h._f - h.ucr, 1), (h._f - h.ucl, -1)])
     return PiecewiseCrazyFunction(pwl, [crazy_piece_1, crazy_piece_2])
 
-def param_dict_for_piecewise(h, bkpt_names_dict=None, slope_names_dict={}, extra_names=[], extra_values=[], base_ring=None):
+def param_dict_for_piecewise(h, bkpt_names_dict=None, slope_names_dict={}, extra_names=[], extra_values=[], name_sort_key=None, base_ring=None):
     bkpts = h.end_points()
     if base_ring is None:
         base_ring = bkpts[0].parent()
     if bkpt_names_dict is None:
         bkpt_names_dict = { bkpt: 'x{}'.format(i) for i, bkpt in enumerate(bkpts) if bkpt not in (0, 1) }
-    names = list(bkpt_names_dict.values()) + list(slope_names_dict.values()) + extra_names
-    values = list(bkpt_names_dict.keys()) + list(slope_names_dict.keys()) + extra_values
+    def default_name_sort_key(name):
+        if name == 'f':
+            return ''   # comes first so that we see  f - a0 instead of -a0 + f
+        else:
+            return name
+    if name_sort_key is None:
+        name_sort_key = default_name_sort_key
+    value_name_pairs = sorted(((value, name)
+                               for value, name in itertools.chain(bkpt_names_dict.items(),
+                                                                  slope_names_dict.items())),
+                              key=lambda value_name: name_sort_key(value_name[1]))
+    names  = [ name  for value, name in value_name_pairs ] + extra_names
+    values = [ value for value, name in value_name_pairs ] + extra_values
     K = ParametricRealField(names=names, values=values, base_ring=base_ring)
     K._record = False   # FIXME: This should be part of public interface of ParametricRealField
     values_gens = list(zip(values, K.gens()))
