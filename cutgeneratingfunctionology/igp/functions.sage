@@ -748,7 +748,14 @@ def plot_2d_diagram_with_face_cones(fn, show_function=True, f=None, conesize=200
 
     return g
 
-plot_2d_diagram_with_cones = plot_2d_diagram_with_face_cones
+def plot_2d_diagram_with_cones(fn, show_function=True, f=None, conesize=200,
+                               additive_color=None, function_color="blue"):
+    if fn.is_continuous():
+        plot_it = plot_2d_diagram_with_eps_cones
+    else:
+        plot_it = plot_2d_diagram_with_face_cones
+    return plot_it(fn, show_function=show_function, f=f, conesize=conesize,
+                   additive_color=additive_color, function_color=function_color)
 
 def plot_2d_diagram_additive_domain_sans_limits(fn, show_function=True, f=None, additive_color=additive_color, function_color='blue', **kwds):
     r"""
