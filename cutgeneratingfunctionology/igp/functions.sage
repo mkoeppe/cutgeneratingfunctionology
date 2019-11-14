@@ -241,6 +241,9 @@ def generate_additive_faces(fn):
 def is_additive_face_sans_limits(fn, face):
     r"""Test whether ``face`` is additive-sans-limits for ``fn``.
 
+    Here ``face`` must be from the complex ``\Delta\mathcal P`` where
+    ``\mathcal P`` is a complex over which ``fn`` is piecewise linear.
+
     See ``generate_additive_faces_sans_limits``.
     """
     ver = face.vertices
@@ -3495,7 +3498,39 @@ def generate_facet_covered_components(fn, show_plots=False):
                                                                                  additive_faces=additive_faces_sans_limits)
     return fn._facet_covered_components
 
-def facet_test(fn, show_plots=False, known_minimal=False, known_extreme=False):
+def check_lifted_facet_candidate(fn, lifted, name=None, show_plots=False):
+    """
+    The implementation is not complete; it should really use the common refinement!
+    A ``False'' answer cannot be trusted.
+    """
+    assert minimality_test(lifted)
+    for (x, y, z, xeps, yeps, zeps) in generate_vertices_of_additive_faces_sans_limits(fn):
+        assert delta_pi_general(perturbation, x, y, (xeps, yeps, zeps)) == 0
+    for (x, y, z, xeps, yeps, zeps) in generate_vertices_of_additive_faces_sans_limits(perturbation):
+        if delta_pi_general(fn, x, y, (xeps, yeps, zeps)) > 0:
+            if show_plots:
+                show_plot(plot_2d_diagram_additive_domain_sans_limits(lifted, function_color='red'),
+                    show_plots, tag='lifted_2d_diagram_sans_limits', object=fn)
+            return True
+    return False
+
+def generate_lifted_facet_candidates_finite_dimensional(fn, solution_basis):
+    if not solution_basis:
+        return
+    for i, perturbation in enumerate(solution_basis):
+        epsilon_interval = find_epsilon_interval(fn, perturbation)
+        logging.info("Basic perturbation {}: epsilon interval is {}".format(i, epsilon_interval))
+        if epsilon_interval[0] > 0:
+            yield fn +  epsilon_interval[0] * perturbation, "Lifted with + basic perturbation {}".format(i)
+        elif epsilon_interval[1] < 0:
+            epsilon = epsilon_interval[1]
+        else:
+            continue
+    if len(solution_basis) == 1:
+        return
+    raise NotImplementedError("perturbation polytope for facet test is not implemented")
+
+def facet_test(fn, show_plots=False, known_minimal=False, known_extreme=None):
     """
     Test whether `fn` is a facet.
 
@@ -3518,7 +3553,7 @@ def facet_test(fn, show_plots=False, known_minimal=False, known_extreme=False):
     The algorithm cannot handle all cases::
 
         sage: h = kzh_minimal_has_only_crazy_perturbation_1()
-        sage: facet_test(h, known_extreme=True)
+        sage: facet_test(h, known_extreme=True)               # Here we are lying to facet_test.
         Traceback (most recent call last):
         ...
         NotImplementedError: facet_test does not know how to continue
@@ -3556,27 +3591,56 @@ def facet_test(fn, show_plots=False, known_minimal=False, known_extreme=False):
     uncovered_intervals = uncovered_intervals_from_covered_components(covered_components)
     if uncovered_intervals:
         logging.info("There are non-covered intervals: {}".format(uncovered_intervals))
-    # Finite dimensional test.  Default basis functions do not handle the case of uncovered intervals.
-    symbolic = fn._facet_symbolic = generate_symbolic(fn, covered_components, basis_functions=('midpoints', 'slopes'))
-    vertices = fn._facet_vertices = generate_vertices_of_additive_faces_sans_limits(fn)
-    equation_matrix, used_vertices = generate_additivity_equations(fn, symbolic, reduce_system=True,
-                                                                   return_vertices=True, undefined_ok=True, vertices=vertices)
-    fn._facet_equation_matrix = equation_matrix
-    fn._facet_used_vertices = used_vertices
-    if logging.getLogger().isEnabledFor(logging.DEBUG):
-        logging.debug("Solve the linear system of equations:\n%s * v = 0." % (equation_matrix))
-    solution_basis = fn._facet_solution_basis = [ b * symbolic for b in equation_matrix.right_kernel().basis() ]
-    logging.info("Finite dimensional test (sans limits): Solution space has dimension %s." % len(solution_basis))
+
+    def finite_dim_solution_basis(linear_on_uncovered=True):
+        if linear_on_uncovered:
+            components = covered_components + [ [I] for I in uncovered_intervals ]
+        else:
+            components = covered_components   # undefined on uncovered_intervals
+        # Finite dimensional test.  Default basis functions do not handle the case of uncovered intervals.
+        symbolic = fn._facet_symbolic = generate_symbolic(fn, components, basis_functions=('midpoints', 'slopes'))
+        vertices = fn._facet_vertices = generate_vertices_of_additive_faces_sans_limits(fn)
+        equation_matrix, used_vertices = generate_additivity_equations(fn, symbolic, reduce_system=True,
+                                                                       return_vertices=True, undefined_ok=True, vertices=vertices)
+        fn._facet_equation_matrix = equation_matrix
+        fn._facet_used_vertices = used_vertices
+        if logging.getLogger().isEnabledFor(logging.DEBUG):
+            logging.debug("Solve the linear system of equations:\n%s * v = 0." % (equation_matrix))
+        solution_basis = fn._facet_solution_basis = [ b * symbolic for b in equation_matrix.right_kernel().basis() ]
+        logging.info("Finite dimensional test (sans limits): Solution space has dimension %s." % len(solution_basis))
+        return solution_basis
+
+    solution_basis = finite_dim_solution_basis(linear_on_uncovered=True)
     if not uncovered_intervals and not solution_basis:
         logging.info("Minimal, and all intervals are covered (sans limits), unique solution (sans limits), so a facet.")
         return True
+    try:
+        for lifted_candidate, name in generate_lifted_facet_candidates_finite_dimensional(fn, solution_basis): 
+            # (Because of an implementation restriction in find_epsilon_interval, this does not work with partial functions.)
+            if check_lifted_facet_candidate(lifted_candidate, 'basic perturbation {}'.format(i)):
+                logging.info("Found a lifted function with larger additivity domain (sans limits), so not a facet.")
+                return False
+    except NotImplementedError:
+        pass
+    else:
+        # Exhaustively went through the finite dimensional space.
+        if not uncovered_intervals:
+            return True
+
+    logging.info("generate_lifted_facet_candidates_finite_dimensional is not implemented completely. Resorting to extremality test.")
     if not known_extreme and not extremality_test(fn):
         logging.info("Not extreme, so not a facet.")
         return False
-    if fn.is_continuous():
-        logging.info("Extreme function and continuous piecewise linear, so a facet.")
-        return True
-    raise NotImplementedError("facet_test does not know how to continue")
+    if not uncovered_intervals:
+        if fn.is_continuous():
+            logging.info("Extreme function and continuous piecewise linear, so a facet.")
+            return True
+        raise NotImplementedError("facet_test does not know how to proceed.")
+
+    solution_basis = finite_dim_solution_basis(linear_on_uncovered=False)  # keep undefined on uncovered
+    if solution_basis:
+        raise NotImplementedError("facet_test does not know how to proceed.")
+    raise NotImplementedError("facet_test does not know how to proceed.  This is an extreme function but not continuous piecewise linear.  Given the additivities (sans limits), the restriction to the covered intervals is determined uniquely; but there are non-covered intervals on which facet_test cannot prove piecewise linearity.")
 
 def generate_type_1_vertices(fn, comparison, reduced=True, bkpt=None):
     if fn.is_continuous() or fn.is_discrete():
@@ -3650,7 +3714,7 @@ class MaximumNumberOfIterationsReached(Exception):
 
 crazy_perturbations_warning = False
 
-def extremality_test(fn, show_plots = False, f=None, max_num_it=1000, phase_1=False, finite_dimensional_test_first=False, show_all_perturbations=False, crazy_perturbations=True, full_certificates=True):
+def extremality_test(fn, show_plots = False, f=None, max_num_it=1000, phase_1=False, finite_dimensional_test_first=False, show_all_perturbations=False, crazy_perturbations='warn', full_certificates=True):
     r"""Check if fn is extreme for the group relaxation with the given `f`. 
 
     If fn is discrete, it has to be defined on a cyclic subgroup of
@@ -3706,6 +3770,7 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it=1000, phase_1=Fa
        limiting_slopes(fn)[0] is +Infinity and \
        limiting_slopes(fn)[1] is -Infinity:
         # this needs checking that it does the right thing for parametric functions.
+        ### FIXME: If crazy_perturbations=True, should really give an error!
         crazy_perturbations_warning = True
     else:
         crazy_perturbations_warning = False
