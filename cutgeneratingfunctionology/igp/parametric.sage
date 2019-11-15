@@ -1664,7 +1664,7 @@ class SemialgebraicComplexComponent(SageObject):
         True
         sage: component = SemialgebraicComplexComponent(complex, K, [1,1/2], region_type)
         sage: component.bsa
-        BasicSemialgebraicSet_eq_lt_le_sets(eq = [-x + 2*y], lt = [3*y - 2, -y], le = [])
+        BasicSemialgebraicSet_eq_lt_le_sets(eq = [x - 2*y], lt = [3*y - 2, -y], le = [])
     """
 
     def __init__(self, parent, K, var_value, region_type):
@@ -2901,6 +2901,7 @@ def find_region_type_igp_extreme(K, h):
         return 'stop'
 
 def find_region_type_igp_extreme_big_cells(K, h):
+    # WIP
     hcopy = copy(h)
     if h is None:
         return 'not_constructible'
@@ -3404,3 +3405,43 @@ def embed_function_into_family(given_function, parametric_family, check_completi
             is_complete = True
     # plot_cpl_components(complex.components)
     return {}
+
+
+"""
+EXAMPLES::
+
+    sage: from cutgeneratingfunctionology.igp import *
+    sage: K.<f> = ParametricRealField([4/5])
+    sage: h = gmic(f, field=K)
+    sage: _ = extremality_test(h)
+    sage: sorted(K.get_eq_factor()), sorted(K.get_lt_factor()), sorted(K.get_le_factor())
+    ([], [-f, -f + 1/2, f - 1], [])
+    sage: sorted(K._bsa.eq_poly()), sorted(K._bsa.lt_poly()), sorted(K._bsa.le_poly())
+    ([], [-2*f + 1, f - 1], [])
+
+    sage: K.<f> = ParametricRealField([1/5])
+    sage: h = drlm_3_slope_limit(f, conditioncheck=False)
+    sage: _ = extremality_test(h)
+    sage: sorted(K._bsa.eq_poly()), sorted(K._bsa.lt_poly()), sorted(K._bsa.le_poly())
+    ([], [-f, 3*f - 1], [])
+
+    sage: K.<f, lam> = ParametricRealField([4/5, 1/6])
+    sage: h = gj_2_slope(f, lam, field=K, conditioncheck=False)
+    sage: sorted(K._bsa.lt_poly())
+    [-lam, -f, f - 1, -f*lam - f + lam]
+    sage: for lhs in [-lam, lam - 1, 2*lam - 1, -f, f - 1, -3*f*lam - f + 3*lam, -f*lam - 3*f + lam + 2, -f*lam - f + lam, f*lam - 3*f - lam + 2, f*lam - f - lam, 3*f*lam - f - 3*lam, 3*f*lam + f - 3*lam - 2]: assert lhs < 0
+    sage: sorted(K._bsa.lt_poly())
+    [-lam,
+     2*lam - 1,
+     f - 1,
+     -3*f*lam - f + 3*lam,
+     -f*lam - 3*f + lam + 2,
+     f*lam - 3*f - lam + 2,
+     3*f*lam - f - 3*lam]
+
+    sage: K.<f,alpha> = ParametricRealField([4/5, 3/10])             # Bad example! parameter region = {given point}.
+    sage: h=dg_2_step_mir(f, alpha, field=K, conditioncheck=False)
+    sage: _ = extremality_test(h)
+    sage: sorted(K._bsa.eq_poly()), sorted(K._bsa.lt_poly()), sorted(K._bsa.le_poly())
+    ([10*alpha - 3, 5*f - 4], [], [])
+"""
