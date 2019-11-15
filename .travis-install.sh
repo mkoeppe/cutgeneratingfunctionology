@@ -6,6 +6,7 @@
 set -e
 
 if [ -n "${SAGE_AGE}" ]; then
+    ### Install a Sage binary.
   SAGE_IMAGE=`python2 -c "import sage_version; print sage_version.get_all_version_names('${SAGE_SERVER}',${SAGE_AGE})"`
   cd $HOME
   echo "Obtaining Sage image:" ${SAGE_IMAGE}
@@ -23,5 +24,5 @@ if [ -n "${SAGE_AGE}" ]; then
   $HOME/SageMath/sage -pip install --user sphinxcontrib-websupport
 else
     #https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#using-pip-in-an-environment
-    pip -i pynormaliz
+    pip install -r requirements.txt
 fi

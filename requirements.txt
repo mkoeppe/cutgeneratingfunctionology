@@ -1,0 +1,5 @@
+sage-package
+sphinx
+sphinxcontrib-bibtex
+sphinxcontrib-websupport
+pynormaliz
