@@ -1673,15 +1673,7 @@ class SemialgebraicComplexComponent(SageObject):
         self.region_type = region_type
         self.monomial_list = K.monomial_list()
         self.v_dict = K.v_dict()
-        #self.polyhedron = K.polyhedron
-        #space_dim_old = len(self.monomial_list)
-        ## to REFACTOR:
-        self.bounds, tightened_mip = self.bounds_propagation(K.ppl_polyhedron(), self.parent.max_iter)
-        # Unimplemented
-        # dim_to_add =  len(self.monomial_list) - space_dim_old:
-        # if dim_to_add > 0:
-        #     # this could happen if we allow McCormicks to add new monomials.
-        #     K.polyhedron.add_space_dimensions_and_embed(dim_to_add)
+        self.bounds, bsa_mip = self.bounds_propagation(polyhedron=K._polyhedron, max_iter=self.parent.max_iter)
         if self.parent.max_iter == 0:
             lt_K = list(K._bsa.lt_poly())
             le_K = list(K._bsa.le_poly())
@@ -1728,44 +1720,37 @@ class SemialgebraicComplexComponent(SageObject):
             sage: K.<lam1,lam2>=ParametricRealField([3/10, 45/101])
             sage: h = chen_4_slope(K(7/10), K(2), K(-4), lam1, lam2)
             sage: region_type = find_region_type_igp(K, h)
-            sage: bsa = read_bsa_from_polyhedron(K.ppl_polyhedron(), K._factor_bsa.poly_ring(), K.monomial_list(), K.v_dict())
-            sage: bsa.lt_poly()
-            {2*lam2 - 1, -2*lam1 + lam2, 19*lam1 - 75*lam2, 21*lam1 - 8}
+            sage: sorted(K._bsa.lt_poly())
+            [2*lam2 - 1, -2*lam1 + lam2, 19*lam1 - 75*lam2, 21*lam1 - 8]
             sage: c = K.make_proof_cell(region_type=region_type, function=h, find_region_type=None)
-            sage: c.bsa.lt_poly()
-            {2*lam2 - 1, -2*lam1 + lam2, 19*lam1 - 75*lam2, 21*lam1 - 8}
+            sage: sorted(c.bsa.lt_poly())
+            [2*lam2 - 1, -2*lam1 + lam2, 19*lam1 - 75*lam2, 21*lam1 - 8]
         """
-        tightened_mip = construct_mip_of_nnc_polyhedron(polyhedron)
+        bsa_mip = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram.from_bsa(polyhedron.formal_closure(), solver='ppl')
         # Compute LP bounds first
-        bounds = [find_bounds_of_variable(tightened_mip, i) for i in range(len(self.monomial_list))]
-
+        bounds = [(bsa_mip.linear_function_lower_bound(form), bsa_mip.linear_function_upper_bound(form)) for form in bsa_mip.ambient_space().basis()]
         bounds_propagation_iter = 0
         # TODO: single parameter polynomial_rational_flint object needs special treatment. ignore bounds propagation in this case for now.  #tightened = True
         tightened = bool(len(self.var_value) > 1)
-
         while bounds_propagation_iter < max_iter and tightened:
             tightened = False
             # upward bounds propagation
             for m in self.monomial_list:
-                if update_mccormicks_for_monomial(m, tightened_mip, self.monomial_list, self.v_dict, bounds, new_monomials_allowed=False):
-                    # If we allow update_mccormicks_for_monomial to create new monomials and
-                    # hence lift the extended space, try with optional argument
-                    # new_monomials_allowed=True
+                if update_mccormicks_for_monomial(m, bsa_mip, self.monomial_list, self.v_dict, bounds):
                     tightened = True
             if tightened:
                 tightened = False
                 # downward bounds propagation
-                for i in range(len(self.monomial_list)):
+                for i in range(bsa_mip.ambient_dim()):
                     (lb, ub) = bounds[i]
-                    bounds[i] = find_bounds_of_variable(tightened_mip, i)
-                    if (bounds[i][0] is not None) and ((lb is None) or (bounds[i][0] - lb > 0.001)) or \
-                       (bounds[i][1] is not None) and ((ub is None) or (ub - bounds[i][1] > 0.001)):
+                    bounds[i] = find_bounds_of_variable(bsa_mip, i)
+                    if (bounds[i][0] > lb + 0.001) or (bounds[i][1] < ub - 0.001):
                         tightened = True
             if max_iter != 0 and bounds_propagation_iter >= max_iter:
                 logging.warning("max number %s of bounds propagation iterations has attained." % max_iter)
             bounds_propagation_iter += 1
         #print bounds_propagation_iter
-        return bounds, tightened_mip
+        return bounds, bsa_mip
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, show_testpoints=True, **kwds):
         r"""
@@ -1800,12 +1785,12 @@ class SemialgebraicComplexComponent(SageObject):
             d = len(self.var_value)
             if d == 1:
                 var_pt = xx
-                if not is_value_in_interval(None, var_bounds[0]):
+                if var_bounds[0][0] > var_bounds[0][1]:
                      return g
                 bounds_x = bounds_for_plotting(x, var_bounds[0], self.parent.default_var_bound)
             elif d == 2:
                 var_pt = [xx, yy]
-                if not (is_value_in_interval(None, var_bounds[0]) and is_value_in_interval(None, var_bounds[1])):
+                if var_bounds[0][0] > var_bounds[0][1] or var_bounds[1][0] > var_bounds[1][1]:
                     return g
                 bounds_x = bounds_for_plotting(x, var_bounds[0], self.parent.default_var_bound)
                 bounds_y = bounds_for_plotting(y, var_bounds[1], self.parent.default_var_bound)
@@ -1826,7 +1811,7 @@ class SemialgebraicComplexComponent(SageObject):
                     else:
                         raise NotImplementedError("Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region.")
                 else:
-                    if not is_value_in_interval(z, var_bounds[i]):
+                    if not (var_bounds[i][0] <= z <= var_bounds[i][1]):
                         return g
                     var_pt.append(z)
         leqs = []
@@ -2263,7 +2248,7 @@ class SemialgebraicComplex(SageObject):
                     break
                 var_value.append(x)
             # if random point is not in self.bddbsa, continue while.
-            if (x is not None) and (x in self.bddbsa): #point_satisfies_bddleq_bddlin(var_value, self.bddleq, self.bddlin, strict=False):
+            if (x is not None) and (x in self.bddbsa):
                 return var_value
 
     def is_point_covered(self, var_value):
@@ -2311,7 +2296,7 @@ class SemialgebraicComplex(SageObject):
             [1, 2]
         """
         for c in self.components:
-            if var_value in c.bsa: #point_satisfies_bddleq_bddlin(var_value, c.leq, c.lin, strict=True):
+            if var_value in c.bsa:
                 yield c
         
     def find_uncovered_random_point(self, var_bounds=None, max_failings=10000):
@@ -2681,7 +2666,6 @@ class SemialgebraicComplex(SageObject):
     def is_face_to_face(self):
         sagepolyhedra = []
         for c in self.components:
-            #p1 = construct_sage_polyhedron_from_nnc_polyhedron(c.polyhedron)
             p1 = c.sage_polyhedron()
             for p2 in sagepolyhedra:
                 p = p1.intersection(p2)
@@ -2739,43 +2723,16 @@ def gradient(ineq):
     else:
        return [ineq.derivative()]
 
-def point_satisfies_bddleq_bddlin(var_value, bddleq, bddlin, strict=True):
-    r"""
-    Return whether var_value satisfies bddleq and bddlin.
-
-    Strict inequalities are considered if strict is set to ``True``.
-
-    Not used any more. Can delete
-    """
-    for l in bddleq:
-        if not l(var_value) == 0:
-            return False
-    for l in bddlin:
-        if l(var_value) > 0 or (strict and l(var_value)==0):
-            return False
-    return True
-
-def is_value_in_interval(v, lb_ub):
-    r"""
-    Return whether lb <= v <= ub.
-
-    ``None`` is considered as -Infinity and +Infinity for lb and ub, respectively. 
-    """
-    (lb, ub) = lb_ub
-    if v is None:
-        return (lb is None) or (ub is None) or (lb <= ub)
-    return ((lb is None) or (lb <= v)) and ((ub is None) or (v <= ub))
-
 def bounds_for_plotting(v, lb_ub, default_var_bound):
     r"""
     If lower and upper exist, then return them; otherwise return default variable bounds.
     """
     (lb, ub) = lb_ub
-    if not lb is None:
+    if not lb is -Infinity:
         l = lb - 0.01
     else:
         l = default_var_bound[0]
-    if not ub is None:
+    if not ub is +Infinity:
         u = ub + 0.01
     else:
         u = default_var_bound[1]
@@ -2783,161 +2740,81 @@ def bounds_for_plotting(v, lb_ub, default_var_bound):
         return (v, default_var_bound[0], default_var_bound[1])
     return (v, l, u)
 
-def construct_mip_of_nnc_polyhedron(nncp):
-    r"""
-    Construct a PPL's :class:`MIP_Problem` with non-strict inequalities from the :class:`NNC_Polyhedron`.
-    """
-    min_cs = nncp.minimized_constraints()
-    cs = Constraint_System()
-    for c in min_cs:
-        if c.is_equality():
-            cs.insert(Linear_Expression(c.coefficients(), c.inhomogeneous_term()) == 0)
-        else:
-            cs.insert(Linear_Expression(c.coefficients(), c.inhomogeneous_term()) >= 0)
-    mip = MIP_Problem(nncp.space_dimension())
-    mip.add_constraints(cs)
-    mip.set_optimization_mode('minimization')
-    return mip
-
-def construct_sage_polyhedron_from_nnc_polyhedron(nncp):
-    r"""
-    Construct a Sage's (closed) Polyhedron from PPL's :class:`NNC_Polyhedron`.
-    Not used. Can delete
-    """
-    min_cs = nncp.minimized_constraints()
-    ieqs = [ ([c.inhomogeneous_term()]+list(c.coefficients())) for c in min_cs if not c.is_equality()]
-    eqns = [ ([c.inhomogeneous_term()]+list(c.coefficients())) for c in min_cs if c.is_equality()]
-    return Polyhedron(ieqs=ieqs, eqns=eqns)
-
-def find_bounds_of_variable(mip, i):
+def find_bounds_of_variable(bsa_mip, i):
     r"""
     Return the lower and upper bounds of the i-th variable in the MIP.
-
-    ``None`` stands for unbounded.
     """
-    linexpr = Linear_Expression(Variable(i))
-    lb = find_lower_bound_of_linexpr(mip, linexpr)
-    ub = find_upper_bound_of_linexpr(mip, linexpr)
+    form = bsa_mip.ambient_space().basis()[i]
+    lb = bsa_mip.linear_function_lower_bound(form)
+    ub = bsa_mip.linear_function_upper_bound(form)
     return (lb, ub)
 
-def find_lower_bound_of_linexpr(mip, linexpr):
+def add_mccormick_bound(bsa_mip, i, i1, i2, c1, c2, op):
     r"""
-    Return the minimal value of linexpr subject to mip.
-
-    Return ``None`` if unbounded.
-    Assume that ``mip.set_optimization_mode('minimization')`` was called
+    If x[i] - c1*x[i1] - c2*x[i2] + c1*c2 ``op`` 0 is redundant in the mip, return False,
+    otherwise return True and add this new constraint to the mip.
     """
-    mip.set_objective_function(linexpr)
-    try:
-        lb = QQ(mip.optimal_value())
-    except ValueError:
-        # unbounded
-        lb = None
-    return lb
-
-def find_upper_bound_of_linexpr(mip, linexpr):
-    r"""
-    Return the maximal value of linexpr subject to mip.
- 
-    Return ``None`` if unbounded.
-    Assume that ``mip.set_optimization_mode('minimization')`` was called
-    """
-    mip.set_objective_function(-linexpr)
-    try:
-        ub = -QQ(mip.optimal_value())
-    except ValueError:
-        # unbounded
-        ub = None
-    return ub
-
-def is_not_a_downstairs_wall(c, mip):
-    r"""
-    Return whether a PPL constraint c is always strictly positive in mip.
-    """
-    linexpr = Linear_Expression(c.coefficients(), c.inhomogeneous_term())
-    # we know lb exists and is >= 0
-    lb = find_lower_bound_of_linexpr(mip, linexpr)
-    return bool(lb >  0)
-
-def add_mccormick_bound(mip, x3, x1, x2, c1, c2, is_lowerbound):
-    r"""
-    Try adding x3 > c1*x1 + c2*x2 - c1*c2 (if is_lowerbound, else x3 < c1*x1 + c2*x2 - c1*c2) to mip.
-    Return True this new constraint is not redundnant.
-    """
-    if c1 is None or c2 is None:
+    if c1 in (-Infinity, +Infinity) or c2 in (-Infinity, +Infinity):
         # unbounded
         return False
-    d = c1.denominator() * c2.denominator() #linear expression needs integer coefficients
-    linexpr = Linear_Expression(d*x3 - d*c1*x1 - d*c2*x2 + d*c1*c2)
-    if is_lowerbound:
-        lb = find_lower_bound_of_linexpr(mip, linexpr)
-        if (lb is not None) and (lb >= 0):
-            return False
-        else:
-            mip.add_constraint(linexpr >= 0)
-            return True
-    else:
-        ub = find_upper_bound_of_linexpr(mip, linexpr)
-        if (ub is not None) and (ub <=0):
-            return False
-        else:
-            mip.add_constraint(linexpr <= 0)
-            return True
+    lhs = vector(bsa_mip.base_ring(), bsa_mip.ambient_dim())
+    lhs[i] = 1; lhs[i1] = -c1; lhs[i2] = -c2; cst = c1 * c2;
+    if bsa_mip.is_linear_constraint_valid(lhs, cst, op):
+        return False
+    bsa_mip.add_linear_constraint(lhs, cst, op)
+    return True
 
-def update_mccormicks_for_monomial(m, tightened_mip, monomial_list, v_dict, bounds, new_monomials_allowed=False):
+def update_mccormicks_for_monomial(m, bsa_mip, monomial_list, v_dict, bounds):
     r"""
     Do recursive McCormicks on the monomial m.
 
-    If bounds is modified, update tightened_mip of the cell and return ``True``, otherwise return ``False``.
-
-    If lift_polyhedron is ``None``, recursive McCormicks is not allowed to create new monomials,
-    otherwise, lift the dimension of the polyhedron and tightened_mip, etc. of the cell when new monomials are created.
+    If bounds is modified, update bsa_mip of the cell and return ``True``, otherwise return ``False``.
 
     Expect that the monomials in monomial_list have non-decreasing degrees.
 
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: mip = MIP_Problem(3)
-        sage: vx = Variable(0); vy = Variable(1); vxy = Variable(2)
-        sage: mip.add_constraint(vx >= 0); mip.add_constraint(vx <= 1)
-        sage: mip.add_constraint(vy >= 1); mip.add_constraint(vy <= 2)
-        sage: mip.set_optimization_mode('minimization')
+        sage: bsa_mip = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(QQ, 3, solver='ppl')
+        sage: bsa_mip.add_linear_constraint((1,0,0), 0, operator.ge)
+        sage: bsa_mip.add_linear_constraint((1,0,0), -1, operator.le)
+        sage: bsa_mip.add_linear_constraint((0,1,0), -1, operator.ge)
+        sage: bsa_mip.add_linear_constraint((0,1,0), -2, operator.le)
         sage: P.<x,y> = QQ[]
         sage: monomial_list = [x, y, x*y]; v_dict = {x:0, y:1, x*y:2}
         sage: bounds = [(0, 1), (1, 2), (None, None)]
 
     Upward bounds propagation::
 
-        sage: update_mccormicks_for_monomial(x*y, mip, monomial_list, v_dict, bounds)
+        sage: update_mccormicks_for_monomial(x*y, bsa_mip, monomial_list, v_dict, bounds)
         True
         sage: bounds
         [(0, 1), (1, 2), (0, 2)]
-        sage: update_mccormicks_for_monomial(x*y, mip, monomial_list, v_dict, bounds)
+        sage: update_mccormicks_for_monomial(x*y, bsa_mip, monomial_list, v_dict, bounds)
         False
 
-        sage: mip.add_space_dimensions_and_embed(1); mip.add_constraint(2*Variable(3) >= 1);
+        sage: bsa_mip.add_space_dimensions_and_embed(1)
+        sage: bsa_mip.add_linear_constraint((0,0,0,2), -1, operator.ge)
         sage: monomial_list.append(x*y^2); v_dict[x*y^2]=3; bounds.append((1/2, None));
         sage: monomial_list
         [x, y, x*y, x*y^2]
         sage: bounds
         [(0, 1), (1, 2), (0, 2), (1/2, None)]
 
-        sage: update_mccormicks_for_monomial(x*y*y, mip, monomial_list, v_dict, bounds)
+        sage: update_mccormicks_for_monomial(x*y*y, bsa_mip, monomial_list, v_dict, bounds)
         True
         sage: bounds
         [(0, 1), (1, 2), (0, 2), (1/2, 4)]
 
     Downward bounds propagation::
 
-        sage: bounds = [find_bounds_of_variable(mip,i) for i in range(4)]
+        sage: bounds = [find_bounds_of_variable(bsa_mip,i) for i in range(4)]
         sage: bounds
         [(1/8, 1), (1, 2), (1/4, 2), (1/2, 4)]
     """
     if m.degree() < 2:
         return False
     i = v_dict[m]
-    v = Variable(i)
     tightened = False
     for v1 in monomial_list:
         (v2, rem) = m.quo_rem(v1)
@@ -2945,24 +2822,22 @@ def update_mccormicks_for_monomial(m, tightened_mip, monomial_list, v_dict, boun
             # don't want the recursive McCormicks to create a new monomial.
             # v1, v2 symmetric
             continue
-        i_1 = v_dict[v1]
-        i_2 = v_dict.get(v2, None)
-        if (i_2 is None):
+        i1 = v_dict[v1]
+        i2 = v_dict.get(v2, None)
+        if (i2 is None):
             continue
-        v_1 = Variable(i_1)
-        v_2 = Variable(i_2)
-        lb_1, ub_1 = bounds[i_1]
-        lb_2, ub_2 = bounds[i_2]
-        if add_mccormick_bound(tightened_mip, v, v_1, v_2, lb_2, lb_1, True):
+        lb1, ub1 = bounds[i1]
+        lb2, ub2 = bounds[i2]
+        if add_mccormick_bound(bsa_mip, i, i1, i2, lb2, lb1, operator.ge):
             tightened = True
-        if add_mccormick_bound(tightened_mip, v, v_1, v_2, ub_2, ub_1, True):
+        if add_mccormick_bound(bsa_mip, i, i1, i2, ub2, ub1, operator.ge):
             tightened = True
-        if add_mccormick_bound(tightened_mip, v, v_1, v_2, lb_2, ub_1, False):
+        if add_mccormick_bound(bsa_mip, i, i1, i2, lb2, ub1, operator.le):
             tightened = True
-        if add_mccormick_bound(tightened_mip, v, v_1, v_2, ub_2, lb_1, False):
+        if add_mccormick_bound(bsa_mip, i, i1, i2, ub2, lb1, operator.le):
             tightened = True
     if tightened:
-        bounds[i] = find_bounds_of_variable(tightened_mip, i)
+        bounds[i] = find_bounds_of_variable(bsa_mip, i)
     return tightened
 
 ####################################
