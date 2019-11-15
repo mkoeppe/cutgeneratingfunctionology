@@ -21,4 +21,7 @@ if [ -n "${SAGE_AGE}" ]; then
   # To initialize matplotlib font manager
   $HOME/SageMath/sage -python -c 'import matplotlib.pyplot'
   $HOME/SageMath/sage -pip install --user sphinxcontrib-websupport
+else
+    #https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#using-pip-in-an-environment
+    pip -i pynormaliz
 fi
