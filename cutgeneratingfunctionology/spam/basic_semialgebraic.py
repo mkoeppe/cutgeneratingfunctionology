@@ -15,6 +15,9 @@ from sage.plot.graphics import Graphics
 from sage.calculus.var import var
 from sage.plot.contour_plot import region_plot
 from sage.matrix.constructor import matrix
+from sage.structure.element import get_coercion_model
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 
 from copy import copy
 from itertools import chain
@@ -1254,17 +1257,35 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
             sage: section.poly_ring()
             Multivariate Polynomial Ring in no variables over Rational Field
 
+        TESTS:
+
+        Coercion to a common parent is applied to determine the effective ``poly_ring``::
+
+            sage: PX_ZZ = ZZ['u', 'v']
+            sage: u_zz, v_zz = PX_ZZ.gens()
+            sage: F = [ZZ(1), v_zz, u]
+            sage: section = bsa.section(F)
+            sage: poly_ring = section.poly_ring(); poly_ring
+            Multivariate Polynomial Ring in u, v over Rational Field
+            sage: all(f.parent() is poly_ring for f in section.polynomial_map())
+            True
         """
         if len(polynomial_map) != upstairs_bsa.ambient_dim():
-            raise ValueError("polynomial_map must have the same length as the dimension of the underlying bsa")
+            raise ValueError("polynomial_map must have the same length as the ambient dimension of the upstairs bsa")
+        base_ring = upstairs_bsa.base_ring()
+        cm = get_coercion_model()
+        poly_ring = cm.common_parent(*polynomial_map)
+        if not is_PolynomialRing(poly_ring) and not is_MPolynomialRing(poly_ring):
+            poly_ring = PolynomialRing(base_ring, [])
+        polynomial_map = [ poly_ring(f) for f in polynomial_map ]
         if polynomial_map and ambient_dim is None:
-            ambient_dim = polynomial_map[0].parent().ngens()
+            ambient_dim = poly_ring.ngens()
         if not all(poly.parent().ngens() == ambient_dim for poly in polynomial_map):
             raise ValueError("elements in polynomial_map must come from a polynomial ring with the same number of variables as the ambient dimension")
-        base_ring = upstairs_bsa.base_ring()
         super(BasicSemialgebraicSet_section, self).__init__(base_ring, ambient_dim)
         self._upstairs_bsa = upstairs_bsa
         self._polynomial_map = polynomial_map
+        self._poly_ring = poly_ring
 
     def __copy__(self):
         """
@@ -1275,10 +1296,7 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
                               self.ambient_dim())
 
     def poly_ring(self):
-        if not self._polynomial_map:
-            return PolynomialRing(self.base_ring(), [])
-        else:
-            return self._polynomial_map[0].parent()
+        return self._poly_ring
 
     def eq_poly(self):
         for p in self._upstairs_bsa.eq_poly():
