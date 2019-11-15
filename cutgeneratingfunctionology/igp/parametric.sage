@@ -1447,7 +1447,7 @@ class ParametricRealField(Field):
         v_dict = {P.gens()[i]:i for i in range(n)}
         self._polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=n)
         self._bsa = BasicSemialgebraicSet_veronese(self._polyhedron, ambient_dim=n,
-                                                   monomial_list=monomial_list, v_dict=v_dict)
+                                                   polynomial_map=monomial_list, v_dict=v_dict)
 
 ###############################
 # Simplify polynomials

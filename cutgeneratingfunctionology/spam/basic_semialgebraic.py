@@ -488,7 +488,26 @@ class BasicSemialgebraicSet_polyhedral(BasicSemialgebraicSet_base):
         # univariate polynomials (Polynomial_rational_flint) does not define "coefficient", but has "monomial_coefficient".
         self.add_linear_constraint(lhs_vector, cst, op)
 
+    def is_polynomial_constraint_valid(self, lhs, op):
+        """
+        Check if the constraint ``lhs``(x) ``op`` 0 is satisfied
+        for all points of ``self``, where ``lhs`` is a polynomial, and
+        ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
+        ``operator.le``, ``operator.ge``.
 
+        This implementation checks that ``lhs`` is a linear polynomial
+        and then delegates to ``add_linear_constraint``.
+
+        Raise an error if the information provided does not suffice to decide
+        the validity of the constraint.
+        """
+        lhs = self.poly_ring()(lhs)   # convert if necessary
+        if lhs.degree() > 1:
+            raise NotImplementedError("{} is not a valid linear polynomial.".format(lhs))
+        cst = lhs.constant_coefficient()
+        lhs_vector = vector(lhs.monomial_coefficient(x) for x in self.poly_ring().gens())
+        # univariate polynomials (Polynomial_rational_flint) does not define "coefficient", but has "monomial_coefficient".
+        return self.is_linear_constraint_valid(lhs_vector, cst, op)
 
 ## (1) In the first step, we implement the following class.  Everything is linear.
 ## Rewrite all direct uses of PPL in ParametricRealFieldElement, ParametricRealField
