@@ -48,6 +48,8 @@ def _bsa_class(bsa_class):
     elif bsa_class == 'linear_system':
         from .basic_semialgebraic_linear_system import BasicSemialgebraicSet_polyhedral_linear_system
         return BasicSemialgebraicSet_polyhedral_linear_system
+    elif bsa_class == 'intersection':
+        return BasicSemialgebraicSet_intersection
     else:
         raise ValueError("unknown bsa class: {}".format(bsa_class))
 
@@ -222,6 +224,30 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         Return the basic semialgebraic set that is the topological closure
         of ``self``.
         """
+
+    def intersection(self, *bsa_list, **kwds):
+        """
+        Return the basic semialgebraic set that is the intersection of the
+        basic semialgebraic sets in ``bsa_list``.
+
+        By default, the intersection is represented by an instance of class
+        ``BasicSemialgebraicSet_intersection``; use the argument ``bsa_class``
+        to choose another class.  See ``_bsa_class`` for the allowed class nicknames.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P.<x,y,z> = QQ[]
+            sage: bsa1 = BasicSemialgebraicSet_eq_lt_le_sets(le=[-x, -y])
+            sage: bsa2 = BasicSemialgebraicSet_eq_lt_le_sets(eq=[x + y], le=[-z])
+            sage: bsa3 = BasicSemialgebraicSet_eq_lt_le_sets(lt=[y + z])
+            sage: bsa123 = bsa1.intersection(bsa2, bsa3)
+            sage: sorted(bsa123.le_poly()), sorted(bsa123.eq_poly()), sorted(bsa123.lt_poly())
+            ([-z, -y, -x], [x + y], [y + z])
+        """
+        bsa_class = _bsa_class(kwds.pop('bsa_class', 'intersection'))
+        bsa_intersection = BasicSemialgebraicSet_intersection([self] + list(bsa_list), **kwds)
+        return bsa_class.from_bsa(bsa_intersection)
 
     def add_space_dimensions_and_embed(self, space_dim_to_add):
         """
@@ -1508,3 +1534,34 @@ class BasicSemialgebraicSet_formal_closure(BasicSemialgebraicSet_base):
 
     def lt_poly(self):
         return []
+
+class BasicSemialgebraicSet_intersection(BasicSemialgebraicSet_base):
+
+    r"""
+    Represent the intersection of finitely many basic semialgebraic sets.
+    See method ``intersection``.
+    """
+
+    def __init__(self, bsa_list):
+        bsa_list = list(bsa_list)
+        base_ring = bsa_list[0].base_ring()
+        ambient_dim = bsa_list[0].ambient_dim()
+        poly_ring = bsa_list[0].poly_ring()
+        if not all(bsa.base_ring() == base_ring
+                   and bsa.ambient_dim() == ambient_dim
+                   and bsa.poly_ring() == poly_ring
+                   for bsa in bsa_list):
+            raise ValueError("all sets in the intersection must have the same base_ring, ambient_dim, poly_ring")
+        self._bsa_list = bsa_list
+
+    def _repr_(self):
+        return 'BasicSemialgebraicSet_intersection({})'.format(self._bsa_list)
+
+    def eq_poly(self):
+        return chain(*[bsa.eq_poly() for bsa in self._bsa_list])
+
+    def le_poly(self):
+        return chain(*[bsa.le_poly() for bsa in self._bsa_list])
+
+    def lt_poly(self):
+        return chain(*[bsa.lt_poly() for bsa in self._bsa_list])
