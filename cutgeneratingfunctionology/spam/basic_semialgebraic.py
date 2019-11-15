@@ -1237,6 +1237,10 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
         return self._upstairs_bsa
 
     def polynomial_map(self):
+        """
+        A list that maps the index of each generator in ``self.upstairs()``
+        to a monomial.
+        """
         return self._polynomial_map
 
     def find_point(self):
@@ -1281,12 +1285,12 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
     via a Veronese embedding (reformulation-linearization, RLT).
 
     Expand the polynomial in the standard monomial basis and replace each monomial by a new variable.
-    Record monomials in monomial_list and their corresponding variables in v_dict. The resulting
+    Record monomials in polynomial_map and their corresponding variables in v_dict. The resulting
     linear expression in the extended space will be provided as inequality or equation in
     upstairs_bsa, which could, for example be represented by a PPL not-necessarily-closed polyhedron.
     """
 
-    def __init__(self, upstairs_bsa, monomial_list, v_dict, ambient_dim=None):
+    def __init__(self, upstairs_bsa, polynomial_map, v_dict, ambient_dim=None):
         """
         EXAMPLES:
 
@@ -1303,16 +1307,14 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             sage: names = ['u', 'v']
             sage: n = len(names)
             sage: P = PolynomialRing(QQ, names)
-            sage: monomial_list = list(P.gens())
+            sage: polynomial_map = list(P.gens())
             sage: v_dict = {P.gens()[i]:i for i in range(n)}
             sage: polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=n)
-            sage: veronese = BasicSemialgebraicSet_veronese(polyhedron, monomial_list, v_dict)
+            sage: veronese = BasicSemialgebraicSet_veronese(polyhedron, polynomial_map, v_dict)
             sage: veronese.ambient_space()
             Vector space of dimension 2 over Rational Field
-
         """
-        super(BasicSemialgebraicSet_veronese, self).__init__(upstairs_bsa, monomial_list,
-                                                             ambient_dim=ambient_dim)
+        super(BasicSemialgebraicSet_veronese, self).__init__(upstairs_bsa, polynomial_map, ambient_dim=ambient_dim)
         self._v_dict = v_dict
 
     def __copy__(self):
@@ -1322,13 +1324,6 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         """
         return self.__class__(copy(self.upstairs()), copy(self.polynomial_map()),
                               copy(self.v_dict()), self.ambient_dim())
-
-    def monomial_list(self):
-        """
-        A list that maps the index of each generator in ``self.upstairs()``
-        to a monomial.
-        """
-        return self._polynomial_map
 
     def v_dict(self):
         """
@@ -1354,15 +1349,15 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             sage: veronese.add_polynomial_constraint(lhs, operator.lt)
             sage: list(veronese.lt_poly())
             [54*x0^2 + 226*x1*x2 + 113]
-            sage: veronese.monomial_list()
+            sage: veronese.polynomial_map()
             [x0^2, x1*x2]
             sage: veronese.v_dict()
             {x1*x2: 1, x0^2: 0}
             sage: lhs2 = x0 + 1/3*x1*x2
             sage: veronese.add_polynomial_constraint(lhs2, operator.lt)
-            sage: list(veronese.lt_poly())
-            [54*x0^2 + 226*x1*x2 + 113, x1*x2 + 3*x0]
-            sage: veronese.monomial_list()
+            sage: sorted(veronese.lt_poly())
+            [x1*x2 + 3*x0, 54*x0^2 + 226*x1*x2 + 113]
+            sage: veronese.polynomial_map()
             [x0^2, x1*x2, x0]
             sage: veronese.v_dict()
             {x0: 2, x1*x2: 1, x0^2: 0}
@@ -1377,9 +1372,9 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             else:
                 nv = self.v_dict().get(m, None)
                 if nv is None:
-                    nv = len(self.monomial_list())
+                    nv = len(self.polynomial_map())
                     self.v_dict()[m] = nv
-                    self.monomial_list().append(m)
+                    self.polynomial_map().append(m)
                     space_dim_to_add += 1
                     upstairs_lhs_coeff.append(coeffm)
                 else:

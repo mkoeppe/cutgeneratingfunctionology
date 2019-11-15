@@ -614,7 +614,7 @@ class ParametricRealField(Field):
         self._polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(0)
         # monomial_list records the monomials that appear in self._eq/lt_factor.
         # v_dict is a dictionary that maps each monomial to the index of its corresponding Variable in self._polyhedron
-        self._bsa = BasicSemialgebraicSet_veronese(self._polyhedron, monomial_list=[], v_dict={})
+        self._bsa = BasicSemialgebraicSet_veronese(self._polyhedron, polynomial_map=[], v_dict={})
 
         self.allow_coercion_to_float = allow_coercion_to_float
         if allow_coercion_to_float:
@@ -635,7 +635,7 @@ class ParametricRealField(Field):
         return self._polyhedron._polyhedron
 
     def monomial_list(self):
-        return self._bsa.monomial_list()
+        return self._bsa.polynomial_map()
 
     def v_dict(self):
         return self._bsa.v_dict()
@@ -1167,7 +1167,6 @@ class ParametricRealField(Field):
                 numerator *= the_lcm
                 unit = 1
             factors = Factorization([(numerator / unit, 1)], unit=unit)
-            #import pdb;  pdb.set_trace()
         else:
             factors = comparison.factor()
         if op in (operator.eq, operator.le):
@@ -1439,7 +1438,7 @@ class ParametricRealField(Field):
         return component
 
     def add_initial_space_dim(self):
-        if self._bsa.monomial_list():
+        if self._bsa.polynomial_map():
             # the ParametricRealField already has monomials recorded. Not brand-new.
             return
         n = len(self._names)
