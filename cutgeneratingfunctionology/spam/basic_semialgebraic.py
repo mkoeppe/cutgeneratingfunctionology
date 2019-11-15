@@ -939,6 +939,9 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
         constraint = op(constraint_lhs, 0)
         self.mip().add_constraint(constraint)
 
+    def _repr_(self):
+        return 'BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram with {}'.format(self._mip)
+
     def eq_poly(self):
         """
         Generate the polynomials `f` in equations `f(x) = 0`
