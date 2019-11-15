@@ -103,7 +103,14 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
 
             sage: upstairs_bsa_mip = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram.from_bsa(upstairs_bsa_eq_lt_le_sets, solver='ppl')    # not tested - unfinished implementation
 
+        If ``bsa`` is already of class ``cls``, it is just returned::
+
+            sage: BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(upstairs_bsa_eq_lt_le_sets) is upstairs_bsa_eq_lt_le_sets
+            True
+
         """
+        if bsa.__class__ == cls:
+            return bsa
         base_ring = init_kwds.pop('base_ring', bsa.base_ring())
         ambient_dim = bsa.ambient_dim()
         self = cls(base_ring=base_ring, ambient_dim=ambient_dim, **init_kwds)
@@ -207,10 +214,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         """
         bsa_formal_closure = BasicSemialgebraicSet_formal_closure(self)
         bsa_class = _bsa_class(bsa_class)
-        if bsa_class == BasicSemialgebraicSet_formal_closure:
-            return bsa_formal_closure
-        else:
-            return bsa_class.from_bsa(bsa_formal_closure)
+        return bsa_class.from_bsa(bsa_formal_closure)
 
     @abstract_method
     def closure(self, bsa_class):
@@ -359,10 +363,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         """
         bsa_section = BasicSemialgebraicSet_section(self, polynomial_map)
         bsa_class = _bsa_class(bsa_class)
-        if bsa_class == BasicSemialgebraicSet_section:
-            return bsa_section
-        else:
-            return bsa_class.from_bsa(bsa_section, **kwds)
+        return bsa_class.from_bsa(bsa_section, **kwds)
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, **kwds):
         r"""
