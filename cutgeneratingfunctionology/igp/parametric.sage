@@ -2349,12 +2349,12 @@ class SemialgebraicComplex(SageObject):
         Plot the slice in (x,y)-space with z=4 (the following two ways give the same thing)::
 
             sage: complex.plot(slice_value=[None, None, 4])          # not tested
-            sage: complex.plot(slice_value=[u, v, Q(4)])             # not tested
+            sage: complex.plot(slice_value=[u, v, 4])                # not tested
 
         Plot the slice in (y,z)-space with x=4 (the following two ways give the same thing)::
 
             sage: complex.plot(slice_value=[4, None, None])          # not tested
-            sage: complex.plot(slice_value=[Q(4), u, v])             # not tested
+            sage: complex.plot(slice_value=[4, u, v])                # not tested
 
         Plot the slice in (x,y)-space with z=y::
 

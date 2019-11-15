@@ -1245,7 +1245,7 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
         An interval::
 
             sage: PZ.<z> = QQ[]
-            sage: interval = bsa.section([PZ(1), PZ(1), z])
+            sage: interval = bsa.section([1, 1, z])
             sage: sorted(f for f in interval.le_poly() if f not in QQ)
             [-z, z - 6]
 
