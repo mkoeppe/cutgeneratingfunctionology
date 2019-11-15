@@ -1310,6 +1310,23 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
     Record monomials in polynomial_map and their corresponding variables in v_dict. The resulting
     linear expression in the extended space will be provided as inequality or equation in
     upstairs_bsa, which could, for example be represented by a PPL not-necessarily-closed polyhedron.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+        sage: upstairs_bsa_ppl = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=0)
+        sage: veronese = BasicSemialgebraicSet_veronese(upstairs_bsa_ppl, [], dict(), ambient_dim=0)
+        sage: P.<f>=QQ[]
+        sage: lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
+        sage: for lhs in lt_poly: veronese.add_polynomial_constraint(lhs, operator.lt)
+        sage: veronese.polynomial_map()
+        [f, f^2]
+        sage: sorted(veronese.eq_poly())
+        []
+        sage: sorted(veronese.le_poly())
+        []
+        sage: sorted(veronese.lt_poly())
+        [-2*f + 1, f - 1, f^2 - f]
     """
 
     def __init__(self, upstairs_bsa, polynomial_map, v_dict, ambient_dim=None):
@@ -1383,6 +1400,22 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             [x0^2, x1*x2, x0]
             sage: veronese.v_dict()
             {x0: 2, x1*x2: 1, x0^2: 0}
+            sage: bsa = BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=0), [], dict(), ambient_dim=0)
+            sage: P.<x,y,z> = QQ[]
+            sage: t = 27/113 * x^2 + y*z + 1/2
+            sage: bsa.add_polynomial_constraint(t, operator.lt)
+            sage: bsa.polynomial_map()
+            [x^2, y*z]
+            sage: bsa.v_dict()
+            {y*z: 1, x^2: 0}
+            sage: tt = x + 1/3 * y*z
+            sage: bsa.add_polynomial_constraint(tt, operator.le)
+            sage: bsa.polynomial_map()
+            [x^2, y*z, x]
+            sage: bsa.v_dict()
+            {x: 2, y*z: 1, x^2: 0}
+            sage: sorted(bsa.lt_poly()), sorted(bsa.le_poly())
+            ([54*x^2 + 226*y*z + 113], [y*z + 3*x])
         """
         space_dim_to_add = 0
         upstairs_lhs_coeff = [0] * self.upstairs().ambient_dim()
