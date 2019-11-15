@@ -557,7 +557,7 @@ class ParametricRealField(Field):
     Element = ParametricRealFieldElement
 
     def __init__(self, values=None, names=(), allow_coercion_to_float=True,
-                 mutable_values=None, allow_refinement=None, big_cells=None):
+                 mutable_values=None, allow_refinement=None, big_cells=None, base_ring=QQ):
         Field.__init__(self, self)
 
         if mutable_values is None:
@@ -589,8 +589,8 @@ class ParametricRealField(Field):
         self._eq = set([])
         self._lt = set([])
         self._le = set([])
-        #sym_ring = PolynomialRing(QQ, names, implementation='generic')
-        sym_ring = PolynomialRing(QQ, names)
+        #sym_ring = PolynomialRing(base_ring, names, implementation='generic')
+        sym_ring = PolynomialRing(base_ring, names)
         self._factor_bsa = BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=sym_ring)
         self._sym_field = sym_ring.fraction_field()
         if values is None:
@@ -648,9 +648,35 @@ class ParametricRealField(Field):
     def _an_element_impl(self):
         return ParametricRealFieldElement(1, parent=self)
     def _coerce_map_from_(self, S):
+        """
+        TESTS:
+
+        Test that elements of different ``ParametricRealField``s have no coercion.
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<a> = ParametricRealField([0])
+            sage: L.<b> = ParametricRealField([1])
+            sage: a + b
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s)...
+
+        Test that real number field elements can be upgraded to ``ParametricRealFieldElement``s.
+        Note that this requires setting up the ParametricRealField with a specific base ring, 
+        because there is no common parent of QQ(x) and a RealNumberField``::
+
+            sage: sqrt2, = nice_field_values([sqrt(2)])
+            sage: K.<f> = ParametricRealField([0], base_ring=sqrt2.parent())
+            sage: f + sqrt2
+            (f + 1.414213562373095?)~
+
+        This currently does not work for Sage's built-in embedded number field elements...
+        """
         if isinstance(S, ParametricRealField) and self is not S:
             return None
-        if S is sage.interfaces.mathematica.MathematicaElement or (AA.has_coerce_map_from(S)):
+        if  S is sage.interfaces.mathematica.MathematicaElement or isinstance(S, RealNumberField_absolute) or isinstance(S, RealNumberField_quadratic) or AA.has_coerce_map_from(S):
+            # Does the test with MathematicaElement actually work?
             # We test whether S coerces into AA. This rules out inexact fields such as RDF.
             return CallableConvertMap(S, self, lambda s: ParametricRealFieldElement(s, parent=self), parent_as_first_arg=False)
     def __repr__(self):
