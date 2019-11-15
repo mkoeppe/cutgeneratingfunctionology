@@ -1552,6 +1552,7 @@ class BasicSemialgebraicSet_intersection(BasicSemialgebraicSet_base):
                    and bsa.poly_ring() == poly_ring
                    for bsa in bsa_list):
             raise ValueError("all sets in the intersection must have the same base_ring, ambient_dim, poly_ring")
+        super(BasicSemialgebraicSet_intersection, self).__init__(base_ring, ambient_dim)
         self._bsa_list = bsa_list
 
     def _repr_(self):
