@@ -1565,3 +1565,9 @@ class BasicSemialgebraicSet_intersection(BasicSemialgebraicSet_base):
 
     def lt_poly(self):
         return chain(*[bsa.lt_poly() for bsa in self._bsa_list])
+
+    def linear_function_upper_bound(self, form):
+        return min(bsa.linear_function_upper_bound(form) for bsa in self._bsa_list)
+
+    def is_polynomial_constraint_valid(self, lhs, op):
+        return any(bsa.is_polynomial_constraint_valid(lhs, op) for bsa in self._bsa_list)
