@@ -1722,14 +1722,11 @@ class kzh_extreme_and_weak_facet_but_not_facet:
     Reference:
         Matthias Koeppe, Yuan Zhou. On the notions of facets, weak facets, and extreme functions of the Gomory-Johnson infinite group problem.
     """
-    def __init__(self,f=4/5,l=219/800,u=269/800,t1=77/7752*sqrt(2),t2=77/2584):
-        self._f = f
-        self._l=l
-        self._u=u
-        self._t1=t1
-        self._t2=t2
-        self.Cplus=set()
-        self.pi = kzh_minimal_has_only_crazy_perturbation_1()
+    def __init__(self, pi=None):
+        self.Cplus = set()
+        if pi is None:
+            pi = kzh_minimal_has_only_crazy_perturbation_1()
+        self.pi = pi
 
     def __call__(self, x):
         """
@@ -1747,13 +1744,13 @@ class kzh_extreme_and_weak_facet_but_not_facet:
             True
         """
 
-        x=fractional(x)
-        f=self._f
-        l=self._l
-        u=self._u
-        t1=self._t1
-        t2=self._t2
-        s=QQ(19/23998)
+        x = fractional(x)
+        f = self.pi._f
+        l = self.pi.ucl
+        u = self.pi.ucr
+        t1 = self.pi.t1
+        t2 = self.pi.t2
+        s = self.pi.s
         pi=self.pi
         if x<l or u<x<f-u or x>f-l:
             return pi(x)
@@ -1772,7 +1769,7 @@ class kzh_extreme_and_weak_facet_but_not_facet:
 
     def is_in_T(self, x):
         try:
-            t1,t2,xx=nice_field_values([self._t1,self._t2,x])
+            t1,t2,xx=nice_field_values([self.pi.t1, self.pi.t2, x])
             coe=xx.list()
             # make sure x is properly embedded.
             if not len(coe)==2:
@@ -1780,8 +1777,8 @@ class kzh_extreme_and_weak_facet_but_not_facet:
             xxx=nice_field_values([coe[0]+coe[1]*sqrt(2)])[0]
             if not xxx==xx:
                 return False
-            c1=coe[0]/self._t2
-            c2=coe[1]/(self._t1/sqrt(2))
+            c1=coe[0]/self.pi.t2
+            c2=coe[1]/(self.pi.t1/sqrt(2))
             if c1 in ZZ and c2 in ZZ:
                 return True
             else: 
@@ -1790,22 +1787,22 @@ class kzh_extreme_and_weak_facet_but_not_facet:
             return False
  
     def is_in_C(self, x):  
-        f=self._f
-        l=self._l
-        u=self._u
-        t1=self._t1
-        t2=self._t2
+        f=self.pi._f
+        l=self.pi.ucl
+        u=self.pi.ucr
+        t1=self.pi.t1
+        t2=self.pi.t2
         if self.is_in_T(x-(l+u)/2) or self.is_in_T(x-(l+u-t1)/2) or self.is_in_T(x-(l+u-t2)/2):
             return True
         else:
             return False
                       
     def is_in_Cplus(self,x): 
-        f=self._f
-        l=self._l
-        u=self._u
-        t1=self._t1
-        t2=self._t2
+        f=self.pi._f
+        l=self.pi.ucl
+        u=self.pi.ucr
+        t1=self.pi.t1
+        t2=self.pi.t2
         phi_x=l+u-x
         if self.is_in_T(x-phi_x):
             self.Cplus.add(x)

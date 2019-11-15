@@ -119,7 +119,7 @@ def generate_perturbations_simple(fn, show_plots=False, f=None, oversampling=3, 
             perturbation = discontinuous_interpolation(pts, mid, right, left)
         yield perturbation
 
-def discontinuous_interpolation(pts, mid, right, left):
+def discontinuous_interpolation(pts, mid, right, left, merge=True):
     grid_nb = len(pts)
     pieces = []
     for i in range(grid_nb - 1):
@@ -128,7 +128,7 @@ def discontinuous_interpolation(pts, mid, right, left):
     pieces += [ singleton_piece(pts[-1], mid[-1]), \
                 open_piece((pts[-1], right[-1]), (1, left[0])), \
                 singleton_piece(1, 0) ]
-    return FastPiecewise(pieces)
+    return FastPiecewise(pieces, merge=merge)
 
 def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, oversampling=3, order=None, show_all_perturbations=False, full_certificates=True):
     r"""

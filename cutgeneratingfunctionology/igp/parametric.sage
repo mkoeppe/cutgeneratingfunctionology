@@ -148,28 +148,28 @@ class ParametricRealFieldElement(FieldElement):
             if true_op == op_LT:
                 # left.sym() - right.sym() may cancel denominators, but that is
                 # OK because _div_ makes sure that denominators are nonzero.
-                left.parent().assume_comparison(left.sym() - right.sym(), operator.lt)
+                left.parent().assume_comparison(left - right, operator.lt)
             elif true_op == op_GT:
-                left.parent().assume_comparison(left.sym() - right.sym(), operator.gt)
+                left.parent().assume_comparison(left - right, operator.gt)
             elif true_op == op_EQ:
-                left.parent().assume_comparison(left.sym() - right.sym(), operator.eq)
+                left.parent().assume_comparison(left - right, operator.eq)
             elif true_op == op_LE:
-                left.parent().assume_comparison(left.sym() - right.sym(), operator.le)
+                left.parent().assume_comparison(left - right, operator.le)
             elif true_op == op_GE:
-                left.parent().assume_comparison(left.sym() - right.sym(), operator.ge)
+                left.parent().assume_comparison(left - right, operator.ge)
             elif true_op == op_NE:
-                left.parent().assume_comparison(left.sym() - right.sym(), operator.ne)
+                left.parent().assume_comparison(left - right, operator.ne)
             else:
                 raise ValueError("{} is not a valid richcmp operator".format(op))
             return result
         else:
             # Traditional cmp semantics.
             if (left.val() == right.val()):
-                left.parent().assume_comparison(left.sym(), operator.eq, right.sym())
+                left.parent().assume_comparison(left, operator.eq, right)
             elif (left.val() < right.val()):
-                left.parent().assume_comparison(left.sym(), operator.lt, right.sym())
+                left.parent().assume_comparison(left, operator.lt, right)
             else:
-                left.parent().assume_comparison(right.sym(), operator.lt, left.sym())
+                left.parent().assume_comparison(right, operator.lt, left)
             return richcmp(left.val(), right.val(), op)
 
     def __abs__(self):
@@ -438,7 +438,7 @@ class FactorUndetermined(Exception):
 
 allow_refinement_default = True
 big_cells_default = 'if_not_allow_refinement'
-mutable_values_default = 'if_big_cells'
+mutable_values_default = False
 
 class ParametricRealField(Field):
     r"""
@@ -533,7 +533,8 @@ class ParametricRealField(Field):
         sage: f[0]*f[1] <= 4
         True
 
-    Test-point free mode (limited functionality)::
+    Test-point free mode (limited functionality and MUCH slower because of many more polynoial
+    evaluations via libsingular)::
 
         sage: K.<a, b> = ParametricRealField(None, mutable_values=True)
         sage: a <= 2
@@ -556,7 +557,7 @@ class ParametricRealField(Field):
     Element = ParametricRealFieldElement
 
     def __init__(self, values=None, names=(), allow_coercion_to_float=True,
-                 mutable_values=None, allow_refinement=None, big_cells=None):
+                 mutable_values=None, allow_refinement=None, big_cells=None, base_ring=QQ):
         Field.__init__(self, self)
 
         if mutable_values is None:
@@ -588,7 +589,8 @@ class ParametricRealField(Field):
         self._eq = set([])
         self._lt = set([])
         self._le = set([])
-        sym_ring = PolynomialRing(QQ, names)
+        #sym_ring = PolynomialRing(base_ring, names, implementation='generic')
+        sym_ring = PolynomialRing(base_ring, names)
         self._factor_bsa = BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=sym_ring)
         self._sym_field = sym_ring.fraction_field()
         if values is None:
@@ -608,12 +610,12 @@ class ParametricRealField(Field):
 
         # do the computation of the polyhedron incrementally,
         # rather than first building a huge list and then in a second step processing it.
-        # the polyhedron defined by all constraints in self._eq/lt_factor
+        # the upstairs polyhedron defined by all constraints in self._eq/lt_factor
         self._polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(0)
-        # records the monomials that appear in self._eq/lt_factor
-        self.monomial_list = []
-        # a dictionary that maps each monomial to the index of its corresponding Variable in self._polyhedron
-        self.v_dict = {}
+        # monomial_list records the monomials that appear in self._eq/lt_factor.
+        # v_dict is a dictionary that maps each monomial to the index of its corresponding Variable in self._polyhedron
+        self._bsa = BasicSemialgebraicSet_veronese(self._polyhedron, polynomial_map=[], v_dict={})
+
         self.allow_coercion_to_float = allow_coercion_to_float
         if allow_coercion_to_float:
             RDF.register_coercion(sage.structure.coerce_maps.CallableConvertMap(self, RDF, lambda x: RDF(x.val()), parent_as_first_arg=False))
@@ -632,6 +634,12 @@ class ParametricRealField(Field):
     def ppl_polyhedron(self):
         return self._polyhedron._polyhedron
 
+    def monomial_list(self):
+        return self._bsa.polynomial_map()
+
+    def v_dict(self):
+        return self._bsa.v_dict()
+
     def _first_ngens(self, n):
         for i in range(n):
             yield self._gens[i]
@@ -640,9 +648,35 @@ class ParametricRealField(Field):
     def _an_element_impl(self):
         return ParametricRealFieldElement(1, parent=self)
     def _coerce_map_from_(self, S):
+        """
+        TESTS:
+
+        Test that elements of different ``ParametricRealField``s have no coercion.
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+            sage: K.<a> = ParametricRealField([0])
+            sage: L.<b> = ParametricRealField([1])
+            sage: a + b
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s)...
+
+        Test that real number field elements can be upgraded to ``ParametricRealFieldElement``s.
+        Note that this requires setting up the ParametricRealField with a specific base ring, 
+        because there is no common parent of QQ(x) and a RealNumberField``::
+
+            sage: sqrt2, = nice_field_values([sqrt(2)])
+            sage: K.<f> = ParametricRealField([0], base_ring=sqrt2.parent())
+            sage: f + sqrt2
+            (f + 1.414213562373095?)~
+
+        This currently does not work for Sage's built-in embedded number field elements...
+        """
         if isinstance(S, ParametricRealField) and self is not S:
             return None
-        if S is sage.interfaces.mathematica.MathematicaElement or (AA.has_coerce_map_from(S)):
+        if  S is sage.interfaces.mathematica.MathematicaElement or isinstance(S, RealNumberField_absolute) or isinstance(S, RealNumberField_quadratic) or AA.has_coerce_map_from(S):
+            # Does the test with MathematicaElement actually work?
             # We test whether S coerces into AA. This rules out inexact fields such as RDF.
             return CallableConvertMap(S, self, lambda s: ParametricRealFieldElement(s, parent=self), parent_as_first_arg=False)
     def __repr__(self):
@@ -700,7 +734,7 @@ class ParametricRealField(Field):
             logging.warning("Consistency checking not implemented if some test point coordinates are None")
             return True
         ### Check that values satisfy all constraints.
-        return [ m(new_values) for m in self.monomial_list ] in self._polyhedron
+        return [ m(new_values) for m in self.monomial_list() ] in self._polyhedron
 
     def change_values(self, **values):
         if not self._mutable_values:
@@ -788,7 +822,7 @@ class ParametricRealField(Field):
             (1, 2, 3)
         """
         p = self._polyhedron.find_point()
-        self.change_values(**{str(m): x for m, x in zip(self.monomial_list, p) })
+        self.change_values(**{str(m): x for m, x in zip(self.monomial_list(), p) })
 
     @contextmanager
     def changed_values(self, **values):
@@ -840,12 +874,9 @@ class ParametricRealField(Field):
         self._le = copy(save_le)
         save_factor_bsa = self._factor_bsa
         self._factor_bsa = copy(save_factor_bsa)
-        save_polyhedron = self._polyhedron
-        self._polyhedron = copy(save_polyhedron)
-        save_monomial_list = self.monomial_list
-        self.monomial_list = copy(self.monomial_list)
-        save_v_dict = self.v_dict
-        self.v_dict = copy(self.v_dict)
+        save_bsa = self._bsa
+        self._bsa = copy(self._bsa)
+        self._polyhedron = self._bsa.upstairs()
         try:
             yield True
         finally:
@@ -853,9 +884,8 @@ class ParametricRealField(Field):
             self._lt = save_lt
             self._le = save_le
             self._factor_bsa = save_factor_bsa
-            self._polyhedron = save_polyhedron
-            self.monomial_list = save_monomial_list
-            self.v_dict = save_v_dict
+            self._bsa = save_bsa
+            self._polyhedron = self._bsa.upstairs()
             if case_id is not None:
                 logging.info("Finished case {}.".format(case_id))
 
@@ -906,6 +936,8 @@ class ParametricRealField(Field):
         If this assumption is not satisfied by the current test point,
         a ``ParametricRealFieldInconsistencyError`` is raised.
 
+        ``lhs`` and ``rhs`` should be elements of ``self._sym_field``
+        or be parametric elements (elements of ``self``).
 
         TESTS for consistency checks::
 
@@ -955,6 +987,12 @@ class ParametricRealField(Field):
             sage: K.freeze()
             sage: K.assume_comparison(1/f.sym(), operator.gt, 1)
 
+        TEST that parametric elements are allowed::
+
+            sage: K.<f> = ParametricRealField([4/5])
+            sage: K.assume_comparison(f, operator.le, 1)
+            sage: K.get_le_factor()
+            {f - 1}
 
         TESTS for allow_refinement=True:
 
@@ -1104,37 +1142,76 @@ class ParametricRealField(Field):
             lhs = - (lhs - rhs) ** 2
             rhs = 0
         comparison = lhs - rhs
-        # FIXME: This may cancel denominators.  If assume_comparison is called from _richcmp_, that's fine because
+        # FIXME: The line above may cancel denominators.  If assume_comparison is called from _richcmp_, that's fine because
         # _div_ records denominators.
+        ### Caching via self._eq, _lt, _le
+        if is_parametric_element(comparison):
+            comparison_sym = comparison.sym()
+        else:
+            comparison_sym = comparison
         if op == operator.eq:
-            if (comparison in self._eq) or (-comparison in self._eq):
+            if (comparison_sym in self._eq) or (-comparison_sym in self._eq):
                 return
         elif op == operator.lt:
-            if comparison in self._lt:
+            if comparison_sym in self._lt:
                 return
         elif op == operator.le:
-            if comparison in self._le:
+            if comparison_sym in self._le:
                 return
+        ### Test consistency with test point
         base_ring = self._sym_field.base_ring()
+        if is_parametric_element(comparison):
+            # Fast path: Use the precomputed val
+            try:
+                comparison_val = comparison.val()
+            except FactorUndetermined:
+                comparison_val = None
+            comparison = comparison.sym()
+        else:
+            comparison = self._sym_field(comparison)
+            try:
+                comparison_val = self._eval_factor(comparison)
+            except FactorUndetermined:
+                comparison_val = None
+        if comparison_val is not None:
+            if not op(comparison_val, 0):
+                if comparison in base_ring:
+                    raise ParametricRealFieldInconsistencyError("New constant constraint {} {} {} is not satisfied".format(lhs, op, rhs))
+                else:
+                    raise ParametricRealFieldInconsistencyError("New constraint {} {}  {} is not satisfied by the test point".format(lhs, op, rhs))
         if comparison in base_ring:
-            if not op(comparison, 0):
-                raise ParametricRealFieldInconsistencyError("New constant constraint {} {} {} is not satisfied".format(lhs, op, rhs))
             return
-        comparison = self._sym_field(comparison)
-        try:
-            if not op(self._eval_factor(comparison), 0):
-                raise ParametricRealFieldInconsistencyError("New constraint {} {}  {} is not satisfied by the test point".format(lhs, op, rhs))
-        except FactorUndetermined:
-            pass
-        if comparison.is_zero():
-            return
-        factors = comparison.factor()
+        if comparison.denominator() == 1 and comparison.numerator().degree() == 1:
+            # Fast path for linear
+            numerator = comparison.numerator()
+            # We use two different normalizations for the univariate and the multivariate case,
+            # just to match the behavior of factor() for the doctests.
+            if self.ngens() == 1:
+                unit = abs(comparison.numerator().lc())
+            else:
+                the_lcm = lcm([coeff.denominator() for coeff in numerator.coefficients()])
+                numerator *= the_lcm
+                unit = 1
+            factors = Factorization([(numerator / unit, 1)], unit=unit)
+        else:
+            factors = comparison.factor()
         if op in (operator.eq, operator.le):
             for (fac, d) in factors:
                 if d > 0:
                     if self.is_factor_known(fac, operator.eq):
                     # Comparison is already known true, nothing to record.
                         return
+        if len(factors) == 1 and comparison_val is not None:
+            the_fac, d = factors[0]
+            the_sign = sign(factors.unit() * comparison_val) 
+            def factor_sign(fac):
+                if fac == the_fac:
+                    return the_sign
+                else:
+                    return self._factor_sign(fac)
+        else:
+            factor_sign = self._factor_sign
+        unit_sign = base_ring(factors.unit()).sign()
         if op == operator.eq:
             eq_factors = []
             ne_factors = []
@@ -1146,7 +1223,7 @@ class ParametricRealField(Field):
                         pass
                     else:
                         try:
-                            fac_sign = self._factor_sign(fac)
+                            fac_sign = factor_sign(fac)
                             if fac_sign == 0:
                                 eq_factors.append(fac) # cannot happen that -fac was in.
                             else:
@@ -1166,7 +1243,6 @@ class ParametricRealField(Field):
             logging.debug("New element in %s._eq: %s" % (repr(self), comparison))
             self._eq.add(comparison)
         elif op == operator.lt:
-            sign = base_ring(factors.unit()).sign()
             lt_factors = []
             even_factors = []
             unknown_factors = []
@@ -1175,15 +1251,15 @@ class ParametricRealField(Field):
                     raise ParametricRealFieldInconsistencyError("New constraint {} {} {} is not satisfied".format(lhs, op, rhs))
                 if d % 2 == 1:
                     if self.is_factor_known(fac, operator.lt):
-                        sign = -sign
+                        unit_sign = -unit_sign
                     elif self.is_factor_known(-fac, operator.lt):
                         pass
                     else:
                         try:
-                            fac_sign = self._factor_sign(fac)
+                            fac_sign = factor_sign(fac)
                             if fac_sign == -1:
                                 lt_factors.append(fac)
-                                sign = -sign
+                                unit_sign = -unit_sign
                             elif fac_sign == +1:
                                 lt_factors.append(-fac)
                             else:
@@ -1194,7 +1270,7 @@ class ParametricRealField(Field):
                 else:
                     if not self.is_factor_known(fac, operator.lt) and not self.is_factor_known(-fac, operator.lt):
                         even_factors.append(fac)
-            if (sign == 1) and (not even_factors) and (not unknown_factors):
+            if (unit_sign == 1) and (not even_factors) and (not unknown_factors):
                 raise ParametricRealFieldInconsistencyError("New constraint {} {} {} is not satisfied".format(lhs, op, rhs))
             if not self._allow_refinement:
                 if len(lt_factors) + len(unknown_factors) > 1:
@@ -1205,9 +1281,9 @@ class ParametricRealField(Field):
             if len(unknown_factors) > 1:
                 raise NotImplementedError()
             if unknown_factors:
-                if sign > 0:
+                if unit_sign > 0:
                     self.record_factor(unknown_factors[0], op)
-                elif sign < 0:
+                elif unit_sign < 0:
                     self.record_factor(-unknown_factors[0], op)
             for new_fac in even_factors:
                 if not self._allow_refinement:
@@ -1219,7 +1295,7 @@ class ParametricRealField(Field):
                         raise ParametricRealFieldRefinementError("{} < 0 has factor {} != 0".format(comparison, new_fac))
                 else:
                     try:
-                        fac_sign = self._factor_sign(new_fac)
+                        fac_sign = factor_sign(new_fac)
                         if fac_sign == -1:
                             self.record_factor(new_fac, operator.lt)
                         elif fac_sign == 1:
@@ -1233,7 +1309,6 @@ class ParametricRealField(Field):
             logging.debug("New element in %s._lt: %s" % (repr(self), comparison))
             self._lt.add(comparison)
         elif op == operator.le:
-            sign = base_ring(factors.unit()).sign()
             lt_factors = []
             eq_factors = []
             even_factors = []
@@ -1242,17 +1317,17 @@ class ParametricRealField(Field):
                 # self.is_factor_known(fac, operator.eq) or self.is_factor_known(-fac, operator.eq) were treated above already.
                 if d % 2 == 1:
                     if self.is_factor_known(fac, operator.lt):
-                        sign = -sign
+                        unit_sign = -unit_sign
                     elif self.is_factor_known(-fac, operator.lt):
                         pass
                     else:
                         try:
-                            fac_sign = self._factor_sign(fac)
+                            fac_sign = factor_sign(fac)
                             if fac_sign == 0:
                                 eq_factors.append(fac) # cannot happen that -fac was in.
                             elif fac_sign == -1:
                                 lt_factors.append(fac)
-                                sign = -sign
+                                unit_sign = -unit_sign
                             else:
                                 assert fac_sign == +1
                                 lt_factors.append(-fac)
@@ -1261,36 +1336,36 @@ class ParametricRealField(Field):
                 else:
                     if not self.is_factor_known(fac, operator.lt) and not self.is_factor_known(-fac, operator.lt):
                         even_factors.append(fac)
-            if (sign == 1) and (not even_factors) and (not eq_factors) and (not unknown_factors):
+            if (unit_sign == 1) and (not even_factors) and (not eq_factors) and (not unknown_factors):
                 raise ParametricRealFieldInconsistencyError("New constraint {} {} {} is not satisfied".format(lhs, op, rhs))
             if not self._allow_refinement:
                 if len(even_factors) + len(lt_factors) + len(eq_factors) + len(unknown_factors) > 1:
                     raise ParametricRealFieldRefinementError("{} <= 0 has several new factors: {}".format(comparison, even_factors+lt_factors+eq_factors))
                 if even_factors:
-                    if sign > 0:
+                    if unit_sign > 0:
                         try:
-                            assert self._factor_sign(even_factors[0]) == 0
+                            assert factor_sign(even_factors[0]) == 0
                         except FactorUndetermined:
                             pass
                         self.record_factor(even_factors[0], operator.eq)
                 if lt_factors:
                     self.record_factor(lt_factors[0], op)
                 if eq_factors:
-                    if sign > 0:
+                    if unit_sign > 0:
                         self.record_factor(eq_factors[0], op)
-                    elif sign < 0:
+                    elif unit_sign < 0:
                         self.record_factor(-eq_factors[0], op)
                 if unknown_factors:
-                    if sign > 0:
+                    if unit_sign > 0:
                         self.record_factor(unknown_factors[0], op)
-                    elif sign < 0:
+                    elif unit_sign < 0:
                         self.record_factor(-unknown_factors[0], op)
             else:
                 if len(unknown_factors) > 1:
                     raise NotImplementedError()
                 for new_fac in even_factors:
                     try:
-                        if self._factor_sign(new_fac) == 0:
+                        if factor_sign(new_fac) == 0:
                             eq_factors.append(new_fac)
                     except FactorUndetermined:
                         eq_factors.append(new_fac) #??? or pass?
@@ -1304,14 +1379,14 @@ class ParametricRealField(Field):
                     undecided_eq = []
                     for new_fac in eq_factors:
                         if self.is_factor_known(new_fac, operator.le):
-                            sign = -sign
+                            unit_sign = -unit_sign
                         elif not self.is_factor_known(-new_fac, operator.le):
                             undecided_eq.append(new_fac) #potentially record new_fac >=0, keep the sign
                     if not undecided_eq:
-                        if sign > 0:
+                        if unit_sign > 0:
                             self.record_factor(new_fac, operator.eq) #overwrite last le factor to eq
                     else:
-                        if sign < 0:
+                        if unit_sign < 0:
                             self.record_factor(-undecided_eq[0], operator.le)
                         else:
                             self.record_factor(undecided_eq[0], operator.le)
@@ -1322,36 +1397,16 @@ class ParametricRealField(Field):
         else:
             raise NotImplementedError("Not implemented operator: {}".format(op))
 
-    def _linexpr_spacedim_to_add(self, fac):
-        space_dim_old = len(self.monomial_list)
-        linexpr = polynomial_to_linexpr(fac, self.monomial_list, self.v_dict)
-        space_dim_to_add = len(self.monomial_list) - space_dim_old
-        return linexpr, space_dim_to_add
-
     def is_factor_known(self, fac, op):
-        if op == operator.lt:
-            if fac in self.get_lt_factor():
-                return True
-        elif op == operator.eq:
-            if (fac in self.get_eq_factor()) or (-fac in self.get_eq_factor()):
-                return True
-        elif op == operator.le:
-            if fac in self.get_le_factor():
-                return True
-        else:
-            raise ValueError("{} is not a supported operator".format(op))
-        linexpr_to_add, space_dim_to_add = self._linexpr_spacedim_to_add(fac)
-        #print "constraint_to_add = %s" % constraint_to_add
-        if space_dim_to_add:
-            self._polyhedron.add_space_dimensions_and_embed(space_dim_to_add)
-            return False
-        else:
-            return self._polyhedron.is_linear_constraint_valid(linexpr_to_add, op)
+        for bsa in (self._factor_bsa, self._bsa):
+            try:
+                return bsa.is_polynomial_constraint_valid(fac, op)
+            except NotImplementedError:
+                pass
+        return False
 
     def record_factor(self, fac, op):
-        #print "add %s, %s to %s" % (fac, op, self.polyhedron.constraints())
         if not self.is_factor_known(fac, op):
-            linexpr_to_add, _ = self._linexpr_spacedim_to_add(fac)
             if op == operator.lt:
                 formatted_constraint = "%s < 0" % fac
             elif op == operator.eq:
@@ -1362,10 +1417,9 @@ class ParametricRealField(Field):
                 raise ValueError("{} is not a supported operator".format(op))
             if self._frozen:
                 raise ParametricRealFieldFrozenError("Cannot prove that constraint is implied: {} ".format(formatted_constraint))
-            self._polyhedron.add_linear_constraint(linexpr_to_add, op)
-            #print " add new constraint, %s" %self.polyhedron.constraints()
-            logging.info("New constraint: {}".format(formatted_constraint))
+            self._bsa.add_polynomial_constraint(fac, op)
             self._factor_bsa.add_polynomial_constraint(fac, op)
+            logging.info("New constraint: {}".format(formatted_constraint))
             if debug_new_factors:
                 import pdb
                 pdb.set_trace()
@@ -1410,267 +1464,28 @@ class ParametricRealField(Field):
         return component
 
     def add_initial_space_dim(self):
-        if self.monomial_list:
+        if self._bsa.polynomial_map():
             # the ParametricRealField already has monomials recorded. Not brand-new.
             return
         n = len(self._names)
         P = PolynomialRing(QQ, self._names)
-        self.monomial_list = list(P.gens())
-        self.v_dict = {P.gens()[i]:i for i in range(n)}
+        monomial_list = list(P.gens())
+        v_dict = {P.gens()[i]:i for i in range(n)}
         self._polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=n)
+        self._bsa = BasicSemialgebraicSet_veronese(self._polyhedron, ambient_dim=n,
+                                                   polynomial_map=monomial_list, v_dict=v_dict)
 
 ###############################
-# Simplify polynomials
+# TO REFACTOR using section
 ###############################
 
-def polynomial_to_linexpr(t, monomial_list, v_dict):
-    r"""
-    Reformulation-linearization: Expand the polynomial in the standard monomial basis and replace each monomial by a new variable. Record monomials in monomial_list and their corresponding variables in v_dict. The resulting linear expression in the extended space will be provided as inequality or equation in the linear system that describes a PPL not-necessarily-closed polyLhedron.
-
-    EXAMPLES::
-
-        sage: from cutgeneratingfunctionology.igp import *
-        sage: P.<x,y,z> = QQ[]
-        sage: monomial_list = []; v_dict = {};
-        sage: t = 27/113 * x^2 + y*z + 1/2
-        sage: polynomial_to_linexpr(t, monomial_list, v_dict)
-        54*x0+226*x1+113
-        sage: monomial_list
-        [x^2, y*z]
-        sage: v_dict
-        {y*z: 1, x^2: 0}
-
-        sage: tt = x + 1/3 * y*z
-        sage: polynomial_to_linexpr(tt, monomial_list, v_dict)
-        x1+3*x2
-        sage: monomial_list
-        [x^2, y*z, x]
-        sage: v_dict
-        {x: 2, y*z: 1, x^2: 0}
-    """
-    # coefficients in ppl constraint must be integers.
-    lcd = lcm([x.denominator() for x in t.coefficients()])
-    linexpr = Linear_Expression(0)
-    if len(t.args()) <= 1:
-        # sage.rings.polynomial.polynomial_rational_flint object has no attribute 'monomials'
-        for (k, c) in t.dict().items():
-            m = (t.args()[0])^k
-            if k == 0:
-                # constant term, don't construct a new Variable for it.
-                v = 1
-            else:
-                nv = v_dict.get(m, None)
-                if nv is None:
-                    nv = len(monomial_list)
-                    v_dict[m] = nv
-                    monomial_list.append(m)
-                v = Variable(nv)
-            linexpr += (lcd * c) * v
-    else:
-        for m in t.monomials():
-            if m == 1:
-                v = 1
-            else:
-                nv = v_dict.get(m, None)
-                if nv is None:
-                    nv = len(monomial_list)
-                    v_dict[m] = nv
-                    monomial_list.append(m)
-                v = Variable(nv)
-            coeffv = t.monomial_coefficient(m)
-            linexpr += (lcd * coeffv) * v
-    return linexpr
-
-def cs_of_eq_lt_le_poly(bsa):
-    r"""
-    Input bsa is an instance of BasicSemialgebraicSet_eq_lt_le_sets.
-    Reformulation-linearization: Expand the polynomials in the standard monomial basis and replace each monomial by a new variable. Construct a linear constraint system in the extended space, which describes a PPL not-necessarily-closed polyhedron. Record monomials in monomial_list and their corresponding variables in v_dict.
-
-    EXAMPLES::
-
-        sage: from cutgeneratingfunctionology.igp import *
-        sage: P.<f>=QQ[]
-        sage: lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
-        sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=[], lt=lt_poly, le=[])
-        sage: cs, monomial_list, v_dict = cs_of_eq_lt_le_poly(bsa)
-        sage: cs
-        Constraint_System {-x0+1>0, -x0+1>0, x0-x1>0, x0>0, -x0+2>0, x0+1>0, x0>0, 2*x0-1>0}
-        sage: monomial_list
-        [f, f^2]
-        sage: v_dict
-        {f: 0, f^2: 1}
-        sage: le_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
-        sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=[], lt=[], le=le_poly)
-        sage: cs, monomial_list, v_dict = cs_of_eq_lt_le_poly(bsa)
-        sage: cs
-        Constraint_System {-x0+1>=0, -x0+1>=0, x0-x1>=0, x0>=0, -x0+2>=0, x0+1>=0, x0>=0, 2*x0-1>=0}
-    """
-    monomial_list = []
-    v_dict ={}
-    cs = Constraint_System()
-    for t in bsa.eq_poly():
-        linexpr = polynomial_to_linexpr(t, monomial_list, v_dict)
-        cs.insert( linexpr == 0 )
-    for t in bsa.lt_poly():
-        linexpr = polynomial_to_linexpr(t, monomial_list, v_dict)
-        cs.insert( linexpr < 0 )
-    for t in bsa.le_poly():
-        linexpr = polynomial_to_linexpr(t, monomial_list, v_dict)
-        cs.insert( linexpr <= 0 )
-    return cs, monomial_list, v_dict
-
-def simplify_eq_lt_le_poly_via_ppl(bsa):
-    r"""
-    Given bsa as an instance of BasicSemialgebraicSet_eq_lt_le_sets,
-    Treat each monomial in bsa.eq_poly()/lt/le as a new variable.
-    This gives a linear inequality system.
-    Remove redundant inequalities using PPL.
-    Return an instance of BasicSemialgebraicSet_eq_lt_le_sets.
-
-    EXAMPLES::
-
-        sage: from cutgeneratingfunctionology.igp import *
-        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-        sage: K.<f> = ParametricRealField([4/5])
-        sage: h = gmic(f, field=K)
-        sage: _ = extremality_test(h)
-        sage: eq_factor = K.get_eq_factor()
-        sage: lt_factor = K.get_lt_factor()
-        sage: le_factor = K.get_le_factor()
-        sage: (eq_factor, lt_factor, le_factor)
-        (set(), {-f, -f + 1/2, f - 1}, set())
-        sage: bsa_K = BasicSemialgebraicSet_eq_lt_le_sets(eq=eq_factor, lt=lt_factor, le=le_factor)
-        sage: simplify_eq_lt_le_poly_via_ppl(bsa_K)     
-        BasicSemialgebraicSet_eq_lt_le_sets(eq = [], lt = [f - 1, -2*f + 1], le = [])
-
-        sage: K.<f, lam> = ParametricRealField([4/5, 1/6])
-        sage: h = gj_2_slope(f, lam, field=K, conditioncheck=False)
-        sage: bsa = simplify_eq_lt_le_poly_via_ppl(BasicSemialgebraicSet_eq_lt_le_sets(eq=K.get_eq_factor(), lt=K.get_lt_factor(), le=K.get_le_factor()))
-        sage: bsa.lt_poly()
-        {-lam, -f, f - 1, -f*lam - f + lam}
-
-        sage: R = f._sym.parent().ring()
-        sage: f, lam = R(f._sym), R(lam._sym)
-        sage: eq_poly, lt_poly = {}, {-lam, -1/2*lam, -1/2*lam - 1/2, 1/4*lam - 1/4, 1/2*lam - 1/2, -2*f, -2*f + 1, -f, -f - 1, f - 2, f - 1, 2*f - 2, -2*f*lam + f + 2*lam - 1, -3/2*f*lam - 1/2*f + 3/2*lam, -3/2*f*lam + 1/2*f + 3/2*lam - 1, -f*lam + lam - 1, -f*lam - f + lam, -f*lam + f + lam - 2, -f*lam + f + lam - 1, -1/2*f*lam - 3/2*f + 1/2*lam, -1/2*f*lam - 3/2*f + 1/2*lam + 1, -1/2*f*lam - 1/2*f + 1/2*lam, -1/2*f*lam - 1/2*f + 1/2*lam - 1, -1/2*f*lam + 1/2*f + 1/2*lam - 2, -1/2*f*lam + 1/2*f + 1/2*lam - 1, -1/2*f*lam + 3/2*f + 1/2*lam - 2, -1/4*f*lam - 1/4*f + 1/4*lam, 1/2*f*lam - 3/2*f - 1/2*lam, 1/2*f*lam - 3/2*f - 1/2*lam + 1, 1/2*f*lam - 1/2*f - 1/2*lam, 1/2*f*lam - 1/2*f - 1/2*lam - 1, 1/2*f*lam + 1/2*f - 1/2*lam - 2, 1/2*f*lam + 1/2*f - 1/2*lam - 1, 1/2*f*lam + 3/2*f - 1/2*lam - 2, f*lam - lam, f*lam - lam - 1, f*lam - f - lam, f*lam + f - lam - 2, f*lam + f - lam - 1, 3/2*f*lam - 1/2*f - 3/2*lam, 3/2*f*lam + 1/2*f - 3/2*lam - 1, 1/2*f^2*lam + 1/2*f^2 - f*lam - 1/2*f + 1/2*lam}
-        sage: bsa = simplify_eq_lt_le_poly_via_ppl(BasicSemialgebraicSet_eq_lt_le_sets(eq=eq_poly, lt=lt_poly))
-        sage: bsa.lt_poly()
-        {-lam,
-         lam - 1,
-         -2*f*lam + f + 2*lam - 1,
-         -f*lam - 3*f + lam + 2,
-         f*lam - lam,
-         f^2*lam + f^2 - 2*f*lam - f + lam}
-        sage: # eq_factor, lt_factor = K.get_eq_factor(), K.get_lt_factor()
-        sage: eq_factor, lt_factor = {}, {-lam, lam - 1, 2*lam - 1, -f, f - 1, -3*f*lam - f + 3*lam, -f*lam - 3*f + lam + 2, -f*lam - f + lam, f*lam - 3*f - lam + 2, f*lam - f - lam, 3*f*lam - f - 3*lam, 3*f*lam + f - 3*lam - 2}
-        sage: bsa = simplify_eq_lt_le_poly_via_ppl(BasicSemialgebraicSet_eq_lt_le_sets(eq=eq_factor, lt=lt_factor))
-        sage: bsa.lt_poly()
-        {-lam,
-         2*lam - 1,
-         f - 1,
-         -3*f*lam - f + 3*lam,
-         -f*lam - 3*f + lam + 2,
-         f*lam - 3*f - lam + 2,
-         3*f*lam - f - 3*lam}
-
-        sage: K.<f,alpha> = ParametricRealField([4/5, 3/10])             # Bad example! parameter region = {given point}.
-        sage: h=dg_2_step_mir(f, alpha, field=K, conditioncheck=False)
-        sage: _ = extremality_test(h)
-        sage: bsa = simplify_eq_lt_le_poly_via_ppl(BasicSemialgebraicSet_eq_lt_le_sets(eq=K.get_eq_factor(), lt=K.get_lt_factor()))
-        sage: (bsa.eq_poly(), bsa.lt_poly())
-        ({-10*alpha + 3, -5*f + 4}, set())
-
-        sage: K.<f> = ParametricRealField([1/5])
-        sage: h = drlm_3_slope_limit(f, conditioncheck=False)
-        sage: _ = extremality_test(h)
-        sage: bsa = simplify_eq_lt_le_poly_via_ppl(BasicSemialgebraicSet_eq_lt_le_sets(eq=K.get_eq_factor(), lt=K.get_lt_factor()))
-        sage: (bsa.eq_poly(), bsa.lt_poly())
-        (set(), {-f, 3*f - 1})
-    """
-    cs, monomial_list, v_dict = cs_of_eq_lt_le_poly(bsa)
-    p = NNC_Polyhedron(cs)
-    return read_bsa_from_polyhedron(p, bsa.poly_ring(), monomial_list, v_dict)
-
-
-def read_bsa_from_polyhedron(p, poly_ring, monomial_list, v_dict, tightened_mip=None):
-    r"""
-    Given a PPL polyhedron p, map the minimal constraints system of p back to polynomial equations and inequalities in the orginal space. If a constraint in the minimal constraint system of p is not tight for the tightened_mip, then this constraint is discarded. Return an instance of BasicSemialgebraicSet_eq_lt_le_set;
-
-    EXAMPLES::
-
-        sage: from cutgeneratingfunctionology.igp import *
-        sage: P.<f>=QQ[]
-        sage: eq_poly =[]; lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
-        sage: cs, monomial_list, v_dict = cs_of_eq_lt_le_poly(BasicSemialgebraicSet_eq_lt_le_sets(eq=eq_poly, lt=lt_poly))
-        sage: p = NNC_Polyhedron(cs)
-        sage: read_bsa_from_polyhedron(p, P, monomial_list, v_dict)
-        BasicSemialgebraicSet_eq_lt_le_sets(eq = [], lt = [f - 1, f^2 - f, -2*f + 1], le = [])
-    """
-    mineq = []
-    minlt = []
-    minle = []
-    mincs = p.minimized_constraints()
-    for c in mincs:
-        if tightened_mip is not None and is_not_a_downstairs_wall(c, tightened_mip):
-            # McCormick trash, don't put in minlt.
-            continue
-        coeff = c.coefficients()
-        # observe: coeffients in a constraint of NNC_Polyhedron could have gcd != 1.
-        # take care of this.
-        gcd_c = gcd(gcd(coeff), c.inhomogeneous_term())
-        # constraint is written with '>', while lt_poly records '<' relation
-        t = sum([-QQ(x)/gcd_c*y for x, y in zip(coeff, monomial_list)]) - QQ(c.inhomogeneous_term())/gcd_c
-        if c.is_equality():
-            mineq.append(t)
-        elif c.is_strict_inequality():
-            minlt.append(t)
-        else:
-            #logging.warning("Non-strict inequality in NNC polyhedron, recording strict inequality instead")
-            #assert c.is_nonstrict_inequality()
-            minle.append(t)
-    # note that polynomials in mineq and minlt can have leading coefficient != 1
-    
-    return BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=poly_ring, eq=mineq, lt=minlt, le=minle)
-
-def read_simplified_leq_llt_lle(K, level="factor"):
-    r"""
-    Use the reformulation-linearization techinque to remove redundant inequalties and equations recorded in :class:`ParametricRealField` K. Return an instance of BasicSemialgebraicSet_eq_lt_le_set;
-
-
-    EXAMPLES::
-
-        sage: from cutgeneratingfunctionology.igp import *
-        sage: K.<f> = ParametricRealField([4/5])
-        sage: h = gmic(f, field=K)
-        sage: _ = extremality_test(h)
-        sage: read_simplified_leq_llt_lle(K)
-        BasicSemialgebraicSet_eq_lt_le_sets(eq = [], lt = [f - 1, -2*f + 1], le = [])
-
-        sage: K.<f> = ParametricRealField([1/5])
-        sage: h = drlm_3_slope_limit(f, conditioncheck=False)
-        sage: _ = extremality_test(h)
-        sage: read_simplified_leq_llt_lle(K)
-        BasicSemialgebraicSet_eq_lt_le_sets(eq = [], lt = [3*f - 1, -f], le = [])
-    """
-    if level == "factor":
-        #leq, lin = simplify_eq_lt_le_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
-        # Since we update K.polyhedron incrementally,
-        # just read leq and lin from its minimized constraint system.
-        #### to REFACTOR
-        bsa = read_bsa_from_polyhedron(K.ppl_polyhedron(), K._factor_bsa.poly_ring(), K.monomial_list, K.v_dict)
-    else:
-        bsa = BasicSemialgebraicSet_eq_lt_le_sets(base_ring=QQ, eq=K.get_eq(), lt=K.get_lt(), le=K.get_le())
-    if bsa.eq_poly():
-        logging.warning("equation list %s is not empty!" % bsa.eq_poly())
-    return bsa
+# FIXME: This function find_variable_mapping is bad; it assumes too many things. It is only used in  SemialgebraicComplexComponent._init_.
 
 def find_variable_mapping(leqs):
     r"""
     Return the list of equations after variables elimination and return the map.
-    Assume that leqs is the result bsa._eq from ``read_bsa_from_polyhedron()``,
-    so that gaussian elimination has been performed by PPL on the list of equations. 
+    Assume that gaussian elimination has been performed by PPL.minimized_constraints() on the list of equations leqs.
     If an equation has a linear variable, then eliminate it.
-
-    FIXME: This function is bad; it assumes too many things.
 
     EXAMPLES::
 
@@ -1755,7 +1570,7 @@ def substitute_llt_lle(llt, lle, var_map, var_name, var_value):
     for l in lle:
         ineq = l.parent()(l.subs(var_map))
         ineq(K.gens())<= 0 #always True
-    bsa = read_simplified_leq_llt_lle(K)
+    bsa = BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(K._bsa)
     return list(bsa.lt_poly()), list(bsa.le_poly())
 
 ######################################
@@ -1875,36 +1690,32 @@ class SemialgebraicComplexComponent(SageObject):
         True
         sage: component = SemialgebraicComplexComponent(complex, K, [1,1/2], region_type)
         sage: component.bsa
-        BasicSemialgebraicSet_eq_lt_le_sets(eq = [-x + 2*y], lt = [3*y - 2, -y], le = [])
+        BasicSemialgebraicSet_eq_lt_le_sets(eq = [x - 2*y], lt = [3*y - 2, -y], le = [])
     """
 
     def __init__(self, parent, K, var_value, region_type):
         self.parent = parent
         self.var_value = var_value
         self.region_type = region_type
-        self.monomial_list = K.monomial_list
-        self.v_dict = K.v_dict
-        #self.polyhedron = K.polyhedron
-        #space_dim_old = len(self.monomial_list)
-        ## to REFACTOR:
-        self.bounds, tightened_mip = self.bounds_propagation(K.ppl_polyhedron(), self.parent.max_iter)
-        # Unimplemented
-        # dim_to_add =  len(self.monomial_list) - space_dim_old:
-        # if dim_to_add > 0:
-        #     # this could happen if we allow McCormicks to add new monomials.
-        #     K.polyhedron.add_space_dimensions_and_embed(dim_to_add)
+        self.monomial_list = K.monomial_list()
+        self.v_dict = K.v_dict()
+        self.bounds, bsa_mip = self.bounds_propagation(polyhedron=K._polyhedron, max_iter=self.parent.max_iter)
         if self.parent.max_iter == 0:
-            tightened_mip = None
-        ## to REFACTOR:
-        bsa = read_bsa_from_polyhedron(K.ppl_polyhedron(), K._factor_bsa.poly_ring(), K.monomial_list, K.v_dict, tightened_mip)
-        if not bsa.eq_poly():
-            P = PolynomialRing(QQ, parent.var_name)
-            self.var_map = {g:g for g in P.gens()}
-            self.bsa = bsa
+            lt_K = list(K._bsa.lt_poly())
+            le_K = list(K._bsa.le_poly())
         else:
-            leq, self.var_map = find_variable_mapping(list(bsa.eq_poly()))
-            llt, lle = substitute_llt_lle(bsa.lt_poly(), bsa.le_poly(), self.var_map, self.parent.var_name, self.var_value)
-            self.bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=leq, lt=llt, le=lle)
+            lt_K = [p(K._bsa._polynomial_map) for p in K._polyhedron.lt_poly() if not bsa_mip.is_polynomial_constraint_valid(p, operator.lt)]
+            le_K = [p(K._bsa._polynomial_map) for p in K._polyhedron.le_poly() if not bsa_mip.is_polynomial_constraint_valid(p, operator.lt)]  #using operator.le is wrong. delete too many upstairs inequalities.
+        eq_K = list(K._bsa.eq_poly())
+        if not eq_K:
+            P = PolynomialRing(QQ, parent.var_name)
+            self.var_map = {g:g for g in P.gens()} 
+        else:
+            eq_K, self.var_map = find_variable_mapping(eq_K)
+            # TO REFACTOR: use section.
+            lt_K, le_K = substitute_llt_lle(lt_K, le_K, self.var_map, self.parent.var_name, self.var_value)
+        self.bsa = BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=K._factor_bsa.poly_ring(), eq=eq_K, lt=lt_K, le=le_K)
+        #import pdb; pdb.set_trace()
         self.neighbor_points = []
 
     def __repr__(self):
@@ -1935,44 +1746,37 @@ class SemialgebraicComplexComponent(SageObject):
             sage: K.<lam1,lam2>=ParametricRealField([3/10, 45/101])
             sage: h = chen_4_slope(K(7/10), K(2), K(-4), lam1, lam2)
             sage: region_type = find_region_type_igp(K, h)
-            sage: bsa = read_bsa_from_polyhedron(K.ppl_polyhedron(), K._factor_bsa.poly_ring(), K.monomial_list, K.v_dict)
-            sage: bsa.lt_poly()
-            {2*lam2 - 1, -2*lam1 + lam2, 19*lam1 - 75*lam2, 21*lam1 - 8}
+            sage: sorted(K._bsa.lt_poly())
+            [2*lam2 - 1, -2*lam1 + lam2, 19*lam1 - 75*lam2, 21*lam1 - 8]
             sage: c = K.make_proof_cell(region_type=region_type, function=h, find_region_type=None)
-            sage: c.bsa.lt_poly()
-            {2*lam2 - 1, -2*lam1 + lam2, 19*lam1 - 75*lam2, 21*lam1 - 8}
+            sage: sorted(c.bsa.lt_poly())
+            [2*lam2 - 1, -2*lam1 + lam2, 19*lam1 - 75*lam2, 21*lam1 - 8]
         """
-        tightened_mip = construct_mip_of_nnc_polyhedron(polyhedron)
+        bsa_mip = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram.from_bsa(polyhedron.formal_closure(), solver='ppl')
         # Compute LP bounds first
-        bounds = [find_bounds_of_variable(tightened_mip, i) for i in range(len(self.monomial_list))]
-
+        bounds = [(bsa_mip.linear_function_lower_bound(form), bsa_mip.linear_function_upper_bound(form)) for form in bsa_mip.ambient_space().basis()]
         bounds_propagation_iter = 0
         # TODO: single parameter polynomial_rational_flint object needs special treatment. ignore bounds propagation in this case for now.  #tightened = True
         tightened = bool(len(self.var_value) > 1)
-
         while bounds_propagation_iter < max_iter and tightened:
             tightened = False
             # upward bounds propagation
             for m in self.monomial_list:
-                if update_mccormicks_for_monomial(m, tightened_mip, self.monomial_list, self.v_dict, bounds, new_monomials_allowed=False):
-                    # If we allow update_mccormicks_for_monomial to create new monomials and
-                    # hence lift the extended space, try with optional argument
-                    # new_monomials_allowed=True
+                if update_mccormicks_for_monomial(m, bsa_mip, self.monomial_list, self.v_dict, bounds):
                     tightened = True
             if tightened:
                 tightened = False
                 # downward bounds propagation
-                for i in range(len(self.monomial_list)):
+                for i in range(bsa_mip.ambient_dim()):
                     (lb, ub) = bounds[i]
-                    bounds[i] = find_bounds_of_variable(tightened_mip, i)
-                    if (bounds[i][0] is not None) and ((lb is None) or (bounds[i][0] - lb > 0.001)) or \
-                       (bounds[i][1] is not None) and ((ub is None) or (ub - bounds[i][1] > 0.001)):
+                    bounds[i] = find_bounds_of_variable(bsa_mip, i)
+                    if (bounds[i][0] > lb + 0.001) or (bounds[i][1] < ub - 0.001):
                         tightened = True
             if max_iter != 0 and bounds_propagation_iter >= max_iter:
                 logging.warning("max number %s of bounds propagation iterations has attained." % max_iter)
             bounds_propagation_iter += 1
         #print bounds_propagation_iter
-        return bounds, tightened_mip
+        return bounds, bsa_mip
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, show_testpoints=True, **kwds):
         r"""
@@ -2007,12 +1811,12 @@ class SemialgebraicComplexComponent(SageObject):
             d = len(self.var_value)
             if d == 1:
                 var_pt = xx
-                if not is_value_in_interval(None, var_bounds[0]):
+                if var_bounds[0][0] > var_bounds[0][1]:
                      return g
                 bounds_x = bounds_for_plotting(x, var_bounds[0], self.parent.default_var_bound)
             elif d == 2:
                 var_pt = [xx, yy]
-                if not (is_value_in_interval(None, var_bounds[0]) and is_value_in_interval(None, var_bounds[1])):
+                if var_bounds[0][0] > var_bounds[0][1] or var_bounds[1][0] > var_bounds[1][1]:
                     return g
                 bounds_x = bounds_for_plotting(x, var_bounds[0], self.parent.default_var_bound)
                 bounds_y = bounds_for_plotting(y, var_bounds[1], self.parent.default_var_bound)
@@ -2033,7 +1837,7 @@ class SemialgebraicComplexComponent(SageObject):
                     else:
                         raise NotImplementedError("Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region.")
                 else:
-                    if not is_value_in_interval(z, var_bounds[i]):
+                    if not (var_bounds[i][0] <= z <= var_bounds[i][1]):
                         return g
                     var_pt.append(z)
         leqs = []
@@ -2060,10 +1864,7 @@ class SemialgebraicComplexComponent(SageObject):
                     return g
             else:
                 lles.append(l)
-        bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=leqs, lt=llts, le=lles)
-        if slice_value:
-            bsa = simplify_eq_lt_le_poly_via_ppl(bsa)
-        constraints = [l(x, y) == 0 for l in bsa.eq_poly()] + [l(x, y) < 0 for l in bsa.lt_poly()] + [l(x, y) <= 0 for l in bsa.le_poly()]
+        constraints = [l(x, y) == 0 for l in leqs] + [l(x, y) < 0 for l in llts] + [l(x, y) <= 0 for l in lles]
         if (not constraints) or (constraints == [False]):
             # empty polytope
             return g
@@ -2473,7 +2274,7 @@ class SemialgebraicComplex(SageObject):
                     break
                 var_value.append(x)
             # if random point is not in self.bddbsa, continue while.
-            if (x is not None) and (x in self.bddbsa): #point_satisfies_bddleq_bddlin(var_value, self.bddleq, self.bddlin, strict=False):
+            if (x is not None) and (x in self.bddbsa):
                 return var_value
 
     def is_point_covered(self, var_value):
@@ -2521,7 +2322,7 @@ class SemialgebraicComplex(SageObject):
             [1, 2]
         """
         for c in self.components:
-            if var_value in c.bsa: #point_satisfies_bddleq_bddlin(var_value, c.leq, c.lin, strict=True):
+            if var_value in c.bsa:
                 yield c
         
     def find_uncovered_random_point(self, var_bounds=None, max_failings=10000):
@@ -2891,7 +2692,6 @@ class SemialgebraicComplex(SageObject):
     def is_face_to_face(self):
         sagepolyhedra = []
         for c in self.components:
-            #p1 = construct_sage_polyhedron_from_nnc_polyhedron(c.polyhedron)
             p1 = c.sage_polyhedron()
             for p2 in sagepolyhedra:
                 p = p1.intersection(p2)
@@ -2949,43 +2749,16 @@ def gradient(ineq):
     else:
        return [ineq.derivative()]
 
-def point_satisfies_bddleq_bddlin(var_value, bddleq, bddlin, strict=True):
-    r"""
-    Return whether var_value satisfies bddleq and bddlin.
-
-    Strict inequalities are considered if strict is set to ``True``.
-
-    Not used any more. Can delete
-    """
-    for l in bddleq:
-        if not l(var_value) == 0:
-            return False
-    for l in bddlin:
-        if l(var_value) > 0 or (strict and l(var_value)==0):
-            return False
-    return True
-
-def is_value_in_interval(v, lb_ub):
-    r"""
-    Return whether lb <= v <= ub.
-
-    ``None`` is considered as -Infinity and +Infinity for lb and ub, respectively. 
-    """
-    (lb, ub) = lb_ub
-    if v is None:
-        return (lb is None) or (ub is None) or (lb <= ub)
-    return ((lb is None) or (lb <= v)) and ((ub is None) or (v <= ub))
-
 def bounds_for_plotting(v, lb_ub, default_var_bound):
     r"""
     If lower and upper exist, then return them; otherwise return default variable bounds.
     """
     (lb, ub) = lb_ub
-    if not lb is None:
+    if not lb is -Infinity:
         l = lb - 0.01
     else:
         l = default_var_bound[0]
-    if not ub is None:
+    if not ub is +Infinity:
         u = ub + 0.01
     else:
         u = default_var_bound[1]
@@ -2993,161 +2766,81 @@ def bounds_for_plotting(v, lb_ub, default_var_bound):
         return (v, default_var_bound[0], default_var_bound[1])
     return (v, l, u)
 
-def construct_mip_of_nnc_polyhedron(nncp):
-    r"""
-    Construct a PPL's :class:`MIP_Problem` with non-strict inequalities from the :class:`NNC_Polyhedron`.
-    """
-    min_cs = nncp.minimized_constraints()
-    cs = Constraint_System()
-    for c in min_cs:
-        if c.is_equality():
-            cs.insert(Linear_Expression(c.coefficients(), c.inhomogeneous_term()) == 0)
-        else:
-            cs.insert(Linear_Expression(c.coefficients(), c.inhomogeneous_term()) >= 0)
-    mip = MIP_Problem(nncp.space_dimension())
-    mip.add_constraints(cs)
-    mip.set_optimization_mode('minimization')
-    return mip
-
-def construct_sage_polyhedron_from_nnc_polyhedron(nncp):
-    r"""
-    Construct a Sage's (closed) Polyhedron from PPL's :class:`NNC_Polyhedron`.
-    Not used. Can delete
-    """
-    min_cs = nncp.minimized_constraints()
-    ieqs = [ ([c.inhomogeneous_term()]+list(c.coefficients())) for c in min_cs if not c.is_equality()]
-    eqns = [ ([c.inhomogeneous_term()]+list(c.coefficients())) for c in min_cs if c.is_equality()]
-    return Polyhedron(ieqs=ieqs, eqns=eqns)
-
-def find_bounds_of_variable(mip, i):
+def find_bounds_of_variable(bsa_mip, i):
     r"""
     Return the lower and upper bounds of the i-th variable in the MIP.
-
-    ``None`` stands for unbounded.
     """
-    linexpr = Linear_Expression(Variable(i))
-    lb = find_lower_bound_of_linexpr(mip, linexpr)
-    ub = find_upper_bound_of_linexpr(mip, linexpr)
+    form = bsa_mip.ambient_space().basis()[i]
+    lb = bsa_mip.linear_function_lower_bound(form)
+    ub = bsa_mip.linear_function_upper_bound(form)
     return (lb, ub)
 
-def find_lower_bound_of_linexpr(mip, linexpr):
+def add_mccormick_bound(bsa_mip, i, i1, i2, c1, c2, op):
     r"""
-    Return the minimal value of linexpr subject to mip.
-
-    Return ``None`` if unbounded.
-    Assume that ``mip.set_optimization_mode('minimization')`` was called
+    If x[i] - c1*x[i1] - c2*x[i2] + c1*c2 ``op`` 0 is redundant in the mip, return False,
+    otherwise return True and add this new constraint to the mip.
     """
-    mip.set_objective_function(linexpr)
-    try:
-        lb = QQ(mip.optimal_value())
-    except ValueError:
-        # unbounded
-        lb = None
-    return lb
-
-def find_upper_bound_of_linexpr(mip, linexpr):
-    r"""
-    Return the maximal value of linexpr subject to mip.
- 
-    Return ``None`` if unbounded.
-    Assume that ``mip.set_optimization_mode('minimization')`` was called
-    """
-    mip.set_objective_function(-linexpr)
-    try:
-        ub = -QQ(mip.optimal_value())
-    except ValueError:
-        # unbounded
-        ub = None
-    return ub
-
-def is_not_a_downstairs_wall(c, mip):
-    r"""
-    Return whether a PPL constraint c is always strictly positive in mip.
-    """
-    linexpr = Linear_Expression(c.coefficients(), c.inhomogeneous_term())
-    # we know lb exists and is >= 0
-    lb = find_lower_bound_of_linexpr(mip, linexpr)
-    return bool(lb >  0)
-
-def add_mccormick_bound(mip, x3, x1, x2, c1, c2, is_lowerbound):
-    r"""
-    Try adding x3 > c1*x1 + c2*x2 - c1*c2 (if is_lowerbound, else x3 < c1*x1 + c2*x2 - c1*c2) to mip.
-    Return True this new constraint is not redundnant.
-    """
-    if c1 is None or c2 is None:
+    if c1 in (-Infinity, +Infinity) or c2 in (-Infinity, +Infinity):
         # unbounded
         return False
-    d = c1.denominator() * c2.denominator() #linear expression needs integer coefficients
-    linexpr = Linear_Expression(d*x3 - d*c1*x1 - d*c2*x2 + d*c1*c2)
-    if is_lowerbound:
-        lb = find_lower_bound_of_linexpr(mip, linexpr)
-        if (lb is not None) and (lb >= 0):
-            return False
-        else:
-            mip.add_constraint(linexpr >= 0)
-            return True
-    else:
-        ub = find_upper_bound_of_linexpr(mip, linexpr)
-        if (ub is not None) and (ub <=0):
-            return False
-        else:
-            mip.add_constraint(linexpr <= 0)
-            return True
+    lhs = vector(bsa_mip.base_ring(), bsa_mip.ambient_dim())
+    lhs[i] = 1; lhs[i1] = -c1; lhs[i2] = -c2; cst = c1 * c2;
+    if bsa_mip.is_linear_constraint_valid(lhs, cst, op):
+        return False
+    bsa_mip.add_linear_constraint(lhs, cst, op)
+    return True
 
-def update_mccormicks_for_monomial(m, tightened_mip, monomial_list, v_dict, bounds, new_monomials_allowed=False):
+def update_mccormicks_for_monomial(m, bsa_mip, monomial_list, v_dict, bounds):
     r"""
     Do recursive McCormicks on the monomial m.
 
-    If bounds is modified, update tightened_mip of the cell and return ``True``, otherwise return ``False``.
-
-    If lift_polyhedron is ``None``, recursive McCormicks is not allowed to create new monomials,
-    otherwise, lift the dimension of the polyhedron and tightened_mip, etc. of the cell when new monomials are created.
+    If bounds is modified, update bsa_mip of the cell and return ``True``, otherwise return ``False``.
 
     Expect that the monomials in monomial_list have non-decreasing degrees.
 
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: mip = MIP_Problem(3)
-        sage: vx = Variable(0); vy = Variable(1); vxy = Variable(2)
-        sage: mip.add_constraint(vx >= 0); mip.add_constraint(vx <= 1)
-        sage: mip.add_constraint(vy >= 1); mip.add_constraint(vy <= 2)
-        sage: mip.set_optimization_mode('minimization')
+        sage: bsa_mip = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(QQ, 3, solver='ppl')
+        sage: bsa_mip.add_linear_constraint((1,0,0), 0, operator.ge)
+        sage: bsa_mip.add_linear_constraint((1,0,0), -1, operator.le)
+        sage: bsa_mip.add_linear_constraint((0,1,0), -1, operator.ge)
+        sage: bsa_mip.add_linear_constraint((0,1,0), -2, operator.le)
         sage: P.<x,y> = QQ[]
         sage: monomial_list = [x, y, x*y]; v_dict = {x:0, y:1, x*y:2}
         sage: bounds = [(0, 1), (1, 2), (None, None)]
 
     Upward bounds propagation::
 
-        sage: update_mccormicks_for_monomial(x*y, mip, monomial_list, v_dict, bounds)
+        sage: update_mccormicks_for_monomial(x*y, bsa_mip, monomial_list, v_dict, bounds)
         True
         sage: bounds
         [(0, 1), (1, 2), (0, 2)]
-        sage: update_mccormicks_for_monomial(x*y, mip, monomial_list, v_dict, bounds)
+        sage: update_mccormicks_for_monomial(x*y, bsa_mip, monomial_list, v_dict, bounds)
         False
 
-        sage: mip.add_space_dimensions_and_embed(1); mip.add_constraint(2*Variable(3) >= 1);
+        sage: bsa_mip.add_space_dimensions_and_embed(1)
+        sage: bsa_mip.add_linear_constraint((0,0,0,2), -1, operator.ge)
         sage: monomial_list.append(x*y^2); v_dict[x*y^2]=3; bounds.append((1/2, None));
         sage: monomial_list
         [x, y, x*y, x*y^2]
         sage: bounds
         [(0, 1), (1, 2), (0, 2), (1/2, None)]
 
-        sage: update_mccormicks_for_monomial(x*y*y, mip, monomial_list, v_dict, bounds)
+        sage: update_mccormicks_for_monomial(x*y*y, bsa_mip, monomial_list, v_dict, bounds)
         True
         sage: bounds
         [(0, 1), (1, 2), (0, 2), (1/2, 4)]
 
     Downward bounds propagation::
 
-        sage: bounds = [find_bounds_of_variable(mip,i) for i in range(4)]
+        sage: bounds = [find_bounds_of_variable(bsa_mip,i) for i in range(4)]
         sage: bounds
         [(1/8, 1), (1, 2), (1/4, 2), (1/2, 4)]
     """
     if m.degree() < 2:
         return False
     i = v_dict[m]
-    v = Variable(i)
     tightened = False
     for v1 in monomial_list:
         (v2, rem) = m.quo_rem(v1)
@@ -3155,24 +2848,22 @@ def update_mccormicks_for_monomial(m, tightened_mip, monomial_list, v_dict, boun
             # don't want the recursive McCormicks to create a new monomial.
             # v1, v2 symmetric
             continue
-        i_1 = v_dict[v1]
-        i_2 = v_dict.get(v2, None)
-        if (i_2 is None):
+        i1 = v_dict[v1]
+        i2 = v_dict.get(v2, None)
+        if (i2 is None):
             continue
-        v_1 = Variable(i_1)
-        v_2 = Variable(i_2)
-        lb_1, ub_1 = bounds[i_1]
-        lb_2, ub_2 = bounds[i_2]
-        if add_mccormick_bound(tightened_mip, v, v_1, v_2, lb_2, lb_1, True):
+        lb1, ub1 = bounds[i1]
+        lb2, ub2 = bounds[i2]
+        if add_mccormick_bound(bsa_mip, i, i1, i2, lb2, lb1, operator.ge):
             tightened = True
-        if add_mccormick_bound(tightened_mip, v, v_1, v_2, ub_2, ub_1, True):
+        if add_mccormick_bound(bsa_mip, i, i1, i2, ub2, ub1, operator.ge):
             tightened = True
-        if add_mccormick_bound(tightened_mip, v, v_1, v_2, lb_2, ub_1, False):
+        if add_mccormick_bound(bsa_mip, i, i1, i2, lb2, ub1, operator.le):
             tightened = True
-        if add_mccormick_bound(tightened_mip, v, v_1, v_2, ub_2, lb_1, False):
+        if add_mccormick_bound(bsa_mip, i, i1, i2, ub2, lb1, operator.le):
             tightened = True
     if tightened:
-        bounds[i] = find_bounds_of_variable(tightened_mip, i)
+        bounds[i] = find_bounds_of_variable(bsa_mip, i)
     return tightened
 
 ####################################
@@ -3211,6 +2902,8 @@ def find_region_type_igp(K, h, region_level='extreme', is_minimal=None):
          2*f - bkpt}
     """
     ## Note: region_level = 'constructible' / 'minimal'/ 'extreme'. test cases see find_parameter_region()
+    #if hasattr(K, '_big_cells') and K._big_cells:
+    #    return find_region_type_igp_extreme_big_cells(K, h)
     if h is None:
         return 'not_constructible'
     if region_level == 'constructible':
@@ -3232,6 +2925,115 @@ def find_region_type_igp_extreme(K, h):
         return 'is_extreme'
     else:
         return 'stop'
+
+def find_region_type_igp_extreme_big_cells(K, h):
+    # WIP
+    hcopy = copy(h)
+    if h is None:
+        return 'not_constructible'
+    is_extreme = True
+    with K.off_the_record():
+        for x in h.values_at_end_points():
+            if (x < 0) or (x > 1):
+                is_extreme  = False
+                break
+    if not is_extreme:
+        assert (x < 0) or (x > 1)
+        return False
+    f = find_f(h, no_error_if_not_minimal_anyway=True)
+    if f is None:
+        return False
+    bkpt = h.end_points()
+    # if not h.is_continuous():
+    #     with K.off_the_record():
+    #         limits = h.limits_at_end_points()
+    #         for x in limits:
+    #             if not ((x[-1] is None or 0 <= x[-1] <=1) and (x[1] is None or 0 <= x[1] <=1)):
+    #                 is_extreme = False
+    #                 break
+    #     if not is_extreme:
+    #         assert (not ((x[-1] is None or 0 <= x[-1] <=1) and (x[1] is None or 0 <= x[1] <=1))):
+    #         return False
+    with K.off_the_record():
+        for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices(h, reduced=True):
+            is_extreme = False
+            break
+    if not is_extreme:
+        assert delta_pi_general(h, x, y, (xeps, yeps, zeps)) < 0
+        return False
+    with K.off_the_record():
+        if h(f) != 1:
+            is_extreme = False
+    if not is_extreme:
+        assert h(f) != 1
+        return False
+    with K.off_the_record():
+        for (x, y, xeps, yeps) in generate_nonsymmetric_vertices(h, f):
+            is_extreme = False
+            break
+    if not is_extreme:
+        #assert h.limit(x,xeps)+h.limit(y,yeps) != 1
+        assert h(x)+h(y) != 1
+        return False
+    # function is minimal.
+    with K.off_the_record():
+        num_slope = number_of_slopes(h)
+    if h.is_continuous() and num_slope == 2:
+        # is_extreme  #record #shortcut?
+        minimality_test(h, full_certificates=False)
+        return True
+    with K.off_the_record():
+        generator = generate_perturbations(h)
+        for perturbation in generator:
+            # epsilon_interval = find_epsilon_interval(h, perturbation)
+            # epsilon = min(abs(epsilon_interval[0]), abs(epsilon_interval[1]))
+            # hplus = h + perturbation * epsilon/2
+            # hminus = h - perturbation * epsilon/2
+            # # alternatively, should record (x,y) in refined complex for which Delta perturbation(x,y) > 0, then later assert Delta h (x,y)>0
+            strictsubaddxy = [(x,y) for (x,y,z,xeps,yeps,zeps) in generate_nonsubadditive_vertices(perturbation)+generate_nonsubadditive_vertices(-perturbation)]
+            is_extreme = False
+            break
+    if not is_extreme:  # ignore discontinuous case for now
+        # for hh in [hplus, hminus]:
+        #     bkpt = hh.end_points()
+        #     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
+        #     num = len(bkpt)
+        #     for j in range(num):
+        #         for i in range(j):
+        #             x = bkpt[i]
+        #             y = bkpt[j]
+        #             assert (delta_pi(hh,x,y) >= 0)
+        #     for i in range(num):
+        #         for j in range(i+1, i+num-1):
+        #             x = bkpt[i]
+        #             z = bkpt2[j]
+        #             assert (delta_pi(hh, x, z-x) >= 0)
+        h = copy(hcopy)
+        for (x,y) in strictsubaddxy:
+            assert(delta_pi(h, x, y) > 0)  # record
+        return False
+    # is_extreme
+    is_minimal = minimality_test(h, full_certificates=False)
+    assert is_minimal
+    # # BUG: why it does not record??? Too many cached things?
+    # if hasattr(h,'_perturbations'):
+    #     delattr(h, '_perturbations')
+    # if hasattr(h,'_completion'):
+    #     delattr(h, '_completion')
+    # if hasattr(h, '_stability_orbits'):
+    #     delattr(h, '_stability_orbits')
+    # if hasattr(h, '_maximal_additive_faces'):
+    #     delattr(h, '_maximal_additive_faces')
+    # if hasattr(h, '_directly_covered_components'):
+    #     delattr(h, '_directly_covered_components')
+    # if hasattr(h, '_strategical_covered_components'):
+    #     delattr(h, '_strategical_covered_components')
+    h = copy(hcopy)
+    generator = generate_perturbations(h, full_certificates=False)
+    for perb in generator:
+        raise ValueError
+    return True
+    
 
 def coarse_regions_from_arrangement_of_bkpts(K, h):
     if h is None:
@@ -3629,3 +3431,43 @@ def embed_function_into_family(given_function, parametric_family, check_completi
             is_complete = True
     # plot_cpl_components(complex.components)
     return {}
+
+
+"""
+EXAMPLES::
+
+    sage: from cutgeneratingfunctionology.igp import *
+    sage: K.<f> = ParametricRealField([4/5])
+    sage: h = gmic(f, field=K)
+    sage: _ = extremality_test(h)
+    sage: sorted(K.get_eq_factor()), sorted(K.get_lt_factor()), sorted(K.get_le_factor())
+    ([], [-f, -f + 1/2, f - 1], [])
+    sage: sorted(K._bsa.eq_poly()), sorted(K._bsa.lt_poly()), sorted(K._bsa.le_poly())
+    ([], [-2*f + 1, f - 1], [])
+
+    sage: K.<f> = ParametricRealField([1/5])
+    sage: h = drlm_3_slope_limit(f, conditioncheck=False)
+    sage: _ = extremality_test(h)
+    sage: sorted(K._bsa.eq_poly()), sorted(K._bsa.lt_poly()), sorted(K._bsa.le_poly())
+    ([], [-f, 3*f - 1], [])
+
+    sage: K.<f, lam> = ParametricRealField([4/5, 1/6])
+    sage: h = gj_2_slope(f, lam, field=K, conditioncheck=False)
+    sage: sorted(K._bsa.lt_poly())
+    [-lam, -f, f - 1, -f*lam - f + lam]
+    sage: for lhs in [-lam, lam - 1, 2*lam - 1, -f, f - 1, -3*f*lam - f + 3*lam, -f*lam - 3*f + lam + 2, -f*lam - f + lam, f*lam - 3*f - lam + 2, f*lam - f - lam, 3*f*lam - f - 3*lam, 3*f*lam + f - 3*lam - 2]: assert lhs < 0
+    sage: sorted(K._bsa.lt_poly())
+    [-lam,
+     2*lam - 1,
+     f - 1,
+     -3*f*lam - f + 3*lam,
+     -f*lam - 3*f + lam + 2,
+     f*lam - 3*f - lam + 2,
+     3*f*lam - f - 3*lam]
+
+    sage: K.<f,alpha> = ParametricRealField([4/5, 3/10])             # Bad example! parameter region = {given point}.
+    sage: h=dg_2_step_mir(f, alpha, field=K, conditioncheck=False)
+    sage: _ = extremality_test(h)
+    sage: sorted(K._bsa.eq_poly()), sorted(K._bsa.lt_poly()), sorted(K._bsa.le_poly())
+    ([10*alpha - 3, 5*f - 4], [], [])
+"""
