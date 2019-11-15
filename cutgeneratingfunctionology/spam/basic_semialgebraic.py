@@ -227,8 +227,8 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
 
     def intersection(self, *bsa_list, **kwds):
         """
-        Return the basic semialgebraic set that is the intersection of the
-        basic semialgebraic sets in ``bsa_list``.
+        Return the basic semialgebraic set that is the intersection of ``self``
+        with the basic semialgebraic sets in ``bsa_list``.
 
         By default, the intersection is represented by an instance of class
         ``BasicSemialgebraicSet_intersection``; use the argument ``bsa_class``
@@ -395,7 +395,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         r"""
         Plot the semialgebraic set or a slice (section) of it.
 
-        - If slice_value is given, plot the slice of the cell according to the parameter values in slice_value that are not None. See examples in ``SemialgebraicComplex.plot()``.
+        - If slice_value is given, it is either a polynomial_map that defines a section, or a list of fixed parameter values with two of them being None. Plot the section.
         - plot_points controls the quality of the plotting.
 
         EXAMPLES::
