@@ -1782,169 +1782,25 @@ class SemialgebraicComplexComponent(SageObject):
         r"""
         Plot the cell.
 
-        - If slice_value is given, plot the slice of the cell according to the parameter values in slice_value that are not None. See examples in ``SemialgebraicComplex.plot()``.
+        - If slice_value is given, it is either a polynomial_map that defines a section, or a list of fixed parameter values with two of them being None. Plot the section. See examples in ``SemialgebraicComplex.plot()``.
         - show_testpoints controls whether to plot the testpoint in this cell.
         - plot_points controls the quality of the plotting.
         """
-        g = Graphics()
-        if 'xmin' in kwds:
-            g.xmin(kwds['xmin'])
-        if 'xmax' in kwds:
-            g.xmax(kwds['xmax'])
-        if 'ymin' in kwds:
-            g.ymin(kwds['ymin'])
-        if 'ymax' in kwds:
-            g.ymax(kwds['ymax'])
-        x, y = var('x, y')
-        var_bounds = []
-        P = PolynomialRing(QQ, self.parent.var_name)
-        for m in P.gens():
-            i = self.v_dict.get(m, None)
-            if i is None:
-                var_bounds.append((None, None))
-            else:
-                var_bounds.append(self.bounds[i])
-        bounds_y = (y, -0.01, 0.01)
-        Q = QQ['xx, yy']
-        xx, yy = Q._first_ngens(2)
-        if not slice_value:
-            d = len(self.var_value)
-            if d == 1:
-                var_pt = xx
-                if var_bounds[0][0] > var_bounds[0][1]:
-                     return g
-                bounds_x = bounds_for_plotting(x, var_bounds[0], self.parent.default_var_bound)
-            elif d == 2:
-                var_pt = [xx, yy]
-                if var_bounds[0][0] > var_bounds[0][1] or var_bounds[1][0] > var_bounds[1][1]:
-                    return g
-                bounds_x = bounds_for_plotting(x, var_bounds[0], self.parent.default_var_bound)
-                bounds_y = bounds_for_plotting(y, var_bounds[1], self.parent.default_var_bound)
-            else:
-                raise NotImplementedError("Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region.")
-        else:
-            d = 0
-            var_pt = []
-            for (i, z) in enumerate(slice_value):
-                if z is None:
-                    d += 1
-                    if d == 1:
-                        var_pt.append(xx)
-                        bounds_x = bounds_for_plotting(x, var_bounds[i], self.parent.default_var_bound)
-                    elif d == 2:
-                        var_pt.append(yy)
-                        bounds_y = bounds_for_plotting(y, var_bounds[i], self.parent.default_var_bound)
-                    else:
-                        raise NotImplementedError("Plotting region with dimension > 2 is not implemented. Provide `slice_value` to plot a slice of the region.")
-                else:
-                    if not (var_bounds[i][0] <= z <= var_bounds[i][1]):
-                        return g
-                    var_pt.append(z)
-        leqs = []
-        for leq in self.bsa.eq_poly():
-            l = leq(var_pt)
-            if l in QQ:
-                if l != 0:
-                    return g
-            else:
-                leqs.append(l)
-        llts = []
-        for llt in (self.bsa.lt_poly()).union(self.parent.bddbsa.lt_poly()):
-            l = llt(var_pt)
-            if l in QQ:
-                if l >= 0:
-                    return g
-            else:
-                llts.append(l)
-        lles = []
-        for lle in (self.bsa.le_poly()).union(self.parent.bddbsa.le_poly()):
-            l = lle(var_pt)
-            if l in QQ:
-                if l > 0:
-                    return g
-            else:
-                lles.append(l)
-        constraints = [l(x, y) == 0 for l in leqs] + [l(x, y) < 0 for l in llts] + [l(x, y) <= 0 for l in lles]
-        if (not constraints) or (constraints == [False]):
-            # empty polytope
-            return g
-        if ('xmin' in kwds) and ('xmax' in kwds):
-            bounds_x = (x, kwds['xmin'], kwds['xmax'])
-        if ('ymin' in kwds) and ('ymax' in kwds):
-            bounds_y = (y, kwds['ymin'], kwds['ymax'])
-        if 'color'  in kwds:
-            innercolor = kwds['color']
-        else:
-            innercolor = find_region_color(self.region_type)
-        bordercolor = innercolor
-        if innercolor == 'white':
-            ptcolor = 'black'
-        else:
-            ptcolor = 'white'
-            g += region_plot(constraints, bounds_x, bounds_y, \
-                             incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
+        xmin = kwds.pop('xmin', self.parent.default_var_bound[0])
+        xmax = kwds.pop('xmax', self.parent.default_var_bound[1])
+        ymin = kwds.pop('ymin', self.parent.default_var_bound[0])
+        ymax = kwds.pop('ymax', self.parent.default_var_bound[1])
+        color = kwds.pop('color', find_region_color(self.region_type))
+        bsa = self.bsa.intersection(self.parent.bddbsa) # bsa_class is 'intersection'
+        g = bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color=color, **kwds)
         if show_testpoints and not slice_value:
-            if d == 1:
-                pt = (self.var_value[0], 0)
+            pt = self.var_value
+            if color == 'white':
+                ptcolor = 'black'
             else:
-                pt = self.var_value
-            if (bounds_x[1] <= pt[0] <= bounds_x[2] and \
-                bounds_y[1] <= pt[1] <= bounds_y[2]):
+                ptcolor = 'white'
+            if (xmin <= pt[0] <= xmax) and (ymin <= pt[1] <= ymax):
                 g += point(pt, color = ptcolor, size = 2, zorder=10)
-        return g
-
-    def plot2dslice(self, slice_value, alpha=0.5, plot_points=300, **kwds):
-        r"""
-        slice_value is a list of symbolic expressions in var('x, y'). 
-        slice_value has the same length as self.var_value.
-        """
-        g = Graphics()
-        if 'xmin' in kwds:
-            g.xmin(kwds['xmin'])
-        if 'xmax' in kwds:
-            g.xmax(kwds['xmax'])
-        if 'ymin' in kwds:
-            g.ymin(kwds['ymin'])
-        if 'ymax' in kwds:
-            g.ymax(kwds['ymax'])
-        constraints = []
-        for leq in self.bsa.eq_poly():
-            l = leq(slice_value)
-            if l in QQ:
-                if l != 0:
-                    return g
-            else:
-                constraints.append(l == 0)
-        for llt in self.bsa.lt_poly() + self.parent.bddbsa.lt_poly():
-            l = llt(slice_value)
-            if l in QQ:
-                if l >= 0:
-                    return g
-            else:
-                constraints.append(l < 0)
-        for lle in self.bsa._lle + self.parent.bddbsa._lle:
-            l = lle(slice_value)
-            if l in QQ:
-                if l > 0:
-                    return g
-            else:
-                constraints.append(l <= 0)
-        if ('xmin' in kwds) and ('xmax' in kwds):
-            bounds_x = (kwds['xmin'], kwds['xmax'])
-        else:
-            bounds_x = self.parent.default_var_bound
-        if ('ymin' in kwds) and ('ymax' in kwds):
-            bounds_y = (y, kwds['ymin'], kwds['ymax'])
-        else:
-            bounds_y = self.parent.default_var_bound
-        if 'color' in kwds:
-            innercolor = kwds['color']
-        else:
-            innercolor = find_region_color(self.region_type)
-        bordercolor = innercolor
-        x, y = var('x, y')
-        if innercolor != 'white':
-            g += region_plot(constraints, (x, bounds_x[0], bounds_x[1]), (y, bounds_y[0], bounds_y[1]), incol=innercolor, alpha=alpha, plot_points=plot_points, bordercol=bordercolor)
         return g
 
     def find_walls_and_new_points(self, flip_ineq_step, wall_crossing_method, goto_lower_dim=False):
@@ -2205,7 +2061,6 @@ class SemialgebraicComplex(SageObject):
         """
         #self.num_components = 0
         self.components = []
-
         self.function = function
         self.d = len(var_name)
         self.var_name = var_name
@@ -2222,7 +2077,7 @@ class SemialgebraicComplex(SageObject):
             self.find_region_type = find_region_type
         self.default_var_bound = default_var_bound
         if bddbsa is None:
-            self.bddbsa =  BasicSemialgebraicSet_eq_lt_le_sets(QQ, self.d)
+            self.bddbsa =  BasicSemialgebraicSet_eq_lt_le_sets(base_ring=QQ, ambient_dim=self.d, poly_ring=PolynomialRing(QQ, self.var_name))
         else:
             self.bddbsa = bddbsa
 
@@ -2480,7 +2335,7 @@ class SemialgebraicComplex(SageObject):
         Plot the complex and store the graph.
 
         - If restart is ``False``, plot the newly added cells on top of the last graph; otherwise, start a new graph.
-        - If slice_value is given, plot the slice of the complex according to the parameter values in slice_value that are not ``None``.
+        - If slice_value is given, it is either a polynomial_map that defines a section, or a list of fixed parameter values with two of them being None. Plot the section. 
         - plot_points controls the quality of the plotting.
 
         EXAMPLES::
@@ -2488,15 +2343,26 @@ class SemialgebraicComplex(SageObject):
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(lambda x,y,z: min(x^2,y^2,z), ['x','y','z'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))    # not tested
-            sage: complex.bfs_completion()                           # not tested
+            sage: complex.bfs_completion(goto_lower_dim=True)             # not tested
+            sage: Q.<u,v> = QQ[]                                          # not tested
 
-        Plot the slice in (x,y)-space with z=4::
+        Plot the slice in (x,y)-space with z=4 (the following two ways give the same thing)::
 
             sage: complex.plot(slice_value=[None, None, 4])          # not tested
+            sage: complex.plot(slice_value=[u, v, 4])                # not tested
 
-        Plot the slice in (y,z)-space with x=4::
+        Plot the slice in (y,z)-space with x=4 (the following two ways give the same thing)::
 
             sage: complex.plot(slice_value=[4, None, None])          # not tested
+            sage: complex.plot(slice_value=[4, u, v])                # not tested
+
+        Plot the slice in (x,y)-space with z=y::
+
+            sage: complex.plot(slice_value=[u, v, v])                # not tested
+
+        Plot the slice in (x,z)-space with y=x/2::
+
+            sage: complex.plot(slice_value=[u, u/2, v])              # not tested
         """
         if restart:
             self.graph = Graphics()
@@ -2516,51 +2382,6 @@ class SemialgebraicComplex(SageObject):
                 self.graph += gc
         self.num_plotted_components = len(self.components)
         return self.graph
-
-    def plot2dslice(self, slice_value, alpha=0.5, plot_points=300, **kwds):
-        r"""
-        slice_value is a list of symbolic expressions in var('x, y'). slice_value has the same length as self.var_value.
-
-        EXAMPLES::
-
-            sage: from cutgeneratingfunctionology.igp import *
-            sage: logging.disable(logging.WARN)
-            sage: complex = SemialgebraicComplex(lambda x,y,z: min(x^2,y^2,z), ['x','y','z'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))    # not tested
-            sage: complex.bfs_completion(goto_lower_dim=True)        # not tested
-            sage: x, y = var('x, y')                                 # not tested
-
-        Plot the slice in (x,y)-space with z=4::
-
-            sage: complex.plot2dslice(slice_value=[x, y, 4])         # not tested
-
-        Plot the slice in (y,z)-space with x=4::
-
-            sage: complex.plot2dslice(slice_value=[4, x, y])         # not tested
-
-        Plot the slice in (x,y)-space with z=y::
-
-            sage: complex.plot2dslice(slice_value=[x, y, y])         # not tested
-
-        Plot the slice in (x,z)-space with y=x/2::
-
-            sage: complex.plot2dslice(slice_value=[x, x/2, y])       # not tested
-        """
-        g = Graphics()
-        g.set_aspect_ratio(1)
-        if 'xmin' in kwds:
-            g.xmin(kwds['xmin'])
-        if 'xmax' in kwds:
-            g.xmax(kwds['xmax'])
-        if 'ymin' in kwds:
-            g.ymin(kwds['ymin'])
-        if 'ymax' in kwds:
-            g.ymax(kwds['ymax'])
-        x, y = var('x, y')
-        for c in self.components:
-            gc = c.plot2dslice(slice_value, alpha=alpha, plot_points=plot_points, **kwds)
-            if gc: # need this because (empty g + empty gc) forgets about xmin xmax ymin ymax.
-                g += gc
-        return g
 
     def plot_bfs_tree(self, **kwds):
         r"""

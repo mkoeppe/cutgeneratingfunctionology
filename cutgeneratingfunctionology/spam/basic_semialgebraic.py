@@ -406,21 +406,32 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: bsa.plot()                                         # not tested
 
          Plot the slice in (x,y)-space with z=4::
+
             sage: P.<x,y,z> = QQ[]
             sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(le=[-x, -y, -z, x+y-1, z-6])
             sage: bsa.plot(slice_value=[None, None, 4])              # not tested
+
+        Plot the section with x=y::
+
+            sage: Q.<u,v> = QQ[]
+            sage: bsa.plot(slice_value=[u, u, v], xmin=-1, xmax=2, ymin=-1, ymax=8) # not tested
         """
         ## Refactor SemialgebraicComplexComponent.plot and plot2dslice through this method.
         if (not slice_value) and (self.ambient_dim() != 2):
             raise NotImplementedError("Plotting with dimension not equal to 2 is not implemented. Try `slice_value` to plot a slice.")
         if slice_value:
-            if slice_value.count(None) != 2:
+            if slice_value.count(None) == 2:
+                PM = QQ['x','y']; (x, y) = PM.gens()  # invalid syntax PM.<x,y>=QQ[]
+                i = slice_value.index(None);
+                j = slice_value.index(None, i+1);
+                polynomial_map = [PM(pm) for pm in slice_value]
+                polynomial_map[i] = x
+                polynomial_map[j] = y
+                section = self.section(polynomial_map)
+            elif slice_value.count(None) == 0: # slice_value is a polynomial_map
+                section = self.section(slice_value)
+            else:
                 raise NotImplementedError("Plotting with dimension not equal to 2 is not implemented.")
-            PM = QQ['x','y']; (x, y) = PM.gens()  # invalid syntax PM.<x,y>=QQ[]
-            i = slice_value.index(None); slice_value[i] = x
-            j = slice_value.index(None); slice_value[j] = y
-            polynomial_map = [PM(pm) for pm in slice_value]
-            section = self.section(polynomial_map)
             return section.plot(alpha=alpha, plot_points=plot_points, slice_value=None, **kwds)
         g = Graphics()
         if 'xmin' in kwds:
@@ -431,20 +442,22 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             g.ymin(kwds['ymin'])
         if 'ymax' in kwds:
             g.ymax(kwds['ymax'])
-        xmin = self.linear_function_lower_bound([1,0])
-        xmax = self.linear_function_upper_bound([1,0])
-        ymin = self.linear_function_lower_bound([0,1])
-        ymax = self.linear_function_upper_bound([0,1])
+        xmin = max(self.linear_function_lower_bound([1,0]), kwds.get('xmin', -Infinity))
+        xmax = min(self.linear_function_upper_bound([1,0]), kwds.get('xmax', +Infinity))
+        ymin = max(self.linear_function_lower_bound([0,1]), kwds.get('ymin', -Infinity))
+        ymax = min(self.linear_function_upper_bound([0,1]), kwds.get('ymax', +Infinity))
         if (xmin > xmax) or (ymin > ymax):
             return g
         if xmin is -Infinity:
-            xmin = kwds.get('xmin', 0)
+            xmin = 0
         if xmax is +Infinity:
-            xmax = kwds.get('xmax', 1)
+            xmax = 1
         if ymin is -Infinity:
-            ymin = kwds.get('ymin', 0)
+            ymin = 0
         if ymax is +Infinity:
-            ymax = kwds.get('ymax', 1)
+            ymax = 1
+        if (xmin > xmax) or (ymin > ymax):
+            raise ValueError("Please provide bounds for plotting.")
         x, y = var('x, y')
         constraints = [l(x, y) == 0 for l in self.eq_poly()] + [l(x, y) < 0 for l in self.lt_poly()] + [l(x, y) <= 0 for l in self.le_poly()]
         non_trivial_constraints = []
