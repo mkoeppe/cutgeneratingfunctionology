@@ -663,9 +663,9 @@ class ParametricRealField(Field):
         self._le_factor = copy(save_le_factor)
         save_polyhedron = self.polyhedron
         self.polyhedron = copy(save_polyhedron)
-        # copying mip raises TypeError: no default __reduce__ due to non-trivial __cinit__
-        # save_mip = self.mip
-        # self.mip = copy(save_mip)
+        # FIXME: copying mip raises TypeError: no default __reduce__ due to non-trivial __cinit__
+        save_mip = self.mip
+        self.mip = copy(save_mip)
         save_monomial_list = self.monomial_list
         self.monomial_list = copy(self.monomial_list)
         save_v_dict = self.v_dict
@@ -1146,7 +1146,7 @@ class ParametricRealField(Field):
             raise ValueError("{} is not a supported operator".format(op))
         constraint_to_add, _ , space_dim_to_add = self._constraint_spacedim_to_add(fac, op)
         #print "constraint_to_add = %s" % constraint_to_add
-        if space_dim_to_add:
+        if space_dim_to_add>0:
             self.polyhedron.add_space_dimensions_and_embed(space_dim_to_add)
             self.mip.add_space_dimensions_and_embed(space_dim_to_add)
             return False
@@ -1228,6 +1228,7 @@ class ParametricRealField(Field):
         self.monomial_list = list(P.gens())
         self.v_dict = {P.gens()[i]:i for i in range(n)}
         self.polyhedron = NNC_Polyhedron(n,'universe')
+        self.mip=construct_mip_of_nnc_polyhedron(self.polyhedron)
 
     def bounds_update(self):
         self.bounds = [find_bounds_of_variable(self.mip,i) for i in range(len(self.monomial_list))]
@@ -1427,7 +1428,8 @@ def read_leq_lin_from_polyhedron(p, monomial_list, v_dict, tightened_mip=None):
         elif c.is_strict_inequality():
             minlt.append(t)
         else:
-            raise NotImplementedError("Non-strict inequality in NNC polyhedron")
+            continue
+            #raise NotImplementedError("Non-strict inequality in NNC polyhedron")
     # note that polynomials in mineq and minlt can have leading coefficient != 1
     return mineq, minlt
 
@@ -2702,11 +2704,11 @@ def bounds_propagation_product(x_bounds,y_bounds):
         sage: x_bounds=(-1,3)
         sage: y_bounds=(3,None)
         sage: bounds_propagation_product(x_bounds,y_bounds)
-        (None,None)
+        (None, None)
         sage: x_bounds=(0,3)
         sage: y_bounds=(-3,5)
         sage: bounds_propagation_product(x_bounds,y_bounds)
-        (-9,15)
+        (-9, 15)
     """
     x_lb,x_ub = x_bounds
     y_lb,y_ub = y_bounds
@@ -2787,7 +2789,7 @@ def bounds_propagation_sum(x_bounds,y_bounds):
         sage: x_bounds=(-1,3)
         sage: y_bounds=(3,None)
         sage: bounds_propagation_sum(x_bounds,y_bounds)
-        (2,None)
+        (2, None)
     """
     x_lb,x_ub = x_bounds
     y_lb,y_ub = y_bounds
@@ -2861,6 +2863,12 @@ def bounds_for_plotting(v, lb_ub, default_var_bound):
     if l >= u:
         return (v, default_var_bound[0], default_var_bound[1])
     return (v, l, u)
+
+def construct_nnc_polyhedron_from_mip(mip):
+    polyhedron = NNC_Polyhedron(mip.space_dimension(), 'universe')
+    for c in mip.constraints():
+        polyhedron.add_constraint(c)
+    return polyhedron
 
 def construct_mip_of_nnc_polyhedron(nncp):
     r"""
@@ -2986,14 +2994,15 @@ def update_mccormicks_for_monomial(m, tightened_mip, polyhedron, monomial_list, 
         sage: P.<x,y> = QQ[]
         sage: monomial_list = [x, y, x*y]; v_dict = {x:0, y:1, x*y:2}
         sage: bounds = [(0, 1), (1, 2), (None, None)]
+        sage: polyhedron = construct_nnc_polyhedron_from_mip(mip)
 
     Upward bounds propagation::
 
-        sage: update_mccormicks_for_monomial(x*y, mip, monomial_list, v_dict, bounds)
+        sage: update_mccormicks_for_monomial(x*y, mip, polyhedron, monomial_list, v_dict, bounds)
         True
         sage: bounds
         [(0, 1), (1, 2), (0, 2)]
-        sage: update_mccormicks_for_monomial(x*y, mip, monomial_list, v_dict, bounds)
+        sage: update_mccormicks_for_monomial(x*y, mip, polyhedron, monomial_list, v_dict, bounds)
         False
 
         sage: mip.add_space_dimensions_and_embed(1); mip.add_constraint(2*Variable(3) >= 1);
@@ -3003,7 +3012,8 @@ def update_mccormicks_for_monomial(m, tightened_mip, polyhedron, monomial_list, 
         sage: bounds
         [(0, 1), (1, 2), (0, 2), (1/2, None)]
 
-        sage: update_mccormicks_for_monomial(x*y*y, mip, monomial_list, v_dict, bounds)
+        sage: polyhedron = construct_nnc_polyhedron_from_mip(mip)
+        sage: update_mccormicks_for_monomial(x*y*y, mip, polyhedron, monomial_list, v_dict, bounds)
         True
         sage: bounds
         [(0, 1), (1, 2), (0, 2), (1/2, 4)]

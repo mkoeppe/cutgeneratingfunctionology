@@ -88,7 +88,7 @@ def initialize_2d_clipped_relu_parameters():
     param['C']=C
     return K, param
 
-def find_new_inequalities_clipped_relu(param):
+def find_new_inequalities_clipped_relu(K, param):
     L,U,W,b,C=param['L'],param['U'],param['W'],param['b'],param['C']
     n=len(W)
 
