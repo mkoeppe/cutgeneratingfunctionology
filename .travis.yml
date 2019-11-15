@@ -6,7 +6,7 @@ matrix:
   ##
   ## Test with conda-forge sagemath package
   ##
-  - env: CACHE_NAME=conda CONDA_ENV=sage-cgf
+  - env: CACHE_NAME=conda CONDA_ENV=sage-cgf DEPLOY_DOC_FROM_BRANCH=master DEPLOY_DOC_TO_REPOSITORY=mkoeppe/cutgeneratingfunctionology DEPLOY_DOC_TO_DIRECTORY=doc/html
     python: "2.7"
     before_install:
     - source ./.travis-conda-install.sh
@@ -24,7 +24,7 @@ matrix:
   ##
   ## The following *almost* works, but the final "pip" install installs somewhere separate.
   ## This needs investigating; but Ubuntu bionic sage version is outdated anyway... so maybe not worth it.
-  ## - env: CACHE_NAME=ubuntu-package DEPLOY_DOC_FROM_BRANCH=master DEPLOY_DOC_TO_REPOSITORY=mkoeppe/cutgeneratingfunctionology DEPLOY_DOC_TO_DIRECTORY=doc/html
+  ## - env: CACHE_NAME=ubuntu-package
   ##   addons:
   ##     apt:
   ##       packages:
