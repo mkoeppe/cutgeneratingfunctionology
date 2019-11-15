@@ -1450,257 +1450,16 @@ class ParametricRealField(Field):
                                                    polynomial_map=monomial_list, v_dict=v_dict)
 
 ###############################
-# Simplify polynomials
+# TO REFACTOR using section
 ###############################
 
-def polynomial_to_linexpr(t, monomial_list, v_dict):
-    r"""
-    Reformulation-linearization: Expand the polynomial in the standard monomial basis and replace each monomial by a new variable. Record monomials in monomial_list and their corresponding variables in v_dict. The resulting linear expression in the extended space will be provided as inequality or equation in the linear system that describes a PPL not-necessarily-closed polyLhedron.
-
-    EXAMPLES::
-
-        sage: from cutgeneratingfunctionology.igp import *
-        sage: P.<x,y,z> = QQ[]
-        sage: monomial_list = []; v_dict = {};
-        sage: t = 27/113 * x^2 + y*z + 1/2
-        sage: polynomial_to_linexpr(t, monomial_list, v_dict)
-        54*x0+226*x1+113
-        sage: monomial_list
-        [x^2, y*z]
-        sage: v_dict
-        {y*z: 1, x^2: 0}
-
-        sage: tt = x + 1/3 * y*z
-        sage: polynomial_to_linexpr(tt, monomial_list, v_dict)
-        x1+3*x2
-        sage: monomial_list
-        [x^2, y*z, x]
-        sage: v_dict
-        {x: 2, y*z: 1, x^2: 0}
-    """
-    # coefficients in ppl constraint must be integers.
-    lcd = lcm([x.denominator() for x in t.coefficients()])
-    linexpr = Linear_Expression(0)
-    if len(t.args()) <= 1:
-        # sage.rings.polynomial.polynomial_rational_flint object has no attribute 'monomials'
-        for (k, c) in t.dict().items():
-            m = (t.args()[0])^k
-            if k == 0:
-                # constant term, don't construct a new Variable for it.
-                v = 1
-            else:
-                nv = v_dict.get(m, None)
-                if nv is None:
-                    nv = len(monomial_list)
-                    v_dict[m] = nv
-                    monomial_list.append(m)
-                v = Variable(nv)
-            linexpr += (lcd * c) * v
-    else:
-        for m in t.monomials():
-            if m == 1:
-                v = 1
-            else:
-                nv = v_dict.get(m, None)
-                if nv is None:
-                    nv = len(monomial_list)
-                    v_dict[m] = nv
-                    monomial_list.append(m)
-                v = Variable(nv)
-            coeffv = t.monomial_coefficient(m)
-            linexpr += (lcd * coeffv) * v
-    return linexpr
-
-def cs_of_eq_lt_le_poly(bsa):
-    r"""
-    Input bsa is an instance of BasicSemialgebraicSet_eq_lt_le_sets.
-    Reformulation-linearization: Expand the polynomials in the standard monomial basis and replace each monomial by a new variable. Construct a linear constraint system in the extended space, which describes a PPL not-necessarily-closed polyhedron. Record monomials in monomial_list and their corresponding variables in v_dict.
-
-    EXAMPLES::
-
-        sage: from cutgeneratingfunctionology.igp import *
-        sage: P.<f>=QQ[]
-        sage: lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
-        sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=[], lt=lt_poly, le=[])
-        sage: cs, monomial_list, v_dict = cs_of_eq_lt_le_poly(bsa)
-        sage: cs
-        Constraint_System {-x0+1>0, -x0+1>0, x0-x1>0, x0>0, -x0+2>0, x0+1>0, x0>0, 2*x0-1>0}
-        sage: monomial_list
-        [f, f^2]
-        sage: v_dict
-        {f: 0, f^2: 1}
-        sage: le_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
-        sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=[], lt=[], le=le_poly)
-        sage: cs, monomial_list, v_dict = cs_of_eq_lt_le_poly(bsa)
-        sage: cs
-        Constraint_System {-x0+1>=0, -x0+1>=0, x0-x1>=0, x0>=0, -x0+2>=0, x0+1>=0, x0>=0, 2*x0-1>=0}
-    """
-    monomial_list = []
-    v_dict ={}
-    cs = Constraint_System()
-    for t in bsa.eq_poly():
-        linexpr = polynomial_to_linexpr(t, monomial_list, v_dict)
-        cs.insert( linexpr == 0 )
-    for t in bsa.lt_poly():
-        linexpr = polynomial_to_linexpr(t, monomial_list, v_dict)
-        cs.insert( linexpr < 0 )
-    for t in bsa.le_poly():
-        linexpr = polynomial_to_linexpr(t, monomial_list, v_dict)
-        cs.insert( linexpr <= 0 )
-    return cs, monomial_list, v_dict
-
-def simplify_eq_lt_le_poly_via_ppl(bsa):
-    r"""
-    Given bsa as an instance of BasicSemialgebraicSet_eq_lt_le_sets,
-    Treat each monomial in bsa.eq_poly()/lt/le as a new variable.
-    This gives a linear inequality system.
-    Remove redundant inequalities using PPL.
-    Return an instance of BasicSemialgebraicSet_eq_lt_le_sets.
-
-    EXAMPLES::
-
-        sage: from cutgeneratingfunctionology.igp import *
-        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-        sage: K.<f> = ParametricRealField([4/5])
-        sage: h = gmic(f, field=K)
-        sage: _ = extremality_test(h)
-        sage: eq_factor = K.get_eq_factor()
-        sage: lt_factor = K.get_lt_factor()
-        sage: le_factor = K.get_le_factor()
-        sage: (eq_factor, lt_factor, le_factor)
-        (set(), {-f, -f + 1/2, f - 1}, set())
-        sage: bsa_K = BasicSemialgebraicSet_eq_lt_le_sets(eq=eq_factor, lt=lt_factor, le=le_factor)
-        sage: simplify_eq_lt_le_poly_via_ppl(bsa_K)     
-        BasicSemialgebraicSet_eq_lt_le_sets(eq = [], lt = [f - 1, -2*f + 1], le = [])
-
-        sage: K.<f, lam> = ParametricRealField([4/5, 1/6])
-        sage: h = gj_2_slope(f, lam, field=K, conditioncheck=False)
-        sage: bsa = simplify_eq_lt_le_poly_via_ppl(BasicSemialgebraicSet_eq_lt_le_sets(eq=K.get_eq_factor(), lt=K.get_lt_factor(), le=K.get_le_factor()))
-        sage: bsa.lt_poly()
-        {-lam, -f, f - 1, -f*lam - f + lam}
-
-        sage: R = f._sym.parent().ring()
-        sage: f, lam = R(f._sym), R(lam._sym)
-        sage: eq_poly, lt_poly = {}, {-lam, -1/2*lam, -1/2*lam - 1/2, 1/4*lam - 1/4, 1/2*lam - 1/2, -2*f, -2*f + 1, -f, -f - 1, f - 2, f - 1, 2*f - 2, -2*f*lam + f + 2*lam - 1, -3/2*f*lam - 1/2*f + 3/2*lam, -3/2*f*lam + 1/2*f + 3/2*lam - 1, -f*lam + lam - 1, -f*lam - f + lam, -f*lam + f + lam - 2, -f*lam + f + lam - 1, -1/2*f*lam - 3/2*f + 1/2*lam, -1/2*f*lam - 3/2*f + 1/2*lam + 1, -1/2*f*lam - 1/2*f + 1/2*lam, -1/2*f*lam - 1/2*f + 1/2*lam - 1, -1/2*f*lam + 1/2*f + 1/2*lam - 2, -1/2*f*lam + 1/2*f + 1/2*lam - 1, -1/2*f*lam + 3/2*f + 1/2*lam - 2, -1/4*f*lam - 1/4*f + 1/4*lam, 1/2*f*lam - 3/2*f - 1/2*lam, 1/2*f*lam - 3/2*f - 1/2*lam + 1, 1/2*f*lam - 1/2*f - 1/2*lam, 1/2*f*lam - 1/2*f - 1/2*lam - 1, 1/2*f*lam + 1/2*f - 1/2*lam - 2, 1/2*f*lam + 1/2*f - 1/2*lam - 1, 1/2*f*lam + 3/2*f - 1/2*lam - 2, f*lam - lam, f*lam - lam - 1, f*lam - f - lam, f*lam + f - lam - 2, f*lam + f - lam - 1, 3/2*f*lam - 1/2*f - 3/2*lam, 3/2*f*lam + 1/2*f - 3/2*lam - 1, 1/2*f^2*lam + 1/2*f^2 - f*lam - 1/2*f + 1/2*lam}
-        sage: bsa = simplify_eq_lt_le_poly_via_ppl(BasicSemialgebraicSet_eq_lt_le_sets(eq=eq_poly, lt=lt_poly))
-        sage: bsa.lt_poly()
-        {-lam,
-         lam - 1,
-         -2*f*lam + f + 2*lam - 1,
-         -f*lam - 3*f + lam + 2,
-         f*lam - lam,
-         f^2*lam + f^2 - 2*f*lam - f + lam}
-        sage: # eq_factor, lt_factor = K.get_eq_factor(), K.get_lt_factor()
-        sage: eq_factor, lt_factor = {}, {-lam, lam - 1, 2*lam - 1, -f, f - 1, -3*f*lam - f + 3*lam, -f*lam - 3*f + lam + 2, -f*lam - f + lam, f*lam - 3*f - lam + 2, f*lam - f - lam, 3*f*lam - f - 3*lam, 3*f*lam + f - 3*lam - 2}
-        sage: bsa = simplify_eq_lt_le_poly_via_ppl(BasicSemialgebraicSet_eq_lt_le_sets(eq=eq_factor, lt=lt_factor))
-        sage: bsa.lt_poly()
-        {-lam,
-         2*lam - 1,
-         f - 1,
-         -3*f*lam - f + 3*lam,
-         -f*lam - 3*f + lam + 2,
-         f*lam - 3*f - lam + 2,
-         3*f*lam - f - 3*lam}
-
-        sage: K.<f,alpha> = ParametricRealField([4/5, 3/10])             # Bad example! parameter region = {given point}.
-        sage: h=dg_2_step_mir(f, alpha, field=K, conditioncheck=False)
-        sage: _ = extremality_test(h)
-        sage: bsa = simplify_eq_lt_le_poly_via_ppl(BasicSemialgebraicSet_eq_lt_le_sets(eq=K.get_eq_factor(), lt=K.get_lt_factor()))
-        sage: (bsa.eq_poly(), bsa.lt_poly())
-        ({-10*alpha + 3, -5*f + 4}, set())
-
-        sage: K.<f> = ParametricRealField([1/5])
-        sage: h = drlm_3_slope_limit(f, conditioncheck=False)
-        sage: _ = extremality_test(h)
-        sage: bsa = simplify_eq_lt_le_poly_via_ppl(BasicSemialgebraicSet_eq_lt_le_sets(eq=K.get_eq_factor(), lt=K.get_lt_factor()))
-        sage: (bsa.eq_poly(), bsa.lt_poly())
-        (set(), {-f, 3*f - 1})
-    """
-    cs, monomial_list, v_dict = cs_of_eq_lt_le_poly(bsa)
-    p = NNC_Polyhedron(cs)
-    return read_bsa_from_polyhedron(p, bsa.poly_ring(), monomial_list, v_dict)
-
-
-def read_bsa_from_polyhedron(p, poly_ring, monomial_list, v_dict, tightened_mip=None):
-    r"""
-    Given a PPL polyhedron p, map the minimal constraints system of p back to polynomial equations and inequalities in the orginal space. If a constraint in the minimal constraint system of p is not tight for the tightened_mip, then this constraint is discarded. Return an instance of BasicSemialgebraicSet_eq_lt_le_set;
-
-    EXAMPLES::
-
-        sage: from cutgeneratingfunctionology.igp import *
-        sage: P.<f>=QQ[]
-        sage: eq_poly =[]; lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
-        sage: cs, monomial_list, v_dict = cs_of_eq_lt_le_poly(BasicSemialgebraicSet_eq_lt_le_sets(eq=eq_poly, lt=lt_poly))
-        sage: p = NNC_Polyhedron(cs)
-        sage: read_bsa_from_polyhedron(p, P, monomial_list, v_dict)
-        BasicSemialgebraicSet_eq_lt_le_sets(eq = [], lt = [f - 1, f^2 - f, -2*f + 1], le = [])
-    """
-    mineq = []
-    minlt = []
-    minle = []
-    mincs = p.minimized_constraints()
-    for c in mincs:
-        if tightened_mip is not None and is_not_a_downstairs_wall(c, tightened_mip):
-            # McCormick trash, don't put in minlt.
-            continue
-        coeff = c.coefficients()
-        # observe: coeffients in a constraint of NNC_Polyhedron could have gcd != 1.
-        # take care of this.
-        gcd_c = gcd(gcd(coeff), c.inhomogeneous_term())
-        # constraint is written with '>', while lt_poly records '<' relation
-        t = sum([-QQ(x)/gcd_c*y for x, y in zip(coeff, monomial_list)]) - QQ(c.inhomogeneous_term())/gcd_c
-        if c.is_equality():
-            mineq.append(t)
-        elif c.is_strict_inequality():
-            minlt.append(t)
-        else:
-            #logging.warning("Non-strict inequality in NNC polyhedron, recording strict inequality instead")
-            #assert c.is_nonstrict_inequality()
-            minle.append(t)
-    # note that polynomials in mineq and minlt can have leading coefficient != 1
-    
-    return BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=poly_ring, eq=mineq, lt=minlt, le=minle)
-
-def read_simplified_leq_llt_lle(K, level="factor"):
-    r"""
-    Use the reformulation-linearization techinque to remove redundant inequalties and equations recorded in :class:`ParametricRealField` K. Return an instance of BasicSemialgebraicSet_eq_lt_le_set;
-
-
-    EXAMPLES::
-
-        sage: from cutgeneratingfunctionology.igp import *
-        sage: K.<f> = ParametricRealField([4/5])
-        sage: h = gmic(f, field=K)
-        sage: _ = extremality_test(h)
-        sage: read_simplified_leq_llt_lle(K)
-        BasicSemialgebraicSet_eq_lt_le_sets(eq = [], lt = [f - 1, -2*f + 1], le = [])
-
-        sage: K.<f> = ParametricRealField([1/5])
-        sage: h = drlm_3_slope_limit(f, conditioncheck=False)
-        sage: _ = extremality_test(h)
-        sage: read_simplified_leq_llt_lle(K)
-        BasicSemialgebraicSet_eq_lt_le_sets(eq = [], lt = [3*f - 1, -f], le = [])
-    """
-    if level == "factor":
-        #leq, lin = simplify_eq_lt_le_poly_via_ppl(K.get_eq_factor(), K.get_lt_factor())
-        # Since we update K.polyhedron incrementally,
-        # just read leq and lin from its minimized constraint system.
-        #### to REFACTOR
-        bsa = read_bsa_from_polyhedron(K.ppl_polyhedron(), K._factor_bsa.poly_ring(), K.monomial_list(), K.v_dict())
-    else:
-        bsa = BasicSemialgebraicSet_eq_lt_le_sets(base_ring=QQ, eq=K.get_eq(), lt=K.get_lt(), le=K.get_le())
-    if bsa.eq_poly():
-        logging.warning("equation list %s is not empty!" % bsa.eq_poly())
-    return bsa
+# FIXME: This function find_variable_mapping is bad; it assumes too many things. It is only used in  SemialgebraicComplexComponent._init_.
 
 def find_variable_mapping(leqs):
     r"""
     Return the list of equations after variables elimination and return the map.
-    Assume that leqs is the result bsa._eq from ``read_bsa_from_polyhedron()``,
-    so that gaussian elimination has been performed by PPL on the list of equations. 
+    Assume that gaussian elimination has been performed by PPL.minimized_constraints() on the list of equations leqs.
     If an equation has a linear variable, then eliminate it.
-
-    FIXME: This function is bad; it assumes too many things.
 
     EXAMPLES::
 
@@ -1785,7 +1544,7 @@ def substitute_llt_lle(llt, lle, var_map, var_name, var_value):
     for l in lle:
         ineq = l.parent()(l.subs(var_map))
         ineq(K.gens())<= 0 #always True
-    bsa = read_simplified_leq_llt_lle(K)
+    bsa = BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(K._bsa)
     return list(bsa.lt_poly()), list(bsa.le_poly())
 
 ######################################
@@ -1924,17 +1683,21 @@ class SemialgebraicComplexComponent(SageObject):
         #     # this could happen if we allow McCormicks to add new monomials.
         #     K.polyhedron.add_space_dimensions_and_embed(dim_to_add)
         if self.parent.max_iter == 0:
-            tightened_mip = None
-        ## to REFACTOR:
-        bsa = read_bsa_from_polyhedron(K.ppl_polyhedron(), K._factor_bsa.poly_ring(), K.monomial_list(), K.v_dict(), tightened_mip)
-        if not bsa.eq_poly():
-            P = PolynomialRing(QQ, parent.var_name)
-            self.var_map = {g:g for g in P.gens()}
-            self.bsa = bsa
+            lt_K = list(K._bsa.lt_poly())
+            le_K = list(K._bsa.le_poly())
         else:
-            leq, self.var_map = find_variable_mapping(list(bsa.eq_poly()))
-            llt, lle = substitute_llt_lle(bsa.lt_poly(), bsa.le_poly(), self.var_map, self.parent.var_name, self.var_value)
-            self.bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=leq, lt=llt, le=lle)
+            lt_K = [p(K._bsa._polynomial_map) for p in K._polyhedron.lt_poly() if not bsa_mip.is_polynomial_constraint_valid(p, operator.lt)]
+            le_K = [p(K._bsa._polynomial_map) for p in K._polyhedron.le_poly() if not bsa_mip.is_polynomial_constraint_valid(p, operator.lt)]  #using operator.le is wrong. delete too many upstairs inequalities.
+        eq_K = list(K._bsa.eq_poly())
+        if not eq_K:
+            P = PolynomialRing(QQ, parent.var_name)
+            self.var_map = {g:g for g in P.gens()} 
+        else:
+            eq_K, self.var_map = find_variable_mapping(eq_K)
+            # TO REFACTOR: use section.
+            lt_K, le_K = substitute_llt_lle(lt_K, le_K, self.var_map, self.parent.var_name, self.var_value)
+        self.bsa = BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=K._factor_bsa.poly_ring(), eq=eq_K, lt=lt_K, le=le_K)
+        #import pdb; pdb.set_trace()
         self.neighbor_points = []
 
     def __repr__(self):
@@ -2090,10 +1853,7 @@ class SemialgebraicComplexComponent(SageObject):
                     return g
             else:
                 lles.append(l)
-        bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=leqs, lt=llts, le=lles)
-        if slice_value:
-            bsa = simplify_eq_lt_le_poly_via_ppl(bsa)
-        constraints = [l(x, y) == 0 for l in bsa.eq_poly()] + [l(x, y) < 0 for l in bsa.lt_poly()] + [l(x, y) <= 0 for l in bsa.le_poly()]
+        constraints = [l(x, y) == 0 for l in leqs] + [l(x, y) < 0 for l in llts] + [l(x, y) <= 0 for l in lles]
         if (not constraints) or (constraints == [False]):
             # empty polytope
             return g
