@@ -7,7 +7,6 @@ channels:
   - defaults
 dependencies:
   - sage=8.8
-  - python
   - sphinxcontrib-websupport
   - sphinxcontrib-bibtex
   - lrslib
