@@ -1477,6 +1477,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             sage: sorted(bsa.lt_poly()), sorted(bsa.le_poly())
             ([54*x^2 + 226*y*z + 113], [y*z + 3*x])
         """
+        lhs = self.poly_ring()(lhs)
         space_dim_to_add = 0
         upstairs_lhs_coeff = [0] * self.upstairs().ambient_dim()
         upstairs_lhs_cst = 0
