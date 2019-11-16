@@ -8,7 +8,7 @@
 ## environment.yml".
 ##
 ## https://stackoverflow.com/questions/55236267/conda-force-non-regression-of-python-version
-name: sage-cgf
+name: sage-cgf-python2
 channels:
   - conda-forge
   - defaults
