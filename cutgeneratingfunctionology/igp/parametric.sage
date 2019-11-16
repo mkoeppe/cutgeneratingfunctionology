@@ -614,7 +614,7 @@ class ParametricRealField(Field):
         self._polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(0)
         # monomial_list records the monomials that appear in self._eq/lt_factor.
         # v_dict is a dictionary that maps each monomial to the index of its corresponding Variable in self._polyhedron
-        self._bsa = BasicSemialgebraicSet_veronese(self._polyhedron, polynomial_map=[], v_dict={})
+        self._bsa = BasicSemialgebraicSet_veronese(self._polyhedron, polynomial_map=[], poly_ring=sym_ring, v_dict={})
 
         self.allow_coercion_to_float = allow_coercion_to_float
         if allow_coercion_to_float:
