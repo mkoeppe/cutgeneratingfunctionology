@@ -13,6 +13,7 @@ if [ -n "${SAGE_AGE}" ]; then
     ## Install a Sage binary.
     ##
   SAGE_IMAGE=`python2 -c "import sage_version; print sage_version.get_all_version_names('${SAGE_SERVER}',${SAGE_AGE})"`
+  save_dir=`pwd`
   cd $HOME
   echo "Obtaining Sage image:" ${SAGE_IMAGE}
   if [ ! -x SageMath/sage ] ; then
@@ -20,6 +21,7 @@ if [ -n "${SAGE_AGE}" ]; then
       wget --progress=dot:giga ${SAGE_SERVER}${SAGE_IMAGE} -O SageMath.tar.bz2
       tar xf SageMath.tar.bz2
   fi
+  cd "$save_dir"
   export PATH="$HOME/SageMath/:$PATH"
   MAKE="make -j4"
   export MAKE
