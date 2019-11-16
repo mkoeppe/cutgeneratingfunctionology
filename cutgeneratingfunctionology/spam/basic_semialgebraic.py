@@ -84,8 +84,8 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
 
             sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
             sage: upstairs_bsa_ppl = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=0)
-            sage: veronese = BasicSemialgebraicSet_veronese(upstairs_bsa_ppl, [], dict(), ambient_dim=0)
             sage: Q.<x0,x1,x2> = QQ[]
+            sage: veronese = BasicSemialgebraicSet_veronese(upstairs_bsa_ppl, [], v_dict=dict(), poly_ring=Q)
             sage: lhs = 27/113 * x0^2 + x1*x2 + 1/2
             sage: veronese.add_polynomial_constraint(lhs, operator.lt)
             sage: list(veronese.lt_poly())
