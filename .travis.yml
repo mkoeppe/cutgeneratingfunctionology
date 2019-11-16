@@ -6,12 +6,20 @@ matrix:
   ##
   ## Test with conda-forge sagemath package
   ##
-  - env: CACHE_NAME=conda CONDA_ENV=sage-cgf DEPLOY_DOC_FROM_BRANCH=master DEPLOY_DOC_TO_REPOSITORY=mkoeppe/cutgeneratingfunctionology DEPLOY_DOC_TO_DIRECTORY=doc/html
+  - env: CACHE_NAME=conda CONDA_ENV=sage-cgf DEPLOY_DOC_TO_DIRECTORY=doc/html
     python: "2.7"    ## just for display. The version used is actually determined by conda.
     before_install:
     - source ./.travis-conda-install.sh
     - conda env create -n $CONDA_ENV -f environment-python2.yml || conda env update -n $CONDA_ENV --prune -f environment-python2.yml
     - conda activate $CONDA_ENV
+    deploy:
+      - provider: script
+        skip_cleanup: true
+        script: .travis-deploy-doc.sh
+        on:
+          branch: master
+          repo: mkoeppe/cutgeneratingfunctionology
+          condition: -r .travis_ci_gh_pages_deploy_key
   - env: CACHE_NAME=conda-py3 CONDA_ENV=sage-cgf-py3
     python: "3.7"    ## just for display. The version used is actually determined by conda.
     before_install:
@@ -81,8 +89,6 @@ cache:
   timeout: 1000
 before_cache:
 - rm -Rf $HOME/SageMath/logs $HOME/SageMath/.BUILDSTART
-after_success:
-- "./.travis-deploy-doc.sh"
 before_script:
 - openssl aes-256-cbc -K $encrypted_71e928c0b1a9_key -iv $encrypted_71e928c0b1a9_iv
   -in .travis_ci_gh_pages_deploy_key.enc -out .travis_ci_gh_pages_deploy_key -d
