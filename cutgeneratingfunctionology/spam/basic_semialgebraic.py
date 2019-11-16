@@ -1279,7 +1279,7 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
             if not is_PolynomialRing(poly_ring) and not is_MPolynomialRing(poly_ring):
                 poly_ring = PolynomialRing(base_ring, [])
         polynomial_map = [ poly_ring(f) for f in polynomial_map ]
-        if polynomial_map and ambient_dim is None:
+        if poly_ring and ambient_dim is None:
             ambient_dim = poly_ring.ngens()
         if not all(poly.parent().ngens() == ambient_dim for poly in polynomial_map):
             raise ValueError("elements in polynomial_map must come from a polynomial ring with the same number of variables as the ambient dimension")
