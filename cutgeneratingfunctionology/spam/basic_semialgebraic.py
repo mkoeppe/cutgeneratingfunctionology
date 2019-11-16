@@ -1366,16 +1366,15 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
     via a Veronese embedding (reformulation-linearization, RLT).
 
     Expand the polynomial in the standard monomial basis and replace each monomial by a new variable.
-    Record monomials in polynomial_map and their corresponding variables in v_dict. The resulting
-    linear expression in the extended space will be provided as inequality or equation in
-    upstairs_bsa, which could, for example be represented by a PPL not-necessarily-closed polyhedron.
+    Record monomials in polynomial_map and their corresponding variables in v_dict. Record the bounds on the monomials in bounds.
+    The resulting linear expression in the extended space will be provided as inequality or equation in upstairs_bsa, which could, for example be represented by a PPL not-necessarily-closed polyhedron.
 
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
         sage: upstairs_bsa_ppl = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=0)
-        sage: veronese = BasicSemialgebraicSet_veronese(upstairs_bsa_ppl, [], dict(), ambient_dim=0)
         sage: P.<f>=QQ[]
+        sage: veronese = BasicSemialgebraicSet_veronese(upstairs_bsa_ppl, polynomial_map=[], v_dict=dict(), poly_ring=P)
         sage: lt_poly = [2*f - 2, f - 2, f^2 - f, -2*f, f - 1, -f - 1, -f, -2*f + 1]
         sage: for lhs in lt_poly: veronese.add_polynomial_constraint(lhs, operator.lt)
         sage: veronese.polynomial_map()
@@ -1414,6 +1413,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         """
         super(BasicSemialgebraicSet_veronese, self).__init__(upstairs_bsa, polynomial_map, poly_ring=poly_ring, ambient_dim=ambient_dim)
         self._v_dict = v_dict
+        self._bounds = [(upstairs_bsa.linear_function_lower_bound(form), upstairs_bsa.linear_function_upper_bound(form)) for form in upstairs_bsa.ambient_space().basis()]
 
     def __copy__(self):
         """
@@ -1441,8 +1441,8 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
 
             sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
             sage: upstairs_bsa_ppl = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=0)
-            sage: veronese = BasicSemialgebraicSet_veronese(upstairs_bsa_ppl, [], dict(), ambient_dim=0)
             sage: Q.<x0,x1,x2> = QQ[]
+            sage: veronese = BasicSemialgebraicSet_veronese(upstairs_bsa_ppl, [], dict(), poly_ring=Q)
             sage: lhs = 27/113 * x0^2 + x1*x2 + 1/2
             sage: veronese.add_polynomial_constraint(lhs, operator.lt)
             sage: list(veronese.lt_poly())
@@ -1459,8 +1459,9 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             [x0^2, x1*x2, x0]
             sage: veronese.v_dict()
             {x0: 2, x1*x2: 1, x0^2: 0}
-            sage: bsa = BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=0), [], dict(), ambient_dim=0)
+
             sage: P.<x,y,z> = QQ[]
+            sage: bsa = BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=0), [], dict(), poly_ring=P)
             sage: t = 27/113 * x^2 + y*z + 1/2
             sage: bsa.add_polynomial_constraint(t, operator.lt)
             sage: bsa.polynomial_map()
@@ -1512,8 +1513,8 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
 
             sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
             sage: upstairs_bsa_ppl = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=0)
-            sage: veronese = BasicSemialgebraicSet_veronese(upstairs_bsa_ppl, [], dict(), ambient_dim=0)
             sage: Q.<x0,x1,x2> = QQ[]
+            sage: veronese = BasicSemialgebraicSet_veronese(upstairs_bsa_ppl, [], dict(), poly_ring=Q)
             sage: lhs = 27/113 * x0^2 + x1*x2 + 1/2
             sage: veronese.add_polynomial_constraint(lhs, operator.lt)
             sage: veronese.is_polynomial_constraint_valid(lhs, operator.lt)
