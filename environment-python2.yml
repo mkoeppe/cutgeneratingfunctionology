@@ -19,4 +19,5 @@ dependencies:
   - sphinxcontrib-bibtex
   - lrslib
   - normaliz
-  - pip
+  - boost-cpp      # For installing PyNormaliz
+  - pip            # For installing sage_setup and PyNormaliz
