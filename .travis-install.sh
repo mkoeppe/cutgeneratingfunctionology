@@ -22,7 +22,7 @@ if [ -n "${SAGE_AGE}" ]; then
       tar xf SageMath.tar.bz2
   fi
   # Disable recompiles of sagelib after installing packages, which times out on Travis CI
-  sed -i.bak $'s/^sage:/sage:\\\nrebuild-sage-lib:/' src/Makefile
+  sed -i.bak $'s/^sage:/sage:\\\nrebuild-sage-lib:/' "$HOME/SageMath/src/Makefile"
   # Back to the correct directory.
   cd "$save_dir"
   export PATH="$HOME/SageMath/:$PATH"
