@@ -7,10 +7,10 @@ matrix:
   ## Test with conda-forge sagemath package
   ##
   - env: CACHE_NAME=conda CONDA_ENV=sage-cgf DEPLOY_DOC_FROM_BRANCH=master DEPLOY_DOC_TO_REPOSITORY=mkoeppe/cutgeneratingfunctionology DEPLOY_DOC_TO_DIRECTORY=doc/html
-    python: "2.7"
+    python: "2.7"    ## just for display. The version used is actually determined by conda.
     before_install:
     - source ./.travis-conda-install.sh
-    - conda env create -n $CONDA_ENV -f environment-python2.yml || conda env update -n $CONDA_ENV --prune -f environment.yml
+    - conda env create -n $CONDA_ENV -f environment-python2.yml || conda env update -n $CONDA_ENV --prune -f environment-python2.yml
     - conda activate $CONDA_ENV
   - env: CACHE_NAME=conda-py3 CONDA_ENV=sage-cgf-py3
     python: "3.7"    ## just for display. The version used is actually determined by conda.
