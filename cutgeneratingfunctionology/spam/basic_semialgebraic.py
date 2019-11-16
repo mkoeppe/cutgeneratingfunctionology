@@ -1224,7 +1224,7 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
     See ``BasicSemialgebraicSet_base.section``.
     """
 
-    def __init__(self, upstairs_bsa, polynomial_map, ambient_dim=None):
+    def __init__(self, upstairs_bsa, polynomial_map, poly_ring=None, ambient_dim=None):
         """
         EXAMPLES:
 
@@ -1273,10 +1273,11 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
         if len(polynomial_map) != upstairs_bsa.ambient_dim():
             raise ValueError("polynomial_map must have the same length as the ambient dimension of the upstairs bsa")
         base_ring = upstairs_bsa.base_ring()
-        cm = get_coercion_model()
-        poly_ring = cm.common_parent(*polynomial_map)
-        if not is_PolynomialRing(poly_ring) and not is_MPolynomialRing(poly_ring):
-            poly_ring = PolynomialRing(base_ring, [])
+        if poly_ring is None:
+            cm = get_coercion_model()
+            poly_ring = cm.common_parent(*polynomial_map)
+            if not is_PolynomialRing(poly_ring) and not is_MPolynomialRing(poly_ring):
+                poly_ring = PolynomialRing(base_ring, [])
         polynomial_map = [ poly_ring(f) for f in polynomial_map ]
         if polynomial_map and ambient_dim is None:
             ambient_dim = poly_ring.ngens()
@@ -1387,7 +1388,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         [-2*f + 1, f - 1, f^2 - f]
     """
 
-    def __init__(self, upstairs_bsa, polynomial_map, v_dict, ambient_dim=None):
+    def __init__(self, upstairs_bsa, polynomial_map, v_dict, poly_ring=None, ambient_dim=None):
         """
         EXAMPLES:
 
@@ -1411,7 +1412,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             sage: veronese.ambient_space()
             Vector space of dimension 2 over Rational Field
         """
-        super(BasicSemialgebraicSet_veronese, self).__init__(upstairs_bsa, polynomial_map, ambient_dim=ambient_dim)
+        super(BasicSemialgebraicSet_veronese, self).__init__(upstairs_bsa, polynomial_map, poly_ring=poly_ring, ambient_dim=ambient_dim)
         self._v_dict = v_dict
 
     def __copy__(self):
