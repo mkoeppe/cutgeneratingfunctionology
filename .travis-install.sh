@@ -1,4 +1,7 @@
 #! /bin/bash -x
+#
+# Best if sourced! It sets the PATH where it installs sage.
+#
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
@@ -6,7 +9,9 @@
 set -e
 
 if [ -n "${SAGE_AGE}" ]; then
-    ### Install a Sage binary.
+    ##
+    ## Install a Sage binary.
+    ##
   SAGE_IMAGE=`python2 -c "import sage_version; print sage_version.get_all_version_names('${SAGE_SERVER}',${SAGE_AGE})"`
   cd $HOME
   echo "Obtaining Sage image:" ${SAGE_IMAGE}
@@ -15,14 +20,20 @@ if [ -n "${SAGE_AGE}" ]; then
       wget --progress=dot:giga ${SAGE_SERVER}${SAGE_IMAGE} -O SageMath.tar.bz2
       tar xf SageMath.tar.bz2
   fi
+  export PATH="$HOME/SageMath/:$PATH"
   MAKE="make -j4"
   export MAKE
   # Install packages
-  SageMath/sage -i lrslib pynormaliz
+  sage -i lrslib pynormaliz
   # To initialize matplotlib font manager
-  $HOME/SageMath/sage -python -c 'import matplotlib.pyplot'
-  $HOME/SageMath/sage -pip install --user sphinxcontrib-websupport
+  sage -python -c 'import matplotlib.pyplot'
+  sage -pip install --user sphinxcontrib-websupport
 else
+    ##
+    ## Installed with conda
+    ##
     #https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#using-pip-in-an-environment
     pip install -r requirements.txt
 fi
+# Display the banner, so we can be sure what version we ended up with!
+sage < /dev/null

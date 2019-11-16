@@ -10,13 +10,13 @@ matrix:
     python: "2.7"
     before_install:
     - source ./.travis-conda-install.sh
-    - conda env create -n $CONDA_ENV python=$TRAVIS_PYTHON_VERSION -f environment.yml || conda env update -n $CONDA_ENV --prune python=$TRAVIS_PYTHON_VERSION -f environment.yml
+    - conda env create -n $CONDA_ENV -f environment-python2.yml || conda env update -n $CONDA_ENV --prune -f environment.yml
     - conda activate $CONDA_ENV
   - env: CACHE_NAME=conda-py3 CONDA_ENV=sage-cgf-py3
-    python: "3.8"
+    python: "3.7"    ## just for display. The version used is actually determined by conda.
     before_install:
     - source ./.travis-conda-install.sh
-    - conda env create -n $CONDA_ENV python=$TRAVIS_PYTHON_VERSION -f environment.yml || conda env update -n $CONDA_ENV --prune python=$TRAVIS_PYTHON_VERSION -f environment.yml
+    - conda env create -n $CONDA_ENV -f environment.yml || conda env update -n $CONDA_ENV --prune -f environment.yml
     - conda activate $CONDA_ENV
 
   ##
@@ -45,7 +45,7 @@ matrix:
     python: "3.8"
     before_install:
     - source ./.travis-conda-install.sh
-    - conda env create -n $CONDA_ENV python=$TRAVIS_PYTHON_VERSION -f environment.yml || conda env update -n $CONDA_ENV --prune python=$TRAVIS_PYTHON_VERSION -f environment.yml
+    - conda env create -n $CONDA_ENV -f environment.yml || conda env update -n $CONDA_ENV --prune -f environment.yml
     - conda activate $CONDA_ENV
   - env: CACHE_NAME=latest SAGE_SERVER=http://files.sagemath.org/linux/64bit/ SAGE_AGE=0
   - env: CACHE_NAME=older SAGE_SERVER=http://files.sagemath.org/linux/64bit/ SAGE_AGE=1
@@ -58,7 +58,7 @@ addons:
       # Also, optional package installs in .travis-install.sh will trigger build of sage gcc.
       - gfortran
 install:
-- "./.travis-install.sh"
+- source "./.travis-install.sh"
 script:
 - "./.travis-test.sh"
 cache:
