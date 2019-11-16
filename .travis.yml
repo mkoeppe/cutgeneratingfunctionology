@@ -18,7 +18,7 @@ matrix:
     - source ./.travis-conda-install.sh
     - conda env create -n $CONDA_ENV -f environment.yml || conda env update -n $CONDA_ENV --prune -f environment.yml
     - conda activate $CONDA_ENV
-  - env: CACHE_NAME=conda-py3 CONDA_ENV=sage-cgf-latestsage
+  - env: CACHE_NAME=conda-py3-latestsage CONDA_ENV=sage-cgf-latestsage
     python: "3.7"    ## just for display. The version used is actually determined by conda.
     before_install:
     - source ./.travis-conda-install.sh
@@ -52,7 +52,7 @@ matrix:
     - source ./.travis-conda-install.sh
     - conda env create -n $CONDA_ENV -f environment.yml || conda env update -n $CONDA_ENV --prune -f environment.yml
     - conda activate $CONDA_ENV
-  - env: CACHE_NAME=conda-py3 CONDA_ENV=sage-cgf-latestsage
+  - env: CACHE_NAME=conda-py3-latestsage CONDA_ENV=sage-cgf-latestsage
     python: "3.7"    ## just for display. The version used is actually determined by conda.
     before_install:
     - source ./.travis-conda-install.sh
