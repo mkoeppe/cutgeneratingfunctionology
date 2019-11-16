@@ -7,8 +7,9 @@ channels:
   - defaults
 dependencies:
   - sage=8.8
-  - python=2.7               # Our testsuite still has some failures with Py 3 due to some changed sort orders.
+  - python
   - sphinxcontrib-websupport
   - sphinxcontrib-bibtex
   - lrslib
   - normaliz
+  - pip
