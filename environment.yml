@@ -11,3 +11,4 @@ dependencies:
   - sphinxcontrib-websupport
   - sphinxcontrib-bibtex
   - lrslib
+  - normaliz
