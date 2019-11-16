@@ -1113,8 +1113,8 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
             sage: P._le is copy(P)._le
             False
         """
-        return self.__class__(self.base_ring(), self.ambient_dim(), self.poly_ring(),
-                              self._eq, self._lt, self._le)
+        return self.__class__(base_ring=self.base_ring(), ambient_dim=self.ambient_dim(),
+                              poly_ring=self.poly_ring(), eq=self._eq, lt=self._lt, le=self._le)
 
     # override the abstract methods
 
@@ -1293,8 +1293,8 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
         Make a copy of ``self``.
 
         """
-        return self.__class__(copy(self.upstairs()), copy(self.polynomial_map()),
-                              self.ambient_dim())
+        return self.__class__(upstairs_bsa=copy(self.upstairs()), polynomial_map=copy(self.polynomial_map()),
+                              polynomial_ring=polynomial_ring(), ambient_dim=self.ambient_dim())
 
     def poly_ring(self):
         return self._poly_ring
@@ -1420,8 +1420,8 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         Make a copy of ``self``.
 
         """
-        return self.__class__(copy(self.upstairs()), copy(self.polynomial_map()),
-                              copy(self.v_dict()), self.ambient_dim())
+        return self.__class__(upstairs_bsa=copy(self.upstairs()), polynomial_map=copy(self.polynomial_map()),
+                              v_dict=copy(self.v_dict()), poly_ring=self.poly_ring(), ambient_dim=self.ambient_dim())
 
     def v_dict(self):
         """
