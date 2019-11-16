@@ -21,7 +21,7 @@ class SageTest(TestCommand):
 setup(
     name = "cutgeneratingfunctionology",
     version = readfile("VERSION").strip(), # the VERSION file is shared with the documentation
-    description='An example of a basic sage package',
+    description='Sage code for computation and experimentation with cut-generating functions',
     long_description = readfile("README.rst"), # get the long description from the README
     url='https://github.com/mkoeppe/cutgeneratingfunctionology',
     author='Matthias Koeppe, Yuan Zhou, Chun Yu Hong, Jiawei Wang, with contributions by undergraduate programmers',
@@ -39,7 +39,7 @@ setup(
       'Programming Language :: Python :: 2.7',
     ], # classifiers list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
     keywords = "integer programming, cutting planes",
-    packages = ['cutgeneratingfunctionology', 'cutgeneratingfunctionology.igp', 'cutgeneratingfunctionology.multirow', 'cutgeneratingfunctionology.dff'],
+    packages = ['cutgeneratingfunctionology', 'cutgeneratingfunctionology.igp', 'cutgeneratingfunctionology.multirow', 'cutgeneratingfunctionology.dff', 'cutgeneratingfunctionology.spam'],
     include_package_data=True,     # to install the .sage files too
     cmdclass = {'test': SageTest}, # adding a special setup command for tests
     setup_requires   = ['sage-package'],

@@ -45,13 +45,32 @@ Run it on mybinder.org
 How to run the code in a local copy of Sage
 -------------------------------------------
 
-1. Install Sage from http://www.sagemath.org/
-
-2. Download the code from
+1. Download the code from
    https://github.com/mkoeppe/cutgeneratingfunctionology.git
 
+2. Install SageMath:
+
+   a) Either from source from http://www.sagemath.org/
+
+   b) or with a binary from http://www.sagemath.org/
+
+   c) or via conda (recommended):
+
+      - Install Miniconda from https://docs.conda.io/en/latest/miniconda.html
+
+      - From the directory cutgeneratingfunctionology, set up the environment::
+
+          conda env create -n sage-cgf -f environment.yml
+          conda active sage-cgf
+
 3. From the directory cutgeneratingfunctionology, start
-   Sage.  You can either use the terminal or the worksheet.
+   Sage.  You can either use the terminal (IPython)::
+
+        sage
+
+   or a Jupyter notebook::
+
+        sage -n jupyter
 
 4. At the Sage prompt, type::
 

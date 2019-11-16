@@ -14,6 +14,8 @@
 # serve to show the default.
 
 # General information about the project.
+import six
+
 project = u"cutgeneratingfunctionology"
 copyright = u'2013-2018, Chun Yu Hong, Matthias Koeppe, Yuan Zhou, Jiawei Wang'
 package_name = 'cutgeneratingfunctionology'
@@ -50,8 +52,8 @@ print("Using sys.path = {}".format(sys.path))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    #'sphinx.ext.autodoc',
-    'sage_autodoc',
+    'sphinx.ext.autodoc',
+    #'sage_autodoc',            ## Not available on conda-forge sage!
     'sage_package.sphinx',
     'sphinx.ext.doctest',
     'sphinx.ext.coverage',
@@ -291,7 +293,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', package_name + '.tex', u'Documentation of ' + unicode(package_name),
+  ('index', package_name + '.tex', u'Documentation of ' + six.text_type(package_name),
    authors, 'manual'),
 ]
 
@@ -321,7 +323,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', package_name, unicode(package_name) + u" documentation",
+    ('index', package_name, six.text_type(package_name) + u" documentation",
      [authors], 1)
 ]
 
@@ -335,7 +337,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', package_name, unicode(package_name) + u" documentation",
+  ('index', package_name, six.text_type(package_name) + u" documentation",
    authors, package_name, project,
    'Miscellaneous'),
 ]
@@ -424,3 +426,10 @@ for macro in sage_latex_macros():
     latex_elements['preamble'] += macro + '\n'
     # used when building html version
     pngmath_latex_preamble += macro + '\n'
+
+
+## The following is needed on conda-forge sagemath
+from sage.repl.user_globals import initialize_globals
+import sage.all
+my_globs = dict()
+initialize_globals(sage.all, my_globs)

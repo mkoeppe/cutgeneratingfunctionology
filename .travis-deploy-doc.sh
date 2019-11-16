@@ -4,7 +4,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 set -e
-if [[ "${TRAVIS_PULL_REQUEST}" == "false" && "${TRAVIS_BRANCH}" == "${DEPLOY_DOC_FROM_BRANCH}" && -r .travis_ci_gh_pages_deploy_key ]]; then
+if [[ -r .travis_ci_gh_pages_deploy_key ]]; then
     if [[ -z "${DEPLOY_DOC_TO_REPOSITORY}" ]]; then
         DEPLOY_DOC_TO_REPOSITORY="${TRAVIS_REPO_SLUG}"
     fi
@@ -25,4 +25,4 @@ if [[ "${TRAVIS_PULL_REQUEST}" == "false" && "${TRAVIS_BRANCH}" == "${DEPLOY_DOC
 	git push origin gh-pages
     fi
 fi
-/usr/bin/killall python2
+/usr/bin/killall python2 || true
