@@ -1429,6 +1429,31 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         """
         return self._v_dict
 
+    def _to_upstairs_linear_constraint(self, lhs, allow_adding_upstairs_space_dimensions=True):
+        lhs = self.poly_ring()(lhs)
+        space_dim_to_add = 0
+        upstairs_lhs_coeff = list(self.upstairs().ambient_space().zero())
+        upstairs_lhs_cst = self.upstairs().base_ring().zero()
+        for m in lhs.monomials():
+            coeffm = QQ(lhs.monomial_coefficient(m))
+            if m == 1:
+                upstairs_lhs_cst = coeffm
+            else:
+                nv = self.v_dict().get(m, None)
+                if nv is None:
+                    if not allow_adding_upstairs_space_dimensions:
+                        raise ValueError("this constraint requires adding upstairs space dimensions")
+                    nv = len(self.polynomial_map())
+                    self.v_dict()[m] = nv
+                    self.polynomial_map().append(m)
+                    space_dim_to_add += 1
+                    upstairs_lhs_coeff.append(coeffm)
+                else:
+                    upstairs_lhs_coeff[nv] = coeffm
+        if space_dim_to_add:
+            self.upstairs().add_space_dimensions_and_embed(space_dim_to_add)
+        return upstairs_lhs_coeff, upstairs_lhs_cst
+
     def add_polynomial_constraint(self, lhs, op):
         """
         ``lhs`` should be a polynomial.
@@ -1476,28 +1501,8 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             sage: sorted(bsa.lt_poly()), sorted(bsa.le_poly())
             ([54*x^2 + 226*y*z + 113], [y*z + 3*x])
         """
-        lhs = self.poly_ring()(lhs)
-        space_dim_to_add = 0
-        upstairs_lhs_coeff = [0] * self.upstairs().ambient_dim()
-        upstairs_lhs_cst = 0
-        for m in lhs.monomials():
-            coeffm = QQ(lhs.monomial_coefficient(m))
-            if m == 1:
-                upstairs_lhs_cst = coeffm
-            else:
-                nv = self.v_dict().get(m, None)
-                if nv is None:
-                    nv = len(self.polynomial_map())
-                    self.v_dict()[m] = nv
-                    self.polynomial_map().append(m)
-                    space_dim_to_add += 1
-                    upstairs_lhs_coeff.append(coeffm)
-                else:
-                    upstairs_lhs_coeff[nv] = coeffm
-        if space_dim_to_add:
-            self.upstairs().add_space_dimensions_and_embed(space_dim_to_add)
-        upstairs_lhs = sum(x*y for x, y in zip(upstairs_lhs_coeff, self.upstairs().poly_ring().gens())) + upstairs_lhs_cst
-        self.upstairs().add_polynomial_constraint(upstairs_lhs, op)
+        upstairs_lhs_coeff, upstairs_lhs_cst = self._to_upstairs_linear_constraint(lhs, True)
+        self.upstairs().add_linear_constraint(upstairs_lhs_coeff, upstairs_lhs_cst, op)
 
     def is_polynomial_constraint_valid(self, lhs, op):
         """
@@ -1525,19 +1530,10 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             ...
             NotImplementedError...
         """
-        space_dim_to_add = 0
-        upstairs_lhs_coeff = [QQ(0)] * self.upstairs().ambient_dim()
-        upstairs_lhs_cst = QQ(0)
-        for m in lhs.monomials():
-            coeffm = QQ(lhs.monomial_coefficient(m))
-            if m == 1:
-                upstairs_lhs_cst = coeffm
-            else:
-                nv = self.v_dict().get(m, None)
-                if nv is None:
-                    raise NotImplementedError
-                else:
-                    upstairs_lhs_coeff[nv] = coeffm
+        try:
+            upstairs_lhs_coeff, upstairs_lhs_cst = self._to_upstairs_linear_constraint(lhs, False)
+        except ValueError:
+            raise NotImplementedError
         return self.upstairs().is_linear_constraint_valid(upstairs_lhs_coeff, upstairs_lhs_cst, op)
 
     def _add_mccormick_bound(self, i, i1, i2, c1, c2, op):
