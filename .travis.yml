@@ -42,7 +42,7 @@ matrix:
   ## Sage binary based runs often timeout while downloading the image.
   allow_failures:
   - env: CACHE_NAME=conda-py3 CONDA_ENV=sage-cgf-py3
-    python: "3.8"
+    python: "3.7"    ## just for display. The version used is actually determined by conda.
     before_install:
     - source ./.travis-conda-install.sh
     - conda env create -n $CONDA_ENV -f environment.yml || conda env update -n $CONDA_ENV --prune -f environment.yml
