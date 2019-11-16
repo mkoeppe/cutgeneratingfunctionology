@@ -8,10 +8,10 @@ def search_example_continuous_dff(q):
         sage: from cutgeneratingfunctionology.dff import *
         sage: logging.disable(logging.WARN)   # Suppress output in automatic tests.
         sage: max_q = 13
-        sage: dffs_by_q = [ list(search_example_continuous_dff(q)) for q in range(max_q+1) ]
-        sage: [ len(dffs) for dffs in dffs_by_q ]
+        sage: dffs_by_q = [ list(search_example_continuous_dff(q)) for q in range(max_q+1) ]   # optional - pynormaliz
+        sage: [ len(dffs) for dffs in dffs_by_q ]    # optional - pynormaliz
         [0, 1, 1, 1, 1, 2, 1, 3, 3, 3, 3, 7, 6, 8]
-        sage: [ len([ phi for phi in dffs if not is_bj(phi) ]) for dffs in dffs_by_q ]
+        sage: [ len([ phi for phi in dffs if not is_bj(phi) ]) for dffs in dffs_by_q ]    # optional - pynormaliz
         [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 4, 2]
 
     """
@@ -45,8 +45,8 @@ def search_example_general_dff(q):
         sage: from cutgeneratingfunctionology.dff import *
         sage: logging.disable(logging.INFO)   # Suppress output in automatic tests.
         sage: max_q = 7
-        sage: dffs_by_q = [ list(search_example_general_dff(q)) for q in range(max_q+1) ]
-        sage: [ len(dffs) for dffs in dffs_by_q ]
+        sage: dffs_by_q = [ list(search_example_general_dff(q)) for q in range(max_q+1) ]   # optional - pynormaliz
+        sage: [ len(dffs) for dffs in dffs_by_q ]   # optional - pynormaliz
         [1, 1, 2, 3, 7, 11, 14, 44]
     """
 
