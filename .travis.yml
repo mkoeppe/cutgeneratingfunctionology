@@ -18,6 +18,12 @@ matrix:
     - source ./.travis-conda-install.sh
     - conda env create -n $CONDA_ENV -f environment.yml || conda env update -n $CONDA_ENV --prune -f environment.yml
     - conda activate $CONDA_ENV
+  - env: CACHE_NAME=conda-py3 CONDA_ENV=sage-cgf-latestsage
+    python: "3.7"    ## just for display. The version used is actually determined by conda.
+    before_install:
+    - source ./.travis-conda-install.sh
+    - conda env create -n $CONDA_ENV -f environment-latestsage.yml || conda env update -n $CONDA_ENV --prune -f environment-latestsage.yml
+    - conda activate $CONDA_ENV
 
   ##
   ## Test with Ubuntu sagemath package
@@ -39,7 +45,6 @@ matrix:
   - env: CACHE_NAME=oldest SAGE_SERVER=http://files.sagemath.org/linux/64bit/ SAGE_AGE=2
 
   ## Allowed failures.  conda-py3 fails because of minor testsuite problems (sort order).
-  ## Sage binary based runs often timeout while downloading the image.
   allow_failures:
   - env: CACHE_NAME=conda-py3 CONDA_ENV=sage-cgf-py3
     python: "3.7"    ## just for display. The version used is actually determined by conda.
@@ -47,6 +52,13 @@ matrix:
     - source ./.travis-conda-install.sh
     - conda env create -n $CONDA_ENV -f environment.yml || conda env update -n $CONDA_ENV --prune -f environment.yml
     - conda activate $CONDA_ENV
+  - env: CACHE_NAME=conda-py3 CONDA_ENV=sage-cgf-latestsage
+    python: "3.7"    ## just for display. The version used is actually determined by conda.
+    before_install:
+    - source ./.travis-conda-install.sh
+    - conda env create -n $CONDA_ENV -f environment-latestsage.yml || conda env update -n $CONDA_ENV --prune -f environment-latestsage.yml
+    - conda activate $CONDA_ENV
+  ## More allowed failures.  Sage binary based runs often timeout while downloading the image.
   - env: CACHE_NAME=latest SAGE_SERVER=http://files.sagemath.org/linux/64bit/ SAGE_AGE=0
   - env: CACHE_NAME=older SAGE_SERVER=http://files.sagemath.org/linux/64bit/ SAGE_AGE=1
   - env: CACHE_NAME=oldest SAGE_SERVER=http://files.sagemath.org/linux/64bit/ SAGE_AGE=2
