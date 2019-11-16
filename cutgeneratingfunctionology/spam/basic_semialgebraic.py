@@ -1413,7 +1413,6 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         """
         super(BasicSemialgebraicSet_veronese, self).__init__(upstairs_bsa, polynomial_map, poly_ring=poly_ring, ambient_dim=ambient_dim)
         self._v_dict = v_dict
-        self._bounds = [(upstairs_bsa.linear_function_lower_bound(form), upstairs_bsa.linear_function_upper_bound(form)) for form in upstairs_bsa.ambient_space().basis()]
 
     def __copy__(self):
         """
@@ -1540,6 +1539,98 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
                 else:
                     upstairs_lhs_coeff[nv] = coeffm
         return self.upstairs().is_linear_constraint_valid(upstairs_lhs_coeff, upstairs_lhs_cst, op)
+
+    def _add_mccormick_bound(self, i, i1, i2, c1, c2, op):
+        r"""
+        If x[i] - c1*x[i1] - c2*x[i2] + c1*c2 ``op`` 0 is redundant in self.upstairs(), return False, otherwise return True and add this new constraint to self.upstairs().
+        """
+        if c1 in (-Infinity, +Infinity) or c2 in (-Infinity, +Infinity):
+            # unbounded
+            return False
+        lhs = vector(self.upstairs().base_ring(), self.upstairs().ambient_dim())
+        lhs[i] = 1; lhs[i1] = -c1; lhs[i2] = -c2; cst = c1 * c2;
+        if self.upstairs().is_linear_constraint_valid(lhs, cst, op):
+            return False
+        self.upstairs().add_linear_constraint(lhs, cst, op)
+        return True
+
+    def _compute_bounds_of_the_ith_monomial(self, i):
+        r"""
+        Return the lower and upper bounds of the i-th variable in self.upstaris.
+        """
+        form = self.upstairs().ambient_space().basis()[i]
+        lb = self.upstairs().linear_function_lower_bound(form)
+        ub = self.upstairs().linear_function_upper_bound(form)
+        return (lb, ub)
+
+    def tighten_upstairs_by_mccormick(self, max_iter=1):
+        r"""
+        Recursively add McCormick inequalites on the monomials and do upward and downward bounds propagation until max_iter is attained or no more changes of bounds occur.
+        Calling with max_iter=0 computes the bounds.
+        Calling with max_iter=1 performs one round of upward bounds propagation and one round of downward bounds propagation.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: upstairs_bsa_mip = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(QQ, 0, solver='ppl')
+            sage: P.<x,y> = QQ[]
+            sage: veronese = BasicSemialgebraicSet_veronese(upstairs_bsa_mip, [], dict(), poly_ring=P)
+            sage: veronese.add_polynomial_constraint(x, operator.ge)
+            sage: veronese.add_polynomial_constraint(x-1, operator.le)
+            sage: veronese.add_polynomial_constraint(y-1, operator.ge)
+            sage: veronese.add_polynomial_constraint(y-2, operator.le)
+            sage: veronese.add_polynomial_constraint(x*y+1000, operator.ge)
+            sage: veronese.tighten_upstairs_by_mccormick(max_iter=0); veronese._bounds
+            [(0, 1), (1, 2), (-1000, +Infinity)]
+            sage: veronese.tighten_upstairs_by_mccormick(max_iter=1); veronese._bounds
+            [(0, 1), (1, 2), (0, 2)]
+            sage: veronese.add_polynomial_constraint(2*x*y^2-1, operator.ge)
+            sage: veronese.tighten_upstairs_by_mccormick(max_iter=0); veronese._bounds
+            [(0, 1), (1, 2), (0, 2), (1/2, +Infinity)]
+            sage: veronese.tighten_upstairs_by_mccormick(max_iter=1); veronese._bounds
+            [(1/8, 1), (1, 2), (1/4, 2), (1/2, 4)]
+        """
+        self._bounds = [self._compute_bounds_of_the_ith_monomial(i) for i in range(len(self._polynomial_map))]
+        bounds_propagation_iter = 0
+        tightened = True # = bool(len(self.var_value) > 1)
+        while bounds_propagation_iter < max_iter and tightened:
+            tightened = False
+            # upward bounds propagation
+            for m in self._polynomial_map:
+                if m.degree() < 2:
+                    continue
+                i = self._v_dict[m]
+                for v1 in self._polynomial_map:
+                    (v2, rem) = m.quo_rem(v1)
+                    if rem != 0 or v1 > v2 or (not v2 in self._v_dict):
+                        # don't want the recursive McCormicks to create a new monomial.
+                        # v1, v2 symmetric
+                        continue
+                    i1 = self._v_dict[v1]
+                    i2 = self._v_dict[v2]
+                    lb1, ub1 = self._bounds[i1]
+                    lb2, ub2 = self._bounds[i2]
+                    if self._add_mccormick_bound(i, i1, i2, lb2, lb1, operator.ge):
+                        tightened = True
+                    if self._add_mccormick_bound(i, i1, i2, ub2, ub1, operator.ge):
+                        tightened = True
+                    if self._add_mccormick_bound(i, i1, i2, lb2, ub1, operator.le):
+                        tightened = True
+                    if self._add_mccormick_bound(i, i1, i2, ub2, lb1, operator.le):
+                        tightened = True
+                if tightened:
+                    self._bounds[i] = self._compute_bounds_of_the_ith_monomial(i)
+            if tightened:
+                tightened = False
+                # downward bounds propagation
+                for i in range(self.upstairs().ambient_dim()):
+                    (lb, ub) = self._bounds[i]
+                    self._bounds[i] = self._compute_bounds_of_the_ith_monomial(i)
+                    if (self._bounds[i][0] > lb + 0.001) or (self._bounds[i][1] < ub - 0.001):
+                        tightened = True
+            #if max_iter != 0 and bounds_propagation_iter >= max_iter:
+            #    logging.warning("max number %s of bounds propagation iterations has attained." % max_iter)
+            bounds_propagation_iter += 1
 
 class BasicSemialgebraicSet_formal_closure(BasicSemialgebraicSet_base):
 
