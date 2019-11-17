@@ -11,7 +11,7 @@ if [[ -r "$ABS_DEPLOY_KEY" ]]; then
         DEPLOY_DOC_TO_REPOSITORY="${TRAVIS_REPO_SLUG}"
     fi
     chmod 600 "$ABS_DEPLOY_KEY"
-    export GIT_SSH_COMMAND="ssh -i $ABS_DEPLOY_KEY -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+    export GIT_SSH_COMMAND="ssh -v -i $ABS_DEPLOY_KEY -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
     rm -Rf gh-pages
     git clone --depth 1 git@github.com:${DEPLOY_DOC_TO_REPOSITORY}.git --depth 1 --branch=gh-pages gh-pages
     BUILT_DOCS_DIR=`cd docs/build/html && pwd`
