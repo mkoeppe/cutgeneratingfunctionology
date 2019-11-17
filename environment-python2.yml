@@ -1,4 +1,8 @@
 ## This is a conda environment file.
+## Use it as follows:
+##
+##    conda env create -f environment-python2.yml
+##
 ## See https://towardsdatascience.com/a-guide-to-conda-environments-bc6180fc533
 ## or    https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html
 ##
@@ -15,6 +19,7 @@ channels:
 dependencies:
   - python=2.7
   - sage=8.9
+  - sphinx
   - sphinxcontrib-websupport
   - sphinxcontrib-bibtex
   - lrslib
