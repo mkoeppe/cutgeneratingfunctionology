@@ -20,4 +20,7 @@ dependencies:
   - lrslib
   - normaliz
   - boost-cpp      # For installing PyNormaliz
-  - pip            # For installing sage_setup and PyNormaliz
+  - pip
+  - pip:
+    - pynormaliz
+    - sage-package
