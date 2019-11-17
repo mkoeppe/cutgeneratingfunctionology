@@ -1428,7 +1428,7 @@ class ParametricRealField(Field):
         r"""
         Make a :class:`SemialgebraicComplexComponent` from a :class:`ParametricRealField`.
         
-        In **opt, one can provide: region_type, complex (parent of the cell), function, max_iter, find_region_type, default_var_bound, bddbsa, kwds_dict.
+        In **opt, one can provide: region_type, complex (parent of the cell), function, find_region_type, default_var_bound, bddbsa, kwds_dict.
 
         EXAMPLES::
 
@@ -1663,7 +1663,7 @@ class SemialgebraicComplexComponent(SageObject):
         sage: def foo(x,y):
         ....:     return (x+y < 2) and (y^2 < x)
 
-        sage: complex = SemialgebraicComplex(foo, ['x','y'], max_iter=2, find_region_type=lambda r:r, default_var_bound=(-5,5))
+        sage: complex = SemialgebraicComplex(foo, ['x','y'], find_region_type=lambda r:r, default_var_bound=(-5,5))
         sage: K.<x,y> = ParametricRealField([1,1/2])
         sage: region_type = foo(*K.gens())
         sage: component = SemialgebraicComplexComponent(complex, K, [1,1/2], region_type)
@@ -1683,7 +1683,7 @@ class SemialgebraicComplexComponent(SageObject):
     Test variable elimination::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: complex = SemialgebraicComplex(foo, ['x','y'], max_iter=2, find_region_type=lambda r:r, default_var_bound=(-5,5))
+        sage: complex = SemialgebraicComplex(foo, ['x','y'], find_region_type=lambda r:r, default_var_bound=(-5,5))
         sage: K.<x,y> = ParametricRealField([1,1/2])
         sage: region_type = foo(*K.gens())
         sage: x == 2*y
@@ -1699,13 +1699,8 @@ class SemialgebraicComplexComponent(SageObject):
         self.region_type = region_type
         self.monomial_list = K.monomial_list()
         self.v_dict = K.v_dict()
-        self.bounds, bsa_mip = self.bounds_propagation(polyhedron=K._polyhedron, max_iter=self.parent.max_iter)
-        if self.parent.max_iter == 0:
-            lt_K = list(K._bsa.lt_poly())
-            le_K = list(K._bsa.le_poly())
-        else:
-            lt_K = [p(K._bsa._polynomial_map) for p in K._polyhedron.lt_poly() if not bsa_mip.is_polynomial_constraint_valid(p, operator.lt)]
-            le_K = [p(K._bsa._polynomial_map) for p in K._polyhedron.le_poly() if not bsa_mip.is_polynomial_constraint_valid(p, operator.lt)]  #using operator.le is wrong. delete too many upstairs inequalities.
+        lt_K = list(K._bsa.lt_poly())
+        le_K = list(K._bsa.le_poly())
         eq_K = list(K._bsa.eq_poly())
         if not eq_K:
             P = PolynomialRing(QQ, parent.var_name)
@@ -1730,53 +1725,6 @@ class SemialgebraicComplexComponent(SageObject):
             s += ", {} nonstrict-ins".format(len(self.bsa.le_poly()))
         s += ")"
         return s
-
-    def bounds_propagation(self, polyhedron, max_iter):
-        r"""
-        Compute LP bounds for variables and then do upward and downward bounds propagation until
-        max_iter is attained or no more changes of bounds occur.
-        See examples in ``update_mccormicks_for_monomial()``.
-
-        The following example comes from ``chen_4_slope``. It shows that the non-linear inequality is discarded from the description of the (polyhedral) cell after max_iter=2 rounds of bounds_propagation.
-
-        EXAMPLES::
-
-            sage: from cutgeneratingfunctionology.igp import *
-            sage: logging.disable(logging.INFO)
-            sage: K.<lam1,lam2>=ParametricRealField([3/10, 45/101])
-            sage: h = chen_4_slope(K(7/10), K(2), K(-4), lam1, lam2)
-            sage: region_type = find_region_type_igp(K, h)
-            sage: sorted(K._bsa.lt_poly())
-            [2*lam2 - 1, -2*lam1 + lam2, 19*lam1 - 75*lam2, 21*lam1 - 8]
-            sage: c = K.make_proof_cell(region_type=region_type, function=h, find_region_type=None)
-            sage: sorted(c.bsa.lt_poly())
-            [2*lam2 - 1, -2*lam1 + lam2, 19*lam1 - 75*lam2, 21*lam1 - 8]
-        """
-        bsa_mip = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram.from_bsa(polyhedron.formal_closure(), solver='ppl')
-        # Compute LP bounds first
-        bounds = [(bsa_mip.linear_function_lower_bound(form), bsa_mip.linear_function_upper_bound(form)) for form in bsa_mip.ambient_space().basis()]
-        bounds_propagation_iter = 0
-        # TODO: single parameter polynomial_rational_flint object needs special treatment. ignore bounds propagation in this case for now.  #tightened = True
-        tightened = bool(len(self.var_value) > 1)
-        while bounds_propagation_iter < max_iter and tightened:
-            tightened = False
-            # upward bounds propagation
-            for m in self.monomial_list:
-                if update_mccormicks_for_monomial(m, bsa_mip, self.monomial_list, self.v_dict, bounds):
-                    tightened = True
-            if tightened:
-                tightened = False
-                # downward bounds propagation
-                for i in range(bsa_mip.ambient_dim()):
-                    (lb, ub) = bounds[i]
-                    bounds[i] = find_bounds_of_variable(bsa_mip, i)
-                    if (bounds[i][0] > lb + 0.001) or (bounds[i][1] < ub - 0.001):
-                        tightened = True
-            if max_iter != 0 and bounds_propagation_iter >= max_iter:
-                logging.warning("max number %s of bounds propagation iterations has attained." % max_iter)
-            bounds_propagation_iter += 1
-        #print bounds_propagation_iter
-        return bounds, bsa_mip
 
     def plot(self, alpha=0.5, plot_points=300, slice_value=None, show_testpoints=True, **kwds):
         r"""
@@ -1937,7 +1885,7 @@ class SemialgebraicComplex(SageObject):
         sage: def vol(a,b):
         ....:     P = Polyhedron(ieqs=[(0,0,1),(0,1,0),(1,-1,0),(1,0,-1),(a,-1,0),(b,0,-1)])
         ....:     return P.volume()
-        sage: complex = SemialgebraicComplex(vol, ['a','b'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-1,3))
+        sage: complex = SemialgebraicComplex(vol, ['a','b'], find_region_type=result_symbolic_expression, default_var_bound=(-1,3))
 
     Breadth-first-search to complete the complex, starting at the point (a,b)=(2,1/2), using heuristic wall-crossing, considering full-dimensional cells only::
 
@@ -1952,7 +1900,7 @@ class SemialgebraicComplex(SageObject):
 
     Instead of heuristic method, we can use Mathematica's ``FindInstance`` to look for uncovered points in wall-crossing::
 
-        sage: complex = SemialgebraicComplex(vol, ['a','b'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-1,3))                         # optional - mathematica
+        sage: complex = SemialgebraicComplex(vol, ['a','b'], find_region_type=result_symbolic_expression, default_var_bound=(-1,3))                         # optional - mathematica
         sage: complex.bfs_completion(var_value=[2, 1/2], flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='mathematica', goto_lower_dim=True)        # optional - mathematica
         sage: len(complex.components)                         # optional - mathematica
         25
@@ -1964,7 +1912,7 @@ class SemialgebraicComplex(SageObject):
         
     Example with non-linear wall::
 
-        sage: complex = SemialgebraicComplex(lambda x,y: max(x,y^2), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-3,3))  # optional - mathematica
+        sage: complex = SemialgebraicComplex(lambda x,y: max(x,y^2), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-3,3))  # optional - mathematica
         sage: complex.bfs_completion(var_value=[1,1/2], check_completion=True, wall_crossing_method='mathematica', goto_lower_dim=True)                             # optional - mathematica
         sage: len(complex.components)                         # optional - mathematica
         3
@@ -2038,13 +1986,12 @@ class SemialgebraicComplex(SageObject):
         sage: extc.is_complete(bddlin=boundary,strict=True)                         #long time, optional - mathematica
         True
     """
-    def __init__(self, function, var_name, max_iter=2, find_region_type=None, default_var_bound=(-0.1,1.1), bddbsa=None, kwds_dict={}, **opt_non_default):
+    def __init__(self, function, var_name, find_region_type=None, default_var_bound=(-0.1,1.1), bddbsa=None, kwds_dict={}, **opt_non_default):
         r"""
         Construct a SemialgebraicComplex.
 
         - function: we are interested in analysing how the output of this function varies with its parameters
         - var_name: a subset of the parameters of the function that we study
-        - max_iter: the max number of iterations in updating McCormick inequalites
         - find_region_type: maps the output of function to a type of the parameter region;
             - set to ``None`` for functions in Gomory-Johnson model; 
             - often set to ``result_symbolic_expression`` or ``result_concrete_value`` for other functions;
@@ -2057,7 +2004,7 @@ class SemialgebraicComplex(SageObject):
 
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
-            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
         """
         #self.num_components = 0
         self.components = []
@@ -2070,7 +2017,6 @@ class SemialgebraicComplex(SageObject):
         self.num_plotted_components = 0
         self.points_to_test = {} # a dictionary of the form {testpoint: bddleq}
         # we record bddleq for each testpoiont, since we want to restrict to lower dimensional cells when  goto_lower_dim is set to True.
-        self.max_iter = max_iter
         if find_region_type is None:
             self.find_region_type = find_region_type_igp
         else:
@@ -2098,7 +2044,7 @@ class SemialgebraicComplex(SageObject):
 
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
-            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
             sage: random_point = complex.generate_random_var_value()
             sage: all(complex.default_var_bound[0] < random_point[i] < complex.default_var_bound[1] for i in [0,1])
             True
@@ -2142,7 +2088,7 @@ class SemialgebraicComplex(SageObject):
 
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
-            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
             sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y}
             sage: complex.is_point_covered([2,3])
             True
@@ -2167,7 +2113,7 @@ class SemialgebraicComplex(SageObject):
 
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
-            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
             sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y}
             sage: cell = next(complex.cells_containing_point([2,3]))
             sage: cell.var_value
@@ -2189,7 +2135,7 @@ class SemialgebraicComplex(SageObject):
 
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
-            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
             sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y}
             sage: var_value = complex.find_uncovered_random_point(max_failings=100)
             sage: complex.is_point_covered(var_value)
@@ -2221,7 +2167,7 @@ class SemialgebraicComplex(SageObject):
 
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
-            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))            # optional - mathematica
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))            # optional - mathematica
             sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y}                          # optional - mathematica
             sage: var_value = complex.find_uncovered_point_mathematica(strict=False)  # optional - mathematica
             sage: complex.is_point_covered(var_value)                   # optional - mathematica
@@ -2263,14 +2209,14 @@ class SemialgebraicComplex(SageObject):
 
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
-            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
             sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=1/10, wall_crossing_method='heuristic', goto_lower_dim=True) # the cell {(x,y): x<y}
             sage: complex.components[0].bsa.lt_poly()
             {x - y}
             sage: complex.points_to_test
             {(3/2, 3/2): [x - y], (31/20, 29/20): []}
 
-            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y^2), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))        # optional - mathematica
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y^2), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))        # optional - mathematica
             sage: complex.add_new_component([1,1/2], bddleq=[], flip_ineq_step=1/10, wall_crossing_method='mathematica', goto_lower_dim=False) # the cell {(x,y): x > y^2}      # optional - mathematica
             sage: complex.components[0].lin                           # optional - mathematica
             [y^2 - x]
@@ -2316,11 +2262,11 @@ class SemialgebraicComplex(SageObject):
 
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)                   # not tested
-            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))      # not tested
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))      # not tested
             sage: complex.shoot_random_points(100)                # not tested
             sage: complex.plot()                                  # not tested
 
-            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y^2), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y^2), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
             sage: complex.shoot_random_points(100)                # not tested
         """
         for i in range(num):
@@ -2342,7 +2288,7 @@ class SemialgebraicComplex(SageObject):
 
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
-            sage: complex = SemialgebraicComplex(lambda x,y,z: min(x^2,y^2,z), ['x','y','z'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-10,10))    # not tested
+            sage: complex = SemialgebraicComplex(lambda x,y,z: min(x^2,y^2,z), ['x','y','z'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))    # not tested
             sage: complex.bfs_completion(goto_lower_dim=True)             # not tested
             sage: Q.<u,v> = QQ[]                                          # not tested
 
@@ -2424,13 +2370,13 @@ class SemialgebraicComplex(SageObject):
 
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
-            sage: complex = SemialgebraicComplex(lambda x,y: min(x^2+ 4*y^2, 4), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-3,3))    # optional - mathematica
+            sage: complex = SemialgebraicComplex(lambda x,y: min(x^2+ 4*y^2, 4), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-3,3))    # optional - mathematica
             sage: complex.bfs_completion(check_completion=True, wall_crossing_method='mathematica', goto_lower_dim=True)                                                          # optional - mathematica
             sage: len(complex.components)                               # optional - mathematica
             3
             sage: complex.plot()                                        # not tested
 
-            sage: complex = SemialgebraicComplex(lambda x,y: min(x+ 4*y, 4), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-5,5))
+            sage: complex = SemialgebraicComplex(lambda x,y: min(x+ 4*y, 4), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-5,5))
             sage: complex.bfs_completion(var_value=[1,1])
             sage: len(complex.components)
             2
@@ -2470,7 +2416,7 @@ class SemialgebraicComplex(SageObject):
 
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
-            sage: complex = SemialgebraicComplex(lambda x,y: min(x+ 4*y, 4), ['x','y'], max_iter=0, find_region_type=result_symbolic_expression, default_var_bound=(-5,5))    # optional - mathematica
+            sage: complex = SemialgebraicComplex(lambda x,y: min(x+ 4*y, 4), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-5,5))    # optional - mathematica
             sage: complex.bfs_completion(var_value=[1,1])           # optional - mathematica
             sage: complex.is_complete()                             # optional - mathematica
             True
@@ -2586,106 +2532,6 @@ def bounds_for_plotting(v, lb_ub, default_var_bound):
     if l >= u:
         return (v, default_var_bound[0], default_var_bound[1])
     return (v, l, u)
-
-def find_bounds_of_variable(bsa_mip, i):
-    r"""
-    Return the lower and upper bounds of the i-th variable in the MIP.
-    """
-    form = bsa_mip.ambient_space().basis()[i]
-    lb = bsa_mip.linear_function_lower_bound(form)
-    ub = bsa_mip.linear_function_upper_bound(form)
-    return (lb, ub)
-
-def add_mccormick_bound(bsa_mip, i, i1, i2, c1, c2, op):
-    r"""
-    If x[i] - c1*x[i1] - c2*x[i2] + c1*c2 ``op`` 0 is redundant in the mip, return False,
-    otherwise return True and add this new constraint to the mip.
-    """
-    if c1 in (-Infinity, +Infinity) or c2 in (-Infinity, +Infinity):
-        # unbounded
-        return False
-    lhs = vector(bsa_mip.base_ring(), bsa_mip.ambient_dim())
-    lhs[i] = 1; lhs[i1] = -c1; lhs[i2] = -c2; cst = c1 * c2;
-    if bsa_mip.is_linear_constraint_valid(lhs, cst, op):
-        return False
-    bsa_mip.add_linear_constraint(lhs, cst, op)
-    return True
-
-def update_mccormicks_for_monomial(m, bsa_mip, monomial_list, v_dict, bounds):
-    r"""
-    Do recursive McCormicks on the monomial m.
-
-    If bounds is modified, update bsa_mip of the cell and return ``True``, otherwise return ``False``.
-
-    Expect that the monomials in monomial_list have non-decreasing degrees.
-
-    EXAMPLES::
-
-        sage: from cutgeneratingfunctionology.igp import *
-        sage: bsa_mip = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(QQ, 3, solver='ppl')
-        sage: bsa_mip.add_linear_constraint((1,0,0), 0, operator.ge)
-        sage: bsa_mip.add_linear_constraint((1,0,0), -1, operator.le)
-        sage: bsa_mip.add_linear_constraint((0,1,0), -1, operator.ge)
-        sage: bsa_mip.add_linear_constraint((0,1,0), -2, operator.le)
-        sage: P.<x,y> = QQ[]
-        sage: monomial_list = [x, y, x*y]; v_dict = {x:0, y:1, x*y:2}
-        sage: bounds = [(0, 1), (1, 2), (None, None)]
-
-    Upward bounds propagation::
-
-        sage: update_mccormicks_for_monomial(x*y, bsa_mip, monomial_list, v_dict, bounds)
-        True
-        sage: bounds
-        [(0, 1), (1, 2), (0, 2)]
-        sage: update_mccormicks_for_monomial(x*y, bsa_mip, monomial_list, v_dict, bounds)
-        False
-
-        sage: bsa_mip.add_space_dimensions_and_embed(1)
-        sage: bsa_mip.add_linear_constraint((0,0,0,2), -1, operator.ge)
-        sage: monomial_list.append(x*y^2); v_dict[x*y^2]=3; bounds.append((1/2, None));
-        sage: monomial_list
-        [x, y, x*y, x*y^2]
-        sage: bounds
-        [(0, 1), (1, 2), (0, 2), (1/2, None)]
-
-        sage: update_mccormicks_for_monomial(x*y*y, bsa_mip, monomial_list, v_dict, bounds)
-        True
-        sage: bounds
-        [(0, 1), (1, 2), (0, 2), (1/2, 4)]
-
-    Downward bounds propagation::
-
-        sage: bounds = [find_bounds_of_variable(bsa_mip,i) for i in range(4)]
-        sage: bounds
-        [(1/8, 1), (1, 2), (1/4, 2), (1/2, 4)]
-    """
-    if m.degree() < 2:
-        return False
-    i = v_dict[m]
-    tightened = False
-    for v1 in monomial_list:
-        (v2, rem) = m.quo_rem(v1)
-        if rem != 0 or v1 > v2:
-            # don't want the recursive McCormicks to create a new monomial.
-            # v1, v2 symmetric
-            continue
-        i1 = v_dict[v1]
-        i2 = v_dict.get(v2, None)
-        if (i2 is None):
-            continue
-        lb1, ub1 = bounds[i1]
-        lb2, ub2 = bounds[i2]
-        if add_mccormick_bound(bsa_mip, i, i1, i2, lb2, lb1, operator.ge):
-            tightened = True
-        if add_mccormick_bound(bsa_mip, i, i1, i2, ub2, ub1, operator.ge):
-            tightened = True
-        if add_mccormick_bound(bsa_mip, i, i1, i2, lb2, ub1, operator.le):
-            tightened = True
-        if add_mccormick_bound(bsa_mip, i, i1, i2, ub2, lb1, operator.le):
-            tightened = True
-    if tightened:
-        bounds[i] = find_bounds_of_variable(bsa_mip, i)
-    return tightened
 
 ####################################
 # Find region type and region color
