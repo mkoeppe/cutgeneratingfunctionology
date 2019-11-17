@@ -1570,7 +1570,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             # unbounded
             return False
         lhs = vector(self.upstairs().base_ring(), self.upstairs().ambient_dim())
-        lhs[i] = 1; lhs[i1] = -c1; lhs[i2] = -c2; cst = c1 * c2;
+        lhs[i] = 1; lhs[i1] -= c1; lhs[i2] -= c2; cst = c1 * c2;
         if self.upstairs().is_linear_constraint_valid(lhs, cst, op):
             return False
         self.upstairs().add_linear_constraint(lhs, cst, op)
