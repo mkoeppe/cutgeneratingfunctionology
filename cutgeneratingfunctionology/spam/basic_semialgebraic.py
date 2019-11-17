@@ -771,7 +771,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
     def linear_function_upper_bound(self, form):
         """
         Find an upper bound for ``form`` (a vector) on ``self``.
-        Tthis upper bound is the supremum.
+        This upper bound is the supremum.
 
         If ``self`` is empty, it returns -oo
         """
@@ -893,8 +893,7 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
         Whether the constraint ``lhs`` * x + cst ``op`` 0
         is satisfied for all points of ``self``.
 
-        In the current implementation, this raises ``NotImplementedError``
-        in unbounded/infeasible situations.
+        Raise ValueError if ``lhs`` is not of the right dimension.
 
         EXAMPLES::
 
@@ -929,7 +928,10 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
         """
         Obtain a linear function object representing
         ``form`` * x + ``cst``.
+        Raise ValueError if ``form`` is not of the right dimension.
         """
+        if not len(form) ==  self.ambient_dim():
+            raise ValueError("wrong dimension")
         return self.mip().sum(coeff * gen for coeff, gen in zip(form, self.mip_gens())) + cst
 
     def linear_function_upper_bound(self, form):
@@ -940,6 +942,8 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
         so this upper bound is the supremum.
 
         If ``self`` is empty, this returns -oo
+
+        Raise ValueError if ``form`` is not of the right dimension.
         """
         mip = self.mip()
         objective = self._mip_linear_function(form)
@@ -961,6 +965,8 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
         Add the constraint ``lhs`` * x + cst ``op`` 0,
         where ``lhs`` is a vector of length ``ambient_dim`` and
         ``op`` is one of ``operator.eq``, ``operator.le``, ``operator.ge``.
+
+        Raise ValueError if ``lhs`` is not of the right dimension.
 
         EXAMPLES::
 
