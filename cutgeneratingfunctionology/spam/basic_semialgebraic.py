@@ -1410,8 +1410,19 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             sage: veronese = BasicSemialgebraicSet_veronese(polyhedron, polynomial_map, v_dict)
             sage: veronese.ambient_space()
             Vector space of dimension 2 over Rational Field
+
+        Check error checking::
+
+            sage: polynomial_map = [P.gen(0) - P.gen(1), 2 * P.gen(1)]
+            sage: veronese = BasicSemialgebraicSet_veronese(polyhedron, polynomial_map, v_dict)
+            Traceback (most recent call last):
+            ...
+            ValueError: all polynomials in polynomial_map must be monomials with coefficient 1
+
         """
         super(BasicSemialgebraicSet_veronese, self).__init__(upstairs_bsa, polynomial_map, poly_ring=poly_ring, ambient_dim=ambient_dim)
+        if not all(len(f.monomials()) == 1 and f.lc() == 1 for f in self.polynomial_map()):
+            raise ValueError("all polynomials in polynomial_map must be monomials with coefficient 1")
         self._v_dict = v_dict
 
     def __copy__(self):
