@@ -1521,7 +1521,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         upstairs_lhs_coeff, upstairs_lhs_cst = self._to_upstairs_linear_constraint(lhs, True)
         self.upstairs().add_linear_constraint(upstairs_lhs_coeff, upstairs_lhs_cst, op)
 
-    def is_polynomial_constraint_valid(self, lhs, op):
+    def is_polynomial_constraint_valid(self, lhs, op, allow_adding_upstairs_space_dimensions=False):
         """
         Check if the constraint ``lhs``(x) ``op`` 0 is satisfied 
         for all points of ``self``, where ``lhs`` is a polynomial, and
@@ -1550,8 +1550,17 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         try:
             upstairs_lhs_coeff, upstairs_lhs_cst = self._to_upstairs_linear_constraint(lhs, False)
         except ValueError:
+            if allow_adding_upstairs_space_dimensions is True:
+                upstairs_lhs_coeff, upstairs_lhs_cst = self._to_upstairs_linear_constraint(lhs, True)
+                self.tighten_upstairs_by_mccormick() # caution: modify upstairs
+            else:
+                raise NotImplementedError
+        if self.upstairs().is_linear_constraint_valid(upstairs_lhs_coeff, upstairs_lhs_cst, op):
+            return True
+        elif all(m.degree() < 2 for m in self._polynomial_map):
+            return False
+        else:
             raise NotImplementedError
-        return self.upstairs().is_linear_constraint_valid(upstairs_lhs_coeff, upstairs_lhs_cst, op)
 
     def _add_mccormick_bound(self, i, i1, i2, c1, c2, op):
         r"""
