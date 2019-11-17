@@ -13,7 +13,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Code for classical and general dual-feasible functions" href="dff.html" />
@@ -81,9 +81,6 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
           <a href="dff.html" title="Code for classical and general dual-feasible functions"
              accesskey="N">next</a> |</li>
         <li class="right" >
@@ -103,136 +100,8 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof">
-<span id="automatic-verification-of-the-paper-all-cyclic-group-facets-inject"></span><h1>Automatic verification of the paper “All Cyclic Group Facets Inject”<a class="headerlink" href="#module-cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof" title="Permalink to this headline">¶</a></h1>
-<p>Automatic verification of the paper “All Cyclic Group Facets Inject”.</p>
-<p>We check cases (a’) and (b’) of the subadditivity proof
-in the paper <a class="reference internal" href="zzz_bib.html#koeppe-zhou-cyclic-group-facets-inject" id="id1">[KoppeZ18]</a>
-through symbolic computation.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">sage: </span><span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="gp">sage: </span><span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
-
-<span class="gp">sage: </span><span class="n">setup_case_aprime1_MMM_type_I</span><span class="p">()</span>
-<span class="gp">sage: </span><span class="n">setup_case_aprime2_MMM_type_II</span><span class="p">()</span>
-<span class="gp">sage: </span><span class="n">setup_case_aprime3_MWW</span><span class="p">()</span>
-
-<span class="gp">sage: </span><span class="n">setup_case_bprime2_MMM</span><span class="p">()</span>
-<span class="gp">sage: </span><span class="n">setup_case_bprime3_MWW_type_I</span><span class="p">()</span>
-<span class="gp">sage: </span><span class="n">setup_case_bprime3_MWW_type_II</span><span class="p">()</span>
-<span class="gp">sage: </span><span class="n">setup_case_bprime4_WMW</span><span class="p">()</span>
-</pre></div>
-</div>
-<dl class="function">
-<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.construct_phi">
-<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">construct_phi</code><span class="sig-paren">(</span><em>pi</em>, <em>signs</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.construct_phi" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.delta_IJK">
-<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">delta_IJK</code><span class="sig-paren">(</span><em>pi</em>, <em>xy</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.delta_IJK" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.plot_case">
-<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">plot_case</code><span class="sig-paren">(</span><em>phi</em>, <em>pts</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.plot_case" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.plot_fun_IJK">
-<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">plot_fun_IJK</code><span class="sig-paren">(</span><em>pi</em>, <em>phi</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.plot_fun_IJK" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.ppl_point">
-<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">ppl_point</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.ppl_point" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct a point.</p>
-<p>INPUT:</p>
-<ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">expression</span></code> – a <code class="xref py py-class docutils literal notranslate"><span class="pre">Linear_Expression</span></code> or something
-convertible to it (<code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code> or integer).</li>
-<li><code class="docutils literal notranslate"><span class="pre">divisor</span></code> – an integer.</li>
-</ul>
-<p>OUTPUT:</p>
-<p>A new <code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code> representing the point.</p>
-<p>Raises a <code class="docutils literal notranslate"><span class="pre">ValueError`</span> <span class="pre">if</span> <span class="pre">``divisor==0</span></code>.</p>
-<p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ppl</span> <span class="k">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Variable</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">y</span><span class="o">+</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="go">point(0/3, 2/3)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="n">y</span><span class="o">+</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="go">point(0/3, 1/3)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="go">point()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="gt">Traceback (most recent call last):</span>
-<span class="c">...</span>
-<span class="gr">ValueError</span>: <span class="n">PPL::point(e, d):</span>
-<span class="go">d == 0.</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case">
-<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case</code><span class="sig-paren">(</span><em>sign1</em>, <em>sign2</em>, <em>sign3</em>, <em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_aprime1_MMM_type_I">
-<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_aprime1_MMM_type_I</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_aprime1_MMM_type_I" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_aprime2_MMM_type_II">
-<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_aprime2_MMM_type_II</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_aprime2_MMM_type_II" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_aprime3_MWW">
-<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_aprime3_MWW</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_aprime3_MWW" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_aprime_MMM">
-<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_aprime_MMM</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_aprime_MMM" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime2_MMM">
-<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_bprime2_MMM</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime2_MMM" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime3_MWW">
-<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_bprime3_MWW</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime3_MWW" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime3_MWW_type_I">
-<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_bprime3_MWW_type_I</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime3_MWW_type_I" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime3_MWW_type_II">
-<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_bprime3_MWW_type_II</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime3_MWW_type_II" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime4_WMW">
-<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_bprime4_WMW</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime4_WMW" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_pi_case_aprime">
-<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_pi_case_aprime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_pi_case_aprime" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_pi_case_bprime">
-<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_pi_case_bprime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_pi_case_bprime" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+  <div class="section" id="automatic-verification-of-the-paper-all-cyclic-group-facets-inject">
+<h1>Automatic verification of the paper “All Cyclic Group Facets Inject”<a class="headerlink" href="#automatic-verification-of-the-paper-all-cyclic-group-facets-inject" title="Permalink to this headline">¶</a></h1>
 </div>
 
 
@@ -277,9 +146,6 @@ convertible to it (<code class="xref py py-class docutils literal notranslate"><
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
           <a href="dff.html" title="Code for classical and general dual-feasible functions"
              >next</a> |</li>
         <li class="right" >
@@ -296,7 +162,7 @@ convertible to it (<code class="xref py py-class docutils literal notranslate"><
     
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013-2018, Chun Yu Hong, Matthias Koeppe, Yuan Zhou, Jiawei Wang.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.6.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.
     </div>
     <script type="text/javascript">
 /*global jQuery, window */
