@@ -1607,11 +1607,24 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             sage: veronese.tighten_upstairs_by_mccormick(max_iter=1); veronese._bounds
             [(0, 1), (1, 2), (0, 2)]
             sage: veronese.add_polynomial_constraint(2*x*y^2-1, operator.ge)
+            sage: veronese.polynomial_map()
+            [x, y, x*y, x*y^2]
             sage: veronese.tighten_upstairs_by_mccormick(max_iter=0); veronese._bounds
             [(0, 1), (1, 2), (0, 2), (1/2, +Infinity)]
             sage: veronese.tighten_upstairs_by_mccormick(max_iter=1); veronese._bounds
             [(1/8, 1), (1, 2), (1/4, 2), (1/2, 4)]
+            sage: veronese.add_polynomial_constraint(y^2-1, operator.le)
+            sage: veronese.polynomial_map()
+            [x, y, x*y, x*y^2, y^2]
+            sage: veronese.tighten_upstairs_by_mccormick(max_iter=0); veronese._bounds
+            [(1/8, 1), (1, 2), (1/4, 2), (1/2, 4), (0, 1)]
+            sage: veronese.tighten_upstairs_by_mccormick(max_iter=1); veronese._bounds
+            [(1/2, 1), (1, 1), (1/2, 1), (1/2, 1), (1, 1)]
         """
+        for i in range(len(self._polynomial_map)):
+            if self._polynomial_map[i].is_square():
+                form = self.upstairs().ambient_space().basis()[i]
+                self.upstairs().add_linear_constraint(form, 0, operator.ge)
         self._bounds = [self._compute_bounds_of_the_ith_monomial(i) for i in range(len(self._polynomial_map))]
         bounds_propagation_iter = 0
         tightened = True # = bool(len(self.var_value) > 1)
