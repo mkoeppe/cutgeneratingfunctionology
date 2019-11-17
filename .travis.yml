@@ -15,7 +15,7 @@ matrix:
     deploy:
       - provider: script
         skip_cleanup: true
-        script: .travis-deploy-doc.sh
+        script: bash -x .travis-deploy-doc.sh
         on:
           branch: master
           repo: mkoeppe/cutgeneratingfunctionology
