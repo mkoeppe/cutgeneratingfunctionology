@@ -58,12 +58,12 @@ How to run the code in a local copy of Sage
 
       - Install Miniconda from https://docs.conda.io/en/latest/miniconda.html
 
-      - From the directory cutgeneratingfunctionology, set up the environment::
+      - From the directory "cutgeneratingfunctionology", set up the environment::
 
           conda env create -n sage-cgf -f environment.yml
-          conda active sage-cgf
+          conda activate sage-cgf
 
-3. From the directory cutgeneratingfunctionology, start
+3. From the directory "cutgeneratingfunctionology", start
    Sage.  You can either use the terminal (IPython)::
 
         sage
