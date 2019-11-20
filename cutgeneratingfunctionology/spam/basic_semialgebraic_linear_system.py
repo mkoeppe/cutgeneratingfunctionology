@@ -59,13 +59,13 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
             sage: D.ambient_dim()
             3
             sage: PR.<x0,x1,x2> = D.base_ring().fraction_field()[]
-            sage: bsa = from_polyhedron_to_linear_system(D,poly_ring=PR)
+            sage: bsa = BasicSemialgebraicSet_polyhedral_linear_system.from_polyhedron_to_linear_system(D)
             sage: set(D.vertices()) == set(bsa.to_polyhedron().vertices())
             True
-            sage: # project out x1 variable
+            sage: # project out the second variable
             sage: proj_mat = matrix([[1,0,0],[0,0,1]])
             sage: D_proj = Polyhedron(vertices = (proj_mat*D.vertices_matrix()).columns())
-            sage: bsa_proj = bsa.coordinate_projection([x1])
+            sage: bsa_proj = bsa.coordinate_projection([bsa.poly_ring().gens()[1]])
             sage: set(D_proj.vertices()) == set(bsa_proj.to_polyhedron().vertices())
             True
             
@@ -73,14 +73,13 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
             sage: b3 = polytopes.Birkhoff_polytope(3)
             sage: b3.ambient_dim()
             9
-            sage: PR.<x0,x1,x2,x3,x4,x5,x6,x7,x8>=b3.base_ring().fraction_field()[]            # need a larger ring for elimination
-            sage: bsa = from_polyhedron_to_linear_system(b3,PR)
+            sage: bsa = BasicSemialgebraicSet_polyhedral_linear_system.from_polyhedron_to_linear_system(b3)
             sage: set(b3.vertices()) == set (bsa.to_polyhedron().vertices())
             True
             sage: # project out x0, x2, x4, x6, x8 variable
             sage: proj_mat=matrix([[0,1,0,0,0,0,0,0,0],[0,0,0,1,0,0,0,0,0],[0,0,0,0,0,1,0,0,0],[0,0,0,0,0,0,0,1,0]])
             sage: b3_proj = Polyhedron(vertices = (proj_mat*b3.vertices_matrix()).columns())
-            sage: bsa_proj = bsa.coordinate_projection([x0,x2,x4,x6,x8])
+            sage: bsa_proj = bsa.coordinate_projection([bsa.poly_ring().gens()[i] for i in [0,2,4,6,8]])
             sage: set(b3_proj.vertices()) == set(bsa_proj.to_polyhedron().vertices())
             True
         """
@@ -312,16 +311,20 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
             eqns.append([eq.constant_coefficient()] + [eq.monomial_coefficient(v) for v in self.poly_ring().gens()])
         return Polyhedron(ieqs=ieqs, eqns=eqns, **kwds)
 
-def from_polyhedron_to_linear_system(p, poly_ring=None):
-    """
-    Convert a instance of Polyhedron to a instance of BasicSemialgebraicSet_polyhedral_linear_system
-    """
-    if poly_ring is None:
-        poly_ring = PolynomialRing(p.base_ring(), "x", p.ambient_dim())
-    bsa = BasicSemialgebraicSet_polyhedral_linear_system(poly_ring = poly_ring)
-    for lhs in p.inequalities_list():
-        bsa.add_linear_constraint(lhs[1:],lhs[0],operator.ge)
-    for lhs in p.equations_list():
-        bsa.add_linear_constraint(lhs[1:],lhs[0],operator.eq)
-    return bsa
+    @classmethod
+    def from_polyhedron_to_linear_system(cls, p, poly_ring=None):
+        """
+        Convert a instance of Polyhedron to a instance of BasicSemialgebraicSet_polyhedral_linear_system
+        """
+        if p.__class__ == cls:
+            return p
+        base_ring = p.base_ring().fraction_field()
+        ambient_dim = p.ambient_dim()
+        poly_ring = PolynomialRing(base_ring, "x", ambient_dim)
+        self = cls(base_ring=base_ring, ambient_dim=ambient_dim, poly_ring=poly_ring)
+        for lhs in p.inequalities_list():
+            self.add_linear_constraint(lhs[1:],lhs[0],operator.ge)
+        for lhs in p.equations_list():
+            self.add_linear_constraint(lhs[1:],lhs[0],operator.eq)
+        return self
 
