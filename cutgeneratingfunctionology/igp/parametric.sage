@@ -25,6 +25,19 @@ from cutgeneratingfunctionology.spam.polyhedral_complex import PolyhedralComplex
 debug_new_factors = False
 debug_cell_exceptions = False
 
+def bigcellify_igp():
+    """
+    Load igp as follows to override primitives with big_cells primitives::
+
+        sage: import cutgeneratingfunctionology.igp as igp; reload(igp); igp.bigcellify_igp(); from cutgeneratingfunctionology.igp import *   # not tested
+
+    """
+    import cutgeneratingfunctionology.igp as igp
+    import cutgeneratingfunctionology.spam.big_cells as big_cells
+    igp.min = big_cells.min
+    igp.sorted = big_cells.sorted
+    igp.is_min_le = big_cells.is_min_le
+
 ###############################
 # Parametric Real Number Field
 ###############################
