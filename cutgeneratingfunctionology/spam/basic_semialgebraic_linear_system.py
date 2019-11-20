@@ -58,7 +58,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
             sage: D = polytopes.dodecahedron()
             sage: D.ambient_dim()
             3
-            sage: PR.<x0,x1,x2> = D.base_ring()[]
+            sage: PR.<x0,x1,x2> = D.base_ring().fraction_field()[]
             sage: bsa = from_polyhedron_to_linear_system(D,poly_ring=PR)
             sage: set(D.vertices()) == set(bsa.to_polyhedron().vertices())
             True
@@ -73,9 +73,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
             sage: b3 = polytopes.Birkhoff_polytope(3)
             sage: b3.ambient_dim()
             9
-            sage: b3.base_ring()
-            Integer Ring
-            sage: PR.<x0,x1,x2,x3,x4,x5,x6,x7,x8>=QQ[]            # need a larger ring for elimination
+            sage: PR.<x0,x1,x2,x3,x4,x5,x6,x7,x8>=b3.base_ring().fraction_field()[]            # need a larger ring for elimination
             sage: bsa = from_polyhedron_to_linear_system(b3,PR)
             sage: set(b3.vertices()) == set (bsa.to_polyhedron().vertices())
             True
