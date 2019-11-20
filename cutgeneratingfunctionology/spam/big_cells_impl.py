@@ -108,6 +108,9 @@ def big_cells_min(iterable, key=None, field=None):
     from cutgeneratingfunctionology.igp import ParametricRealField
     if not isinstance(field, ParametricRealField):
         field = trivial_parametric_real_field
+    if not field._big_cells:
+        min_i, min_v = min(iv_list, key=lambda iv: iv[1])
+        return min_i
     with field.off_the_record():
         min_i, min_v = min(iv_list, key=lambda iv: iv[1])
     if field._allow_refinement:
@@ -249,6 +252,9 @@ def is_min_le(iterable, value, key=None, field=None):
     # Determine whether it's True or False.
     if field is None:
         field = _common_parametric_real_field(iv_list, key=lambda iv: iv[1])
+    if not field._big_cells:
+        min_i, min_v = min(iv_list, key=lambda iv: iv[1])
+        return min_v <= value
     with field.off_the_record():
         min_i, min_v = min(iv_list, key=lambda iv: iv[1])
         is_le = min_v <= value
@@ -366,11 +372,39 @@ def is_min_le(iterable, value, key=None, field=None):
     return is_le
 
 def big_cells_sorted(iterable, field=None):
+    """
+    EXAMPLES::
+
+        sage: import logging
+        sage: logging.disable(logging.WARNING)
+        sage: from cutgeneratingfunctionology import igp
+        sage: from cutgeneratingfunctionology.igp import ParametricRealField
+        sage: from cutgeneratingfunctionology.spam import big_cells
+        sage: K.<x,y> = ParametricRealField([3/2, 1/2], big_cells=False, allow_refinement=True)
+        sage: a = 2*x; b=4*y; c=x*x+y*y-4
+        sage: big_cells.sorted([0,a,b,c])
+        [(x^2 + y^2 - 4)~, 0, (4*y)~, (2*x)~]
+        sage: list(K.get_lt_factor())
+        [-2*x, x^2 + y^2 - 4*y - 4, x^2 + y^2 - 4, -2*x + 4*y, -4*y]
+        sage: list(K._bsa.eq_poly()), list(K._bsa.lt_poly()), list(K._bsa.le_poly())
+        ([], [-y, x^2 + y^2 - 4, -x + 2*y], [])
+        sage: K.<x,y> = ParametricRealField([3/2, 1/2], big_cells=True, allow_refinement=True)
+        sage: a = 2*x; b=4*y; c=x*x+y*y-4
+        sage: big_cells.sorted([0,a,b,c])
+        [(x^2 + y^2 - 4)~, 0, (4*y)~, (2*x)~]
+        sage: list(K.get_le_factor())
+        [x^2 + y^2 - 4, -4*y, -2*x + 4*y]
+        sage: list(K._bsa.eq_poly()), list(K._bsa.lt_poly()), list(K._bsa.le_poly())
+        ([], [], [x^2 + y^2 - 4, -x + 2*y, -y])
+    """
+    iterable = list(iterable)
     if field is None:
         field = _common_parametric_real_field(iterable)
     from cutgeneratingfunctionology.igp import ParametricRealField
     if not isinstance(field, ParametricRealField):
         field = trivial_parametric_real_field
+    if not field._big_cells:
+        return sorted(iterable)
     with field.off_the_record():
         sorted_list = sorted(iterable)
     if field._allow_refinement:
