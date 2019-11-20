@@ -20,7 +20,7 @@ def FM_relu_1d(base_ring, poly_ring):
         sage: K.<L,U,W,b>=ParametricRealField([QQ(-2),QQ(2),QQ(2),QQ(1/2)])
         sage: Q.<x0,x1,x,y,z>=K[]
         sage: bsa = FM_relu_1d(K,Q)
-        sage: bsa.le_poly()
+        sage: bsa.le_poly() # The second and fifth inequalities are redundant.
         {-y,
         (((-1)/W)~)*y + (((L*W + b)/W)~)*z,
         (1/W)~*y + (((-U*W - b)/W)~)*z,
