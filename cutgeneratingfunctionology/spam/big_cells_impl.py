@@ -398,7 +398,7 @@ def is_min_le(iterable, value, key=None, field=None):
                 raise ParametricRealFieldRefinementError("is_min_le")
     return is_le
 
-def big_cells_sorted(iterable, field=None, key=None):
+def big_cells_sorted(iterable, key=None, reverse=False, field=None):
     """
     EXAMPLES::
 
@@ -446,7 +446,7 @@ def big_cells_sorted(iterable, field=None, key=None):
     if not isinstance(field, ParametricRealField):
         field = trivial_parametric_real_field
     if not field._big_cells:
-        return sorted(iterable, key=key)
+        return sorted(iterable, key=key, reverse=reverse)
     with field.off_the_record():
         sorted_list = sorted(iterable, key=key)
     if field._allow_refinement:
@@ -459,4 +459,7 @@ def big_cells_sorted(iterable, field=None, key=None):
         except ParametricRealFieldFrozenError:
             raise ParametricRealFieldRefinementError("big_cells_sorted")
         # cannot have AssertionError because we sorted the list
-    return sorted_list
+    if reverse:
+        return list(reversed(sorted_list))
+    else:
+        return sorted_list
