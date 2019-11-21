@@ -23,15 +23,15 @@ def FM_relu_1d(base_ring, poly_ring):
         sage: Q.<x0,x1,x,y,z> = K[]
         sage: bsa = FM_relu_1d(K,Q)
         sage: with K.off_the_record():
-        ....:     bsa.le_poly() # The second and fifth inequalities are redundant.
+        ....:     bsa.le_poly() # The fourth and last inequalities are redundant.
         {-z,
         z - 1,
         -y,
-        (((-1)/W)~)*y + (((L*W + b)/W)~)*z,
-        (1/W)~*y + (((-U*W - b)/W)~)*z,
-        -x + (1/W)~*y + (((-L*W - b)/W)~)*z + L~,
-        x + (((-1)/W)~)*y + (((U*W + b)/W)~)*z + (-U)~,
-        W~*x - y + b~}
+        -y + ((L*W + b)~)*z,
+        y + ((-U*W - b)~)*z,
+        ((-W)~)*x + y + ((-L*W - b)~)*z + (L*W)~,
+        W~*x - y + b~,
+        W~*x - y + ((U*W + b)~)*z + (-U*W)~}
     """
     x0,x1,x,y,z = iter(poly_ring.gens())
     L,U,W,b = iter(base_ring.gens())
@@ -49,7 +49,9 @@ def FM_relu_1d(base_ring, poly_ring):
     eq = [x0+x1-x, W*x1-y+b*z]
     bsa = BasicSemialgebraicSet_polyhedral_linear_system(poly_ring=poly_ring, le=le, eq=eq)
     bsa_eliminated = bsa.coordinate_projection([x0,x1])
-    return bsa_eliminated
+    # normalize base on y, the second last generator.
+    normalized_le = set([normalize(le, -2) for le in bsa_eliminated.le_poly()])
+    return BasicSemialgebraicSet_polyhedral_linear_system(poly_ring=bsa_eliminated.poly_ring(), le=normalized_le)
 
 def FM_relu_2d(base_ring,poly_ring):
     """
@@ -71,11 +73,23 @@ def FM_relu_2d(base_ring,poly_ring):
     x0_1,x1_1,x0_2,x1_2,x_1,x_2,y,z = iter(poly_ring.gens())
     L1,U1,L2,U2,W1,W2,b = iter(base_ring.gens())
     le = [-y, W1*x0_1+W2*x0_2-b*z+b, x0_1+U1*z-U1, -x0_1-L1*z+L1, x0_2+U2*z-U2, -x0_2-L2*z+L2,\
-          x1_1-U1*z, -x1_1+L1*z, x1_2-U2*z, -x1_2+L2*z]
+          x1_1-U1*z, -x1_1+L1*z, x1_2-U2*z, -x1_2+L2*z, -z, z-1]
     eq = [x0_1+x1_1-x_1, x0_2+x1_2-x_2, W1*x1_1+W2*x1_2-y+b*z]
     bsa = BasicSemialgebraicSet_polyhedral_linear_system(poly_ring=poly_ring, le=le, eq=eq)
     bsa_eliminated = bsa.coordinate_projection([x0_1,x1_1,x0_2,x1_2])
     return bsa_eliminated
+
+def normalize(polynomial, index):
+    poly_ring = polynomial.parent()
+    base_ring = poly_ring.base_ring()
+    v = poly_ring.gens()[index]
+    c = base_ring(polynomial.monomial_coefficient(v))
+    if c>0:
+        return polynomial/c
+    elif c<0:
+        return polynomial/-c
+    else:
+        return polynomial
 
 def generate_all_binary_vectors(n):
     return list(itertools.product([0, 1], repeat=n))
