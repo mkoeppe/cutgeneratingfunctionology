@@ -43,7 +43,7 @@ def _common_parametric_real_field(iterable, key=None):
             trivial_parametric_real_field = ParametricRealField()
         return trivial_parametric_real_field
 
-def big_cells_min(iterable, key=None, field=None):
+def big_cells_min(iterable, *args, key=None, field=None, **kwds):
     """
     Compute the minimum of the values of the function ``key``
     on the elements of ``iterable``.
@@ -99,10 +99,35 @@ def big_cells_min(iterable, key=None, field=None):
         3
         sage: graphics_array([complex.plot(), big_cells_complex.plot()])    # not tested
 
+    TESTS:
+
+        The alternative interface of the built-in function min is suppported::
+
+            sage: big_cells.min(5, 2, 3)
+            2
+
+        An error is raised when there are no args::
+
+            sage: big_cells.min()
+            Traceback (most recent call last):
+            ...
+            TypeError: ...argument...
+
+        Default::
+
+            sage: big_cells.min([], default=77)
+            77
+
     """
+    if args:
+        iterable = [iterable] + list(args)
     if key is None:
         key = lambda i: i
     iv_list = [ (i, key(i)) for i in iterable ]
+    if not iv_list:
+        if 'default' in kwds:
+            return kwds['default']
+        raise TypeError("min expected 1 arguments, got 0")
     if field is None:
         field = _common_parametric_real_field(iv_list, key=lambda iv: iv[1])
     from cutgeneratingfunctionology.igp import ParametricRealField
