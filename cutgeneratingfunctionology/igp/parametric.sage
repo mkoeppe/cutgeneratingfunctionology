@@ -34,9 +34,7 @@ def bigcellify_igp():
     """
     import cutgeneratingfunctionology.igp as igp
     import cutgeneratingfunctionology.spam.big_cells as big_cells
-    igp.min = big_cells.min
-    igp.sorted = big_cells.sorted
-    igp.is_min_le = big_cells.is_min_le
+    big_cells.bigcellify_module(igp)
 
 ###############################
 # Parametric Real Number Field
