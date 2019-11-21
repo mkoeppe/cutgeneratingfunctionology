@@ -23,6 +23,7 @@ setup(
     version = readfile("VERSION").strip(), # the VERSION file is shared with the documentation
     description='Sage code for computation and experimentation with cut-generating functions',
     long_description = readfile("README.rst"), # get the long description from the README
+    long_description_content_type='text/x-rst', # https://packaging.python.org/guides/making-a-pypi-friendly-readme/
     url='https://github.com/mkoeppe/cutgeneratingfunctionology',
     author='Matthias Koeppe, Yuan Zhou, Chun Yu Hong, Jiawei Wang, with contributions by undergraduate programmers',
     author_email='mkoeppe@math.ucdavis.edu', # choose a main contact email
