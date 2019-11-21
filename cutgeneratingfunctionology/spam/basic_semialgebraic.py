@@ -13,7 +13,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.arith.misc import gcd
 from sage.plot.graphics import Graphics
 from sage.calculus.var import var
-from sage.plot.contour_plot import region_plot
+from sage.plot.contour_plot import region_plot, implicit_plot
 from sage.matrix.constructor import matrix
 from sage.structure.element import get_coercion_model
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
@@ -394,7 +394,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         bsa_class = _bsa_class(bsa_class)
         return bsa_class.from_bsa(bsa_section, **kwds)
 
-    def plot(self, alpha=0.5, plot_points=300, slice_value=None, **kwds):
+    def plot(self, alpha=0.5, plot_points=300, slice_value=None, plot_constraints=False, **kwds):
         r"""
         Plot the semialgebraic set or a slice (section) of it.
 
@@ -435,7 +435,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
                 section = self.section(slice_value)
             else:
                 raise NotImplementedError("Plotting with dimension not equal to 2 is not implemented.")
-            return section.plot(alpha=alpha, plot_points=plot_points, slice_value=None, **kwds)
+            return section.plot(alpha=alpha, plot_points=plot_points, slice_value=None, plot_constraints=plot_constraints, **kwds)
         g = Graphics()
         if 'xmin' in kwds:
             g.xmin(kwds['xmin'])
@@ -461,18 +461,18 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             ymax = 1
         if (xmin > xmax) or (ymin > ymax):
             raise ValueError("Please provide bounds for plotting.")
-        x, y = var('x, y')
+        from sage.symbolic.ring import SR
+        x, y = SR.var('x, y')
         constraints = [l(x, y) == 0 for l in self.eq_poly()] + [l(x, y) < 0 for l in self.lt_poly()] + [l(x, y) <= 0 for l in self.le_poly()]
-        non_trivial_constraints = []
-        for c in constraints:
-            if c is False:
-                # empty polytope
-                return g
-            if not (c is True):
-                non_trivial_constraints.append(c)
-        g += region_plot(non_trivial_constraints, (x, xmin-0.01, xmax+0.01), (y, ymin-0.01, ymax+0.01),\
-                         alpha=alpha, plot_points=plot_points,\
-                         incol=kwds.get('color', 'blue'), bordercol=kwds.get('color', 'blue'))
+        non_trivial_constraints = [ c for c in constraints if not isinstance(c, bool) ]
+        if not any(c is False for c in constraints):
+            g += region_plot(non_trivial_constraints, (x, xmin-0.01, xmax+0.01), (y, ymin-0.01, ymax+0.01),
+                             alpha=alpha, plot_points=plot_points,
+                             incol=kwds.get('color', 'blue'), bordercol=kwds.get('color', 'blue'))
+        if plot_constraints:
+            for c in non_trivial_constraints:
+                g += implicit_plot(c, (x, xmin-0.01, xmax+0.01), (y, ymin-0.01, ymax+0.01),
+                                   color='black')
         return g
 
 class BasicSemialgebraicSet_polyhedral(BasicSemialgebraicSet_base):
