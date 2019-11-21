@@ -1,9 +1,7 @@
-cutgeneratingfunctionology
-==========================
 .. image:: http://mkoeppe.github.io/cutgeneratingfunctionology/graphics-nonfree/Z11_058_github_template.jpg
    :width:  100%
    :target: https://github.com/mkoeppe/cutgeneratingfunctionology
-   :alt:    Python code for computation and experimentation with cut-generating functions
+   :alt:    mkoeppe/cutgeneratingfunctionology: Python code for computation and experimentation with cut-generating functions
 
 Most of the code is for the 1-dimensional Gomory-Johnson infinite
 group problem, including an electronic compendium of extreme
