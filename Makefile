@@ -56,7 +56,8 @@ SAGEFILES +=									\
 	cutgeneratingfunctionology/spam/big_cells.py				\
 	cutgeneratingfunctionology/spam/big_cells_impl.py			\
 	cutgeneratingfunctionology/spam/real_set.py				\
-	cutgeneratingfunctionology/spam/polyhedral_complex.py
+	cutgeneratingfunctionology/spam/polyhedral_complex.py			\
+	cutgeneratingfunctionology/spam/examples/relu.py
 
 all:
 	@echo "No need to 'make' anything. Just run it in Sage; see README.rst"
