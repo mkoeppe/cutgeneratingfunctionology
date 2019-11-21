@@ -430,14 +430,14 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: P.<x,y> = QQ[]
             sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(le=[-x, -y, x+y-1, x-2], lt=[x^2 + y^2 - 5])
             sage: kwds = {'xmin': -3, 'xmax': 3, 'ymin': -3, 'ymax': 3}
-            sage: bsa.plot(**kwds)
-            sage: bsa.plot(color=None, fill_color=None, constraints_color='black', constraints_fill_color='black', **kwds)
-            sage: bsa.plot(constraints_color='black', constraints_fill_color='black', **kwds)
+            sage: bsa.plot(**kwds)   # not tested
+            sage: bsa.plot(color=None, fill_color=None, constraints_color='black', constraints_fill_color='black', **kwds)   # not tested
+            sage: bsa.plot(constraints_color='black', constraints_fill_color='black', **kwds)   # not tested
 
             sage: P.<x,y> = QQ[]
-            sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(le=[-x, -y, x+y-1, x-2], eq=[x^2 + y^2 - 5])
-            sage: bsa.plot(**kwds)
-            sage: bsa.plot(constraints_color='black', constraints_fill_color='black', **kwds)
+            sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(le=[-x, -y, x-2], eq=[x+y-1], lt=[x^2 + y^2 - 5])
+            sage: bsa.plot(**kwds)   # not tested
+            sage: bsa.plot(color='red', constraints_color='black', constraints_fill_color='black', eq_constraints_kwds={'linestyle': 'dotted', 'thickness': 3}, **kwds)   # not tested
 
         """
         ## Refactor SemialgebraicComplexComponent.plot and plot2dslice through this method.
