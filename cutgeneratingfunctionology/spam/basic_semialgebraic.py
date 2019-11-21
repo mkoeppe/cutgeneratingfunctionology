@@ -394,7 +394,12 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         bsa_class = _bsa_class(bsa_class)
         return bsa_class.from_bsa(bsa_section, **kwds)
 
-    def plot(self, alpha=0.5, plot_points=300, slice_value=None, plot_constraints=False, **kwds):
+    def plot(self, alpha=0.5, plot_points=300, slice_value=None, color='blue', fill_color='blue',
+             constraints_color=None, constraints_fill_color=None,
+             eq_constraints_kwds={'linestyle': 'dotted' },
+             le_constraints_kwds={'linestyle': 'solid' },
+             lt_constraints_kwds={'linestyle': 'dashed' },
+             **kwds):
         r"""
         Plot the semialgebraic set or a slice (section) of it.
 
@@ -418,6 +423,22 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
 
             sage: Q.<u,v> = QQ[]
             sage: bsa.plot(slice_value=[u, u, v], xmin=-1, xmax=2, ymin=-1, ymax=8) # not tested
+
+        Plot by showing all constraints::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P.<x,y> = QQ[]
+            sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(le=[-x, -y, x+y-1, x-2], lt=[x^2 + y^2 - 5])
+            sage: kwds = {'xmin': -3, 'xmax': 3, 'ymin': -3, 'ymax': 3}
+            sage: bsa.plot(**kwds)
+            sage: bsa.plot(color=None, fill_color=None, constraints_color='black', constraints_fill_color='black', **kwds)
+            sage: bsa.plot(constraints_color='black', constraints_fill_color='black', **kwds)
+
+            sage: P.<x,y> = QQ[]
+            sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(le=[-x, -y, x+y-1, x-2], eq=[x^2 + y^2 - 5])
+            sage: bsa.plot(**kwds)
+            sage: bsa.plot(constraints_color='black', constraints_fill_color='black', **kwds)
+
         """
         ## Refactor SemialgebraicComplexComponent.plot and plot2dslice through this method.
         if (not slice_value) and (self.ambient_dim() != 2):
@@ -435,7 +456,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
                 section = self.section(slice_value)
             else:
                 raise NotImplementedError("Plotting with dimension not equal to 2 is not implemented.")
-            return section.plot(alpha=alpha, plot_points=plot_points, slice_value=None, plot_constraints=plot_constraints, **kwds)
+            return section.plot(alpha=alpha, plot_points=plot_points, slice_value=None, constraints=constraints, **kwds)
         g = Graphics()
         if 'xmin' in kwds:
             g.xmin(kwds['xmin'])
@@ -463,16 +484,35 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             raise ValueError("Please provide bounds for plotting.")
         from sage.symbolic.ring import SR
         x, y = SR.var('x, y')
-        constraints = [l(x, y) == 0 for l in self.eq_poly()] + [l(x, y) < 0 for l in self.lt_poly()] + [l(x, y) <= 0 for l in self.le_poly()]
-        non_trivial_constraints = [ c for c in constraints if not isinstance(c, bool) ]
-        if not any(c is False for c in constraints):
-            g += region_plot(non_trivial_constraints, (x, xmin-0.01, xmax+0.01), (y, ymin-0.01, ymax+0.01),
-                             alpha=alpha, plot_points=plot_points,
-                             incol=kwds.get('color', 'blue'), bordercol=kwds.get('color', 'blue'))
-        if plot_constraints:
-            for c in non_trivial_constraints:
-                g += implicit_plot(c, (x, xmin-0.01, xmax+0.01), (y, ymin-0.01, ymax+0.01),
-                                   color='black')
+        x_range = (x, xmin-0.01, xmax+0.01)
+        y_range = (y, ymin-0.01, ymax+0.01)
+        eq_constraints = [ l(x, y) == 0 for l in self.eq_poly() ]
+        lt_constraints = [ l(x, y) <  0 for l in self.lt_poly() ]
+        le_constraints = [ l(x, y) <= 0 for l in self.le_poly() ]
+        if constraints_fill_color:
+            for c in chain(lt_constraints, le_constraints):
+                if not isinstance(c, bool):
+                    g += region_plot([c], x_range, y_range,
+                                     alpha=0.1, plot_points=plot_points,
+                                     incol=constraints_fill_color, bordercol=None, **kwds)
+        if color or fill_color:
+            all_constraints = eq_constraints + lt_constraints + le_constraints
+            non_trivial_constraints = [ c for c in all_constraints if not isinstance(c, bool) ]
+            if not any(c is False for c in all_constraints):
+                g += region_plot(non_trivial_constraints, x_range, y_range,
+                                 alpha=alpha, plot_points=plot_points,
+                                 incol=fill_color, bordercol=color, **kwds)
+        if constraints_color:
+            for polys, plot_kwds in [(self.eq_poly(), eq_constraints_kwds),
+                                     (self.lt_poly(), lt_constraints_kwds),
+                                     (self.le_poly(), le_constraints_kwds)]:
+                for l in polys:
+                    c = l(x, y) == 0
+                    if not isinstance(c, bool):
+                        effective_kwds = copy(kwds)
+                        effective_kwds['color'] = constraints_color
+                        effective_kwds.update(plot_kwds)
+                        g += implicit_plot(c, x_range, y_range, **effective_kwds)
         return g
 
 class BasicSemialgebraicSet_polyhedral(BasicSemialgebraicSet_base):
