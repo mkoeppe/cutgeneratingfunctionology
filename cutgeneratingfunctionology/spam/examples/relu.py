@@ -71,7 +71,12 @@ def FM_relu_2d(base_ring,poly_ring):
         Traceback (most recent call last):
         ...
         ParametricRealFieldFrozenError: Cannot prove that constraint is implied: -U1*W1 - b < 0
-    
+        sage: K._bsa.tighten_upstairs_by_mccormick()  # Actually the inequality -U1*W1 - b < 0 is provable, so we add mccormick inequality first.
+        sage: bsa = FM_relu_2d(K,Q) # This time the inequality L1*W1 + b < 0 is not provable.
+        Traceback (most recent call last):
+        ...
+        ParametricRealFieldFrozenError: Cannot prove that constraint is implied: L1*W1 + b < 0
+            
     """
     x0_1,x1_1,x0_2,x1_2,x_1,x_2,y,z = iter(poly_ring.gens())
     L1,U1,L2,U2,W1,W2,b = iter(base_ring.gens())
