@@ -40,7 +40,7 @@ def _common_parametric_real_field(iterable, key=None):
     else:
         global trivial_parametric_real_field
         if trivial_parametric_real_field is None:
-            trivial_parametric_real_field = ParametricRealField()
+            trivial_parametric_real_field = ParametricRealField(big_cells=False)
         return trivial_parametric_real_field
 
 def big_cells_min(iterable, *args, **kwds):
@@ -398,7 +398,7 @@ def is_min_le(iterable, value, key=None, field=None):
                 raise ParametricRealFieldRefinementError("is_min_le")
     return is_le
 
-def big_cells_sorted(iterable, field=None):
+def big_cells_sorted(iterable, field=None, key=None):
     """
     EXAMPLES::
 
@@ -423,24 +423,39 @@ def big_cells_sorted(iterable, field=None):
         [x^2 + y^2 - 4, -4*y, -2*x + 4*y]
         sage: list(K._bsa.eq_poly()), list(K._bsa.lt_poly()), list(K._bsa.le_poly())
         ([], [], [x^2 + y^2 - 4, -x + 2*y, -y])
+
+    TESTS:
+    
+        Key is supported::
+
+            sage: big_cells.sorted([1, 0, -2], key=abs)
+            [0, 1, -2]
+            sage: K.<x,y> = ParametricRealField([3/2, 1/2], big_cells=False, allow_refinement=True)
+            sage: big_cells.sorted([K(1), K(0), K(-2)], key=abs)
+            [0, 1, -2]
     """
     iterable = list(iterable)
+    if len(iterable) <= 1:                 # fast path
+        return iterable
+    if key is None:
+        key = lambda i: i
+    iv_list = [ (i, key(i)) for i in iterable ]
     if field is None:
-        field = _common_parametric_real_field(iterable)
+        field = _common_parametric_real_field(iv_list, key=lambda iv: iv[1])
     from cutgeneratingfunctionology.igp import ParametricRealField
     if not isinstance(field, ParametricRealField):
         field = trivial_parametric_real_field
     if not field._big_cells:
-        return sorted(iterable)
+        return sorted(iterable, key=key)
     with field.off_the_record():
-        sorted_list = sorted(iterable)
+        sorted_list = sorted(iterable, key=key)
     if field._allow_refinement:
-        assert all(sorted_list[i-1] <= sorted_list[i] for i in range(1,len(sorted_list)))   # records
+        assert all(key(sorted_list[i-1]) <= key(sorted_list[i]) for i in range(1,len(sorted_list)))   # records
     else:
         from cutgeneratingfunctionology.igp import ParametricRealFieldFrozenError, ParametricRealFieldRefinementError
         try:
             with field.frozen():
-                assert all(sorted_list[i-1] <= sorted_list[i] for i in range(1,len(sorted_list)))
+                assert all(key(sorted_list[i-1]) <= key(sorted_list[i]) for i in range(1,len(sorted_list)))
         except ParametricRealFieldFrozenError:
             raise ParametricRealFieldRefinementError("big_cells_sorted")
         # cannot have AssertionError because we sorted the list
