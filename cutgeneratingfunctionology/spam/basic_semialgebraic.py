@@ -35,7 +35,7 @@ from sage.structure.sage_object import SageObject
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 def _bsa_class(bsa_class):
-    """
+    r"""
     Translate a class nickname to a class.
     """
     if isinstance(bsa_class, type):
@@ -58,7 +58,7 @@ def _bsa_class(bsa_class):
 
 class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if this should be facade parent, or an Element.
 
-    """
+    r"""
     Abstract base class of mutable basic semialgebraic sets.
     """
 
@@ -76,7 +76,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
     # faster implementations.
     @classmethod
     def from_bsa(cls, bsa, **init_kwds):
-        """
+        r"""
         Initialize a basic semialgebraic set of class ``cls`` to be the same
         as ``bsa``.
 
@@ -167,20 +167,20 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         """
 
     def __contains__(self, point):
-        """
+        r"""
         Whether the set contains the ``point`` (vector).
         """
         return all(f(*point) == 0 for f in self.eq_poly()) and all(f(*point) <= 0 for f in self.le_poly()) and all(f(*point) < 0 for f in self.lt_poly())
 
     @abstract_method
     def closure_polyhedron(self):
-        """
+        r"""
         If the topological closure is a polyhedron, return it in
         the form of a Sage polyhedron.  Otherwise raise an error.
         """
 
     def formal_closure(self, bsa_class='formal_closure'):
-        """
+        r"""
         Return the basic semialgebraic set obtained by replacing all strict
         inequalities by <= inequalities.  This is a superset of the topological closure.
 
@@ -223,13 +223,13 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
 
     @abstract_method
     def closure(self, bsa_class):
-        """
+        r"""
         Return the basic semialgebraic set that is the topological closure
         of ``self``.
         """
 
     def intersection(self, *bsa_list, **kwds):
-        """
+        r"""
         Return the basic semialgebraic set that is the intersection of ``self``
         with the basic semialgebraic sets in ``bsa_list``.
 
@@ -253,13 +253,13 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         return bsa_class.from_bsa(bsa_intersection)
 
     def add_space_dimensions_and_embed(self, space_dim_to_add):
-        """
+        r"""
         Mutate ``self`` by injecting it into a higher dimensional space.
         """
         self._ambient_dim += space_dim_to_add
 
     def add_linear_constraint(self, lhs, cst, op):
-        """
+        r"""
         Add the constraint ``lhs`` * x + cst ``op`` 0,
         where ``lhs`` is a vector of length ``ambient_dim`` and
         ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
@@ -280,7 +280,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         self.add_polynomial_constraint(poly, op)
 
     def is_linear_constraint_valid(self, lhs, cst, op):
-        """
+        r"""
         Whether the constraint ``lhs`` * x + cst ``op`` 0
         is satisfied for all points of ``self``.
 
@@ -304,7 +304,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
 
     @abstract_method
     def add_polynomial_constraint(self, lhs, op):
-        """
+        r"""
         ``lhs`` should be a polynomial.
         Add the constraint ``lhs``(x) ``op`` 0,
         where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
@@ -313,7 +313,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
 
     @abstract_method
     def is_polynomial_constraint_valid(self, lhs, op):
-        """
+        r"""
         Check if the constraint ``lhs``(x) ``op`` 0 is satisfied
         for all points of ``self``, where ``lhs`` is a polynomial, and
         ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
@@ -324,7 +324,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         """
 
     def linear_function_upper_bound(self, form):
-        """
+        r"""
         Find an upper bound for ``form`` (a vector) on ``self``.
 
         The default implementation just returns +oo.
@@ -341,7 +341,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         return +Infinity
 
     def linear_function_lower_bound(self, form):
-        """
+        r"""
         Find a lower bound for ``form`` (a vector) on ``self``.
 
         This implementation delegates to ``linear_function_upper_bound``.
@@ -359,14 +359,14 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
 
     @abstract_method
     def find_point(self):
-        """
+        r"""
         Find a point in ``self``.
         """
         # default implementation could go through self.closure_polyhedron()
 
     @abstract_method
     def coordinate_projection(self, coordinates, bsa_class='projection'):
-        """
+        r"""
         Compute the projection to ``coordinates`` (a list or tuple of indices or
         variables of ``self.poly_ring``).
 
@@ -484,7 +484,7 @@ class BasicSemialgebraicSet_polyhedral(BasicSemialgebraicSet_base):
 
     @abstract_method
     def add_linear_constraint(self, lhs, cst, op):
-        """
+        r"""
         Add the constraint ``lhs`` * x + cst ``op`` 0,
         where ``lhs`` is a vector of length ``ambient_dim`` and
         ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
@@ -495,7 +495,7 @@ class BasicSemialgebraicSet_polyhedral(BasicSemialgebraicSet_base):
         """
 
     def add_polynomial_constraint(self, lhs, op):
-        """
+        r"""
         Add the constraint ``lhs``(x) ``op`` 0,
         where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
         ``operator.le``, ``operator.ge``.
@@ -532,7 +532,7 @@ class BasicSemialgebraicSet_polyhedral(BasicSemialgebraicSet_base):
         self.add_linear_constraint(lhs_vector, cst, op)
 
     def is_polynomial_constraint_valid(self, lhs, op):
-        """
+        r"""
         Check if the constraint ``lhs``(x) ``op`` 0 is satisfied
         for all points of ``self``, where ``lhs`` is a polynomial, and
         ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
@@ -565,7 +565,7 @@ from sage.arith.functions import lcm
 
 class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_polyhedral):
 
-    """
+    r"""
     A (possibly half-open) polyhedral basic semialgebraic set,
     represented by a PPL ``NNC_Polyhedron``
 
@@ -609,7 +609,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
             self._polyhedron = polyhedron
 
     def poly_ring(self):
-        """
+        r"""
         Return the polynomial ring.  Variable names match that of the PPL polyhedron:
         x0, x1, ...
 
@@ -643,7 +643,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         return 'BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(polyhedron={})'.format(self._polyhedron)
 
     def closure(self, bsa_class='formal_closure'):
-        """
+        r"""
         Return the basic semialgebraic set that is the topological closure
         of ``self``.
         """
@@ -698,7 +698,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
 
     # override the default implementation
     def __contains__(self, point):
-        """
+        r"""
         Whether the set contains the ``point`` (vector).
         """
         rational_list = [ QQ(x) for x in point ]
@@ -711,7 +711,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
 
     # override the abstract methods
     def find_point(self):
-        """
+        r"""
         Find a point in ``self``.
         
         EXAMPLES::
@@ -741,7 +741,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         raise NotImplementedError("find_test_point implementation cannot handle this case")
 
     def add_space_dimensions_and_embed(self, space_dim_to_add):
-        """
+        r"""
         Mutate ``self`` by injecting it into a higher dimensional space.
         """
         super(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron, self).add_space_dimensions_and_embed(space_dim_to_add)
@@ -749,7 +749,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
 
     @staticmethod
     def _ppl_constraint(lhs, cst, op):
-        """
+        r"""
         Make a PPL ``Constraint`` ``lhs`` * x + cst ``op`` 0,
         where ``lhs`` is be a vector of length ambient_dim.
         """
@@ -769,7 +769,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
             raise ValueError("{} is not a supported operator".format(op))
 
     def linear_function_upper_bound(self, form):
-        """
+        r"""
         Find an upper bound for ``form`` (a vector) on ``self``.
         This upper bound is the supremum.
 
@@ -795,7 +795,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         return max(p * form for p in points)
 
     def is_linear_constraint_valid(self, lhs, cst, op):
-        """
+        r"""
         Whether the constraint ``lhs`` * x + cst ``op`` 0
         is satisfied for all points of ``self``,
         where ``lhs`` is be a vector of length ambient_dim.
@@ -817,7 +817,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         return self._polyhedron.relation_with(constraint).implies(poly_is_included)
 
     def add_linear_constraint(self, lhs, cst, op):
-        """
+        r"""
         Add the constraint ``lhs`` * x + cst ``op`` 0,
         where ``lhs`` is a vector of length ambient_dim, and
         ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
@@ -849,14 +849,14 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
 ## (2) Then
 class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebraicSet_polyhedral):
 
-    """
+    r"""
     A closed polyhedral basic semialgebraic set,
     represented by a Sage ``MixedIntegerLinearProgram``
     with only continuous variables.
     """
 
     def __init__(self, base_ring, ambient_dim, solver=None):
-        """
+        r"""
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
@@ -873,7 +873,7 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
         return self._mip
 
     def mip_gens(self):
-        """
+        r"""
         Return the components of the MIP variable corresponding to the
         space dimensions.
         """
@@ -882,14 +882,14 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
             yield mip_var[i]
 
     def closure(self, bsa_class='mip'):
-        """
+        r"""
         Return the basic semialgebraic set that is the topological closure
         of ``self``, which is ``self`` itself.
         """
         return self
 
     def is_linear_constraint_valid(self, lhs, cst, op):
-        """
+        r"""
         Whether the constraint ``lhs`` * x + cst ``op`` 0
         is satisfied for all points of ``self``.
 
@@ -925,7 +925,7 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
             return False
 
     def _mip_linear_function(self, form, cst=0):
-        """
+        r"""
         Obtain a linear function object representing
         ``form`` * x + ``cst``.
         Raise ValueError if ``form`` is not of the right dimension.
@@ -935,7 +935,7 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
         return self.mip().sum(coeff * gen for coeff, gen in zip(form, self.mip_gens())) + cst
 
     def linear_function_upper_bound(self, form):
-        """
+        r"""
         Find an upper bound for ``form`` (a vector) on ``self``.
 
         In this implementation, this is done by solving the LP,
@@ -961,7 +961,7 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
                 return -Infinity
 
     def add_linear_constraint(self, lhs, cst, op):
-        """
+        r"""
         Add the constraint ``lhs`` * x + cst ``op`` 0,
         where ``lhs`` is a vector of length ``ambient_dim`` and
         ``op`` is one of ``operator.eq``, ``operator.le``, ``operator.ge``.
@@ -992,7 +992,7 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
         return 'BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram with {}'.format(self._mip)
 
     def eq_poly(self):
-        """
+        r"""
         Generate the polynomials `f` in equations `f(x) = 0`
         in the description of ``self``.
 
@@ -1014,7 +1014,7 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
                 yield form - ub
 
     def le_poly(self):
-        """
+        r"""
         Generate the polynomials `f` in inequalities `f(x) \leq 0`
         in the description of ``self``.
 
@@ -1040,7 +1040,7 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
                     yield form - ub
 
     def lt_poly(self):
-        """
+        r"""
         Return the empty list because ``self`` is closed.
 
         Together, ``eq_poly`` and ``le_poly`` describe ``self``.
@@ -1050,13 +1050,13 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
 ## (3) Then introduce the following class to simplify the code in parametric.sage
 class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
 
-    """
+    r"""
     A basic semialgebraic set, represented in a straightforward way
     as 3 finite sets of polynomial constraints `p(x) OP 0`.
     """
 
     def __init__(self, base_ring=None, ambient_dim=None, poly_ring=None, eq=[], lt=[], le=[]):
-        """
+        r"""
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
@@ -1103,7 +1103,7 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
         return self._poly_ring
 
     def __copy__(self):
-        """
+        r"""
         Make a copy of ``self``.
 
         TESTS:
@@ -1155,7 +1155,7 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
         return self._le
 
     def is_polynomial_constraint_valid(self, lhs, op):
-        """
+        r"""
         Return True if the constraint ``lhs``(x) ``op`` 0 is a known valid
         inequality for ``self``. Return ``NotImplementedError`` otherwise.
         Input ``lhs`` is a polynomial, and ``op`` is one of ``operator.lt``,
@@ -1199,7 +1199,7 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
         raise NotImplementedError
 
     def add_polynomial_constraint(self, lhs, op):
-        """
+        r"""
         ``lhs`` should be a polynomial.
         Add the constraint ``lhs``(x) ``op`` 0,
         where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
@@ -1224,14 +1224,14 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
 
 class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
 
-    """
+    r"""
     Section of another ``BasicSemialgebraicSet``.
 
     See ``BasicSemialgebraicSet_base.section``.
     """
 
     def __init__(self, upstairs_bsa, polynomial_map, poly_ring=None, ambient_dim=None):
-        """
+        r"""
         EXAMPLES:
 
         McCormick::
@@ -1295,7 +1295,7 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
         self._poly_ring = poly_ring
 
     def __copy__(self):
-        """
+        r"""
         Make a copy of ``self``.
 
         """
@@ -1324,14 +1324,14 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
         return self._upstairs_bsa
 
     def polynomial_map(self):
-        """
+        r"""
         A list that maps the index of each generator in ``self.upstairs()``
         to a monomial.
         """
         return self._polynomial_map
 
     def find_point(self):
-        """
+        r"""
         Find a point in ``self``. FIXME: Lazy implementation. Raise NotImplementedError very often.
 
         EXAMPLES::
@@ -1367,7 +1367,7 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
 
 class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
 
-    """
+    r"""
     A basic semialgebraic set that delegates to another semialgebraic set
     via a Veronese embedding (reformulation-linearization, RLT).
 
@@ -1394,7 +1394,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
     """
 
     def __init__(self, upstairs_bsa, polynomial_map, v_dict, poly_ring=None, ambient_dim=None):
-        """
+        r"""
         EXAMPLES:
 
         Trivial initialization of the universe in dimension 3::
@@ -1432,7 +1432,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         self._v_dict = v_dict
 
     def __copy__(self):
-        """
+        r"""
         Make a copy of ``self``.
 
         """
@@ -1440,7 +1440,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
                               v_dict=copy(self.v_dict()), poly_ring=self.poly_ring(), ambient_dim=self.ambient_dim())
 
     def v_dict(self):
-        """
+        r"""
         A dictionary that maps each monomial to the index of its corresponding generator
         in ``self.upstairs()``.
         """
@@ -1472,7 +1472,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         return upstairs_lhs_coeff, upstairs_lhs_cst
 
     def add_polynomial_constraint(self, lhs, op):
-        """
+        r"""
         ``lhs`` should be a polynomial.
         Add the constraint ``lhs``(x) ``op`` 0,
         where ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
@@ -1522,7 +1522,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         self.upstairs().add_linear_constraint(upstairs_lhs_coeff, upstairs_lhs_cst, op)
 
     def is_polynomial_constraint_valid(self, lhs, op, allow_adding_upstairs_space_dimensions=False):
-        """
+        r"""
         Check if the constraint ``lhs``(x) ``op`` 0 is satisfied 
         for all points of ``self``, where ``lhs`` is a polynomial, and
         ``op`` is one of ``operator.lt``, ``operator.gt``, ``operator.eq``,
