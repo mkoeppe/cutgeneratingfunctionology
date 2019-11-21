@@ -68,16 +68,34 @@ def FM_relu_2d(base_ring,poly_ring):
         sage: K.<L1,U1,L2,U2,W1,W2,b>=ParametricRealField([QQ(-2),QQ(2),QQ(-3),QQ(3),QQ(5),QQ(2),QQ(1/2)])
         sage: Q.<x0_1,x1_1,x0_2,x1_2,x_1,x_2,y,z> = K[]
         sage: bsa = FM_relu_2d(K,Q)
+        Traceback (most recent call last):
+        ...
+        ParametricRealFieldFrozenError: Cannot prove that constraint is implied: -U1*W1 - b < 0
     
     """
     x0_1,x1_1,x0_2,x1_2,x_1,x_2,y,z = iter(poly_ring.gens())
     L1,U1,L2,U2,W1,W2,b = iter(base_ring.gens())
+    # assumptions
+    assert L1<0
+    assert L2<0
+    assert U1>0
+    assert U2>0
+    assert W1>0
+    assert W2>0
+    assert W1*L1+W2*L2+b<0
+    assert W1*U1+W2*U2+b>0
+    assert b>0
+    
+    base_ring.freeze()
+    
     le = [-y, W1*x0_1+W2*x0_2-b*z+b, x0_1+U1*z-U1, -x0_1-L1*z+L1, x0_2+U2*z-U2, -x0_2-L2*z+L2,\
           x1_1-U1*z, -x1_1+L1*z, x1_2-U2*z, -x1_2+L2*z, -z, z-1]
     eq = [x0_1+x1_1-x_1, x0_2+x1_2-x_2, W1*x1_1+W2*x1_2-y+b*z]
     bsa = BasicSemialgebraicSet_polyhedral_linear_system(poly_ring=poly_ring, le=le, eq=eq)
     bsa_eliminated = bsa.coordinate_projection([x0_1,x1_1,x0_2,x1_2])
-    return bsa_eliminated
+    # normalize base on y, the second last generator.
+    normalized_le = set([normalize(le, -2) for le in bsa_eliminated.le_poly()])
+    return BasicSemialgebraicSet_polyhedral_linear_system(poly_ring=bsa_eliminated.poly_ring(), le=normalized_le)
 
 def normalize(polynomial, index):
     poly_ring = polynomial.parent()
