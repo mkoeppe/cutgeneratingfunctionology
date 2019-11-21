@@ -1139,6 +1139,27 @@ class ParametricRealField(Field):
             True
             sage: x != 0
             True
+
+        Bug example::
+            sage: K.<f, bkpt> = ParametricRealField([1236451991/5178221721, 3733953/12155000], big_cells=True, allow_refinement=True)
+            sage: for lhs in [2*f - 1, bkpt - 1, (-bkpt)/(f + 1), f - 1, -bkpt, bkpt/(-f - 1), -f + 2*bkpt - 1, (f - bkpt + 1)/(-f - 1), f + bkpt - 1, -f, (-f + bkpt - 1)/(f + 1), f - bkpt]:
+            ....:     assert(lhs <=0)
+            sage: for lhs in [(-1)/(f^4 - 2*f^3*bkpt + f^2*bkpt^2 + 2*f^3 - 4*f^2*bkpt + 2*f*bkpt^2 + f^2 - 2*f*bkpt + bkpt^2), -f^2 - 2*f - 1, -f + 2*bkpt - 1, (-bkpt^2)/(f^6 - 2*f^5*bkpt + f^4*bkpt^2 + 2*f^5 - 4*f^4*bkpt + 2*f^3*bkpt^2 + f^4 - 2*f^3*bkpt + f^2*bkpt^2), -2*f + bkpt, -f^2 + 4*f*bkpt - 4*bkpt^2 - 2*f + 4*bkpt - 1, -4*f^2 + 8*f - 4, -f^2, -f, (-f^2 + 2*f*bkpt - bkpt^2 - 2*f + 2*bkpt - 1)/(f^2 + 2*f + 1), f - bkpt, -f^2 + 2*f*bkpt - bkpt^2, -f^2 + 2*f - 1, (-bkpt^2)/(f^2 + 2*f + 1), -bkpt^2 + 2*bkpt - 1]:
+            ....:     assert(lhs < 0)
+            sage: -f^2 - 2*f*bkpt - bkpt^2 + 2*f + 2*bkpt - 1 < 0
+            True
+            sage: list(K._bsa.eq_poly())  # bug was output [-1]
+            []
+            sage: list(K._bsa.lt_poly())  # bug was output []
+            [f + bkpt - 1, f - bkpt, -2*f + bkpt]
+            sage: list(K._bsa.le_poly())
+            []
+            sage: list(K._factor_bsa.lt_poly()) # bug was output [-f - bkpt + 1, -f + 2*bkpt - 1, -f - 1, -f, -2*f + bkpt, f - bkpt]
+            [-f + 2*bkpt - 1, f + bkpt - 1, -f - 1, -f, -2*f + bkpt, f - bkpt]
+            sage: list(K._factor_bsa.le_poly())
+            [2*f - 1, bkpt - 1, -bkpt, -f + 2*bkpt - 1, f + bkpt - 1, -f, f - bkpt]
+            sage: list(K._factor_bsa.eq_poly())
+            []
         """
         if not self._record:
             return
@@ -1212,7 +1233,7 @@ class ParametricRealField(Field):
                     if self.is_factor_known(fac, operator.eq):
                     # Comparison is already known true, nothing to record.
                         return
-        if len(factors) == 1 and comparison_val is not None:
+        if len(factors) == 1 and factors[0][1] == 1 and comparison_val is not None:
             the_fac, d = factors[0]
             the_sign = sign(factors.unit() * comparison_val) 
             def factor_sign(fac):
