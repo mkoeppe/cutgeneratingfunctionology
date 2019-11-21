@@ -43,7 +43,7 @@ def _common_parametric_real_field(iterable, key=None):
             trivial_parametric_real_field = ParametricRealField()
         return trivial_parametric_real_field
 
-def big_cells_min(iterable, *args, key=None, field=None, **kwds):
+def big_cells_min(iterable, *args, **kwds):
     """
     Compute the minimum of the values of the function ``key``
     on the elements of ``iterable``.
@@ -121,6 +121,8 @@ def big_cells_min(iterable, *args, key=None, field=None, **kwds):
     """
     if args:
         iterable = [iterable] + list(args)
+    key = kwds.pop('key', None)
+    field = kwds.pop('field', None)
     if key is None:
         key = lambda i: i
     iv_list = [ (i, key(i)) for i in iterable ]
