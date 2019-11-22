@@ -17,10 +17,10 @@
 import six
 
 project = u"cutgeneratingfunctionology"
-copyright = u'2013-2018, Chun Yu Hong, Matthias Koeppe, Yuan Zhou, Jiawei Wang'
+copyright = u'2013-2019, Matthias Koeppe, Yuan Zhou, Chun Yu Hong, Jiawei Wang'
 package_name = 'cutgeneratingfunctionology'
 package_folder = "../../"
-authors = u"2013-2018, Chun Yu Hong, Matthias Koeppe, Yuan Zhou, Jiawei Wang"
+authors = u"2013-2019, Matthias Koeppe, Yuan Zhou, Chun Yu Hong, Jiawei Wang"
 
 import sys
 import os
