@@ -155,9 +155,12 @@ master_doc = 'index'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-from pkg_resources import get_distribution
+from pkg_resources import get_distribution, DistributionNotFound
 # The full version, including alpha/beta/rc tags.
-release = get_distribution('cutgeneratingfunctionology').version
+try:
+    release = get_distribution('cutgeneratingfunctionology').version
+except DistributionNotFound:
+    release = "1.4.xyz"
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])
 
