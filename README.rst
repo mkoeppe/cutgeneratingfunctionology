@@ -18,6 +18,26 @@ a discussion of several functions in the compendium.
 See http://www.sagemath.org/doc/tutorial/ for information on how to
 use Sage.
 
+.. image:: https://img.shields.io/travis/mkoeppe/cutgeneratingfunctionology
+   :alt: Travis CI
+   :target: https://travis-ci.org/mkoeppe/cutgeneratingfunctionology/
+.. image:: https://img.shields.io/pypi/l/cutgeneratingfunctionology
+   :alt: License: GNU General Public License, version 2, or any later version as published by the Free Software Foundation.
+.. image:: https://img.shields.io/pypi/v/cutgeneratingfunctionology
+   :alt: PyPI package
+   :target: https://pypi.org/project/cutgeneratingfunctionology/
+.. https://img.shields.io/pypi/pyversions/cutgeneratingfunctionology
+.. image:: https://mybinder.org/badge_logo.svg
+   :alt: Run it on mybinder.org
+   :target: https://mybinder.org/v2/gh/mkoeppe/cutgeneratingfunctionology/master?filepath=demo.ipynb
+.. image:: https://img.shields.io/github/last-commit/mkoeppe/cutgeneratingfunctionology/gh-pages?label=sphinx%20doc%20built
+   :alt: Sphinx documentation built
+   :target: http://mkoeppe.github.io/cutgeneratingfunctionology/doc/html/
+.. image:: https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fmkoeppe%2Fcutgeneratingfunctionology
+   :alt: Twitter
+   :target: https://twitter.com/intent/tweet?text=%23cutgeneratingfunctionology:&url=https%3A%2F%2Fgithub.com%2Fmkoeppe%2Fcutgeneratingfunctionology
+
+
 Authors
 -------
 
