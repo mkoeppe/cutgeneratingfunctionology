@@ -20,7 +20,7 @@ class SageTest(TestCommand):
 
 setup(
     name = "cutgeneratingfunctionology",
-    description='Sage code for computation and experimentation with cut-generating functions',
+    description='Python code for computation and experimentation with cut-generating functions',
     long_description = readfile("README.rst"), # get the long description from the README
     long_description_content_type='text/x-rst', # https://packaging.python.org/guides/making-a-pypi-friendly-readme/
     url='https://github.com/mkoeppe/cutgeneratingfunctionology',
