@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Automatic verification of the paper “All Cyclic Group Facets Inject” &#8212; cutgeneratingfunctionology 1.2+git documentation</title>
+    <title>Automatic verification of the paper “All Cyclic Group Facets Inject” &#8212; cutgeneratingfunctionology 1.3.post114 documentation</title>
     <link rel="stylesheet" href="_static/sage.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -14,6 +14,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="_static/MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Code for classical and general dual-feasible functions" href="dff.html" />
@@ -81,6 +82,9 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="dff.html" title="Code for classical and general dual-feasible functions"
              accesskey="N">next</a> |</li>
         <li class="right" >
@@ -89,7 +93,7 @@
   
   <a href="http://www.sagemath.org"><img src="_static/sagelogo.png" style="vertical-align: middle" title="Sage Logo"></a>
   
-        <li class="nav-item nav-item-0"><a href="index.html">cutgeneratingfunctionology 1.2+git documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">cutgeneratingfunctionology 1.3.post114 documentation</a> &#187;</li>
 
           <li class="nav-item nav-item-1"><a href="procedures.html" accesskey="U">Electronic compendium of procedures for the 1-row Gomory–Johnson model</a> &#187;</li> 
       </ul>
@@ -100,8 +104,791 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="automatic-verification-of-the-paper-all-cyclic-group-facets-inject">
-<h1>Automatic verification of the paper “All Cyclic Group Facets Inject”<a class="headerlink" href="#automatic-verification-of-the-paper-all-cyclic-group-facets-inject" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof">
+<span id="automatic-verification-of-the-paper-all-cyclic-group-facets-inject"></span><h1>Automatic verification of the paper “All Cyclic Group Facets Inject”<a class="headerlink" href="#module-cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof" title="Permalink to this headline">¶</a></h1>
+<p>Automatic verification of the paper “All Cyclic Group Facets Inject”.</p>
+<p>We check cases (a’) and (b’) of the subadditivity proof
+in the paper <a class="reference internal" href="zzz_bib.html#koeppe-zhou-cyclic-group-facets-inject" id="id1">[KoppeZ18a]</a>
+through symbolic computation.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">import</span> <span class="nn">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof</span> <span class="k">as</span> <span class="nn">proof</span>
+<span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof</span> <span class="k">import</span> <span class="o">*</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
+
+<span class="n">sage</span><span class="p">:</span> <span class="n">setup_case_aprime1_MMM_type_I</span><span class="p">()</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">setup_case_aprime2_MMM_type_II</span><span class="p">()</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">setup_case_aprime3_MWW</span><span class="p">()</span>
+
+<span class="n">sage</span><span class="p">:</span> <span class="n">setup_case_bprime2_MMM</span><span class="p">()</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">setup_case_bprime3_MWW_type_I</span><span class="p">()</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">setup_case_bprime3_MWW_type_II</span><span class="p">()</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">setup_case_bprime4_WMW</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.LinearCodeFromVectorSpace">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">LinearCodeFromVectorSpace</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.LinearCodeFromVectorSpace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.addition_names">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">addition_names</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.addition_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>tuple() -&gt; empty tuple
+tuple(iterable) -&gt; tuple initialized from iterable’s items</p>
+<p>If the argument is a tuple, the return value is the same object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.channels">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">channels</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.channels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Index of channels</p>
+<p>Channels in Sage implement the information theoretic notion of transmission of messages.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">channels</span></code> object may be used to access the codes that Sage can build.</p>
+<ul class="simple">
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/coding/sage/coding/channel.html#sage.coding.channel.ErrorErasureChannel" title="(in Sage Reference Manual: Coding Theory v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">channel.ErrorErasureChannel</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/coding/sage/coding/channel.html#sage.coding.channel.QarySymmetricChannel" title="(in Sage Reference Manual: Coding Theory v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">channel.QarySymmetricChannel</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/coding/sage/coding/channel.html#sage.coding.channel.StaticErrorRateChannel" title="(in Sage Reference Manual: Coding Theory v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">channel.StaticErrorRateChannel</span></code></a></li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>To import these names into the global namespace, use:</p>
+<blockquote class="last">
+<div>sage: from sage.coding.channels_catalog import *</div></blockquote>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.codes">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">codes</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.codes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Index of code constructions</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">codes</span></code> object may be used to access the codes that Sage can build.</p>
+<table border="1" class="colwidths-given contentstable docutils">
+<colgroup>
+<col width="30%" />
+<col width="70%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">ParityCheckCode()</span></code></td>
+<td>Parity check codes</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">CyclicCode()</span></code></td>
+<td>Cyclic codes</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">BCHCode()</span></code></td>
+<td>BCH Codes</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">GeneralizedReedSolomonCode()</span></code></td>
+<td>Generalized Reed-Solomon codes</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">ReedSolomonCode()</span></code></td>
+<td>Reed-Solomon codes</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">BinaryReedMullerCode()</span></code></td>
+<td>Binary Reed-Muller codes</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">ReedMullerCode()</span></code></td>
+<td>q-ary Reed-Muller codes</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">HammingCode()</span></code></td>
+<td>Hamming codes</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">GolayCode()</span></code></td>
+<td>Golay codes</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">GoppaCode()</span></code></td>
+<td>Goppa codes</td>
+</tr>
+</tbody>
+</table>
+<table border="1" class="colwidths-given contentstable docutils">
+<colgroup>
+<col width="30%" />
+<col width="70%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">DuadicCodeEvenPair()</span></code></td>
+<td>Duadic codes, even pair</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">DuadicCodeOddPair()</span></code></td>
+<td>Duadic codes, odd pair</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">QuadraticResidueCode()</span></code></td>
+<td>Quadratic residue codes</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">ExtendedQuadraticResidueCode()</span></code></td>
+<td>Extended quadratic residue codes</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">QuadraticResidueCodeEvenPair()</span></code></td>
+<td>Even-like quadratic residue codes</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">QuadraticResidueCodeOddPair()</span></code></td>
+<td>Odd-like quadratic residue codes</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">QuasiQuadraticResidueCode()</span></code></td>
+<td>Quasi quadratic residue codes (Requires GAP/Guava)</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">ToricCode()</span></code></td>
+<td>Toric codes</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">WalshCode()</span></code></td>
+<td>Walsh codes</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_parity_check_matrix()</span></code></td>
+<td>Construct a code from a parity check matrix</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">random_linear_code()</span></code></td>
+<td>Construct a random linear code</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">RandomLinearCodeGuava()</span></code></td>
+<td>Construct a random linear code through Guava (Requires GAP/Guava)</td>
+</tr>
+</tbody>
+</table>
+<table border="1" class="colwidths-given contentstable docutils">
+<colgroup>
+<col width="30%" />
+<col width="70%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">SubfieldSubcode()</span></code></td>
+<td>Subfield subcodes</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">ExtendedCode()</span></code></td>
+<td>Extended codes</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">PuncturedCode()</span></code></td>
+<td>Puncturedcodes</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>To import these names into the global namespace, use:</p>
+<blockquote class="last">
+<div>sage: from sage.coding.codes_catalog import *</div></blockquote>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.construct_phi">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">construct_phi</code><span class="sig-paren">(</span><em>pi</em>, <em>signs</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.construct_phi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.crystals">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">crystals</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.crystals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Catalog Of Crystals</p>
+<p>Let <span class="math notranslate nohighlight">\(I\)</span> be an index set and let <span class="math notranslate nohighlight">\((A,\Pi,\Pi^\vee,P,P^\vee)\)</span> be a Cartan datum
+associated with generalized Cartan matrix <span class="math notranslate nohighlight">\(A = (a_{ij})_{i,j\in I}\)</span>.  An
+<em>abstract crystal</em> associated to this Cartan datum is a set <span class="math notranslate nohighlight">\(B\)</span> together with
+maps</p>
+<div class="math notranslate nohighlight">
+\[e_i,f_i \colon B \to B \cup \{0\}, \qquad
+\varepsilon_i,\varphi_i\colon B \to \ZZ \cup \{-\infty\}, \qquad
+\mathrm{wt}\colon B \to P,\]</div>
+<p>subject to the following conditions:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><span class="math notranslate nohighlight">\(\varphi_i(b) = \varepsilon_i(b) + \langle h_i, \mathrm{wt}(b) \rangle\)</span> for all <span class="math notranslate nohighlight">\(b \in B\)</span> and <span class="math notranslate nohighlight">\(i \in I\)</span>;</li>
+<li><span class="math notranslate nohighlight">\(\mathrm{wt}(e_ib) = \mathrm{wt}(b) + \alpha_i\)</span> if <span class="math notranslate nohighlight">\(e_ib \in B\)</span>;</li>
+<li><span class="math notranslate nohighlight">\(\mathrm{wt}(f_ib) = \mathrm{wt}(b) - \alpha_i\)</span> if <span class="math notranslate nohighlight">\(f_ib \in B\)</span>;</li>
+<li><span class="math notranslate nohighlight">\(\varepsilon_i(e_ib) = \varepsilon_i(b) - 1\)</span>, <span class="math notranslate nohighlight">\(\varphi_i(e_ib) = \varphi_i(b) + 1\)</span> if <span class="math notranslate nohighlight">\(e_ib \in B\)</span>;</li>
+<li><span class="math notranslate nohighlight">\(\varepsilon_i(f_ib) = \varepsilon_i(b) + 1\)</span>, <span class="math notranslate nohighlight">\(\varphi_i(f_ib) = \varphi_i(b) - 1\)</span> if <span class="math notranslate nohighlight">\(f_ib \in B\)</span>;</li>
+<li><span class="math notranslate nohighlight">\(f_ib = b'\)</span> if and only if <span class="math notranslate nohighlight">\(b = e_ib'\)</span> for <span class="math notranslate nohighlight">\(b,b' \in B\)</span> and <span class="math notranslate nohighlight">\(i\in I\)</span>;</li>
+<li>if <span class="math notranslate nohighlight">\(\varphi_i(b) = -\infty\)</span> for <span class="math notranslate nohighlight">\(b\in B\)</span>, then <span class="math notranslate nohighlight">\(e_ib = f_ib = 0\)</span>.</li>
+</ol>
+</div></blockquote>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<ul class="last simple">
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/categories/sage/categories/crystals.html#module-sage.categories.crystals" title="(in Sage Reference Manual: Category Framework v8.9)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sage.categories.crystals</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/crystals.html#module-sage.combinat.crystals.crystals" title="(in Sage Reference Manual v8.9)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sage.combinat.crystals.crystals</span></code></a></li>
+</ul>
+</div>
+<p>This is a catalog of crystals that are currently implemented in Sage:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/affine.html#sage.combinat.crystals.affine.AffineCrystalFromClassical" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">AffineCrystalFromClassical</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/affine.html#sage.combinat.crystals.affine.AffineCrystalFromClassicalAndPromotion" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">AffineCrystalFromClassicalAndPromotion</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/affine_factorization.html#sage.combinat.crystals.affine_factorization.AffineFactorizationCrystal" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">AffineFactorization</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/affinization.html#sage.combinat.crystals.affinization.AffinizationOfCrystal" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">AffinizationOf</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/alcove_path.html#sage.combinat.crystals.alcove_path.CrystalOfAlcovePaths" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">AlcovePaths</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/fast_crystals.html#sage.combinat.crystals.fast_crystals.FastCrystal" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">FastRankTwo</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/generalized_young_walls.html#sage.combinat.crystals.generalized_young_walls.CrystalOfGeneralizedYoungWalls" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralizedYoungWalls</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/highest_weight_crystals.html#sage.combinat.crystals.highest_weight_crystals.HighestWeightCrystal" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">HighestWeight</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/induced_structure.html#sage.combinat.crystals.induced_structure.InducedCrystal" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Induced</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/kac_modules.html#sage.combinat.crystals.kac_modules.CrystalOfKacModule" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">KacModule</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/kirillov_reshetikhin.html#sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">KirillovReshetikhin</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/partition_kleshchev.html#sage.combinat.partition_kleshchev.KleshchevPartitions_all" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">KleshchevPartitions</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/kyoto_path_model.html#sage.combinat.crystals.kyoto_path_model.KyotoPathModel" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">KyotoPathModel</span></code></a></li>
+<li><code class="xref py py-class docutils literal notranslate"><span class="pre">Letters</span></code></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/littelmann_path.html#sage.combinat.crystals.littelmann_path.CrystalOfLSPaths" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">LSPaths</span></code></a></li>
+<li><code class="xref py py-class docutils literal notranslate"><span class="pre">Minimaj</span></code></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/monomial_crystals.html#sage.combinat.crystals.monomial_crystals.CrystalOfNakajimaMonomials" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">NakajimaMonomials</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/kac_modules.html#sage.combinat.crystals.kac_modules.CrystalOfOddNegativeRoots" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">OddNegativeRoots</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/littelmann_path.html#sage.combinat.crystals.littelmann_path.CrystalOfProjectedLevelZeroLSPaths" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProjectedLevelZeroLSPaths</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/rigged_configurations/rc_crystal.html#sage.combinat.rigged_configurations.rc_crystal.CrystalOfRiggedConfigurations" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RiggedConfigurations</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/shifted_primed_tableau.html#sage.combinat.shifted_primed_tableau.ShiftedPrimedTableaux_shape" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShiftedPrimedTableaux</span></code></a></li>
+<li><code class="xref py py-class docutils literal notranslate"><span class="pre">Spins</span></code></li>
+<li><code class="xref py py-class docutils literal notranslate"><span class="pre">SpinsPlus</span></code></li>
+<li><code class="xref py py-class docutils literal notranslate"><span class="pre">SpinsMinus</span></code></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/tensor_product.html#sage.combinat.crystals.tensor_product.CrystalOfTableaux" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tableaux</span></code></a></li>
+</ul>
+<p>Subcatalogs:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/catalog_infinity_crystals.html#sage-combinat-crystals-catalog-infinity-crystals" title="(in Sage Reference Manual: Combinatorics v8.9)"><span>Catalog Of Crystal Models For B(\infty)</span></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/catalog_elementary_crystals.html#sage-combinat-crystals-catalog-elementary-crystals" title="(in Sage Reference Manual: Combinatorics v8.9)"><span>Catalog Of Elementary Crystals</span></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/catalog_kirillov_reshetikhin.html#sage-combinat-crystals-catalog-kirillov-reshetikhin" title="(in Sage Reference Manual: Combinatorics v8.9)"><span>Catalog Of Crystal Models For Kirillov-Reshetikhin Crystals</span></a></li>
+</ul>
+<p>Functorial constructions:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/direct_sum.html#sage.combinat.crystals.direct_sum.DirectSumOfCrystals" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DirectSum</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/crystals/tensor_product.html#sage.combinat.crystals.tensor_product.TensorProductOfCrystals" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TensorProduct</span></code></a></li>
+</ul>
+<p>TESTS:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="s1">&#39;absolute_import&#39;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">crystals</span><span class="p">)</span>
+<span class="kc">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.delta_IJK">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">delta_IJK</code><span class="sig-paren">(</span><em>pi</em>, <em>xy</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.delta_IJK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.finite_dynamical_systems">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">finite_dynamical_systems</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.finite_dynamical_systems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Catalog of discrete dynamical systems</p>
+<p>This module contains constructors for several specific discrete
+dynamical systems.
+These are accessible through
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">sage.dynamics.finite_dynamical_system_catalog.</span></code>
+or just through <span class="math notranslate nohighlight">\(finite_dynamical_systems.\)</span>
+(type either of these in Sage and hit <code class="docutils literal notranslate"><span class="pre">tab</span></code> for a list).</p>
+<p>AUTHORS:</p>
+<ul class="simple">
+<li>Darij Grinberg, Tom Roby (2018): initial version</li>
+</ul>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.game_theory">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">game_theory</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.game_theory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Catalog Of Games</p>
+<p>TESTS:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="s1">&#39;absolute_import&#39;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">game_theory</span><span class="p">)</span>
+<span class="kc">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.graph_coloring">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">graph_coloring</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.graph_coloring" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: sage/graphs/graph_coloring.pyx (starting at line 1)</p>
+<p>Graph coloring</p>
+<p>This module gathers all methods related to graph coloring. Here is what it can
+do :</p>
+<p><strong>Proper vertex coloring</strong></p>
+<table border="1" class="colwidths-given contentstable docutils">
+<colgroup>
+<col width="30%" />
+<col width="70%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">all_graph_colorings()</span></code></td>
+<td>Compute all <span class="math notranslate nohighlight">\(n\)</span>-colorings a graph</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">first_coloring()</span></code></td>
+<td>Return the first vertex coloring found</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">number_of_n_colorings()</span></code></td>
+<td>Compute the number of <span class="math notranslate nohighlight">\(n\)</span>-colorings of a graph</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">numbers_of_colorings()</span></code></td>
+<td>Compute the number of colorings of a graph</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">chromatic_number()</span></code></td>
+<td>Return the chromatic number of the graph</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">vertex_coloring()</span></code></td>
+<td>Compute vertex colorings and chromatic numbers</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Other colorings</strong></p>
+<table border="1" class="colwidths-given contentstable docutils">
+<colgroup>
+<col width="30%" />
+<col width="70%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">grundy_coloring()</span></code></td>
+<td>Compute Grundy numbers and Grundy colorings</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">b_coloring()</span></code></td>
+<td>Compute b-chromatic numbers and b-colorings</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">edge_coloring()</span></code></td>
+<td>Compute chromatic index and edge colorings</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">round_robin()</span></code></td>
+<td>Compute a round-robin coloring of the complete graph on <span class="math notranslate nohighlight">\(n\)</span> vertices</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">linear_arboricity()</span></code></td>
+<td>Compute the linear arboricity of the given graph</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">acyclic_edge_coloring()</span></code></td>
+<td>Compute an acyclic edge coloring of the current graph</td>
+</tr>
+</tbody>
+</table>
+<p>AUTHORS:</p>
+<ul class="simple">
+<li>Tom Boothby (2008-02-21): Initial version</li>
+<li>Carlo Hamalainen (2009-03-28): minor change: switch to C++ DLX solver</li>
+<li>Nathann Cohen (2009-10-24): Coloring methods using linear programming</li>
+</ul>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.groups">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">groups</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.groups" title="Permalink to this definition">¶</a></dt>
+<dd><p>Examples of Groups</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">groups</span></code> object may be used to access examples of various groups.
+Using tab-completion on this object is an easy way to discover and quickly
+create the groups that are available (as listed here).</p>
+<p>Let <code class="docutils literal notranslate"><span class="pre">&lt;tab&gt;</span></code> indicate pressing the tab key.  So begin by typing
+<code class="docutils literal notranslate"><span class="pre">groups.&lt;tab&gt;</span></code> to the see primary divisions, followed by (for example)
+<code class="docutils literal notranslate"><span class="pre">groups.matrix.&lt;tab&gt;</span></code> to access various groups implemented as sets of matrices.</p>
+<ul class="simple">
+<li>Permutation Groups  (<code class="docutils literal notranslate"><span class="pre">groups.permutation.&lt;tab&gt;</span></code>)<ul>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/perm_gps/permgroup_named.html#sage.groups.perm_gps.permgroup_named.SymmetricGroup" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.permutation.Symmetric</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/perm_gps/permgroup_named.html#sage.groups.perm_gps.permgroup_named.AlternatingGroup" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.permutation.Alternating</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/perm_gps/permgroup_named.html#sage.groups.perm_gps.permgroup_named.KleinFourGroup" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.permutation.KleinFour</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/perm_gps/permgroup_named.html#sage.groups.perm_gps.permgroup_named.QuaternionGroup" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.permutation.Quaternion</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/perm_gps/permgroup_named.html#sage.groups.perm_gps.permgroup_named.CyclicPermutationGroup" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.permutation.Cyclic</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/perm_gps/permgroup_named.html#sage.groups.perm_gps.permgroup_named.ComplexReflectionGroup" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.permutation.ComplexReflection</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/perm_gps/permgroup_named.html#sage.groups.perm_gps.permgroup_named.DihedralGroup" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.permutation.Dihedral</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/perm_gps/permgroup_named.html#sage.groups.perm_gps.permgroup_named.DiCyclicGroup" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.permutation.DiCyclic</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/perm_gps/permgroup_named.html#sage.groups.perm_gps.permgroup_named.MathieuGroup" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.permutation.Mathieu</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/perm_gps/permgroup_named.html#sage.groups.perm_gps.permgroup_named.SuzukiGroup" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.permutation.Suzuki</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/perm_gps/permgroup_named.html#sage.groups.perm_gps.permgroup_named.PGL" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.permutation.PGL</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/perm_gps/permgroup_named.html#sage.groups.perm_gps.permgroup_named.PSL" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.permutation.PSL</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/perm_gps/permgroup_named.html#sage.groups.perm_gps.permgroup_named.PSp" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.permutation.PSp</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/perm_gps/permgroup_named.html#sage.groups.perm_gps.permgroup_named.PSU" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.permutation.PSU</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/perm_gps/permgroup_named.html#sage.groups.perm_gps.permgroup_named.PGU" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.permutation.PGU</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/perm_gps/permgroup_named.html#sage.groups.perm_gps.permgroup_named.TransitiveGroup" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.permutation.Transitive</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/perm_gps/cubegroup.html#sage.groups.perm_gps.cubegroup.CubeGroup" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.permutation.RubiksCube</span></code></a></li>
+</ul>
+</li>
+<li>Matrix Groups (<code class="docutils literal notranslate"><span class="pre">groups.matrix.&lt;tab&gt;</span></code>)<ul>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/matrix_gps/finitely_generated.html#sage.groups.matrix_gps.finitely_generated.QuaternionMatrixGroupGF3" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.matrix.QuaternionGF3</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/matrix_gps/linear.html#sage.groups.matrix_gps.linear.GL" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.matrix.GL</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/matrix_gps/linear.html#sage.groups.matrix_gps.linear.SL" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.matrix.SL</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/matrix_gps/symplectic.html#sage.groups.matrix_gps.symplectic.Sp" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.matrix.Sp</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/matrix_gps/unitary.html#sage.groups.matrix_gps.unitary.GU" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.matrix.GU</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/matrix_gps/unitary.html#sage.groups.matrix_gps.unitary.SU" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.matrix.SU</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/matrix_gps/orthogonal.html#sage.groups.matrix_gps.orthogonal.GO" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.matrix.GO</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/matrix_gps/orthogonal.html#sage.groups.matrix_gps.orthogonal.SO" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.matrix.SO</span></code></a></li>
+</ul>
+</li>
+<li>Finitely Presented Groups (<code class="docutils literal notranslate"><span class="pre">groups.presentation.&lt;tab&gt;</span></code>)<ul>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/finitely_presented_named.html#sage.groups.finitely_presented_named.AlternatingPresentation" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.presentation.Alternating</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/finitely_presented_named.html#sage.groups.finitely_presented_named.CyclicPresentation" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.presentation.Cyclic</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/finitely_presented_named.html#sage.groups.finitely_presented_named.DihedralPresentation" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.presentation.Dihedral</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/finitely_presented_named.html#sage.groups.finitely_presented_named.DiCyclicPresentation" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.presentation.DiCyclic</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/finitely_presented_named.html#sage.groups.finitely_presented_named.FinitelyGeneratedAbelianPresentation" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.presentation.FGAbelian</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/finitely_presented_named.html#sage.groups.finitely_presented_named.KleinFourPresentation" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.presentation.KleinFour</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/finitely_presented_named.html#sage.groups.finitely_presented_named.QuaternionPresentation" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.presentation.Quaternion</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/finitely_presented_named.html#sage.groups.finitely_presented_named.SymmetricPresentation" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.presentation.Symmetric</span></code></a></li>
+</ul>
+</li>
+<li>Affine Groups (<code class="docutils literal notranslate"><span class="pre">groups.affine.&lt;tab&gt;</span></code>)<ul>
+<li><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.affine.Affine</span></code></li>
+<li><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.affine.Euclidean</span></code></li>
+</ul>
+</li>
+<li>Lie Groups  (<code class="docutils literal notranslate"><span class="pre">groups.lie.&lt;tab&gt;</span></code>)<ul>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/lie_gps/nilpotent_lie_group.html#sage.groups.lie_gps.nilpotent_lie_group.NilpotentLieGroup" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.lie.Nilpotent</span></code></a></li>
+</ul>
+</li>
+<li>Miscellaneous Groups (<code class="docutils literal notranslate"><span class="pre">groups.misc.&lt;tab&gt;</span></code>)<ul>
+<li>Coxeter, reflection and related groups<ul>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/braid.html#sage.groups.braid.BraidGroup" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.misc.Braid</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/root_system/coxeter_group.html#sage.combinat.root_system.coxeter_group.CoxeterGroup" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.misc.CoxeterGroup</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/root_system/reflection_group_real.html#sage.combinat.root_system.reflection_group_real.ReflectionGroup" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.misc.ReflectionGroup</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/raag.html#sage.groups.raag.RightAngledArtinGroup" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.misc.RightAngledArtin</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/combinat/sage/combinat/root_system/weyl_group.html#sage.combinat.root_system.weyl_group.WeylGroup" title="(in Sage Reference Manual: Combinatorics v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.misc.WeylGroup</span></code></a></li>
+</ul>
+</li>
+<li>other miscellanous groups<ul>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/additive_abelian/additive_abelian_group.html#sage.groups.additive_abelian.additive_abelian_group.AdditiveAbelianGroup" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.misc.AdditiveAbelian</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/finite_rings/sage/rings/finite_rings/integer_mod_ring.html#sage.rings.finite_rings.integer_mod_ring.IntegerModFactory" title="(in Sage Reference Manual: Finite Rings v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">groups.misc.AdditiveCyclic</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/groups/sage/groups/free_group.html#sage.groups.free_group.FreeGroup" title="(in Sage Reference Manual: Groups v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.misc.Free</span></code></a></li>
+<li><code class="xref py py-func docutils literal notranslate"><span class="pre">groups.misc.SemimonomialTransformation</span></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.interacts">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">interacts</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.interacts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interacts included with sage</p>
+<p>AUTHORS:</p>
+<ul class="simple">
+<li>Harald Schilly (2011-01-16): initial version (#9623) partially based on work by Lauri Ruotsalainen</li>
+</ul>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.lie_algebras">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">lie_algebras</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.lie_algebras" title="Permalink to this definition">¶</a></dt>
+<dd><p>Examples of Lie Algebras</p>
+<p>There are the following examples of Lie algebras:</p>
+<ul class="simple">
+<li>A rather comprehensive family of 3-dimensional Lie algebras</li>
+<li>The Lie algebra of affine transformations of the line</li>
+<li>All abelian Lie algebras on free modules</li>
+<li>The Lie algebra of upper triangular matrices</li>
+<li>The Lie algebra of strictly upper triangular matrices</li>
+</ul>
+<p>See also
+<a class="reference external" href="http://doc.sagemath.org/html/en/reference/algebras/sage/algebras/lie_algebras/virasoro.html#sage.algebras.lie_algebras.virasoro.LieAlgebraRegularVectorFields" title="(in Sage Reference Manual: Algebras v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sage.algebras.lie_algebras.virasoro.LieAlgebraRegularVectorFields</span></code></a>
+and
+<a class="reference external" href="http://doc.sagemath.org/html/en/reference/algebras/sage/algebras/lie_algebras/virasoro.html#sage.algebras.lie_algebras.virasoro.VirasoroAlgebra" title="(in Sage Reference Manual: Algebras v8.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sage.algebras.lie_algebras.virasoro.VirasoroAlgebra</span></code></a> for
+other examples.</p>
+<p>AUTHORS:</p>
+<ul class="simple">
+<li>Travis Scrimshaw (07-15-2013): Initial implementation</li>
+</ul>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.matroids">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">matroids</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.matroids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Catalog of matroids</p>
+<p>A module containing constructors for several common matroids.</p>
+<p>A list of all matroids in this module is available via tab
+completion. Let <code class="docutils literal notranslate"><span class="pre">&lt;tab&gt;</span></code> indicate pressing the tab key.  So begin by typing
+<code class="docutils literal notranslate"><span class="pre">matroids.&lt;tab&gt;</span></code> to see the various constructions available. Many special
+matroids can be accessed from the submenu <code class="docutils literal notranslate"><span class="pre">matroids.named_matroids.&lt;tab&gt;</span></code>.</p>
+<p>To create a custom matroid using a variety of inputs, see the function
+<a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/constructor.html#sage.matroids.constructor.Matroid" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">Matroid()</span></code></a>.</p>
+<ul class="simple">
+<li><dl class="first docutils">
+<dt>Parametrized matroid constructors</dt>
+<dd><ul class="first last">
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.AG" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.AG</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.CompleteGraphic" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.CompleteGraphic</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.PG" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.PG</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.Uniform" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.Uniform</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.Wheel" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.Wheel</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.Whirl" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.Whirl</span></code></a></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Named matroids (<code class="docutils literal notranslate"><span class="pre">matroids.named_matroids.&lt;tab&gt;</span></code>)</dt>
+<dd><ul class="first last">
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.AG23minus" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.AG23minus</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.AG32prime" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.AG32prime</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.BetsyRoss" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.BetsyRoss</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.Block_9_4" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.Block_9_4</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.Block_10_5" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.Block_10_5</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.D16" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.D16</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.ExtendedBinaryGolayCode" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.ExtendedBinaryGolayCode</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.ExtendedTernaryGolayCode" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.ExtendedTernaryGolayCode</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.F8" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.F8</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.Fano" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.Fano</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.J" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.J</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.K33dual" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.K33dual</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.L8" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.L8</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.N1" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.N1</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.N2" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.N2</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.NonFano" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.NonFano</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.NonPappus" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.NonPappus</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.NonVamos" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.NonVamos</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.NotP8" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.NotP8</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.O7" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.O7</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.P6" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.P6</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.P7" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.P7</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.P8" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.P8</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.P8pp" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.P8pp</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.P9" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.P9</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.Pappus" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.Pappus</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.Q6" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.Q6</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.Q8" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.Q8</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.Q10" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.Q10</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.R6" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.R6</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.R8" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.R8</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.R9A" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.R9A</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.R9B" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.R9B</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.R10" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.R10</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.R12" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.R12</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.S8" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.S8</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.T8" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.T8</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.T12" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.T12</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.TernaryDowling3" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.TernaryDowling3</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.Terrahawk" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.Terrahawk</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.TicTacToe" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.TicTacToe</span></code></a></li>
+<li><a class="reference external" href="http://doc.sagemath.org/html/en/reference/matroids/sage/matroids/catalog.html#sage.matroids.catalog.Vamos" title="(in Sage Reference Manual: Matroid Theory v8.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matroids.named_matroids.Vamos</span></code></a></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.multiplication_names">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">multiplication_names</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.multiplication_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>tuple() -&gt; empty tuple
+tuple(iterable) -&gt; tuple initialized from iterable’s items</p>
+<p>If the argument is a tuple, the return value is the same object.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.plot_case">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">plot_case</code><span class="sig-paren">(</span><em>phi</em>, <em>pts</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.plot_case" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.plot_fun_IJK">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">plot_fun_IJK</code><span class="sig-paren">(</span><em>pi</em>, <em>phi</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.plot_fun_IJK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.ppl_point">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">ppl_point</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.ppl_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a point.</p>
+<p>INPUT:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">expression</span></code> – a <code class="xref py py-class docutils literal notranslate"><span class="pre">Linear_Expression</span></code> or something
+convertible to it (<code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code> or integer).</li>
+<li><code class="docutils literal notranslate"><span class="pre">divisor</span></code> – an integer.</li>
+</ul>
+<p>OUTPUT:</p>
+<p>A new <code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code> representing the point.</p>
+<p>Raises a <code class="docutils literal notranslate"><span class="pre">ValueError`</span> <span class="pre">if</span> <span class="pre">``divisor==0</span></code>.</p>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ppl</span> <span class="k">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Variable</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">y</span><span class="o">+</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">point(0/3, 2/3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="n">y</span><span class="o">+</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">point(0/3, 1/3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">point()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">PPL::point(e, d):</span>
+<span class="go">d == 0.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.self_orthogonal_binary_codes">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">self_orthogonal_binary_codes</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.self_orthogonal_binary_codes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case</code><span class="sig-paren">(</span><em>sign1</em>, <em>sign2</em>, <em>sign3</em>, <em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_aprime1_MMM_type_I">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_aprime1_MMM_type_I</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_aprime1_MMM_type_I" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_aprime2_MMM_type_II">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_aprime2_MMM_type_II</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_aprime2_MMM_type_II" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_aprime3_MWW">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_aprime3_MWW</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_aprime3_MWW" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_aprime_MMM">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_aprime_MMM</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_aprime_MMM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime2_MMM">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_bprime2_MMM</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime2_MMM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime3_MWW">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_bprime3_MWW</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime3_MWW" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime3_MWW_type_I">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_bprime3_MWW_type_I</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime3_MWW_type_I" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime3_MWW_type_II">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_bprime3_MWW_type_II</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime3_MWW_type_II" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime4_WMW">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_case_bprime4_WMW</code><span class="sig-paren">(</span><em>show_plots=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_case_bprime4_WMW" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_pi_case_aprime">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_pi_case_aprime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_pi_case_aprime" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_pi_case_bprime">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">setup_pi_case_bprime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.setup_pi_case_bprime" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.simplicial_complexes">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">simplicial_complexes</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.simplicial_complexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Catalog of simplicial complexes</p>
+<p>There are two main types: manifolds and examples related to graph
+theory.</p>
+<p>For manifolds, there are functions defining the <span class="math notranslate nohighlight">\(n\)</span>-sphere for any
+<span class="math notranslate nohighlight">\(n\)</span>, the torus, <span class="math notranslate nohighlight">\(n\)</span>-dimensional real projective space for any <span class="math notranslate nohighlight">\(n\)</span>, the
+complex projective plane, surfaces of arbitrary genus, and some other
+manifolds, all as simplicial complexes.</p>
+<p>Aside from surfaces, this file also provides functions for
+constructing some other simplicial complexes: the simplicial complex
+of not-<span class="math notranslate nohighlight">\(i\)</span>-connected graphs on <span class="math notranslate nohighlight">\(n\)</span> vertices, the matching complex on n
+vertices, the chessboard complex for an <span class="math notranslate nohighlight">\(n\)</span> by <span class="math notranslate nohighlight">\(i\)</span> chessboard, and
+others.  These provide examples of large simplicial complexes; for
+example, <code class="docutils literal notranslate"><span class="pre">simplicial_complexes.NotIConnectedGraphs(7,2)</span></code> has over a
+million simplices.</p>
+<p>All of these examples are accessible by typing
+<code class="docutils literal notranslate"><span class="pre">simplicial_complexes.NAME</span></code>, where <code class="docutils literal notranslate"><span class="pre">NAME</span></code> is the name of the example.</p>
+<ul class="simple">
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">BarnetteSphere()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">BrucknerGrunbaumSphere()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">ChessboardComplex()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">ComplexProjectivePlane()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">DunceHat()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">K3Surface()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">KleinBottle()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">MatchingComplex()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">MooreSpace()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">NotIConnectedGraphs()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">PoincareHomologyThreeSphere()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">PseudoQuaternionicProjectivePlane()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">RandomComplex()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">RandomTwoSphere()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">RealProjectivePlane()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">RealProjectiveSpace()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">RudinBall()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">ShiftedComplex()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">Simplex()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sphere()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">SumComplex()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">SurfaceOfGenus()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">Torus()</span></code></li>
+<li><code class="xref py py-meth docutils literal notranslate"><span class="pre">ZieglerBall()</span></code></li>
+</ul>
+<p>You can also get a list by typing <code class="docutils literal notranslate"><span class="pre">simplicial_complexes.</span></code> and hitting the
+TAB key.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="n">S</span> <span class="o">=</span> <span class="n">simplicial_complexes</span><span class="o">.</span><span class="n">Sphere</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># the 2-sphere</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">S</span><span class="o">.</span><span class="n">homology</span><span class="p">()</span>
+<span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="n">Z</span><span class="p">}</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">simplicial_complexes</span><span class="o">.</span><span class="n">SurfaceOfGenus</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">Triangulation</span> <span class="n">of</span> <span class="n">an</span> <span class="n">orientable</span> <span class="n">surface</span> <span class="n">of</span> <span class="n">genus</span> <span class="mi">3</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">M4</span> <span class="o">=</span> <span class="n">simplicial_complexes</span><span class="o">.</span><span class="n">MooreSpace</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">M4</span><span class="o">.</span><span class="n">homology</span><span class="p">()</span>
+<span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="n">C4</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">simplicial_complexes</span><span class="o">.</span><span class="n">MatchingComplex</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span><span class="o">.</span><span class="n">homology</span><span class="p">()</span>
+<span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="n">Z</span><span class="o">^</span><span class="mi">16</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.simplicial_sets">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">simplicial_sets</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.simplicial_sets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Catalog of simplicial sets</p>
+<p>This provides pre-built simplicial sets:</p>
+<ul class="simple">
+<li>the <span class="math notranslate nohighlight">\(n\)</span>-sphere and <span class="math notranslate nohighlight">\(n\)</span>-dimensional real projective space, both (in
+theory) for any positive integer <span class="math notranslate nohighlight">\(n\)</span>. In practice, as <span class="math notranslate nohighlight">\(n\)</span> increases,
+it takes longer to construct these simplicial sets.</li>
+<li>the <span class="math notranslate nohighlight">\(n\)</span>-simplex and the horns obtained from it. As <span class="math notranslate nohighlight">\(n\)</span> increases, it
+takes <em>much</em> longer to construct these simplicial sets, because the
+number of nondegenerate simplices increases exponentially in <span class="math notranslate nohighlight">\(n\)</span>.
+For example, it is feasible to do
+<code class="docutils literal notranslate"><span class="pre">simplicial_sets.RealProjectiveSpace(100)</span></code> since it only has 101
+nondegenerate simplices, but <code class="docutils literal notranslate"><span class="pre">simplicial_sets.Simplex(20)</span></code> is
+probably a bad idea.</li>
+<li><span class="math notranslate nohighlight">\(n\)</span>-dimensional complex projective space for <span class="math notranslate nohighlight">\(n \leq 4\)</span></li>
+<li>the classifying space of a finite multiplicative group or monoid</li>
+<li>the torus and the Klein bottle</li>
+<li>the point</li>
+<li>the Hopf map: this is a pre-built morphism, from which one can
+extract its domain, codomain, mapping cone, etc.</li>
+</ul>
+<p>All of these examples are accessible by typing
+<code class="docutils literal notranslate"><span class="pre">simplicial_sets.NAME</span></code>, where <code class="docutils literal notranslate"><span class="pre">NAME</span></code> is the name of the
+example. Type <code class="docutils literal notranslate"><span class="pre">simplicial_sets.[TAB]</span></code> for a complete list.</p>
+<p>EXAMPLES:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="n">RP10</span> <span class="o">=</span> <span class="n">simplicial_sets</span><span class="o">.</span><span class="n">RealProjectiveSpace</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">RP10</span><span class="o">.</span><span class="n">homology</span><span class="p">()</span>
+<span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="n">C2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="n">C2</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">:</span> <span class="n">C2</span><span class="p">,</span> <span class="mi">6</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">:</span> <span class="n">C2</span><span class="p">,</span> <span class="mi">8</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+
+<span class="n">sage</span><span class="p">:</span> <span class="n">eta</span> <span class="o">=</span> <span class="n">simplicial_sets</span><span class="o">.</span><span class="n">HopfMap</span><span class="p">()</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">S3</span> <span class="o">=</span> <span class="n">eta</span><span class="o">.</span><span class="n">domain</span><span class="p">()</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">S2</span> <span class="o">=</span> <span class="n">eta</span><span class="o">.</span><span class="n">codomain</span><span class="p">()</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">S3</span><span class="o">.</span><span class="n">wedge</span><span class="p">(</span><span class="n">S2</span><span class="p">)</span><span class="o">.</span><span class="n">homology</span><span class="p">()</span>
+<span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="n">Z</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="n">Z</span><span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.tests">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">tests</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.tests" title="Permalink to this definition">¶</a></dt>
+<dd><p>TESTS:</p>
+<p>Test the deprecation warnings:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sage: tests.CompleteMatchings
+doctest:warning
+...
+DeprecationWarning:
+Importing CompleteMatchings from here is deprecated. If you need to use it, please import it directly from sage.tests.arxiv_0812_2725
+See https://trac.sagemath.org/27337 for details.
+&lt;function CompleteMatchings at ...&gt;
+sage: tests.modsym
+doctest:warning
+...
+DeprecationWarning:
+Importing modsym from here is deprecated. If you need to use it, please import it directly from sage.modular.modsym.tests
+See https://trac.sagemath.org/27337 for details.
+&lt;class ...sage.modular.modsym.tests.Test...&gt;
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.valuations">
+<code class="descclassname">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.</code><code class="descname">valuations</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof.valuations" title="Permalink to this definition">¶</a></dt>
+<dd><p>x.__init__(…) initializes x; see help(type(x)) for signature</p>
+</dd></dl>
+
 </div>
 
 
@@ -146,6 +933,9 @@
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="dff.html" title="Code for classical and general dual-feasible functions"
              >next</a> |</li>
         <li class="right" >
@@ -154,14 +944,14 @@
   
   <a href="http://www.sagemath.org"><img src="_static/sagelogo.png" style="vertical-align: middle" title="Sage Logo"></a>
   
-        <li class="nav-item nav-item-0"><a href="index.html">cutgeneratingfunctionology 1.2+git documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">cutgeneratingfunctionology 1.3.post114 documentation</a> &#187;</li>
 
           <li class="nav-item nav-item-1"><a href="procedures.html" >Electronic compendium of procedures for the 1-row Gomory–Johnson model</a> &#187;</li> 
       </ul>
     </div>
     
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2013-2018, Chun Yu Hong, Matthias Koeppe, Yuan Zhou, Jiawei Wang.
+        &#169; Copyright 2013-2019, Matthias Koeppe, Yuan Zhou, Chun Yu Hong, Jiawei Wang.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.
     </div>
     <script type="text/javascript">
