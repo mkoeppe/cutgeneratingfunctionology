@@ -36,7 +36,12 @@ setup(
       'Intended Audience :: Science/Research',
       'Topic :: Scientific/Engineering :: Mathematics',
       'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
+      'Programming Language :: Python',
+      'Programming Language :: Python :: 2',
       'Programming Language :: Python :: 2.7',
+      'Programming Language :: Python :: 3',
+      'Programming Language :: Python :: 3.6',
+      'Programming Language :: Python :: 3.7',
     ], # classifiers list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
     keywords = "integer programming, cutting planes",
     packages = ['cutgeneratingfunctionology', 'cutgeneratingfunctionology.igp', 'cutgeneratingfunctionology.multirow', 'cutgeneratingfunctionology.dff', 'cutgeneratingfunctionology.spam', 'cutgeneratingfunctionology.igp.subadditivity_slack_diagrams', 'cutgeneratingfunctionology.igp.procedures'],
@@ -49,4 +54,10 @@ setup(
         'version_scheme': 'post-release',
         'local_scheme': 'dirty-tag'
     },
+    project_urls = {
+        'Documentation': "http://mkoeppe.github.io/cutgeneratingfunctionology/doc/html/",
+        'Source': 'https://github.com/mkoeppe/cutgeneratingfunctionology',
+        'Issue Tracker': 'https://github.com/mkoeppe/cutgeneratingfunctionology/issues',
+        'Demo on mybinder.org': 'https://mybinder.org/v2/gh/mkoeppe/cutgeneratingfunctionology/master?filepath=demo.ipynb'
+    }
 )
