@@ -106,7 +106,11 @@ def sphinx_plot(graphics, **kwds):
                              "not {0} and {1}".format(figsize[0],figsize[1]))
 
     plt.figure(figsize=figsize)
-    if isinstance(graphics, sage.plot.graphics.GraphicsArray):
+    try:
+        from sage.plot.multigraphics import GraphicsArray
+    except ImportError:
+        from sage.plot.graphics import GraphicsArray
+    if isinstance(graphics, GraphicsArray):
         ## from GraphicsArray.save
         figure = plt.gcf()
         rows = graphics.nrows()
