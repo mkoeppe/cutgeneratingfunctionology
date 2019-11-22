@@ -390,6 +390,9 @@ if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
     html_static_path.append(mathjax_static)
     exclude_patterns=['**/'+os.path.join(mathjax_relative, i) for i in ('docs', 'README*', 'test',
                                                                         'unpacked', 'LICENSE')]
+    from sage.env import SAGE_LOCAL, SAGE_SHARE
+    html_static_path.append(SAGE_LOCAL + "/lib/mathjax")    # conda
+    html_static_path.append(SAGE_SHARE + "/mathjax")  # sage distribution
 else:
      extensions.append('sphinx.ext.pngmath')
 
