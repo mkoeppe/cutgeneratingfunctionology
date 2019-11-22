@@ -73,8 +73,12 @@ def sphinx_plot(graphics, **kwds):
     from sage.misc.temporary_file import tmp_filename
     import matplotlib.pyplot as plt
     ## Option handling is taken from Graphics.save
+    try:
+        from sage.plot.multigraphics import GraphicsArray
+    except ImportError:
+        from sage.plot.graphics import GraphicsArray
     options = dict()
-    if not isinstance(graphics, sage.plot.graphics.GraphicsArray):
+    if not isinstance(graphics, GraphicsArray):
         options.update(graphics.SHOW_OPTIONS)
         options.update(graphics._extra_kwds)
     options.update(kwds)
@@ -106,10 +110,6 @@ def sphinx_plot(graphics, **kwds):
                              "not {0} and {1}".format(figsize[0],figsize[1]))
 
     plt.figure(figsize=figsize)
-    try:
-        from sage.plot.multigraphics import GraphicsArray
-    except ImportError:
-        from sage.plot.graphics import GraphicsArray
     if isinstance(graphics, GraphicsArray):
         ## from GraphicsArray.save
         figure = plt.gcf()
