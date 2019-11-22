@@ -18,6 +18,7 @@ dependencies:
   - lrslib
   - normaliz
   - boost-cpp      # For installing PyNormaliz
+  - mathjax
   - pip
   - pip:
     - pynormaliz
