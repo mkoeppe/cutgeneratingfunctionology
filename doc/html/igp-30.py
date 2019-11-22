@@ -1,4 +1,9 @@
 from cutgeneratingfunctionology.igp import *
-h = kzh_10_slope_1()
-g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
-sphinx_plot(g)
+
+def procedure_graph(fn, g):
+    G1 = plot_with_colored_slopes(fn, show_legend=False, **only_f_ticks_keywords(fn))
+    G2 = plot_with_colored_slopes(g, show_legend=False, **only_f_ticks_keywords(g))
+    sphinx_plot(graphics_array([G1, G2]), figsize=(8, 1.5))
+
+h = restrict_to_finite_group(gmic())
+procedure_graph(h, interpolate_to_infinite_group(h))
