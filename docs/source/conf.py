@@ -161,6 +161,7 @@ try:
     release = get_distribution('cutgeneratingfunctionology').version
 except DistributionNotFound:
     release = "1.4.xyz"
+print("############# release reported: {} ##################".format(release))
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])
 

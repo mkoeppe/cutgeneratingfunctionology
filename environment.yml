@@ -12,6 +12,7 @@ channels:
 dependencies:
   - python=3
   - sage=8.9
+  - setuptools_scm
   - sphinx
   - sphinxcontrib-websupport
   - sphinxcontrib-bibtex
