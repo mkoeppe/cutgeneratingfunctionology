@@ -1,8 +1,17 @@
 from six.moves import range
 ## "Sporadic" extreme functions (found by computer search, not part of a parametric family).
+## (query-replace-regexp "^def \\(\\sw*\\)(\\([^)]*\\)):\n    r\"\"\"\n" "def \\1(\\2):\n    r\"\"\"\n    .. PLOT::\n\n        from cutgeneratingfunctionology.igp import *\n        h = \\1()\n        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))\n        sphinx_plot(g)\n\n")
+
 
 def hildebrand_5_slope_22_1():
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = hildebrand_5_slope_22_1()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     One of Hildebrand's 5-slope functions.
 
     They held the world record regarding the number of slopes until
@@ -26,6 +35,13 @@ def hildebrand_5_slope_22_1():
 
 def hildebrand_5_slope_24_1():
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = hildebrand_5_slope_24_1()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     One of Hildebrand's 5-slope functions.
 
     They held the world record regarding the number of slopes until
@@ -49,6 +65,13 @@ def hildebrand_5_slope_24_1():
 
 def hildebrand_5_slope_28_1():
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = hildebrand_5_slope_28_1()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     One of Hildebrand's 5-slope functions.
 
     They held the world record regarding the number of slopes until
@@ -72,6 +95,13 @@ def hildebrand_5_slope_28_1():
 
 def hildebrand_2_sided_discont_1_slope_1():
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = hildebrand_2_sided_discont_1_slope_1()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     The first known example of function that is discontinuous on both
     sides of the origin but is also extreme.
 
@@ -98,6 +128,13 @@ def hildebrand_2_sided_discont_1_slope_1():
 
 def hildebrand_2_sided_discont_2_slope_1():
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = hildebrand_2_sided_discont_2_slope_1()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     The second known example of function that is discontinuous on both
     sides of the origin but is also extreme.  This one has 2 slopes.
 
@@ -127,11 +164,18 @@ def hildebrand_2_sided_discont_2_slope_1():
 
 def hildebrand_discont_3_slope_1():
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = hildebrand_discont_3_slope_1()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     This is a very new discontinuous 3-slope function that is extreme.
 
     Constructed by Robert Hildebrand (2013, unpublished).
 
-    A detailed extremality proof appears as an example in cite:`hong-koeppe-zhou:software-paper`.
+    A detailed extremality proof appears as an example in :cite:`hong-koeppe-zhou:software-paper`.
 
     EXAMPLES::
 
@@ -141,10 +185,10 @@ def hildebrand_discont_3_slope_1():
         sage: extremality_test(psi, False)
         True
 
-    In cite:`koeppe-zhou:discontinuous-facets`, it is shown that this function (called `psi`)
+    In :cite:`koeppe-zhou:discontinuous-facets`, it is shown that this function (called `\psi`)
     is neither a weak facets nor a facet, by showing that the function
-    `psi' = ``discontinuous_facets_paper_example_psi_prime()`` ` has a larger additivity
-    domain E (sans limits).
+    ` \psi' = ``discontinuous_facets_paper_example_psi_prime()`` ` has a larger additivity
+    domain `E` (sans limits)::
 
         sage: psi = hildebrand_discont_3_slope_1()
         sage: E_psi = set(generate_additive_faces_sans_limits(psi))
@@ -155,7 +199,7 @@ def hildebrand_discont_3_slope_1():
         sage: sorted(E_psi_prime.difference(E_psi))
         [<Face ([0, 1/8], [0, 1/8], [1/8])>, <Face ([0, 1/8], [0, 1/8], [1/8, 1/4])>, ...]
 
-    In fact, if one uses only the faces of `psi` that are additive sans limits, then there is
+    In fact, if one uses only the faces of `\psi` that are additive sans limits, then there is
     one covered component only; two intervals remain uncovered::
 
         sage: show_plots=False
@@ -177,6 +221,13 @@ def hildebrand_discont_3_slope_1():
 
 def discontinuous_facets_paper_example_psi_prime(merge=True):
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = discontinuous_facets_paper_example_psi_prime()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     Example from the paper cite:`koeppe-zhou:discontinuous-facets`.
     See ``hildebrand_discont_3_slope_1``.
 
@@ -624,6 +675,13 @@ def kzh_6_slope_fulldim_covers_3(): # renamed from fulldim_covers_6slope_q38_1()
 
 def kzh_6_slope_fulldim_covers_4():
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_6_slope_fulldim_covers_4()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -654,6 +712,13 @@ def kzh_6_slope_fulldim_covers_4():
 
 def kzh_6_slope_fulldim_covers_5():
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_6_slope_fulldim_covers_5()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -715,6 +780,13 @@ def kzh_5_slope_q22_f2_1():
 
 def kzh_7_slope_1():
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_7_slope_1()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     A 7-slope extreme function.
 
     This example was found by computer-based search
@@ -742,6 +814,13 @@ def kzh_7_slope_1():
 
 def kzh_7_slope_2():
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_7_slope_2()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     A 7-slope extreme function.
 
     This example was found by computer-based search
@@ -769,6 +848,13 @@ def kzh_7_slope_2():
 
 def kzh_7_slope_3():
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_7_slope_3()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     A 7-slope extreme function.
 
     This example was found by computer-based search
@@ -796,6 +882,13 @@ def kzh_7_slope_3():
 
 def kzh_7_slope_4():
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_7_slope_4()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     A 7-slope extreme function.
 
     This example was found by computer-based search
@@ -841,6 +934,13 @@ def pattern0_sym_fn(l, sv):
 
 def kzh_6_slope_1():
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_6_slope_1()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     A 6-slope extreme function.
 
     Its two-dimensional polyhedral complex includes special patterns.
@@ -868,6 +968,13 @@ def kzh_6_slope_1():
 
 def kzh_10_slope_1():
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_10_slope_1()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     A 10-slope extreme function.
 
     Its two-dimensional polyhedral complex includes special patterns.
@@ -895,6 +1002,13 @@ def kzh_10_slope_1():
 
 def kzh_28_slope_1():
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_28_slope_1()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     A 28-slope extreme function.
 
     This example was found by computer-based search
@@ -927,6 +1041,13 @@ def kzh_28_slope_1():
 
 def kzh_28_slope_2():
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_28_slope_2()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     A 28-slope extreme function.
 
     This example was found by computer-based search

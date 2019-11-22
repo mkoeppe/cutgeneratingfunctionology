@@ -1287,7 +1287,7 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
             False
 
         On the other hand, the hypotheses stated by Chen are also not necessary for extremality.
-        For example, the following function does not satisfy the hypotheses, however it is extreme.
+        For example, the following function does not satisfy the hypotheses, however it is extreme::
 
             sage: h = chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/10, lam2=1/10, condition_according_to_literature=True)
             sage: h._claimed_parameter_attribute
