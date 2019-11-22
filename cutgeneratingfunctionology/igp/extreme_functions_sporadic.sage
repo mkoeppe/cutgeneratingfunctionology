@@ -1,6 +1,6 @@
 from six.moves import range
 ## "Sporadic" extreme functions (found by computer search, not part of a parametric family).
-## (query-replace-regexp "^def \\(\\sw*\\)(\\([^)]*\\)):\n    r\"\"\"\n" "def \\1(\\2):\n    r\"\"\"\n    .. PLOT::\n\n        from cutgeneratingfunctionology.igp import *\n        h = \\1()\n        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))\n        sphinx_plot(g)\n\n")
+## (query-replace-regexp "^def \\(\\sw*\\)(\\([^)]*\\)):\\(.*\\)\n    r\"\"\"\n" "def \\1(\\2):\\3\n    r\"\"\"\n    .. PLOT::\n\n        from cutgeneratingfunctionology.igp import *\n        h = \\1()\n        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))\n        sphinx_plot(g)\n\n")
 
 
 def hildebrand_5_slope_22_1():
@@ -250,6 +250,13 @@ def discontinuous_facets_paper_example_psi_prime(merge=True):
 
 def kzh_5_slope_fulldim_1(): #renamed from extreme_5slope_no_0d_1d_1
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_5_slope_fulldim_1()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     A continuous 5-slope extreme function without any 0-d or 1-d
     maximal additive faces except for the symmetry reflection or x=0
     or y=0.
@@ -280,6 +287,13 @@ def kzh_5_slope_fulldim_1(): #renamed from extreme_5slope_no_0d_1d_1
 
 def kzh_5_slope_fulldim_2(): #renamed from extreme_5slope_no_0d_1d_2
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_5_slope_fulldim_2()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     A continuous 5-slope extreme function without any 0-d or 1-d
     maximal additive faces except for the symmetry reflection or x=0
     or y=0.
@@ -310,6 +324,13 @@ def kzh_5_slope_fulldim_2(): #renamed from extreme_5slope_no_0d_1d_2
 
 def kzh_5_slope_fulldim_3(): #renamed from extreme_5slope_no_0d_1d_3
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_5_slope_fulldim_3()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     A continuous 5-slope extreme function without any 0-d or 1-d
     maximal additive faces except for the symmetry reflection or x=0
     or y=0.
@@ -340,6 +361,13 @@ def kzh_5_slope_fulldim_3(): #renamed from extreme_5slope_no_0d_1d_3
 
 def kzh_5_slope_fulldim_4(): #renamed from extreme_5slope_no_0d_1d_4
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_5_slope_fulldim_4()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     5-slope extreme function without any 0-d or 1-d maximal additive faces
     except for the symmetry reflection or x=0 or y=0.
 
@@ -369,6 +397,13 @@ def kzh_5_slope_fulldim_4(): #renamed from extreme_5slope_no_0d_1d_4
 
 def kzh_5_slope_fulldim_5(): #renamed from extreme_5slope_no_0d_1d_5
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_5_slope_fulldim_5()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     5-slope extreme function without any 0-d or 1-d maximal additive faces
     except for the symmetry reflection or x=0 or y=0.
 
@@ -398,6 +433,13 @@ def kzh_5_slope_fulldim_5(): #renamed from extreme_5slope_no_0d_1d_5
 
 def kzh_5_slope_fulldim_covers_1(): #renamed from extreme_5slope_no_transrefl or from fulldim_covers_5slope_q22_6()
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_5_slope_fulldim_covers_1()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
 
@@ -431,6 +473,13 @@ def kzh_5_slope_fulldim_covers_1(): #renamed from extreme_5slope_no_transrefl or
 
 def kzh_5_slope_fulldim_covers_2(): # renamed from fulldim_covers_5slope_q22_1()
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_5_slope_fulldim_covers_2()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -463,6 +512,13 @@ def kzh_5_slope_fulldim_covers_2(): # renamed from fulldim_covers_5slope_q22_1()
 
 def kzh_5_slope_fulldim_covers_3(): # renamed from fulldim_covers_5slope_q22_2()
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_5_slope_fulldim_covers_3()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -494,6 +550,13 @@ def kzh_5_slope_fulldim_covers_3(): # renamed from fulldim_covers_5slope_q22_2()
 
 def kzh_5_slope_fulldim_covers_4(): # renamed from fulldim_covers_5slope_q22_3()
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_5_slope_fulldim_covers_4()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -525,6 +588,13 @@ def kzh_5_slope_fulldim_covers_4(): # renamed from fulldim_covers_5slope_q22_3()
 
 def kzh_5_slope_fulldim_covers_5(): # renamed from fulldim_covers_5slope_q22_4()
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_5_slope_fulldim_covers_5()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -556,6 +626,13 @@ def kzh_5_slope_fulldim_covers_5(): # renamed from fulldim_covers_5slope_q22_4()
 
 def kzh_5_slope_fulldim_covers_6(): # renamed from fulldim_covers_5slope_q22_5()
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_5_slope_fulldim_covers_6()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     5-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -581,6 +658,13 @@ def kzh_5_slope_fulldim_covers_6(): # renamed from fulldim_covers_5slope_q22_5()
 
 def kzh_6_slope_fulldim_covers_1(): # renamed from fulldim_covers_6slope_q25_1()
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_6_slope_fulldim_covers_1()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -612,6 +696,13 @@ def kzh_6_slope_fulldim_covers_1(): # renamed from fulldim_covers_6slope_q25_1()
 
 def kzh_6_slope_fulldim_covers_2(): # renamed from fulldim_covers_6slope_q26_1()
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_6_slope_fulldim_covers_2()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -643,6 +734,13 @@ def kzh_6_slope_fulldim_covers_2(): # renamed from fulldim_covers_6slope_q26_1()
 
 def kzh_6_slope_fulldim_covers_3(): # renamed from fulldim_covers_6slope_q38_1()
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_6_slope_fulldim_covers_3()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -675,6 +773,13 @@ def kzh_6_slope_fulldim_covers_3(): # renamed from fulldim_covers_6slope_q38_1()
 
 def kzh_6_slope_fulldim_covers_4():
     r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_6_slope_fulldim_covers_4()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     .. PLOT::
 
         from cutgeneratingfunctionology.igp import *
@@ -719,6 +824,13 @@ def kzh_6_slope_fulldim_covers_5():
         g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
         sphinx_plot(g)
 
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_6_slope_fulldim_covers_5()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
     6-slope extreme function whose extremality proof does not depend
     on lower-dimensional additive faces.  All intervals are directly covered.
     This is in contrast to ``hildebrand_5_slope_22_1`` etc., whose extremality proof
@@ -751,21 +863,57 @@ def kzh_6_slope_fulldim_covers_5():
 #    return hildebrand_5_slope_22_1()
 
 def kzh_5_slope_q22_f10_1():
+    r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_5_slope_q22_f10_1()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
+    """
     bkpt = [0, 1/22, 1/11, 3/22, 2/11, 3/11, 7/22, 4/11, 9/22, 5/11, 1/2, 6/11, 13/22, 7/11, 15/22, 17/22, 9/11, 19/22, 10/11, 21/22, 1]
     values = [0, 29/48, 7/24, 5/24, 7/12, 5/12, 19/24, 17/24, 19/48, 1, 11/16, 29/48, 3/4, 2/3, 17/48, 31/48, 1/3, 1/4, 19/48, 5/16, 0]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_5_slope_q22_f10_2():
+    r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_5_slope_q22_f10_2()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
+    """
     bkpt = [0, 1/22, 1/11, 3/22, 2/11, 3/11, 7/22, 4/11, 9/22, 5/11, 1/2, 13/22, 7/11, 15/22, 17/22, 9/11, 19/22, 21/22, 1]
     values = [0, 21/34, 10/17, 4/17, 9/17, 8/17, 13/17, 7/17, 13/34, 1, 11/34, 9/34, 19/34, 7/34, 27/34, 15/34, 25/34, 23/34, 0]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_5_slope_q22_f10_3():
+    r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_5_slope_q22_f10_3()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
+    """
     bkpt = [0, 1/22, 1/11, 3/22, 7/22, 4/11, 9/22, 5/11, 1/2, 6/11, 13/22, 7/11, 15/22, 17/22, 9/11, 19/22, 10/11, 21/22, 1]
     values = [0, 23/32, 3/4, 7/16, 9/16, 1/4, 9/32, 1, 11/32, 3/8, 3/4, 7/16, 13/16, 3/16, 9/16, 1/4, 5/8, 21/32, 0]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
 
 def kzh_5_slope_q22_f10_4():
+    r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_5_slope_q22_f10_4()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
+    """
     bkpt = [0, 1/22, 1/11, 3/22, 2/11, 3/11, 7/22, 4/11, 9/22, 5/11, 1/2, 6/11, 15/22, 17/22, 10/11, 21/22, 1]
     values = [0, 5/6, 3/4, 7/16, 17/48, 31/48, 9/16, 1/4, 1/6, 1, 11/24, 3/8, 13/16, 3/16, 5/8, 13/24, 0]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
@@ -774,6 +922,15 @@ def kzh_5_slope_q22_f10_4():
 #    return kzh_5_slope_fulldim_covers_1()
 
 def kzh_5_slope_q22_f2_1():
+    r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = kzh_5_slope_q22_f2_1()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
+    """
     bkpt = [0, 1/11, 3/22, 2/11, 5/22, 3/11, 7/22, 4/11, 5/11, 1/2, 13/22, 7/11, 8/11, 17/22, 9/11, 19/22, 10/11, 21/22, 1]
     values = [0, 1, 2/5, 8/15, 3/10, 13/30, 1/5, 7/10, 3/5, 11/15, 4/15, 2/5, 3/10, 4/5, 17/30, 7/10, 7/15, 3/5, 0]
     return piecewise_function_from_breakpoints_and_values(bkpt, values)
