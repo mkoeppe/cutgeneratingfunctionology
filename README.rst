@@ -7,16 +7,10 @@ Most of the code is for the 1-dimensional Gomory-Johnson infinite
 group problem, including an electronic compendium of extreme
 functions.
 
-See the survey "Light on the Infinite Group Relaxation" 
-(http://www.optimization-online.org/DB_HTML/2014/10/4620.html)
-for the mathematical background and a table of functions in the 
-electronic compendium.  See also the paper "An electronic compendium 
-of extreme functions for the Gomory--Johnson infinite group problem"
-(http://www.optimization-online.org/DB_HTML/2014/11/4646.html) for 
-a discussion of several functions in the compendium.
-
 See http://www.sagemath.org/doc/tutorial/ for information on how to
 use Sage.
+
+.. badges
 
 .. image:: https://img.shields.io/travis/mkoeppe/cutgeneratingfunctionology
    :alt: Travis CI
@@ -62,6 +56,7 @@ http://mkoeppe.github.io/cutgeneratingfunctionology/doc/html/
 
 Using the cutgeneratingfunctionology package
 --------------------------------------------
+.. how_to_run
 
 There are many ways to run this package.
 
