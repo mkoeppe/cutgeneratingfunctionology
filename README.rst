@@ -47,7 +47,7 @@ use Sage.
 Authors
 -------
 
-See file `<AUTHORS.rst>`_ and also `<THANKS.rst>`_
+See https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/AUTHORS.rst and also https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/THANKS.rst
 
 License
 -------
@@ -104,7 +104,7 @@ B. Install released version from PyPI and run it within conda
 
     import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
 
-- Follow the instructions and examples in `<demo.rst>`_.
+- Follow the instructions and examples in https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/demo.rst or https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/demo.ipynb .
 
 
 C.  Clone from GitHub and run it within conda
@@ -140,7 +140,7 @@ C.  Clone from GitHub and run it within conda
 
     import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
 
-- Follow the instructions and examples in `<demo.rst>`_.
+- Follow the instructions and examples in https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/demo.rst or https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/demo.ipynb .
 
 
 D.  Run in a standalone installation of the SageMath distribution (no conda)
@@ -179,4 +179,4 @@ D.  Run in a standalone installation of the SageMath distribution (no conda)
 
     import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
 
-- Follow the instructions and examples in `<demo.rst>`_.
+- Follow the instructions and examples in https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/demo.rst or https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/demo.ipynb .
