@@ -90,7 +90,7 @@ B. Install released version from PyPI and run it within conda
 
     sage
 
-   or a Jupyter notebook::
+  or a Jupyter notebook::
 
     sage -n jupyter
 
@@ -126,7 +126,7 @@ C.  Clone from GitHub and run it within conda
 
     sage
 
-   or a Jupyter notebook::
+  or a Jupyter notebook::
 
     sage -n jupyter
 
@@ -165,7 +165,7 @@ D.  Run in a standalone installation of the SageMath distribution (no conda)
 
     sage
 
-   or a Jupyter notebook::
+  or a Jupyter notebook::
 
     sage -n jupyter
 
