@@ -54,45 +54,123 @@ Documentation
 
 http://mkoeppe.github.io/cutgeneratingfunctionology/doc/html/
 
-Run it on mybinder.org
-----------------------
+Using the cutgeneratingfunctionology package
+--------------------------------------------
+
+There are many ways to run this package.
+
+A. Run it online on mybinder.org
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. image:: https://mybinder.org/badge_logo.svg
            :target: https://mybinder.org/v2/gh/mkoeppe/cutgeneratingfunctionology/master?filepath=demo.ipynb
 
+B. Install released version from PyPI and run it within conda
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-How to run the code in a local copy of Sage
--------------------------------------------
+.. image:: https://img.shields.io/pypi/v/cutgeneratingfunctionology
+   :alt: PyPI package
+   :target: https://pypi.org/project/cutgeneratingfunctionology/
 
-1. Download the code from
-   https://github.com/mkoeppe/cutgeneratingfunctionology.git
+- Install Miniconda from https://docs.conda.io/en/latest/miniconda.html
 
-2. Install SageMath:
+- Set up the conda environment described in https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/environment.yml::
+
+    curl https://raw.githubusercontent.com/mkoeppe/cutgeneratingfunctionology/master/environment.yml
+    conda env create -n sage-cgf -f environment.yml
+    conda activate sage-cgf
+
+  This takes a while; it installs SageMath, which has many dependencies.
+
+- Install PyPI package::
+
+    pip install cutgeneratingfunctionology
+
+- Start Sage.  You can either use the terminal (IPython)::
+
+    sage
+
+   or a Jupyter notebook::
+
+    sage -n jupyter
+
+- At the Sage prompt, type::
+
+    import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
+
+- Follow the instructions and examples in `<demo.rst>`_.
+
+
+C.  Clone from GitHub and run it within conda
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Install Miniconda from https://docs.conda.io/en/latest/miniconda.html
+
+- Clone the GitHub repository https://github.com/mkoeppe/cutgeneratingfunctionology.git::
+
+    git clone https://github.com/mkoeppe/cutgeneratingfunctionology.git
+    cd cutgeneratingfunctionology
+
+- Set up the conda environment described in https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/environment.yml::
+
+    conda env create -n sage-cgf -f environment.yml
+    conda activate sage-cgf
+
+  This takes a while; it installs SageMath which has many dependencies.
+
+- (Optional:) Install the cutgeneratingfunctionology package using pip::
+
+    pip install .
+
+- Start Sage.  You can either use the terminal (IPython)::
+
+    sage
+
+   or a Jupyter notebook::
+
+    sage -n jupyter
+
+- At the Sage prompt, type::
+
+    import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
+
+- Follow the instructions and examples in `<demo.rst>`_.
+
+
+D.  Run in a standalone installation of the SageMath distribution (no conda)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Install the SageMath distribution:
 
    a) Either from source from http://www.sagemath.org/
 
    b) or with a binary from http://www.sagemath.org/
 
-   c) or via conda (recommended):
+  The SageMath distribution brings its own installation of Python and many packages.
 
-      - Install Miniconda from https://docs.conda.io/en/latest/miniconda.html
+- Clone the GitHub repository https://github.com/mkoeppe/cutgeneratingfunctionology.git::
 
-      - From the directory "cutgeneratingfunctionology", set up the environment::
+    git clone https://github.com/mkoeppe/cutgeneratingfunctionology.git
+    cd cutgeneratingfunctionology
 
-          conda env create -n sage-cgf -f environment.yml
-          conda activate sage-cgf
+- (Optional:) Install optional SageMath distribution packages::
 
-3. From the directory "cutgeneratingfunctionology", start
-   Sage.  You can either use the terminal (IPython)::
+    sage -i lrslib pynormaliz
 
-        sage
+- Install the cutgeneratingfunctionology package using pip::
+
+    sage -pip install -r requirements.txt
+
+- Start SageMath.  You can either use the terminal (IPython)::
+
+    sage
 
    or a Jupyter notebook::
 
-        sage -n jupyter
+    sage -n jupyter
 
-4. At the Sage prompt, type::
+- At the Sage prompt, type::
 
     import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
 
-5. Follow the instructions and examples in `<demo.rst>`_.
+- Follow the instructions and examples in `<demo.rst>`_.
