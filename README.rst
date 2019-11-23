@@ -24,12 +24,11 @@ use Sage.
 
 .. image:: https://img.shields.io/pypi/l/cutgeneratingfunctionology
    :alt: License: GNU General Public License, version 2, or any later version as published by the Free Software Foundation.
+   :target: https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/COPYING
 
 .. image:: https://img.shields.io/pypi/v/cutgeneratingfunctionology
    :alt: PyPI package
    :target: https://pypi.org/project/cutgeneratingfunctionology/
-
-.. https://img.shields.io/pypi/pyversions/cutgeneratingfunctionology
 
 .. image:: https://mybinder.org/badge_logo.svg
    :alt: Run it on mybinder.org
@@ -43,6 +42,7 @@ use Sage.
    :alt: Twitter
    :target: https://twitter.com/intent/tweet?text=%23cutgeneratingfunctionology:&url=https%3A%2F%2Fgithub.com%2Fmkoeppe%2Fcutgeneratingfunctionology
 
+.. add later: https://img.shields.io/pypi/pyversions/cutgeneratingfunctionology
 
 Authors
 -------
