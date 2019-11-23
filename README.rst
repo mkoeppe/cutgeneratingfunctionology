@@ -159,7 +159,7 @@ D.  Run in a standalone installation of the SageMath distribution (no conda)
 
 - Install the cutgeneratingfunctionology package using pip::
 
-    sage -pip install -r requirements.txt
+    sage -pip install .
 
 - Start SageMath.  You can either use the terminal (IPython)::
 
