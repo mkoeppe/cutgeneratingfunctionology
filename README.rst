@@ -77,7 +77,7 @@ B. Install released version from PyPI and run it within conda
 
 - Set up the conda environment described in https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/environment.yml::
 
-    curl https://raw.githubusercontent.com/mkoeppe/cutgeneratingfunctionology/master/environment.yml
+    curl -o environment.yml  https://raw.githubusercontent.com/mkoeppe/cutgeneratingfunctionology/master/environment.yml
     conda env create -n sage-cgf -f environment.yml
     conda activate sage-cgf
 
