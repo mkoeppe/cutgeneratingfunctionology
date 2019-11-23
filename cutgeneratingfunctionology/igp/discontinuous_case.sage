@@ -285,12 +285,6 @@ def generate_symbolic_general(function, components, field=None, f=None, basis_fu
         # suitable for VectorSpace.sum_of_terms.
         midpoint_value_dict = { x: []                        # Already fixed by symmetry
                                 for x in [0, f/2, f, (1+f)/2, 1] }
-        def reflection(interval):
-            if interval[0] == interval[1]:
-                a = fractional(f - interval[0])
-                return (a, a)
-            else:
-                return tuple(interval_mod_1([f - interval[1], f - interval[0]]))
         def midpoint_value_lincomb(a, b):
             "Allocate a variable to be the midpoint value on the interval."
             interval = (a, b)

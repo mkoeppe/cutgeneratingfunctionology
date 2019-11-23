@@ -89,7 +89,7 @@ def volume_of_union_of_polytopes(polyhedra):
                 signs.append(sign)
     return vol
         
-def volume_of_lifting_region(B, f=None, show_plots=False):
+def volume_of_lifting_region(B, f=None, show_plots=False, return_plots=False):
     r"""
     Examples::
 
@@ -111,7 +111,8 @@ def volume_of_lifting_region(B, f=None, show_plots=False):
     regions = lifting_regions(B, f)
     regions_tile = lifting_regions_tile_box(regions)
     vol = volume_of_union_of_polytopes(regions_tile)
-    if show_plots:
+    result = vol
+    if show_plots or return_plots:
         d = B.dim()
         box = B.bounding_box(integral=True)
         lattices = [tuple(pt) for pt in rectangular_box_points(list(box[0]), list(box[1]), None)]
@@ -121,8 +122,11 @@ def volume_of_lifting_region(B, f=None, show_plots=False):
             gb += points(lattices, color='gray')
             gtile = sum(p.plot(color='red',alpha=0.3, title = r"$f=%s,\quad \mathrm{vol}_{\mathbb{T}^{%s}} \bar{R}(f)/\mathbb{Z}^{%s} = %s$" % ((latex(f)), latex(d), latex(d), latex(vol))) for p in regions_tile)
             #gtile += points(box, color='white')
-            g = graphics_array([gb, gtile])
-            g.show()
+            if return_plots:
+                result = vol, gb, gtile
+            if show_plots:
+                g = graphics_array([gb, gtile])
+                g.show()
         elif d == 3:
             gb = B.plot(point=False, line='blue', polygon=False)
             #gb += sum(p.plot(alpha=0.4, color='red') for p in regions)
@@ -134,10 +138,13 @@ def volume_of_lifting_region(B, f=None, show_plots=False):
                     face._extra_kwds['opacity'] = 0.4
                     gb += face
             gb += points(lattices, color='gray')
-            gb.show(viewer='threejs')
             gtile = sum(p.plot(color='red',alpha=0.3) for p in regions_tile)
-            gtile.show(viewer='threejs')
-    return vol
+            if return_plots:
+                result = vol, gb, gtile
+            if show_plots:
+                gb.show(viewer='threejs')
+                gtile.show(viewer='threejs')
+    return result
 
 def is_lattice_free_polyhedron(B):
     for pt in B.integral_points():

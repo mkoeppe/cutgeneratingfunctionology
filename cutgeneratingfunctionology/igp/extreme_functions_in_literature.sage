@@ -1287,7 +1287,7 @@ def chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/4, lam2=1/4, field=None, cond
             False
 
         On the other hand, the hypotheses stated by Chen are also not necessary for extremality.
-        For example, the following function does not satisfy the hypotheses, however it is extreme.
+        For example, the following function does not satisfy the hypotheses, however it is extreme::
 
             sage: h = chen_4_slope(f=7/10, s_pos=2, s_neg=-4, lam1=1/10, lam2=1/10, condition_according_to_literature=True)
             sage: h._claimed_parameter_attribute
@@ -1469,6 +1469,74 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
 
 class LlStrongFractional(ExtremeFunctionsFactory):
 
+    r"""
+    .. PLOT::
+
+        from cutgeneratingfunctionology.igp import *
+        h = ll_strong_fractional()
+        g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
+        sphinx_plot(g)
+
+    Letchford--Lodi's strong fractional cut.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = ll_strong_fractional(f=2/3)
+        sage: extremality_test(h, False)
+        True
+        sage: h = ll_strong_fractional(f=2/7)
+        sage: minimality_test(h, False)
+        False
+
+    Reference:
+        [78] Letchford-Lodi (2002) Thm. 2, Fig. 3 (but note this figure shows the wrong function; 
+             see ``ll_strong_fractional_bad_figure_3`` and ``ll_strong_fractional_bad_figure_3_corrected``)
+
+        [33] S. Dash and O. Gunluk (2004) Thm. 16
+
+    Remarks:
+        Discontinuous, 1-slope;
+
+        For f >= 1/2, this function is facet (extreme), and is identical to
+        ``drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=1)``.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: f=2/3
+        sage: l = ll_strong_fractional(f)
+        sage: d = drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)
+        sage: dg = automorphism(dg_2_step_mir_limit(f=1-f, d=ceil(1/f)-1))
+        sage: show(plot(l, color='red', legend_label='ll_strong_fractional')) # not tested
+        sage: show(plot(d, color='blue', legend_label='drlm_2_slope_limit')) # not tested
+        sage: show(plot(dg, color='green', legend_label='automorphism(dg_2_step_mir_limit)')) # not tested
+        sage: l == d == dg
+        True
+
+    Remarks:
+        The function is NOT minimal for 0 < f < 1/2.  It equals
+        ``drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)``,
+        except for limits at breakpoints.
+
+    EXAMPLES::
+
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: f=1/3
+        sage: l = ll_strong_fractional(f)
+        sage: d = drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)
+        sage: dg = automorphism(dg_2_step_mir_limit(f=1-f, d=ceil(1/f)-1))
+        sage: show(plot(l, color='red', legend_label='ll_strong_fractional')) # not tested
+        sage: show(plot(d, color='blue', legend_label='drlm_2_slope_limit')) # not tested
+        sage: show(plot(dg, color='green', legend_label='automorphism(dg_2_step_mir_limit)')) # not tested
+        sage: d == dg
+        True
+        sage: l == d
+        False
+    """
+
     def __init__(self):
         pass
 
@@ -1481,73 +1549,6 @@ class LlStrongFractional(ExtremeFunctionsFactory):
             return 'extreme'
 
     def __call__(self, f=2/3, field=None, conditioncheck=True):
-        r"""
-        .. PLOT::
-
-            from cutgeneratingfunctionology.igp import *
-            h = ll_strong_fractional()
-            g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
-            sphinx_plot(g)
-
-        Letchford--Lodi's strong fractional cut.
-
-        EXAMPLES::
-
-            sage: from cutgeneratingfunctionology.igp import *
-            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-            sage: h = ll_strong_fractional(f=2/3)
-            sage: extremality_test(h, False)
-            True
-            sage: h = ll_strong_fractional(f=2/7)
-            sage: minimality_test(h, False)
-            False
-
-        Reference:
-            [78] Letchford-Lodi (2002) Thm. 2, Fig. 3 (but note this figure shows the wrong function; 
-                 see ``ll_strong_fractional_bad_figure_3`` and ``ll_strong_fractional_bad_figure_3_corrected``)
-
-            [33] S. Dash and O. Gunluk (2004) Thm. 16
-
-        Remarks:
-            Discontinuous, 1-slope;
-
-            For f >= 1/2, this function is facet (extreme), and is identical to
-            ``drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=1)``.
-
-        EXAMPLES::
-
-            sage: from cutgeneratingfunctionology.igp import *
-            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-            sage: f=2/3
-            sage: l = ll_strong_fractional(f)
-            sage: d = drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)
-            sage: dg = automorphism(dg_2_step_mir_limit(f=1-f, d=ceil(1/f)-1))
-            sage: show(plot(l, color='red', legend_label='ll_strong_fractional')) # not tested
-            sage: show(plot(d, color='blue', legend_label='drlm_2_slope_limit')) # not tested
-            sage: show(plot(dg, color='green', legend_label='automorphism(dg_2_step_mir_limit)')) # not tested
-            sage: l == d == dg
-            True
-
-        Remarks:
-            The function is NOT minimal for 0 < f < 1/2.  It equals
-            ``drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)``,
-            except for limits at breakpoints.
-
-        EXAMPLES::
-
-            sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
-            sage: f=1/3
-            sage: l = ll_strong_fractional(f)
-            sage: d = drlm_2_slope_limit(f=f, nb_pieces_left=1, nb_pieces_right=ceil(1/f)-1)
-            sage: dg = automorphism(dg_2_step_mir_limit(f=1-f, d=ceil(1/f)-1))
-            sage: show(plot(l, color='red', legend_label='ll_strong_fractional')) # not tested
-            sage: show(plot(d, color='blue', legend_label='drlm_2_slope_limit')) # not tested
-            sage: show(plot(dg, color='green', legend_label='automorphism(dg_2_step_mir_limit)')) # not tested
-            sage: d == dg
-            True
-            sage: l == d
-            False
-        """
         if conditioncheck:
             self.check_conditions(f)
         if not bool(0 < f < 1):

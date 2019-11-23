@@ -34,12 +34,6 @@ if [ -n "${SAGE_AGE}" ]; then
   # To initialize matplotlib font manager
   sage -python -c 'import matplotlib.pyplot'
   sage -pip install --user sphinxcontrib-websupport
-else
-    ##
-    ## Installed with conda
-    ##
-    #https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#using-pip-in-an-environment
-    pip install -r requirements.txt
 fi
 # Display the banner, so we can be sure what version we ended up with!
 sage < /dev/null
