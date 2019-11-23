@@ -2764,12 +2764,20 @@ def merge_bkpt(bkpt1, bkpt2):
         bkpt_new = bkpt_new + bkpt1[i:len(bkpt1)]
     return bkpt_new
 
-@cached_function
 def find_epsilon_interval(fn, perturb):
-    if fn.is_continuous() or fn.is_discrete():
-        return find_epsilon_interval_continuous(fn, perturb)
-    else:
-        return find_epsilon_interval_general(fn, perturb)
+    r"""
+    Compute the largest (closed) interval of values `\epsilon` such
+    that ` ``fn`` + \epsilon * ``perturb`` ` is a minimal valid
+    function.
+    """
+    if not hasattr(fn, '_epsilon_interval_dict'):
+        fn._epsilon_interval_dict = dict()
+    if perturb not in fn._epsilon_interval_dict:
+        if fn.is_continuous() or fn.is_discrete():
+            fn._epsilon_interval_dict[perturb] = find_epsilon_interval_continuous(fn, perturb)
+        else:
+            fn._epsilon_interval_dict[perturb] = find_epsilon_interval_general(fn, perturb)
+    return fn._epsilon_interval_dict[perturb]
 
 def find_largest_epsilon(fn, perturb):
     r"""
@@ -3093,7 +3101,6 @@ class FunctionalDirectedMove (FastPiecewise):
         """
         return compose_functional_directed_moves(self, other)
 
-@cached_function
 def generate_functional_directed_moves(fn):
     r"""
     Compute the (translations and reflections) moves.
@@ -5259,7 +5266,6 @@ def generate_directly_covered_components(fn):
 # alias
 generate_directly_covered_intervals = generate_directly_covered_components
 
-@cached_function
 def generate_directed_move_composition_completion(fn, show_plots=False, max_num_rounds=None, error_if_max_num_rounds_exceeded=True, plot_background=None):
     completion = getattr(fn, "_completion", None)
     if completion is None:
