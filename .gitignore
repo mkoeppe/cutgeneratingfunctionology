@@ -7,17 +7,25 @@
 *.pyc
 *.pdf
 *.gif
-*.png
 desktop.ini
 .dropbox
 Icon*
+auto
 2q_mip/*
 profiler/*
 sym_mode_2d_diagrams/*
 animation/*
 region_graphics/*
 .tmp_check-long-timings.json
-docs/build
+/docs/build
 
 /.travis_ci_gh_pages_deploy_key
 /.travis_ci_gh_pages_deploy_key.pub
+/worktree*
+/gh-pages
+/.eggs
+/dist
+\#*\#
+.ipynb_checkpoints
+*conflicted copy*
+/survey_graphics/*/*.png
