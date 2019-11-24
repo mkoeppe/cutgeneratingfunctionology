@@ -204,11 +204,11 @@ def hildebrand_discont_3_slope_1():
 
         sage: show_plots=False
         sage: show_plots=True      # not tested
-        sage: generate_covered_components_strategically(psi, show_plots=show_plots,
-        ....:                                           additive_faces=E_psi)
-        [[<Int(1/8, 1/4)>, <Int(1/4, 3/8)>],
-         [<Int(5/8, 3/4)>, <Int(3/4, 7/8)>],
-         [<Int(0, 1/8)>, <Int(3/8, 1/2)>]]
+        sage: sorted(generate_covered_components_strategically(psi, show_plots=show_plots,
+        ....:                                                  additive_faces=E_psi))
+        [[<Int(0, 1/8)>, <Int(3/8, 1/2)>],
+         [<Int(1/8, 1/4)>, <Int(1/4, 3/8)>],
+         [<Int(5/8, 3/4)>, <Int(3/4, 7/8)>]]
 
     """
     return FastPiecewise([right_open_piece((0, 0), (1/8, 6/8)),
