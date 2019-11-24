@@ -1,3 +1,4 @@
+sage>=8
 sage-package
 sphinx
 sphinxcontrib-bibtex
