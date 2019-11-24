@@ -491,24 +491,6 @@ def plot_trivial_2d_diagram_with_grid(function, xgrid=None, ygrid=None):
                   if delta_pi(function, x, y) == 0],
                  color="cyan", size = 80)
 
-def angle_cmp(a, b, center):
-    # Adapted 
-    # from http://stackoverflow.com/questions/6989100/sort-points-in-clockwise-order
-    if a[0] - center[0] >= 0 and b[0] - center[0] < 0:
-        return int(1)
-    elif a[0] - center[0] < 0 and b[0] - center[0] >= 0:
-        return int(-1)
-    elif a[0] - center[0] == 0 and b[0] - center[0] == 0:
-        return cmp(a[1], b[1])
-
-    det = (a[0] - center[0]) * (b[1] - center[1]) - (b[0] - center[0]) * (a[1] - center[1])
-    if det < 0:
-        return int(1)
-    elif det > 0:
-        return int(-1)
-
-    return int(0)
-
 import operator
 
 from six.moves import reduce
@@ -518,7 +500,7 @@ def convex_vert_list(vertices):
         return vertices
     else:
         center = reduce(operator.add, list(map(vector, vertices))) / len(vertices)
-        return sorted(vertices, cmp = lambda a,b: angle_cmp(a, b, center))
+        return sorted(vertices, key=lambda x: atan2(x[1] - center[1], x[0] - center[0]))
 
 def plot_kwds_hook(kwds):
     pass
