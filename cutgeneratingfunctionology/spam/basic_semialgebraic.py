@@ -1111,7 +1111,7 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
             sage: lhs = x1^3 + x0
             sage: S.add_polynomial_constraint(lhs,operator.le)
             sage: S
-            BasicSemialgebraicSet_eq_lt_le_sets(eq = [2*x0*x1 + 27*x1 - 1/2], lt = [27/113*x0^2 + x1*x2 + 1/2, -27*x0 - 2*x1 - 1], le = [x1^3 + x0])
+            BasicSemialgebraicSet_eq_lt_le_sets(eq=[2*x0*x1 + 27*x1 - 1/2], lt=[-27*x0 - 2*x1 - 1, 27/113*x0^2 + x1*x2 + 1/2], le=[x1^3 + x0])
             sage: S.poly_ring()
             Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
             sage: S.eq_poly()

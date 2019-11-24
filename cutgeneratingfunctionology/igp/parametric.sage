@@ -1148,17 +1148,17 @@ class ParametricRealField(Field):
             ....:     assert(lhs < 0)
             sage: -f^2 - 2*f*bkpt - bkpt^2 + 2*f + 2*bkpt - 1 < 0
             True
-            sage: list(K._bsa.eq_poly())  # bug was output [-1]
+            sage: sorted(K._bsa.eq_poly())  # bug was output [-1]
             []
-            sage: list(K._bsa.lt_poly())  # bug was output []
+            sage: sorted(K._bsa.lt_poly())  # bug was output []
             [f + bkpt - 1, f - bkpt, -2*f + bkpt]
-            sage: list(K._bsa.le_poly())
+            sage: sorted(K._bsa.le_poly())
             []
-            sage: list(K._factor_bsa.lt_poly()) # bug was output [-f - bkpt + 1, -f + 2*bkpt - 1, -f - 1, -f, -2*f + bkpt, f - bkpt]
+            sage: sorted(K._factor_bsa.lt_poly()) # bug was output [-f - bkpt + 1, -f + 2*bkpt - 1, -f - 1, -f, -2*f + bkpt, f - bkpt]
             [-f + 2*bkpt - 1, f + bkpt - 1, -f - 1, -f, -2*f + bkpt, f - bkpt]
-            sage: list(K._factor_bsa.le_poly())
+            sage: sorted(K._factor_bsa.le_poly())
             [2*f - 1, bkpt - 1, -bkpt, -f + 2*bkpt - 1, f + bkpt - 1, -f, f - bkpt]
-            sage: list(K._factor_bsa.eq_poly())
+            sage: sorted(K._factor_bsa.eq_poly())
             []
         """
         if not self._record:
@@ -1700,7 +1700,7 @@ class SemialgebraicComplexComponent(SageObject):
         sage: region_type = foo(*K.gens())
         sage: component = SemialgebraicComplexComponent(complex, K, [1,1/2], region_type)
         sage: component.bsa
-        BasicSemialgebraicSet_eq_lt_le_sets(eq = [], lt = [y^2 - x, x + y - 2], le = [])
+        BasicSemialgebraicSet_eq_lt_le_sets(eq=[], lt=[x + y - 2, y^2 - x], le=[])
         sage: component.plot()                                  # not tested
         sage: component.find_walls_and_new_points(1/4, 'heuristic', goto_lower_dim=False)
         ([y^2 - x, x + y - 2],
@@ -1722,7 +1722,7 @@ class SemialgebraicComplexComponent(SageObject):
         True
         sage: component = SemialgebraicComplexComponent(complex, K, [1,1/2], region_type)
         sage: component.bsa
-        BasicSemialgebraicSet_eq_lt_le_sets(eq = [x - 2*y], lt = [3*y - 2, -y], le = [])
+        BasicSemialgebraicSet_eq_lt_le_sets(eq=[x - 2*y], lt=[-y, 3*y - 2], le = [])
     """
 
     def __init__(self, parent, K, var_value, region_type):
@@ -1990,7 +1990,7 @@ class SemialgebraicComplex(SageObject):
         sage: extc.is_complete(bddlin=boundary,strict=False) # optional - mathematica
         True
         sage: pc = extc.polyhedral_complex()
-        sage: list(sorted( sorted(pol.vertices_list()) for pol in pc.cells_list() ))
+        sage: sorted( sorted(pol.vertices_list()) for pol in pc.cells_list() )
         [[[0, 0]],
          [[0, 0], [0, 1/4]],
          [[0, 0], [0, 1/4], [1/7, 2/7]],
@@ -2013,8 +2013,8 @@ class SemialgebraicComplex(SageObject):
         sage: len(extc.components)                                                  #long time
         6
         sage: boundary = extc.guess_boundary()                                      #long time
-        sage: boundary                                                              #long time
-        [f - bkpt, -f, -f + 4*bkpt - 1]
+        sage: sorted(boundary)                                                      #long time
+        [-f, -f + 4*bkpt - 1, f - bkpt]
         sage: extc.is_complete(bddlin=boundary,strict=True)                         #long time, optional - mathematica
         True
     """

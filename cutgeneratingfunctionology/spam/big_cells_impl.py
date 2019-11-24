@@ -411,21 +411,21 @@ def big_cells_sorted(iterable, key=None, reverse=False, field=None):
         sage: a = 2*x; b=4*y; c=x*x+y*y-4
         sage: big_cells.sorted([0,a,b,c])
         [(x^2 + y^2 - 4)~, 0, (4*y)~, (2*x)~]
-        sage: list(K.get_lt_factor())
-        [-2*x, x^2 + y^2 - 4*y - 4, x^2 + y^2 - 4, -2*x + 4*y, -4*y]
-        sage: list(K._bsa.eq_poly()), list(K._bsa.lt_poly()), list(K._bsa.le_poly())
-        ([], [-y, x^2 + y^2 - 4, -x + 2*y], [])
+        sage: sorted(K.get_lt_factor())
+        [-4*y, -2*x, -2*x + 4*y, x^2 + y^2 - 4, x^2 + y^2 - 4*y - 4]
+        sage: sorted(K._bsa.eq_poly()), sorted(K._bsa.lt_poly()), sorted(K._bsa.le_poly())
+        ([], [-y, -x + 2*y, x^2 + y^2 - 4], [])
         sage: K.<x,y> = ParametricRealField([3/2, 1/2], big_cells=True, allow_refinement=True)
         sage: a = 2*x; b=4*y; c=x*x+y*y-4
         sage: big_cells.sorted([0,a,b,c])
         [(x^2 + y^2 - 4)~, 0, (4*y)~, (2*x)~]
-        sage: list(K.get_le_factor())
-        [x^2 + y^2 - 4, -4*y, -2*x + 4*y]
-        sage: list(K._bsa.eq_poly()), list(K._bsa.lt_poly()), list(K._bsa.le_poly())
-        ([], [], [x^2 + y^2 - 4, -x + 2*y, -y])
+        sage: sorted(K.get_le_factor())
+        [-4*y, -2*x + 4*y, x^2 + y^2 - 4]
+        sage: sorted(K._bsa.eq_poly()), sorted(K._bsa.lt_poly()), sorted(K._bsa.le_poly())
+        ([], [], [-y, -x + 2*y, x^2 + y^2 - 4])
 
     TESTS:
-    
+
         Key is supported::
 
             sage: big_cells.sorted([1, 0, -2], key=abs)
