@@ -1031,7 +1031,9 @@ def injective_2_slope_fill_in(fn, epsilon=1, show_plots=False):
         sage: fn2 = injective_2_slope_fill_in(fn)
         sage: number_of_slopes(fn2)
         2
-        sage: minimality_test(fn2)  #long time
+        sage: minimality_test(fn2)
+        True
+        sage: extremality_test(fn2, full_certificates=False)
         True
 
         sage: fn = lift_until_extreme_default_style_bug_example()
