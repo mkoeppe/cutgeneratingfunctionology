@@ -894,7 +894,7 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
     # override the abstract methods
 
     def __repr__(self):
-        return 'BasicSemialgebraicSet_eq_lt_le_sets(eq={}, lt={}, le={})'.format(sorted(self._eq), sorted(self._lt), sorted(self._le))
+        return 'BasicSemialgebraicSet_eq_lt_le_sets(eq = {}, lt = {}, le = {})'.format(list(self._eq), list(self._lt), list(self._le))
 
     def eq_poly(self):
         r"""
@@ -967,7 +967,7 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
             sage: PX.<u,v> = QQ[]
             sage: F = [u, v, u*v]
             sage: section = bsa.section(F); section
-            BasicSemialgebraicSet_section(BasicSemialgebraicSet_eq_lt_le_sets(eq=[], lt=[], le=[-xy, xy - 6, -y, y - 3, -x, x - 2]), polynomial_map=[u, v, u*v])
+            BasicSemialgebraicSet_section(BasicSemialgebraicSet_eq_lt_le_sets(eq = [], lt = [], le = [-y, -x, xy - 6, y - 3, x - 2, -xy]), polynomial_map=[u, v, u*v])
             sage: section.ambient_dim()
             2
             sage: sorted(section.eq_poly()), sorted(section.le_poly())
