@@ -1151,13 +1151,13 @@ class ParametricRealField(Field):
             sage: sorted(K._bsa.eq_poly())  # bug was output [-1]
             []
             sage: sorted(K._bsa.lt_poly())  # bug was output []
-            [f + bkpt - 1, f - bkpt, -2*f + bkpt]
+            [-2*f + bkpt, f - bkpt, f + bkpt - 1]
             sage: sorted(K._bsa.le_poly())
             []
             sage: sorted(K._factor_bsa.lt_poly()) # bug was output [-f - bkpt + 1, -f + 2*bkpt - 1, -f - 1, -f, -2*f + bkpt, f - bkpt]
-            [-f + 2*bkpt - 1, f + bkpt - 1, -f - 1, -f, -2*f + bkpt, f - bkpt]
+            [-2*f + bkpt, -f, -f - 1, -f + 2*bkpt - 1, f - bkpt, f + bkpt - 1]
             sage: sorted(K._factor_bsa.le_poly())
-            [2*f - 1, bkpt - 1, -bkpt, -f + 2*bkpt - 1, f + bkpt - 1, -f, f - bkpt]
+            [-bkpt, bkpt - 1, -f, -f + 2*bkpt - 1, f - bkpt, f + bkpt - 1, 2*f - 1]
             sage: sorted(K._factor_bsa.eq_poly())
             []
         """
@@ -1722,7 +1722,7 @@ class SemialgebraicComplexComponent(SageObject):
         True
         sage: component = SemialgebraicComplexComponent(complex, K, [1,1/2], region_type)
         sage: component.bsa
-        BasicSemialgebraicSet_eq_lt_le_sets(eq=[x - 2*y], lt=[-y, 3*y - 2], le = [])
+        BasicSemialgebraicSet_eq_lt_le_sets(eq=[x - 2*y], lt=[-y, 3*y - 2], le=[])
     """
 
     def __init__(self, parent, K, var_value, region_type):
