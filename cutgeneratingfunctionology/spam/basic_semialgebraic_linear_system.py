@@ -24,7 +24,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
     Also it is suitable for arbitrary real fields as the ``base_ring``, such as ``ParametricRealField``.
     """
 
-    def __init__(self, base_ring=None, ambient_dim=None, poly_ring=None, eq=[], lt=[], le=[]):
+    def __init__(self, base_ring=None, ambient_dim=None, poly_ring=None, eq=[], lt=[], le=[], history_set=None):
         r"""
         Initialize a closed polyhedral basic semialgebraic set.
 
@@ -58,7 +58,6 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
             sage: D = polytopes.dodecahedron()
             sage: D.ambient_dim()
             3
-            sage: PR.<x0,x1,x2> = D.base_ring().fraction_field()[]
             sage: bsa = BasicSemialgebraicSet_polyhedral_linear_system.from_polyhedron_to_linear_system(D)
             sage: set(D.vertices()) == set(bsa.to_polyhedron().vertices())
             True
@@ -98,41 +97,84 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
             ambient_dim = poly_ring.ngens()
         if base_ring is None:
             base_ring = poly_ring.base_ring()
+        if history_set is None:
+            history_set={}
+            i=1
+            for p in polys:
+                history_set[p]={i}
+                i+=1
         super(BasicSemialgebraicSet_polyhedral_linear_system, self).__init__(base_ring, ambient_dim)
         self._poly_ring = poly_ring
-        self._base_ring = base_ring
-        temp_eq = set(eq).copy()
-        temp_lt = set(lt).copy()
-        temp_le = set(le).copy()
-        # remove redundent constant polynomial or check naive infeasibility.
-        for e in set(eq):
-            if e.parent() != poly_ring:
+        self.history_set = history_set
+        self._eq = set(eq)
+        self._lt = set(lt)
+        self._le = set(le)
+
+    def remove_redundant_constant_polynomial(self):
+        r"""
+        Remove redundent constant polynomial or use constant polynomial to check naive infeasibility.
+        If the linear system is infeasible, return a system with one inequality 1<=0.
+        """
+        temp_eq = self._eq.copy()
+        temp_lt = self._lt.copy()
+        temp_le = self._le.copy()
+        for e in self._eq:
+            if e.degree()<1:
                 if base_ring(e) != base_ring(0):
                     #replace with an invalid inequality.
-                    temp_le={poly_ring(1)}
-                    temp_eq={}
-                    temp_lt={}
+                    self._le={poly_ring(1)}
+                    self._eq={}
+                    self._lt={}
+                    self.history_set={poly_ring(1):1}
+                    return
                 else:
                     temp_eq.remove(e)
-        for lt in set(lt):
-            if lt.parent() != poly_ring:
+                    if self.history_set.has_key(e):
+                        del self.history_set[e]
+        for lt in self._lt:
+            if lt.degree()<1:
                 if base_ring(lt) >= base_ring(0):
-                    temp_le={poly_ring(1)}
-                    temp_eq={}
-                    temp_lt={}
+                    self._le={poly_ring(1)}
+                    self._eq={}
+                    self._lt={}
+                    self.history_set={poly_ring(1):1}
+                    return
                 else:
                     temp_lt.remove(lt)
-        for le in set(le):
-            if le.parent() != poly_ring:
+                    if self.history_set.has_key(lt):
+                        del self.history_set[lt]
+        for le in self._le:
+            if le.degree()<1:
                 if base_ring(le) > base_ring(0):
-                    temp_le={poly_ring(1)}
-                    temp_eq={}
-                    temp_lt={}
+                    self._le={poly_ring(1)}
+                    self._eq={}
+                    self._lt={}
+                    self.history_set={poly_ring(1):1}
+                    return
                 else:
                     temp_le.remove(le)
-        self._eq = temp_eq
-        self._lt = temp_lt
-        self._le = temp_le
+                    if self.history_set.has_key(le):
+                        del self.history_set[le]
+        self._le=temp_le
+        self._eq=temp_eq
+        self._lt=temp_lt
+
+    def remove_redundancy_non_minimal_history_set(self):
+        r"""
+        Remove redundant (in)equality if the history set of the (in)equality is not minimal.
+        """
+        history_set = copy(self.history_set)
+        for key1 in history_set.keys():
+            for key2 in history_set.keys():
+                if key1 == key2:
+                    continue
+                if history_set[key2].issubset(history_set[key1]) and history_set[key1] != history_set[key2]:
+                    # remove key1
+                    self.history_set.discard(key1)
+                    self._le.discard(key1)
+                    self._lt.discard(key1)
+                    self._eq.discard(key1)
+                    break
 
     def one_step_elimination(self, coordinate_index, bsa_class='linear_system'):
         r"""
@@ -152,59 +194,94 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
         new_eq=[]
         new_lt=[]
         new_le=[]
+        new_history_set={}
         # try to find a substitution of coordinate in equalities.
         sub=None
         for e in self._eq:
-            if e.monomial_coefficient(coordinate) != 0:
+            if e.monomial_coefficient(coordinate) != self.base_ring()(0):
                 sub = coordinate - e/e.monomial_coefficient(coordinate)
+                sub_history=self.history_set[e]
                 break
         if sub is None:
             new_eq=self._eq
+            for e in self._eq:
+                new_history_set[e]=self.history_set[e]
+            
             lt_lower=[]
             lt_upper=[]
             le_lower=[]
             le_upper=[]
             
             for lt in self._lt:
-                if self._base_ring(lt.monomial_coefficient(coordinate))>0:
+                if self._base_ring(lt.monomial_coefficient(coordinate))>self.base_ring()(0):
                     lt_upper.append(lt)
-                elif self._base_ring(lt.monomial_coefficient(coordinate))<0:
+                elif self._base_ring(lt.monomial_coefficient(coordinate))<self.base_ring()(0):
                     lt_lower.append(lt)
                 else:
                     new_lt.append(lt)
+                    new_history_set[lt]=self.history_set[lt]
             for le in self._le:
-                if self._base_ring(le.monomial_coefficient(coordinate))>0:
+                if self._base_ring(le.monomial_coefficient(coordinate))>self.base_ring()(0):
                     le_upper.append(le)
-                elif self._base_ring(le.monomial_coefficient(coordinate))<0:
+                elif self._base_ring(le.monomial_coefficient(coordinate))<self.base_ring()(0):
                     le_lower.append(le)
                 else:
                     new_le.append(le)
+                    new_history_set[le]=self.history_set[le]
 
             # compute less than or equal to inequality
             for l in le_lower:
                 for u in le_upper:
-                    new_le.append(l*u.monomial_coefficient(coordinate)-(u*l.monomial_coefficient(coordinate)))
+                    polynomial=l*u.monomial_coefficient(coordinate)-(u*l.monomial_coefficient(coordinate))
+                    new_le.append(polynomial)
+                    new_history_set[polynomial]=self.history_set[l].union(self.history_set[u])
 
             # compute strictly less than inequality
             for l in le_lower:
                 for u in lt_upper:
-                    new_lt.append(l*u.monomial_coefficient(coordinate)-(u*l.monomial_coefficient(coordinate)))
+                    polynomial=l*u.monomial_coefficient(coordinate)-(u*l.monomial_coefficient(coordinate))
+                    new_lt.append(polynomial)
+                    new_history_set[polynomial]=self.history_set[l].union(self.history_set[u])
             for l in lt_lower:
                 for u in le_upper:
-                    new_lt.append(l*u.monomial_coefficient(coordinate)-(u*l.monomial_coefficient(coordinate)))
+                    polynomial=l*u.monomial_coefficient(coordinate)-(u*l.monomial_coefficient(coordinate))
+                    new_lt.append(polynomial)
+                    new_history_set[polynomial]=self.history_set[l].union(self.history_set[u])
             for l in lt_lower:
                 for u in lt_upper:
-                    new_lt.append(l*u.monomial_coefficient(coordinate)-(u*l.monomial_coefficient(coordinate)))
+                    polynomial=l*u.monomial_coefficient(coordinate)-(u*l.monomial_coefficient(coordinate))
+                    new_lt.append(polynomial)
+                    new_history_set[polynomial]=self.history_set[l].union(self.history_set[u])
         else:
             for e in self._eq:
-                new_eq.append(e+e.monomial_coefficient(coordinate)*(sub-coordinate))
+                polynomial=e+e.monomial_coefficient(coordinate)*(sub-coordinate)
+                new_eq.append(polynomial)
+                if e.monomial_coefficient(coordinate) != self.base_ring()(0):
+                    new_history_set[polynomial]=self.history_set[e].union(sub_history)
+                else:
+                    new_history_set[polynomial]=self.history_set[e]
             for lt in self._lt:
-                new_lt.append(lt+lt.monomial_coefficient(coordinate)*(sub-coordinate))
+                polynomial=lt+lt.monomial_coefficient(coordinate)*(sub-coordinate)
+                new_lt.append(polynomial)
+                if lt.monomial_coefficient(coordinate) != self.base_ring()(0):
+                    new_history_set[polynomial]=self.history_set[lt].union(sub_history)
+                else:
+                    new_history_set[polynomial]=self.history_set[lt]
             for le in self._le:
-                new_le.append(le+le.monomial_coefficient(coordinate)*(sub-coordinate))
+                polynomial=le+le.monomial_coefficient(coordinate)*(sub-coordinate)
+                new_le.append(polynomial)
+                if le.monomial_coefficient(coordinate) != self.base_ring()(0):
+                    new_history_set[polynomial]=self.history_set[le].union(sub_history)
+                else:
+                    new_history_set[polynomial]=self.history_set[le]
 
-        bsa = BasicSemialgebraicSet_polyhedral_linear_system(base_ring=self._base_ring, ambient_dim=self.ambient_dim(), poly_ring=self._poly_ring, eq=new_eq, lt=new_lt, le=new_le)
-        return bsa.section(polynomial_map,bsa_class=bsa_class,poly_ring=new_poly_ring)
+        bsa = BasicSemialgebraicSet_polyhedral_linear_system(base_ring=self._base_ring, ambient_dim=self.ambient_dim(), poly_ring=self._poly_ring, eq=new_eq, lt=new_lt, le=new_le, history_set=new_history_set)
+        new_bsa = bsa.section(polynomial_map,bsa_class=bsa_class,poly_ring=new_poly_ring,history_set=new_history_set)
+        down_stair_history_set={}
+        for key in new_bsa.history_set.keys():
+            down_stair_history_set[key(polynomial_map)]=new_bsa.history_set[key]
+        new_bsa.history_set=down_stair_history_set
+        return new_bsa
 
     def coordinate_projection(self, coordinates, bsa_class='linear_system'):
         r"""
@@ -299,7 +376,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
         self.add_polynomial_constraint(lhs, op)
 
     def to_polyhedron(self, **kwds):
-        # not suitable for Paramatric field??
+        # not suitable for Paramatric field
         if len(self._lt)>0:
             raise ValueError("Contain strict inequalities.")
         ieqs=[]
@@ -320,11 +397,20 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
             return p
         base_ring = p.base_ring().fraction_field()
         ambient_dim = p.ambient_dim()
-        poly_ring = PolynomialRing(base_ring, "x", ambient_dim)
+        if poly_ring is None:
+            poly_ring = PolynomialRing(base_ring, "x", ambient_dim)
+        else:
+            if ambient_dim != poly_ring.ambient_dim():
+                raise ValueError("Ambient dimensions of p and poly_ring do not match.")
         self = cls(base_ring=base_ring, ambient_dim=ambient_dim, poly_ring=poly_ring)
+        i=1
         for lhs in p.inequalities_list():
             self.add_linear_constraint(lhs[1:],lhs[0],operator.ge)
+            self.history_set[-sum(lhs[1:][i]*self.poly_ring().gens()[i] for i in range(len(lhs)-1))-lhs[0]]={i}
+            i+=1
         for lhs in p.equations_list():
             self.add_linear_constraint(lhs[1:],lhs[0],operator.eq)
+            self.history_set[sum(lhs[1:][i]*self.poly_ring().gens()[i] for i in range(len(lhs)-1))+lhs[0]]={i}
+            i+=1
         return self
 
