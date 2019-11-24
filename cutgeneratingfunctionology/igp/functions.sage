@@ -3244,7 +3244,7 @@ def generate_additivity_equations(fn, symbolic, field=None, f=None, bkpt=None,
         sage: h = hildebrand_2_sided_discont_2_slope_1()
         sage: symbolic = generate_symbolic(h, basis_functions=('midpoints', 'slopes'))
         sage: M, vs = generate_additivity_equations(h, symbolic, reduce_system=True, return_vertices=True)
-        sage: for row, v in zip(M, vs): print("Additive vertex {:30}  {}".format(v, row))
+        sage: for row, v in zip(M, vs): print("Additive vertex {:30s}  {}".format(v, row))
         Additive vertex (0, 1/8, 1/8, -1, 1, 0)         (0, -1, 1, -1, 0, 0, 0, 0)
         Additive vertex (0, 1/8, 1/8, 1, -1, 0)         (2, -1, 0, 0, 0, 0, 0, 0)
         Additive vertex (0, 5/8, 5/8, -1, 0, -1)        (0, 0, 0, -2, 1, 0, 0, 0)
