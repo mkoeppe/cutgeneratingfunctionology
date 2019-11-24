@@ -43,7 +43,7 @@ def FM_relu_1d(base_ring, poly_ring):
     assert W*U+b>0
     assert b>0
     
-    base_ring.freeze()
+    #base_ring.freeze()
     
     le = [-y, W*x0-b*z+b, x0+U*z-U, -x0-L*z+L, x1-U*z, -x1+L*z, -z, z-1]
     eq = [x0+x1-x, W*x1-y+b*z]
@@ -68,15 +68,29 @@ def FM_relu_2d(base_ring,poly_ring):
         sage: K.<L1,U1,L2,U2,W1,W2,b>=ParametricRealField([QQ(-2),QQ(2),QQ(-3),QQ(3),QQ(5),QQ(2),QQ(1/2)])
         sage: Q.<x0_1,x1_1,x0_2,x1_2,x_1,x_2,y,z> = K[]
         sage: bsa = FM_relu_2d(K,Q)
-        Traceback (most recent call last):
-        ...
-        ParametricRealFieldFrozenError: Cannot prove that constraint is implied: -U1*W1 - b < 0
-        sage: K._bsa.tighten_upstairs_by_mccormick()  # Actually the inequality -U1*W1 - b < 0 is provable, so we add mccormick inequality first.
-        sage: bsa = FM_relu_2d(K,Q) # This time the inequality L1*W1 + b < 0 is not provable.
-        Traceback (most recent call last):
-        ...
-        ParametricRealFieldFrozenError: Cannot prove that constraint is implied: L1*W1 + b < 0
-            
+        sage: with K.off_the_record():
+        ....:     bsa.le_poly()
+        {((L2 - U2)~)*z,
+        (((L1*W2 - U1*W2)/W1)~)*z,
+        -z,
+        z - 1,
+        (((-L1*W2 + U1*W2)/W1)~)*z + ((L1*W2 - U1*W2)/W1)~,
+        ((-L2 + U2)~)*z + (L2 - U2)~,
+        -y,
+        -y + ((L1*W1 + L2*W2 + b)~)*z,
+        y + ((-U1*W1 - U2*W2 - b)~)*z,
+        ((-W2)~)*x_2 + y + ((-U1*W1 - L2*W2 - b)~)*z + (L2*W2)~,
+        -x_2 + (L2)~,
+        x_2 + (-U2)~,
+        (W2)~*x_2 - y + ((L1*W1 + U2*W2 + b)~)*z + (-U2*W2)~,
+        ((-W1)~)*x_1 + y + ((-L1*W1 - U2*W2 - b)~)*z + (L1*W1)~,
+        ((-W1)~)*x_1 + ((-W2)~)*x_2 + y + ((-L1*W1 - L2*W2 - b)~)*z + (L1*W1 + L2*W2)~,
+        (((-W2)/W1)~)*x_1 + (L1*W2/W1)~,
+        (W2/W1)~*x_1 + ((-U1*W2)/W1)~,
+        (W1)~*x_1 - y + ((U1*W1 + L2*W2 + b)~)*z + (-U1*W1)~,
+        (W1)~*x_1 + (W2)~*x_2 - y + b~,
+        (W1)~*x_1 + (W2)~*x_2 - y + ((U1*W1 + U2*W2 + b)~)*z + (-U1*W1 - U2*W2)~}
+        
     """
     x0_1,x1_1,x0_2,x1_2,x_1,x_2,y,z = iter(poly_ring.gens())
     L1,U1,L2,U2,W1,W2,b = iter(base_ring.gens())
@@ -91,7 +105,7 @@ def FM_relu_2d(base_ring,poly_ring):
     assert W1*U1+W2*U2+b>0
     assert b>0
     
-    base_ring.freeze()
+    #base_ring.freeze()
     
     le = [-y, W1*x0_1+W2*x0_2-b*z+b, x0_1+U1*z-U1, -x0_1-L1*z+L1, x0_2+U2*z-U2, -x0_2-L2*z+L2,\
           x1_1-U1*z, -x1_1+L1*z, x1_2-U2*z, -x1_2+L2*z, -z, z-1]

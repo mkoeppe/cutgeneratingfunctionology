@@ -40,8 +40,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
             sage: bsa = BasicSemialgebraicSet_polyhedral_linear_system(poly_ring=Q, le=le)
             sage: bsa_eliminated = bsa.coordinate_projection([x0,x1])    # eliminate variable x0,x1.
             sage: bsa_eliminated.le_poly()
-            {0,
-            ((L - U)~)*z,
+            {((L - U)~)*z,
             ((-L*W - b)~)*z + (L*W + b)~,
             ((-L + U)~)*z + (L - U)~,
             -y,
@@ -120,7 +119,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
         temp_le = self._le.copy()
         for e in self._eq:
             if e.degree()<1:
-                if base_ring(e) != base_ring(0):
+                if self._base_ring(e) != self._base_ring(0):
                     #replace with an invalid inequality.
                     self._le={poly_ring(1)}
                     self._eq={}
@@ -133,7 +132,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
                         del self.history_set[e]
         for lt in self._lt:
             if lt.degree()<1:
-                if base_ring(lt) >= base_ring(0):
+                if self._base_ring(lt) >= self._base_ring(0):
                     self._le={poly_ring(1)}
                     self._eq={}
                     self._lt={}
@@ -145,7 +144,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
                         del self.history_set[lt]
         for le in self._le:
             if le.degree()<1:
-                if base_ring(le) > base_ring(0):
+                if self._base_ring(le) > self._base_ring(0):
                     self._le={poly_ring(1)}
                     self._eq={}
                     self._lt={}
@@ -163,7 +162,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
         r"""
         Remove redundant (in)equality if the history set of the (in)equality is not minimal.
         """
-        history_set = copy(self.history_set)
+        history_set = self.history_set.copy()
         for key1 in history_set.keys():
             for key2 in history_set.keys():
                 if key1 == key2:
@@ -281,6 +280,10 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
         for key in new_bsa.history_set.keys():
             down_stair_history_set[key(polynomial_map)]=new_bsa.history_set[key]
         new_bsa.history_set=down_stair_history_set
+        # remove constant polynomial
+        new_bsa.remove_redundant_constant_polynomial()
+        # remove polynomial with non_minimal_history_set
+        new_bsa.remove_redundancy_non_minimal_history_set()
         return new_bsa
 
     def coordinate_projection(self, coordinates, bsa_class='linear_system'):
