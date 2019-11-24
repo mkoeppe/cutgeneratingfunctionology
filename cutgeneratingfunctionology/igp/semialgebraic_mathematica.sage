@@ -15,14 +15,14 @@ def write_mathematica_constraints(eqs, ineqs, strict=True):
         sage: eqs = [z]
         sage: ineqs = [-x, x-1, -y, y-1]
         sage: write_mathematica_constraints(eqs, ineqs, strict=True)
-        'z == 0 && -x < 0 && x - 1 < 0 && y - 1 < 0 && -y < 0 && '
+        'z == 0 && -y < 0 && y - 1 < 0 && -x < 0 && x - 1 < 0 && '
         sage: write_mathematica_constraints(eqs, ineqs, strict=False)
-        'z == 0 && -x <= 0 && x - 1 <= 0 && y - 1 <= 0 && -y <= 0 && '
+        'z == 0 && -y <= 0 && y - 1 <= 0 && -x <= 0 && x - 1 <= 0 && '
     """
     condstr = ''
-    for l in set(eqs):
+    for l in sorted(set(eqs)):
         condstr += str(l) + ' == 0 && '
-    for l in set(ineqs):
+    for l in sorted(set(ineqs)):
         if strict:
             condstr += str(l) + ' < 0 && '
         else:
