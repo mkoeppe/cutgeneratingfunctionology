@@ -357,7 +357,7 @@ def param_dict_for_piecewise(h, bkpt_names_dict=None, slope_names_dict={}, extra
     return dict(values_gens), K
 
 def param_piecewise(h, param_dict=None, bkpt_names_dict=None, slope_names_dict={}, field=None, **param_dict_kwargs):
-    """
+    r"""
     Replace the piecewise function h by one that renames all breakpoints, and optionally slopes,
     symbolically.  Useful for latexing or plotting functions that do not have convenient
     parametric descriptions.
@@ -402,7 +402,7 @@ def generate_all_faces(fn):
     return generate_additive_faces_general(zero_fn)
 
 def generate_intervals_and_two_sided_discontinuous_breakpoints(function, halfopen_cover_only=False):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -433,7 +433,7 @@ def generate_faces_with_projections_intersecting(function, real_set, break_symme
         yield Face(triple)
 
 def generate_triples_with_projections_intersecting(function, real_set, break_symmetry=False, halfopen_cover_only=False):
-    """
+    r"""
     It breaks symmetry but produces duplicates.
 
     EXAMPLES::
