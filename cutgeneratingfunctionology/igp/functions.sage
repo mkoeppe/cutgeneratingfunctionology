@@ -10,6 +10,8 @@ from six.moves import range
 from six.moves import zip
 from functools import reduce
 from six.moves import input
+from itertools import chain
+
 
 def unique_list(iterator):
     r"""
@@ -1368,8 +1370,29 @@ class FastPiecewise (PiecewisePolynomial):
         2
         sage: h.intervals()[0][0], h.intervals()[0][1]
         (3/10, 3/8)
+
+    By default, function values are cached but this can be turned off to reduce memory use::
+
+        sage: h = FastPiecewise([[(3/10, 15/40), FastLinearFunction(1, 0)]])
+        sage: hasattr(h, '_call_cache')
+        True
+        sage: FastPiecewise.cache = False
+        sage: h = FastPiecewise([[(3/10, 15/40), FastLinearFunction(1, 0)]])
+        sage: hasattr(h, '_call_cache')
+        False
+        sage: FastPiecewise.cache = True
+        sage: h = FastPiecewise([[(3/10, 15/40), FastLinearFunction(1, 0)]])
+        sage: hasattr(h, '_call_cache')
+        True
+        sage: h = FastPiecewise([[(3/10, 15/40), FastLinearFunction(1, 0)]], cache=False)
+        sage: hasattr(h, '_call_cache')
+        False
+
     """
-    def __init__(self, list_of_pairs, var=None, periodic_extension=True, merge=True):
+
+    cache = True
+
+    def __init__(self, list_of_pairs, var=None, periodic_extension=True, merge=True, cache=None):
         # Sort intervals according to their left endpoints; In case of equality, place single point before interval. 
         list_of_pairs = sorted(list_of_pairs, key = lambda i_f: coho_interval_left_endpoint_with_epsilon(i_f[0]))
         if merge:
@@ -1465,7 +1488,10 @@ class FastPiecewise (PiecewisePolynomial):
         if not any(is_parametric_element(x) for x in end_points):
             # We do not wish to keep a call cache when the breakpoints are
             # parametric, because that may create `mysterious' proof cells.
-            self._call_cache = dict()
+            if cache is None:
+                cache = FastPiecewise.cache
+            if cache:
+                self._call_cache = dict()
             if end_points:
                 self._domain_ring = end_points[0].parent().fraction_field()
             else:
@@ -1475,7 +1501,6 @@ class FastPiecewise (PiecewisePolynomial):
                 if is_parametric_element(x):
                     if isinstance(x.parent(), ParametricRealField):
                         self._domain_ring = x.parent()
-
         is_continuous = True
         if len(end_points) == 1 and end_points[0] is None:
             is_continuous = False
