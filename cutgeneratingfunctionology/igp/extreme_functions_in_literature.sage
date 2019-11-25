@@ -1,4 +1,7 @@
 from six.moves import range
+
+from .parametric_family import ParametricFamily
+
 def gmic(f=4/5, field=None, conditioncheck=True):
     r"""
     .. PLOT::
@@ -168,19 +171,7 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
     h._claimed_parameter_attribute = claimed_parameter_attribute
     return h
 
-
-class ExtremeFunctionsFactory:
-
-    def check_conditions(self, *args, **kwargs):  ### could be in superclass
-        c = self.claimed_parameter_attributes(*args, **kwargs)
-        if c == 'not_constructible':
-            raise ValueError("Bad parameters. Unable to construct the function.")
-        elif c == 'constructible':
-            logging.info("Conditions for extremality are NOT satisfied.")
-        else:
-            logging.info("Conditions for extremality are satisfied.")
-
-class Dg2StepMir(ExtremeFunctionsFactory):
+class dg_2_step_mir(FastPiecewise, ParametricFamily):
 
     r"""
     .. PLOT::
@@ -221,10 +212,14 @@ class Dg2StepMir(ExtremeFunctionsFactory):
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
     """
 
-    def __init__(self):
-        pass
+    @staticmethod
+    def __classcall__(cls, f=4/5, alpha=3/10, field=None, conditioncheck=True):
+        # FIXME: Normalize "field".
+        return super(dg_2_step_mir, cls).__classcall__(cls, f, alpha, field=field,
+                                                       conditioncheck=conditioncheck)
 
-    def claimed_parameter_attributes(self, f=4/5, alpha=3/10):
+    @classmethod
+    def claimed_parameter_attributes(cls, f=4/5, alpha=3/10, **kwargs):
         if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
             return 'not_constructible'
         if not bool(ceil(f / alpha) <= 1 / alpha):
@@ -232,9 +227,7 @@ class Dg2StepMir(ExtremeFunctionsFactory):
         else:
             return 'extreme'
 
-    def __call__(self, f=4/5, alpha=3/10, field=None, conditioncheck=True):
-        if conditioncheck:
-            self.check_conditions(f, alpha)
+    def __init__(self, f, alpha, field):
         if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
             raise ValueError("Bad parameters. Unable to construct the function.")
         rho = f - alpha * floor(f / alpha)
@@ -244,9 +237,9 @@ class Dg2StepMir(ExtremeFunctionsFactory):
         interval_lengths = [rho, alpha - rho] * tau
         interval_lengths[-1] = 1 - f
         slopes = [s_positive, s_negative] * tau
-        return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
-
-dg_2_step_mir = Dg2StepMir()
+        # FIXME: Update the FastPiecewise constructor so this can be done without copying!
+        h = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
+        super(dg_2_step_mir, self).__init__(h.list(), periodic_extension=h._periodic_extension, merge=False, cache=hasattr(h, '_call_cache'))
 
 
 def interval_length_n_step_mir(n, m, a, b):
@@ -258,7 +251,7 @@ def interval_length_n_step_mir(n, m, a, b):
         result[-1] = a[m - 1] - b[m - 1]
         return result
 
-class KfNStepMir(ExtremeFunctionsFactory):
+class kf_n_step_mir(FastPiecewise, ParametricFamily):
 
     r"""
     .. PLOT::
@@ -321,11 +314,14 @@ class KfNStepMir(ExtremeFunctionsFactory):
                 Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313-346.
     """
 
-    def __init__(self):
-        pass
+    @staticmethod
+    def __classcall__(cls, f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
+        return super(kf_n_step_mir, cls).__classcall__(cls, f, tuple(a), field=field,
+                                                       conditioncheck=conditioncheck)
 
-    def claimed_parameter_attributes(self, f=4/5, a=[1, 3/10, 8/100]):
-        if (a == []) | (not bool(0 < f < 1 == a[0])):
+    @classmethod
+    def claimed_parameter_attributes(self, f=4/5, a=[1, 3/10, 8/100], **kwargs):
+        if (not a) | (not bool(0 < f < 1 == a[0])):
             return 'not_constructible'
         b = []
         b.append(f)
@@ -339,9 +335,7 @@ class KfNStepMir(ExtremeFunctionsFactory):
                 return 'constructible'
         return 'extreme'
 
-    def __call__(self, f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
-        if conditioncheck:
-            self.check_conditions(f, a)
+    def __init__(self, f, a, field):
         b = []
         b.append(f)
         n = len(a)
@@ -354,10 +348,8 @@ class KfNStepMir(ExtremeFunctionsFactory):
         s_negative = a[0] /(b[0] - a[0])
         s_positive = - s_negative * interval_length_negative / interval_length_positive
         slopes = [s_positive, s_negative] * (nb_interval // 2)
-        return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
-
-kf_n_step_mir = KfNStepMir()
-
+        h = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
+        super(kf_n_step_mir, self).__init__(h.list(), periodic_extension=h._periodic_extension, merge=False, cache=hasattr(h, '_call_cache'))
 
 def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditioncheck=True):
     # FIXME: What is the relation between the parameters shown in the figure (taken from param graphics) and the construction parameters?
@@ -517,7 +509,7 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
     h._claimed_parameter_attribute = claimed_parameter_attribute
     return h
 
-class Dg2StepMirLimit(ExtremeFunctionsFactory):
+class dg_2_step_mir_limit(FastPiecewise, ParametricFamily):
 
     r"""
     .. PLOT::
@@ -565,10 +557,12 @@ class Dg2StepMirLimit(ExtremeFunctionsFactory):
                 (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
     """
 
-    def __init__(self):
-        pass
+    @staticmethod
+    def __classcall__(cls, f=3/5, d=3, field=None, **kwds):
+        return super(dg_2_step_mir_limit, cls).__classcall__(cls, f, d, field=field, **kwds)
 
-    def claimed_parameter_attributes(self, f=3/5, d=3):
+    @classmethod
+    def claimed_parameter_attributes(cls, f=3/5, d=3, **kwargs):
         if not (bool(0 < f < 1) & (d >= 1)):
             return 'not_constructible'
         if not bool(d >= ceil(1 / (1 - f)) - 1):
@@ -576,9 +570,7 @@ class Dg2StepMirLimit(ExtremeFunctionsFactory):
         else:
             return 'extreme'
     
-    def __call__(self, f=3/5, d=3, field=None, conditioncheck=True):
-        if conditioncheck:
-            self.check_conditions(f, d)
+    def __init__(self, f, d, field):
         if not (bool(0 < f < 1) & (d >= 1)):
             raise ValueError("Bad parameters. Unable to construct the function.")
         f = nice_field_values([f], field)[0]
@@ -591,10 +583,7 @@ class Dg2StepMirLimit(ExtremeFunctionsFactory):
                      [[singleton_interval(left_x), FastLinearFunction(field(0), left_x / f)], \
                       [open_interval(left_x, right_x), FastLinearFunction(1 / (f - 1), (k + 1)/(d + 1)/(1 - f))]]
         pieces.append([closed_interval(f, field(1)), FastLinearFunction(1 / (f - 1), 1 /(1 - f))])
-        h = FastPiecewise(pieces)
-        return h
-
-dg_2_step_mir_limit = Dg2StepMirLimit()
+        super(dg_2_step_mir_limit, self).__init__(pieces)
 
 def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, conditioncheck=True):
     r"""
@@ -1467,7 +1456,7 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
     h._claimed_parameter_attribute = claimed_parameter_attribute
     return h
 
-class LlStrongFractional(ExtremeFunctionsFactory):
+class ll_strong_fractional(FastPiecewise, ParametricFamily):
 
     r"""
     .. PLOT::
@@ -1537,10 +1526,14 @@ class LlStrongFractional(ExtremeFunctionsFactory):
         False
     """
 
-    def __init__(self):
-        pass
+    @staticmethod
+    def __classcall__(cls, f=2/3, field=None, conditioncheck=True):
+        if not bool(0 < f < 1):
+            raise ValueError("Bad parameters. Unable to construct the function.")
+        return super(ll_strong_fractional, cls).__classcall__(cls, f, field=field, conditioncheck=conditioncheck)
 
-    def claimed_parameter_attributes(self, f=2/3):
+    @classmethod
+    def claimed_parameter_attributes(cls, f=2/3, **kwargs):
         if not bool(0 < f < 1):
             return 'not_constructible'
         if not bool(1/2 <= f < 1):
@@ -1548,11 +1541,7 @@ class LlStrongFractional(ExtremeFunctionsFactory):
         else:
             return 'extreme'
 
-    def __call__(self, f=2/3, field=None, conditioncheck=True):
-        if conditioncheck:
-            self.check_conditions(f)
-        if not bool(0 < f < 1):
-            raise ValueError("Bad parameters. Unable to construct the function.")
+    def __init__(self, f, field):
         f = nice_field_values([f], field)[0]
         field = f.parent()
         k = ceil(1/f) -1
@@ -1562,10 +1551,7 @@ class LlStrongFractional(ExtremeFunctionsFactory):
         p = k - 1
         pieces.append([open_interval(f + (1 - f)* p / k, f + (1 - f)*(p + 1)/k), FastLinearFunction(1/f, -(p + 1)/f/(k + 1))])
         pieces.append([singleton_interval(1), FastLinearFunction(0, 0)])
-        h = FastPiecewise(pieces)
-        return h
-
-ll_strong_fractional = LlStrongFractional()
+        super(ll_strong_fractional, self).__init__(pieces)
 
 def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
     r"""

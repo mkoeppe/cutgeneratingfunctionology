@@ -28,7 +28,8 @@ SAGEFILES =									\
 	cutgeneratingfunctionology/igp/animation_2d_diagram.sage		\
 	cutgeneratingfunctionology/igp/lifting_project.sage			\
 	cutgeneratingfunctionology/igp/procedures/injective_2_slope_fill_in_proof.py \
-	cutgeneratingfunctionology/igp/faster_subadditivity_test.sage
+	cutgeneratingfunctionology/igp/faster_subadditivity_test.sage		\
+	cutgeneratingfunctionology/igp/parametric_family.py
 
 ## Don't test; currently broken
 # 	cutgeneratingfunctionology/igp/parametric_cpl.sage			\

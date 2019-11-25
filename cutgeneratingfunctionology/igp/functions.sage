@@ -2317,6 +2317,9 @@ class FastPiecewise (PiecewisePolynomial):
         s += [r'\end{array}']
         return '\n'.join(s)
 
+    ## @staticmethod
+    ## def from_interval_lengths_and_slopes(cls, interval_lengths, slopes, field=None, merge=True):
+
 def singleton_piece(x, y):
     return (singleton_interval(x), FastLinearFunction(0, y))
 
