@@ -32,18 +32,18 @@ def plotfig2():
     #h = piecewise_function_from_breakpoints_and_values([0,1/8,2/8,3/8,4/8,5/8,6/8,7/8,1],[0, 5/6, 2/6, 3/6, 4/6, 1/6, 6/6, 3/6, 0])
     #g = plot_with_colored_slopes(h)
     g = plot(h)
-    txfh = ['$\\frac{%s}{8}$' % x for x in range(9)];
-    tyfh = ['$\\frac{%s}{6}$' % x for x in range(7)];
+    txfh = [r'$\frac{%s}{8}$' % x for x in range(9)];
+    tyfh = [r'$\frac{%s}{6}$' % x for x in range(7)];
 
-    g += text("$\pi_0$", (0/8,0/6), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='left')
-    g += text("$\pi_1$", (1/8, 5/6), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='center')
-    g += text("$\pi_2$", (2/8, 2/6), axis_coords=False, vertical_alignment='top',horizontal_alignment='center')
-    g += text("$\pi_3$", (3/8, 3/6), axis_coords=False, vertical_alignment='top',horizontal_alignment='left')
-    g += text("$\pi_4$", (4/8, 4/6), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='center')
-    g += text("$\pi_5$", (5/8, 1/6), axis_coords=False, vertical_alignment='top',horizontal_alignment='center')
-    g += text("$\pi_6$", (6/8, 6/6), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='center')
-    g += text("$\pi_7$", (7/8,3/6), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='left')
-    g += text("$\pi_8$", (8/8,0/6), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='left') 
+    g += text(r"$\pi_0$", (0/8,0/6), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='left')
+    g += text(r"$\pi_1$", (1/8, 5/6), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='center')
+    g += text(r"$\pi_2$", (2/8, 2/6), axis_coords=False, vertical_alignment='top',horizontal_alignment='center')
+    g += text(r"$\pi_3$", (3/8, 3/6), axis_coords=False, vertical_alignment='top',horizontal_alignment='left')
+    g += text(r"$\pi_4$", (4/8, 4/6), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='center')
+    g += text(r"$\pi_5$", (5/8, 1/6), axis_coords=False, vertical_alignment='top',horizontal_alignment='center')
+    g += text(r"$\pi_6$", (6/8, 6/6), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='center')
+    g += text(r"$\pi_7$", (7/8,3/6), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='left')
+    g += text(r"$\pi_8$", (8/8,0/6), axis_coords=False, vertical_alignment='bottom',horizontal_alignment='left') 
 
     s2 = arrow((1/8,5/6),(1/8,2/6), width=1,arrowsize=2,color='black')+line([(1/8,2/6),(2/8,2/6)],color='black')+ text("$s_2$", (1/8,7/12), axis_coords=False, vertical_alignment='center',horizontal_alignment='left', color='black')
     s4 = arrow((3/8,3/6),(3/8,4/6), width=1,arrowsize=2,color='black')+line([(3/8,4/6),(4/8,4/6)],color='black')+ text("$s_4$", (3/8,7/12), axis_coords=False, vertical_alignment='center',horizontal_alignment='right', color='black')
@@ -81,7 +81,7 @@ def plotfig7():
      g = plot_2d_diagram(h, colorful = True)
      # not_extreme_1-2d_diagram.pdf is in survey_graphics
      # Don't save again.
-     # g.save(destdir+"not_extreme_1-2d_diagram.pdf", figsize=6, show_legend =False, ticks=[[x/10 for x in range(10)] ,[0,1]], tick_formatter=[["$\\frac{%s}{10}$" % x for x in range(10)], ["$%s$" % latex(x) for x in [0,1]]])
+     # g.save(destdir+"not_extreme_1-2d_diagram.pdf", figsize=6, show_legend =False, ticks=[[x/10 for x in range(10)] ,[0,1]], tick_formatter=[[r"$\frac{%s}{10}$" % x for x in range(10)], ["$%s$" % latex(x) for x in [0,1]]])
 
 def plotfig9():     
      h = kzh_5_slope_fulldim_1()
@@ -94,7 +94,7 @@ def plotfig11():
     q=58;
     h1 = kzh_6_slope_1()
     g1= plot_2d_diagram(h1, show_function=False, show_projections=False, known_minimal=True, f=None, colorful=True)
-    g1.save(destdir+"pattern_s6_q58.pdf", figsize=10, show_legend=False, ticks=[[0.001, (q-4)/6/q, (q-2)/4/q, 1/2, 1],[0,(q-4)/6/q, (q-2)/4/q, 1/2, 1]], tick_formatter=[["$0$","$\\frac{q-4}{6q}$", "$\\frac{q-2}{4q}$", "$\\frac{1}{2}$","$1$"], ["$0$","$\\frac{q-4}{6q}$","$\\frac{q-2}{4q}$", "$\\frac{1}{2}$","$1$"]], fontsize=20, gridlines=False)
+    g1.save(destdir+"pattern_s6_q58.pdf", figsize=10, show_legend=False, ticks=[[0.001, (q-4)/6/q, (q-2)/4/q, 1/2, 1],[0,(q-4)/6/q, (q-2)/4/q, 1/2, 1]], tick_formatter=[["$0$",r"$\frac{q-4}{6q}$", r"$\frac{q-2}{4q}$", r"$\frac{1}{2}$","$1$"], ["$0$",r"$\frac{q-4}{6q}$",r"$\frac{q-2}{4q}$", r"$\frac{1}{2}$","$1$"]], fontsize=20, gridlines=False)
 
 
     q=166;
@@ -105,7 +105,7 @@ def plotfig11():
 
     c2=polygon([(21/q, 31/q),(31/q, 31/q),(31/q, 21/q)], color='black', fill=False, thickness=2, zorder=5)+polygon([(29/q, 29/q),(29/q, 34/q),(34/q, 34/q),(34/q, 29/q)], color='black', fill=False, thickness=2,zorder=5)+polygon([(32/q, 32/q),(32/q, 37/q),(37/q, 37/q),(37/q, 32/q)], color='black', fill=False, thickness=2, zorder=5)+polygon([(35/q, 35/q),(35/q, 40/q),(40/q, 40/q),(40/q, 35/q)], color='black', fill=False, thickness=2, zorder=5)+polygon([(15/q, 34/q),(20/q, 34/q),(25/q, 29/q),(20/q, 29/q)], color='black', fill=False, thickness=2, zorder=5)+polygon([(9/q, 37/q),(14/q, 37/q),(19/q, 32/q),(14/q, 32/q)], color='black', fill=False, thickness=2, zorder=5)+polygon([(3/q, 40/q),(8/q, 40/q),(13/q, 35/q),(8/q, 35/q)], color='black', fill=False, thickness=2, zorder=5)+polygon([(34/q, 15/q),(34/q, 20/q),(29/q, 25/q),(29/q, 20/q)], color='black', fill=False, thickness=2, zorder=5)+polygon([(37/q, 9/q),(37/q, 14/q),(32/q, 19/q),(32/q, 14/q)], color='black', fill=False, thickness=2, zorder=5)+polygon([(40/q, 3/q),(40/q, 8/q),(35/q, 13/q),(35/q, 8/q)], color='black', fill=False, thickness=2, zorder=5);
 
-    (g4+c2).save(destdir+"pattern_s10_q166.pdf", figsize=10, show_legend=False, ticks=[[0.001, (q-4)/6/q, (q-2)/4/q, 1/2, 1],[0,(q-4)/6/q, (q-2)/4/q, 1/2, 1]], tick_formatter=[["$0$","$\\frac{q-4}{6q}$", "$\\frac{q-2}{4q}$", "$\\frac{1}{2}$","$1$"], ["$0$","$\\frac{q-4}{6q}$","$\\frac{q-2}{4q}$", "$\\frac{1}{2}$","$1$"]], fontsize=20, gridlines=False, xmin=0, xmax=0.25, ymin=0, ymax=0.25)
+    (g4+c2).save(destdir+"pattern_s10_q166.pdf", figsize=10, show_legend=False, ticks=[[0.001, (q-4)/6/q, (q-2)/4/q, 1/2, 1],[0,(q-4)/6/q, (q-2)/4/q, 1/2, 1]], tick_formatter=[["$0$",r"$\frac{q-4}{6q}$", r"$\frac{q-2}{4q}$", r"$\frac{1}{2}$","$1$"], ["$0$",r"$\frac{q-4}{6q}$",r"$\frac{q-2}{4q}$", r"$\frac{1}{2}$","$1$"]], fontsize=20, gridlines=False, xmin=0, xmax=0.25, ymin=0, ymax=0.25)
 
 
 ### MAIN ###

@@ -7,7 +7,7 @@ emitted_names = set()
 
 def emit_tex_sage_command(name):
     if name not in emitted_names:
-        print >> sage_commands, '\\pgfkeyssetvalue{/sagefunc/' + name + '}{\\href{\\githubsearchurl?q=\\%22def+' + name.replace('\\', '\\\\') + '(\\%22}{\\sage{' + name.replace('_', '\\underscore{}') + '}}}%)' 
+        sage_commands.write(r'\pgfkeyssetvalue{/sagefunc/' + name + r'}{\href{\githubsearchurl?q=\%22def+' + name.replace('\\', r'\\') + '(\\%22}{\\sage{' + name.replace(r'_', r'\underscore{}') + '}}}%)' + '\n')
         emitted_names.add(name)
 
 

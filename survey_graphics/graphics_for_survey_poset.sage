@@ -10,10 +10,10 @@ v[2] = multiplicative_homomorphism(gmic(f=fractional(2*f)),2)
 assert extremality_test(v[2])
 v[3] = ll_strong_fractional(f)
 assert extremality_test(v[3])
-v[12] = (v[1] + v[2]) / 2
-v[13] = (v[1] + v[3]) / 2
-v[23] = (v[2] + v[3]) / 2
-v[123] = (v[1] + v[2] + v[3]) / 3
+v[12] = 1/2 * (v[1] + v[2])
+v[13] = 1/2 * (v[1] + v[3])
+v[23] = 1/2 * (v[2] + v[3])
+v[123] = 1/3 * (v[1] + v[2] + v[3])
 
 ## Just the envelope of v[2] and v[1]
 #v['b'] = piecewise_function_from_breakpoints_and_values([0, 5/14, 6/7, 1], [0, 1, 1, 0])
