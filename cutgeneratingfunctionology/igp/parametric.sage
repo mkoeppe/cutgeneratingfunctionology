@@ -635,11 +635,15 @@ class ParametricRealField(Field):
 
     def __copy__(self):
         logging.warning("copy(%s) is invoked" % self)
-        Kcopy = self.__class__(self._values, self._names)
+        Kcopy = self.__class__(self._values, self._names, allow_coercion_to_float=self.allow_coercion_to_float, mutable_values=self._mutable_values, allow_refinement=self._allow_refinement, big_cells=self._big_cells, base_ring=self._sym_field.base_ring())
         Kcopy._eq.update(self._eq)
         Kcopy._lt.update(self._lt)
         Kcopy._le.update(self._le)
         Kcopy._factor_bsa = copy(self._factor_bsa)
+        Kcopy._bsa = copy(self._bsa)
+        Kcopy._frozen = self._frozen
+        Kcopy._record = self._record
+        Kcopy._polyhedron = copy(self._polyhedron)       
         return Kcopy
 
     def ppl_polyhedron(self):
@@ -1772,7 +1776,7 @@ class SemialgebraicComplexComponent(SageObject):
         ymax = kwds.pop('ymax', self.parent.default_var_bound[1])
         color = kwds.pop('color', find_region_color(self.region_type))
         bsa = self.bsa.intersection(self.parent.bddbsa) # bsa_class is 'intersection'
-        g = bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color=color, **kwds)
+        g = bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color=color, fill_color=color, **kwds)
         if show_testpoints and not slice_value:
             pt = self.var_value
             if color == 'white':
