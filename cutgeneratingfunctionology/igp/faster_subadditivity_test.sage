@@ -132,7 +132,7 @@ class SubadditivityTestTreeNode :
 
     def delta_pi_lower_bound(self,max_number_of_bkpts=0,solver='Coin'):
         """
-        Stratigic lower bound of delta pi. If the number of bkpts is small, use affine bound. Use constant bound otherwise.
+        Strategic lower bound of delta pi. If the number of bkpts is small, use affine bound. Use constant bound otherwise.
         """
         if hasattr(self,'_delta_pi_lb'):
             return self._delta_pi_lb
@@ -464,8 +464,12 @@ def find_bkpts_index_from_zero_to_one(bkpts,interval):
 
 def plot_2d_regions(fn,colorful=False,search_method='BB',find_min=True,stop_only_if_strict=True, show_plots=True, **kwds):
     # FIXME: This should really be integrated to the class via 'show_plots'.
-    """
+    r"""
     Visualize the subadditivity test based on spatial branch and bound.
+
+    Cells of each diagrams correspond to leaves of the branch and bound tree.
+    If ``colorful=True``, the yellow regions are pruned by indivisibility (i.e.,
+    they are faces of `\Delta\mathcal{P}`), and the red regions are pruned by bounds.
 
     EXAMPLES::
 
