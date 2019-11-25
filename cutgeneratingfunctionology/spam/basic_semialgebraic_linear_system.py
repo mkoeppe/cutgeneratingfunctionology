@@ -128,7 +128,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
                     return
                 else:
                     temp_eq.remove(e)
-                    if self.history_set.has_key(e):
+                    if e in self.history_set:
                         del self.history_set[e]
         for lt in self._lt:
             if lt.degree()<1:
@@ -140,7 +140,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
                     return
                 else:
                     temp_lt.remove(lt)
-                    if self.history_set.has_key(lt):
+                    if lt in self.history_set:
                         del self.history_set[lt]
         for le in self._le:
             if le.degree()<1:
@@ -152,7 +152,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
                     return
                 else:
                     temp_le.remove(le)
-                    if self.history_set.has_key(le):
+                    if le in self.history_set:
                         del self.history_set[le]
         self._le=temp_le
         self._eq=temp_eq
