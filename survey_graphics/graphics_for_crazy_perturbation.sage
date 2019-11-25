@@ -15,7 +15,7 @@ g.show(figsize=4, show_legend=False)
 g.save(destdir + "zhou_two_sided_discontinuous_cannot_assume_any_continuity-covered_intervals.png", figsize=4, show_legend=False)
 extremality_test(h)
 # INFO: 2016-04-18 03:27:22,579 Finding epsilon interval for perturbation... done.  Interval is [-4/9, 4/3]
-pert = h._perturbations[0] * 4/9
+pert = h._perturbations[0] * (4/9)
 
 default_rainbow = rainbow
 
