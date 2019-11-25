@@ -425,9 +425,9 @@ g += line([(x1, y2), (x2, y1)], color='black', linestyle=':') + line([(x1, y3), 
 g += line([(0, y1), (x2, y1)], color='black', linestyle=':')+line([(0, y2), (x2, y2)], color='black', linestyle=':')+line([(0, y3), (x2, y3)], color='black', linestyle=':')+line([(0, yn1), (x2, yn1)], color='black', linestyle=':')+line([(0, yn), (x2, yn)], color='black', linestyle=':')+line([(x1, 0), (x1, yn)], color='black', linestyle=':')+line([(x2, 0), (x2, yn)], color='black', linestyle=':')
 g += point([(u,v),(x1,y2),(x2,y1),(x1,y3),(x2,y2),(x1,yn),(x2,yn1)], color='black',size=30,zorder=10)
 ticks = [[u, x1, x2, u+delta, u+eta], [v, y1, y2, y3, yn1, yn, v+eta]]
-tick_formatter = [["$u$", "$x$", "$x'$", "", "$u+\eta$"],["$v$","$y_1$","$y_2$","$y_3$","$y_{N-1}$","$y_N$","$v+\eta$"]]
+tick_formatter = [["$u$", "$x$", "$x'$", "", r"$u+\eta$"],["$v$","$y_1$","$y_2$","$y_3$","$y_{N-1}$","$y_N$",r"$v+\eta$"]]
 g += text("$(u,v)$", (u-0.01,v-0.01), axis_coords=False, vertical_alignment='top', horizontal_alignment='right',color='black',fontsize=20)
-g += text("$u+\delta$", (u+delta, -0.01), axis_coords=False, vertical_alignment='top', horizontal_alignment='left',color='black',fontsize=20)
+g += text(r"$u+\delta$", (u+delta, -0.01), axis_coords=False, vertical_alignment='top', horizontal_alignment='left',color='black',fontsize=20)
 g.fontsize(20)
 g.show(ticks=ticks, tick_formatter=tick_formatter)
 g.save(destdir + "proof_uniform_cont_case_1.png", ticks=ticks, tick_formatter=tick_formatter)
@@ -449,10 +449,10 @@ g += line([(x1, y2), (x2, y1)], color='black', linestyle=':') + line([(x1, y3), 
 g += line([(0, y1), (x2, y1)], color='black', linestyle=':')+line([(0, y2), (x2, y2)], color='black', linestyle=':')+line([(0, y3), (x2, y3)], color='black', linestyle=':')+line([(0, yn1), (x2, yn1)], color='black', linestyle=':')+line([(0, yn), (x2, yn)], color='black', linestyle=':')+line([(x1, 0), (x1, yn)], color='black', linestyle=':')+line([(x2, 0), (x2, yn)], color='black', linestyle=':')
 g += point([(u,v),(x1,y2),(x2,y1),(x1,y3),(x2,y2),(x1,yn),(x2,yn1)], color='black',size=30,zorder=10)
 ticks = [[u, x1, x2, u-delta, u-eta, u+delta, u+eta], [v, y1, y2, y3, yn1, yn, v+eta]]
-tick_formatter = [["$u$", "$x$", "", "", "$u-\eta$", "", "$u+\eta$"],["$v$","$y_1$","$y_2$","$y_3$","$y_{N-1}$","$y_N$","$v+\eta$"]]
+tick_formatter = [["$u$", "$x$", "", "", r"$u-\eta$", "", r"$u+\eta$"],["$v$","$y_1$","$y_2$","$y_3$","$y_{N-1}$","$y_N$",r"$v+\eta$"]]
 g += text("$(u,v)$", (u-0.02,v), axis_coords=False, vertical_alignment='center', horizontal_alignment='right',color='black',fontsize=20)
-g += text("$u-\delta$", (u-delta, -0.01), axis_coords=False, vertical_alignment='top', horizontal_alignment='right',color='black',fontsize=20)
-g += text("$u+\delta$", (u+delta, -0.01), axis_coords=False, vertical_alignment='top', horizontal_alignment='left',color='black',fontsize=20)
+g += text(r"$u-\delta$", (u-delta, -0.01), axis_coords=False, vertical_alignment='top', horizontal_alignment='right',color='black',fontsize=20)
+g += text(r"$u+\delta$", (u+delta, -0.01), axis_coords=False, vertical_alignment='top', horizontal_alignment='left',color='black',fontsize=20)
 g += text("$x'$", (x2, -0.01), axis_coords=False, vertical_alignment='top', horizontal_alignment='left',color='black',fontsize=20)
 g.fontsize(20)
 g.show(ticks=ticks, tick_formatter=tick_formatter)
@@ -475,10 +475,10 @@ g += line([(x1, y2), (x2, y1)], color='black', linestyle=':') + line([(x1, y3), 
 g += line([(0, y1), (x2, y1)], color='black', linestyle=':')+line([(0, y2), (x2, y2)], color='black', linestyle=':')+line([(0, y3), (x2, y3)], color='black', linestyle=':')+line([(0, yn1), (x2, yn1)], color='black', linestyle=':')+line([(0, yn), (x2, yn)], color='black', linestyle=':')+line([(x1, 0), (x1, yn)], color='black', linestyle=':')+line([(x2, 0), (x2, yn)], color='black', linestyle=':')
 g += point([(u,v),(x1,y2),(x2,y1),(x1,y3),(x2,y2),(x1,yn),(x2,yn1)], color='black',size=30,zorder=10)
 ticks = [[u, x1, x2, u-delta, u-eta], [v, y1, y2, y3, yn1, yn, v+eta]]
-tick_formatter = [["$u$", "$x$", "$x'$", "", "$u-\eta$"],["$v$","$y_1$","$y_2$","$y_3$","$y_{N-1}$","$y_N$","$v+\eta$"]]
+tick_formatter = [["$u$", "$x$", "$x'$", "", r"$u-\eta$"],["$v$","$y_1$","$y_2$","$y_3$","$y_{N-1}$","$y_N$",r"$v+\eta$"]]
 #g += text("$v$", (-0.01,v), axis_coords=False, vertical_alignment='center', horizontal_alignment='right',color='black',fontsize=20)
 g += text("$(u,v)$", (u,v), axis_coords=False, vertical_alignment='top', horizontal_alignment='left',color='black',fontsize=20)
-g += text("$u-\delta$", (u-delta, -0.01), axis_coords=False, vertical_alignment='top', horizontal_alignment='right',color='black',fontsize=20)
+g += text(r"$u-\delta$", (u-delta, -0.01), axis_coords=False, vertical_alignment='top', horizontal_alignment='right',color='black',fontsize=20)
 g.fontsize(20)
 g.show(ticks=ticks, tick_formatter=tick_formatter)
 g.save(destdir + "proof_uniform_cont_case_3.png", ticks=ticks, tick_formatter=tick_formatter)
@@ -505,7 +505,7 @@ g += line([(0, y1), (x1, y1)], color='black', linestyle=':')+line([(0, y2), (x2,
 g += point([(u,v),(x1,y1),(x2,y2)], color='black',size=30,zorder=10)
 g += text("$(u,v)$", (u-0.02,v), axis_coords=False, vertical_alignment='center', horizontal_alignment='right',color='black',fontsize=20)
 ticks = [[u, x1, x2, u-delta, u+delta], [v, y1, y2, v+delta]]
-tick_formatter = [["$u$", "$x$", "$x'$", "$u-\delta$", "$u+\delta$"],["$v$","$y$","$y'$","$v+\delta$"]]
+tick_formatter = [["$u$", "$x$", "$x'$", r"$u-\delta$", r"$u+\delta$"],["$v$","$y$","$y'$",r"$v+\delta$"]]
 g.fontsize(20)
 g.show(ticks=ticks, tick_formatter=tick_formatter)
 g.save(destdir + "proof_uniform_V_case12.png", ticks=ticks, tick_formatter=tick_formatter)
@@ -522,7 +522,7 @@ g += line([(x1, y1), (x2, y2)], color='black', linestyle=':')
 g += line([(0, y1), (u, y1)], color='black', linestyle=':')+line([(0, y2), (x2, y2)], color='black', linestyle=':')+line([(x1, 0), (x1, y1)], color='black', linestyle=':')+line([(x2, 0), (x2, y2)], color='black', linestyle=':')
 g += point([(u,v),(x1,y1),(x2,y2)], color='black',size=30,zorder=10)
 ticks = [[u, x1, x2, u-delta], [v, y1, y2, v+delta]]
-tick_formatter = [["$u$", "$x$", "$x'$","$u-\delta$"],["$v$","$y$","$y'$","$v+\delta$"]]
+tick_formatter = [["$u$", "$x$", "$x'$",r"$u-\delta$"],["$v$","$y$","$y'$",r"$v+\delta$"]]
 g += text("$(u,v)$", (u,v), axis_coords=False, vertical_alignment='top', horizontal_alignment='left',color='black',fontsize=20)
 g += text("=",(u-t1/4,v+t1+0.01), rotation="vertical", axis_coords=False, vertical_alignment='center', horizontal_alignment='center',color='blue', fontsize=15)+text("=",(u-t1*3/4,v+t1+0.01), rotation="vertical",axis_coords=False, vertical_alignment='center', horizontal_alignment='center',color='blue', fontsize=15)
 g.fontsize(20)
@@ -542,11 +542,11 @@ g += line([(u,v), (u-eta, v+eta)], color='black')+line([(u,v), (u+eta, v)], colo
 g += line([(u, y), (x2, y)], color='black', linestyle=':')
 g += line([(u, v), (u+v, 0)], color='black', linestyle=':')+line([(u, v+t1), (z1, 0)], color='black', linestyle=':')+line([(x2, y), (z2, 0)], color='black', linestyle=':')+line([(u+delta, v), (u+v+delta, 0)], color='black', linestyle=':')
 g += point([(u,v),(x1,y),(x2,y)], color='black',size=30,zorder=10) #(u+delta,v),(u, v+delta)
-g += text("$(u,v)$", (u-0.02,v), axis_coords=False, vertical_alignment='center', horizontal_alignment='right',color='black',fontsize=20)+text("$(u+\delta,v)$", (u+delta+0.02,v), axis_coords=False, vertical_alignment='center', horizontal_alignment='left',color='black',fontsize=20)+text("$(u,v+\delta)$", (u,v+delta+0.02), axis_coords=False, vertical_alignment='bottom', horizontal_alignment='center',color='black',fontsize=20)+text("$(x,y)$", (x1+0.02,y+0.02), axis_coords=False, vertical_alignment='bottom', horizontal_alignment='left',color='black',fontsize=20)+text("$(x',y)$", (x2+0.02,y+0.02), axis_coords=False, vertical_alignment='bottom', horizontal_alignment='left',color='black',fontsize=20)
+g += text("$(u,v)$", (u-0.02,v), axis_coords=False, vertical_alignment='center', horizontal_alignment='right',color='black',fontsize=20)+text(r"$(u+\delta,v)$", (u+delta+0.02,v), axis_coords=False, vertical_alignment='center', horizontal_alignment='left',color='black',fontsize=20)+text(r"$(u,v+\delta)$", (u,v+delta+0.02), axis_coords=False, vertical_alignment='bottom', horizontal_alignment='center',color='black',fontsize=20)+text(r"$(x,y)$", (x1+0.02,y+0.02), axis_coords=False, vertical_alignment='bottom', horizontal_alignment='left',color='black',fontsize=20)+text("$(x',y)$", (x2+0.02,y+0.02), axis_coords=False, vertical_alignment='bottom', horizontal_alignment='left',color='black',fontsize=20)
 g += arrow((0.3,0), (u+v+delta+0.4,0), color='black',width=1)
 zticks = [u+v, z1, z2, u+v+delta+0.05]
 zlocs = [u+v, z1, z2, u+v+delta]
-ztick_formatter = ["$u+v$", "$z$", "$z'$", "$u+v+\delta$"]
+ztick_formatter = ["$u+v$", "$z$", "$z'$", r"$u+v+\delta$"]
 for i in range(4):
     g += text(ztick_formatter[i], (zticks[i], -0.01), axis_coords=False, vertical_alignment='top', horizontal_alignment='center',color='black',fontsize=20)
     g += line([(zlocs[i],0),(zlocs[i],0.03)],color='black',thickness=0.5)
@@ -570,11 +570,11 @@ g += line([(u, y), (0, y)], color='black', linestyle=':')
 g += line([(u, v), (u+v, 0)], color='black', linestyle=':')+line([(x1, y), (z1, 0)], color='black', linestyle=':')+line([(x2, y), (z2, 0)], color='black', linestyle=':')+line([(u, y), (u+v+delta, 0)], color='black', linestyle=':')
 g += point([(u,v),(x1,y),(x2,y)], color='black',size=30,zorder=10) #(u+delta,v),(u, v+delta)
 g += text("$(u,v)$", (u-0.02,v), axis_coords=False, vertical_alignment='center', horizontal_alignment='right',color='black',fontsize=20)+text("$(x,y)$", (x1,y+0.02), axis_coords=False, vertical_alignment='bottom', horizontal_alignment='center',color='black',fontsize=20)+text("$(x',y)$", (x2,y+0.02), axis_coords=False, vertical_alignment='bottom', horizontal_alignment='center',color='black',fontsize=20)
-g += text("$y=v+\delta$", (u+0.02,v+delta), axis_coords=False, vertical_alignment='center', horizontal_alignment='left',color='black',fontsize=20)
+g += text(r"$y=v+\delta$", (u+0.02,v+delta), axis_coords=False, vertical_alignment='center', horizontal_alignment='left',color='black',fontsize=20)
 g += arrow((0.3,0), (u+v+delta+0.4,0), color='black',width=1)
 zticks = [u+v, z1, z2, u+v+delta+0.05]
 zlocs = [u+v, z1, z2, u+v+delta]
-ztick_formatter = ["$u+v$", "$z$", "$z'$", "$u+v+\delta$"]
+ztick_formatter = ["$u+v$", "$z$", "$z'$", r"$u+v+\delta$"]
 for i in range(4):
     g += text(ztick_formatter[i], (zticks[i], -0.01), axis_coords=False, vertical_alignment='top', horizontal_alignment='center',color='black',fontsize=20)
     g += line([(zlocs[i],0),(zlocs[i],0.03)],color='black',thickness=0.5)
@@ -596,11 +596,11 @@ g += line([(u-delta, y), (u, y)], color='black', linestyle=':')
 g += line([(u, v), (u+v, 0)], color='black', linestyle=':')+line([(x1, y), (z1, 0)], color='black', linestyle=':')+line([(x2, y), (z2, 0)], color='black', linestyle=':')+line([(u, y), (u+y, 0)], color='black', linestyle=':')+line([(u-delta, y), (u-delta+y, 0)], color='black', linestyle=':')
 g += point([(u,v),(x1,y),(x2,y)], color='black',size=30,zorder=10) #(u+delta,v),(u, v+delta)
 g += text("$(u,v)$", (u+0.02,v), axis_coords=False, vertical_alignment='center', horizontal_alignment='left',color='black',fontsize=20)+text("$(x,y)$", (x1,y+0.02), axis_coords=False, vertical_alignment='bottom', horizontal_alignment='center',color='black',fontsize=20)+text("$(x',y)$", (x2,y+0.02), axis_coords=False, vertical_alignment='bottom', horizontal_alignment='center',color='black',fontsize=20)
-g += text("$y=v+\\frac{\delta}{2}$", (u+0.02,y), axis_coords=False, vertical_alignment='center', horizontal_alignment='left',color='black',fontsize=20)
+g += text(r"$y=v+\frac{\delta}{2}$", (u+0.02,y), axis_coords=False, vertical_alignment='center', horizontal_alignment='left',color='black',fontsize=20)
 g += arrow((0.3,0), (u+y+0.4,0), color='black',width=1)
 zticks = [u+y-delta-0.05,u+v, z1, z2, u+y+0.05]
 zlocs = [u+y-delta, u+v, z1, z2, u+y]
-ztick_formatter = ["$u+v-\\frac{\delta}{2}$", "$u+v$", "$z$", "$z'$", "$u+v+\\frac{\delta}{2}$"]
+ztick_formatter = [r"$u+v-\frac{\delta}{2}$", "$u+v$", "$z$", "$z'$", r"$u+v+\frac{\delta}{2}$"]
 for i in range(5):
     g += text(ztick_formatter[i], (zticks[i], -0.01), axis_coords=False, vertical_alignment='top', horizontal_alignment='center',color='black',fontsize=20)
     g += line([(zlocs[i],0),(zlocs[i],0.03)],color='black',thickness=0.5)
