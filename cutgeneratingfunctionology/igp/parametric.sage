@@ -2366,7 +2366,7 @@ class SemialgebraicComplex(SageObject):
         if 'ymax' in kwds:
             self.graph.ymax(kwds['ymax'])
         for c in self.components[self.num_plotted_components::]:
-            gc = c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, **kwds)
+            gc = c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, parent=self, **kwds)
             if gc: # need this because (empty g + empty gc) forgets about xmin xmax ymin ymax.
                 self.graph += gc
         self.num_plotted_components = len(self.components)
