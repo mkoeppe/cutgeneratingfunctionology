@@ -9,6 +9,16 @@ import logging
 
 class ParametricFamily(six.with_metaclass(ClasscallMetaclass)):
 
+    """
+    TESTS:
+
+    Parametric families can be pickled::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: loads(dumps(ll_strong_fractional)) is ll_strong_fractional
+
+    """
+
     @staticmethod
     def __classcall__(cls, *args, **options):
         """
@@ -19,6 +29,8 @@ class ParametricFamily(six.with_metaclass(ClasscallMetaclass)):
         """
         if options.pop('conditioncheck', True):
             cls.check_conditions(*args, **options)
+        if options.pop('compute_args_only', False):
+            return (cls, args, options)
         instance = typecall(cls, *args, **options)
         assert isinstance( instance, cls )
         # if instance.__class__.__reduce__ == ParametricFamily.__reduce__:
@@ -59,5 +71,4 @@ class ParametricFamily_introspect(ParametricFamily):
 
     @staticmethod
     def __classcall__(cls, *args, **options):
-
-
+        pass
