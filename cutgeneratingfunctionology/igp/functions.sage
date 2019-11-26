@@ -1550,6 +1550,8 @@ class FastPiecewise (PiecewisePolynomial):
             sage: g == f
             True
         """
+        if other is None:
+            return False
         if self._periodic_extension != other._periodic_extension:
             return False
         domain = union_of_coho_intervals_minus_union_of_coho_intervals([self.intervals()], [], old_fashioned_closed_intervals=True)
