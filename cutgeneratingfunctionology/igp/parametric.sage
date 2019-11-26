@@ -1735,6 +1735,7 @@ class SemialgebraicComplexComponent(SageObject):
 
     def __init__(self, parent, K, var_value, region_type):
         self.parent = parent
+        self.var_name = [ str(g) for g in K._bsa.poly_ring().gens() ]
         self.var_value = var_value
         self.region_type = region_type
         self.monomial_list = K.monomial_list()
@@ -1743,12 +1744,12 @@ class SemialgebraicComplexComponent(SageObject):
         le_K = list(K._bsa.le_poly())
         eq_K = list(K._bsa.eq_poly())
         if not eq_K:
-            P = PolynomialRing(QQ, parent.var_name)
+            P = K._bsa.poly_ring()
             self.var_map = {g:g for g in P.gens()} 
         else:
             eq_K, self.var_map = find_variable_mapping(eq_K)
             # TO REFACTOR: use section.
-            lt_K, le_K = substitute_llt_lle(lt_K, le_K, self.var_map, self.parent.var_name, self.var_value)
+            lt_K, le_K = substitute_llt_lle(lt_K, le_K, self.var_map, self.var_name, self.var_value)
         self.bsa = BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=K._factor_bsa.poly_ring(), eq=eq_K, lt=lt_K, le=le_K)
         #import pdb; pdb.set_trace()
         self.neighbor_points = []
@@ -1804,7 +1805,7 @@ class SemialgebraicComplexComponent(SageObject):
         walls = []
         new_points = {}
         if self.bsa.eq_poly():
-            bddllt, bddlle = substitute_llt_lle(self.parent.bddbsa.lt_poly(), self.parent.bddbsa.le_poly(), self.var_map, self.parent.var_name, self.var_value)
+            bddllt, bddlle = substitute_llt_lle(self.parent.bddbsa.lt_poly(), self.parent.bddbsa.le_poly(), self.var_map, self.var_name, self.var_value)
             bddlin = bddllt+bddlle
         else:
             bddlin = list(self.parent.bddbsa.lt_poly())+list(self.parent.bddbsa.le_poly())
@@ -1820,7 +1821,7 @@ class SemialgebraicComplexComponent(SageObject):
                 condstr_others = write_mathematica_constraints(self.bsa.eq_poly(), ineqs)
                 # maybe shouldn't put self.bsa.eq_poly() into FindInstance, but solve using var_map later.
                 condstr_ineq = '0<'+str(ineq)+'<'+str(flip_ineq_step)
-                pt_across_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.parent.var_name)
+                pt_across_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.var_name)
             else:
                 if wall_crossing_method == 'heuristic_with_check':
                     ineqs = walls + ineqs
@@ -1832,7 +1833,7 @@ class SemialgebraicComplexComponent(SageObject):
                     if wall_crossing_method == 'heuristic_with_check':
                         condstr = write_mathematica_constraints(self.bsa.eq_poly(), ineqs) + \
                                   '0<'+str(ineq)+'<'+str(flip_ineq_step) # Need the last inequality? see hyperbole ex.
-                        pt_across_wall = find_instance_mathematica(condstr, self.parent.var_name)
+                        pt_across_wall = find_instance_mathematica(condstr, self.var_name)
                     else:
                         pt_across_wall = None
                 else:
@@ -1852,7 +1853,7 @@ class SemialgebraicComplexComponent(SageObject):
                 if wall_crossing_method == 'mathematica':
                     # wall could be non-linear, contrasting the assumption above. 
                     condstr_ineq = str(ineq) + '==0'
-                    pt_on_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.parent.var_name)
+                    pt_on_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.var_name)
                 elif ineq.degree() == 1:
                     # is linear wall. try to find a point on the wall using heuristic gradient descent method.
                     pt = find_point_on_ineq_heuristic(pt_across_wall, ineq, ineqs, flip_ineq_step)
@@ -1874,7 +1875,7 @@ class SemialgebraicComplexComponent(SageObject):
         walls = []
         bddlin = []
         if self.leq:
-            bddlin = substitute_llt_lle(self.parent.bddlin, self.var_map, self.parent.var_name, self.var_value)
+            bddlin = substitute_llt_lle(self.parent.bddlin, self.var_map, self.var_name, self.var_value)
         else:
             bddlin = copy(self.parent.bddlin)
         # decide which inequalities among self.lin are walls (irredundant).
@@ -1895,7 +1896,7 @@ class SemialgebraicComplexComponent(SageObject):
                 condstr_ineq = '0<'+str(ineq)
                 if flip_ineq_step > 0:  # experimental. see hyperbole example where wall x=1/2 is not unique; discard it in this case.
                     condstr_ineq += '<'+str(flip_ineq_step)
-                pt_across_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.parent.var_name)
+                pt_across_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.var_name)
             if not (pt_across_wall is None):
                 walls.append(ineq)
         self.lin = walls
