@@ -1602,10 +1602,10 @@ def substitute_llt_lle(llt, lle, var_map, var_name, var_value):
     K.add_initial_space_dim() # needed?
     for l in llt:
         ineq = l.parent()(l.subs(var_map))
-        ineq(K.gens())< 0 #always True
+        assert ineq(K.gens())< 0 #always True
     for l in lle:
         ineq = l.parent()(l.subs(var_map))
-        ineq(K.gens())<= 0 #always True
+        assert ineq(K.gens())<= 0 #always True
     bsa = BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(K._bsa)
     return sorted(bsa.lt_poly()), sorted(bsa.le_poly())
 
