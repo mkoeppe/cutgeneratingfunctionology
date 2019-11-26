@@ -8,15 +8,46 @@ from sage.misc.abstract_method import abstract_method
 import logging
 
 class ParametricFamily(six.with_metaclass(ClasscallMetaclass)):
+    r"""
+    A parametric family of functions.
 
-    """
     TESTS:
 
-    Parametric families can be pickled::
+    Globally defined parametric families can be pickled::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: loads(dumps(ll_strong_fractional)) is ll_strong_fractional
+        sage: p_ll_strong_fractional = dumps(ll_strong_fractional)
+        sage: explain_pickle(p_ll_strong_fractional)                     # not tested
+        unpickle_global('cutgeneratingfunctionology.igp', 'll_strong_fractional')
+        sage: loads(p_ll_strong_fractional) is ll_strong_fractional
+        True
 
+    Members of parametric families can be pickled and remember their construction
+    but also their computed attributes, but there is no unique representation behavior::
+
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: h = ll_strong_fractional()
+        sage: h._init_args
+        (<class 'cutgeneratingfunctionology.igp.ll_strong_fractional'>,
+        (2/3,),
+        {'field': None})
+        sage: h._difficult_computational_result = 42
+        sage: p_h = dumps(h)
+        sage: explain_pickle(p_h)                                        # not tested
+        pg_ll_strong_fractional = unpickle_global('cutgeneratingfunctionology.igp', 'll_strong_fractional')
+        si1 = unpickle_newobj(pg_ll_strong_fractional, ())
+        ...
+        sage: h_copy = loads(p_h)
+        sage: h_copy == h
+        True
+        sage: h_copy is h
+        False
+        sage: h_copy._init_args
+        (<class 'cutgeneratingfunctionology.igp.ll_strong_fractional'>,
+         (2/3,),
+         {'field': None})
+        sage: h_copy._difficult_computational_result
+        42
     """
 
     @staticmethod
@@ -62,13 +93,13 @@ class ParametricFamily(six.with_metaclass(ClasscallMetaclass)):
         else:
             logging.info("Conditions for extremality are satisfied.")
 
-    # What should reduce do?? We still want to save the function's computed attributes.
-
-    ## @classmethod
-    ## def from_constructor(cls, constructor):   ### or a separate class.
-
 class ParametricFamily_introspect(ParametricFamily):
+    r"""
+    A parametric family of functions, defined in the traditional way by
+    defining a function and then introspecting it for argument names and
+    default arguments.
+    """
 
     @staticmethod
     def __classcall__(cls, *args, **options):
-        pass
+        raise NotImplementedError

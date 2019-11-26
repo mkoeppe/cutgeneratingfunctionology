@@ -1690,9 +1690,8 @@ def construct_field_and_test_point(function, var_name, var_value, default_args):
 
 ###########################################
 # Proof cells and proof complex:
-# the super class SemialgebraicComplex
 ###########################################
-class SemialgebraicComplexComponent(SageObject):
+class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be more specific
     r"""
     A proof cell for parameter space analysis.
 
@@ -1722,7 +1721,6 @@ class SemialgebraicComplexComponent(SageObject):
 
     Test variable elimination::
 
-        sage: from cutgeneratingfunctionology.igp import *
         sage: complex = SemialgebraicComplex(foo, ['x','y'], find_region_type=lambda r:r, default_var_bound=(-5,5))
         sage: K.<x,y> = ParametricRealField([1,1/2])
         sage: region_type = foo(*K.gens())
