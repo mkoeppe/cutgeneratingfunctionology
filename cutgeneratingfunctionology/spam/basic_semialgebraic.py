@@ -456,7 +456,13 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
                 section = self.section(slice_value)
             else:
                 raise NotImplementedError("Plotting with dimension not equal to 2 is not implemented.")
-            return section.plot(alpha=alpha, plot_points=plot_points, slice_value=None, constraints=constraints, **kwds)
+            return section.plot(alpha=alpha, plot_points=plot_points, slice_value=None,
+                                color=color, fill_color=fill_color,
+                                constraints_color=constraints_color,
+                                constraints_fill_color=constraints_fill_color,
+                                eq_constraints_kwds=eq_constraints_kwds,
+                                le_constraints_kwds=le_constraints_kwds,
+                                lt_constraints_kwds=lt_constraints_kwds, **kwds)
         g = Graphics()
         for bv in 'xmin', 'xmax', 'ymin', 'ymax':
             b = kwds.get(bv, None)
