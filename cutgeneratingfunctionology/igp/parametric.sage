@@ -1893,6 +1893,7 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
         [x - y]
     """
 
+    @staticmethod
     def __classcall__(cls, function, var_name, var_value, default_args, find_region_type, bddleq=()):
         var_name = tuple(var_name)
         var_value = tuple(var_value)
