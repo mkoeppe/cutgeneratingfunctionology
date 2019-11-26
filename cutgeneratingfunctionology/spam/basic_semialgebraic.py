@@ -458,14 +458,10 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
                 raise NotImplementedError("Plotting with dimension not equal to 2 is not implemented.")
             return section.plot(alpha=alpha, plot_points=plot_points, slice_value=None, constraints=constraints, **kwds)
         g = Graphics()
-        if 'xmin' in kwds:
-            g.xmin(kwds['xmin'])
-        if 'xmax' in kwds:
-            g.xmax(kwds['xmax'])
-        if 'ymin' in kwds:
-            g.ymin(kwds['ymin'])
-        if 'ymax' in kwds:
-            g.ymax(kwds['ymax'])
+        for bv in 'xmin', 'xmax', 'ymin', 'ymax':
+            b = kwds.get(bv, None)
+            if b is not None:
+                g.getattr(bv)(b)
         xmin = max(self.linear_function_lower_bound([1,0]), kwds.get('xmin', -Infinity))
         xmax = min(self.linear_function_upper_bound([1,0]), kwds.get('xmax', +Infinity))
         ymin = max(self.linear_function_lower_bound([0,1]), kwds.get('ymin', -Infinity))
