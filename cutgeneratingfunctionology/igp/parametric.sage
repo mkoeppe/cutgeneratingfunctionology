@@ -1765,7 +1765,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         s += ")"
         return s
 
-    def plot(self, alpha=0.5, plot_points=300, slice_value=None, show_testpoints=True, **kwds):
+    def plot(self, alpha=0.5, plot_points=300, slice_value=None, parent=None, show_testpoints=True, **kwds):
         r"""
         Plot the cell.
 
@@ -1773,10 +1773,14 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         - show_testpoints controls whether to plot the testpoint in this cell.
         - plot_points controls the quality of the plotting.
         """
-        xmin = kwds.pop('xmin', self.parent.default_var_bound[0])
-        xmax = kwds.pop('xmax', self.parent.default_var_bound[1])
-        ymin = kwds.pop('ymin', self.parent.default_var_bound[0])
-        ymax = kwds.pop('ymax', self.parent.default_var_bound[1])
+        if parent:
+            default_var_bound = parent.default_var_bound
+        else:
+            default_var_bound = [None, None]
+        xmin = kwds.pop('xmin', default_var_bound[0])
+        xmax = kwds.pop('xmax', default_var_bound[1])
+        ymin = kwds.pop('ymin', default_var_bound[0])
+        ymax = kwds.pop('ymax', default_var_bound[1])
         color = kwds.pop('color', find_region_color(self.region_type))
         bsa = self.bsa.intersection(self.parent.bddbsa) # bsa_class is 'intersection'
         g = bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color=color, fill_color=color, **kwds)
