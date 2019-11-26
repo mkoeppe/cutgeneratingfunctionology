@@ -233,6 +233,16 @@ class SubadditivityTestTreeNode(object):
         else:
             return True
 
+    def plot(self, colorful=False, **bound_kwds):
+        v=[ver[:-1] for ver in self.vertices]
+        region=Polyhedron(vertices=v)
+        p = region.projection().render_outline_2d()
+        if colorful:
+            if not self.is_divisible():
+                p+=Face(self.intervals).plot(rgbcolor="yellow", fill_color="yellow")
+            elif self.delta_pi_lower_bound(**bound_kwds)>0:
+                p+=Face(self.intervals).plot(rgbcolor="red", fill_color="red")
+        return p
 
 class SubadditivityTestTree:
 
@@ -488,7 +498,9 @@ def plot_2d_regions(fn,colorful=False,search_method='BB',find_min=True,stop_only
     Visualize the subadditivity test based on spatial branch and bound.
 
     Cells of each diagrams correspond to leaves of the branch and bound tree.
-    If ``colorful=True``, the yellow regions are pruned by indivisibility (i.e.,
+
+    If ``colorful=True``, the plot is done in fried eggs and tomato style:
+    the yellow regions are pruned by indivisibility (i.e.,
     they are faces of `\Delta\mathcal{P}`), and the red regions are pruned by bounds.
 
     EXAMPLES::
@@ -504,24 +516,18 @@ def plot_2d_regions(fn,colorful=False,search_method='BB',find_min=True,stop_only
     current_level=set([T.root])
     level_index = 0
     while current_level:
-        p+=plot_2d_regions_in_one_level(current_level,colorful=colorful)
+        p+=plot_2d_regions_in_one_level(current_level,colorful=colorful)   ## FIXME: Should this be passing kwds?
         show_plot(p, show_plots=show_plots, tag='bb-{}'.format(level_index))
         next_level=T.next_level(current_level,search_method=search_method,find_min=find_min,stop_only_if_strict=stop_only_if_strict,**kwds)
         level_index += 1
         current_level=next_level
 
-def plot_2d_regions_in_one_level(node_set,colorful=False,**kwds):
-    p=Graphics()
-    for node in node_set:
-        v=[ver[:-1] for ver in node.vertices]
-        region=Polyhedron(vertices=v)
-        p+=region.projection().render_outline_2d()
-        if colorful:
-            if not node.is_divisible():
-                p+=Face(node.intervals).plot(rgbcolor = "yellow", fill_color = "yellow")
-            elif node.delta_pi_lower_bound(**kwds)>0:
-                p+=Face(node.intervals).plot(rgbcolor = "red", fill_color = "red")
-    return p
+def plot_2d_regions_in_one_level(node_set,colorful=False,**bound_kwds):
+    if node_set:
+        return sum(node.plot(colorful=colorful, **bound_kwds)
+                   for node in node_set)
+    else:
+        return Graphics()
 
 def values_of_delta_pi_over_grid(fn,q):
     """
