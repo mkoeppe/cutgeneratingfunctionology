@@ -1593,7 +1593,7 @@ def substitute_llt_lle(llt, lle, var_map, var_name, var_value):
         sage: var_map = {y: y, x: 75/19*y}
         sage: llt = [21*x - 8, -x, 950*x^2 - 3700*x*y - 225*y^2 - 133*x]
         sage: substitute_llt_lle(llt, [], var_map, ['x','y'], [38/100, 96/1000])
-        ([1575*y - 152, -y], [])
+        ([-y, 1575*y - 152], [])
     """
     # Shall we factorize ineq in lins after substitution using var_map?
     # Yes, otherwise, got -525/19*lam2^2 - 525*lam2 in chen's 4 slope
@@ -1607,7 +1607,7 @@ def substitute_llt_lle(llt, lle, var_map, var_name, var_value):
         ineq = l.parent()(l.subs(var_map))
         ineq(K.gens())<= 0 #always True
     bsa = BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(K._bsa)
-    return list(bsa.lt_poly()), list(bsa.le_poly())
+    return sorted(bsa.lt_poly()), sorted(bsa.le_poly())
 
 ######################################
 # Functions with ParametricRealField K
