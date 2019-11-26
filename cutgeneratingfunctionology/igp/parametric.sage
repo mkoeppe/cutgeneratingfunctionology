@@ -2753,6 +2753,105 @@ def result_symbolic_expression(field, result):
     symbolic_expression = tuple(elt._sym if hasattr(elt, '_sym') else elt for elt in flatten([result]))
     return symbolic_expression
 
+def find_region_type_igp_extreme_big_cells(K, h):
+    """
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.WARN)
+        sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'], find_region_type=find_region_type_igp_extreme_big_cells)
+        sage: complex.bfs_completion(var_value=[4/5,1/2])
+        sage: len(complex.components)
+        11
+        sage: complex.plot() # not tested
+    """
+    hcopy = copy(h)
+    if h is None:
+        return 'not_constructible'
+    is_extreme = True
+    with K.off_the_record():
+        h = copy(hcopy)
+        for x in h.values_at_end_points():
+            if (x < 0) or (x > 1):
+                is_extreme  = False
+                break
+    if not is_extreme:
+        assert (x < 0) or (x > 1)
+        return False
+    f = find_f(h, no_error_if_not_minimal_anyway=True)
+    if f is None:
+        return False
+    bkpt = h.end_points()
+    with K.off_the_record():
+        h = copy(hcopy)
+        for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices(h, reduced=True):
+            is_extreme = False
+            break
+    if not is_extreme:
+        assert delta_pi_general(h, x, y, (xeps, yeps, zeps)) < 0
+        return False
+    with K.off_the_record():
+        h = copy(hcopy)
+        if h(f) != 1:
+            is_extreme = False
+    if not is_extreme:
+        assert h(f) != 1
+        return False
+    with K.off_the_record():
+        h = copy(hcopy)
+        for (x, y, xeps, yeps) in generate_nonsymmetric_vertices(h, f):
+            is_extreme = False
+            break
+    if not is_extreme:
+        assert h(x)+h(y) != 1
+        return False
+    # function is minimal.
+    with K.off_the_record():
+        h = copy(hcopy)
+        num_slope = number_of_slopes(h)
+    if h.is_continuous() and num_slope == 2:
+        # is_extreme  #record #shortcut?
+        minimality_test(h, full_certificates=False)
+        return True
+    ### testing non-extremality with strategical uncovered interval.
+    with K.off_the_record():
+        h = copy(hcopy)
+        ucs = generate_uncovered_components(h)
+        f = find_f(h)
+        for uncovered_pt in [f/2, (f+1)/2]:
+            if any((i[0] == uncovered_pt or i[1] == uncovered_pt) for uc in ucs for i in uc if len(uc)==2):
+                uncovered_pts = [uncovered_pt]
+                is_extreme = False
+                break
+        # ### not sure, maybe running extremality test gives bigger cells.
+        # if is_extreme and ucs:
+        #     uc = min(ucs, key=len)
+        #     uncovered_pts = [(i[0]+i[1])/2 for i in uc]
+        #     #uncovered_pts = list(chain(*[[i[0], i[1]] for i in uc]))
+        #     is_extreme = False
+    if not is_extreme:
+        h = copy(hcopy)
+        bkpt1 = h.end_points()
+        bkpt2 = h.end_points()[:-1] + [ x+1 for x in h.end_points() ]
+        for uncovered_pt in uncovered_pts:
+            for y in bkpt1:
+                (delta_pi(h, uncovered_pt, y) > 0) or (delta_pi(h, uncovered_pt, y) == 0)
+            for z in bkpt2:
+                if uncovered_pt < z < 1+uncovered_pt:
+                    (delta_pi(h, uncovered_pt, z-uncovered_pt) > 0) or (delta_pi(h, uncovered_pt, z-uncovered_pt) == 0)
+            for x in bkpt1:
+                (delta_pi(h, x, uncovered_pt-x) > 0) or (delta_pi(h, x, uncovered_pt-x) == 0)
+        return False
+    # maybe is_extreme
+    h = copy(hcopy)
+    is_minimal = minimality_test(h, full_certificates=False)
+    assert is_minimal
+    generator = generate_perturbations(h, full_certificates=False)
+    for perb in generator:
+        logging.warning("Function is not extreme but f/2 and (1+f)/2 are covered.")
+        return False
+    return True
+
 region_type_color_map = [('not_constructible', 'white'), ('is_constructible', 'black'), ('not_minimal', 'orange'), ('is_minimal', 'darkgrey'),('not_extreme', 'green'), ('is_extreme', 'blue'), ('stop', 'grey'), (True, 'blue'), (False, 'red'), ('constructible', 'darkgrey'), ('extreme', 'red')]
 
 def find_region_color(region_type):
