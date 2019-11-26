@@ -1704,10 +1704,10 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         sage: component.bsa
         BasicSemialgebraicSet_eq_lt_le_sets(eq=[], lt=[x + y - 2, y^2 - x], le=[])
         sage: component.plot()                                  # not tested
-        sage: component.find_walls_and_new_points(1/4, 'heuristic', goto_lower_dim=False)
+        sage: component.find_walls_and_new_points(1/4, 'heuristic', goto_lower_dim=False, complex=complex)
         ([y^2 - x, x + y - 2],
          {(19959383/28510088, 24590405/28510088): [], (11/8, 7/8): []})
-        sage: component.find_walls_and_new_points(1/4, 'mathematica', goto_lower_dim=True)  # optional - mathematica
+        sage: component.find_walls_and_new_points(1/4, 'mathematica', goto_lower_dim=True, complex=complex)  # optional - mathematica
         ([x + y - 2, y^2 - x],
          {(0, 0): [y^2 - x],
           (2, 0): [x + y - 2],
@@ -2294,7 +2294,7 @@ class SemialgebraicComplex(SageObject):
             return
         if (flip_ineq_step != 0) and (region_type != 'stop'):
             # when using random shooting, don't generate neighbour points; don't remove redundant walls.
-            walls, new_points = new_component.find_walls_and_new_points(flip_ineq_step, wall_crossing_method, goto_lower_dim)
+            walls, new_points = new_component.find_walls_and_new_points(flip_ineq_step, wall_crossing_method, goto_lower_dim, complex=self)
             if (wall_crossing_method == 'mathematica') or \
                 (wall_crossing_method == 'heuristic_with_check'):
                 new_component.bsa._lt = walls     # FIXME: Breaks abstraction
