@@ -1104,7 +1104,7 @@ class RealSet(UniqueRepresentation, Parent):
             return ' + '.join(map(repr, self._intervals))
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.spam.real_set import RealSet
