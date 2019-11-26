@@ -70,8 +70,8 @@ def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, max_iter=0, flip_ineq
         sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)
         sage: len(regions)
         96
-        sage: regions = cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, wall_crossing_method='mathematica', flip_ineq_step=1/1000)                          # not tested
-        sage: len(regions)                                                   # not tested
+        sage: regions = cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, wall_crossing_method='mathematica', flip_ineq_step=1/1000)                          # optional - mathematica
+        sage: len(regions)                                                   # optional - mathematica
         96
     """
     cpln = cpl_n_group_function(n, cpleq, merge=False)
@@ -94,7 +94,7 @@ def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, max_iter=0, flip_ineq
     else:
         arr_complex.shoot_random_points(max_failings)
     regions = [c for c in arr_complex.components if c.region_type != 'not_constructible']
-    regions.sort(key=lambda r: len(r.leq))
+    regions.sort(key=lambda c: len(list(c.bsa.eq_poly())))   # FIXME: This should either be a generator that just stratifies by dimension; or refine the order lexicographically so that we get a predictable sort order!
     return regions
 
 def plot_cpl_components(components, show_testpoints=False):
@@ -102,19 +102,20 @@ def plot_cpl_components(components, show_testpoints=False):
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
         sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True) # not tested
         sage: g = plot_cpl_components(regions)                               # not tested
         sage: g.show(xmin=0, xmax=1, ymin=0, ymax=1/4)                       # not tested
     """
     g = Graphics()
     for c in components:
-        if not c.leq:
+        if not list(c.bsa.eq_poly()):
             g += c.plot(show_testpoints=show_testpoints)
     for c in components:
-        if len(c.leq)==1:
+        if len(list(c.bsa.eq_poly()))==1:
             g += c.plot(show_testpoints=show_testpoints)
     for c in components:
-        if len(c.leq)==2:
+        if len(list(c.bsa.eq_poly()))==2:
             ptcolor = find_region_color(c.region_type)
             g += point(c.var_value, color = ptcolor, zorder=10)
     return g
@@ -124,9 +125,10 @@ def symbolic_subbadditivity_constraints_of_cpl_given_region(r):
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True) # not tested
-        sage: r = regions[0]                                                 # not tested
-        sage: symbolic_subbadditivity_constraints_of_cpl_given_region(r)     # not tested
+        sage: logging.disable(logging.INFO)
+        sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)
+        sage: r = regions[0]
+        sage: symbolic_subbadditivity_constraints_of_cpl_given_region(r)
         [1/f,
          (-o1 + 1)/f,
          (-o1 - o2 + 1)/f,
@@ -142,12 +144,12 @@ def symbolic_subbadditivity_constraints_of_cpl_given_region(r):
     """
     if r.region_type == 'not_constructible':
         return []
-    cpln = r.parent.function
+    cpln = r.function
     n = cpln._n
     var_value = r.var_value
-    var_name = r.parent.var_name
+    var_name = r.var_name
     o_str = ['o%s' % i for i in range(1, n)]
-    K = ParametricRealField(var_value+[0]*(n-1), var_name+o_str)
+    K = ParametricRealField(list(var_value) + [0]*(n-1), var_name+o_str)
     f_K = K.gens()[0]
     z_K = K.gens()[1:len(var_name)]
     o_K = K.gens()[len(var_name)::]
@@ -262,8 +264,8 @@ def generate_thetas_of_region(r):
     """
     constraints = symbolic_subbadditivity_constraints_of_cpl_given_region(r)
     m = len(constraints)
-    n = r.parent.function._n
-    var_name = r.parent.var_name
+    n = r.function._n
+    var_name = r.var_name
     coefficients_of_thetas = []
     constants = []
     for c in constraints:
@@ -292,10 +294,10 @@ def cpl_fill_region_given_theta(r, theta, max_iter=0, flip_ineq_step=1/1000, che
         sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)
-        sage: r = regions[0]                                                 # not tested
-        sage: thetas = generate_thetas_of_region(r)                          # not tested
-        sage: theta = thetas[-1]                                             # not tested
-        sage: theta                                                          # not tested
+        sage: r = regions[0]
+        sage: thetas = generate_thetas_of_region(r)
+        sage: theta = thetas[-1]
+        sage: theta
         ((-z)/(f - 1), (-z)/(f - 1))
         sage: cpl_complex = cpl_fill_region_given_theta(r, theta)
         sage: len(cpl_complex.components)
@@ -303,11 +305,11 @@ def cpl_fill_region_given_theta(r, theta, max_iter=0, flip_ineq_step=1/1000, che
         sage: cpl_complex.components[0].region_type
         'is_extreme'
     """
-    cpln = cpl_n_group_function(r.parent.function._n, r.parent.function._cpleq)
+    cpln = cpl_n_group_function(r.function._n, r.function._cpleq)
     cpln._theta = lambda f, z: tuple([t(f, *z) for t in theta])
     var_value = r.var_value
-    var_name = r.parent.var_name
-    cpl_complex=SemialgebraicComplex(cpln, var_name, max_iter=max_iter, bddleq=copy(r.leq), bddlin=copy(r.lin))
+    var_name = r.var_name
+    cpl_complex=SemialgebraicComplex(cpln, var_name, max_iter=max_iter, bddleq=copy(list(r.bsa.eq_poly())), bddlin=copy(list(r.bsa.lt_poly()) + list(r.bsa.le_poly())))
     if flip_ineq_step != 0:
         cpl_complex.bfs_completion(var_value, flip_ineq_step, check_completion, wall_crossing_method, goto_lower_dim)
     else:
@@ -328,8 +330,9 @@ def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=Fa
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: regions = cpl_regions_with_thetas_and_components(3, True, False, 0, 1/1000, False, 'mathematica', True)   # not tested  # 25-30 mins
-        sage: regions = cpl_regions_with_thetas_and_components(3, True, False, 0, 1/1000, False, 'heuristic', True)     # not tested  # 20 mins, 15 mins
+        sage: logging.disable(logging.INFO)
+        sage: regions = cpl_regions_with_thetas_and_components(3, True, False, 0, 1/1000, False, 'mathematica', True)   # optional - mathematica, optional - longtime20min # 25-30 mins
+        sage: regions = cpl_regions_with_thetas_and_components(3, True, False, 0, 1/1000, False, 'heuristic', True)     # optional - longtime20min
     """
     if regions is None:
         regions = cpl_regions_from_arrangement_of_bkpts(n, cpleq, max_iter, flip_ineq_step, False, wall_crossing_method, goto_lower_dim) # Remark: check_completion=False for arr_complex.
@@ -356,9 +359,9 @@ def cpl_thetas_and_regions_extreme(regions):
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: regions = cpl_regions_with_thetas_and_components()             # not tested
-        sage: thetas_and_regions = cpl_thetas_and_regions_extreme(regions)   # not tested
-        sage: len(thetas_and_regions)                                        # not tested
+        sage: regions = cpl_regions_with_thetas_and_components()
+        sage: thetas_and_regions = cpl_thetas_and_regions_extreme(regions)
+        sage: len(thetas_and_regions)
         9
     """
     thetas_and_regions = {}
@@ -398,9 +401,9 @@ def cpl_thetas_and_regions(regions, thetas_and_regions):
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: regions = cpl_regions_with_thetas_and_components()             # not tested
-        sage: thetas_and_regions = cpl_thetas_and_regions_extreme(regions)   # not tested
-        sage: thetas_and_components = cpl_thetas_and_regions(regions, thetas_and_regions) # not tested
+        sage: regions = cpl_regions_with_thetas_and_components()
+        sage: thetas_and_regions = cpl_thetas_and_regions_extreme(regions)
+        sage: thetas_and_components = cpl_thetas_and_regions(regions, thetas_and_regions)
     """
     thetas_and_components = {}
     for theta in thetas_and_regions.keys():
@@ -435,7 +438,7 @@ def save_cpl_extreme_theta_regions(thetas_and_regions, name="cpl_theta"):
         (8, ((f + 2*z)/(2*f + 2), (f + 2*z)/(2*f + 2)))
         (9, ((-z)/(f - 1), (-z)/(f - 1)))
 
-    If wall_crossing_mehtod='mathematica' in ``cpl_regions_with_thetas_and_components()``, then the output is::
+    If wall_crossing_method='mathematica' in ``cpl_regions_with_thetas_and_components()``, then the output is::
 
         (1, (z/(15*z - 2), (6*z - 1)/(15*z - 2)))
         (2, ((-2*z)/(f - 1), 0))
