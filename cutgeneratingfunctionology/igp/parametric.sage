@@ -2555,23 +2555,6 @@ def gradient(ineq):
     else:
        return [ineq.derivative()]
 
-def bounds_for_plotting(v, lb_ub, default_var_bound):
-    r"""
-    If lower and upper exist, then return them; otherwise return default variable bounds.
-    """
-    (lb, ub) = lb_ub
-    if not lb is -Infinity:
-        l = lb - 0.01
-    else:
-        l = default_var_bound[0]
-    if not ub is +Infinity:
-        u = ub + 0.01
-    else:
-        u = default_var_bound[1]
-    if l >= u:
-        return (v, default_var_bound[0], default_var_bound[1])
-    return (v, l, u)
-
 ####################################
 # Find region type and region color
 ####################################
