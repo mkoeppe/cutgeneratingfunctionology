@@ -1751,7 +1751,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
 
     def find_walls_and_new_points(self, flip_ineq_step, wall_crossing_method, goto_lower_dim=False, complex=None):
         r"""
-        Try flipping exactly one inequality at one time, to reach a new textpoint in a neighbour cell.
+        Try flipping exactly one inequality at one time, to reach a new testpoint in a neighbour cell.
 
         Discard the wall if it is impossible to do so, as the wall is redundant.
 
@@ -1879,6 +1879,9 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         eqns = [ [-l.constant_coefficient()]+[-l.monomial_coefficient(m) for m in l.args()] for l in self.bsa.eq_poly() ]
         return Polyhedron(ieqs=ieqs, eqns=eqns)
 
+def _max_x_y(x, y):    # A global, for testing pickling
+    return max(x, y)
+
 class ProofCell(SemialgebraicComplexComponent, Classcall):
 
     r"""
@@ -1886,11 +1889,38 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
 
     EXAMPLES::
 
-        sage: from cutgeneratingfunctionology.igp import *
+        sage: from cutgeneratingfunctionology.igp import ProofCell, _max_x_y, result_symbolic_expression
+        sage: import logging
         sage: logging.disable(logging.WARN)
-        sage: C = ProofCell(lambda x, y: max(x, y), ['x', 'y'], [1, 2], {}, find_region_type=result_symbolic_expression)
+        sage: C = ProofCell(_max_x_y, ['x', 'y'], [1, 2], {}, find_region_type=result_symbolic_expression)
         sage: sorted(C.bsa.lt_poly())
         [x - y]
+
+    Proof cells remember their construction::
+
+        sage: C._init_args
+        (<class 'cutgeneratingfunctionology.igp.ProofCell'>,
+         (<..._max_x_y...>,
+          ('x', 'y'),
+          (1, 2),
+          {},
+          <...result_symbolic_expression...>,
+          ()),
+         {})
+
+    Proof cells can be pickled if ``function`` is a global variable or can be pickled otherwise
+    (lambda functions cannot be pickled)::
+
+        sage: p_C = dumps(C)
+        sage: explain_pickle(p_C)      # not tested
+        sage: C_copy = loads(p_C)
+        sage: sorted(C_copy.bsa.lt_poly())
+        [x - y]
+        sage: C_copy._init_args == C._init_args
+        True
+
+    (We do not test for equality C_copy == C -- we have not even decided yet what the semantics 
+    of equality of bsa is.)
     """
 
     @staticmethod
