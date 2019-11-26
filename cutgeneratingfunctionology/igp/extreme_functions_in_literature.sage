@@ -219,7 +219,7 @@ class dg_2_step_mir(FastPiecewise, ParametricFamily):
                                                        conditioncheck=conditioncheck)
 
     @classmethod
-    def claimed_parameter_attributes(cls, f=4/5, alpha=3/10, **kwargs):
+    def claimed_parameter_attribute(cls, f=4/5, alpha=3/10, **kwargs):
         if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
             return 'not_constructible'
         if not bool(ceil(f / alpha) <= 1 / alpha):
@@ -320,7 +320,7 @@ class kf_n_step_mir(FastPiecewise, ParametricFamily):
                                                        conditioncheck=conditioncheck)
 
     @classmethod
-    def claimed_parameter_attributes(self, f=4/5, a=[1, 3/10, 8/100], **kwargs):
+    def claimed_parameter_attribute(self, f=4/5, a=[1, 3/10, 8/100], **kwargs):
         if (not a) | (not bool(0 < f < 1 == a[0])):
             return 'not_constructible'
         b = []
@@ -562,7 +562,7 @@ class dg_2_step_mir_limit(FastPiecewise, ParametricFamily):
         return super(dg_2_step_mir_limit, cls).__classcall__(cls, f, d, field=field, **kwds)
 
     @classmethod
-    def claimed_parameter_attributes(cls, f=3/5, d=3, **kwargs):
+    def claimed_parameter_attribute(cls, f=3/5, d=3, **kwargs):
         if not (bool(0 < f < 1) & (d >= 1)):
             return 'not_constructible'
         if not bool(d >= ceil(1 / (1 - f)) - 1):
@@ -1533,7 +1533,7 @@ class ll_strong_fractional(FastPiecewise, ParametricFamily):
         return super(ll_strong_fractional, cls).__classcall__(cls, f, field=field, conditioncheck=conditioncheck)
 
     @classmethod
-    def claimed_parameter_attributes(cls, f=2/3, **kwargs):
+    def claimed_parameter_attribute(cls, f=2/3, **kwargs):
         if not bool(0 < f < 1):
             return 'not_constructible'
         if not bool(1/2 <= f < 1):

@@ -39,7 +39,7 @@ class ParametricFamily(six.with_metaclass(ClasscallMetaclass)):
         return instance
 
     @classmethod
-    def claimed_parameter_attributes(cls, *args, **kwargs):
+    def claimed_parameter_attribute(cls, *args, **kwargs):
         """
         Describe what the literature claims about the function.
 
@@ -47,12 +47,12 @@ class ParametricFamily(six.with_metaclass(ClasscallMetaclass)):
         """
         raise NotImplementedError
 
-    # FIXME: centralize default argument handling in something called by
+    # FIXME: centralize default argument handling:  Currently in derived classes, default arguments are provided both in __classcall__ and again in claimed_parameter_attribute.
 
     @classmethod
     def check_conditions(cls, *args, **kwargs):
         try:
-            c = cls.claimed_parameter_attributes(*args, **kwargs)
+            c = cls.claimed_parameter_attribute(*args, **kwargs)
         except NotImplementedError:
             return
         if c == 'not_constructible':

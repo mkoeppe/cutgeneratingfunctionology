@@ -2691,15 +2691,15 @@ def claimed_region_type(igp_function=gmic, condition_according_to_literature=Tru
     # in particular, use condition_according_to_literature=True to obtain the (false) claimed region of chen_4_slope according to literature.
     if 'condition_according_to_literature' in test_point:
         test_point['condition_according_to_literature'] = condition_according_to_literature
-    if not isinstance(igp_function, ExtremeFunctionsFactory):
+    if not isinstance(igp_function, ParametricFamily):
         try:
             h = igp_function(**test_point)
             return h._claimed_parameter_attribute
-        except: # Dangerous!!
+        except Exception:
             # Function is non-contructible at this random point.
             return 'not_constructible'
     else:
-        claimed_parameter_attribute = igp_function.claimed_parameter_attributes
+        claimed_parameter_attribute = igp_function.claimed_parameter_attribute
         parameter_values = read_default_args(claimed_parameter_attribute, **test_point)
         return claimed_parameter_attribute(**parameter_values)
 
