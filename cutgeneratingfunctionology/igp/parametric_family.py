@@ -1,13 +1,23 @@
 """
 Parametric families of functions.
 """
+from __future__ import print_function, absolute_import
 
 from sage.misc import six
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.abstract_method import abstract_method
 import logging
 
-class ParametricFamily(six.with_metaclass(ClasscallMetaclass)):
+class Classcall(six.with_metaclass(ClasscallMetaclass)):
+
+    @staticmethod
+    def __classcall__(cls, *args, **options):
+        instance = typecall(cls, *args, **options)
+        assert isinstance( instance, cls )
+        instance._init_args = (cls, args, options)
+        return instance
+
+class ParametricFamily(Classcall):
     r"""
     A parametric family of functions.
 
@@ -62,12 +72,7 @@ class ParametricFamily(six.with_metaclass(ClasscallMetaclass)):
             cls.check_conditions(*args, **options)
         if options.pop('compute_args_only', False):
             return (cls, args, options)
-        instance = typecall(cls, *args, **options)
-        assert isinstance( instance, cls )
-        # if instance.__class__.__reduce__ == ParametricFamily.__reduce__:
-        #     instance._reduction = (cls, args, options)
-        instance._init_args = (cls, args, options)
-        return instance
+        return super(ParametricFamily, cls).__classcall__(cls, *args, **options)
 
     @classmethod
     def claimed_parameter_attribute(cls, *args, **kwargs):

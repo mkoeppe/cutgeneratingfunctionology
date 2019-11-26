@@ -21,6 +21,7 @@ import time
 
 from cutgeneratingfunctionology.spam.basic_semialgebraic import *
 from cutgeneratingfunctionology.spam.polyhedral_complex import PolyhedralComplex
+from .parametric_family import Classcall, ParametricFamily
 
 debug_new_factors = False
 debug_cell_exceptions = False
@@ -1640,49 +1641,6 @@ def read_default_args(function, **opt_non_default):
             default_args[opt_name] = opt_value
     return default_args
 
-def construct_field_and_test_point(function, var_name, var_value, default_args):
-    r"""
-    Construct a :class:`ParametricRealField` K using var_name and var_value.
-
-    var_name and var_value are two parallel lists.
-    Construct a test_point of type dictionary, which maps each parameter of the function to the corresponding :class:`ParametricRealFieldElement` if this is a parameter of K, otherwise maps to the default argument value.
-
-    EXAMPLES::
-
-        sage: from cutgeneratingfunctionology.igp import *
-        sage: function=gmic; var_name=['f']; var_value=[1/2];
-        sage: default_args = read_default_args(function)
-        sage: K, test_point = construct_field_and_test_point(function, var_name, var_value, default_args)
-        sage: K
-        ParametricRealField(names = ['f'], values = [1/2])
-        sage: test_point
-        {'conditioncheck': False,
-             'f': f~,
-             'field': ParametricRealField(names = ['f'], values = [1/2])}
-    """
-    K = ParametricRealField(var_value, var_name)
-    test_point = copy(default_args)
-    if isinstance(function, CPLFunctionsFactory):
-        # Remark: special case. Parameters are f and z=(z1, z2, ... z(n-1))
-        # group variables into f and z-tuple.
-        # The constructor of cpl will call function._theta to get o-tuple,
-        # when o is set to None (default value).
-        param_name = ['f', 'z']
-        param_value = [K.gens()[0], tuple(K.gens()[1::])]
-    else:
-        param_name = var_name
-        param_value = K.gens()
-    for i in range(len(param_name)):
-        test_point[param_name[i]] = param_value[i]
-    args_set = set(sage_getargspec(function)[0])
-    if 'field' in args_set:
-        test_point['field'] = K
-    if 'conditioncheck' in args_set:
-        test_point['conditioncheck'] = False
-    if 'merge' in args_set:
-        test_point['merge'] = False
-    return K, test_point
-
 ###########################################
 # Proof cells and proof complex:
 ###########################################
@@ -1920,6 +1878,89 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         ieqs = [ [-l.constant_coefficient()]+[-l.monomial_coefficient(m) for m in l.args()] for l in list(self.bsa.lt_poly()) + list(self.bsa.le_poly()) ]
         eqns = [ [-l.constant_coefficient()]+[-l.monomial_coefficient(m) for m in l.args()] for l in self.bsa.eq_poly() ]
         return Polyhedron(ieqs=ieqs, eqns=eqns)
+
+class ProofCell(SemialgebraicComplexComponent, Classcall):
+
+    r"""
+    A proof cell for parameter space analysis.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.WARN)
+        sage: C = ProofCell(lambda x, y: max(x, y), ['x', 'y'], [1, 2], {}, find_region_type=result_symbolic_expression)
+        sage: sorted(C.bsa.lt_poly())
+        [x - y]
+    """
+
+    def __classcall__(cls, function, var_name, var_value, default_args, find_region_type, bddleq=()):
+        var_name = tuple(var_name)
+        var_value = tuple(var_value)
+        bddleq = tuple(bddleq)      # set? 
+        return super(ProofCell, cls).__classcall__(cls, function, var_name, var_value, default_args, find_region_type, bddleq)
+
+    @staticmethod
+    def _construct_field_and_test_point(function, var_name, var_value, default_args, bddleq=()):
+        r"""
+        Construct a :class:`ParametricRealField` K using var_name and var_value.
+
+        var_name and var_value are two parallel lists.
+        Construct a test_point of type dictionary, which maps each parameter of the function to the corresponding :class:`ParametricRealFieldElement` if this is a parameter of K, otherwise maps to the default argument value.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: function=gmic; var_name=['f']; var_value=[1/2];
+            sage: default_args = read_default_args(function)
+            sage: K, test_point = ProofCell._construct_field_and_test_point(function, var_name, var_value, default_args)
+            sage: K
+            ParametricRealField(names = ['f'], values = [1/2])
+            sage: test_point
+            {'conditioncheck': False,
+                 'f': f~,
+                 'field': ParametricRealField(names = ['f'], values = [1/2])}
+        """
+        K = ParametricRealField(var_value, var_name)
+        test_point = copy(default_args)
+        if isinstance(function, CPLFunctionsFactory):
+            # Remark: special case. Parameters are f and z=(z1, z2, ... z(n-1))
+            # group variables into f and z-tuple.
+            # The constructor of cpl will call function._theta to get o-tuple,
+            # when o is set to None (default value).
+            param_name = ['f', 'z']
+            param_value = [K.gens()[0], tuple(K.gens()[1::])]
+        else:
+            param_name = var_name
+            param_value = K.gens()
+        for i in range(len(param_name)):
+            test_point[param_name[i]] = param_value[i]
+        args_set = set(sage_getargspec(function)[0])
+        if 'field' in args_set:
+            test_point['field'] = K
+        if 'conditioncheck' in args_set:
+            test_point['conditioncheck'] = False
+        if 'merge' in args_set:
+            test_point['merge'] = False
+
+        K.add_initial_space_dim() #so that the parameters var_name are the first ones in the monomial list. Needed for variable elimination.  FIXME: Get rid of this requirement.
+        for l in bddleq:
+            # need to put these equations in K, so call comparison.
+            if not l(*K.gens()) == 0:
+                logging.warning("Test point %s doesn't satisfy %s == 0." % (var_value, l))
+        return K, test_point
+
+    def __init__(self, function, var_name, var_value, default_args, find_region_type, bddleq):
+        K, test_point = self._construct_field_and_test_point(function, var_name, var_value, default_args, bddleq)
+        try:
+            h = function(**test_point)
+        except Exception:
+            # Function is non-constructible at this random point.
+            if debug_cell_exceptions:
+                import pdb; pdb.post_mortem()
+            h = None
+        region_type = find_region_type(K, h)
+        super(ProofCell, self).__init__(K, var_value, region_type)
+        self.function = function
 
 class SemialgebraicComplex(SageObject):
     r"""
@@ -2164,10 +2205,10 @@ class SemialgebraicComplex(SageObject):
             sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))
             sage: complex.add_new_component([1,2], bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y}
             sage: cell = next(complex.cells_containing_point([2,3]))
-            sage: cell.var_value
+            sage: list(cell.var_value)
             [1, 2]
             sage: cell = next(complex.cells_containing_point([sqrt(2), sqrt(3)]))
-            sage: cell.var_value
+            sage: list(cell.var_value)
             [1, 2]
         """
         for c in self.components:
@@ -2236,14 +2277,6 @@ class SemialgebraicComplex(SageObject):
             return tuple([0]*len(self.var_name))
         return find_instance_mathematica(condstr[:-4], self.var_name)
 
-    def construct_field_and_test_point(self, var_value, bddleq=[]):
-        K, test_point = construct_field_and_test_point(self.function, self.var_name, var_value, self.default_args)
-        K.add_initial_space_dim() #so that the parameters self.var_name are the first ones in the monomial list. Needed for variable elimination.
-        for l in bddleq:
-            # need to put these equations in K, so call comparaison.
-            if not l(*K.gens()) == 0:
-                logging.warning("Test point %s doesn't satisfy %s == 0." % (var_value, l))
-        return K, test_point
 
     def add_new_component(self, var_value, bddleq=[], flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False, allow_dim_degeneracy=False):
         r"""
@@ -2271,16 +2304,9 @@ class SemialgebraicComplex(SageObject):
             sage: complex.points_to_test                              # optional - mathematica
             {(19/20, 1): []}
         """
-        K, test_point = self.construct_field_and_test_point(var_value, bddleq)
-        try:
-            h = self.function(**test_point)
-        except Exception: # Dangerous!!
-            # Function is non-contructible at this random point.
-            if debug_cell_exceptions:
-                import pdb; pdb.post_mortem()
-            h = None
-        region_type = self.find_region_type(K, h)
-        new_component = SemialgebraicComplexComponent(K, var_value, region_type)
+        new_component = ProofCell(self.function, self.var_name, var_value, self.default_args,
+                                  find_region_type=self.find_region_type, bddleq=bddleq)
+
         if not allow_dim_degeneracy and len(new_component.bsa.eq_poly()) != len(bddleq):
             for l in new_component.bsa.eq_poly():
                 if not l in bddleq:
@@ -2292,7 +2318,7 @@ class SemialgebraicComplex(SageObject):
                         self.points_to_test[pert_value] = copy(bddleq)
             logging.warning("The cell around %s defined by %s ==0 and %s <0 and %s <= 0 has more equations than bddleq %s" %(new_component.var_value, new_component.bsa.eq_poly(), new_component.bsa.lt_poly(),new_component.bsa.le_poly(), bddleq))
             return
-        if (flip_ineq_step != 0) and (region_type != 'stop'):
+        if (flip_ineq_step != 0) and (new_component.region_type != 'stop'):
             # when using random shooting, don't generate neighbour points; don't remove redundant walls.
             walls, new_points = new_component.find_walls_and_new_points(flip_ineq_step, wall_crossing_method, goto_lower_dim, complex=self)
             if (wall_crossing_method == 'mathematica') or \
