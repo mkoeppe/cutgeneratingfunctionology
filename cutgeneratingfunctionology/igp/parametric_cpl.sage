@@ -8,6 +8,7 @@ class CPLFunctionsFactory:
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: cpl3 = cpl_n_group_function(3)
         sage: h = cpl3(f=1/6, z=(1/12, 1/12), o=(1/5, 0))
@@ -19,6 +20,7 @@ class CPLFunctionsFactory:
 
         sage: g = cpl3(1/6, (1/12, 1/12))
         sage: g == gmic(1/6)
+        True
 
     Change self._theta::
 
@@ -63,9 +65,10 @@ def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, max_iter=0, flip_ineq
 
     EXAMPLES::
 
-        sage: logging.disable(logging.INFO)                                  # not tested
-        sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True) # not tested
-        sage: len(regions)                                                   # not tested
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)
+        sage: len(regions)
         96
         sage: regions = cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, wall_crossing_method='mathematica', flip_ineq_step=1/1000)                          # not tested
         sage: len(regions)                                                   # not tested
@@ -98,6 +101,7 @@ def plot_cpl_components(components, show_testpoints=False):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True) # not tested
         sage: g = plot_cpl_components(regions)                               # not tested
         sage: g.show(xmin=0, xmax=1, ymin=0, ymax=1/4)                       # not tested
@@ -119,6 +123,7 @@ def symbolic_subbadditivity_constraints_of_cpl_given_region(r):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True) # not tested
         sage: r = regions[0]                                                 # not tested
         sage: symbolic_subbadditivity_constraints_of_cpl_given_region(r)     # not tested
@@ -171,6 +176,7 @@ def coefficients_of_theta_and_rhs_in_constraint(c, var_name, n):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: n = 3
         sage: var_name = ['f','z1','z2']
         sage: P.<f,z1,z2,o1,o2>=QQ[]
@@ -211,6 +217,7 @@ def get_pretty_fraction_polynomial(fp):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: PR2.<f,z1,z2>=QQ[]
         sage: fp = (-2*z1)/(-2*f + 4*z1 - 6)
         sage: get_pretty_fraction_polynomial(fp)
@@ -243,6 +250,7 @@ def generate_thetas_of_region(r):
     """
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)                                  # not tested
         sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True) # not tested
         sage: r = regions[0]                                                 # not tested
@@ -281,8 +289,9 @@ def cpl_fill_region_given_theta(r, theta, max_iter=0, flip_ineq_step=1/1000, che
     """
     EXAMPLES::
 
-        sage: logging.disable(logging.INFO)                                  # not tested
-        sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True) # not tested
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)
         sage: r = regions[0]                                                 # not tested
         sage: thetas = generate_thetas_of_region(r)                          # not tested
         sage: theta = thetas[-1]                                             # not tested
@@ -318,6 +327,7 @@ def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=Fa
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: regions = cpl_regions_with_thetas_and_components(3, True, False, 0, 1/1000, False, 'mathematica', True)   # not tested  # 25-30 mins
         sage: regions = cpl_regions_with_thetas_and_components(3, True, False, 0, 1/1000, False, 'heuristic', True)     # not tested  # 20 mins, 15 mins
     """
@@ -345,6 +355,7 @@ def cpl_thetas_and_regions_extreme(regions):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: regions = cpl_regions_with_thetas_and_components()             # not tested
         sage: thetas_and_regions = cpl_thetas_and_regions_extreme(regions)   # not tested
         sage: len(thetas_and_regions)                                        # not tested
@@ -386,6 +397,7 @@ def cpl_thetas_and_regions(regions, thetas_and_regions):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: regions = cpl_regions_with_thetas_and_components()             # not tested
         sage: thetas_and_regions = cpl_thetas_and_regions_extreme(regions)   # not tested
         sage: thetas_and_components = cpl_thetas_and_regions(regions, thetas_and_regions) # not tested
@@ -403,6 +415,7 @@ def save_cpl_extreme_theta_regions(thetas_and_regions, name="cpl_theta"):
 
     EXAMPLES::
 
+        sage: from cutgeneratingfunctionology.igp import *
         sage: regions = cpl_regions_with_thetas_and_components()             # not tested
         sage: thetas_and_regions = cpl_thetas_and_regions_extreme(regions)   # not tested
         sage: save_cpl_extreme_theta_regions(thetas_and_regions, name="cpl_ext_theta")  # not tested
