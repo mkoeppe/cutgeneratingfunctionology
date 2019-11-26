@@ -32,11 +32,11 @@ def projections_new(vertices):
         l=list(zip(*vertices))
         return [[min(l[0]),max(l[0])],[min(l[1]),max(l[1])],[min(l[2]),max(l[2])]]
 
-class SubadditivityTestTreeNode :
+class SubadditivityTestTreeNode(object):
 
     def __init__(self, fn, level, intervals):
 
-        self.intervals=intervals
+        self.intervals=tuple(tuple(I) for I in intervals)
         self.level=level
         self.function=fn
         self.vertices=verts_new(*intervals)
@@ -45,43 +45,60 @@ class SubadditivityTestTreeNode :
         self.right_child=None
         self.parent=None
 
+    # SubadditivityTestTreeNode sort lexicographically by intervals.
+    # We implement this so that PriorityQueue can be used with it in Py3.
+    def __lt__(self, other):
+        return self.intervals < other.intervals
+    def __eq__(self, other):
+        return self.intervals == other.intervals
+    def __le__(self, other):
+        return self.intervals <= other.intervals
+    def __ge__(self, other):
+        return self.intervals >= other.intervals
+    def __gt__(self, other):
+        return self.intervals > other.intervals
+    def __ne__(self, other):
+        return self.intervals != other.intervals
+    def __hash__(self):
+        return hash(self.intervals)
+
     def I_bkpts(self):
         if hasattr(self,'_I_bkpts'):
             return self._I_bkpts
         new_I=self.projections[0]
-        self._I_bkpts=find_all_bkpts_in_the_interval(self.function.end_points(),new_I)
+        self._I_bkpts = tuple(find_all_bkpts_in_the_interval(self.function.end_points(),new_I))
         return self._I_bkpts
 
     def J_bkpts(self):
         if hasattr(self,'_J_bkpts'):
             return self._J_bkpts
         new_J=self.projections[1]
-        self._J_bkpts=find_all_bkpts_in_the_interval(self.function.end_points(),new_J)
+        self._J_bkpts = tuple(find_all_bkpts_in_the_interval(self.function.end_points(),new_J))
         return self._J_bkpts
 
     def K_bkpts(self):
         if hasattr(self,'_K_bkpts'):
             return self._K_bkpts
         new_K=self.projections[2]
-        self._K_bkpts=find_all_bkpts_in_the_interval(self.function.end_points(),new_K)
+        self._K_bkpts = tuple(find_all_bkpts_in_the_interval(self.function.end_points(),new_K))
         return self._K_bkpts
 
     def I_values(self):
         if hasattr(self,'_I_values'):
             return self._I_values
-        self._I_values=[self.function(bkpt) for bkpt in self.I_bkpts()]
+        self._I_values = tuple(self.function(bkpt) for bkpt in self.I_bkpts())
         return self._I_values
 
     def J_values(self):
         if hasattr(self,'_J_values'):
             return self._J_values
-        self._J_values=[self.function(bkpt) for bkpt in self.J_bkpts()]
+        self._J_values = tuple(self.function(bkpt) for bkpt in self.J_bkpts())
         return self._J_values
 
     def K_values(self):
         if hasattr(self,'_K_values'):
             return self._K_values
-        self._K_values=[self.function(bkpt if bkpt<=1 else bkpt-1) for bkpt in self.K_bkpts()]
+        self._K_values = tuple(self.function(bkpt if bkpt<=1 else bkpt-1) for bkpt in self.K_bkpts())
         return self._K_values
 
     def delta_pi_constant_lower_bound(self):
@@ -158,11 +175,11 @@ class SubadditivityTestTreeNode :
         lenK=new_K[1]-new_K[0]
         candidates=[]
         if len(self.I_bkpts())>2:
-            candidates.append(['I',lenI])
+            candidates.append(('I',lenI))
         if len(self.J_bkpts())>2:
-            candidates.append(['J',lenJ])
+            candidates.append(('J',lenJ))
         if len(self.K_bkpts())>2:
-            candidates.append(['K',lenK])
+            candidates.append(('K',lenK))
         if not candidates:
             return None
         else:
@@ -173,13 +190,16 @@ class SubadditivityTestTreeNode :
         dir=self.branching_direction()
         if dir=='I':
             new_bkpt=self.I_bkpts()[floor(len(self.I_bkpts())/2)]
-            return [[self.intervals[0][0],new_bkpt],self.intervals[1],self.intervals[2]],[[new_bkpt,self.intervals[0][1]],self.intervals[1],self.intervals[2]]
+            return (((self.intervals[0][0],new_bkpt),self.intervals[1],self.intervals[2]),
+                    ((new_bkpt,self.intervals[0][1]),self.intervals[1],self.intervals[2]))
         elif dir=='J':
             new_bkpt=self.J_bkpts()[floor(len(self.J_bkpts())/2)]
-            return [self.intervals[0],[self.intervals[1][0],new_bkpt],self.intervals[2]],[self.intervals[0],[new_bkpt,self.intervals[1][1]],self.intervals[2]]
+            return ((self.intervals[0],(self.intervals[1][0],new_bkpt),self.intervals[2]),
+                    (self.intervals[0],(new_bkpt,self.intervals[1][1]),self.intervals[2]))
         elif dir=='K':
             new_bkpt=self.K_bkpts()[floor(len(self.K_bkpts())/2)]
-            return [self.intervals[0],self.intervals[1],[self.intervals[2][0],new_bkpt]],[self.intervals[0],self.intervals[1],[new_bkpt,self.intervals[2][1]]]
+            return ((self.intervals[0],self.intervals[1],(self.intervals[2][0],new_bkpt)),
+                    (self.intervals[0],self.intervals[1],(new_bkpt,self.intervals[2][1])))
         else:
             raise ValueError("Indivisible Region.")
 
@@ -236,7 +256,7 @@ class SubadditivityTestTree:
         True
     """
 
-    def __init__(self,fn,intervals=[[0,1],[0,1],[0,2]],global_upper_bound=0,objective_limit=0):
+    def __init__(self,fn,intervals=((0,1), (0,1), (0,2)),global_upper_bound=0,objective_limit=0):
         self.function=fn
         self.intervals=intervals
         self.global_upper_bound=global_upper_bound
@@ -246,7 +266,7 @@ class SubadditivityTestTree:
         self.complete_node_set=set([self.root])
         self.leaf_set=set([self.root])
         # the order of unfathomed nodes matters, like DFS or BFS
-        self.unfathomed_node_list=queue.PriorityQueue()    # FIXME: Not compatible with python3 because nodes are not comparable - see https://docs.python.org/3/library/queue.html
+        self.unfathomed_node_list=queue.PriorityQueue()
         self.nonsubadditive_vertices=set()
         self.additive_vertices=set()
         self.maximal_additive_faces=set()
