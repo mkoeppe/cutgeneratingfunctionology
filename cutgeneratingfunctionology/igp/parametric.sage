@@ -2010,12 +2010,8 @@ class SemialgebraicComplex(SageObject):
     Breadth-first-search to complete the complex, starting at the point (a,b)=(2,1/2), using heuristic wall-crossing, considering full-dimensional cells only::
 
         sage: complex.bfs_completion(var_value=[2, 1/2], flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=False)
-        sage: len(complex.components)
-        9
-        sage: complex.components[0].region_type
-        (b,)
-        sage: complex.components[1].region_type
-        (a*b,)
+        sage: sorted(c.region_type for c in complex.components)
+        [(0,), (0,), (0,), (0,), (1,), (b,), (a,), (a*b,), (a*b,)]
         sage: complex.plot()                                  # not tested
 
     Instead of heuristic method, we can use Mathematica's ``FindInstance`` to look for uncovered points in wall-crossing::
