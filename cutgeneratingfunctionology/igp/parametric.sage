@@ -2887,12 +2887,13 @@ def find_region_type_igp_extreme_big_cells(K, h):
                 uncovered_pts = [uncovered_pt]
                 is_extreme = False
                 break
-        # ### not sure, maybe running extremality test gives bigger cells.
-        # if is_extreme and ucs:
-        #     uc = min(ucs, key=len)
-        #     uncovered_pts = [(i[0]+i[1])/2 for i in uc]
-        #     #uncovered_pts = list(chain(*[[i[0], i[1]] for i in uc]))
-        #     is_extreme = False
+        ### not sure, maybe running extremality test gives bigger cells.
+        ### the following trick performs good on kzh_3_slope_param_extreme_1, bad on drlm... when f/2 trick is turned off.
+        if is_extreme and ucs:
+            uc = min(ucs, key=len)
+            uncovered_pts = [(i[0]+i[1])/2 for i in uc]
+            #uncovered_pts = list(chain(*[[i[0], i[1]] for i in uc]))
+            is_extreme = False
     if not is_extreme:
         h = copy(hcopy)
         bkpt1 = h.end_points()
