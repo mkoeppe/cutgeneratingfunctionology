@@ -1911,7 +1911,7 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
           ()),
          {})
 
-    Proof cells can be pickled if ``function`` is a global variable or can be pickled otherwise
+    Proof cells can be pickled if ``family`` is a global variable or can be pickled otherwise
     (lambda functions cannot be pickled)::
 
         sage: p_C = dumps(C)
@@ -1927,26 +1927,26 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
     """
 
     @staticmethod
-    def __classcall__(cls, function, var_name, var_value, default_args, find_region_type, bddleq=()):
+    def __classcall__(cls, family, var_name, var_value, default_args, find_region_type, bddleq=()):
         var_name = tuple(var_name)
         var_value = tuple(var_value)
         bddleq = tuple(bddleq)      # set? 
-        return super(ProofCell, cls).__classcall__(cls, function, var_name, var_value, default_args, find_region_type, bddleq)
+        return super(ProofCell, cls).__classcall__(cls, family, var_name, var_value, default_args, find_region_type, bddleq)
 
     @staticmethod
-    def _construct_field_and_test_point(function, var_name, var_value, default_args, bddleq=()):
+    def _construct_field_and_test_point(family, var_name, var_value, default_args, bddleq=()):
         r"""
         Construct a :class:`ParametricRealField` K using var_name and var_value.
 
         var_name and var_value are two parallel lists.
-        Construct a test_point of type dictionary, which maps each parameter of the function to the corresponding :class:`ParametricRealFieldElement` if this is a parameter of K, otherwise maps to the default argument value.
+        Construct a test_point of type dictionary, which maps each parameter of the family to the corresponding :class:`ParametricRealFieldElement` if this is a parameter of K, otherwise maps to the default argument value.
 
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.igp import *
-            sage: function=gmic; var_name=['f']; var_value=[1/2];
-            sage: default_args = read_default_args(function)
-            sage: K, test_point = ProofCell._construct_field_and_test_point(function, var_name, var_value, default_args)
+            sage: family=gmic; var_name=['f']; var_value=[1/2];
+            sage: default_args = read_default_args(family)
+            sage: K, test_point = ProofCell._construct_field_and_test_point(family, var_name, var_value, default_args)
             sage: K
             ParametricRealField(names = ['f'], values = [1/2])
             sage: test_point
@@ -1956,10 +1956,10 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
         """
         K = ParametricRealField(var_value, var_name)
         test_point = copy(default_args)
-        if isinstance(function, CPLFunctionsFactory):
+        if isinstance(family, CPLFunctionsFactory):
             # Remark: special case. Parameters are f and z=(z1, z2, ... z(n-1))
             # group variables into f and z-tuple.
-            # The constructor of cpl will call function._theta to get o-tuple,
+            # The constructor of cpl will call family._theta to get o-tuple,
             # when o is set to None (default value).
             param_name = ['f', 'z']
             param_value = [K.gens()[0], tuple(K.gens()[1::])]
@@ -1968,7 +1968,7 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
             param_value = K.gens()
         for i in range(len(param_name)):
             test_point[param_name[i]] = param_value[i]
-        args_set = set(sage_getargspec(function)[0])
+        args_set = set(sage_getargspec(family)[0])
         if 'field' in args_set:
             test_point['field'] = K
         if 'conditioncheck' in args_set:
@@ -1983,10 +1983,10 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
                 logging.warning("Test point %s doesn't satisfy %s == 0." % (var_value, l))
         return K, test_point
 
-    def __init__(self, function, var_name, var_value, default_args, find_region_type, bddleq):
-        K, test_point = self._construct_field_and_test_point(function, var_name, var_value, default_args, bddleq)
+    def __init__(self, family, var_name, var_value, default_args, find_region_type, bddleq):
+        K, test_point = self._construct_field_and_test_point(family, var_name, var_value, default_args, bddleq)
         try:
-            h = function(**test_point)
+            h = family(**test_point)
         except Exception:
             # Function is non-constructible at this random point.
             if debug_cell_exceptions:
@@ -1994,7 +1994,7 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
             h = None
         region_type = find_region_type(K, h)
         super(ProofCell, self).__init__(K, var_value, region_type)
-        self.function = function
+        self.family = family
 
 from collections import OrderedDict
 
@@ -2109,20 +2109,21 @@ class SemialgebraicComplex(SageObject):
         sage: extc.is_complete(bddlin=boundary,strict=True)                         #long time, optional - mathematica
         True
     """
-    def __init__(self, function, var_name, find_region_type=None, default_var_bound=(-0.1,1.1), bddbsa=None, kwds_dict={}, **opt_non_default):
+    def __init__(self, family, var_name, find_region_type=None, default_var_bound=(-0.1,1.1), bddbsa=None, kwds_dict={}, cell_class=None, **opt_non_default):
         r"""
         Construct a SemialgebraicComplex.
 
-        - function: we are interested in analysing how the output of this function varies with its parameters
-        - var_name: a subset of the parameters of the function that we study
-        - find_region_type: maps the output of function to a type of the parameter region;
+        - ``family``:  A class or constructor, defining a parametric family of computations
+        - var_name: a subset of the parameters of ``family``
+        - ``find_region_type``: maps the object constructed by ``family`` to a type of the parameter region;
             - set to ``None`` for functions in Gomory-Johnson model; 
             - often set to ``result_symbolic_expression`` or ``result_concrete_value`` for other functions;
         - default_var_bound: need if we use random shooting method to complete the complex; If given, the bound is also used in plotting
 
-        The following two arguments are used to define the boundary of the SemialgebraicComplex, so that bfs won't go beyond the region. They might be useful in the CPL3 examples.
+        The following argument defines the boundary of the ``SemialgebraicComplex``, so that bfs won't go beyond the region. They might be useful in the CPL3 examples.
 
-        - bddbsa: a BasicSemialgebraicSet_eq_lt_le_sets that contains the points in the complex;
+        - ``bddbsa``: a BasicSemialgebraicSet_eq_lt_le_sets that contains the points in the complex;
+
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.igp import *
@@ -2131,10 +2132,10 @@ class SemialgebraicComplex(SageObject):
         """
         #self.num_components = 0
         self.components = []
-        self.function = function
+        self.family = family
         self.d = len(var_name)
         self.var_name = var_name
-        self.default_args = read_default_args(function, **opt_non_default)
+        self.default_args = read_default_args(family, **opt_non_default)
         self.default_args.update(kwds_dict)
         self.graph = Graphics()
         self.num_plotted_components = 0
@@ -2149,6 +2150,9 @@ class SemialgebraicComplex(SageObject):
             self.bddbsa =  BasicSemialgebraicSet_eq_lt_le_sets(base_ring=QQ, ambient_dim=self.d, poly_ring=PolynomialRing(QQ, self.var_name))
         else:
             self.bddbsa = bddbsa
+        if cell_class is None:
+            cell_class = ProofCell
+        self._cell_class = cell_class
 
     def __repr__(self):
         return "SemialgebraicComplex with {} components".format(len(self.components))
@@ -2338,8 +2342,8 @@ class SemialgebraicComplex(SageObject):
             sage: complex.points_to_test                              # optional - mathematica
             OrderedDict([((19/20, 1), [])])
         """
-        new_component = ProofCell(self.function, self.var_name, var_value, self.default_args,
-                                  find_region_type=self.find_region_type, bddleq=bddleq)
+        new_component = self._cell_class(self.family, self.var_name, var_value, self.default_args,
+                                         find_region_type=self.find_region_type, bddleq=bddleq)
 
         if not allow_dim_degeneracy and len(new_component.bsa.eq_poly()) != len(bddleq):
             for l in new_component.bsa.eq_poly():

@@ -144,7 +144,7 @@ def symbolic_subbadditivity_constraints_of_cpl_given_region(r):
     """
     if r.region_type == 'not_constructible':
         return []
-    cpln = r.function
+    cpln = r.family
     n = cpln._n
     var_value = r.var_value
     var_name = r.var_name
@@ -264,7 +264,7 @@ def generate_thetas_of_region(r):
     """
     constraints = symbolic_subbadditivity_constraints_of_cpl_given_region(r)
     m = len(constraints)
-    n = r.function._n
+    n = r.family._n
     var_name = r.var_name
     coefficients_of_thetas = []
     constants = []
@@ -305,7 +305,7 @@ def cpl_fill_region_given_theta(r, theta, max_iter=0, flip_ineq_step=1/1000, che
         sage: cpl_complex.components[0].region_type
         'is_extreme'
     """
-    cpln = cpl_n_group_function(r.function._n, r.function._cpleq)
+    cpln = cpl_n_group_function(r.family._n, r.family._cpleq)
     cpln._theta = lambda f, z: tuple([t(f, *z) for t in theta])
     var_value = r.var_value
     var_name = r.var_name
