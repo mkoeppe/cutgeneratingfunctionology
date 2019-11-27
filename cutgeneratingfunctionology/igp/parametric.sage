@@ -2094,7 +2094,9 @@ class SemialgebraicComplex(SageObject):
         sage: complex = SemialgebraicComplex(drlm_backward_3_slope, ['f','bkpt'])   #long time
         sage: complex.bfs_completion(var_value=[4/5,1/2],goto_lower_dim=True)       #long time
         sage: len(complex.components)                                               #long time
-        46
+        43
+        sage: (sum(c.sage_polyhedron().plot() for c in complex.components if len(list(c.bsa.eq_poly())) == 1) + sum(c.sage_polyhedron().plot(color='red') for c in complex.components if len(list(c.bsa.eq_poly())) == 2)).show()    # not tested
+
         sage: extc = complex.subcomplex_of_cells_with_given_region_types()          #long time
         sage: len(extc.components)                                                  #long time
         6
