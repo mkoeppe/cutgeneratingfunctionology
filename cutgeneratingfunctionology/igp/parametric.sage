@@ -1804,7 +1804,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                     else:
                         pt_across_wall = pt
             if pt_across_wall is None:
-                # ineq is not an wall
+                # ineq is not a wall
                 continue
             walls.append(ineq)
             if not ((wall_crossing_method == 'heuristic_with_check') and (pt is None)):
@@ -1993,6 +1993,8 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
         super(ProofCell, self).__init__(K, var_value, region_type)
         self.function = function
 
+from collections import OrderedDict
+
 class SemialgebraicComplex(SageObject):
     r"""
     A proof complex for parameter space analysis.
@@ -2131,7 +2133,7 @@ class SemialgebraicComplex(SageObject):
         self.default_args.update(kwds_dict)
         self.graph = Graphics()
         self.num_plotted_components = 0
-        self.points_to_test = {} # a dictionary of the form {testpoint: bddleq}
+        self.points_to_test = OrderedDict() # a dictionary of the form {testpoint: bddleq}. 
         # we record bddleq for each testpoiont, since we want to restrict to lower dimensional cells when  goto_lower_dim is set to True.
         if find_region_type is None:
             self.find_region_type = find_region_type_igp
@@ -2260,7 +2262,7 @@ class SemialgebraicComplex(SageObject):
         num_failings = 0
         while not max_failings or num_failings < max_failings:
             if self.points_to_test:
-                var_value = list(self.points_to_test.popitem()[0])
+                var_value = list(self.points_to_test.popitem(last=False)[0])   # last=False -> BFS.
             else:
                 var_value = self.generate_random_var_value(var_bounds=var_bounds)
             # This point is not already covered.
@@ -2322,14 +2324,14 @@ class SemialgebraicComplex(SageObject):
             sage: complex.components[0].bsa.lt_poly()
             {x - y}
             sage: complex.points_to_test
-            {(3/2, 3/2): [x - y], (31/20, 29/20): []}
+            OrderedDict([((31/20, 29/20), []), ((3/2, 3/2), [x - y])])
 
             sage: complex = SemialgebraicComplex(lambda x,y: max(x,y^2), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))        # optional - mathematica
             sage: complex.add_new_component([1,1/2], bddleq=[], flip_ineq_step=1/10, wall_crossing_method='mathematica', goto_lower_dim=False) # the cell {(x,y): x > y^2}      # optional - mathematica
             sage: complex.components[0].lin                           # optional - mathematica
             [y^2 - x]
             sage: complex.points_to_test                              # optional - mathematica
-            {(19/20, 1): []}
+            OrderedDict([((19/20, 1), [])])
         """
         new_component = ProofCell(self.function, self.var_name, var_value, self.default_args,
                                   find_region_type=self.find_region_type, bddleq=bddleq)
@@ -2490,7 +2492,7 @@ class SemialgebraicComplex(SageObject):
         if var_value:
             self.points_to_test[tuple(var_value)] = list(self.bddbsa.eq_poly())
         while self.points_to_test: # and len(self.components)<10: #FIXME
-            var_value, bddleq = self.points_to_test.popitem()
+            var_value, bddleq = self.points_to_test.popitem(last=False)  # BFS
             var_value = list(var_value)
             if not self.is_point_covered(var_value):
                 self.add_new_component(var_value, bddleq=bddleq, flip_ineq_step=flip_ineq_step, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim, allow_dim_degeneracy=allow_dim_degeneracy)
@@ -3154,7 +3156,7 @@ def embed_function_into_family(given_function, parametric_family, check_completi
     is_complete = False
     while not is_complete:
         while complex.points_to_test:
-            var_value, bddleq = complex.points_to_test.popitem()
+            var_value, bddleq = complex.points_to_test.popitem(last=False)
             var_value = list(var_value)
             if not complex.is_point_covered(var_value):
                 complex.add_new_component(var_value, bddleq=bddleq, goto_lower_dim=True, flip_ineq_step=flip_ineq_step, **opt)
