@@ -1592,8 +1592,9 @@ def substitute_llt_lle(llt, lle, var_map, var_name, var_value):
         sage: P.<x,y>=QQ[]
         sage: var_map = {y: y, x: 75/19*y}
         sage: llt = [21*x - 8, -x, 950*x^2 - 3700*x*y - 225*y^2 - 133*x]
-        sage: substitute_llt_lle(llt, [], var_map, ['x','y'], [38/100, 96/1000])
-        ([1575*y - 152, -y], [])
+        sage: llt, lle = substitute_llt_lle(llt, [], var_map, ['x','y'], [38/100, 96/1000])
+        sage: sorted(llt)
+        [-y, 1575*y - 152]
     """
     # Shall we factorize ineq in lins after substitution using var_map?
     # Yes, otherwise, got -525/19*lam2^2 - 525*lam2 in chen's 4 slope
@@ -2971,8 +2972,9 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
 
     After walking towards ineq==0, ineqs < 0 is violated. Need to adjust::
 
-        sage: find_point_flip_ineq_heuristic([1,9/10], a+b-2, [-a+b^2], 1/2)
-        (123/85, 179/170)
+        sage: x, y = find_point_flip_ineq_heuristic([1,9/10], a+b-2, [-a+b^2], 1/2)
+        sage: float(x), float(y)    # abs tol 1e-10
+        (1.4470588235294117, 1.0529411764705883)
         sage: find_point_flip_ineq_heuristic([11/40,1/2], a+b-2, [-a+b^2], 1/4)
         (39295901/31739294, 125037049/123564610)
 
