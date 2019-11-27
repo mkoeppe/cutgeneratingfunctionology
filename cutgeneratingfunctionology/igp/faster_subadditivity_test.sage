@@ -415,6 +415,33 @@ class SubadditivityTestTree:
         return next_level
 
     def is_subadditive(self,stop_if_fail=False,cache_additive_vertices=False,search_method='BB',**kwds):
+        """
+        Check whether the mininum of delta pi is no smaller than objective_limit.
+        If the parameter cache_additive_vertices is True, then we cache vertices where delta pi equals objective_limit.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)
+            sage: h = not_minimal_1()
+            sage: T = SubadditivityTestTree(h)
+            sage: T.minimum()
+            -1/5
+            sage: T = SubadditivityTestTree(h, objective_limit=-1/5)
+            sage: T.is_subadditive()
+            True
+            sage: T = SubadditivityTestTree(h, objective_limit=0)
+            sage: T.is_subadditive()
+            False
+
+            sage: T = SubadditivityTestTree(h, objective_limit=-1/5)
+            sage: T.is_subadditive(cache_additive_vertices=True)
+            True
+            sage: T.additive_vertices
+            {(1/5, 1/5, 2/5)}
+            sage: h(1/5)+h(1/5)-h(2/5) == T.objective_limit
+            True
+        """
         if search_method=='BFS' or search_method=='DFS':
             self.unfathomed_node_list.put((0,self.root))
         elif search_method=='BB':
