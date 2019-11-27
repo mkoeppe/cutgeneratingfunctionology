@@ -34,6 +34,11 @@ def projections_new(vertices):
 
 class SubadditivityTestTreeNode(object):
 
+    """
+    Class for the node in the spatial branch and bound tree for subadditivity testing.
+
+    """
+
     def __init__(self, fn, level, intervals):
 
         self.intervals=tuple(tuple(I) for I in intervals)
@@ -102,21 +107,81 @@ class SubadditivityTestTreeNode(object):
         return self._K_values
 
     def delta_pi_constant_lower_bound(self):
+        """
+        Compute the constant lower bound of delta pi in the current region defined by self.intervals. The bound is (min of fn on proj(I)) + (min of fn on proj(J)) - (max of fn on proj(K)).
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)
+            sage: h = kzh_7_slope_1()
+            sage: T = SubadditivityTestTree(h)
+            sage: T.is_subadditive()
+            True
+            sage: T.height
+            16
+            sage: N = T.root.left_child.right_child.left_child.right_child.left_child.right_child
+            sage: N.intervals
+            ((13/33, 16/33), (14/33, 1), (0, 1))
+            sage: N.projections
+            [[13/33, 16/33], [14/33, 20/33], [9/11, 1]]
+            sage: N.delta_pi_constant_lower_bound() # min([13/33, 16/33]) + min([14/33, 20/33]) - max([9/11, 1])
+            -9/22
+        """
         alpha_I=min(self.I_values())
         alpha_J=min(self.J_values())
         beta_K=max(self.K_values())
         return alpha_I+alpha_J-beta_K
 
     def delta_pi_trivial_affine_lower_bound(self):
+        """
+        One heuristic affine lower bound of delta pi. Each affine estimator's slope is fixed and depends on the two endpoints of the corresponding interval.
+        Time complexity is the same as constant lower bound.
+        No guarantee that the bound is better than constant lower bound.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)
+            sage: h = kzh_7_slope_1()
+            sage: T = SubadditivityTestTree(h)
+            sage: T.is_subadditive()
+            True
+            sage: N = T.root.left_child.right_child.left_child.right_child.left_child.right_child
+            sage: N.delta_pi_trivial_affine_lower_bound()
+            -13/18
+        """
         slope_I=(self.I_values()[0]-self.I_values()[-1])/(self.I_bkpts()[0]-self.I_bkpts()[-1])
         slope_J=(self.J_values()[0]-self.J_values()[-1])/(self.J_bkpts()[0]-self.J_bkpts()[-1])
         slope_K=(self.K_values()[0]-self.K_values()[-1])/(self.K_bkpts()[0]-self.K_bkpts()[-1])
         return self.delta_pi_fast_affine_lower_bound(slope_I,slope_J,slope_K)
 
     def delta_pi_fast_lower_bound(self):
+        """
+        Choose the better bound between constant and trivial affine lower bounds.
+        """
         return max(self.delta_pi_constant_lower_bound(),self.delta_pi_trivial_affine_lower_bound())
 
     def delta_pi_affine_lower_bound(self,solver='Coin'):
+        """
+        Compute the best lower bound of delta pi if using affine estimators, by solving an LP.
+        The bound is guaranteed to be no worse than any other bounds in this code.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)
+            sage: h = kzh_7_slope_1()
+            sage: T = SubadditivityTestTree(h)
+            sage: T.is_subadditive()
+            True
+            sage: N = T.root.left_child.right_child.left_child.right_child.left_child.right_child
+            sage: N.delta_pi_affine_lower_bound('PPL')
+            -1/3
+            sage: N.delta_pi_affine_lower_bound('PPL') > N.delta_pi_fast_lower_bound()
+            True
+        """
+
         p = MixedIntegerLinearProgram(maximization=True, solver=solver)
         v = p.new_variable()
         m1, b1, m2, b2, m3, b3, deltamin= v['m1'], v['b1'], v['m2'], v['b2'], v['m3'], v['b3'], v['deltamin']
@@ -141,6 +206,22 @@ class SubadditivityTestTreeNode(object):
         return min(m_I*v[0]+b_I+m_J*v[1]+b_J-m_K*(v[0]+v[1])-b_K for v in self.vertices)
 
     def delta_pi_fast_affine_lower_bound(self,slope_I,slope_J,slope_K):
+        """
+        If the slopes of the affine estimators are fixed, then compute the best intersepts first. Then compute the affine lower bound of delta pi.
+        Note that if slope_I=slope_J=slope_K=0, then the bound is the constant bound.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)
+            sage: h = kzh_7_slope_1()
+            sage: T = SubadditivityTestTree(h)
+            sage: T.is_subadditive()
+            True
+            sage: N = T.root.left_child.right_child.left_child.right_child.left_child.right_child
+            sage: N.delta_pi_fast_affine_lower_bound(0,0,0)==N.delta_pi_constant_lower_bound()
+            True
+        """
         intercept_I=find_best_intercept(self.I_bkpts(),self.I_values(),slope_I,lower_bound=True)
         intercept_J=find_best_intercept(self.J_bkpts(),self.J_values(),slope_J,lower_bound=True)
         intercept_K=find_best_intercept(self.K_bkpts(),self.K_values(),slope_K,lower_bound=False)
@@ -149,7 +230,7 @@ class SubadditivityTestTreeNode(object):
 
     def delta_pi_lower_bound(self,max_number_of_bkpts=0,solver='Coin'):
         """
-        Strategic lower bound of delta pi. If the number of bkpts is small, use affine bound. Use constant bound otherwise.
+        Strategic lower bound of delta pi. If the total number of bkpts in I,J,K is small, use affine bound by solving the LP. Use constant bound if max_number_of_bkpts=0. Otherwise use delta_pi_fast_lower_bound.
         """
         if hasattr(self,'_delta_pi_lb'):
             return self._delta_pi_lb
@@ -163,6 +244,9 @@ class SubadditivityTestTreeNode(object):
         return lower_bound
 
     def delta_pi_upper_bound(self):
+        """
+        Compute the upper bound of delta pi based on the values of delta pi on the vertices of the region.
+        """
         if hasattr(self,'_delta_pi_ub'):
             return self._delta_pi_ub
         self._delta_pi_ub=min(self.function(v[0])+self.function(v[1])-self.function(v[2] if v[2]<=1 else v[2]-1) for v in self.vertices)
