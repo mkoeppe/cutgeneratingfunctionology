@@ -130,9 +130,6 @@ def FM_clipped_relu_1d(base_ring,poly_ring):
         sage: K.<L,U,W,b,C>=ParametricRealField([QQ(-2),QQ(2),QQ(1),QQ(1/2),QQ(2)])
         sage: Q.<x1,x2,x3,x,y,z1,z2,z3> = K[]
         sage: bsa = FM_clipped_relu_1d(K,Q)
-        sage: with K.off_the_record():
-        ....:     bsa.le_poly()
-
     """
     x1,x2,x3,x,y,z1,z2,z3 = iter(poly_ring.gens())
     L,U,W,b,C = iter(base_ring.gens())
@@ -146,7 +143,6 @@ def FM_clipped_relu_1d(base_ring,poly_ring):
     
     #base_ring.freeze()
 
-    
     A=[]
     A.append([0,0,0,0,0,1,1,1,-1])
     A.append([0,0,0,0,0,-1,-1,-1,1])
@@ -164,6 +160,7 @@ def FM_clipped_relu_1d(base_ring,poly_ring):
     A.append([0,0,0,0,1,0,-C,-C,0])
     A.append([0,W,0,0,-1,0,b,C,0])
     A.append([0,-W,0,0,1,0,-b,-C,0])
+    return A
 
 def normalize(polynomial, index):
     poly_ring = polynomial.parent()
