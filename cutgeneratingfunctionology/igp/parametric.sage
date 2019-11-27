@@ -1663,9 +1663,11 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         sage: component.bsa
         BasicSemialgebraicSet_eq_lt_le_sets(eq=[], lt=[x + y - 2, y^2 - x], le=[])
         sage: component.plot()                                  # not tested
-        sage: component.find_walls_and_new_points(1/4, 'heuristic', goto_lower_dim=False, complex=complex)
-        ([y^2 - x, x + y - 2],
-         {(19959383/28510088, 24590405/28510088): [], (11/8, 7/8): []})
+        sage: walls, new_points = component.find_walls_and_new_points(1/4, 'heuristic', goto_lower_dim=False, complex=complex)
+        sage: sorted(walls)
+        [x + y - 2, y^2 - x]
+        sage: sorted(new_points.items())
+        [((19959383/28510088, 24590405/28510088), []), ((11/8, 7/8), [])]
         sage: component.find_walls_and_new_points(1/4, 'mathematica', goto_lower_dim=True, complex=complex)  # optional - mathematica
         ([x + y - 2, y^2 - x],
          {(0, 0): [y^2 - x],
