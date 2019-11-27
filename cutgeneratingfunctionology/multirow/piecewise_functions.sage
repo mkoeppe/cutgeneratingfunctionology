@@ -1198,7 +1198,7 @@ def minimality_test_multirow(fn, f=None):
         sage: h = hildebrand_discont_3_slope_1()
         sage: fn = piecewise_polynomial_polyhedral_from_fast_piecewise(h)
         sage: h_diag_strip = fn.affine_linear_embedding(matrix([(1,1)]))
-        sage: minimality_test_multirow(h_diag_strip, f=[1/4,1/4]) #long time  #takes 110 seconds
+        sage: minimality_test_multirow(h_diag_strip, f=[1/4,1/4]) # known bug  # Heisenbug #long time  #takes 110 seconds
         True
         sage: M = matrix([[0,1/4,1/2],[1/4,1/2,3/4],[1/2,3/4,1]])  # q=3
         sage: fn = PiecewisePolynomial_polyhedral.from_values_on_group_triangulation(M)
@@ -1280,6 +1280,7 @@ def minimality_test_multirow(fn, f=None):
     # number of pieces in delta = 2 * (number of pieces in fn)^3!
     # using the unit hypercube as fundamental domain, for M1 in 3d, 2*93^3=1608714 pieces in delta. 
     delta = subadditivity_slack_delta(fn)
+    # FIXME: Is the following code correct?
     domain_z_equals_f = Polyhedron(vertices=[[0]*d+f, [1]*d+[x-1 for x in f]]) # should be a line, but PiecewisePolynomial_polyhedral.restricted_to_domain() can only take bounded domain. We construct a line segment and extend it by periodicity.
     delta_restricted = delta.restricted_to_domain(domain_z_equals_f)
     if not delta_restricted.is_constantly_equal_to(0):  # symmetric condition
