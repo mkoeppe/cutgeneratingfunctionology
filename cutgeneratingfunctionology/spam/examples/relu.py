@@ -116,6 +116,55 @@ def FM_relu_2d(base_ring,poly_ring):
     normalized_le = set([normalize(le, -2) for le in bsa_eliminated.le_poly()])
     return BasicSemialgebraicSet_polyhedral_linear_system(poly_ring=bsa_eliminated.poly_ring(), le=normalized_le)
 
+def FM_clipped_relu_1d(base_ring,poly_ring):
+    """
+    One dimensional clipped relu y = max(0, min (W*x+b, C)) with x in [L,U].
+    Original variables (x1,x2,x3,x,y,z1,z2,z3) in the extended formulation.
+    We have x1+x2+x3=x, and the goal is to eliminate x1,x2,x3 and get a non-extended formulation.
+    
+    EXAMPLE::
+    
+        sage: import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
+        sage: from cutgeneratingfunctionology.spam.examples.relu import *
+        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: K.<L,U,W,b,C>=ParametricRealField([QQ(-2),QQ(2),QQ(1),QQ(1/2),QQ(2)])
+        sage: Q.<x1,x2,x3,x,y,z1,z2,z3> = K[]
+        sage: bsa = FM_clipped_relu_1d(K,Q)
+        sage: with K.off_the_record():
+        ....:     bsa.le_poly()
+
+    """
+    x1,x2,x3,x,y,z1,z2,z3 = iter(poly_ring.gens())
+    L,U,W,b,C = iter(base_ring.gens())
+    # assumptions
+    assert L<0
+    assert U>0
+    assert W>0
+    assert C>0
+    assert W*U+b>C
+    assert W*L+b<0
+    
+    #base_ring.freeze()
+
+    
+    A=[]
+    A.append([0,0,0,0,0,1,1,1,-1])
+    A.append([0,0,0,0,0,-1,-1,-1,1])
+    A.append([1,0,0,0,0,-U,0,0,0])
+    A.append([-1,0,0,0,0,L,0,0,0])
+    A.append([0,1,0,0,0,0,-U,0,0])
+    A.append([0,-1,0,0,0,0,L,0,0])
+    A.append([0,0,1,0,0,0,0,-U,0])
+    A.append([0,0,-1,0,0,0,0,L,0])
+    A.append([1,1,1,-1,0,0,0,0,0])
+    A.append([-1,-1,-1,1,0,0,0,0,0])
+    A.append([W,0,0,0,0,b,0,0,0])
+    A.append([0,0,-W,0,0,0,0,C-b,0])
+    A.append([0,0,0,0,-1,0,0,C,0])
+    A.append([0,0,0,0,1,0,-C,-C,0])
+    A.append([0,W,0,0,-1,0,b,C,0])
+    A.append([0,-W,0,0,1,0,-b,-C,0])
+
 def normalize(polynomial, index):
     poly_ring = polynomial.parent()
     base_ring = poly_ring.base_ring()
