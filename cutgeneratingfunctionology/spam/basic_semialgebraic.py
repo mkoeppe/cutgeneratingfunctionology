@@ -468,6 +468,8 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             b = kwds.get(bv, None)
             if b is not None:
                 getattr(g, bv)(b)
+            else:
+                kwds.pop(bv, None) # remove xmin=None from kwds, so that the xmin etc. below work.
         xmin = max(self.linear_function_lower_bound([1,0]), kwds.get('xmin', -Infinity))
         xmax = min(self.linear_function_upper_bound([1,0]), kwds.get('xmax', +Infinity))
         ymin = max(self.linear_function_lower_bound([0,1]), kwds.get('ymin', -Infinity))

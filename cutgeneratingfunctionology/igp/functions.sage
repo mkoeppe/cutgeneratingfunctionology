@@ -1976,6 +1976,33 @@ class FastPiecewise (PiecewisePolynomial):
         else:
             raise ValueError("outside of face")
 
+    def slope(self, x0, epsilon=1):
+        endpts = self.end_points()
+        limits = self.limits_at_end_points()
+        i = bisect_left(endpts, x0)
+        if i >= len(endpts):
+            raise ValueError("Slope at %s is not defined, outside of domain." % x0)
+        if x0 == endpts[i]:
+            if epsilon > 0:
+                if limits[i][epsilon] == limits[i][0]:
+                    return (limits[i+1][-epsilon]-limits[i][0])/(endpts[i+1]-endpts[i])
+                elif limits[i][epsilon] > limits[i][0]:
+                    return +Infinity
+                else:
+                    return -Infinity
+            elif epsilon < 0:
+                if limits[i][epsilon] == limits[i][0]:
+                    return (limits[i-1][-epsilon]-limits[i][0])/(endpts[i-1]-endpts[i])
+                elif limits[i][epsilon] < limits[i][0]:
+                    return +Infinity
+                else:
+                    return -Infinity
+            else:
+                raise ValueError("Slope at %s is not defined." % x0)
+        if i == 0:
+            raise ValueError("Slope at %s is not defined, outside of domain." % x0)
+        return  (limits[i][-1]-limits[i-1][1])/(endpts[i]-endpts[i-1])
+
     def which_function_on_interval(self, interval):
         x = (interval[0] + interval[1]) / 2
         # FIXME: This should check that the given interval is contained in the defining interval!
