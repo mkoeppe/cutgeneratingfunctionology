@@ -44,6 +44,35 @@ class SubadditivityTestTreeNode(object):
      - ``N.affine_estimators = [[slope_I, intercept_I], [slope_J, intercept_J], [slope_K, intercept_K]]``
        describes affine linear underestimators for `\pi` on the restrictions to intervals `I` and `J`
        and an overestimator for `pi` on the restriction to the interval `K`.
+
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: h = kzh_7_slope_1()
+        sage: T = SubadditivityTestTree(h)
+        sage: T.is_subadditive()
+        True
+        sage: # check affine_estimators are exact functions if the node is indivisible.
+        sage: for node in T.leaf_set:
+        ....:     if not node.is_divisible():
+        ....:         break
+        sage: slope_I, intercept_I = node.affine_estimators[0]
+        sage: slope_I*node.I_bkpts()[0]+intercept_I == node.I_values()[0]
+        True
+        sage: slope_I*node.I_bkpts()[1]+intercept_I == node.I_values()[1]
+        True
+        sage: slope_J, intercept_J = node.affine_estimators[1]
+        sage: slope_J*node.J_bkpts()[0]+intercept_J == node.J_values()[0]
+        True
+        sage: slope_J*node.J_bkpts()[1]+intercept_J == node.J_values()[1]
+        True
+        sage: slope_K, intercept_K = node.affine_estimators[2]
+        sage: slope_K*node.K_bkpts()[0]+intercept_K == node.K_values()[0]
+        True
+        sage: slope_K*node.K_bkpts()[1]+intercept_K == node.K_values()[1]
+        True
     """
 
     def __init__(self, fn, level, intervals):
@@ -261,6 +290,8 @@ class SubadditivityTestTreeNode(object):
         """
         if hasattr(self,'_delta_pi_lb'):
             return self._delta_pi_lb
+        if not self.is_divisible():
+            return self.delta_pi_upper_bound()
         if max_number_of_bkpts==0:
             lower_bound, estimators=self.delta_pi_constant_lower_bound()
         elif len(self.I_bkpts())+len(self.J_bkpts())+len(self.K_bkpts())<=max_number_of_bkpts:
@@ -318,6 +349,15 @@ class SubadditivityTestTreeNode(object):
 
     def is_divisible(self):
         if len(self.I_bkpts())==2 and len(self.J_bkpts())==2 and len(self.K_bkpts())==2:
+            # if the node is indivisible, then affine_estimators equals the exact function.
+            if self.affine_estimators is None:
+                slope_I=(self.I_values()[0]-self.I_values()[1])/(self.I_bkpts()[0]-self.I_bkpts()[1])
+                slope_J=(self.J_values()[0]-self.J_values()[1])/(self.J_bkpts()[0]-self.J_bkpts()[1])
+                slope_K=(self.K_values()[0]-self.K_values()[1])/(self.K_bkpts()[0]-self.K_bkpts()[1])
+                intercept_I=self.I_values()[0]-slope_I*self.I_bkpts()[0]
+                intercept_J=self.J_values()[0]-slope_J*self.J_bkpts()[0]
+                intercept_K=self.K_values()[0]-slope_K*self.K_bkpts()[0]
+                self.affine_estimators=[[slope_I,intercept_I],[slope_J,intercept_J],[slope_K,intercept_K]]
             return False
         else:
             return True
