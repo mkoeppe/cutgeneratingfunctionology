@@ -49,6 +49,7 @@ class SubadditivityTestTreeNode(object):
         self.left_child=None
         self.right_child=None
         self.parent=None
+        self.affine_estimators=None
 
     # SubadditivityTestTreeNode sort lexicographically by intervals.
     # We implement this so that PriorityQueue can be used with it in Py3.
@@ -109,6 +110,7 @@ class SubadditivityTestTreeNode(object):
     def delta_pi_constant_lower_bound(self):
         """
         Compute the constant lower bound of delta pi in the current region defined by self.intervals. The bound is (min of fn on proj(I)) + (min of fn on proj(J)) - (max of fn on proj(K)).
+        The second output is the slope and intercept values of three estimators.
 
         EXAMPLES::
 
@@ -125,19 +127,23 @@ class SubadditivityTestTreeNode(object):
             ((13/33, 16/33), (14/33, 1), (0, 1))
             sage: N.projections
             [[13/33, 16/33], [14/33, 20/33], [9/11, 1]]
-            sage: N.delta_pi_constant_lower_bound() # min([13/33, 16/33]) + min([14/33, 20/33]) - max([9/11, 1])
+            sage: lb, estimators = N.delta_pi_constant_lower_bound() # min([13/33, 16/33]) + min([14/33, 20/33]) - max([9/11, 1])
+            sage: lb
             -9/22
+            sage: estimators
+            [[0, 13/66], [0, 13/66], [0, 53/66]]
         """
         alpha_I=min(self.I_values())
         alpha_J=min(self.J_values())
         beta_K=max(self.K_values())
-        return alpha_I+alpha_J-beta_K
+        return alpha_I+alpha_J-beta_K, [[0,alpha_I],[0,alpha_J],[0,beta_K]]
 
     def delta_pi_trivial_affine_lower_bound(self):
         """
         One heuristic affine lower bound of delta pi. Each affine estimator's slope is fixed and depends on the two endpoints of the corresponding interval.
         Time complexity is the same as constant lower bound.
         No guarantee that the bound is better than constant lower bound.
+        The second output is the slope and intercept values of three estimators.
 
         EXAMPLES::
 
@@ -148,8 +154,11 @@ class SubadditivityTestTreeNode(object):
             sage: T.is_subadditive()
             True
             sage: N = T.root.left_child.right_child.left_child.right_child.left_child.right_child
-            sage: N.delta_pi_trivial_affine_lower_bound()
+            sage: lb, estimators = N.delta_pi_trivial_affine_lower_bound()
+            sage: lb
             -13/18
+            sage: estimators
+            [[7/6, -1/3], [-19/12, 11/12], [-41/12, 35/9]]
         """
         slope_I=(self.I_values()[0]-self.I_values()[-1])/(self.I_bkpts()[0]-self.I_bkpts()[-1])
         slope_J=(self.J_values()[0]-self.J_values()[-1])/(self.J_bkpts()[0]-self.J_bkpts()[-1])
@@ -159,13 +168,20 @@ class SubadditivityTestTreeNode(object):
     def delta_pi_fast_lower_bound(self):
         """
         Choose the better bound between constant and trivial affine lower bounds.
+        The second output is the slope and intercept values of three estimators.
         """
-        return max(self.delta_pi_constant_lower_bound(),self.delta_pi_trivial_affine_lower_bound())
+        constant_bound, constant_estimators = self.delta_pi_constant_lower_bound()
+        trivial_affine_bound, affine_estimators = self.delta_pi_trivial_affine_lower_bound()
+        if constant_bound>=trivial_affine_bound:
+            return constant_bound, constant_estimators
+        else:
+            return trivial_affine_bound, affine_estimators
 
     def delta_pi_affine_lower_bound(self,solver='Coin'):
         """
         Compute the best lower bound of delta pi if using affine estimators, by solving an LP.
         The bound is guaranteed to be no worse than any other bounds in this code.
+        The second output is the slope and intercept values of three estimators.
 
         EXAMPLES::
 
@@ -176,9 +192,12 @@ class SubadditivityTestTreeNode(object):
             sage: T.is_subadditive()
             True
             sage: N = T.root.left_child.right_child.left_child.right_child.left_child.right_child
-            sage: N.delta_pi_affine_lower_bound('PPL')
+            sage: lb, estimators = N.delta_pi_affine_lower_bound('PPL')
+            sage: lb
             -1/3
-            sage: N.delta_pi_affine_lower_bound('PPL') > N.delta_pi_fast_lower_bound()
+            sage: estimators
+            [[-5/2, 4/3], [-5/2, 4/3], [-5/2, 3]]
+            sage: N.delta_pi_affine_lower_bound('PPL')[0] > N.delta_pi_fast_lower_bound()[0]
             True
         """
 
@@ -203,12 +222,13 @@ class SubadditivityTestTreeNode(object):
         b_I=min(self.I_values()[i]-m_I*self.I_bkpts()[i] for i in range(len(self.I_values())))
         b_J=min(self.J_values()[i]-m_J*self.J_bkpts()[i] for i in range(len(self.J_values())))
         b_K=max(self.K_values()[i]-m_K*self.K_bkpts()[i] for i in range(len(self.K_values())))
-        return min(m_I*v[0]+b_I+m_J*v[1]+b_J-m_K*(v[0]+v[1])-b_K for v in self.vertices)
+        return min(m_I*v[0]+b_I+m_J*v[1]+b_J-m_K*(v[0]+v[1])-b_K for v in self.vertices), [[m_I,b_I],[m_J,b_J],[m_K,b_K]]
 
     def delta_pi_fast_affine_lower_bound(self,slope_I,slope_J,slope_K):
         """
         If the slopes of the affine estimators are fixed, then compute the best intersepts first. Then compute the affine lower bound of delta pi.
         Note that if slope_I=slope_J=slope_K=0, then the bound is the constant bound.
+        The second output is the slope and intercept values of three estimators.
 
         EXAMPLES::
 
@@ -219,14 +239,14 @@ class SubadditivityTestTreeNode(object):
             sage: T.is_subadditive()
             True
             sage: N = T.root.left_child.right_child.left_child.right_child.left_child.right_child
-            sage: N.delta_pi_fast_affine_lower_bound(0,0,0)==N.delta_pi_constant_lower_bound()
+            sage: N.delta_pi_fast_affine_lower_bound(0,0,0) == N.delta_pi_constant_lower_bound()
             True
         """
         intercept_I=find_best_intercept(self.I_bkpts(),self.I_values(),slope_I,lower_bound=True)
         intercept_J=find_best_intercept(self.J_bkpts(),self.J_values(),slope_J,lower_bound=True)
         intercept_K=find_best_intercept(self.K_bkpts(),self.K_values(),slope_K,lower_bound=False)
         lower_bound=min((slope_I*vertex[0]+intercept_I)+(slope_J*vertex[1]+intercept_J)-(slope_K*(vertex[0]+vertex[1])+intercept_K) for vertex in self.vertices)
-        return lower_bound
+        return lower_bound, [[slope_I,intercept_I],[slope_J,intercept_J],[slope_K,intercept_K]]
 
     def delta_pi_lower_bound(self,max_number_of_bkpts=0,solver='Coin'):
         """
@@ -235,12 +255,14 @@ class SubadditivityTestTreeNode(object):
         if hasattr(self,'_delta_pi_lb'):
             return self._delta_pi_lb
         if max_number_of_bkpts==0:
-            lower_bound=self.delta_pi_constant_lower_bound()
+            lower_bound, estimators=self.delta_pi_constant_lower_bound()
         elif len(self.I_bkpts())+len(self.J_bkpts())+len(self.K_bkpts())<=max_number_of_bkpts:
-            lower_bound=self.delta_pi_affine_lower_bound(solver=solver)
+            lower_bound, estimators=self.delta_pi_affine_lower_bound(solver=solver)
         else:
-            lower_bound=self.delta_pi_fast_lower_bound()
+            lower_bound, estimators=self.delta_pi_fast_lower_bound()
         self._delta_pi_lb=lower_bound
+        # cache the three estimators.
+        self.affine_estimators=estimators
         return lower_bound
 
     def delta_pi_upper_bound(self):
