@@ -37,6 +37,13 @@ class SubadditivityTestTreeNode(object):
     """
     Class for the node in the spatial branch and bound tree for subadditivity testing.
 
+    Each node ``N`` has the following attributes:
+
+     - ......
+
+     - ``N.affine_estimators = [[slope_I, intercept_I], [slope_J, intercept_J], [slope_K, intercept_K]]``
+       describes affine linear underestimators for `\pi` on the restrictions to intervals `I` and `J`
+       and an overestimator for `pi` on the restriction to the interval `K`.
     """
 
     def __init__(self, fn, level, intervals):
