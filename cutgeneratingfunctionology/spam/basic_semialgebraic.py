@@ -1097,10 +1097,33 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
     r"""
     A basic semialgebraic set, represented in a straightforward way
     as 3 finite sets of polynomial constraints `p(x) OP 0`.
+
+    It does not remember the order of the polynomials provided at initialization.
     """
 
     def __init__(self, base_ring=None, ambient_dim=None, poly_ring=None, eq=[], lt=[], le=[]):
         r"""
+        Construct a basic semialgebraic set.
+
+        INPUT::
+
+        - ``base_ring`` - the field in which the coefficients of the polynomials live.
+
+        - ``ambient_dim`` - the dimension of the affine space.
+
+        - ``poly_ring`` - a polynomial ring over ``base_ring`` in ``ambient_dim` variables.
+
+        - ``eq`` - an iterable of finitely many polynomials `p(x)` in ``poly_ring`` that describe
+          equations `p(x) = 0`.
+
+        - ``lt`` - an iterable of finitely many polynomials `p(x)` in ``poly_ring`` that describe
+          strict inequalities `p(x) < 0`.
+
+        - ``le`` - an iterable of finitely many polynomials `p(x)` in ``poly_ring`` that describe
+          inequalities `p(x) \leq 0`.
+
+        If any polynomial is provided, ``poly_ring`` is inferred etc.
+
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
