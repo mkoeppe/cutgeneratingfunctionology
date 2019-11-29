@@ -3,7 +3,7 @@ def cpl_n_group_function(n, cpleq=False, merge=True):
     return CPLFunctionsFactory(n, cpleq, merge)
 
 class CPLFunctionsFactory:
-    """
+    r"""
     A Factory of CPL functions.
 
     EXAMPLES::
@@ -98,7 +98,7 @@ def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, max_iter=0, flip_ineq
     return regions
 
 def plot_cpl_components(components, show_testpoints=False):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -121,7 +121,7 @@ def plot_cpl_components(components, show_testpoints=False):
     return g
 
 def symbolic_subbadditivity_constraints_of_cpl_given_region(r):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -175,7 +175,7 @@ def symbolic_subbadditivity_constraints_of_cpl_given_region(r):
     return constraints
 
 def coefficients_of_theta_and_rhs_in_constraint(c, var_name, n):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -249,7 +249,7 @@ def get_pretty_fraction_polynomial(fp):
     return pretty_fp
 
 def generate_thetas_of_region(r):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -288,7 +288,7 @@ def generate_thetas_of_region(r):
     return thetas
 
 def cpl_fill_region_given_theta(r, theta, max_iter=0, flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=True):
-    """
+    r"""
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -323,8 +323,8 @@ def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=Fa
                                            wall_crossing_method='heuristic', \
                                            goto_lower_dim=True, \
                                            regions = None):
-    """
-    Divide the space into cells where the arrangement of breakpoints of `\\pi` is combinatorially the same.
+    r"""
+    Divide the space into cells where the arrangement of breakpoints of `\pi` is combinatorially the same.
 
     For each region, find theta solutions, then subdivide into smaller components by running bfs with parametric field.
 
@@ -354,7 +354,7 @@ def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=Fa
 
 
 def cpl_thetas_and_regions_extreme(regions):
-    """
+    r"""
     Gather the blue components that correspond to the same expression of theta together.
 
     EXAMPLES::
@@ -396,7 +396,7 @@ def cpl_regions_fix_theta(regions, theta):
     return components
 
 def cpl_thetas_and_regions(regions, thetas_and_regions):
-    """
+    r"""
     Gather colorful components that correspond to the same expression of theta together.
 
     EXAMPLES::
@@ -413,7 +413,7 @@ def cpl_thetas_and_regions(regions, thetas_and_regions):
     return thetas_and_components
 
 def save_cpl_extreme_theta_regions(thetas_and_regions, name="cpl_theta"):
-    """
+    r"""
     To plot only blue regions.
     Get diagrams "cpl_ext_theta_i" that show only blue regions.
 
