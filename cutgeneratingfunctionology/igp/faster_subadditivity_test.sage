@@ -386,6 +386,52 @@ class SubadditivityTestTreeNode(object):
         else:
             return True
 
+    def verify_estimators(self):
+        """
+        If affine estimators have been computed, then verirify that it is indeed lower/upper estimator.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)
+            sage: h = kzh_7_slope_1()
+            sage: T = SubadditivityTestTree(h)
+            sage: T.is_subadditive()
+            True
+            sage: correct_estimators = True
+            sage: for node in T.complete_node_set:
+            ....:     if not node.verify_estimators():
+            ....:         correct_estimators = False
+            ....:         break
+            sage: correct_estimators
+            True
+        """
+        if self.affine_estimators is None:
+            raise ValueError("Affine estimators have not been computed.")
+
+        for i in range(len(self.I_bkpts())):
+            bkpt = self.I_bkpts()[i]
+            value = self.I_values()[i]
+            slope_I, intercept_I = self.affine_estimators[0]
+            if slope_I*bkpt+intercept_I>value:
+                return False
+
+        for j in range(len(self.J_bkpts())):
+            bkpt = self.J_bkpts()[j]
+            value = self.J_values()[j]
+            slope_J, intercept_J = self.affine_estimators[1]
+            if slope_J*bkpt+intercept_J>value:
+                return False
+
+        for k in range(len(self.K_bkpts())):
+            bkpt = self.K_bkpts()[k]
+            value = self.K_values()[k]
+            slope_K, intercept_K = self.affine_estimators[2]
+            if slope_K*bkpt+intercept_K<value:
+                return False
+
+        return True
+
     def plot(self, colorful=False, **bound_kwds):
         v=[ver[:-1] for ver in self.vertices]
         region=Polyhedron(vertices=v)
