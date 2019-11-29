@@ -106,8 +106,8 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
         sage: igp.strategical_covered_components = True
         sage: igp.show_values_of_fastpiecewise = False
         sage: igp.show_RNFElement_by_embedding = False
-        sage: h = kzh_minimal_has_only_crazy_perturbation_1()
-        sage: extremality_test(h, crazy_perturbations=False)
+        sage: h = kzh_minimal_has_only_crazy_perturbation_1()         # long time
+        sage: extremality_test(h, crazy_perturbations=False)          # long time
         True
         sage: igp.strategical_covered_components = False
         sage: igp.show_values_of_fastpiecewise = True
