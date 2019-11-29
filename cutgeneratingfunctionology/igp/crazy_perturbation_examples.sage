@@ -441,7 +441,7 @@ def generate_triples_with_projections_intersecting(function, real_set, break_sym
         sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)                   # disable output for automatic tests
         sage: h = kzh_minimal_has_only_crazy_perturbation_1(parametric=True)
-        sage: faces = set(generate_faces_with_projections_intersecting(h, h.special_intervals, break_symmetry=False))
+        sage: faces = set(generate_faces_with_projections_intersecting(h, h.special_intervals, break_symmetry=False))    # long time - 90s
         sage: sum(F.plot(fill_color='lightblue', rgbcolor='blue') for F in faces).show(figsize=15, xmax=1) # not tested
     """
     # Adapted from generate_additive_faces_general
