@@ -1906,7 +1906,7 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
           (1, 2),
           {},
           <...result_symbolic_expression...>,
-          ()),
+          ...),
          {})
 
     Proof cells can be pickled if ``family`` is a global variable or can be pickled otherwise
