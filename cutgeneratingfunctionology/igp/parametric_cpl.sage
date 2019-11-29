@@ -59,7 +59,9 @@ class CPLFunctionsFactory:
         values = [(bkpts[i] - phi_values[i])/f for i in range(len(bkpts))]
         return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field, merge=self._merge)
 
-def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, max_iter=0, flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=True, max_failings=0):
+def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, max_iter=0, flip_ineq_step=1/1000,
+                                          check_completion=False, wall_crossing_method='heuristic',
+                                          goto_lower_dim=True, max_failings=0):
     """
     Got regions[0:30]: 2-dim; regions[30:78]: 1-dim; regions[78:96]: 0-dim.
 
@@ -317,11 +319,11 @@ def cpl_fill_region_given_theta(r, theta, max_iter=0, flip_ineq_step=1/1000, che
         cpl_complex.shoot_random_points(1000)
     return cpl_complex
 
-def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=False,\
-                                           max_iter=0, flip_ineq_step=1/1000, \
-                                           check_completion=False, \
-                                           wall_crossing_method='heuristic', \
-                                           goto_lower_dim=True, \
+def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=False,
+                                           max_iter=0, flip_ineq_step=1/1000,
+                                           check_completion=False,
+                                           wall_crossing_method='heuristic',
+                                           goto_lower_dim=True,
                                            regions = None):
     r"""
     Divide the space into cells where the arrangement of breakpoints of `\pi` is combinatorially the same.
@@ -339,7 +341,7 @@ def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=Fa
         regions = cpl_regions_from_arrangement_of_bkpts(n, cpleq, max_iter, flip_ineq_step, False, wall_crossing_method, goto_lower_dim) # Remark: check_completion=False for arr_complex.
     for i in range(len(regions)):
         r = regions[i]
-        logging.warn("Cell %s with test point %s." %(i, r.var_value)) # using warn for progress reporting
+        logging.warning("Cell %s with test point %s." %(i, r.var_value)) # using warning for progress reporting only
         r.thetas = {}
         thetas_of_r = generate_thetas_of_region(r)
         for theta in thetas_of_r:
