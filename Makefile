@@ -13,6 +13,7 @@ SAGEFILES =									\
 	cutgeneratingfunctionology/igp/fast_linear.sage				\
 	cutgeneratingfunctionology/igp/functions.sage				\
 	cutgeneratingfunctionology/igp/parametric.sage				\
+	cutgeneratingfunctionology/igp/parametric_cpl.sage			\
 	cutgeneratingfunctionology/igp/semialgebraic_mathematica.sage		\
 	cutgeneratingfunctionology/igp/simple_extremality_test.sage		\
 	cutgeneratingfunctionology/igp/survey_examples.sage			\
@@ -30,9 +31,6 @@ SAGEFILES =									\
 	cutgeneratingfunctionology/igp/procedures/injective_2_slope_fill_in_proof.py \
 	cutgeneratingfunctionology/igp/faster_subadditivity_test.sage		\
 	cutgeneratingfunctionology/igp/parametric_family.py
-
-## Don't test; currently broken
-# 	cutgeneratingfunctionology/igp/parametric_cpl.sage			\
 
 
 # Dual feasible functions
