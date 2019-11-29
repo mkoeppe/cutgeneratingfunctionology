@@ -1786,13 +1786,13 @@ class BasicSemialgebraicSet_intersection(BasicSemialgebraicSet_base):
         return 'BasicSemialgebraicSet_intersection({})'.format(self._bsa_list)
 
     def eq_poly(self):
-        return chain(*[bsa.eq_poly() for bsa in self._bsa_list])
+        return set(chain(*[bsa.eq_poly() for bsa in self._bsa_list]))
 
     def le_poly(self):
-        return chain(*[bsa.le_poly() for bsa in self._bsa_list])
+        return set(chain(*[bsa.le_poly() for bsa in self._bsa_list]))
 
     def lt_poly(self):
-        return chain(*[bsa.lt_poly() for bsa in self._bsa_list])
+        return set(chain(*[bsa.lt_poly() for bsa in self._bsa_list]))
 
     def linear_function_upper_bound(self, form):
         return min(bsa.linear_function_upper_bound(form) for bsa in self._bsa_list)

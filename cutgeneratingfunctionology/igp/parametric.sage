@@ -1663,12 +1663,12 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         sage: component.bsa
         BasicSemialgebraicSet_eq_lt_le_sets(eq=[], lt=[x + y - 2, y^2 - x], le=[])
         sage: component.plot()                                  # not tested
-        sage: walls, new_points = component.find_walls_and_new_points(1/4, 'heuristic', goto_lower_dim=False, complex=complex)
+        sage: walls, new_points = component.find_walls_and_new_points(1/4, 'heuristic', goto_lower_dim=False)
         sage: sorted(walls)
         [x + y - 2, y^2 - x]
         sage: sorted(new_points.items())
         [((19959383/28510088, 24590405/28510088), []), ((11/8, 7/8), [])]
-        sage: component.find_walls_and_new_points(1/4, 'mathematica', goto_lower_dim=True, complex=complex)  # optional - mathematica
+        sage: component.find_walls_and_new_points(1/4, 'mathematica', goto_lower_dim=True)  # optional - mathematica
         ([x + y - 2, y^2 - x],
          {(0, 0): [y^2 - x],
           (2, 0): [x + y - 2],
@@ -1687,10 +1687,14 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         BasicSemialgebraicSet_eq_lt_le_sets(eq=[x - 2*y], lt=[-y, 3*y - 2], le=[])
     """
 
-    def __init__(self, K, var_value, region_type):
+    def __init__(self, K, var_value, region_type, bddbsa=None):
         self.var_name = [ str(g) for g in K._bsa.poly_ring().gens() ]
         self.var_value = var_value
         self.region_type = region_type
+        if bddbsa is None:
+            self.bddbsa = BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=PolynomialRing(QQ, self.var_name))
+        else:
+            self.bddbsa = bddbsa
         self.monomial_list = K.monomial_list()
         self.v_dict = K.v_dict()
         lt_K = list(K._bsa.lt_poly())
@@ -1720,7 +1724,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         s += ")"
         return s
 
-    def plot(self, alpha=0.5, plot_points=300, slice_value=None, complex=None, show_testpoints=True, **kwds):
+    def plot(self, alpha=0.5, plot_points=300, slice_value=None, default_var_bound=None, show_testpoints=True, **kwds):
         r"""
         Plot the cell.
 
@@ -1728,19 +1732,14 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         - show_testpoints controls whether to plot the testpoint in this cell.
         - plot_points controls the quality of the plotting.
         """
-        if complex:
-            default_var_bound = complex.default_var_bound
-        else:
+        if not default_var_bound:
             default_var_bound = [None, None]
         xmin = kwds.pop('xmin', default_var_bound[0])
         xmax = kwds.pop('xmax', default_var_bound[1])
         ymin = kwds.pop('ymin', default_var_bound[0])
         ymax = kwds.pop('ymax', default_var_bound[1])
         color = kwds.pop('color', find_region_color(self.region_type))
-        if complex:
-            bsa = self.bsa.intersection(complex.bddbsa) # bsa_class is 'intersection'
-        else:
-            bsa = self.bsa
+        bsa = self.bsa.intersection(self.bddbsa) # bsa_class is 'intersection'
         g = bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color=color, fill_color=color, **kwds)
         if show_testpoints and not slice_value:
             pt = self.var_value
@@ -1752,7 +1751,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                 g += point(pt, color = ptcolor, size = 2, zorder=10)
         return g
 
-    def find_walls_and_new_points(self, flip_ineq_step, wall_crossing_method, goto_lower_dim=False, complex=None):
+    def find_walls_and_new_points(self, flip_ineq_step, wall_crossing_method, goto_lower_dim=False):
         r"""
         Try flipping exactly one inequality at one time, to reach a new testpoint in a neighbour cell.
 
@@ -1764,16 +1763,14 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         """
         walls = []
         new_points = {}
-        if complex:
-            bddllt = complex.bddbsa.lt_poly()
-            bddlle = complex.bddbsa.le_poly()
-        else:
-            bddllt = bddlle = []
+        bddllt = list(self.bddbsa.lt_poly())
+        bddlle = list(self.bddbsa.le_poly())
         if self.bsa.eq_poly():
             bddllt, bddlle = substitute_llt_lle(bddllt, bddlle, self.var_map, self.var_name, self.var_value)
             bddlin = bddllt+bddlle
         else:
             bddlin = list(bddllt) + list(bddlle)
+        #FIXME: Mixing the strict and non-strict inequalities
         selflin = list(self.bsa.lt_poly()) + list(self.bsa.le_poly())
         # decide which inequalities among self.lin are walls (irredundant).
         for i in range(len(selflin)):
@@ -1832,24 +1829,25 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                     new_points[pt_on_wall] = list(self.bsa.eq_poly()) + [ineq]
         return walls, new_points
 
-    def discard_redundant_inequalities(self, flip_ineq_step=0, complex=None):
+    def discard_redundant_inequalities(self, flip_ineq_step=0):
         r"""
         Use Mathematica's ``FindInstance`` to discard redundant inequalities in the cell description.
         TO UPDATE with bsa
         """
         walls = []
-        if complex:
-            bddlin = complex.bddlin
+        bddllt = self.bddbsa.lt_poly()
+        bddlle = self.bddbsa.le_poly()
+        if self.bsa.eq_poly():
+            bddllt, bddlle = substitute_llt_lle(bddllt, bddlle, self.var_map, self.var_name, self.var_value)
+            bddlin = bddllt+bddlle
         else:
-            bddlin = []
-        if self.leq:
-            bddlin = substitute_llt_lle(bddlin, self.var_map, self.var_name, self.var_value)
-        else:
-            bddlin = copy(bddlin)
+            bddlin = list(bddllt) + list(bddlle)
+        #FIXME: Mixing the strict and non-strict inequalities
+        selflin = list(self.bsa.lt_poly()) + list(self.bsa.le_poly())
         # decide which inequalities among self.lin are walls (irredundant).
-        for i in range(len(self.lin)):
-            ineq = self.lin[i]
-            ineqs = self.lin[i+1::] + bddlin
+        for i in range(len(selflin)):
+            ineq = selflin[i]
+            ineqs = selflin[i+1::] + bddlin
             if ineq in ineqs:
                 continue
             ineqs = walls + ineqs
@@ -1859,7 +1857,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                     pt_across_wall = pt
                     break
             if pt_across_wall is None:
-                condstr_others = write_mathematica_constraints(self.leq, ineqs)
+                condstr_others = write_mathematica_constraints(self.bsa.eq_poly(), ineqs)
                 # maybe shouldn't put self.leq into FindInstance, but solve using var_map later.
                 condstr_ineq = '0<'+str(ineq)
                 if flip_ineq_step > 0:  # experimental. see hyperbole example where wall x=1/2 is not unique; discard it in this case.
@@ -1867,7 +1865,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                 pt_across_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.var_name)
             if not (pt_across_wall is None):
                 walls.append(ineq)
-        self.lin = walls
+        self._lt = set(walls)
 
     def is_polyhedral(self):
         for l in list(self.bsa.eq_poly()) + list(self.bsa.lt_poly()) + list(self.bsa.le_poly()):
@@ -1927,11 +1925,11 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
     """
 
     @staticmethod
-    def __classcall__(cls, family, var_name, var_value, default_args, find_region_type, bddleq=()):
+    def __classcall__(cls, family, var_name, var_value, default_args, find_region_type, bddleq=(), bddbsa=None):
         var_name = tuple(var_name)
         var_value = tuple(var_value)
         bddleq = tuple(bddleq)      # set? 
-        return super(ProofCell, cls).__classcall__(cls, family, var_name, var_value, default_args, find_region_type, bddleq)
+        return super(ProofCell, cls).__classcall__(cls, family, var_name, var_value, default_args, find_region_type, bddleq, bddbsa)
 
     @staticmethod
     def _construct_field_and_test_point(family, var_name, var_value, default_args, bddleq=()):
@@ -1983,7 +1981,7 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
                 logging.warning("Test point %s doesn't satisfy %s == 0." % (var_value, l))
         return K, test_point
 
-    def __init__(self, family, var_name, var_value, default_args, find_region_type, bddleq):
+    def __init__(self, family, var_name, var_value, default_args, find_region_type, bddleq, bddbsa):
         K, test_point = self._construct_field_and_test_point(family, var_name, var_value, default_args, bddleq)
         try:
             h = family(**test_point)
@@ -1993,7 +1991,7 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
                 import pdb; pdb.post_mortem()
             h = None
         region_type = find_region_type(K, h)
-        super(ProofCell, self).__init__(K, var_value, region_type)
+        super(ProofCell, self).__init__(K, var_value, region_type, bddbsa)
         self.family = family
 
 from collections import OrderedDict
@@ -2301,7 +2299,8 @@ class SemialgebraicComplex(SageObject):
             False
         """
         if not bddleq and not bddlin:
-            condstr = write_mathematica_constraints(self.bddleq, self.bddlin, strict=True) #why strict = strict doesn't work when goto_lower_dim=False?
+            #FIXME: mixing strict and non-strict inequalities
+            condstr = write_mathematica_constraints(self.bddbsa.eq_poly(), (self.bddbsa.lt_poly()).union(bddbsa.le_poly()), strict=True) #why strict = strict doesn't work when goto_lower_dim=False?
         else:
             condstr = write_mathematica_constraints(bddleq, bddlin, strict=bddstrict)
         for c in self.components:
@@ -2337,13 +2336,13 @@ class SemialgebraicComplex(SageObject):
 
             sage: complex = SemialgebraicComplex(lambda x,y: max(x,y^2), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))        # optional - mathematica
             sage: complex.add_new_component([1,1/2], bddleq=[], flip_ineq_step=1/10, wall_crossing_method='mathematica', goto_lower_dim=False) # the cell {(x,y): x > y^2}      # optional - mathematica
-            sage: complex.components[0].lin                           # optional - mathematica
+            sage: complex.components[0].bsa.lt_poly()                 # optional - mathematica
             [y^2 - x]
             sage: complex.points_to_test                              # optional - mathematica
             OrderedDict([((19/20, 1), [])])
         """
         new_component = self._cell_class(self.family, self.var_name, var_value, self.default_args,
-                                         find_region_type=self.find_region_type, bddleq=bddleq)
+                                         find_region_type=self.find_region_type, bddleq=bddleq, bddbsa=self.bddbsa)
 
         if not allow_dim_degeneracy and len(new_component.bsa.eq_poly()) != len(bddleq):
             for l in new_component.bsa.eq_poly():
@@ -2358,7 +2357,7 @@ class SemialgebraicComplex(SageObject):
             return
         if (flip_ineq_step != 0) and (new_component.region_type != 'stop'):
             # when using random shooting, don't generate neighbour points; don't remove redundant walls.
-            walls, new_points = new_component.find_walls_and_new_points(flip_ineq_step, wall_crossing_method, goto_lower_dim, complex=self)
+            walls, new_points = new_component.find_walls_and_new_points(flip_ineq_step, wall_crossing_method, goto_lower_dim)
             if (wall_crossing_method == 'mathematica') or \
                 (wall_crossing_method == 'heuristic_with_check'):
                 new_component.bsa._lt = walls     # FIXME: Breaks abstraction
@@ -2435,7 +2434,7 @@ class SemialgebraicComplex(SageObject):
         if 'ymax' in kwds:
             self.graph.ymax(kwds['ymax'])
         for c in self.components[self.num_plotted_components::]:
-            gc = c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, complex=self, **kwds)
+            gc = c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, default_var_bound=self.default_var_bound, **kwds)
             if gc: # need this because (empty g + empty gc) forgets about xmin xmax ymin ymax.
                 self.graph += gc
         self.num_plotted_components = len(self.components)
@@ -2597,7 +2596,7 @@ class SemialgebraicComplex(SageObject):
     def discard_redundant_inequalities(self, flip_ineq_step=0):
         # TO UPDATE with bsa
         for c in self.components:
-            c.discard_redundant_inequalities(flip_ineq_step=flip_ineq_step, complex=self)
+            c.discard_redundant_inequalities(flip_ineq_step=flip_ineq_step)
 
     def polyhedral_complex(self):
         r"""
