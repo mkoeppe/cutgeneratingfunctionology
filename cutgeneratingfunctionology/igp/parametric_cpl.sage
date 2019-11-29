@@ -69,8 +69,8 @@ def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, max_iter=0, flip_ineq
 
         sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
-        sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)
-        sage: len(regions)
+        sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)  # long time - 30s
+        sage: len(regions)                                                    # long time - 30s
         96
         sage: regions = cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, wall_crossing_method='mathematica', flip_ineq_step=1/1000)                          # optional - mathematica
         sage: len(regions)                                                   # optional - mathematica
@@ -128,9 +128,9 @@ def symbolic_subbadditivity_constraints_of_cpl_given_region(r):
 
         sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.WARN)
-        sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)
-        sage: r = regions[0]
-        sage: symbolic_subbadditivity_constraints_of_cpl_given_region(r)
+        sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)  # long time - 30s
+        sage: r = regions[0]                                                  # long time
+        sage: symbolic_subbadditivity_constraints_of_cpl_given_region(r)      # long time
         [1/f,
          (-o1 + 1)/f,
          (-o1 - o2 + 1)/f,
@@ -362,9 +362,9 @@ def cpl_thetas_and_regions_extreme(regions):
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: regions = cpl_regions_with_thetas_and_components()
-        sage: thetas_and_regions = cpl_thetas_and_regions_extreme(regions)
-        sage: len(thetas_and_regions)
+        sage: regions = cpl_regions_with_thetas_and_components()              # long time - 300s
+        sage: thetas_and_regions = cpl_thetas_and_regions_extreme(regions)    # long time
+        sage: len(thetas_and_regions)                                         # long time
         9
     """
     thetas_and_regions = {}
@@ -404,9 +404,9 @@ def cpl_thetas_and_regions(regions, thetas_and_regions):
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: regions = cpl_regions_with_thetas_and_components()
-        sage: thetas_and_regions = cpl_thetas_and_regions_extreme(regions)
-        sage: thetas_and_components = cpl_thetas_and_regions(regions, thetas_and_regions)
+        sage: regions = cpl_regions_with_thetas_and_components()                            # long time - 300s
+        sage: thetas_and_regions = cpl_thetas_and_regions_extreme(regions)                  # long time
+        sage: thetas_and_components = cpl_thetas_and_regions(regions, thetas_and_regions)   # long time
     """
     thetas_and_components = {}
     for theta in thetas_and_regions.keys():
