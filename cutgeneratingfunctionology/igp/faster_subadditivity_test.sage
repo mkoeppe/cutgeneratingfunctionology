@@ -432,6 +432,32 @@ class SubadditivityTestTreeNode(object):
 
         return True
 
+    def verify_vertices(self,**kwds):
+        """
+        If the lower bound of delta pi has been computed, verify delta pi value is no smaller than lower bound.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)
+            sage: h = kzh_7_slope_1()
+            sage: T = SubadditivityTestTree(h)
+            sage: T.is_subadditive()
+            True
+            sage: correct_bounds = True
+            sage: for node in T.complete_node_set:
+            ....:     if not node.verify_vertices():
+            ....:         correct_bounds = False
+            ....:         break
+            sage: correct_bounds
+            True
+        """
+        for v in self.vertices:
+            delta_pi = self.function(v[0]) + self.function(v[1]) - self.function(fractional(v[2]))
+            if delta_pi<self.delta_pi_lower_bound(**kwds):
+                return False
+        return True
+
     def plot(self, colorful=False, **bound_kwds):
         v=[ver[:-1] for ver in self.vertices]
         region=Polyhedron(vertices=v)
