@@ -135,7 +135,7 @@
 </dd>
 </dl>
 <p>Examples: [33] p.40, Fig.5</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">dg_2_step_mir</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">10</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -190,7 +190,7 @@ cf. [33] p.42, lemma 13.</p>
 </dd>
 </dl>
 <p>Examples: [33] p.42, Fig.6</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span> <span class="c1"># Suppress warning about experimental discontinuous code.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">dg_2_step_mir_limit</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -247,7 +247,7 @@ cf. [33] p.42, lemma 13.</p>
 kf_n_step_mir(f, [a[0], .. , a[n - 1]]) = kf_n_step_mir(f, [a[0], .. a[i - 1], a[i + 1], … , a[n - 1]])</dd>
 </dl>
 <p>Examples: [74] p.333 - p.335, Fig.1 - Fig.6</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kf_n_step_mir</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -287,7 +287,7 @@ kf_n_step_mir(f, [a[0], .. , a[n - 1]]) = kf_n_step_mir(f, [a[0], .. a[i - 1], a
 <img alt="_images/extreme_functions-4.svg" src="_images/extreme_functions-4.svg" /></div>
 <p>Letchford–Lodi’s strong fractional cut.</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">ll_strong_fractional</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -312,7 +312,7 @@ kf_n_step_mir(f, [a[0], .. , a[n - 1]]) = kf_n_step_mir(f, [a[0], .. a[i - 1], a
 </dd>
 </dl>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">f</span><span class="o">=</span><span class="mi">2</span><span class="o">/</span><span class="mi">3</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">l</span> <span class="o">=</span> <span class="n">ll_strong_fractional</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
@@ -382,7 +382,7 @@ The first n terms of e are generated by generate_example_e_for_psi_n(f, n, q, et
 <dl class="docutils">
 <dt>Examples:</dt>
 <dd><p class="first">quick exact evaluations:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">bccz_counterexample</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">eta</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxiter</span><span class="o">=</span><span class="mi">10000</span><span class="p">)(</span><span class="n">r</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span>
 <span class="mi">21</span><span class="o">/</span><span class="mi">40</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">bccz_counterexample</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">eta</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxiter</span><span class="o">=</span><span class="mi">10000</span><span class="p">)(</span><span class="n">r</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span>
@@ -434,7 +434,7 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 </dl>
 <p>Tests show that the function is also extreme when f &lt;= 4/5.</p>
 <p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">bcdsp_arbitrary_slope</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">==</span> <span class="n">gmic</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
@@ -469,7 +469,7 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 obtained by forming a convex combination of a modified version of the irrational function with the GMI cut.
 Constructed by Chun Yu Hong, 2013.</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">bhk_gmi_irrational</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -522,7 +522,7 @@ Constructed by Chun Yu Hong, 2013.</p>
 </dd>
 <dt>Examples:</dt>
 <dd><p class="first"><a class="reference internal" href="zzz_bib.html#basu-hildebrand-koeppe-equivariant" id="id3">[BHKoppe14]</a>  p.34, thm.5.3:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">)</span> <span class="c1"># enable INFO messages disabled by other doctests</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">bhk_irrational</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d1</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d2</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="n">a0</span><span class="o">=</span><span class="mi">15</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">200</span><span class="p">))</span>
 <span class="n">INFO</span><span class="p">:</span> <span class="o">...</span>
@@ -616,7 +616,7 @@ Constructed by Chun Yu Hong, 2013.</p>
 </dd>
 </dl>
 <p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">bhk_slant_irrational</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d1</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d2</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="n">a0</span><span class="o">=</span><span class="mi">15</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">200</span><span class="p">),</span> <span class="n">c2</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">16</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h2</span> <span class="o">=</span> <span class="n">bhk_gmi_irrational</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d1</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">d2</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="n">a0</span><span class="o">=</span><span class="mi">15</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">200</span><span class="p">),</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">95</span><span class="o">/</span><span class="mi">100</span><span class="p">)</span>
@@ -663,7 +663,7 @@ according to literature [KChen_thesis]:</p>
 <dd><p class="first">The lower bound 0 &lt; lam1 claimed in [KChen_thesis] is not sufficient for extremality.
 The following example satisfies the extremality conditions according to [KChen_thesis],
 however it violates the subadditivity, and thus is not an extreme function:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">chen_4_slope</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">7</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span> <span class="n">s_pos</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">s_neg</span><span class="o">=-</span><span class="mi">4</span><span class="p">,</span> <span class="n">lam1</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span> <span class="n">lam2</span><span class="o">=</span><span class="mi">49</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span> <span class="n">condition_according_to_literature</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span><span class="o">.</span><span class="n">_claimed_parameter_attribute</span>
@@ -745,7 +745,7 @@ lam2 &lt;= 1/2;
 <dd>nb_pieces_left * (1-f) &lt;= nb_pieces_right * f.</dd>
 <dt>Examples:</dt>
 <dd><p class="first">[40] p.159 Fig.4</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span> <span class="c1"># Suppress warning about experimental discontinuous code.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">drlm_2_slope_limit</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">nb_pieces_left</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">nb_pieces_right</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -785,7 +785,7 @@ lam2 &lt;= 1/2;
 <dd>This is the limit function as bkpt tends to f in drlm_backward_3_slope(f, bkpt).</dd>
 <dt>Examples:</dt>
 <dd><p class="first">[40] p.162 Fig.5</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span> <span class="c1"># Suppress warning about experimental discontinuous code.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">drlm_3_slope_limit</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -838,7 +838,7 @@ one can prove that the function is extreme without assuming f, bkpt being ration
 <li><p class="first">Finite group –&gt; Example 3.8 in [8] p.386,</p>
 </li>
 <li><p class="first">Infinite group –&gt; Interpolation using Equation 5 from [40] p.154</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">drlm_backward_3_slope</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">12</span><span class="p">,</span> <span class="n">bkpt</span><span class="o">=</span><span class="mi">2</span><span class="o">/</span><span class="mi">12</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -893,7 +893,7 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 </dd>
 </dl>
 <p>Examples: [61] p.354, Fig.6</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">gj_2_slope</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">lambda_1</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">6</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -946,7 +946,7 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 </dd>
 </dl>
 <p>Examples: [61] p.354, Fig.7</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">gj_2_slope_repeat</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">s_positive</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">s_negative</span><span class="o">=-</span><span class="mi">5</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -994,7 +994,7 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 </dd>
 <dt>Examples:</dt>
 <dd><p class="first">[61] p.360, Fig.8</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">gj_forward_3_slope</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">lambda_1</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">9</span><span class="p">,</span> <span class="n">lambda_2</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1037,7 +1037,7 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 <dd>f (real) <span class="math notranslate nohighlight">\(\in (0,1)\)</span>.</dd>
 <dt>Examples: </dt>
 <dd><p class="first">[61] p.343, Fig. 1, Example 1</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">gmic</span><span class="p">(</span><span class="mi">4</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -1063,7 +1063,7 @@ Gomory-Johnson infinite group problem, Operations Research Letters, 2015,
 sides of the origin but is also extreme.</p>
 <p>Constructed by Robert Hildebrand (2013, unpublished).</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hildebrand_2_sided_discont_1_slope_1</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -1081,7 +1081,7 @@ sides of the origin but is also extreme.</p>
 sides of the origin but is also extreme.  This one has 2 slopes.</p>
 <p>Constructed by Robert Hildebrand (2013, unpublished).</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hildebrand_2_sided_discont_2_slope_1</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -1100,7 +1100,7 @@ sides of the origin but is also extreme.  This one has 2 slopes.</p>
 functions with more slopes were discovered in 2014.</p>
 <p>From Hildebrand (2013, unpublished).</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hildebrand_5_slope_22_1</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -1119,7 +1119,7 @@ functions with more slopes were discovered in 2014.</p>
 functions with more slopes were discovered in 2014.</p>
 <p>From Hildebrand (2013, unpublished).</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hildebrand_5_slope_24_1</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -1138,7 +1138,7 @@ functions with more slopes were discovered in 2014.</p>
 functions with more slopes were discovered in 2014.</p>
 <p>From Hildebrand (2013, unpublished).</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hildebrand_5_slope_28_1</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -1156,7 +1156,7 @@ functions with more slopes were discovered in 2014.</p>
 <p>Constructed by Robert Hildebrand (2013, unpublished).</p>
 <p>A detailed extremality proof appears as an example in <a class="reference internal" href="zzz_bib.html#hong-koeppe-zhou-software-paper" id="id6">[HKoppeZ18b]</a>.</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>             <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">psi</span> <span class="o">=</span> <span class="n">hildebrand_discont_3_slope_1</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">psi</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -1200,7 +1200,7 @@ one covered component only; two intervals remain uncovered:</p>
 <p>This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_10_slope_1</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1224,7 +1224,7 @@ described in Koeppe–Zhou [KZh2015a].</p>
 construction of a family of functions with an arbitrary number of slopes
 (see <code class="docutils literal notranslate"><span class="pre">bcdsp_arbitrary_slope</span></code>).</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_28_slope_1</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">number_of_slopes</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="mi">28</span>
@@ -1250,7 +1250,7 @@ described in Koeppe–Zhou [KZh2015a].</p>
 construction of a family of functions with an arbitrary number of slopes
 (see <code class="docutils literal notranslate"><span class="pre">bcdsp_arbitrary_slope</span></code>).</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_28_slope_2</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">number_of_slopes</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="mi">28</span>
@@ -1277,7 +1277,7 @@ It has 3 slopes in the general case.</p>
 <dd>0 &lt;= a and  0 &lt;= b &lt;= f and 3*f+4*a-b-1 &lt;= 0</dd>
 </dl>
 <p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_3_slope_param_extreme_1</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">6</span><span class="o">/</span><span class="mi">19</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">19</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">5</span><span class="o">/</span><span class="mi">19</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -1302,7 +1302,7 @@ The function looks like <code class="docutils literal notranslate"><span class="
 <dd>0 &lt; a &lt; f &lt; 1; 2*b - a &lt;= f &lt;= a + b and f &lt;= (1+a-b)/2</dd>
 </dl>
 <p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_3_slope_param_extreme_2</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">5</span><span class="o">/</span><span class="mi">9</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">9</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">2</span><span class="o">/</span><span class="mi">9</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -1330,7 +1330,7 @@ The function looks like <code class="docutils literal notranslate"><span class="
 <dd>a &gt; max{3*f-2, f/2}; b &gt; 0; a + 3*b &gt; 2*f - 1; 2*a + 3*b &lt; 3*f - 1.</dd>
 </dl>
 <p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_4_slope_param_extreme_1</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">13</span><span class="o">/</span><span class="mi">18</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">7</span><span class="o">/</span><span class="mi">18</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">18</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -1353,7 +1353,7 @@ or y=0.</p>
 <p>This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_1</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1378,7 +1378,7 @@ or y=0.</p>
 <p>This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_2</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1403,7 +1403,7 @@ or y=0.</p>
 <p>This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_3</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1427,7 +1427,7 @@ except for the symmetry reflection or x=0 or y=0.</p>
 <p>This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_4</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1451,7 +1451,7 @@ except for the symmetry reflection or x=0 or y=0.</p>
 <p>This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_5</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1477,7 +1477,7 @@ requires to translate and reflect covered intervals.</p>
 <p>This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_covers_1</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1503,7 +1503,7 @@ requires to translate and reflect covered intervals.</p>
 <p>This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_covers_2</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1529,7 +1529,7 @@ requires to translate and reflect covered intervals.
 This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_covers_3</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1555,7 +1555,7 @@ requires to translate and reflect covered intervals.
 This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_covers_4</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1581,7 +1581,7 @@ requires to translate and reflect covered intervals.
 This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_covers_5</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1607,7 +1607,7 @@ requires to translate and reflect covered intervals.
 This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_5_slope_fulldim_covers_6</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1662,7 +1662,7 @@ described in Koeppe–Zhou [KZh2015a].</p>
 <p>This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_6_slope_1</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1686,7 +1686,7 @@ requires to translate and reflect covered intervals.
 This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_6_slope_fulldim_covers_1</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1712,7 +1712,7 @@ requires to translate and reflect covered intervals.
 This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_6_slope_fulldim_covers_2</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1739,7 +1739,7 @@ This example has a similar 2d-diagram as that of kzh_6_slope_fulldim_covers_2()
 This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_6_slope_fulldim_covers_3</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1768,7 +1768,7 @@ This example has a similar 2d-diagram as that of kzh_6_slope_fulldim_covers_2()
 This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_6_slope_fulldim_covers_4</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1797,7 +1797,7 @@ This example has a similar 2d-diagram as that of kzh_6_slope_fulldim_covers_2()
 This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_6_slope_fulldim_covers_5</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1820,7 +1820,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <p>This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_7_slope_1</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1841,7 +1841,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <p>This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_7_slope_2</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1862,7 +1862,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <p>This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_7_slope_3</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1883,7 +1883,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <p>This example was found by computer-based search
 described in Koeppe–Zhou [KZh2015a].</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_7_slope_4</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="kc">True</span>
@@ -1904,7 +1904,7 @@ e-print <a class="reference external" href="http://arxiv.org/abs/1506.00017">htt
 <p>This factory class generates a fresh function from an infinite family.
 The function depends on the sequence of its evaluations.</p>
 <p>TESTS:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">kzh_extreme_and_weak_facet_but_not_facet</span><span class="p">()</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">hm</span> <span class="o">=</span> <span class="n">kzh_minimal_has_only_crazy_perturbation_1</span><span class="p">()</span><span class="o">+</span><span class="mi">1</span><span class="o">/</span><span class="mi">1000000</span><span class="o">*</span><span class="n">kzh_minimal_has_only_crazy_perturbation_1_perturbation</span><span class="p">()</span>
@@ -1971,7 +1971,7 @@ The function depends on the sequence of its evaluations.</p>
 Same as <code class="docutils literal notranslate"><span class="pre">gmic(f=r0)</span></code>.</dd>
 <dt>Examples:</dt>
 <dd><p class="first">page 183, Fig 2, point a:</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">mlr_cpl3_a_2_slope</span><span class="p">(</span><span class="n">r0</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">13</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">26</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -2026,7 +2026,7 @@ Same as <code class="docutils literal notranslate"><span class="pre">gmic(f=r0)<
 </dd>
 <dt>Examples:</dt>
 <dd><p class="first">page 183, Fig 2, point b:</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h1</span> <span class="o">=</span> <span class="n">mlr_cpl3_b_3_slope</span><span class="p">(</span><span class="n">r0</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">26</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">13</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h1</span><span class="p">)</span>
@@ -2086,7 +2086,7 @@ Same as <code class="docutils literal notranslate"><span class="pre">gmic(f=r0)<
 </dd>
 <dt>Examples:</dt>
 <dd><p class="first">page 183, Fig 2, point c:</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h1</span> <span class="o">=</span> <span class="n">mlr_cpl3_c_3_slope</span><span class="p">(</span><span class="n">r0</span><span class="o">=</span><span class="mi">5</span><span class="o">/</span><span class="mi">24</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">12</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h1</span><span class="p">)</span>
@@ -2145,7 +2145,7 @@ Same as <code class="docutils literal notranslate"><span class="pre">gmic(f=r0)<
 </dd>
 <dt>Examples:</dt>
 <dd><p class="first">p.183, Fig 2, point d1:</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h1</span> <span class="o">=</span> <span class="n">mlr_cpl3_d_3_slope</span><span class="p">(</span><span class="n">r0</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">6</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">12</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h1</span><span class="p">)</span>
@@ -2202,7 +2202,7 @@ Same as <code class="docutils literal notranslate"><span class="pre">gmic(f=r0)<
 <dd>When z1 = (1-r0)/4, the function is the same as <code class="docutils literal notranslate"><span class="pre">gmic(f=r0)</span></code>.</dd>
 <dt>Examples:</dt>
 <dd><p class="first">page 184, Fig 3, point f1 and f2:</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h1</span> <span class="o">=</span> <span class="n">mlr_cpl3_f_2_or_3_slope</span><span class="p">(</span><span class="n">r0</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">6</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">6</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h1</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">6</span><span class="p">)</span>
@@ -2256,7 +2256,7 @@ Same as <code class="docutils literal notranslate"><span class="pre">gmic(f=r0)<
 </dd>
 <dt>Examples:</dt>
 <dd><p class="first">page 184, Fig 3, point g:</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h1</span> <span class="o">=</span> <span class="n">mlr_cpl3_g_3_slope</span><span class="p">(</span><span class="n">r0</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">12</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="mi">5</span><span class="o">/</span><span class="mi">24</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h1</span><span class="p">)</span>
@@ -2312,7 +2312,7 @@ Same as <code class="docutils literal notranslate"><span class="pre">gmic(f=r0)<
 <dd>When z1 = (1-r0)/4, the function is the same as <code class="docutils literal notranslate"><span class="pre">gmic(f=r0)</span></code>.</dd>
 <dt>Examples:</dt>
 <dd><p class="first">page 183, Fig 2, point h:</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h1</span> <span class="o">=</span> <span class="n">mlr_cpl3_h_2_slope</span><span class="p">(</span><span class="n">r0</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">6</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h1</span><span class="p">)</span>
@@ -2363,7 +2363,7 @@ Same as <code class="docutils literal notranslate"><span class="pre">gmic(f=r0)<
 </dd>
 <dt>Examples:</dt>
 <dd><p class="first">page 185, Fig 4, point k1:</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">mlr_cpl3_k_2_slope</span><span class="p">(</span><span class="n">r0</span><span class="o">=</span><span class="mi">7</span><span class="o">/</span><span class="mi">27</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">27</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -2414,7 +2414,7 @@ Same as <code class="docutils literal notranslate"><span class="pre">gmic(f=r0)<
 The given slope is -4*z1/(2*z1-4*z1*r0) while the correct slope is (1-4*z1)/(2*z1-4*z1*r0).</dd>
 <dt>Examples:</dt>
 <dd><p class="first">page 185, Fig 4, point l:</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h1</span> <span class="o">=</span> <span class="n">mlr_cpl3_l_2_slope</span><span class="p">(</span><span class="n">r0</span><span class="o">=</span><span class="mi">8</span><span class="o">/</span><span class="mi">25</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mi">25</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h1</span><span class="p">)</span>
@@ -2475,7 +2475,7 @@ The given slope is -4*z1/(2*z1-4*z1*r0) while the correct slope is (1-4*z1)/(2*z
 </dd>
 <dt>Examples:</dt>
 <dd><p class="first">page 185, Fig 4, point n2:</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h1</span> <span class="o">=</span> <span class="n">mlr_cpl3_n_3_slope</span><span class="p">(</span><span class="n">r0</span><span class="o">=</span><span class="mi">9</span><span class="o">/</span><span class="mi">25</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="mi">2</span><span class="o">/</span><span class="mi">25</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h1</span><span class="p">)</span>
@@ -2530,7 +2530,7 @@ The given slope is -4*z1/(2*z1-4*z1*r0) while the correct slope is (1-4*z1)/(2*z
 </dd>
 <dt>Examples:</dt>
 <dd><p class="first">page 186, Fig 5, point o:</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h1</span> <span class="o">=</span> <span class="n">mlr_cpl3_o_2_slope</span><span class="p">(</span><span class="n">r0</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">8</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h1</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">8</span><span class="p">)</span>
@@ -2588,7 +2588,7 @@ The given slope is -4*z1/(2*z1-4*z1*r0) while the correct slope is (1-4*z1)/(2*z
 The given slope is (2*z1-10*z1*r0+r0)/(r0*(1-2*r0)*(4*z1-1+r0)) while the correct slope is (-r0+2*r0^2-2*z1+8*z1*r0)/(r0*(1-2*r0)*(1-r0-4*z1)).</dd>
 <dt>Examples:</dt>
 <dd><p class="first">page 186, Fig 5, point p1 and p2:</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h1</span> <span class="o">=</span> <span class="n">mlr_cpl3_p_2_slope</span><span class="p">(</span><span class="n">r0</span><span class="o">=</span><span class="mi">5</span><span class="o">/</span><span class="mi">12</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">12</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h1</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mi">5</span><span class="o">/</span><span class="mi">12</span><span class="p">)</span>
@@ -2643,7 +2643,7 @@ The given slope is (2*z1-10*z1*r0+r0)/(r0*(1-2*r0)*(4*z1-1+r0)) while the correc
 </dd>
 <dt>Examples:</dt>
 <dd><p class="first">page 186, Fig 5, point q:</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h1</span> <span class="o">=</span> <span class="n">mlr_cpl3_q_2_slope</span><span class="p">(</span><span class="n">r0</span><span class="o">=</span><span class="mi">5</span><span class="o">/</span><span class="mi">12</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">24</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h1</span><span class="p">)</span>
@@ -2698,7 +2698,7 @@ The given slope is (2*z1-10*z1*r0+r0)/(r0*(1-2*r0)*(4*z1-1+r0)) while the correc
 </dd>
 <dt>Examples:</dt>
 <dd><p class="first">page 185, Fig , point r:</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">mlr_cpl3_r_2_slope</span><span class="p">(</span><span class="n">r0</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span> <span class="n">z1</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">7</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -2731,7 +2731,7 @@ See Prop.18 and Fig 1 for relation between the DPLn representation <span class="
 <p>Indeed, the function rlm_dpl1_fig3_lowerleft(f) is a facet (and thus extreme) for any 0 &lt; f &lt; 1/3. This can be verified using the covered components and the additivity equations. (Specifically, 2 * pi(f+) = pi(2f+) and 2* pi((1+f) / 2 +) = pi(f+))</p>
 <p>This is worked out in [KZh2015b, section 2].</p>
 <p>Example: p.273, Fig.3-lowerleft</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span> <span class="c1"># Suppress warning about experimental discontinuous code.</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="n">rlm_dpl1_extreme_3a</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">extremality_test</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>

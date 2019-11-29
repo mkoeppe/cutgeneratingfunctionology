@@ -111,7 +111,7 @@
 in the paper <a class="reference internal" href="zzz_bib.html#koeppe-zhou-cyclic-group-facets-inject" id="id1">[KoppeZ18a]</a>
 through symbolic computation.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">import</span> <span class="nn">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof</span> <span class="k">as</span> <span class="nn">proof</span>
-<span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof</span> <span class="k">import</span> <span class="o">*</span>
+<span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp.procedures.injective_2_slope_fill_in_proof</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="c1"># Suppress output in automatic tests.</span>
 
 <span class="n">sage</span><span class="p">:</span> <span class="n">setup_case_aprime1_MMM_type_I</span><span class="p">()</span>
@@ -676,7 +676,7 @@ convertible to it (<code class="xref py py-class docutils literal notranslate"><
 <p>A new <code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code> representing the point.</p>
 <p>Raises a <code class="docutils literal notranslate"><span class="pre">ValueError`</span> <span class="pre">if</span> <span class="pre">``divisor==0</span></code>.</p>
 <p>Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ppl</span> <span class="k">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Variable</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ppl</span> <span class="kn">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Variable</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Generator</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">y</span><span class="o">+</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="go">point(0/3, 2/3)</span>
