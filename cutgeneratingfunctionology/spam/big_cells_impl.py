@@ -240,7 +240,7 @@ def is_min_le(iterable, value, key=None, field=None):
     Test that many repeated values do not require quadratic running time::
 
         sage: K.<a,b> = ParametricRealField([4, 1], big_cells=True, allow_refinement=False)
-        sage: big_cells.is_min_le([a] * 10000, 5)
+        sage: big_cells.is_min_le([a] * 10000, 5)      # long time - 40s
         True
 
     In fact, the big cells form a cover (arrangement), not a complex;

@@ -190,7 +190,7 @@ def kzh_minimal_has_only_crazy_perturbation_1(parametric=False, field=None, **pa
     The above is also done by ``facet_test``::
 
         sage: h = kzh_minimal_has_only_crazy_perturbation_1()
-        sage: facet_test(h)
+        sage: facet_test(h)                                     # long time - 45s
         Traceback (most recent call last):
         ...
         NotImplementedError: facet_test does not know how to continue
@@ -319,7 +319,7 @@ def kzh_minimal_has_only_crazy_perturbation_1_perturbation():
         sage: logging.disable(logging.INFO)
         sage: h = kzh_minimal_has_only_crazy_perturbation_1()
         sage: cp = kzh_minimal_has_only_crazy_perturbation_1_perturbation()
-        sage: find_epsilon_for_crazy_perturbation(h, cp)
+        sage: find_epsilon_for_crazy_perturbation(h, cp)                       # long time - 70s
         0.0003958663221935161?
 
     """

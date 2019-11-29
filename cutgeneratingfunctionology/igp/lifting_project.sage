@@ -13,7 +13,7 @@ def lift_on_uncovered_components(fn, show_plots=False, L=[]):
         sage: len(hh)                     # not tested - wrong doctest
         4
         sage: h = example7slopecoarse2()
-        sage: hh = lift_on_uncovered_components(h)
+        sage: hh = lift_on_uncovered_components(h)   # long time - 240s
         sage: len(hh)                     # not tested - wrong doctest
         12
         sage: bkpts = [0, 1/13, 3/13, 7/26, 4/13,5/13,21/52,23/52,6/13,8/13,33/52,35/52,9/13,10/13,21/26,11/13,1]
