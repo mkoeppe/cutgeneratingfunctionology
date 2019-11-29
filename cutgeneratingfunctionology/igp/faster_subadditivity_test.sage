@@ -4,34 +4,6 @@ import queue as queue
 import itertools
 import numpy as np
 
-def verts_new(I1, J1, K1):
-    """
-    Computes the vertices based on `I1, J1` and `K1` as a list of 3-tuples (x, y, x+y).
-    """
-    temp =set()
-    for i in I1:
-        for j in J1:
-            if element_of_int(i+j,K1):
-                temp.add((i,j,i+j))
-    for i in I1:
-        for k in K1:
-            if element_of_int(k-i,J1):
-                temp.add((i,k-i,k))
-    for j in J1:
-        for k in K1:
-            if element_of_int(k-j,I1):
-                temp.add((k-j,j,k))
-    if len(temp) > 0:
-        return temp
-
-def projections_new(vertices):
-    """
-    Computes `F(I,J,K)`.
-    """
-    if vertices:
-        l=list(zip(*vertices))
-        return [[min(l[0]),max(l[0])],[min(l[1]),max(l[1])],[min(l[2]),max(l[2])]]
-
 class SubadditivityTestTreeNode(object):
 
     r"""
@@ -80,7 +52,7 @@ class SubadditivityTestTreeNode(object):
         self.intervals=tuple(tuple(I) for I in intervals)
         self.level=level
         self.function=fn
-        self.vertices=verts_new(*intervals)
+        self.vertices=verts(*intervals)
         self.projections=projections(self.vertices)
         self.left_child=None
         self.right_child=None
@@ -309,7 +281,7 @@ class SubadditivityTestTreeNode(object):
         """
         if hasattr(self,'_delta_pi_ub'):
             return self._delta_pi_ub
-        self._delta_pi_ub=min(self.function(v[0])+self.function(v[1])-self.function(v[2] if v[2]<=1 else v[2]-1) for v in self.vertices)
+        self._delta_pi_ub=min(self.function(v[0])+self.function(v[1])-self.function(fractional(v[0]+v[1])) for v in self.vertices)
         return self._delta_pi_ub
 
     def branching_direction(self):
@@ -453,13 +425,13 @@ class SubadditivityTestTreeNode(object):
             True
         """
         for v in self.vertices:
-            delta_pi = self.function(v[0]) + self.function(v[1]) - self.function(fractional(v[2]))
+            delta_pi = self.function(v[0]) + self.function(v[1]) - self.function(fractional(v[0]+v[1]))
             if delta_pi<self.delta_pi_lower_bound(**kwds):
                 return False
         return True
 
     def plot(self, colorful=False, **bound_kwds):
-        v=[ver[:-1] for ver in self.vertices]
+        v=[ver for ver in self.vertices]
         region=Polyhedron(vertices=v)
         p = region.projection().render_outline_2d()
         if colorful:
@@ -579,7 +551,7 @@ class SubadditivityTestTree:
             sage: T.is_subadditive(cache_additive_vertices=True)
             True
             sage: T.additive_vertices
-            {(1/5, 1/5, 2/5)}
+            {(1/5, 1/5)}
             sage: h(1/5)+h(1/5)-h(2/5) == T.objective_limit
             True
         """
@@ -592,7 +564,7 @@ class SubadditivityTestTree:
         while not self.unfathomed_node_list.empty():
             current_node=self.unfathomed_node_list.get()[1]
             for v in current_node.vertices:
-                delta=self.function(v[0])+self.function(v[1])-self.function(v[2] if v[2]<=1 else v[2]-1)
+                delta=self.function(v[0])+self.function(v[1])-self.function(fractional(v[0]+v[1]))
                 if delta<self.objective_limit:
                     self._is_subadditive=False
                     # can stop early
@@ -677,7 +649,7 @@ class SubadditivityTestTree:
         kwds = { 'legend_label1': "indivisible face" , 'legend_label2': "strict subadditive divisible face"}
         legend=[0,0]
         for node in self.leaf_set:
-            v=[ver[:-1] for ver in node.vertices]
+            v=[ver for ver in node.vertices]
             region=Polyhedron(vertices=v)
             p+=region.projection().render_outline_2d()
             if colorful:
@@ -959,7 +931,7 @@ def delta_pi_min(fn,I,J,K,approximation='constant',norm='one',branching_point_se
     """
     bkpts1=fn.end_points()
     bkpts2=fn.end_points()[:-1]+[1+bkpt for bkpt in fn.end_points()]
-    vertices=verts_new(I,J,K)
+    vertices=verts(I,J,K)
     if len(vertices)==0:
         return 100
     elif len(vertices)==1:
