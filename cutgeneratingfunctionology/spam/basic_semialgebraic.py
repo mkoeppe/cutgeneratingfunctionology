@@ -53,6 +53,8 @@ def _bsa_class(bsa_class):
         return BasicSemialgebraicSet_polyhedral_linear_system
     elif bsa_class == 'intersection':
         return BasicSemialgebraicSet_intersection
+    elif bsa_class == 'veronese':
+        return BasicSemialgebraicSet_veronese
     else:
         raise ValueError("unknown bsa class: {}".format(bsa_class))
 
