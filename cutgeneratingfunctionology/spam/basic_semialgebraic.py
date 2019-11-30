@@ -398,6 +398,18 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         to choose another class.  See ``_bsa_class`` for the allowed
         class nicknames.
 
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P_upstairs.<x,y> = QQ[]
+            sage: P_downstairs.<t> = QQ[]
+            sage: polynomial_map = [75/19*t, t]
+            sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(lt=[21*x - 8, -x, 950*x^2 - 3700*x*y - 225*y^2 - 133*x])
+            sage: bsa_section_1 = bsa.section(polynomial_map=polynomial_map); bsa_section_1
+            BasicSemialgebraicSet_section(BasicSemialgebraicSet_eq_lt_le_sets(eq=[], lt=[-x, 21*x - 8, 950*x^2 - 3700*x*y - 225*y^2 - 133*x], le=[]), polynomial_map=[75/19*t, t])
+            sage: bsa_section_2 = bsa.section(polynomial_map=polynomial_map, bsa_class='veronese'); bsa_section_2
+            BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(polyhedron=A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 2 closure_points, 1 ray), polynomial_map=[t, t^2])
+
         """
         bsa_section = BasicSemialgebraicSet_section(self, polynomial_map)
         bsa_class = _bsa_class(bsa_class)
@@ -1469,7 +1481,8 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         [-2*f + 1, f - 1, f^2 - f]
     """
 
-    def __init__(self, upstairs_bsa, polynomial_map, v_dict, base_ring=None, poly_ring=None, ambient_dim=None):
+    def __init__(self, upstairs_bsa=None, polynomial_map=None, v_dict=None,
+                 upstairs_bsa_class=None, base_ring=None, poly_ring=None, ambient_dim=None):
         r"""
         EXAMPLES:
 
@@ -1502,10 +1515,46 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             ValueError: all polynomials in polynomial_map must be monomials with coefficient 1
 
         """
+        if poly_ring is None:
+            if polynomial_map:
+                cm = get_coercion_model()
+                poly_ring = cm.common_parent(*polynomial_map)
+                if not is_PolynomialRing(poly_ring) and not is_MPolynomialRing(poly_ring):
+                    poly_ring = PolynomialRing(base_ring, [])
+                polynomial_map = [ poly_ring(f) for f in polynomial_map ]
+            elif base_ring is not None and ambient_dim is not None:
+                poly_ring = PolynomialRing(base_ring, 'x', ambient_dim)
+        if base_ring is None:
+            if poly_ring is not None:
+                base_ring = poly_ring.base_ring()
+            elif upstairs_bsa is not None:
+                base_ring = upstairs_bsa.base_ring()
+        if upstairs_bsa is None:
+            if upstairs_bsa_class is None:
+                upstairs_bsa_class = 'ppl'
+            upstairs_bsa_class = _bsa_class(upstairs_bsa_class)
+            if polynomial_map is None:
+                upstairs_base_ring = base_ring
+                upstairs_ambient_dim = 0
+                polynomial_map = []
+                v_dict = {}
+            else:
+                upstairs_base_ring = poly_ring.base_ring()
+                upstairs_ambient_dim = len(polynomial_map)
+            upstairs_bsa = upstairs_bsa_class(base_ring=upstairs_base_ring, ambient_dim=upstairs_ambient_dim)
+        if upstairs_bsa_class:
+            if not isinstance(upstairs_bsa, upstairs_bsa_class):
+                raise ValueError("upstairs_bsa is not an instance of upstairs_bsa_class")
         super(BasicSemialgebraicSet_veronese, self).__init__(upstairs_bsa, polynomial_map, poly_ring=poly_ring, ambient_dim=ambient_dim)
         if not all(len(f.monomials()) == 1 and f.lc() == 1 for f in self.polynomial_map()):
             raise ValueError("all polynomials in polynomial_map must be monomials with coefficient 1")
         self._v_dict = v_dict
+
+    @classmethod
+    def from_bsa(cls, bsa, poly_ring=None, **init_kwds):
+        if poly_ring is None:
+            poly_ring = bsa.poly_ring()
+        return super(BasicSemialgebraicSet_veronese, cls).from_bsa(bsa, poly_ring=poly_ring)
 
     def __copy__(self):
         r"""
@@ -1514,6 +1563,9 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         """
         return self.__class__(upstairs_bsa=copy(self.upstairs()), polynomial_map=copy(self.polynomial_map()),
                               v_dict=copy(self.v_dict()), poly_ring=self.poly_ring(), ambient_dim=self.ambient_dim())
+
+    def _repr_(self):
+        return 'BasicSemialgebraicSet_veronese({}, polynomial_map={})'.format(self._upstairs_bsa, self._polynomial_map)
 
     def v_dict(self):
         r"""
