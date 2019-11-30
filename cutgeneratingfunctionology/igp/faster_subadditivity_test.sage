@@ -370,12 +370,7 @@ class SubadditivityTestTreeNode(object):
             sage: T = SubadditivityTestTree(h)
             sage: T.is_subadditive()
             True
-            sage: correct_estimators = True
-            sage: for node in T.complete_node_set:
-            ....:     if not node.verify_estimators():
-            ....:         correct_estimators = False
-            ....:         break
-            sage: correct_estimators
+            sage: all(node.verify_estimators() for node in T.complete_node_set)
             True
         """
         if self.affine_estimators is None:
@@ -416,12 +411,7 @@ class SubadditivityTestTreeNode(object):
             sage: T = SubadditivityTestTree(h)
             sage: T.is_subadditive()
             True
-            sage: correct_bounds = True
-            sage: for node in T.complete_node_set:
-            ....:     if not node.verify_vertices():
-            ....:         correct_bounds = False
-            ....:         break
-            sage: correct_bounds
+            sage: all(node.verify_vertices() for node in T.complete_node_set)
             True
         """
         for v in self.vertices:
