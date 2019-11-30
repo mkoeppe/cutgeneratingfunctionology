@@ -108,6 +108,13 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
 
             sage: upstairs_bsa_mip = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram.from_bsa(upstairs_bsa_eq_lt_le_sets, solver='ppl')    # not tested - unfinished implementation
 
+        Test that ``BasicSemialgebraicSet_veronese`` supports this method and accepts keyword arguments::
+
+            sage: new_upstairs_bsa = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(0)
+            sage: veronese_bsa_again = BasicSemialgebraicSet_veronese.from_bsa(bsa_eq_lt_le_sets, upstairs_bsa=new_upstairs_bsa, polynomial_map=[], v_dict={}, poly_ring=bsa_eq_lt_le_sets.poly_ring())
+            sage: list(veronese_bsa_again.lt_poly())
+            [54*x0^2 + 226*x1*x2 + 113]
+
         If ``bsa`` is already of class ``cls``, it is just returned::
 
             sage: BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(upstairs_bsa_eq_lt_le_sets) is upstairs_bsa_eq_lt_le_sets
@@ -1460,7 +1467,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         [-2*f + 1, f - 1, f^2 - f]
     """
 
-    def __init__(self, upstairs_bsa, polynomial_map, v_dict, poly_ring=None, ambient_dim=None):
+    def __init__(self, upstairs_bsa, polynomial_map, v_dict, base_ring=None, poly_ring=None, ambient_dim=None):
         r"""
         EXAMPLES:
 
