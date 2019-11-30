@@ -128,11 +128,11 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         base_ring = init_kwds.pop('base_ring', bsa.base_ring())
         ambient_dim = bsa.ambient_dim()
         self = cls(base_ring=base_ring, ambient_dim=ambient_dim, **init_kwds)
-        for p in bsa.eq_poly():
+        for p in sorted(bsa.eq_poly()):
             self.add_polynomial_constraint(p, operator.eq)
-        for p in bsa.lt_poly():
+        for p in sorted(bsa.lt_poly()):
             self.add_polynomial_constraint(p, operator.lt)
-        for p in bsa.le_poly():
+        for p in sorted(bsa.le_poly()):
             self.add_polynomial_constraint(p, operator.le)
         return self
 
