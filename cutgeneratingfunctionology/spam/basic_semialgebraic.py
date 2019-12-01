@@ -205,11 +205,11 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: list(bsa.lt_poly()), list(bsa.le_poly())
             ([x0 + x1 - 3], [])
             sage: closure = bsa.formal_closure(); closure
-            BasicSemialgebraicSet_formal_closure(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(...))
+            BasicSemialgebraicSet_formal_closure(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-x0-x1+3>0})))
             sage: list(closure.eq_poly()), list(closure.lt_poly()), list(closure.le_poly())
             ([], [], [x0 + x1 - 3])
             sage: closure = bsa.formal_closure(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron); closure
-            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(polyhedron=A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 ray, 1 line)
+            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-x0-x1+3>=0})
             sage: list(closure.eq_poly()), list(closure.lt_poly()), list(closure.le_poly())
             ([], [], [x0 + x1 - 3])
 
@@ -405,11 +405,12 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: P_downstairs.<t> = QQ[]
             sage: polynomial_map = [75/19*t, t]
             sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(lt=[21*x - 8, -x, 950*x^2 - 3700*x*y - 225*y^2 - 133*x])
-            sage: bsa_section_1 = bsa.section(polynomial_map=polynomial_map); bsa_section_1
-            BasicSemialgebraicSet_section(BasicSemialgebraicSet_eq_lt_le_sets(eq=[], lt=[-x, 21*x - 8, 950*x^2 - 3700*x*y - 225*y^2 - 133*x], le=[]), polynomial_map=[75/19*t, t])
-            sage: bsa_section_2 = bsa.section(polynomial_map=polynomial_map, bsa_class='veronese'); bsa_section_2
-            BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(polyhedron=A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 2 closure_points, 1 ray), polynomial_map=[t, t^2])
-
+            sage: bsa_section_1 = bsa.section(polynomial_map=polynomial_map)
+            sage: list(bsa_section_1.lt_poly())
+            [-75/19*t, -525/19*t^2 - 525*t, 1575/19*t - 8]
+            sage: bsa_section_2 = bsa.section(polynomial_map=polynomial_map, bsa_class='veronese')
+            sage: list(bsa_section_2.lt_poly())
+            [1575*t - 152, -t^2 - 19*t, -t]
         """
         bsa_section = BasicSemialgebraicSet_section(self, polynomial_map)
         bsa_class = _bsa_class(bsa_class)
@@ -705,7 +706,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         return self.__class__(polyhedron=copy(self._polyhedron))
 
     def _repr_(self):
-        return 'BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(polyhedron={})'.format(self._polyhedron)
+        return 'BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron({})'.format(self._polyhedron.minimized_constraints())
 
     def closure(self, bsa_class='formal_closure'):
         r"""
@@ -1212,7 +1213,7 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
 
     # override the abstract methods
 
-    def __repr__(self):
+    def _repr_(self):
         return 'BasicSemialgebraicSet_eq_lt_le_sets(eq={}, lt={}, le={})'.format(sorted(self._eq), sorted(self._lt), sorted(self._le))
 
     def eq_poly(self):
