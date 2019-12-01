@@ -1419,6 +1419,35 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
         """
         return self._polynomial_map
 
+    def plot_upstairs(self):
+        r"""
+        Plot the upstairs basic semialgebraic set and the variety::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: PY.<x,y> = QQ[]
+            sage: upstairs = BasicSemialgebraicSet_eq_lt_le_sets(le=[-x-1, -y-1, x+y-3/2, x-1, y-1])
+            sage: PX.<t> = QQ[]
+            sage: F = [t, t^3 + 3/2 * t^2 - 5/2 * t + 5/4]
+            sage: downstairs = upstairs.section(F)
+            sage: downstairs.plot_upstairs()                  # not tested
+
+        """
+        from sage.plot.plot import parametric_plot
+        gu = self.upstairs().plot()
+        def range_arg(form, gen):
+            a = self.linear_function_lower_bound(form)
+            if a == -Infinity:
+                a = -1
+            b = self.linear_function_upper_bound(form)
+            if b == +Infinity:
+                b = 1
+            return gen, a, b
+
+        range_args = [ range_arg(form, gen)
+                       for form, gen in zip(self.upstairs().ambient_space().basis(),
+                                            self.poly_ring().gens()) ]
+        return gu + parametric_plot(self.polynomial_map(), *range_args, color='yellow', thickness=2)
+
     def find_point(self):
         r"""
         Find a point in ``self``. FIXME: Lazy implementation. Raise NotImplementedError very often.
