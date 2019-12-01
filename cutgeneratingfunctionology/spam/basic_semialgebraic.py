@@ -382,7 +382,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         This is a semialgebraic set, but in general not a basic semialgebraic set.
         """
 
-    def section(self, polynomial_map, bsa_class='section', **kwds):
+    def section(self, section_polynomial_map, bsa_class='section', **kwds):
         r"""
         Define the semialgebraic set that is a section of ``self``.
 
@@ -411,8 +411,15 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: bsa_section_2 = bsa.section(polynomial_map=polynomial_map, bsa_class='veronese')
             sage: sorted(bsa_section_2.lt_poly())
             [-t, 1575*t - 152, -t^2 - 19*t]
+
+            sage: P.<x,y,z> = QQ[]
+            sage: upstairs_bsa = BasicSemialgebraicSet_eq_lt_le_sets(le=[x*y + y*z])
+            sage: polynomial_map = [x, x, z]
+            sage: downstairs_bsa_section = upstairs_bsa.section(polynomial_map)
+            sage: downstairs_bsa_veronese = upstairs_bsa.section(polynomial_map, bsa_class='veronese')
+
         """
-        bsa_section = BasicSemialgebraicSet_section(self, polynomial_map)
+        bsa_section = BasicSemialgebraicSet_section(self, section_polynomial_map)
         bsa_class = _bsa_class(bsa_class)
         return bsa_class.from_bsa(bsa_section, **kwds)
 
