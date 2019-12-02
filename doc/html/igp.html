@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Code for the 1-row Gomory–Johnson infinite group relaxation &#8212; cutgeneratingfunctionology 1.4.1.post1 documentation</title>
+    <title>Code for the 1-row Gomory–Johnson infinite group relaxation &#8212; cutgeneratingfunctionology 1.4.1.post2 documentation</title>
     <link rel="stylesheet" href="_static/sage.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -93,7 +93,7 @@
   
   <a href="http://www.sagemath.org"><img src="_static/sagelogo.png" style="vertical-align: middle" title="Sage Logo"></a>
   
-        <li class="nav-item nav-item-0"><a href="index.html">cutgeneratingfunctionology 1.4.1.post1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">cutgeneratingfunctionology 1.4.1.post2 documentation</a> &#187;</li>
  
       </ul>
     </div>  
@@ -3017,7 +3017,7 @@ negation.</p>
 <dl class="attribute">
 <dt id="cutgeneratingfunctionology.igp.PiecewiseCrazyFunction.__call__">
 <code class="descname">__call__</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.PiecewiseCrazyFunction.__call__" title="Permalink to this definition">¶</a></dt>
-<dd><p>File: /home/travis/.sage/temp/travis-job-08323158-0dfb-4c23-a27a-7aab92b39148/10322/crazy_perturbation.sagedbNAnH.py (starting at line 109)</p>
+<dd><p>File: /home/travis/.sage/temp/travis-job-cb886dd6-8eb1-45b3-8577-b8dc2cc2803d/10439/crazy_perturbation.sagelOPRog.py (starting at line 109)</p>
 </dd></dl>
 
 <dl class="method">
@@ -7472,7 +7472,7 @@ faces of <code class="docutils literal notranslate"><span class="pre">fn</span><
 <p>Indirectly covered components are obtained using the one-dimensional
 maximal additive faces of <code class="docutils literal notranslate"><span class="pre">fn</span></code>; this includes using
 limit-additivities.  This is justified by Theorem 3.3 in
-<a class="reference internal" href="zzz_bib.html#koeppe-zhou-crazy-perturbation" id="id25">[KoppeZ18b]</a> (which covers the two-sided
+<a class="reference internal" href="zzz_bib.html#koeppe-zhou-crazy-perturbation" id="id25">[KoppeZ18]</a> (which covers the two-sided
 discontinuous case).</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">additive_faces</span></code> is provided, use exactly these faces, assuming that
 they are additive.</p>
@@ -8914,7 +8914,7 @@ Varibles of the MILP are fn[0], …, fn[q], and auxiliary variables delta[x, y].
 <dd><p>Input: a (continuous) minimal function fn for the infinite group problem, or a discrete minimal function for the finite group problem,  with rational breakpoints in 1/qZ and rational function values at the breakpoints. (weaker condition: rational breakpoints and the set {x: fn_interpolation(x)=1/2} is the union of some rational x and intervals.)
 Output: a two-slope extreme function fn2 such that fn2 = fn on 1/mqZ (and the infinity norm distance between fn and fn2 is less than epsilon).</p>
 <p>The function is obtained by putting upward and downward tents with slopes equal to the limiting slopes of the input function on top of some intervals between the points of the finite group of order mq = <code class="docutils literal notranslate"><span class="pre">injective_2_slope_fill_in_order</span></code>.</p>
-<p>This construction was introduced in <a class="reference internal" href="zzz_bib.html#koeppe-zhou-cyclic-group-facets-inject" id="id31">[KoppeZ18a]</a>.</p>
+<p>This construction was introduced in <a class="reference internal" href="zzz_bib.html#koeppe-zhou-cyclic-group-facets-inject" id="id31">[KoppeZ19]</a>.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
@@ -10143,7 +10143,7 @@ The function depends on the sequence of its evaluations.</p>
 <dt id="cutgeneratingfunctionology.igp.kzh_minimal_has_only_crazy_perturbation_1">
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">kzh_minimal_has_only_crazy_perturbation_1</code><span class="sig-paren">(</span><em>parametric=False</em>, <em>field=None</em>, <em>**parametric_kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.kzh_minimal_has_only_crazy_perturbation_1" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is a two-sided discontinuous piecewise linear minimal valid function
-introduced in <a class="reference internal" href="zzz_bib.html#koeppe-zhou-crazy-perturbation" id="id32">[KoppeZ18b]</a>
+introduced in <a class="reference internal" href="zzz_bib.html#koeppe-zhou-crazy-perturbation" id="id32">[KoppeZ18]</a>
 which is not extreme, but which is not a convex combination of other piecewise linear minimal valid
 functions.  It has two special intervals <span class="math notranslate nohighlight">\((l, u)\)</span> and <span class="math notranslate nohighlight">\((f-u, f-l)\)</span>, on which every 
 nonzero perturbation is microperiodic (invariant under the action of a dense additive group).</p>
@@ -10161,7 +10161,7 @@ nonzero perturbation is microperiodic (invariant under the action of a dense add
 </pre></div>
 </div>
 <p>To attempt to reproduce the automatic proof of this fact that is given in
-<a class="reference internal" href="zzz_bib.html#koeppe-zhou-crazy-perturbation" id="id33">[KoppeZ18b]</a>, Appendix C, we can do the following:</p>
+<a class="reference internal" href="zzz_bib.html#koeppe-zhou-crazy-perturbation" id="id33">[KoppeZ18]</a>, Appendix C, we can do the following:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>  <span class="c1"># not tested - for interactive use</span>
 <span class="n">sage</span><span class="p">:</span> <span class="kn">import</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="k">as</span> <span class="nn">igp</span> 
 <span class="n">sage</span><span class="p">:</span> <span class="n">igp</span><span class="o">.</span><span class="n">strategical_covered_components</span> <span class="o">=</span> <span class="kc">True</span>
@@ -14668,7 +14668,7 @@ represented as a <code class="docutils literal notranslate"><span class="pre">Fa
 <dd><p>Input: a (continuous) minimal function fn for the infinite group problem, or a discrete minimal function for the finite group problem,  with rational breakpoints in 1/qZ and rational function values at the breakpoints. (weaker condition: rational breakpoints and the set {x: fn_interpolation(x)=1/2} is the union of some rational x and intervals.)
 Output: a two-slope extreme function fn2 such that fn2 = fn on 1/mqZ (and the infinity norm distance between fn and fn2 is less than epsilon).</p>
 <p>The function is obtained by putting upward and downward tents with slopes equal to the limiting slopes of the input function on top of some intervals between the points of the finite group of order mq = <code class="docutils literal notranslate"><span class="pre">injective_2_slope_fill_in_order</span></code>.</p>
-<p>This construction was introduced in <a class="reference internal" href="zzz_bib.html#koeppe-zhou-cyclic-group-facets-inject" id="id37">[KoppeZ18a]</a>.</p>
+<p>This construction was introduced in <a class="reference internal" href="zzz_bib.html#koeppe-zhou-cyclic-group-facets-inject" id="id37">[KoppeZ19]</a>.</p>
 <p>EXAMPLES:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">)</span>
@@ -15218,7 +15218,7 @@ one-sided continuity is present in the function.</p>
   
   <a href="http://www.sagemath.org"><img src="_static/sagelogo.png" style="vertical-align: middle" title="Sage Logo"></a>
   
-        <li class="nav-item nav-item-0"><a href="index.html">cutgeneratingfunctionology 1.4.1.post1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">cutgeneratingfunctionology 1.4.1.post2 documentation</a> &#187;</li>
  
       </ul>
     </div>
