@@ -405,10 +405,10 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: P_downstairs.<t> = QQ[]
             sage: polynomial_map = [75/19*t, t]
             sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(lt=[21*x - 8, -x, 950*x^2 - 3700*x*y - 225*y^2 - 133*x])
-            sage: bsa_section_1 = bsa.section(polynomial_map=polynomial_map)
+            sage: bsa_section_1 = bsa.section(polynomial_map)
             sage: sorted(bsa_section_1.lt_poly())
             [-75/19*t, 1575/19*t - 8, -525/19*t^2 - 525*t]
-            sage: bsa_section_2 = bsa.section(polynomial_map=polynomial_map, bsa_class='veronese')
+            sage: bsa_section_2 = bsa.section(polynomial_map, bsa_class='veronese')
             sage: sorted(bsa_section_2.lt_poly())
             [-t, 1575*t - 152, -t^2 - 19*t]
 
