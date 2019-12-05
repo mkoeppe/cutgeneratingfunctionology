@@ -623,10 +623,10 @@ class ParametricRealField(Field):
         # do the computation of the polyhedron incrementally,
         # rather than first building a huge list and then in a second step processing it.
         # the upstairs polyhedron defined by all constraints in self._eq/lt_factor
-        self._polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(0)
+        polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(0)
         # monomial_list records the monomials that appear in self._eq/lt_factor.
-        # v_dict is a dictionary that maps each monomial to the index of its corresponding Variable in self._polyhedron
-        self._bsa = BasicSemialgebraicSet_veronese(self._polyhedron, polynomial_map=[], poly_ring=sym_ring, v_dict={})
+        # v_dict is a dictionary that maps each monomial to the index of its corresponding Variable in polyhedron
+        self._bsa = BasicSemialgebraicSet_veronese(polyhedron, polynomial_map=[], poly_ring=sym_ring, v_dict={})
 
         self.allow_coercion_to_float = allow_coercion_to_float
         if allow_coercion_to_float:
@@ -644,11 +644,10 @@ class ParametricRealField(Field):
         Kcopy._bsa = copy(self._bsa)
         Kcopy._frozen = self._frozen
         Kcopy._record = self._record
-        Kcopy._polyhedron = copy(self._polyhedron)       
         return Kcopy
 
     def ppl_polyhedron(self):
-        return self._polyhedron._polyhedron
+        return self._bsa.upstairs()._polyhedron
 
     def monomial_list(self):
         return self._bsa.polynomial_map()
@@ -900,7 +899,6 @@ class ParametricRealField(Field):
         self._factor_bsa = copy(save_factor_bsa)
         save_bsa = self._bsa
         self._bsa = copy(self._bsa)
-        self._polyhedron = self._bsa.upstairs()
         try:
             yield True
         finally:
@@ -909,7 +907,6 @@ class ParametricRealField(Field):
             self._le = save_le
             self._factor_bsa = save_factor_bsa
             self._bsa = save_bsa
-            self._polyhedron = self._bsa.upstairs()
             if case_id is not None:
                 logging.info("Finished case {}.".format(case_id))
 
@@ -1511,8 +1508,8 @@ class ParametricRealField(Field):
         P = PolynomialRing(QQ, self._names)
         monomial_list = list(P.gens())
         v_dict = {P.gens()[i]:i for i in range(n)}
-        self._polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=n)
-        self._bsa = BasicSemialgebraicSet_veronese(self._polyhedron, ambient_dim=n,
+        polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=n)
+        self._bsa = BasicSemialgebraicSet_veronese(polyhedron, ambient_dim=n,
                                                    polynomial_map=monomial_list, v_dict=v_dict)
 
     def plot(self, *options, **kwds):
