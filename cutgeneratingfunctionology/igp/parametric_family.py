@@ -17,7 +17,7 @@ class Classcall(six.with_metaclass(ClasscallMetaclass)):
         instance._init_args = (cls, args, options)
         return instance
 
-class ParametricFamily(Classcall):
+class ParametricFamily(UniqueRepresentation, Parent):
     r"""
     A parametric family of functions.
 
@@ -60,6 +60,9 @@ class ParametricFamily(Classcall):
         42
     """
 
+    def __init__(self):
+        Parent.__init__(self, facade=FastPiecewise)
+
     @staticmethod
     def __classcall__(cls, *args, **options):
         """
@@ -68,14 +71,11 @@ class ParametricFamily(Classcall):
         This is like :meth:`~sage.structure.unique_representation.CachedRepresentation.__classcall__`,
         but there is no caching.
         """
-        if options.pop('conditioncheck', True):
-            cls.check_conditions(*args, **options)
         if options.pop('compute_args_only', False):
             return (cls, args, options)
         return super(ParametricFamily, cls).__classcall__(cls, *args, **options)
 
-    @classmethod
-    def claimed_parameter_attribute(cls, *args, **kwargs):
+    def claimed_parameter_attribute(self, *args, **kwargs):
         """
         Describe what the literature claims about the function.
 
@@ -85,10 +85,18 @@ class ParametricFamily(Classcall):
 
     # FIXME: centralize default argument handling:  Currently in derived classes, default arguments are provided both in __classcall__ and again in claimed_parameter_attribute.
 
-    @classmethod
-    def check_conditions(cls, *args, **kwargs):
+    def _element_constructor_(self, *args, **options):
+        """
+        Override in subclasses to do canonicalize arguments.
+        """
+        if options.pop('conditioncheck', True):
+            self.check_conditions(*args, **options)
+
+
+
+    def check_conditions(self, *args, **kwargs):
         try:
-            c = cls.claimed_parameter_attribute(*args, **kwargs)
+            c = self.claimed_parameter_attribute(*args, **kwargs)
         except NotImplementedError:
             return
         if c == 'not_constructible':
@@ -97,6 +105,14 @@ class ParametricFamily(Classcall):
             logging.info("Conditions for extremality are NOT satisfied.")
         else:
             logging.info("Conditions for extremality are satisfied.")
+
+    #def parameter_space ....
+
+    #def variables ....
+
+    #def
+
+    #def subfamily()    ...
 
 class ParametricFamily_introspect(ParametricFamily):
     r"""
