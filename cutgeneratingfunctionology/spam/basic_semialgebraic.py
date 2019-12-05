@@ -273,6 +273,9 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         """
         self._ambient_dim += space_dim_to_add
 
+    def _linear_polynomial(self, form, constant=0):
+        return sum(coeff * gen for coeff, gen in zip(form, self.poly_ring().gens())) + constant
+
     def add_linear_constraint(self, lhs, cst, op):
         r"""
         Add the constraint ``lhs`` * x + cst ``op`` 0,
@@ -291,8 +294,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: list(bsa.lt_poly())
             [x0 + x1 - 2]
         """
-        poly = sum(coeff * gen for coeff, gen in zip(lhs, self.poly_ring().gens())) + cst
-        self.add_polynomial_constraint(poly, op)
+        self.add_polynomial_constraint(self._linear_polynomial(lhs, cst), op)
 
     def is_linear_constraint_valid(self, lhs, cst, op):
         r"""
@@ -353,7 +355,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             +Infinity
 
         """
-        return +Infinity
+        return self.polynomial_function_upper_bound(self._linear_polynomial(form))
 
     def linear_function_lower_bound(self, form):
         r"""
@@ -371,6 +373,39 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         """
         form = vector(form)
         return -(self.linear_function_upper_bound(-form))
+
+    def polynomial_function_upper_bound(self, polynomial):
+        r"""
+        Find an upper bound for ``polynomial`` on ``self``.
+
+        The default implementation just returns +oo for nonconstant polynomials.
+        Subclasses should provide more useful bounds.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: bsa = BasicSemialgebraicSet_base(QQ, 2)
+            sage: bsa.polynomial_function_upper_bound(0)
+            0
+            sage: bsa.polynomial_function_upper_bound(1)
+            1
+            sage: bsa.polynomial_function_upper_bound(bsa.poly_ring().gen(0))
+            +Infinity
+        """
+        polynomial = self.poly_ring()(polynomial)
+        if polynomial.degree() <= 0:
+            return polynomial.constant_coefficient()
+        else:
+            return +Infinity
+
+    def polynomial_function_lower_bound(self, polynomial):
+        r"""
+        Find a lower bound for ``polynomial`` on ``self``.
+
+        The default implementation just returns -oo for nonconstant polynomials.
+        Subclasses should provide more useful bounds.
+        """
+        return -(self.polynomial_function_upper_bound(-polynomial))
 
     @abstract_method
     def find_point(self):
