@@ -568,8 +568,9 @@ class ParametricRealField(Field):
     """
     Element = ParametricRealFieldElement
 
-    def __init__(self, values=None, names=(), allow_coercion_to_float=True,
-                 mutable_values=None, allow_refinement=None, big_cells=None, base_ring=QQ):
+    def __init__(self, values=None, names=None, allow_coercion_to_float=True,
+                 mutable_values=None, allow_refinement=None, big_cells=None,
+                 base_ring=None, sym_ring=None, bsa=None):
         Field.__init__(self, self)
 
         if mutable_values is None:
@@ -601,8 +602,23 @@ class ParametricRealField(Field):
         self._eq = set([])
         self._lt = set([])
         self._le = set([])
-        #sym_ring = PolynomialRing(base_ring, names, implementation='generic')
-        sym_ring = PolynomialRing(base_ring, names)
+
+        if sym_ring is None:
+            if bsa is not None:
+                sym_ring = bsa.poly_ring()
+        if base_ring is None:
+            if sym_ring is not None:
+                base_ring = sym_ring.base_ring()
+            else:
+                base_ring = QQ
+        if names is None:
+            if sym_ring is not None:
+                names = sym_ring.gens()
+            else:
+                raise ValueError("must provide one of names, sym_ring, or bsa")
+        if sym_ring is None:
+            #sym_ring = PolynomialRing(base_ring, names, implementation='generic')
+            sym_ring = PolynomialRing(base_ring, names)
         self._factor_bsa = BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=sym_ring)
         self._sym_field = sym_ring.fraction_field()
         if values is None:
@@ -620,13 +636,15 @@ class ParametricRealField(Field):
         self._frozen = False
         self._record = True
 
-        # do the computation of the polyhedron incrementally,
-        # rather than first building a huge list and then in a second step processing it.
-        # the upstairs polyhedron defined by all constraints in self._eq/lt_factor
-        polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(0)
-        # monomial_list records the monomials that appear in self._eq/lt_factor.
-        # v_dict is a dictionary that maps each monomial to the index of its corresponding Variable in polyhedron
-        self._bsa = BasicSemialgebraicSet_veronese(polyhedron, polynomial_map=[], poly_ring=sym_ring, v_dict={})
+        if bsa is None:
+            # do the computation of the polyhedron incrementally,
+            # rather than first building a huge list and then in a second step processing it.
+            # the upstairs polyhedron defined by all constraints in self._eq/lt_factor
+            polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(0)
+            # monomial_list records the monomials that appear in self._eq/lt_factor.
+            # v_dict is a dictionary that maps each monomial to the index of its corresponding Variable in polyhedron
+            bsa = BasicSemialgebraicSet_veronese(polyhedron, polynomial_map=[], poly_ring=sym_ring, v_dict={})
+        self._bsa = bsa
 
         self.allow_coercion_to_float = allow_coercion_to_float
         if allow_coercion_to_float:
