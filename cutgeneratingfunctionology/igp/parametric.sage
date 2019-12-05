@@ -750,18 +750,26 @@ class ParametricRealField(Field):
             logging.warning("Consistency checking not implemented if some test point coordinates are None")
             return True
         ### Check that values satisfy all constraints.
-        return [ m(new_values) for m in self.monomial_list() ] in self._polyhedron
+        return new_values in self._bsa
+
+    def change_test_point(self, new_values):
+        if not self._mutable_values:
+            raise ValueError("ParametricRealField is set up with mutable_values=False")
+        new_values = list(new_values)
+        if not self.is_point_consistent(new_values):
+            raise ParametricRealFieldInconsistencyError("New test point {} does not satisfy the recorded constraints".format(new_values))
+        self._values = new_values
 
     def change_values(self, **values):
+        """
+        Convenience interface for ``change_test_point``.
+        """
         if not self._mutable_values:
             raise ValueError("ParametricRealField is set up with mutable_values=False")
         new_values = copy(self._values)
         for key, value in values.items():
             new_values[self._names.index(key)] = value
-        ### Check that values satisfy all constraints.
-        if not self.is_point_consistent(new_values):
-            raise ParametricRealFieldInconsistencyError("New test point {} does not satisfy the recorded constraints".format(new_values))
-        self._values = new_values
+        self.change_test_point(new_values)
 
     def remove_test_point(self):
         """
@@ -837,8 +845,8 @@ class ParametricRealField(Field):
             sage: x.val(), y.val(), z.val()
             (1, 2, 3)
         """
-        p = self._polyhedron.find_point()
-        self.change_values(**{str(m): x for m, x in zip(self.monomial_list(), p) })
+        p = self._bsa.find_point()
+        self.change_test_point(p)
 
     @contextmanager
     def changed_values(self, **values):
