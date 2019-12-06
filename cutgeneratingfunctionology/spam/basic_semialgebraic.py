@@ -69,20 +69,48 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
     Abstract base class of mutable basic semialgebraic sets.
     """
 
-    def __init__(self, base_ring, ambient_dim):
+    @staticmethod
+    def _poly_ring_from_options(poly_ring=None, base_ring=None, ambient_dim=None, names=None, **options):
+        """
+        Interpret the `poly_ring`, `base_ring`, `ambient_dim`, and `names` options.
+
+        Return a tuple of these four, normalized.
+        """
+        if poly_ring is None:
+            if names is not None:
+                poly_ring = PolynomialRing(base_ring, names)
+            elif ambient_dim is not None and base_ring is not None:
+                poly_ring = PolynomialRing(base_ring, "x", ambient_dim)
+        if ambient_dim is None:
+            if poly_ring is not None:
+                ambient_dim = poly_ring.ngens()
+            elif names is not None:
+                ambient_dim = len(names)
+        if base_ring is None:
+            if poly_ring is not None:
+                base_ring = poly_ring.base_ring()
+        if names is None:
+            if poly_ring is not None:
+                names = poly_ring.gens()
+        return poly_ring, base_ring, ambient_dim, names
+
+    def __init__(self, base_ring=None, ambient_dim=None, **options):
         """
         Initialize a basic semialgebraic set as the universe in ``ambient_dim``.
 
         ``base_ring`` is the ring in which the coefficients of polynomials live.
         """
+        poly_ring, base_ring, ambient_dim, names = self._poly_ring_from_options(
+            base_ring=base_ring, ambient_dim=ambient_dim, **options)
         super(BasicSemialgebraicSet_base, self).__init__()
         self._ambient_dim = ambient_dim
         self._base_ring = base_ring
+        self._poly_ring = poly_ring
 
     # Default implementation. Subclasses are encouraged to provide
     # faster implementations.
     @classmethod
-    def from_bsa(cls, bsa, **init_kwds):
+    def from_bsa(cls, bsa, base_ring=None, poly_ring=None, **init_kwds):
         r"""
         Initialize a basic semialgebraic set of class ``cls`` to be the same
         as ``bsa``.
@@ -122,17 +150,30 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: list(veronese_bsa_again.lt_poly())
             [54*x0^2 + 226*x1*x2 + 113]
 
-        If ``bsa`` is already of class ``cls``, it is just returned::
+        If ``bsa`` is already of class ``cls`` and the correct ``base_ring``, it is just returned::
 
             sage: BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(upstairs_bsa_eq_lt_le_sets) is upstairs_bsa_eq_lt_le_sets
             True
 
+        We can use this method to upgrade a ``base_ring``::
+
+            sage: upstairs_bsa_eq_lt_le_sets_AA = BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(upstairs_bsa_eq_lt_le_sets, base_ring=AA)
+            sage: upstairs_bsa_eq_lt_le_sets_AA is upstairs_bsa_eq_lt_le_sets
+            False
+            sage: upstairs_bsa_eq_lt_le_sets_AA.base_ring()
+            Algebraic Real Field
+
         """
-        if bsa.__class__ == cls:
+        if bsa.__class__ == cls and (base_ring is None or base_ring == bsa.base_ring()):
             return bsa
-        base_ring = init_kwds.pop('base_ring', bsa.base_ring())
-        ambient_dim = bsa.ambient_dim()
-        self = cls(base_ring=base_ring, ambient_dim=ambient_dim, **init_kwds)  # FIXME: Make all classes accept poly_ring, then pass it here
+        if poly_ring is None:
+            if base_ring is not None:
+                poly_ring = cls._poly_ring_from_options(base_ring=bsa.base_ring(),
+                                                        ambient_dim=bsa.ambient_dim(),
+                                                        names=bsa.poly_ring().gens())
+            else:
+                poly_ring = bsa.poly_ring()
+        self = cls(poly_ring=poly_ring, **init_kwds)
         bsa.add_constraints_to(self)
         return self
 
@@ -157,7 +198,17 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         return self._base_ring
 
     def poly_ring(self):
-        return PolynomialRing(self.base_ring(), "x", self.ambient_dim())
+        """
+        Return the polynomial ring.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(2)
+            sage: P.poly_ring()
+            Multivariate Polynomial Ring in x0, x1 over Rational Field
+        """
+        return self._poly_ring
 
     @abstract_method
     def eq_poly(self):
