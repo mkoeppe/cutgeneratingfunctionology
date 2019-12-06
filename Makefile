@@ -53,6 +53,7 @@ SAGEFILES +=									\
 	cutgeneratingfunctionology/spam/basic_semialgebraic_formal_closure.py	\
 	cutgeneratingfunctionology/spam/basic_semialgebraic_linear_system.py	\
 	cutgeneratingfunctionology/spam/basic_semialgebraic_intersection.py	\
+	cutgeneratingfunctionology/spam/class_call.py				\
 	cutgeneratingfunctionology/spam/semialgebraic_maple.py			\
 	cutgeneratingfunctionology/spam/semialgebraic_mathematica.py		\
 	cutgeneratingfunctionology/spam/semialgebraic_predicate.py		\

@@ -3,19 +3,9 @@ Parametric families of functions.
 """
 from __future__ import print_function, absolute_import
 
-from sage.misc import six
-from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.abstract_method import abstract_method
 import logging
-
-class Classcall(six.with_metaclass(ClasscallMetaclass)):
-
-    @staticmethod
-    def __classcall__(cls, *args, **options):
-        instance = typecall(cls, *args, **options)
-        assert isinstance( instance, cls )
-        instance._init_args = (cls, args, options)
-        return instance
+from .class_call import Classcall
 
 class ParametricFamily(UniqueRepresentation, Parent):
     r"""
