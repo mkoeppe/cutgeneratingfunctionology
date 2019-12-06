@@ -17,8 +17,13 @@ class BasicSemialgebraicSet_predicate(BasicSemialgebraicSet_base):
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.spam.semialgebraic_predicate import BasicSemialgebraicSet_predicate
+        sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import BasicSemialgebraicSet_eq_lt_le_sets
+        sage: import logging; logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: def is_in_unit_disk(x): return x[0]^2 + x[1]^2 <= 1
-        sage: bsa = BasicSemialgebraicSet_predicate(is_in_unit_disk)
+        sage: bsa = BasicSemialgebraicSet_predicate(is_in_unit_disk, true_point=(0, 0), base_ring=QQ, ambient_dim=2)
+        sage: bsa_explicit = BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(bsa)
+        sage: sorted(bsa_explicit.le_poly())
+        [x0^2 + x1^2 - 1]
     """
 
     def __init__(self, predicate, true_point=None, base_ring=None, ambient_dim=None, poly_ring=None):
@@ -30,7 +35,7 @@ class BasicSemialgebraicSet_predicate(BasicSemialgebraicSet_base):
         # FIXME: Normalize predicate's inputs
         super(BasicSemialgebraicSet_predicate, self).__init__(base_ring=base_ring, ambient_dim=ambient_dim, poly_ring=poly_ring)
         self._predicate = predicate
-        self._true_point = true_point
+        self._true_point = self.ambient_space()(true_point)
 
     def __contains__(self, point):
         r"""
