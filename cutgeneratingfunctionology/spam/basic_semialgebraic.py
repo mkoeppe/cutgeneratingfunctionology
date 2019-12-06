@@ -106,6 +106,8 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         """
         poly_ring, base_ring, ambient_dim, names = self._poly_ring_from_options(
             base_ring=base_ring, ambient_dim=ambient_dim, **options)
+        if not poly_ring:
+            raise ValueError("poly_ring is not determined by the provided input")
         super(BasicSemialgebraicSet_base, self).__init__()
         self._ambient_dim = ambient_dim
         self._base_ring = base_ring
