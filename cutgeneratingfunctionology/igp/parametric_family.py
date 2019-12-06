@@ -60,8 +60,19 @@ class ParametricFamily(UniqueRepresentation, Parent):
         42
     """
 
-    def __init__(self):
+    def __init__(self, constructor):
         Parent.__init__(self, facade=FastPiecewise)
+
+    def names(self):
+        """
+        Return a list of the names of the parameters.
+        """
+
+    def default_point(self):
+        """
+        Return a list of the default values of the parameters.
+        """
+        raise NotImplementedError
 
     @staticmethod
     def __classcall__(cls, *args, **options):
@@ -71,8 +82,6 @@ class ParametricFamily(UniqueRepresentation, Parent):
         This is like :meth:`~sage.structure.unique_representation.CachedRepresentation.__classcall__`,
         but there is no caching.
         """
-        if options.pop('compute_args_only', False):
-            return (cls, args, options)
         return super(ParametricFamily, cls).__classcall__(cls, *args, **options)
 
     def claimed_parameter_attribute(self, *args, **kwargs):
@@ -91,6 +100,8 @@ class ParametricFamily(UniqueRepresentation, Parent):
         """
         if options.pop('conditioncheck', True):
             self.check_conditions(*args, **options)
+        if options.pop('compute_args_only', False):
+            return (cls, args, options)
 
 
 
@@ -107,8 +118,6 @@ class ParametricFamily(UniqueRepresentation, Parent):
             logging.info("Conditions for extremality are satisfied.")
 
     #def parameter_space ....
-
-    #def variables ....
 
     #def
 

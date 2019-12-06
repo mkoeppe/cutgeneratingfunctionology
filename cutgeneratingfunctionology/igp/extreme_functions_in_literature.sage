@@ -1456,7 +1456,7 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
     h._claimed_parameter_attribute = claimed_parameter_attribute
     return h
 
-class ll_strong_fractional(FastPiecewise, ParametricFamily):
+class ll_strong_fractional_function(FastPiecewise, ClassCall):
 
     r"""
     .. PLOT::
@@ -1530,7 +1530,7 @@ class ll_strong_fractional(FastPiecewise, ParametricFamily):
     def __classcall__(cls, f=2/3, field=None, conditioncheck=True):
         if not bool(0 < f < 1):
             raise ValueError("Bad parameters. Unable to construct the function.")
-        return super(ll_strong_fractional, cls).__classcall__(cls, f, field=field, conditioncheck=conditioncheck)
+        return super(ll_strong_fractional_function, cls).__classcall__(cls, f, field=field, conditioncheck=conditioncheck)
 
     @classmethod
     def claimed_parameter_attribute(cls, f=2/3, **kwargs):
@@ -1551,7 +1551,9 @@ class ll_strong_fractional(FastPiecewise, ParametricFamily):
         p = k - 1
         pieces.append([open_interval(f + (1 - f)* p / k, f + (1 - f)*(p + 1)/k), FastLinearFunction(1/f, -(p + 1)/f/(k + 1))])
         pieces.append([singleton_interval(1), FastLinearFunction(0, 0)])
-        super(ll_strong_fractional, self).__init__(pieces)
+        super(ll_strong_fractional_function, self).__init__(pieces)
+
+ll_strong_fractional = ParametricFamily(ll_strong_fractional_function)
 
 def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
     r"""
