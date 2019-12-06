@@ -41,6 +41,7 @@ def _bsa_class(bsa_class):
     if isinstance(bsa_class, type):
         return bsa_class
     elif bsa_class == 'formal_closure':
+        from .basic_semialgebraic_formal_closure import BasicSemialgebraicSet_formal_closure
         return BasicSemialgebraicSet_formal_closure
     elif bsa_class == 'section':
         return BasicSemialgebraicSet_section
@@ -52,7 +53,11 @@ def _bsa_class(bsa_class):
         from .basic_semialgebraic_linear_system import BasicSemialgebraicSet_polyhedral_linear_system
         return BasicSemialgebraicSet_polyhedral_linear_system
     elif bsa_class == 'intersection':
+        from .basic_semialgebraic_intersection import BasicSemialgebraicSet_intersection
         return BasicSemialgebraicSet_intersection
+    elif bsa_class == 'predicate':
+        from .semialgebraic_predicate import BasicSemialgebraicSet_predicate
+        return BasicSemialgebraicSet_predicate
     elif bsa_class == 'veronese':
         return BasicSemialgebraicSet_veronese
     else:
@@ -232,6 +237,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             [-1]
 
         """
+        from .basic_semialgebraic_formal_closure import BasicSemialgebraicSet_formal_closure
         bsa_formal_closure = BasicSemialgebraicSet_formal_closure(self)
         bsa_class = _bsa_class(bsa_class)
         return bsa_class.from_bsa(bsa_formal_closure)
@@ -263,6 +269,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: sorted(bsa123.le_poly()), sorted(bsa123.eq_poly()), sorted(bsa123.lt_poly())
             ([-z, -y, -x], [x + y], [y + z])
         """
+        from .basic_semialgebraic_intersection import BasicSemialgebraicSet_intersection
         bsa_class = _bsa_class(kwds.pop('bsa_class', 'intersection'))
         bsa_intersection = BasicSemialgebraicSet_intersection([self] + list(bsa_list), **kwds)
         return bsa_class.from_bsa(bsa_intersection)
@@ -1872,69 +1879,3 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             #if max_iter != 0 and bounds_propagation_iter >= max_iter:
             #    logging.warning("max number %s of bounds propagation iterations has attained." % max_iter)
             bounds_propagation_iter += 1
-
-class BasicSemialgebraicSet_formal_closure(BasicSemialgebraicSet_base):
-
-    r"""
-    Represent the formal closure (see method ``formal_closure``) of
-    another basic semialgebraic set ``upstairs_bsa``.
-    """
-
-    def __init__(self, upstairs_bsa):
-        base_ring = upstairs_bsa.base_ring()
-        ambient_dim = upstairs_bsa.ambient_dim()
-        super(BasicSemialgebraicSet_formal_closure, self).__init__(base_ring, ambient_dim)
-        self._upstairs_bsa = upstairs_bsa
-
-    def _repr_(self):
-        return 'BasicSemialgebraicSet_formal_closure({})'.format(self.upstairs())
-
-    def upstairs(self):
-        return self._upstairs_bsa
-
-    def eq_poly(self):
-        return self.upstairs().eq_poly()
-
-    def le_poly(self):
-        return chain(self.upstairs().le_poly(), self.upstairs().lt_poly())
-
-    def lt_poly(self):
-        return []
-
-class BasicSemialgebraicSet_intersection(BasicSemialgebraicSet_base):
-
-    r"""
-    Represent the intersection of finitely many basic semialgebraic sets.
-    See method ``intersection``.
-    """
-
-    def __init__(self, bsa_list):
-        bsa_list = list(bsa_list)
-        base_ring = bsa_list[0].base_ring()
-        ambient_dim = bsa_list[0].ambient_dim()
-        poly_ring = bsa_list[0].poly_ring()
-        if not all(bsa.base_ring() == base_ring
-                   and bsa.ambient_dim() == ambient_dim
-                   and bsa.poly_ring() == poly_ring
-                   for bsa in bsa_list):
-            raise ValueError("all sets in the intersection must have the same base_ring, ambient_dim, poly_ring")
-        super(BasicSemialgebraicSet_intersection, self).__init__(base_ring, ambient_dim)
-        self._bsa_list = bsa_list
-
-    def _repr_(self):
-        return 'BasicSemialgebraicSet_intersection({})'.format(self._bsa_list)
-
-    def eq_poly(self):
-        return set(chain(*[bsa.eq_poly() for bsa in self._bsa_list]))
-
-    def le_poly(self):
-        return set(chain(*[bsa.le_poly() for bsa in self._bsa_list]))
-
-    def lt_poly(self):
-        return set(chain(*[bsa.lt_poly() for bsa in self._bsa_list]))
-
-    def linear_function_upper_bound(self, form):
-        return min(bsa.linear_function_upper_bound(form) for bsa in self._bsa_list)
-
-    def is_polynomial_constraint_valid(self, lhs, op):
-        return any(bsa.is_polynomial_constraint_valid(lhs, op) for bsa in self._bsa_list)
