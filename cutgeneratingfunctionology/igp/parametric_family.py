@@ -4,28 +4,25 @@ Parametric families of functions.
 from __future__ import print_function, absolute_import
 
 from sage.misc.abstract_method import abstract_method
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.sageinspect import sage_getargspec, sage_getvariablename
+from sage.structure.parent import Parent
 import logging
 from .class_call import Classcall
+from collections import OrderedDict
 
-class ParametricFamily(UniqueRepresentation, Parent):
+class ParametricFamilyElement(Classcall):
+
     r"""
-    A parametric family of functions.
+    Class of an element of a parametric family of functions.
 
     TESTS:
 
-    Globally defined parametric families can be pickled::
-
-        sage: from cutgeneratingfunctionology.igp import *
-        sage: p_ll_strong_fractional = dumps(ll_strong_fractional)
-        sage: explain_pickle(p_ll_strong_fractional)                     # not tested
-        unpickle_global('cutgeneratingfunctionology.igp', 'll_strong_fractional')
-        sage: loads(p_ll_strong_fractional) is ll_strong_fractional
-        True
-
-    Members of parametric families can be pickled and remember their construction
+    Elements of parametric families can be pickled and remember their construction
     but also their computed attributes, but there is no unique representation behavior::
 
-        sage: logging.disable(logging.INFO)             # Suppress output in automatic tests.
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: import logging; logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = ll_strong_fractional()
         sage: h._init_args
         (<class 'cutgeneratingfunctionology.igp.ll_strong_fractional'>,
@@ -50,20 +47,6 @@ class ParametricFamily(UniqueRepresentation, Parent):
         42
     """
 
-    def __init__(self, constructor):
-        Parent.__init__(self, facade=FastPiecewise)
-
-    def names(self):
-        """
-        Return a list of the names of the parameters.
-        """
-
-    def default_point(self):
-        """
-        Return a list of the default values of the parameters.
-        """
-        raise NotImplementedError
-
     @staticmethod
     def __classcall__(cls, *args, **options):
         """
@@ -72,9 +55,14 @@ class ParametricFamily(UniqueRepresentation, Parent):
         This is like :meth:`~sage.structure.unique_representation.CachedRepresentation.__classcall__`,
         but there is no caching.
         """
-        return super(ParametricFamily, cls).__classcall__(cls, *args, **options)
+        if options.pop('conditioncheck', True):
+            cls.check_conditions(*args, **options)
+        if options.pop('compute_args_only', False):
+            return (cls, args, options)
+        return super(ParametricFamilyElement, cls).__classcall__(cls, *args, **options)
 
-    def claimed_parameter_attribute(self, *args, **kwargs):
+    @classmethod
+    def claimed_parameter_attribute(cls, *args, **kwargs):
         """
         Describe what the literature claims about the function.
 
@@ -84,20 +72,10 @@ class ParametricFamily(UniqueRepresentation, Parent):
 
     # FIXME: centralize default argument handling:  Currently in derived classes, default arguments are provided both in __classcall__ and again in claimed_parameter_attribute.
 
-    def _element_constructor_(self, *args, **options):
-        """
-        Override in subclasses to do canonicalize arguments.
-        """
-        if options.pop('conditioncheck', True):
-            self.check_conditions(*args, **options)
-        if options.pop('compute_args_only', False):
-            return (cls, args, options)
-
-
-
-    def check_conditions(self, *args, **kwargs):
+    @classmethod
+    def check_conditions(cls, *args, **kwargs):
         try:
-            c = self.claimed_parameter_attribute(*args, **kwargs)
+            c = cls.claimed_parameter_attribute(*args, **kwargs)
         except NotImplementedError:
             return
         if c == 'not_constructible':
@@ -107,19 +85,106 @@ class ParametricFamily(UniqueRepresentation, Parent):
         else:
             logging.info("Conditions for extremality are satisfied.")
 
-    #def parameter_space ....
 
-    #def
+class ParametricFamily(UniqueRepresentation, Parent):
+    r"""A parametric family of functions.
 
-    #def subfamily()    ...
+    It is defined in the traditional way by defining a ``constructor`` and then
+    introspecting it for argument names and default arguments.
 
-class ParametricFamily_introspect(ParametricFamily):
-    r"""
-    A parametric family of functions, defined in the traditional way by
-    defining a function and then introspecting it for argument names and
-    default arguments.
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: F_ll_strong_fractional = ParametricFamily(ll_strong_fractional); F_ll_strong_fractional
+        ParametricFamily(ll_strong_fractional, names=['f'], default_values={'field': None, 'conditioncheck': True, 'f': 2/3})
+
+    TESTS:
+
+    Parametric families have unique representation behavior::
+
+        sage: F_dg_2_step_mir_f_default = ParametricFamily(dg_2_step_mir, names=['alpha']); F_dg_2_step_mir_f_default
+        ParametricFamily(dg_2_step_mir, names=['alpha'], default_values={'alpha': 3/10, 'conditioncheck': True, 'f': 4/5, 'field': None})
+        sage: F_dg_2_step_mir_f_default is ParametricFamily(dg_2_step_mir, names=['alpha'])
+        True
+        sage: F_dg_2_step_mir_f_default is ParametricFamily(dg_2_step_mir, names=['alpha'], default_values={'f': 4/5})
+        True
+        sage: F_dg_2_step_mir_f_default is ParametricFamily(dg_2_step_mir, names=['alpha'], default_values={'f': 2/3})
+        False
+
+    Parametric families with globally defined constructors can be pickled::
+
+        sage: p_F_ll_strong_fractional = dumps(F_ll_strong_fractional)
+        sage: explain_pickle(p_F_ll_strong_fractional)                  # not tested
+        pg_unreduce = unpickle_global('sage.structure.unique_representation', 'unreduce')
+        pg_ParametricFamily = unpickle_global('cutgeneratingfunctionology.igp.parametric_family', 'ParametricFamily')
+        pg_ll_strong_fractional = unpickle_global('cutgeneratingfunctionology.igp', 'll_strong_fractional')
+        pg_make_rational = unpickle_global('sage.rings.rational', 'make_rational')
+        pg_unreduce(pg_ParametricFamily, (pg_ll_strong_fractional, (('f', pg_make_rational('2/3')), ('field', None), ('conditioncheck', True)), ('f',), 'conditioncheck'), {})
+        sage: loads(p_F_ll_strong_fractional) is F_ll_strong_fractional
+        True
+
     """
 
     @staticmethod
-    def __classcall__(cls, *args, **options):
-        raise NotImplementedError
+    def __classcall__(cls, constructor, default_values=None, names=None,
+                      ignore_special_args=('cls', 'self'),
+                      ignore_args=('conditioncheck', 'field', 'merge')):
+        # For classes, sage_getargspec uses the argspec of __call__, which is not useful for us.
+        c = constructor
+        if hasattr(constructor, "__classcall__"):
+            c = constructor.__classcall__
+        elif hasattr(constructor, "__init__"):
+            c = constructor.__init__
+        args, varargs, keywords, defaults = sage_getargspec(c)
+        #import pdb; pdb.set_trace()
+        args = [ name for name in args if name not in ignore_special_args ]     # cls and self do not appear in the default list, remove them first
+        if defaults:
+            arg_default_dict = OrderedDict(zip(args, defaults))
+        else:
+            arg_default_dict = OrderedDict((arg, None) for arg in args)
+        if default_values is not None:
+            default_values = dict(default_values)
+            arg_default_dict.update(default_values)
+        if names is None:
+            names = [ name for name in args
+                     if name not in ignore_args ]
+        return super(ParametricFamily, cls).__classcall__(
+            cls, constructor, tuple(arg_default_dict.items()), tuple(names))
+
+    def __init__(self, constructor, default_values, names):
+        from cutgeneratingfunctionology.igp import FastPiecewise
+        Parent.__init__(self, facade=(FastPiecewise,))
+        self._constructor = constructor
+        self._names = names
+        self._default_values = OrderedDict(default_values)
+
+    def _repr_(self):
+        return "ParametricFamily({}, names={}, default_values={})".format(
+            self.constructor().__name__, list(self.names()), dict(self.default_values()))
+
+    def names(self):
+        """
+        Return a list of the names of the parameters.
+        """
+        return self._names
+
+    def default_point(self):
+        """
+        Return a list of the default values of the parameters corresponding to ``names``.
+        """
+        default_values = self.default_values()
+        return [ default_values[name] for name in self.names() ]
+
+    def default_values(self):
+        """
+        Return an ``OrderedDict`` of all arguments and their defaults
+        that will be passed to ``constructor``.
+        """
+        return self._default_values
+
+    def constructor(self):
+        return self._constructor
+
+    #def parameter_space ....
+
+    #def subfamily()    ...

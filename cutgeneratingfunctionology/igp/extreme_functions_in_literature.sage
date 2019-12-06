@@ -1,6 +1,6 @@
 from six.moves import range
 
-from .parametric_family import ParametricFamily
+from .parametric_family import ParametricFamilyElement
 
 def gmic(f=4/5, field=None, conditioncheck=True):
     r"""
@@ -171,7 +171,7 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
     h._claimed_parameter_attribute = claimed_parameter_attribute
     return h
 
-class dg_2_step_mir(FastPiecewise, ParametricFamily):
+class dg_2_step_mir(FastPiecewise, ParametricFamilyElement):
 
     r"""
     .. PLOT::
@@ -251,7 +251,7 @@ def interval_length_n_step_mir(n, m, a, b):
         result[-1] = a[m - 1] - b[m - 1]
         return result
 
-class kf_n_step_mir(FastPiecewise, ParametricFamily):
+class kf_n_step_mir(FastPiecewise, ParametricFamilyElement):
 
     r"""
     .. PLOT::
@@ -509,7 +509,7 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
     h._claimed_parameter_attribute = claimed_parameter_attribute
     return h
 
-class dg_2_step_mir_limit(FastPiecewise, ParametricFamily):
+class dg_2_step_mir_limit(FastPiecewise, ParametricFamilyElement):
 
     r"""
     .. PLOT::
@@ -1456,7 +1456,7 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
     h._claimed_parameter_attribute = claimed_parameter_attribute
     return h
 
-class ll_strong_fractional_function(FastPiecewise, ClassCall):
+class ll_strong_fractional(FastPiecewise, ParametricFamilyElement):
 
     r"""
     .. PLOT::
@@ -1530,7 +1530,7 @@ class ll_strong_fractional_function(FastPiecewise, ClassCall):
     def __classcall__(cls, f=2/3, field=None, conditioncheck=True):
         if not bool(0 < f < 1):
             raise ValueError("Bad parameters. Unable to construct the function.")
-        return super(ll_strong_fractional_function, cls).__classcall__(cls, f, field=field, conditioncheck=conditioncheck)
+        return super(ll_strong_fractional, cls).__classcall__(cls, f, field=field, conditioncheck=conditioncheck)
 
     @classmethod
     def claimed_parameter_attribute(cls, f=2/3, **kwargs):
@@ -1551,9 +1551,7 @@ class ll_strong_fractional_function(FastPiecewise, ClassCall):
         p = k - 1
         pieces.append([open_interval(f + (1 - f)* p / k, f + (1 - f)*(p + 1)/k), FastLinearFunction(1/f, -(p + 1)/f/(k + 1))])
         pieces.append([singleton_interval(1), FastLinearFunction(0, 0)])
-        super(ll_strong_fractional_function, self).__init__(pieces)
-
-ll_strong_fractional = ParametricFamily(ll_strong_fractional_function)
+        super(ll_strong_fractional, self).__init__(pieces)
 
 def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
     r"""

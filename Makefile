@@ -30,6 +30,7 @@ SAGEFILES =									\
 	cutgeneratingfunctionology/igp/lifting_project.sage			\
 	cutgeneratingfunctionology/igp/procedures/injective_2_slope_fill_in_proof.py \
 	cutgeneratingfunctionology/igp/faster_subadditivity_test.sage		\
+	cutgeneratingfunctionology/igp/class_call.py				\
 	cutgeneratingfunctionology/igp/parametric_family.py
 
 
@@ -53,7 +54,6 @@ SAGEFILES +=									\
 	cutgeneratingfunctionology/spam/basic_semialgebraic_formal_closure.py	\
 	cutgeneratingfunctionology/spam/basic_semialgebraic_linear_system.py	\
 	cutgeneratingfunctionology/spam/basic_semialgebraic_intersection.py	\
-	cutgeneratingfunctionology/spam/class_call.py				\
 	cutgeneratingfunctionology/spam/semialgebraic_maple.py			\
 	cutgeneratingfunctionology/spam/semialgebraic_mathematica.py		\
 	cutgeneratingfunctionology/spam/semialgebraic_predicate.py		\
