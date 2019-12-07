@@ -43,7 +43,9 @@ def igp_load(fpath):
         raise ValueError('unknown file extension %r for load or attach (supported extensions: .py, .pyx, .sage, .spyx, .f, .f90, .m)' % ext)
 
 igp_load(igp_dir + "logging.sage")
-igp_load(igp_dir + "intervals.sage")
+
+from .intervals import *
+
 igp_load(igp_dir + "real_number_field.sage")
 igp_load(igp_dir + "fast_linear.sage")
 igp_load(igp_dir + "functions.sage")
