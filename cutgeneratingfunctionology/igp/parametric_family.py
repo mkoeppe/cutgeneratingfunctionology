@@ -5,6 +5,7 @@ from __future__ import print_function, absolute_import
 
 from sage.misc.abstract_method import abstract_method
 from sage.structure.unique_representation import UniqueRepresentation
+from inspect import isclass
 from sage.misc.sageinspect import sage_getargspec, sage_getvariablename
 from sage.structure.parent import Parent
 import logging
@@ -97,6 +98,10 @@ class ParametricFamily(UniqueRepresentation, Parent):
         sage: from cutgeneratingfunctionology.igp import *
         sage: F_ll_strong_fractional = ParametricFamily(ll_strong_fractional); F_ll_strong_fractional
         ParametricFamily(ll_strong_fractional, names=['f'], default_values={'field': None, 'conditioncheck': True, 'f': 2/3})
+        sage: ParametricFamily(gj_2_slope)
+        ParametricFamily(gj_2_slope, names=['f', 'lambda_1'], default_values={'field': None, 'conditioncheck': True, 'lambda_1': 1/6, 'f': 3/5})
+        sage: ParametricFamily(bcdsp_arbitrary_slope, names=['f'])
+        ParametricFamily(bcdsp_arbitrary_slope, names=['f'], default_values={'field': None, 'k': 4, 'conditioncheck': True, 'f': 1/2})
 
     TESTS:
 
@@ -131,10 +136,11 @@ class ParametricFamily(UniqueRepresentation, Parent):
                       ignore_args=('conditioncheck', 'field', 'merge')):
         # For classes, sage_getargspec uses the argspec of __call__, which is not useful for us.
         c = constructor
-        if hasattr(constructor, "__classcall__"):
-            c = constructor.__classcall__
-        elif hasattr(constructor, "__init__"):
-            c = constructor.__init__
+        if isclass(c):
+            if hasattr(constructor, "__classcall__"):
+                c = constructor.__classcall__
+            elif hasattr(constructor, "__init__"):
+                c = constructor.__init__
         args, varargs, keywords, defaults = sage_getargspec(c)
         #import pdb; pdb.set_trace()
         args = [ name for name in args if name not in ignore_special_args ]     # cls and self do not appear in the default list, remove them first
