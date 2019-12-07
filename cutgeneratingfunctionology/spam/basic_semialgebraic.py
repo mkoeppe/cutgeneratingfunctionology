@@ -811,7 +811,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
             sage: P._polyhedron is copy(P)._polyhedron
             False
         """
-        return self.__class__(polyhedron=copy(self._polyhedron), poly_ring=self.poly_ring())
+        return self.__class__(polyhedron=NNC_Polyhedron(self._polyhedron), poly_ring=self.poly_ring())
 
     def _repr_(self):
         constraints = self._polyhedron.minimized_constraints()
@@ -1694,6 +1694,17 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         r"""
         Make a copy of ``self``.
 
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: bddbsa = BasicSemialgebraicSet_veronese(poly_ring=PolynomialRing(QQ, ['f','z']))
+            sage: bddbsa.add_linear_constraint((0,-1), 0, operator.lt)
+            sage: bddbsa.add_linear_constraint((-2,0), 1, operator.lt)
+            sage: bddbsa.add_linear_constraint((1,6), -1, operator.lt)
+            sage: bddbsa
+            BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-6*x0-x1+1>0, x0>0, 2*x1-1>0}, names=[x0, x1]), polynomial_map=[z, f])
+            sage: bddbsa_copy = copy(bddbsa); bddbsa_copy
+            BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-6*x0-x1+1>0, x0>0, 2*x1-1>0}, names=[x0, x1]), polynomial_map=[z, f])
         """
         return self.__class__(upstairs_bsa=copy(self.upstairs()), polynomial_map=copy(self.polynomial_map()),
                               v_dict=copy(self.v_dict()), poly_ring=self.poly_ring(), ambient_dim=self.ambient_dim())
