@@ -80,6 +80,12 @@ check-long: check-encoding
 	PYTHONPATH=`pwd` $(SAGE) -tp $(CHECK_PARALLEL) --force_lib --long --warn-long 300 --stats-path .tmp_check-long-timings.json $(SAGE_CHECK_FLAGS) $(SAGEFILES)
 	rm .tmp_check-long-timings.json
 
+.PHONY: fixdoctests
+fixdoctests: $(SAGEFILES:%=%.fixdoctests)
+
+%.fixdoctests: %
+	PYTHONPATH=`pwd` $(SAGE) -fixdoctests --long $<
+
 check-encoding:
 	@if LC_ALL=C grep -v -n '^[ -~]*$$' $(SAGEFILES) ; then echo "Offending characters found."; exit 1; else echo "All Sage files are ASCII and have no tabs. Good."; exit 0; fi
 
