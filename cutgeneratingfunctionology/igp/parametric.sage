@@ -1294,7 +1294,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         sage: component.plot()                                  # not tested
         sage: new_points = component.find_neighbour_candidates(1/4, 'heuristic', goto_lower_dim=False)
         sage: list(new_points[0].keys())
-        [(19959383/28510088, 24590405/28510088), (11/8, 7/8)]
+        [(11/8, 7/8), (19959383/28510088, 24590405/28510088)]
 
     # component.find_walls_and_new_points(1/4, 'mathematica', goto_lower_dim=True)  # optional - mathematica
     # ([x + y - 2, y^2 - x],
@@ -1459,7 +1459,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                     # Find a new point, use polynomial map to recover the values of those eliminated variables.
                     pt_across_wall = tuple(p(pt) for p in self.polynomial_map)
                     if num_eq not in new_points:
-                        new_points[num_eq] = {}
+                        new_points[num_eq] = OrderedDict()
                     new_points[num_eq][pt_across_wall] = (self.bddbsa, self.polynomial_map)
         # now flip l < 0 to l >= 0
         for l in list(self.bsa.lt_poly()):
@@ -1489,7 +1489,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                     #find a new point, use polynomial map to recover the values of those eliminated variables.
                     pt_across_wall = tuple(p(pt) for p in self.polynomial_map)
                     if num_eq not in new_points:
-                        new_points[num_eq] = {}
+                        new_points[num_eq] = OrderedDict()
                     new_points[num_eq][pt_across_wall] = (self.bddbsa, self.polynomial_map)
                 if (goto_lower_dim is True) and (l.degree() == 1):
                     # l is linear wall. try to find a point on the wall using heuristic gradient descent method.
@@ -1510,7 +1510,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                         v_mapped_to = v - l / (l.monomial_coefficient(v))  # eliminate v
                         polynomial_map = [p.subs({v: v_mapped_to}) for p in self.polynomial_map]
                         if (num_eq + 1) not in new_points:
-                            new_points[num_eq+1] = {}
+                            new_points[num_eq+1] = OrderedDict()
                         new_points[num_eq+1][pt_on_wall] = (bddbsa, polynomial_map)
         return new_points
 
