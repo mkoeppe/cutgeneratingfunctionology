@@ -1848,7 +1848,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                 if pt is not None:
                     # Find a new point, use polynomial map to recover the values of those eliminated variables.
                     pt_across_wall = tuple(p(pt) for p in self.polynomial_map)
-                    if not new_points.has_key(num_eq):
+                    if num_eq not in new_points:
                         new_points[num_eq] = {}
                     new_points[num_eq][pt_across_wall] = (self.bddbsa, self.polynomial_map)
         # now flip l < 0 to l >= 0
@@ -1878,7 +1878,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                 if pt is not None:
                     #find a new point, use polynomial map to recover the values of those eliminated variables.
                     pt_across_wall = tuple(p(pt) for p in self.polynomial_map)
-                    if not new_points.has_key(num_eq):
+                    if num_eq not in new_points:
                         new_points[num_eq] = {}
                     new_points[num_eq][pt_across_wall] = (self.bddbsa, self.polynomial_map)
                 if (goto_lower_dim is True) and (l.degree() == 1):
@@ -1899,7 +1899,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                             v = l.monomials()[-2] # order??
                         v_mapped_to = v - l / (l.monomial_coefficient(v))  # eliminate v
                         polynomial_map = [p.subs({v: v_mapped_to}) for p in self.polynomial_map]
-                        if not new_points.has_key(num_eq+1):
+                        if (num_eq + 1) not in new_points:
                             new_points[num_eq+1] = {}
                         new_points[num_eq+1][pt_on_wall] = (bddbsa, polynomial_map)
         return new_points
