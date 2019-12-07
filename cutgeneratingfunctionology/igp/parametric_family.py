@@ -8,12 +8,15 @@ from sage.structure.unique_representation import UniqueRepresentation
 from inspect import isclass
 from sage.misc.sageinspect import sage_getargspec, sage_getvariablename
 from sage.structure.parent import Parent
+from sage.structure.element import Element
+from sage.structure.sage_object import SageObject
 import logging
 from .class_call import Classcall
+from copy import copy
 from collections import OrderedDict
 from cutgeneratingfunctionology.spam.basic_semialgebraic import BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron
 
-class ParametricFamilyElement(Classcall):
+class ParametricFamilyElement(SageObject):
 
     r"""
     Class of an element of a parametric family of functions.
@@ -49,19 +52,19 @@ class ParametricFamilyElement(Classcall):
         42
     """
 
-    @staticmethod
-    def __classcall__(cls, *args, **options):
-        """
-        Construct a new object of this class and store the (normalized) init parameters.
+    ## @staticmethod
+    ## def __classcall__(cls, *args, **options):
+    ##     """
+    ##     Construct a new object of this class and store the (normalized) init parameters.
 
-        This is like :meth:`~sage.structure.unique_representation.CachedRepresentation.__classcall__`,
-        but there is no caching.
-        """
-        if options.pop('conditioncheck', True):
-            cls.check_conditions(*args, **options)
-        if options.pop('compute_args_only', False):
-            return (cls, args, options)
-        return super(ParametricFamilyElement, cls).__classcall__(cls, *args, **options)
+    ##     This is like :meth:`~sage.structure.unique_representation.CachedRepresentation.__classcall__`,
+    ##     but there is no caching.
+    ##     """
+    ##     if options.pop('conditioncheck', True):
+    ##         cls.check_conditions(*args, **options)
+    ##     if options.pop('compute_args_only', False):
+    ##         return (cls, args, options)
+    ##     return super(ParametricFamilyElement, cls).__classcall__(cls, *args, **options)
 
     @classmethod
     def claimed_parameter_attribute(cls, *args, **kwargs):
@@ -191,6 +194,23 @@ class ParametricFamily(UniqueRepresentation, Parent):
 
     def constructor(self):
         return self._constructor
+
+    def _element_constructor_(self, *args, **options):
+        names = self.names()
+        assert len(args) <= len(names)
+        values = copy(self.default_values())
+        values.update(zip(names, args))
+        values.update(options)
+        element = self.constructor()(**values)
+        return element
+
+    def __call__(self, *args, **kwds):
+        # Override to get rid of default x=0
+        if not args:
+            return self._element_constructor_(**kwds)
+        #return super(ParametricFamily, self).__call__(*args, **kwds)
+        ##  Above does not work because FastPiecewise is not an Element.
+        return self._element_constructor_(*args, **kwds)
 
     def parameter_space(self):
         """

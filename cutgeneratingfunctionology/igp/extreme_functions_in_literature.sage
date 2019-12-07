@@ -212,12 +212,6 @@ class dg_2_step_mir(FastPiecewise, ParametricFamilyElement):
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
     """
 
-    @staticmethod
-    def __classcall__(cls, f=4/5, alpha=3/10, field=None, conditioncheck=True):
-        # FIXME: Normalize "field".
-        return super(dg_2_step_mir, cls).__classcall__(cls, f, alpha, field=field,
-                                                       conditioncheck=conditioncheck)
-
     @classmethod
     def claimed_parameter_attribute(cls, f=4/5, alpha=3/10, **kwargs):
         if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
@@ -227,7 +221,7 @@ class dg_2_step_mir(FastPiecewise, ParametricFamilyElement):
         else:
             return 'extreme'
 
-    def __init__(self, f, alpha, field):
+    def __init__(self, f=4/5, alpha=3/10, field=None, conditioncheck=True):
         if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
             raise ValueError("Bad parameters. Unable to construct the function.")
         rho = f - alpha * floor(f / alpha)
@@ -314,13 +308,8 @@ class kf_n_step_mir(FastPiecewise, ParametricFamilyElement):
                 Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313-346.
     """
 
-    @staticmethod
-    def __classcall__(cls, f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
-        return super(kf_n_step_mir, cls).__classcall__(cls, f, tuple(a), field=field,
-                                                       conditioncheck=conditioncheck)
-
     @classmethod
-    def claimed_parameter_attribute(self, f=4/5, a=[1, 3/10, 8/100], **kwargs):
+    def claimed_parameter_attribute(cls, f, a, **kwargs):
         if (not a) | (not bool(0 < f < 1 == a[0])):
             return 'not_constructible'
         b = []
@@ -335,7 +324,7 @@ class kf_n_step_mir(FastPiecewise, ParametricFamilyElement):
                 return 'constructible'
         return 'extreme'
 
-    def __init__(self, f, a, field):
+    def __init__(self, f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
         b = []
         b.append(f)
         n = len(a)
@@ -557,20 +546,16 @@ class dg_2_step_mir_limit(FastPiecewise, ParametricFamilyElement):
                 (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
     """
 
-    @staticmethod
-    def __classcall__(cls, f=3/5, d=3, field=None, **kwds):
-        return super(dg_2_step_mir_limit, cls).__classcall__(cls, f, d, field=field, **kwds)
-
     @classmethod
-    def claimed_parameter_attribute(cls, f=3/5, d=3, **kwargs):
+    def claimed_parameter_attribute(cls, f, d, **kwargs):
         if not (bool(0 < f < 1) & (d >= 1)):
             return 'not_constructible'
         if not bool(d >= ceil(1 / (1 - f)) - 1):
             return 'constructible'
         else:
             return 'extreme'
-    
-    def __init__(self, f, d, field):
+
+    def __init__(self, f=3/5, d=3, field=None, **kwds):
         if not (bool(0 < f < 1) & (d >= 1)):
             raise ValueError("Bad parameters. Unable to construct the function.")
         f = nice_field_values([f], field)[0]
@@ -1526,14 +1511,8 @@ class ll_strong_fractional(FastPiecewise, ParametricFamilyElement):
         False
     """
 
-    @staticmethod
-    def __classcall__(cls, f=2/3, field=None, conditioncheck=True):
-        if not bool(0 < f < 1):
-            raise ValueError("Bad parameters. Unable to construct the function.")
-        return super(ll_strong_fractional, cls).__classcall__(cls, f, field=field, conditioncheck=conditioncheck)
-
     @classmethod
-    def claimed_parameter_attribute(cls, f=2/3, **kwargs):
+    def claimed_parameter_attribute(cls, f, **kwargs):
         if not bool(0 < f < 1):
             return 'not_constructible'
         if not bool(1/2 <= f < 1):
@@ -1541,7 +1520,9 @@ class ll_strong_fractional(FastPiecewise, ParametricFamilyElement):
         else:
             return 'extreme'
 
-    def __init__(self, f, field):
+    def __init__(self, f=2/3, field=None, conditioncheck=True):
+        if not bool(0 < f < 1):
+            raise ValueError("Bad parameters. Unable to construct the function.")
         f = nice_field_values([f], field)[0]
         field = f.parent()
         k = ceil(1/f) -1
