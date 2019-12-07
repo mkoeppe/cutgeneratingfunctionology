@@ -98,18 +98,18 @@ class ParametricFamily(UniqueRepresentation, Parent):
 
         sage: from cutgeneratingfunctionology.igp import *
         sage: F_ll_strong_fractional = ParametricFamily(ll_strong_fractional); F_ll_strong_fractional
-        ParametricFamily(ll_strong_fractional, names=['f'], default_values={'field': None, 'conditioncheck': True, 'f': 2/3})
+        ParametricFamily(ll_strong_fractional, names=['f'], default_values=(('f', 2/3), ('field', None), ('conditioncheck', True)))
         sage: ParametricFamily(gj_2_slope)
-        ParametricFamily(gj_2_slope, names=['f', 'lambda_1'], default_values={'field': None, 'conditioncheck': True, 'lambda_1': 1/6, 'f': 3/5})
+        ParametricFamily(gj_2_slope, names=['f', 'lambda_1'], default_values=(('f', 3/5), ('lambda_1', 1/6), ('field', None), ('conditioncheck', True)))
         sage: ParametricFamily(bcdsp_arbitrary_slope, names=['f'])
-        ParametricFamily(bcdsp_arbitrary_slope, names=['f'], default_values={'field': None, 'k': 4, 'conditioncheck': True, 'f': 1/2})
+        ParametricFamily(bcdsp_arbitrary_slope, names=['f'], default_values=(('f', 1/2), ('k', 4), ('field', None), ('conditioncheck', True)))
 
     TESTS:
 
     Parametric families have unique representation behavior::
 
         sage: F_dg_2_step_mir_f_default = ParametricFamily(dg_2_step_mir, names=['alpha']); F_dg_2_step_mir_f_default
-        ParametricFamily(dg_2_step_mir, names=['alpha'], default_values={'alpha': 3/10, 'conditioncheck': True, 'f': 4/5, 'field': None})
+        ParametricFamily(dg_2_step_mir, names=['alpha'], default_values=(('f', 4/5), ('alpha', 3/10), ('field', None), ('conditioncheck', True)))
         sage: F_dg_2_step_mir_f_default is ParametricFamily(dg_2_step_mir, names=['alpha'])
         True
         sage: F_dg_2_step_mir_f_default is ParametricFamily(dg_2_step_mir, names=['alpha'], default_values={'f': 4/5})
@@ -167,7 +167,7 @@ class ParametricFamily(UniqueRepresentation, Parent):
 
     def _repr_(self):
         return "ParametricFamily({}, names={}, default_values={})".format(
-            self.constructor().__name__, list(self.names()), dict(self.default_values()))
+            self.constructor().__name__, list(self.names()), tuple(self.default_values().items()))
 
     def names(self):
         """
