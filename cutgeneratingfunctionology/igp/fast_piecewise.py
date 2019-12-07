@@ -11,7 +11,12 @@ from .piecewise_old import PiecewisePolynomial
 from .intervals import *
 from cutgeneratingfunctionology.spam.parametric_real_field_element import is_parametric_element
 
-class FastPiecewise (PiecewisePolynomial):
+from sage.structure.parent import Parent
+from sage.structure.element import Element
+
+piecewise_parent = Parent()
+
+class FastPiecewise (PiecewisePolynomial, Element):
     r"""
     Returns a piecewise function from a list of (interval, function)
     pairs.
@@ -94,6 +99,7 @@ class FastPiecewise (PiecewisePolynomial):
             list_of_pairs = merged_list_of_pairs
 
         PiecewisePolynomial.__init__(self, list_of_pairs, var)
+        Element.__init__(self, piecewise_parent)    # FIXME
 
         intervals = self._intervals
         functions = self._functions
