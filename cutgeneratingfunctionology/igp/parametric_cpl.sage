@@ -156,8 +156,7 @@ def symbolic_subbadditivity_constraints_of_cpl_given_region(r):
     z_K = K.gens()[1:len(var_name)]
     o_K = K.gens()[len(var_name)::]
     fz = [v._sym for v in [f_K]+z_K]
-    P = PolynomialRing(QQ, var_name)
-    var_sym = [r.var_map[v](*fz) for v in P.gens()] + [v._sym for v in o_K]
+    var_sym = [p(*fz) for p in r.polynomial_map] + [v._sym for v in o_K]
     h = cpln(f_K, z_K, o_K)
     bkpts = h.end_points()
     bkpts2 = bkpts[:-1] + [ x+1 for x in bkpts]
@@ -311,8 +310,10 @@ def cpl_fill_region_given_theta(r, theta, max_iter=0, flip_ineq_step=1/1000, che
     cpln._theta = lambda f, z: tuple([t(f, *z) for t in theta])
     var_value = r.var_value
     var_name = r.var_name
-    bddbsa = BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=r.bsa.poly_ring(), eq=r.bsa.eq_poly(), lt=r.bsa.lt_poly(), le=r.bsa.le_poly())
-    cpl_complex=SemialgebraicComplex(cpln, var_name, max_iter=max_iter, bddbsa=bddbsa)
+    #bddbsa = BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=r.bsa.poly_ring(), eq=r.bsa.eq_poly(), lt=r.bsa.lt_poly(), le=r.bsa.le_poly())
+    bddbsa = r.bsa # BUG? copy(r.bsa)
+    polynomial_map = r.polynomial_map  #copy?
+    cpl_complex = SemialgebraicComplex(cpln, var_name, max_iter=max_iter, bddbsa=bddbsa, polynomial_map=polynomial_map)
     if flip_ineq_step != 0:
         cpl_complex.bfs_completion(var_value, flip_ineq_step, check_completion, wall_crossing_method, goto_lower_dim)
     else:
@@ -376,7 +377,7 @@ def cpl_thetas_and_regions_extreme(regions):
             new_theta = True
             for t in thetas_and_regions.keys():
                 try:
-                    if theta == tuple([ti.subs(r.var_map) for ti in t]):
+                    if theta == tuple([ti(r.polynomial_map) for ti in t]):
                         thetas_and_regions[t] += extreme_regions
                         new_theta = False
                 except ZeroDivisionError:
@@ -389,7 +390,7 @@ def cpl_regions_fix_theta(regions, theta):
     components = []
     for r in regions:
         try:
-            tt =  tuple([ti.subs(r.var_map) for ti in theta])
+            tt =  tuple([ti(r.polynomial_map) for ti in theta])
         except ZeroDivisionError:
             continue
         for (t, ct) in (r.thetas).items():
@@ -472,3 +473,57 @@ def collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_theta"):
     thetas_and_regions = cpl_thetas_and_regions_extreme(regions)
     thetas_and_components = cpl_thetas_and_regions(regions, thetas_and_regions)
     save_cpl_extreme_theta_regions(thetas_and_components, name=name)
+
+
+
+
+# sage: r = regions[0]
+# sage: r.var_value
+# (3/5, 1/25)
+# sage: r.bsa
+# BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-6*x0-x1+1>0, x0>0, 2*x1-1>0}), polynomial_map=[z, f])
+# sage: thetas = generate_thetas_of_region(r)
+# sage: theta = thetas[20]
+# sage: theta
+# ((-2*z)/(f - 1), 0)
+# sage: cpl_complex = cpl_fill_region_given_theta(r, theta)
+# AssertionError:
+
+# sage: max_iter=0; flip_ineq_step=1/1000; check_completion=False; wall_crossing_method='heuristic'; goto_lower_dim=True; polynomial_map=None;
+# sage: cpln = cpl_n_group_function(r.family._n, r.family._cpleq)  #(3, True)
+# sage: cpln._theta = lambda f, z: tuple([t(f, *z) for t in theta])
+# sage: var_value = list(r.var_value) #[3/5, 1/25]
+# sage: var_name = r.var_name  #['f', 'z']
+# sage: bddbsa = r.bsa
+# sage: sorted(bddbsa.lt_poly())
+# [-z, -2*f + 1, f + 6*z - 1]
+# sage: cpl_complex=SemialgebraicComplex(cpln, var_name, max_iter=max_iter, bddbsa=bddbsa)
+# sage: cpl_complex.add_new_component(var_value, bddbsa=bddbsa, polynomial_map=polynomial_map, flip_ineq_step=flip_ineq_step, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim)
+# sage: cpl_complex.components[0].bsa
+# BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-8*x0-x1+1>0, -x0+x1-x2-x3>0, x0>0, 2*x1-1>0}), polynomial_map=[z, f, f^2, f*z])
+
+# sage: max_iter=0; flip_ineq_step=1/1000; check_completion=False; wall_crossing_method='heuristic'; goto_lower_dim=True; polynomial_map=None;
+# sage: var_name = ['f', 'z']
+# sage: var_value = [3/5, 1/25]
+# sage: bddbsa = BasicSemialgebraicSet_veronese(poly_ring=PolynomialRing(QQ, ['f','z']))
+# sage: bddbsa.add_linear_constraint((-2,0), 1, operator.lt)
+# sage: bddbsa.add_linear_constraint((0,-1), 0, operator.lt) 
+# sage: bddbsa.add_linear_constraint((1,6), -1, operator.lt)
+# sage: P.<f,z>=QQ[]
+# sage: theta = ((-2*z)/(f - 1), P.fraction_field()(0))
+# sage: cpln = cpl_n_group_function(3, True)
+# sage: cpln._theta = lambda f, z: tuple([t(f, *z) for t in theta])
+# sage: cpl_complex=SemialgebraicComplex(cpln, var_name, max_iter=max_iter, bddbsa=bddbsa)
+# sage: cpl_complex.bfs_completion(var_value, flip_ineq_step=flip_ineq_step, check_completion=check_completion, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim)
+
+
+# sage: bddbsa = BasicSemialgebraicSet_veronese(poly_ring=PolynomialRing(QQ, ['f','z']))
+# sage: bddbsa.add_linear_constraint((0,-1), 0, operator.lt) 
+# sage: bddbsa.add_linear_constraint((-2,0), 1, operator.lt)
+# sage: bddbsa.add_linear_constraint((1,6), -1, operator.lt)
+# sage: bddbsa
+# BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-6*x0-x1+1>0, x0>0, 2*x1-1>0}), polynomial_map=[z, f])
+# sage: copy(bddbsa)
+# BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {x0>0, -6*x0-x1+1>0, 2*x1-1>0}), polynomial_map=[z, f])
+# sage: bddbsa == copy(bddbsa)   #BUG!!!
+# False
