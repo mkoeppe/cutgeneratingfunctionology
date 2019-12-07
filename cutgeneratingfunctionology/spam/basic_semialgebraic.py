@@ -761,7 +761,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
 
     """
 
-    def __init__(self, ambient_dim=None, polyhedron=None, base_ring=None, polynomial_ring=None, **options):
+    def __init__(self, ambient_dim=None, polyhedron=None, base_ring=None, poly_ring=None, **options):
         r"""
         Initialize a basic semialgebraic set as the universe in
         ``ambient_dim``, or, if ``polyhedron`` (an ``NNC_Polyhedron``,
@@ -786,10 +786,10 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         """
         if ambient_dim is None and polyhedron is not None:
             ambient_dim = polyhedron.space_dimension()
-        if base_ring is None and polynomial_ring is None:
+        if base_ring is None and poly_ring is None:
             base_ring = QQ
         poly_ring, base_ring, ambient_dim, names = self._poly_ring_from_options(
-            ambient_dim=ambient_dim, base_ring=base_ring, polynomial_ring=polynomial_ring, **options)
+            ambient_dim=ambient_dim, base_ring=base_ring, poly_ring=poly_ring, **options)
         if base_ring is not QQ:
             raise ValueError("only base_ring=QQ is supported")
         super(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron, self).__init__(poly_ring=poly_ring)
@@ -811,7 +811,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
             sage: P._polyhedron is copy(P)._polyhedron
             False
         """
-        return self.__class__(polyhedron=copy(self._polyhedron))
+        return self.__class__(polyhedron=copy(self._polyhedron), poly_ring=self.poly_ring())
 
     def _repr_(self):
         constraints = self._polyhedron.minimized_constraints()
@@ -1494,7 +1494,7 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
 
         """
         return self.__class__(upstairs_bsa=copy(self.upstairs()), polynomial_map=copy(self.polynomial_map()),
-                              polynomial_ring=polynomial_ring(), ambient_dim=self.ambient_dim())
+                              poly_ring=poly_ring(), ambient_dim=self.ambient_dim())
 
     def eq_poly(self):
         for p in self._upstairs_bsa.eq_poly():
