@@ -11,6 +11,7 @@ from sage.structure.parent import Parent
 import logging
 from .class_call import Classcall
 from collections import OrderedDict
+from cutgeneratingfunctionology.spam.basic_semialgebraic import BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron
 
 class ParametricFamilyElement(Classcall):
 
@@ -133,7 +134,7 @@ class ParametricFamily(UniqueRepresentation, Parent):
     @staticmethod
     def __classcall__(cls, constructor, default_values=None, names=None,
                       ignore_special_args=('cls', 'self'),
-                      ignore_args=('conditioncheck', 'field', 'merge')):
+                      ignore_args=('conditioncheck', 'field', 'merge', 'condition_according_to_literature')):
         # For classes, sage_getargspec uses the argspec of __call__, which is not useful for us.
         c = constructor
         if isclass(c):
@@ -191,6 +192,17 @@ class ParametricFamily(UniqueRepresentation, Parent):
     def constructor(self):
         return self._constructor
 
-    #def parameter_space ....
+    def parameter_space(self):
+        """
+        Return the parameter space of ``self`` as a basic semialgebraic set.
+
+        EXAMPLE::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: ParametricFamily(chen_4_slope).parameter_space()
+            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {}, names=[f, s_pos, s_neg, lam1, lam2])
+
+        """
+        return BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(names=self.names())
 
     #def subfamily()    ...
