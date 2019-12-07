@@ -1293,7 +1293,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         [x + y - 2, y^2 - x]
         sage: component.plot()                                  # not tested
         sage: new_points = component.find_neighbour_candidates(1/4, 'heuristic', goto_lower_dim=False)
-        sage: new_points[0].keys()
+        sage: list(new_points[0].keys())
         [(19959383/28510088, 24590405/28510088), (11/8, 7/8)]
 
     # component.find_walls_and_new_points(1/4, 'mathematica', goto_lower_dim=True)  # optional - mathematica
@@ -2107,9 +2107,9 @@ class SemialgebraicComplex(SageObject):
             [x - y]
             sage: complex.components[0].neighbour_points
             [(31/20, 29/20), (3/2, 3/2)]
-            sage: complex.points_to_test[0].keys()
+            sage: list(complex.points_to_test[0].keys())
             [(31/20, 29/20)]
-            sage: complex.points_to_test[1].keys()
+            sage: list(complex.points_to_test[1].keys())
             [(3/2, 3/2)]
 
             sage: complex = SemialgebraicComplex(lambda x,y: max(x,y^2), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))        # optional - mathematica
