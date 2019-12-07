@@ -41,6 +41,7 @@ def _bsa_class(bsa_class):
     if isinstance(bsa_class, type):
         return bsa_class
     elif bsa_class == 'formal_closure':
+        from .basic_semialgebraic_formal_closure import BasicSemialgebraicSet_formal_closure
         return BasicSemialgebraicSet_formal_closure
     elif bsa_class == 'section':
         return BasicSemialgebraicSet_section
@@ -52,7 +53,11 @@ def _bsa_class(bsa_class):
         from .basic_semialgebraic_linear_system import BasicSemialgebraicSet_polyhedral_linear_system
         return BasicSemialgebraicSet_polyhedral_linear_system
     elif bsa_class == 'intersection':
+        from .basic_semialgebraic_intersection import BasicSemialgebraicSet_intersection
         return BasicSemialgebraicSet_intersection
+    elif bsa_class == 'predicate':
+        from .semialgebraic_predicate import BasicSemialgebraicSet_predicate
+        return BasicSemialgebraicSet_predicate
     elif bsa_class == 'veronese':
         return BasicSemialgebraicSet_veronese
     else:
@@ -64,20 +69,54 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
     Abstract base class of mutable basic semialgebraic sets.
     """
 
-    def __init__(self, base_ring, ambient_dim):
+    @classmethod
+    def _poly_ring_from_options(cls, poly_ring=None, base_ring=None, ambient_dim=None, names=None, **options):
+        """
+        Interpret the `poly_ring`, `base_ring`, `ambient_dim`, and `names` options.
+
+        Return a tuple of these four, normalized.
+        """
+        if poly_ring is None:
+            if names is not None:
+                poly_ring = PolynomialRing(base_ring, names)
+            elif ambient_dim is not None and base_ring is not None:
+                poly_ring = PolynomialRing(base_ring, [cls._default_name(i) for i in range(ambient_dim)])
+        if ambient_dim is None:
+            if poly_ring is not None:
+                ambient_dim = poly_ring.ngens()
+            elif names is not None:
+                ambient_dim = len(names)
+        if base_ring is None:
+            if poly_ring is not None:
+                base_ring = poly_ring.base_ring()
+        if names is None:
+            if poly_ring is not None:
+                names = poly_ring.gens()
+        return poly_ring, base_ring, ambient_dim, names
+
+    @classmethod
+    def _default_name(cls, index):
+        return "x{}".format(index)
+
+    def __init__(self, base_ring=None, ambient_dim=None, **options):
         """
         Initialize a basic semialgebraic set as the universe in ``ambient_dim``.
 
         ``base_ring`` is the ring in which the coefficients of polynomials live.
         """
+        poly_ring, base_ring, ambient_dim, names = self._poly_ring_from_options(
+            base_ring=base_ring, ambient_dim=ambient_dim, **options)
+        if not poly_ring:
+            raise ValueError("poly_ring is not determined by the provided input")
         super(BasicSemialgebraicSet_base, self).__init__()
         self._ambient_dim = ambient_dim
         self._base_ring = base_ring
+        self._poly_ring = poly_ring
 
     # Default implementation. Subclasses are encouraged to provide
     # faster implementations.
     @classmethod
-    def from_bsa(cls, bsa, **init_kwds):
+    def from_bsa(cls, bsa, base_ring=None, poly_ring=None, **init_kwds):
         r"""
         Initialize a basic semialgebraic set of class ``cls`` to be the same
         as ``bsa``.
@@ -117,24 +156,44 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: list(veronese_bsa_again.lt_poly())
             [54*x0^2 + 226*x1*x2 + 113]
 
-        If ``bsa`` is already of class ``cls``, it is just returned::
+        If ``bsa`` is already of class ``cls`` and the correct ``base_ring``, it is just returned::
 
             sage: BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(upstairs_bsa_eq_lt_le_sets) is upstairs_bsa_eq_lt_le_sets
             True
 
+        We can use this method to upgrade a ``base_ring``::
+
+            sage: upstairs_bsa_eq_lt_le_sets_AA = BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(upstairs_bsa_eq_lt_le_sets, base_ring=AA)
+            sage: upstairs_bsa_eq_lt_le_sets_AA is upstairs_bsa_eq_lt_le_sets
+            False
+            sage: upstairs_bsa_eq_lt_le_sets_AA.base_ring()
+            Algebraic Real Field
+
         """
-        if bsa.__class__ == cls:
+        if bsa.__class__ == cls and (base_ring is None or base_ring == bsa.base_ring()):
             return bsa
-        base_ring = init_kwds.pop('base_ring', bsa.base_ring())
-        ambient_dim = bsa.ambient_dim()
-        self = cls(base_ring=base_ring, ambient_dim=ambient_dim, **init_kwds)
-        for p in sorted(bsa.eq_poly()):
-            self.add_polynomial_constraint(p, operator.eq)
-        for p in sorted(bsa.lt_poly()):
-            self.add_polynomial_constraint(p, operator.lt)
-        for p in sorted(bsa.le_poly()):
-            self.add_polynomial_constraint(p, operator.le)
+        if poly_ring is None:
+            if base_ring is not None:
+                poly_ring, base_ring, ambient_dim, names = cls._poly_ring_from_options(
+                    base_ring=base_ring,
+                    ambient_dim=bsa.ambient_dim(),
+                    names=bsa.poly_ring().gens())
+            else:
+                poly_ring = bsa.poly_ring()
+        self = cls(poly_ring=poly_ring, **init_kwds)
+        bsa.add_constraints_to(self)
         return self
+
+    def add_constraints_to(self, bsa):
+        """
+        Add the constraints of ``self`` to ``bsa``.
+        """
+        for p in sorted(self.eq_poly()):
+            bsa.add_polynomial_constraint(p, operator.eq)
+        for p in sorted(self.lt_poly()):
+            bsa.add_polynomial_constraint(p, operator.lt)
+        for p in sorted(self.le_poly()):
+            bsa.add_polynomial_constraint(p, operator.le)
 
     def ambient_dim(self):
         return self._ambient_dim
@@ -146,7 +205,17 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         return self._base_ring
 
     def poly_ring(self):
-        return PolynomialRing(self.base_ring(), "x", self.ambient_dim())
+        """
+        Return the polynomial ring.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(2)
+            sage: P.poly_ring()
+            Multivariate Polynomial Ring in x0, x1 over Rational Field
+        """
+        return self._poly_ring
 
     @abstract_method
     def eq_poly(self):
@@ -205,11 +274,11 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: list(bsa.lt_poly()), list(bsa.le_poly())
             ([x0 + x1 - 3], [])
             sage: closure = bsa.formal_closure(); closure
-            BasicSemialgebraicSet_formal_closure(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-x0-x1+3>0}))
+            BasicSemialgebraicSet_formal_closure(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-x0-x1+3>0}, names=[x0, x1]))
             sage: list(closure.eq_poly()), list(closure.lt_poly()), list(closure.le_poly())
             ([], [], [x0 + x1 - 3])
             sage: closure = bsa.formal_closure(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron); closure
-            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-x0-x1+3>=0})
+            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-x0-x1+3>=0}, names=[x0, x1])
             sage: list(closure.eq_poly()), list(closure.lt_poly()), list(closure.le_poly())
             ([], [], [x0 + x1 - 3])
 
@@ -226,6 +295,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             [-1]
 
         """
+        from .basic_semialgebraic_formal_closure import BasicSemialgebraicSet_formal_closure
         bsa_formal_closure = BasicSemialgebraicSet_formal_closure(self)
         bsa_class = _bsa_class(bsa_class)
         return bsa_class.from_bsa(bsa_formal_closure)
@@ -257,15 +327,30 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: sorted(bsa123.le_poly()), sorted(bsa123.eq_poly()), sorted(bsa123.lt_poly())
             ([-z, -y, -x], [x + y], [y + z])
         """
+        from .basic_semialgebraic_intersection import BasicSemialgebraicSet_intersection
         bsa_class = _bsa_class(kwds.pop('bsa_class', 'intersection'))
         bsa_intersection = BasicSemialgebraicSet_intersection([self] + list(bsa_list), **kwds)
         return bsa_class.from_bsa(bsa_intersection)
 
-    def add_space_dimensions_and_embed(self, space_dim_to_add):
+    def add_space_dimensions_and_embed(self, space_dim_to_add=None, names=None):
         r"""
         Mutate ``self`` by injecting it into a higher dimensional space.
         """
+        old_dim = self._ambient_dim
         self._ambient_dim += space_dim_to_add
+        new_dim = self._ambient_dim
+        if names is None:
+            if space_dim_to_add is None:
+                raise ValueError("need to provide space_dim_to_add or names")
+            names = [ self._default_name(i) for i in range(old_dim, new_dim) ]
+        else:
+            names = list(names)
+            if len(names) != space_dim_to_add:
+                raise ValueError("space_dim_to_add and len(names) do not match")
+        self._poly_ring = PolynomialRing(self.base_ring(), names=list(self.poly_ring().gens()) + names)
+
+    def _linear_polynomial(self, form, constant=0):
+        return sum(coeff * gen for coeff, gen in zip(form, self.poly_ring().gens())) + constant
 
     def add_linear_constraint(self, lhs, cst, op):
         r"""
@@ -285,8 +370,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: list(bsa.lt_poly())
             [x0 + x1 - 2]
         """
-        poly = sum(coeff * gen for coeff, gen in zip(lhs, self.poly_ring().gens())) + cst
-        self.add_polynomial_constraint(poly, op)
+        self.add_polynomial_constraint(self._linear_polynomial(lhs, cst), op)
 
     def is_linear_constraint_valid(self, lhs, cst, op):
         r"""
@@ -347,7 +431,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             +Infinity
 
         """
-        return +Infinity
+        return self.polynomial_function_upper_bound(self._linear_polynomial(form))
 
     def linear_function_lower_bound(self, form):
         r"""
@@ -366,6 +450,39 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         form = vector(form)
         return -(self.linear_function_upper_bound(-form))
 
+    def polynomial_function_upper_bound(self, polynomial):
+        r"""
+        Find an upper bound for ``polynomial`` on ``self``.
+
+        The default implementation just returns +oo for nonconstant polynomials.
+        Subclasses should provide more useful bounds.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: bsa = BasicSemialgebraicSet_base(QQ, 2)
+            sage: bsa.polynomial_function_upper_bound(0)
+            0
+            sage: bsa.polynomial_function_upper_bound(1)
+            1
+            sage: bsa.polynomial_function_upper_bound(bsa.poly_ring().gen(0))
+            +Infinity
+        """
+        polynomial = self.poly_ring()(polynomial)
+        if polynomial.degree() <= 0:
+            return polynomial.constant_coefficient()
+        else:
+            return +Infinity
+
+    def polynomial_function_lower_bound(self, polynomial):
+        r"""
+        Find a lower bound for ``polynomial`` on ``self``.
+
+        The default implementation just returns -oo for nonconstant polynomials.
+        Subclasses should provide more useful bounds.
+        """
+        return -(self.polynomial_function_upper_bound(-polynomial))
+
     @abstract_method
     def find_point(self):
         r"""
@@ -382,7 +499,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         This is a semialgebraic set, but in general not a basic semialgebraic set.
         """
 
-    def section(self, polynomial_map, bsa_class='section', **kwds):
+    def section(self, section_polynomial_map, bsa_class='section', **kwds):
         r"""
         Define the semialgebraic set that is a section of ``self``.
 
@@ -405,14 +522,21 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: P_downstairs.<t> = QQ[]
             sage: polynomial_map = [75/19*t, t]
             sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(lt=[21*x - 8, -x, 950*x^2 - 3700*x*y - 225*y^2 - 133*x])
-            sage: bsa_section_1 = bsa.section(polynomial_map=polynomial_map)
-            sage: list(bsa_section_1.lt_poly())
-            [-75/19*t, -525/19*t^2 - 525*t, 1575/19*t - 8]
-            sage: bsa_section_2 = bsa.section(polynomial_map=polynomial_map, bsa_class='veronese')
-            sage: list(bsa_section_2.lt_poly())
-            [1575*t - 152, -t^2 - 19*t, -t]
+            sage: bsa_section_1 = bsa.section(polynomial_map)
+            sage: sorted(bsa_section_1.lt_poly())
+            [-75/19*t, 1575/19*t - 8, -525/19*t^2 - 525*t]
+            sage: bsa_section_2 = bsa.section(polynomial_map, bsa_class='veronese')
+            sage: sorted(bsa_section_2.lt_poly())
+            [-t, 1575*t - 152, -t^2 - 19*t]
+
+            sage: P.<x,y,z> = QQ[]
+            sage: upstairs_bsa = BasicSemialgebraicSet_eq_lt_le_sets(le=[x*y + y*z])
+            sage: polynomial_map = [x, x, z]
+            sage: downstairs_bsa_section = upstairs_bsa.section(polynomial_map)
+            sage: downstairs_bsa_veronese = upstairs_bsa.section(polynomial_map, bsa_class='veronese')
+
         """
-        bsa_section = BasicSemialgebraicSet_section(self, polynomial_map)
+        bsa_section = BasicSemialgebraicSet_section(self, section_polynomial_map)
         bsa_class = _bsa_class(bsa_class)
         return bsa_class.from_bsa(bsa_section, **kwds)
 
@@ -637,7 +761,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
 
     """
 
-    def __init__(self, ambient_dim=None, polyhedron=None, base_ring=None):
+    def __init__(self, ambient_dim=None, polyhedron=None, base_ring=None, poly_ring=None, **options):
         r"""
         Initialize a basic semialgebraic set as the universe in
         ``ambient_dim``, or, if ``polyhedron`` (an ``NNC_Polyhedron``,
@@ -652,7 +776,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
             sage: P.add_linear_constraint([1,0],0,operator.ge)
             sage: P.add_linear_constraint([2,3],-6,operator.lt)
             sage: P
-            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-2*x0-3*x1+6>0, x1>=0, x0>=0})
+            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-2*x0-3*x1+6>0, x1>=0, x0>=0}, names=[x0, x1])
             sage: sorted(P.eq_poly())
             []
             sage: sorted(P.lt_poly())
@@ -660,35 +784,19 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
             sage: sorted(P.le_poly())
             [-x1, -x0]
         """
-        if ambient_dim is None:
-            if polyhedron is None:
-                raise ValueError("at least one of ambient_dim and polyhedron must be provided")
+        if ambient_dim is None and polyhedron is not None:
             ambient_dim = polyhedron.space_dimension()
-        if base_ring is None:
+        if base_ring is None and poly_ring is None:
             base_ring = QQ
+        poly_ring, base_ring, ambient_dim, names = self._poly_ring_from_options(
+            ambient_dim=ambient_dim, base_ring=base_ring, poly_ring=poly_ring, **options)
         if base_ring is not QQ:
             raise ValueError("only base_ring=QQ is supported")
-        super(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron, self).__init__(base_ring, ambient_dim)
+        super(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron, self).__init__(poly_ring=poly_ring)
         if polyhedron is None:
             self._polyhedron = NNC_Polyhedron(ambient_dim, 'universe')
         else:
             self._polyhedron = polyhedron
-
-    def poly_ring(self):
-        r"""
-        Return the polynomial ring.  Variable names match that of the PPL polyhedron:
-        x0, x1, ...
-
-        EXAMPLES::
-
-            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
-            sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(2)
-            sage: P.poly_ring()
-            Multivariate Polynomial Ring in x0, x1 over Rational Field
-
-        """
-        # Start at 0 to match the names on the PPL side.
-        return PolynomialRing(self.base_ring(), ["x{}".format(i) for i in range(self.ambient_dim())])
 
     def __copy__(self):
         r"""
@@ -703,10 +811,13 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
             sage: P._polyhedron is copy(P)._polyhedron
             False
         """
-        return self.__class__(polyhedron=copy(self._polyhedron))
+        return self.__class__(polyhedron=NNC_Polyhedron(self._polyhedron), poly_ring=self.poly_ring())
 
     def _repr_(self):
-        return 'BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron({})'.format(self._polyhedron.minimized_constraints())
+        constraints = self._polyhedron.minimized_constraints()
+        names = list(self.poly_ring().gens())
+        return 'BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron({}, names={})'.format(
+            constraints, names)
 
     def closure(self, bsa_class='formal_closure'):
         r"""
@@ -921,7 +1032,7 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
     with only continuous variables.
     """
 
-    def __init__(self, base_ring, ambient_dim, solver=None):
+    def __init__(self, base_ring, ambient_dim, poly_ring=None, names=None, solver=None):
         r"""
         EXAMPLES::
 
@@ -929,7 +1040,8 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
             sage: S = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(QQ, 3)
 
         """
-        super(BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram, self).__init__(base_ring, ambient_dim)
+        super(BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram, self).__init__(
+            base_ring=base_ring, ambient_dim=ambient_dim, poly_ring=poly_ring, names=names)
         self._mip = MixedIntegerLinearProgram(solver=solver, maximization=True)
 
     def __copy__(self):
@@ -1071,7 +1183,7 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
             sage: S = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(QQ, 1, solver='ppl')
             sage: S.add_linear_constraint([1], -1, operator.eq)
             sage: sorted(S.eq_poly())
-            [x - 1]
+            [x0 - 1]
         """
         poly_ring = self.poly_ring()
         for lb, (indices, coeffs), ub in self.mip().constraints():
@@ -1094,7 +1206,7 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
             sage: S.add_linear_constraint([1], -1, operator.le)
             sage: S.add_linear_constraint([1], 0, operator.ge)
             sage: sorted(S.le_poly())
-            [-x, x - 1]
+            [-x0, x0 - 1]
         """
         poly_ring = self.poly_ring()
         for lb, (indices, coeffs), ub in self.mip().constraints():
@@ -1123,7 +1235,7 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
     It does not remember the order of the polynomials provided at initialization.
     """
 
-    def __init__(self, base_ring=None, ambient_dim=None, poly_ring=None, eq=[], lt=[], le=[]):
+    def __init__(self, base_ring=None, ambient_dim=None, poly_ring=None, names=None, eq=[], lt=[], le=[]):
         r"""
         Construct a basic semialgebraic set.
 
@@ -1180,16 +1292,10 @@ class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
             base_ring = poly_ring.base_ring()
         if ambient_dim is None or base_ring is None:
             raise ValueError("if eq, lt, and le are all empty, must provide either poly_ring or both of base_ring and ambient_dim")
-        if poly_ring is None:
-            poly_ring = PolynomialRing(base_ring, "x", ambient_dim)
-        super(BasicSemialgebraicSet_eq_lt_le_sets, self).__init__(base_ring, ambient_dim)
-        self._poly_ring = poly_ring
+        super(BasicSemialgebraicSet_eq_lt_le_sets, self).__init__(base_ring=base_ring, ambient_dim=ambient_dim, poly_ring=poly_ring, names=names)
         self._eq = set(eq)
         self._lt = set(lt)
         self._le = set(le)
-
-    def poly_ring(self):
-        return self._poly_ring
 
     def __copy__(self):
         r"""
@@ -1319,7 +1425,7 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
     See ``BasicSemialgebraicSet_base.section``.
     """
 
-    def __init__(self, upstairs_bsa, polynomial_map, poly_ring=None, ambient_dim=None):
+    def __init__(self, upstairs_bsa, polynomial_map, poly_ring=None, ambient_dim=None, base_ring=None, names=None):
         r"""
         EXAMPLES:
 
@@ -1378,10 +1484,9 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
             ambient_dim = poly_ring.ngens()
         if not all(poly.parent().ngens() == ambient_dim for poly in polynomial_map):
             raise ValueError("elements in polynomial_map must come from a polynomial ring with the same number of variables as the ambient dimension")
-        super(BasicSemialgebraicSet_section, self).__init__(base_ring, ambient_dim)
+        super(BasicSemialgebraicSet_section, self).__init__(base_ring=base_ring, ambient_dim=ambient_dim, names=names, poly_ring=poly_ring)
         self._upstairs_bsa = upstairs_bsa
         self._polynomial_map = polynomial_map
-        self._poly_ring = poly_ring
 
     def __copy__(self):
         r"""
@@ -1389,10 +1494,7 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
 
         """
         return self.__class__(upstairs_bsa=copy(self.upstairs()), polynomial_map=copy(self.polynomial_map()),
-                              polynomial_ring=polynomial_ring(), ambient_dim=self.ambient_dim())
-
-    def poly_ring(self):
-        return self._poly_ring
+                              poly_ring=poly_ring(), ambient_dim=self.ambient_dim())
 
     def eq_poly(self):
         for p in self._upstairs_bsa.eq_poly():
@@ -1418,6 +1520,35 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
         to a monomial.
         """
         return self._polynomial_map
+
+    def plot_upstairs(self):
+        r"""
+        Plot the upstairs basic semialgebraic set and the variety::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: PY.<x,y> = QQ[]
+            sage: upstairs = BasicSemialgebraicSet_eq_lt_le_sets(le=[-x-1, -y-1, x+y-3/2, x-1, y-1])
+            sage: PX.<t> = QQ[]
+            sage: F = [t, t^3 + 3/2 * t^2 - 5/2 * t + 5/4]
+            sage: downstairs = upstairs.section(F)
+            sage: downstairs.plot_upstairs()                  # not tested
+
+        """
+        from sage.plot.plot import parametric_plot
+        gu = self.upstairs().plot()
+        def range_arg(form, gen):
+            a = self.linear_function_lower_bound(form)
+            if a == -Infinity:
+                a = -1
+            b = self.linear_function_upper_bound(form)
+            if b == +Infinity:
+                b = 1
+            return gen, a, b
+
+        range_args = [ range_arg(form, gen)
+                       for form, gen in zip(self.upstairs().ambient_space().basis(),
+                                            self.poly_ring().gens()) ]
+        return gu + parametric_plot(self.polynomial_map(), *range_args, color='yellow', thickness=2)
 
     def find_point(self):
         r"""
@@ -1483,7 +1614,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
     """
 
     def __init__(self, upstairs_bsa=None, polynomial_map=None, v_dict=None,
-                 upstairs_bsa_class=None, base_ring=None, poly_ring=None, ambient_dim=None):
+                 upstairs_bsa_class=None, base_ring=None, poly_ring=None, ambient_dim=None, names=None):
         r"""
         EXAMPLES:
 
@@ -1546,7 +1677,9 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         if upstairs_bsa_class:
             if not isinstance(upstairs_bsa, upstairs_bsa_class):
                 raise ValueError("upstairs_bsa is not an instance of upstairs_bsa_class")
-        super(BasicSemialgebraicSet_veronese, self).__init__(upstairs_bsa, polynomial_map, poly_ring=poly_ring, ambient_dim=ambient_dim)
+        super(BasicSemialgebraicSet_veronese, self).__init__(
+            upstairs_bsa, polynomial_map,
+            poly_ring=poly_ring, base_ring=base_ring, ambient_dim=ambient_dim, names=names)
         if not all(len(f.monomials()) == 1 and f.lc() == 1 for f in self.polynomial_map()):
             raise ValueError("all polynomials in polynomial_map must be monomials with coefficient 1")
         self._v_dict = v_dict
@@ -1561,6 +1694,17 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         r"""
         Make a copy of ``self``.
 
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: bddbsa = BasicSemialgebraicSet_veronese(poly_ring=PolynomialRing(QQ, ['f','z']))
+            sage: bddbsa.add_linear_constraint((0,-1), 0, operator.lt)
+            sage: bddbsa.add_linear_constraint((-2,0), 1, operator.lt)
+            sage: bddbsa.add_linear_constraint((1,6), -1, operator.lt)
+            sage: bddbsa
+            BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-6*x0-x1+1>0, x0>0, 2*x1-1>0}, names=[x0, x1]), polynomial_map=[z, f])
+            sage: bddbsa_copy = copy(bddbsa); bddbsa_copy
+            BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-6*x0-x1+1>0, x0>0, 2*x1-1>0}, names=[x0, x1]), polynomial_map=[z, f])
         """
         return self.__class__(upstairs_bsa=copy(self.upstairs()), polynomial_map=copy(self.polynomial_map()),
                               v_dict=copy(self.v_dict()), poly_ring=self.poly_ring(), ambient_dim=self.ambient_dim())
@@ -1795,69 +1939,3 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             #if max_iter != 0 and bounds_propagation_iter >= max_iter:
             #    logging.warning("max number %s of bounds propagation iterations has attained." % max_iter)
             bounds_propagation_iter += 1
-
-class BasicSemialgebraicSet_formal_closure(BasicSemialgebraicSet_base):
-
-    r"""
-    Represent the formal closure (see method ``formal_closure``) of
-    another basic semialgebraic set ``upstairs_bsa``.
-    """
-
-    def __init__(self, upstairs_bsa):
-        base_ring = upstairs_bsa.base_ring()
-        ambient_dim = upstairs_bsa.ambient_dim()
-        super(BasicSemialgebraicSet_formal_closure, self).__init__(base_ring, ambient_dim)
-        self._upstairs_bsa = upstairs_bsa
-
-    def _repr_(self):
-        return 'BasicSemialgebraicSet_formal_closure({})'.format(self.upstairs())
-
-    def upstairs(self):
-        return self._upstairs_bsa
-
-    def eq_poly(self):
-        return self.upstairs().eq_poly()
-
-    def le_poly(self):
-        return chain(self.upstairs().le_poly(), self.upstairs().lt_poly())
-
-    def lt_poly(self):
-        return []
-
-class BasicSemialgebraicSet_intersection(BasicSemialgebraicSet_base):
-
-    r"""
-    Represent the intersection of finitely many basic semialgebraic sets.
-    See method ``intersection``.
-    """
-
-    def __init__(self, bsa_list):
-        bsa_list = list(bsa_list)
-        base_ring = bsa_list[0].base_ring()
-        ambient_dim = bsa_list[0].ambient_dim()
-        poly_ring = bsa_list[0].poly_ring()
-        if not all(bsa.base_ring() == base_ring
-                   and bsa.ambient_dim() == ambient_dim
-                   and bsa.poly_ring() == poly_ring
-                   for bsa in bsa_list):
-            raise ValueError("all sets in the intersection must have the same base_ring, ambient_dim, poly_ring")
-        super(BasicSemialgebraicSet_intersection, self).__init__(base_ring, ambient_dim)
-        self._bsa_list = bsa_list
-
-    def _repr_(self):
-        return 'BasicSemialgebraicSet_intersection({})'.format(self._bsa_list)
-
-    def eq_poly(self):
-        return set(chain(*[bsa.eq_poly() for bsa in self._bsa_list]))
-
-    def le_poly(self):
-        return set(chain(*[bsa.le_poly() for bsa in self._bsa_list]))
-
-    def lt_poly(self):
-        return set(chain(*[bsa.lt_poly() for bsa in self._bsa_list]))
-
-    def linear_function_upper_bound(self, form):
-        return min(bsa.linear_function_upper_bound(form) for bsa in self._bsa_list)
-
-    def is_polynomial_constraint_valid(self, lhs, op):
-        return any(bsa.is_polynomial_constraint_valid(lhs, op) for bsa in self._bsa_list)

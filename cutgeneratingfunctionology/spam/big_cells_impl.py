@@ -40,7 +40,7 @@ def _common_parametric_real_field(iterable, key=None):
     else:
         global trivial_parametric_real_field
         if trivial_parametric_real_field is None:
-            trivial_parametric_real_field = ParametricRealField(big_cells=False)
+            trivial_parametric_real_field = ParametricRealField(names=(), big_cells=False)
         return trivial_parametric_real_field
 
 def big_cells_min(iterable, *args, **kwds):

@@ -30,6 +30,7 @@ SAGEFILES =									\
 	cutgeneratingfunctionology/igp/lifting_project.sage			\
 	cutgeneratingfunctionology/igp/procedures/injective_2_slope_fill_in_proof.py \
 	cutgeneratingfunctionology/igp/faster_subadditivity_test.sage		\
+	cutgeneratingfunctionology/igp/class_call.py				\
 	cutgeneratingfunctionology/igp/parametric_family.py
 
 
@@ -47,11 +48,15 @@ SAGEFILES +=								\
 	cutgeneratingfunctionology/multirow/piecewise_functions.sage	\
 	cutgeneratingfunctionology/multirow/lifting_region.sage
 
+# SPAM
 SAGEFILES +=									\
 	cutgeneratingfunctionology/spam/basic_semialgebraic.py			\
+	cutgeneratingfunctionology/spam/basic_semialgebraic_formal_closure.py	\
 	cutgeneratingfunctionology/spam/basic_semialgebraic_linear_system.py	\
+	cutgeneratingfunctionology/spam/basic_semialgebraic_intersection.py	\
 	cutgeneratingfunctionology/spam/semialgebraic_maple.py			\
 	cutgeneratingfunctionology/spam/semialgebraic_mathematica.py		\
+	cutgeneratingfunctionology/spam/semialgebraic_predicate.py		\
 	cutgeneratingfunctionology/spam/semialgebraic_qepcad.py			\
 	cutgeneratingfunctionology/spam/big_cells.py				\
 	cutgeneratingfunctionology/spam/big_cells_impl.py			\
@@ -74,6 +79,12 @@ check-long: check-encoding
 	cp .check-long-timings.json .tmp_check-long-timings.json
 	PYTHONPATH=`pwd` $(SAGE) -tp $(CHECK_PARALLEL) --force_lib --long --warn-long 300 --stats-path .tmp_check-long-timings.json $(SAGE_CHECK_FLAGS) $(SAGEFILES)
 	rm .tmp_check-long-timings.json
+
+.PHONY: fixdoctests
+fixdoctests: $(SAGEFILES:%=%.fixdoctests)
+
+%.fixdoctests: %
+	PYTHONPATH=`pwd` $(SAGE) -fixdoctests --long $<
 
 check-encoding:
 	@if LC_ALL=C grep -v -n '^[ -~]*$$' $(SAGEFILES) ; then echo "Offending characters found."; exit 1; else echo "All Sage files are ASCII and have no tabs. Good."; exit 0; fi
