@@ -274,11 +274,11 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: list(bsa.lt_poly()), list(bsa.le_poly())
             ([x0 + x1 - 3], [])
             sage: closure = bsa.formal_closure(); closure
-            BasicSemialgebraicSet_formal_closure(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-x0-x1+3>0}))
+            BasicSemialgebraicSet_formal_closure(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-x0-x1+3>0}, names=[x0, x1]))
             sage: list(closure.eq_poly()), list(closure.lt_poly()), list(closure.le_poly())
             ([], [], [x0 + x1 - 3])
             sage: closure = bsa.formal_closure(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron); closure
-            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-x0-x1+3>=0})
+            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-x0-x1+3>=0}, names=[x0, x1])
             sage: list(closure.eq_poly()), list(closure.lt_poly()), list(closure.le_poly())
             ([], [], [x0 + x1 - 3])
 
@@ -776,7 +776,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
             sage: P.add_linear_constraint([1,0],0,operator.ge)
             sage: P.add_linear_constraint([2,3],-6,operator.lt)
             sage: P
-            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-2*x0-3*x1+6>0, x1>=0, x0>=0})
+            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-2*x0-3*x1+6>0, x1>=0, x0>=0}, names=[x0, x1])
             sage: sorted(P.eq_poly())
             []
             sage: sorted(P.lt_poly())
@@ -814,7 +814,10 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         return self.__class__(polyhedron=copy(self._polyhedron))
 
     def _repr_(self):
-        return 'BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron({})'.format(self._polyhedron.minimized_constraints())
+        constraints = self._polyhedron.minimized_constraints()
+        names = list(self.poly_ring().gens())
+        return 'BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron({}, names={})'.format(
+            constraints, names)
 
     def closure(self, bsa_class='formal_closure'):
         r"""
