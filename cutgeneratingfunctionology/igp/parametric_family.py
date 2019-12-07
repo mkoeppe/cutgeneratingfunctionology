@@ -101,18 +101,36 @@ class ParametricFamily(UniqueRepresentation, Parent):
 
         sage: from cutgeneratingfunctionology.igp import *
         sage: F_ll_strong_fractional = ParametricFamily(ll_strong_fractional); F_ll_strong_fractional
-        ParametricFamily(ll_strong_fractional, names=['f'], default_values=(('f', 2/3), ('field', None), ('conditioncheck', True)))
+        ParametricFamily(ll_strong_fractional, names=['f'], default_values=(('f', 2/3)),)
         sage: ParametricFamily(gj_2_slope)
-        ParametricFamily(gj_2_slope, names=['f', 'lambda_1'], default_values=(('f', 3/5), ('lambda_1', 1/6), ('field', None), ('conditioncheck', True)))
+        ParametricFamily(gj_2_slope, names=['f', 'lambda_1'], default_values=(('f', 3/5), ('lambda_1', 1/6)))
         sage: ParametricFamily(bcdsp_arbitrary_slope, names=['f'])
-        ParametricFamily(bcdsp_arbitrary_slope, names=['f'], default_values=(('f', 1/2), ('k', 4), ('field', None), ('conditioncheck', True)))
+        ParametricFamily(bcdsp_arbitrary_slope, names=['f'], default_values=(('f', 1/2), ('k', 4)))
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: F_gj_2_slope = ParametricFamily(gj_2_slope)
+        sage: h = F_gj_2_slope(); h
+        <FastPiecewise ...>
+        sage: h(3/5)
+        1
+        sage: h2 = F_gj_2_slope(3/4, 1/7)            # error
+        sage: h2(3/4)
+        1
+
+        sage: F_dg_2_step_mir = ParametricFamily(dg_2_step_mir)
+        sage: h3 = F_dg_2_step_mir()
+        sage: h3(4/5)
+        1
+        sage: h4 = F_dg_2_step_mir(5/6, 3/10)
+        sage: h4(5/6)
+        1
 
     TESTS:
 
     Parametric families have unique representation behavior::
 
         sage: F_dg_2_step_mir_f_default = ParametricFamily(dg_2_step_mir, names=['alpha']); F_dg_2_step_mir_f_default
-        ParametricFamily(dg_2_step_mir, names=['alpha'], default_values=(('f', 4/5), ('alpha', 3/10), ('field', None), ('conditioncheck', True)))
+        ParametricFamily(dg_2_step_mir, names=['alpha'], default_values=(('f', 4/5), ('alpha', 3/10)))
         sage: F_dg_2_step_mir_f_default is ParametricFamily(dg_2_step_mir, names=['alpha'])
         True
         sage: F_dg_2_step_mir_f_default is ParametricFamily(dg_2_step_mir, names=['alpha'], default_values={'f': 4/5})
@@ -128,7 +146,7 @@ class ParametricFamily(UniqueRepresentation, Parent):
         pg_ParametricFamily = unpickle_global('cutgeneratingfunctionology.igp.parametric_family', 'ParametricFamily')
         pg_ll_strong_fractional = unpickle_global('cutgeneratingfunctionology.igp', 'll_strong_fractional')
         pg_make_rational = unpickle_global('sage.rings.rational', 'make_rational')
-        pg_unreduce(pg_ParametricFamily, (pg_ll_strong_fractional, (('f', pg_make_rational('2/3')), ('field', None), ('conditioncheck', True)), ('f',), 'conditioncheck'), {})
+        pg_unreduce(pg_ParametricFamily, (pg_ll_strong_fractional, (('f', pg_make_rational('2/3'))), ('f',)), {})
         sage: loads(p_F_ll_strong_fractional) is F_ll_strong_fractional
         True
 
@@ -151,19 +169,23 @@ class ParametricFamily(UniqueRepresentation, Parent):
         if defaults:
             arg_default_dict = OrderedDict(zip(args, defaults))
         else:
-            arg_default_dict = OrderedDict((arg, None) for arg in args)
+            arg_default_dict = OrderedDict.fromkeys(args)
         if default_values is not None:
             default_values = dict(default_values)
             arg_default_dict.update(default_values)
         if names is None:
             names = [ name for name in args
                      if name not in ignore_args ]
+        arg_default_dict = tuple((name, value) for name, value in arg_default_dict.items()
+                                 if name not in ignore_args)
         return super(ParametricFamily, cls).__classcall__(
-            cls, constructor, tuple(arg_default_dict.items()), tuple(names))
+            cls, constructor, arg_default_dict, tuple(names))
+
+    #Element = ParametricFamilyElement
 
     def __init__(self, constructor, default_values, names):
         from cutgeneratingfunctionology.igp import FastPiecewise
-        Parent.__init__(self, facade=(FastPiecewise,))
+        Parent.__init__(self)
         self._constructor = constructor
         self._names = names
         self._default_values = OrderedDict(default_values)
