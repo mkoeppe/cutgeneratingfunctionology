@@ -742,6 +742,30 @@ class BasicSemialgebraicSet_polyhedral(BasicSemialgebraicSet_base):
         # univariate polynomials (Polynomial_rational_flint) does not define "coefficient", but has "monomial_coefficient".
         return self.is_linear_constraint_valid(lhs_vector, cst, op)
 
+    def polynomial_function_upper_bound(self, polynomial):
+        r"""
+        Find an upper bound for ``polynomial`` on ``self``.
+
+        This implementation checks that ``polynomial`` is a linear polynomial
+        and then delegates to ``linear_function_upper_bound``.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(1)
+            sage: f = 2 * P.poly_ring().gen() + 1
+            sage: P.add_polynomial_constraint(f, operator.le)
+            sage: P.polynomial_function_upper_bound(4*P.poly_ring().gen()+1)
+            -1
+        """
+        polynomial = self.poly_ring()(polynomial)   # convert if necessary
+        if polynomial.degree() > 1:
+            raise NotImplementedError("{} is not a valid linear polynomial.".format(lhs))
+        cst = polynomial.constant_coefficient()
+        lhs_vector = vector(polynomial.monomial_coefficient(x) for x in self.poly_ring().gens())
+        # univariate polynomials (Polynomial_rational_flint) does not define "coefficient", but has "monomial_coefficient".
+        return self.linear_function_upper_bound(lhs_vector) + cst
+
 ## (1) In the first step, we implement the following class.  Everything is linear.
 ## Rewrite all direct uses of PPL in ParametricRealFieldElement, ParametricRealField
 ## using method calls to this class.
@@ -1794,6 +1818,43 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         upstairs_lhs_coeff, upstairs_lhs_cst = self._to_upstairs_linear_constraint(lhs, True)
         self.upstairs().add_linear_constraint(upstairs_lhs_coeff, upstairs_lhs_cst, op)
 
+    def polynomial_function_upper_bound(self, polynomial, allow_adding_upstairs_space_dimensions=False):
+        r"""
+        Find an upper bound for ``polynomial`` on ``self``.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: Q.<x0,x1,x2> = QQ[]
+            sage: veronese = BasicSemialgebraicSet_veronese(poly_ring=Q)
+            sage: lhs = 27/113 * x0^2 + x1*x2 + 1/2
+            sage: veronese.add_polynomial_constraint(lhs, operator.lt)
+            sage: veronese.polynomial_function_upper_bound(x1*x2)
+            +Infinity
+            sage: veronese.tighten_upstairs_by_mccormick(max_iter=1)
+            sage: veronese.polynomial_function_upper_bound(x1*x2)
+            -1/2
+            sage: veronese._bounds
+            [(0, +Infinity), (-Infinity, -1/2)]
+            sage: veronese._bounds
+            [(0, +Infinity), (-Infinity, -1/2)]
+            sage: veronese.polynomial_function_upper_bound(x0*x0*x1*x2)
+            +Infinity
+            sage: veronese.polynomial_function_upper_bound(x0*x0*x1*x2, allow_adding_upstairs_space_dimensions=True)
+            0
+            sage: veronese._bounds   #allow_adding_upstairs_space_dimensions=True modified upstairs
+            [(0, +Infinity), (-Infinity, -1/2), (-Infinity, 0)]
+        """
+        try:
+            upstairs_coeff, upstairs_cst = self._to_upstairs_linear_constraint(polynomial, False)
+        except ValueError:
+            if allow_adding_upstairs_space_dimensions is True:
+                upstairs_coeff, upstairs_cst = self._to_upstairs_linear_constraint(polynomial, True)
+                self.tighten_upstairs_by_mccormick() # caution: modify upstairs
+            else:
+                return +Infinity
+        return self.upstairs().linear_function_upper_bound(upstairs_coeff) + upstairs_cst
+
     def is_polynomial_constraint_valid(self, lhs, op, allow_adding_upstairs_space_dimensions=False):
         r"""
         Check if the constraint ``lhs``(x) ``op`` 0 is satisfied 
@@ -1897,7 +1958,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         for i in range(len(self._polynomial_map)):
             if self._polynomial_map[i].is_square():
                 form = self.upstairs().ambient_space().basis()[i]
-                self.upstairs().add_linear_constraint(form, 0, operator.ge)
+                self.upstairs().add_linear_constraint(form, QQ(0), operator.ge)
         self._bounds = [self._compute_bounds_of_the_ith_monomial(i) for i in range(len(self._polynomial_map))]
         bounds_propagation_iter = 0
         tightened = True # = bool(len(self.var_value) > 1)
