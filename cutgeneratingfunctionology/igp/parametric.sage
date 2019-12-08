@@ -1666,7 +1666,7 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
 
         sage: C._init_args
         (<class 'cutgeneratingfunctionology.igp.ProofCell'>,
-         (ParametricFamily(<..._max_x_y...>, ...),
+         (ParametricFamily(_max_x_y, ...),
           ('x', 'y'),
           (1, 2),
           <...result_symbolic_expression...>,
