@@ -30,8 +30,8 @@ class ParametricFamilyElement(SageObject):
         sage: import logging; logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = ParametricFamily(ll_strong_fractional)()
         sage: h._init_args
-        (ParametricFamily(ll_strong_fractional, names=['f'], default_values=[('f', 2/3)]),
-         OrderedDict([('f', 2/3)]))
+        (ParametricFamily(ll_strong_fractional, names=['f'], default_values=[('f', 2/3), ('field', None), ('conditioncheck', True)]),
+         OrderedDict([('f', 2/3), ('field', None), ('conditioncheck', True)]))
         sage: h._difficult_computational_result = 42
         sage: p_h = dumps(h)
         sage: explain_pickle(p_h)
@@ -44,8 +44,8 @@ class ParametricFamilyElement(SageObject):
         sage: h_copy is h
         False
         sage: h_copy._init_args
-        (ParametricFamily(ll_strong_fractional, names=['f'], default_values=[('f', 2/3)]),
-         OrderedDict([('f', 2/3)]))
+        (ParametricFamily(ll_strong_fractional, names=['f'], default_values=[('f', 2/3), ('field', None), ('conditioncheck', True)]),
+         OrderedDict([('f', 2/3), ('field', None), ('conditioncheck', True)]))
         sage: h_copy._difficult_computational_result
         42
     """
@@ -109,6 +109,10 @@ class ParametricFamily_base(UniqueRepresentation, Parent):
         """
         return BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(names=self.names())
 
+    def _repr_(self):
+        red = self._reduction
+        return "{}{}".format(red[0].__name__, red[1])
+
     def names(self):
         """
         Return a list of the names of the parameters.
@@ -129,6 +133,25 @@ class ParametricFamily_base(UniqueRepresentation, Parent):
         """
         return self._default_values
 
+    def args_from_point(self, point, **options):
+        """
+        Return a dictionary of arguments suitable for ``_element_constructor_``,
+        corresponding to ``point`` in the ``parameter_space``.
+        """
+        args = dict(zip(self.names(), point))
+        args.update(options)
+        return args
+
+    def __call__(self, *args, **kwds):
+        # Override to get rid of default x=0
+        if not args:
+            return self._element_constructor_(**kwds)
+        #return super(ParametricFamily, self).__call__(*args, **kwds)
+        ##  Above does not work because FastPiecewise is not an Element.
+        return self._element_constructor_(*args, **kwds)
+
+
+    #def subfamily()    ...
 
 
 class ParametricFamily(ParametricFamily_base):
@@ -141,11 +164,11 @@ class ParametricFamily(ParametricFamily_base):
 
         sage: from cutgeneratingfunctionology.igp import *
         sage: F_ll_strong_fractional = ParametricFamily(ll_strong_fractional); F_ll_strong_fractional
-        ParametricFamily(ll_strong_fractional, names=['f'], default_values=[('f', 2/3)])
+        ParametricFamily(ll_strong_fractional, names=['f'], default_values=[('f', 2/3), ('field', None), ('conditioncheck', True)])
         sage: ParametricFamily(gj_2_slope)
-        ParametricFamily(gj_2_slope, names=['f', 'lambda_1'], default_values=[('f', 3/5), ('lambda_1', 1/6)])
+        ParametricFamily(gj_2_slope, names=['f', 'lambda_1'], default_values=[('f', 3/5), ('lambda_1', 1/6), ('field', None), ('conditioncheck', True)])
         sage: ParametricFamily(bcdsp_arbitrary_slope, names=['f'])
-        ParametricFamily(bcdsp_arbitrary_slope, names=['f'], default_values=[('f', 1/2), ('k', 4)])
+        ParametricFamily(bcdsp_arbitrary_slope, names=['f'], default_values=[('f', 1/2), ('k', 4), ('field', None), ('conditioncheck', True)])
 
         sage: from cutgeneratingfunctionology.igp import *
         sage: F_gj_2_slope = ParametricFamily(gj_2_slope)
@@ -170,7 +193,7 @@ class ParametricFamily(ParametricFamily_base):
     Parametric families have unique representation behavior::
 
         sage: F_dg_2_step_mir_f_default = ParametricFamily(dg_2_step_mir, names=['alpha']); F_dg_2_step_mir_f_default
-        ParametricFamily(dg_2_step_mir, names=['alpha'], default_values=[('f', 4/5), ('alpha', 3/10)])
+        ParametricFamily(dg_2_step_mir, names=['alpha'], default_values=[('f', 4/5), ('alpha', 3/10), ('field', None), ('conditioncheck', True)])
         sage: F_dg_2_step_mir_f_default is ParametricFamily(dg_2_step_mir, names=['alpha'])
         True
         sage: F_dg_2_step_mir_f_default is ParametricFamily(dg_2_step_mir, names=['alpha'], default_values={'f': 4/5})
@@ -195,7 +218,7 @@ class ParametricFamily(ParametricFamily_base):
     @staticmethod
     def __classcall__(cls, constructor, default_values=None, names=None,
                       ignore_special_args=('cls', 'self'),
-                      ignore_args=('conditioncheck', 'field', 'merge', 'condition_according_to_literature')):
+                      option_only_args=('conditioncheck', 'field', 'merge', 'condition_according_to_literature')):
         # For classes, sage_getargspec uses the argspec of __call__, which is not useful for us.
         c = constructor
         if isclass(c):
@@ -215,9 +238,8 @@ class ParametricFamily(ParametricFamily_base):
             arg_default_dict.update(default_values)
         if names is None:
             names = [ name for name in args
-                     if name not in ignore_args ]
-        arg_default_dict = tuple((name, value) for name, value in arg_default_dict.items()
-                                 if name not in ignore_args)
+                     if name not in option_only_args ]
+        arg_default_dict = tuple((name, value) for name, value in arg_default_dict.items())
         return super(ParametricFamily, cls).__classcall__(
             cls, constructor, arg_default_dict, tuple(names))
 
@@ -227,8 +249,13 @@ class ParametricFamily(ParametricFamily_base):
         self._constructor = constructor
 
     def _repr_(self):
+        constructor_name = self.constructor()
+        try:
+            constructor_name = constructor_name.__name__
+        except AttributeError:
+            pass
         return "ParametricFamily({}, names={}, default_values={})".format(
-            self.constructor().__name__, list(self.names()), list(self.default_values().items()))
+            constructor_name, list(self.names()), list(self.default_values().items()))
 
     def constructor(self):
         return self._constructor
@@ -243,15 +270,8 @@ class ParametricFamily(ParametricFamily_base):
         values.update(zip(names, args))
         values.update(options)
         element = self.constructor()(**values)
-        element._init_args = (self, values)
+        try:
+            element._init_args = (self, values)
+        except AttributeError:
+            pass
         return element
-
-    def __call__(self, *args, **kwds):
-        # Override to get rid of default x=0
-        if not args:
-            return self._element_constructor_(**kwds)
-        #return super(ParametricFamily, self).__call__(*args, **kwds)
-        ##  Above does not work because FastPiecewise is not an Element.
-        return self._element_constructor_(*args, **kwds)
-
-    #def subfamily()    ...

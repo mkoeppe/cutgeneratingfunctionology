@@ -1,16 +1,23 @@
 from six.moves import range
-def cpl_n_group_function(n, cpleq=False, merge=True):
-    return CPLFunctionsFactory(n, cpleq, merge)
 
-class CPLFunctionsFactory:
+from .parametric_family import ParametricFamily_base
+
+# FIXME: theta defaulting and eq should be done by taking sections of an enclosing family
+
+class cpl_n_group_function(ParametricFamily_base):
     r"""
-    A Factory of CPL functions.
+    A parametric family of CPL functions.
 
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
-        sage: cpl3 = cpl_n_group_function(3)
+        sage: cpl3 = cpl_n_group_function(3); cpl3
+        cpl_n_group_function(3, False, True, None)
+        sage: cpl3 is cpl_n_group_function(3, False)
+        True
+        sage: cpl3.names()
+        ['f', 'z1', 'z2']
         sage: h = cpl3(f=1/6, z=(1/12, 1/12), o=(1/5, 0))
         sage: extremality_test(h)
         True
@@ -24,20 +31,49 @@ class CPLFunctionsFactory:
 
     Change self._theta::
 
-        sage: cpl3._theta = lambda f, z: (1/5, 0)
-        sage: hh = cpl3(1/6, (1/12, 1/12))
+        sage: cpl3_150 = cpl_n_group_function(3, theta = lambda f, z: (1/5, 0))
+        sage: hh = cpl3_150(1/6, (1/12, 1/12))
         sage: h == hh
         True
     """
-    def __init__(self, n, cpleq=False, merge=True):
+
+    @staticmethod
+    def __classcall__(cls, n, cpleq=False, merge=True, theta=None):
+        """
+        Normalize arguments for unique representation purposes.
+        """
+        return super(cpl_n_group_function, cls).__classcall__(cls, n, cpleq, merge, theta)
+
+    def __init__(self, n, cpleq, merge, theta):
+        if cpleq:
+            var_name = ['f', 'z']
+            var_value = [3/5, 3/25/n] #arbitrary values
+        else:
+            var_name = ['f']+['z%s' % i for i in range(1, n)]
+            var_value = [3/5]+[1/(5^i) for i in range(2, n+1)]  #arbitrary values
+        super(cpl_n_group_function, self).__init__(zip(var_name, var_value), var_name)
         self._n = n
         self._cpleq = cpleq # in cpl3eq, z1=z2
-        if not cpleq:
-            self._theta = lambda f, z: tuple([z[i]/(1-f) for i in range(self._n-1)])
-        else:
-            self._theta = lambda f, z: tuple([z[0]/(1-f) for i in range(self._n-1)])
+        if theta is None:
+            if cpleq:
+                theta = self._default_theta_cpleq
+            else:
+                theta = self._default_theta_cpl
+        self._theta = theta
         self._merge = merge # need  merge=False in cpl_regions_from_arrangement_of_bkpts
-    def __call__(self, f, z, o=None, field=None):
+
+    def _default_theta_cpl(self, f, z):
+        return tuple([z[i]/(1-f) for i in range(self._n-1)])
+
+    def _default_theta_cpleq(self, f, z):
+        return tuple([z[0]/(1-f) for i in range(self._n-1)])
+
+    def args_from_point(self, point, **options):
+        args = {'f': point[0], 'z': tuple(point[1::])}
+        args.update(options)
+        return args
+
+    def _element_constructor_(self, f, z, o=None, field=None):
         if o is None:
             o = self._theta(f, z)
         if not self._cpleq:
@@ -59,7 +95,7 @@ class CPLFunctionsFactory:
         values = [(bkpts[i] - phi_values[i])/f for i in range(len(bkpts))]
         return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field, merge=self._merge)
 
-def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, max_iter=0, flip_ineq_step=1/1000,
+def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, flip_ineq_step=1/1000,
                                           check_completion=False, wall_crossing_method='heuristic',
                                           goto_lower_dim=True, max_failings=0):
     """
@@ -77,15 +113,10 @@ def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, max_iter=0, flip_ineq
         96
     """
     cpln = cpl_n_group_function(n, cpleq, merge=False)
-    if cpleq:
-        var_name = ['f', 'z']
-        var_value = [3/5, 3/25/n] #arbitary values
-    else:
-        var_name = ['f']+['z%s' % i for i in range(1, n)]
-        var_value = [3/5]+[1/(5^i) for i in range(2, n+1)]  #arbitary values
+    var_value = cpln.default_point()
     def frt(K, h):
         return find_region_type_igp(K, h, region_level='minimal', is_minimal=None)
-    arr_complex=SemialgebraicComplex(cpln, var_name, max_iter=max_iter, find_region_type=frt)
+    arr_complex=SemialgebraicComplex(cpln, find_region_type=frt)
     if flip_ineq_step != 0:
         arr_complex.bfs_completion(var_value, \
                                    flip_ineq_step=flip_ineq_step, \
@@ -288,7 +319,7 @@ def generate_thetas_of_region(r):
             thetas.append(theta)
     return thetas
 
-def cpl_fill_region_given_theta(r, theta, max_iter=0, flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=True):
+def cpl_fill_region_given_theta(r, theta, flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=True):
     r"""
     EXAMPLES::
 
@@ -306,14 +337,12 @@ def cpl_fill_region_given_theta(r, theta, max_iter=0, flip_ineq_step=1/1000, che
         sage: cpl_complex.components[0].region_type
         'is_extreme'
     """
-    cpln = cpl_n_group_function(r.family._n, r.family._cpleq)
-    cpln._theta = lambda f, z: tuple([t(f, *z) for t in theta])
+    cpln = cpl_n_group_function(r.family._n, r.family._cpleq, theta=lambda f, z: tuple([t(f, *z) for t in theta]))
     var_value = r.var_value
-    var_name = r.var_name
     #bddbsa = BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=r.bsa.poly_ring(), eq=r.bsa.eq_poly(), lt=r.bsa.lt_poly(), le=r.bsa.le_poly())
     bddbsa = r.bsa # BUG? copy(r.bsa)
     polynomial_map = r.polynomial_map  #copy?
-    cpl_complex = SemialgebraicComplex(cpln, var_name, max_iter=max_iter, bddbsa=bddbsa, polynomial_map=polynomial_map)
+    cpl_complex = SemialgebraicComplex(cpln, bddbsa=bddbsa, polynomial_map=polynomial_map)
     if flip_ineq_step != 0:
         cpl_complex.bfs_completion(var_value, flip_ineq_step, check_completion, wall_crossing_method, goto_lower_dim)
     else:
@@ -321,7 +350,7 @@ def cpl_fill_region_given_theta(r, theta, max_iter=0, flip_ineq_step=1/1000, che
     return cpl_complex
 
 def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=False,
-                                           max_iter=0, flip_ineq_step=1/1000,
+                                           flip_ineq_step=1/1000,
                                            check_completion=False,
                                            wall_crossing_method='heuristic',
                                            goto_lower_dim=True,
@@ -339,14 +368,14 @@ def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=Fa
         sage: regions = cpl_regions_with_thetas_and_components(3, True, False, 0, 1/1000, False, 'heuristic', True)     # optional - longtime20min
     """
     if regions is None:
-        regions = cpl_regions_from_arrangement_of_bkpts(n, cpleq, max_iter, flip_ineq_step, False, wall_crossing_method, goto_lower_dim) # Remark: check_completion=False for arr_complex.
+        regions = cpl_regions_from_arrangement_of_bkpts(n, cpleq, flip_ineq_step, False, wall_crossing_method, goto_lower_dim) # Remark: check_completion=False for arr_complex.
     for i in range(len(regions)):
         r = regions[i]
         logging.warning("Cell %s with test point %s." %(i, r.var_value)) # using warning for progress reporting only
         r.thetas = {}
         thetas_of_r = generate_thetas_of_region(r)
         for theta in thetas_of_r:
-            cpl_complex = cpl_fill_region_given_theta(r, theta, max_iter, flip_ineq_step, check_completion, wall_crossing_method, goto_lower_dim)
+            cpl_complex = cpl_fill_region_given_theta(r, theta, flip_ineq_step, check_completion, wall_crossing_method, goto_lower_dim)
             if keep_extreme_only:
                 components = [c for c in cpl_complex.components if c.region_type=='is_extreme']
             else:
@@ -489,20 +518,19 @@ def collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_theta"):
 # sage: cpl_complex = cpl_fill_region_given_theta(r, theta)
 # AssertionError:
 
-# sage: max_iter=0; flip_ineq_step=1/1000; check_completion=False; wall_crossing_method='heuristic'; goto_lower_dim=True; polynomial_map=None;
-# sage: cpln = cpl_n_group_function(r.family._n, r.family._cpleq)  #(3, True)
-# sage: cpln._theta = lambda f, z: tuple([t(f, *z) for t in theta])
+# sage: flip_ineq_step=1/1000; check_completion=False; wall_crossing_method='heuristic'; goto_lower_dim=True; polynomial_map=None;
+# sage: cpln = cpl_n_group_function(r.family._n, r.family._cpleq, theta=lambda f, z: tuple([t(f, *z) for t in theta]))  #(3, True)
 # sage: var_value = list(r.var_value) #[3/5, 1/25]
 # sage: var_name = r.var_name  #['f', 'z']
 # sage: bddbsa = r.bsa
 # sage: sorted(bddbsa.lt_poly())
 # [-z, -2*f + 1, f + 6*z - 1]
-# sage: cpl_complex=SemialgebraicComplex(cpln, var_name, max_iter=max_iter, bddbsa=bddbsa)
+# sage: cpl_complex=SemialgebraicComplex(cpln, var_name, bddbsa=bddbsa)
 # sage: cpl_complex.add_new_component(var_value, bddbsa=bddbsa, polynomial_map=polynomial_map, flip_ineq_step=flip_ineq_step, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim)
 # sage: cpl_complex.components[0].bsa
 # BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-8*x0-x1+1>0, -x0+x1-x2-x3>0, x0>0, 2*x1-1>0}), polynomial_map=[z, f, f^2, f*z])
 
-# sage: max_iter=0; flip_ineq_step=1/1000; check_completion=False; wall_crossing_method='heuristic'; goto_lower_dim=True; polynomial_map=None;
+# sage: flip_ineq_step=1/1000; check_completion=False; wall_crossing_method='heuristic'; goto_lower_dim=True; polynomial_map=None;
 # sage: var_name = ['f', 'z']
 # sage: var_value = [3/5, 1/25]
 # sage: bddbsa = BasicSemialgebraicSet_veronese(poly_ring=PolynomialRing(QQ, ['f','z']))
@@ -511,9 +539,8 @@ def collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_theta"):
 # sage: bddbsa.add_linear_constraint((1,6), -1, operator.lt)
 # sage: P.<f,z>=QQ[]
 # sage: theta = ((-2*z)/(f - 1), P.fraction_field()(0))
-# sage: cpln = cpl_n_group_function(3, True)
-# sage: cpln._theta = lambda f, z: tuple([t(f, *z) for t in theta])
-# sage: cpl_complex=SemialgebraicComplex(cpln, var_name, max_iter=max_iter, bddbsa=bddbsa)
+# sage: cpln = cpl_n_group_function(3, True, theta=lambda f, z: tuple([t(f, *z) for t in theta]))
+# sage: cpl_complex=SemialgebraicComplex(cpln, var_name, bddbsa=bddbsa)
 # sage: cpl_complex.bfs_completion(var_value, flip_ineq_step=flip_ineq_step, check_completion=check_completion, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim)
 
 

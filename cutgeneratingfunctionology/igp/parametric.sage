@@ -17,7 +17,7 @@ import time
 
 from cutgeneratingfunctionology.spam.basic_semialgebraic import *
 from cutgeneratingfunctionology.spam.polyhedral_complex import PolyhedralComplex
-from .parametric_family import Classcall, ParametricFamily
+from .parametric_family import Classcall, ParametricFamily_base, ParametricFamily
 
 debug_new_factors = False
 debug_cell_exceptions = False
@@ -1658,7 +1658,7 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
         sage: from cutgeneratingfunctionology.igp import ProofCell, _max_x_y, result_symbolic_expression
         sage: import logging
         sage: logging.disable(logging.WARN)
-        sage: C = ProofCell(_max_x_y, ['x', 'y'], [1, 2], {}, find_region_type=result_symbolic_expression)
+        sage: C = ProofCell(_max_x_y, ['x', 'y'], [1, 2], find_region_type=result_symbolic_expression)
         sage: sorted(C.bsa.lt_poly())
         [x - y]
 
@@ -1666,10 +1666,9 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
 
         sage: C._init_args
         (<class 'cutgeneratingfunctionology.igp.ProofCell'>,
-         (<..._max_x_y...>,
+         (ParametricFamily(<..._max_x_y...>, ...),
           ('x', 'y'),
           (1, 2),
-          {},
           <...result_symbolic_expression...>,
           ...),
          {})
@@ -1690,13 +1689,15 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
     """
 
     @staticmethod
-    def __classcall__(cls, family, var_name, var_value, default_args, find_region_type, bddbsa=None, polynomial_map=None):
+    def __classcall__(cls, family, var_name, var_value, find_region_type, bddbsa=None, polynomial_map=None):
+        if not isinstance(family, ParametricFamily_base):
+            family = ParametricFamily(family)
         var_name = tuple(var_name)
         var_value = tuple(var_value)
-        return super(ProofCell, cls).__classcall__(cls, family, var_name, var_value, default_args, find_region_type, bddbsa, polynomial_map)
+        return super(ProofCell, cls).__classcall__(cls, family, var_name, var_value, find_region_type, bddbsa, polynomial_map)
 
     @staticmethod
-    def _construct_field_and_test_point(family, var_name, var_value, default_args):
+    def _construct_field_and_test_point(family, var_name, var_value):
         r"""
         Construct a :class:`ParametricRealField` K using var_name and var_value.
 
@@ -1706,9 +1707,8 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.igp import *
-            sage: family=gmic; var_name=['f']; var_value=[1/2];
-            sage: default_args = read_default_args(family)
-            sage: K, test_point = ProofCell._construct_field_and_test_point(family, var_name, var_value, default_args)
+            sage: family=ParametricFamily(gmic); var_name=['f']; var_value=[1/2];
+            sage: K, test_point = ProofCell._construct_field_and_test_point(family, var_name, var_value)
             sage: K
             ParametricRealField(names = ['f'], values = [1/2])
             sage: test_point
@@ -1717,20 +1717,8 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
                  'field': ParametricRealField(names = ['f'], values = [1/2])}
         """
         K = ParametricRealField(var_value, var_name)
-        test_point = copy(default_args)
-        if isinstance(family, CPLFunctionsFactory):
-            # Remark: special case. Parameters are f and z=(z1, z2, ... z(n-1))
-            # group variables into f and z-tuple.
-            # The constructor of cpl will call family._theta to get o-tuple,
-            # when o is set to None (default value).
-            param_name = ['f', 'z']
-            param_value = [K.gens()[0], tuple(K.gens()[1::])]
-        else:
-            param_name = var_name
-            param_value = K.gens()
-        for i in range(len(param_name)):
-            test_point[param_name[i]] = param_value[i]
-        args_set = set(sage_getargspec(family)[0])
+        test_point = family.args_from_point(K.gens())
+        args_set = family.default_values()
         if 'field' in args_set:
             test_point['field'] = K
         if 'conditioncheck' in args_set:
@@ -1744,8 +1732,8 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
         #assert (K.gens() in bddbsa) # record boundary constraints.
         return K, test_point
 
-    def __init__(self, family, var_name, var_value, default_args, find_region_type, bddbsa, polynomial_map):
-        K, test_point = self._construct_field_and_test_point(family, var_name, var_value, default_args)
+    def __init__(self, family, var_name, var_value, find_region_type, bddbsa, polynomial_map):
+        K, test_point = self._construct_field_and_test_point(family, var_name, var_value)
         try:
             h = family(**test_point)
         except Exception:
@@ -1870,7 +1858,7 @@ class SemialgebraicComplex(SageObject):
         sage: extc.is_complete(bddlin=boundary,strict=True)                         #long time, optional - mathematica
         True
     """
-    def __init__(self, family, var_name, find_region_type=None, default_var_bound=(-0.1,1.1), bddbsa=None, polynomial_map=None, kwds_dict={}, cell_class=None, **opt_non_default):
+    def __init__(self, family, var_name=None, find_region_type=None, default_var_bound=(-0.1,1.1), bddbsa=None, polynomial_map=None, kwds_dict={}, cell_class=None, **opt_non_default):
         r"""
         Construct a SemialgebraicComplex.
 
@@ -1894,19 +1882,25 @@ class SemialgebraicComplex(SageObject):
         """
         #self.num_components = 0
         self.components = []
+        if isinstance(family, ParametricFamily_base):
+            assert var_name is None
+            assert not opt_non_default
+            assert not kwds_dict
+        else:
+            default_values = copy(opt_non_default)
+            default_values.update(kwds_dict)
+            family = ParametricFamily(family, default_values=default_values, names=var_name)
         self.family = family
+        var_name = family.names()
         self.d = len(var_name)
         self.var_name = var_name
-        self.default_args = read_default_args(family, **opt_non_default)
-        self.default_args.update(kwds_dict)
         self.graph = Graphics()
         self.num_plotted_components = 0
         self.points_to_test = [OrderedDict() for i in range(self.d + 1)] # a list of dictionaries of the form {testpoint: (bddbsa, polynomial_map)}. The i-th dictionary in the list corresponds to the cells that are expected to have i equations.
-        # we record bddbsa for each testpoiont, since we want to restrict to lower dimensional cells when  goto_lower_dim is set to True.
+        # we record bddbsa for each testpoint, since we want to restrict to lower dimensional cells when  goto_lower_dim is set to True.
         if find_region_type is None:
-            self.find_region_type = find_region_type_igp
-        else:
-            self.find_region_type = find_region_type
+            find_region_type = find_region_type_igp
+        self.find_region_type = find_region_type
         self.default_var_bound = default_var_bound
         if bddbsa is None:   #HAS BUG: r = regions[31]; theta = thetas[16]; cpl_complex = cpl_fill_region_given_theta(r, theta); self.bddbsa = BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {x0+6*x1-1==0, -x0+1>0, 2*x0-1>0}), polynomial_map=[f, z]); self.bddbsa.polynomial_map() is [f, z]; self.bddbsa.ambient_dim() is 1.
             self.bddbsa = BasicSemialgebraicSet_veronese(poly_ring=PolynomialRing(QQ, self.var_name))
@@ -2123,7 +2117,7 @@ class SemialgebraicComplex(SageObject):
             bddbsa = self.bddbsa
         if polynomial_map is None:
             polynomial_map = self.polynomial_map
-        new_component = self._cell_class(self.family, self.var_name, var_value, self.default_args,
+        new_component = self._cell_class(self.family, self.var_name, var_value, 
                                          find_region_type=self.find_region_type, bddbsa=bddbsa, polynomial_map=polynomial_map)
         num_eq = len(list(new_component.bddbsa.eq_poly()))
         if len(list(new_component.bsa.eq_poly())) > num_eq:
