@@ -2779,10 +2779,7 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
 
         sage: P.<f,z>=QQ[]; ineq = -3*f + 1; flip_ineq_step = 1/1000; current_var_value = (499/1250, 488072439572/4866126017667)
         sage: ineqs = [2*f + 2*z - 1, f + 5*z - 1, -f - 6*z + 1, -2*f - 3*z + 1]
-        sage: pt = find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step); pt
-        (333/1000, 67/600)
-        sage: pt = find_point_flip_ineq_heuristic(current_var_value, ineq, sorted(ineqs), flip_ineq_step); pt
-        (333/1000, 67/600)
+        sage: pt = find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step)
         sage: all(l(pt) < 0 for l in ineqs) and ineq(pt)>0
         True
     """
@@ -2879,8 +2876,9 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineq
 
         sage: P.<f,z>=QQ[]
         sage: current_point = vector([0.333000000000000, 0.100300000000000]); ineq = -3*f + 1; strict_ineqs = [2*f + 2*z - 1, f + 5*z - 1, -f - 6*z + 1, -2*f - 3*z + 1]; nonstrict_ineqs = []; flip_ineq_step = 1/1000
-        sage: pt = adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineqs, flip_ineq_step); pt
-        (333/1000, 67/600)
+        sage: pt = adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineqs, flip_ineq_step)
+        sage: all(l(pt) < 0 for l in ineqs) and ineq(pt)>0
+        True
     """
     #current_point is a vector
     ineq_gradient = gradient(ineq)
