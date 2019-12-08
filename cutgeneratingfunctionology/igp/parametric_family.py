@@ -28,14 +28,13 @@ class ParametricFamilyElement(SageObject):
 
         sage: from cutgeneratingfunctionology.igp import *
         sage: import logging; logging.disable(logging.INFO)             # Suppress output in automatic tests.
-        sage: h = ll_strong_fractional()
+        sage: h = ParametricFamily(ll_strong_fractional)()
         sage: h._init_args
-        (<class 'cutgeneratingfunctionology.igp.ll_strong_fractional'>,
-        (2/3,),
-        {'field': None})
+        (ParametricFamily(ll_strong_fractional, names=['f'], default_values=[('f', 2/3)]),
+         OrderedDict([('f', 2/3)]))
         sage: h._difficult_computational_result = 42
         sage: p_h = dumps(h)
-        sage: explain_pickle(p_h)                                        # not tested
+        sage: explain_pickle(p_h)
         pg_ll_strong_fractional = unpickle_global('cutgeneratingfunctionology.igp', 'll_strong_fractional')
         si1 = unpickle_newobj(pg_ll_strong_fractional, ())
         ...
@@ -45,9 +44,8 @@ class ParametricFamilyElement(SageObject):
         sage: h_copy is h
         False
         sage: h_copy._init_args
-        (<class 'cutgeneratingfunctionology.igp.ll_strong_fractional'>,
-         (2/3,),
-         {'field': None})
+        (ParametricFamily(ll_strong_fractional, names=['f'], default_values=[('f', 2/3)]),
+         OrderedDict([('f', 2/3)]))
         sage: h_copy._difficult_computational_result
         42
     """
@@ -90,8 +88,50 @@ class ParametricFamilyElement(SageObject):
         else:
             logging.info("Conditions for extremality are satisfied.")
 
+class ParametricFamily_base(UniqueRepresentation, Parent):
 
-class ParametricFamily(UniqueRepresentation, Parent):
+    def __init__(self, default_values, names):
+        from cutgeneratingfunctionology.igp import FastPiecewise
+        Parent.__init__(self)
+        self._names = names
+        self._default_values = OrderedDict(default_values)
+
+    def parameter_space(self):
+        """
+        Return the parameter space of ``self`` as a basic semialgebraic set.
+
+        EXAMPLE::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: ParametricFamily(chen_4_slope).parameter_space()
+            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {}, names=[f, s_pos, s_neg, lam1, lam2])
+
+        """
+        return BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(names=self.names())
+
+    def names(self):
+        """
+        Return a list of the names of the parameters.
+        """
+        return self._names
+
+    def default_point(self):
+        """
+        Return a list of the default values of the parameters corresponding to ``names``.
+        """
+        default_values = self.default_values()
+        return [ default_values[name] for name in self.names() ]
+
+    def default_values(self):
+        """
+        Return an ``OrderedDict`` of all arguments and their defaults
+        that will be passed to ``constructor``.
+        """
+        return self._default_values
+
+
+
+class ParametricFamily(ParametricFamily_base):
     r"""A parametric family of functions.
 
     It is defined in the traditional way by defining a ``constructor`` and then
@@ -101,11 +141,11 @@ class ParametricFamily(UniqueRepresentation, Parent):
 
         sage: from cutgeneratingfunctionology.igp import *
         sage: F_ll_strong_fractional = ParametricFamily(ll_strong_fractional); F_ll_strong_fractional
-        ParametricFamily(ll_strong_fractional, names=['f'], default_values=(('f', 2/3)),)
+        ParametricFamily(ll_strong_fractional, names=['f'], default_values=[('f', 2/3)])
         sage: ParametricFamily(gj_2_slope)
-        ParametricFamily(gj_2_slope, names=['f', 'lambda_1'], default_values=(('f', 3/5), ('lambda_1', 1/6)))
+        ParametricFamily(gj_2_slope, names=['f', 'lambda_1'], default_values=[('f', 3/5), ('lambda_1', 1/6)])
         sage: ParametricFamily(bcdsp_arbitrary_slope, names=['f'])
-        ParametricFamily(bcdsp_arbitrary_slope, names=['f'], default_values=(('f', 1/2), ('k', 4)))
+        ParametricFamily(bcdsp_arbitrary_slope, names=['f'], default_values=[('f', 1/2), ('k', 4)])
 
         sage: from cutgeneratingfunctionology.igp import *
         sage: F_gj_2_slope = ParametricFamily(gj_2_slope)
@@ -130,7 +170,7 @@ class ParametricFamily(UniqueRepresentation, Parent):
     Parametric families have unique representation behavior::
 
         sage: F_dg_2_step_mir_f_default = ParametricFamily(dg_2_step_mir, names=['alpha']); F_dg_2_step_mir_f_default
-        ParametricFamily(dg_2_step_mir, names=['alpha'], default_values=(('f', 4/5), ('alpha', 3/10)))
+        ParametricFamily(dg_2_step_mir, names=['alpha'], default_values=[('f', 4/5), ('alpha', 3/10)])
         sage: F_dg_2_step_mir_f_default is ParametricFamily(dg_2_step_mir, names=['alpha'])
         True
         sage: F_dg_2_step_mir_f_default is ParametricFamily(dg_2_step_mir, names=['alpha'], default_values={'f': 4/5})
@@ -181,49 +221,29 @@ class ParametricFamily(UniqueRepresentation, Parent):
         return super(ParametricFamily, cls).__classcall__(
             cls, constructor, arg_default_dict, tuple(names))
 
-    #Element = ParametricFamilyElement
-
     def __init__(self, constructor, default_values, names):
         from cutgeneratingfunctionology.igp import FastPiecewise
-        Parent.__init__(self)
+        super(ParametricFamily, self).__init__(default_values, names)
         self._constructor = constructor
-        self._names = names
-        self._default_values = OrderedDict(default_values)
 
     def _repr_(self):
         return "ParametricFamily({}, names={}, default_values={})".format(
-            self.constructor().__name__, list(self.names()), tuple(self.default_values().items()))
-
-    def names(self):
-        """
-        Return a list of the names of the parameters.
-        """
-        return self._names
-
-    def default_point(self):
-        """
-        Return a list of the default values of the parameters corresponding to ``names``.
-        """
-        default_values = self.default_values()
-        return [ default_values[name] for name in self.names() ]
-
-    def default_values(self):
-        """
-        Return an ``OrderedDict`` of all arguments and their defaults
-        that will be passed to ``constructor``.
-        """
-        return self._default_values
+            self.constructor().__name__, list(self.names()), list(self.default_values().items()))
 
     def constructor(self):
         return self._constructor
 
     def _element_constructor_(self, *args, **options):
+        """
+        The preferred calling method of this parametric family
+        """
         names = self.names()
         assert len(args) <= len(names)
         values = copy(self.default_values())
         values.update(zip(names, args))
         values.update(options)
         element = self.constructor()(**values)
+        element._init_args = (self, values)
         return element
 
     def __call__(self, *args, **kwds):
@@ -233,18 +253,5 @@ class ParametricFamily(UniqueRepresentation, Parent):
         #return super(ParametricFamily, self).__call__(*args, **kwds)
         ##  Above does not work because FastPiecewise is not an Element.
         return self._element_constructor_(*args, **kwds)
-
-    def parameter_space(self):
-        """
-        Return the parameter space of ``self`` as a basic semialgebraic set.
-
-        EXAMPLE::
-
-            sage: from cutgeneratingfunctionology.igp import *
-            sage: ParametricFamily(chen_4_slope).parameter_space()
-            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {}, names=[f, s_pos, s_neg, lam1, lam2])
-
-        """
-        return BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(names=self.names())
 
     #def subfamily()    ...
