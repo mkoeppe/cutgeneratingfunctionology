@@ -50,9 +50,7 @@ class ParametricRealFieldElement(FieldElement):
     When a comparison takes place on elements of the class, their concrete values are compared to compute the Boolean return value of the comparison. The constraint on the parameters that gives the same Boolean return value is recorded.
     """
 
-    def __init__(self, value, symbolic=None, parent=None):
-        if parent is None:
-            raise ValueError("ParametricRealFieldElement invoked with parent=None. That's asking for trouble")
+    def __init__(self, parent, value, symbolic=None):
         FieldElement.__init__(self, parent) ## this is so that canonical_coercion works.
         if not parent._mutable_values and value is not None:
             ## Test coercing the value to RR, so that we do not try to build a ParametricRealFieldElement
@@ -300,33 +298,33 @@ class ParametricRealFieldElement(FieldElement):
 
     def _add_(self, other):
         if not isinstance(other, ParametricRealFieldElement):
-            other = ParametricRealFieldElement(other, parent=self.parent())
+            other = ParametricRealFieldElement(self.parent(), other)
         try:
             val = self._val + other._val
         except AttributeError:
             val = None
-        return ParametricRealFieldElement(val, self._sym + other._sym, parent=self.parent())
+        return ParametricRealFieldElement(self.parent(), val, self._sym + other._sym)
 
     def _sub_(self, other):
         if not isinstance(other, ParametricRealFieldElement):
-            other = ParametricRealFieldElement(other, parent=self.parent())
+            other = ParametricRealFieldElement(self.parent(), other)
         try:
             val = self._val - other._val
         except AttributeError:
             val = None
-        return ParametricRealFieldElement(val, self._sym - other._sym, parent=self.parent())
+        return ParametricRealFieldElement(self.parent(), val, self._sym - other._sym)
 
-    def __neg__(self):
+    def _neg_(self):
         try:
             val = -self.val()
         except AttributeError:
             val = None
-        return ParametricRealFieldElement(val, -self._sym, parent=self.parent())
+        return ParametricRealFieldElement(self.parent(), val, -self._sym)
 
     def _mul_(self, other):
         if not isinstance(other, ParametricRealFieldElement):
             try:
-                other = ParametricRealFieldElement(other, parent=self.parent())
+                other = ParametricRealFieldElement(self.parent(), other)
             except TypeError:
                 # For example when other is a vector
                 return other * self
@@ -334,7 +332,7 @@ class ParametricRealFieldElement(FieldElement):
             val = self.val() * other.val()
         except AttributeError:
             val = None
-        return ParametricRealFieldElement(val, self._sym * other._sym, parent=self.parent())
+        return ParametricRealFieldElement(self.parent(), val, self._sym * other._sym)
 
     def _div_(self, other):
         r"""
@@ -353,14 +351,14 @@ class ParametricRealFieldElement(FieldElement):
             ZeroDivisionError: Division by 0 in ParametricRealField
         """
         if not isinstance(other, ParametricRealFieldElement):
-            other = ParametricRealFieldElement(other, parent=self.parent())
+            other = ParametricRealFieldElement(self.parent(), other)
         if other == 0:
             raise ZeroDivisionError("Division by 0 in ParametricRealField")
         try:
             val = self.val() / other.val()
         except AttributeError:
             val = None
-        return ParametricRealFieldElement(val, self._sym / other._sym, parent=self.parent())
+        return ParametricRealFieldElement(self.parent(), val, self._sym / other._sym)
 
     def __hash__(self):
         r"""

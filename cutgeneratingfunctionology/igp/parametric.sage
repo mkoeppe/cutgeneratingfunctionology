@@ -206,8 +206,8 @@ class ParametricRealField(Field):
         self._mutable_values = mutable_values
         self._big_cells = big_cells
 
-        self._zero_element = ParametricRealFieldElement(0, parent=self)
-        self._one_element =  ParametricRealFieldElement(1, parent=self)
+        self._zero_element = ParametricRealFieldElement(self, 0)
+        self._one_element =  ParametricRealFieldElement(self, 1)
         ## REFACTOR: Maybe replace this by an instance of BasicSemialgebraicSet_eq_lt_le_sets - but careful - this class right now assumes polynomials
         self._eq = set([])
         self._lt = set([])
@@ -236,7 +236,7 @@ class ParametricRealField(Field):
         else:
             assert len(values) == len(names)
         vnames = self._sym_field.gens()
-        self._gens = [ ParametricRealFieldElement(value, name, parent=self) for (value, name) in zip(values, vnames) ]
+        self._gens = [ ParametricRealFieldElement(self, value, name) for (value, name) in zip(values, vnames) ]
         self._names = tuple(names)
         if mutable_values:
             self._values = list(values)
@@ -289,7 +289,7 @@ class ParametricRealField(Field):
     def ngens(self):
         return len(self._gens)
     def _an_element_impl(self):
-        return ParametricRealFieldElement(1, parent=self)
+        return ParametricRealFieldElement(self, 1)
     def _coerce_map_from_(self, S):
         """
         TESTS:
@@ -321,21 +321,9 @@ class ParametricRealField(Field):
         if  S is sage.interfaces.mathematica.MathematicaElement or isinstance(S, RealNumberField_absolute) or isinstance(S, RealNumberField_quadratic) or AA.has_coerce_map_from(S):
             # Does the test with MathematicaElement actually work?
             # We test whether S coerces into AA. This rules out inexact fields such as RDF.
-            return CallableConvertMap(S, self, lambda s: ParametricRealFieldElement(s, parent=self), parent_as_first_arg=False)
+            return True
     def __repr__(self):
         return 'ParametricRealField(names = {}, values = {})'.format(list(self._names), list(self._values))
-    def _element_constructor_(self, elt):
-        if parent(elt) == self:
-            return elt
-        try: 
-            QQ_elt = QQ(elt)
-            return ParametricRealFieldElement(QQ_elt, parent=self)
-            #return self.element_class(self, QQ_elt)
-        except ValueError:
-            raise TypeError("ParametricRealField called with element %s" % elt)
-
-    def _coerce_impl(self, x):
-        return self._element_constructor_(x)
 
     def freeze(self):
         self._frozen = True
