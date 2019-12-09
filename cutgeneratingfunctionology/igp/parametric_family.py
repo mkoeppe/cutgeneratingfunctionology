@@ -158,12 +158,18 @@ class ParametricFamily_base(UniqueRepresentation, Parent):
         values.update(options)
         return values
 
+    @abstract_method
+    def _construct_function(self, **values):
+        """
+        Construct the function.
+        """
+
     def _element_constructor_(self, *args, **options):
         """
         The preferred calling method of this parametric family
         """
         values = self._args_with_defaults(*args, **options)
-        element = self.constructor()(**values)
+        element = self._construct_function(**values)
         try:
             element._init_args = (self, values)
         except AttributeError:
@@ -290,7 +296,7 @@ class ParametricFamily(ParametricFamily_base):
     def __init__(self, constructor, default_values, names):
         from cutgeneratingfunctionology.igp import FastPiecewise
         super(ParametricFamily, self).__init__(default_values, names)
-        self._constructor = constructor
+        self._construct_function = constructor
 
     def _repr_(self):
         constructor_name = self.constructor()
@@ -302,7 +308,7 @@ class ParametricFamily(ParametricFamily_base):
             constructor_name, list(self.names()), list(self.default_values().items()))
 
     def constructor(self):
-        return self._constructor
+        return self._construct_function
 
     def parameter_attribute(self, according_to='literature', *args, **options):
         """
