@@ -6,10 +6,12 @@ from __future__ import division, print_function, absolute_import
 from bisect import bisect_left
 
 from sage.structure.element import Element
+from sage.structure.richcmp import richcmp, op_NE, op_EQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 
 from .intervals import *
+from . import FastLinearFunction
 from cutgeneratingfunctionology.spam.parametric_real_field_element import is_parametric_element
 
 class FastPiecewise (Element):
@@ -214,8 +216,10 @@ class FastPiecewise (Element):
     def __hash__(self):
         return id(self)
 
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         r"""
+        Comparison.
+
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.igp import *
@@ -238,16 +242,22 @@ class FastPiecewise (Element):
             sage: g == f
             True
         """
-        if other is None:
-            return False
-        if self._periodic_extension != other._periodic_extension:
-            return False
-        domain = union_of_coho_intervals_minus_union_of_coho_intervals([self.intervals()], [], old_fashioned_closed_intervals=True)
-        if union_of_coho_intervals_minus_union_of_coho_intervals([other.intervals()],[], old_fashioned_closed_intervals=True) != domain:
-            return False
-        difference = self - other
-        from . import FastLinearFunction
-        return (difference.intervals() == domain) and any(fn == FastLinearFunction(0,0) for fn in difference.functions())
+        if not isinstance(other, FastPiecewise):
+            return NotImplemented
+        def is_equal():
+            if self._periodic_extension != other._periodic_extension:
+                return False
+            domain = union_of_coho_intervals_minus_union_of_coho_intervals([self.intervals()], [], old_fashioned_closed_intervals=True)
+            if union_of_coho_intervals_minus_union_of_coho_intervals([other.intervals()],[], old_fashioned_closed_intervals=True) != domain:
+                return False
+            difference = self - other
+            return (difference.intervals() == domain) and any(fn == FastLinearFunction(0,0) for fn in difference.functions())
+        if op == op_EQ:
+            return is_equal()
+        elif op == op_NE:
+            return not is_equal()
+        else:
+            return NotImplemented
 
     def is_continuous(self):
         r"""
@@ -1143,6 +1153,19 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 class PiecewiseLinearFunctionsSpace(Homset, UniqueRepresentation):
 
+    """
+    Vector space of piecewise linear partial functions.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: PWL = PiecewiseLinearFunctionsSpace(QQ, QQ)
+        sage: PWL([((0, 1), FastLinearFunction(1, 1))])
+        <FastPiecewise ...(0, 1)...x + 1...>
+        sage: TestSuite(PWL).run(skip=['_test_zero'])
+    """
+    ## FIXME: We skip _test_zero because we need to improve equality testing.
+
     def __init__(self, domain, codomain):
         from sage.categories.sets_cat import SetsWithPartialMaps
         from sage.categories.modules import Modules
@@ -1155,6 +1178,23 @@ class PiecewiseLinearFunctionsSpace(Homset, UniqueRepresentation):
         self._codomain = codomain
         self._Homset__category = domain_cat
         Parent.__init__(self, base=base_ring, category=cat)
+
+    def _element_constructor_(self, x, *args, **kwds):
+        """
+        Construct a piecewise linear function.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: PiecewiseLinearFunctionsSpace(QQ, QQ)(0).list()
+            [[(0, 1), <FastLinearFunction 0>]]
+
+        """
+        if x in self.codomain():
+            return self.element_class([((QQ(0), QQ(1)), FastLinearFunction(self.codomain().zero(),
+                                                                           self.codomain()(x)))],
+                                      periodic_extension=True)
+        return self.element_class(x, *args, **kwds)
 
     def _repr_(self):
         return "Vector space of piecewise linear partial functions from {} to {} over {}".format(
@@ -1171,3 +1211,15 @@ class PiecewiseLinearFunctionsSpace(Homset, UniqueRepresentation):
             True
         """
         return isinstance(S, PiecewiseLinearFunctionsSpace) and self.codomain().has_coerce_map_from(S.codomain())
+
+    def __reduce__(self):
+        """
+        Implement pickling.
+
+        Overrides method inherited from Homset.
+        """
+        return PiecewiseLinearFunctionsSpace, (self._domain, self._codomain)
+
+    def _an_element_(self):
+        return self([((QQ(0), QQ(1)), FastLinearFunction(QQ(0), QQ(0))),
+                     ((QQ(1), QQ(2)), FastLinearFunction(QQ(1), QQ(-1)))])
