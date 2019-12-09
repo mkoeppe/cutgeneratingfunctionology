@@ -1158,11 +1158,21 @@ class PiecewiseLinearFunctionsSpace(Homset, UniqueRepresentation):
 
     EXAMPLES::
 
+        sage: import logging; logging.disable(logging.WARN) # Suppress output in automatic tests.
         sage: from cutgeneratingfunctionology.igp import *
         sage: PWL = PiecewiseLinearFunctionsSpace(QQ, QQ)
         sage: PWL([((0, 1), FastLinearFunction(1, 1))])
         <FastPiecewise ...(0, 1)...x + 1...>
+
+        sage: sqrt2, = nice_field_values([sqrt(2)])
+        sage: PWL_NF = PiecewiseLinearFunctionsSpace(sqrt2.parent(), sqrt2.parent())
+        sage: PWL_NF.base_ring()
+        Real Number Field in `a` ...
+
+    TESTS::
+
         sage: TestSuite(PWL).run(skip=['_test_zero'])
+
     """
     ## FIXME: We skip _test_zero because we need to improve equality testing.
 
@@ -1170,7 +1180,13 @@ class PiecewiseLinearFunctionsSpace(Homset, UniqueRepresentation):
         from sage.categories.sets_cat import SetsWithPartialMaps
         from sage.categories.modules import Modules
         domain_cat = SetsWithPartialMaps()
-        base_ring = codomain.base_ring()
+        codomain_cat = codomain.category()
+        if hasattr(codomain_cat, "WithBasis"):   # Adapted from Homset.
+            # The above is a lame but fast check that category is a
+            # subcategory of Modules(...).
+            base_ring = codomain.base_ring()
+        else:
+            base_ring = codomain
         cat = domain_cat.Homsets() & Modules(base_ring)
         # Skip the Homset constructor because it uses the wrong category.
         # Following is copied from Homset.__init__
