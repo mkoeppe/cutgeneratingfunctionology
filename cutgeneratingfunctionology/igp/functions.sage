@@ -1448,7 +1448,7 @@ def nice_field_values(symb_values, field=None):
                 syms.append(element)  # changed to not do SR. -mkoeppe
                 vals.append(element)
         vals = nice_field_values(vals) #, field=RealNumberField)
-        field_values = [ParametricRealFieldElement(vals[i],syms[i], parent=field) for i in range(len(symb_values))]
+        field_values = [ParametricRealFieldElement(field, vals[i],syms[i]) for i in range(len(symb_values))]
         return field_values
 
     if field is None:
