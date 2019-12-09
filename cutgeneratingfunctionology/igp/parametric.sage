@@ -662,6 +662,17 @@ class ParametricRealField(Field):
             ...
             ParametricRealFieldFrozenError...
 
+        Inequations::
+
+            sage: K.<f> = ParametricRealField([4/5], big_cells=True)
+            sage: assert f != 0
+            sage: K.get_lt_factor()
+            {-f}
+            sage: K.<f> = ParametricRealField([4/5], big_cells=False)
+            sage: assert f != 0
+            sage: K.get_lt_factor()
+            {-f}
+
         TESTS for allow_refinement=False:
 
         Strict inequalities::
