@@ -68,13 +68,15 @@ SAGEFILES +=									\
 	cutgeneratingfunctionology/spam/polyhedral_complex.py			\
 	cutgeneratingfunctionology/spam/examples/relu.py
 
+CHECK_PARALLEL=4
+
+-include Makefile.conf
+
 all:
 	@echo "No need to 'make' anything. Just run it in Sage; see README.rst"
 
 install:
 	@echo "No need to install anything. Just run it in Sage; see README.rst"
-
-CHECK_PARALLEL=4
 
 check: check-encoding
 	PYTHONPATH=`pwd` $(SAGE) -tp $(CHECK_PARALLEL) --force_lib --warn-long 10 $(SAGE_CHECK_FLAGS) $(SAGEFILES)
