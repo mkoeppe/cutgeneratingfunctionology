@@ -1351,16 +1351,16 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
             polynomial_map = list(poly_ring.gens())
         self.polynomial_map = polynomial_map
         # Take input polynomial_map so that the stupid function find_polynomial_map is not needed any more.
-        # WHY is this input polynomial_map sometimes not compatible with the variable elimination done in bddbsa?
-        # Fix it by taking section of bddbsa.
         if bddbsa is None:   # for doctest purpose
             self.bddbsa = BasicSemialgebraicSet_veronese(poly_ring=poly_ring)
         else:
+            # WHY is this input polynomial_map sometimes not compatible with the variable elimination done in bddbsa? Because upstairs ppl bsa eliminates large x_i in the inequalities, and x_i doesn't necessarily correspond to the i-th variable in poly_ring. Since polynomial_map and v_dict were not given at the initialization of veronese, the variable first encounted in the constraints is considered as x0 by upstairs ppl bsa.
+            # In old code, we fixed the order of upstairs variables by adding initial space dimensions. We don't do that in the current code. Instead, we take the section of bddbsa to eliminate the varibles in the equations.
             # Is the given bddbsa required to be veronese with upstairs being ppl_bsa? Convert it anyway. # It's the same as BasicSemialgebraicSet_veronese.from_bsa(bddbsa.section(self.polynomial_map), poly_ring=poly_ring) # Taking section forgets the equations
             self.bddbsa = bddbsa.section(self.polynomial_map, bsa_class='veronese', poly_ring=poly_ring)
             for i in range(len(self.var_name)):
                 if polynomial_map[i] != poly_ring.gens()[i]:
-                    (self.bddbsa).add_polynomial_constraint(polynomial_map[i]-poly_ring.gens()[i], operator.eq)       
+                    (self.bddbsa).add_polynomial_constraint(polynomial_map[i]-poly_ring.gens()[i], operator.eq)                   
         assert (K.gens() in self.bddbsa) # record boundary constraints. #NEW: moved from ProofCell._construct_field_and_test_point
         #need to apply self.polynomial_map to record bdd constraints with correct variables!
         #assert all(f(self.polynomial_map)(K.gens()) == 0 for f in self.bddbsa.eq_poly()) and all(f(self.polynomial_map)(K.gens()) <= 0 for f in self.bddbsa.le_poly()) and all(f(self.polynomial_map)(K.gens()) < 0 for f in self.bddbsa.lt_poly())
