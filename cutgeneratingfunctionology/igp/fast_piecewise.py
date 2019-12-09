@@ -67,6 +67,7 @@ class FastPiecewise (Element):
 
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: f1(x) = 1
             sage: f2(x) = 1 - x
             sage: f = FastPiecewise([[(0,1),f1],[(1,2),f2]])
@@ -813,7 +814,7 @@ class FastPiecewise (Element):
     def _sub_(self, other):
         return self + (-other)
 
-    ## Following just fixes a bug in the plot method in piecewise.py
+    ## Following just fixes a bug in the plot method in piecewise_old.py
     ## (see doctests below).  Also adds plotting of single points
     ## and discontinuity markers.
     def plot(self, *args, **kwds):
@@ -1066,11 +1067,10 @@ class FastPiecewise (Element):
         r"""
         EXAMPLES::
 
+            sage: from cutgeneratingfunctionology.igp import *
             sage: f1(x) = 1
             sage: f2(x) = 1 - x
             sage: f = FastPiecewise([[(0,1),f1],[(1,2),f2]])
-            doctest:...: DeprecationWarning: use lower-case piecewise instead
-            See http://trac.sagemath.org/14801 for details.
             sage: latex(f)
             \begin{cases}
             x \ {\mapsto}\ 1 &\text{on $(0, 1)$}\cr
