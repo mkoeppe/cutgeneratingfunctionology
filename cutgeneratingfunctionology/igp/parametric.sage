@@ -1655,10 +1655,10 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
 
     EXAMPLES::
 
-        sage: from cutgeneratingfunctionology.igp import ProofCell, _max_x_y, result_symbolic_expression
+        sage: from cutgeneratingfunctionology.igp import ProofCell, ParametricFamily, _max_x_y, result_symbolic_expression
         sage: import logging
         sage: logging.disable(logging.WARN)
-        sage: C = ProofCell(_max_x_y, ['x', 'y'], [1, 2], find_region_type=result_symbolic_expression)
+        sage: C = ProofCell(ParametricFamily(_max_x_y), [1, 2], find_region_type=result_symbolic_expression)
         sage: sorted(C.bsa.lt_poly())
         [x - y]
 
@@ -1667,7 +1667,6 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
         sage: C._init_args
         (<class 'cutgeneratingfunctionology.igp.ProofCell'>,
          (ParametricFamily(_max_x_y, ...),
-          ('x', 'y'),
           (1, 2),
           <...result_symbolic_expression...>,
           ...),
@@ -1689,26 +1688,26 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
     """
 
     @staticmethod
-    def __classcall__(cls, family, var_name, var_value, find_region_type, bddbsa=None, polynomial_map=None):
+    def __classcall__(cls, family, var_value, find_region_type, bddbsa=None, polynomial_map=None):
         if not isinstance(family, ParametricFamily_base):
             family = ParametricFamily(family)
-        var_name = tuple(var_name)
         var_value = tuple(var_value)
-        return super(ProofCell, cls).__classcall__(cls, family, var_name, var_value, find_region_type, bddbsa, polynomial_map)
+        return super(ProofCell, cls).__classcall__(cls, family, var_value, find_region_type, bddbsa, polynomial_map)
 
     @staticmethod
-    def _construct_field_and_test_point(family, var_name, var_value):
+    def _construct_field_and_test_point(family, var_value):
         r"""
-        Construct a :class:`ParametricRealField` K using var_name and var_value.
+        Construct a :class:`ParametricRealField` K using ``var_value``.
 
-        var_name and var_value are two parallel lists.
+        ``var_value`` is a list parallel to ``family.names()``.
+
         Construct a test_point of type dictionary, which maps each parameter of the family to the corresponding :class:`ParametricRealFieldElement` if this is a parameter of K, otherwise maps to the default argument value.
 
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.igp import *
-            sage: family=ParametricFamily(gmic); var_name=['f']; var_value=[1/2];
-            sage: K, test_point = ProofCell._construct_field_and_test_point(family, var_name, var_value)
+            sage: family=ParametricFamily(gmic); var_value=[1/2];
+            sage: K, test_point = ProofCell._construct_field_and_test_point(family, var_value)
             sage: K
             ParametricRealField(names = ['f'], values = [1/2])
             sage: test_point
@@ -1716,6 +1715,7 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
                  'f': f~,
                  'field': ParametricRealField(names = ['f'], values = [1/2])}
         """
+        var_name = family.names()
         K = ParametricRealField(var_value, var_name)
         test_point = family.args_from_point(K.gens())
         args_set = family.default_values()
@@ -1728,12 +1728,12 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
         #if bddbsa is None:
         #    bddbsa =  BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=PolynomialRing(QQ, var_name)) # class doesn't matter, just to record the constraints on K._bsa
         #DELETE and check if the code still works.
-        #K.add_initial_space_dim() #so that the parameters var_name are the first ones in the monomial list. Needed for ppl variable elimination, otherwise ineqs are not orthogonal to eliminated variables. FIXME: Get rid of this requirement. Also eeded for Mccormicks?
+        #K.add_initial_space_dim() #so that the parameters var_name are the first ones in the monomial list. Needed for ppl variable elimination, otherwise ineqs are not orthogonal to eliminated variables. FIXME: Get rid of this requirement. Also needed for Mccormicks?
         #assert (K.gens() in bddbsa) # record boundary constraints.
         return K, test_point
 
-    def __init__(self, family, var_name, var_value, find_region_type, bddbsa, polynomial_map):
-        K, test_point = self._construct_field_and_test_point(family, var_name, var_value)
+    def __init__(self, family, var_value, find_region_type, bddbsa, polynomial_map):
+        K, test_point = self._construct_field_and_test_point(family, var_value)
         try:
             h = family(**test_point)
         except Exception:
@@ -1893,7 +1893,6 @@ class SemialgebraicComplex(SageObject):
         self.family = family
         var_name = family.names()
         self.d = len(var_name)
-        self.var_name = var_name
         self.graph = Graphics()
         self.num_plotted_components = 0
         self.points_to_test = [OrderedDict() for i in range(self.d + 1)] # a list of dictionaries of the form {testpoint: (bddbsa, polynomial_map)}. The i-th dictionary in the list corresponds to the cells that are expected to have i equations.
@@ -1903,14 +1902,14 @@ class SemialgebraicComplex(SageObject):
         self.find_region_type = find_region_type
         self.default_var_bound = default_var_bound
         if bddbsa is None:   #HAS BUG: r = regions[31]; theta = thetas[16]; cpl_complex = cpl_fill_region_given_theta(r, theta); self.bddbsa = BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {x0+6*x1-1==0, -x0+1>0, 2*x0-1>0}), polynomial_map=[f, z]); self.bddbsa.polynomial_map() is [f, z]; self.bddbsa.ambient_dim() is 1.
-            self.bddbsa = BasicSemialgebraicSet_veronese(poly_ring=PolynomialRing(QQ, self.var_name))
+            self.bddbsa = BasicSemialgebraicSet_veronese(poly_ring=PolynomialRing(QQ, var_name))
         else:
             self.bddbsa = bddbsa
         if polynomial_map is None:
             eqs = list(self.bddbsa.eq_poly())
             if eqs:
                 #Only useful for treating careless input with low dim bddbsa provided but not polynomial_map. # should not happen in cpl because we pass r.polynomal_map to cpl_complex.
-                self.polynomial_map = find_polynomial_map(eqs, poly_ring=PolynomialRing(QQ, self.var_name))
+                self.polynomial_map = find_polynomial_map(eqs, poly_ring=PolynomialRing(QQ, var_name))
             else:
                 self.polynomial_map = list(self.bddbsa.poly_ring().gens())
         else:
@@ -2117,7 +2116,7 @@ class SemialgebraicComplex(SageObject):
             bddbsa = self.bddbsa
         if polynomial_map is None:
             polynomial_map = self.polynomial_map
-        new_component = self._cell_class(self.family, self.var_name, var_value, 
+        new_component = self._cell_class(self.family, var_value, 
                                          find_region_type=self.find_region_type, bddbsa=bddbsa, polynomial_map=polynomial_map)
         num_eq = len(list(new_component.bddbsa.eq_poly()))
         if len(list(new_component.bsa.eq_poly())) > num_eq:
