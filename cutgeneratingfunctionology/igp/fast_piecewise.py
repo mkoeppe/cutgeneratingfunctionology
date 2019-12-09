@@ -1,16 +1,16 @@
 """
 Piecewise linear functions of one real variable
 """
-from __future__ import print_function, absolute_import
+from __future__ import division, print_function, absolute_import
 
 from bisect import bisect_left
 
+from sage.structure.element import Element
+from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 
 from .intervals import *
 from cutgeneratingfunctionology.spam.parametric_real_field_element import is_parametric_element
-
-from sage.structure.element import Element
 
 class FastPiecewise (Element):
     r"""
@@ -807,7 +807,7 @@ class FastPiecewise (Element):
         r"""
         Divide by a scalar.
         """
-        return self * (1 / other)
+        return self * (QQ(1) / other)
 
     __div__ = __truediv__
 
@@ -1052,7 +1052,7 @@ class FastPiecewise (Element):
 
         """
         from hashlib import sha1
-        self_merged = self * 1            # in case we were constructed with merge=False!
+        self_merged = self * ZZ(1)      # in case we were constructed with merge=False!
         data = list(zip(self_merged.end_points(), self_merged.limits_at_end_points()))
         from . import is_all_QQ
         from sage.misc.flatten import flatten
