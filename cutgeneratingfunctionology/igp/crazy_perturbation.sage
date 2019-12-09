@@ -55,12 +55,14 @@ class CrazyPiece:
         return unique_list(shifts+[0])
 
 
-class PiecewiseCrazyFunction:
+class PiecewiseCrazyFunction(Element):
     # assume that all inputs are elements from a same RNF.
     def __init__(self, pwl, crazy_pieces):
         self.pwl = pwl
         # assume that crazy pieces' intervals are disjoint.
         self.crazy_pieces = crazy_pieces
+        parent = PiecewiseCrazyFunctionsSpace(pwl.parent().domain(), pwl.parent().codomain())
+        Element.__init__(self, parent)
 
     def find_crazy_piece(self, x, xeps=0):
         x = fractional(x)
@@ -75,30 +77,26 @@ class PiecewiseCrazyFunction:
                 return cp
         return None
 
-    def __add__(self,other):
-        if isinstance(other, PiecewiseCrazyFunction):
-            # assume that intervals of crazy pieces from self and from other are disjoint.
-            return PiecewiseCrazyFunction(self.pwl + other.pwl, self.crazy_pieces + other.crazy_pieces)
-        else:
-            # assume other is FastPiecewise
-            return PiecewiseCrazyFunction(self.pwl + other, self.crazy_pieces)
+    def _add_(self,other):
+        # assume that intervals of crazy pieces from self and from other are disjoint.
+        # FIXME: This needs to be checked
+        return PiecewiseCrazyFunction(self.pwl + other.pwl, self.crazy_pieces + other.crazy_pieces)
 
-    def __neg__(self):
+    def _neg_(self):
         return PiecewiseCrazyFunction(-self.pwl, [-cp  for cp in self.crazy_pieces])
 
-    def __mul__(self, other):
+    def _acted_upon_(self, actor, self_on_left):
         r"""
         Multiply self by a scalar.
         """
-        # assume scalar multiplication
-        return PiecewiseCrazyFunction(self.pwl * other, [cp * other for cp in self.crazy_pieces])
+        return PiecewiseCrazyFunction(self.pwl * actor, [cp * actor for cp in self.crazy_pieces])
 
-    __rmul__ = __mul__
-
-    def __div__(self, other):
+    def __truediv__(self, other):
         return self * (1 / other)
 
-    def __sub__(self, other):
+    __div__ = __truediv__
+
+    def _sub_(self, other):
         return self + (-other)
 
     @cached_method
@@ -149,6 +147,26 @@ class PiecewiseCrazyFunction:
             return [limit_pwl]
         else:
             return [limit_pwl + s for s in crazy_piece.range()]
+
+from .fast_piecewise import PiecewiseLinearFunctionsSpace
+
+class PiecewiseCrazyFunctionsSpace(PiecewiseLinearFunctionsSpace):
+
+    Element = PiecewiseCrazyFunction
+
+    def _repr_(self):
+        return "Vector space of piecewise crazy partial functions from {} to {} over {}".format(
+            self.domain(), self.codomain(), self.base_ring())
+
+    def _coerce_map_from_(self, S):
+        """
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: PiecewiseCrazyFunctionsSpace(AA, AA).has_coerce_map_from(PiecewiseLinearFunctionsSpace(QQ, QQ))
+            True
+        """
+        return isinstance(S, PiecewiseLinearFunctionsSpace) and self.codomain().has_coerce_map_from(S.codomain())
 
 def is_in_ZZ_span(x, generators):
     # assume that all inputs are elements from a same RNF.
