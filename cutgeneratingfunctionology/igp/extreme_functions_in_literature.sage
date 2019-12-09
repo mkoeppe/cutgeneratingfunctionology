@@ -1390,9 +1390,9 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
     For 0 < f < 1/3, by Thm.28, the DPL1 function \phi (whose corresponding h is shown on p.273, Fig.3-lowerleft) is "extreme" (not the usual definition).
 
     See def.19 for the definition of DPLn, which is a special family of discontinuous piecewise linear functions.
-    See Prop.18 and Fig 1 for relation between the DPLn representation `\\phi` and the group representation `\\pi`, where `\\pi(u)` is called `f(u)`, and `f` is called `r_0` throughout this paper.
+    See Prop.18 and Fig 1 for relation between the DPLn representation `\phi` and the group representation `\pi`, where `\pi(u)` is called `f(u)`, and `f` is called `r_0` throughout this paper.
 
-    All we know from the paper is that `\\pi` on p.273, Fig.3-lowerleft is subadditive. However, the extremality is unknown (see discussion after thm.28 p.272).
+    All we know from the paper is that `\pi` on p.273, Fig.3-lowerleft is subadditive. However, the extremality is unknown (see discussion after thm.28 p.272).
 
     Indeed, the function rlm_dpl1_fig3_lowerleft(f) is a facet (and thus extreme) for any 0 < f < 1/3. This can be verified using the covered components and the additivity equations. (Specifically, 2 * \pi(f+) = \pi(2f+) and 2* \pi((1+f) / 2 +) = \pi(f+))
 
