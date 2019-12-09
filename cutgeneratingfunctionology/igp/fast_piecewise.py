@@ -7,16 +7,12 @@ from bisect import bisect_left
 
 from sage.rings.rational_field import QQ
 
-from .piecewise_old import PiecewisePolynomial
 from .intervals import *
 from cutgeneratingfunctionology.spam.parametric_real_field_element import is_parametric_element
 
-from sage.structure.parent import Parent
 from sage.structure.element import Element
 
-piecewise_parent = Parent()
-
-class FastPiecewise (PiecewisePolynomial, Element):
+class FastPiecewise (Element):
     r"""
     Returns a piecewise function from a list of (interval, function)
     pairs.
@@ -62,6 +58,23 @@ class FastPiecewise (PiecewisePolynomial, Element):
     cache = True
 
     def __init__(self, list_of_pairs, var=None, periodic_extension=True, merge=True, cache=None):
+        r"""
+        ``list_of_pairs`` is a list of pairs (I, fcn), where
+        fcn is a Sage function (such as a polynomial over RR, or functions
+        using the lambda notation), and I is an interval such as I = (1,3).
+
+        If the optional ``var`` is specified, this variable will be used for printing purposes.
+
+        EXAMPLES::
+
+            sage: f1(x) = 1
+            sage: f2(x) = 1 - x
+            sage: f = FastPiecewise([[(0,1),f1],[(1,2),f2]])
+            sage: f.list()
+            [[(0, 1), x |--> 1], [(1, 2), x |--> -x + 1]]
+            sage: f.length()
+            2
+        """
         # Sort intervals according to their left endpoints; In case of equality, place single point before interval.
         list_of_pairs = sorted(list_of_pairs, key = lambda i_f: coho_interval_left_endpoint_with_epsilon(i_f[0]))
         if merge:
@@ -98,11 +111,12 @@ class FastPiecewise (PiecewisePolynomial, Element):
                 merged_list_of_pairs.append((merged_interval, common_f))
             list_of_pairs = merged_list_of_pairs
 
-        PiecewisePolynomial.__init__(self, list_of_pairs, var)
-        Element.__init__(self, piecewise_parent)    # FIXME
+        #PiecewisePolynomial.__init__(self, list_of_pairs, var)
+        self._length = len(list_of_pairs)
+        intervals = self._intervals = [x[0] for x in list_of_pairs]
+        functions = self._functions = [x[1] for x in list_of_pairs]
+        self._list = [[self._intervals[i], self._functions[i]] for i in range(self._length)]
 
-        intervals = self._intervals
-        functions = self._functions
         # end_points are distinct.
         end_points = []
         # ith_at_end_points records in which interval the end_point first appears as a left_end or right_end.
@@ -172,6 +186,8 @@ class FastPiecewise (PiecewisePolynomial, Element):
                     from . import ParametricRealField
                     if isinstance(x.parent(), ParametricRealField):
                         self._domain_ring = x.parent()
+        piecewise_parent = PiecewiseLinearFunctionsSpace(self._domain_ring, self._domain_ring)
+        Element.__init__(self, piecewise_parent)    # FIXME
         is_continuous = True
         if len(end_points) == 1 and end_points[0] is None:
             is_continuous = False
@@ -321,6 +337,72 @@ class FastPiecewise (PiecewisePolynomial, Element):
             [[1, 1, None], [0, 0, 1], [None, e^2, -1], [4, sin(6), e^3], [sin(12), 3, sin(12)], [None, None, 4], [7, 7, None], [7, None, 7]]
         """
         return self._limits_at_end_points
+
+    def functions(self):
+        """
+        Returns the list of functions (the "pieces").
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp.fast_piecewise import *
+            sage: f1(x) = 1
+            sage: f2(x) = 1-x
+            sage: f3(x) = exp(x)
+            sage: f4(x) = sin(2*x)
+            sage: f = FastPiecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: f.functions()
+            [x |--> 1, x |--> -x + 1, x |--> e^x, x |--> sin(2*x)]
+        """
+        return self._functions
+
+    def intervals(self):
+        """
+        A piecewise non-polynomial example.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp.fast_piecewise import *
+            sage: f1(x) = 1
+            sage: f2(x) = 1-x
+            sage: f3(x) = exp(x)
+            sage: f4(x) = sin(2*x)
+            sage: f = FastPiecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: f.intervals()
+            [(0, 1), (1, 2), (2, 3), (3, 10)]
+        """
+        return self._intervals
+
+    def list(self):
+        """
+        Returns the pieces of this function as a list of functions.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp.fast_piecewise import *
+            sage: f1(x) = 1
+            sage: f2(x) = 1 - x
+            sage: f = FastPiecewise([[(0,1),f1],[(1,2),f2]])
+            sage: f.list()
+            [[(0, 1), x |--> 1], [(1, 2), x |--> -x + 1]]
+        """
+        return self._list
+
+    def length(self):
+        """
+        Returns the number of pieces of this function.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp.fast_piecewise import *
+            sage: f1(x) = 1
+            sage: f2(x) = 1 - x
+            sage: f = FastPiecewise([[(0,1),f1],[(1,2),f2]])
+            sage: f.length()
+            2
+        """
+        return self._length
+
+
 
     def which_function(self, x0):
         r"""
@@ -546,7 +628,7 @@ class FastPiecewise (PiecewisePolynomial, Element):
 
         EXAMPLES::
 
-            sage: from cutgeneratingfunctionology.igp import *
+            sage: from cutgeneratingfunctionology.igp.fast_piecewise import *
             sage: f1(x) = 1
             sage: f2(x) = 1-x
             sage: f3(x) = exp(x)
@@ -599,7 +681,7 @@ class FastPiecewise (PiecewisePolynomial, Element):
 
         EXAMPLES::
 
-            sage: from cutgeneratingfunctionology.igp import *
+            sage: from cutgeneratingfunctionology.igp.fast_piecewise import *
             sage: f1(x) = 1
             sage: f2(x) = 1-x
             sage: f3(x) = exp(x)
@@ -683,7 +765,7 @@ class FastPiecewise (PiecewisePolynomial, Element):
         # This could be implemented by refactoring which_function using new function which_function_index.
         return self.which_function(x)
 
-    def __add__(self,other):
+    def _add_(self,other):
         r"""
         Add self and another piecewise function.
 
@@ -711,30 +793,24 @@ class FastPiecewise (PiecewisePolynomial, Element):
         return FastPiecewise([ (interval, self.which_function_on_interval(interval) + other.which_function_on_interval(interval))
                                for interval in intervals ], merge=True)
 
-    def __neg__(self):
+    def _neg_(self):
         return FastPiecewise([[interval, -f] for interval,f in self.list()], merge=True)
 
-    def __mul__(self,other):
+    def _acted_upon_(self, actor, self_on_left):
         r"""
-        Multiply self by a scalar or another piecewise function.
-
-        In contrast to ``PiecewisePolynomial.__mul__``, this does not do zero extension of domains.
-        Rather, the result is only defined on the intersection of the domains.
+        Multiply self by a scalar.
         """
-        if not isinstance(other, FastPiecewise):
-            # assume scalar multiplication
-            return FastPiecewise([[interval, other*f] for interval,f in self.list()])
-        else:
-            intervals = intersection_of_coho_intervals([self.intervals(), other.intervals()])
-            return FastPiecewise([ (interval, self.which_function_on_interval(interval) * other.which_function_on_interval(interval))
-                                   for interval in intervals ], merge=True)
+        return FastPiecewise([[interval, actor * f] for interval,f in self.list()])
 
-    __rmul__ = __mul__
-
-    def __div__(self, other):
+    def __truediv__(self, other):
+        r"""
+        Divide by a scalar.
+        """
         return self * (1 / other)
 
-    def __sub__(self, other):
+    __div__ = __truediv__
+
+    def _sub_(self, other):
         return self + (-other)
 
     ## Following just fixes a bug in the plot method in piecewise.py
@@ -936,7 +1012,7 @@ class FastPiecewise (PiecewisePolynomial, Element):
                 return False
         return True
 
-    def __repr__(self):
+    def _repr_(self):
         from . import show_values_of_fastpiecewise
         rep = "<FastPiecewise with %s parts, " % len(self._functions)
         for interval, function in zip(self._intervals, self._functions):
@@ -987,8 +1063,42 @@ class FastPiecewise (PiecewisePolynomial, Element):
         return sha1(stable_str).hexdigest()
 
     def _latex_(self, table=False, labels={}, name=r'\pi'):
+        r"""
+        EXAMPLES::
+
+            sage: f1(x) = 1
+            sage: f2(x) = 1 - x
+            sage: f = FastPiecewise([[(0,1),f1],[(1,2),f2]])
+            doctest:...: DeprecationWarning: use lower-case piecewise instead
+            See http://trac.sagemath.org/14801 for details.
+            sage: latex(f)
+            \begin{cases}
+            x \ {\mapsto}\ 1 &\text{on $(0, 1)$}\cr
+            x \ {\mapsto}\ -x + 1 &\text{on $(1, 2)$}\cr
+            \end{cases}
+
+        ::
+
+            sage: f(x) = sin(x*pi/2)
+            sage: g(x) = 1-(x-1)^2
+            sage: h(x) = -x
+            sage: P = FastPiecewise([[(0,1), f], [(1,3),g], [(3,5), h]])
+            sage: latex(P)
+            \begin{cases}
+            x \ {\mapsto}\ \sin\left(\frac{1}{2} \, \pi x\right) &\text{on $(0, 1)$}\cr
+            x \ {\mapsto}\ -{\left(x - 1\right)}^{2} + 1 &\text{on $(1, 3)$}\cr
+            x \ {\mapsto}\ -x &\text{on $(3, 5)$}\cr
+            \end{cases}
+        """
         if not table:
-            return super(FastPiecewise, self)._latex_()  # FIXME: This one does not handle half-open intervals
+            # FIXME: This code from piecewise_old does not handle half-open intervals
+            from sage.misc.latex import latex
+            tex = ['\\begin{cases}\n']
+            for (left, right), f in self.list():
+                tex.append('%s &\\text{on $(%s, %s)$}\\cr\n' % (latex(f), left, right))
+            tex.append(r'\end{cases}')
+            return ''.join(tex)
+
         from sage.misc.latex import latex
         def labeled_latex(x):
             return labels.get(x, latex(x))
@@ -1026,3 +1136,38 @@ class FastPiecewise (PiecewisePolynomial, Element):
 
     ## @staticmethod
     ## def from_interval_lengths_and_slopes(cls, interval_lengths, slopes, field=None, merge=True):
+
+from sage.structure.parent import Parent
+from sage.categories.homset import Homset
+from sage.structure.unique_representation import UniqueRepresentation
+
+class PiecewiseLinearFunctionsSpace(Homset, UniqueRepresentation):
+
+    def __init__(self, domain, codomain):
+        from sage.categories.sets_cat import SetsWithPartialMaps
+        from sage.categories.modules import Modules
+        domain_cat = SetsWithPartialMaps()
+        base_ring = codomain.base_ring()
+        cat = domain_cat.Homsets() & Modules(base_ring)
+        # Skip the Homset constructor because it uses the wrong category.
+        # Following is copied from Homset.__init__
+        self._domain = domain
+        self._codomain = codomain
+        self._Homset__category = domain_cat
+        Parent.__init__(self, base=base_ring, category=cat)
+
+    def _repr_(self):
+        return "Vector space of piecewise linear partial functions from {} to {} over {}".format(
+            self.domain(), self.codomain(), self.base_ring())
+
+    Element = FastPiecewise
+
+    def _coerce_map_from_(self, S):
+        """
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: PiecewiseLinearFunctionsSpace(AA, AA).has_coerce_map_from(PiecewiseLinearFunctionsSpace(QQ, QQ))
+            True
+        """
+        return isinstance(S, PiecewiseLinearFunctionsSpace) and self.codomain().has_coerce_map_from(S.codomain())
