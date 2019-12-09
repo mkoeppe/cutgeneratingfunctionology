@@ -1293,8 +1293,12 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         [x + y - 2, y^2 - x]
         sage: component.plot()                                  # not tested
         sage: new_points = component.find_neighbour_candidates(1/4, 'heuristic', goto_lower_dim=False)
-        sage: list(new_points[0].keys())
-        [(11/8, 7/8), (19959383/28510088, 24590405/28510088)]
+        sage: new_pts = list(new_points[0].keys()) # was [(11/8, 7/8), (19959383/28510088, 24590405/28510088)], now with .n(30) get [(11/8, 7/8), (30093/42985, 54831/63571)]
+        sage: len(new_pts)
+        2
+        sage: all((xx + yy - 2)*(yy^2 - xx) < 0 for (xx, yy) in new_pts)
+        True
+
 
     # component.find_walls_and_new_points(1/4, 'mathematica', goto_lower_dim=True)  # optional - mathematica
     # ([x + y - 2, y^2 - x],
@@ -2752,11 +2756,12 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
 
     After walking towards ineq==0, ineqs < 0 is violated. Need to adjust::
 
-        sage: x, y = find_point_flip_ineq_heuristic([1,9/10], a+b-2, [-a+b^2], 1/2)
+        sage: x, y = find_point_flip_ineq_heuristic([1,9/10], a+b-2, [-a+b^2], 1/2)  # got (123/85, 179/170)
         sage: float(x), float(y)    # abs tol 1e-10
         (1.4470588235294117, 1.0529411764705883)
-        sage: find_point_flip_ineq_heuristic([11/40,1/2], a+b-2, [-a+b^2], 1/4)
-        (39295901/31739294, 125037049/123564610)
+        sage: x, y = find_point_flip_ineq_heuristic([11/40,1/2], a+b-2, [-a+b^2], 1/4) # got (39295901/31739294, 125037049/123564610), now get (45793/36987, 34307/33903)
+        sage: (x + y - 2 > 0) and (-x + y^2 < 0)
+        True
 
     Ineq is a redundant inequality, it's impossible to cross it without crossing any other ineqs.
     Thus, return ``None``::
@@ -2841,7 +2846,7 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineq
     r"""
     Walk from current_point (type=vector) in the direction perpendicular to 
     the gradient of ineq with small positive step length flip_ineq_step, 
-    while maintaining ineq(*current_point) >= 0
+    while maintaining the value of ineq(*current_point) which is >= 0.
     until get a new point such that l(new point)<0 for all l in strict_ineqs and l(new point)<=0 for all l in nonstrict_ineqs
 
     Return new_point, or ``None`` if it fails to find one.
@@ -2865,7 +2870,7 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineq
         sage: P.<f,z>=QQ[]
         sage: current_point = vector([0.333000000000000, 0.100300000000000]); ineq = -3*f + 1; strict_ineqs = [2*f + 2*z - 1, f + 5*z - 1, -f - 6*z + 1, -2*f - 3*z + 1]; nonstrict_ineqs = []; flip_ineq_step = 1/1000
         sage: pt = adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineqs, flip_ineq_step)
-        sage: all(l(pt) < 0 for l in ineqs) and ineq(pt)>0
+        sage: all(l(pt) < 0 for l in strict_ineqs) and all(l(pt) <= 0 for l in nonstrict_ineqs) and ineq(pt)>0
         True
     """
     #current_point is a vector
@@ -2902,11 +2907,10 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineq
     for l in nonstrict_ineqs:
         if l(*current_point) > 0:
             return None
-    is_qq_current_point = all(x.parent()==QQ for x in current_point)
-    if is_qq_current_point:
+    if all(x.parent()==QQ for x in current_point):
         return tuple(current_point)
     else:
-        current_point = vector(QQ(x) for x in current_point)
+        current_point = vector(QQ(x.n(30)) for x in current_point)
         if all(l(*current_point) < 0 for l in strict_ineqs) and all(l(*current_point) <= 0 for l in nonstrict_ineqs):
             return tuple(current_point)
         # Redo it with QQ input.
