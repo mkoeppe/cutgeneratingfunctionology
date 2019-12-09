@@ -319,11 +319,11 @@ class ParametricFamily(ParametricFamily_base):
             sage: F_chen_4_slope = ParametricFamily(chen_4_slope)
             sage: F_chen_4_slope.parameter_attribute()
             'extreme'
-            sage: F_chen_4_slope.parameter_attribute(condition_according_to_literature=True, f=1/2, s_pos=5, s_neg=-5, lam1=1/5, lam2=1/5)
+            sage: F_chen_4_slope.parameter_attribute(according_to='literature', f=1/2, s_pos=5, s_neg=-5, lam1=1/5, lam2=1/5)
             'constructible'
-            sage: F_chen_4_slope.parameter_attribute(condition_according_to_literature=True, f=7/10, s_pos=2, s_neg=-4, lam1=1/100, lam2=49/100)
+            sage: F_chen_4_slope.parameter_attribute(according_to='literature', f=7/10, s_pos=2, s_neg=-4, lam1=1/100, lam2=49/100)
             'extreme'
-            sage: F_chen_4_slope.parameter_attribute(condition_according_to_literature=False, f=7/10, s_pos=2, s_neg=-4, lam1=1/100, lam2=49/100)
+            sage: F_chen_4_slope.parameter_attribute(according_to='best', f=7/10, s_pos=2, s_neg=-4, lam1=1/100, lam2=49/100)
             'constructible'
         """
         constructor = self.constructor()
