@@ -2524,24 +2524,13 @@ def claimed_region_type(igp_function=gmic, condition_according_to_literature=Tru
         sage: complex = SemialgebraicComplex(claimed_region_type,['f','alpha'],find_region_type=return_result, igp_function=dg_2_step_mir)
         sage: complex.bfs_completion(var_value=[4/5,3/10]) #not tested #infinite many cells.
     """
-    test_point = read_default_args(igp_function)
-    test_point.update(kwds)
-    # make condition_according_to_literature a keyword argument of the function claimed_region_type,
-    # update its value in test_point.
-    # in particular, use condition_according_to_literature=True to obtain the (false) claimed region of chen_4_slope according to literature.
-    if 'condition_according_to_literature' in test_point:
-        test_point['condition_according_to_literature'] = condition_according_to_literature
-    if not isinstance(igp_function, ParametricFamily):
-        try:
-            h = igp_function(**test_point)
-            return h._claimed_parameter_attribute
-        except Exception:
-            # Function is non-contructible at this random point.
-            return 'not_constructible'
+    if not isinstance(igp_function, ParametricFamily_base):
+        igp_function = ParametricFamily(igp_function)
+    if condition_according_to_literature:
+        source = 'literature'
     else:
-        claimed_parameter_attribute = igp_function.claimed_parameter_attribute
-        parameter_values = read_default_args(claimed_parameter_attribute, **test_point)
-        return claimed_parameter_attribute(**parameter_values)
+        source = 'best'
+    return igp_function.parameter_attribute(according_to=source, **kwds)
 
 def return_result(field, result):
     return result

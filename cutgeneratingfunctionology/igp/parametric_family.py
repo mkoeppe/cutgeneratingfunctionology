@@ -85,7 +85,7 @@ class ParametricFamilyElement(SageObject):
             raise ValueError("Bad parameters. Unable to construct the function.")
         elif c == 'constructible':
             logging.info("Conditions for extremality are NOT satisfied.")
-        else:
+        else:   # FIXME: What about minimal, not extreme?
             logging.info("Conditions for extremality are satisfied.")
 
 class ParametricFamily_base(UniqueRepresentation, Parent):
@@ -149,6 +149,50 @@ class ParametricFamily_base(UniqueRepresentation, Parent):
         #return super(ParametricFamily, self).__call__(*args, **kwds)
         ##  Above does not work because FastPiecewise is not an Element.
         return self._element_constructor_(*args, **kwds)
+
+    def _args_with_defaults(self, *args, **options):
+        names = self.names()
+        assert len(args) <= len(names)
+        values = copy(self.default_values())
+        values.update(zip(names, args))
+        values.update(options)
+        return values
+
+    def _element_constructor_(self, *args, **options):
+        """
+        The preferred calling method of this parametric family
+        """
+        values = self._args_with_defaults(*args, **options)
+        element = self.constructor()(**values)
+        try:
+            element._init_args = (self, values)
+        except AttributeError:
+            pass
+        return element
+
+    def parameter_attribute(self, according_to='literature', *args, **options):
+        """
+        Determine whether the function obtained by ``_element_constructor_``, applied
+        to the given parameters, is 'not_constructible', 'constructible', or 'extreme'.
+
+        This information is by default given according to the published literature
+        regarding this function (``according_to='literature'``), or according to an
+        algorithmic test (``according_to='algorithm'``).
+        """
+        if 'condition_according_to_literature' in self.default_values():
+            options['condition_according_to_literature'] = according_to == 'literature'
+        try:
+            h = self._element_constructor_(*args, **options)
+            if according_to != 'algorithm':
+                return h._claimed_parameter_attribute
+        except Exception:
+            # Function is non-contructible at this point.
+            return 'not_constructible'
+        from . import extremality_test       # FIXME: This duplicates find_region_type
+        if extremality_test(h):
+            return 'extreme'
+        else:
+            return 'constructible'
 
 
     #def subfamily()    ...
@@ -260,18 +304,28 @@ class ParametricFamily(ParametricFamily_base):
     def constructor(self):
         return self._constructor
 
-    def _element_constructor_(self, *args, **options):
+    def parameter_attribute(self, according_to='literature', *args, **options):
         """
-        The preferred calling method of this parametric family
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)
+            sage: F_chen_4_slope = ParametricFamily(chen_4_slope)
+            sage: F_chen_4_slope.parameter_attribute()
+            'extreme'
+            sage: F_chen_4_slope.parameter_attribute(condition_according_to_literature=True, f=1/2, s_pos=5, s_neg=-5, lam1=1/5, lam2=1/5)
+            'constructible'
+            sage: F_chen_4_slope.parameter_attribute(condition_according_to_literature=True, f=7/10, s_pos=2, s_neg=-4, lam1=1/100, lam2=49/100)
+            'extreme'
+            sage: F_chen_4_slope.parameter_attribute(condition_according_to_literature=False, f=7/10, s_pos=2, s_neg=-4, lam1=1/100, lam2=49/100)
+            'constructible'
         """
-        names = self.names()
-        assert len(args) <= len(names)
-        values = copy(self.default_values())
-        values.update(zip(names, args))
-        values.update(options)
-        element = self.constructor()(**values)
+        constructor = self.constructor()
         try:
-            element._init_args = (self, values)
+            method = constructor.claimed_parameter_attribute
         except AttributeError:
             pass
-        return element
+        else:
+            args_with_defaults = self._args_with_defaults(*args, **options)
+            return method(**args_with_defaults)
+        return super(ParametricFamily, self).parameter_attribute(according_to=according_to, *args, **options)
