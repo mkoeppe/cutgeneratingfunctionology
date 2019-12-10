@@ -73,7 +73,24 @@ class PiecewiseCrazyFunction(ModuleElement):
             from sage.categories.pushout import pushout
             codomain_parent = pushout(domain_parent, pwl.parent().codomain())
             parent = PiecewiseCrazyFunctionsSpace(domain_parent, codomain_parent)
-        Element.__init__(self, parent)
+        ModuleElement.__init__(self, parent)
+
+    def _repr_(self):
+        return "PiecewiseCrazyFunction({}, crazy_pieces={})".format(self.pwl, self.crazy_pieces)
+
+    def _richcmp_(self, other, op):
+        if not isinstance(other, PiecewiseCrazyFunction):
+            return NotImplemented
+        def is_equal():
+            # FIXME: Need better comparison -- there are many ways to express the same function
+            return self.pwl == other.pwl and self.crazy_pieces == other.crazy_pieces
+        if op == op_EQ:
+            return is_equal()
+        elif op == op_NE:
+            return not is_equal()
+        else:
+            # FIXME: Implement partial order of pointwise comparison
+            return NotImplemented
 
     def find_crazy_piece(self, x, xeps=0):
         x = fractional(x)
@@ -91,16 +108,16 @@ class PiecewiseCrazyFunction(ModuleElement):
     def _add_(self,other):
         # assume that intervals of crazy pieces from self and from other are disjoint.
         # FIXME: This needs to be checked
-        return PiecewiseCrazyFunction(self.pwl + other.pwl, self.crazy_pieces + other.crazy_pieces, parent=self.parent())
+        return self.__class__(self.pwl + other.pwl, self.crazy_pieces + other.crazy_pieces, parent=self.parent())
 
     def _neg_(self):
-        return PiecewiseCrazyFunction(-self.pwl, [-cp  for cp in self.crazy_pieces], parent=self.parent())
+        return self.__class__(-self.pwl, [-cp  for cp in self.crazy_pieces], parent=self.parent())
 
     def _lmul_(self, scalar):
         r"""
         Multiply self by a scalar.
         """
-        return PiecewiseCrazyFunction(self.pwl * scalar, [cp * scalar for cp in self.crazy_pieces], parent=self.parent())
+        return self.__class__(self.pwl * scalar, [cp * scalar for cp in self.crazy_pieces], parent=self.parent())
 
     _rmul_ = _lmul_
 
@@ -163,7 +180,7 @@ class PiecewiseCrazyFunction(ModuleElement):
 
 from .fast_piecewise import PiecewiseFunctionsSpace, PiecewiseLinearFunctionsSpace
 
-class PiecewiseCrazyFunctionsSpace(PiecewiseFunctionsSpace):
+class PiecewiseCrazyFunctionsSpace(UniqueRepresentation, PiecewiseFunctionsSpace):
 
     """
     Space of piecewise crazy functions.
@@ -173,8 +190,10 @@ class PiecewiseCrazyFunctionsSpace(PiecewiseFunctionsSpace):
         sage: from cutgeneratingfunctionology.igp import *
         sage: pushout(PiecewiseCrazyFunctionsSpace(QQ, QQ), PiecewiseLinearFunctionsSpace(AA, AA))  # known bug -- need to implement construction functor!
 
-    """
+        sage: TestSuite(PiecewiseCrazyFunctionsSpace(AA, AA)).run()
+        sage: TestSuite(PiecewiseCrazyFunctionsSpace(AA, AA)).run(verbose=True, catch=False)  # not tested - for interactive use
 
+    """
 
     Element = PiecewiseCrazyFunction
 
@@ -195,14 +214,21 @@ class PiecewiseCrazyFunctionsSpace(PiecewiseFunctionsSpace):
         return False
 
     def _element_constructor_(self, x, *args, **kwds):
-        if isinstance(x, FastPiecewise) and not args and not kwds:
-            return PiecewiseCrazyFunction(x, [], parent=self)
+        element_class = self.element_class
         if isinstance(x, PiecewiseCrazyFunction):
-            return PiecewiseCrazyFunction(x.pwl, x.crazy_pieces, parent=self)
+            if args or kwds:
+                raise TypeError("no extra args allowed")
+            return element_class(x.pwl, x.crazy_pieces, parent=self)
+        if isinstance(x, FastPiecewise):
+            return element_class(x, parent=self, *args, **kwds)
         if x in self.base_ring():
             pwl = PiecewiseLinearFunctionsSpace(self.domain(), self.codomain())(x)
-            return PiecewiseCrazyFunction(pwl, [], parent=self)
-        return PiecewiseCrazyFunction(x, *args, **kwds)
+            return element_class(pwl, [], parent=self)
+        return element_class(x, parent=self, *args, **kwds)
+
+    def _an_element_(self):
+        pwl = PiecewiseLinearFunctionsSpace(self.domain(), self.codomain())._an_element_()
+        return self(pwl, [])
 
 def is_in_ZZ_span(x, generators):
     # assume that all inputs are elements from a same RNF.
