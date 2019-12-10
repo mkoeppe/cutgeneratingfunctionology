@@ -14,7 +14,7 @@ from .intervals import *
 from . import FastLinearFunction
 from cutgeneratingfunctionology.spam.parametric_real_field_element import is_parametric_element
 
-class FastPiecewise (Element):
+class PiecewiseLinearFunction_1d (Element):
     r"""
     Returns a piecewise function from a list of (interval, function)
     pairs.
@@ -59,7 +59,7 @@ class FastPiecewise (Element):
 
     cache = True
 
-    def __init__(self, list_of_pairs, var=None, periodic_extension=True, merge=True, cache=None):
+    def __init__(self, list_of_pairs, var=None, periodic_extension=True, merge=True, cache=None, parent=None):
         r"""
         ``list_of_pairs`` is a list of pairs (I, fcn), where
         fcn is a Sage function (such as a polynomial over RR, or functions
@@ -189,8 +189,9 @@ class FastPiecewise (Element):
                     from . import ParametricRealField
                     if isinstance(x.parent(), ParametricRealField):
                         self._domain_ring = x.parent()
-        piecewise_parent = PiecewiseLinearFunctionsSpace(self._domain_ring, self._domain_ring)
-        Element.__init__(self, piecewise_parent)    # FIXME
+        if parent is None:
+            parent = PiecewiseLinearFunctionsSpace(self._domain_ring, self._domain_ring)
+        Element.__init__(self, parent)
         is_continuous = True
         if len(end_points) == 1 and end_points[0] is None:
             is_continuous = False
@@ -1147,6 +1148,9 @@ class FastPiecewise (Element):
     ## @staticmethod
     ## def from_interval_lengths_and_slopes(cls, interval_lengths, slopes, field=None, merge=True):
 
+
+FastPiecewise = PiecewiseLinearFunction_1d
+
 from sage.structure.parent import Parent
 from sage.categories.homset import Homset
 from sage.structure.unique_representation import UniqueRepresentation
@@ -1202,15 +1206,20 @@ class PiecewiseLinearFunctionsSpace(Homset, UniqueRepresentation):
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.igp import *
-            sage: PiecewiseLinearFunctionsSpace(QQ, QQ)(0).list()
+            sage: z = PiecewiseLinearFunctionsSpace(QQ, QQ)(0); z.list()
             [[(0, 1), <FastLinearFunction 0>]]
-
+            sage: PiecewiseLinearFunctionsSpace(AA, AA)(z).parent()
+            Vector space of piecewise linear partial functions from Algebraic Real Field to Algebraic Real Field over Algebraic Real Field
         """
+        if isinstance(x, FastPiecewise):
+            return FastPiecewise(x.list(),
+                                 periodic_extension=x._periodic_extension,
+                                 merge=False, parent=self)
         if x in self.codomain():
             return self.element_class([((QQ(0), QQ(1)), FastLinearFunction(self.codomain().zero(),
                                                                            self.codomain()(x)))],
-                                      periodic_extension=True)
-        return self.element_class(x, *args, **kwds)
+                                      periodic_extension=True, parent=self)
+        return self.element_class(x, parent=self, *args, **kwds)
 
     def _repr_(self):
         return "Vector space of piecewise linear partial functions from {} to {} over {}".format(
