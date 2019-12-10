@@ -9,7 +9,6 @@ SAGEFILES =									\
 	cutgeneratingfunctionology/igp/extreme_functions_in_literature.sage	\
 	cutgeneratingfunctionology/igp/extreme_functions_sporadic.sage		\
 	cutgeneratingfunctionology/igp/real_number_field.sage			\
-	cutgeneratingfunctionology/igp/fast_linear.sage				\
 	cutgeneratingfunctionology/igp/functions.sage				\
 	cutgeneratingfunctionology/igp/parametric.sage				\
 	cutgeneratingfunctionology/igp/parametric_cpl.sage			\
@@ -32,8 +31,10 @@ SAGEFILES =									\
 # Separate modules under igp
 SAGEFILES +=										\
 	cutgeneratingfunctionology/igp/class_call.py					\
+	cutgeneratingfunctionology/igp/fast_linear.py					\
 	cutgeneratingfunctionology/igp/fast_piecewise.py				\
 	cutgeneratingfunctionology/igp/intervals.py					\
+	cutgeneratingfunctionology/igp/move_semigroup.py				\
 	cutgeneratingfunctionology/igp/parametric_family.py				\
 	cutgeneratingfunctionology/igp/procedures/injective_2_slope_fill_in_proof.py
 

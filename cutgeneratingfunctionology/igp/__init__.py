@@ -47,7 +47,6 @@ igp_load(igp_dir + "logging.sage")
 from .intervals import *
 
 igp_load(igp_dir + "real_number_field.sage")
-igp_load(igp_dir + "fast_linear.sage")
 igp_load(igp_dir + "functions.sage")
 igp_load(igp_dir + "continuous_case.sage")
 igp_load(igp_dir + "discontinuous_case.sage")

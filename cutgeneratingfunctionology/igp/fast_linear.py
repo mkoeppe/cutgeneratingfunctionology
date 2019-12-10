@@ -1,3 +1,9 @@
+"""
+Linear functions of 1 variable
+"""
+from __future__ import division, print_function, absolute_import
+
+
 ## FIXME: Its __name__ is "Fast..." but nobody so far has timed
 ## its performance against the other options. --Matthias
 class FastLinearFunction :
@@ -42,12 +48,14 @@ class FastLinearFunction :
         return not (self == other)
 
     def __repr__(self):
+        from cutgeneratingfunctionology.spam.parametric_real_field_element import is_parametric_element
         # Following the Sage convention of returning a pretty-printed
         # expression in __repr__ (rather than __str__).
         if not(is_parametric_element(self._slope) or is_parametric_element(self._intercept)):
+            from sage.misc.misc import repr_lincomb
             # repr_lincomb tests for 0, don't do this for parametric elements.
             try:
-                return '<FastLinearFunction ' + sage.misc.misc.repr_lincomb([('x', self._slope), (1, self._intercept)], strip_one = True) + '>'
+                return '<FastLinearFunction ' + repr_lincomb([('x', self._slope), (1, self._intercept)], strip_one = True) + '>'
             except TypeError:
                 pass
         return '<FastLinearFunction (%s)*x + (%s)>' % (self._slope, self._intercept)
