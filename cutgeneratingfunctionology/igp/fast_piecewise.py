@@ -176,7 +176,7 @@ class PiecewiseLinearFunction_1d (ModuleElement):
             # We do not wish to keep a call cache when the breakpoints are
             # parametric, because that may create `mysterious' proof cells.
             if cache is None:
-                cache = FastPiecewise.cache
+                cache = self.__class__.cache
             if cache:
                 self._call_cache = dict()
             if end_points:
@@ -800,17 +800,17 @@ class PiecewiseLinearFunction_1d (ModuleElement):
             [[<Int(0, 1)>, <FastLinearFunction 3>], [(1, 2), <FastLinearFunction 7>]]
         """
         intervals = intersection_of_coho_intervals([self.intervals(), other.intervals()])
-        return FastPiecewise([ (interval, self.which_function_on_interval(interval) + other.which_function_on_interval(interval))
+        return self.__class__([ (interval, self.which_function_on_interval(interval) + other.which_function_on_interval(interval))
                                for interval in intervals ], merge=True, parent=self.parent())
 
     def _neg_(self):
-        return FastPiecewise([[interval, -f] for interval,f in self.list()], merge=True, parent=self.parent())
+        return self.__class__([[interval, -f] for interval,f in self.list()], merge=True, parent=self.parent())
 
     def _rmul_(self, scalar):
         r"""
         Multiply self by a scalar (element of base).
         """
-        return FastPiecewise([[interval, scalar * f] for interval,f in self.list()], parent=self.parent())
+        return self.__class__([[interval, scalar * f] for interval,f in self.list()], parent=self.parent())
 
     _lmul_ = _rmul_
 
@@ -819,9 +819,9 @@ class PiecewiseLinearFunction_1d (ModuleElement):
         Multiply self by a matrix from left or right.
         """
         if self_on_left:
-            return FastPiecewise([[interval, f * actor] for interval,f in self.list()])
+            return self.__class__([[interval, f * actor] for interval,f in self.list()])
         else:
-            return FastPiecewise([[interval, actor * f] for interval,f in self.list()])
+            return self.__class__([[interval, actor * f] for interval,f in self.list()])
 
     def __truediv__(self, other):
         r"""
@@ -1226,15 +1226,16 @@ class PiecewiseLinearFunctionsSpace(UniqueRepresentation, PiecewiseFunctionsSpac
             sage: PiecewiseLinearFunctionsSpace(AA, AA)(z).parent()
             Vector space of piecewise linear partial functions from Algebraic Real Field to Algebraic Real Field over Algebraic Real Field
         """
+        element_class = self.element_class
         if isinstance(x, FastPiecewise):
-            return FastPiecewise(x.list(),
+            return element_class(x.list(),
                                  periodic_extension=x._periodic_extension,
                                  merge=False, parent=self)
         if x in self.codomain():
-            return self.element_class([((QQ(0), QQ(1)), FastLinearFunction(self.codomain().zero(),
-                                                                           self.codomain()(x)))],
-                                      periodic_extension=True, parent=self)
-        return self.element_class(x, parent=self, *args, **kwds)
+            return element_class([((QQ(0), QQ(1)), FastLinearFunction(self.codomain().zero(),
+                                                                      self.codomain()(x)))],
+                                 periodic_extension=True, parent=self)
+        return element_class(x, parent=self, *args, **kwds)
 
     def _repr_(self):
         return "Vector space of piecewise linear partial functions from {} to {} over {}".format(
