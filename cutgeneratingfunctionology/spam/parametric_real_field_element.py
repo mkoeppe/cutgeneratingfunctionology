@@ -133,20 +133,20 @@ class ParametricRealFieldElement(FieldElement):
             elif true_op == op_GT:
                 left.parent().assume_comparison(left - right, operator.gt)
             elif true_op == op_EQ:
-                left.parent().assume_comparison(left - right, operator.eq)
+                left.parent().assume_comparison(right - left, operator.eq)
             elif true_op == op_LE:
                 left.parent().assume_comparison(left - right, operator.le)
             elif true_op == op_GE:
                 left.parent().assume_comparison(left - right, operator.ge)
             elif true_op == op_NE:
-                left.parent().assume_comparison(left - right, operator.ne)
+                left.parent().assume_comparison(right - left, operator.ne)
             else:
                 raise ValueError("{} is not a valid richcmp operator".format(op))
             return result
         else:
             # Traditional cmp semantics.
             if (left.val() == right.val()):
-                left.parent().assume_comparison(left, operator.eq, right)
+                left.parent().assume_comparison(right, operator.eq, left)
             elif (left.val() < right.val()):
                 left.parent().assume_comparison(left, operator.lt, right)
             else:
