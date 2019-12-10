@@ -1830,7 +1830,9 @@ def find_largest_epsilon(fn, perturb):
 
 show_moves_with_discontinuity_markers = True
 
-class FunctionalDirectedMove (FastPiecewise):
+from .fast_piecewise import PiecewiseLinearFunction_1d
+
+class FunctionalDirectedMove (PiecewiseLinearFunction_1d):
     # FIXME: At the moment, does not reduce modulo 1, in contrast to old code!
     r"""
     Return a pieceweise function to represent a functional directed move
