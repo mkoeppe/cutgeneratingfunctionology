@@ -191,7 +191,7 @@ class PiecewiseLinearFunction_1d (ModuleElement):
                         self._domain_ring = x.parent()
         if parent is None:
             parent = PiecewiseLinearFunctionsSpace(self._domain_ring, self._domain_ring)
-        Element.__init__(self, parent)
+        ModuleElement.__init__(self, parent)
         is_continuous = True
         if len(end_points) == 1 and end_points[0] is None:
             is_continuous = False
@@ -258,6 +258,7 @@ class PiecewiseLinearFunction_1d (ModuleElement):
         elif op == op_NE:
             return not is_equal()
         else:
+            # FIXME: Implement partial order of pointwise comparison
             return NotImplemented
 
     def is_continuous(self):
@@ -1188,7 +1189,7 @@ class PiecewiseFunctionsSpace(Homset):
         self._Homset__category = domain_cat
         Parent.__init__(self, base=base_ring, category=cat)
 
-class PiecewiseLinearFunctionsSpace(PiecewiseFunctionsSpace, UniqueRepresentation):
+class PiecewiseLinearFunctionsSpace(UniqueRepresentation, PiecewiseFunctionsSpace):
 
     """
     Vector space of piecewise linear partial functions.
@@ -1250,14 +1251,6 @@ class PiecewiseLinearFunctionsSpace(PiecewiseFunctionsSpace, UniqueRepresentatio
             True
         """
         return isinstance(S, PiecewiseLinearFunctionsSpace) and self.codomain().has_coerce_map_from(S.codomain())
-
-    def __reduce__(self):
-        """
-        Implement pickling.
-
-        Overrides method inherited from Homset.
-        """
-        return PiecewiseLinearFunctionsSpace, (self._domain, self._codomain)
 
     def _an_element_(self):
         return self([((QQ(0), QQ(1)), FastLinearFunction(QQ(0), QQ(0))),
