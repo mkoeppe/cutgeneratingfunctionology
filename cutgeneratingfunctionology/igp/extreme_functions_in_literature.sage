@@ -171,7 +171,9 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
     h._claimed_parameter_attribute = claimed_parameter_attribute
     return h
 
-class dg_2_step_mir(FastPiecewise, ParametricFamilyElement):
+from .fast_piecewise import PiecewiseLinearFunction_1d
+
+class dg_2_step_mir(PiecewiseLinearFunction_1d, ParametricFamilyElement):
 
     r"""
     .. PLOT::
@@ -245,7 +247,7 @@ def interval_length_n_step_mir(n, m, a, b):
         result[-1] = a[m - 1] - b[m - 1]
         return result
 
-class kf_n_step_mir(FastPiecewise, ParametricFamilyElement):
+class kf_n_step_mir(PiecewiseLinearFunction_1d, ParametricFamilyElement):
 
     r"""
     .. PLOT::
@@ -498,7 +500,7 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
     h._claimed_parameter_attribute = claimed_parameter_attribute
     return h
 
-class dg_2_step_mir_limit(FastPiecewise, ParametricFamilyElement):
+class dg_2_step_mir_limit(PiecewiseLinearFunction_1d, ParametricFamilyElement):
 
     r"""
     .. PLOT::
@@ -1441,7 +1443,7 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
     h._claimed_parameter_attribute = claimed_parameter_attribute
     return h
 
-class ll_strong_fractional(FastPiecewise, ParametricFamilyElement):
+class ll_strong_fractional(PiecewiseLinearFunction_1d, ParametricFamilyElement):
 
     r"""
     .. PLOT::
