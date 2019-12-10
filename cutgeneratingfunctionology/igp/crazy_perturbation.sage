@@ -221,6 +221,8 @@ class PiecewiseCrazyFunctionsSpace(UniqueRepresentation, PiecewiseFunctionsSpace
                 raise TypeError("no extra args allowed")
             return element_class(x.pwl, x.crazy_pieces, parent=self)
         if isinstance(x, FastPiecewise):
+            if not args and not kwds:
+                args = [[]]
             return element_class(x, parent=self, *args, **kwds)
         if x in self.base_ring():
             pwl = PiecewiseLinearFunctionsSpace(self.domain(), self.codomain())(x)
