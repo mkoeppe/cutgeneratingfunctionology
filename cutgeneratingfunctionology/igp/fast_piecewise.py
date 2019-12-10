@@ -22,6 +22,13 @@ class PiecewiseLinearFunction_1d (ModuleElement):
     Uses binary search to allow for faster function evaluations
     than the standard class ``PiecewisePolynomial``.
 
+    The parent, an instance of ``PiecewiseLinearFunctionsSpace``, has
+    the concept of a ``domain``, a ``codomain``, and a ``base_ring``.
+
+    For this element class, ``domain`` must be an exact real field.
+    All breakpoints lie in ``domain``, but the function can be called
+    with any element of a real field that has a common pushout.
+
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
@@ -114,9 +121,32 @@ class PiecewiseLinearFunction_1d (ModuleElement):
                 merged_list_of_pairs.append((merged_interval, common_f))
             list_of_pairs = merged_list_of_pairs
 
-        #PiecewisePolynomial.__init__(self, list_of_pairs, var)
         self._length = len(list_of_pairs)
-        intervals = self._intervals = [x[0] for x in list_of_pairs]
+        if parent is None:
+            from sage.structure.element import get_coercion_model
+            from sage.rings.rational_field import QQ
+            cm = get_coercion_model()
+            enclosing_domain = cm.common_parent(QQ(1), *(a for interval, func in list_of_pairs
+                                                         for a in (interval[0], interval[1])))
+            from sage.categories.pushout import pushout
+            def codomain_from_func(func):
+                if isinstance(func, FastLinearFunction):
+                    return cm.common_parent(func._slope, func._intercept)
+                return QQ
+            codomains = [codomain_from_func(func) for interval, func in list_of_pairs]
+            if codomains:
+                codomain = pushout(enclosing_domain, cm.common_parent(*codomains))
+            else:
+                codomain = enclosing_domain
+            parent = PiecewiseLinearFunctionsSpace(enclosing_domain, codomain)
+        else:
+            enclosing_domain = parent.domain()
+            codomain = parent.codomain()
+
+        ModuleElement.__init__(self, parent)
+
+        intervals = self._intervals = [convert_interval(x[0], enclosing_domain)
+                                       for x in list_of_pairs]
         functions = self._functions = [x[1] for x in list_of_pairs]
         self._list = [[self._intervals[i], self._functions[i]] for i in range(self._length)]
 
@@ -179,19 +209,6 @@ class PiecewiseLinearFunction_1d (ModuleElement):
                 cache = self.__class__.cache
             if cache:
                 self._call_cache = dict()
-            if end_points:
-                self._domain_ring = end_points[0].parent().fraction_field()
-            else:
-                self._domain_ring = QQ
-        else:
-            for x in end_points:
-                if is_parametric_element(x):
-                    from . import ParametricRealField
-                    if isinstance(x.parent(), ParametricRealField):
-                        self._domain_ring = x.parent()
-        if parent is None:
-            parent = PiecewiseLinearFunctionsSpace(self._domain_ring, self._domain_ring)
-        ModuleElement.__init__(self, parent)
         is_continuous = True
         if len(end_points) == 1 and end_points[0] is None:
             is_continuous = False
@@ -604,9 +621,9 @@ class PiecewiseLinearFunction_1d (ModuleElement):
             result = self._call_cache.get(x0)
             if result is not None:
                 return result
-        elif isinstance(self._domain_ring, ParametricRealField):
+        elif isinstance(self.parent().domain(), ParametricRealField):
             # Big Cells!
-            with self._domain_ring.off_the_record():
+            with self.parent().domain().off_the_record():
                 interval, function = self.which_pair(x0)
             if not is_pt_in_interval(interval, x0):
                 raise AssertionError
@@ -800,17 +817,17 @@ class PiecewiseLinearFunction_1d (ModuleElement):
             [[<Int(0, 1)>, <FastLinearFunction 3>], [(1, 2), <FastLinearFunction 7>]]
         """
         intervals = intersection_of_coho_intervals([self.intervals(), other.intervals()])
-        return self.__class__([ (interval, self.which_function_on_interval(interval) + other.which_function_on_interval(interval))
-                               for interval in intervals ], merge=True, parent=self.parent())
+        return self.parent()([ (interval, self.which_function_on_interval(interval) + other.which_function_on_interval(interval))
+                               for interval in intervals ], merge=True)
 
     def _neg_(self):
-        return self.__class__([[interval, -f] for interval,f in self.list()], merge=True, parent=self.parent())
+        return self.parent()([[interval, -f] for interval,f in self.list()], merge=True)
 
     def _rmul_(self, scalar):
         r"""
         Multiply self by a scalar (element of base).
         """
-        return self.__class__([[interval, scalar * f] for interval,f in self.list()], parent=self.parent())
+        return self.parent()([[interval, scalar * f] for interval,f in self.list()])
 
     _lmul_ = _rmul_
 
@@ -819,9 +836,9 @@ class PiecewiseLinearFunction_1d (ModuleElement):
         Multiply self by a matrix from left or right.
         """
         if self_on_left:
-            return self.__class__([[interval, f * actor] for interval,f in self.list()])
+            return FastPiecewise([[interval, f * actor] for interval,f in self.list()])
         else:
-            return self.__class__([[interval, actor * f] for interval,f in self.list()])
+            return FastPiecewise([[interval, actor * f] for interval,f in self.list()])
 
     def __truediv__(self, other):
         r"""
@@ -1250,6 +1267,13 @@ class PiecewiseLinearFunctionsSpace(UniqueRepresentation, PiecewiseFunctionsSpac
             sage: from cutgeneratingfunctionology.igp import *
             sage: PiecewiseLinearFunctionsSpace(AA, AA).has_coerce_map_from(PiecewiseLinearFunctionsSpace(QQ, QQ))
             True
+
+        TESTS::
+
+            sage: alpha, = nice_field_values([sqrt(2)])
+            sage: (alpha * gmic() + gmic()).parent()
+            Vector space of piecewise linear partial functions from Rational Field to Real Number Field in `a` as the root of the defining polynomial y^2 - 2 near 1.414213562373095? over Real Number Field in `a` as the root of the defining polynomial y^2 - 2 near 1.414213562373095?
+
         """
         return isinstance(S, PiecewiseLinearFunctionsSpace) and self.codomain().has_coerce_map_from(S.codomain())
 

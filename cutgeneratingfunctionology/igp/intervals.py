@@ -548,3 +548,9 @@ def proper_interval_list_from_scan(scan):
             (on_x, on_epsilon) = (None, None)
     assert indicator == 0
 
+def convert_interval(interval, ring):
+    a = ring(interval[0])
+    b = ring(interval[1])
+    if len(interval) == 2:  # old fashioned closed interval
+        return (a, b)
+    return closed_or_open_or_halfopen_interval(a, b, interval.left_closed, interval.right_closed)
