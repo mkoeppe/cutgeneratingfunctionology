@@ -5,7 +5,7 @@ from __future__ import division, print_function, absolute_import
 
 from bisect import bisect_left
 
-from sage.structure.element import Element
+from sage.structure.element import Element, ModuleElement
 from sage.structure.richcmp import richcmp, op_NE, op_EQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -14,7 +14,7 @@ from .intervals import *
 from . import FastLinearFunction
 from cutgeneratingfunctionology.spam.parametric_real_field_element import is_parametric_element
 
-class PiecewiseLinearFunction_1d (Element):
+class PiecewiseLinearFunction_1d (ModuleElement):
     r"""
     Returns a piecewise function from a list of (interval, function)
     pairs.
@@ -798,21 +798,29 @@ class PiecewiseLinearFunction_1d (Element):
             sage: (g+j).list()
             [[<Int(0, 1)>, <FastLinearFunction 3>], [(1, 2), <FastLinearFunction 7>]]
         """
-        from . import PiecewiseCrazyFunction
-        if isinstance(other, PiecewiseCrazyFunction):   # FIXME: This should really be done by the coercion system
-            return other.__add__(self)
         intervals = intersection_of_coho_intervals([self.intervals(), other.intervals()])
         return FastPiecewise([ (interval, self.which_function_on_interval(interval) + other.which_function_on_interval(interval))
-                               for interval in intervals ], merge=True)
+                               for interval in intervals ], merge=True, parent=self.parent())
 
     def _neg_(self):
-        return FastPiecewise([[interval, -f] for interval,f in self.list()], merge=True)
+        return FastPiecewise([[interval, -f] for interval,f in self.list()], merge=True, parent=self.parent())
+
+    def _rmul_(self, scalar):
+        r"""
+        Multiply self by a scalar (element of base).
+        """
+        return FastPiecewise([[interval, scalar * f] for interval,f in self.list()], parent=self.parent())
+
+    _lmul_ = _rmul_
 
     def _acted_upon_(self, actor, self_on_left):
         r"""
-        Multiply self by a scalar.
+        Multiply self by a matrix from left or right.
         """
-        return FastPiecewise([[interval, actor * f] for interval,f in self.list()])
+        if self_on_left:
+            return FastPiecewise([[interval, f * actor] for interval,f in self.list()])
+        else:
+            return FastPiecewise([[interval, actor * f] for interval,f in self.list()])
 
     def __truediv__(self, other):
         r"""
@@ -1155,7 +1163,32 @@ from sage.structure.parent import Parent
 from sage.categories.homset import Homset
 from sage.structure.unique_representation import UniqueRepresentation
 
-class PiecewiseLinearFunctionsSpace(Homset, UniqueRepresentation):
+class PiecewiseFunctionsSpace(Homset):
+
+    """
+    Common base class of ``PiecewiseLinearFunctionsSpace`` and ``PiecewiseCrazyFunctionsSpace``.
+    """
+
+    def __init__(self, domain, codomain):
+        from sage.categories.sets_cat import SetsWithPartialMaps
+        from sage.categories.modules import Modules
+        domain_cat = SetsWithPartialMaps()
+        codomain_cat = codomain.category()
+        if hasattr(codomain_cat, "WithBasis"):   # Adapted from Homset.
+            # The above is a lame but fast check that category is a
+            # subcategory of Modules(...).
+            base_ring = codomain.base_ring()
+        else:
+            base_ring = codomain
+        cat = domain_cat.Homsets() & Modules(base_ring)
+        # Skip the Homset constructor because it uses the wrong category.
+        # Following is copied from Homset.__init__
+        self._domain = domain
+        self._codomain = codomain
+        self._Homset__category = domain_cat
+        Parent.__init__(self, base=base_ring, category=cat)
+
+class PiecewiseLinearFunctionsSpace(PiecewiseFunctionsSpace, UniqueRepresentation):
 
     """
     Vector space of piecewise linear partial functions.
@@ -1179,25 +1212,6 @@ class PiecewiseLinearFunctionsSpace(Homset, UniqueRepresentation):
 
     """
     ## FIXME: We skip _test_zero because we need to improve equality testing.
-
-    def __init__(self, domain, codomain):
-        from sage.categories.sets_cat import SetsWithPartialMaps
-        from sage.categories.modules import Modules
-        domain_cat = SetsWithPartialMaps()
-        codomain_cat = codomain.category()
-        if hasattr(codomain_cat, "WithBasis"):   # Adapted from Homset.
-            # The above is a lame but fast check that category is a
-            # subcategory of Modules(...).
-            base_ring = codomain.base_ring()
-        else:
-            base_ring = codomain
-        cat = domain_cat.Homsets() & Modules(base_ring)
-        # Skip the Homset constructor because it uses the wrong category.
-        # Following is copied from Homset.__init__
-        self._domain = domain
-        self._codomain = codomain
-        self._Homset__category = domain_cat
-        Parent.__init__(self, base=base_ring, category=cat)
 
     def _element_constructor_(self, x, *args, **kwds):
         """
@@ -1248,3 +1262,5 @@ class PiecewiseLinearFunctionsSpace(Homset, UniqueRepresentation):
     def _an_element_(self):
         return self([((QQ(0), QQ(1)), FastLinearFunction(QQ(0), QQ(0))),
                      ((QQ(1), QQ(2)), FastLinearFunction(QQ(1), QQ(-1)))])
+
+    # FIXME: Implement _get_action_ to get action of matrix on FastPiecewise right
