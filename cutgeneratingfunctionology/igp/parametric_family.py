@@ -16,7 +16,7 @@ from copy import copy
 from collections import OrderedDict
 from cutgeneratingfunctionology.spam.basic_semialgebraic import BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron
 
-class ParametricFamilyElement(SageObject):
+class ParametricFamilyElement(Element):
 
     r"""
     Class of an element of a parametric family of functions.

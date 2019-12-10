@@ -1206,6 +1206,8 @@ class PiecewiseFunctionsSpace(Homset):
         self._Homset__category = domain_cat
         Parent.__init__(self, base=base_ring, category=cat)
 
+    __contains__ = Parent.__contains__   # override Homset.__contains__, which is too strict
+
 class PiecewiseLinearFunctionsSpace(UniqueRepresentation, PiecewiseFunctionsSpace):
 
     """
@@ -1227,6 +1229,20 @@ class PiecewiseLinearFunctionsSpace(UniqueRepresentation, PiecewiseFunctionsSpac
     TESTS::
 
         sage: TestSuite(PWL).run(skip=['_test_zero'])
+
+    Test that 'in' works::
+
+        sage: gmic() in PiecewiseLinearFunctionsSpace(QQ, AA)
+        True
+        sage: hsqrt2 = gmic(sqrt(2)/2)
+        sage: hsqrt2 in PiecewiseLinearFunctionsSpace(QQ, QQ)
+        False
+        sage: C = hsqrt2.parent().codomain(); C
+        Real Number Field in `a` as the root of the defining polynomial y^2 - 2 near 1.414213562373095?
+        sage: hsqrt2 in PiecewiseLinearFunctionsSpace(QQ, C)
+        False
+        sage: hsqrt2 in PiecewiseLinearFunctionsSpace(C, C)
+        True
 
     """
     ## FIXME: We skip _test_zero because we need to improve equality testing.
