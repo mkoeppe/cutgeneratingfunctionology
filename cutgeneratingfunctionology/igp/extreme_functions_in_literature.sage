@@ -1,6 +1,7 @@
 from six.moves import range
 
-from .parametric_family import ParametricFamilyElement
+from .fast_piecewise import PiecewiseLinearFunction_1d
+from .parametric_family import ParametricFamily
 
 def gmic(f=4/5, field=None, conditioncheck=True):
     r"""
@@ -171,9 +172,7 @@ def gj_2_slope_repeat(f=3/5, s_positive=4, s_negative=-5, m=4, n=3, field=None, 
     h._claimed_parameter_attribute = claimed_parameter_attribute
     return h
 
-from .fast_piecewise import PiecewiseLinearFunction_1d
-
-class dg_2_step_mir(PiecewiseLinearFunction_1d, ParametricFamilyElement):
+class ParametricFamily_dg_2_step_mir(ParametricFamily):
 
     r"""
     .. PLOT::
@@ -214,8 +213,7 @@ class dg_2_step_mir(PiecewiseLinearFunction_1d, ParametricFamilyElement):
         [60]: R.E. Gomory and E.L. Johnson, Some continuous functions related to corner polyhedra, part II, Mathematical Programming 3 (1972) 359-389.
     """
 
-    @classmethod
-    def claimed_parameter_attribute(cls, f=4/5, alpha=3/10, **kwargs):
+    def _claimed_parameter_attribute(self, f, alpha, **kwargs):
         if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
             return 'not_constructible'
         if not bool(ceil(f / alpha) <= 1 / alpha):
@@ -223,7 +221,7 @@ class dg_2_step_mir(PiecewiseLinearFunction_1d, ParametricFamilyElement):
         else:
             return 'extreme'
 
-    def __init__(self, f=4/5, alpha=3/10, field=None, conditioncheck=True):
+    def _construct_function(self, f=4/5, alpha=3/10, field=None, conditioncheck=True):
         if not (bool(0 < alpha < f < 1) & bool(f / alpha < ceil(f / alpha))):
             raise ValueError("Bad parameters. Unable to construct the function.")
         rho = f - alpha * floor(f / alpha)
@@ -233,10 +231,9 @@ class dg_2_step_mir(PiecewiseLinearFunction_1d, ParametricFamilyElement):
         interval_lengths = [rho, alpha - rho] * tau
         interval_lengths[-1] = 1 - f
         slopes = [s_positive, s_negative] * tau
-        # FIXME: Update the FastPiecewise constructor so this can be done without copying!
-        h = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
-        super(dg_2_step_mir, self).__init__(h.list(), periodic_extension=h._periodic_extension, merge=False, cache=hasattr(h, '_call_cache'))
+        return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
 
+dg_2_step_mir = ParametricFamily_dg_2_step_mir()
 
 def interval_length_n_step_mir(n, m, a, b):
     if m == n:
@@ -247,7 +244,7 @@ def interval_length_n_step_mir(n, m, a, b):
         result[-1] = a[m - 1] - b[m - 1]
         return result
 
-class kf_n_step_mir(PiecewiseLinearFunction_1d, ParametricFamilyElement):
+class ParametricFamily_kf_n_step_mir (ParametricFamily):
 
     r"""
     .. PLOT::
@@ -310,8 +307,7 @@ class kf_n_step_mir(PiecewiseLinearFunction_1d, ParametricFamilyElement):
                 Facets for infinite group polyhedra, Mathematical Programming 120 (2009) 313-346.
     """
 
-    @classmethod
-    def claimed_parameter_attribute(cls, f, a, **kwargs):
+    def _claimed_parameter_attribute(self, f, a, **kwargs):
         if (not a) | (not bool(0 < f < 1 == a[0])):
             return 'not_constructible'
         b = []
@@ -326,7 +322,7 @@ class kf_n_step_mir(PiecewiseLinearFunction_1d, ParametricFamilyElement):
                 return 'constructible'
         return 'extreme'
 
-    def __init__(self, f=4/5, a=[1, 3/10, 8/100], field=None, conditioncheck=True):
+    def _construct_function(self, f=4/5, a=(1, 3/10, 8/100), field=None, conditioncheck=True):
         b = []
         b.append(f)
         n = len(a)
@@ -339,8 +335,10 @@ class kf_n_step_mir(PiecewiseLinearFunction_1d, ParametricFamilyElement):
         s_negative = a[0] /(b[0] - a[0])
         s_positive = - s_negative * interval_length_negative / interval_length_positive
         slopes = [s_positive, s_negative] * (nb_interval // 2)
-        h = piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
-        super(kf_n_step_mir, self).__init__(h.list(), periodic_extension=h._periodic_extension, merge=False, cache=hasattr(h, '_call_cache'))
+        return piecewise_function_from_interval_lengths_and_slopes(interval_lengths, slopes, field=field)
+
+kf_n_step_mir = ParametricFamily_kf_n_step_mir()
+
 
 def gj_forward_3_slope(f=4/5, lambda_1=4/9, lambda_2=2/3, field=None, conditioncheck=True):
     # FIXME: What is the relation between the parameters shown in the figure (taken from param graphics) and the construction parameters?
@@ -500,7 +498,7 @@ def drlm_backward_3_slope(f=1/12, bkpt=2/12, field=None, conditioncheck=True):
     h._claimed_parameter_attribute = claimed_parameter_attribute
     return h
 
-class dg_2_step_mir_limit(PiecewiseLinearFunction_1d, ParametricFamilyElement):
+class ParametricFamily_dg_2_step_mir_limit(ParametricFamily):
 
     r"""
     .. PLOT::
@@ -548,8 +546,7 @@ class dg_2_step_mir_limit(PiecewiseLinearFunction_1d, ParametricFamilyElement):
                 (D. Bienstock and G. Nemhauser, eds.), Springer-Verlag, 2004, pp. 33-45.
     """
 
-    @classmethod
-    def claimed_parameter_attribute(cls, f, d, **kwargs):
+    def _claimed_parameter_attribute(self, f, d, **kwargs):
         if not (bool(0 < f < 1) & (d >= 1)):
             return 'not_constructible'
         if not bool(d >= ceil(1 / (1 - f)) - 1):
@@ -557,7 +554,7 @@ class dg_2_step_mir_limit(PiecewiseLinearFunction_1d, ParametricFamilyElement):
         else:
             return 'extreme'
 
-    def __init__(self, f=3/5, d=3, field=None, **kwds):
+    def _construct_function(self, f=3/5, d=3, field=None, **kwds):
         if not (bool(0 < f < 1) & (d >= 1)):
             raise ValueError("Bad parameters. Unable to construct the function.")
         f = nice_field_values([f], field)[0]
@@ -570,7 +567,9 @@ class dg_2_step_mir_limit(PiecewiseLinearFunction_1d, ParametricFamilyElement):
                      [[singleton_interval(left_x), FastLinearFunction(field(0), left_x / f)], \
                       [open_interval(left_x, right_x), FastLinearFunction(1 / (f - 1), (k + 1)/(d + 1)/(1 - f))]]
         pieces.append([closed_interval(f, field(1)), FastLinearFunction(1 / (f - 1), 1 /(1 - f))])
-        super(dg_2_step_mir_limit, self).__init__(pieces)
+        return PiecewiseLinearFunction_1d(pieces)
+
+dg_2_step_mir_limit = ParametricFamily_dg_2_step_mir_limit()
 
 def drlm_2_slope_limit(f=3/5, nb_pieces_left=3, nb_pieces_right=4, field=None, conditioncheck=True):
     r"""
@@ -1443,7 +1442,7 @@ def rlm_dpl1_extreme_3a(f=1/4, field=None, conditioncheck=True):
     h._claimed_parameter_attribute = claimed_parameter_attribute
     return h
 
-class ll_strong_fractional(PiecewiseLinearFunction_1d, ParametricFamilyElement):
+class ParametricFamily_ll_strong_fractional(ParametricFamily):
 
     r"""
     .. PLOT::
@@ -1513,8 +1512,7 @@ class ll_strong_fractional(PiecewiseLinearFunction_1d, ParametricFamilyElement):
         False
     """
 
-    @classmethod
-    def claimed_parameter_attribute(cls, f, **kwargs):
+    def _claimed_parameter_attribute(self, f, **kwargs):
         if not bool(0 < f < 1):
             return 'not_constructible'
         if not bool(1/2 <= f < 1):
@@ -1522,7 +1520,7 @@ class ll_strong_fractional(PiecewiseLinearFunction_1d, ParametricFamilyElement):
         else:
             return 'extreme'
 
-    def __init__(self, f=2/3, field=None, conditioncheck=True):
+    def _construct_function(self, f=2/3, field=None, conditioncheck=True):
         if not bool(0 < f < 1):
             raise ValueError("Bad parameters. Unable to construct the function.")
         f = nice_field_values([f], field)[0]
@@ -1534,7 +1532,9 @@ class ll_strong_fractional(PiecewiseLinearFunction_1d, ParametricFamilyElement):
         p = k - 1
         pieces.append([open_interval(f + (1 - f)* p / k, f + (1 - f)*(p + 1)/k), FastLinearFunction(1/f, -(p + 1)/f/(k + 1))])
         pieces.append([singleton_interval(1), FastLinearFunction(0, 0)])
-        super(ll_strong_fractional, self).__init__(pieces)
+        return PiecewiseLinearFunction_1d(pieces)
+
+ll_strong_fractional = ParametricFamily_ll_strong_fractional()
 
 def bcdsp_arbitrary_slope(f=1/2, k=4, field=None, conditioncheck=True):
     r"""

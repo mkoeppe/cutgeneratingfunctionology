@@ -4,7 +4,7 @@ from .parametric_family import ParametricFamily_base
 
 # FIXME: theta defaulting and eq should be done by taking sections of an enclosing family
 
-class cpl_n_group_function(ParametricFamily_base):
+class ParametricFamily_cpl_n_group_function(ParametricFamily_base):
     r"""
     A parametric family of CPL functions.
 
@@ -13,7 +13,7 @@ class cpl_n_group_function(ParametricFamily_base):
         sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: cpl3 = cpl_n_group_function(3); cpl3
-        cpl_n_group_function(3, False, True, None)
+        ParametricFamily_cpl_n_group_function(3, cpleq=False, merge=True, theta=None)
         sage: cpl3 is cpl_n_group_function(3, False)
         True
         sage: cpl3.names()
@@ -42,7 +42,7 @@ class cpl_n_group_function(ParametricFamily_base):
         """
         Normalize arguments for unique representation purposes.
         """
-        return super(cpl_n_group_function, cls).__classcall__(cls, n, cpleq, merge, theta)
+        return super(cpl_n_group_function, cls).__classcall__(cls, n, cpleq=cpleq, merge=merge, theta=theta)
 
     def __init__(self, n, cpleq, merge, theta):
         if cpleq:
@@ -94,6 +94,8 @@ class cpl_n_group_function(ParametricFamily_base):
                      [1 - sum(o[0:i]) for i in range(m - 1, -1, -1)]
         values = [(bkpts[i] - phi_values[i])/f for i in range(len(bkpts))]
         return piecewise_function_from_breakpoints_and_values(bkpts, values, field=field, merge=self._merge)
+
+cpl_n_group_function = ParametricFamily_cpl_n_group_function
 
 def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, flip_ineq_step=1/1000,
                                           check_completion=False, wall_crossing_method='heuristic',
