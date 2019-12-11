@@ -1393,13 +1393,14 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         s += ")"
         return s
 
-    def plot(self, alpha=0.5, plot_points=300, slice_value=None, default_var_bound=None, show_testpoints=True, **kwds):
+    def plot(self, alpha=0.5, plot_points=300, slice_value=None, default_var_bound=None, show_testpoints=True, goto_lower_dim=False, zorder=0, **kwds):
         r"""
         Plot the cell.
 
         - If slice_value is given, it is either a polynomial_map that defines a section, or a list of fixed parameter values with two of them being None. Plot the section. See examples in ``SemialgebraicComplex.plot()``.
         - show_testpoints controls whether to plot the testpoint in this cell.
         - plot_points controls the quality of the plotting.
+        - goto_lower_dim controls whether strict and non-strict inequalies are plotted with different colors.
         """
         if not default_var_bound:
             default_var_bound = [None, None]
@@ -1410,7 +1411,25 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         color = kwds.pop('color', find_region_color(self.region_type))
         #bsa = self.bsa.intersection(self.bddbsa) # bsa_class is 'intersection'
         #not needed any more because bddbsa is recorded in self.bsa
-        g = (self.bsa).plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color=color, fill_color=color, **kwds)
+        if not goto_lower_dim:
+            g = (self.bsa).plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color=color, fill_color=color, zorder=3*zorder, **kwds)
+        elif not list(self.bsa.eq_poly()):
+            # plot border with color white, then add non-strict inequalies.
+            g = (self.bsa).plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color='white', fill_color=color, zorder=3*zorder, **kwds)
+            for l in self.bsa.le_poly():
+                new_bsa = copy(self.bsa)
+                new_bsa.add_polynomial_constraint(l, operator.eq)
+                g += new_bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color=color, fill_color=color, zorder=3*zorder+2, **kwds)
+        else:
+            # plot border with color, then add strict inequalies with color white, then add non-strict inequalies with color.
+            g = (self.bsa).plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color=color, fill_color=color, zorder=3*zorder, **kwds)
+            for l in self.bsa.lt_poly():
+                new_bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=list(self.bsa.eq_poly())+[l], lt=[ll for ll in self.bsa.lt_poly() if ll != l], le=list(self.bsa.le_poly()))
+                g += new_bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color='white', fill_color='white', zorder=3*zorder+1, **kwds)
+            for l in self.bsa.le_poly():
+                new_bsa = copy(self.bsa)
+                new_bsa.add_polynomial_constraint(l, operator.eq)
+                g += new_bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color=color, fill_color=color, zorder=3*zorder+2, **kwds)
         if show_testpoints and not slice_value:
             pt = self.var_value
             if color == 'white':
@@ -2170,7 +2189,7 @@ class SemialgebraicComplex(SageObject):
             else:
                 self.add_new_component(var_value, bddbsa=self.bddbsa, flip_ineq_step=0, goto_lower_dim=False)
 
-    def plot(self, alpha=0.5, plot_points=300, slice_value=None, restart=True, **kwds):
+    def plot(self, alpha=0.5, plot_points=300, slice_value=None, goto_lower_dim=False, restart=True, **kwds):
         r"""
         Plot the complex and store the graph.
 
@@ -2217,7 +2236,8 @@ class SemialgebraicComplex(SageObject):
         if 'ymax' in kwds:
             self.graph.ymax(kwds['ymax'])
         for c in self.components[self.num_plotted_components::]:
-            gc = c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, default_var_bound=self.default_var_bound, **kwds)
+            num_eq = len(list(c.bsa.eq_poly()))
+            gc = c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, default_var_bound=self.default_var_bound, goto_lower_dim=goto_lower_dim, zorder=num_eq, **kwds)
             if gc: # need this because (empty g + empty gc) forgets about xmin xmax ymin ymax.
                 self.graph += gc
         self.num_plotted_components = len(self.components)
