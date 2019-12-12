@@ -4,6 +4,15 @@ import queue as queue
 import itertools
 import numpy as np
 
+def lower_triangle_vertices(vertices):
+    """
+    Given the polytope P defined by vertices, return the vertices of the new polytope Q,
+    where Q = P \cap {x>=y}
+    """
+    P = Polyhedron(vertices = vertices)
+    Q = Polyhedron(ieqs = [(0,1,-1)]+[i.vector() for i in P.Hrepresentation()])
+    return [v.vector() for v in Q.Vrepresentation()]
+
 class SubadditivityTestTreeNode(object):
 
     r"""
