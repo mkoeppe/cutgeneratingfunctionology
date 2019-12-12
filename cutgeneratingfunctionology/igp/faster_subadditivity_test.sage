@@ -9,9 +9,10 @@ def lower_triangle_vertices(vertices):
     Given the polytope P defined by vertices, return the vertices of the new polytope Q,
     where Q = P \cap {x>=y}
     """
+    # Is there an easier way to do this? I guess this would be time consuming in high dimension.
     P = Polyhedron(vertices = vertices)
     Q = Polyhedron(ieqs = [(0,1,-1)]+[i.vector() for i in P.Hrepresentation()])
-    return [v.vector() for v in Q.Vrepresentation()]
+    return [tuple(v.vector()) for v in Q.Vrepresentation()]
 
 class SubadditivityTestTreeNode(object):
 
@@ -56,12 +57,16 @@ class SubadditivityTestTreeNode(object):
         True
     """
 
-    def __init__(self, fn, level, intervals):
+    def __init__(self, fn, level, intervals, use_symmetry = False):
 
         self.intervals=tuple(tuple(I) for I in intervals)
         self.level=level
         self.function=fn
-        self.vertices=verts(*intervals)
+        self.use_symmetry=use_symmetry
+        if use_symmetry:
+            self.vertices=lower_triangle_vertices(verts(*intervals))
+        else:
+            self.vertices=verts(*intervals)
         self.projections=projections(self.vertices)
         self.left_child=None
         self.right_child=None
@@ -329,7 +334,7 @@ class SubadditivityTestTreeNode(object):
             raise ValueError("Indivisible Region.")
 
     def is_divisible(self):
-        if len(self.I_bkpts())==2 and len(self.J_bkpts())==2 and len(self.K_bkpts())==2:
+        if len(self.I_bkpts())<=2 and len(self.J_bkpts())<=2 and len(self.K_bkpts())<=2:
             # if the node is indivisible, then affine_estimators equals the exact function.
             if self.affine_estimators is None:
                 slope_I=(self.I_values()[0]-self.I_values()[1])/(self.I_bkpts()[0]-self.I_bkpts()[1])
@@ -346,8 +351,8 @@ class SubadditivityTestTreeNode(object):
     def generate_children(self,upper_bound=0,stop_only_if_strict=True,**kwds):
         if not self.is_fathomed(upper_bound,stop_only_if_strict,**kwds):
             I1,I2=self.new_intervals()
-            self.left_child=SubadditivityTestTreeNode(self.function,self.level+1,I1)
-            self.right_child=SubadditivityTestTreeNode(self.function,self.level+1,I2)
+            self.left_child=SubadditivityTestTreeNode(self.function,self.level+1,I1,self.use_symmetry)
+            self.right_child=SubadditivityTestTreeNode(self.function,self.level+1,I2,self.use_symmetry)
             self.left_child.parent=self
             self.right_child.parent=self
 
@@ -462,12 +467,12 @@ class SubadditivityTestTree:
         True
     """
 
-    def __init__(self,fn,intervals=((0,1), (0,1), (0,2)),global_upper_bound=0,objective_limit=0):
+    def __init__(self,fn,intervals=((0,1), (0,1), (0,2)),global_upper_bound=0,objective_limit=0, use_symmetry = False):
         self.function=fn
         self.intervals=intervals
         self.global_upper_bound=global_upper_bound
         self.objective_limit=objective_limit
-        self.root=SubadditivityTestTreeNode(fn,0,intervals)
+        self.root=SubadditivityTestTreeNode(fn,0,intervals,use_symmetry)
         self.height=0
         self.complete_node_set=set([self.root])
         self.leaf_set=set([self.root])
@@ -562,6 +567,8 @@ class SubadditivityTestTree:
             raise ValueError("Can't recognize search_method.")
         while not self.unfathomed_node_list.empty():
             current_node=self.unfathomed_node_list.get()[1]
+            if len(current_node.vertices)==0:
+                continue
             for v in current_node.vertices:
                 delta=self.function(v[0])+self.function(v[1])-self.function(fractional(v[0]+v[1]))
                 if delta<self.objective_limit:
@@ -586,6 +593,8 @@ class SubadditivityTestTree:
             raise ValueError("Can't recognize search_method.")
         while not self.unfathomed_node_list.empty():
             current_node=self.unfathomed_node_list.get()[1]
+            if len(current_node.vertices)==0:
+                continue
             upper_bound=current_node.delta_pi_upper_bound()
             if upper_bound<self.global_upper_bound:
                 self.global_upper_bound=upper_bound
@@ -603,6 +612,8 @@ class SubadditivityTestTree:
             raise ValueError("Can't recognize search_method.")
         while not self.unfathomed_node_list.empty():
             current_node=self.unfathomed_node_list.get()[1]
+            if len(current_node.vertices)==0:
+                continue
             if current_node.is_divisible():
                 self.node_branching(current_node,search_method=search_method,find_min=False,stop_only_if_strict=True,**kwds)
             else:
