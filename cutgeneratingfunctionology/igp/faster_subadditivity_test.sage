@@ -47,6 +47,8 @@ def lower_triangle_vertices(vertices, method='naive'):
             return lower_diagonal_vertices+[(l,l),(u,u)]
         else:
             return lower_diagonal_vertices+[(u,u)]
+    elif method == 'none':
+        return vertices
     else:
         raise ValueError('method not recognized.')
 
@@ -102,16 +104,13 @@ class SubadditivityTestTreeNode(object):
         True
     """
 
-    def __init__(self, fn, level, intervals, use_symmetry = False):
+    def __init__(self, fn, level, intervals, use_symmetry = 'none'):
 
         self.intervals=tuple(tuple(I) for I in intervals)
         self.level=level
         self.function=fn
         self.use_symmetry=use_symmetry
-        if use_symmetry:
-            self.vertices=lower_triangle_vertices_fast(verts(*intervals))
-        else:
-            self.vertices=verts(*intervals)
+        self.vertices=lower_triangle_vertices(verts(*intervals), use_symmetry)
         self.projections=projections(self.vertices)
         self.left_child=None
         self.right_child=None
@@ -512,7 +511,7 @@ class SubadditivityTestTree:
         True
     """
 
-    def __init__(self,fn,intervals=((0,1), (0,1), (0,2)),global_upper_bound=0,objective_limit=0, use_symmetry = False):
+    def __init__(self,fn,intervals=((0,1), (0,1), (0,2)),global_upper_bound=0,objective_limit=0, use_symmetry = 'none'):
         self.function=fn
         self.intervals=intervals
         self.global_upper_bound=global_upper_bound
