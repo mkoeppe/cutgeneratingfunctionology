@@ -1880,7 +1880,7 @@ def kzh_3_slope_param_extreme_2(f=5/9, a=3/9, b=2/9, field=None, conditioncheck=
     return h
 
 
-def kzh_4_slope_param_extreme_1(f=13/18, a=7/18, b=1/18, field=None, conditioncheck=True):
+class ParametricFamily_kzh_4_slope_param_extreme_1(ParametricFamily):
     r"""
     .. PLOT::
 
@@ -1908,24 +1908,28 @@ def kzh_4_slope_param_extreme_1(f=13/18, a=7/18, b=1/18, field=None, conditionch
         sage: extremality_test(h)
         True
     """
-    w = (f+a)/f/4;
-    v = (3*b+1)/f/3;
-    c = (1/4*f - 1/4*a - 1/2*b)
-    if not bool(0 < b < (f-a)/2 < f < (1+f-b)/2-c < (1+f-b)/2 < 1):
-        raise ValueError("Bad parameters. Unable to construct the function.")
-    claimed_parameter_attribute = None
-    if conditioncheck:
-        if not bool(b > 0 and -3*f + 2*a + 3*b + 1 < 0 and  f - 2*a < 0 \
-                    and  2*f - a - 3*b - 1 < 0 and  3*f - a - 2 < 0):
-            logging.info("Conditions for extremality are NOT satisfied.")
-            claimed_parameter_attribute = 'constructible'
-        else:
-            logging.info("Conditions for extremality are satisfied.")
-            claimed_parameter_attribute = 'extreme'
-    bkpts = [0, b, (f-a)/2, (f+a)/2, f-b, f,\
-             (1+f-b)/2-c, (1+f-b)/2, (1+f+b)/2, (1+f+b)/2+c, 1]
-    values = [0, v, (f-a)/f/2, (f+a)/f/2, 1-v, 1, \
-              w, (1-v)/2, (1+v)/2, 1-w, 0]
-    h = piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
-    h._claimed_parameter_attribute = claimed_parameter_attribute
-    return h
+
+    def _construct_function(self, f=13/18, a=7/18, b=1/18, field=None, conditioncheck=True):
+        w = (f+a)/f/4;
+        v = (3*b+1)/f/3;
+        c = (1/4*f - 1/4*a - 1/2*b)
+        if not bool(0 < b < (f-a)/2 < f < (1+f-b)/2-c < (1+f-b)/2 < 1):
+            raise ValueError("Bad parameters. Unable to construct the function.")
+        claimed_parameter_attribute = None
+        if conditioncheck:
+            if not bool(b > 0 and -3*f + 2*a + 3*b + 1 < 0 and  f - 2*a < 0 \
+                        and  2*f - a - 3*b - 1 < 0 and  3*f - a - 2 < 0):
+                logging.info("Conditions for extremality are NOT satisfied.")
+                claimed_parameter_attribute = 'constructible'
+            else:
+                logging.info("Conditions for extremality are satisfied.")
+                claimed_parameter_attribute = 'extreme'
+        bkpts = [0, b, (f-a)/2, (f+a)/2, f-b, f,\
+                 (1+f-b)/2-c, (1+f-b)/2, (1+f+b)/2, (1+f+b)/2+c, 1]
+        values = [0, v, (f-a)/f/2, (f+a)/f/2, 1-v, 1, \
+                  w, (1-v)/2, (1+v)/2, 1-w, 0]
+        h = piecewise_function_from_breakpoints_and_values(bkpts, values, field=field)
+        h._claimed_parameter_attribute = claimed_parameter_attribute
+        return h
+
+kzh_4_slope_param_extreme_1 = ParametricFamily_kzh_4_slope_param_extreme_1()
