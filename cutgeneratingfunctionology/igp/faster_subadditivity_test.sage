@@ -4,10 +4,10 @@ import queue as queue
 import itertools
 import numpy as np
 
-def lower_triangle_vertices(vertices):
+def lower_triangle_vertices(vertices, method='naive'):
     """
     Given the polytope P defined by vertices, return the vertices of the new polytope Q,
-    where Q = P \cap {x>=y}, by constructing a sage Polyhedron.
+    where Q = P \cap {x>=y}, by constructing a sage Polyhedron or computing vertices on x=y.
 
     EXAMPLES::
 
@@ -15,13 +15,40 @@ def lower_triangle_vertices(vertices):
         sage: I=[0,1]
         sage: J=[0,1]
         sage: K=[0,2]
-        sage: lower_triangle_vertices(verts(I,J,K))
+        sage: lower_triangle_vertices(verts(I,J,K), method = 'polyhedron')
         [(0, 0), (1, 0), (1, 1)]
+        sage: lower_triangle_vertices(verts(I,J,K), method = 'naive')
+        [(1, 0), (0, 0), (1, 1)]
     """
-    # Is there an easier way to do this? I guess this would be time consuming in high dimension.
-    P = Polyhedron(vertices = vertices)
-    Q = Polyhedron(ieqs = [(0,1,-1)]+[i.vector() for i in P.Hrepresentation()])
-    return [tuple(v.vector()) for v in Q.Vrepresentation()]
+    if method == 'polyhedron':
+        P = Polyhedron(vertices = vertices)
+        Q = Polyhedron(ieqs = [(0,1,-1)]+[i.vector() for i in P.Hrepresentation()])
+        return [tuple(v.vector()) for v in Q.Vrepresentation()]
+    elif method == 'naive':
+        upper_diagonal_vertices=[]
+        lower_diagonal_vertices=[]
+        on_diagonal_vertices=[]
+        for v in vertices:
+            if v[0]>v[1]:
+                lower_diagonal_vertices.append(v)
+            elif v[0]<v[1]:
+                upper_diagonal_vertices.append(v)
+            else:
+                on_diagonal_vertices.append(v[0])
+        for v_upper in upper_diagonal_vertices:
+            for v_lower in lower_diagonal_vertices:
+                new_point_on_diagonal = find_intersection_with_diagonal(v_upper, v_lower)
+                on_diagonal_vertices.append(new_point_on_diagonal[0])
+        if len(on_diagonal_vertices)==0:
+            return lower_diagonal_vertices
+        l=min(on_diagonal_vertices)
+        u=max(on_diagonal_vertices)
+        if l<u:
+            return lower_diagonal_vertices+[(l,l),(u,u)]
+        else:
+            return lower_diagonal_vertices+[(u,u)]
+    else:
+        raise ValueError('method not recognized.')
 
 def find_intersection_with_diagonal(v1,v2):
     """
@@ -31,43 +58,6 @@ def find_intersection_with_diagonal(v1,v2):
     x2,y2=v2
     x=(x2*y1-y2*x1)/(y1-y2-x1+x2)
     return (x,x)
-
-def lower_triangle_vertices_fast(vertices):
-    """
-    Given the polytope P defined by vertices, return the vertices of the new polytope Q,
-    where Q = P \cap {x>=y}. We just need to compute the vertices on the diagonal x=y.
-
-    EXAMPLES::
-
-        sage: from cutgeneratingfunctionology.igp import *
-        sage: I=[0,1]
-        sage: J=[0,1]
-        sage: K=[0,2]
-        sage: lower_triangle_vertices_fast(verts(I,J,K))
-        [(1, 0), (0, 0), (1, 1)]
-    """
-    upper_diagonal_vertices=[]
-    lower_diagonal_vertices=[]
-    on_diagonal_vertices=[]
-    for v in vertices:
-        if v[0]>v[1]:
-            lower_diagonal_vertices.append(v)
-        elif v[0]<v[1]:
-            upper_diagonal_vertices.append(v)
-        else:
-            on_diagonal_vertices.append(v[0])
-    for v_upper in upper_diagonal_vertices:
-        for v_lower in lower_diagonal_vertices:
-            new_point_on_diagonal = find_intersection_with_diagonal(v_upper, v_lower)
-            on_diagonal_vertices.append(new_point_on_diagonal[0])
-    if len(on_diagonal_vertices)==0:
-        return lower_diagonal_vertices
-    l=min(on_diagonal_vertices)
-    u=max(on_diagonal_vertices)
-    if l<u:
-        return lower_diagonal_vertices+[(l,l),(u,u)]
-    else:
-        return lower_diagonal_vertices+[(u,u)]
 
 class SubadditivityTestTreeNode(object):
 
@@ -119,7 +109,7 @@ class SubadditivityTestTreeNode(object):
         self.function=fn
         self.use_symmetry=use_symmetry
         if use_symmetry:
-            self.vertices=lower_triangle_vertices(verts(*intervals))
+            self.vertices=lower_triangle_vertices_fast(verts(*intervals))
         else:
             self.vertices=verts(*intervals)
         self.projections=projections(self.vertices)
