@@ -4,63 +4,6 @@ import queue as queue
 import itertools
 import numpy as np
 
-def lower_triangle_vertices(vertices, method='naive'):
-    """
-    Given the polytope P defined by vertices, return the vertices of the new polytope Q,
-    where Q = P \cap {x>=y}, by constructing a sage Polyhedron or computing vertices on x=y.
-
-    EXAMPLES::
-
-        sage: from cutgeneratingfunctionology.igp import *
-        sage: I=[0,1]
-        sage: J=[0,1]
-        sage: K=[0,2]
-        sage: lower_triangle_vertices(verts(I,J,K), method = 'polyhedron')
-        [(0, 0), (1, 0), (1, 1)]
-        sage: lower_triangle_vertices(verts(I,J,K), method = 'naive')
-        [(1, 0), (0, 0), (1, 1)]
-    """
-    if method == 'polyhedron':
-        P = Polyhedron(vertices = vertices)
-        Q = Polyhedron(ieqs = [(0,1,-1)]+[i.vector() for i in P.Hrepresentation()])
-        return [tuple(v.vector()) for v in Q.Vrepresentation()]
-    elif method == 'naive':
-        upper_diagonal_vertices=[]
-        lower_diagonal_vertices=[]
-        on_diagonal_vertices=[]
-        for v in vertices:
-            if v[0]>v[1]:
-                lower_diagonal_vertices.append(v)
-            elif v[0]<v[1]:
-                upper_diagonal_vertices.append(v)
-            else:
-                on_diagonal_vertices.append(v[0])
-        for v_upper in upper_diagonal_vertices:
-            for v_lower in lower_diagonal_vertices:
-                new_point_on_diagonal = find_intersection_with_diagonal(v_upper, v_lower)
-                on_diagonal_vertices.append(new_point_on_diagonal[0])
-        if len(on_diagonal_vertices)==0:
-            return lower_diagonal_vertices
-        l=min(on_diagonal_vertices)
-        u=max(on_diagonal_vertices)
-        if l<u:
-            return lower_diagonal_vertices+[(l,l),(u,u)]
-        else:
-            return lower_diagonal_vertices+[(u,u)]
-    elif method == 'none':
-        return vertices
-    else:
-        raise ValueError('method not recognized.')
-
-def find_intersection_with_diagonal(v1,v2):
-    """
-    Find a point (x,x) lying on the line segment between v1,v2.
-    """
-    x1,y1=v1
-    x2,y2=v2
-    x=(x2*y1-y2*x1)/(y1-y2-x1+x2)
-    return (x,x)
-
 class SubadditivityTestTreeNode(object):
 
     r"""
@@ -505,10 +448,25 @@ class SubadditivityTestTree:
         sage: T = SubadditivityTestTree(h)
         sage: T.is_subadditive()
         False
+
         sage: h = kzh_7_slope_1()
-        sage: T = SubadditivityTestTree(h)
-        sage: T.is_subadditive()
+        sage: T1 = SubadditivityTestTree(h, use_symmetry = 'none')
+        sage: T1.is_subadditive()
         True
+        sage: T1.height, len(T1.complete_node_set)
+        (16, 1447)
+
+        sage: T2 = SubadditivityTestTree(h, use_symmetry = 'naive')
+        sage: T2.is_subadditive()
+        True
+        sage: T2.height, len(T2.complete_node_set)
+        (13, 749)
+
+        sage: T3 = SubadditivityTestTree(h, use_symmetry = 'polyhedron')
+        sage: T3.is_subadditive()
+        True
+        sage: T3.height, len(T3.complete_node_set)
+        (13, 749)
     """
 
     def __init__(self,fn,intervals=((0,1), (0,1), (0,2)),global_upper_bound=0,objective_limit=0, use_symmetry = 'none'):
@@ -1025,3 +983,59 @@ def delta_pi_min(fn,I,J,K,approximation='constant',norm='one',branching_point_se
         bkpt=find_branching_bkpt(fn,K_index,extended=True,branching_point_selection=branching_point_selection)
         return min(delta_pi_min(fn,I,J,[K[0],bkpt],approximation=approximation,norm=norm,branching_point_selection=branching_point_selection),delta_pi_min(fn,I,J,[bkpt,K[1]],approximation=approximation,norm=norm,branching_point_selection=branching_point_selection))
     
+def lower_triangle_vertices(vertices, method='naive'):
+    """
+    Given the polytope P defined by vertices, return the vertices of the new polytope Q,
+    where Q = P \cap {x>=y}, by constructing a sage Polyhedron or computing vertices on x=y.
+
+    EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: I=[0,1]
+        sage: J=[0,1]
+        sage: K=[0,2]
+        sage: lower_triangle_vertices(verts(I,J,K), method = 'polyhedron')
+        [(0, 0), (1, 0), (1, 1)]
+        sage: lower_triangle_vertices(verts(I,J,K), method = 'naive')
+        [(1, 0), (0, 0), (1, 1)]
+    """
+    if method == 'polyhedron':
+        P = Polyhedron(vertices = vertices)
+        Q = Polyhedron(ieqs = [(0,1,-1)]+[i.vector() for i in P.Hrepresentation()])
+        return [tuple(v.vector()) for v in Q.Vrepresentation()]
+    elif method == 'naive':
+        upper_diagonal_vertices=[]
+        lower_diagonal_vertices=[]
+        on_diagonal_vertices=[]
+        for v in vertices:
+            if v[0]>v[1]:
+                lower_diagonal_vertices.append(v)
+            elif v[0]<v[1]:
+                upper_diagonal_vertices.append(v)
+            else:
+                on_diagonal_vertices.append(v[0])
+        for v_upper in upper_diagonal_vertices:
+            for v_lower in lower_diagonal_vertices:
+                new_point_on_diagonal = find_intersection_with_diagonal(v_upper, v_lower)
+                on_diagonal_vertices.append(new_point_on_diagonal[0])
+        if len(on_diagonal_vertices)==0:
+            return lower_diagonal_vertices
+        l=min(on_diagonal_vertices)
+        u=max(on_diagonal_vertices)
+        if l<u:
+            return lower_diagonal_vertices+[(l,l),(u,u)]
+        else:
+            return lower_diagonal_vertices+[(u,u)]
+    elif method == 'none':
+        return vertices
+    else:
+        raise ValueError('method not recognized.')
+
+def find_intersection_with_diagonal(v1,v2):
+    """
+    Find a point (x,x) lying on the line segment between v1,v2.
+    """
+    x1,y1=v1
+    x2,y2=v2
+    x=(x2*y1-y2*x1)/(y1-y2-x1+x2)
+    return (x,x)
