@@ -1260,11 +1260,14 @@ def read_default_args(function, **opt_non_default):
     """
     if function is None:
         return {}
-    args, varargs, keywords, defaults = sage_getargspec(function)
-    default_args = {}
-    if defaults is not None:
-        for i in range(len(defaults)):
-            default_args[args[-i-1]]=defaults[-i-1]
+    try:
+        default_args = dict(function.default_values())
+    except AttributeError:
+        args, varargs, keywords, defaults = sage_getargspec(function)
+        default_args = {}
+        if defaults is not None:
+            for i in range(len(defaults)):
+                default_args[args[-i-1]]=defaults[-i-1]
     for (opt_name, opt_value) in opt_non_default.items():
         if opt_name in default_args:
             default_args[opt_name] = opt_value
@@ -1904,10 +1907,8 @@ class SemialgebraicComplex(SageObject):
         """
         #self.num_components = 0
         self.components = []
-        if isinstance(family, ParametricFamily_base):
-            assert var_name is None
-            assert not opt_non_default
-            assert not kwds_dict
+        if isinstance(family, ParametricFamily_base) and var_name is None and not kwds_dict and not opt_non_default:
+            pass
         else:
             default_values = copy(opt_non_default)
             default_values.update(kwds_dict)
