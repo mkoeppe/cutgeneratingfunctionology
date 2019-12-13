@@ -29,3 +29,4 @@ region_graphics/*
 .ipynb_checkpoints
 *conflicted copy*
 /survey_graphics/*/*.png
+/Makefile.conf
