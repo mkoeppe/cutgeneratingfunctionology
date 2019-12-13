@@ -254,9 +254,9 @@ class ParametricFamily(ParametricFamily_base):
     More examples of parametric families::
 
         sage: ParametricFamily(gj_2_slope)
-        ParametricFamily(gj_2_slope, default_values=(('f', 3/5), ('lambda_1', 1/6), ('field', None), ('conditioncheck', True)), names=('f', 'lambda_1'))
+        ParametricFamily_gj_2_slope(default_values=(('f', 3/5), ('lambda_1', 1/6), ('field', None), ('conditioncheck', True)), names=('f', 'lambda_1'))
         sage: ParametricFamily(bcdsp_arbitrary_slope, names=['f'])
-        ParametricFamily(bcdsp_arbitrary_slope, default_values=(('f', 1/2), ('k', 4), ('field', None), ('conditioncheck', True)), names=('f',))
+        ParametricFamily_bcdsp_arbitrary_slope(ParametricFamily_bcdsp_arbitrary_slope(default_values=(('f', 1/2), ('k', 4), ('field', None), ('conditioncheck', True)), names=('f', 'k')), default_values=(('f', 1/2), ('k', 4), ('field', None), ('conditioncheck', True)), names=('f',))
 
         sage: from cutgeneratingfunctionology.igp import *
         sage: F_gj_2_slope = ParametricFamily(gj_2_slope)
