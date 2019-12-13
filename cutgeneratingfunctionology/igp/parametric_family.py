@@ -16,15 +16,6 @@ from copy import copy
 from collections import OrderedDict
 from cutgeneratingfunctionology.spam.basic_semialgebraic import BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron
 
-## class ParametricFamilyElement(Element):
-
-##     r"""
-##     Class of an element of a parametric family of functions.
-
-##     TESTS:
-
-##     """
-
     ## @staticmethod
     ## def __classcall__(cls, *args, **options):
     ##     """
@@ -56,10 +47,25 @@ from cutgeneratingfunctionology.spam.basic_semialgebraic import BasicSemialgebra
 
 class ParametricFamily_base(UniqueRepresentation, Parent):
 
+    """
+    Base class of parametric families of functions.
+
+    EXAMPLES:
+
+        sage: import logging; logging.disable(logging.INFO)
+        sage: from cutgeneratingfunctionology.igp import *
+
+    Parametric families contain their functions::
+
+        sage: ll_strong_fractional() in ll_strong_fractional
+        True
+
+    """
+
     def __init__(self, default_values, names):
         from .fast_piecewise import FastPiecewise, PiecewiseLinearFunctionsSpace
         from sage.rings.rational_field import QQ
-        Parent.__init__(self, facade=PiecewiseLinearFunctionsSpace(QQ, QQ))
+        Parent.__init__(self) #, facade=PiecewiseLinearFunctionsSpace(QQ, QQ))    ### how does it help??
         self._names = names
         self._default_values = OrderedDict(default_values)
 
@@ -146,19 +152,23 @@ class ParametricFamily_base(UniqueRepresentation, Parent):
 
     def _element_constructor_(self, *args, **options):
         """
-        The preferred calling method of this parametric family
+        The preferred calling method of this parametric family.
         """
         if len(args) == 1 and not options:
             try:
-                if args[0].parent() == self:
+                if self in args[0]._parametric_families:
                     return args[0]
             except AttributeError:
                 pass
         values = self._args_with_defaults(*args, **options)
         element = self._construct_function(**values)
         try:
-            element._init_args = (self, values)
+            if not hasattr(element, "_parametric_families"):
+                element._parametric_families = dict()
+            element._parametric_families[self] = values
         except AttributeError:
+            # Some legacy "constructors" actually just return an object of some built-in type.
+            # Can't store an attribute in those.
             pass
         return element
 
@@ -303,9 +313,8 @@ class ParametricFamily(ParametricFamily_base):
         sage: from cutgeneratingfunctionology.igp import *
         sage: import logging; logging.disable(logging.INFO)             # Suppress output in automatic tests.
         sage: h = ParametricFamily(ll_strong_fractional)()
-        sage: h._init_args
-        (ParametricFamily_ll_strong_fractional(default_values=(('f', 2/3), ('field', None), ('conditioncheck', True)), names=('f',)),
-         OrderedDict([('f', 2/3), ('field', None), ('conditioncheck', True)]))
+        sage: h._parametric_families
+        {ParametricFamily_ll_strong_fractional(default_values=(('f', 2/3), ('field', None), ('conditioncheck', True)), names=('f',)): OrderedDict([('f', 2/3), ('field', None), ('conditioncheck', True)])}
         sage: h._difficult_computational_result = 42
         sage: p_h = dumps(h)
         sage: explain_pickle(p_h)              # not tested
@@ -314,9 +323,8 @@ class ParametricFamily(ParametricFamily_base):
         True
         sage: h_copy is h
         False
-        sage: h_copy._init_args
-        (ParametricFamily_ll_strong_fractional(default_values=(('f', 2/3), ('field', None), ('conditioncheck', True)), names=('f',)),
-         OrderedDict([('f', 2/3), ('field', None), ('conditioncheck', True)]))
+        sage: h_copy._parametric_families
+        {ParametricFamily_ll_strong_fractional(default_values=(('f', 2/3), ('field', None), ('conditioncheck', True)), names=('f',)): OrderedDict([('f', 2/3), ('field', None), ('conditioncheck', True)])}
         sage: h_copy._difficult_computational_result
         42
 
