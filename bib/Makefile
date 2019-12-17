@@ -15,7 +15,7 @@ check-encoding:
 	@if LC_ALL=C grep -H -v -n '^[ -~]*$$' $(BIBFILES) ; then echo "Offending characters found."; exit 1; else echo "bib files are ASCII and have no tabs and no ^Ms. Good."; exit 0; fi
 
 fix-encoding:
-	LC_ALL=en_US.UTF-8 sed -i.bak "s/–/--/g;s/’/\'/g;s/“/\`\`/g;s/”/\'\'/g;s/≡/\\\\equiv{}/g;s/≥/\\\\geq{}/g;" $(BIBFILES)
+	LC_ALL=en_US.UTF-8 sed -i.bak "s/–/--/g;s/’/\'/g;s/“/\`\`/g;s/”/\'\'/g;s/≡/\\\\equiv{}/g;s/≥/\\\\geq{}/g;s/{\\\\textparagraph}/ /g;" $(BIBFILES)
 
 check-bibtex:
 	$(LATEXMK) $(LATEXMK_OPTIONS) -pdflatex="$(PDFLATEX) $(LATEX_OPTIONS)" bibliography-bibtex 2>&1 | tee $@.log
