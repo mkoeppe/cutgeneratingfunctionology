@@ -1,0 +1,16 @@
+name: CI-check-bib
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: install texlive
+      run:  sudo DEBIAN_FRONTEND=noninteractive apt-get install texlive latexmk texlive-latex-extra
+    - name: make check-bib
+      run:  make check-bib
+      
