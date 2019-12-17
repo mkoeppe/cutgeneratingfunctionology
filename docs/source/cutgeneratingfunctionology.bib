@@ -2,7 +2,9 @@
   author       = {K{\"o}ppe, Matthias and Zhou, Yuan},
   title	       = {All Cyclic Group Facets Inject},
   year	       = 2019,
+  note	       = {e-print},
   eprint       = {1807.09758},
+  eprinttype   = {arxiv},
 }
 
 @Article{basu-hildebrand-koeppe:equivariant,
@@ -50,7 +52,7 @@
   url	       = {https://search.proquest.com/docview/1950269648},
 }
 
-@Unpublished{hildebrand-koeppe-zhou:algo-paper,
+@Misc{hildebrand-koeppe-zhou:algo-paper,
   author       = {Hildebrand, Robert and K{\"o}ppe, Matthias and Zhou,
                   Yuan},
   title	       = {Equivariant Perturbation in {G}omory and {J}ohnson's
@@ -61,6 +63,7 @@
   annote       = {in
                   basu-hildebrand-koeppe-papers/algo-paper/algo-paper.tex},
   eprint       = {1811.06189},
+  eprinttype   = {arxiv},
 }
 
 @InCollection{hildebrand-koeppe-zhou:algo-paper-abstract-ipco,
@@ -235,9 +238,9 @@
 }
 
 @Article{conforti2013cut,
-  author       = {Conforti, M. and Cornu{\'e}jols, G. and Daniilidis,
-                  A. and Lemar{\'e}chal, C. and Malick, J.},
-  title	       = {Cut-Generating Functions and {S}-Free Sets},
+  author       = {Conforti, Michele and Cornu{\'e}jols, G{\'e}rard and Daniilidis,
+                  Aris and Lemar{\'e}chal, Claude and Malick, J{\'e}r{\^o}me},
+  title	       = {Cut-Generating Functions and {$S$}-Free Sets},
   journal      = {Mathematics of Operations Research},
   year	       = 2013,
   volume       = 40,
@@ -274,7 +277,7 @@
 }
 
 @Article{dey2010constrained,
-  author       = {Dey, Santanu S. and Wolsey, L. A.},
+  author       = {Dey, Santanu S. and Wolsey, Lauyrence A.},
   title	       = {Constrained infinite group relaxations of {MIP}s},
   journal      = {SIAM Journal on Optimization},
   year	       = 2010,
@@ -282,6 +285,7 @@
   number       = 6,
   pages	       = {2890--2912},
   publisher    = {SIAM},
+  doi	       = {10.1137/090754388},
 }
 
 @Article{DBLP:journals/mp/AndersenCL05,
@@ -788,17 +792,18 @@
   author       = {Dey, Santanu S. and Wolsey, Laurence A.},
   title	       = {Lifting Integer Variables in Minimal Inequalities
                   Corresponding to Lattice-Free Triangles},
+  year	       = 2008,
   booktitle    = {Integer Programming and Combinatorial
                   Optimization. 13th International Conference, IPCO
                   2008, Bertinoro, Italy, May 26--28,
                   2008. Proceedings},
-  publisher    = {Springer Berlin / Heidelberg},
-  year	       = 2008,
   editor       = {Lodi, Andrea and Panconesi, Alessandro and Rinaldi,
                   Giovanni},
   volume       = 5035,
   series       = {Lecture Notes in Computer Science},
+  publisher    = {Springer Berlin / Heidelberg},
   pages	       = {463--475},
+  doi	       = {10.1007/978-3-540-68891-4_32},
   affiliation  = {University Catholique de Louvain CORE 34, Voie du
                   Roman Pays 1348 Louvain-la-Neuve Belgium},
 }
@@ -1109,13 +1114,13 @@
 }
 
 @Article{yildiz2016cut,
-  author       = {Y{\i}ld{\i}z, S. and Cornu{\'e}jols, G.},
+  author       = {Y{\i}ld{\i}z, Sercan and Cornu{\'e}jols, G{\'e}rard},
   title	       = {Cut-Generating Functions for Integer Variables},
   journal      = {Mathematics of Operations Research},
   year	       = 2016,
   volume       = 41,
   number       = 4,
-  pages	       = {1381-1403},
+  pages	       = {1381--1403},
   doi	       = {10.1287/moor.2016.0781},
 }
 
@@ -1167,7 +1172,8 @@
 }
 
 @Book{ccz-ipbook,
-  author       = {M. Conforti and G. Cornu\'ejols and G. Zambelli},
+  author       = {Conforti, Michele and Cornu\'ejols, G{\'e}rard and
+                  Zambelli, Giacomo},
   title	       = {Integer Programming},
   publisher    = {Springer},
   year	       = 2014,
@@ -1314,15 +1320,41 @@
   doi	       = {10.1137/17M1143605},
 }
 
-@InCollection{dey2010experiments,
-  author       = {Dey, S. S. and Lodi, A. and Tramontani, A. and
-                  Wolsey, L. A.},
-  title	       = {Experiments with two row tableau cuts},
-  booktitle    = {Integer Programming and Combinatorial Optimization},
-  publisher    = {Springer},
+@InProceedings{dey2010experiments,
+  author       = {Dey, Santanu S. and Lodi, Andrea and Tramontani,
+                  Andrea and Wolsey, Laurence A.},
+  title	       = "Experiments with Two Row Tableau Cuts",
   year	       = 2010,
-  pages	       = {424--437},
+  booktitle    = "Integer Programming and Combinatorial Optimization",
+  editor       = "Eisenbrand, Friedrich and Shepherd, F. Bruce",
+  publisher    = "Springer Berlin Heidelberg",
+  isbn	       = "978-3-642-13036-6",
+  pages	       = "424--437",
+  doi	       = {10.1007/978-3-642-13036-6_32},
+  author       = "Dey, Santanu S. and Lodi, Andrea and Tramontani,
+                  Andrea and Wolsey, Laurence A.",
+  address      = "Berlin, Heidelberg",
+  abstract     = "Following the flurry of recent theoretical work on
+                  cutting planes from two row mixed integer group
+                  relaxations of an LP tableau, we report on some
+                  computational tests to evaluate the effectiveness of
+                  two row cuts based on lattice-free (type 2)
+                  triangles having more than one integer point on one
+                  side. A heuristic procedure to generate such
+                  triangles is presented, and then the coefficients of
+                  the integer variables are tightened by lifting. As a
+                  first step in testing the effectiveness of the
+                  triangle cuts, we make comparisons between the gap
+                  closed using Gomory mixed integer cuts for one round
+                  and the gap closed in one round using all the
+                  triangles generated by our heuristic. Our tests are
+                  carried out on different classes of randomly
+                  generated instances designed to represent different
+                  models in the literature by varying the number of
+                  integer non-basic variables, bounds and
+                  non-negativity constraints.",
 }
+
 
 @Article{dw2008,
   author       = {Dey, Santanu S. and Wolsey, Laurence A.},
@@ -1928,7 +1960,7 @@
 }
 
 @Article{johnson,
-  author       = {Ellis L. Johnson},
+  author       = {Johnson, Ellis L.},
   title	       = {On the Group Problem for Mixed Integer Programming},
   journal      = {Mathematical Programming Study},
   year	       = 1974,
