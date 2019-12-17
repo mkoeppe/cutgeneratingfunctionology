@@ -3,8 +3,9 @@ PDFLATEX = pdflatex
 
 LATEX_OPTIONS = -interaction=nonstopmode
 
-LATEXMK_OPTIONS = -pdf -g -f --quiet
-# latexmk 1:4.41-1 on GitHub runner (2019-12-17) does not understand -Werror
+LATEXMK_OPTIONS = -pdf -g -f
+# Omit -Werror because latexmk 1:4.41-1 on GitHub runner (2019-12-17) does not understand it
+# Omit --quiet for better debuggability
 
 check: check-bibtex check-biblatex
 
