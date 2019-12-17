@@ -12,5 +12,4 @@ jobs:
     - name: install texlive
       run:  sudo DEBIAN_FRONTEND=noninteractive apt-get install texlive latexmk texlive-latex-extra
     - name: make check-bib
-      run:  make check-bib
-      
+      run:  make -k check-bib
