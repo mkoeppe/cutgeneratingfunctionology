@@ -10,6 +10,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: install texlive
-      run:  sudo DEBIAN_FRONTEND=noninteractive apt-get install texlive latexmk texlive-bibtex-extra
+      run:  sudo DEBIAN_FRONTEND=noninteractive apt-get install texlive latexmk texlive-latex-extra texlive-bibtex-extra
     - name: make check-bib
       run:  make -k check-bib
