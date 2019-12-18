@@ -2,7 +2,7 @@
  Bibliography on cutgeneratingfunctionology
 ============================================
 
-.. bibliography:: ../../bib/cutgeneratingfunctionology.bib
+.. bibliography:: ../../open-optimization-bibliography/bib/cutgeneratingfunctionology.bib
    :all:
    :style: alpha
 
