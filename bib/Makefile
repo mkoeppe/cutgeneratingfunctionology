@@ -29,5 +29,10 @@ check-biblatex:
 	$(BIBER) bibliography-biblatex 2>&1 | tee $@.log
 	@if grep -i 'Warning\|Error' $@.log; then echo "Biber produces warnings"; exit 1; fi
 
+check-biblatex-ext:
+	$(LATEXMK) $(LATEXMK_OPTIONS) -pdflatex="$(PDFLATEX) $(LATEX_OPTIONS)" bibliography-biblatex-ext
+	$(BIBER) bibliography-biblatex-ext 2>&1 | tee $@.log
+	@if grep -i 'Warning\|Error' $@.log; then echo "Biber produces warnings"; exit 1; fi
+
 clean:
 	rm -f *.aux *.bbl *.bcf *.blg *.fdb* *.fls *.log *.out *.run.xml *.bak bibliography-bibtex.pdf bibliography-biblatex.pdf
