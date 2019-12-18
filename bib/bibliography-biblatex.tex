@@ -2,9 +2,8 @@
 \usepackage[T1]{fontenc}     % to get accented characters as 1 glyph for copypastability from PDF
 \usepackage[utf8]{inputenc}  % for biber output, suppresses warnings about using macros
 \usepackage{hyperref}
-\usepackage[backend=biber,giveninits=true,maxnames=100,maxcitenames=5,sorting=nyt]{biblatex}
-%%% FIXME: \DeclareFieldFormat[article]{titlecase}{\MakeSentenceCase*{#1}}
-%%%%%%%% this is not good - it also lowercases journal names!
+\usepackage[style=ext-numeric-comp,backend=biber,giveninits=true,maxnames=100,maxcitenames=5,sorting=nyt,articlein=false,innamebeforetitle=true]{biblatex}
+\DeclareFieldFormat{titlecase:title}{\MakeSentenceCase*{#1}}
 \addbibresource{cutgeneratingfunctionology.bib}
 \date{}\author{}
 \title{cutgeneratingfunctionology}
