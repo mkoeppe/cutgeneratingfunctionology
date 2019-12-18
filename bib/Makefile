@@ -1,5 +1,6 @@
 LATEXMK = latexmk
 PDFLATEX = pdflatex
+BIBER = biber
 
 LATEX_OPTIONS = -interaction=nonstopmode
 
@@ -22,5 +23,6 @@ check-bibtex:
 	@if grep -i 'Warning\|Error' $@.log; then echo "BibTeX produces warnings"; exit 1; fi
 
 check-biblatex:
-	$(LATEXMK) $(LATEXMK_OPTIONS) -pdflatex="$(PDFLATEX) $(LATEX_OPTIONS)" bibliography-biblatex 2>&1 | tee $@.log
+	$(LATEXMK) $(LATEXMK_OPTIONS) -pdflatex="$(PDFLATEX) $(LATEX_OPTIONS)" bibliography-biblatex
+	$(BIBER) bibliography-biblatex 2>&1 | tee $@.log
 	@if grep -i 'Warning\|Error' $@.log; then echo "Biber produces warnings"; exit 1; fi
