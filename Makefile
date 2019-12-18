@@ -74,7 +74,7 @@ check-long: check-encoding
 	rm .tmp_check-long-timings.json
 
 check-bib:
-	$(MAKE) -C bib check
+	$(MAKE) -C open-optimization-bibliography/test check
 
 check-encoding:
 	@if LC_ALL=C grep -v -n '^[ -~]*$$' $(SAGEFILES) ; then echo "Offending characters found."; exit 1; else echo "All Sage files are ASCII and have no tabs. Good."; exit 0; fi

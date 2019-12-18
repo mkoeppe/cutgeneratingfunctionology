@@ -8,7 +8,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@master
+      with:
+        submodules: true
     - name: install texlive
       run:  sudo DEBIAN_FRONTEND=noninteractive apt-get install texlive latexmk texlive-latex-extra texlive-bibtex-extra biber
     - name: make check-bib
