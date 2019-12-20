@@ -80,6 +80,3 @@ class SubadditivityTestTreeNodeGeneral(object):
         fractional_K_bkpts=[tuple(fractional(b[0]),b[1]) for b in self.K_bkpts()]
         self._K_values = tuple(self.function.limit(bkpt[0],bkpt[1]) for bkpt in fractional_K_bkpts)
         return self._K_values
-
-def find_all_bkpts_in_the_interval_general(bkpts,interval)
-
