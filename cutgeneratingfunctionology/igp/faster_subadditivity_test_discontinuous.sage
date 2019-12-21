@@ -207,9 +207,12 @@ class SubadditivityTestTreeGeneral:
         sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = drlm_2_slope_limit()
-        sage: T = SubadditivityTestTree(h)
+        sage: T = SubadditivityTestTreeGeneral(h)
         sage: T.minimum()
         0
+        sage: T = SubadditivityTestTreeGeneral(h)
+        sage: T.is_subadditive()
+        True
     """
 
     def __init__(self,fn,intervals=((0,1), (0,1), (0,2)),global_upper_bound=0,objective_limit=0):
@@ -283,6 +286,32 @@ class SubadditivityTestTreeGeneral:
                     self.global_upper_bound=upper_bound
         self.min=self.global_upper_bound
         return self.min
+
+    def is_subadditive(self,stop_if_fail=False,cache_additive_vertices=False,search_method='BB'):
+        if search_method=='BFS' or search_method=='DFS':
+            self.unfathomed_node_list.put((0,self.root))
+        elif search_method=='BB':
+            self.unfathomed_node_list.put((self.root.delta_pi_lower_bound(),self.root))
+        else:
+            raise ValueError("Can't recognize search_method.")
+        while not self.unfathomed_node_list.empty():
+            current_node=self.unfathomed_node_list.get()[1]
+            if len(current_node.vertices)==0:
+                continue
+            for v in current_node.vertices:
+                delta=self.function(v[0])+self.function(v[1])-self.function(fractional(v[0]+v[1]))
+                if delta<self.objective_limit:
+                    self._is_subadditive=False
+                    # can stop early
+                    if stop_if_fail:
+                        return False
+                    self.nonsubadditive_vertices.add(v)
+                if delta==self.objective_limit and cache_additive_vertices:
+                    self.additive_vertices.add(v)
+            self.node_branching(current_node,search_method=search_method,find_min=False,stop_only_if_strict=cache_additive_vertices)
+        if not hasattr(self,'_is_subadditive'):
+            self._is_subadditive=True
+        return self._is_subadditive
 
 def find_midpoint(v1,v2):
     return ((v1[0]+v2[0])/2, (v1[1]+v2[1])/2)
