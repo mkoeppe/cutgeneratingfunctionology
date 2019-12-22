@@ -65,6 +65,18 @@ class SubadditivityTestTreeNodeGeneral(object):
         self._I_values[self.I_bkpts()[-1]].pop(1)
         return self._I_values
 
+    def I_values_min(self):
+        if hasattr(self,'_I_values_min'):
+            return self._I_values_min
+        self._I_values_min = tuple(min(self.I_values()[bkpt]) for bkpt in self.I_bkpts())
+        return self._I_values_min
+
+    def I_values_max(self):
+        if hasattr(self,'_I_values_max'):
+            return self._I_values_max
+        self._I_values_max = tuple(max(self.I_values()[bkpt]) for bkpt in self.I_bkpts())
+        return self._I_values_max
+
     def J_values(self):
         if hasattr(self,'_J_values'):
             return self._J_values
@@ -75,6 +87,18 @@ class SubadditivityTestTreeNodeGeneral(object):
         self._J_values[self.J_bkpts()[-1]].pop(1)
         return self._J_values
 
+    def J_values_min(self):
+        if hasattr(self,'_J_values_min'):
+            return self._J_values_min
+        self._J_values_min = tuple(min(self.J_values()[bkpt]) for bkpt in self.J_bkpts())
+        return self._J_values_min
+
+    def J_values_max(self):
+        if hasattr(self,'_J_values_max'):
+            return self._J_values_max
+        self._J_values_max = tuple(max(self.J_values()[bkpt]) for bkpt in self.J_bkpts())
+        return self._J_values_max
+
     def K_values(self):
         if hasattr(self,'_K_values'):
             return self._K_values
@@ -84,6 +108,18 @@ class SubadditivityTestTreeNodeGeneral(object):
         self._K_values[self.K_bkpts()[0]].pop(-1)
         self._K_values[self.K_bkpts()[-1]].pop(1)
         return self._K_values
+
+    def K_values_min(self):
+        if hasattr(self,'_K_values_min'):
+            return self._K_values_min
+        self._K_values_min = tuple(min(self.K_values()[bkpt]) for bkpt in self.K_bkpts())
+        return self._K_values_min
+
+    def K_values_max(self):
+        if hasattr(self,'_K_values_max'):
+            return self._K_values_max
+        self._K_values_max = tuple(max(self.K_values()[bkpt]) for bkpt in self.K_bkpts())
+        return self._K_values_max
 
     def delta_pi_lower_bound(self):
         alpha_I=min(itertools.chain(*self.I_values().values()))
