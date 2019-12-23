@@ -71,12 +71,6 @@ class SubadditivityTestTreeNodeGeneral(object):
         self._I_values_min = tuple(min(self.I_values()[bkpt]) for bkpt in self.I_bkpts())
         return self._I_values_min
 
-    def I_values_max(self):
-        if hasattr(self,'_I_values_max'):
-            return self._I_values_max
-        self._I_values_max = tuple(max(self.I_values()[bkpt]) for bkpt in self.I_bkpts())
-        return self._I_values_max
-
     def J_values(self):
         if hasattr(self,'_J_values'):
             return self._J_values
@@ -93,12 +87,6 @@ class SubadditivityTestTreeNodeGeneral(object):
         self._J_values_min = tuple(min(self.J_values()[bkpt]) for bkpt in self.J_bkpts())
         return self._J_values_min
 
-    def J_values_max(self):
-        if hasattr(self,'_J_values_max'):
-            return self._J_values_max
-        self._J_values_max = tuple(max(self.J_values()[bkpt]) for bkpt in self.J_bkpts())
-        return self._J_values_max
-
     def K_values(self):
         if hasattr(self,'_K_values'):
             return self._K_values
@@ -109,23 +97,41 @@ class SubadditivityTestTreeNodeGeneral(object):
         self._K_values[self.K_bkpts()[-1]].pop(1)
         return self._K_values
 
-    def K_values_min(self):
-        if hasattr(self,'_K_values_min'):
-            return self._K_values_min
-        self._K_values_min = tuple(min(self.K_values()[bkpt]) for bkpt in self.K_bkpts())
-        return self._K_values_min
-
     def K_values_max(self):
         if hasattr(self,'_K_values_max'):
             return self._K_values_max
         self._K_values_max = tuple(max(self.K_values()[bkpt]) for bkpt in self.K_bkpts())
         return self._K_values_max
 
-    def delta_pi_lower_bound(self):
-        alpha_I=min(itertools.chain(*self.I_values().values()))
-        alpha_J=min(itertools.chain(*self.J_values().values()))
-        beta_K=max(itertools.chain(*self.K_values().values()))
-        return alpha_I+alpha_J-beta_K
+    def delta_pi_constant_lower_bound(self):
+        alpha_I=min(self.I_values_min())
+        alpha_J=min(self.J_values_min())
+        beta_K=max(self.K_values_max())
+        return alpha_I+alpha_J-beta_K , [[0,alpha_I],[0,alpha_J],[0,beta_K]]
+
+    def delta_pi_affine_lower_bound(self,solver='Coin'):
+        p = MixedIntegerLinearProgram(maximization=True, solver=solver)
+        v = p.new_variable()
+        m1, b1, m2, b2, m3, b3, deltamin= v['m1'], v['b1'], v['m2'], v['b2'], v['m3'], v['b3'], v['deltamin']
+        p.set_objective(deltamin)
+        for i in range(len(self.I_values_min())):
+            p.add_constraint(m1*self.I_bkpts()[i]+b1<=self.I_values_min()[i])
+        for j in range(len(self.J_values_min())):
+            p.add_constraint(m2*self.J_bkpts()[j]+b2<=self.J_values_min()[j])
+        for k in range(len(self.K_values_max())):
+            p.add_constraint(m3*self.K_bkpts()[k]+b3>=self.K_values_max()[k])
+        for v in self.vertices:
+            x, y, z=v[0], v[1], v[0]+v[1]
+            p.add_constraint(deltamin<=m1*x+b1+m2*y+b2-m3*z-b3)
+        p.solve()
+        # deal with precision problem.
+        m_I=QQ(p.get_values(m1))
+        m_J=QQ(p.get_values(m2))
+        m_K=QQ(p.get_values(m3))
+        b_I=min(self.I_values_min()[i]-m_I*self.I_bkpts()[i] for i in range(len(self.I_values_min())))
+        b_J=min(self.J_values_min()[i]-m_J*self.J_bkpts()[i] for i in range(len(self.J_values_min())))
+        b_K=max(self.K_values_max()[i]-m_K*self.K_bkpts()[i] for i in range(len(self.K_values)max())))
+        return min(m_I*v[0]+b_I+m_J*v[1]+b_J-m_K*(v[0]+v[1])-b_K for v in self.vertices), [[m_I,b_I],[m_J,b_J],[m_K,b_K]]
 
     def delta_pi_upper_bound(self):
         if hasattr(self,'_delta_pi_ub'):
