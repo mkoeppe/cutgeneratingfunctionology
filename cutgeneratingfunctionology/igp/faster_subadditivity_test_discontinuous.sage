@@ -103,6 +103,20 @@ class SubadditivityTestTreeNodeGeneral(object):
         self._K_values_max = tuple(max(self.K_values()[bkpt]) for bkpt in self.K_bkpts())
         return self._K_values_max
 
+    def delta_pi_lower_bound(self,max_number_of_bkpts=0,solver='Coin'):
+        if hasattr(self,'_delta_pi_lb'):
+            return self._delta_pi_lb
+        if not self.is_divisible():
+            return self.delta_pi_min_of_indivisible_node()
+        if max_number_of_bkpts==0:
+            lower_bound, estimators=self.delta_pi_constant_lower_bound()
+        else:
+            lower_bound, estimators=self.delta_pi_affine_lower_bound(solver=solver)
+        self._delta_pi_lb=lower_bound
+        # cache the three estimators.
+        self.affine_estimators=estimators
+        return lower_bound
+
     def delta_pi_constant_lower_bound(self):
         alpha_I=min(self.I_values_min())
         alpha_J=min(self.J_values_min())
@@ -223,16 +237,16 @@ class SubadditivityTestTreeNodeGeneral(object):
             self.left_child.parent=self
             self.right_child.parent=self
 
-    def is_fathomed(self,value=0,stop_only_if_strict=True):
+    def is_fathomed(self,value=0,stop_only_if_strict=True,**kwds):
         if self.is_divisible():
             if stop_only_if_strict:
-                if self.delta_pi_lower_bound()>value:
+                if self.delta_pi_lower_bound(**kwds)>value:
                     return True
                 else:
                     return False
             else:
                 # stop branching early.
-                if self.delta_pi_lower_bound()>=value:
+                if self.delta_pi_lower_bound(**kwds)>=value:
                     return True
                 else:
                     return False
@@ -278,7 +292,7 @@ class SubadditivityTestTreeGeneral:
     def number_of_leaves(self):
         return len(self.leaf_set)
 
-    def node_branching(self,node,search_method='BB',find_min=True,stop_only_if_strict=True):
+    def node_branching(self,node,search_method='BB',find_min=True,stop_only_if_strict=True,**kwds):
         if not node.left_child:
             if find_min:
                 node.generate_children(self.global_upper_bound,stop_only_if_strict)
@@ -293,11 +307,11 @@ class SubadditivityTestTreeGeneral:
                     self.unfathomed_node_list.put((-len(self.complete_node_set)-1,node.right_child))
                 elif search_method=='BB':
                     if node.left_child.is_divisible():
-                        self.unfathomed_node_list.put((node.left_child.delta_pi_lower_bound(),node.left_child))
+                        self.unfathomed_node_list.put((node.left_child.delta_pi_lower_bound(**kwds),node.left_child))
                     else:
                         self.unfathomed_node_list.put((node.left_child.delta_pi_upper_bound(),node.left_child))
                     if node.right_child.is_divisible():
-                        self.unfathomed_node_list.put((node.right_child.delta_pi_lower_bound(),node.right_child))
+                        self.unfathomed_node_list.put((node.right_child.delta_pi_lower_bound(**kwds),node.right_child))
                     else:
                         self.unfathomed_node_list.put((node.right_child.delta_pi_upper_bound(),node.right_child))
                 else:
@@ -307,11 +321,11 @@ class SubadditivityTestTreeGeneral:
                 self.leaf_set.discard(node)
                 self.leaf_set.update({node.left_child,node.right_child})
 
-    def minimum(self,search_method='BB'):
+    def minimum(self,search_method='BB',**kwds):
         if search_method=='BFS' or search_method=='DFS':
             self.unfathomed_node_list.put((0,self.root))
         elif search_method=='BB':
-            self.unfathomed_node_list.put((self.root.delta_pi_lower_bound(),self.root))
+            self.unfathomed_node_list.put((self.root.delta_pi_lower_bound(**kwds),self.root))
         else:
             raise ValueError("Can't recognize search_method.")
         while not self.unfathomed_node_list.empty():
@@ -329,11 +343,11 @@ class SubadditivityTestTreeGeneral:
         self.min=self.global_upper_bound
         return self.min
 
-    def is_subadditive(self,stop_if_fail=False,cache_additive_vertices=False,search_method='BB'):
+    def is_subadditive(self,stop_if_fail=False,cache_additive_vertices=False,search_method='BB',**kwds):
         if search_method=='BFS' or search_method=='DFS':
             self.unfathomed_node_list.put((0,self.root))
         elif search_method=='BB':
-            self.unfathomed_node_list.put((self.root.delta_pi_lower_bound(),self.root))
+            self.unfathomed_node_list.put((self.root.delta_pi_lower_bound(**kwds),self.root))
         else:
             raise ValueError("Can't recognize search_method.")
         while not self.unfathomed_node_list.empty():
