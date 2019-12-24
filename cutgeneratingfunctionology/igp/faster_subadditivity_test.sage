@@ -261,7 +261,7 @@ class SubadditivityTestTreeNode(object):
         return lower_bound, [[slope_I,intercept_I],[slope_J,intercept_J],[slope_K,intercept_K]]
 
     def delta_pi_lower_bound(self,max_number_of_bkpts=0,solver='Coin'):
-        """
+        r"""
         Strategic lower bound of delta pi. If the total number of bkpts in I,J,K is small, use affine bound by solving the LP. Use constant bound if max_number_of_bkpts=0. Otherwise use delta_pi_fast_lower_bound.
         """
         if hasattr(self,'_delta_pi_lb'):
@@ -363,7 +363,7 @@ class SubadditivityTestTreeNode(object):
             return True
 
     def verify_estimators(self):
-        """
+        r"""
         If affine estimators have been computed, then verirify that it is indeed lower/upper estimator.
 
         EXAMPLES::
@@ -404,7 +404,7 @@ class SubadditivityTestTreeNode(object):
         return True
 
     def verify_vertices(self,**kwds):
-        """
+        r"""
         If the lower bound of delta pi has been computed, verify delta pi value is no smaller than lower bound.
 
         EXAMPLES::
@@ -982,7 +982,7 @@ def delta_pi_min(fn,I,J,K,approximation='constant',norm='one',branching_point_se
         return min(delta_pi_min(fn,I,J,[K[0],bkpt],approximation=approximation,norm=norm,branching_point_selection=branching_point_selection),delta_pi_min(fn,I,J,[bkpt,K[1]],approximation=approximation,norm=norm,branching_point_selection=branching_point_selection))
     
 def lower_triangle_vertices(vertices):
-    """
+    r"""
     Given the polytope P defined by vertices, return the vertices of the new polytope Q,
     where Q = P \cap {x>=y}, by computing vertices on x=y.
 
@@ -1019,7 +1019,7 @@ def lower_triangle_vertices(vertices):
         return lower_diagonal_vertices+[(u,u)]
 
 def find_intersection_with_diagonal(v1,v2):
-    """
+    r"""
     Find a point (x,x) lying on the line segment between v1,v2.
     """
     x1,y1=v1
