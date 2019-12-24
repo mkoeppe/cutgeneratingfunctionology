@@ -132,7 +132,7 @@ def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, flip_ineq_step=1/1000
     regions.sort(key=lambda c: len(list(c.bsa.eq_poly())))   # FIXME: This should either be a generator that just stratifies by dimension; or refine the order lexicographically so that we get a predictable sort order!
     return regions
 
-def plot_cpl_components(components, show_testpoints=False):
+def plot_cpl_components(components, show_testpoints=False, goto_lower_dim=False):
     r"""
     EXAMPLES::
 
@@ -143,12 +143,36 @@ def plot_cpl_components(components, show_testpoints=False):
         sage: g.show(xmin=0, xmax=1, ymin=0, ymax=1/4)                       # not tested
     """
     g = Graphics()
+    # zorder is broken in region_plot and contour_plot. workaround.
     for c in components:
         if not list(c.bsa.eq_poly()):
-            g += c.plot(show_testpoints=show_testpoints)
+            if not goto_lower_dim:
+                g += c.plot(show_testpoints=show_testpoints, goto_lower_dim=False)
+            else:
+                color = find_region_color(c.region_type)
+                g += (c.bsa).plot(color='white', fill_color=color)
+    if goto_lower_dim:
+        for c in components:
+            if not  list(c.bsa.eq_poly()):
+                color = find_region_color(c.region_type)
+                for l in c.bsa.le_poly():
+                    new_bsa = copy(c.bsa)
+                    new_bsa.add_polynomial_constraint(l, operator.eq)
+                    g += new_bsa.plot(color=color, fill_color=color)
     for c in components:
         if len(list(c.bsa.eq_poly()))==1:
-            g += c.plot(show_testpoints=show_testpoints)
+            g += c.plot(show_testpoints=show_testpoints, goto_lower_dim=False)
+    if goto_lower_dim:
+        for c in components:
+            if len(list(c.bsa.eq_poly()))==1:
+                color = find_region_color(c.region_type)
+                for l in c.bsa.lt_poly():
+                    new_bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=list(c.bsa.eq_poly())+[l], lt=[ll for ll in c.bsa.lt_poly() if ll != l], le=list(c.bsa.le_poly()))
+                    g += new_bsa.plot(color='white', fill_color='white')
+                for l in c.bsa.le_poly():
+                    new_bsa = copy(c.bsa)
+                    new_bsa.add_polynomial_constraint(l, operator.eq)
+                    g += new_bsa.plot(color=color, fill_color=color)
     for c in components:
         if len(list(c.bsa.eq_poly()))==2:
             ptcolor = find_region_color(c.region_type)
@@ -321,7 +345,7 @@ def generate_thetas_of_region(r):
             thetas.append(theta)
     return thetas
 
-def cpl_fill_region_given_theta(r, theta, flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=True):
+def cpl_fill_region_given_theta(r, theta, flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='heuristic', goto_lower_dim=True, big_cells=False):
     r"""
     EXAMPLES::
 
@@ -344,7 +368,10 @@ def cpl_fill_region_given_theta(r, theta, flip_ineq_step=1/1000, check_completio
     #bddbsa = BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=r.bsa.poly_ring(), eq=r.bsa.eq_poly(), lt=r.bsa.lt_poly(), le=r.bsa.le_poly())
     bddbsa = r.bsa # BUG? copy(r.bsa)
     polynomial_map = r.polynomial_map  #copy?
-    cpl_complex = SemialgebraicComplex(cpln, bddbsa=bddbsa, polynomial_map=polynomial_map)
+    if not big_cells:
+        cpl_complex = SemialgebraicComplex(cpln, bddbsa=bddbsa, polynomial_map=polynomial_map)
+    else:
+        cpl_complex = SemialgebraicComplex(cpln, bddbsa=bddbsa, polynomial_map=polynomial_map, find_region_type=find_region_type_igp_extreme_big_cells)
     if flip_ineq_step != 0:
         cpl_complex.bfs_completion(var_value, flip_ineq_step, check_completion, wall_crossing_method, goto_lower_dim)
     else:
@@ -356,6 +383,7 @@ def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=Fa
                                            check_completion=False,
                                            wall_crossing_method='heuristic',
                                            goto_lower_dim=True,
+                                           big_cells=False,
                                            regions = None):
     r"""
     Divide the space into cells where the arrangement of breakpoints of `\pi` is combinatorially the same.
@@ -377,7 +405,7 @@ def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=Fa
         r.thetas = {}
         thetas_of_r = generate_thetas_of_region(r)
         for theta in thetas_of_r:
-            cpl_complex = cpl_fill_region_given_theta(r, theta, flip_ineq_step, check_completion, wall_crossing_method, goto_lower_dim)
+            cpl_complex = cpl_fill_region_given_theta(r, theta, flip_ineq_step, check_completion, wall_crossing_method, goto_lower_dim, big_cells)
             if keep_extreme_only:
                 components = [c for c in cpl_complex.components if c.region_type=='is_extreme']
             else:
@@ -390,6 +418,7 @@ def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=Fa
 def cpl_thetas_and_regions_extreme(regions):
     r"""
     Gather the blue components that correspond to the same expression of theta together.
+    Favour thetas with 2d extreme regions.
 
     EXAMPLES::
 
@@ -400,33 +429,38 @@ def cpl_thetas_and_regions_extreme(regions):
         9
     """
     thetas_and_regions = {}
+    extreme_c_theta= [[],[],[]]
     for r in regions:
         for (theta, components) in (r.thetas).items():
-            extreme_regions = [c for c in components if c.region_type=='is_extreme']
-            if not extreme_regions:
+            for c in components:
+                if (c.region_type==True or c.region_type=='is_extreme'):
+                    num_eq = len(list(c.bsa.eq_poly()))
+                    extreme_c_theta[num_eq].append((c, theta))
+    for (c, theta) in (extreme_c_theta[0]+extreme_c_theta[1]+extreme_c_theta[2]):
+        new_theta = True
+        tt =  tuple([ti(c.polynomial_map) for ti in theta])
+        for t in thetas_and_regions.keys():
+            try:
+                if tt == tuple([ti(c.polynomial_map) for ti in t]):
+                    thetas_and_regions[t].append(c)
+                    new_theta = False
+            except ZeroDivisionError:
                 continue
-            new_theta = True
-            for t in thetas_and_regions.keys():
-                try:
-                    if theta == tuple([ti(r.polynomial_map) for ti in t]):
-                        thetas_and_regions[t] += extreme_regions
-                        new_theta = False
-                except ZeroDivisionError:
-                    continue
-            if new_theta:
-                thetas_and_regions[theta] = extreme_regions
+        if new_theta:
+            thetas_and_regions[theta] = [c]
     return thetas_and_regions
 
 def cpl_regions_fix_theta(regions, theta):
     components = []
     for r in regions:
-        try:
-            tt =  tuple([ti(r.polynomial_map) for ti in theta])
-        except ZeroDivisionError:
-            continue
         for (t, ct) in (r.thetas).items():
-            if t == tt:
-                components += ct
+            for c in ct:
+                try:
+                    tt =  tuple([ti(c.polynomial_map) for ti in theta])
+                    if tt == tuple([ti(c.polynomial_map) for ti in t]):
+                        components.append(c)
+                except ZeroDivisionError:
+                    continue
     return components
 
 def cpl_thetas_and_regions(regions, thetas_and_regions):
@@ -446,7 +480,7 @@ def cpl_thetas_and_regions(regions, thetas_and_regions):
         thetas_and_components[theta]=components
     return thetas_and_components
 
-def save_cpl_extreme_theta_regions(thetas_and_regions, name="cpl_theta"):
+def save_cpl_extreme_theta_regions(thetas_and_regions, name="cpl_theta", goto_lower_dim=False):
     r"""
     To plot only blue regions.
     Get diagrams "cpl_ext_theta_i" that show only blue regions.
@@ -496,14 +530,14 @@ def save_cpl_extreme_theta_regions(thetas_and_regions, name="cpl_theta"):
             title = "extreme point %s:\n" % k
             for i in range(n_theta):
                 title += "theta_%s = %s \n" % (i+1, theta[i])
-        g = plot_cpl_components(components)
+        g = plot_cpl_components(components, goto_lower_dim=goto_lower_dim)
         g += text(title, (0.5, 1/4), color='black')
         g.save(name+"_%s.png" %k, xmin=0, xmax=1, ymin=0, ymax=1/4)
 
-def collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_theta"):
+def collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_theta", goto_lower_dim=False):
     thetas_and_regions = cpl_thetas_and_regions_extreme(regions)
     thetas_and_components = cpl_thetas_and_regions(regions, thetas_and_regions)
-    save_cpl_extreme_theta_regions(thetas_and_components, name=name)
+    save_cpl_extreme_theta_regions(thetas_and_components, name=name, goto_lower_dim=goto_lower_dim)
 
 
 
