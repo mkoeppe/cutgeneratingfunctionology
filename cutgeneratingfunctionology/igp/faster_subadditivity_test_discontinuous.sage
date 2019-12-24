@@ -144,7 +144,7 @@ class SubadditivityTestTreeNodeGeneral(object):
         m_K=QQ(p.get_values(m3))
         b_I=min(self.I_values_min()[i]-m_I*self.I_bkpts()[i] for i in range(len(self.I_values_min())))
         b_J=min(self.J_values_min()[i]-m_J*self.J_bkpts()[i] for i in range(len(self.J_values_min())))
-        b_K=max(self.K_values_max()[i]-m_K*self.K_bkpts()[i] for i in range(len(self.K_values)max())))
+        b_K=max(self.K_values_max()[i]-m_K*self.K_bkpts()[i] for i in range(len(self.K_values_max())))
         return min(m_I*v[0]+b_I+m_J*v[1]+b_J-m_K*(v[0]+v[1])-b_K for v in self.vertices), [[m_I,b_I],[m_J,b_J],[m_K,b_K]]
 
     def delta_pi_upper_bound(self):
@@ -229,8 +229,8 @@ class SubadditivityTestTreeNodeGeneral(object):
         else:
             return True
 
-    def generate_children(self,upper_bound=0,stop_only_if_strict=True):
-        if not self.is_fathomed(upper_bound,stop_only_if_strict):
+    def generate_children(self,upper_bound=0,stop_only_if_strict=True,**kwds):
+        if not self.is_fathomed(upper_bound,stop_only_if_strict,**kwds):
             I1,I2=self.new_intervals()
             self.left_child=SubadditivityTestTreeNodeGeneral(self.function,self.level+1,I1)
             self.right_child=SubadditivityTestTreeNodeGeneral(self.function,self.level+1,I2)
@@ -266,6 +266,14 @@ class SubadditivityTestTreeGeneral:
         sage: T = SubadditivityTestTreeGeneral(h)
         sage: T.minimum()
         0
+        sage: len(T.complete_node_set)
+        203
+        sage: T = SubadditivityTestTreeGeneral(h)
+        sage: T.minimum(max_number_of_bkpts = 10000,solver = 'ppl')
+        0
+        sage: len(T.complete_node_set)
+        183
+
         sage: T = SubadditivityTestTreeGeneral(h)
         sage: T.is_subadditive()
         True
@@ -295,9 +303,9 @@ class SubadditivityTestTreeGeneral:
     def node_branching(self,node,search_method='BB',find_min=True,stop_only_if_strict=True,**kwds):
         if not node.left_child:
             if find_min:
-                node.generate_children(self.global_upper_bound,stop_only_if_strict)
+                node.generate_children(self.global_upper_bound,stop_only_if_strict,**kwds)
             else:
-                node.generate_children(self.objective_limit,stop_only_if_strict)
+                node.generate_children(self.objective_limit,stop_only_if_strict,**kwds)
             if node.left_child:
                 if search_method=='BFS':
                     self.unfathomed_node_list.put((len(self.complete_node_set),node.left_child))
@@ -335,7 +343,7 @@ class SubadditivityTestTreeGeneral:
             upper_bound=current_node.delta_pi_upper_bound()
             if upper_bound<self.global_upper_bound:
                 self.global_upper_bound=upper_bound
-            self.node_branching(current_node,search_method=search_method,find_min=True,stop_only_if_strict=False)
+            self.node_branching(current_node,search_method=search_method,find_min=True,stop_only_if_strict=False,**kwds)
             if not current_node.is_divisible():
                 upper_bound=current_node.delta_pi_min_of_indivisible_node()
                 if upper_bound<self.global_upper_bound:
@@ -364,7 +372,7 @@ class SubadditivityTestTreeGeneral:
                     self.nonsubadditive_vertices.add(v)
                 if delta==self.objective_limit and cache_additive_vertices:
                     self.additive_vertices.add(v)
-            self.node_branching(current_node,search_method=search_method,find_min=False,stop_only_if_strict=cache_additive_vertices)
+            self.node_branching(current_node,search_method=search_method,find_min=False,stop_only_if_strict=cache_additive_vertices,**kwds)
         if not hasattr(self,'_is_subadditive'):
             self._is_subadditive=True
         return self._is_subadditive
