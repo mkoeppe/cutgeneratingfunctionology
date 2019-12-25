@@ -51,7 +51,8 @@ class ParametricFamily_cpl_n_group_function(ParametricFamily_base):
         else:
             var_name = ['f']+['z%s' % i for i in range(1, n)]
             var_value = [3/5]+[1/(5^i) for i in range(2, n+1)]  #arbitrary values
-        super(cpl_n_group_function, self).__init__(zip(var_name, var_value), var_name)
+        defaults = list(zip(var_name, var_value)) + [('field', None)]
+        super(cpl_n_group_function, self).__init__(defaults, var_name)
         self._n = n
         self._cpleq = cpleq # in cpl3eq, z1=z2
         if theta is None:
@@ -590,3 +591,33 @@ def collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_theta", goto_l
 # BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {x0>0, -6*x0-x1+1>0, 2*x1-1>0}), polynomial_map=[z, f])
 # sage: bddbsa == copy(bddbsa)   #BUG!!!
 # False
+
+### CPL PLOT ###
+# sage: import cutgeneratingfunctionology.igp as igp; reload(igp);  from cutgeneratingfunctionology.igp import *
+# sage: logging.disable(logging.INFO)
+# sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)
+# sage: regions = cpl_regions_with_thetas_and_components(n=3, cpleq=True, regions=regions); collect_and_save_cpl_extreme_theta_regions(regions, name="cpl", goto_lower_dim=True)
+
+# sage: import cutgeneratingfunctionology.igp as igp; reload(igp);  from cutgeneratingfunctionology.igp import *
+# sage: logging.disable(logging.INFO)
+# sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)
+# sage: regions = cpl_regions_with_thetas_and_components(n=3, cpleq=True, big_cells=True, regions=regions); collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_igp", goto_lower_dim=True)
+
+# sage: import cutgeneratingfunctionology.igp as igp; reload(igp);  from cutgeneratingfunctionology.igp import *
+# sage: logging.disable(logging.INFO)
+# sage: igp.big_cells_default=True
+# sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)
+# sage: regions = cpl_regions_with_thetas_and_components(n=3, cpleq=True, regions=regions); collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_bigcell", goto_lower_dim=True)
+
+
+# sage: import cutgeneratingfunctionology.igp as igp; reload(igp);  from cutgeneratingfunctionology.igp import *
+# sage: logging.disable(logging.INFO)
+# sage: igp.big_cells_default=True
+# sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)
+# sage: regions = cpl_regions_with_thetas_and_components(n=3, cpleq=True, big_cells=True, regions=regions); collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_bigcell_igp", goto_lower_dim=True)
+
+# sage: import cutgeneratingfunctionology.igp as igp; reload(igp); igp.bigcellify_igp(); from cutgeneratingfunctionology.igp import *
+# sage: logging.disable(logging.INFO)
+# sage: igp.big_cells_default=True
+# sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)
+# sage: regions = cpl_regions_with_thetas_and_components(n=3, cpleq=True, big_cells=True, regions=regions); collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_bigcellify_igp", goto_lower_dim=True)
