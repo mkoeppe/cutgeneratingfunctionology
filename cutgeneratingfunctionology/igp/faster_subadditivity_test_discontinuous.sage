@@ -225,6 +225,14 @@ class SubadditivityTestTreeNodeGeneral(object):
 
     def is_divisible(self):
         if len(self.I_bkpts())<=2 and len(self.J_bkpts())<=2 and len(self.K_bkpts())<=2:
+            if self.affine_estimators is None:
+                slope_I=(self.I_values_min()[0]-self.I_values_min()[1])/(self.I_bkpts()[0]-self.I_bkpts()[1])
+                slope_J=(self.J_values_min()[0]-self.J_values_min()[1])/(self.J_bkpts()[0]-self.J_bkpts()[1])
+                slope_K=(self.K_values_max()[0]-self.K_values_max()[1])/(self.K_bkpts()[0]-self.K_bkpts()[1])
+                intercept_I=self.I_values_min()[0]-slope_I*self.I_bkpts()[0]
+                intercept_J=self.J_values_min()[0]-slope_J*self.J_bkpts()[0]
+                intercept_K=self.K_values_min()[0]-slope_K*self.K_bkpts()[0]
+                self.affine_estimators=[[slope_I,intercept_I],[slope_J,intercept_J],[slope_K,intercept_K]]
             return False
         else:
             return True
