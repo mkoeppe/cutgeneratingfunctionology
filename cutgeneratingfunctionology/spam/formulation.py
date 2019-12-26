@@ -27,6 +27,24 @@ class FourierSystem :
         self.binary_variables = binary_variables
         if remove_binary_only:
             self.remove_binary_variable_only_rows(binary_variables)
+        self.normalize()
+
+    def normalize(self):
+        matrix=self.matrix.copy()
+        for i in range(len(matrix)):
+            row=matrix[i]
+            for j in range(len(row)):
+                if row[j]!=0:
+                    break
+            if row[j]==0:
+                continue
+            pivot=row[j]
+            for k in range(j,len(row)):
+                if pivot>0:
+                    row[k]=row[k]/pivot
+                else:
+                    row[k]=-row[k]/pivot
+            self.matrix[i]=row
 
     def remove_binary_variable_only_rows(self, binary_variables):
         r"""
@@ -162,20 +180,6 @@ def check_redundancy_one_to_one(i1,i2,binary_variables=3):
         except ParametricRealFieldFrozenError:
             return False
     return True
-
-def normalize(row):
-    for i in range(len(row)):
-        if row[i]!=0:
-            break
-    if row[i]==0:
-        return row
-    pivot=row[i]
-    for j in range(i,len(row)):
-        if pivot>0:
-            row[j]=row[j]/pivot
-        else:
-            row[j]=-row[j]/pivot
-    return row
 
 def FM_relu_1d(K,**kwds):
     """
