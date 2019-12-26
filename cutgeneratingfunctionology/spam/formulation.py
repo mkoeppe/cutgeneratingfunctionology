@@ -9,25 +9,36 @@ class FourierSystem :
     The last column respresent the constant term.
     """
 
-    def __init__(self, matrix, history_set, remove_binary_only= False, binary_variables = 0):
+    def __init__(self, field, matrix, history_set, remove_binary_only= False, binary_variables = 0):
         r"""
         Initialize the system for FM elimination.
         The parameter remove_binary_only is specific for relu/clipped relu formulation.
         If remove_binary_only is True, then those rows with only binary variables will be removed.
         
         The binary variables always appear at the end.
+        
+        Examples::
+        
+            sage: import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
+            sage: from cutgeneratingfunctionology.spam.formulation import *
+            sage: logging.disable(logging.INFO)
+            sage: K.<L1,U1,L2,U2,W1,W2,b>=ParametricRealField([QQ(-2),QQ(2),QQ(-1),QQ(3),QQ(1),QQ(2),QQ(1/2)])
+            sage: FS=FM_relu_2d(K,remove_binary_only=True,binary_variables=1)
         """
         if len(matrix) == 0:
             raise ValueError("empty matrix")
         if len(matrix) != len(history_set):
             raise ValueError("Size of matrix and history_set doesn't match.")
+        self.field=field
         self.matrix=matrix
         self.history_set=history_set
         self.remove_binary_only = remove_binary_only
         self.binary_variables = binary_variables
         if remove_binary_only:
-            self.remove_binary_variable_only_rows(binary_variables)
-        self.normalize()
+            with self.field.off_the_record():
+                self.remove_binary_variable_only_rows(binary_variables)
+        with self.field.off_the_record():
+            self.normalize()
 
     def normalize(self):
         matrix=self.matrix.copy()
@@ -115,10 +126,11 @@ class FourierSystem :
                 new_h=self.history_set[u].union(self.history_set[l])
                 new_matrix.append(new_row)
                 new_history_set.append(new_h)
-        new_FourierSystem = FourierSystem(matrix = new_matrix, history_set = new_history_set, remove_binary_only = self.remove_binary_only, binary_variables = self.binary_variables)
+        new_FourierSystem = FourierSystem(field = self.field, matrix = np.asarray(new_matrix), history_set = new_history_set, remove_binary_only = self.remove_binary_only, binary_variables = self.binary_variables)
         if minimal_history_set:
             new_FourierSystem.remove_non_minimal_history_set()
-        new_FourierSystem.remove_constant_only_rows()
+        with new_FourierSystem.field.off_the_record():
+            new_FourierSystem.remove_constant_only_rows()
         return new_FourierSystem
 
 def find_new_inequalities_clipped_relu(K, param):
@@ -181,7 +193,7 @@ def check_redundancy_one_to_one(i1,i2,binary_variables=3):
             return False
     return True
 
-def FM_relu_1d(K,**kwds):
+def FM_relu_1d(K, **kwds):
     """
     One dimensional relu. (x0,x1,x,y,z,1).
     """
@@ -199,12 +211,10 @@ def FM_relu_1d(K,**kwds):
     A.append([0,-1,0,0,L,0])
 
     A=np.asarray(A)
-    FS=FourierSystem(A,initialize_history_set(A),**kwds)
+    FS=FourierSystem(K,A,initialize_history_set(A),**kwds)
     FS1=FS.one_step_elimination()
     FS2=FS1.one_step_elimination()
     return FS2
-
-    return naive_simplify(A2,binary_variables=1)
 
 def FM_relu_2d(K, **kwds):
     """
@@ -231,11 +241,12 @@ def FM_relu_2d(K, **kwds):
     A.append([0,0,0,-1,0,0,0,L2,0])
 
     A=np.asarray(A)
-    A1=FM_symbolic(A,**kwds)
-    A2=FM_symbolic(A1,**kwds)
-    A3=FM_symbolic(A2,**kwds)
-    A4=FM_symbolic(A3,**kwds)
-    return naive_simplify(A4,binary_variables=1)
+    FS=FourierSystem(K,A,initialize_history_set(A),**kwds)
+    FS1=FS.one_step_elimination()
+    FS2=FS1.one_step_elimination()
+    FS3=FS2.one_step_elimination()
+    FS4=FS3.one_step_elimination()
+    return FS4
 
 def clipped_relu_extended_matrix(param):
     """
