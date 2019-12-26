@@ -2,26 +2,48 @@ import numpy as np
 import itertools
 import random
 
-from cutgeneratingfunctionology.spam.basic_semialgebraic_linear_system import BasicSemialgebraicSet_polyhedral_linear_system
-
-random.seed(9001)
-
 class FourierSystem :
     
     r"""
-    Class for FM elimination using matrix.
+    Class for FM elimination system using matrix A representing the set Ax<=0.
+    The last column respresent the constant term.
     """
 
-    def __init__(self, matrix, history_set):
+    def __init__(self, matrix, history_set, remove_binary_only= False, binary_variables = 0):
+        r"""
+        Initialize the system for FM elimination.
+        The parameter remove_binary_only is specific for relu/clipped relu formulation.
+        If remove_binary_only is True, then those rows with only binary variables will be removed.
+        
+        The binary variables always appear at the end.
+        """
         if len(matrix) == 0:
             raise ValueError("empty matrix")
         if len(matrix) != len(history_set):
             raise ValueError("Size of matrix and history_set doesn't match.")
-        self.number_of_rows=len(matrix)
         self.matrix=matrix
         self.history_set=history_set
+        self.remove_binary_only = remove_binary_only
+        self.binary_variables = binary_variables
+        if remove_binary_only:
+            self.remove_binary_variable_only_rows(binary_variables)
+
+    def remove_binary_variable_only_rows(self, binary_variables):
+        r"""
+        Remove those rows with only binary variables.
+        """
+        nonredundancy_list=[]
+        for i in range(len(self.matrix)):
+            row = self.matrix[i]
+            if row[:-binary_variables-1].any():
+                nonredundancy_list.append(i)
+        self.matrix=np.asarray([self.matrix[i] for i in range(len(self.matrix)) if i in nonredundancy_list])
+        self.history_set=[self.history_set[i] for i in range(len(self.history_set)) if i in nonredundancy_list]
 
     def remove_non_minimal_history_set(self):
+        r"""
+        Remove those rows with non minimal history_set.
+        """
         redundancy_list=[]
         for i in range(len(self.history_set)):
             for j in range(len(self.history_set)):
@@ -31,9 +53,26 @@ class FourierSystem :
                     redundancy_list.append(j)
         self.matrix=np.asarray([self.matrix[i] for i in range(len(self.matrix)) if i not in redundancy_list])
         self.history_set=[self.history_set[i] for i in range(len(self.history_set)) if i not in redundancy_list]
-        self.number_of_rows=len(self.matrix)
+    
+    def remove_constant_only_rows(self):
+        r"""
+        Remove the constant row and check naive feasibility of constant row.
+        """
+        redundancy_list=[]
+        for i in range(len(self.matrix)):
+            row = self.matrix[i]
+            if np.all(row[:-1]==0) and row[-1]>0:
+                print('The system is not feasible.')
+                return
+            if np.all(row[:-1]==0) and row[-1]<=0:
+                redundancy_list.append(i)
+        self.matrix=np.asarray([self.matrix[i] for i in range(len(self.matrix)) if i not in redundancy_list])
+        self.history_set=[self.history_set[i] for i in range(len(self.history_set)) if i not in redundancy_list]
 
     def one_step_elimination(self, minimal_history_set = True):
+        r"""
+        Perform one step FM elimination to eliminate the first column.
+        """
         equ=[]
         low=[]
         upp=[]
@@ -58,9 +97,10 @@ class FourierSystem :
                 new_h=self.history_set[u].union(self.history_set[l])
                 new_matrix.append(new_row)
                 new_history_set.append(new_h)
-        new_FourierSystem = FourierSystem(matrix = new_matrix, history_set = new_history_set)
+        new_FourierSystem = FourierSystem(matrix = new_matrix, history_set = new_history_set, remove_binary_only = self.remove_binary_only, binary_variables = self.binary_variables)
         if minimal_history_set:
             new_FourierSystem.remove_non_minimal_history_set()
+        new_FourierSystem.remove_constant_only_rows()
         return new_FourierSystem
 
 def find_new_inequalities_clipped_relu(K, param):
@@ -102,7 +142,7 @@ def find_new_inequalities_clipped_relu(K, param):
     return res
 
 def initialize_history_set(matrix):
-    return [{i} for i in range(len(matrix)]
+    return [{i} for i in range(len(matrix))]
 
 def check_redundancy_one_to_one(i1,i2,binary_variables=3):
     """
@@ -137,18 +177,7 @@ def normalize(row):
             row[j]=-row[j]/pivot
     return row
 
-def naive_simplify(A,binary_variables=3):
-    """
-    The last binary_variables+1 columns represent all binary variables z_i, and the constant term.
-    If all previous entries of a row in A is 0, drop the row.
-    """
-    res=[]
-    for row in A:
-        if row[:-binary_variables-1].any():
-            res.append(row)
-    return np.asarray(res)
-
-def FM_relu_1d(K, **kwds):
+def FM_relu_1d(K,**kwds):
     """
     One dimensional relu. (x0,x1,x,y,z,1).
     """
@@ -166,8 +195,10 @@ def FM_relu_1d(K, **kwds):
     A.append([0,-1,0,0,L,0])
 
     A=np.asarray(A)
-    A1=FM_symbolic(A,**kwds)
-    A2=FM_symbolic(A1,**kwds)
+    FS=FourierSystem(A,initialize_history_set(A),**kwds)
+    FS1=FS.one_step_elimination()
+    FS2=FS1.one_step_elimination()
+    return FS2
 
     return naive_simplify(A2,binary_variables=1)
 
@@ -399,24 +430,6 @@ def FM_symbolic(A,check_feasible_redundancy=False):
                 A1.append(new_row)
     A1=np.asarray(A1)
     return A1
-
-def FM_check_redundancy(row):
-    """
-    Check redundancy based on the constant term.
-    """
-    if np.all(row[:-1]==0) and row[-1]<=0:
-        return True
-    else:
-        return False
-
-def FM_check_feasible(row):
-    """
-    Check feasibility based on the constant term.
-    """
-    if np.all(row[:-1]==0) and row[-1]>0:
-        return False
-    else:
-        return True
 
 def verifying_one_dim_case(number_of_cases,backend='normaliz'):
     i=0
