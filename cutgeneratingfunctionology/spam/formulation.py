@@ -6,48 +6,41 @@ from cutgeneratingfunctionology.spam.basic_semialgebraic_linear_system import Ba
 
 random.seed(9001)
 
-class InequalityRow :
-
-    def __init__(self, row, h):
-        self.row=row
-        self.h=h
-
 class FourierSystem :
+    
+    r"""
+    Class for FM elimination using matrix.
+    """
 
-    def __init__(self,M):
-        self.number_of_rows=len(M)
-        self.M=M
-        A=[]
-        for r in M:
-            A.append(r.row)
-        self.matrix=np.asarray(A)
+    def __init__(self, matrix, history_set):
+        if len(matrix) == 0:
+            raise ValueError("empty matrix")
+        if len(matrix) != len(history_set):
+            raise ValueError("Size of matrix and history_set doesn't match.")
+        self.number_of_rows=len(matrix)
+        self.matrix=matrix
+        self.history_set=history_set
 
-    def remove_redundancy(self):
+    def remove_non_minimal_history_set(self):
         redundancy_list=[]
-        for i in range(len(self.M)):
-            for j in range(len(self.M)):
+        for i in range(len(self.history_set)):
+            for j in range(len(self.history_set)):
                 if i==j:
                     continue
-                if self.M[i].h.issubset(self.M[j].h):
-                    redundancy_list.append(i)
-        new_M=[]
-        for j in range(len(self.M)):
-            if j not in redundancy_list:
-                new_M.append(self.M[j])
-        self.M=new_M
-        self.number_of_rows=len(new_M)
-        A=[]
-        for r in new_M:
-            A.append(r.row)
-        self.matrix=np.asarray(A)
+                if self.history_set[i].issubset(self.history_set[j]) and self.history_set[i] != self.history_set[j]:
+                    redundancy_list.append(j)
+        self.matrix=np.asarray([self.matrix[i] for i in range(len(self.matrix)) if i not in redundancy_list])
+        self.history_set=[self.history_set[i] for i in range(len(self.history_set)) if i not in redundancy_list]
+        self.number_of_rows=len(self.matrix)
 
-    def pivot(self):
+    def one_step_elimination(self, minimal_history_set = True):
         equ=[]
         low=[]
         upp=[]
-        M1=[]
-        for i in range(len(self.M)):
-            row=self.M[i].row
+        new_matrix=[]
+        new_history_set=[]
+        for i in range(len(self.matrix)):
+            row=self.matrix[i]
             if row[0]>0:
                 upp.append(i)
             elif row[0]<0:
@@ -55,16 +48,20 @@ class FourierSystem :
             else:
                 equ.append(i)
         for e in equ:
-            M1.append(InequalityRow(self.M[e].row[1:],self.M[e].h))
+            new_matrix.append(self.matrix[e][1:])
+            new_history_set.append(self.history_set[e])
         for l in low:
             for u in upp:
-                positive_row=self.M[u].row
-                negative_row=self.M[l].row
+                positive_row=self.matrix[u]
+                negative_row=self.matrix[l]
                 new_row=positive_row[1:]*(-negative_row[0])+negative_row[1:]*positive_row[0]
-                new_h=self.M[u].h.union(self.M[l].h)
-                M1.append(InequalityRow(new_row,new_h))
-        self.M=M1
-        self.remove_redundancy()
+                new_h=self.history_set[u].union(self.history_set[l])
+                new_matrix.append(new_row)
+                new_history_set.append(new_h)
+        new_FourierSystem = FourierSystem(matrix = new_matrix, history_set = new_history_set)
+        if minimal_history_set:
+            new_FourierSystem.remove_non_minimal_history_set()
+        return new_FourierSystem
 
 def find_new_inequalities_clipped_relu(K, param):
     L,U,W,b,C=param['L'],param['U'],param['W'],param['b'],param['C']
@@ -92,7 +89,7 @@ def find_new_inequalities_clipped_relu(K, param):
     A=clipped_relu_extended_matrix(param)
     S=initialize_fourier_system(A)
     for i in range(3*n):
-        S.pivot()
+        S.one_step_elimination()
     FM_matrix=naive_simplify(S.matrix,binary_variables=3)
     FM_matrix=[normalize(row) for row in FM_matrix]
 
@@ -104,11 +101,8 @@ def find_new_inequalities_clipped_relu(K, param):
             res.append(i1)
     return res
 
-def initialize_fourier_system(A):
-    M=[]
-    for i in range(len(A)):
-        M.append(InequalityRow(A[i],{i}))
-    return FourierSystem(M)
+def initialize_history_set(matrix):
+    return [{i} for i in range(len(matrix)]
 
 def check_redundancy_one_to_one(i1,i2,binary_variables=3):
     """
