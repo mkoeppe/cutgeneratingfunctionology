@@ -24,7 +24,7 @@ class FourierSystem :
             sage: from cutgeneratingfunctionology.spam.formulation import *
             sage: logging.disable(logging.INFO)
             sage: K.<L1,U1,L2,U2,W1,W2,b>=ParametricRealField([QQ(-2),QQ(2),QQ(-1),QQ(3),QQ(1),QQ(2),QQ(1/2)], allow_coercion_to_float=False)
-            sage: FS=FM_relu_2d(K,remove_binary_only=True,binary_variables=1)
+            sage: FS=FM_relu_2d(K)
         """
         if len(matrix) == 0:
             raise ValueError("empty matrix")
@@ -147,6 +147,16 @@ class FourierSystem :
             else:
                 return True
 
+    def is_constant_only_row(self, row):
+        r"""
+        Return True if the row only contains the constant term.
+        """
+        with self.field.off_the_record():
+            if np.all(row[:-1]==0):
+                return True
+            else:
+                return False
+
     def is_binary_only_row_provable(self, row):
         r"""
         Return True if the row only contains binary variables and the row is redundant.
@@ -231,9 +241,32 @@ def check_redundancy_one_to_one(i1,i2,binary_variables=3):
             return False
     return True
 
-def FM_relu_1d(K, **kwds):
+def FM_relu_1d(K):
     """
     One dimensional relu. (x0,x1,x,y,z,1).
+    
+    EXAMPLES::
+    
+        sage: import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
+        sage: from cutgeneratingfunctionology.spam.formulation import *
+        sage: logging.disable(logging.INFO)
+        sage: K.<L,U,W,b> = ParametricRealField([QQ(-2),QQ(2),QQ(1),QQ(1/2)], allow_coercion_to_float=False)
+        sage: FS = FM_relu_1d(K)
+        sage: FS.matrix
+        array([[0, -1, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, (-L*W - b)~, (L*W + b)~],
+        [0, 0, (-L + U)~, (L - U)~],
+        [0, 0, 0, 0],
+        [0, 1, (-U*W - b)~, 0],
+        [(-W)~, 1, (-L*W - b)~, (L*W)~],
+        [0, -1, (L*W + b)~, 0],
+        [0, 0, (L - U)~, 0],
+        [-1, 0, 0, L~],
+        [(W^2)~, (-W)~, 0, (W*b)~],
+        [W~, 0, (-U*W - b)~, b~],
+        [W~, -1, (U*W + b)~, (-U*W)~],
+        [1, 0, 0, (-U)~]], dtype=object)
     """
     L,U,W,b = K.gens()
     A=[]
@@ -249,12 +282,12 @@ def FM_relu_1d(K, **kwds):
     A.append([0,-1,0,0,L,0])
 
     A=np.asarray(A)
-    FS=FourierSystem(K,A,initialize_history_set(A),**kwds)
+    FS=FourierSystem(K,A,initialize_history_set(A), binary_variables = 1)
     FS1=FS.one_step_elimination()
     FS2=FS1.one_step_elimination()
     return FS2
 
-def FM_relu_2d(K, **kwds):
+def FM_relu_2d(K):
     """
     Two dimensional relu. (x0_1,x1_1,x0_2,x1_2,x_1,x_2,y,z,1).
     """
@@ -279,7 +312,7 @@ def FM_relu_2d(K, **kwds):
     A.append([0,0,0,-1,0,0,0,L2,0])
 
     A=np.asarray(A)
-    FS=FourierSystem(K,A,initialize_history_set(A),**kwds)
+    FS=FourierSystem(K,A,initialize_history_set(A),binary_variables=1)
     FS1=FS.one_step_elimination()
     FS2=FS1.one_step_elimination()
     FS3=FS2.one_step_elimination()
