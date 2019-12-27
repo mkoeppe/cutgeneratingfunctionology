@@ -2,6 +2,7 @@ import numpy as np
 import itertools
 import random
 
+from cutgeneratingfunctionology.igp import ParametricRealFieldFrozenError
 
 class FourierSystem :
     
@@ -15,7 +16,6 @@ class FourierSystem :
         Initialize the system for FM elimination.
         The parameter remove_binary_only is specific for relu/clipped relu formulation.
         If remove_binary_only is True, then those rows with only binary variables will be removed.
-        
         The binary variables always appear at the end.
         
         Examples::
