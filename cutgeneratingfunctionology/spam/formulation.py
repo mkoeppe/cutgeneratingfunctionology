@@ -2,6 +2,7 @@ import numpy as np
 import itertools
 import random
 
+
 class FourierSystem :
     
     r"""
@@ -9,7 +10,7 @@ class FourierSystem :
     The last column respresent the constant term.
     """
 
-    def __init__(self, field, matrix, history_set, remove_binary_only= False, binary_variables = 0):
+    def __init__(self, field, matrix, history_set, binary_variables = 0):
         r"""
         Initialize the system for FM elimination.
         The parameter remove_binary_only is specific for relu/clipped relu formulation.
@@ -22,7 +23,7 @@ class FourierSystem :
             sage: import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
             sage: from cutgeneratingfunctionology.spam.formulation import *
             sage: logging.disable(logging.INFO)
-            sage: K.<L1,U1,L2,U2,W1,W2,b>=ParametricRealField([QQ(-2),QQ(2),QQ(-1),QQ(3),QQ(1),QQ(2),QQ(1/2)])
+            sage: K.<L1,U1,L2,U2,W1,W2,b>=ParametricRealField([QQ(-2),QQ(2),QQ(-1),QQ(3),QQ(1),QQ(2),QQ(1/2)], allow_coercion_to_float=False)
             sage: FS=FM_relu_2d(K,remove_binary_only=True,binary_variables=1)
         """
         if len(matrix) == 0:
@@ -32,15 +33,18 @@ class FourierSystem :
         self.field=field
         self.matrix=matrix
         self.history_set=history_set
-        self.remove_binary_only = remove_binary_only
         self.binary_variables = binary_variables
-        if remove_binary_only:
-            with self.field.off_the_record():
-                self.remove_binary_variable_only_rows(binary_variables)
-        with self.field.off_the_record():
-            self.normalize()
+        # Only normalize rows and remove binary only rows if no future elimination is needed.
+        #if remove_binary_only:
+            # with self.field.off_the_record():
+                #self.remove_binary_variable_only_rows(binary_variables)
+        #with self.field.off_the_record():
+            #self.normalize()
 
     def normalize(self):
+        r"""
+        Normalize every row based on the first non-zero entry.
+        """
         matrix=self.matrix.copy()
         for i in range(len(matrix)):
             row=matrix[i]
@@ -126,12 +130,46 @@ class FourierSystem :
                 new_h=self.history_set[u].union(self.history_set[l])
                 new_matrix.append(new_row)
                 new_history_set.append(new_h)
-        new_FourierSystem = FourierSystem(field = self.field, matrix = np.asarray(new_matrix), history_set = new_history_set, remove_binary_only = self.remove_binary_only, binary_variables = self.binary_variables)
+        new_FourierSystem = FourierSystem(field = self.field, matrix = np.asarray(new_matrix), history_set = new_history_set, binary_variables = self.binary_variables)
         if minimal_history_set:
             new_FourierSystem.remove_non_minimal_history_set()
-        with new_FourierSystem.field.off_the_record():
-            new_FourierSystem.remove_constant_only_rows()
+        #with new_FourierSystem.field.off_the_record():
+        #new_FourierSystem.remove_constant_only_rows()
         return new_FourierSystem
+
+    def is_binary_only_row(self, row):
+        r"""
+        Return True if the row only contains binary variables.
+        """
+        with self.field.off_the_record():
+            if row[:-self.binary_variables-1].any():
+                return False
+            else:
+                return True
+
+    def is_binary_only_row_provable(self, row):
+        r"""
+        Return True if the row only contains binary variables and the row is redundant.
+        """
+        if self.is_binary_only_row(row):
+            constant_term=row[-1]
+            binary_terms=row[-self.binary_variables-1:-1]
+            all_binary_vectors=generate_all_binary_vectors(self.binary_variables)
+            for binary_vector in all_binary_vectors:
+                test_term=constant_term+sum(binary_terms[i]*binary_vector[i] for i in range(self.binary_variables))
+                assert test_term-1000000<=0
+                self.field._bsa.tighten_upstairs_by_mccormick(max_iter=5)
+                self.field.freeze()
+                try:
+                    assert test_term<=0
+                except (ParametricRealFieldFrozenError, AssertionError) as e:
+                    self.field.unfreeze()
+                    return False
+                self.field.unfreeze()
+            return True
+        else:
+            return False
+
 
 def find_new_inequalities_clipped_relu(K, param):
     L,U,W,b,C=param['L'],param['U'],param['W'],param['b'],param['C']
