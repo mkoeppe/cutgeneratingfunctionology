@@ -862,6 +862,10 @@ class ParametricRealField(Field):
                 numerator *= the_lcm
                 unit = 1
             factors = Factorization([(numerator / unit, 1)], unit=unit)
+        elif comparison.denominator() == 1:
+            # Works around a sage bug in 9.1.beta1:
+            numerator = comparison.numerator()
+            factors = numerator.factor()
         else:
             factors = comparison.factor()
         if op in (operator.eq, operator.le):
