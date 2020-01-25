@@ -352,6 +352,9 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
     def _linear_polynomial(self, form, constant=0):
         return sum(coeff * gen for coeff, gen in zip(form, self.poly_ring().gens())) + constant
 
+    def is_empty(self):
+        
+
     def add_linear_constraint(self, lhs, cst, op):
         r"""
         Add the constraint ``lhs`` * x + cst ``op`` 0,
@@ -1712,7 +1715,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
     def from_bsa(cls, bsa, poly_ring=None, **init_kwds):
         if poly_ring is None:
             poly_ring = bsa.poly_ring()
-        return super(BasicSemialgebraicSet_veronese, cls).from_bsa(bsa, poly_ring=poly_ring)
+        return super(BasicSemialgebraicSet_veronese, cls).from_bsa(bsa, poly_ring=poly_ring, **init_kwds)
 
     def __copy__(self):
         r"""
