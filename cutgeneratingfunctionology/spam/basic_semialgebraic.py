@@ -149,6 +149,12 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
 
             sage: upstairs_bsa_mip = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram.from_bsa(upstairs_bsa_eq_lt_le_sets, solver='ppl')    # not tested - unfinished implementation
 
+        Test that ``BasicSemialgebraicSet_veronese`` supports this method without keyword arguments::
+
+            sage: veronese_bsa_again = BasicSemialgebraicSet_veronese.from_bsa(bsa_eq_lt_le_sets)
+            sage: list(veronese_bsa_again.lt_poly())
+            [54*x0^2 + 226*x1*x2 + 113]
+
         Test that ``BasicSemialgebraicSet_veronese`` supports this method and accepts keyword arguments::
 
             sage: new_upstairs_bsa = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(0)
@@ -1752,7 +1758,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         upstairs_lhs_coeff = list(self.upstairs().ambient_space().zero())
         upstairs_lhs_cst = self.upstairs().base_ring().zero()
         for m in lhs.monomials():
-            coeffm = QQ(lhs.monomial_coefficient(m))
+            coeffm = lhs.monomial_coefficient(m)/1
             if m == 1:
                 upstairs_lhs_cst = coeffm
             else:

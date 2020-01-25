@@ -26,7 +26,7 @@ class BasicSemialgebraicSet_predicate(BasicSemialgebraicSet_base):
         [x0^2 + x1^2 - 1]
     """
 
-    def __init__(self, predicate, true_point=None, base_ring=None, ambient_dim=None, poly_ring=None):
+    def __init__(self, predicate, true_point=None, base_ring=None, ambient_dim=None, poly_ring=None, allow_refinement=False):
         r"""
         Construct a basic semialgebraic set of points where ``predicate`` is true.
 
@@ -36,6 +36,7 @@ class BasicSemialgebraicSet_predicate(BasicSemialgebraicSet_base):
         super(BasicSemialgebraicSet_predicate, self).__init__(base_ring=base_ring, ambient_dim=ambient_dim, poly_ring=poly_ring)
         self._predicate = predicate
         self._true_point = self.ambient_space()(true_point)
+        self._allow_refinement = allow_refinement
 
     def __contains__(self, point):
         r"""
@@ -60,5 +61,5 @@ class BasicSemialgebraicSet_predicate(BasicSemialgebraicSet_base):
     def add_constraints_to(self, bsa):
         from cutgeneratingfunctionology.igp import ParametricRealField
         K = ParametricRealField(values=self._true_point, bsa=bsa,
-                                allow_refinement=False, big_cells=True, mutable_values=False)
+                                allow_refinement=self._allow_refinement, big_cells=True, mutable_values=False)
         assert self._predicate(K.gens())

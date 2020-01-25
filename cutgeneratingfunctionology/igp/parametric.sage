@@ -16,6 +16,7 @@ from sage.structure.sage_object import SageObject
 import time
 
 from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+from cutgeneratingfunctionology.spam.basic_semialgebraic_local import BasicSemialgebraicSet_local
 from cutgeneratingfunctionology.spam.polyhedral_complex import PolyhedralComplex
 from .parametric_family import Classcall, ParametricFamily_base, ParametricFamily
 
@@ -1291,7 +1292,6 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         sage: def foo(x,y):
         ....:     return (x+y < 2) and (y^2 < x)
 
-        sage: complex = SemialgebraicComplex(foo, ['x','y'], find_region_type=lambda r:r, default_var_bound=(-5,5))
         sage: K.<x,y> = ParametricRealField([1,1/2])
         sage: region_type = foo(*K.gens())
         sage: component = SemialgebraicComplexComponent(K, region_type)
@@ -1313,10 +1313,6 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
     #   (17/8, 0): [],
     #   (2065/512, -33/16): []})
 
-    # FIXME: old code gave ([x - 2*y], [-y, 3*y - 2], []) by simplification through K.
-    Test variable elimination::
-
-        #sage: complex = SemialgebraicComplex(foo, ['x','y'], find_region_type=lambda r:r, default_var_bound=(-5,5))
         sage: K.<x,y> = ParametricRealField([1,1/2])
         sage: region_type = foo(*K.gens())
         sage: x == 2*y
@@ -1324,25 +1320,11 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         sage: sorted(K._bsa.eq_poly()), sorted(K._bsa.lt_poly()), sorted(K._bsa.le_poly())
         ([x - 2*y], [3*x - 4, y^2 - x], [])
         sage: l = list(K._bsa.eq_poly())[0]; polynomial_map = [2*l.parent().gens()[1], l.parent().gens()[1]]
-        sage: s1 = K._bsa.section(polynomial_map)
-        sage: sorted(s1.eq_poly()), sorted(s1.lt_poly()), sorted(s1.le_poly())
-        ([0], [6*y - 4, y^2 - 2*y], [])
-        sage: s2 = K._bsa.section(polynomial_map, bsa_class='veronese')
-        sage: sorted(s2.eq_poly()), sorted(s2.lt_poly()), sorted(s2.le_poly())
-        ([], [3*y - 2, y^2 - 2*y], [])
-        sage: s2.ambient_dim()  # because poly_ring has dim 2.
-        2
-        sage: x^2 == 8*y^3
-        True
-        sage: s3 = K._bsa.section(polynomial_map, bsa_class='veronese')
-        sage: sorted(s3.eq_poly()), sorted(s3.lt_poly()), sorted(s3.le_poly())
-        ([2*y^3 - y^2], [3*y - 2, y^3 - y], [])
-
-        sage: sorted(K._bsa.eq_poly()), sorted(K._bsa.lt_poly()), sorted(K._bsa.le_poly())
-        ([x - 2*y, 8*y^3 - x^2], [3*x - 4, y^2 - x], [])
         sage: component = SemialgebraicComplexComponent(K, region_type, polynomial_map=polynomial_map)
-        sage: sorted(component.bsa.eq_poly()), sorted(component.bsa.lt_poly()), sorted(component.bsa.le_poly())
-        ([-x + 2*y, 2*y^3 - y^2], [3*y - 2, y^3 - y], [])  
+        sage: sorted(component.bsa.lt_poly())
+        [-y, 3*y - 2]
+
+    # if BasicSemialgebraicSet_local is not used, then the expected return of the last test is [3*y - 2, y^2 - 2*y]
     """
 
     def __init__(self, K, region_type, bddbsa=None, polynomial_map=None):
@@ -1363,7 +1345,8 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
             # WHY is this input polynomial_map sometimes not compatible with the variable elimination done in bddbsa? Because upstairs ppl bsa eliminates large x_i in the inequalities, and x_i doesn't necessarily correspond to the i-th variable in poly_ring. Since polynomial_map and v_dict were not given at the initialization of veronese, the variable first encounted in the constraints is considered as x0 by upstairs ppl bsa.
             # In old code, we fixed the order of upstairs variables by adding initial space dimensions. We don't do that in the current code. Instead, we take the section of bddbsa to eliminate the varibles in the equations.
             # Is the given bddbsa required to be veronese with upstairs being ppl_bsa? Convert it anyway. # It's the same as BasicSemialgebraicSet_veronese.from_bsa(bddbsa.section(self.polynomial_map), poly_ring=poly_ring) # Taking section forgets the equations
-            self.bddbsa = bddbsa.section(self.polynomial_map, bsa_class='veronese', poly_ring=poly_ring)
+            #self.bddbsa = bddbsa.section(self.polynomial_map, bsa_class='veronese', poly_ring=poly_ring)
+            self.bddbsa = BasicSemialgebraicSet_veronese.from_bsa(BasicSemialgebraicSet_local(bddbsa.section(polynomial_map, poly_ring=poly_ring), self.var_value))
             for i in range(len(self.var_name)):
                 if polynomial_map[i] != poly_ring.gens()[i]:
                     (self.bddbsa).add_polynomial_constraint(polynomial_map[i]-poly_ring.gens()[i], operator.eq)                   
@@ -1373,7 +1356,8 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
 
         # Use veronese to simplify the inequalities. #FIXME: section is not strong enought for bsa simplification, especially when allow refinement=True. #Solution: Polynomial map equalities are asserted in K in ProofCell.__init__.
         # The equations are expected to cancel in veronese (otherwise the cell is lower dimensional).
-        self.bsa = K._bsa.section(polynomial_map, bsa_class='veronese', poly_ring=poly_ring)  # this is a bigger_bsa
+        #self.bsa = K._bsa.section(polynomial_map, bsa_class='veronese', poly_ring=poly_ring)  # this is a bigger_bsa
+        self.bsa = BasicSemialgebraicSet_veronese.from_bsa(BasicSemialgebraicSet_local(K._bsa.section(polynomial_map, poly_ring=poly_ring), self.var_value))
         # Then add back the equations from K._bsa
         # Finally self.bsa should be the same as K._bsa, but its inequalities don't have variables eliminated by polynomial map, so that heuristic wall crossing can be done later.
         #The following are the equations recorded by the old code.
