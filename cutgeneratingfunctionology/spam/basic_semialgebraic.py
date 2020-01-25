@@ -353,7 +353,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         return sum(coeff * gen for coeff, gen in zip(form, self.poly_ring().gens())) + constant
 
     def is_empty(self):
-        
+        raise NotImplementedError
 
     def add_linear_constraint(self, lhs, cst, op):
         r"""
