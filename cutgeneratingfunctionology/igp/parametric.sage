@@ -17,6 +17,7 @@ import time
 
 from cutgeneratingfunctionology.spam.basic_semialgebraic import *
 from cutgeneratingfunctionology.spam.basic_semialgebraic_local import BasicSemialgebraicSet_local
+from cutgeneratingfunctionology.spam.semialgebraic_mathematica import BasicSemialgebraicSet_mathematica
 from cutgeneratingfunctionology.spam.polyhedral_complex import PolyhedralComplex
 from .parametric_family import Classcall, ParametricFamily_base, ParametricFamily
 
@@ -1454,7 +1455,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
             for ll in list(self.bsa.le_poly()):
                 if ll != l:
                     bsa.add_polynomial_constraint(ll, operator.le)
-            # FIXME: should simply bsa, for example 4*f^2-4*f-1 <= 0 should be simplified to f = 1/2. More crucial for pt_on_wall.
+            # FIXME: should simply bsa, for example 4*f^2-4*f-1 <= 0 should be simplified to f = 1/2. More crucial for pt_on_wall. # now self.bddbsa and self.bsa were obtained through bsa_local, should be fine if bsa is now lower dimensional.
             try:
                 if bsa.is_polynomial_constraint_valid(l, operator.le):
                     # can't flip l<=0, as bsa intersection with l > 0 is empty.
