@@ -361,6 +361,43 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
     def is_empty(self):
         raise NotImplementedError
 
+    def is_universe(self):
+        """
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: from cutgeneratingfunctionology.spam.semialgebraic_mathematica import BasicSemialgebraicSet_mathematica
+            sage: P.<x,y> = QQ[]
+            sage: BasicSemialgebraicSet_eq_lt_le_sets(QQ, 2).is_universe()
+            True
+            sage: BasicSemialgebraicSet_eq_lt_le_sets(lt=[x-x]).is_universe()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError...
+            sage: BasicSemialgebraicSet_mathematica(lt=[x-x]).is_universe()   # optional - mathematica
+            False
+            sage: BasicSemialgebraicSet_eq_lt_le_sets(eq=[y-y], lt=[x-x-1], le=[x-x]).is_universe()
+            True
+            sage: BasicSemialgebraicSet_eq_lt_le_sets(le=[-x^2-y^2]).is_universe()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError...
+            sage: BasicSemialgebraicSet_mathematica(le=[-x^2-y^2]).is_universe()  # optional - mathematica
+            True
+        """
+        if not self.eq_poly() and not self.lt_poly() and not self.le_poly():
+            return True
+        for l in self.eq_poly():
+            if l != 0:
+                raise NotImplementedError
+        for l in self.lt_poly():
+            if not l in self.base_ring() or not l < 0:
+                raise NotImplementedError
+        for l in self.le_poly():
+            if not l in self.base_ring() or not l <= 0:
+                raise NotImplementedError
+        return True
+
     def add_linear_constraint(self, lhs, cst, op):
         r"""
         Add the constraint ``lhs`` * x + cst ``op`` 0,

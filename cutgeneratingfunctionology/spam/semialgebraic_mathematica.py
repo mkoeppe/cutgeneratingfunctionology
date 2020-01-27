@@ -77,6 +77,45 @@ class BasicSemialgebraicSet_mathematica(BasicSemialgebraicSet_eq_lt_le_sets):
             pt.append(pt_i)
         return tuple(pt)
 
+    def is_empty(self):
+        """
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.semialgebraic_mathematica import BasicSemialgebraicSet_mathematica
+            sage: P.<x,y> = QQ[]
+            sage: bsa = BasicSemialgebraicSet_mathematica(eq=[x], le=[x-y])
+            sage: bsa.is_empty()   # optional - mathematica
+            False
+            sage: bsa.add_polynomial_constraint(x-1, operator.eq)
+            sage: bse.is_empty()   # optional - mathematica
+            True
+        """
+        if self.find_point() is None:
+            return True
+        else:
+            return False
+
+    def is_universe(self):
+        """
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.semialgebraic_mathematica import BasicSemialgebraicSet_mathematica
+            sage: P.<x,y> = QQ[]
+            sage: BasicSemialgebraicSet_mathematica(QQ, 2).is_universe()
+            True
+            sage: BasicSemialgebraicSet_mathematica(lt=[x-x]).is_universe()   # optional - mathematica
+            False
+            sage: BasicSemialgebraicSet_mathematica(eq=[y-y], lt=[x-x-1], le=[x-x]).is_universe()
+            True
+            sage: BasicSemialgebraicSet_mathematica(le=[-x^2-y^2]).is_universe()  # optional - mathematica
+            True
+        """
+        try:
+            return super(BasicSemialgebraicSet_mathematica, self).is_universe()
+        except NotImplementedError:
+            pt_math = mathematica.FindInstance('!(' + self.constraints_string() + ')', self.variables_string())
+            return len(pt_math) == 0
+
     def variables_string(self):
         names = self.poly_ring().gens()
         varstr = str(names[0]).replace("_", "@")  # underscore is not allowed in variables names in mathematica. Replace x_1 by x@1, which will be treated as x[1] in mathematica.
