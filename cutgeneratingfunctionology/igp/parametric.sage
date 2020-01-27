@@ -1689,45 +1689,6 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
     #                 new_points[pt_on_wall] = list(self.bsa.eq_poly()) + [ineq]
     #     return walls, new_points
 
-    # TODO
-    # def discard_redundant_inequalities(self, flip_ineq_step=0):
-    #     r"""
-    #     Use Mathematica's ``FindInstance`` to discard redundant inequalities in the cell description.
-    #     TO UPDATE with bsa
-    #     """
-    #     walls = []
-    #     bddllt = self.bddbsa.lt_poly()
-    #     bddlle = self.bddbsa.le_poly()
-    #     if self.bsa.eq_poly():
-    #         bddllt, bddlle = substitute_llt_lle(bddllt, bddlle, self.var_map, self.var_name, self.var_value)
-    #         bddlin = bddllt+bddlle
-    #     else:
-    #         bddlin = list(bddllt) + list(bddlle)
-    #     #FIXME: Mixing the strict and non-strict inequalities
-    #     selflin = list(self.bsa.lt_poly()) + list(self.bsa.le_poly())
-    #     # decide which inequalities among self.lin are walls (irredundant).
-    #     for i in range(len(selflin)):
-    #         ineq = selflin[i]
-    #         ineqs = selflin[i+1::] + bddlin
-    #         if ineq in ineqs:
-    #             continue
-    #         ineqs = walls + ineqs
-    #         pt_across_wall = None
-    #         for pt in self.neighbour_points:
-    #             if (ineq(pt) > 0) and all(l(pt) < 0 for l in ineqs):
-    #                 pt_across_wall = pt
-    #                 break
-    #         if pt_across_wall is None:
-    #             condstr_others = write_mathematica_constraints(self.bsa.eq_poly(), ineqs)
-    #             # maybe shouldn't put self.leq into FindInstance, but solve using var_map later.
-    #             condstr_ineq = '0<'+str(ineq)
-    #             if flip_ineq_step > 0:  # experimental. see hyperbole example where wall x=1/2 is not unique; discard it in this case.
-    #                 condstr_ineq += '<'+str(flip_ineq_step)
-    #             pt_across_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.var_name)
-    #         if not (pt_across_wall is None):
-    #             walls.append(ineq)
-    #     self._lt = set(walls)
-
     def is_polyhedral(self):
         for l in list(self.bsa.eq_poly()) + list(self.bsa.lt_poly()) + list(self.bsa.le_poly()):
             if l.degree() > 1:
@@ -2552,11 +2513,6 @@ class SemialgebraicComplex(SageObject):
                     return False
             sagepolyhedra.append(p1)
         return True
-
-    # def discard_redundant_inequalities(self, flip_ineq_step=0):
-    #     # TO UPDATE with bsa
-    #     for c in self.components:
-    #         c.discard_redundant_inequalities(flip_ineq_step=flip_ineq_step)
 
     def polyhedral_complex(self):
         r"""
