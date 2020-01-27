@@ -1874,7 +1874,7 @@ class SemialgebraicComplex(SageObject):
 
     The entire parameter space is covered by cells::
 
-        sage: complex.is_complete(strict=True)                # optional - mathematica
+        sage: complex.is_complete()                           # optional - mathematica
         True
         
     Example with non-linear wall::
@@ -1920,9 +1920,10 @@ class SemialgebraicComplex(SageObject):
         sage: boundary = extc.guess_boundary()
         sage: sorted(boundary, key=str)
         [-f, -f + 4*bkpt - 1, f - bkpt]
-        sage: extc.is_complete(bddlin=boundary,strict=True) # optional - mathematica
+        sage: extc.bddbsa = BasicSemialgebraicSet_eq_lt_le_sets(lt=boundary)
+        sage: extc.is_complete(formal_closure=False) # optional - mathematica
         False
-        sage: extc.is_complete(bddlin=boundary,strict=False) # optional - mathematica
+        sage: extc.is_complete(formal_closure=True) # optional - mathematica
         True
         sage: pc = extc.polyhedral_complex()
         sage: sorted( sorted(pol.vertices_list()) for pol in pc.cells_list() )
@@ -1952,7 +1953,8 @@ class SemialgebraicComplex(SageObject):
         sage: boundary = extc.guess_boundary()                                      #long time
         sage: sorted(boundary)                                                      #long time
         [-f, -f + 4*bkpt - 1, f - bkpt]
-        sage: extc.is_complete(bddlin=boundary,strict=True)                         #long time, optional - mathematica
+        sage: extc.bddbsa = BasicSemialgebraicSet_eq_lt_le_sets(lt=boundary)        #long time
+        sage: extc.is_complete()                                                    #long time, optional - mathematica
         True
     """
     def __init__(self, family, var_name=None, find_region_type=None, default_var_bound=(-0.1,1.1), bddbsa=None, polynomial_map=None, kwds_dict={}, cell_class=None, **opt_non_default):
@@ -2139,41 +2141,52 @@ class SemialgebraicComplex(SageObject):
         logging.warning("The complex has %s cells. Cannot find one more uncovered point by shooting %s random points" % (len(self.components), max_failings))
         return None
 
-    # TODO
-    # def find_uncovered_point_mathematica(self, strict=True, bddstrict=True):
-    #     r"""
-    #     Call Mathematica ``FindInstance`` to get a point that satisfies self.bddbsa
-    #     and is uncovered by any cells in the complex.
+    def find_uncovered_point_mathematica(self, formal_closure=False):
+        r"""
+        Call Mathematica ``FindInstance`` to get a point that satisfies self.bddbsa
+        and is uncovered by any cells in the complex.
 
-    #     The argument strict controls whether inequalities are treated as <= 0 or as < 0.
-    #     If such point does not exist, return ``None``.
+        The argument formal_closure whether inequalities are treated as <= 0 or as < 0.
+        If such point does not exist, return ``None``.
  
-    #     EXAMPLES::
+        EXAMPLES::
 
-    #         sage: from cutgeneratingfunctionology.igp import *
-    #         sage: logging.disable(logging.WARN)
-    #         sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))            # optional - mathematica
-    #         sage: complex.add_new_component([1,2], bddbsa=None, flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y}                          # optional - mathematica
-    #         sage: var_value = complex.find_uncovered_point_mathematica(strict=False)  # optional - mathematica
-    #         sage: complex.is_point_covered(var_value)                   # optional - mathematica
-    #         False
-    #     """
-    #     if not bddleq and not bddlin:
-    #         #FIXME: mixing strict and non-strict inequalities
-    #         condstr = write_mathematica_constraints(self.bddbsa.eq_poly(), (self.bddbsa.lt_poly()).union(bddbsa.le_poly()), strict=True) #why strict = strict doesn't work when goto_lower_dim=False?
-    #     else:
-    #         condstr = write_mathematica_constraints(bddleq, bddlin, strict=bddstrict)
-    #     for c in self.components:
-    #         condstr_c = write_mathematica_constraints(c.bsa.eq_poly(), (c.bsa.lt_poly()).union(c.bsa.le_poly()), strict=strict)
-    #         if condstr_c:
-    #             condstr += '!(' + condstr_c[:-4] + ') && '
-    #         else:
-    #             # c.lin == [] and c.leq == [], cell covers the whole space.
-    #             return None
-    #     if not condstr:
-    #         return tuple([0]*len(self.var_name))
-    #     return find_instance_mathematica(condstr[:-4], self.var_name)
-
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.WARN)
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))            # optional - mathematica
+            sage: complex.add_new_component([1,2], bddbsa=None, flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y}                          # optional - mathematica
+            sage: var_value = complex.find_uncovered_point_mathematica(formal_closure=True)  # optional - mathematica
+            sage: complex.is_point_covered(var_value)                   # optional - mathematica
+            False
+        """
+        bddbsa = BasicSemialgebraicSet_mathematica.from_bsa(self.bddbsa)
+        constr = bddbsa.constraints_string()
+        if not constr:
+            constr = 'True'
+        for c in self.components:
+            if formal_closure:
+                bsa = BasicSemialgebraicSet_mathematica.from_bsa(c.bsa.formal_closure())
+            else:
+                bsa = BasicSemialgebraicSet_mathematica.from_bsa(c.bsa)
+            constr_c = bsa.constraints_string()
+            if constr_c:
+                constr += ' && !(' + constr_c + ')'
+            else:
+                # universal bsa covers the whole space.
+                return None
+        if constr == 'True':
+            return tuple([0]*len(self.d))
+        pt_math = mathematica.FindInstance(constr, bddbsa.variables_string())
+        if len(pt_math) == 0:
+            return None
+        pt = []
+        for i in range(self.d):
+            try:
+                pt_i = bddbsa.base_ring()(pt_math[1][i+1][2])
+            except TypeError:
+                pt_i = pt_math[1][i+1][2] #<class 'sage.interfaces.mathematica.MathematicaElement'>
+            pt.append(pt_i)
+        return tuple(pt)
 
     def add_new_component(self, var_value, bddbsa=None, polynomial_map=None, flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False):
         r"""
@@ -2427,8 +2440,8 @@ class SemialgebraicComplex(SageObject):
                 num_eq += 1
         if check_completion:
             if max_failings == 0:
-                raise NotImplementedError()
-                #uncovered_pt = self.find_uncovered_point_mathematica(strict=goto_lower_dim)
+                #raise NotImplementedError()
+                uncovered_pt = self.find_uncovered_point_mathematica(formal_closure=not goto_lower_dim)
             else: # assume that check_completion is an integer.
                 uncovered_pt = self.find_uncovered_random_point(max_failings=max_failings)
             if uncovered_pt is not None:
@@ -2439,26 +2452,25 @@ class SemialgebraicComplex(SageObject):
                                     wall_crossing_method=wall_crossing_method, \
                                     goto_lower_dim=goto_lower_dim)
 
-    # TODO
-    # def is_complete(self, strict=False, bddstrict=True):
-    #     r"""
-    #     Return whether the entire parameter space satisfying self.bddbsa is covered by cells.
+    def is_complete(self, formal_closure=False):
+        r"""
+        Return whether the entire parameter space satisfying self.bddbsa is covered by cells.
 
-    #     EXAMPLES::
+        EXAMPLES::
 
-    #         sage: from cutgeneratingfunctionology.igp import *
-    #         sage: logging.disable(logging.WARN)
-    #         sage: complex = SemialgebraicComplex(lambda x,y: min(x+ 4*y, 4), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-5,5))    # optional - mathematica
-    #         sage: complex.bfs_completion(var_value=[1,1])           # optional - mathematica
-    #         sage: complex.is_complete()                             # optional - mathematica
-    #         True
-    #         sage: complex.is_complete(strict=True)                  # optional - mathematica
-    #         False
-    #     """
-    #     if self.find_uncovered_point_mathematica(strict=strict, bddstrict=bddstrict) is None:
-    #         return True
-    #     else:
-    #         return False
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.WARN)
+            sage: complex = SemialgebraicComplex(lambda x,y: min(x+ 4*y, 4), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-5,5))    # optional - mathematica
+            sage: complex.bfs_completion(var_value=[1,1], goto_lower_dim=False)  # optional - mathematica
+            sage: complex.is_complete(formal_closure=True)                       # optional - mathematica
+            True
+            sage: complex.is_complete()   # optional - mathematica
+            False
+        """
+        if self.find_uncovered_point_mathematica(formal_closure=formal_closure) is None:
+            return True
+        else:
+            return False
 
     def is_polyhedral(self):
         for c in self.components:
@@ -3170,7 +3182,7 @@ def embed_function_into_family(given_function, parametric_family, check_completi
             else:
                 num_eq += 1
         if check_completion:
-            var_value = complex.find_uncovered_point_mathematica(strict=True)
+            var_value = complex.find_uncovered_point_mathematica(formal_closure=False)
             if not var_value:
                 is_complete = True
             else:

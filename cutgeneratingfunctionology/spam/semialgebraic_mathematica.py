@@ -83,7 +83,7 @@ class BasicSemialgebraicSet_mathematica(BasicSemialgebraicSet_eq_lt_le_sets):
             (0, -12/5 - I/2)
         """
         try:
-            # treat the cases where constraints_string is empty.
+            # treat the cases where constraints_string is empty. Can also set self.constraints_string() to 'True', but returned point would have complex number component.
             if super(BasicSemialgebraicSet_mathematica, self).is_empty():
                 return None
             if super(BasicSemialgebraicSet_mathematica, self).is_universe():
