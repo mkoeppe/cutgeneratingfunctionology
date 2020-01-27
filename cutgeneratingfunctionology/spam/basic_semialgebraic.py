@@ -359,6 +359,42 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         return sum(coeff * gen for coeff, gen in zip(form, self.poly_ring().gens())) + constant
 
     def is_empty(self):
+        """
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: from cutgeneratingfunctionology.spam.semialgebraic_mathematica import BasicSemialgebraicSet_mathematica
+            sage: P.<x,y> = QQ[]
+            sage: BasicSemialgebraicSet_eq_lt_le_sets(QQ, poly_ring=P).is_empty()
+            False
+            sage: BasicSemialgebraicSet_eq_lt_le_sets(lt=[x-x]).is_empty()
+            True
+            sage: BasicSemialgebraicSet_mathematica(lt=[x-x]).is_empty()   # optional - mathematica
+            True
+            sage: BasicSemialgebraicSet_eq_lt_le_sets(eq=[y-y], lt=[x-x-1], le=[x-x]).is_empty()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError...
+            sage: BasicSemialgebraicSet_mathematica(eq=[y-y], lt=[x-x-1], le=[x-x]).is_empty    # optional - mathematica
+            False
+            sage: BasicSemialgebraicSet_eq_lt_le_sets(lt=[x^2+y^2]).is_empty()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError...
+            sage: BasicSemialgebraicSet_mathematica(lt=[x^2+y^2]).is_empty()  # optional - mathematica
+            True
+        """
+        if not self.eq_poly() and not self.lt_poly() and not self.le_poly():
+            return False
+        for l in self.eq_poly():
+            if l in self.base_ring() and l != 0:
+                return True
+        for l in self.lt_poly():
+            if l in self.base_ring() and l >= 0:
+                return True
+        for l in self.le_poly():
+            if l in self.base_ring() and l > 0:
+                return True
         raise NotImplementedError
 
     def is_universe(self):

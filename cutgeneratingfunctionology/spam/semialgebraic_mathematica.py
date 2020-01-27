@@ -64,7 +64,32 @@ class BasicSemialgebraicSet_mathematica(BasicSemialgebraicSet_eq_lt_le_sets):
     def find_point(self):
         """
         Use Mathematica's ``FindInstance``
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.semialgebraic_mathematica import BasicSemialgebraicSet_mathematica
+            sage: P.<x> = QQ[]
+            sage: BasicSemialgebraicSet_mathematica(QQ, poly_ring=P).find_point()   # optional - mathematica
+            (0,)
+            sage: BasicSemialgebraicSet_mathematica(eq=[x-1]).find_point()   # optional - mathematica
+            (1,)
+            sage: Q.<y,z> = QQ[]
+            sage: BasicSemialgebraicSet_mathematica(eq=[y], le=[z]).find_point()
+            (0, -75)
+
+       Bug example. The second component of the return is of <class 'sage.interfaces.mathematica.MathematicaElement'>::
+
+            sage: BasicSemialgebraicSet_mathematica(eq=[y]).find_point()   # optional - mathematica
+            (0, -12/5 - I/2)
         """
+        try:
+            # treat the cases where constraints_string is empty.
+            if super(BasicSemialgebraicSet_mathematica, self).is_empty():
+                return None
+            if super(BasicSemialgebraicSet_mathematica, self).is_universe():
+                return tuple(self.ambient_space()(0))
+        except NotImplementedError:
+            pass
         pt_math = mathematica.FindInstance(self.constraints_string(), self.variables_string())  # For the first doctest, pt_math is of the form {{x -> 0, y -> 3/2, z -> 1}}.
         if len(pt_math) == 0:
             return None
@@ -83,6 +108,8 @@ class BasicSemialgebraicSet_mathematica(BasicSemialgebraicSet_eq_lt_le_sets):
 
             sage: from cutgeneratingfunctionology.spam.semialgebraic_mathematica import BasicSemialgebraicSet_mathematica
             sage: P.<x,y> = QQ[]
+            sage: BasicSemialgebraicSet_mathematica(QQ, poly_ring=P).is_empty()  # optional - mathematica
+            False
             sage: bsa = BasicSemialgebraicSet_mathematica(eq=[x], le=[x-y])
             sage: bsa.is_empty()   # optional - mathematica
             False
@@ -90,10 +117,10 @@ class BasicSemialgebraicSet_mathematica(BasicSemialgebraicSet_eq_lt_le_sets):
             sage: bse.is_empty()   # optional - mathematica
             True
         """
-        if self.find_point() is None:
-            return True
-        else:
-            return False
+        try:
+            return super(BasicSemialgebraicSet_mathematica, self).is_empty()
+        except NotImplementedError:
+            return (self.find_point() is None)
 
     def is_universe(self):
         """
@@ -121,7 +148,10 @@ class BasicSemialgebraicSet_mathematica(BasicSemialgebraicSet_eq_lt_le_sets):
         varstr = str(names[0]).replace("_", "@")  # underscore is not allowed in variables names in mathematica. Replace x_1 by x@1, which will be treated as x[1] in mathematica.
         for v in names[1::]:
             varstr = varstr + ', ' + str(v).replace("_", "@")
-        return '{' + varstr + '}'
+        if len(names) == 1:
+            return varstr
+        else:
+            return '{' + varstr + '}'
 
     def constraints_string(self):
         constr = ''
