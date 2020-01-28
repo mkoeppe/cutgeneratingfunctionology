@@ -1133,28 +1133,16 @@ class ParametricRealField(Field):
         region_type = opt.pop('region_type', True)
         return SemialgebraicComplexComponent(self, region_type)
 
-    # def add_initial_space_dim(self):
-    #     if self._bsa.polynomial_map():
-    #         # the ParametricRealField already has monomials recorded. Not brand-new.
-    #         return
-    #     n = len(self._names)
-    #     P = PolynomialRing(QQ, self._names)
-    #     monomial_list = list(P.gens())
-    #     v_dict = {P.gens()[i]:i for i in range(n)}
-    #     polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=n)
-    #     self._bsa = BasicSemialgebraicSet_veronese(polyhedron, ambient_dim=n,
-    #                                                polynomial_map=monomial_list, v_dict=v_dict)
-
     def plot(self, *options, **kwds):
         return self.make_proof_cell().plot(*options, **kwds)
 
 
 ###############################
-# TO REFACTOR using section. DELETE
+# TO REFACTOR using section.
 ###############################
 def find_polynomial_map(eqs=[], poly_ring=None):
     """
-    HAHAHA, GOODBYE find_polynomial_map
+    BAD FUCNTION! MAYBE we don't need this.
     Return a polynomial map that eliminates linear variables in eqs, and a dictionary recording which equations were used to eliminate those linear variables.
     Assume that gaussian elimination has been performed by PPL.minimized_constraints() on the input list of equations eqs.
     It is only called in SemialgebraicComplex.add_new_component in the case polynomial_map is not provided but bddbsa has equations.
@@ -1211,38 +1199,6 @@ def find_polynomial_map(eqs=[], poly_ring=None):
     #return [P(p) for p in polynomial_map]
     # didn't take sub-polynomialring to make the trick ineq orthogonal to eliminated variables work.
     return polynomial_map
-
-# def substitute_llt_lle(llt, lle, var_map, var_name, var_value):
-#     r"""
-#     Return a list of strict inequalities and a list of non-strict inequalities
-#     after substitution using var_map and simplification using the Reformulation-linearization trick.
-
-#     Used in ``SemialgebraicComplexComponent.__init__``
-
-#     EXAMPLES::
-
-#         sage: from cutgeneratingfunctionology.igp import *
-#         sage: logging.disable(logging.INFO)
-#         sage: P.<x,y>=QQ[]
-#         sage: var_map = {y: y, x: 75/19*y}
-#         sage: llt = [21*x - 8, -x, 950*x^2 - 3700*x*y - 225*y^2 - 133*x]
-#         sage: llt, lle = substitute_llt_lle(llt, [], var_map, ['x','y'], [38/100, 96/1000])
-#         sage: sorted(llt)
-#         [-y, 1575*y - 152]
-#     """
-#     # Shall we factorize ineq in lins after substitution using var_map?
-#     # Yes, otherwise, got -525/19*lam2^2 - 525*lam2 in chen's 4 slope
-#     # at (lam1, lam2) = [20015786415699825/52611587391975857, 5070665891977289/52611587391975857]
-#     K = ParametricRealField(var_value, var_name)
-#     K.add_initial_space_dim() # needed?
-#     for l in llt:
-#         ineq = l.parent()(l.subs(var_map))
-#         assert ineq(K.gens())< 0 #always True
-#     for l in lle:
-#         ineq = l.parent()(l.subs(var_map))
-#         assert ineq(K.gens())<= 0 #always True
-#     bsa = BasicSemialgebraicSet_eq_lt_le_sets.from_bsa(K._bsa)
-#     return list(bsa.lt_poly()), list(bsa.le_poly())
 
 ######################################
 # Functions with ParametricRealField K
@@ -1307,7 +1263,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         True
 
 
-    # component.find_walls_and_new_points(1/4, 'mathematica', goto_lower_dim=True)  # optional - mathematica
+    # TODO: component.find_walls_and_new_points(1/4, 'mathematica', goto_lower_dim=True)  # optional - mathematica
     # ([x + y - 2, y^2 - x],
     #  {(0, 0): [y^2 - x],
     #   (2, 0): [x + y - 2],
@@ -1437,91 +1393,104 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         Try flipping exactly one inequality at one time, to reach a new testpoint as neighbour candidate.
 
         - flip_ineq_step defines the step length
-        - wall_crossing_method is 'heuristic' or FIXME: 'mathematica' or 'heuristic_with_check'
+        - wall_crossing_method is 'heuristic' or TODO: 'mathematica' or 'heuristic_then_mathematica'
         - if goto_lower_dim=False, the cell is considered as its formal closure, so no recursion into test points in lower dimensional cells.
 
-        OUTPUT new_points is a dictionary of dictionaries. The new_points[i] is a dictionay whose keys = candidate neighbour testpoints, values = (bddbsa whose eq_poly has i elements, polynomial_map) of the candidate neighbour cell that contains the candidate neighbour testpoint. bddbsa is recorded so that (1) complex.bddbsa is always respected; and (2) can recursively go into lower dimensional cells. polynomial_map is recorded and passed to the constructor of the neighbour cell.
+        OUTPUT new_points is a dictionary of dictionaries. The new_points[i] is a dictionay whose keys = candidate neighbour testpoints, values = (bddbsa whose eq_poly has i elements, polynomial_map) of the candidate neighbour cell that contains the candidate neighbour testpoint. bddbsa is recorded so that (1) complex.bddbsa is always respected; and (2) can recursively go into lower dimensional cells. In heuristic method, polynomial_map is recorded and passed to the constructor of the neighbour cell. At the end, we update self.bsa by removing (obvious) redundant eq, lt, le constraints from its description.
         """
         num_eq = len(list(self.bddbsa.eq_poly()))
         new_points = {}  #dictionary with key=num_eq, value=dictionay of pt: (bddbsa, polynomial_map).
+        bsa_eq_poly = list(self.bsa.eq_poly())
         # first flip l <= 0 to l > 0.
-        for l in list(self.bsa.le_poly()):
+        bsa_le_poly = list(self.bsa.le_poly())
+        minimal_bsa_le_poly = []
+        for i in range(len(bsa_le_poly)):
+            l = bsa_le_poly[i]
             bsa = copy(self.bddbsa) #veronese
             #for ll in self.bsa.eq_poly():
             # not needed because self.bsa and self.bddbsa have the same eq_poly at this moment.
             # inequalites are orthogonal to the equations
             for ll in list(self.bsa.lt_poly()):
                 bsa.add_polynomial_constraint(ll, operator.lt)
-            for ll in list(self.bsa.le_poly()):
-                if ll != l:
-                    bsa.add_polynomial_constraint(ll, operator.le)
+            for ll in minimal_bsa_le_poly+bsa_le_poly[i+1::]:
+                bsa.add_polynomial_constraint(ll, operator.le)
             # FIXME: should simply bsa, for example 4*f^2-4*f-1 <= 0 should be simplified to f = 1/2. More crucial for pt_on_wall. # now self.bddbsa and self.bsa were obtained through bsa_local, should be fine if bsa is now lower dimensional.
             try:
                 if bsa.is_polynomial_constraint_valid(l, operator.le):
                     # can't flip l<=0, as bsa intersection with l > 0 is empty.
                     continue
             except NotImplementedError:
-                pass          
+                pass
+            pt_across_wall = None
             # find point in intersection(bsa, l>0, l<flip_ineq_step)
-            if wall_crossing_method == 'mathematica':
-                raise NotImplementedError
-            elif wall_crossing_method == 'heuristic_with_check':
-                raise NotImplementedError
-            else: #None is treated as 'heuristic'
+            if wall_crossing_method == 'heuristic' or wall_crossing_method is None or wall_crossing_method == 'heuristic_then_mathematica':
                 # do not distinguish lt_poly and le_poly as we wish test_points are in general positions
                 pt = find_point_flip_ineq_heuristic(self.var_value, l, list(bsa.lt_poly())+list(bsa.le_poly()), flip_ineq_step)
                 if pt is not None:
                     # Find a new point, use polynomial map to recover the values of those eliminated variables.
                     pt_across_wall = tuple(p(pt) for p in self.polynomial_map)
-                    if num_eq not in new_points:
-                        new_points[num_eq] = OrderedDict()
-                    new_points[num_eq][pt_across_wall] = (self.bddbsa, self.polynomial_map)
+            if wall_crossing_method == 'mathematica' or wall_crossing_method == 'heuristic_then_mathematica' and (pt_across_wall is None):
+                bsa_mathematica = BasicSemialgebraicSet_mathematica.from_bsa(bsa)
+                bsa_mathematica.add_polynomial_constraint(l, operator.gt)
+                bsa_mathematica.add_polynomial_constraint(l - flip_ineq_step, operator.lt)
+                pt_across_wall = bsa_mathematica.find_point()
+            if pt_across_wall is not None or wall_crossing_method == 'heuristic' or wall_crossing_method is None:
+                minimal_bsa_le_poly.append(l)
+            if pt_across_wall is not None:
+                if num_eq not in new_points:
+                    new_points[num_eq] = OrderedDict()
+                new_points[num_eq][pt_across_wall] = (self.bddbsa, self.polynomial_map)
         # now flip l < 0 to l >= 0
-        for l in list(self.bsa.lt_poly()):
+        bsa_lt_poly = list(self.bsa.lt_poly())
+        minimal_bsa_lt_poly = []
+        for i in range(len(bsa_lt_poly)):
+            l = bsa_lt_poly[i]
             bsa = copy(self.bddbsa) #veronese
             # adding self.bsa.eq_poly() is not needed because self.bsa and self.bddbsa have the same eq_poly at this moment.
             # inequalites are orthogonal to the equations
-            for ll in list(self.bsa.le_poly()):
+            for ll in minimal_bsa_le_poly:
                 bsa.add_polynomial_constraint(ll, operator.le)
-            for ll in list(self.bsa.lt_poly()):
-                if ll != l:
-                    bsa.add_polynomial_constraint(ll, operator.lt)
+            for ll in minimal_bsa_lt_poly+bsa_lt_poly[i+1::]:
+                bsa.add_polynomial_constraint(ll, operator.lt)
+            has_pt_across_wall = True
+            has_pt_on_wall = True
+            pt_across_wall = None
+            pt_on_wall = None
             try:
                 if bsa.is_polynomial_constraint_valid(l, operator.lt):
                     # can't flip l<0, as bsa intersection with l >= 0 is empty.
                     continue
-            except NotImplementedError:
-                pass
-            has_pt_across_wall = True
-            try:
                 if bsa.is_polynomial_constraint_valid(l, operator.le):
                     # can only get l==0, but bsa intersection with l > 0 is empty.
                     has_pt_across_wall = False
             except NotImplementedError:
                 pass
-            # find point in intersection(bsa, l>=0, l<flip_ineq_step)
-            if wall_crossing_method == 'mathematica':
-                raise NotImplementedError
-            elif wall_crossing_method == 'heuristic_with_check':
-                raise NotImplementedError
-            else: #None is treated as 'heuristic'
-                if has_pt_across_wall:
+            # find point in intersection(bsa, l>0, l<flip_ineq_step)
+            if has_pt_across_wall:
+                if wall_crossing_method == 'heuristic' or wall_crossing_method is None or wall_crossing_method == 'heuristic_then_mathematica':
                     # do not distinguish lt_poly and le_poly as we wish test_points are in general positions
                     pt = find_point_flip_ineq_heuristic(self.var_value, l, list(bsa.lt_poly())+list(bsa.le_poly()), flip_ineq_step)
                     if pt is not None:
                         #find a new point, use polynomial map to recover the values of those eliminated variables.
                         pt_across_wall = tuple(p(pt) for p in self.polynomial_map)
-                        if num_eq not in new_points:
-                            new_points[num_eq] = OrderedDict()
-                        new_points[num_eq][pt_across_wall] = (self.bddbsa, self.polynomial_map)
-                if (goto_lower_dim is True) and (l.degree() == 1):
+                if wall_crossing_method == 'mathematica' or wall_crossing_method == 'heuristic_then_mathematica' and (pt_across_wall is None):
+                    bsa_mathematica = BasicSemialgebraicSet_mathematica.from_bsa(bsa)
+                    bsa_mathematica.add_polynomial_constraint(l, operator.gt)
+                    bsa_mathematica.add_polynomial_constraint(l - flip_ineq_step, operator.lt)
+                    pt_across_wall = bsa_mathematica.find_point()
+                if pt_across_wall is not None:
+                    if num_eq not in new_points:
+                        new_points[num_eq] = OrderedDict()
+                    new_points[num_eq][pt_across_wall] = (self.bddbsa, self.polynomial_map)
+            # find point in intersection(bsa, l==0)
+            if goto_lower_dim:
+                if (wall_crossing_method == 'heuristic' or wall_crossing_method is None or wall_crossing_method == 'heuristic_then_mathematica') and (l.degree() == 1):
                     current_point = vector(self.var_value)
                     # pt_on_wall satisfies one more equation l == 0 than the points in self.bsa
                     # eliminate v in strict_ineqs and nonstrict_ineqs
                     eq = l
                     polynomial_map = self.polynomial_map
                     bsa_section = bsa
-                    has_pt_on_wall = True
                     # there was bug example: igp.big_cells_default=True; cpl r=regions[13].
                     while has_pt_on_wall:
                         lhs = vector(eq.monomial_coefficient(x) for x in l.parent().gens())
@@ -1589,105 +1558,41 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                     #strict_ineqs = [ll.subs({v: v_mapped_to}) for ll in bsa.lt_poly()]
                     #nonstrict_ineqs = [ll.subs({v: v_mapped_to}) for ll in bsa.le_poly() if ll.subs({v: v_mapped_to}) != 0]
                     # l is linear wall. try to find a point on the wall using heuristic gradient descent method.
-                    if not has_pt_on_wall:
-                        continue
-                    current_point -= (l(*current_point)*vector(gradient(l))) / (vector(gradient(l))*vector(gradient(l)))
-                    pt = adjust_pt_to_satisfy_ineqs(vector(RR(x) for x in current_point), None, list(bsa_section.lt_poly()), list(bsa_section.le_poly()), flip_ineq_step)
-                    #pt = find_point_on_ineq_heuristic(self.var_value, l, strict_ineqs, nonstrict_ineqs, flip_ineq_step)
-                    if pt is not None:
-                        # restrict the bddbsa of the candidate neighbour cell.
-                        # univariate polynomials (Polynomial_rational_flint) does not define "coefficient", but has "monomial_coefficient".
-                        bddbsa = copy(self.bddbsa)
-                        bddbsa.add_linear_constraint(lhs, cst, operator.eq)
-                        eqs = list(bddbsa.eq_poly())
-                        new_num_eq = len(eqs)
-                        if new_num_eq != num_eq + 1:
-                            #import pdb; pdb.set_trace()
-                            polynomial_map = find_polynomial_map(eqs=eqs)
-                        if new_num_eq not in new_points:
-                            new_points[new_num_eq] = OrderedDict()
-                        pt_on_wall = tuple(p(pt) for p in polynomial_map)
-                        new_points[new_num_eq][pt_on_wall] = (bddbsa, polynomial_map)
+                    if has_pt_on_wall:
+                        current_point -= (l(*current_point)*vector(gradient(l))) / (vector(gradient(l))*vector(gradient(l)))
+                        pt = adjust_pt_to_satisfy_ineqs(vector(RR(x) for x in current_point), None, list(bsa_section.lt_poly()), list(bsa_section.le_poly()), flip_ineq_step)
+                        #pt = find_point_on_ineq_heuristic(self.var_value, l, strict_ineqs, nonstrict_ineqs, flip_ineq_step)
+                        if pt is not None:
+                            # restrict the bddbsa of the candidate neighbour cell.
+                            # univariate polynomials (Polynomial_rational_flint) does not define "coefficient", but has "monomial_coefficient".
+                            bddbsa = copy(self.bddbsa)
+                            bddbsa.add_linear_constraint(lhs, cst, operator.eq)
+                            eqs = list(bddbsa.eq_poly())
+                            new_num_eq = len(eqs)
+                            if new_num_eq != num_eq + 1:
+                                #import pdb; pdb.set_trace()
+                                polynomial_map = find_polynomial_map(eqs=eqs)
+                            pt_on_wall = tuple(p(pt) for p in polynomial_map)
+                if wall_crossing_method == 'mathematica' or wall_crossing_method == 'heuristic_then_mathematica' and (has_pt_on_wall is True) and (pt_on_wall is None):
+                    bsa_mathematica = BasicSemialgebraicSet_mathematica.from_bsa(bsa)
+                    bsa_mathematica.add_polynomial_constraint(l, operator.eq)
+                    pt_on_wall = bsa_mathematica.find_point()
+                    bddbsa = copy(self.bddbsa)
+                    bddbsa.add_polynomial_constraint(l, operator.eq)
+                    new_num_eq = len(list(bddbsa.eq_poly()))
+                    if wall_crossing_method == 'mathematica':
+                        polynomial_map = self.polynomial_map #mathematica doesn't care about polynomial_map.
+                    else:
+                        polynomial_map = find_polynomial_map(eqs=list(bddbsa.eq_poly()))
+                if pt_on_wall is not None:
+                    if new_num_eq not in new_points:
+                        new_points[new_num_eq] = OrderedDict()
+                    new_points[new_num_eq][pt_on_wall] = (bddbsa, polynomial_map)
+            if (pt_across_wall is not None) or (pt_on_wall is not None) or (wall_crossing_method == 'heuristic' or wall_crossing_method is None) and (has_pt_on_wall is True):
+                minimal_bsa_lt_poly.append(l)
+        # UPDATE self.bsa
+        self.bsa = BasicSemialgebraicSet_veronese.from_bsa(BasicSemialgebraicSet_eq_lt_le_sets(eq=bsa_eq_poly, lt=minimal_bsa_lt_poly, le=minimal_bsa_le_poly))
         return new_points
-
-    # DELETE. TODO: complete Mathematica methods in find_neighbour_candidates
-    # def find_walls_and_new_points(self, flip_ineq_step, wall_crossing_method, goto_lower_dim=False):
-    #     r"""
-    #     Try flipping exactly one inequality at one time, to reach a new testpoint in a neighbour cell.
-
-    #     Discard the wall if it is impossible to do so, as the wall is redundant.
-
-    #     - flip_ineq_step defines the step length
-    #     - wall_crossing_method is 'heuristic' or 'mathematica' or 'heuristic_with_check'
-    #     - goto_lower_dim tells whether it also finds new testpoints on the walls.
-    #     """
-    #     walls = []
-    #     new_points = {}
-    #     bddllt = list(self.bddbsa.lt_poly())
-    #     bddlle = list(self.bddbsa.le_poly())
-    #     if self.bsa.eq_poly():
-    #         bddllt, bddlle = substitute_llt_lle(bddllt, bddlle, self.var_map, self.var_name, self.var_value)
-    #         bddlin = bddllt+bddlle
-    #     else:
-    #         bddlin = list(bddllt) + list(bddlle)
-    #     #FIXME: Mixing the strict and non-strict inequalities
-    #     selflin = list(self.bsa.lt_poly()) + list(self.bsa.le_poly())
-    #     # decide which inequalities among self.lin are walls (irredundant).
-    #     for i in range(len(selflin)):
-    #         ineq = selflin[i]
-    #         ineqs = selflin[i+1::] + bddlin
-    #         if ineq in ineqs:
-    #             continue
-    #         if wall_crossing_method == 'mathematica':
-    #             ineqs = walls + ineqs
-    #             condstr_others = write_mathematica_constraints(self.bsa.eq_poly(), ineqs)
-    #             # maybe shouldn't put self.bsa.eq_poly() into FindInstance, but solve using var_map later.
-    #             condstr_ineq = '0<'+str(ineq)+'<'+str(flip_ineq_step)
-    #             pt_across_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.var_name)
-    #         else:
-    #             if wall_crossing_method == 'heuristic_with_check':
-    #                 ineqs = walls + ineqs
-    #             else:
-    #                 #less clever, more careful, for 'heuristic'
-    #                 ineqs = selflin[:i] + ineqs
-    #             pt = find_point_flip_ineq_heuristic(self.var_value, ineq, ineqs, flip_ineq_step)
-    #             if pt is None:
-    #                 if wall_crossing_method == 'heuristic_with_check':
-    #                     condstr = write_mathematica_constraints(self.bsa.eq_poly(), ineqs) + \
-    #                               '0<'+str(ineq)+'<'+str(flip_ineq_step) # Need the last inequality? see hyperbole ex.
-    #                     pt_across_wall = find_instance_mathematica(condstr, self.var_name)
-    #                 else:
-    #                     pt_across_wall = None
-    #             else:
-    #                 if self.bsa.eq_poly():
-    #                     pt_across_wall = tuple(self.var_map[v](pt) for v in ineq.args())
-    #                 else:
-    #                     pt_across_wall = pt
-    #         if pt_across_wall is None:
-    #             # ineq is not a wall
-    #             continue
-    #         walls.append(ineq)
-    #         if not ((wall_crossing_method == 'heuristic_with_check') and (pt is None)):
-    #             # Hope that the new pt_across_wall is in a general position, so that running the function on it does not generate new equations. Otherwise bfs got stuck in low dimension. Two solutions: take smaller flip_ineq_step, or do bfs with check_completion=True.
-    #             new_points[pt_across_wall] = list(self.bsa.eq_poly())
-    #         if goto_lower_dim is True:
-    #             pt_on_wall = None
-    #             if wall_crossing_method == 'mathematica':
-    #                 # wall could be non-linear, contrasting the assumption above. 
-    #                 condstr_ineq = str(ineq) + '==0'
-    #                 pt_on_wall = find_instance_mathematica(condstr_others + condstr_ineq, self.var_name)
-    #             elif ineq.degree() == 1:
-    #                 # is linear wall. try to find a point on the wall using heuristic gradient descent method.
-    #                 pt = find_point_on_ineq_heuristic(pt_across_wall, ineq, ineqs, [], flip_ineq_step)
-    #                 if pt is None:
-    #                     pt_on_wall = None
-    #                 elif self.bsa.eq_poly():
-    #                     pt_on_wall = tuple(self.var_map[v](pt) for v in ineq.args())
-    #                 else:
-    #                     pt_on_wall = pt
-    #             if not pt_on_wall is None:
-    #                 new_points[pt_on_wall] = list(self.bsa.eq_poly()) + [ineq]
-    #     return walls, new_points
 
     def is_polyhedral(self):
         for l in list(self.bsa.eq_poly()) + list(self.bsa.lt_poly()) + list(self.bsa.le_poly()):
@@ -1805,7 +1710,7 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
             test_point['merge'] = False
         #if bddbsa is None:
         #    bddbsa =  BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=PolynomialRing(QQ, var_name)) # class doesn't matter, just to record the constraints on K._bsa
-        #DELETE and check if the code still works.
+        #The code seems to still work after commenting out the following.
         #K.add_initial_space_dim() #so that the parameters var_name are the first ones in the monomial list. Needed for ppl variable elimination, otherwise ineqs are not orthogonal to eliminated variables. FIXME: Get rid of this requirement. Also needed for Mccormicks?
         #assert (K.gens() in bddbsa) # record boundary constraints.
         return K, test_point
@@ -1865,12 +1770,13 @@ class SemialgebraicComplex(SageObject):
         [(0,), (0,), (0,), (0,), (1,), (b,), (a,), (a*b,), (a*b,)]
         sage: complex.plot()                                  # not tested
 
-    Instead of heuristic method, we can use Mathematica's ``FindInstance`` to look for uncovered points in wall-crossing::
+    TODO: Instead of heuristic method, we can use Mathematica's ``FindInstance`` to look for uncovered points in wall-crossing::
 
         sage: complex = SemialgebraicComplex(vol, ['a','b'], find_region_type=result_symbolic_expression, default_var_bound=(-1,3))                         # optional - mathematica
         sage: complex.bfs_completion(var_value=[2, 1/2], flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='mathematica', goto_lower_dim=True)        # optional - mathematica
         sage: len(complex.components)                         # optional - mathematica
         25
+        sage: complex.plot(goto_lower_dim=True)               # not tested   #TODO: FIXME: BUG
 
     The entire parameter space is covered by cells::
 
@@ -2153,10 +2059,12 @@ class SemialgebraicComplex(SageObject):
 
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
-            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))            # optional - mathematica
-            sage: complex.add_new_component([1,2], bddbsa=None, flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y}                          # optional - mathematica
-            sage: var_value = complex.find_uncovered_point_mathematica(formal_closure=True)  # optional - mathematica
-            sage: complex.is_point_covered(var_value)                   # optional - mathematica
+            sage: complex = SemialgebraicComplex(lambda x,y: max(x,y), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10)) # optional - mathematica
+            sage: complex.add_new_component([1,2], bddbsa=None, flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False) # the cell {(x,y): x<y} # optional - mathematica
+            sage: var_value = complex.find_uncovered_point_mathematica(formal_closure=True) # optional - mathematica
+            sage: var_value # optional - mathematica
+            (0, -1)
+            sage: complex.is_point_covered(var_value) # optional - mathematica
             False
         """
         bddbsa = BasicSemialgebraicSet_mathematica.from_bsa(self.bddbsa)
@@ -2194,7 +2102,7 @@ class SemialgebraicComplex(SageObject):
 
         - bddbsa defines the boundary constraints satisfied by the cell. By default, bddbsa=None, and complex.bddbsa is taken.
         - If flip_ineq_step = 0, do not search for neighbour testpoints. Used in ``shoot_random_points()``. wall_crossing_method = ``None`` in this case.
-        - If flip_ineq_step > 0, search for neighbour testpoints using wall_crossing_method = 'mathematica' or 'heuristic' or 'heuristic_with_check'. Used in bfs. If goto_lower_dim is ``False`` or (goto_lower_dim is ``True`` and wall_crossing method = 'heuristic' but wall is non-linear), then find new testpoints across the wall only.
+        - If flip_ineq_step > 0, search for neighbour testpoints using wall_crossing_method = 'mathematica' or 'heuristic' or 'heuristic_then_mathematica'. Used in bfs. If goto_lower_dim is ``False`` or (goto_lower_dim is ``True`` and wall_crossing method = 'heuristic' but wall is non-linear), then find new testpoints across the wall only.
 
         EXAMPLES::
 
@@ -2213,10 +2121,10 @@ class SemialgebraicComplex(SageObject):
 
             sage: complex = SemialgebraicComplex(lambda x,y: max(x,y^2), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-10,10))        # optional - mathematica
             sage: complex.add_new_component([1,1/2], bddbsa=None, flip_ineq_step=1/10, wall_crossing_method='mathematica', goto_lower_dim=False) # the cell {(x,y): x > y^2}      # optional - mathematica
-            sage: complex.components[0].bsa.lt_poly()                 # optional - mathematica
+            sage: list(complex.components[0].bsa.lt_poly()) # optional - mathematica
             [y^2 - x]
-            sage: complex.points_to_test                              # optional - mathematica
-            OrderedDict([((19/20, 1), (None, None))])
+            sage: complex.points_to_test[0].keys() # optional - mathematica
+            [(19/20, 1)]
         """
         if bddbsa is None:
             bddbsa = self.bddbsa
@@ -2331,6 +2239,7 @@ class SemialgebraicComplex(SageObject):
         #     if gc: # need this because (empty g + empty gc) forgets about xmin xmax ymin ymax.
         #         self.graph += gc
         # Workaround.
+        # FIXME: bug example plot(goto_lower_dim=True) in doctest of SemialgebraicComplex
         components = self.components[self.num_plotted_components::]
         for c in components:
             if not list(c.bsa.eq_poly()):
@@ -2401,8 +2310,8 @@ class SemialgebraicComplex(SageObject):
         - var_value: the starting point. If not given, start with a random point.
         - flip_ineq_step: a small positive number that controls the step length in wall-crossing.
         - check_completion: When check_completion is ``True``, after bfs terminates, check whether the entire parameter space is covered by cells, using Mathematica's ``FindInstance`` (if max_failings=0) or random shooting (if max_failings>0). If an uncovered point has been found, restart the bfs from this point.
-        - wall_crossing_method: 'mathematica' or 'heuristic' or 'heuristic_with_check' 
-              - wall_crossing_method='heuristic_with_check': if heuristic wall-crossing does not find a new testpoint, then use Mathematica to check if the ineq is not a wall).
+        - wall_crossing_method: 'mathematica' or 'heuristic' or 'heuristic_then_mathematica' 
+              - wall_crossing_method='heuristic_then_mathematica': try heuristic method first. If it does not find a new testpoint, then use Mathematica.
         - goto_lower_dim: whether lower dimensional cells are considered. If goto_lower_dim is ``False`` or if goto_lower_dim is ``True`` and wall_crossing method is 'heuristic' but the wall is non-linear, then find new testpoint across the wall only.
 
         EXAMPLES::
@@ -2410,7 +2319,7 @@ class SemialgebraicComplex(SageObject):
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(lambda x,y: min(x^2+ 4*y^2, 4), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-3,3))    # optional - mathematica
-            sage: complex.bfs_completion(check_completion=True, wall_crossing_method='mathematica', goto_lower_dim=True)                                                          # optional - mathematica
+            sage: complex.bfs_completion(check_completion=True, wall_crossing_method='mathematica', goto_lower_dim=True)  # optional - mathematica  # FIXME: BUG got irrational thing! TODO: Use a =  mathematica('(3*Sqrt[89/2])/20'); mathematica.CoefficientList(mathematica.MinimalPolynomial(a, 'x'), 'x').sage(); mathematica.IsolatingInterval(a).sage() to convert to AA.
             sage: len(complex.components)                               # optional - mathematica
             3
             sage: complex.plot()                                        # not tested
@@ -3141,6 +3050,7 @@ def embed_function_into_family(given_function, parametric_family, check_completi
         sage: given_function == parametric_family(**param_values)
         True
 
+    #TODO:FIXME: BUG infinite loop
         sage: given_function = automorphism(cpl3_8(f=3/5, z1=1/25, z2=1/125))
         sage: parametric_family = gj_forward_3_slope
         sage: embed_function_into_family(given_function, parametric_family, check_completion=True) # optional - mathematica
