@@ -7,6 +7,9 @@ from __future__ import division, print_function, absolute_import
 from cutgeneratingfunctionology.spam.basic_semialgebraic import  BasicSemialgebraicSet_eq_lt_le_sets
 from sage.interfaces.mathematica import mathematica
 import operator
+from sage.modules.free_module_element import vector
+from sage.rings.polynomial.polynomial_ring import polygen
+from sage.rings.all import QQ, AA, RIF
 
 class BasicSemialgebraicSet_mathematica(BasicSemialgebraicSet_eq_lt_le_sets):
     """
@@ -87,20 +90,14 @@ class BasicSemialgebraicSet_mathematica(BasicSemialgebraicSet_eq_lt_le_sets):
             if super(BasicSemialgebraicSet_mathematica, self).is_empty():
                 return None
             if super(BasicSemialgebraicSet_mathematica, self).is_universe():
-                return tuple(self.ambient_space()(0))
+                return self.ambient_space().zero()
         except NotImplementedError:
             pass
-        pt_math = mathematica.FindInstance(self.constraints_string(), self.variables_string())  # For the first doctest, pt_math is of the form {{x -> 0, y -> 3/2, z -> 1}}.
+        pt_math = mathematica.FindInstance(self.constraints_string(), self.variables_string(), 'Reals')  # For the first doctest, pt_math is of the form {{x -> 0, y -> 3/2, z -> 1}}.
         if len(pt_math) == 0:
             return None
-        pt = []
-        for i in range(self.ambient_dim()):
-            try:
-                pt_i = self.base_ring()(pt_math[1][i+1][2])
-            except TypeError:
-                pt_i = pt_math[1][i+1][2] #<class 'sage.interfaces.mathematica.MathematicaElement'>
-            pt.append(pt_i)
-        return tuple(pt)
+        pt = vector(from_mathematica(pt_math[1][i+1][2]) for i in range(self.ambient_dim()))
+        return self.ambient_space(field=pt.parent().base_ring())(pt)
 
     def is_empty(self):
         """
@@ -140,7 +137,7 @@ class BasicSemialgebraicSet_mathematica(BasicSemialgebraicSet_eq_lt_le_sets):
         try:
             return super(BasicSemialgebraicSet_mathematica, self).is_universe()
         except NotImplementedError:
-            pt_math = mathematica.FindInstance('!(' + self.constraints_string() + ')', self.variables_string())
+            pt_math = mathematica.FindInstance('!(' + self.constraints_string() + ')', self.variables_string(), 'Reals')
             return len(pt_math) == 0
 
     def variables_string(self):
@@ -198,3 +195,18 @@ class BasicSemialgebraicSet_mathematica(BasicSemialgebraicSet_eq_lt_le_sets):
         self._eq = set(eq)
         self._lt = set(lt)
         self._le = set(le)
+
+def from_mathematica(a):
+    try:
+        return QQ(a.sage())
+    except Exception:
+        pass
+    try:
+        return AA(a.sage())
+    except Exception:
+            coefficients = mathematica.CoefficientList(mathematica.MinimalPolynomial(a, 'x'), 'x').sage()
+            x = polygen(QQ)
+            minpoly = x.parent()(coefficients)
+            interval = mathematica.IsolatingInterval(a).sage()
+            rif_interval = RIF(interval)
+            return AA.polynomial_root(minpoly, rif_interval)

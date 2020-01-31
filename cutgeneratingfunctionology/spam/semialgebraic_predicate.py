@@ -8,6 +8,7 @@ Converted to explicit form when requested, using function tracing.
 from __future__ import division, print_function, absolute_import
 
 from cutgeneratingfunctionology.spam.basic_semialgebraic import BasicSemialgebraicSet_base
+from sage.modules.free_module_element import vector
 
 class BasicSemialgebraicSet_predicate(BasicSemialgebraicSet_base):
 
@@ -35,7 +36,10 @@ class BasicSemialgebraicSet_predicate(BasicSemialgebraicSet_base):
         # FIXME: Normalize predicate's inputs
         super(BasicSemialgebraicSet_predicate, self).__init__(base_ring=base_ring, ambient_dim=ambient_dim, poly_ring=poly_ring)
         self._predicate = predicate
-        self._true_point = self.ambient_space()(true_point)
+        true_point = vector(tuple(true_point))
+        if len(true_point) != self.ambient_dim():
+            raise TypeError("true_point is not in the correct space")
+        self._true_point = self.ambient_space(field=true_point.parent().base_ring())(true_point)
         self._allow_refinement = allow_refinement
 
     def __contains__(self, point):

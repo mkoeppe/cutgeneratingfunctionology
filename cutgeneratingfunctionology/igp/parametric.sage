@@ -17,7 +17,7 @@ import time
 
 from cutgeneratingfunctionology.spam.basic_semialgebraic import *
 from cutgeneratingfunctionology.spam.basic_semialgebraic_local import BasicSemialgebraicSet_local
-from cutgeneratingfunctionology.spam.semialgebraic_mathematica import BasicSemialgebraicSet_mathematica
+from cutgeneratingfunctionology.spam.semialgebraic_mathematica import BasicSemialgebraicSet_mathematica, from_mathematica
 from cutgeneratingfunctionology.spam.polyhedral_complex import PolyhedralComplex
 from .parametric_family import Classcall, ParametricFamily_base, ParametricFamily
 
@@ -1254,21 +1254,20 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         sage: component = SemialgebraicComplexComponent(K, region_type)
         sage: list(component.bsa.lt_poly())
         [x + y - 2, y^2 - x]
-        sage: component.plot()                                  # not tested
+        sage: component.plot(xmin=0, xmax=4, ymin=-3, ymax=3)        # not tested
         sage: new_points = component.find_neighbour_candidates(1/4, 'heuristic', goto_lower_dim=False)
-        sage: new_pts = list(new_points[0].keys()) # was [(11/8, 7/8), (19959383/28510088, 24590405/28510088)], now with .n(30) get [(11/8, 7/8), (30093/42985, 54831/63571)]
+        sage: new_pts = sorted(new_points[0].keys())
+        sage: new_pts
+        [(30093/42985, 54831/63571), (11/8, 7/8)]
         sage: len(new_pts)
         2
         sage: all((xx + yy - 2)*(yy^2 - xx) < 0 for (xx, yy) in new_pts)
         True
-
-
-    # TODO: component.find_walls_and_new_points(1/4, 'mathematica', goto_lower_dim=True)  # optional - mathematica
-    # ([x + y - 2, y^2 - x],
-    #  {(0, 0): [y^2 - x],
-    #   (2, 0): [x + y - 2],
-    #   (17/8, 0): [],
-    #   (2065/512, -33/16): []})
+        sage: more_new_points = component.find_neighbour_candidates(1/4, 'mathematica', goto_lower_dim=True)
+        sage: sorted(more_new_points[0].keys())
+        [(17/8, 0), (2065/512, -33/16)]
+        sage: sorted(more_new_points[1].keys())
+        [(0, 0), (2, 0)]
 
         sage: K.<x,y> = ParametricRealField([1,1/2])
         sage: region_type = foo(*K.gens())
@@ -1433,7 +1432,9 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                 bsa_mathematica = BasicSemialgebraicSet_mathematica.from_bsa(bsa)
                 bsa_mathematica.add_polynomial_constraint(l, operator.gt)
                 bsa_mathematica.add_polynomial_constraint(l - flip_ineq_step, operator.lt)
-                pt_across_wall = bsa_mathematica.find_point()
+                pt = bsa_mathematica.find_point()
+                if pt is not None:
+                    pt_across_wall = tuple(pt)
             if pt_across_wall is not None or wall_crossing_method == 'heuristic' or wall_crossing_method is None:
                 minimal_bsa_le_poly.append(l)
             if pt_across_wall is not None:
@@ -1477,7 +1478,9 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                     bsa_mathematica = BasicSemialgebraicSet_mathematica.from_bsa(bsa)
                     bsa_mathematica.add_polynomial_constraint(l, operator.gt)
                     bsa_mathematica.add_polynomial_constraint(l - flip_ineq_step, operator.lt)
-                    pt_across_wall = bsa_mathematica.find_point()
+                    pt = bsa_mathematica.find_point()
+                    if pt is not None:
+                        pt_across_wall = tuple(pt)
                 if pt_across_wall is not None:
                     if num_eq not in new_points:
                         new_points[num_eq] = OrderedDict()
@@ -1576,7 +1579,9 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                 if wall_crossing_method == 'mathematica' or wall_crossing_method == 'heuristic_then_mathematica' and (has_pt_on_wall is True) and (pt_on_wall is None):
                     bsa_mathematica = BasicSemialgebraicSet_mathematica.from_bsa(bsa)
                     bsa_mathematica.add_polynomial_constraint(l, operator.eq)
-                    pt_on_wall = bsa_mathematica.find_point()
+                    pt = bsa_mathematica.find_point()
+                    if pt is not None:
+                        pt_on_wall = tuple(pt)
                     bddbsa = copy(self.bddbsa)
                     bddbsa.add_polynomial_constraint(l, operator.eq)
                     new_num_eq = len(list(bddbsa.eq_poly()))
@@ -1770,13 +1775,13 @@ class SemialgebraicComplex(SageObject):
         [(0,), (0,), (0,), (0,), (1,), (b,), (a,), (a*b,), (a*b,)]
         sage: complex.plot()                                  # not tested
 
-    TODO: Instead of heuristic method, we can use Mathematica's ``FindInstance`` to look for uncovered points in wall-crossing::
+    Instead of heuristic method, we can use Mathematica's ``FindInstance`` to look for uncovered points in wall-crossing::
 
         sage: complex = SemialgebraicComplex(vol, ['a','b'], find_region_type=result_symbolic_expression, default_var_bound=(-1,3))                         # optional - mathematica
         sage: complex.bfs_completion(var_value=[2, 1/2], flip_ineq_step=1/1000, check_completion=False, wall_crossing_method='mathematica', goto_lower_dim=True)        # optional - mathematica
         sage: len(complex.components)                         # optional - mathematica
         25
-        sage: complex.plot(goto_lower_dim=True)               # not tested   #TODO: FIXME: BUG
+        sage: complex.plot(goto_lower_dim=True)               # not tested
 
     The entire parameter space is covered by cells::
 
@@ -2083,20 +2088,14 @@ class SemialgebraicComplex(SageObject):
                 # universal bsa covers the whole space.
                 return None
         if constr == 'True':
-            return tuple([0]*len(self.d))
-        pt_math = mathematica.FindInstance(constr, bddbsa.variables_string())
+            return tuple(self.bddbsa.ambient_space().zero())
+        pt_math = mathematica.FindInstance(constr, bddbsa.variables_string(), 'Reals')
         if len(pt_math) == 0:
             return None
-        pt = []
-        for i in range(self.d):
-            try:
-                pt_i = bddbsa.base_ring()(pt_math[1][i+1][2])
-            except TypeError:
-                pt_i = pt_math[1][i+1][2] #<class 'sage.interfaces.mathematica.MathematicaElement'>
-            pt.append(pt_i)
-        return tuple(pt)
+        pt = vector(from_mathematica(pt_math[1][i+1][2]) for i in range(self.d))
+        return tuple(bddbsa.ambient_space(field=pt.parent().base_ring())(pt))
 
-    def add_new_component(self, var_value, bddbsa=None, polynomial_map=None, flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False):
+    def add_new_component(self, var_value, bddbsa=None, polynomial_map=None, flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False, num_eq=0):
         r"""
         Compute one proof cell around var_value. Append this cell to the complex.
 
@@ -2132,9 +2131,12 @@ class SemialgebraicComplex(SageObject):
             polynomial_map = self.polynomial_map
         new_component = self._cell_class(self.family, var_value, 
                                          find_region_type=self.find_region_type, bddbsa=bddbsa, polynomial_map=polynomial_map)
-        num_eq = len(list(new_component.bddbsa.eq_poly()))
-        if len(list(new_component.bsa.eq_poly())) > num_eq:
+        new_num_eq = len(list(new_component.bsa.eq_poly()))
+        if  new_num_eq > num_eq:
             logging.warning("The cell around %s defined by %s has more equations than boundary %s" %(new_component.var_value, new_component.bsa, new_component.bddbsa))
+            if goto_lower_dim:
+                if not (new_component.var_value in self.tested_points[new_num_eq]) and not (new_component.var_value in self.points_to_test[new_num_eq]):
+                    self.points_to_test[new_num_eq][new_component.var_value] = (copy(new_component.bddbsa), copy(new_component.polynomial_map))
             # import pdb; pdb.set_trace()
             # bsa is lower dimensional as it has more equations than bddbsa, 
             # so we try to perturb the testpoint to obtain a
@@ -2149,9 +2151,8 @@ class SemialgebraicComplex(SageObject):
                         pert_value = tuple(p(pt) for p in new_component.polynomial_map)
                         if not (pert_value in self.tested_points[num_eq]) and not (pert_value in self.points_to_test[num_eq]) and (pert_value in new_component.bddbsa):
                             self.points_to_test[num_eq][pert_value] = (copy(new_component.bddbsa), copy(new_component.polynomial_map))
-            #if not goto_lower_dim:  # quit anyway because bddbsa dim unknown.
             return
-        elif len(list(new_component.bsa.eq_poly())) < num_eq:
+        elif new_num_eq < num_eq:
             raise ValueError()
         elif (flip_ineq_step != 0) and (new_component.region_type != 'stop'):
             # when using random shooting, don't generate neighbour points;
@@ -2226,12 +2227,24 @@ class SemialgebraicComplex(SageObject):
         self.graph.set_aspect_ratio(1)
         if 'xmin' in kwds:
             self.graph.xmin(kwds['xmin'])
+            xmin = kwds['xmin']
+        else:
+            xmin = self.default_var_bound[0]   # special treatement in the case goto_lower_dim which uses bsa.plot() instead of component.plot() because zorder is broken in region_plot/ContourPlot.
         if 'xmax' in kwds:
             self.graph.xmax(kwds['xmax'])
+            xmax = kwds['xmax']
+        else:
+            xmax = self.default_var_bound[1]
         if 'ymin' in kwds:
             self.graph.ymin(kwds['ymin'])
+            ymin = kwds['ymin']
+        else:
+            ymin = self.default_var_bound[0]
         if 'ymax' in kwds:
             self.graph.ymax(kwds['ymax'])
+            ymax = kwds['ymax']
+        else:
+            ymax = self.default_var_bound[1]
         # # FIXME: zorder is broken in region_plot/ContourPlot.
         # for c in self.components[self.num_plotted_components::]:
         #     num_eq = len(list(c.bsa.eq_poly()))
@@ -2247,7 +2260,7 @@ class SemialgebraicComplex(SageObject):
                     self.graph += c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, default_var_bound=self.default_var_bound, goto_lower_dim=False, zorder=0, **kwds)
                 else:
                     color = find_region_color(c.region_type)
-                    self.graph += (c.bsa).plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, color='white', fill_color=color)
+                    self.graph += (c.bsa).plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, color='white', fill_color=color, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         if goto_lower_dim:
             for c in components:
                 if not list(c.bsa.eq_poly()):
@@ -2255,7 +2268,7 @@ class SemialgebraicComplex(SageObject):
                     for l in c.bsa.le_poly():
                         new_bsa = copy(c.bsa)
                         new_bsa.add_polynomial_constraint(l, operator.eq)
-                        self.graph += new_bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, color=color, fill_color=color)
+                        self.graph += new_bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, color=color, fill_color=color, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         for c in components:
             if len(list(c.bsa.eq_poly()))==1:
                 self.graph += c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, default_var_bound=self.default_var_bound, goto_lower_dim=False, zorder=0, **kwds)
@@ -2265,11 +2278,11 @@ class SemialgebraicComplex(SageObject):
                     color = find_region_color(c.region_type)
                     for l in c.bsa.lt_poly():
                         new_bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=list(c.bsa.eq_poly())+[l], lt=[ll for ll in c.bsa.lt_poly() if ll != l], le=list(c.bsa.le_poly()))
-                        self.graph += new_bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, color='white', fill_color='white')
+                        self.graph += new_bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, color='white', fill_color='white', xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
                     for l in c.bsa.le_poly():
                         new_bsa = copy(c.bsa)
                         new_bsa.add_polynomial_constraint(l, operator.eq)
-                        self.graph += new_bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, color=color, fill_color=color)
+                        self.graph += new_bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, color=color, fill_color=color, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         for c in components:
             if len(list(c.bsa.eq_poly()))==2:
                 ptcolor = find_region_color(c.region_type)
@@ -2319,10 +2332,13 @@ class SemialgebraicComplex(SageObject):
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.WARN)
             sage: complex = SemialgebraicComplex(lambda x,y: min(x^2+ 4*y^2, 4), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-3,3))    # optional - mathematica
-            sage: complex.bfs_completion(check_completion=True, wall_crossing_method='mathematica', goto_lower_dim=True)  # optional - mathematica  # FIXME: BUG got irrational thing! TODO: Use a =  mathematica('(3*Sqrt[89/2])/20'); mathematica.CoefficientList(mathematica.MinimalPolynomial(a, 'x'), 'x').sage(); mathematica.IsolatingInterval(a).sage() to convert to AA.
+
+        When using mathematica's FindInstance, the returned test point may not be rational. In this example, complex.components[1].var_value is (0, sqrt(799/800)), which is then cast to AA using the function from_mathematica()::
+
+            sage: complex.bfs_completion(check_completion=True, wall_crossing_method='mathematica', goto_lower_dim=True)  # optional - mathematica
             sage: len(complex.components)                               # optional - mathematica
             3
-            sage: complex.plot()                                        # not tested
+            sage: complex.plot(goto_lower_dim=True)                     # not tested
 
             sage: complex = SemialgebraicComplex(lambda x,y: min(x+ 4*y, 4), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-5,5))
             sage: complex.bfs_completion(var_value=[1,1])
@@ -2335,8 +2351,9 @@ class SemialgebraicComplex(SageObject):
         if not any(dic for dic in self.points_to_test) and not var_value:
             var_value = self.find_uncovered_random_point()
         if var_value:
+            if not tuple(var_value) in self.tested_points[0]:
             # put given var_value to num_eq=0 so that it pops out first in bfs.
-            self.points_to_test[0][tuple(var_value)] = (self.bddbsa, None) 
+                self.points_to_test[0][tuple(var_value)] = (self.bddbsa, None)
         num_eq = 0
         while num_eq <= self.d:
             if self.points_to_test[num_eq]: # and len(self.components)<10:
@@ -2344,7 +2361,7 @@ class SemialgebraicComplex(SageObject):
                 self.tested_points[num_eq].add(var_value)
                 var_value = list(var_value)
                 if not self.is_point_covered(var_value):
-                    self.add_new_component(var_value, bddbsa=bddbsa, polynomial_map=polynomial_map, flip_ineq_step=flip_ineq_step, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim)
+                    self.add_new_component(var_value, bddbsa=bddbsa, polynomial_map=polynomial_map, flip_ineq_step=flip_ineq_step, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim, num_eq=num_eq)
             else:
                 num_eq += 1
         if check_completion:
@@ -3050,11 +3067,12 @@ def embed_function_into_family(given_function, parametric_family, check_completi
         sage: given_function == parametric_family(**param_values)
         True
 
-    #TODO:FIXME: BUG infinite loop
         sage: given_function = automorphism(cpl3_8(f=3/5, z1=1/25, z2=1/125))
         sage: parametric_family = gj_forward_3_slope
-        sage: embed_function_into_family(given_function, parametric_family, check_completion=True) # optional - mathematica
+        sage: embed_function_into_family(given_function, parametric_family, check_completion=True) # optional - mathematica #long time 
         {'f': 2/5, 'lambda_1': 6/25, 'lambda_2': 2/75}
+        # sage: embed_function_into_family(given_function, parametric_family, wall_crossing_method='mathematica') # optional - mathematica #long time  #TODO: BUG!
+        # {'f': 2/5, 'lambda_1': 6/25, 'lambda_2': 2/75}
     """
     default_args = read_default_args(parametric_family)
     var_name = []
@@ -3074,7 +3092,7 @@ def embed_function_into_family(given_function, parametric_family, check_completi
             return h == given_function
     complex = SemialgebraicComplex(parametric_family, var_name, find_region_type=frt)
     # terminate complex.bfs_completion(var_value=var_value, goto_lower_dim=True) immediately when a cell has region_type == True.
-    complex.points_to_test[0][tuple(var_value)] = (None, None) # FIXME: num_eq = 0?? It's okay, num_eq = 0 let it pops out first.
+    complex.points_to_test[0][tuple(var_value)] = (None, None)
     flip_ineq_step = opt.pop('flip_ineq_step', 1/1000)
     is_complete = False
     while not is_complete:
@@ -3085,7 +3103,7 @@ def embed_function_into_family(given_function, parametric_family, check_completi
                 complex.tested_points[num_eq].add(var_value)
                 var_value = list(var_value)
                 if not complex.is_point_covered(var_value):
-                    complex.add_new_component(var_value, bddbsa=bddbsa, polynomial_map=polynomial_map, flip_ineq_step=flip_ineq_step, goto_lower_dim=True, **opt)
+                    complex.add_new_component(var_value, bddbsa=bddbsa, polynomial_map=polynomial_map, flip_ineq_step=flip_ineq_step, goto_lower_dim=True, num_eq=num_eq, **opt)
                     if complex.components and complex.components[-1].region_type is True:
                         dic = {var_name[i]:var_value[i] for i in range(len(var_name))}
                         return dic
@@ -3096,7 +3114,8 @@ def embed_function_into_family(given_function, parametric_family, check_completi
             if not var_value:
                 is_complete = True
             else:
-                complex.points_to_test[0][var_value]=(None, None)
+                if not (tuple(var_value) in complex.tested_points[0]):
+                    complex.points_to_test[0][tuple(var_value)] = (None, None)
         else:
             is_complete = True
     # plot_cpl_components(complex.components)

@@ -12,7 +12,6 @@ SAGEFILES =									\
 	cutgeneratingfunctionology/igp/functions.sage				\
 	cutgeneratingfunctionology/igp/parametric.sage				\
 	cutgeneratingfunctionology/igp/parametric_cpl.sage			\
-	cutgeneratingfunctionology/igp/semialgebraic_mathematica.sage		\
 	cutgeneratingfunctionology/igp/simple_extremality_test.sage		\
 	cutgeneratingfunctionology/igp/survey_examples.sage			\
 	cutgeneratingfunctionology/igp/extreme_functions_mlr_cpl3.sage		\

@@ -110,6 +110,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             raise ValueError("poly_ring is not determined by the provided input")
         super(BasicSemialgebraicSet_base, self).__init__()
         self._ambient_dim = ambient_dim
+        #self._ambient_space = base_ring ** ambient_dim
         self._base_ring = base_ring
         self._poly_ring = poly_ring
 
@@ -204,8 +205,13 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
     def ambient_dim(self):
         return self._ambient_dim
 
-    def ambient_space(self):
+    def linear_forms_space(self):
         return self.base_ring() ** self.ambient_dim()
+
+    def ambient_space(self, field=None):
+        if field is None:
+            field = QQ
+        return field ** self.ambient_dim() 
 
     def base_ring(self):
         return self._base_ring
@@ -354,6 +360,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             if len(names) != space_dim_to_add:
                 raise ValueError("space_dim_to_add and len(names) do not match")
         self._poly_ring = PolynomialRing(self.base_ring(), names=list(self.poly_ring().gens()) + names)
+        #self._ambient_space = self._ambient_space.base_ring() ** new_dim
 
     def _linear_polynomial(self, form, constant=0):
         return sum(coeff * gen for coeff, gen in zip(form, self.poly_ring().gens())) + constant
@@ -1652,7 +1659,7 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
             return gen, a, b
 
         range_args = [ range_arg(form, gen)
-                       for form, gen in zip(self.upstairs().ambient_space().basis(),
+                       for form, gen in zip(self.upstairs().linear_forms_space().basis(),
                                             self.poly_ring().gens()) ]
         return gu + parametric_plot(self.polynomial_map(), *range_args, color='yellow', thickness=2)
 
@@ -1729,7 +1736,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
             sage: upstairs_bsa_ppl = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=0)
             sage: veronese = BasicSemialgebraicSet_veronese(upstairs_bsa_ppl, [], dict(), ambient_dim=3)
-            sage: veronese.ambient_space()
+            sage: veronese.linear_forms_space()
             Vector space of dimension 3 over Rational Field
 
         Adding initial space dimensions::
@@ -1741,7 +1748,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             sage: v_dict = {P.gens()[i]:i for i in range(n)}
             sage: polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=n)
             sage: veronese = BasicSemialgebraicSet_veronese(polyhedron, polynomial_map, v_dict)
-            sage: veronese.ambient_space()
+            sage: veronese.linear_forms_space()
             Vector space of dimension 2 over Rational Field
 
         Check error checking::
@@ -1828,7 +1835,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
     def _to_upstairs_linear_constraint(self, lhs, allow_adding_upstairs_space_dimensions=True):
         lhs = self.poly_ring()(lhs)
         space_dim_to_add = 0
-        upstairs_lhs_coeff = list(self.upstairs().ambient_space().zero())
+        upstairs_lhs_coeff = list(self.upstairs().linear_forms_space().zero())
         upstairs_lhs_cst = self.upstairs().base_ring().zero()
         for m in lhs.monomials():
             coeffm = lhs.monomial_coefficient(m)/1
@@ -1996,7 +2003,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         r"""
         Return the lower and upper bounds of the i-th variable in self.upstaris.
         """
-        form = self.upstairs().ambient_space().basis()[i]
+        form = self.upstairs().linear_forms_space().basis()[i]
         lb = self.upstairs().linear_function_lower_bound(form)
         ub = self.upstairs().linear_function_upper_bound(form)
         return (lb, ub)
@@ -2039,7 +2046,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         """
         for i in range(len(self._polynomial_map)):
             if self._polynomial_map[i].is_square():
-                form = self.upstairs().ambient_space().basis()[i]
+                form = self.upstairs().linear_forms_space().basis()[i]
                 self.upstairs().add_linear_constraint(form, QQ(0), operator.ge)
         self._bounds = [self._compute_bounds_of_the_ith_monomial(i) for i in range(len(self._polynomial_map))]
         bounds_propagation_iter = 0
