@@ -3,6 +3,7 @@ from itertools import chain
 import queue as queue
 import itertools
 import numpy as np
+import gc
 
 class SubadditivityTestTreeNode(object):
 
@@ -234,6 +235,10 @@ class SubadditivityTestTreeNode(object):
         b_I=min(self.I_values()[i]-m_I*self.I_bkpts()[i] for i in range(len(self.I_values())))
         b_J=min(self.J_values()[i]-m_J*self.J_bkpts()[i] for i in range(len(self.J_values())))
         b_K=max(self.K_values()[i]-m_K*self.K_bkpts()[i] for i in range(len(self.K_values())))
+
+	del p
+	gc.collect()
+
         return min(m_I*v[0]+b_I+m_J*v[1]+b_J-m_K*(v[0]+v[1])-b_K for v in self.vertices), [[m_I,b_I],[m_J,b_J],[m_K,b_K]]
 
     def delta_pi_fast_affine_lower_bound(self,slope_I,slope_J,slope_K):
