@@ -12,7 +12,6 @@ SAGEFILES =									\
 	cutgeneratingfunctionology/igp/functions.sage				\
 	cutgeneratingfunctionology/igp/parametric.sage				\
 	cutgeneratingfunctionology/igp/parametric_cpl.sage			\
-	cutgeneratingfunctionology/igp/semialgebraic_mathematica.sage		\
 	cutgeneratingfunctionology/igp/simple_extremality_test.sage		\
 	cutgeneratingfunctionology/igp/survey_examples.sage			\
 	cutgeneratingfunctionology/igp/extreme_functions_mlr_cpl3.sage		\
@@ -58,6 +57,7 @@ SAGEFILES +=									\
 	cutgeneratingfunctionology/spam/basic_semialgebraic_formal_closure.py	\
 	cutgeneratingfunctionology/spam/basic_semialgebraic_linear_system.py	\
 	cutgeneratingfunctionology/spam/basic_semialgebraic_intersection.py	\
+	cutgeneratingfunctionology/spam/basic_semialgebraic_local.py		\
 	cutgeneratingfunctionology/spam/semialgebraic_maple.py			\
 	cutgeneratingfunctionology/spam/semialgebraic_mathematica.py		\
 	cutgeneratingfunctionology/spam/semialgebraic_predicate.py		\

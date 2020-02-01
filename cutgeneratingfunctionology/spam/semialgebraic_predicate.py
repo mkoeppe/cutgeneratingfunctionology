@@ -8,6 +8,7 @@ Converted to explicit form when requested, using function tracing.
 from __future__ import division, print_function, absolute_import
 
 from cutgeneratingfunctionology.spam.basic_semialgebraic import BasicSemialgebraicSet_base
+from sage.modules.free_module_element import vector
 
 class BasicSemialgebraicSet_predicate(BasicSemialgebraicSet_base):
 
@@ -26,7 +27,7 @@ class BasicSemialgebraicSet_predicate(BasicSemialgebraicSet_base):
         [x0^2 + x1^2 - 1]
     """
 
-    def __init__(self, predicate, true_point=None, base_ring=None, ambient_dim=None, poly_ring=None):
+    def __init__(self, predicate, true_point=None, base_ring=None, ambient_dim=None, poly_ring=None, allow_refinement=False):
         r"""
         Construct a basic semialgebraic set of points where ``predicate`` is true.
 
@@ -35,7 +36,11 @@ class BasicSemialgebraicSet_predicate(BasicSemialgebraicSet_base):
         # FIXME: Normalize predicate's inputs
         super(BasicSemialgebraicSet_predicate, self).__init__(base_ring=base_ring, ambient_dim=ambient_dim, poly_ring=poly_ring)
         self._predicate = predicate
-        self._true_point = self.ambient_space()(true_point)
+        true_point = vector(tuple(true_point))
+        if len(true_point) != self.ambient_dim():
+            raise TypeError("true_point is not in the correct space")
+        self._true_point = self.ambient_space(field=true_point.parent().base_ring())(true_point)
+        self._allow_refinement = allow_refinement
 
     def __contains__(self, point):
         r"""
@@ -60,5 +65,5 @@ class BasicSemialgebraicSet_predicate(BasicSemialgebraicSet_base):
     def add_constraints_to(self, bsa):
         from cutgeneratingfunctionology.igp import ParametricRealField
         K = ParametricRealField(values=self._true_point, bsa=bsa,
-                                allow_refinement=False, big_cells=True, mutable_values=False)
+                                allow_refinement=self._allow_refinement, big_cells=True, mutable_values=False)
         assert self._predicate(K.gens())
