@@ -854,7 +854,7 @@ class BasicSemialgebraicSet_polyhedral(BasicSemialgebraicSet_base):
         lhs_vector = vector(polynomial.monomial_coefficient(x) for x in self.poly_ring().gens())
         # univariate polynomials (Polynomial_rational_flint) does not define "coefficient", but has "monomial_coefficient".
         return self.linear_function_upper_bound(lhs_vector) + cst
-          
+
 ## (1) In the first step, we implement the following class.  Everything is linear.
 ## Rewrite all direct uses of PPL in ParametricRealFieldElement, ParametricRealField
 ## using method calls to this class.
@@ -1366,7 +1366,7 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
         Together, ``eq_poly`` and ``le_poly`` describe ``self``.
         """
         return []
-    
+
     def is_empty(self):
         """
         EXAMPLES::

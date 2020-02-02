@@ -111,8 +111,8 @@ def cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, flip_ineq_step=1/1000
         sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)  # long time - 30s
         sage: len(regions)                                                    # long time - 30s
         96
-        sage: regions = cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, wall_crossing_method='mathematica', flip_ineq_step=1/1000)                          # optional - mathematica
-        sage: len(regions)                                                   # optional - mathematica
+        sage: regions = cpl_regions_from_arrangement_of_bkpts(n=3, cpleq=True, wall_crossing_method='mathematica', flip_ineq_step=1/1000)                          # long time, optional - mathematica
+        sage: len(regions)                # long time, optional - mathematica
         96
     """
     cpln = cpl_n_group_function(n, cpleq, merge=False)
