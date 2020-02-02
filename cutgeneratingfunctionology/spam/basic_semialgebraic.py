@@ -382,7 +382,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             Traceback (most recent call last):
             ...
             NotImplementedError...
-            sage: BasicSemialgebraicSet_mathematica(eq=[y-y], lt=[x-x-1], le=[x-x]).is_empty    # optional - mathematica
+            sage: BasicSemialgebraicSet_mathematica(eq=[y-y], lt=[x-x-1], le=[x-x]).is_empty()    # optional - mathematica
             False
             sage: BasicSemialgebraicSet_eq_lt_le_sets(lt=[x^2+y^2]).is_empty()
             Traceback (most recent call last):
@@ -854,7 +854,7 @@ class BasicSemialgebraicSet_polyhedral(BasicSemialgebraicSet_base):
         lhs_vector = vector(polynomial.monomial_coefficient(x) for x in self.poly_ring().gens())
         # univariate polynomials (Polynomial_rational_flint) does not define "coefficient", but has "monomial_coefficient".
         return self.linear_function_upper_bound(lhs_vector) + cst
-
+          
 ## (1) In the first step, we implement the following class.  Everything is linear.
 ## Rewrite all direct uses of PPL in ParametricRealFieldElement, ParametricRealField
 ## using method calls to this class.
@@ -1125,6 +1125,35 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         constraint = self._ppl_constraint(lhs, cst, op)
         self._polyhedron.add_constraint(constraint)
 
+    def is_empty(self):
+        """
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: S = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(1)
+            sage: S.add_linear_constraint([1], -1, operator.ge)
+            sage: S.is_empty()
+            False
+            sage: S.add_linear_constraint([1], +1, operator.le)
+            sage: S.is_empty()
+            True
+        """
+        return self._polyhedron.is_empty()
+
+    def is_universe(self):
+        """
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: S = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(1)
+            sage: S.add_linear_constraint([0], 0, operator.eq)
+            sage: S.is_universe()
+            True
+            sage: S.add_linear_constraint([1], +1, operator.le)
+            sage: S.is_universe()
+            False
+        """
+        return self._polyhedron.is_universe()
 
 ## class BasicSemialgebraicSet_polyhedral_ppl_MIP_Problem(BasicSemialgebraicSet_base):
 
@@ -1337,6 +1366,43 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
         Together, ``eq_poly`` and ``le_poly`` describe ``self``.
         """
         return []
+    
+    def is_empty(self):
+        """
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: S = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(QQ, 1, solver='ppl')
+            sage: S.add_linear_constraint([1], -1, operator.ge)
+            sage: S.is_empty()
+            False
+            sage: S.add_linear_constraint([1], +1, operator.le)
+            sage: S.is_empty()
+            True
+        """
+        try:
+            self.mip().solve()
+            return False
+        except MIPSolverException:
+            return True
+
+    def is_universe(self):
+        """
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: S = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(QQ, 1, solver='ppl')
+            sage: S.add_linear_constraint([0], 0, operator.eq)
+            sage: S.is_universe()
+            True
+            sage: S.add_linear_constraint([1], +1, operator.le)
+            sage: S.is_universe()
+            False
+        """
+        try:
+            return super(BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram, self).is_universe()
+        except NotImplementedError:
+            return False
 
 ## (3) Then introduce the following class to simplify the code in parametric.sage
 class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):

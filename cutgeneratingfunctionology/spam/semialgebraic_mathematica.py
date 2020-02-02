@@ -73,17 +73,19 @@ class BasicSemialgebraicSet_mathematica(BasicSemialgebraicSet_eq_lt_le_sets):
             sage: from cutgeneratingfunctionology.spam.semialgebraic_mathematica import BasicSemialgebraicSet_mathematica
             sage: P.<x> = QQ[]
             sage: BasicSemialgebraicSet_mathematica(QQ, poly_ring=P).find_point()   # optional - mathematica
-            (0,)
+            (0)
             sage: BasicSemialgebraicSet_mathematica(eq=[x-1]).find_point()   # optional - mathematica
-            (1,)
+            (1)
+            sage: BasicSemialgebraicSet_mathematica(eq=[x^3-4]).find_point()   # optional - mathematica
+            (1.587401051968200?)
             sage: Q.<y,z> = QQ[]
             sage: BasicSemialgebraicSet_mathematica(eq=[y], le=[z]).find_point()
             (0, -75)
 
-       Bug example. The second component of the return is of <class 'sage.interfaces.mathematica.MathematicaElement'>::
+       Was a bug example, whose second component -12/5 - I  is of <class 'sage.interfaces.mathematica.MathematicaElement'>. Now fixed by passing 'Reals' to FindInstance::
 
             sage: BasicSemialgebraicSet_mathematica(eq=[y]).find_point()   # optional - mathematica
-            (0, -12/5 - I/2)
+            (0, -12/5)
         """
         try:
             # treat the cases where constraints_string is empty. Can also set self.constraints_string() to 'True', but returned point would have complex number component.
@@ -111,7 +113,7 @@ class BasicSemialgebraicSet_mathematica(BasicSemialgebraicSet_eq_lt_le_sets):
             sage: bsa.is_empty()   # optional - mathematica
             False
             sage: bsa.add_polynomial_constraint(x-1, operator.eq)
-            sage: bse.is_empty()   # optional - mathematica
+            sage: bsa.is_empty()   # optional - mathematica
             True
         """
         try:
