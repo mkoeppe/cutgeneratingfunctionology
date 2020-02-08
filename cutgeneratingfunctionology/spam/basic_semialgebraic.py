@@ -1825,6 +1825,13 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             ...
             ValueError: all polynomials in polynomial_map must be monomials with coefficient 1
 
+        Check polynomial_map and v_dict are set correctly in init::
+
+            sage: P.<x,y,z>=QQ[]
+            sage: veronese = BasicSemialgebraicSet_veronese(poly_ring=P, polynomial_map=list(P.gens()))
+            sage: veronese.v_dict()
+            {x: 0, y: 1, z: 2}
+
         """
         if poly_ring is None:
             if polynomial_map:
@@ -1852,6 +1859,8 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             else:
                 upstairs_base_ring = poly_ring.base_ring()
                 upstairs_ambient_dim = len(polynomial_map)
+                if v_dict is None:
+                    v_dict = {polynomial_map[i]:i for i in range(upstairs_ambient_dim)}
             upstairs_bsa = upstairs_bsa_class(base_ring=upstairs_base_ring, ambient_dim=upstairs_ambient_dim)
         if upstairs_bsa_class:
             if not isinstance(upstairs_bsa, upstairs_bsa_class):
