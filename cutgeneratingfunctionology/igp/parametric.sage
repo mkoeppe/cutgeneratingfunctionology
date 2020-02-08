@@ -1402,7 +1402,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         # first flip l <= 0 to l > 0.
         bsa_le_poly = list(self.bsa.le_poly())
         bddbsa = copy(self.bddbsa)
-        for l in bsa_le_poly:
+        for l in bsa_eq_poly:
             bddbsa.add_polynomial_constraint(l, operator.eq)
         minimal_bsa_le_poly = []
         for i in range(len(bsa_le_poly)):
@@ -1976,7 +1976,7 @@ class SemialgebraicComplex(SageObject):
                     break
                 var_value.append(x)
             # if random point is not in self.bddbsa, continue while.
-            if (x is not None) and (x in self.bddbsa):
+            if (x is not None) and (var_value in self.bddbsa):
                 return var_value
 
     def is_point_covered(self, var_value):
@@ -3084,17 +3084,21 @@ def embed_function_into_family(given_function, parametric_family, check_completi
         # sage: embed_function_into_family(given_function, parametric_family, wall_crossing_method='mathematica') # not tested # optional - mathematica #long time  #TODO: does not terminate.
         # {'f': 2/5, 'lambda_1': 6/25, 'lambda_2': 2/75}
     """
-    default_args = read_default_args(parametric_family)
-    var_name = []
-    var_value = []
-    for (name, value) in default_args.items():
-        if not isinstance(value, bool) and not value is None:
-            try:
-                RR(value)
-                var_name.append(name)
-                var_value.append(value)
-            except:
-                pass
+    if 'var_name' in opt and 'var_value' in opt:
+        var_name = opt.pop('var_name')
+        var_value = opt.pop('var_value')
+    else:
+        default_args = read_default_args(parametric_family)
+        var_name = []
+        var_value = []
+        for (name, value) in default_args.items():
+            if not isinstance(value, bool) and not value is None:
+                try:
+                    RR(value)
+                    var_name.append(name)
+                    var_value.append(value)
+                except:
+                    pass
     def frt(K, h):
         if h is None:
             return False
