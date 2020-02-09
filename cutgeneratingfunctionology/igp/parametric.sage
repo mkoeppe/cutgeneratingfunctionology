@@ -1254,7 +1254,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         sage: list(component.bsa.lt_poly())
         [x + y - 2, y^2 - x]
         sage: component.plot(xmin=0, xmax=4, ymin=-3, ymax=3)        # not tested
-        sage: new_points = component.find_neighbour_candidates(1/4, 'heuristic', goto_lower_dim=False)
+        sage: new_points = component.find_neighbour_candidates(1/4, 'heuristic', goto_lower_dim=False, pos_poly=None)
         sage: new_pts = sorted(new_points[0].keys())
         sage: new_pts
         [(30093/42985, 54831/63571), (11/8, 7/8)]
@@ -1262,10 +1262,10 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         2
         sage: all((xx + yy - 2)*(yy^2 - xx) < 0 for (xx, yy) in new_pts)
         True
-        sage: more_new_points = component.find_neighbour_candidates(1/4, 'mathematica', goto_lower_dim=True)
-        sage: sorted(more_new_points[0].keys())
+        sage: more_new_points = component.find_neighbour_candidates(1/4, 'mathematica', goto_lower_dim=True, pos_poly=None)  # optional - mathematica
+        sage: sorted(more_new_points[0].keys())  # optional - mathematica
         [(17/8, 0), (2065/512, -33/16)]
-        sage: sorted(more_new_points[1].keys())
+        sage: sorted(more_new_points[1].keys())  # optional - mathematica
         [(0, 0), (2, 0)]
 
         sage: K.<x,y> = ParametricRealField([1,1/2])
@@ -1274,12 +1274,31 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         True
         sage: sorted(K._bsa.eq_poly()), sorted(K._bsa.lt_poly()), sorted(K._bsa.le_poly())
         ([x - 2*y], [3*x - 4, y^2 - x], [])
-        sage: l = list(K._bsa.eq_poly())[0]; polynomial_map = [2*l.parent().gens()[1], l.parent().gens()[1]]
+
+    Without using BasicSemialgebraicSet_local, we got::
+
+        sage: xx = K._bsa.poly_ring().gens()[0]; polynomial_map = [xx, 1/2*xx]
         sage: component = SemialgebraicComplexComponent(K, region_type, polynomial_map=polynomial_map)
         sage: sorted(component.bsa.lt_poly())
-        [-y, 3*y - 2]
+        [3*x - 4, y^2 - x]
 
-    # if BasicSemialgebraicSet_local is not used, then the expected return of the last test is [3*y - 2, y^2 - 2*y]
+    With using BasicSemialgebraicSet_local::
+
+        sage: component = SemialgebraicComplexComponent(K, region_type)
+        sage: sorted(component.bsa.lt_poly())
+        [-x, 3*x - 4]
+
+    In ProofCell region_type should alreay consider the polynomial_map::
+
+        sage: K.<x,y> = ParametricRealField([1,1/2])
+        sage: assert(x == 2*y)
+        sage: region_type = foo(K.gens()[0], 1/2*K.gens()[0])
+        sage: sorted(K._bsa.eq_poly()), sorted(K._bsa.lt_poly()), sorted(K._bsa.le_poly())
+        ([x - 2*y], [-x, 3*x - 4], [])
+        sage: xx = K._bsa.poly_ring().gens()[0]; polynomial_map = [xx, 1/2*xx]
+        sage: component = SemialgebraicComplexComponent(K, region_type, polynomial_map=polynomial_map)
+        sage: sorted(component.bsa.lt_poly())
+        [-x, 3*x - 4]
     """
 
     def __init__(self, K, region_type, bddbsa=None, polynomial_map=None):
@@ -1293,31 +1312,24 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         if polynomial_map is None: # for doctest purpose
             polynomial_map = list(poly_ring.gens())
         if bddbsa is None:   # for doctest purpose
-            self.bddbsa = BasicSemialgebraicSet_veronese(poly_ring=poly_ring)
-        else:
-            self.bddbsa = bddbsa
-        assert (K.gens() in self.bddbsa) # record boundary constraints. #NEW: moved from ProofCell._construct_field_and_test_point
-    
-        # Polynomial map equalities were asserted in K in ProofCell.__init__.
-        # The equations are expected to cancel, but in lower dim proof cell case, K._bsa still has equations.
+            bddbsa = BasicSemialgebraicSet_veronese(poly_ring=poly_ring)
+        self.bsa = copy(K._bsa)
+        self.bddbsa = bddbsa
+        # Polynomial map equalities and bddbsa were asserted in K in ProofCell.__init__. The inequalities in self.bsa and bddbsa should already been simplified through section with polynomial_map. This was done in _construct_field_and_test_point.
+        # In lower dim proof cell or non-linear equations case, some equations of K._bsa are not presented in polynomial_map.
         eqs = list(K._bsa.eq_poly())
-        if eqs:
+        if not all(l(polynomial_map) == 0 for l in eqs):
             polynomial_map = find_polynomial_map(eqs=eqs, poly_ring=poly_ring)
-            # poly_map2 = find_polynomial_map(eqs=eqs, poly_ring=poly_ring)
-            # if polynomial_map != poly_map2:
-            #     import pdb; pdb.set_trace()
-            #     polynomial_map = poly_map2
-        #self.bsa = K._bsa.section(polynomial_map, bsa_class='veronese', poly_ring=poly_ring)  # this is a bigger_bsa
-        self.bsa = BasicSemialgebraicSet_veronese.from_bsa(BasicSemialgebraicSet_local(K._bsa.section(polynomial_map, poly_ring=poly_ring), self.var_value), polynomial_map=list(poly_ring.gens()))
-
-        # WHY is this input polynomial_map sometimes not compatible with the variable elimination done in bddbsa? Because upstairs ppl bsa eliminates large x_i in the inequalities, and x_i doesn't necessarily correspond to the i-th variable in poly_ring. Since polynomial_map and v_dict were not given at the initialization of veronese, the variable first encounted in the constraints is considered as x0 by upstairs ppl bsa. # In old code, we fixed the order of upstairs variables by adding initial space dimensions. We don't do that in the current code. Instead, we take the section of bddbsa to eliminate the varibles in the equations. # Is the given bddbsa required to be veronese with upstairs being ppl_bsa? Convert it anyway. # It's the same as BasicSemialgebraicSet_veronese.from_bsa(bddbsa.section(self.polynomial_map), poly_ring=poly_ring)
-        self.bddbsa = BasicSemialgebraicSet_veronese.from_bsa(BasicSemialgebraicSet_local(bddbsa.section(polynomial_map, poly_ring=poly_ring), self.var_value))
-        # Taking section forgets the equations. Then add back the equations  # Finally self.bsa should be the same as K._bsa, but its inequalities don't have variables eliminated by polynomial map, so that heuristic wall crossing can be done later.
-        for i in range(len(self.var_name)):
-            if polynomial_map[i] != poly_ring.gens()[i]:
-                l = polynomial_map[i]-poly_ring.gens()[i]
-                (self.bsa).add_polynomial_constraint(l, operator.eq)
-                (self.bddbsa).add_polynomial_constraint(l, operator.eq)
+            #self.bsa = K._bsa.section(polynomial_map, bsa_class='veronese', poly_ring=poly_ring)  # this is a bigger_bsa
+            self.bsa = BasicSemialgebraicSet_veronese.from_bsa(BasicSemialgebraicSet_local(K._bsa.section(polynomial_map, poly_ring=poly_ring), self.var_value)) # TODO:, polynomial_map=list(poly_ring.gens()))
+            # WHY is this input polynomial_map sometimes not compatible with the variable elimination done in bddbsa? Because upstairs ppl bsa eliminates large x_i in the inequalities, and x_i doesn't necessarily correspond to the i-th variable in poly_ring. Since polynomial_map and v_dict were not given at the initialization of veronese, the variable first encounted in the constraints is considered as x0 by upstairs ppl bsa. # In old code, we fixed the order of upstairs variables by adding initial space dimensions. We don't do that in the current code. Instead, we take the section of bddbsa to eliminate the varibles in the equations. # Is the given bddbsa required to be veronese with upstairs being ppl_bsa? Convert it anyway. # It's the same as BasicSemialgebraicSet_veronese.from_bsa(bddbsa.section(self.polynomial_map), poly_ring=poly_ring)
+            self.bddbsa = BasicSemialgebraicSet_veronese.from_bsa(BasicSemialgebraicSet_local(bddbsa.section(polynomial_map, poly_ring=poly_ring), self.var_value))
+            # Taking section forgets the equations. Then add back the equations  # Finally self.bsa should be the same as K._bsa, but its inequalities don't have variables eliminated by polynomial map, so that heuristic wall crossing can be done later.
+            for i in range(len(self.var_name)):
+                if polynomial_map[i] != poly_ring.gens()[i]:
+                    l = polynomial_map[i]-poly_ring.gens()[i]
+                    (self.bsa).add_polynomial_constraint(l, operator.eq)
+                    (self.bddbsa).add_polynomial_constraint(l, operator.eq)
         self.polynomial_map = polynomial_map
         self.neighbour_points = []  # just for plotting
 
@@ -1381,7 +1393,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                 g += point(pt, color = ptcolor, size = 2, zorder=10)
         return g
 
-    def find_neighbour_candidates(self, flip_ineq_step, wall_crossing_method='heuristic', goto_lower_dim=False):
+    def find_neighbour_candidates(self, flip_ineq_step, wall_crossing_method='heuristic', goto_lower_dim=False, pos_poly=None):
         r"""
         Try flipping exactly one inequality at one time, to reach a new testpoint as neighbour candidate.
 
@@ -1389,25 +1401,27 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         - wall_crossing_method is 'heuristic' or 'mathematica' or 'heuristic_then_mathematica'
         - if goto_lower_dim=False, the cell is considered as its formal closure, so no recursion into test points in lower dimensional cells.
 
-        OUTPUT new_points is a dictionary of dictionaries. The new_points[i] is a dictionay whose keys = candidate neighbour testpoints, values = (bddbsa whose eq_poly has i elements, polynomial_map) of the candidate neighbour cell that contains the candidate neighbour testpoint. bddbsa is recorded so that (1) complex.bddbsa is always respected; and (2) can recursively go into lower dimensional cells. In heuristic method, polynomial_map is recorded and passed to the constructor of the neighbour cell. At the end, we update self.bsa by removing (obvious) redundant eq, lt, le constraints from its description.
+        OUTPUT new_points is a dictionary of dictionaries. The new_points[i] is a dictionay whose keys = candidate neighbour testpoints, values = (bddbsa whose eq_poly has i elements, polynomial_map, no_crossing_l) of the candidate neighbour cell that contains the candidate neighbour testpoint. bddbsa is recorded so that (1) complex.bddbsa is always respected; and (2) can recursively go into lower dimensional cells. polynomial_map is recorded and passed to the constructor of the neighbour cell. no_crossing is passed to the neighour cell for its find_neighbour_candidates method. We no longer update self.bsa by removing (obvious) redundant eq, lt, le constraints from its description at the end, even when 'mathematica' is used.
         """
-        num_eq = len(list(self.bsa.eq_poly())) #was len(list(self.bddbsa.eq_poly()))
-        new_points = {}  #dictionary with key=num_eq, value=dictionay of pt: (bddbsa, polynomial_map).
         bsa_eq_poly = list(self.bsa.eq_poly())
-        # first flip l <= 0 to l > 0.
         bsa_le_poly = list(self.bsa.le_poly())
-        bddbsa = copy(self.bddbsa)
-        for l in bsa_eq_poly:
-            bddbsa.add_polynomial_constraint(l, operator.eq)
-        minimal_bsa_le_poly = []
-        for i in range(len(bsa_le_poly)):
-            l = bsa_le_poly[i]
-            bsa = copy(bddbsa) #veronese
+        bsa_lt_poly = list(self.bsa.lt_poly())
+        num_eq = len(bsa_eq_poly) #was len(list(self.bddbsa.eq_poly()))
+        new_points = {}  #dictionary with key=num_eq, value=dictionay of pt: (bddbsa, polynomial_map).
+        #bddbsa = copy(self.bddbsa)
+        #for l in bsa_eq_poly: # should be already in bddbsa
+        #    bddbsa.add_polynomial_constraint(l, operator.eq)
+        # first flip l <= 0 to l > 0.
+        for l in bsa_le_poly:
+            bsa = copy(self.bddbsa) #veronese
+            if pos_poly is not None:
+                bsa.add_polynomial_constraint(pos_poly, operator.gt)
             # inequalites are orthogonal to the equations
-            for ll in list(self.bsa.lt_poly()):
+            for ll in bsa_lt_poly:
                 bsa.add_polynomial_constraint(ll, operator.lt)
-            for ll in minimal_bsa_le_poly+bsa_le_poly[i+1::]:
-                bsa.add_polynomial_constraint(ll, operator.le)
+            for ll in bsa_le_poly:
+                if ll != l:
+                    bsa.add_polynomial_constraint(ll, operator.le)
             # FIXME: should simply bsa, for example 4*f^2-4*f-1 <= 0 should be simplified to f = 1/2. More crucial for pt_on_wall. # now self.bddbsa and self.bsa were obtained through bsa_local, should be fine if bsa is now lower dimensional.
             try:
                 if bsa.is_polynomial_constraint_valid(l, operator.le):
@@ -1422,36 +1436,30 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                 pt = find_point_flip_ineq_heuristic(self.var_value, l, list(bsa.lt_poly())+list(bsa.le_poly()), flip_ineq_step)
                 if pt is not None:
                     # Find a new point, use polynomial map to recover the values of those eliminated variables.
-                    pt_across_wall = tuple(p(pt) for p in self.polynomial_map)
-                keep_l = True                  
+                    pt_across_wall = tuple(p(pt) for p in self.polynomial_map)                 
             if wall_crossing_method == 'mathematica' or wall_crossing_method == 'heuristic_then_mathematica' and (pt_across_wall is None):
                 # FIXME: put l>0 in bddbsa of new point.
-                keep_l = False
                 bsa_mathematica = BasicSemialgebraicSet_mathematica.from_bsa(bsa)
                 bsa_mathematica.add_polynomial_constraint(l, operator.gt)
-                if bsa_mathematica.find_point() is not None:
-                    keep_l = True
-                    bsa_mathematica.add_polynomial_constraint(l - flip_ineq_step, operator.lt)
-                    pt = bsa_mathematica.find_point()
-                    if pt is not None:
-                        pt_across_wall = tuple(pt)
-            if keep_l:
-                minimal_bsa_le_poly.append(l)
+                bsa_mathematica.add_polynomial_constraint(l - flip_ineq_step, operator.lt) #needed? yes, otherwise often find (0,0)
+                pt = bsa_mathematica.find_point()
+                if pt is not None:
+                    pt_across_wall = tuple(pt)
             if pt_across_wall is not None:
                 if num_eq not in new_points:
                     new_points[num_eq] = OrderedDict()
-                new_points[num_eq][pt_across_wall] = (bddbsa, self.polynomial_map)
+                new_points[num_eq][pt_across_wall] = (self.bddbsa, self.polynomial_map, l)
         # now flip l < 0 to l >= 0
-        bsa_lt_poly = list(self.bsa.lt_poly())
-        minimal_bsa_lt_poly = []
-        for i in range(len(bsa_lt_poly)):
-            l = bsa_lt_poly[i]
-            bsa = copy(bddbsa) #veronese
+        for l in bsa_lt_poly:
+            bsa = copy(self.bddbsa) #veronese
+            if pos_poly is not None:
+                bsa.add_polynomial_constraint(pos_poly, operator.gt)
             # inequalites are orthogonal to the equations
-            for ll in minimal_bsa_le_poly:
+            for ll in bsa_le_poly:
                 bsa.add_polynomial_constraint(ll, operator.le)
-            for ll in minimal_bsa_lt_poly+bsa_lt_poly[i+1::]:
-                bsa.add_polynomial_constraint(ll, operator.lt)
+            for ll in bsa_lt_poly:
+                if ll != l:
+                    bsa.add_polynomial_constraint(ll, operator.lt)
             has_pt_across_wall = True
             has_pt_on_wall = True
             pt_across_wall = None
@@ -1473,21 +1481,17 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                     if pt is not None:
                         #find a new point, use polynomial map to recover the values of those eliminated variables.
                         pt_across_wall = tuple(p(pt) for p in self.polynomial_map)
-                    keep_l = True
                 if wall_crossing_method == 'mathematica' or wall_crossing_method == 'heuristic_then_mathematica' and (pt_across_wall is None):
-                    keep_l = False
                     bsa_mathematica = BasicSemialgebraicSet_mathematica.from_bsa(bsa)
                     bsa_mathematica.add_polynomial_constraint(l, operator.gt)
-                    if bsa_mathematica.find_point() is not None:
-                        keep_l = True
-                        bsa_mathematica.add_polynomial_constraint(l - flip_ineq_step, operator.lt)
-                        pt = bsa_mathematica.find_point()
-                        if pt is not None:
-                            pt_across_wall = tuple(pt)
+                    bsa_mathematica.add_polynomial_constraint(l - flip_ineq_step, operator.lt) #needed? yes
+                    pt = bsa_mathematica.find_point()
+                    if pt is not None:
+                        pt_across_wall = tuple(pt)
                 if pt_across_wall is not None:
                     if num_eq not in new_points:
                         new_points[num_eq] = OrderedDict()
-                    new_points[num_eq][pt_across_wall] = (bddbsa, self.polynomial_map)
+                    new_points[num_eq][pt_across_wall] = (self.bddbsa, self.polynomial_map, l)
             # find point in intersection(bsa, l==0)
             if goto_lower_dim:
                 if (wall_crossing_method == 'heuristic' or wall_crossing_method is None or wall_crossing_method == 'heuristic_then_mathematica') and (l.degree() == 1):
@@ -1571,7 +1575,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                         if pt is not None:
                             # restrict the bddbsa of the candidate neighbour cell.
                             # univariate polynomials (Polynomial_rational_flint) does not define "coefficient", but has "monomial_coefficient".
-                            new_bddbsa = copy(bddbsa)
+                            new_bddbsa = copy(self.bddbsa)
                             new_bddbsa.add_linear_constraint(lhs, cst, operator.eq)
                             eqs = list(new_bddbsa.eq_poly())
                             new_num_eq = len(eqs)
@@ -1585,7 +1589,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                     pt = bsa_mathematica.find_point()
                     if pt is not None:
                         pt_on_wall = tuple(pt)
-                    new_bddbsa = copy(bddbsa)
+                    new_bddbsa = copy(self.bddbsa)
                     new_bddbsa.add_polynomial_constraint(l, operator.eq)
                     eqs = list(new_bddbsa.eq_poly())
                     new_num_eq = len(eqs)
@@ -1594,13 +1598,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                 if pt_on_wall is not None:
                     if new_num_eq not in new_points:
                         new_points[new_num_eq] = OrderedDict()
-                    new_points[new_num_eq][pt_on_wall] = (new_bddbsa, polynomial_map)
-            if (keep_l) or (pt_on_wall is not None):
-                minimal_bsa_lt_poly.append(l)
-        #import pdb; pdb.set_trace()
-        if bsa_lt_poly != minimal_bsa_lt_poly or bsa_le_poly != minimal_bsa_le_poly:
-            # UPDATE self.bsa #FIXME: remove intersection, it puts every inequalities of bddbsa in without thinking!
-            self.bsa = BasicSemialgebraicSet_veronese.from_bsa(BasicSemialgebraicSet_eq_lt_le_sets(eq=bsa_eq_poly, lt=minimal_bsa_lt_poly, le=minimal_bsa_le_poly, poly_ring = self.bsa.poly_ring()).intersection(self.bddbsa))
+                    new_points[new_num_eq][pt_on_wall] = (new_bddbsa, polynomial_map, None)
         return new_points
 
     def is_polyhedral(self):
@@ -1679,9 +1677,11 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
             sage: from cutgeneratingfunctionology.igp import *
             sage: logging.disable(logging.INFO)
             sage: family=ParametricFamily(gmic); var_value=[1/2]; P.<f>=QQ[]; polynomial_map = [f]
-            sage: K, test_point = ProofCell._construct_field_and_test_point(family, var_value, polynomial_map)
+            sage: K, pt, test_point = ProofCell._construct_field_and_test_point(family, var_value, polynomial_map)
             sage: K
             ParametricRealField(names = ['f'], values = [1/2])
+            sage: pt
+            [f~]
             sage: test_point
             {'conditioncheck': False,
                  'f': f~,
@@ -1693,13 +1693,17 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
             sage: theta = [3*f/(2*f+2), 3*f/(2*f+2)]
             sage: family = cpl_n_group_function(3, True, theta=lambda x, y: tuple([t(x, *y) for t in theta]))
             sage: var_value = (111/1000, 111/1000)
-            sage: K, test_point = ProofCell._construct_field_and_test_point(family, var_value)
+            sage: K, pt, test_point = ProofCell._construct_field_and_test_point(family, var_value)
             sage: list(K._bsa.eq_poly())
             []
+            sage: pt
+            [f~, z~]
             sage: polynomial_map = [f, f]
-            sage: K, test_point = ProofCell._construct_field_and_test_point(family, var_value, polynomial_map)
+            sage: K, pt, test_point = ProofCell._construct_field_and_test_point(family, var_value, polynomial_map)
             sage: list(K._bsa.eq_poly())
             [f - z]
+            sage: pt
+            [f~, f~]
         """
         var_name = family.names()
         K = ParametricRealField(var_value, var_name)
@@ -1721,8 +1725,8 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
         #    bddbsa =  BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=PolynomialRing(QQ, var_name)) # class doesn't matter, just to record the constraints on K._bsa
         #The code seems to still work after commenting out the following.
         #K.add_initial_space_dim() #so that the parameters var_name are the first ones in the monomial list. Needed for ppl variable elimination, otherwise ineqs are not orthogonal to eliminated variables. FIXME: Get rid of this requirement. Also needed for Mccormicks?
-        #assert (K.gens() in bddbsa) # record boundary constraints.
-        return K, test_point
+        #assert (K.gens() in bddbsa) # record boundary constraints. # Move to __init__
+        return K, pt, test_point
 
     def __init__(self, family, var_value, find_region_type, bddbsa, polynomial_map):
         """
@@ -1744,7 +1748,7 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
             sage: sorted(cell.bsa.lt_poly()), sorted(cell.bsa.eq_poly())  # was ([-11*f + 1, 9*f - 1, -11*f^2 + f, 5*f^2 - f], [f - z]))
             ([-11*f + 1, 9*f - 1], [f - z])
         """
-        K, test_point = self._construct_field_and_test_point(family, var_value, polynomial_map)
+        K, pt, test_point = self._construct_field_and_test_point(family, var_value, polynomial_map)
         try:
             h = family(**test_point)
         except Exception:
@@ -1753,6 +1757,8 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
                 import pdb; pdb.post_mortem()
             h = None
         region_type = find_region_type(K, h)
+        if bddbsa is not None:
+            assert (pt in bddbsa) # record boundary constraints. #NEW: moved from ProofCell._construct_field_and_test_point
         super(ProofCell, self).__init__(K, region_type, bddbsa, polynomial_map)
         self.family = family
 
@@ -2101,7 +2107,7 @@ class SemialgebraicComplex(SageObject):
         pt = vector(from_mathematica(pt_math[1][i+1][2]) for i in range(self.d))
         return tuple(bddbsa.ambient_space(field=pt.parent().base_ring())(pt))
 
-    def add_new_component(self, var_value, bddbsa=None, polynomial_map=None, flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False, num_eq=0):
+    def add_new_component(self, var_value, bddbsa=None, polynomial_map=None, pos_poly=None, flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False, num_eq=0):
         r"""
         Compute one proof cell around var_value. Append this cell to the complex.
 
@@ -2128,7 +2134,7 @@ class SemialgebraicComplex(SageObject):
             sage: complex.add_new_component([1,1/2], bddbsa=None, flip_ineq_step=1/10, wall_crossing_method='mathematica', goto_lower_dim=False) # the cell {(x,y): x > y^2}      # optional - mathematica
             sage: list(complex.components[0].bsa.lt_poly()) # optional - mathematica
             [y^2 - x]
-            sage: complex.points_to_test[0].keys() # optional - mathematica
+            sage: list(complex.points_to_test[0].keys()) # optional - mathematica
             [(19/20, 1)]
         """
         if bddbsa is None:
@@ -2141,6 +2147,7 @@ class SemialgebraicComplex(SageObject):
                 self.tested_points[num_eq] = set([])
         new_component = self._cell_class(self.family, var_value, 
                                          find_region_type=self.find_region_type, bddbsa=bddbsa, polynomial_map=polynomial_map)
+
         new_num_eq = len(list(new_component.bsa.eq_poly()))
         if  new_num_eq > num_eq:
             logging.warning("The cell around %s defined by %s has more equations than boundary %s" %(new_component.var_value, new_component.bsa, bddbsa))
@@ -2157,21 +2164,29 @@ class SemialgebraicComplex(SageObject):
                         # Find a new point, use polynomial map to recover the values of those eliminated variables.
                         pert_value = tuple(p(pt) for p in polynomial_map)
                         if not (pert_value in self.tested_points[num_eq]) and not (pert_value in self.points_to_test[num_eq]) and (pert_value in bddbsa):
-                            self.points_to_test[num_eq][pert_value] = (copy(bddbsa), copy(polynomial_map))
+                            self.points_to_test[num_eq][pert_value] = (copy(bddbsa), copy(polynomial_map), pos_poly)
             if not goto_lower_dim:
                 return
+
         if (flip_ineq_step != 0) and (new_component.region_type != 'stop'):
             # when using random shooting, don't generate neighbour points;
-            new_points = new_component.find_neighbour_candidates(flip_ineq_step, wall_crossing_method, goto_lower_dim)
+            new_points = new_component.find_neighbour_candidates(flip_ineq_step, wall_crossing_method, goto_lower_dim, pos_poly)
             new_component.neighbour_points = []
             for (n, new_points_n_eq) in new_points.items():
-                for pt, bddbsa_polymap in new_points_n_eq.items():
+                for pt, (new_bddbsa, new_poly_map, no_crossing) in new_points_n_eq.items():
                     if not n in self.points_to_test:
                         self.points_to_test[n] = OrderedDict()
                         if not n in self.tested_points:
                             self.tested_points[n] = set([])
                     if not pt in self.tested_points[n]:
-                        self.points_to_test[n][pt] = bddbsa_polymap
+                        if new_component.polynomial_map != new_poly_map:
+                            # neighbour cell has more equation. simplify its bddbsa.
+                            poly_ring = new_poly_map[0].parent()
+                            new_bddbsa = BasicSemialgebraicSet_veronese.from_bsa(BasicSemialgebraicSet_local(new_bddbsa.section(new_poly_map, poly_ring=poly_ring), pt))
+                            for i in range(len(new_poly_map)):
+                                l = new_poly_map[i]-poly_ring.gens()[i]
+                                new_bddbsa.add_polynomial_constraint(l, operator.eq)
+                        self.points_to_test[n][pt] = (new_bddbsa, new_poly_map, no_crossing)
                 new_component.neighbour_points += list(new_points_n_eq.keys())
         self.components.append(new_component)
 
@@ -2367,16 +2382,16 @@ class SemialgebraicComplex(SageObject):
                     self.tested_points[0] = set([])
             if not tuple(var_value) in self.tested_points[0]:
             # put given var_value to num_eq=0 so that it pops out first in bfs.
-                self.points_to_test[0][tuple(var_value)] = (self.bddbsa, None)
+                self.points_to_test[0][tuple(var_value)] = (self.bddbsa, None, None)
         num_eq = 0
         max_num_eq = max(self.points_to_test.keys())
         while num_eq <= max_num_eq:
             while num_eq in self.points_to_test and self.points_to_test[num_eq]:
-                var_value, (bddbsa, polynomial_map) = self.points_to_test[num_eq].popitem(last=False)  # BFS
+                var_value, (bddbsa, polynomial_map, no_crossing) = self.points_to_test[num_eq].popitem(last=False)  # BFS
                 self.tested_points[num_eq].add(var_value)
                 var_value = list(var_value)
                 if not self.is_point_covered(var_value):
-                    self.add_new_component(var_value, bddbsa=bddbsa, polynomial_map=polynomial_map, flip_ineq_step=flip_ineq_step, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim, num_eq=num_eq)
+                    self.add_new_component(var_value, bddbsa=bddbsa, polynomial_map=polynomial_map, pos_poly=no_crossing, flip_ineq_step=flip_ineq_step, wall_crossing_method=wall_crossing_method, goto_lower_dim=goto_lower_dim, num_eq=num_eq)
             max_num_eq = max(self.points_to_test.keys())
             num_eq += 1
         if check_completion:
@@ -3113,7 +3128,7 @@ def embed_function_into_family(given_function, parametric_family, check_completi
     # terminate complex.bfs_completion(var_value=var_value, goto_lower_dim=True) immediately when a cell has region_type == True.
     complex.points_to_test[0] = OrderedDict()
     complex.tested_points[0] = set([])
-    complex.points_to_test[0][tuple(var_value)] = (None, None)
+    complex.points_to_test[0][tuple(var_value)] = (None, None, None)
     flip_ineq_step = opt.pop('flip_ineq_step', 1/1000)
     is_complete = False
     while not is_complete:
@@ -3121,11 +3136,11 @@ def embed_function_into_family(given_function, parametric_family, check_completi
         max_num_eq = max(complex.points_to_test.keys())
         while num_eq <= max_num_eq:
             while num_eq in complex.points_to_test and complex.points_to_test[num_eq]:
-                var_value, (bddbsa, polynomial_map) = complex.points_to_test[num_eq].popitem(last=False)
+                var_value, (bddbsa, polynomial_map, no_crossing) = complex.points_to_test[num_eq].popitem(last=False)
                 complex.tested_points[num_eq].add(var_value)
                 var_value = list(var_value)
                 if not complex.is_point_covered(var_value):
-                    complex.add_new_component(var_value, bddbsa=bddbsa, polynomial_map=polynomial_map, flip_ineq_step=flip_ineq_step, goto_lower_dim=True, num_eq=num_eq, **opt)
+                    complex.add_new_component(var_value, bddbsa=bddbsa, polynomial_map=polynomial_map, pos_poly=no_crossing, flip_ineq_step=flip_ineq_step, goto_lower_dim=True, num_eq=num_eq, **opt)
                     if complex.components and complex.components[-1].region_type is True:
                         dic = {var_name[i]:var_value[i] for i in range(len(var_name))}
                         #import pdb; pdb.set_trace()
@@ -3138,7 +3153,7 @@ def embed_function_into_family(given_function, parametric_family, check_completi
                 is_complete = True
             else:
                 if not (tuple(var_value) in complex.tested_points[0]):
-                    complex.points_to_test[0][tuple(var_value)] = (None, None)
+                    complex.points_to_test[0][tuple(var_value)] = (None, None, None)
         else:
             is_complete = True
     # plot_cpl_components(complex.components)

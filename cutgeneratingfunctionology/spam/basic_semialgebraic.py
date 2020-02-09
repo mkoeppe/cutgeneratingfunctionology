@@ -1830,8 +1830,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             sage: P.<x,y,z>=QQ[]
             sage: veronese = BasicSemialgebraicSet_veronese(poly_ring=P, polynomial_map=list(P.gens()))
             sage: veronese.v_dict()
-            {x: 0, y: 1, z: 2}
-
+            {z: 2, y: 1, x: 0}
         """
         if poly_ring is None:
             if polynomial_map:
