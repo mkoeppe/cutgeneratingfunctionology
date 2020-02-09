@@ -3130,6 +3130,7 @@ def embed_function_into_family(given_function, parametric_family, check_completi
     complex.tested_points[0] = set([])
     complex.points_to_test[0][tuple(var_value)] = (None, None, None)
     flip_ineq_step = opt.pop('flip_ineq_step', 1/1000)
+    goto_lower_dim = opt.pop('goto_lower_dim', True)
     is_complete = False
     while not is_complete:
         num_eq = 0
@@ -3140,7 +3141,7 @@ def embed_function_into_family(given_function, parametric_family, check_completi
                 complex.tested_points[num_eq].add(var_value)
                 var_value = list(var_value)
                 if not complex.is_point_covered(var_value):
-                    complex.add_new_component(var_value, bddbsa=bddbsa, polynomial_map=polynomial_map, pos_poly=no_crossing, flip_ineq_step=flip_ineq_step, goto_lower_dim=True, num_eq=num_eq, **opt)
+                    complex.add_new_component(var_value, bddbsa=bddbsa, polynomial_map=polynomial_map, pos_poly=no_crossing, flip_ineq_step=flip_ineq_step, goto_lower_dim=goto_lower_dim, num_eq=num_eq, **opt)
                     if complex.components and complex.components[-1].region_type is True:
                         dic = {var_name[i]:var_value[i] for i in range(len(var_name))}
                         #import pdb; pdb.set_trace()

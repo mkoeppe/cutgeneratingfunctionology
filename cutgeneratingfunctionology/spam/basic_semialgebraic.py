@@ -177,7 +177,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             Algebraic Real Field
 
         """
-        if bsa.__class__ == cls and (base_ring is None or base_ring == bsa.base_ring()):
+        if bsa.__class__ == cls and (base_ring is None or base_ring == bsa.base_ring()) and ('polynomial_map' not in init_kwds):
             return bsa
         if poly_ring is None:
             if base_ring is not None:
