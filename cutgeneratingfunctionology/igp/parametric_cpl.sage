@@ -597,6 +597,9 @@ def collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_theta", goto_l
 # sage: logging.disable(logging.INFO)
 # sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)
 # sage: regions = cpl_regions_with_thetas_and_components(n=3, cpleq=True, regions=regions); collect_and_save_cpl_extreme_theta_regions(regions, name="cpl", goto_lower_dim=True)
+# sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True, wall_crossing_method='mathematica')
+# sage: regions = cpl_regions_with_thetas_and_components(n=3, cpleq=True, regions=regions, wall_crossing_method='mathematica'); collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_math", goto_lower_dim=True)
+
 
 # sage: import cutgeneratingfunctionology.igp as igp; reload(igp);  from cutgeneratingfunctionology.igp import *
 # sage: logging.disable(logging.INFO)

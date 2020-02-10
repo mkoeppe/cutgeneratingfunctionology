@@ -2107,7 +2107,7 @@ class SemialgebraicComplex(SageObject):
         pt = vector(from_mathematica(pt_math[1][i+1][2]) for i in range(self.d))
         return tuple(bddbsa.ambient_space(field=pt.parent().base_ring())(pt))
 
-    def add_new_component(self, var_value, bddbsa=None, polynomial_map=None, pos_poly=None, flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False, num_eq=0):
+    def add_new_component(self, var_value, bddbsa=None, polynomial_map=None, pos_poly=None, flip_ineq_step=0, wall_crossing_method=None, goto_lower_dim=False, num_eq=None):
         r"""
         Compute one proof cell around var_value. Append this cell to the complex.
 
@@ -2141,6 +2141,8 @@ class SemialgebraicComplex(SageObject):
             bddbsa = self.bddbsa
         if polynomial_map is None:
             polynomial_map = self.polynomial_map
+        if num_eq is None:
+            num_eq = len(list(bddbsa.eq_poly()))
         if not num_eq in self.points_to_test:
             self.points_to_test[num_eq] = OrderedDict()
             if not num_eq in self.tested_points:
@@ -2375,15 +2377,15 @@ class SemialgebraicComplex(SageObject):
         """
         if not any(dic for dic in self.points_to_test.values()) and not var_value:
             var_value = self.find_uncovered_random_point()
+        num_eq = len(list(self.bddbsa.eq_poly()))
         if var_value:
-            if 0 not in self.points_to_test:
-                self.points_to_test[0] = OrderedDict()
-                if 0 not in self.tested_points:
-                    self.tested_points[0] = set([])
-            if not tuple(var_value) in self.tested_points[0]:
-            # put given var_value to num_eq=0 so that it pops out first in bfs.
-                self.points_to_test[0][tuple(var_value)] = (self.bddbsa, None, None)
-        num_eq = 0
+            if num_eq not in self.points_to_test:
+                self.points_to_test[num_eq] = OrderedDict()
+                if num_eq not in self.tested_points:
+                    self.tested_points[num_eq] = set([])
+            if not tuple(var_value) in self.tested_points[num_eq]:
+            # put given var_value to num_eq so that it pops out first in bfs.
+                self.points_to_test[num_eq][tuple(var_value)] = (self.bddbsa, None, None)
         max_num_eq = max(self.points_to_test.keys())
         while num_eq <= max_num_eq:
             while num_eq in self.points_to_test and self.points_to_test[num_eq]:
@@ -3126,14 +3128,15 @@ def embed_function_into_family(given_function, parametric_family, check_completi
             return h == given_function
     complex = SemialgebraicComplex(parametric_family, var_name, find_region_type=frt)
     # terminate complex.bfs_completion(var_value=var_value, goto_lower_dim=True) immediately when a cell has region_type == True.
-    complex.points_to_test[0] = OrderedDict()
-    complex.tested_points[0] = set([])
-    complex.points_to_test[0][tuple(var_value)] = (None, None, None)
+    init_num_eq = len(list(complex.bddbsa.eq_poly()))
+    complex.points_to_test[init_num_eq] = OrderedDict()
+    complex.tested_points[init_num_eq] = set([])
+    complex.points_to_test[init_num_eq][tuple(var_value)] = (None, None, None)
     flip_ineq_step = opt.pop('flip_ineq_step', 1/1000)
     goto_lower_dim = opt.pop('goto_lower_dim', True)
     is_complete = False
     while not is_complete:
-        num_eq = 0
+        num_eq = init_num_eq
         max_num_eq = max(complex.points_to_test.keys())
         while num_eq <= max_num_eq:
             while num_eq in complex.points_to_test and complex.points_to_test[num_eq]:
@@ -3153,8 +3156,8 @@ def embed_function_into_family(given_function, parametric_family, check_completi
             if not var_value:
                 is_complete = True
             else:
-                if not (tuple(var_value) in complex.tested_points[0]):
-                    complex.points_to_test[0][tuple(var_value)] = (None, None, None)
+                if not (tuple(var_value) in complex.tested_points[init_num_eq]):
+                    complex.points_to_test[init_num_eq][tuple(var_value)] = (None, None, None)
         else:
             is_complete = True
     # plot_cpl_components(complex.components)
