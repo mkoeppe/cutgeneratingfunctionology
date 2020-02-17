@@ -43,6 +43,9 @@ def _bsa_class(bsa_class):
     elif bsa_class == 'formal_closure':
         from .basic_semialgebraic_formal_closure import BasicSemialgebraicSet_formal_closure
         return BasicSemialgebraicSet_formal_closure
+    elif bsa_class == 'formal_relint':
+        from .basic_semialgebraic_formal_relint import BasicSemialgebraicSet_formal_relint
+        return BasicSemialgebraicSet_formal_relint
     elif bsa_class == 'section':
         return BasicSemialgebraicSet_section
     elif bsa_class == 'ppl':
@@ -312,10 +315,60 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         bsa_class = _bsa_class(bsa_class)
         return bsa_class.from_bsa(bsa_formal_closure)
 
+    def formal_relint(self, bsa_class='formal_relint'):
+        r"""
+        Return the basic semialgebraic set obtained by replacing all non-strict
+        inequalities by strict inequalities.  This is a subset of the topological relative interior.
+
+        By default, the formal relative interior is represented by an instance of class
+        ``BasicSemialgebraicSet_formal_relint``; use the argument ``bsa_class``
+        to choose another class.  See ``_bsa_class`` for the allowed class nicknames.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: bsa = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=2)
+            sage: bsa.add_linear_constraint([1, 1], -3, operator.le)
+            sage: list(bsa.lt_poly()), list(bsa.le_poly())
+            ([], [x0 + x1 - 3])
+            sage: relint = bsa.formal_relint(); relint
+            BasicSemialgebraicSet_formal_relint(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-x0-x1+3>=0}, names=[x0, x1]))
+            sage: list(relint.eq_poly()), list(relint.lt_poly()), list(relint.le_poly())
+            ([], [x0 + x1 - 3], [])
+            sage: relint = bsa.formal_relint(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron); relint
+            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-x0-x1+3>0}, names=[x0, x1])
+            sage: list(relint.eq_poly()), list(relint.lt_poly()), list(relint.le_poly())
+            ([], [x0 + x1 - 3], [])
+
+        In general, this is only a subset of the topological relative interior::
+
+            sage: R.<x> = QQ['x']
+            sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(le={x, -x})
+            sage: formal_relint = bsa.formal_relint(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron)
+            sage: list(formal_relint.eq_poly())
+            [-1]
+            sage: bsa_ppl = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron.from_bsa(bsa)
+            sage: relint = bsa_ppl.relint()
+            sage: list(relint.eq_poly())
+            [x]
+
+        """
+        from .basic_semialgebraic_formal_relint import BasicSemialgebraicSet_formal_relint
+        bsa_formal_relint = BasicSemialgebraicSet_formal_relint(self)
+        bsa_class = _bsa_class(bsa_class)
+        return bsa_class.from_bsa(bsa_formal_relint)
+
     @abstract_method
     def closure(self, bsa_class):
         r"""
         Return the basic semialgebraic set that is the topological closure
+        of ``self``.
+        """
+
+    @abstract_method
+    def relint(self, bsa_class):
+        r"""
+        Return the basic semialgebraic set that is the topological relative interior
         of ``self``.
         """
 
@@ -940,6 +993,15 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         # Because our description consists of minimized constraints, the closure is
         # just the formal closure.
         return self.formal_closure(bsa_class=bsa_class)
+
+    def relint(self, bsa_class='formal_relint'):
+        r"""
+        Return the basic semialgebraic set that is the topological relative interior
+        of ``self``.
+        """
+        # Because our description consists of minimized constraints, the relint is
+        # just the formal relint.
+        return self.formal_relint(bsa_class=bsa_class)
 
     def eq_poly(self):
         r"""
