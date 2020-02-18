@@ -303,7 +303,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(lt={x, -x})
             sage: formal_closure = bsa.formal_closure(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron)
             sage: list(formal_closure.eq_poly())
-            [x0]
+            [x]
             sage: bsa_ppl = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron.from_bsa(bsa)
             sage: closure = bsa_ppl.closure()
             sage: list(closure.eq_poly())

@@ -13,7 +13,8 @@ class BasicSemialgebraicSet_formal_closure(BasicSemialgebraicSet_base):
     def __init__(self, upstairs_bsa):
         base_ring = upstairs_bsa.base_ring()
         ambient_dim = upstairs_bsa.ambient_dim()
-        super(BasicSemialgebraicSet_formal_closure, self).__init__(base_ring, ambient_dim)
+        poly_ring = upstairs_bsa.poly_ring()
+        super(BasicSemialgebraicSet_formal_closure, self).__init__(base_ring, ambient_dim, poly_ring=poly_ring)
         self._upstairs_bsa = upstairs_bsa
 
     def _repr_(self):
