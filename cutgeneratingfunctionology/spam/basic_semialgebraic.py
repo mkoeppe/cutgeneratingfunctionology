@@ -46,6 +46,9 @@ def _bsa_class(bsa_class):
     elif bsa_class == 'formal_relint':
         from .basic_semialgebraic_formal_relint import BasicSemialgebraicSet_formal_relint
         return BasicSemialgebraicSet_formal_relint
+    elif bsa_class == 'mathematica':
+        from .semialgebraic_mathematica import BasicSemialgebraicSet_mathematica
+        return BasicSemialgebraicSet_mathematica
     elif bsa_class == 'section':
         return BasicSemialgebraicSet_section
     elif bsa_class == 'ppl':

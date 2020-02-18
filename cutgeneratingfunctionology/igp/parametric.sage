@@ -1440,7 +1440,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                     pt_across_wall = tuple(p(pt) for p in self.polynomial_map)                 
             if wall_crossing_method == 'mathematica' or wall_crossing_method == 'heuristic_then_mathematica' and (pt_across_wall is None):
                 # FIXME: put l>0 in bddbsa of new point.
-                bsa_mathematica = BasicSemialgebraicSet_mathematica.from_bsa(bsa)
+                bsa_mathematica = bsa.formal_relint(bsa_class='mathematica') # was BasicSemialgebraicSet_mathematica.from_bsa(bsa)
                 bsa_mathematica.add_polynomial_constraint(l, operator.gt)
                 bsa_mathematica.add_polynomial_constraint(l - flip_ineq_step, operator.lt) #needed? yes, otherwise often find (0,0)
                 pt = bsa_mathematica.find_point()
@@ -1483,7 +1483,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                         #find a new point, use polynomial map to recover the values of those eliminated variables.
                         pt_across_wall = tuple(p(pt) for p in self.polynomial_map)
                 if wall_crossing_method == 'mathematica' or wall_crossing_method == 'heuristic_then_mathematica' and (pt_across_wall is None):
-                    bsa_mathematica = BasicSemialgebraicSet_mathematica.from_bsa(bsa)
+                    bsa_mathematica = bsa.formal_relint(bsa_class='mathematica') #was BasicSemialgebraicSet_mathematica.from_bsa(bsa)
                     bsa_mathematica.add_polynomial_constraint(l, operator.gt)
                     bsa_mathematica.add_polynomial_constraint(l - flip_ineq_step, operator.lt) #needed? yes
                     pt = bsa_mathematica.find_point()
@@ -1585,7 +1585,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                                 polynomial_map = find_polynomial_map(eqs=eqs)
                             pt_on_wall = tuple(p(pt) for p in polynomial_map)
                 if wall_crossing_method == 'mathematica' or wall_crossing_method == 'heuristic_then_mathematica' and (has_pt_on_wall is True) and (pt_on_wall is None):
-                    bsa_mathematica = BasicSemialgebraicSet_mathematica.from_bsa(bsa)
+                    bsa_mathematica = bsa.formal_relint(bsa_class='mathematica') # was BasicSemialgebraicSet_mathematica.from_bsa(bsa)
                     bsa_mathematica.add_polynomial_constraint(l, operator.eq)
                     pt = bsa_mathematica.find_point()
                     if pt is not None:
