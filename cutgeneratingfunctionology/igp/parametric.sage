@@ -1400,6 +1400,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         - flip_ineq_step defines the step length
         - wall_crossing_method is 'heuristic' or 'mathematica' or 'heuristic_then_mathematica'
         - if goto_lower_dim=False, the cell is considered as its formal closure, so no recursion into test points in lower dimensional cells.
+        - pos_poly is a polynomial. The return test point must satisfy pos_poly(new test point) > 0.
 
         OUTPUT new_points is a dictionary of dictionaries. The new_points[i] is a dictionay whose keys = candidate neighbour testpoints, values = (bddbsa whose eq_poly has i elements, polynomial_map, no_crossing_l) of the candidate neighbour cell that contains the candidate neighbour testpoint. bddbsa is recorded so that (1) complex.bddbsa is always respected; and (2) can recursively go into lower dimensional cells. polynomial_map is recorded and passed to the constructor of the neighbour cell. no_crossing is passed to the neighour cell for its find_neighbour_candidates method. We no longer update self.bsa by removing (obvious) redundant eq, lt, le constraints from its description at the end, even when 'mathematica' is used.
         """
@@ -1494,7 +1495,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                     new_points[num_eq][pt_across_wall] = (self.bddbsa, self.polynomial_map, l)
             # find point in intersection(bsa, l==0)
             if goto_lower_dim:
-                if (wall_crossing_method == 'heuristic' or wall_crossing_method is None or wall_crossing_method == 'heuristic_then_mathematica') and (l.degree() == 1):
+                if (wall_crossing_method == 'heuristic' or wall_crossing_method is None or wall_crossing_method == 'heuristic_then_mathematica') and (l.degree() == 1):  # FIXME: too restrictive. Consider rational map. Take section then find testpoint then map back.
                     current_point = vector(self.var_value)
                     # pt_on_wall satisfies one more equation l == 0 than the points in self.bsa
                     # eliminate v in strict_ineqs and nonstrict_ineqs
@@ -2114,6 +2115,7 @@ class SemialgebraicComplex(SageObject):
         - bddbsa defines the boundary constraints satisfied by the cell. By default, bddbsa=None, and complex.bddbsa is taken.
         - If flip_ineq_step = 0, do not search for neighbour testpoints. Used in ``shoot_random_points()``. wall_crossing_method = ``None`` in this case.
         - If flip_ineq_step > 0, search for neighbour testpoints using wall_crossing_method = 'mathematica' or 'heuristic' or 'heuristic_then_mathematica'. Used in bfs. If goto_lower_dim is ``False`` or (goto_lower_dim is ``True`` and wall_crossing method = 'heuristic' but wall is non-linear), then find new testpoints across the wall only.
+        - pos_poly is a polynomial. var_value was found by crossing pos_poly < 0 from another cell. The new test points return by new_component.find_neighbour_candidates must satisfy pos_poly(new test point) > 0.
 
         EXAMPLES::
 
