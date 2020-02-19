@@ -597,20 +597,27 @@ def collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_theta", goto_l
 # sage: logging.disable(logging.INFO)
 # sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)
 # sage: regions = cpl_regions_with_thetas_and_components(n=3, cpleq=True, regions=regions); collect_and_save_cpl_extreme_theta_regions(regions, name="cpl", goto_lower_dim=True)
+# 11 mins
 # sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True, wall_crossing_method='mathematica')
 # sage: regions = cpl_regions_with_thetas_and_components(n=3, cpleq=True, regions=regions, wall_crossing_method='mathematica'); collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_math", goto_lower_dim=True)
-
 
 # sage: import cutgeneratingfunctionology.igp as igp; reload(igp);  from cutgeneratingfunctionology.igp import *
 # sage: logging.disable(logging.INFO)
 # sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)
 # sage: regions = cpl_regions_with_thetas_and_components(n=3, cpleq=True, big_cells=True, regions=regions); collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_igp", goto_lower_dim=True)
+# 9 mins. cpl_math_igp is 2 min faster than cpl_math
+# sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True, wall_crossing_method='mathematica')
+# sage: regions = cpl_regions_with_thetas_and_components(n=3, cpleq=True, big_cells=True, regions=regions, wall_crossing_method='mathematica'); collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_math_igp", goto_lower_dim=True)
+
 
 # sage: import cutgeneratingfunctionology.igp as igp; reload(igp);  from cutgeneratingfunctionology.igp import *
 # sage: logging.disable(logging.INFO)
 # sage: igp.big_cells_default=True
 # sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)
 # sage: regions = cpl_regions_with_thetas_and_components(n=3, cpleq=True, regions=regions); collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_bigcell", goto_lower_dim=True)
+# 32 mins
+# sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True, wall_crossing_method='mathematica')
+# sage: regions = cpl_regions_with_thetas_and_components(n=3, cpleq=True, regions=regions, wall_crossing_method='mathematica'); collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_math_bigcell", goto_lower_dim=True)
 
 
 # sage: import cutgeneratingfunctionology.igp as igp; reload(igp);  from cutgeneratingfunctionology.igp import *
@@ -618,6 +625,9 @@ def collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_theta", goto_l
 # sage: igp.big_cells_default=True
 # sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True)
 # sage: regions = cpl_regions_with_thetas_and_components(n=3, cpleq=True, big_cells=True, regions=regions); collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_bigcell_igp", goto_lower_dim=True)
+# 16 mins
+# sage: regions = cpl_regions_from_arrangement_of_bkpts(3, cpleq=True, wall_crossing_method='mathematica')
+# sage: regions = cpl_regions_with_thetas_and_components(n=3, cpleq=True, big_cells=True, regions=regions, wall_crossing_method='mathematica'); collect_and_save_cpl_extreme_theta_regions(regions, name="cpl_math_bigcell_igp", goto_lower_dim=True)
 
 # sage: import cutgeneratingfunctionology.igp as igp; reload(igp); igp.bigcellify_igp(); from cutgeneratingfunctionology.igp import *
 # sage: logging.disable(logging.INFO)
