@@ -66,6 +66,8 @@ def _bsa_class(bsa_class):
         return BasicSemialgebraicSet_predicate
     elif bsa_class == 'veronese':
         return BasicSemialgebraicSet_veronese
+    elif bsa_class == 'groebner_basis':
+        return BasicSemialgebraicSet_groebner_basis
     else:
         raise ValueError("unknown bsa class: {}".format(bsa_class))
 
