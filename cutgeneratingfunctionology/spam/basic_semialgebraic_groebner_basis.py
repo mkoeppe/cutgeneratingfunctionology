@@ -50,10 +50,12 @@ class BasicSemialgebraicSet_groebner_basis(BasicSemialgebraicSet_base):
         base_ring = upstairs_bsa.base_ring()
         ambient_dim = upstairs_bsa.ambient_dim()
         poly_ring = upstairs_bsa.poly_ring()
+        # Should be able to set term order? No, rather do the change by passing upstairs_bsa.__class__.from_bsa(upstairs_bsa.poly_ring().change_ring(order='lex')) in to init.
         super(BasicSemialgebraicSet_groebner_basis, self).__init__(base_ring, ambient_dim, poly_ring=poly_ring)
         self._upstairs_bsa = upstairs_bsa
         self._ideal = poly_ring.ideal(list(self.upstairs().eq_poly()))
         self._gb = self._ideal.groebner_basis('libsingular:groebner')
+        #FIXME: should we take the radical ideal and its gb?
 
     def _repr_(self):
         return 'BasicSemialgebraicSet_groebner_basis(eq={}, lt={}, le={})'.format(list(self.eq_poly()), list(self.lt_poly()), list(self.le_poly()))

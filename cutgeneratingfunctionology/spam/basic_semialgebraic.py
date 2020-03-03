@@ -185,7 +185,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             Algebraic Real Field
 
         """
-        if bsa.__class__ == cls and (base_ring is None or base_ring == bsa.base_ring()) and ('polynomial_map' not in init_kwds):
+        if bsa.__class__ == cls and (base_ring is None or base_ring == bsa.base_ring()) and (poly_ring is None or poly_ring == bsa.poly_ring()) and ('polynomial_map' not in init_kwds):
             return bsa
         if poly_ring is None:
             if base_ring is not None:
@@ -1740,7 +1740,7 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
 
         """
         return self.__class__(upstairs_bsa=copy(self.upstairs()), polynomial_map=copy(self.polynomial_map()),
-                              poly_ring=poly_ring(), ambient_dim=self.ambient_dim())
+                              poly_ring=self.poly_ring(), ambient_dim=self.ambient_dim())
 
     def eq_poly(self):
         for p in self._upstairs_bsa.eq_poly():
