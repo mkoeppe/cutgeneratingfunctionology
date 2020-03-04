@@ -1,6 +1,7 @@
 from __future__ import division, print_function, absolute_import
 
 from cutgeneratingfunctionology.spam.semialgebraic_predicate import BasicSemialgebraicSet_predicate
+from cutgeneratingfunctionology.spam.basic_semialgebraic import BasicSemialgebraicSet_base
 
 class BasicSemialgebraicSet_local(BasicSemialgebraicSet_predicate):
     """
@@ -95,3 +96,82 @@ class BasicSemialgebraicSet_local(BasicSemialgebraicSet_predicate):
             return bsa
         return cls(bsa, test_point, poly_ring=bsa.poly_ring())
 
+class BasicSemialgebraicSet_local_with_test_point(BasicSemialgebraicSet_base):
+    """
+    A BasicSemialgebraicSet_local_with_test_point has an "upstairs" to which it records the factored inequalities, and a testpoint. That upstairs can be any bsa, and would be a veronese instance for implementing K. We factor polynomial using testpoint in add_polynomial_constraint of the new class, where it adds the factors to the upstairs. Its lt_poly etc. delegate to upstairs. Later, create a new K._local_bsa from test point and set its upstairs =  K._factor_bsa. Simplifying the description with the new local BSA: you just use from_bsa to make the local BSA and then you query it.
+    """
+    def __init__(self, upstairs_bsa, test_point, base_ring=None, ambient_dim=None, poly_ring=None):
+        assert (test_point in bsa)
+        if base_ring is None:
+            base_ring = bsa.base_ring()
+        if ambient_dim is None:
+            ambient_dim = bsa.ambient_dim()
+        if poly_ring is None:
+            poly_ring = bsa.poly_ring()
+        super(BasicSemialgebraicSet_local, self).__init__(bsa.__contains__, true_point=test_point, base_ring=base_ring, ambient_dim=ambient_dim, poly_ring=poly_ring, allow_refinement=True)
+
+    def _repr_(self):
+        return 'BasicSemialgebraicSet_local_with_test_point(eq={}, lt={}, le={})'.format(list(self.eq_poly()), list(self.lt_poly()), list(self.le_poly()))
+
+    def upstairs(self):
+        return self._upstairs_bsa
+
+    def test_point(self):
+        return self._true_point
+
+    @classmethod
+    def from_bsa(cls, bsa, test_point):
+        if bsa.__class__ == cls and bsa.test_point() == test_point:
+            return bsa
+        return cls(bsa, test_point, poly_ring=bsa.poly_ring())
+
+    def eq_poly(self):
+        for l in self.groebner_basis():
+            if not (l in self.base_ring() and l == 0):
+                yield l
+
+    def le_poly(self):
+        for l in self.upstairs().le_poly():
+            l_red = l.reduce(self.groebner_basis())
+            if not (l_red in self.base_ring() and l_red <= 0):
+                yield l_red
+
+    def lt_poly(self):
+        for l in self.upstairs().lt_poly():
+            l_red = l.reduce(self.groebner_basis())
+            if not (l_red in self.base_ring() and l_red < 0):
+                yield l_red
+
+    def add_polynomial_constraint(self, lhs, op):
+        self.upstairs().add_polynomial_constraint(lhs, op)
+        if op == operator.eq:
+            # FIXME: make it incremental
+            #self._ideal = self.poly_ring().ideal(self.upstairs().eq_poly())
+            gens = list(self.groebner_basis()) + [l.reduce(self.groebner_basis()) for l in self.upstairs().eq_poly()]
+            self._ideal = self.poly_ring().ideal(gens)
+            self._gb = self._ideal.groebner_basis('libsingular:groebner')
+
+    def is_polynomial_constraint_valid(self, lhs, op):
+        """lazy implementation. First try the same method as in class BasicSemialgebraicSet_eq_lt_le_sets, then try the method of self.upstairs(). """
+        if op == operator.lt:
+            if lhs in self.lt_poly():
+                return True
+        elif op == operator.gt:
+            if -lhs in self.lt_poly():
+                return True
+        elif op == operator.eq:
+            if (lhs in self.eq_poly()) or (-lhs in self.eq_poly()):
+                return True
+        elif op == operator.le:
+            if (lhs in self.le_poly()) or (lhs in self.lt_poly()):
+                return True
+        elif op == operator.ge:
+            if (-lhs in self.le_poly()) or (-lhs in self.lt_poly()):
+                return True
+        else:
+            raise ValueError("{} is not a supported operator".format(op))
+        return self.upstairs().is_polynomial_constraint_valid()
+
+    @classmethod
+    def from_bsa(cls, bsa, base_ring=None, poly_ring=None):
+        pass
