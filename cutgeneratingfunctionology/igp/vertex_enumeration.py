@@ -212,14 +212,14 @@ def convert_pplcs_to_lrs(cs, fname=None):
     if k > 0:
         s += "linearity %s " % k
     for i in linearities:
-        s += repr(i + 1)  + ' '
+        s += str(i + 1)  + ' '
     s += '\n'
     s += "begin\n"
     s += "%s %s rational\n" %(m, n)
     for c in cs:
-        s += repr(c.inhomogeneous_term()) + ' '
+        s += str(c.inhomogeneous_term()) + ' '
         for x in c.coefficients():
-            s += repr(x) + ' '
+            s += str(x) + ' '
         s += '\n'
     s += 'end\n'
     return s
@@ -237,6 +237,24 @@ def convert_lrs_to_ppl(lrs_string):
 
     COPY from src/geometry/polyhedron/backend_cdd.py and edit the function
     ``Polyhedron_cdd._init_from_cdd_output(self, cdd_output_string)``
+
+
+    EXAMPLE::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: x = Variable(0)
+        sage: y = Variable(1)
+        sage: cs = Constraint_System()
+        sage: cs.insert(x >= 0)
+        sage: cs.insert(y >= 0)
+        sage: cs.insert(x <= 1)
+        sage: cs.insert(y <= 1)
+        sage: in_str = convert_pplcs_to_lrs(cs)
+        sage: out_str = lrs_redund(in_str)
+        sage: type(out_str)
+        <class 'str'>
+        sage: convert_lrs_to_ppl(out_str)
+        Constraint_System {x0>=0, x1>=0, -x0+1>=0, -x1+1>=0}
     """
     cddout=lrs_string.splitlines()
 
@@ -348,6 +366,21 @@ def lrs_redund(in_str, verbose=False):
 
     Copy and edit from ``def _volume_lrs(self, verbose=False)``,
     http://www.sagenb.org/src/geometry/polyhedron/base.py
+
+    EXAMPLE::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: x = Variable(0)
+        sage: y = Variable(1)
+        sage: cs = Constraint_System()
+        sage: cs.insert(x >= 0)
+        sage: cs.insert(y >= 0)
+        sage: cs.insert(x <= 1)
+        sage: cs.insert(y <= 1)
+        sage: in_str = convert_pplcs_to_lrs(cs)
+        sage: out_str = lrs_redund(in_str)
+        sage: type(out_str)
+        <class 'str'>
     """
     #if is_package_installed('lrslib') != True:
     #    print 'You must install the optional lrs package ' \
@@ -360,7 +393,8 @@ def lrs_redund(in_str, verbose=False):
     in_file.close()
     if verbose: print(in_str)
     redund_procs = Popen(['redund',in_filename],stdin = PIPE, stdout=PIPE, stderr=PIPE)
-    out_str, err = redund_procs.communicate()
+    out_bytes, err = redund_procs.communicate()
+    out_str = out_bytes.decode("utf-8") # lrslib changed, output is of type bytes
     if verbose:
         print(out_str)
     return out_str
@@ -479,7 +513,7 @@ def convert_pplcs_to_normaliz(cs):
     s += 'hom_constraints %s\n' % m
     for c in cs:
         for x in c.coefficients():
-            s += repr(x) + ' '
+            s += str(x) + ' '
         if c.is_equality():
             s += '= '
         else:
