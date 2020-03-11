@@ -4,8 +4,8 @@ def vertex_enumeration(polytope, exp_dim=-1, vetime=False):
     Returns the vertices of the polytope.
 
     - Do preprocessing if exp_dim >= igp.exp_dim_prep, i.e., call the function redund provided by lrslib to remove redundant inequalities.
-    - Use lrs vertex enumeration if exp_dim >= exp_dim_lrs.
-    - Use ppl vertex enumeration otherwise.
+    - If normaliz is installed, use it to enumerate vertices after preprocessing, else use lrs vertex enumeration if exp_dim >= exp_dim_lrs.
+    - Use ppl vertex enumeration for small dimensions.
     - Print the vertex enumeration running time if vetime is ``True``.
     
     EXAMPLE::
@@ -24,28 +24,46 @@ def vertex_enumeration(polytope, exp_dim=-1, vetime=False):
     """
     if vetime:
         st = os.times();
-    if exp_dim >= exp_dim_prep:
-        # do preprocessing
-        cs = polytope.constraints()
-        if exp_dim >= exp_dim_lrs:
-            # preprocessing and vertex enumertation using redund + lrs
-            cs_prep_lrs_str = remove_redundancy_from_cs(cs, return_lrs=True)
-            extreme_points = lrs_lrsinput_pploutput(cs_prep_lrs_str)
-        else:
-            # preprocessing and vertex enumertation using redund + ppl
-            cs_prep = remove_redundancy_from_cs(cs)
-            polytope = C_Polyhedron(cs_prep)
+    try:
+        import PyNormaliz
+        if exp_dim < exp_dim_prep:
             extreme_points = polytope.minimized_generators()
-    else:
-        # no preprocessing
-        if exp_dim >= exp_dim_lrs:
-            # vertex enumertation using lrs
+        else:
+            # do preprocessing by lrslib redund
             cs = polytope.constraints()
-            cs_lrs_str = convert_pplcs_to_lrs(cs)
-            extreme_points = lrs_lrsinput_pploutput(cs_lrs_str) 
+            cs_prep = remove_redundancy_from_cs(cs)
+            ieqs = []; eqns=[]
+            for c in cs_prep:
+                coef = [c.inhomogeneous_term()] + list(c.coefficients())
+                if c.is_equality():
+                    eqns.append(coef)
+                else:
+                    ieqs.append(coef)       
+            sage_polyhedron = Polyhedron(ieqs=ieqs, eqns=eqns, backend='normaliz')
+            extreme_points = sage_polyhedron.vertices()
+    except ImportError:
+        if exp_dim >= exp_dim_prep:
+            # do preprocessing
+            cs = polytope.constraints()
+            if exp_dim >= exp_dim_lrs:
+                # preprocessing and vertex enumertation using redund + lrs
+                cs_prep_lrs_str = remove_redundancy_from_cs(cs, return_lrs=True)
+                extreme_points = lrs_lrsinput_pploutput(cs_prep_lrs_str)
+            else:
+                # preprocessing and vertex enumertation using redund + ppl
+                cs_prep = remove_redundancy_from_cs(cs)
+                polytope = C_Polyhedron(cs_prep)
+                extreme_points = polytope.minimized_generators()
         else:
-            # vertex enumertation using ppl
-            extreme_points = polytope.minimized_generators()
+            # no preprocessing
+            if exp_dim >= exp_dim_lrs:
+                # vertex enumertation using lrs
+                cs = polytope.constraints()
+                cs_lrs_str = convert_pplcs_to_lrs(cs)
+                extreme_points = lrs_lrsinput_pploutput(cs_lrs_str) 
+            else:
+                # vertex enumertation using ppl
+                extreme_points = polytope.minimized_generators()
     if vetime:
         et = os.times(); 
         logging.info("user=%s, sys=%s, child user=%s, child sys=%s" %(et[0]-st[0], et[1]-st[1], et[2]-st[2], et[3]-st[3]))
