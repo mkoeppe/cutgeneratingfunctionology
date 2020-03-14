@@ -764,7 +764,13 @@ def generate_vertex_values(k_slopes , q, polytope,  v_set=set([]), exp_dim=-1, v
     """
     extreme_points = vertex_enumeration(polytope, exp_dim=exp_dim, vetime=vetime)
     for v in extreme_points:
-        v_n = v.coefficients()
+        if hasattr(v, 'coefficients'):
+            # v in <class 'ppl.generator.Generator'>
+            v_n = v.coefficients()
+        else:
+            # v in <class 'sage.geometry.polyhedron.representation.Vertex'>
+            common_den = lcm(x.denominator() for x in v)
+            v_n = tuple(x * common_den for x in v)
         num = len(set([v_n[i+1] - v_n[i] for i in range(q)]))
         if num >= k_slopes:
             if not tuple(v_n) in v_set:
@@ -1343,7 +1349,13 @@ def measure_stats_detail(q, f):
     vdenominator = []
     sdenominator = []
     for v in extreme_points:
-        v_n = v.coefficients()
+        if hasattr(v, 'coefficients'):
+            # v in <class 'ppl.generator.Generator'>
+            v_n = v.coefficients()
+        else:
+            # v in <class 'sage.geometry.polyhedron.representation.Vertex'>
+            common_den = lcm(x.denominator() for x in v)
+            v_n = tuple(x * common_den for x in v)
         s = set([v_n[i+1] - v_n[i] for i in range(q)])
         ns = len(s)
         slope.append(ZZ(ns))
@@ -1457,6 +1469,12 @@ def generate_extreme_functions_for_finite_group(q, f):
     exp_dim = q // 2 - 1
     extreme_points = vertex_enumeration(polytope, exp_dim=exp_dim)
     for v in extreme_points:
-        v_n = v.coefficients()
+        if hasattr(v, 'coefficients'):
+            # v in <class 'ppl.generator.Generator'>
+            v_n = v.coefficients()
+        else:
+            # v in <class 'sage.geometry.polyhedron.representation.Vertex'>
+            common_den = lcm(x.denominator() for x in v)
+            v_n = tuple(x * common_den for x in v)
         h = h_from_vertex_values(v_n)
         yield h
