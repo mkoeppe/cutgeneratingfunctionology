@@ -259,6 +259,13 @@ class PiecewiseLinearFunction_1d (ModuleElement):
             True
             sage: g == f
             True
+
+        Test for discrete_function_from_points_and_values::
+
+            sage: h1 = discrete_function_from_points_and_values([i/11 for i in range(12)],[0, 5/6, 1/5, 2/3, 2/5, 1/2, 3/5, 1/3, 4/5, 1/6, 1, 0])
+            sage: h2 = discrete_function_from_points_and_values([i/11 for i in range(12)],[0, 5/6, 4/9, 2/3, 5/18, 1/2, 13/18, 1/3, 5/9, 1/6, 1, 0])
+            sage: h1 == h2
+            False
         """
         if not isinstance(other, FastPiecewise):
             return NotImplemented
@@ -269,7 +276,7 @@ class PiecewiseLinearFunction_1d (ModuleElement):
             if union_of_coho_intervals_minus_union_of_coho_intervals([other.intervals()],[], old_fashioned_closed_intervals=True) != domain:
                 return False
             difference = self - other
-            return (difference.intervals() == domain) and any(fn == FastLinearFunction(0,0) for fn in difference.functions())
+            return (difference.intervals() == domain) and all(fn == FastLinearFunction(0,0) for fn in difference.functions())
         if op == op_EQ:
             return is_equal()
         elif op == op_NE:
