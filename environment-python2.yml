@@ -20,9 +20,9 @@ dependencies:
   - python=2.7
   - sage=8.9
   - setuptools_scm
-  - sphinx
-  - sphinxcontrib-websupport
-  - sphinxcontrib-bibtex
+  - sphinx<2.0
+  - sphinxcontrib-websupport<1.2
+  - sphinxcontrib-bibtex<1.0
   - lrslib
   - normaliz
   - boost-cpp      # For installing PyNormaliz
