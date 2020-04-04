@@ -29,5 +29,5 @@ dependencies:
   - mathjax
   - pip
   - pip:
-    - pynormaliz
+    - pynormaliz==2.8
     - sage-package
