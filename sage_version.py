@@ -2,7 +2,7 @@ import re
 import urllib2
 
 # Obtain the different Sage versions
-def get_all_version_names(mirror_url, idx = None, distribution = 'Ubuntu_14.04-x86_64'):
+def get_all_version_names(mirror_url, idx = None, distribution = 'Ubuntu_18.04-x86_64'):
     if idx is None:
         idx = 0
     else:
