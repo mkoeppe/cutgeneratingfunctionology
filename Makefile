@@ -58,8 +58,6 @@ SAGEFILES +=									\
 	cutgeneratingfunctionology/spam/basic_semialgebraic_linear_system.py	\
 	cutgeneratingfunctionology/spam/basic_semialgebraic_intersection.py	\
 	cutgeneratingfunctionology/spam/basic_semialgebraic_local.py		\
-	cutgeneratingfunctionology/spam/semialgebraic_maple.py			\
-	cutgeneratingfunctionology/spam/semialgebraic_mathematica.py		\
 	cutgeneratingfunctionology/spam/semialgebraic_predicate.py		\
 	cutgeneratingfunctionology/spam/semialgebraic_qepcad.py			\
 	cutgeneratingfunctionology/spam/big_cells.py				\
@@ -68,6 +66,17 @@ SAGEFILES +=									\
 	cutgeneratingfunctionology/spam/real_set.py				\
 	cutgeneratingfunctionology/spam/polyhedral_complex.py			\
 	cutgeneratingfunctionology/spam/examples/relu.py
+
+
+ifneq ($(shell command -v math > /dev/null 2>&1),)
+SAGEFILES += \
+	cutgeneratingfunctionology/spam/semialgebraic_mathematica.py
+endif
+
+ifneq ($(shell command -v maple > /dev/null 2>&1),)
+SAGEFILES += \
+	cutgeneratingfunctionology/spam/semialgebraic_maple.py
+endif
 
 CHECK_PARALLEL=4
 
