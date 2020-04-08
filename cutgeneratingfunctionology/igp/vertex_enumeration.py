@@ -269,7 +269,7 @@ def convert_lrs_to_ppl(lrs_string):
         sage: cs.insert(y <= 1)
         sage: in_str = convert_pplcs_to_lrs(cs)
         sage: out_str = lrs_redund(in_str)
-        sage: type(out_str)
+        sage: type(out_str)     # py3
         <class 'str'>
         sage: convert_lrs_to_ppl(out_str)
         Constraint_System {x0>=0, x1>=0, -x0+1>=0, -x1+1>=0}
@@ -397,7 +397,7 @@ def lrs_redund(in_str, verbose=False):
         sage: cs.insert(y <= 1)
         sage: in_str = convert_pplcs_to_lrs(cs)
         sage: out_str = lrs_redund(in_str)
-        sage: type(out_str)
+        sage: type(out_str)   # py3
         <class 'str'>
     """
     #if is_package_installed('lrslib') != True:
