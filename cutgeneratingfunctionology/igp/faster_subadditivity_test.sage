@@ -646,7 +646,7 @@ class SubadditivityTestTree:
                     else:
                         keep = False
                 elif len(temp) == 1:
-                    x, y ,z = temp[0]
+                    x, y = temp[0]
                     if delta_pi(self.function,x+epsilon,y)==0 or delta_pi(self.function,x-epsilon,y)==0 or delta_pi(self.function,x,y+epsilon)==0 or delta_pi(self.function,x,y-epsilon)==0 or delta_pi(self.function,x+epsilon,y-epsilon)==0 or delta_pi(self.function,x-epsilon,y+epsilon)==0:
                         keep = False
                 if keep:
