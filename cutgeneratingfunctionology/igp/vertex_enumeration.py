@@ -4,8 +4,8 @@ def vertex_enumeration(polytope, exp_dim=-1, vetime=False):
     Returns the vertices of the polytope.
 
     - Do preprocessing if exp_dim >= igp.exp_dim_prep, i.e., call the function redund provided by lrslib to remove redundant inequalities.
-    - Use lrs vertex enumeration if exp_dim >= exp_dim_lrs.
-    - Use ppl vertex enumeration otherwise.
+    - If normaliz is installed, use it to enumerate vertices after preprocessing, else use lrs vertex enumeration if exp_dim >= exp_dim_lrs.
+    - Use ppl vertex enumeration for small dimensions.
     - Print the vertex enumeration running time if vetime is ``True``.
     
     EXAMPLE::
@@ -24,28 +24,46 @@ def vertex_enumeration(polytope, exp_dim=-1, vetime=False):
     """
     if vetime:
         st = os.times();
-    if exp_dim >= exp_dim_prep:
-        # do preprocessing
-        cs = polytope.constraints()
-        if exp_dim >= exp_dim_lrs:
-            # preprocessing and vertex enumertation using redund + lrs
-            cs_prep_lrs_str = remove_redundancy_from_cs(cs, return_lrs=True)
-            extreme_points = lrs_lrsinput_pploutput(cs_prep_lrs_str)
-        else:
-            # preprocessing and vertex enumertation using redund + ppl
-            cs_prep = remove_redundancy_from_cs(cs)
-            polytope = C_Polyhedron(cs_prep)
+    try:
+        import PyNormaliz
+        if exp_dim < exp_dim_prep:
             extreme_points = polytope.minimized_generators()
-    else:
-        # no preprocessing
-        if exp_dim >= exp_dim_lrs:
-            # vertex enumertation using lrs
+        else:
+            # do preprocessing by lrslib redund
             cs = polytope.constraints()
-            cs_lrs_str = convert_pplcs_to_lrs(cs)
-            extreme_points = lrs_lrsinput_pploutput(cs_lrs_str) 
+            cs_prep = remove_redundancy_from_cs(cs)
+            ieqs = []; eqns=[]
+            for c in cs_prep:
+                coef = [c.inhomogeneous_term()] + list(c.coefficients())
+                if c.is_equality():
+                    eqns.append(coef)
+                else:
+                    ieqs.append(coef)       
+            sage_polyhedron = Polyhedron(ieqs=ieqs, eqns=eqns, backend='normaliz')
+            extreme_points = sage_polyhedron.vertices()
+    except ImportError:
+        if exp_dim >= exp_dim_prep:
+            # do preprocessing
+            cs = polytope.constraints()
+            if exp_dim >= exp_dim_lrs:
+                # preprocessing and vertex enumertation using redund + lrs
+                cs_prep_lrs_str = remove_redundancy_from_cs(cs, return_lrs=True)
+                extreme_points = lrs_lrsinput_pploutput(cs_prep_lrs_str)
+            else:
+                # preprocessing and vertex enumertation using redund + ppl
+                cs_prep = remove_redundancy_from_cs(cs)
+                polytope = C_Polyhedron(cs_prep)
+                extreme_points = polytope.minimized_generators()
         else:
-            # vertex enumertation using ppl
-            extreme_points = polytope.minimized_generators()
+            # no preprocessing
+            if exp_dim >= exp_dim_lrs:
+                # vertex enumertation using lrs
+                cs = polytope.constraints()
+                cs_lrs_str = convert_pplcs_to_lrs(cs)
+                extreme_points = lrs_lrsinput_pploutput(cs_lrs_str) 
+            else:
+                # vertex enumertation using ppl
+                extreme_points = polytope.minimized_generators()
     if vetime:
         et = os.times(); 
         logging.info("user=%s, sys=%s, child user=%s, child sys=%s" %(et[0]-st[0], et[1]-st[1], et[2]-st[2], et[3]-st[3]))
@@ -212,14 +230,14 @@ def convert_pplcs_to_lrs(cs, fname=None):
     if k > 0:
         s += "linearity %s " % k
     for i in linearities:
-        s += repr(i + 1)  + ' '
+        s += str(i + 1)  + ' '
     s += '\n'
     s += "begin\n"
     s += "%s %s rational\n" %(m, n)
     for c in cs:
-        s += repr(c.inhomogeneous_term()) + ' '
+        s += str(c.inhomogeneous_term()) + ' '
         for x in c.coefficients():
-            s += repr(x) + ' '
+            s += str(x) + ' '
         s += '\n'
     s += 'end\n'
     return s
@@ -237,6 +255,24 @@ def convert_lrs_to_ppl(lrs_string):
 
     COPY from src/geometry/polyhedron/backend_cdd.py and edit the function
     ``Polyhedron_cdd._init_from_cdd_output(self, cdd_output_string)``
+
+
+    EXAMPLE::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: x = Variable(0)
+        sage: y = Variable(1)
+        sage: cs = Constraint_System()
+        sage: cs.insert(x >= 0)
+        sage: cs.insert(y >= 0)
+        sage: cs.insert(x <= 1)
+        sage: cs.insert(y <= 1)
+        sage: in_str = convert_pplcs_to_lrs(cs)
+        sage: out_str = lrs_redund(in_str)
+        sage: type(out_str)     # py3
+        <class 'str'>
+        sage: convert_lrs_to_ppl(out_str)
+        Constraint_System {x0>=0, x1>=0, -x0+1>=0, -x1+1>=0}
     """
     cddout=lrs_string.splitlines()
 
@@ -348,6 +384,21 @@ def lrs_redund(in_str, verbose=False):
 
     Copy and edit from ``def _volume_lrs(self, verbose=False)``,
     http://www.sagenb.org/src/geometry/polyhedron/base.py
+
+    EXAMPLE::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: x = Variable(0)
+        sage: y = Variable(1)
+        sage: cs = Constraint_System()
+        sage: cs.insert(x >= 0)
+        sage: cs.insert(y >= 0)
+        sage: cs.insert(x <= 1)
+        sage: cs.insert(y <= 1)
+        sage: in_str = convert_pplcs_to_lrs(cs)
+        sage: out_str = lrs_redund(in_str)
+        sage: type(out_str)   # py3
+        <class 'str'>
     """
     #if is_package_installed('lrslib') != True:
     #    print 'You must install the optional lrs package ' \
@@ -360,7 +411,8 @@ def lrs_redund(in_str, verbose=False):
     in_file.close()
     if verbose: print(in_str)
     redund_procs = Popen(['redund',in_filename],stdin = PIPE, stdout=PIPE, stderr=PIPE)
-    out_str, err = redund_procs.communicate()
+    out_bytes, err = redund_procs.communicate()
+    out_str = out_bytes.decode("utf-8") # lrslib changed, output is of type bytes
     if verbose:
         print(out_str)
     return out_str
@@ -479,7 +531,7 @@ def convert_pplcs_to_normaliz(cs):
     s += 'hom_constraints %s\n' % m
     for c in cs:
         for x in c.coefficients():
-            s += repr(x) + ' '
+            s += str(x) + ' '
         if c.is_equality():
             s += '= '
         else:

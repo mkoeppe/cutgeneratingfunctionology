@@ -11,7 +11,7 @@ channels:
   - defaults
 dependencies:
   - python=3
-  - sage=8.9
+  - sage=9.0
   - setuptools_scm
   - sphinx
   - sphinxcontrib-websupport
@@ -22,5 +22,5 @@ dependencies:
   - mathjax
   - pip
   - pip:
-    - pynormaliz
+    - pynormaliz==2.8
     - sage-package

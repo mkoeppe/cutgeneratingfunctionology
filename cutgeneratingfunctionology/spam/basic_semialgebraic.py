@@ -43,6 +43,12 @@ def _bsa_class(bsa_class):
     elif bsa_class == 'formal_closure':
         from .basic_semialgebraic_formal_closure import BasicSemialgebraicSet_formal_closure
         return BasicSemialgebraicSet_formal_closure
+    elif bsa_class == 'formal_relint':
+        from .basic_semialgebraic_formal_relint import BasicSemialgebraicSet_formal_relint
+        return BasicSemialgebraicSet_formal_relint
+    elif bsa_class == 'mathematica':
+        from .semialgebraic_mathematica import BasicSemialgebraicSet_mathematica
+        return BasicSemialgebraicSet_mathematica
     elif bsa_class == 'section':
         return BasicSemialgebraicSet_section
     elif bsa_class == 'ppl':
@@ -60,6 +66,8 @@ def _bsa_class(bsa_class):
         return BasicSemialgebraicSet_predicate
     elif bsa_class == 'veronese':
         return BasicSemialgebraicSet_veronese
+    elif bsa_class == 'groebner_basis':
+        return BasicSemialgebraicSet_groebner_basis
     else:
         raise ValueError("unknown bsa class: {}".format(bsa_class))
 
@@ -177,7 +185,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             Algebraic Real Field
 
         """
-        if bsa.__class__ == cls and (base_ring is None or base_ring == bsa.base_ring()):
+        if bsa.__class__ == cls and (base_ring is None or base_ring == bsa.base_ring()) and (poly_ring is None or poly_ring == bsa.poly_ring()) and ('polynomial_map' not in init_kwds):
             return bsa
         if poly_ring is None:
             if base_ring is not None:
@@ -300,7 +308,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(lt={x, -x})
             sage: formal_closure = bsa.formal_closure(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron)
             sage: list(formal_closure.eq_poly())
-            [x0]
+            [x]
             sage: bsa_ppl = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron.from_bsa(bsa)
             sage: closure = bsa_ppl.closure()
             sage: list(closure.eq_poly())
@@ -312,10 +320,60 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         bsa_class = _bsa_class(bsa_class)
         return bsa_class.from_bsa(bsa_formal_closure)
 
+    def formal_relint(self, bsa_class='formal_relint'):
+        r"""
+        Return the basic semialgebraic set obtained by replacing all non-strict
+        inequalities by strict inequalities.  This is a subset of the topological relative interior.
+
+        By default, the formal relative interior is represented by an instance of class
+        ``BasicSemialgebraicSet_formal_relint``; use the argument ``bsa_class``
+        to choose another class.  See ``_bsa_class`` for the allowed class nicknames.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: bsa = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(ambient_dim=2)
+            sage: bsa.add_linear_constraint([1, 1], -3, operator.le)
+            sage: list(bsa.lt_poly()), list(bsa.le_poly())
+            ([], [x0 + x1 - 3])
+            sage: relint = bsa.formal_relint(); relint
+            BasicSemialgebraicSet_formal_relint(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-x0-x1+3>=0}, names=[x0, x1]))
+            sage: list(relint.eq_poly()), list(relint.lt_poly()), list(relint.le_poly())
+            ([], [x0 + x1 - 3], [])
+            sage: relint = bsa.formal_relint(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron); relint
+            BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {-x0-x1+3>0}, names=[x0, x1])
+            sage: list(relint.eq_poly()), list(relint.lt_poly()), list(relint.le_poly())
+            ([], [x0 + x1 - 3], [])
+
+        In general, this is only a subset of the topological relative interior::
+
+            sage: R.<x> = QQ['x']
+            sage: bsa = BasicSemialgebraicSet_eq_lt_le_sets(le={x, -x})
+            sage: formal_relint = bsa.formal_relint(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron)
+            sage: list(formal_relint.eq_poly())
+            [-1]
+            sage: bsa_ppl = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron.from_bsa(bsa)
+            sage: relint = bsa_ppl.relint()
+            sage: list(relint.eq_poly())
+            [x]
+
+        """
+        from .basic_semialgebraic_formal_relint import BasicSemialgebraicSet_formal_relint
+        bsa_formal_relint = BasicSemialgebraicSet_formal_relint(self)
+        bsa_class = _bsa_class(bsa_class)
+        return bsa_class.from_bsa(bsa_formal_relint)
+
     @abstract_method
     def closure(self, bsa_class):
         r"""
         Return the basic semialgebraic set that is the topological closure
+        of ``self``.
+        """
+
+    @abstract_method
+    def relint(self, bsa_class):
+        r"""
+        Return the basic semialgebraic set that is the topological relative interior
         of ``self``.
         """
 
@@ -382,7 +440,7 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
             Traceback (most recent call last):
             ...
             NotImplementedError...
-            sage: BasicSemialgebraicSet_mathematica(eq=[y-y], lt=[x-x-1], le=[x-x]).is_empty    # optional - mathematica
+            sage: BasicSemialgebraicSet_mathematica(eq=[y-y], lt=[x-x-1], le=[x-x]).is_empty()    # optional - mathematica
             False
             sage: BasicSemialgebraicSet_eq_lt_le_sets(lt=[x^2+y^2]).is_empty()
             Traceback (most recent call last):
@@ -941,6 +999,15 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         # just the formal closure.
         return self.formal_closure(bsa_class=bsa_class)
 
+    def relint(self, bsa_class='formal_relint'):
+        r"""
+        Return the basic semialgebraic set that is the topological relative interior
+        of ``self``.
+        """
+        # Because our description consists of minimized constraints, the relint is
+        # just the formal relint.
+        return self.formal_relint(bsa_class=bsa_class)
+
     def eq_poly(self):
         r"""
         Return a list of the polynomials `f` in equations `f(x) = 0`
@@ -1125,6 +1192,35 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
         constraint = self._ppl_constraint(lhs, cst, op)
         self._polyhedron.add_constraint(constraint)
 
+    def is_empty(self):
+        """
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: S = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(1)
+            sage: S.add_linear_constraint([1], -1, operator.ge)
+            sage: S.is_empty()
+            False
+            sage: S.add_linear_constraint([1], +1, operator.le)
+            sage: S.is_empty()
+            True
+        """
+        return self._polyhedron.is_empty()
+
+    def is_universe(self):
+        """
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: S = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(1)
+            sage: S.add_linear_constraint([0], 0, operator.eq)
+            sage: S.is_universe()
+            True
+            sage: S.add_linear_constraint([1], +1, operator.le)
+            sage: S.is_universe()
+            False
+        """
+        return self._polyhedron.is_universe()
 
 ## class BasicSemialgebraicSet_polyhedral_ppl_MIP_Problem(BasicSemialgebraicSet_base):
 
@@ -1337,6 +1433,43 @@ class BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(BasicSemialgebr
         Together, ``eq_poly`` and ``le_poly`` describe ``self``.
         """
         return []
+
+    def is_empty(self):
+        """
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: S = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(QQ, 1, solver='ppl')
+            sage: S.add_linear_constraint([1], -1, operator.ge)
+            sage: S.is_empty()
+            False
+            sage: S.add_linear_constraint([1], +1, operator.le)
+            sage: S.is_empty()
+            True
+        """
+        try:
+            self.mip().solve()
+            return False
+        except MIPSolverException:
+            return True
+
+    def is_universe(self):
+        """
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
+            sage: S = BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram(QQ, 1, solver='ppl')
+            sage: S.add_linear_constraint([0], 0, operator.eq)
+            sage: S.is_universe()
+            True
+            sage: S.add_linear_constraint([1], +1, operator.le)
+            sage: S.is_universe()
+            False
+        """
+        try:
+            return super(BasicSemialgebraicSet_polyhedral_MixedIntegerLinearProgram, self).is_universe()
+        except NotImplementedError:
+            return False
 
 ## (3) Then introduce the following class to simplify the code in parametric.sage
 class BasicSemialgebraicSet_eq_lt_le_sets(BasicSemialgebraicSet_base):
@@ -1607,7 +1740,7 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
 
         """
         return self.__class__(upstairs_bsa=copy(self.upstairs()), polynomial_map=copy(self.polynomial_map()),
-                              poly_ring=poly_ring(), ambient_dim=self.ambient_dim())
+                              poly_ring=self.poly_ring(), ambient_dim=self.ambient_dim())
 
     def eq_poly(self):
         for p in self._upstairs_bsa.eq_poly():
@@ -1759,6 +1892,12 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             ...
             ValueError: all polynomials in polynomial_map must be monomials with coefficient 1
 
+        Check polynomial_map and v_dict are set correctly in init::
+
+            sage: P.<x,y,z>=QQ[]
+            sage: veronese = BasicSemialgebraicSet_veronese(poly_ring=P, polynomial_map=list(P.gens()))
+            sage: veronese.v_dict()
+            {z: 2, y: 1, x: 0}
         """
         if poly_ring is None:
             if polynomial_map:
@@ -1786,6 +1925,8 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             else:
                 upstairs_base_ring = poly_ring.base_ring()
                 upstairs_ambient_dim = len(polynomial_map)
+                if v_dict is None:
+                    v_dict = {polynomial_map[i]:i for i in range(upstairs_ambient_dim)}
             upstairs_bsa = upstairs_bsa_class(base_ring=upstairs_base_ring, ambient_dim=upstairs_ambient_dim)
         if upstairs_bsa_class:
             if not isinstance(upstairs_bsa, upstairs_bsa_class):
