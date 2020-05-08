@@ -23,6 +23,7 @@ dependencies:
   - sphinx<2.0
   - sphinxcontrib-websupport<1.2
   - sphinxcontrib-bibtex<1.0
+  - werkzeug<=0.16.1    # this version because of ImmutableDict:  https://stackoverflow.com/questions/60106527/importerror-cannot-import-name-immutabledict-error-when-installing-pgadmin4
   - lrslib
   - normaliz
   - boost-cpp      # For installing PyNormaliz
