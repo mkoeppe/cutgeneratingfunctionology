@@ -293,7 +293,7 @@ class SubadditivityTestTreeNode(object):
             return self.delta_pi_upper_bound()
         if max_number_of_bkpts==0:
             lower_bound, estimators=self.delta_pi_constant_lower_bound()
-        elif len(self.I_bkpts())+len(self.J_bkpts())+len(self.K_bkpts())<=max_number_of_bkpts:
+        elif self.I_bkpts_index[1]-self.I_bkpts_index[0] + self.J_bkpts_index[1]-self.J_bkpts_index[0] + self.K_bkpts_index[1]-self.K_bkpts_index[0] + 6 <=max_number_of_bkpts:
             lower_bound, estimators=self.delta_pi_affine_lower_bound(solver=solver)
         else:
             lower_bound, estimators=self.delta_pi_fast_lower_bound()
@@ -651,19 +651,19 @@ class SubadditivityTestTree:
                         keep = True
                 if len(temp) == 2:
                     if temp[0][0] == temp[1][0]:
-                        if temp[1][0] == current_node.I_bkpts()[0]:
+                        if temp[1][0] == current_node.projections[0][0]:
                             if delta_pi(self.function, temp[0][0]-epsilon,(temp[0][1]+temp[1][1])/2)==0:
                                 keep = False
                         else:
                             keep = False
                     elif temp[0][1] == temp[1][1]:
-                        if temp[1][1] == current_node.J_bkpts()[0]:
+                        if temp[1][1] == current_node.projections[1][0]:
                             if delta_pi(self.function, (temp[0][0]+temp[1][0])/2,temp[0][1]-epsilon)==0:
                                 keep = False
                         else:
                             keep = False
                     elif temp[0][0] + temp[0][1] == temp[1][0] + temp[1][1]:
-                        if temp[1][0] + temp[1][1] == current_node.K_bkpts()[0]:
+                        if temp[1][0] + temp[1][1] == current_node.projections[2][0]:
                             if delta_pi(self.function, (temp[0][0]+temp[1][0])/2-epsilon,(temp[0][1]+temp[1][1])/2-epsilon)==0:
                                 keep = False
                         else:
