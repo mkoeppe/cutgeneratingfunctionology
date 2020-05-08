@@ -59,6 +59,18 @@ class SubadditivityTestTreeNode(object):
         else:
             self.vertices=verts(*intervals)
         self.projections=projections(self.vertices)
+
+        # function values on the two endpoints
+        self.I_end_points_values=[fn(self.projections[0][0]),fn(self.projections[0][1])]
+        self.J_end_points_values=[fn(self.projections[1][0]),fn(self.projections[1][1])]
+        self.K_end_points_values=[fn(fractional(self.projections[2][0])),fn(fractional(self.projections[2][1]))]
+
+        # start and end index for breakpoints contained in the interval other than two endpoints.
+        # for example, use fn.end_points()[i:j].
+        self.I_bkpts_index=find_bkpts_index(fn.end_points(),self.projections[0])
+        self.J_bkpts_index=find_bkpts_index(fn.end_points(),self.projections[1])
+        self.K_bkpts_index=find_bkpts_index(fn.extended_end_points,self.projections[2])
+
         self.left_child=None
         self.right_child=None
         self.parent=None
@@ -146,9 +158,9 @@ class SubadditivityTestTreeNode(object):
             sage: estimators
             [[0, 13/66], [0, 13/66], [0, 53/66]]
         """
-        alpha_I=min(self.I_values())
-        alpha_J=min(self.J_values())
-        beta_K=max(self.K_values())
+        alpha_I=min(self.I_end_points_values + self.function.values_at_end_points()[self.I_bkpts_index[0]:self.I_bkpts_index[1]])
+        alpha_J=min(self.J_end_points_values + self.function.values_at_end_points()[self.J_bkpts_index[0]:self.J_bkpts_index[1]])
+        beta_K=max(self.K_end_points_values + self.function.extended_values_at_end_points[self.K_bkpts_index[0]:self.K_bkpts_index[1]])
         return alpha_I+alpha_J-beta_K, [[0,alpha_I],[0,alpha_J],[0,beta_K]]
 
     def delta_pi_trivial_affine_lower_bound(self):
@@ -173,9 +185,9 @@ class SubadditivityTestTreeNode(object):
             sage: estimators
             [[7/6, -1/3], [-19/12, 11/12], [-41/12, 35/9]]
         """
-        slope_I=(self.I_values()[0]-self.I_values()[-1])/(self.I_bkpts()[0]-self.I_bkpts()[-1])
-        slope_J=(self.J_values()[0]-self.J_values()[-1])/(self.J_bkpts()[0]-self.J_bkpts()[-1])
-        slope_K=(self.K_values()[0]-self.K_values()[-1])/(self.K_bkpts()[0]-self.K_bkpts()[-1])
+        slope_I=(self.I_end_points_values[0]-self.I_end_points_values[1])/(self.projections[0][0]-self.projections[0][1])
+        slope_J=(self.J_end_points_values[0]-self.J_end_points_values[1])/(self.projections[1][0]-self.projections[1][1])
+        slope_K=(self.K_end_points_values[0]-self.K_end_points_values[1])/(self.projections[2][0]-self.projections[2][1])
         return self.delta_pi_fast_affine_lower_bound(slope_I,slope_J,slope_K)
 
     def delta_pi_fast_lower_bound(self):
@@ -218,23 +230,32 @@ class SubadditivityTestTreeNode(object):
         v = p.new_variable()
         m1, b1, m2, b2, m3, b3, deltamin= v['m1'], v['b1'], v['m2'], v['b2'], v['m3'], v['b3'], v['deltamin']
         p.set_objective(deltamin)
-        for i in range(len(self.I_values())):
-            p.add_constraint(m1*self.I_bkpts()[i]+b1<=self.I_values()[i])
-        for j in range(len(self.J_values())):
-            p.add_constraint(m2*self.J_bkpts()[j]+b2<=self.J_values()[j])
-        for k in range(len(self.K_values())):
-            p.add_constraint(m3*self.K_bkpts()[k]+b3>=self.K_values()[k])
+
+        p.add_constraint(m1*self.projections[0][0]+b1<=self.I_end_points_values[0])
+        p.add_constraint(m1*self.projections[0][1]+b1<=self.I_end_points_values[1])
+        p.add_constraint(m2*self.projections[1][0]+b2<=self.J_end_points_values[0])
+        p.add_constraint(m2*self.projections[1][1]+b2<=self.J_end_points_values[1])
+        p.add_constraint(m3*self.projections[2][0]+b3>=self.K_end_points_values[0])
+        p.add_constraint(m3*self.projections[2][1]+b3>=self.K_end_points_values[1])
+
+        for i in range(self.I_bkpts_index[0],self.I_bkpts_index[1]):
+            p.add_constraint(m1*self.function.end_points()[i]+b1<=self.function.values_at_end_points()[i])
+        for j in range(self.J_bkpts_index[0],self.J_bkpts_index[1]):
+            p.add_constraint(m2*self.function.end_points()[j]+b2<=self.function.values_at_end_points()[j])
+        for k in range(self.K_bkpts_index[0],self.K_bkpts_index[1]):
+            p.add_constraint(m3*self.function.extended_end_points[k]+b3>=self.function.extended_values_at_end_points[k])
         for v in self.vertices:
             x, y, z=v[0], v[1], v[0]+v[1]
             p.add_constraint(deltamin<=m1*x+b1+m2*y+b2-m3*z-b3)
+
         p.solve()
         # deal with precision problem.
         m_I=QQ(p.get_values(m1))
         m_J=QQ(p.get_values(m2))
         m_K=QQ(p.get_values(m3))
-        b_I=min(self.I_values()[i]-m_I*self.I_bkpts()[i] for i in range(len(self.I_values())))
-        b_J=min(self.J_values()[i]-m_J*self.J_bkpts()[i] for i in range(len(self.J_values())))
-        b_K=max(self.K_values()[i]-m_K*self.K_bkpts()[i] for i in range(len(self.K_values())))
+        b_I=min([self.I_end_points_values[0] - m_I*self.projections[0][0], self.I_end_points_values[1] - m_I*self.projections[0][1]] + [self.function.values_at_end_points()[i]-m_I*self.function.end_points()[i] for i in range(self.I_bkpts_index[0],self.I_bkpts_index[1])])
+        b_J=min([self.J_end_points_values[0] - m_J*self.projections[1][0], self.J_end_points_values[1] - m_J*self.projections[1][1]] + [self.function.values_at_end_points()[j]-m_J*self.function.end_points()[j] for j in range(self.J_bkpts_index[0],self.J_bkpts_index[1])])
+        b_K=max([self.K_end_points_values[0] - m_K*self.projections[2][0], self.K_end_points_values[1] - m_K*self.projections[2][1]] + [self.function.extended_values_at_end_points[k]-m_K*self.function.extended_end_points[k] for k in range(self.K_bkpts_index[0],self.K_bkpts_index[1])])
 
         return min(m_I*v[0]+b_I+m_J*v[1]+b_J-m_K*(v[0]+v[1])-b_K for v in self.vertices), [[m_I,b_I],[m_J,b_J],[m_K,b_K]]
 
@@ -470,6 +491,8 @@ class SubadditivityTestTree:
     """
 
     def __init__(self,fn,intervals=((0,1), (0,1), (0,2)),global_upper_bound=0,objective_limit=0, use_symmetry = False):
+        fn.extended_end_points=fn.end_points() + [bkpt+1 for bkpt in fn.end_points() if bkpt != 0]
+        fn.extended_values_at_end_points=fn.values_at_end_points() + fn.values_at_end_points()[1:]
         self.function=fn
         self.intervals=intervals
         self.global_upper_bound=global_upper_bound
@@ -709,19 +732,19 @@ def find_all_bkpts_in_the_interval(bkpts,interval):
         [9/8, 19/15, 4/3, 8/5, 19/10]
     """
     if interval[1]<=1:
-        i,j=find_bkpts_index_from_zero_to_one(bkpts,interval)
+        i,j=find_bkpts_index(bkpts,interval)
         return [interval[0]]+bkpts[i:j]+[interval[1]]
     if interval[0]>=1:
         new_interval=[interval[0]-1,interval[1]-1]
-        i,j=find_bkpts_index_from_zero_to_one(bkpts,new_interval)
+        i,j=find_bkpts_index(bkpts,new_interval)
         return [interval[0]]+[bkpt+1 for bkpt in bkpts[i:j]]+[interval[1]]
     interval1=[interval[0],1]
     interval2=[0,interval[1]-1]
-    i1,j1=find_bkpts_index_from_zero_to_one(bkpts,interval1)
-    i2,j2=find_bkpts_index_from_zero_to_one(bkpts,interval2)
+    i1,j1=find_bkpts_index(bkpts,interval1)
+    i2,j2=find_bkpts_index(bkpts,interval2)
     return [interval[0]]+bkpts[i1:j1+1]+[bkpt+1 for bkpt in bkpts[i2:j2]]+[interval[1]]
 
-def find_bkpts_index_from_zero_to_one(bkpts,interval):
+def find_bkpts_index(bkpts,interval):
     i=bisect_left(bkpts, interval[0])
     j=bisect_left(bkpts, interval[1])
     if interval[0]==bkpts[i]:
