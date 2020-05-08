@@ -710,20 +710,20 @@ def find_all_bkpts_in_the_interval(bkpts,interval):
     """
     if interval[1]<=1:
         i,j=find_bkpts_index_from_zero_to_one(bkpts,interval)
-        return [interval[0]]+bkpts[i:j+1]+[interval[1]]
+        return [interval[0]]+bkpts[i:j]+[interval[1]]
     if interval[0]>=1:
         new_interval=[interval[0]-1,interval[1]-1]
         i,j=find_bkpts_index_from_zero_to_one(bkpts,new_interval)
-        return [interval[0]]+[bkpt+1 for bkpt in bkpts[i:j+1]]+[interval[1]]
+        return [interval[0]]+[bkpt+1 for bkpt in bkpts[i:j]]+[interval[1]]
     interval1=[interval[0],1]
     interval2=[0,interval[1]-1]
     i1,j1=find_bkpts_index_from_zero_to_one(bkpts,interval1)
     i2,j2=find_bkpts_index_from_zero_to_one(bkpts,interval2)
-    return [interval[0]]+bkpts[i1:j1+2]+[bkpt+1 for bkpt in bkpts[i2:j2+1]]+[interval[1]]
+    return [interval[0]]+bkpts[i1:j1+1]+[bkpt+1 for bkpt in bkpts[i2:j2]]+[interval[1]]
 
 def find_bkpts_index_from_zero_to_one(bkpts,interval):
     i=bisect_left(bkpts, interval[0])
-    j=bisect_left(bkpts, interval[1])-1
+    j=bisect_left(bkpts, interval[1])
     if interval[0]==bkpts[i]:
         i=i+1
     return i,j
