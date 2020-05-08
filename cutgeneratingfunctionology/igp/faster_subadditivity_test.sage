@@ -277,9 +277,9 @@ class SubadditivityTestTreeNode(object):
             sage: N.delta_pi_fast_affine_lower_bound(0,0,0) == N.delta_pi_constant_lower_bound()
             True
         """
-        intercept_I=find_best_intercept(self.I_bkpts(),self.I_values(),slope_I,lower_bound=True)
-        intercept_J=find_best_intercept(self.J_bkpts(),self.J_values(),slope_J,lower_bound=True)
-        intercept_K=find_best_intercept(self.K_bkpts(),self.K_values(),slope_K,lower_bound=False)
+        intercept_I=find_best_intercept([self.projections[0][0],self.projections[0][1]]+self.function.end_points()[self.I_bkpts_index[0]:self.I_bkpts_index[1]],self.I_end_points_values+self.function.values_at_end_points()[self.I_bkpts_index[0]:self.I_bkpts_index[1]],slope_I,lower_bound=True)
+        intercept_J=find_best_intercept([self.projections[1][0],self.projections[1][1]]+self.function.end_points()[self.J_bkpts_index[0]:self.J_bkpts_index[1]],self.J_end_points_values+self.function.values_at_end_points()[self.J_bkpts_index[0]:self.J_bkpts_index[1]],slope_J,lower_bound=True)
+        intercept_K=find_best_intercept([self.projections[2][0],self.projections[2][1]]+self.function.extended_end_points[self.K_bkpts_index[0]:self.K_bkpts_index[1]],self.K_end_points_values+self.function.extended_values_at_end_points[self.K_bkpts_index[0]:self.K_bkpts_index[1]],slope_K,lower_bound=False)
         lower_bound=min((slope_I*vertex[0]+intercept_I)+(slope_J*vertex[1]+intercept_J)-(slope_K*(vertex[0]+vertex[1])+intercept_K) for vertex in self.vertices)
         return lower_bound, [[slope_I,intercept_I],[slope_J,intercept_J],[slope_K,intercept_K]]
 
@@ -317,11 +317,11 @@ class SubadditivityTestTreeNode(object):
         lenJ=new_J[1]-new_J[0]
         lenK=new_K[1]-new_K[0]
         candidates=[]
-        if len(self.I_bkpts())>2:
+        if self.I_bkpts_index[0] != self.I_bkpts_index[1]:
             candidates.append(('I',lenI))
-        if len(self.J_bkpts())>2:
+        if self.J_bkpts_index[0] != self.J_bkpts_index[1]:
             candidates.append(('J',lenJ))
-        if len(self.K_bkpts())>2:
+        if self.K_bkpts_index[0] != self.K_bkpts_index[1]:
             candidates.append(('K',lenK))
         if not candidates:
             return None
@@ -332,30 +332,30 @@ class SubadditivityTestTreeNode(object):
     def new_intervals(self):
         dir=self.branching_direction()
         if dir=='I':
-            new_bkpt=self.I_bkpts()[floor(len(self.I_bkpts())/2)]
+            new_bkpt=self.function.end_points()[(self.I_bkpts_index[0] + self.I_bkpts_index[1])//2]
             return (((self.intervals[0][0],new_bkpt),self.intervals[1],self.intervals[2]),
                     ((new_bkpt,self.intervals[0][1]),self.intervals[1],self.intervals[2]))
         elif dir=='J':
-            new_bkpt=self.J_bkpts()[floor(len(self.J_bkpts())/2)]
+            new_bkpt=self.function.end_points()[(self.J_bkpts_index[0] + self.J_bkpts_index[1])//2]
             return ((self.intervals[0],(self.intervals[1][0],new_bkpt),self.intervals[2]),
                     (self.intervals[0],(new_bkpt,self.intervals[1][1]),self.intervals[2]))
         elif dir=='K':
-            new_bkpt=self.K_bkpts()[floor(len(self.K_bkpts())/2)]
+            new_bkpt=self.function.extended_end_points[(self.K_bkpts_index[0] + self.K_bkpts_index[1])//2]
             return ((self.intervals[0],self.intervals[1],(self.intervals[2][0],new_bkpt)),
                     (self.intervals[0],self.intervals[1],(new_bkpt,self.intervals[2][1])))
         else:
             raise ValueError("Indivisible Region.")
 
     def is_divisible(self):
-        if len(self.I_bkpts())<=2 and len(self.J_bkpts())<=2 and len(self.K_bkpts())<=2:
+        if self.I_bkpts_index[0] == self.I_bkpts_index[1] and self.J_bkpts_index[0] == self.J_bkpts_index[1] and self.K_bkpts_index[0] == self.K_bkpts_index[1]:
             # if the node is indivisible, then affine_estimators equals the exact function.
             if self.affine_estimators is None:
-                slope_I=(self.I_values()[0]-self.I_values()[1])/(self.I_bkpts()[0]-self.I_bkpts()[1])
-                slope_J=(self.J_values()[0]-self.J_values()[1])/(self.J_bkpts()[0]-self.J_bkpts()[1])
-                slope_K=(self.K_values()[0]-self.K_values()[1])/(self.K_bkpts()[0]-self.K_bkpts()[1])
-                intercept_I=self.I_values()[0]-slope_I*self.I_bkpts()[0]
-                intercept_J=self.J_values()[0]-slope_J*self.J_bkpts()[0]
-                intercept_K=self.K_values()[0]-slope_K*self.K_bkpts()[0]
+                slope_I=(self.I_end_points_values[0]-self.I_end_points_values[1])/(self.projections[0][0]-self.projections[0][1])
+                slope_J=(self.J_end_points_values[0]-self.J_end_points_values[1])/(self.projections[1][0]-self.projections[1][1])
+                slope_K=(self.K_end_points_values[0]-self.K_end_points_values[1])/(self.projections[2][0]-self.projections[2][1])
+                intercept_I=self.I_end_points_values[0]-slope_I*self.projections[0][0]
+                intercept_J=self.J_end_points_values[0]-slope_J*self.projections[1][0]
+                intercept_K=self.K_end_points_values[0]-slope_K*self.projections[2][0]
                 self.affine_estimators=[[slope_I,intercept_I],[slope_J,intercept_J],[slope_K,intercept_K]]
             return False
         else:
