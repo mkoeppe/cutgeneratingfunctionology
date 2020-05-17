@@ -681,7 +681,7 @@ class SubadditivityTestTree:
 
     def plot_current_regions(self,colorful=False,**kwds):
         p=Graphics()
-        kwds = { 'legend_label1': "indivisible face" , 'legend_label2': "strict subadditive divisible face"}
+        legend_kwds = { 'legend_label1': "indivisible face" , 'legend_label2': "strict subadditive divisible face"}
         legend=[0,0]
         for node in self.leaf_set:
             v=[ver for ver in node.vertices]
@@ -690,13 +690,13 @@ class SubadditivityTestTree:
             if colorful:
                 if not node.is_divisible():
                     if legend[0]==0:
-                        p+=Face(node.intervals).plot(rgbcolor = "yellow",fill_color = "yellow",legend_label=kwds['legend_label1'])
+                        p+=Face(node.intervals).plot(rgbcolor = "yellow",fill_color = "yellow",legend_label=legend_kwds['legend_label1'])
                         legend[0]=1
                     else:
                         p+=Face(node.intervals).plot(rgbcolor = "yellow",fill_color = "yellow")
                 elif node.delta_pi_lower_bound(**kwds)>self.global_upper_bound:
                     if legend[1]==0:
-                        p+=Face(node.intervals).plot(rgbcolor = "red",fill_color = "red",legend_label=kwds['legend_label2'])
+                        p+=Face(node.intervals).plot(rgbcolor = "red",fill_color = "red",legend_label=legend_kwds['legend_label2'])
                         legend[1]=1
                     else:
                         p+=Face(node.intervals).plot(rgbcolor = "red",fill_color = "red")
