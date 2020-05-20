@@ -694,6 +694,12 @@ class SubadditivityTestTree:
         sage: covered_components_2 = generate_covered_components(h)
         sage: set(tuple(c) for c in covered_components_1) == set(tuple(c) for c in covered_components_2)
         True
+        sage: h = kzh_10_slope_1()
+        sage: T = SubadditivityTestTree(h, use_symmetry = True)
+        sage: covered_components_1 = T.generate_covered_components_big_cell(max_number_of_bkpts = 1)
+        sage: covered_components_2 = generate_covered_components(h)
+        sage: set(tuple(c) for c in covered_components_1) == set(tuple(c) for c in covered_components_2)
+        True
         """
         if hasattr(self,'covered_components'):
             return self.covered_components
