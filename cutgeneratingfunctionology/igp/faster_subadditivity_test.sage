@@ -681,6 +681,20 @@ class SubadditivityTestTree:
         return self.maximal_additive_faces
 
     def generate_covered_components_big_cell(self,search_method='BB',**kwds):
+        r"""
+        Generate covered components stratigically using big cell.
+
+        EXAMPLES::
+
+        sage: from cutgeneratingfunctionology.igp import *
+        sage: logging.disable(logging.INFO)
+        sage: h = kzh_7_slope_1()
+        sage: T = SubadditivityTestTree(h)
+        sage: covered_components_1 = T.generate_covered_components_big_cell()
+        sage: covered_components_2 = generate_covered_components(h)
+        sage: set(tuple(c) for c in covered_components_1) == set(tuple(c) for c in covered_components_2)
+        True
+        """
         if hasattr(self,'covered_components'):
             return self.covered_components
         epsilon=QQ(1)/100000000
