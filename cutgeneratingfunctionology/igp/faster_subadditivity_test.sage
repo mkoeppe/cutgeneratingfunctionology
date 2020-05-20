@@ -628,6 +628,8 @@ class SubadditivityTestTree:
         return self.min
 
     def generate_maximal_additive_faces(self,search_method='BB',**kwds):
+        if hasattr(self,'maximal_additive_faces'):
+            return self.maximal_additive_faces
         epsilon=QQ(1)/100000000
         if search_method=='BFS' or search_method=='DFS':
             self.unfathomed_node_list.put((0,self.root))
@@ -642,11 +644,10 @@ class SubadditivityTestTree:
             if current_node.is_divisible():
                 self.node_branching(current_node,search_method=search_method,find_min=False,stop_only_if_strict=True,**kwds)
             else:
-                temp_verts = current_node.vertices
                 temp = []
                 keep = False
-                for vertex in temp_verts:
-                    if delta_pi(self.function, vertex[0],vertex[1]) == self.objective_limit:
+                for vertex in current_node.vertices:
+                    if delta_pi(self.function, vertex[0],vertex[1]) == 0:
                         temp.append(vertex)
                         keep = True
                 if len(temp) == 2:
@@ -678,6 +679,74 @@ class SubadditivityTestTree:
                     trip = projections(temp)
                     self.maximal_additive_faces.add(Face(trip, vertices=temp, is_known_to_be_minimal=True))
         return self.maximal_additive_faces
+
+    def generate_covered_components_big_cell(self,search_method='BB',**kwds):
+        if hasattr(self,'covered_components'):
+            return self.covered_components
+        epsilon=QQ(1)/100000000
+        covered_components = []
+        if search_method=='BFS' or search_method=='DFS':
+            self.unfathomed_node_list.put((0,self.root))
+        elif search_method=='BB':
+            self.unfathomed_node_list.put((self.root.delta_pi_lower_bound(**kwds),self.root))
+        else:
+            raise ValueError("Can't recognize search_method.")
+        while not self.unfathomed_node_list.empty():
+            current_node=self.unfathomed_node_list.get()[1]
+            if len(current_node.vertices)==0:
+                continue
+
+            I,J,K = current_node.projections
+            if K[0]<1 and K[1]>1:
+                temp_component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* [K[0],1])], [open_interval(* [0,K[1]-1])]],[])
+            else:
+                temp_component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* interval_mod_1(K))]],[])
+            # check if temp_component is a subset of an element in covered_components
+            is_already_covered = False
+            for covered_component in covered_components:
+                if covered_component == union_of_coho_intervals_minus_union_of_coho_intervals([covered_component, temp_component],[]):
+                    is_already_covered = True
+                    break
+            if is_already_covered:
+                continue
+            # Otherwise, continue branch and bound
+            if current_node.is_divisible():
+                self.node_branching(current_node,search_method=search_method,find_min=False,stop_only_if_strict=True,**kwds)
+            else:
+                temp = []
+                keep = False
+                for vertex in current_node.vertices:
+                    if delta_pi(self.function, vertex[0],vertex[1]) == 0:
+                        temp.append(vertex)
+                if len(temp) == 2:
+                    if temp[0][0] == temp[1][0] and temp[1][0] == I[0]:
+                        if delta_pi(self.function, temp[0][0]-epsilon,(temp[0][1]+temp[1][1])/2) != 0:
+                            keep = True
+                            temp_I, temp_J, temp_K = projections(temp)
+                            if temp_K[0]<1 and temp_K[1]>1:
+                                temp_component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* temp_J)], [open_interval(* [temp_K[0],1])], [open_interval(* [0,temp_K[1]-1])]],[])
+                            else:
+                                temp_component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* temp_J)], [open_interval(* interval_mod_1(temp_K))]],[])
+                    elif temp[0][1] == temp[1][1] and temp[1][1] == J[0]:
+                        if delta_pi(self.function, (temp[0][0]+temp[1][0])/2,temp[0][1]-epsilon) != 0:
+                            keep = True
+                            temp_I, temp_J, temp_K = projections(temp)
+                            if temp_K[0]<1 and temp_K[1]>1:
+                                temp_component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* temp_I)], [open_interval(* [temp_K[0],1])], [open_interval(* [0,temp_K[1]-1])]],[])
+                            else:
+                                temp_component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* temp_I)], [open_interval(* interval_mod_1(temp_K))]],[])
+                    elif temp[0][0] + temp[0][1] == temp[1][0] + temp[1][1] and temp[1][0] + temp[1][1] == K[0]:
+                        if delta_pi(self.function, (temp[0][0]+temp[1][0])/2-epsilon,(temp[0][1]+temp[1][1])/2-epsilon) != 0:
+                            keep = True
+                            temp_I, temp_J, temp_K = projections(temp)
+                            temp_component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)]],[])
+                elif len(temp) >=3:
+                        keep = True
+                if keep:
+                    new_component, remaining_components = merge_components_with_given_component(temp_component, covered_components)
+                    covered_components = remaining_components + [new_component]
+        self.covered_components = covered_components
+        return self.covered_components
 
     def plot_current_regions(self,colorful=False,**kwds):
         p=Graphics()
