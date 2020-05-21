@@ -296,9 +296,11 @@ class FunctionalDirectedMove (MonoidElement):
         return FunctionalDirectedMove(open_domains, self.directed_move)
 
     def plot(self, rgbcolor=None, color=None, *args, **kwds):
+        from copy import copy
         kwds = copy(kwds)
         kwds['aspect_ratio'] = 1.0
         # ignore discontinuity markers in the moves diagram
+        from cutgeneratingfunctionology.igp import show_moves_with_discontinuity_markers, show_translations_and_reflections_by_color
         kwds['discontinuity_markers'] = show_moves_with_discontinuity_markers
         if rgbcolor is None:
             if show_translations_and_reflections_by_color and self.sign() == -1:
