@@ -648,8 +648,6 @@ class SubadditivityTestTree:
         return self.min
 
     def generate_maximal_additive_faces(self,search_method='BB',**kwds):
-        if hasattr(self,'maximal_additive_faces'):
-            return self.maximal_additive_faces
         epsilon=QQ(1)/100000000
         if search_method=='BFS' or search_method=='DFS':
             self.unfathomed_node_list.put((0,self.root))
@@ -660,6 +658,9 @@ class SubadditivityTestTree:
         while not self.unfathomed_node_list.empty():
             current_node=self.unfathomed_node_list.get()[1]
             if len(current_node.vertices)==0:
+                continue
+            # prune if no additive set exists based on slope value set.
+            if current_node.I_slope_set().isdisjoint(current_node.J_slope_set()) and current_node.I_slope_set().isdisjoint(current_node.K_slope_set()) and current_node.J_slope_set().isdisjoint(current_node.K_slope_set()):
                 continue
             if current_node.is_divisible():
                 self.node_branching(current_node,search_method=search_method,find_min=False,stop_only_if_strict=True,**kwds)
@@ -735,21 +736,9 @@ class SubadditivityTestTree:
             current_node=self.unfathomed_node_list.get()[1]
             if len(current_node.vertices)==0:
                 continue
-
-            I,J,K = current_node.projections
-            if K[0]<1 and K[1]>1:
-                temp_component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* [K[0],1])], [open_interval(* [0,K[1]-1])]],[])
-            else:
-                temp_component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* interval_mod_1(K))]],[])
-            # check if temp_component is a subset of an element in covered_components
-            is_already_covered = False
-            for covered_component in covered_components:
-                if covered_component == union_of_coho_intervals_minus_union_of_coho_intervals([covered_component, temp_component],[]):
-                    is_already_covered = True
-                    break
-            if is_already_covered:
+            # prune if no additive set exists based on slope value set.
+            if current_node.I_slope_set().isdisjoint(current_node.J_slope_set()) and current_node.I_slope_set().isdisjoint(current_node.K_slope_set()) and current_node.J_slope_set().isdisjoint(current_node.K_slope_set()):
                 continue
-            # Otherwise, continue branch and bound
             if current_node.is_divisible():
                 self.node_branching(current_node,search_method=search_method,find_min=False,stop_only_if_strict=True,**kwds)
             else:
