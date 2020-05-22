@@ -3837,6 +3837,20 @@ def generate_covered_components_strategically(fn, show_plots=False, additive_fac
     proof of covered components.
 
     Set ``show_plots=True`` to visualize the proof.
+
+    Bug EXAMPLES? ::
+
+    sage: from cutgeneratingfunctionology.igp import *
+    sage: logging.disable(logging.INFO)
+    sage: fn = bcdsp_arbitrary_slope(k=4)
+    sage: two_slope_fn = two_slope_fill_in_extreme(fn, 1)
+    sage: minimal_fn = 9/10 * two_slope_fn + 1/10 * gmic(f=find_f(two_slope_fn))
+    sage: minimality_test(minimal_fn)
+    True
+    sage: len(generate_covered_components(minimal_fn))
+    4
+    sage: len(generate_covered_components_strategically(minimal_fn))
+    3
 """
     if additive_faces is None and hasattr(fn, '_strategical_covered_components'):
         return fn._strategical_covered_components
