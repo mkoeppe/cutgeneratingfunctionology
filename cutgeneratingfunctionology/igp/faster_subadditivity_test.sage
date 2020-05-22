@@ -132,6 +132,24 @@ class SubadditivityTestTreeNode(object):
         self._K_values = tuple(self.function(bkpt if bkpt<=1 else bkpt-1) for bkpt in self.K_bkpts())
         return self._K_values
 
+    def I_slope_set(self):
+        if hasattr(self,'_I_slope_set'):
+            return self._I_slope_set
+        self._I_slope_set = set(self.function.slope_values[self.I_bkpts_index[0]-1:self.I_bkpts_index[1]])
+        return self._I_slope_set
+
+    def J_slope_set(self):
+        if hasattr(self,'_J_slope_set'):
+            return self._J_slope_set
+        self._J_slope_set = set(self.function.slope_values[self.J_bkpts_index[0]-1:self.J_bkpts_index[1]])
+        return self._J_slope_set
+
+    def K_slope_set(self):
+        if hasattr(self,'_K_slope_set'):
+            return self._K_slope_set
+        self._K_slope_set = set(self.function.extended_slope_values[self.K_bkpts_index[0]-1:self.K_bkpts_index[1]])
+        return self._K_slope_set
+
     def delta_pi_constant_lower_bound(self):
         r"""
         Compute the constant lower bound of delta pi in the current region defined by self.intervals. The bound is (min of fn on proj(I)) + (min of fn on proj(J)) - (max of fn on proj(K)).
@@ -493,6 +511,8 @@ class SubadditivityTestTree:
     def __init__(self,fn,intervals=((0,1), (0,1), (0,2)),global_upper_bound=0,objective_limit=0, use_symmetry = False):
         fn.extended_end_points=fn.end_points() + [bkpt+1 for bkpt in fn.end_points() if bkpt != 0]
         fn.extended_values_at_end_points=fn.values_at_end_points() + fn.values_at_end_points()[1:]
+        fn.slope_values=[(fn.values_at_end_points()[i+1]-fn.values_at_end_points()[i])/(fn.end_points()[i+1]-fn.end_points()[i]) for i in range(len(fn.end_points())-1)]
+        fn.extended_slope_values=fn.slope_values+fn.slope_values
         self.function=fn
         self.intervals=intervals
         self.global_upper_bound=global_upper_bound
