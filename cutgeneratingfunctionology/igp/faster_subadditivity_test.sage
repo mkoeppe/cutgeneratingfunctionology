@@ -710,21 +710,20 @@ class SubadditivityTestTree:
         sage: from cutgeneratingfunctionology.igp import *
         sage: logging.disable(logging.INFO)
         sage: h = kzh_7_slope_1()
-        sage: T = SubadditivityTestTree(h)
+        sage: T = SubadditivityTestTree(h,use_symmetry = True)
         sage: covered_components_1 = T.generate_covered_components_big_cell()
         sage: covered_components_2 = generate_covered_components(h)
+        sage: covered_components_3 = generate_covered_components_strategically(h)
         sage: set(tuple(c) for c in covered_components_1) == set(tuple(c) for c in covered_components_2)
-        True
-        sage: h = kzh_10_slope_1()
-        sage: T = SubadditivityTestTree(h, use_symmetry = True)
-        sage: covered_components_1 = T.generate_covered_components_big_cell(max_number_of_bkpts = 1)
-        sage: covered_components_2 = generate_covered_components(h)
-        sage: set(tuple(c) for c in covered_components_1) == set(tuple(c) for c in covered_components_2)
+        False
+        sage: set(tuple(c) for c in covered_components_1) == set(tuple(c) for c in covered_components_3)
         True
         """
         if hasattr(self,'covered_components'):
             return self.covered_components
         epsilon=QQ(1)/100000000
+        additive_edges = []
+        # covered_components will always be mutually exclusive throughout the algorithm.
         covered_components = []
         if search_method=='BFS' or search_method=='DFS':
             self.unfathomed_node_list.put((0,self.root))
@@ -743,37 +742,46 @@ class SubadditivityTestTree:
                 self.node_branching(current_node,search_method=search_method,find_min=False,stop_only_if_strict=True,**kwds)
             else:
                 temp = []
-                keep = False
                 for vertex in current_node.vertices:
                     if delta_pi(self.function, vertex[0],vertex[1]) == 0:
                         temp.append(vertex)
                 if len(temp) == 2:
-                    if temp[0][0] == temp[1][0] and temp[1][0] == I[0]:
-                        if delta_pi(self.function, temp[0][0]-epsilon,(temp[0][1]+temp[1][1])/2) != 0:
-                            keep = True
-                            temp_I, temp_J, temp_K = projections(temp)
-                            if temp_K[0]<1 and temp_K[1]>1:
-                                temp_component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* temp_J)], [open_interval(* [temp_K[0],1])], [open_interval(* [0,temp_K[1]-1])]],[])
-                            else:
-                                temp_component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* temp_J)], [open_interval(* interval_mod_1(temp_K))]],[])
-                    elif temp[0][1] == temp[1][1] and temp[1][1] == J[0]:
-                        if delta_pi(self.function, (temp[0][0]+temp[1][0])/2,temp[0][1]-epsilon) != 0:
-                            keep = True
-                            temp_I, temp_J, temp_K = projections(temp)
-                            if temp_K[0]<1 and temp_K[1]>1:
-                                temp_component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* temp_I)], [open_interval(* [temp_K[0],1])], [open_interval(* [0,temp_K[1]-1])]],[])
-                            else:
-                                temp_component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* temp_I)], [open_interval(* interval_mod_1(temp_K))]],[])
-                    elif temp[0][0] + temp[0][1] == temp[1][0] + temp[1][1] and temp[1][0] + temp[1][1] == K[0]:
-                        if delta_pi(self.function, (temp[0][0]+temp[1][0])/2-epsilon,(temp[0][1]+temp[1][1])/2-epsilon) != 0:
-                            keep = True
-                            temp_I, temp_J, temp_K = projections(temp)
-                            temp_component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)]],[])
+                    # possible additive edges
+                    if temp[0][0] == temp[1][0] and temp[1][0] == current_node.projections[0][0] and delta_pi(self.function, temp[0][0]-epsilon,(temp[0][1]+temp[1][1])/2) != 0:
+                        # vertical additive edge.
+                        additive_edges.append(Face(projections(temp), vertices=temp, is_known_to_be_minimal=True))
+                    elif temp[0][1] == temp[1][1] and temp[1][1] == current_node.projections[1][0] and delta_pi(self.function, (temp[0][0]+temp[1][0])/2,temp[0][1]-epsilon) != 0:
+                        # horizontal additive edge.
+                        additive_edges.append(Face(projections(temp), vertices=temp, is_known_to_be_minimal=True))
+                    elif temp[0][0] + temp[0][1] == temp[1][0] + temp[1][1] and temp[1][0] + temp[1][1] == current_node.projections[1][0] and delta_pi(self.function, (temp[0][0]+temp[1][0])/2-epsilon,(temp[0][1]+temp[1][1])/2-epsilon) != 0:
+                        # diagonal additive edge.
+                        additive_edges.append(Face(projections(temp), vertices=temp, is_known_to_be_minimal=True))
                 elif len(temp) >=3:
-                        keep = True
-                if keep:
-                    new_component, remaining_components = merge_components_with_given_component(temp_component, covered_components)
-                    covered_components = remaining_components + [new_component]
+                    # 2D additive faces
+                    I,J,K = current_node.projections
+                    K_mod_1 = interval_mod_1(K)
+                    component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* K_mod_1)]],[])
+                    new_component, remaining_components = merge_components_with_given_component_strategically(component, covered_components)
+                    if new_component:
+                        # can add logs here in the future to show an updated covered_components.
+                        covered_components = remaining_components + [new_component]
+        for edge in additive_edges:
+            fdm = edge.functional_directed_move()
+            sym_fdm = [fdm]
+            if fdm.sign() == 1:
+                backward_fdm = FunctionalDirectedMove(fdm.range_intervals(), (1, -fdm[1]))
+                sym_fdm.append(backward_fdm)
+            for covered_component in covered_components:
+                component = []
+                for fdm in sym_fdm:
+                    overlapped_ints = list(intersection_of_coho_intervals([covered_component, fdm.intervals()]))
+                    moved_intervals = [[fdm.apply_to_coho_interval(overlapped_int)] for overlapped_int in overlapped_ints ]
+                    component = union_of_coho_intervals_minus_union_of_coho_intervals(moved_intervals + [overlapped_ints] + [component], [])
+                if component:
+                    new_component, remaining_components = merge_components_with_given_component_strategically(component, covered_components)
+                    if new_component:
+                        # can add logs here in the future to show an updated covered_components.
+                        covered_components = remaining_components + [new_component]
         self.covered_components = covered_components
         return self.covered_components
 
@@ -1149,3 +1157,18 @@ def find_intersection_with_diagonal(v1,v2):
     x2,y2=v2
     x=(x2*y1-y2*x1)/(y1-y2-x1+x2)
     return (x,x)
+
+def merge_components_with_given_component_strategically(given_component, other_components):
+    remaining_components = []
+    for component in other_components:
+        component_intersection = list(intersection_of_coho_intervals([given_component, component]))
+        if component_intersection == given_component:
+            # stop early if given_component is already a subset of component.
+            return None, other_components
+        elif component_intersection:
+            # merge if have nontrivial intersection.
+            given_component = union_of_coho_intervals_minus_union_of_coho_intervals([given_component, component], [])
+        else:
+            # if component is not merged into the given_component, it remains in remaining_components.
+            remaining_components.append(component)
+    return given_component, remaining_components
