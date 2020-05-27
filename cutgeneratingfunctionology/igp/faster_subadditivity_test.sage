@@ -707,17 +707,17 @@ class SubadditivityTestTree:
 
         EXAMPLES::
 
-        sage: from cutgeneratingfunctionology.igp import *
-        sage: logging.disable(logging.INFO)
-        sage: h = kzh_7_slope_1()
-        sage: T = SubadditivityTestTree(h,use_symmetry = True)
-        sage: covered_components_1 = T.generate_covered_components_big_cell()
-        sage: covered_components_2 = generate_covered_components(h)
-        sage: covered_components_3 = generate_covered_components_strategically(h)
-        sage: set(tuple(c) for c in covered_components_1) == set(tuple(c) for c in covered_components_2)
-        False
-        sage: set(tuple(c) for c in covered_components_1) == set(tuple(c) for c in covered_components_3)
-        True
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)
+            sage: h = kzh_7_slope_1()
+            sage: T = SubadditivityTestTree(h,use_symmetry = True)
+            sage: covered_components_1 = T.generate_covered_components_big_cell()
+            sage: covered_components_2 = generate_covered_components(h)
+            sage: covered_components_3 = generate_covered_components_strategically(h)
+            sage: set(tuple(c) for c in covered_components_1) == set(tuple(c) for c in covered_components_2)
+            False
+            sage: set(tuple(c) for c in covered_components_1) == set(tuple(c) for c in covered_components_3)
+            True
         """
         if hasattr(self,'covered_components'):
             return self.covered_components
