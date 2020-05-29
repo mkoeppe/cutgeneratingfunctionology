@@ -721,6 +721,7 @@ class SubadditivityTestTree:
         """
         if hasattr(self,'covered_components'):
             return self.covered_components
+        step = 1
         epsilon=QQ(1)/100000000
         additive_edges = []
         # covered_components will always be mutually exclusive throughout the algorithm.
@@ -763,8 +764,13 @@ class SubadditivityTestTree:
                     component = union_of_coho_intervals_minus_union_of_coho_intervals([[open_interval(* I)], [open_interval(* J)], [open_interval(* K_mod_1)]],[])
                     new_component, remaining_components = merge_components_with_given_component_strategically(component, covered_components)
                     if new_component:
-                        # can add logs here in the future to show an updated covered_components.
                         covered_components = remaining_components + [new_component]
+                        if logging.getLogger().isEnabledFor(logging.DEBUG):
+                            if new_component == component:
+                                logging.debug("Step %s: Consider the 2d additive %s.\n%s is directly covered." % (step, Face(current_node.projections, vertices=current_node.vertices, is_known_to_be_minimal=True), component))
+                            else:
+                                logging.debug("Step %s: By merging components that overlap with projections of the 2d additive %s, we obtain a larger covered component %s" % (step, Face(current_node.projections, vertices=current_node.vertices, is_known_to_be_minimal=True), new_component))
+                            step += 1
         for edge in additive_edges:
             fdm = edge.functional_directed_move()
             sym_fdm = [fdm]
@@ -780,9 +786,18 @@ class SubadditivityTestTree:
                 if component:
                     new_component, remaining_components = merge_components_with_given_component_strategically(component, covered_components)
                     if new_component:
-                        # can add logs here in the future to show an updated covered_components.
+                        if logging.getLogger().isEnabledFor(logging.DEBUG):
+                            if len(remaining_components) == len(covered_components)-1:
+                                # only extend one component
+                                newly_covered = union_of_coho_intervals_minus_union_of_coho_intervals([new_component], covered_components)
+                                logging.debug("Step %s: %s is indirectly covered." % (step, newly_covered))
+                            else:
+                                # extend and merge
+                                logging.debug("Step %s: By merging components that are connected by the 1d additive %s, we obtain a larger covered component %s" % (step, edge, new_component))
+                            step += 1
                         covered_components = remaining_components + [new_component]
         self.covered_components = covered_components
+        self.proof_step = step - 1
         return self.covered_components
 
     def plot_current_regions(self,colorful=False,**kwds):
