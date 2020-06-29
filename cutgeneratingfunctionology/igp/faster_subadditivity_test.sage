@@ -212,6 +212,52 @@ class SubadditivityTestTreeNode(object):
         r"""
         Choose the better bound between constant and trivial affine lower bounds.
         The second output is the slope and intercept values of three estimators.
+
+        EXAMPLES::
+
+            sage: from cutgeneratingfunctionology.igp import *
+            sage: logging.disable(logging.INFO)
+            sage: fn=kzh_10_slope_1()
+            sage: T=SubadditivityTestTree(fn)
+            sage: T.minimum(max_number_of_bkpts=1)
+            0
+            sage: T.number_of_nodes()
+            13321
+            sage: T1=SubadditivityTestTree(fn)
+            sage: T1.minimum(max_number_of_bkpts=7)
+            0
+            sage: T1.number_of_nodes()
+            13545
+            sage: s=[T.root]
+            sage: s1=[T1.root]
+            sage: while s[-1].intervals == s1[-1].intervals:
+            ....:     n=s[-1]
+            ....:     n1=s1[-1]
+            ....:     s=s[:-1]
+            ....:     s1=s1[:-1]
+            ....:     if n.left_child is None and n1.left_child is not None:
+            ....:         break
+            ....:     if n1.left_child is None and n.left_child is not None:
+            ....:         break
+            ....:     if n.left_child is not None:
+            ....:         s.append(n.left_child)
+            ....:         s.append(n.right_child)
+            ....:         s1.append(n1.left_child)
+            ....:         s1.append(n1.right_child)
+            sage: n.intervals
+            ((163/166, 165/166), (163/166, 1), (329/166, 2))
+            sage: n1.intervals
+            ((163/166, 165/166), (163/166, 1), (329/166, 2))
+            sage: n.left_child is None
+            True
+            sage: n1.left_child is not None
+            True
+            sage: n.delta_pi_fast_lower_bound()
+            (0, [[-664/65, 1993/195], [-415/39, 415/39], [-664/65, 797/39]])
+            sage: n.delta_pi_affine_lower_bound()
+            (-2878193561/1415612118926873274576576, [[-4439019910279/434542611699, 1228745372386951/120223455903390], [-2215661835839/216894607424, 2215661835839/216894607424], [-1606579213169/157270555506, 2667590901866027/130534561069980]])
+
+
         """
         constant_bound, constant_estimators = self.delta_pi_constant_lower_bound()
         trivial_affine_bound, affine_estimators = self.delta_pi_trivial_affine_lower_bound()
