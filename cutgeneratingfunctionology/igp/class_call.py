@@ -1,6 +1,10 @@
 from __future__ import print_function, absolute_import
 
-from sage.misc import six
+try:
+    from sage.misc import six
+except ImportError:
+    import six
+
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 
 class Classcall(six.with_metaclass(ClasscallMetaclass)):
