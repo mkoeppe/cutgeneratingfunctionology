@@ -3847,7 +3847,7 @@ def generate_covered_components_strategically(fn, show_plots=False, additive_fac
         sage: minimal_fn = 9/10 * two_slope_fn + 1/10 * gmic(f=find_f(two_slope_fn))
         sage: minimality_test(minimal_fn)
         True
-        sage: len(generate_covered_components(minimal_fn))
+        sage: len(generate_covered_components(minimal_fn)) # long doctest
         4
         sage: len(generate_covered_components_strategically(minimal_fn)) # long doctest
         4
