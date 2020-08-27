@@ -1100,7 +1100,10 @@ class PiecewiseLinearFunction_1d (ModuleElement):
         data = list(zip(self_merged.end_points(), self_merged.limits_at_end_points()))
         from . import is_all_QQ
         from sage.misc.flatten import flatten
-        from sage.misc import six
+        try:
+            from sage.misc import six
+        except ImportError:    # Sage >= 9.2
+            import six
         is_rational, _ = is_all_QQ(flatten(data))
         if not is_rational:
             logging.warning("For functions with non-rational data, cannot guarantee a stable SHA-1 hash.")

@@ -3,6 +3,10 @@ Linear functions of 1 variable
 """
 from __future__ import division, print_function, absolute_import
 
+try:
+    from sage.misc.repr import repr_lincomb
+except ImportError:  # Sage < 9.2
+    from sage.misc.misc import repr_lincomb
 
 ## FIXME: Its __name__ is "Fast..." but nobody so far has timed
 ## its performance against the other options. --Matthias
@@ -52,7 +56,6 @@ class FastLinearFunction :
         # Following the Sage convention of returning a pretty-printed
         # expression in __repr__ (rather than __str__).
         if not(is_parametric_element(self._slope) or is_parametric_element(self._intercept)):
-            from sage.misc.misc import repr_lincomb
             # repr_lincomb tests for 0, don't do this for parametric elements.
             try:
                 return '<FastLinearFunction ' + repr_lincomb([('x', self._slope), (1, self._intercept)], strip_one = True) + '>'
