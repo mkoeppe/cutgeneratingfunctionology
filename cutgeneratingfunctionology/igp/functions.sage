@@ -3849,7 +3849,7 @@ def generate_covered_components_strategically(fn, show_plots=False, additive_fac
         True
         sage: len(generate_covered_components(minimal_fn))
         4
-        sage: len(generate_covered_components_strategically(minimal_fn))
+        sage: len(generate_covered_components_strategically(minimal_fn)) # long doctest
         4
     """
     if additive_faces is None and hasattr(fn, '_strategical_covered_components'):
