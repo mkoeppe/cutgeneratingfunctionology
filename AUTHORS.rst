@@ -12,5 +12,8 @@ Masumi Sugiyama contributed the mlr_cpl3_... functions to the
 compendium, and added functions that convert between group functions
 and superadditive lifting functions.
 
-Jiawei Wang added code for dual-feasible functions and did some code
-optimization.
+Jiawei Wang added code for dual-feasible functions, implemented the
+subadditivity test using spatial branch and bound, implemented the
+SPAM linear systems backend with Fourier Motzkin elimination, added
+some SPAM examples, contributed documentation and doctests, and did
+some code optimization.
