@@ -86,7 +86,7 @@ all:
 	@echo "No need to 'make' anything. Just run it in Sage; see README.rst"
 
 install:
-	@echo "No need to install anything. Just run it in Sage; see README.rst"
+	$(SAGE) -pip install .
 
 check: check-encoding
 	PYTHONPATH=`pwd` $(SAGE) -tp $(CHECK_PARALLEL) --force_lib --warn-long 10 $(SAGE_CHECK_FLAGS) $(SAGEFILES)
