@@ -371,6 +371,8 @@ def convert_lrs_to_ppl(lrs_string):
         expect_in_cddout('end')
         return cs
 
+    raise ValueError('Input is neither a V-representation nor H-representation')
+
 from sage.misc.temporary_file import tmp_filename
 from subprocess import Popen, PIPE
 
