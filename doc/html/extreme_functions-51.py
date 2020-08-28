@@ -1,4 +1,4 @@
 from cutgeneratingfunctionology.igp import *
-h = kzh_6_slope_fulldim_covers_4()
+h = mlr_cpl3_k_2_slope()
 g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
 sphinx_plot(g)

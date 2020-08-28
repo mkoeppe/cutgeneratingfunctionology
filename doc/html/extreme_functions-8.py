@@ -1,4 +1,4 @@
 from cutgeneratingfunctionology.igp import *
-h = bhk_gmi_irrational()
-g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=1, **only_f_ticks_keywords(h))
+h = hildebrand_5_slope_22_1()
+g = plot_with_colored_slopes(h, show_legend=False, aspect_ratio=0.125, figsize=(8, 1.5), thickness=2, **only_f_ticks_keywords(h))
 sphinx_plot(g)
