@@ -121,6 +121,15 @@ class PiecewiseCrazyFunction(ModuleElement):
 
     _rmul_ = _lmul_
 
+    # Adding the following method helps the coercion system
+    # discover the action of multiplication with a scalar that is not the base ring.
+    def _acted_upon_(self, actor, self_on_left):
+        r"""
+        Multiply self by a matrix from left or right.
+        """
+        return self.__class__(self.pwl * actor, [cp * actor for cp in self.crazy_pieces],
+                              parent=self.parent())
+
     def __truediv__(self, other):
         return self * (QQ(1) / other)
 
