@@ -2920,12 +2920,18 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
         sage: pt = find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step) # got pt (3738/13883, 7795/67523)
         sage: all(l(pt) < 0 for l in ineqs) and ineq(pt)>0
         True
+
+    Bug example from positive definite matrix [a, b; b, 1/4]::
+        sage: P.<a,b>=QQ[]; current_var_value = (1, 1); ineq = -4*b^2 + a; ineqs = [-a]; flip_ineq_step=1/3
+        sage: pt = find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step); # got pt (19419/17801, 11629/24865)
+        sage: all(l(pt) < 0 for l in ineqs) and ineq(pt)>0
+        True
     """
     # heuristic method.
     ineq_gradient = gradient(ineq)
     current_point = vector(RR(x) for x in current_var_value) # Real numbers, faster than QQ
     ineq_value = ineq(*current_point)
-    try_before_fail =  min(ceil(2/flip_ineq_step), 2000)  # define maximum number of walks.
+    try_before_fail =  max(ceil(2/flip_ineq_step), 2000)  # define maximum number of walks.
     while (ineq_value <= 1e-10) and (try_before_fail > 0):
         ineq_direction = vector(g(*current_point) for g in ineq_gradient)
         if ineq.degree() == 1:
