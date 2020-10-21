@@ -2931,7 +2931,16 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
     ineq_gradient = gradient(ineq)
     current_point = vector(RR(x) for x in current_var_value) # Real numbers, faster than QQ
     ineq_value = ineq(*current_point)
-    try_before_fail =  max(ceil(2/flip_ineq_step), 2000)  # define maximum number of walks.
+    if ineq.degree() > 1 and ineq_value < - 2000 * flip_ineq_step: # Make flip_ineq_step depend on ineq_value, large steps first, small steps when close to 0.
+        try_before_fail = 2000
+        while (ineq_value <= - 2000 * flip_ineq_step) and (try_before_fail > 0):
+            ineq_direction = vector(g(*current_point) for g in ineq_gradient)
+            step_length = 2000 * flip_ineq_step / (ineq_direction * ineq_direction) # ineq_value increases by flip_ineq_step=0.001 roughly
+            current_point += step_length * ineq_direction
+            ineq_value = ineq(*current_point)
+            try_before_fail -= 1
+            # print (current_point, RR(ineq_value))
+    try_before_fail =  max(ceil(2/flip_ineq_step), 2000)  # define maximum number of walks. Considered ceil(-2 * ineq_value /flip_ineq_step) but it is too slow in the impossible cases. Added a loop with 2000 times step length when ineq_value is very negative.
     while (ineq_value <= 1e-10) and (try_before_fail > 0):
         ineq_direction = vector(g(*current_point) for g in ineq_gradient)
         if ineq.degree() == 1:
@@ -2947,7 +2956,7 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
             return None
         ineq_value = new_ineq_value
         try_before_fail -= 1
-        #print (current_point, RR(ineq_value))
+        # print (current_point, RR(ineq_value))
     if ineq_value <= 0:
         return None
     new_point = adjust_pt_to_satisfy_ineqs(current_point, ineq, ineqs, [], flip_ineq_step)
