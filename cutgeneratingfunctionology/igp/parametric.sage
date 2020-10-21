@@ -2926,6 +2926,12 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
         sage: pt = find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step); # got pt (19419/17801, 11629/24865)
         sage: all(l(pt) < 0 for l in ineqs) and ineq(pt)>0
         True
+
+    Bug examle from positive definite matrix [a, b; b, 1/4], where ineq is very negative at the test point. Make big moves first, then small moves::
+        sage: P.<a,b>=QQ[]; current_var_value = (5, 4); ineq = -4*b^2 + a; ineqs = [-a]; flip_ineq_step=1/100
+        sage: pt = find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step); # got pt (30943/6018, 17803/15716)
+        sage: all(l(pt) < 0 for l in ineqs) and ineq(pt)>0
+        True
     """
     # heuristic method.
     ineq_gradient = gradient(ineq)
