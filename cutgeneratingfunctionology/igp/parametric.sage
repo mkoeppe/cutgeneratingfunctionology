@@ -277,6 +277,9 @@ class ParametricRealField(Field):
         Kcopy._record = self._record
         return Kcopy
 
+    def characteristic(self):
+        return 0
+
     def ppl_polyhedron(self):
         return self._bsa.upstairs()._polyhedron
 
