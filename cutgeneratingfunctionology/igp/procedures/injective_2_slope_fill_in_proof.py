@@ -122,21 +122,28 @@ def setup_pi_case_aprime():
     J = [v, v + inv_mq];
     K = [w + inv_mq, w + 2 * inv_mq]; #K2 = [w] + K
     IJK = (I, J, K)
-    F = Face([I, J, K])
+    with KK.frozen():
+        F = Face([I, J, K])
 
     global pi
-    pi = [piecewise_function_from_breakpoints_and_values(I,
-                                                         [ pi_u + (x - u) * s[0] for x in I ],
-                                                         field=ParametricRealField),
-          piecewise_function_from_breakpoints_and_values(J,
-                                                         [ pi_v + (y - v) * s[1] for y in J ],
-                                                         field=ParametricRealField),
-          piecewise_function_from_breakpoints_and_values(K,
-                                                         [ pi_w + (z - w) * s[2] for z in K ],
-                                                         field=ParametricRealField, merge=False)]
+    with KK.frozen():
+        pi = [piecewise_function_from_breakpoints_and_values(I,
+                                                             [ pi_u + (x - u) * s[0] for x in I ],
+                                                             field=ParametricRealField),
+              piecewise_function_from_breakpoints_and_values(J,
+                                                             [ pi_v + (y - v) * s[1] for y in J ],
+                                                             field=ParametricRealField),
+              piecewise_function_from_breakpoints_and_values(K,
+                                                             [ pi_w + (z - w) * s[2] for z in K ],
+                                                             field=ParametricRealField, merge=False)]
 
-    assert delta_IJK(pi, (u+inv_mq, v)) >= 0   # s_1 >= s_3
-    assert delta_IJK(pi, (u, v+inv_mq)) >= 0   # s_2 >= s_3
+    with KK.frozen():
+        slack = delta_IJK(pi, (u+inv_mq, v))
+    assert slack >= 0   # s_1 >= s_3
+
+    with KK.frozen():
+        slack = delta_IJK(pi, (u, v+inv_mq))
+    assert slack >= 0   # s_2 >= s_3
 
     global d1_plus, d2_plus, d3_plus, d_plus, d1_minus, d2_minus, d3_minus, d_minus, d_plusminus, s_plusminus
     d1_plus, d2_plus, d3_plus = d_plus  = [ inv_mq * (s_i - s_m) / (s_p - s_m) for s_i in s ]
@@ -238,21 +245,27 @@ def setup_pi_case_bprime():
     J = [v - 2*inv_mq, v - inv_mq]; #J2 = [v - 2*inv_mq, v - inv_mq, v]
     K = [w - inv_mq, w]
     IJK = (I, J, K)
-    F = Face([I, J, K])
+    with KK.frozen():
+        F = Face([I, J, K])
 
-    global pi
-    pi = [piecewise_function_from_breakpoints_and_values(I,
-                                                         [ pi_u + (x - u) * s[0] for x in I ],
-                                                         field=ParametricRealField),
-          piecewise_function_from_breakpoints_and_values(J,
-                                                         [ pi_v + (y - v) * s[1] for y in J ],
-                                                         field=ParametricRealField, merge=False),
-          piecewise_function_from_breakpoints_and_values(K,
-                                                         [ pi_w + (z - w) * s[2] for z in K ],
-                                                         field=ParametricRealField)]
+        global pi
+        pi = [piecewise_function_from_breakpoints_and_values(I,
+                                                             [ pi_u + (x - u) * s[0] for x in I ],
+                                                             field=ParametricRealField),
+              piecewise_function_from_breakpoints_and_values(J,
+                                                             [ pi_v + (y - v) * s[1] for y in J ],
+                                                             field=ParametricRealField, merge=False),
+              piecewise_function_from_breakpoints_and_values(K,
+                                                             [ pi_w + (z - w) * s[2] for z in K ],
+                                                             field=ParametricRealField)]
 
-    assert delta_IJK(pi, (u, v-inv_mq)) >= 0          # s_2 <= s_1
-    assert delta_IJK(pi, (u+inv_mq, v-inv_mq)) >= 0   # s_2 <= s_3
+    with KK.frozen():
+        slack = delta_IJK(pi, (u, v-inv_mq))
+    assert slack >= 0          # s_2 <= s_1
+
+    with KK.frozen():
+        slack = delta_IJK(pi, (u+inv_mq, v-inv_mq))
+    assert slack >= 0          # s_2 <= s_3
 
     global d1_plus, d2_plus, d3_plus, d_plus, d1_minus, d2_minus, d3_minus, d_minus, d_plusminus, s_plusminus
     d1_plus, d2_plus, d3_plus = d_plus  = [ inv_mq * (s_i - s_m) / (s_p - s_m) for s_i in s ]
