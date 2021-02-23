@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Code for the 1-row Gomory–Johnson infinite group relaxation &#8212; cutgeneratingfunctionology 1.5.post4 documentation</title>
+    <title>Code for the 1-row Gomory–Johnson infinite group relaxation &#8212; cutgeneratingfunctionology 1.5.post5 documentation</title>
     <link rel="stylesheet" href="_static/sage.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -93,7 +93,7 @@
   
   <a href="http://www.sagemath.org"><img src="_static/sagelogo.png" style="vertical-align: middle" title="Sage Logo"></a>
   
-        <li class="nav-item nav-item-0"><a href="index.html">cutgeneratingfunctionology 1.5.post4 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">cutgeneratingfunctionology 1.5.post5 documentation</a> &#187;</li>
  
       </ul>
     </div>  
@@ -2898,7 +2898,7 @@ sage: sorted(K._factor_bsa.eq_poly())
 <dl class="attribute">
 <dt id="cutgeneratingfunctionology.igp.PiecewiseCrazyFunction.__call__">
 <code class="descname">__call__</code><a class="headerlink" href="#cutgeneratingfunctionology.igp.PiecewiseCrazyFunction.__call__" title="Permalink to this definition">¶</a></dt>
-<dd><p>File: /home/travis/.sage/temp/travis-job-32b57973-7490-4de1-82b3-b4f91f1b44d4/11088/crazy_perturbation.sageRva3Tw.py (starting at line 146)</p>
+<dd><p>File: /home/travis/.sage/temp/travis-job-bc2f5d62-c077-47f8-809a-ace1d2dcc3b8/11042/crazy_perturbation.sagekQIumG.py (starting at line 146)</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -7799,7 +7799,17 @@ This function does not break this symmetry.</p>
 <dl class="function">
 <dt id="cutgeneratingfunctionology.igp.generate_additive_faces_discrete">
 <code class="descclassname">cutgeneratingfunctionology.igp.</code><code class="descname">generate_additive_faces_discrete</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="headerlink" href="#cutgeneratingfunctionology.igp.generate_additive_faces_discrete" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>EXAMPLES:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sage</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">cutgeneratingfunctionology.igp</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">points</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">13</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">14</span><span class="p">)]</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span> <span class="mi">5</span><span class="o">/</span><span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">sage</span><span class="p">:</span> <span class="n">fn</span> <span class="o">=</span> <span class="n">discrete_function_from_points_and_values</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+<span class="n">sage</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">generate_additive_faces_discrete</span><span class="p">(</span><span class="n">fn</span><span class="p">))</span>
+<span class="mi">61</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="cutgeneratingfunctionology.igp.generate_additive_faces_general">
@@ -14993,7 +15003,7 @@ one-sided continuity is present in the function.</p>
   
   <a href="http://www.sagemath.org"><img src="_static/sagelogo.png" style="vertical-align: middle" title="Sage Logo"></a>
   
-        <li class="nav-item nav-item-0"><a href="index.html">cutgeneratingfunctionology 1.5.post4 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">cutgeneratingfunctionology 1.5.post5 documentation</a> &#187;</li>
  
       </ul>
     </div>
