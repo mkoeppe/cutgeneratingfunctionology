@@ -316,7 +316,7 @@ class ParametricRealFieldElement(FieldElement):
 
     def _neg_(self):
         try:
-            val = -self.val()
+            val = -self._val
         except AttributeError:
             val = None
         return ParametricRealFieldElement(self.parent(), val, -self._sym)
@@ -329,7 +329,7 @@ class ParametricRealFieldElement(FieldElement):
                 # For example when other is a vector
                 return other * self
         try:
-            val = self.val() * other.val()
+            val = self._val * other._val
         except AttributeError:
             val = None
         return ParametricRealFieldElement(self.parent(), val, self._sym * other._sym)
@@ -355,7 +355,7 @@ class ParametricRealFieldElement(FieldElement):
         if other == 0:
             raise ZeroDivisionError("Division by 0 in ParametricRealField")
         try:
-            val = self.val() / other.val()
+            val = self._val / other._val
         except AttributeError:
             val = None
         return ParametricRealFieldElement(self.parent(), val, self._sym / other._sym)

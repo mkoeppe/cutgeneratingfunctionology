@@ -4219,6 +4219,9 @@ def merit_index(fn):
     It is defined as twice the area of additive points in the unit square
     (see [RD, Definition 19.28], which refers to [61]).
 
+    If `fn` is a discrete function with finite group order `q`, then the
+    merit index is defined as twice the number of additive points over `q^2`.
+
     EXAMPLES:
 
     The merit index for GMIC is `2f^2 - 2f + 1` [RD]::
@@ -4255,6 +4258,9 @@ def merit_index(fn):
        G. Reinelt, G. Rinaldi, and L. A. Wolsey, eds.), Springer Berlin Heidelberg,
        2010, pp. 727-801, doi:10.1007/978-3-540-68279-0_19, ISBN 978-3-540-68274-5.
     """
+    if fn.is_discrete():
+        q = finite_group_order_from_function_f_oversampling_order(fn, f=None, oversampling=None, order=None)
+        return 2 * len(generate_additive_faces_discrete(fn)) / (q * q)
     return 2 * add(Polyhedron(face.vertices).volume()
                    for face in generate_maximal_additive_faces(fn)
                    if face.is_2D())
