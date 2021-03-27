@@ -82,7 +82,7 @@ class ParametricRealField(Field):
         set()
         sage: R = f._sym.parent().ring()
         sage: sorted([ p for p in K.get_lt() if p in R ])   # filter out the rational function 1/(f^2 - f), which is normalized differently starting Sage 8.4b2
-        [-2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2]
+        [-2*f, -2*f + 1, -f, -f - 1, f - 2, f - 1, 2*f - 2]
         sage: K.get_eq_factor()
         set()
         sage: K.get_lt_factor()
@@ -318,7 +318,7 @@ class ParametricRealField(Field):
             sage: sqrt2, = nice_field_values([sqrt(2)])
             sage: K.<f> = ParametricRealField([0], base_ring=sqrt2.parent())
             sage: f + sqrt2
-            (f + 1.414213562373095?)~
+            (f + (a))~
 
         This currently does not work for Sage's built-in embedded number field elements...
         """
