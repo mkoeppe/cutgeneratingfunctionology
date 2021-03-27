@@ -57,7 +57,7 @@ class ParametricRealFieldElement(FieldElement):
             ## from something like a tuple or vector or list or variable of a polynomial ring
             ## or something else that does not make any sense.
             # FIXME: parent(value) caused SIGSEGV because of an infinite recursion
-            if (not type(value) is int) and (not RR.has_coerce_map_from(value.parent())):
+            if not ((type(value) is int) or hasattr(value, 'parent') and RR.has_coerce_map_from(value.parent())):
                 raise TypeError("Value is of wrong type")
             self._val = value
         if symbolic is None:
