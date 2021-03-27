@@ -230,8 +230,8 @@ class ParametricRealField(Field):
             else:
                 raise ValueError("must provide one of names, sym_ring, or bsa")
         if sym_ring is None:
-            #sym_ring = PolynomialRing(base_ring, names, implementation='generic')
-            sym_ring = PolynomialRing(base_ring, names)
+            #sym_ring = PolynomialRing(base_ring, names, len(names), implementation='generic')
+            sym_ring = PolynomialRing(base_ring, names, len(names))
         self._factor_bsa = BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=sym_ring)
         self._sym_field = sym_ring.fraction_field()
         if values is None:
@@ -1199,7 +1199,7 @@ def find_polynomial_map(eqs=[], poly_ring=None):
                     if i != ii:
                         eqs[ii] = eqs[ii].subs({v:v_mapped_to})
                 break
-    #P = PolynomialRing(poly_ring.base_ring(), list(independent_variables))
+    #P = PolynomialRing(poly_ring.base_ring(), list(independent_variables), len(...))
     #return [P(p) for p in polynomial_map]
     # didn't take sub-polynomialring to make the trick ineq orthogonal to eliminated variables work.
     return polynomial_map
@@ -1307,7 +1307,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
 
     def __init__(self, K, region_type, bddbsa=None, polynomial_map=None):
         self.var_name = list(K.variable_names()) #same as [ str(g) for g in K._bsa.poly_ring().gens() ]
-        poly_ring = PolynomialRing(QQ, self.var_name)  #same as K._bsa.poly_ring()
+        poly_ring = PolynomialRing(QQ, self.var_name, len(self.var_name))  #same as K._bsa.poly_ring()
         self.var_value = K._values # var_value was input of __init__. It doesn't seem necessary.
         self.region_type = region_type
         #Default bddbsa=None and polynomial_map=None are just for the convenience of doctests.
@@ -1726,7 +1726,7 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
         if 'merge' in args_set:
             test_point['merge'] = False
         #if bddbsa is None:
-        #    bddbsa =  BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=PolynomialRing(QQ, var_name)) # class doesn't matter, just to record the constraints on K._bsa
+        #    bddbsa =  BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=PolynomialRing(QQ, var_name, len(var_name)) # class doesn't matter, just to record the constraints on K._bsa
         #The code seems to still work after commenting out the following.
         #K.add_initial_space_dim() #so that the parameters var_name are the first ones in the monomial list. Needed for ppl variable elimination, otherwise ineqs are not orthogonal to eliminated variables. FIXME: Get rid of this requirement. Also needed for Mccormicks?
         #assert (K.gens() in bddbsa) # record boundary constraints. # Move to __init__
@@ -1925,7 +1925,7 @@ class SemialgebraicComplex(SageObject):
         self.find_region_type = find_region_type
         self.default_var_bound = default_var_bound
         if bddbsa is None:   #HAS BUG: r = regions[31]; theta = thetas[16]; cpl_complex = cpl_fill_region_given_theta(r, theta); self.bddbsa = BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {x0+6*x1-1==0, -x0+1>0, 2*x0-1>0}), polynomial_map=[f, z]); self.bddbsa.polynomial_map() is [f, z]; self.bddbsa.ambient_dim() is 1.
-            poly_ring = PolynomialRing(QQ, var_name)
+            poly_ring = PolynomialRing(QQ, var_name, self.d)
             self.bddbsa = BasicSemialgebraicSet_veronese(poly_ring=poly_ring)
         else:
             self.bddbsa = bddbsa
@@ -1934,7 +1934,7 @@ class SemialgebraicComplex(SageObject):
             if eqs:
                 #Only useful for treating careless input with low dim bddbsa provided but not polynomial_map. # should not happen in cpl because we pass r.polynomal_map to cpl_complex.
                 #import pdb; pdb.set_trace()
-                self.polynomial_map = find_polynomial_map(eqs, poly_ring=PolynomialRing(QQ, var_name))
+                self.polynomial_map = find_polynomial_map(eqs, poly_ring=PolynomialRing(QQ, var_name, self.d))
             else:
                 self.polynomial_map = list(self.bddbsa.poly_ring().gens())
         else:
