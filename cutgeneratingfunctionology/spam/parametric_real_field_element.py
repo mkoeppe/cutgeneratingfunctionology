@@ -56,9 +56,11 @@ class ParametricRealFieldElement(FieldElement):
             ## Test coercing the value to RR, so that we do not try to build a ParametricRealFieldElement
             ## from something like a tuple or vector or list or variable of a polynomial ring
             ## or something else that does not make any sense.
-            from sage.interfaces.mathematica import MathematicaElement
-            if not isinstance(value, MathematicaElement):
-                RR(value)
+            print(parent(value))
+            import pdb
+            pdb.set_trace()
+            if not RR.has_coerce_map_from(parent(value)):
+                raise TypeError("Value is of wrong type")
             self._val = value
         if symbolic is None:
             self._sym = value # changed to not coerce into SR. -mkoeppe
