@@ -2925,12 +2925,14 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
         True
 
     Bug example from positive definite matrix [a, b; b, 1/4]::
+
         sage: P.<a,b>=QQ[]; current_var_value = (1, 1); ineq = -4*b^2 + a; ineqs = [-a]; flip_ineq_step=1/3
         sage: pt = find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step); # got pt (19419/17801, 11629/24865)
         sage: all(l(pt) < 0 for l in ineqs) and ineq(pt)>0
         True
 
     Bug examle from positive definite matrix [a, b; b, 1/4], where ineq is very negative at the test point. Make big moves first, then small moves::
+
         sage: P.<a,b>=QQ[]; current_var_value = (5, 4); ineq = -4*b^2 + a; ineqs = [-a]; flip_ineq_step=1/100
         sage: pt = find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step); # got pt (30943/6018, 17803/15716)
         sage: all(l(pt) < 0 for l in ineqs) and ineq(pt)>0
@@ -3004,7 +3006,8 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineq
         sage: all(l(pt) < 0 for l in strict_ineqs) and all(l(pt) <= 0 for l in nonstrict_ineqs) and ineq(pt)>0
         True
 
-    Bug example in cpl cell 3 and 25th theta=((f+5z-1)/(2f+12z-2), z/(2f+12z-2)). Computing with QQ results in huge denominator, never ends:
+    Bug example in cpl cell 3 and 25th theta=((f+5z-1)/(2f+12z-2), z/(2f+12z-2)). Computing with QQ results in huge denominator, never ends::
+
         sage: P.<f,z>=QQ[]
         sage: current_point = vector([RR(30136191997/49655508552), RR(3903863311/49655508552)])
         sage: strict_ineqs = [f - 1, -2*f + 1, f^2 - 2*f + 1] #used polynomial sub instead of section, had more ineqs: [1/5*f - 1/5, -2*f + 1, 8/25*f^2 - 6/25*f - 2/25, 2/25*f^2 - 4/25*f + 2/25] # empty because (f-1)^2<0.
@@ -3012,11 +3015,19 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineq
         sage: pt = adjust_pt_to_satisfy_ineqs(current_point, None, strict_ineqs, nonstrict_ineqs, flip_ineq_step=1/1000); pt is None
         True
 
-    Bug example in cpl bigcell 16 with test point (12219/26000, 24/1625). Redo with QQ had infinite loop. Bug comes from find_neighbour_point where it calls bsa_section.upstairs()._polyhedron.is_empty(), which is not strong enough. If we could test bsa_section is empty (perhaps by tighten_upstairs_by_mccormick), then this example should not appear.
+    Bug example in cpl bigcell 16 with test point (12219/26000, 24/1625). Redo with QQ had infinite loop. Bug comes from find_neighbour_point where it calls bsa_section.upstairs()._polyhedron.is_empty(), which is not strong enough. If we could test bsa_section is empty (perhaps by tighten_upstairs_by_mccormick), then this example should not appear::
+
         sage: P.<f,z>=QQ[]; 
         sage: current_point = vector((71582788/143165577, 4673/377000)) # came from vector((RR(70727/150800), RR(4673/377000))), 
         sage: ineq=None; strict_ineqs=[2*f - 1, -9*f + 2]; nonstrict_ineqs=[4*f^2 - 4*f + 1]; flip_ineq_step=1/1000
         sage: pt = adjust_pt_to_satisfy_ineqs(current_point, None, strict_ineqs, nonstrict_ineqs, flip_ineq_step=1/1000); pt is None #long time
+        True
+
+    Bug example where ineq(*current_point) > 0 but taking numerical_approx with only prec=30 would lead to ineq(*current_point_qq) < 0::
+
+        sage: P.<m> = QQ[]
+        sage: (x, ) = adjust_pt_to_satisfy_ineqs(vector(RR, [11.193702186639127]), 17569017*m - 196662344, [-29808*m + 285653], [], 1/100)
+        sage: (17569017 * x - 196662344 > 0) and (-29808 * x + 285653 < 0)
         True
     """
     #current_point is a vector
@@ -3087,13 +3098,18 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineq
     if all(x.parent()==QQ for x in current_point):
         return tuple(current_point)
     else:
-        current_point = vector(QQ(x.n(30)) for x in current_point)
-        if ineq is not None and ineq(*current_point) < 0:
-            return None
-        if all(l(*current_point) < 0 for l in strict_ineqs) and all(l(*current_point) <= 0 for l in nonstrict_ineqs):
-            return tuple(current_point)
+        prec = 30  # We hope to have small denominator for the new point, so we set precision in bits = 30 is about 8 digits.
+        current_point_qq = vector(QQ(x.n(prec)) for x in current_point)
+        if ineq is not None:
+            while ineq(*current_point_qq) < 0:
+                prec += 1
+                if prec > 53: # approximate can use at most 53 bits.
+                    return None # since ineq(current_point at 53 bits QQ approx) >= 0 is not satisfied.
+                current_point_qq = vector(QQ(x.n(prec)) for x in current_point)
+        if all(l(*current_point_qq) < 0 for l in strict_ineqs) and all(l(*current_point_qq) <= 0 for l in nonstrict_ineqs):
+            return tuple(current_point_qq)
         # Redo it with QQ input.
-        return adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineqs, flip_ineq_step)
+        return adjust_pt_to_satisfy_ineqs(current_point_qq, ineq, strict_ineqs, nonstrict_ineqs, flip_ineq_step)
 
 ################################################
 #  Is the given function contained in a family?
