@@ -86,7 +86,7 @@ class ParametricRealField(Field):
         sage: K.get_eq_factor()
         set()
         sage: K.get_lt_factor()
-        {-f, -f + 1/2, f - 1}
+        {-2*f + 1, -f, f - 1}
 
         sage: K.<f, lam> = ParametricRealField([4/5, 1/6])
         sage: h = gj_2_slope(f, lam, field=K)
@@ -117,7 +117,7 @@ class ParametricRealField(Field):
         sage: extremality_test(h)
         True
         sage: K.get_lt_factor()
-        {-f, f - 1, f - 1/2, f - 1/3}
+        {-f, f - 1, 2*f - 1, 3*f - 1}
 
     Elements coerce to RDF, RR, float to enable plotting of functions::
 
@@ -861,7 +861,9 @@ class ParametricRealField(Field):
             numerator = comparison.numerator()
             # We use two different normalizations for the univariate and the multivariate case,
             # just to match the behavior of factor() for the doctests.
-            if self.ngens() == 1:
+            # if self.ngens() == 1 can't distinguish between the two, as we know use sym_ring = PolynomialRing(QQ, names, len(names)).
+            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+            if is_PolynomialRing(self._sym_field.ring()):
                 unit = abs(comparison.numerator().lc())
             else:
                 the_lcm = lcm([coeff.denominator() for coeff in numerator.coefficients()])
@@ -2537,7 +2539,7 @@ def find_region_type_igp(K, h, region_level='extreme', is_minimal=None):
         sage: find_region_type_igp(K, h)
         'is_extreme'
         sage: K.get_lt_factor()
-        {-f, -f + 1/2, f - 1}
+        {-2*f + 1, -f, f - 1}
 
         sage: K.<f,bkpt>=ParametricRealField([1/7,3/7])
         sage: h = drlm_backward_3_slope(f, bkpt, field=K)
@@ -3213,7 +3215,7 @@ EXAMPLES::
     sage: h = gmic(f, field=K)
     sage: _ = extremality_test(h)
     sage: sorted(K.get_eq_factor()), sorted(K.get_lt_factor()), sorted(K.get_le_factor())
-    ([], [-f, -f + 1/2, f - 1], [])
+    ([], [-2*f + 1, -f, f - 1], [])
     sage: sorted(K._bsa.eq_poly()), sorted(K._bsa.lt_poly()), sorted(K._bsa.le_poly())
     ([], [-2*f + 1, f - 1], [])
 
