@@ -448,7 +448,11 @@ def lrs_lrs(in_str, verbose=False):
     if verbose: print(in_str)
 
     redund_procs = Popen(['lrs',in_filename],stdin = PIPE, stdout=PIPE, stderr=PIPE)
-    out_str, err = redund_procs.communicate()
+    out_bytes, err = redund_procs.communicate()
+    out_str = out_bytes.decode("utf-8") # lrslib changed, output is of type bytes
+    if verbose:
+        print(out_str)
+    return out_str
     if verbose:
         print(out_str)
     return out_str
