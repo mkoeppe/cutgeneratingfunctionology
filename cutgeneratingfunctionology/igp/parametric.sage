@@ -82,11 +82,11 @@ class ParametricRealField(Field):
         set()
         sage: R = f._sym.parent().ring()
         sage: sorted([ p for p in K.get_lt() if p in R ])   # filter out the rational function 1/(f^2 - f), which is normalized differently starting Sage 8.4b2
-        [-2*f, -2*f + 1, -f - 1, -f, f - 2, f - 1, 2*f - 2]
+        [-2*f, -2*f + 1, -f, -f - 1, f - 2, f - 1, 2*f - 2]
         sage: K.get_eq_factor()
         set()
         sage: K.get_lt_factor()
-        {-f, -f + 1/2, f - 1}
+        {-2*f + 1, -f, f - 1}
 
         sage: K.<f, lam> = ParametricRealField([4/5, 1/6])
         sage: h = gj_2_slope(f, lam, field=K)
@@ -117,7 +117,7 @@ class ParametricRealField(Field):
         sage: extremality_test(h)
         True
         sage: K.get_lt_factor()
-        {-f, f - 1, f - 1/2, f - 1/3}
+        {-f, f - 1, 2*f - 1, 3*f - 1}
 
     Elements coerce to RDF, RR, float to enable plotting of functions::
 
@@ -230,8 +230,8 @@ class ParametricRealField(Field):
             else:
                 raise ValueError("must provide one of names, sym_ring, or bsa")
         if sym_ring is None:
-            #sym_ring = PolynomialRing(base_ring, names, implementation='generic')
-            sym_ring = PolynomialRing(base_ring, names)
+            #sym_ring = PolynomialRing(base_ring, names, len(names), implementation='generic')
+            sym_ring = PolynomialRing(base_ring, names, len(names))
         self._factor_bsa = BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=sym_ring)
         self._sym_field = sym_ring.fraction_field()
         if values is None:
@@ -318,7 +318,7 @@ class ParametricRealField(Field):
             sage: sqrt2, = nice_field_values([sqrt(2)])
             sage: K.<f> = ParametricRealField([0], base_ring=sqrt2.parent())
             sage: f + sqrt2
-            (f + 1.414213562373095?)~
+            (f + (a))~
 
         This currently does not work for Sage's built-in embedded number field elements...
         """
@@ -861,7 +861,9 @@ class ParametricRealField(Field):
             numerator = comparison.numerator()
             # We use two different normalizations for the univariate and the multivariate case,
             # just to match the behavior of factor() for the doctests.
-            if self.ngens() == 1:
+            # if self.ngens() == 1 can't distinguish between the two, as we know use sym_ring = PolynomialRing(QQ, names, len(names)).
+            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+            if is_PolynomialRing(self._sym_field.ring()):
                 unit = abs(comparison.numerator().lc())
             else:
                 the_lcm = lcm([coeff.denominator() for coeff in numerator.coefficients()])
@@ -1199,7 +1201,7 @@ def find_polynomial_map(eqs=[], poly_ring=None):
                     if i != ii:
                         eqs[ii] = eqs[ii].subs({v:v_mapped_to})
                 break
-    #P = PolynomialRing(poly_ring.base_ring(), list(independent_variables))
+    #P = PolynomialRing(poly_ring.base_ring(), list(independent_variables), len(...))
     #return [P(p) for p in polynomial_map]
     # didn't take sub-polynomialring to make the trick ineq orthogonal to eliminated variables work.
     return polynomial_map
@@ -1307,7 +1309,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
 
     def __init__(self, K, region_type, bddbsa=None, polynomial_map=None):
         self.var_name = list(K.variable_names()) #same as [ str(g) for g in K._bsa.poly_ring().gens() ]
-        poly_ring = PolynomialRing(QQ, self.var_name)  #same as K._bsa.poly_ring()
+        poly_ring = PolynomialRing(QQ, self.var_name, len(self.var_name))  #same as K._bsa.poly_ring()
         self.var_value = K._values # var_value was input of __init__. It doesn't seem necessary.
         self.region_type = region_type
         #Default bddbsa=None and polynomial_map=None are just for the convenience of doctests.
@@ -1726,7 +1728,7 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
         if 'merge' in args_set:
             test_point['merge'] = False
         #if bddbsa is None:
-        #    bddbsa =  BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=PolynomialRing(QQ, var_name)) # class doesn't matter, just to record the constraints on K._bsa
+        #    bddbsa =  BasicSemialgebraicSet_eq_lt_le_sets(poly_ring=PolynomialRing(QQ, var_name, len(var_name)) # class doesn't matter, just to record the constraints on K._bsa
         #The code seems to still work after commenting out the following.
         #K.add_initial_space_dim() #so that the parameters var_name are the first ones in the monomial list. Needed for ppl variable elimination, otherwise ineqs are not orthogonal to eliminated variables. FIXME: Get rid of this requirement. Also needed for Mccormicks?
         #assert (K.gens() in bddbsa) # record boundary constraints. # Move to __init__
@@ -1925,7 +1927,7 @@ class SemialgebraicComplex(SageObject):
         self.find_region_type = find_region_type
         self.default_var_bound = default_var_bound
         if bddbsa is None:   #HAS BUG: r = regions[31]; theta = thetas[16]; cpl_complex = cpl_fill_region_given_theta(r, theta); self.bddbsa = BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {x0+6*x1-1==0, -x0+1>0, 2*x0-1>0}), polynomial_map=[f, z]); self.bddbsa.polynomial_map() is [f, z]; self.bddbsa.ambient_dim() is 1.
-            poly_ring = PolynomialRing(QQ, var_name)
+            poly_ring = PolynomialRing(QQ, var_name, self.d)
             self.bddbsa = BasicSemialgebraicSet_veronese(poly_ring=poly_ring)
         else:
             self.bddbsa = bddbsa
@@ -1934,7 +1936,7 @@ class SemialgebraicComplex(SageObject):
             if eqs:
                 #Only useful for treating careless input with low dim bddbsa provided but not polynomial_map. # should not happen in cpl because we pass r.polynomal_map to cpl_complex.
                 #import pdb; pdb.set_trace()
-                self.polynomial_map = find_polynomial_map(eqs, poly_ring=PolynomialRing(QQ, var_name))
+                self.polynomial_map = find_polynomial_map(eqs, poly_ring=PolynomialRing(QQ, var_name, self.d))
             else:
                 self.polynomial_map = list(self.bddbsa.poly_ring().gens())
         else:
@@ -2537,7 +2539,7 @@ def find_region_type_igp(K, h, region_level='extreme', is_minimal=None):
         sage: find_region_type_igp(K, h)
         'is_extreme'
         sage: K.get_lt_factor()
-        {-f, -f + 1/2, f - 1}
+        {-2*f + 1, -f, f - 1}
 
         sage: K.<f,bkpt>=ParametricRealField([1/7,3/7])
         sage: h = drlm_backward_3_slope(f, bkpt, field=K)
@@ -2923,12 +2925,35 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
         sage: pt = find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step) # got pt (3738/13883, 7795/67523)
         sage: all(l(pt) < 0 for l in ineqs) and ineq(pt)>0
         True
+
+    Bug example from positive definite matrix [a, b; b, 1/4]::
+
+        sage: P.<a,b>=QQ[]; current_var_value = (1, 1); ineq = -4*b^2 + a; ineqs = [-a]; flip_ineq_step=1/3
+        sage: pt = find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step); # got pt (19419/17801, 11629/24865)
+        sage: all(l(pt) < 0 for l in ineqs) and ineq(pt)>0
+        True
+
+    Bug examle from positive definite matrix [a, b; b, 1/4], where ineq is very negative at the test point. Make big moves first, then small moves::
+
+        sage: P.<a,b>=QQ[]; current_var_value = (5, 4); ineq = -4*b^2 + a; ineqs = [-a]; flip_ineq_step=1/100
+        sage: pt = find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step); # got pt (30943/6018, 17803/15716)
+        sage: all(l(pt) < 0 for l in ineqs) and ineq(pt)>0
+        True
     """
     # heuristic method.
     ineq_gradient = gradient(ineq)
     current_point = vector(RR(x) for x in current_var_value) # Real numbers, faster than QQ
     ineq_value = ineq(*current_point)
-    try_before_fail =  min(ceil(2/flip_ineq_step), 2000)  # define maximum number of walks.
+    if ineq.degree() > 1 and ineq_value < - 2000 * flip_ineq_step: # Make flip_ineq_step depend on ineq_value, large steps first, small steps when close to 0.
+        try_before_fail = 2000
+        while (ineq_value <= - 2000 * flip_ineq_step) and (try_before_fail > 0):
+            ineq_direction = vector(g(*current_point) for g in ineq_gradient)
+            step_length = 2000 * flip_ineq_step / (ineq_direction * ineq_direction) # ineq_value increases by flip_ineq_step=0.001 roughly
+            current_point += step_length * ineq_direction
+            ineq_value = ineq(*current_point)
+            try_before_fail -= 1
+            # print (current_point, RR(ineq_value))
+    try_before_fail =  max(ceil(2/flip_ineq_step), 2000)  # define maximum number of walks. Considered ceil(-2 * ineq_value /flip_ineq_step) but it is too slow in the impossible cases. Added a loop with 2000 times step length when ineq_value is very negative.
     while (ineq_value <= 1e-10) and (try_before_fail > 0):
         ineq_direction = vector(g(*current_point) for g in ineq_gradient)
         if ineq.degree() == 1:
@@ -2944,7 +2969,7 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
             return None
         ineq_value = new_ineq_value
         try_before_fail -= 1
-        #print (current_point, RR(ineq_value))
+        # print (current_point, RR(ineq_value))
     if ineq_value <= 0:
         return None
     new_point = adjust_pt_to_satisfy_ineqs(current_point, ineq, ineqs, [], flip_ineq_step)
@@ -2983,7 +3008,8 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineq
         sage: all(l(pt) < 0 for l in strict_ineqs) and all(l(pt) <= 0 for l in nonstrict_ineqs) and ineq(pt)>0
         True
 
-    Bug example in cpl cell 3 and 25th theta=((f+5z-1)/(2f+12z-2), z/(2f+12z-2)). Computing with QQ results in huge denominator, never ends:
+    Bug example in cpl cell 3 and 25th theta=((f+5z-1)/(2f+12z-2), z/(2f+12z-2)). Computing with QQ results in huge denominator, never ends::
+
         sage: P.<f,z>=QQ[]
         sage: current_point = vector([RR(30136191997/49655508552), RR(3903863311/49655508552)])
         sage: strict_ineqs = [f - 1, -2*f + 1, f^2 - 2*f + 1] #used polynomial sub instead of section, had more ineqs: [1/5*f - 1/5, -2*f + 1, 8/25*f^2 - 6/25*f - 2/25, 2/25*f^2 - 4/25*f + 2/25] # empty because (f-1)^2<0.
@@ -2991,11 +3017,19 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineq
         sage: pt = adjust_pt_to_satisfy_ineqs(current_point, None, strict_ineqs, nonstrict_ineqs, flip_ineq_step=1/1000); pt is None
         True
 
-    Bug example in cpl bigcell 16 with test point (12219/26000, 24/1625). Redo with QQ had infinite loop. Bug comes from find_neighbour_point where it calls bsa_section.upstairs()._polyhedron.is_empty(), which is not strong enough. If we could test bsa_section is empty (perhaps by tighten_upstairs_by_mccormick), then this example should not appear.
+    Bug example in cpl bigcell 16 with test point (12219/26000, 24/1625). Redo with QQ had infinite loop. Bug comes from find_neighbour_point where it calls bsa_section.upstairs()._polyhedron.is_empty(), which is not strong enough. If we could test bsa_section is empty (perhaps by tighten_upstairs_by_mccormick), then this example should not appear::
+
         sage: P.<f,z>=QQ[]; 
         sage: current_point = vector((71582788/143165577, 4673/377000)) # came from vector((RR(70727/150800), RR(4673/377000))), 
         sage: ineq=None; strict_ineqs=[2*f - 1, -9*f + 2]; nonstrict_ineqs=[4*f^2 - 4*f + 1]; flip_ineq_step=1/1000
         sage: pt = adjust_pt_to_satisfy_ineqs(current_point, None, strict_ineqs, nonstrict_ineqs, flip_ineq_step=1/1000); pt is None #long time
+        True
+
+    Bug example where ineq(*current_point) > 0 but taking numerical_approx with only prec=30 would lead to ineq(*current_point_qq) < 0::
+
+        sage: P.<m> = QQ[]
+        sage: (x, ) = adjust_pt_to_satisfy_ineqs(vector(RR, [11.193702186639127]), 17569017*m - 196662344, [-29808*m + 285653], [], 1/100)
+        sage: (17569017 * x - 196662344 > 0) and (-29808 * x + 285653 < 0)
         True
     """
     #current_point is a vector
@@ -3066,13 +3100,18 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineq
     if all(x.parent()==QQ for x in current_point):
         return tuple(current_point)
     else:
-        current_point = vector(QQ(x.n(30)) for x in current_point)
-        if ineq is not None and ineq(*current_point) < 0:
-            return None
-        if all(l(*current_point) < 0 for l in strict_ineqs) and all(l(*current_point) <= 0 for l in nonstrict_ineqs):
-            return tuple(current_point)
+        prec = 30  # We hope to have small denominator for the new point, so we set precision in bits = 30 is about 8 digits.
+        current_point_qq = vector(QQ(x.n(prec)) for x in current_point)
+        if ineq is not None:
+            while ineq(*current_point_qq) < 0:
+                prec += 1
+                if prec > 53: # approximate can use at most 53 bits.
+                    return None # since ineq(current_point at 53 bits QQ approx) >= 0 is not satisfied.
+                current_point_qq = vector(QQ(x.n(prec)) for x in current_point)
+        if all(l(*current_point_qq) < 0 for l in strict_ineqs) and all(l(*current_point_qq) <= 0 for l in nonstrict_ineqs):
+            return tuple(current_point_qq)
         # Redo it with QQ input.
-        return adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineqs, flip_ineq_step)
+        return adjust_pt_to_satisfy_ineqs(current_point_qq, ineq, strict_ineqs, nonstrict_ineqs, flip_ineq_step)
 
 ################################################
 #  Is the given function contained in a family?
@@ -3176,7 +3215,7 @@ EXAMPLES::
     sage: h = gmic(f, field=K)
     sage: _ = extremality_test(h)
     sage: sorted(K.get_eq_factor()), sorted(K.get_lt_factor()), sorted(K.get_le_factor())
-    ([], [-f, -f + 1/2, f - 1], [])
+    ([], [-2*f + 1, -f, f - 1], [])
     sage: sorted(K._bsa.eq_poly()), sorted(K._bsa.lt_poly()), sorted(K._bsa.le_poly())
     ([], [-2*f + 1, f - 1], [])
 

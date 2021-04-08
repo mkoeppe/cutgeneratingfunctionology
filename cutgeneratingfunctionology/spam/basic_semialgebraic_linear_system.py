@@ -181,13 +181,13 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
         ``BasicSemialgebraicSet_polyhedral_linear_system``.
         """
         # create a new poly_ring with one less generator (coordinate).
-        if coordinate_index>=self._poly_ring.ngens():
+        if coordinate_index >= self._poly_ring.ngens():
             raise ValueError("doesn't exist the elimination variable")
-        coordinate=self._poly_ring.gens()[coordinate_index]
-        variables_names=[str(self._poly_ring.gens()[i]) for i in range(self._poly_ring.ngens()) if i != coordinate_index]
-        new_poly_ring=PolynomialRing(self._base_ring,variables_names)
+        coordinate = self._poly_ring.gens()[coordinate_index]
+        variables_names = [str(self._poly_ring.gens()[i]) for i in range(self._poly_ring.ngens()) if i != coordinate_index]
+        new_poly_ring = PolynomialRing(self._base_ring, variables_names, len(variables_names))
         # create the ring hommorphism
-        polynomial_map=[new_poly_ring.gens()[i] for i in range(new_poly_ring.ngens())]
+        polynomial_map = [new_poly_ring.gens()[i] for i in range(new_poly_ring.ngens())]
         polynomial_map.insert(coordinate_index,new_poly_ring(0))
         
         new_eq=[]

@@ -260,7 +260,7 @@ def coefficients_of_theta_and_rhs_in_constraint(c, var_name, n):
     """
     # assume c.parent() is Fraction Field of Multivariate Polynomial Ring in var_names and (n-1) theta variables over Rational Field.
     # assume c is linear over the (n-1) theta variables.
-    P = PolynomialRing(QQ, var_name)
+    P = PolynomialRing(QQ, var_name, len(var_name))
     P1 = P.one(); P0 = P.zero()
     cn = c.numerator()
     var_sym = list(P.gens()) + [P0] * (n - 1)
