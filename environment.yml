@@ -1,7 +1,7 @@
 ## This is a conda environment file.
 ## Use it as follows:
 ##
-##    conda env create -f environment.yml
+##    conda env create -f environment-latestsage.yml
 ##
 ## See https://towardsdatascience.com/a-guide-to-conda-environments-bc6180fc533
 ## or    https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html
@@ -11,17 +11,13 @@ channels:
   - defaults
 dependencies:
   - python=3
-  - sage=9.0
+  - sage
   - setuptools_scm
   - sphinx
   - sphinxcontrib-websupport
   - sphinxcontrib-bibtex
-  - werkzeug<=0.16.1    # this version because of ImmutableDict:  https://stackoverflow.com/questions/60106527/importerror-cannot-import-name-immutabledict-error-when-installing-pgadmin4
   - lrslib
-  - normaliz
-  - boost-cpp      # For installing PyNormaliz
   - mathjax
   - pip
   - pip:
-    - pynormaliz==2.8
     - sage-package
