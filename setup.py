@@ -48,11 +48,6 @@ setup(
     include_package_data=True,     # to install the .sage files too
     cmdclass = {'test': SageTest}, # adding a special setup command for tests
     install_requires = ['sage-package', 'sphinx', 'sphinxcontrib-bibtex'],
-    use_scm_version={
-        'write_to': 'version.txt',
-        'version_scheme': 'post-release',
-        'local_scheme': 'dirty-tag'
-    },
     project_urls = {
         'Documentation': "http://mkoeppe.github.io/cutgeneratingfunctionology/doc/html/",
         'Source': 'https://github.com/mkoeppe/cutgeneratingfunctionology',
