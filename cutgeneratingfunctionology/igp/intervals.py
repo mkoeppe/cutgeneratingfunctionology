@@ -6,6 +6,8 @@ def interval_sum(int1, int2):
     r"""
     Return the sum of two intervals.
     """
+    if len(int1) == 0 or len(int2) == 0:
+        return []
     if len(int1) == 1 and len(int2) == 1:
         return [int1[0]+int2[0]]
     elif len(int1) == 2 and len(int2) == 1:
@@ -270,6 +272,10 @@ def is_pt_in_interval(i, x0):
     r"""
     retrun whether the point x0 is contained in the (ordinary or coho) interval i.
     """
+    if len(i) == 0:
+        return False
+    if len(i) == 1:
+        return i[0] == x0
     if len(i) == 2:
         return bool(i[0] <= x0 <= i[1])
     else:  
