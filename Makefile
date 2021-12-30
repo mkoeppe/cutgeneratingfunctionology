@@ -93,7 +93,7 @@ check: check-encoding
 
 check-long: check-encoding
 	cp .check-long-timings.json .tmp_check-long-timings.json
-	PYTHONPATH=`pwd` $(SAGE) -tp $(CHECK_PARALLEL) --force_lib --long --warn-long 300 --stats-path .tmp_check-long-timings.json $(SAGE_CHECK_FLAGS) $(SAGEFILES)
+	PYTHONPATH=`pwd` $(SAGE) -tp $(CHECK_PARALLEL) --force_lib --long --warn-long 300 --stats-path=.tmp_check-long-timings.json $(SAGE_CHECK_FLAGS) $(SAGEFILES)
 	rm .tmp_check-long-timings.json
 
 .PHONY: fixdoctests
