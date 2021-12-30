@@ -5,7 +5,10 @@ PolyhedralComplex
 from __future__ import division, print_function, absolute_import
 
 from copy import copy
-from sage.homology.cell_complex import GenericCellComplex
+try:
+    from sage.topology.cell_complex import GenericCellComplex
+except ImportError:
+    from sage.homology.cell_complex import GenericCellComplex
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.modules.free_module_element import vector
 
