@@ -644,18 +644,18 @@ def pattern_glpk_test(l_list, more_ini_additive=False, exact_arithmetic=True, si
     EXAMPLES::
 
         sage: from cutgeneratingfunctionology.igp import *
-        sage: print("Ignore deprecation warnings for time.clock"); pattern_glpk_test(range(1,4), more_ini_additive=False, exact_arithmetic=False, simplex_first=False, reconstruct_rational=True)
+        sage: pattern_glpk_test(range(1,4), more_ini_additive=False, exact_arithmetic=False, simplex_first=False, reconstruct_rational=True)
         Ignore...
         1 2 ...
         [2, 2, 2]
     """
     slopes = []
     for l in l_list:
-        start_cpu_t = time.clock();
+        start_cpu_t = time.perf_counter();
         optval, optsol, k, v_glpk = pattern_glpk_lp(l, more_ini_additive=more_ini_additive, \
                                                     exact_arithmetic=exact_arithmetic, simplex_first = simplex_first, \
                                                     reconstruct_rational=reconstruct_rational);
-        cpu_t = time.clock();
+        cpu_t = time.perf_counter();
         print(l, k, cpu_t - start_cpu_t)
         slopes.append(k)
     return slopes
@@ -666,14 +666,14 @@ def pattern_ppl_test(l_list, more_ini_additive=False):
     """
     slopes = []
     for l in l_list:
-        start_cpu_t = time.clock();
+        start_cpu_t = time.perf_counter();
         try:
             optval, optsol, k, v_ppl, v_div = pattern_ppl_lp(l, more_ini_additive=more_ini_additive);
-            cpu_t = time.clock();
+            cpu_t = time.perf_counter();
             print(l, k, cpu_t - start_cpu_t)
             slopes.append(k)
         except ValueError:
-            cpu_t = time.clock();
+            cpu_t = time.perf_counter();
             print(l, "NA", cpu_t - start_cpu_t)
             slopes.append(-1)
     return slopes
