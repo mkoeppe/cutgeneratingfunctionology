@@ -645,7 +645,6 @@ def pattern_glpk_test(l_list, more_ini_additive=False, exact_arithmetic=True, si
 
         sage: from cutgeneratingfunctionology.igp import *
         sage: pattern_glpk_test(range(1,4), more_ini_additive=False, exact_arithmetic=False, simplex_first=False, reconstruct_rational=True)
-        Ignore...
         1 2 ...
         [2, 2, 2]
     """
