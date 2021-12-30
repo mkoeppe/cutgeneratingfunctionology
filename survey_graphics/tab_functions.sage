@@ -13,7 +13,7 @@ def specialinterval(s):
 
 def format_interval_markup_special(interval):
     s = format_interval(interval)
-    if not h.special_intervals.is_disjoint_from(realset_from_interval(interval_mod_1(interval))):
+    if not h.special_intervals.is_disjoint(realset_from_interval(interval_mod_1(interval))):
         s = specialinterval(s)
     return s
 
@@ -51,7 +51,7 @@ def format_interval_extra_fancy(nominal_I, minimal_I, number=None):
         right = boldmath(right)
     s = left + r', ' + right
     if hasattr(h, "special_intervals"):
-        if minimal_I[0] < minimal_I[1] and not h.special_intervals.is_disjoint_from(realset_from_interval(interval_mod_1(minimal_I))):
+        if minimal_I[0] < minimal_I[1] and not h.special_intervals.is_disjoint(realset_from_interval(interval_mod_1(minimal_I))):
             s = specialinterval(s)
     return s
 

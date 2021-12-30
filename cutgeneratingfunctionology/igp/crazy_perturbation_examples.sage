@@ -395,7 +395,7 @@ def number_of_projections_intersecting(F, real_set):
     This is the number `n_F` from facets-paper.
     """
     return len([I for I in F.minimal_triple
-                if not real_set.is_disjoint_from(realset_from_interval(interval_mod_1(I)))])
+                if not real_set.is_disjoint(realset_from_interval(interval_mod_1(I)))])
 
 def generate_all_faces(fn):
     zero_fn = FastPiecewise([(I, FastLinearFunction(0, 0)) for I, f in fn.list()], merge=False)
@@ -452,8 +452,8 @@ def generate_triples_with_projections_intersecting(function, real_set, break_sym
     I_list = list(generate_intervals_and_two_sided_discontinuous_breakpoints(function, halfopen_cover_only=halfopen_cover_only))
     K_list = I_list + [ plus1(I) for I in I_list ]
 
-    I_disjoint_list = [ I for I in I_list if real_set.is_disjoint_from(realset_from_interval(I)) ]
-    I_nondisjoint_list = [ I for I in I_list if not real_set.is_disjoint_from(realset_from_interval(I)) ]
+    I_disjoint_list = [ I for I in I_list if real_set.is_disjoint(realset_from_interval(I)) ]
+    I_nondisjoint_list = [ I for I in I_list if not real_set.is_disjoint(realset_from_interval(I)) ]
     K_nondisjoint_list = I_nondisjoint_list + [ plus1(I) for I in I_nondisjoint_list ]
 
     def check_face(I, J, K):

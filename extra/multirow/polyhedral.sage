@@ -641,7 +641,7 @@ class PolyhedralArrangement(object):
             for j in range(i+1, n):
                 relint_i = self.relative_interior(elements[i])
                 relint_j = self.relative_interior(elements[j])
-                if not relint_i.is_disjoint_from(relint_j):
+                if not relint_i.is_disjoint(relint_j):
                     return False
         return True
 
