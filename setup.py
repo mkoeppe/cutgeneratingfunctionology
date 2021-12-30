@@ -47,7 +47,6 @@ setup(
     packages = ['cutgeneratingfunctionology', 'cutgeneratingfunctionology.igp', 'cutgeneratingfunctionology.multirow', 'cutgeneratingfunctionology.dff', 'cutgeneratingfunctionology.spam', 'cutgeneratingfunctionology.igp.subadditivity_slack_diagrams', 'cutgeneratingfunctionology.igp.procedures'],
     include_package_data=True,     # to install the .sage files too
     cmdclass = {'test': SageTest}, # adding a special setup command for tests
-    install_requires = ['sage-package', 'sphinx', 'sphinxcontrib-bibtex'],
     project_urls = {
         'Documentation': "http://mkoeppe.github.io/cutgeneratingfunctionology/doc/html/",
         'Source': 'https://github.com/mkoeppe/cutgeneratingfunctionology',
