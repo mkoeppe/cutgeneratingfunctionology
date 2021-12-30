@@ -329,11 +329,11 @@ def convert_linfun_to_linexp(linfun):
         sage: linfun = fn[5]; linfun
         x_0 + 3*x_1 + x_2
         sage: type(linfun)
-        <type 'sage.numerical.linear_functions.LinearFunction'>
+        <class 'sage.numerical.linear_functions.LinearFunction'>
         sage: linexp = convert_linfun_to_linexp(linfun); linexp
         x0+3*x1+x2
         sage: type(linexp)
-        <type '...Linear_Expression'>
+        <class '...Linear_Expression'>
     """
     return sum([ Variable(i)*j for i,j in linfun.dict().items() if i != -1])
 

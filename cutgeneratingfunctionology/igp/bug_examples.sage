@@ -207,7 +207,7 @@ def bhk_raises_plotting_error():
     ## failed to evaluate function at 200 points.
     ## verbose 0 (2716: plot.py, generate_plot_points) Last error message:
     ## 'unsupported operand parent(s) for '-': 'Number Field in a with defining
-    ## polynomial y^4 - 4*y^2 + 1' and '<type 'float'>''
+    ## polynomial y^4 - 4*y^2 + 1' and '<class 'float'>''
     ## ...
     ## TypeError: unsupported operand parent(s) for '+': 'Number Field in a
     ## with defining polynomial y^4 - 4*y^2 + 1' and 'Real Field with 53 bits
@@ -219,7 +219,7 @@ def bhk_raises_plotting_error():
     ## Field in a with defining polynomial y^3 - 2
     ## sage: x+float(1)
     ## TypeError: unsupported operand parent(s) for '+': 'Number Field in a
-    ## with defining polynomial y^3 - 2' and '<type 'float'>'
+    ## with defining polynomial y^3 - 2' and '<class 'float'>'
     ## sage: x+RealField(53)(1)
     ## TypeError: unsupported operand parent(s) for '+': 'Number Field in a
     ## with defining polynomial y^3 - 2' and 'Real Field with 53 bits of precision'
