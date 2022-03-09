@@ -88,28 +88,35 @@ tau1 = F1.functional_directed_move()
 tau2 = F2.functional_directed_move()
 rhoab = FunctionalDirectedMove([open_interval(a, b)], F3.functional_directed_move().directed_move)
 
-def save_move_plot(move, name):
+def save_move_plot(move, name, lift_tick=False):
     g = Graphics()
     g += plot_background
     if not move:
         move = FastPiecewise([])
-    g += move.plot(**ticks_keywords(move._piecewise, extra_xticks=[1], extra_yticks=[1]))
+    ticks = ticks_keywords(move._piecewise, extra_xticks=[1], extra_yticks=[1])
+    if lift_tick:
+        tv = ticks['ticks'][0][1]
+        tf = ticks['tick_formatter'][0][1]
+        ticks['tick_formatter'][0][1] = ''
+    g += move.plot(**ticks)
+    if lift_tick:
+        g += text(tf, (tv, 0), color='black', vertical_alignment='bottom', fontsize=10)
     g.save(destdir + name + ftype, figsize=3)
 
 save_move_plot(tau1, "move_tau1+")
-save_move_plot(~tau1, "move_tau1-")  # change
+save_move_plot(~tau1, "move_tau1-", lift_tick=True)
 save_move_plot(tau2, "move_tau2+")
-save_move_plot(~tau2, "move_tau2-")  # change
+save_move_plot(~tau2, "move_tau2-", lift_tick=True)
 save_move_plot(rhoab, "move_rhoab+")
-save_move_plot(~rhoab, "move_rhoab-") # change
+save_move_plot(~rhoab, "move_rhoab-", lift_tick=True)
 
 # some compositions
-save_move_plot(tau1 * (~tau2), "move_tau1+_o_tau2-")  # change
-save_move_plot(rhoab * (~tau2), "move_rhoab+_o_tau2-") # change
-save_move_plot(tau1 * (~rhoab), "move_tau1+_o_rhoab-") # change
+save_move_plot(tau1 * (~tau2), "move_tau1+_o_tau2-", lift_tick=True)
+save_move_plot(rhoab * (~tau2), "move_rhoab+_o_tau2-", lift_tick=True)
+save_move_plot(tau1 * (~rhoab), "move_tau1+_o_rhoab-", lift_tick=True)
 
 # restrictions of identity
-save_move_plot(tau1 * (~tau1), "move_tau1+_o_tau1-") # change
+save_move_plot(tau1 * (~tau1), "move_tau1+_o_tau1-", lift_tick=True)
 save_move_plot((~tau1) * tau1, "move_tau1-_o_tau1+")
 
 ############################################################

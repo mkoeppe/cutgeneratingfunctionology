@@ -103,7 +103,7 @@ paper_plot_kwds['fontsize'] = 10   ## FIXME: For bigger fontsize, needs manual w
 for name in 'equiv7_minimal_2_covered_2_uncovered', :
     plot_it(name)
 
-    paper_plot_kwds['fontsize'] = 20
+paper_plot_kwds['fontsize'] = 20
 for name in 'equiv7_example_post_3', :
     plot_it(name)
 
