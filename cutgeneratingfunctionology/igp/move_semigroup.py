@@ -295,7 +295,7 @@ class FunctionalDirectedMove (MonoidElement):
             open_domains = [open_interval(i[0],i[1]) for i in union_domains]
         return FunctionalDirectedMove(open_domains, self.directed_move)
 
-    def plot(self, rgbcolor=None, color=None, *args, **kwds):
+    def plot(self, rgbcolor=None, *args, **kwds):
         from copy import copy
         kwds = copy(kwds)
         kwds['aspect_ratio'] = 1.0
@@ -307,7 +307,7 @@ class FunctionalDirectedMove (MonoidElement):
                 rgbcolor='red'
             else:
                 rgbcolor='blue'
-        return self._piecewise.plot(self, color=rgbcolor, *args, **kwds)
+        return self._piecewise.plot(color=rgbcolor, *args, **kwds)
 
     def __invert__(self):
         r"""

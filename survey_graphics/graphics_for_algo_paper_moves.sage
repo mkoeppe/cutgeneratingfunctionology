@@ -93,23 +93,23 @@ def save_move_plot(move, name):
     g += plot_background
     if not move:
         move = FastPiecewise([])
-    g += move.plot(**ticks_keywords(move, extra_xticks=[1], extra_yticks=[1]))
+    g += move.plot(**ticks_keywords(move._piecewise, extra_xticks=[1], extra_yticks=[1]))
     g.save(destdir + name + ftype, figsize=3)
 
 save_move_plot(tau1, "move_tau1+")
-save_move_plot(~tau1, "move_tau1-")
+save_move_plot(~tau1, "move_tau1-")  # change
 save_move_plot(tau2, "move_tau2+")
-save_move_plot(~tau2, "move_tau2-")
+save_move_plot(~tau2, "move_tau2-")  # change
 save_move_plot(rhoab, "move_rhoab+")
-save_move_plot(~rhoab, "move_rhoab-")
+save_move_plot(~rhoab, "move_rhoab-") # change
 
 # some compositions
-save_move_plot(tau1 * (~tau2), "move_tau1+_o_tau2-")
-save_move_plot(rhoab * (~tau2), "move_rhoab+_o_tau2-")
-save_move_plot(tau1 * (~rhoab), "move_tau1+_o_rhoab-")
+save_move_plot(tau1 * (~tau2), "move_tau1+_o_tau2-")  # change
+save_move_plot(rhoab * (~tau2), "move_rhoab+_o_tau2-") # change
+save_move_plot(tau1 * (~rhoab), "move_tau1+_o_rhoab-") # change
 
 # restrictions of identity
-save_move_plot(tau1 * (~tau1), "move_tau1+_o_tau1-")
+save_move_plot(tau1 * (~tau1), "move_tau1+_o_tau1-") # change
 save_move_plot((~tau1) * tau1, "move_tau1-_o_tau1+")
 
 ############################################################
