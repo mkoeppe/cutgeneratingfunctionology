@@ -462,7 +462,7 @@ def intersection_of_coho_intervals(interval_lists):
         sage: list(intersection_of_coho_intervals([[[1,3]], [[2,4]]]))
         [<Int[2, 3]>]
     """
-    # can be improved by use indicator == len(interval_lists)
+    # can be improved by use now_on = (interval_indicator == n)
     # scan: (x, left/right),closed/open, which list/tag)
     scan = merge(
         *[scan_coho_interval_list(interval_list, tag=index) for index, interval_list in enumerate(interval_lists)])
@@ -473,7 +473,7 @@ def intersection_of_coho_intervals(interval_lists):
         interval_indicators[index] -= delta  # switch interval event with delta
         assert interval_indicators[index] >= 0
         now_on = all(on > 0 for on in interval_indicators)  # now_on: all on is nonzero
-        # was_on--> intersection
+        # was_on--> intersection: scan line in all intervals
         if was_on:
             assert on_x is not None
             assert on_epsilon >= 0
@@ -544,7 +544,7 @@ def coho_interval_list_from_scan(scan, old_fashioned_closed_intervals=False):
         now_on = (indicator > 0)
         if not was_on and now_on:
             (on_x, on_epsilon) = (x, epsilon)
-        # need to union
+        # union: at least one interval are in scan
         elif was_on and not now_on:
             assert on_x is not None
             assert on_epsilon >= 0
