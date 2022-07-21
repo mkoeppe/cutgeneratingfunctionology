@@ -202,16 +202,6 @@ import collections
 _closed_or_open_or_halfopen_interval = collections.namedtuple('Interval', ['a', 'b', 'left_closed', 'right_closed'])
 
 
-# a: left point, b: right point
-#
-# class something():
-#     def __init__(self, names):
-#         for name in names:
-#             self.name = dfdf
-#
-#     def __len__(self):
-#         return len(names)
-
 class closed_or_open_or_halfopen_interval(_closed_or_open_or_halfopen_interval):
     def __repr__(self):
         if self.a == self.b and self.left_closed and self.right_closed:
@@ -298,7 +288,6 @@ def interval_length(interval):
 
 
 def is_pt_in_interval(i, x0):
-    # i: interval, x0, number
     r"""
     retrun whether the point x0 is contained in the (ordinary or coho) interval i.
     """
@@ -320,7 +309,6 @@ def is_pt_in_interval(i, x0):
 
 
 def coho_interval_left_endpoint_with_epsilon(i, closure=False):
-    # i: interval
     r"""Return (x, epsilon)
     where x is the left endpoint
     and epsilon is 0 if the interval is left closed and 1 otherwise.
@@ -332,8 +320,6 @@ def coho_interval_left_endpoint_with_epsilon(i, closure=False):
         return i[0], 0  # Scanning from the left, turn on at left endpoint.
     else:
         # coho interval
-        # return interval's left point and epsilon = 0 if interval's left point is closed or closure is ture,
-        # Otherwise return 1
         return i.a, 0 if (i.left_closed or closure) else 1
 
 
@@ -352,8 +338,6 @@ def coho_interval_right_endpoint_with_epsilon(i, closure=False):
         return i[1], 1  # Scanning from the left, turn off at right endpoint plus epsilon
     else:
         # coho interval
-        # return interval's right point and epsilon = 0 if interval's left point is closed or closure is ture,
-        # Otherwise return 1
         return i.b, 1 if (i.right_closed or closure) else 0
 
 
@@ -406,6 +390,13 @@ def scan_coho_interval_list(interval_list, tag=None, closure=False):
         sage: list(scan_coho_interval_list([closed_or_open_or_halfopen_interval(1, 2, True, False), closed_or_open_or_halfopen_interval(2, 3, True, True)]))
         [((1, 0), -1, None), ((2, 0), -1, None), ((2, 0), 1, None), ((3, 1), 1, None)]
     """
+    # epsilon: use to indicate interval open/closed
+    # epsilon    closed  open
+    # left          0      1
+    # right         1      0
+    # delta: use to indicator if scan is in such interval
+    # delta       -1      +1
+    #            left   right
     return merge(scan_coho_interval_left_endpoints(interval_list, tag, closure),
                  scan_coho_interval_right_endpoints(interval_list, tag, closure))
 
@@ -427,8 +418,12 @@ def scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, r
         was_on = on
         if tag:  # interval event
             interval_indicator -= delta
+            assert (
+                       interval_indicator) >= 0, "interval_indicator should stay non-negative; required sort order must be violated"
         else:  # remove event
             remove_indicator -= delta
+            assert (
+                       remove_indicator) >= 0, "remove_indicator should stay non-negative; required sort order must be violated"
         now_on = interval_indicator > 0 and remove_indicator == 0
         if not was_on and now_on:  # switched on
             yield (x, epsilon), -1, None
@@ -462,22 +457,20 @@ def intersection_of_coho_intervals(interval_lists):
         sage: list(intersection_of_coho_intervals([[[1,3]], [[2,4]]]))
         [<Int[2, 3]>]
     """
-    # can be improved by use now_on = (interval_indicator == n)
-    # scan: (x, left/right),closed/open, which list/tag)
     scan = merge(
         *[scan_coho_interval_list(interval_list, tag=index) for index, interval_list in enumerate(interval_lists)])
-    interval_indicators = [0 for _ in interval_lists]
+    interval_indicators = [0 for interval_list in interval_lists]
     (on_x, on_epsilon) = (None, None)
     for ((x, epsilon), delta, index) in scan:
-        was_on = all(on > 0 for on in interval_indicators)  # was_on: all on is nonzero
-        interval_indicators[index] -= delta  # switch interval event with delta
+        was_on = all(on > 0 for on in interval_indicators)
+        interval_indicators[index] -= delta
         assert interval_indicators[index] >= 0
-        now_on = all(on > 0 for on in interval_indicators)  # now_on: all on is nonzero
-        # was_on--> intersection: scan line in all intervals
+        now_on = all(on > 0 for on in interval_indicators)
         if was_on:
             assert on_x is not None
             assert on_epsilon >= 0
             assert epsilon >= 0
+            # scan are in all intervals in interval list -> intersection
             if (on_x, on_epsilon) < (x, epsilon):
                 yield closed_or_open_or_halfopen_interval(on_x, x,
                                                           on_epsilon == 0, epsilon > 0)
@@ -534,26 +527,26 @@ def coho_intervals_intersecting_full_dimensionally(a, b):
 
 def coho_interval_list_from_scan(scan, old_fashioned_closed_intervals=False):
     r"""Actually returns a generator."""
+    # indicator: indicate how many interval in scan
     indicator = 0
     (on_x, on_epsilon) = (None, None)
     for ((x, epsilon), delta, tag) in scan:
-        was_on = (indicator > 0)
-        # indicator if scan-line in intervals
+        was_on = indicator > 0
         indicator -= delta
         assert indicator >= 0
-        now_on = (indicator > 0)
-        if not was_on and now_on:
+        now_on = indicator > 0
+        if not was_on and now_on:  # switched on
             (on_x, on_epsilon) = (x, epsilon)
-        # union: at least one interval are in scan
-        elif was_on and not now_on:
+        elif was_on and not now_on:  # switched off
             assert on_x is not None
             assert on_epsilon >= 0
             assert epsilon >= 0
             if (on_x, on_epsilon) < (x, epsilon):
                 left_closed = on_epsilon == 0
                 right_closed = epsilon > 0
-                if old_fashioned_closed_intervals and on_epsilon == 0 and epsilon > 0 and on_x < x:
+                if old_fashioned_closed_intervals and left_closed and right_closed and on_x < x:
                     yield (on_x, x)
+                # at least one interval in scan
                 else:
                     yield closed_or_open_or_halfopen_interval(on_x, x, left_closed, right_closed)
             (on_x, on_epsilon) = (None, None)
@@ -595,10 +588,10 @@ def proper_interval_list_from_scan(scan):
     indicator = 0
     (on_x, on_epsilon) = (None, None)
     for ((x, epsilon), delta, tag) in scan:
-        was_on = indicator > 0
+        was_on = (indicator > 0)
         indicator -= delta
         assert indicator >= 0
-        now_on = indicator > 0
+        now_on = (indicator > 0)
         if not was_on and now_on:  # switched on
             (on_x, on_epsilon) = (x, epsilon)
         elif was_on and not now_on:  # switched off
