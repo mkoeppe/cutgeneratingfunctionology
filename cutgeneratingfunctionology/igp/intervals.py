@@ -394,7 +394,7 @@ def scan_coho_interval_list(interval_list, tag=None, closure=False):
     # epsilon    closed  open
     # left          0      1
     # right         1      0
-    # delta: use to indicator if scan is in such interval
+    # delta: use to indicate if scan is in such interval
     # delta       -1      +1
     #            left   right
     return merge(scan_coho_interval_left_endpoints(interval_list, tag, closure),
@@ -418,12 +418,10 @@ def scan_union_of_coho_intervals_minus_union_of_coho_intervals(interval_lists, r
         was_on = on
         if tag:  # interval event
             interval_indicator -= delta
-            assert (
-                       interval_indicator) >= 0, "interval_indicator should stay non-negative; required sort order must be violated"
+            assert interval_indicator >= 0, "interval_indicator should stay non-negative; required sort order must be violated"
         else:  # remove event
             remove_indicator -= delta
-            assert (
-                       remove_indicator) >= 0, "remove_indicator should stay non-negative; required sort order must be violated"
+            assert remove_indicator>= 0, "remove_indicator should stay non-negative; required sort order must be violated"
         now_on = interval_indicator > 0 and remove_indicator == 0
         if not was_on and now_on:  # switched on
             yield (x, epsilon), -1, None
@@ -470,7 +468,7 @@ def intersection_of_coho_intervals(interval_lists):
             assert on_x is not None
             assert on_epsilon >= 0
             assert epsilon >= 0
-            # scan are in all intervals in interval list -> intersection
+            # intersection: scan on all the interval_lists
             if (on_x, on_epsilon) < (x, epsilon):
                 yield closed_or_open_or_halfopen_interval(on_x, x,
                                                           on_epsilon == 0, epsilon > 0)
@@ -527,7 +525,7 @@ def coho_intervals_intersecting_full_dimensionally(a, b):
 
 def coho_interval_list_from_scan(scan, old_fashioned_closed_intervals=False):
     r"""Actually returns a generator."""
-    # indicator: indicate how many interval in scan
+    # indicator: indicating how many intervals are on scan
     indicator = 0
     (on_x, on_epsilon) = (None, None)
     for ((x, epsilon), delta, tag) in scan:
