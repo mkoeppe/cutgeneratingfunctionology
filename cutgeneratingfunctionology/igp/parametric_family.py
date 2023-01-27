@@ -346,7 +346,11 @@ class ParametricFamily(ParametricFamily_base):
                 c = cls._construct_function
             else:
                 c = constructor
-            args, varargs, keywords, defaults = sage_getargspec(c)
+            spec = sage_getargspec(c)
+            args = spec[0]
+            varargs = spec[1]
+            keywords = spec[2]
+            defaults = spec[3]
             #import pdb; pdb.set_trace()
             args = [ name for name in args if name not in ignore_special_args ]     # cls and self do not appear in the default list, remove them first
             if defaults:

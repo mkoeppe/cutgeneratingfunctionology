@@ -1231,7 +1231,11 @@ def read_default_args(function, **opt_non_default):
     try:
         default_args = dict(function.default_values())
     except AttributeError:
-        args, varargs, keywords, defaults = sage_getargspec(function)
+        spec = sage_getargspec(c)
+        args = spec[0]
+        varargs = spec[1]
+        keywords = spec[2]
+        defaults = spec[3]
         default_args = {}
         if defaults is not None:
             for i in range(len(defaults)):
