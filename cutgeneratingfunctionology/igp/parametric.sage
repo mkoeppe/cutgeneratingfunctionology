@@ -1766,7 +1766,7 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
             if debug_cell_exceptions:
                 import pdb; pdb.post_mortem()
             h = None
-        region_type = find_region_type(K, h)
+        region_type = find_region_type(K, h)  # NOTE: It does not pass keywords here!
         if bddbsa is not None:
             assert (pt in bddbsa) # record boundary constraints. #NEW: moved from ProofCell._construct_field_and_test_point
         super(ProofCell, self).__init__(K, region_type, bddbsa, polynomial_map)
@@ -1890,18 +1890,43 @@ class SemialgebraicComplex(SageObject):
     """
     def __init__(self, family, var_name=None, find_region_type=None, default_var_bound=(-0.1,1.1), bddbsa=None, polynomial_map=None, kwds_dict={}, cell_class=None, **opt_non_default):
         r"""
-        Construct a SemialgebraicComplex.
+        Construct a :class:`SemialgebraicComplex`.
 
-        - ``family``:  A class or constructor, defining a parametric family of computations
-        - var_name: a subset of the parameters of ``family``
-        - ``find_region_type``: maps the object constructed by ``family`` to a type of the parameter region;
-            - set to ``None`` for functions in Gomory-Johnson model; 
-            - often set to ``result_symbolic_expression`` or ``result_concrete_value`` for other functions;
-        - default_var_bound: need if we use random shooting method to complete the complex; If given, the bound is also used in plotting
+        INPUT:
+
+        - ``family`` -- A class or constructor, defining a parametric family of computations
+
+        - ``var_name``: a subset of the parameters of ``family``
+
+        - ``find_region_type``: function that maps the object constructed by ``family``
+          to a "type" of the parameter region, for example:
+
+          - :func:`find_region_type_igp` (the default). The result of the computation is a Gomory-Johnson
+            function `h`; it is passed to :func:`find_region_type_igp` as 2nd arg, 
+            and then :func:`find_region_type_igp`which classifies the region of the
+            parameter by returning one of the strings
+            ``'is_constructible'``, ``'not_constructible'``,
+            ``'is_minimal'``, ``'not_minimal'``,
+            ``'is_extreme'``, ``'not_extreme'``),
+          - ``functools.partial(find_region_type_igp, region_level='minimal')``.
+          - :func:`find_region_type_igp_extreme` (undocumented), variant of the above,
+          - :func:`find_region_type_igp_extreme_big_cells` (undocumented), variant of the above,
+          - :func:`result_symbolic_expression` (for which "type" is not actually a type but a rational
+            function in the parameters returned by the computation): The result of the computation
+            is an element of the :class:`ParametricRealField` or of a :class:`VectorSpace` over
+            :class:`ParametricRealField`. :func:`result_symbolic_expression` returns a tuple of
+            rational functions in the parameters.
+          - :func:`result_concrete_value` (for which the result of the computation is an element
+            of the :class:`ParametricRealField` or of a :class:`VectorSpace` over
+            :class:`ParametricRealField`). :func:`result` returns a tuple of the coordinates
+            of the test point.
+
+        - ``default_var_bound``: need if we use random shooting method to complete the complex; If given, the bound is also used in plotting
 
         The following argument defines the boundary of the ``SemialgebraicComplex``, so that bfs won't go beyond the region. They might be useful in the CPL3 examples.
 
         - ``bddbsa``: a BasicSemialgebraicSet that contains the points in the complex;
+
         - ``polynomial_map``: need when bddbsa is lower dimensional.
 
         EXAMPLES::
@@ -2532,7 +2557,13 @@ def find_region_type_igp(K, h, region_level='extreme', is_minimal=None):
     r"""
     Find the type of a igp function h in the :class:`ParametricRealField` K;
     (is it constructible? is it minimal? is it extreme?)
-    Record the comparisons in K.
+    Record the comparisons in ``K``.
+
+    INPUT:
+
+    - ``K`` -- a :class:`ParametricRealField`
+
+    - ``f`` -- a function or ``None`` (when the function could not be constructed)
 
     EXAMPLES::
 
@@ -2545,7 +2576,7 @@ def find_region_type_igp(K, h, region_level='extreme', is_minimal=None):
         sage: K.get_lt_factor()
         {-2*f + 1, -f, f - 1}
 
-        sage: K.<f,bkpt>=ParametricRealField([1/7,3/7])
+        sage: K.<f,bkpt> = ParametricRealField([1/7,3/7])
         sage: h = drlm_backward_3_slope(f, bkpt, field=K)
         sage: find_region_type_igp(K, h)
         'not_extreme'
@@ -2785,7 +2816,7 @@ def find_region_type_igp_extreme_big_cells(K, h):
         bkpt2 = h.end_points()[:-1] + [ x+1 for x in h.end_points() ]
         for uncovered_pt in uncovered_pts:
             for y in bkpt1:
-                (delta_pi(h, uncovered_pt, y) > 0) or (delta_pi(h, uncovered_pt, y) == 0)
+                (delta_pi(h, uncovered_pt, y) > 0) or (delta_pi(h, uncovered_pt, y) == 0)  # why is this not written as >= 0?
             for z in bkpt2:
                 if uncovered_pt < z < 1+uncovered_pt:
                     (delta_pi(h, uncovered_pt, z-uncovered_pt) > 0) or (delta_pi(h, uncovered_pt, z-uncovered_pt) == 0)
