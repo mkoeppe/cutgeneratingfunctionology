@@ -17,10 +17,10 @@
 import six
 
 project = u"cutgeneratingfunctionology"
-copyright = u'2013-2019, Matthias Koeppe, Yuan Zhou, Chun Yu Hong, Jiawei Wang'
+copyright = u'2013-2023, Matthias Koeppe, Yuan Zhou, Chun Yu Hong, Jiawei Wang'
 package_name = 'cutgeneratingfunctionology'
 package_folder = "../../"
-authors = u"2013-2019, Matthias Koeppe, Yuan Zhou, Chun Yu Hong, Jiawei Wang"
+authors = u"2013-2023, Matthias Koeppe, Yuan Zhou, Chun Yu Hong, Jiawei Wang"
 
 import sys
 import os
@@ -32,13 +32,14 @@ try:
 except ImportError:
     raise RuntimeError("to build the documentation you need to be inside a Sage shell (run first the command 'sage -sh' in a shell")
 
+from sage.misc.latex_macros import sage_mathjax_macros
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath(package_folder))
-sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
+sys.path.append(os.path.join(SAGE_SRC, "sage_docbuild", "ext"))
 
 
 print("Using sys.path = {}".format(sys.path))
@@ -61,6 +62,9 @@ extensions = [
     'matplotlib.sphinxext.plot_directive',
     'sphinxcontrib.bibtex'
 ]
+
+bibtex_bibfiles = ['../../open-optimization-bibliography/bib/cutgeneratingfunctionology.bib']
+
 
 ### from Sage src/doc/common/conf.py
 # This code is executed before each ".. PLOT::" directive in the Sphinx
@@ -365,37 +369,27 @@ texinfo_documents = [
 
 # -- Options copied from Sagemath conf.py file -------------------------------
 
-# We use MathJax to build the documentation unless the environment
-# variable SAGE_DOC_MATHJAX is set to "no" or "False".  (Note that if
-# the user does not set this variable, then the script sage-env sets
-# it to "True".)
+# Configure MathJax
+# https://docs.mathjax.org/en/latest/options/input/tex.html
+mathjax3_config = {
+    "tex": {
+        # Add custom sage macros
+        # http://docs.mathjax.org/en/latest/input/tex/macros.html
+        "macros": sage_mathjax_macros(),
+        # Add $...$ as possible inline math
+        # https://docs.mathjax.org/en/latest/input/tex/delimiters.html#tex-and-latex-math-delimiters
+        "inlineMath": [["$", "$"], ["\\(", "\\)"]],
+        # Increase the limit the size of the string to be processed
+        # https://docs.mathjax.org/en/latest/options/input/tex.html#option-descriptions
+        "maxBuffer": 50 * 1024,
+        # Use colorv2 extension instead of built-in color extension
+        # https://docs.mathjax.org/en/latest/input/tex/extensions/autoload.html#tex-autoload-options
+        # https://docs.mathjax.org/en/latest/input/tex/extensions/colorv2.html#tex-colorv2
+        "autoload": {"color": [], "colorv2": ["color"]},
+    },
+}
 
-if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
-            and os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'False'):
-
-    extensions.append('sphinx.ext.mathjax')
-    mathjax_path = 'MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js'
-
-    from sage.misc.latex_macros import sage_mathjax_macros
-    # this is broken for now
-    # html_theme_options['mathjax_macros'] = sage_mathjax_macros()
-
-    from pkg_resources import Requirement, working_set
-    sagenb_path = working_set.find(Requirement.parse('sagenb')).location
-    mathjax_relative = os.path.join('sagenb','data','mathjax')
-
-    # It would be really nice if sphinx would copy the entire mathjax directory,
-    # (so we could have a _static/mathjax directory), rather than the contents of the directory
-
-    mathjax_static = os.path.join(sagenb_path, mathjax_relative)
-    html_static_path.append(mathjax_static)
-    exclude_patterns=['**/'+os.path.join(mathjax_relative, i) for i in ('docs', 'README*', 'test',
-                                                                        'unpacked', 'LICENSE')]
-    from sage.env import SAGE_LOCAL, SAGE_SHARE
-    html_static_path.append(SAGE_LOCAL + "/lib/mathjax")    # conda
-    html_static_path.append(SAGE_SHARE + "/mathjax")  # sage distribution
-else:
-     extensions.append('sphinx.ext.pngmath')
+mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
 
 # This is to make the verbatim font smaller;
 # Verbatim environment is not breaking long lines
