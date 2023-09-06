@@ -2342,7 +2342,7 @@ class SemialgebraicComplex(SageObject):
                 for c in cell_group: #plot components which should have zorder 3*no_eqns
                     color = kwds.pop('color', find_region_color(c.region_type))
                     zorder = len(list((c.bsa.eq_poly())))
-                    if not list(c.bsa.eq_poly()): 
+                    if not list(c.bsa.eq_poly()):
                         g = (c.bsa).plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color='white', fill_color=color, zorder=3*zorder, **kwds)
                         if g:
                             self.graph += g
@@ -2387,9 +2387,9 @@ class SemialgebraicComplex(SageObject):
                             if g:
                                 self.graph += g
                                 if animated:
-                                    artists.append(self.graph)
+                                    artists.append(self.graph)                                   
         if animated:
-            return animate(artists)
+            return animate(artists, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         return self.graph
 
     def plot_bfs_tree(self, **kwds):
