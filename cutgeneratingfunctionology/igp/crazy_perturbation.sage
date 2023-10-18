@@ -1,6 +1,6 @@
 from six.moves import range
 # Reminder: need coerce all input to common RNF.
-
+# Just checking to see if Matthias will respond to this.
 class CrazyPiece:
     def __init__(self, interval, generators=None, cosets=[]):
         # assume interval is open, represented as (a, b)
