@@ -3197,7 +3197,7 @@ def is_all_QQ_fastpath(values):
             return False
     return True
 
-from sage.rings.number_field.number_field_element import is_NumberFieldElement
+from sage.rings.number_field.number_field_element_base import NumberFieldElement_base
 
 def is_all_the_same_number_field_fastpath(values):
     r"""
@@ -3205,7 +3205,7 @@ def is_all_the_same_number_field_fastpath(values):
     """
     number_field_seen = None
     for x in values:
-        if is_NumberFieldElement(x):
+        if isinstance(x, NumberFieldElement_base):
             if number_field_seen:
                 if number_field_seen is not x.parent():
                     return False
@@ -3259,7 +3259,7 @@ def is_QQ_linearly_independent(*numbers):
     if not is_all_the_same_number_field_fastpath(numbers):
         # try to coerce to common number field
         numbers = nice_field_values(numbers, RealNumberField)
-        if not is_NumberFieldElement(numbers[0]):
+        if not isinstance(numbers[0], NumberFieldElement_base):
             is_QQ, QQ_numbers = is_all_QQ(numbers)
             if is_QQ:
                 return False
