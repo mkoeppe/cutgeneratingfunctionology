@@ -78,7 +78,7 @@ SAGEFILES += \
 	cutgeneratingfunctionology/spam/semialgebraic_maple.py
 endif
 
-CHECK_PARALLEL=4
+CHECK_PARALLEL=0
 
 -include Makefile.conf
 
