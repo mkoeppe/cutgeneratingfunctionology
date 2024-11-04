@@ -32,6 +32,13 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
 
+[project.optional-dependencies]
+doc = [
+    "sage-package",
+    "sphinx",
+    "sphinxcontrib-bibtex",
+]
+
 [project.readme]
 file = "README.rst"
 content-type = "text/x-rst"
