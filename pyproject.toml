@@ -1,9 +1,47 @@
 [build-system]
 requires = [
-  'setuptools>=45',
-  'wheel',
+  'setuptools>=61.2',
   'setuptools_scm[toml]>=6.0',
 ]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cutgeneratingfunctionology"
+description = "Python code for computation and experimentation with cut-generating functions"
+authors = [
+    {name = "Matthias Koeppe", email = "mkoeppe@math.ucdavis.edu"},
+    {name = "Yuan Zhou"},
+    {name = "Chun Yu Hong"},
+    {name = "Jiawei Wang"},
+    {name = "with contributions by undergraduate programmers"},
+]
+dependencies = []
+requires-python = ">=3.9"
+license = {text = "GPLv2+"}
+keywords = ["integer programming", "cutting planes"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+
+[project.readme]
+file = "README.rst"
+content-type = "text/x-rst"
+
+[project.urls]
+Homepage = "https://github.com/mkoeppe/cutgeneratingfunctionology"
+Documentation = "http://mkoeppe.github.io/cutgeneratingfunctionology/doc/html/"
+Source = "https://github.com/mkoeppe/cutgeneratingfunctionology"
+"Issue Tracker" = "https://github.com/mkoeppe/cutgeneratingfunctionology/issues"
+"Demo on mybinder.org" = "https://mybinder.org/v2/gh/mkoeppe/cutgeneratingfunctionology/master?filepath=demo.ipynb"
 
 [tool.setuptools_scm]
 write_to = 'version.txt'
