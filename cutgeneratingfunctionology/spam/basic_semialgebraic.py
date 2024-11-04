@@ -6,7 +6,8 @@ from __future__ import division, print_function, absolute_import
 
 from sage.structure.element import Element
 from sage.modules.free_module_element import vector
-from sage.rings.all import QQ, ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.integer_ring import ZZ
 from sage.rings.real_double import RDF
 from sage.rings.infinity import Infinity
 from sage.misc.abstract_method import abstract_method
