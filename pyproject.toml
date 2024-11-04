@@ -31,12 +31,19 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
+dynamic = ['version']
 
 [project.optional-dependencies]
 doc = [
     "sage-package",
     "sphinx",
     "sphinxcontrib-bibtex",
+]
+passagemath = [
+    "passagemath-polyhedra",
+    "passagemath-plot",
+    "passagemath-repl",
+    "passagemath-flint",
 ]
 
 [project.readme]
