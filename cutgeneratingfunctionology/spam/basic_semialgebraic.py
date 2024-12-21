@@ -17,8 +17,8 @@ from sage.calculus.var import var
 from sage.plot.contour_plot import region_plot, implicit_plot
 from sage.matrix.constructor import matrix
 from sage.structure.element import get_coercion_model
-from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
+from sage.rings.polynomial.multi_polynomial_ring_base import MPolynomialRing_base
 
 from copy import copy
 from itertools import chain
@@ -1724,7 +1724,7 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
         if poly_ring is None:
             cm = get_coercion_model()
             poly_ring = cm.common_parent(*polynomial_map)
-            if not is_PolynomialRing(poly_ring) and not is_MPolynomialRing(poly_ring):
+            if not isinstance(poly_ring, (PolynomialRing_general, MPolynomialRing_base)):
                 poly_ring = PolynomialRing(base_ring, [])
         polynomial_map = [ poly_ring(f) for f in polynomial_map ]
         if poly_ring and ambient_dim is None:
@@ -1904,7 +1904,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
             if polynomial_map:
                 cm = get_coercion_model()
                 poly_ring = cm.common_parent(*polynomial_map)
-                if not is_PolynomialRing(poly_ring) and not is_MPolynomialRing(poly_ring):
+                if not isinstance(poly_ring, (PolynomialRing_general, MPolynomialRing_base)):
                     poly_ring = PolynomialRing(base_ring, [])
                 polynomial_map = [ poly_ring(f) for f in polynomial_map ]
             elif base_ring is not None and ambient_dim is not None:
