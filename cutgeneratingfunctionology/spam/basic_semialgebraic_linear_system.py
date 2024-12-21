@@ -54,6 +54,8 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
             x - y + ((U*W + b)~)*z + (-U*W)~}
             
         A non-parametric example::
+
+            sage: # needs sage.groups
             sage: D = polytopes.dodecahedron()
             sage: D.ambient_dim()
             3
@@ -68,6 +70,7 @@ class BasicSemialgebraicSet_polyhedral_linear_system(BasicSemialgebraicSet_polyh
             True
             
         Another non-parametric example::
+
             sage: b3 = polytopes.Birkhoff_polytope(3)
             sage: b3.ambient_dim()
             9
