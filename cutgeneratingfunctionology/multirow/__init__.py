@@ -1,15 +1,18 @@
 ## Module
 
-from __future__ import absolute_import
-from sage.all import *
-del SetPartitionsAk
-del SetPartitionsBk
-del SetPartitionsIk
-del SetPartitionsPRk
-del SetPartitionsPk
-del SetPartitionsRk
-del SetPartitionsSk
-del SetPartitionsTk
+try:
+    from sage.all__sagemath_polyhedra import *
+    from sage.all__sagemath_symbolics import *
+except ImportError:
+    from sage.all import *
+    del SetPartitionsAk
+    del SetPartitionsBk
+    del SetPartitionsIk
+    del SetPartitionsPRk
+    del SetPartitionsPk
+    del SetPartitionsRk
+    del SetPartitionsSk
+    del SetPartitionsTk
 
 from cutgeneratingfunctionology.igp import *
 
