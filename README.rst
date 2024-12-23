@@ -175,3 +175,33 @@ D.  Run in a standalone installation of the SageMath distribution (no conda)
     import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
 
 - Follow the instructions and examples in https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/demo.rst or https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/demo.ipynb .
+
+
+E.  Run in Python (no installation of SageMath required)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This method uses the modularized distributions from https://github.com/passagemath
+
+- Clone the GitHub repository https://github.com/mkoeppe/cutgeneratingfunctionology.git::
+
+    git clone https://github.com/mkoeppe/cutgeneratingfunctionology.git
+    cd cutgeneratingfunctionology
+
+- (Optional:) Create a virtual environment
+
+    python3 -m venv venv-cgf
+    . venv-cgf/bin/activate
+
+- Install the cutgeneratingfunctionology package using pip::
+
+    pip install ".[passagemath]"
+
+- Start Python::
+
+    python3
+
+- At the Python prompt, type::
+
+    import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
+
+- Follow the instructions and examples in https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/demo.rst or https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/demo.ipynb .
