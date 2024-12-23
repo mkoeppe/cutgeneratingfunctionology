@@ -35,16 +35,20 @@ dynamic = ['version']
 
 [project.optional-dependencies]
 doc = [
+    "cutgeneratingfunctionology[passagemath]",
     "sage-package",
     "sphinx",
     "sphinxcontrib-bibtex",
 ]
 passagemath = [
-    "passagemath-polyhedra==10.4.40",
-    "passagemath-plot==10.4.40",
-    "passagemath-repl==10.4.40",
-    "passagemath-flint==10.4.40",
-    "passagemath-graphs==10.4.40",
+    "passagemath-pari",
+    "passagemath-polyhedra",
+    "passagemath-plot",
+    "passagemath-repl",
+    "passagemath-flint",
+    "passagemath-graphs",
+    "passagemath-singular",
+    "passagemath-symbolics",
 ]
 
 [project.readme]
