@@ -40,10 +40,11 @@ doc = [
     "sphinxcontrib-bibtex",
 ]
 passagemath = [
-    "passagemath-polyhedra",
-    "passagemath-plot",
-    "passagemath-repl",
-    "passagemath-flint",
+    "passagemath-polyhedra==10.4.40",
+    "passagemath-plot==10.4.40",
+    "passagemath-repl==10.4.40",
+    "passagemath-flint==10.4.40",
+    "passagemath-graphs==10.4.40",
 ]
 
 [project.readme]
