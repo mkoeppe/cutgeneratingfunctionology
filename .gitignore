@@ -41,3 +41,5 @@ region_graphics/*
 *conflicted copy*
 /survey_graphics/*/*.png
 /Makefile.conf
+
+*.egg-info
