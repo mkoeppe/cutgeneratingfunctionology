@@ -2250,7 +2250,7 @@ class SemialgebraicComplex(SageObject):
             else:
                 self.add_new_component(var_value, bddbsa=self.bddbsa, flip_ineq_step=0, goto_lower_dim=False)
 
-    def plot(self, alpha=0.5, plot_points=300, slice_value=None, goto_lower_dim=False, restart=True, **kwds):
+    def plot(self, alpha=0.5, plot_points=300, slice_value=None, goto_lower_dim=False, restart=True, animated=False, **kwds):
         r"""
         Plot the complex and store the graph.
 
@@ -2283,6 +2283,10 @@ class SemialgebraicComplex(SageObject):
         Plot the slice in (x,z)-space with y=x/2::
 
             sage: complex.plot(slice_value=[u, u/2, v])              # not tested
+            
+        Animate the plot:: 
+        
+            sage: complex.plot(slice_value=[None, None,4], animated=True)      # not tested
         """
         if restart:
             self.graph = Graphics()
@@ -2308,49 +2312,84 @@ class SemialgebraicComplex(SageObject):
             ymax = kwds['ymax']
         else:
             ymax = self.default_var_bound[1]
-        # # FIXME: zorder is broken in region_plot/ContourPlot.
-        # for c in self.components[self.num_plotted_components::]:
-        #     num_eq = len(list(c.bsa.eq_poly()))
-        #     gc = c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, default_var_bound=self.default_var_bound, goto_lower_dim=goto_lower_dim, zorder=num_eq, **kwds)  
+        # #  zorder is broken in Region_Plot/ContourPlot. see issue #35992 in sagemath/sage. contorplot has regions with zorder=1 and lines with zorder=2. 
+        # # code for when zorder is fixed. 
+        # for c in self.components:
+        #     num_eq = len(list((c.bsa.eq_poly())))
+        #     gc = c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, default_var_bound=self.default_var_bound, goto_lower_dim=goto_lower_dim, zorder=num_eq, **kwds) 
         #     if gc: # need this because (empty g + empty gc) forgets about xmin xmax ymin ymax.
         #         self.graph += gc
-        # Workaround.
-        # FIXME: bug example plot(goto_lower_dim=True) in doctest of SemialgebraicComplex
-        components = self.components[self.num_plotted_components::]
-        for c in components:
-            if not list(c.bsa.eq_poly()):
-                if not goto_lower_dim:
-                    self.graph += c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, default_var_bound=self.default_var_bound, goto_lower_dim=False, zorder=0, **kwds)
-                else:
-                    color = find_region_color(c.region_type)
-                    self.graph += (c.bsa).plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, color='white', fill_color=color, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-        if goto_lower_dim:
-            for c in components:
-                if not list(c.bsa.eq_poly()):
-                    color = find_region_color(c.region_type)
-                    for l in c.bsa.le_poly():
-                        new_bsa = copy(c.bsa)
-                        new_bsa.add_polynomial_constraint(l, operator.eq)
-                        self.graph += new_bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, color=color, fill_color=color, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-        for c in components:
-            if len(list(c.bsa.eq_poly()))==1:
-                self.graph += c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, default_var_bound=self.default_var_bound, goto_lower_dim=False, zorder=0, **kwds)
-        if goto_lower_dim:
-            for c in components:
-                if len(list(c.bsa.eq_poly()))==1:
-                    color = find_region_color(c.region_type)
-                    for l in c.bsa.lt_poly():
-                        new_bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=list(c.bsa.eq_poly())+[l], lt=[ll for ll in c.bsa.lt_poly() if ll != l], le=list(c.bsa.le_poly()))
-                        self.graph += new_bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, color='white', fill_color='white', xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-                    for l in c.bsa.le_poly():
-                        new_bsa = copy(c.bsa)
-                        new_bsa.add_polynomial_constraint(l, operator.eq)
-                        self.graph += new_bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, color=color, fill_color=color, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-        for c in components:
-            if len(list(c.bsa.eq_poly()))==2:
-                ptcolor = find_region_color(c.region_type)
-                self.graph += point(c.var_value, color = ptcolor, zorder=10)
-        self.num_plotted_components = len(self.components)
+        # # Work around is done by having semialgebraic complex plot things in order. 
+        cells_by_dim = sorted(self.components, key=lambda cell: len(list((cell.bsa.eq_poly())))) ## Since Z order is defined for the complex by no. equations, sort by no. equations
+        grouped_cells = [] #group cells by no. eqns
+        for k, g in itertools.groupby(cells_by_dim, key=lambda cell: len(list((cell.bsa.eq_poly())))):
+            grouped_cells.append(list(g))
+        if animated:
+            artists = []
+        if not goto_lower_dim: #goto_lower_dim=True, plotting by no. equations mimics zorder request with lower no. equations first , then higest number last. The cell plotting method works fine for this.
+            for c in cells_by_dim:
+                num_eq = len(list((c.bsa.eq_poly())))
+                gc = c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, default_var_bound=self.default_var_bound, goto_lower_dim=goto_lower_dim, zorder=num_eq, **kwds)  
+                if gc: # need this because (empty g + empty gc) forgets about xmin xmax ymin ymax.
+                    self.graph += gc
+                    if animated:
+                        artists.append(self.graph)
+
+            if animated:
+                return animate(artists) #use sage's build in animation from a list of graphics objects
+        else: #in the goto_lower_dim case=False, semialgebraic complex handels all plotting to mimic zorder done by the proof cells.  
+            for cell_group in grouped_cells: #cell_groups are all cells with the same number of equations ordered least to greatest by number of equations
+                for c in cell_group: #plot components which should have zorder 3*no_eqns
+                    color = kwds.pop('color', find_region_color(c.region_type))
+                    zorder = len(list((c.bsa.eq_poly())))
+                    if not list(c.bsa.eq_poly()):
+                        g = (c.bsa).plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color='white', fill_color=color, zorder=3*zorder, **kwds)
+                        if g:
+                            self.graph += g
+                            if animated:
+                                artists.append(self.graph)
+                    else:
+                        g = (c.bsa).plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color=color, fill_color=color, zorder=3*zorder, **kwds)
+                        if g:
+                            self.graph += g
+                            if animated:
+                                artists.append(self.graph)
+                for c in cell_group: #plot components which should have zorder 3*no_eqns + 1
+                    zorder = len(list((c.bsa.eq_poly())))
+                    color = kwds.pop('color', find_region_color(c.region_type))                    
+                    if not list(c.bsa.eq_poly()):
+                        pass
+                    else:
+                         for l in c.bsa.lt_poly(): #
+                            new_bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=list(c.bsa.eq_poly())+[l], lt=[ll for ll in c.bsa.lt_poly() if ll != l], le=list(c.bsa.le_poly()))
+                            g = new_bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color='white', fill_color='white', zorder=3*zorder+1, **kwds)
+                            if g:
+                                self.graph += g
+                                if animated:
+                                    artists.append(self.graph)
+                for c in cell_group: #plot components which should have zorder 3*no_eqns + 2
+                    zorder = len(list((c.bsa.eq_poly())))
+                    color = kwds.pop('color', find_region_color(c.region_type)) 
+                    if not list(c.bsa.eq_poly()):
+                        for l in c.bsa.le_poly():
+                            new_bsa = copy(c.bsa)
+                            new_bsa.add_polynomial_constraint(l, operator.eq)
+                            g = new_bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color=color, fill_color=color, zorder=3*zorder+2, **kwds)
+                            if g:
+                                self.graph += g
+                                if animated:
+                                    artists.append(self.graph)
+                    else:
+                        for l in c.bsa.le_poly(): # fill in boundaries if possible it makes sense. 
+                            new_bsa = copy(c.bsa)
+                            new_bsa.add_polynomial_constraint(l, operator.eq)
+                            g = new_bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, color=color, fill_color=color, zorder=3*zorder+2, **kwds)
+                            if g:
+                                self.graph += g
+                                if animated:
+                                    artists.append(self.graph)                                   
+        if animated:
+            return animate(artists, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         return self.graph
 
     def plot_bfs_tree(self, **kwds):
