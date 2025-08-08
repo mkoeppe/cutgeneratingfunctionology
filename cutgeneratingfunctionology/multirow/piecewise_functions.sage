@@ -49,17 +49,17 @@ class PiecewisePolynomial_polyhedral(SageObject):
         sage: hyp = PiecewisePolynomial_polyhedral([(polytopes.hypercube(2), y)], is_continuous = True)
         sage: hyn = PiecewisePolynomial_polyhedral([(polytopes.hypercube(2), -y)], is_continuous = True)
         sage: hsublin = PiecewisePolynomial_polyhedral.max(hxp, hxn, hyp, hyn)
-        sage: hsublin.limiting_slopes([0,0])
-        [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        sage: sorted(hsublin.limiting_slopes([0,0]))
+        [(-1, 0), (0, -1), (0, 1), (1, 0)]
         sage: h_restricted = hsublin.restricted_to_domain(polytopes.hypercube(2)/2)
         sage: h_restricted.plot() # not tested
         sage: len(h_restricted.pairs())
         6
 
         sage: hsquare = PiecewisePolynomial_polyhedral(h_restricted.pairs(), periodic_extension=True)
-        sage: hsquare.plot() # not tested
-        sage: hsquare.limiting_slopes([5,1])
-        [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        sage: hsquare.plot()  # not tested
+        sage: sorted(hsquare.limiting_slopes([5,1]))
+        [(-1, 0), (0, -1), (0, 1), (1, 0)]
         sage: hsquare([5,1])
         0
         sage: hsquare.which_function([5,1], Polyhedron(vertices=[(5,1),(5,3/2),(11/2,3/2)]))

@@ -1,7 +1,11 @@
 # Dual feasible functions
 
-from __future__ import absolute_import
-from sage.all import *
+try:
+    from sage.all__sagemath_polyhedra import *
+    from sage.all__sagemath_symbolics import *
+except ImportError:
+    from sage.all import *
+
 from cutgeneratingfunctionology.igp import *
 
 dff_dir =  os.path.dirname(__file__)

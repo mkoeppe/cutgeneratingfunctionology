@@ -862,8 +862,8 @@ class ParametricRealField(Field):
             # We use two different normalizations for the univariate and the multivariate case,
             # just to match the behavior of factor() for the doctests.
             # if self.ngens() == 1 can't distinguish between the two, as we know use sym_ring = PolynomialRing(QQ, names, len(names)).
-            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-            if is_PolynomialRing(self._sym_field.ring()):
+            from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
+            if isinstance(self._sym_field.ring(), PolynomialRing_general):
                 unit = abs(comparison.numerator().lc())
             else:
                 the_lcm = lcm([coeff.denominator() for coeff in numerator.coefficients()])

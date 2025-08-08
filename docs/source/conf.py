@@ -28,9 +28,12 @@ import os
 from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
 
 try:
-    import sage.all
+    import sage.all__sagemath_polyhedra
 except ImportError:
-    raise RuntimeError("to build the documentation you need to be inside a Sage shell (run first the command 'sage -sh' in a shell")
+    try:
+        import sage.all
+    except ImportError:
+        raise RuntimeError("to build the documentation you need to be inside a Sage shell (run first the command 'sage -sh' in a shell")
 
 from sage.misc.latex_macros import sage_mathjax_macros
 
@@ -436,6 +439,11 @@ for macro in sage_latex_macros():
 
 ## The following is needed on conda-forge sagemath
 from sage.repl.user_globals import initialize_globals
-import sage.all
 my_globs = dict()
-initialize_globals(sage.all, my_globs)
+
+try:
+    import sage.all__sagemath_polyhedra
+    initialize_globals(sage.all__sagemath_polyhedra, my_globs)
+except ImportError:
+    import sage.all
+    initialize_globals(sage.all, my_globs)

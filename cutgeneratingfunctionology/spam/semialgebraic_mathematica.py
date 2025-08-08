@@ -9,7 +9,9 @@ from sage.interfaces.mathematica import mathematica
 import operator
 from sage.modules.free_module_element import vector
 from sage.rings.polynomial.polynomial_ring import polygen
-from sage.rings.all import QQ, AA, RIF
+from sage.rings.rational_field import Q as QQ
+from sage.rings.qqbar import AA
+from sage.rings.real_mpfi import RIF
 
 class BasicSemialgebraicSet_mathematica(BasicSemialgebraicSet_eq_lt_le_sets):
     """
