@@ -1513,9 +1513,15 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
     if field is None:
         field = default_field
     # global symb_values
-    symb_values = bkpt + slopes + values
-    field_values = nice_field_values(symb_values, field)
-    bkpt, slopes, values = field_values[0:len(bkpt)], field_values[len(bkpt):len(bkpt)+len(slopes)], field_values[-len(values):]
+    if slopes is None:
+        symb_values = bkpt + values
+        field_values = nice_field_values(symb_values, field)
+        bkpt, values = field_values[0:len(bkpt)], field_values[-len(values):]
+        slopes = [(values[i+1]-values[i])/(bkpt[i+1]-bkpt[i]) if bkpt[i+1] != bkpt[i] else 0 for i in range(len(bkpt)-1)] 
+    else:
+        symb_values = bkpt + slopes + values
+        field_values = nice_field_values(symb_values, field)
+        bkpt, slopes, values = field_values[0:len(bkpt)], field_values[len(bkpt):len(bkpt)+len(slopes)], field_values[-len(values):]
     intercepts = [ values[i] - slopes[i]*bkpt[i] for i in range(len(slopes)) ]
     # Make numbers nice
     ## slopes = [ canonicalize_number(slope) for slope in slopes ]
@@ -1546,8 +1552,7 @@ def piecewise_function_from_breakpoints_and_values(bkpt, values, field=None, mer
     """
     if len(bkpt)!=len(values):
         raise ValueError("Need to have the same number of breakpoints and values.")
-    slopes = [ (values[i+1]-values[i])/(bkpt[i+1]-bkpt[i]) if bkpt[i+1] != bkpt[i] else 0 for i in range(len(bkpt)-1) ]
-    return piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, field, merge=merge)
+    return piecewise_function_from_breakpoints_slopes_and_values(bkpt, None, values, field, merge=merge)
 
 def piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=None, merge=True):
     r"""
