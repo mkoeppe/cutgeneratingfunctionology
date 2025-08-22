@@ -174,7 +174,6 @@ class ParametricRealField(Field):
         True
         sage: b <= 11
     True
-
     """
     Element = ParametricRealFieldElement
 
@@ -859,14 +858,24 @@ class ParametricRealField(Field):
             try:
                 comparison_val = comparison.val()
             except FactorUndetermined:
-                comparison_val = None
+                # partial test point evaluation; assume evaluation is true
+                # so record the assumed factor in the BSA
+                # it is the responsibility of the BSA to know if it is empty or not
+                # most implementations of BSAs cannot do this for non-linear cases.
+                assumed_fac = self._partial_eval_factor(comparison)
+                if not is_factor_known(assumed_fac):
+                    record_comparision(assumed_fac, op)
+                    return
             comparison = comparison.sym()
         else:
             comparison = self._sym_field(comparison)
             try:
                 comparison_val = self._eval_factor(comparison)
             except FactorUndetermined:
-                comparison_val = None
+                assumed_fac = self._partial_eval_factor(comparison)
+                if not is_factor_known(assumed_fac):
+                    record_comparision(assumed_fac, op)
+                    return
         if comparison_val is not None:
             if not op(comparison_val, 0):
                 if comparison in base_ring:
