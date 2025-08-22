@@ -562,6 +562,28 @@ class ParametricRealField(Field):
             except TypeError:             # 'None' components
                 pass
         raise FactorUndetermined("{} cannot be evaluated because the test point is not complete".format(fac))
+        
+    def _partial_eval_factor(self, fac):
+        """
+        Partially evaluate ``fac`` on the test point.
+        
+        This function is only intended to be called after ``FactorUndetermined`` is raised from ``_eval_factor``.
+        """
+        val_dict = {sym:val for sym, val zip([symb.sym() for symb in self._gens], self._values) if val is not None}
+        return fac.subs(val_dict)
+
+#        Returns a symbolic expression or raises an ``EvaluationSuccessfulFlag``.
+#        Receiving an ``EvaluationSuccessfulFlag`` means ``fac`` can be evaluated with the known values of the 
+#        test point.            
+#        base_ring = self._sym_field.base_ring()
+#        if fac in base_ring:
+#            raise EvaluationSuccessfulFlag("{} can be evaluated in the base_ring. Use _eval_factor instead.".format(fac))
+#        try:
+#            fac(self._values)
+#            raise EvaluationSuccessfulFlag("{} can be evaluated with the test point. Use _eval_factor instead.".format(fac))
+#        except TypeError:  
+#            val_dict = {sym:val for sym, val zip([symb.sym() for symb in self._gens], self._values) if val is not None}
+#            return fac.subs(val_dict)
 
     def _factor_sign(self, fac):
         """
