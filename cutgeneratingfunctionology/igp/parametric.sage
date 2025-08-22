@@ -158,25 +158,22 @@ class ParametricRealField(Field):
         sage: f[0]*f[1] <= 4
         True
 
-    Test-point free mode (limited functionality and MUCH slower because of many more polynoial
-    evaluations via libsingular)::
+    Test-point free descriptions can be written which every comparison is assumed to be true. 
+    MUCH slower because of many more polynoial evaluations via libsingular::
 
         sage: K.<a, b> = ParametricRealField(None, mutable_values=True)
         sage: a <= 2
-        Traceback (most recent call last):
-        ...
-        FactorUndetermined: a cannot be evaluated because the test point is not complete
+        True
         sage: K.assume_comparison(a.sym(), operator.le, 3)
 
-    Partial test point mode::
+    Comparisons with test-points that are partially defined are supported. Comparisons made in
+    unspecified variables are assumed to be true::
 
         sage: K.<a, b> = ParametricRealField([None, 1], mutable_values=True)
         sage: a <= 2
-        Traceback (most recent call last):
-        ...
-        FactorUndetermined: a cannot be evaluated because the test point is not complete
-        sage: b <= 11
         True
+        sage: b <= 11
+    True
 
     """
     Element = ParametricRealFieldElement
