@@ -9,6 +9,7 @@ from sage.structure.richcmp import richcmp, op_LT, op_LE, op_EQ, op_NE, op_GT, o
 from sage.rings.real_mpfr import RR
 from sage.functions.other import ceil, floor
 from sage.functions.generalized import sign
+from cutgeneratingfunctionology.shared.EvaluationExceptions import FactorUndetermined
 import operator
 
 def richcmp_op_negation(op):
@@ -20,7 +21,7 @@ def richcmp_op_negation(op):
         return op_NE
     elif op == op_NE:
         return op_EQ
-    elif op == op_GT:
+    elif op == op_GT:s
         return op_LE
     elif op == op_GE:
         return op_LT

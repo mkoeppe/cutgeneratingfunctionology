@@ -20,6 +20,7 @@ from cutgeneratingfunctionology.spam.basic_semialgebraic_local import BasicSemia
 from cutgeneratingfunctionology.spam.semialgebraic_mathematica import BasicSemialgebraicSet_mathematica, from_mathematica
 from cutgeneratingfunctionology.spam.basic_semialgebraic_groebner_basis import BasicSemialgebraicSet_groebner_basis
 from cutgeneratingfunctionology.spam.polyhedral_complex import PolyhedralComplex
+from cutgeneratingfunctionology.shared.EvaluationExceptions import FactorUndetermined
 from .parametric_family import Classcall, ParametricFamily_base, ParametricFamily
 
 debug_new_factors = False
@@ -57,9 +58,6 @@ class ParametricRealFieldRefinementError(ValueError):
     pass
 
 from contextlib import contextmanager
-
-class FactorUndetermined(Exception):
-    pass
 
 allow_refinement_default = True
 big_cells_default = 'if_not_allow_refinement'
