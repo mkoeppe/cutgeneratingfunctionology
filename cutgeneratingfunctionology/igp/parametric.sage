@@ -565,7 +565,9 @@ class ParametricRealField(Field):
         
         This function is only intended to be called after ``FactorUndetermined`` is raised from ``_eval_factor``.
         """
-        val_dict = {sym:val for sym, val zip([symb.sym() for symb in self._gens], self._values) if val is not None}
+        syms = [symb.sym() for symb in self._gens]
+        val_dict = {sym:val for sym, val in zip(syms , self._values) if val is not None}
+        print(val_dict)
         return fac.subs(val_dict)
 
 #        Returns a symbolic expression or raises an ``EvaluationSuccessfulFlag``.
