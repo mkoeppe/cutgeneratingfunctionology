@@ -21,7 +21,7 @@ def richcmp_op_negation(op):
         return op_NE
     elif op == op_NE:
         return op_EQ
-    elif op == op_GT:s
+    elif op == op_GT:
         return op_LE
     elif op == op_GE:
         return op_LT
@@ -77,9 +77,13 @@ class ParametricRealFieldElement(FieldElement):
     def val(self):
         try:
             return self._val
-        except AttributeError:
-            return self.parent()._eval_factor(self._sym)
-
+        except AttributeError: # with imutable values, this fales because we get some hash map weirdness
+            try:
+                return self.parent()._eval_factor(self._sym)
+            except FactorUndetermined:
+                possible_val = self.parent()._partial_eval_factor(self._sym)
+                if possible_val in possible_val.base_ring():
+                    return possible_val
     def _richcmp_(left, right, op):
         r"""
         Examples for traditional cmp semantics::
@@ -127,7 +131,10 @@ class ParametricRealFieldElement(FieldElement):
             # shouldn't really happen, within coercion
             raise TypeError("comparing elements from different fields")
         if left.parent()._big_cells:
-            result = richcmp(left.val(), right.val(), op)
+            try:
+                result = richcmp(left.val(), right.val(), op)
+            except FactorUndetermined:
+                result = True
             if result:
                 true_op = op
             else:

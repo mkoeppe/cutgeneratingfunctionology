@@ -563,9 +563,7 @@ class ParametricRealField(Field):
         
         This function is only intended to be called after ``FactorUndetermined`` is raised from ``_eval_factor``.
         """
-        syms = [symb.sym() for symb in self._gens]
-        val_dict = {sym:val for sym, val in zip(syms , self._values) if val is not None}
-        print(val_dict)
+        val_dict = {sym:val for sym, val in zip(fac.parent().gens() , self._values) if val is not None}
         return fac.subs(val_dict)
 
 #        Returns a symbolic expression or raises an ``EvaluationSuccessfulFlag``.
@@ -858,14 +856,21 @@ class ParametricRealField(Field):
             try:
                 comparison_val = comparison.val()
             except FactorUndetermined:
-                # partial test point evaluation; assume evaluation is true
-                # so record the assumed factor in the BSA
-                # it is the responsibility of the BSA to know if it is empty or not
-                # most implementations of BSAs cannot do this for non-linear cases.
+                # Partial test point evaluation assumes the partially
+                # evaluated factor is True.
+                # So, we record the assumed factor in the BSA without checking if the factor
+                # should be addeded or not. 
+                # It becomes the responsibility of the BSA to detemined if the recorded factors
+                # so far repersent a non-empty BSA.
+                # Most implementations of BSAs cannot do this for non-linear cases.
+                # With a BSA that is equipped with a first order logic solver like QPEAD
+                # should be able to do this. 
                 assumed_fac = self._partial_eval_factor(comparison)
-                if not is_factor_known(assumed_fac):
-                    record_comparision(assumed_fac, op)
-                    return
+                self.record_factor(assumed_fac, op)
+                print(assumed_fac)
+                if  self._bsa.is_empty():
+                    raise ParametricRealFieldInconsistencyError("Assumed constraint {} derivied from the comparision {} {} {} is inconsistent with already recoreded constraints".format(assumed_fac, lhs, op, rhs))
+                return
             comparison = comparison.sym()
         else:
             comparison = self._sym_field(comparison)
@@ -873,8 +878,9 @@ class ParametricRealField(Field):
                 comparison_val = self._eval_factor(comparison)
             except FactorUndetermined:
                 assumed_fac = self._partial_eval_factor(comparison)
-                if not is_factor_known(assumed_fac):
-                    record_comparision(assumed_fac, op)
+                if not self.is_factor_known(assumed_fac, op):
+                    self.record_factor(assumed_fac, op)
+                    print("here", assumed_fac)
                     return
         if comparison_val is not None:
             if not op(comparison_val, 0):
