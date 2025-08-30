@@ -77,7 +77,7 @@ class ParametricRealFieldElement(FieldElement):
     def val(self):
         try:
             return self._val
-        except AttributeError: # with imutable values, this fales because we get some hash map weirdness
+        except AttributeError:
             try:
                 return self.parent()._eval_factor(self._sym)
             except FactorUndetermined:
