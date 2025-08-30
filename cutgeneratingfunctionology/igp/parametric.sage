@@ -162,7 +162,8 @@ class ParametricRealField(Field):
         sage: K.<a, b> = ParametricRealField(None, mutable_values=True)
         sage: a <= 2
         True
-        sage: K.assume_comparison(a.sym(), operator.le, 3)
+        sage: K.<a, b> = ParametricRealField(None, mutable_values=True)
+        sage: K.assume_comparison(a.sym(), operator.le, 2)
 
     Comparisons with test-points that are partially defined are supported. Comparisons made in
     unspecified variables are assumed to be true::
@@ -312,7 +313,7 @@ class ParametricRealField(Field):
             sage: sqrt2, = nice_field_values([sqrt(2)])
             sage: K.<f> = ParametricRealField([0], base_ring=sqrt2.parent())
             sage: f + sqrt2
-            (f + (a))~
+            (f + a)~
 
         This currently does not work for Sage's built-in embedded number field elements...
         """
@@ -404,9 +405,7 @@ class ParametricRealField(Field):
             ....:     with K.temporary_assumptions():
             ....:         K.assume_comparison(a.sym(), operator.le, 3)
             ....:         a <= 4
-            Traceback (most recent call last):
-            ...
-            FactorUndetermined: a cannot be evaluated because the test point is not complete...
+            True
         """
         self._values = [ None for n in self._names ]
 
@@ -872,11 +871,11 @@ class ParametricRealField(Field):
                     raise ParametricRealFieldInconsistencyError("New constraint {} {}  {} is not satisfied by the test point".format(lhs, op, rhs))
         else: #A numerical evaluation of the expression has failed. Assume the partial evaluation of the expression holds.
             comparison_val_or_expr =  self._partial_eval_factor(comparison)
-            if not op(comparison_val_or_expr, 0):  #The partial evual
-                if comparison_val_or_expr in base_ring:
+            if comparison_val_or_expr in base_ring:
+                if not op(comparison_val_or_expr, 0):  #The partial evaluation is ture, means
                     raise ParametricRealFieldInconsistencyError("New constant constraint {} {} {} is not satisfied".format(lhs, op, rhs))
-                else: # comparision_val_or_expr is algebraic expresion, the only "true" comparision here is comparionsion val_or_expr
-                    comparison = comparison_val_or_expr
+            else: # comparision_val_or_expr is algebraic expresion, asume the  comparision here is comparionsion_val_or_expr
+                comparison = comparison_val_or_expr
         if comparison in base_ring:
             return
         if comparison.denominator() == 1 and comparison.numerator().degree() == 1:

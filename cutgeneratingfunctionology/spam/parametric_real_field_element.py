@@ -133,7 +133,7 @@ class ParametricRealFieldElement(FieldElement):
         if left.parent()._big_cells:
             try:
                 result = richcmp(left.val(), right.val(), op)
-            except FactorUndetermined:
+            except FactorUndetermined: # Partial evauation is happen, assume the result is True.
                 result = True
             if result:
                 true_op = op
