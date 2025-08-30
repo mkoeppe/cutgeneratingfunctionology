@@ -171,7 +171,7 @@ class ParametricRealField(Field):
         sage: a <= 2
         True
         sage: b <= 11
-    True
+        True
     """
     Element = ParametricRealFieldElement
 
@@ -856,38 +856,27 @@ class ParametricRealField(Field):
             try:
                 comparison_val = comparison.val()
             except FactorUndetermined:
-                # Partial test point evaluation assumes the partially
-                # evaluated factor is True.
-                # So, we record the assumed factor in the BSA without checking if the factor
-                # should be addeded or not. 
-                # It becomes the responsibility of the BSA to detemined if the recorded factors
-                # so far repersent a non-empty BSA.
-                # Most implementations of BSAs cannot do this for non-linear cases.
-                # With a BSA that is equipped with a first order logic solver like QPEAD
-                # should be able to do this. 
-                assumed_fac = self._partial_eval_factor(comparison)
-                self.record_factor(assumed_fac, op)
-                print(assumed_fac)
-                if  self._bsa.is_empty():
-                    raise ParametricRealFieldInconsistencyError("Assumed constraint {} derivied from the comparision {} {} {} is inconsistent with already recoreded constraints".format(assumed_fac, lhs, op, rhs))
-                return
+                comparison_val = None
             comparison = comparison.sym()
         else:
             comparison = self._sym_field(comparison)
             try:
                 comparison_val = self._eval_factor(comparison)
             except FactorUndetermined:
-                assumed_fac = self._partial_eval_factor(comparison)
-                if not self.is_factor_known(assumed_fac, op):
-                    self.record_factor(assumed_fac, op)
-                    print("here", assumed_fac)
-                    return
+                comparison_val = None
         if comparison_val is not None:
             if not op(comparison_val, 0):
                 if comparison in base_ring:
                     raise ParametricRealFieldInconsistencyError("New constant constraint {} {} {} is not satisfied".format(lhs, op, rhs))
                 else:
                     raise ParametricRealFieldInconsistencyError("New constraint {} {}  {} is not satisfied by the test point".format(lhs, op, rhs))
+        else: #A numerical evaluation of the expression has failed. Assume the partial evaluation of the expression holds.
+            comparison_val_or_expr =  self._partial_eval_factor(comparison)
+            if not op(comparison_val_or_expr, 0):  #The partial evual
+                if comparison_val_or_expr in base_ring:
+                    raise ParametricRealFieldInconsistencyError("New constant constraint {} {} {} is not satisfied".format(lhs, op, rhs))
+                else: # comparision_val_or_expr is algebraic expresion, the only "true" comparision here is comparionsion val_or_expr
+                    comparison = comparison_val_or_expr
         if comparison in base_ring:
             return
         if comparison.denominator() == 1 and comparison.numerator().degree() == 1:
