@@ -9,6 +9,7 @@ from sage.structure.richcmp import richcmp, op_LT, op_LE, op_EQ, op_NE, op_GT, o
 from sage.rings.real_mpfr import RR
 from sage.functions.other import ceil, floor
 from sage.functions.generalized import sign
+from cutgeneratingfunctionology.shared.EvaluationExceptions import FactorUndetermined
 import operator
 
 def richcmp_op_negation(op):
@@ -77,8 +78,12 @@ class ParametricRealFieldElement(FieldElement):
         try:
             return self._val
         except AttributeError:
-            return self.parent()._eval_factor(self._sym)
-
+            try:
+                return self.parent()._eval_factor(self._sym)
+            except FactorUndetermined:
+                possible_val = self.parent()._partial_eval_factor(self._sym)
+                if possible_val in possible_val.base_ring():
+                    return possible_val
     def _richcmp_(left, right, op):
         r"""
         Examples for traditional cmp semantics::
@@ -126,7 +131,10 @@ class ParametricRealFieldElement(FieldElement):
             # shouldn't really happen, within coercion
             raise TypeError("comparing elements from different fields")
         if left.parent()._big_cells:
-            result = richcmp(left.val(), right.val(), op)
+            try:
+                result = richcmp(left.val(), right.val(), op)
+            except FactorUndetermined: # Partial evauation is happen, assume the result is True.
+                result = True
             if result:
                 true_op = op
             else:

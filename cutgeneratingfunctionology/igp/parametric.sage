@@ -20,6 +20,7 @@ from cutgeneratingfunctionology.spam.basic_semialgebraic_local import BasicSemia
 from cutgeneratingfunctionology.spam.semialgebraic_mathematica import BasicSemialgebraicSet_mathematica, from_mathematica
 from cutgeneratingfunctionology.spam.basic_semialgebraic_groebner_basis import BasicSemialgebraicSet_groebner_basis
 from cutgeneratingfunctionology.spam.polyhedral_complex import PolyhedralComplex
+from cutgeneratingfunctionology.shared.EvaluationExceptions import FactorUndetermined
 from .parametric_family import Classcall, ParametricFamily_base, ParametricFamily
 
 debug_new_factors = False
@@ -57,9 +58,6 @@ class ParametricRealFieldRefinementError(ValueError):
     pass
 
 from contextlib import contextmanager
-
-class FactorUndetermined(Exception):
-    pass
 
 allow_refinement_default = True
 big_cells_default = 'if_not_allow_refinement'
@@ -158,26 +156,23 @@ class ParametricRealField(Field):
         sage: f[0]*f[1] <= 4
         True
 
-    Test-point free mode (limited functionality and MUCH slower because of many more polynoial
-    evaluations via libsingular)::
+    Test-point free descriptions can be written which every comparison is assumed to be true. 
+    MUCH slower because of many more polynoial evaluations via libsingular::
 
         sage: K.<a, b> = ParametricRealField(None, mutable_values=True)
         sage: a <= 2
-        Traceback (most recent call last):
-        ...
-        FactorUndetermined: a cannot be evaluated because the test point is not complete
-        sage: K.assume_comparison(a.sym(), operator.le, 3)
+        True
+        sage: K.<a, b> = ParametricRealField(None, mutable_values=True)
+        sage: K.assume_comparison(a.sym(), operator.le, 2)
 
-    Partial test point mode::
+    Comparisons with test-points that are partially defined are supported. Comparisons made in
+    unspecified variables are assumed to be true::
 
         sage: K.<a, b> = ParametricRealField([None, 1], mutable_values=True)
         sage: a <= 2
-        Traceback (most recent call last):
-        ...
-        FactorUndetermined: a cannot be evaluated because the test point is not complete
+        True
         sage: b <= 11
         True
-
     """
     Element = ParametricRealFieldElement
 
@@ -318,7 +313,7 @@ class ParametricRealField(Field):
             sage: sqrt2, = nice_field_values([sqrt(2)])
             sage: K.<f> = ParametricRealField([0], base_ring=sqrt2.parent())
             sage: f + sqrt2
-            (f + (a))~
+            (f + a)~
 
         This currently does not work for Sage's built-in embedded number field elements...
         """
@@ -410,9 +405,7 @@ class ParametricRealField(Field):
             ....:     with K.temporary_assumptions():
             ....:         K.assume_comparison(a.sym(), operator.le, 3)
             ....:         a <= 4
-            Traceback (most recent call last):
-            ...
-            FactorUndetermined: a cannot be evaluated because the test point is not complete...
+            True
         """
         self._values = [ None for n in self._names ]
 
@@ -562,6 +555,28 @@ class ParametricRealField(Field):
             except TypeError:             # 'None' components
                 pass
         raise FactorUndetermined("{} cannot be evaluated because the test point is not complete".format(fac))
+        
+    def _partial_eval_factor(self, fac):
+        """
+        Partially evaluate ``fac`` on the test point.
+        
+        This function is only intended to be called after ``FactorUndetermined`` is raised from ``_eval_factor``.
+        """
+        val_dict = {sym:val for sym, val in zip(fac.parent().gens() , self._values) if val is not None}
+        return fac.subs(val_dict)
+
+#        Returns a symbolic expression or raises an ``EvaluationSuccessfulFlag``.
+#        Receiving an ``EvaluationSuccessfulFlag`` means ``fac`` can be evaluated with the known values of the 
+#        test point.            
+#        base_ring = self._sym_field.base_ring()
+#        if fac in base_ring:
+#            raise EvaluationSuccessfulFlag("{} can be evaluated in the base_ring. Use _eval_factor instead.".format(fac))
+#        try:
+#            fac(self._values)
+#            raise EvaluationSuccessfulFlag("{} can be evaluated with the test point. Use _eval_factor instead.".format(fac))
+#        except TypeError:  
+#            val_dict = {sym:val for sym, val zip([symb.sym() for symb in self._gens], self._values) if val is not None}
+#            return fac.subs(val_dict)
 
     def _factor_sign(self, fac):
         """
@@ -854,6 +869,13 @@ class ParametricRealField(Field):
                     raise ParametricRealFieldInconsistencyError("New constant constraint {} {} {} is not satisfied".format(lhs, op, rhs))
                 else:
                     raise ParametricRealFieldInconsistencyError("New constraint {} {}  {} is not satisfied by the test point".format(lhs, op, rhs))
+        else: #A numerical evaluation of the expression has failed. Assume the partial evaluation of the expression holds.
+            comparison_val_or_expr =  self._partial_eval_factor(comparison)
+            if comparison_val_or_expr in base_ring:
+                if not op(comparison_val_or_expr, 0):  #The partial evaluation is ture, means
+                    raise ParametricRealFieldInconsistencyError("New constant constraint {} {} {} is not satisfied".format(lhs, op, rhs))
+            else: # comparision_val_or_expr is algebraic expresion, asume the  comparision here is comparionsion_val_or_expr
+                comparison = comparison_val_or_expr
         if comparison in base_ring:
             return
         if comparison.denominator() == 1 and comparison.numerator().degree() == 1:
