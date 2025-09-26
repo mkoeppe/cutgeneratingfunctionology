@@ -3,7 +3,6 @@ import os
 import sys
 from setuptools import setup
 from codecs import open # To open the README file with proper encoding
-# from setuptools.command.test import test as TestCommand # for tests
 
 
 # Get information from separate files (README, VERSION)
