@@ -195,13 +195,17 @@ This method uses the modularized distributions from https://github.com/passagema
 - Install the cutgeneratingfunctionology package using pip::
 
     pip install ".[passagemath]"
+    
+- Start Sagemath preparsed enviroment::
 
-- Start Python::
+    sage
 
-    python3
-
-- At the Python prompt, type::
+- At the Sage prompt, type::
 
     import cutgeneratingfunctionology.igp as igp; from cutgeneratingfunctionology.igp import *
 
 - Follow the instructions and examples in https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/demo.rst or https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/demo.ipynb .
+
+- If the above does not work, ensure passagemath-repl is installed in the current environment::
+
+    pip install passagemath-repl
