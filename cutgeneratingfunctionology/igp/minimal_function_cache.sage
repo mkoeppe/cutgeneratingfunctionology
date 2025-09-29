@@ -4,10 +4,6 @@ from cutgeneratingfunctionology.igp import *
 import csv
 import os
 
-
-ppl_bsa = BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(0), polynomial_map=[], poly_ring=sym_ring, v_dict={})
-pplite_bsa = BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_pplite_NNC_Polyhedron(0), polynomial_map=[], poly_ring=sym_ring, v_dict={})
-
 def mod_one(x):
     if x >= 0:
         return x - int(x)
@@ -17,7 +13,7 @@ def add_breakpoint(bkpt):
     """
     Given a breakpoint sequence, creates a list of breakpoint sequences of length one more such that
     each the breakpoint complex of each breakpoint sequence is not guaranteed to be isomorphic to any
-    other breakpoint sequence in the list. 
+    other breakpoint sequence in the list.
 
 
     INPUT: Assume vector or list of n breakpoints with lambda_0=0 and lambda_i<lambda_i+1<1 (i.e. a breakpoint sequence)
@@ -49,7 +45,7 @@ def make_bkpts_with_len_n(n, k=1, bkpts=None):
     """
     Produce representative elements of every isomorphism class of breakpoints complexes for breakpoint sequences of length n.
 
-    Note, this function does not check that the data input is correct and assume it is being used correctly. 
+    Note, this function does not check that the data input is correct and assume it is being used correctly.
 
     INPUT: n, length of breakpoint sequence, k, length of every element, bkpts, an iterable of breakpoints all of length k.
 
@@ -75,22 +71,18 @@ def make_bkpts_with_len_n(n, k=1, bkpts=None):
 
 def nnc_poly_from_bkpt(bkpt, backend=None):
     n = len(bkpt)
-    if backend is None:
-        bsa = ppl_bsa.copy()
-    if backend == "pplite":
-        bsa = pplite_bsa.copy()
     assert(n >= 2)
     coord_names = []
     bkpt_vals = bkpt
     vals = bkpt_vals[0:n]
     for i in range(0,n):
         coord_names.append('lambda'+str(i))
-    K = ParametricRealField(names=coord_names, values = vals, mutable_values=True, big_cells=True, partial_test_point_mode=True, bsa=bsa)    
+    K = ParametricRealField(names=coord_names, values = vals, mutable_values=True, big_cells=True, partial_test_point_mode=True, default_backend=backend)
     logging.disable(logging.INFO)
     K.gens()[0] == 0
     for i in range(n-1):
         K.gens()[i] < K.gens()[i+1]
-    K.gens()[n-1] < 1    
+    K.gens()[n-1] < 1
     h = piecewise_function_from_breakpoints_and_values([0] + K.gens()[0:n-1] + [1], [0]*(n+1), merge=False)
     for vert in generate_type_1_vertices_continuous(h, operator.ge, [0] + K.gens()[0:n-1] + [1]):
         vert
@@ -153,11 +145,11 @@ class BreakpointComplexClassContainer:
     def write_data(self, output_file_name_style=None, max_rows=None):
         """
         Writes representative element data to a `.csv` file with one column and rows of representative elements.
-        Optionally, write many `.csv` files with at `most max_rows` rows per file. 
+        Optionally, write many `.csv` files with at `most max_rows` rows per file.
         Files are named output_file_file_name_style_filenumber.csv.
         The default output_file_name_style="bkpts_of_len_n".
         """
-        # TODO: Future, support writing different types of data such as polyhedra data. 
+        # TODO: Future, support writing different types of data such as polyhedra data.
         if output_file_name_style is None:
             file_name_base = "bkpts_of_len_{}".format(self._n)
         else:
@@ -205,10 +197,6 @@ def assume_minimality(bkpt, f_index, backend=None):
     OUTPUT: (rep_bkpt, v), a pair of lists of length n with the described property.
     """
     n = len(bkpt)
-    if backend is None:
-        bsa = ppl_bsa.copy()
-    if backend == "pplite":
-        bsa = pplite_bsa.copy()
     assert(n >= 2)
     assert(f_index >= 1)
     assert(f_index <= n - 1)
@@ -220,10 +208,10 @@ def assume_minimality(bkpt, f_index, backend=None):
     for i in range(1,n):
         coord_names.append('gamma'+str(i))
     logging.disable(logging.INFO)
-    K = ParametricRealField(names=coord_names, values = vals, mutable_values=True, big_cells=True, partial_test_point_mode=True, bsa=bsa)
+    K = ParametricRealField(names=coord_names, values = vals, mutable_values=True, big_cells=True, partial_test_point_mode=True, default_backend=backend)
     for i in range(n-1):
         K.gens()[i+n-1] <=1
-        K.gens()[i+n-1] > 0 
+        K.gens()[i+n-1] > 0
     h = piecewise_function_from_breakpoints_and_values([0] + K.gens()[0:n-1] + [1], [0] + K.gens()[n-1:2*n-2] + [0], merge=False)
     for vert in generate_type_1_vertices_continuous(h, operator.ge, [0] + K.gens()[0:n-1] + [1]):
         vert
@@ -244,9 +232,9 @@ def assume_minimality(bkpt, f_index, backend=None):
 
 
 def bsa_of_rep_element(bkpt, vals):
-    """ 
+    """
     Given pi_(bkpt, vals) is {minimal, not minimal}, find BSA subset of R^(2n) such that (bkpt, vals) in BSA and for all p
-    in BSA, pi_p is {minimal, not minimal}. 
+    in BSA, pi_p is {minimal, not minimal}.
 
     INPUT: (bkpt, vals) are lists or vectors of length n and bkpt is a proper breakpoints sequence and vals
     is the corresponding value parameters.
@@ -269,7 +257,7 @@ def bsa_of_rep_element(bkpt, vals):
 
 def find_minimal_function_reps_from_bkpts(bkpts, backend=None):
     """
-    Finds representative elements of minimal functions if they exist from the given breakpoint sequence.  
+    Finds representative elements of minimal functions if they exist from the given breakpoint sequence.
     """
     data = []
     for bkpt in bkpts:
@@ -289,7 +277,7 @@ class PiMinContContainer:
     >>> PiMin_at_most_4_breakpoints = PiMinContContainer(4)
     >>> all([minimality_test(pi) for PiMin_at_most_4_breakpoints.get_rep_functions()])
     True
-    >>> 
+    >>>
     """
     def __init__(self, n, **kwrds):
         self._n = n
@@ -319,12 +307,12 @@ class PiMinContContainer:
             bkpts = make_bkpts_with_len_n(self._n)
             self._data = find_minimal_function_reps_from_bkpts(bkpts, self._backend)
 
-    def __repr__(self): 
+    def __repr__(self):
         return "Space of minimal functions with at most {} breakpoints parameterized by breakpoints and values using semialgebraic sets.".format(self._n)
 
     def get_semialgebraic_sets(self):
         for b, v in self._data:
-            yield bsa_of_rep_element(b, v) 
+            yield bsa_of_rep_element(b, v)
 
     def get_rep_elems(self):
         for b, v in self._data:
@@ -346,11 +334,11 @@ class PiMinContContainer:
     def write_data(self, output_file_name_style=None, max_rows=None):
         """
         Writes representative element data to a `.csv` file with one column and rows of representative elements.
-        Optionally, write many `.csv` files with at `most max_rows` rows per file. 
+        Optionally, write many `.csv` files with at `most max_rows` rows per file.
         Files are named output_file_file_name_style_filenumber.csv.
         The default output_file_name_style="Pi_Min_n".
         """
-        # TODO: Future, support writing different types of data such as polyhedra data. 
+        # TODO: Future, support writing different types of data such as polyhedra data.
         if output_file_name_style is None:
             file_name_base = "Pi_Min_{}".format(self._n)
         else:
@@ -368,5 +356,3 @@ class PiMinContContainer:
                 data_writer.writerow(self._data[max_row * file_number + row])
             out_file.close()
             output_file = file_name_base[:-1]+"{}".format(file_number)
-
-
