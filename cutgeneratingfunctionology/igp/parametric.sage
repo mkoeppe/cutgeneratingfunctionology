@@ -253,7 +253,7 @@ class ParametricRealField(Field):
             # do the computation of the polyhedron incrementally,
             # rather than first building a huge list and then in a second step processing it.
             # the upstairs polyhedron defined by all constraints in self._eq/lt_factor
-            if default_backend = "pplite":
+            if default_backend == "pplite":
                 polyhedron = BasicSemialgebraicSet_polyhedral_pplite_NNC_Polyhedron(0)
             else:
                 polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(0)
