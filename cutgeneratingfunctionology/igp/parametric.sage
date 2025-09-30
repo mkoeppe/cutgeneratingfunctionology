@@ -37,12 +37,12 @@ def bigcellify_igp():
     import cutgeneratingfunctionology.spam.big_cells as big_cells
     big_cells.bigcellify_module(igp)
 
+
 ###############################
 # Parametric Real Number Field
 ###############################
 
 from cutgeneratingfunctionology.spam.parametric_real_field_element import ParametricRealFieldElement, is_parametric_element
-
 from sage.rings.ring import Field
 import sage.rings.number_field.number_field_base as number_field_base
 from sage.structure.coerce_maps import CallableConvertMap
@@ -51,11 +51,14 @@ from sage.structure.coerce_maps import CallableConvertMap
 class ParametricRealFieldFrozenError(ValueError):
     pass
 
+
 class ParametricRealFieldInconsistencyError(ValueError):
     pass
 
+
 class ParametricRealFieldRefinementError(ValueError):
     pass
+
 
 from contextlib import contextmanager
 
@@ -156,7 +159,7 @@ class ParametricRealField(Field):
         sage: f[0]*f[1] <= 4
         True
 
-    Test-point free descriptions can be written which every comparison is assumed to be true. 
+    Test-point free descriptions can be written which every comparison is assumed to be true.
     MUCH slower because of many more polynoial evaluations via libsingular::
 
         sage: K.<a, b> = ParametricRealField(None, mutable_values=True)
@@ -205,7 +208,7 @@ class ParametricRealField(Field):
         self._big_cells = big_cells
 
         self._zero_element = ParametricRealFieldElement(self, 0)
-        self._one_element =  ParametricRealFieldElement(self, 1)
+        self._one_element = ParametricRealFieldElement(self, 1)
         ## REFACTOR: Maybe replace this by an instance of BasicSemialgebraicSet_eq_lt_le_sets - but careful - this class right now assumes polynomials
         self._eq = set([])
         self._lt = set([])
@@ -307,7 +310,7 @@ class ParametricRealField(Field):
             TypeError: unsupported operand parent(s)...
 
         Test that real number field elements can be upgraded to ``ParametricRealFieldElement``s.
-        Note that this requires setting up the ParametricRealField with a specific base ring, 
+        Note that this requires setting up the ParametricRealField with a specific base ring,
         because there is no common parent of QQ(x) and a RealNumberField``::
 
             sage: sqrt2, = nice_field_values([sqrt(2)])
@@ -319,7 +322,7 @@ class ParametricRealField(Field):
         """
         if isinstance(S, ParametricRealField) and self is not S:
             return None
-        if  S is sage.interfaces.mathematica.MathematicaElement or isinstance(S, RealNumberField_absolute) or isinstance(S, RealNumberField_quadratic) or AA.has_coerce_map_from(S):
+        if S is sage.interfaces.mathematica.MathematicaElement or isinstance(S, RealNumberField_absolute) or isinstance(S, RealNumberField_quadratic) or AA.has_coerce_map_from(S):
             # Does the test with MathematicaElement actually work?
             # We test whether S coerces into AA. This rules out inexact fields such as RDF.
             return True
@@ -555,28 +558,15 @@ class ParametricRealField(Field):
             except TypeError:             # 'None' components
                 pass
         raise FactorUndetermined("{} cannot be evaluated because the test point is not complete".format(fac))
-        
+
     def _partial_eval_factor(self, fac):
         """
         Partially evaluate ``fac`` on the test point.
-        
+
         This function is only intended to be called after ``FactorUndetermined`` is raised from ``_eval_factor``.
         """
         val_dict = {sym:val for sym, val in zip(fac.parent().gens() , self._values) if val is not None}
         return fac.subs(val_dict)
-
-#        Returns a symbolic expression or raises an ``EvaluationSuccessfulFlag``.
-#        Receiving an ``EvaluationSuccessfulFlag`` means ``fac`` can be evaluated with the known values of the 
-#        test point.            
-#        base_ring = self._sym_field.base_ring()
-#        if fac in base_ring:
-#            raise EvaluationSuccessfulFlag("{} can be evaluated in the base_ring. Use _eval_factor instead.".format(fac))
-#        try:
-#            fac(self._values)
-#            raise EvaluationSuccessfulFlag("{} can be evaluated with the test point. Use _eval_factor instead.".format(fac))
-#        except TypeError:  
-#            val_dict = {sym:val for sym, val zip([symb.sym() for symb in self._gens], self._values) if val is not None}
-#            return fac.subs(val_dict)
 
     def _factor_sign(self, fac):
         """
@@ -870,7 +860,7 @@ class ParametricRealField(Field):
                 else:
                     raise ParametricRealFieldInconsistencyError("New constraint {} {}  {} is not satisfied by the test point".format(lhs, op, rhs))
         else: #A numerical evaluation of the expression has failed. Assume the partial evaluation of the expression holds.
-            comparison_val_or_expr =  self._partial_eval_factor(comparison)
+            comparison_val_or_expr = self._partial_eval_factor(comparison)
             if comparison_val_or_expr in base_ring:
                 if not op(comparison_val_or_expr, 0):  #The partial evaluation is ture, means
                     raise ParametricRealFieldInconsistencyError("New constant constraint {} {} {} is not satisfied".format(lhs, op, rhs))
@@ -906,7 +896,8 @@ class ParametricRealField(Field):
                         return
         if len(factors) == 1 and factors[0][1] == 1 and comparison_val is not None:
             the_fac, d = factors[0]
-            the_sign = sign(factors.unit() * comparison_val) 
+            the_sign = sign(factors.unit() * comparison_val)
+
             def factor_sign(fac):
                 if fac == the_fac:
                     return the_sign
@@ -1130,7 +1121,7 @@ class ParametricRealField(Field):
     def make_proof_cell(self, **opt):
         r"""
         Make a :class:`SemialgebraicComplexComponent` from a :class:`ParametricRealField`.
-        
+
         In **opt, one can provide: region_type, function, find_region_type, default_var_bound, bddbsa, kwds_dict.
 
         EXAMPLES::
@@ -1232,7 +1223,9 @@ def find_polynomial_map(eqs=[], poly_ring=None):
 # Functions with ParametricRealField K
 ######################################
 
+
 from sage.misc.sageinspect import sage_getargspec, sage_getvariablename
+
 
 def read_default_args(function, **opt_non_default):
     r"""
@@ -1261,7 +1254,7 @@ def read_default_args(function, **opt_non_default):
         default_args = {}
         if defaults is not None:
             for i in range(len(defaults)):
-                default_args[args[-i-1]]=defaults[-i-1]
+                default_args[args[-i-1]] = defaults[-i-1]
     for (opt_name, opt_value) in opt_non_default.items():
         if opt_name in default_args:
             default_args[opt_name] = opt_value
@@ -1422,7 +1415,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
             else:
                 ptcolor = 'white'
             if (xmin <= pt[0] <= xmax) and (ymin <= pt[1] <= ymax):
-                g += point(pt, color = ptcolor, size = 2, zorder=10)
+                g += point(pt, color=ptcolor, size=2, zorder=10)
         return g
 
     def find_neighbour_candidates(self, flip_ineq_step, wall_crossing_method='heuristic', goto_lower_dim=False, pos_poly=None):
@@ -1469,7 +1462,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                 pt = find_point_flip_ineq_heuristic(self.var_value, l, list(bsa.lt_poly())+list(bsa.le_poly()), flip_ineq_step)
                 if pt is not None:
                     # Find a new point, use polynomial map to recover the values of those eliminated variables.
-                    pt_across_wall = tuple(p(pt) for p in self.polynomial_map)                 
+                    pt_across_wall = tuple(p(pt) for p in self.polynomial_map)
             if wall_crossing_method == 'mathematica' or wall_crossing_method == 'heuristic_then_mathematica' and (pt_across_wall is None):
                 bsa_mathematica = bsa.formal_relint(bsa_class='mathematica') # was BasicSemialgebraicSet_mathematica.from_bsa(bsa)
                 bsa_mathematica.add_polynomial_constraint(l, operator.gt)
@@ -1556,7 +1549,9 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
                         if bsa_section.upstairs()._polyhedron.is_empty():
                             has_pt_on_wall = False
                         else:
-                            lts = []; les = []; eqs = []
+                            lts = []
+                            les = []
+                            eqs = []
                             for ll in list(bsa_section.lt_poly()):
                                 factors = ll.factor()
                                 if len(factors) == 1:
@@ -1684,7 +1679,7 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
         sage: C_copy._init_args == C._init_args
         True
 
-    (We do not test for equality C_copy == C -- we have not even decided yet what the semantics 
+    (We do not test for equality C_copy == C -- we have not even decided yet what the semantics
     of equality of bsa is.)
     """
 
@@ -1794,7 +1789,9 @@ class ProofCell(SemialgebraicComplexComponent, Classcall):
         super(ProofCell, self).__init__(K, region_type, bddbsa, polynomial_map)
         self.family = family
 
+
 from collections import OrderedDict
+
 
 class SemialgebraicComplex(SageObject):
     r"""
@@ -1829,7 +1826,7 @@ class SemialgebraicComplex(SageObject):
 
         sage: complex.is_complete()                           # optional - mathematica
         True
-        
+
     Example with non-linear wall::
 
         sage: complex = SemialgebraicComplex(lambda x,y: max(x,y^2), ['x','y'], find_region_type=result_symbolic_expression, default_var_bound=(-3,3))  # optional - mathematica
@@ -1924,7 +1921,7 @@ class SemialgebraicComplex(SageObject):
           to a "type" of the parameter region, for example:
 
           - :func:`find_region_type_igp` (the default). The result of the computation is a Gomory-Johnson
-            function `h`; it is passed to :func:`find_region_type_igp` as 2nd arg, 
+            function `h`; it is passed to :func:`find_region_type_igp` as 2nd arg,
             and then :func:`find_region_type_igp`which classifies the region of the
             parameter by returning one of the strings
             ``'is_constructible'``, ``'not_constructible'``,
@@ -2003,7 +2000,7 @@ class SemialgebraicComplex(SageObject):
         r"""
         Return a random point that satisfies var_bounds and is in self.bsa.
 
-        - If var_bounds is not specified, self.default_var_bound is taken. 
+        - If var_bounds is not specified, self.default_var_bound is taken.
         - var_bounds can be a list of 2-tuples whose length equals to the number of parameters, or lambda functions.
         - It is used in random shooting method for functions like ``dg_2_step_mir``, which involve floor/ceil operations. We try to plot one layer for each n = floor(...) and superimpose the layers at the end to get the whole picture.
 
@@ -2029,11 +2026,11 @@ class SemialgebraicComplex(SageObject):
                     x = QQ(uniform(self.default_var_bound[0], self.default_var_bound[1]))
                 else:
                     if hasattr(var_bounds[i][0], '__call__'):
-                        l =  var_bounds[i][0](*var_value)
+                        l = var_bounds[i][0](*var_value)
                     else:
                         l = var_bounds[i][0]
                     if hasattr(var_bounds[i][1], '__call__'):
-                        u =  var_bounds[i][1](*var_value)
+                        u = var_bounds[i][1](*var_value)
                     else:
                         u = var_bounds[i][1]
                     if l > u:
@@ -2094,12 +2091,12 @@ class SemialgebraicComplex(SageObject):
         for c in self.components:
             if var_value in c.bsa:
                 yield c
-        
+
     def find_uncovered_random_point(self, var_bounds=None, max_failings=10000):
         r"""
         Return a random point that satisfies the bounds and is uncovered by any cells in the complex.
         Return ``None`` if the number of attemps > max_failings.
- 
+
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.igp import *
@@ -2128,7 +2125,7 @@ class SemialgebraicComplex(SageObject):
 
         The argument formal_closure whether inequalities are treated as <= 0 or as < 0.
         If such point does not exist, return ``None``.
- 
+
         EXAMPLES::
 
             sage: from cutgeneratingfunctionology.igp import *
@@ -2205,18 +2202,18 @@ class SemialgebraicComplex(SageObject):
             self.points_to_test[num_eq] = OrderedDict()
             if not num_eq in self.tested_points:
                 self.tested_points[num_eq] = set([])
-        new_component = self._cell_class(self.family, var_value, 
+        new_component = self._cell_class(self.family, var_value,
                                          find_region_type=self.find_region_type, bddbsa=bddbsa, polynomial_map=polynomial_map)
 
         new_num_eq = len(list(new_component.bsa.eq_poly()))
-        if  new_num_eq > num_eq:
-            logging.warning("The cell around %s defined by %s has more equations than boundary %s" %(new_component.var_value, new_component.bsa, bddbsa))
+        if new_num_eq > num_eq:
+            logging.warning("The cell around %s defined by %s has more equations than boundary %s" % (new_component.var_value, new_component.bsa, bddbsa))
             #import pdb; pdb.set_trace()
-            # bsa is lower dimensional as it has more equations than bddbsa, 
+            # bsa is lower dimensional as it has more equations than bddbsa,
             # so we try to perturb the testpoint to obtain a
             # new testpoint in bddbsa that does not fall into a lower dimensional cell.
             # Heuristic code using gradient desecent.  #FIXME.
-            for l in (set(new_component.bsa.eq_poly())- set(bddbsa.eq_poly())):
+            for l in (set(new_component.bsa.eq_poly()) - set(bddbsa.eq_poly())):
                 ineqs = list(new_component.bddbsa.lt_poly())+list(new_component.bddbsa.le_poly())
                 pts = [find_point_flip_ineq_heuristic(var_value, l, ineqs, 1/2017), find_point_flip_ineq_heuristic(var_value, -l, ineqs, 1/2017)]
                 for pt in pts:
@@ -2277,7 +2274,7 @@ class SemialgebraicComplex(SageObject):
         Plot the complex and store the graph.
 
         - If restart is ``False``, plot the newly added cells on top of the last graph; otherwise, start a new graph.
-        - If slice_value is given, it is either a polynomial_map that defines a section, or a list of fixed parameter values with two of them being None. Plot the section. 
+        - If slice_value is given, it is either a polynomial_map that defines a section, or a list of fixed parameter values with two of them being None. Plot the section.
         - plot_points controls the quality of the plotting.
 
         EXAMPLES::
@@ -2333,7 +2330,7 @@ class SemialgebraicComplex(SageObject):
         # # FIXME: zorder is broken in region_plot/ContourPlot.
         # for c in self.components[self.num_plotted_components::]:
         #     num_eq = len(list(c.bsa.eq_poly()))
-        #     gc = c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, default_var_bound=self.default_var_bound, goto_lower_dim=goto_lower_dim, zorder=num_eq, **kwds)  
+        #     gc = c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, default_var_bound=self.default_var_bound, goto_lower_dim=goto_lower_dim, zorder=num_eq, **kwds)
         #     if gc: # need this because (empty g + empty gc) forgets about xmin xmax ymin ymax.
         #         self.graph += gc
         # Workaround.
@@ -2355,11 +2352,11 @@ class SemialgebraicComplex(SageObject):
                         new_bsa.add_polynomial_constraint(l, operator.eq)
                         self.graph += new_bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, color=color, fill_color=color, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         for c in components:
-            if len(list(c.bsa.eq_poly()))==1:
+            if len(list(c.bsa.eq_poly())) == 1:
                 self.graph += c.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, default_var_bound=self.default_var_bound, goto_lower_dim=False, zorder=0, **kwds)
         if goto_lower_dim:
             for c in components:
-                if len(list(c.bsa.eq_poly()))==1:
+                if len(list(c.bsa.eq_poly())) == 1:
                     color = find_region_color(c.region_type)
                     for l in c.bsa.lt_poly():
                         new_bsa = BasicSemialgebraicSet_eq_lt_le_sets(eq=list(c.bsa.eq_poly())+[l], lt=[ll for ll in c.bsa.lt_poly() if ll != l], le=list(c.bsa.le_poly()))
@@ -2369,9 +2366,9 @@ class SemialgebraicComplex(SageObject):
                         new_bsa.add_polynomial_constraint(l, operator.eq)
                         self.graph += new_bsa.plot(alpha=alpha, plot_points=plot_points, slice_value=slice_value, color=color, fill_color=color, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         for c in components:
-            if len(list(c.bsa.eq_poly()))==2:
+            if len(list(c.bsa.eq_poly())) == 2:
                 ptcolor = find_region_color(c.region_type)
-                self.graph += point(c.var_value, color = ptcolor, zorder=10)
+                self.graph += point(c.var_value, color=ptcolor, zorder=10)
         self.num_plotted_components = len(self.components)
         return self.graph
 
@@ -2408,7 +2405,7 @@ class SemialgebraicComplex(SageObject):
         - var_value: the starting point. If not given, start with a random point.
         - flip_ineq_step: a small positive number that controls the step length in wall-crossing.
         - check_completion: When check_completion is ``True``, after bfs terminates, check whether the entire parameter space is covered by cells, using Mathematica's ``FindInstance`` (if max_failings=0) or random shooting (if max_failings>0). If an uncovered point has been found, restart the bfs from this point.
-        - wall_crossing_method: 'mathematica' or 'heuristic' or 'heuristic_then_mathematica' 
+        - wall_crossing_method: 'mathematica' or 'heuristic' or 'heuristic_then_mathematica'
               - wall_crossing_method='heuristic_then_mathematica': try heuristic method first. If it does not find a new testpoint, then use Mathematica.
         - goto_lower_dim: whether lower dimensional cells are considered. If goto_lower_dim is ``False`` or if goto_lower_dim is ``True`` and wall_crossing method is 'heuristic' but the wall is non-linear, then find new testpoint across the wall only.
 
@@ -2462,10 +2459,10 @@ class SemialgebraicComplex(SageObject):
                 uncovered_pt = self.find_uncovered_random_point(max_failings=max_failings)
             if uncovered_pt is not None:
                 logging.warning("After bfs, the complex has uncovered point %s." % (uncovered_pt,))
-                self.bfs_completion(var_value=uncovered_pt, \
-                                    flip_ineq_step=flip_ineq_step, \
-                                    check_completion=check_completion, \
-                                    wall_crossing_method=wall_crossing_method, \
+                self.bfs_completion(var_value=uncovered_pt,
+                                    flip_ineq_step=flip_ineq_step,
+                                    check_completion=check_completion,
+                                    wall_crossing_method=wall_crossing_method,
                                     goto_lower_dim=goto_lower_dim)
 
     def is_complete(self, formal_closure=False):
@@ -2567,9 +2564,9 @@ def gradient(ineq):
         [3*z^2 + 6*z]
     """
     if hasattr(ineq, 'gradient'):
-       return ineq.gradient()
+        return ineq.gradient()
     else:
-       return [ineq.derivative()]
+        return [ineq.derivative()]
 
 ####################################
 # Find region type and region color
@@ -2702,8 +2699,8 @@ def return_result(field, result):
 def result_concrete_value(field, result):
     r"""
     Return the concrete values in result as a tuple. See also ``result_symbolic_expression()``.
- 
-    This function can provided to ``find_region_type`` when setting up a :class:`SemialgebraicComplex`. 
+
+    This function can provided to ``find_region_type`` when setting up a :class:`SemialgebraicComplex`.
     In this way, one can compare result of type :class:`ParametricRealFieldElement` or list of :class:`ParametricRealFieldElement`
     with the previous elements in ``region_type_color_map`` which do not necessarily have the same parent.
 
@@ -2725,8 +2722,8 @@ def result_concrete_value(field, result):
 def result_symbolic_expression(field, result):
     r"""
     Return the symbolic expressions in result as a tuple
- 
-    This function can provided to ``find_region_type`` when setting up a :class:`SemialgebraicComplex`. 
+
+    This function can provided to ``find_region_type`` when setting up a :class:`SemialgebraicComplex`.
     In this way, one can compare result of type :class:`ParametricRealFieldElement` or list of :class:`ParametricRealFieldElement`
     with the previous elements in ``region_type_color_map`` which do not necessarily have the same parent.
 
@@ -2750,7 +2747,7 @@ def result_symbolic_expression(field, result):
         sage: vol1 == vol2
         False
         sage: sym_exp1 == sym_exp2
-        True    
+        True
     """
     symbolic_expression = tuple(elt._sym if hasattr(elt, '_sym') else elt for elt in flatten([result]))
     return symbolic_expression
@@ -2775,7 +2772,7 @@ def find_region_type_igp_extreme_big_cells(K, h):
         h = copy(hcopy)
         for x in h.values_at_end_points():
             if (x < 0) or (x > 1):
-                is_extreme  = False
+                is_extreme = False
                 break
     if not is_extreme:
         assert (x < 0) or (x > 1)
@@ -2821,7 +2818,7 @@ def find_region_type_igp_extreme_big_cells(K, h):
         ucs = generate_uncovered_components(h)
         f = find_f(h)
         for uncovered_pt in [f/2, (f+1)/2]:
-            if any((i[0] == uncovered_pt or i[1] == uncovered_pt) for uc in ucs for i in uc if len(uc)==2):
+            if any((i[0] == uncovered_pt or i[1] == uncovered_pt) for uc in ucs for i in uc if len(uc) == 2):
                 uncovered_pts = [uncovered_pt]
                 is_extreme = False
                 break
@@ -2855,7 +2852,8 @@ def find_region_type_igp_extreme_big_cells(K, h):
         return False
     return True
 
-region_type_color_map = [('not_constructible', 'lightgrey'), ('is_constructible', 'black'), ('not_minimal', 'orange'), ('is_minimal', 'darkgrey'),('not_extreme', 'green'), ('is_extreme', 'blue'), ('stop', 'grey'), (True, 'blue'), (False, 'red'), ('constructible', 'darkgrey'), ('extreme', 'red')]
+
+region_type_color_map = [('not_constructible', 'lightgrey'), ('is_constructible', 'black'), ('not_minimal', 'orange'), ('is_minimal', 'darkgrey'), ('not_extreme', 'green'), ('is_extreme', 'blue'), ('stop', 'grey'), (True, 'blue'), (False, 'red'), ('constructible', 'darkgrey'), ('extreme', 'red')]
 
 def find_region_color(region_type):
     r"""
@@ -2900,11 +2898,11 @@ def color_of_ith_region_type(i):
 
 def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_step):
     r"""
-    The current_var_value satisfies that l(current_var_value) <= 0 for l=ineq and for every l in ineqs, 
+    The current_var_value satisfies that l(current_var_value) <= 0 for l=ineq and for every l in ineqs,
     where ineq is a polynomial and ineqs is a list of polynomials.
 
     Use heuristic method (gradient descent method with given small positive step length flip_ineq_step)
-    to find a new_point (type is tuple) such that 
+    to find a new_point (type is tuple) such that
     ineq(new_point) > 0, l(new_point) < 0 for all l in ineqs
     Return new_point, or ``None`` if it fails to find one.
 
@@ -3010,7 +3008,7 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
             ineq_value = ineq(*current_point)
             try_before_fail -= 1
             # print (current_point, RR(ineq_value))
-    try_before_fail =  max(ceil(2/flip_ineq_step), 2000)  # define maximum number of walks. Considered ceil(-2 * ineq_value /flip_ineq_step) but it is too slow in the impossible cases. Added a loop with 2000 times step length when ineq_value is very negative.
+    try_before_fail = max(ceil(2/flip_ineq_step), 2000)  # define maximum number of walks. Considered ceil(-2 * ineq_value /flip_ineq_step) but it is too slow in the impossible cases. Added a loop with 2000 times step length when ineq_value is very negative.
     while (ineq_value <= 1e-10) and (try_before_fail > 0):
         ineq_direction = vector(g(*current_point) for g in ineq_gradient)
         if ineq.degree() == 1:
@@ -3034,8 +3032,8 @@ def find_point_flip_ineq_heuristic(current_var_value, ineq, ineqs, flip_ineq_ste
 
 def adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineqs, flip_ineq_step):
     r"""
-    Walk from current_point (type=vector) in the direction perpendicular to 
-    the gradient of ineq with small positive step length flip_ineq_step, 
+    Walk from current_point (type=vector) in the direction perpendicular to
+    the gradient of ineq with small positive step length flip_ineq_step,
     while maintaining the value of ineq(*current_point) which is >= 0.
     until get a new point such that l(new point)<0 for all l in strict_ineqs and l(new point)<=0 for all l in nonstrict_ineqs
 
@@ -3057,7 +3055,7 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineq
         sage: pt = adjust_pt_to_satisfy_ineqs(vector([11/8, 7/8]), a+b-2, [-a+b^2], [a-1], 1/4); pt is None
         True
 
-    Bug example in cpl Cell 9 with test point (499/1250, 488072439572/4866126017667). Without converting input to QQ, output was (0.333000000000000, 0.111333333333333) with  -2*f - 3*z + 1 = -5.55111512312578e-17 , the QQ of the output=(333/1000, 167/1500) has -2*f - 3*z + 1 == 0. Revise the code to take QQ input current point:: 
+    Bug example in cpl Cell 9 with test point (499/1250, 488072439572/4866126017667). Without converting input to QQ, output was (0.333000000000000, 0.111333333333333) with  -2*f - 3*z + 1 = -5.55111512312578e-17 , the QQ of the output=(333/1000, 167/1500) has -2*f - 3*z + 1 == 0. Revise the code to take QQ input current point::
 
         sage: P.<f,z>=QQ[]
         sage: current_point = vector([0.333000000000000, 0.100300000000000]); ineq = -3*f + 1; strict_ineqs = [2*f + 2*z - 1, f + 5*z - 1, -f - 6*z + 1, -2*f - 3*z + 1]; nonstrict_ineqs = []; flip_ineq_step = 1/1000
@@ -3076,8 +3074,8 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineq
 
     Bug example in cpl bigcell 16 with test point (12219/26000, 24/1625). Redo with QQ had infinite loop. Bug comes from find_neighbour_point where it calls bsa_section.upstairs()._polyhedron.is_empty(), which is not strong enough. If we could test bsa_section is empty (perhaps by tighten_upstairs_by_mccormick), then this example should not appear::
 
-        sage: P.<f,z>=QQ[]; 
-        sage: current_point = vector((71582788/143165577, 4673/377000)) # came from vector((RR(70727/150800), RR(4673/377000))), 
+        sage: P.<f,z>=QQ[];
+        sage: current_point = vector((71582788/143165577, 4673/377000)) # came from vector((RR(70727/150800), RR(4673/377000))),
         sage: ineq=None; strict_ineqs=[2*f - 1, -9*f + 2]; nonstrict_ineqs=[4*f^2 - 4*f + 1]; flip_ineq_step=1/1000
         sage: pt = adjust_pt_to_satisfy_ineqs(current_point, None, strict_ineqs, nonstrict_ineqs, flip_ineq_step=1/1000); pt is None #long time
         True
@@ -3092,7 +3090,7 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineq
     #current_point is a vector
     if ineq is not None:
         ineq_gradient = gradient(ineq)
-    if all(x.parent()==QQ for x in current_point):
+    if all(x.parent() == QQ for x in current_point):
         max_walks = min(ceil(2/flip_ineq_step), 20)
     else:
         max_walks = min(ceil(2/flip_ineq_step), 200) #1000? # define maximum number of walks.
@@ -3154,7 +3152,7 @@ def adjust_pt_to_satisfy_ineqs(current_point, ineq, strict_ineqs, nonstrict_ineq
             return None
     if ineq is not None and ineq(*current_point) < 0:
         return None
-    if all(x.parent()==QQ for x in current_point):
+    if all(x.parent() == QQ for x in current_point):
         return tuple(current_point)
     else:
         prec = 30  # We hope to have small denominator for the new point, so we set precision in bits = 30 is about 8 digits.
@@ -3215,13 +3213,14 @@ def embed_function_into_family(given_function, parametric_family, check_completi
         var_name = []
         var_value = []
         for (name, value) in default_args.items():
-            if not isinstance(value, bool) and not value is None:
+            if not isinstance(value, bool) and value is not None:
                 try:
                     RR(value)
                     var_name.append(name)
                     var_value.append(value)
                 except:
                     pass
+
     def frt(K, h):
         if h is None:
             return False
@@ -3263,6 +3262,7 @@ def embed_function_into_family(given_function, parametric_family, check_completi
             is_complete = True
     # plot_cpl_components(complex.components)
     return {}
+
 
 """
 EXAMPLES::
