@@ -1344,7 +1344,7 @@ class SemialgebraicComplexComponent(SageObject):    # FIXME: Rename this to be m
         # In lower dim proof cell or non-linear equations case, some equations of K._bsa are not presented in polynomial_map.
         eqs = list(K._bsa.eq_poly())
         if not all(l(polynomial_map) == 0 for l in eqs):
-            polynomial_map = find_polynomial_map(eqs=eqs, poly_ring=poly_ring)fv
+            polynomial_map = find_polynomial_map(eqs=eqs, poly_ring=poly_ring)
             #self.bsa = K._bsa.section(polynomial_map, bsa_class='veronese', poly_ring=poly_ring)  # this is a bigger_bsa
             self.bsa = BasicSemialgebraicSet_veronese.from_bsa(BasicSemialgebraicSet_local(K._bsa.section(polynomial_map, poly_ring=poly_ring), self.var_value)) # TODO:, polynomial_map=list(poly_ring.gens()))
             # WHY is this input polynomial_map sometimes not compatible with the variable elimination done in bddbsa?

@@ -88,7 +88,7 @@ class ParametricRealFieldElement(FieldElement):
                 if possible_val in possible_val.base_ring():
                     return possible_val
                 else:
-                    raise FactorUndetermined.("{} cannot be evaluated because the test point is not complete".format(self.sym()))
+                    raise FactorUndetermined("{} cannot be evaluated because the test point is not complete".format(self.sym()))
 
     def _richcmp_(left, right, op):
         r"""
