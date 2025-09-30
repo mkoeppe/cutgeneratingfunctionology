@@ -181,7 +181,7 @@ class ParametricRealField(Field):
 
     def __init__(self, values=None, names=None, allow_coercion_to_float=True,
                  mutable_values=None, allow_refinement=None, big_cells=None,
-                 base_ring=None, sym_ring=None, bsa=None):
+                 base_ring=None, sym_ring=None, bsa=None, default_backend=None):
         Field.__init__(self, self)
 
         if mutable_values is None:
@@ -251,7 +251,10 @@ class ParametricRealField(Field):
             # do the computation of the polyhedron incrementally,
             # rather than first building a huge list and then in a second step processing it.
             # the upstairs polyhedron defined by all constraints in self._eq/lt_factor
-            polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(0)
+            if default_backend == "pplite":
+                polyhedron = BasicSemialgebraicSet_polyhedral_pplite_NNC_Polyhedron(0)
+            else:
+                polyhedron = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(0)
             # monomial_list records the monomials that appear in self._eq/lt_factor.
             # v_dict is a dictionary that maps each monomial to the index of its corresponding Variable in polyhedron
             bsa = BasicSemialgebraicSet_veronese(polyhedron, polynomial_map=[], poly_ring=sym_ring, v_dict={})
@@ -2099,6 +2102,7 @@ class SemialgebraicComplex(SageObject):
     def find_uncovered_random_point(self, var_bounds=None, max_failings=10000):
         r"""
         Return a random point that satisfies the bounds and is uncovered by any cells in the complex.
+
         Return ``None`` if the number of attempts > max_failings.
 
         EXAMPLES::
