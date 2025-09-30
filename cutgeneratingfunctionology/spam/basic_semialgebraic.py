@@ -750,13 +750,13 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
                 section = self.section(slice_value)
             else:
                 raise NotImplementedError("Plotting with dimension not equal to 2 is not implemented.")
-            return section.plot(alpha=alpha, plot_points=plot_points, slice_value=None,
+            return BasicSemialgebraicSet_veronese.from_bsa(section).plot(alpha=alpha, plot_points=plot_points, slice_value=None,
                                 color=color, fill_color=fill_color,
                                 constraints_color=constraints_color,
                                 constraints_fill_color=constraints_fill_color,
                                 eq_constraints_kwds=eq_constraints_kwds,
                                 le_constraints_kwds=le_constraints_kwds,
-                                lt_constraints_kwds=lt_constraints_kwds, **kwds)
+                                lt_constraints_kwds=lt_constraints_kwds, **kwds) # use a BSA that can prove emptiness and reduce inequalities
         g = Graphics()
         for bv in 'xmin', 'xmax', 'ymin', 'ymax':
             b = kwds.get(bv, None)
@@ -784,33 +784,35 @@ class BasicSemialgebraicSet_base(SageObject):    # SageObject until we decide if
         x, y = SR.var('x, y')
         x_range = (x, xmin-0.01, xmax+0.01)
         y_range = (y, ymin-0.01, ymax+0.01)
-        eq_constraints = [ l(x, y) == 0 for l in self.eq_poly() ]
+        eq_constraints = [ l(x, y) == 0 for l in self.eq_poly() ] 
         lt_constraints = [ l(x, y) <  0 for l in self.lt_poly() ]
         le_constraints = [ l(x, y) <= 0 for l in self.le_poly() ]
+        # note: region_plot does not plot inconsistent inequalites
+        # TO DO: Dealing with plotting R^2 as represetned as empty list in eq, lt, le constraints.
+        # TO DO: Special case for dealing when the 2d constraints that reduce to a point. For now region_plot can handle it with a warning.
+        # note region_plot has issues with zorder keyword see issue #35992 in sagemath/sage
         if constraints_fill_color:
             for c in chain(lt_constraints, le_constraints):
                 if not isinstance(c, bool):
                     g += region_plot([c], x_range, y_range,
-                                     alpha=0.1, plot_points=plot_points,
-                                     incol=constraints_fill_color, bordercol=None, **kwds)
+                                alpha=0.1, plot_points=plot_points,
+                                incol=constraints_fill_color, bordercol=None, **kwds)
         if color or fill_color:
-            all_constraints = eq_constraints + lt_constraints + le_constraints
-            non_trivial_constraints = [ c for c in all_constraints if not isinstance(c, bool) ]
-            if not any(c is False for c in all_constraints):
-                g += region_plot(non_trivial_constraints, x_range, y_range,
-                                 alpha=alpha, plot_points=plot_points,
-                                 incol=fill_color, bordercol=color, **kwds)
+            all_constraints = eq_constraints + lt_constraints + le_constraints  
+            g += region_plot(all_constraints, x_range, y_range,
+                                    alpha=alpha, plot_points=plot_points,
+                                    incol=fill_color, bordercol=color, **kwds) 
         if constraints_color:
             for polys, plot_kwds in [(self.eq_poly(), eq_constraints_kwds),
-                                     (self.lt_poly(), lt_constraints_kwds),
-                                     (self.le_poly(), le_constraints_kwds)]:
+                                        (self.lt_poly(), lt_constraints_kwds),
+                                        (self.le_poly(), le_constraints_kwds)]:
                 for l in polys:
                     c = l(x, y) == 0
                     if not isinstance(c, bool):
                         effective_kwds = copy(kwds)
                         effective_kwds['color'] = constraints_color
                         effective_kwds.update(plot_kwds)
-                        g += implicit_plot(c, x_range, y_range, **effective_kwds)
+                        g += implicit_plot(c, x_range, y_range, **effective_kwds) # implicit_plot has no zorder information.
         return g
 
 class BasicSemialgebraicSet_polyhedral(BasicSemialgebraicSet_base):
@@ -1016,13 +1018,14 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
 
         Together, ``eq_poly``, ``lt_poly``, and ``le_poly`` describe ``self``.
         """
+        ## add tests
         for c in self._polyhedron.minimized_constraints():
             if c.is_equality():
                 coeff = c.coefficients()
                 # observe: coeffients in a constraint of NNC_Polyhedron could have gcd != 1. # take care of this.
                 gcd_c = gcd(gcd(coeff), c.inhomogeneous_term())
-                t = sum(QQ(x)/gcd_c*y for x, y in zip(coeff, self.poly_ring().gens())) + QQ(c.inhomogeneous_term())/gcd_c
-                yield t
+                t = sum(QQ(x)/gcd_c*y for x, y in zip(coeff, self.poly_ring().gens())) + QQ(c.inhomogeneous_term())/gcd_c # not type stable, make it type stable
+                yield self.poly_ring()(t)
 
     def lt_poly(self):
         r"""
@@ -1037,7 +1040,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
                 gcd_c = gcd(gcd(coeff), c.inhomogeneous_term())
                 # constraint is written with '>', while lt_poly records '<' relation
                 t = sum(-QQ(x)/gcd_c*y for x, y in zip(coeff, self.poly_ring().gens())) - QQ(c.inhomogeneous_term())/gcd_c
-                yield t
+                yield self.poly_ring()(t)
 
     def le_poly(self):
         r"""
@@ -1052,7 +1055,7 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
                 gcd_c = gcd(gcd(coeff), c.inhomogeneous_term())
                 # constraint is written with '>=', while lt_poly records '<=' relation
                 t = sum(-QQ(x)/gcd_c*y for x, y in zip(coeff, self.poly_ring().gens())) - QQ(c.inhomogeneous_term())/gcd_c
-                yield t
+                yield self.poly_ring()(t)
 
     # override the default implementation
     def __contains__(self, point):
@@ -1734,7 +1737,7 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
         super(BasicSemialgebraicSet_section, self).__init__(base_ring=base_ring, ambient_dim=ambient_dim, names=names, poly_ring=poly_ring)
         self._upstairs_bsa = upstairs_bsa
         self._polynomial_map = polynomial_map
-
+        
     def __copy__(self):
         r"""
         Make a copy of ``self``.
@@ -1745,15 +1748,15 @@ class BasicSemialgebraicSet_section(BasicSemialgebraicSet_base):
 
     def eq_poly(self):
         for p in self._upstairs_bsa.eq_poly():
-            yield p(self._polynomial_map)
+            yield self.poly_ring()(p(self._polynomial_map)) # these need to be type stable
 
     def le_poly(self):
         for p in self._upstairs_bsa.le_poly():
-            yield p(self._polynomial_map)
+            yield self.poly_ring()(p(self._polynomial_map))
 
     def lt_poly(self):
         for p in self._upstairs_bsa.lt_poly():
-            yield p(self._polynomial_map)
+            yield self.poly_ring()(p(self._polynomial_map))
 
     def _repr_(self):
         return 'BasicSemialgebraicSet_section({}, polynomial_map={})'.format(self._upstairs_bsa, self._polynomial_map)
@@ -1940,7 +1943,7 @@ class BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_section):
         self._v_dict = v_dict
 
     @classmethod
-    def from_bsa(cls, bsa, poly_ring=None, **init_kwds):
+    def from_bsa(cls, bsa, poly_ring=None, **init_kwds): #add example
         if poly_ring is None:
             poly_ring = bsa.poly_ring()
         return super(BasicSemialgebraicSet_veronese, cls).from_bsa(bsa, poly_ring=poly_ring, **init_kwds)
