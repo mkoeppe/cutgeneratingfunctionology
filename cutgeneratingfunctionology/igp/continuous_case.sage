@@ -1,5 +1,11 @@
 from six.moves import range
 from six.moves import zip
+import logging
+
+continuous_case_logger = logging.getLogger("cutgeneratingfunctionology.igp.continuous_case")
+continuous_case_logger.setLevel(logging.INFO)
+
+
 ########## Code for Continuous Case ###########
 
 def generate_nonsymmetric_vertices_continuous(fn, f):
@@ -80,7 +86,7 @@ def generate_maximal_additive_faces_continuous(function):
          <Face ([29/30, 1], [23/60, 5/12], [83/60, 17/12])>,
          <Face ([4/5, 1], [4/5, 1], [9/5, 2])>]
     """
-    logging.info("Computing maximal additive faces...")
+    continuous_case_logger.info("Computing maximal additive faces...")
     bkpt = function.end_points()
     bkpt2 = []
     for i in range(len(bkpt)-1):
@@ -143,7 +149,7 @@ def generate_maximal_additive_faces_continuous(function):
                                 keep = False
                         else:
                             keep = False
-                            logging.warning("Additivity appears only in the interior for some face. This is not shown on the diagram.")
+                            continuous_case_logger.warning("Additivity appears only in the interior for some face. This is not shown on the diagram.")
                     elif len(temp) == 1:
                         x, y = temp[0]
                         if x == I_list[i][0] and y == J_list[j][0] and x + y != K_list[k][1]:
@@ -177,7 +183,7 @@ def generate_maximal_additive_faces_continuous(function):
                             trip_swap = [trip[1], trip[0], trip[2]] #same as: trip_swap = projections(temp_swap)
                             faces.append(Face(trip_swap, vertices=temp_swap, is_known_to_be_minimal=True))
                         
-    logging.info("Computing maximal additive faces... done")
+    continuous_case_logger.info("Computing maximal additive faces... done")
     return faces
 
 def find_epsilon_interval_continuous(fn, perturb):
@@ -187,7 +193,7 @@ def find_epsilon_interval_continuous(fn, perturb):
 
     If one of the epsilons is 0, the function bails out early and returns 0, 0.
     """
-    logging.info("Finding epsilon interval for perturbation...")
+    continuous_case_logger.info("Finding epsilon interval for perturbation...")
     fn_bkpt = fn.end_points()
     perturb_bkpt = perturb.end_points()
     bkpt_refinement = merge_bkpt(fn_bkpt,perturb_bkpt)
@@ -214,7 +220,7 @@ def find_epsilon_interval_continuous(fn, perturb):
             if a != 0:
                 b = modified_delta_pi(fn, fn_values, bkpt_refinement, i, j) 
                 if b == 0:
-                    logging.info("Zero epsilon encountered for x = %s, y = %s" % (bkpt_refinement[i], bkpt_refinement[j]))
+                    continuous_case_logger.info("Zero epsilon encountered for x = %s, y = %s" % (bkpt_refinement[i], bkpt_refinement[j]))
                     return 0, 0 # See docstring
                 epsilon_upper_bound = b/(abs(a))
                 if a > 0:
@@ -232,7 +238,7 @@ def find_epsilon_interval_continuous(fn, perturb):
                     b = modified_delta_pi2(fn, fn_values, bkpt_refinement2, i, j) 
 
                     if b == 0:
-                        logging.info("Zero epsilon encountered for x = %s, y = %s" % (bkpt_refinement2[i], bkpt_refinement2[j] - bkpt_refinement2[i]))
+                        continuous_case_logger.info("Zero epsilon encountered for x = %s, y = %s" % (bkpt_refinement2[i], bkpt_refinement2[j] - bkpt_refinement2[i]))
                         return 0, 0 # See docstring
                     epsilon_upper_bound = b/(abs(a)) 
                     if a > 0:
@@ -241,7 +247,7 @@ def find_epsilon_interval_continuous(fn, perturb):
                     else:
                         if epsilon_upper_bound < best_plus_epsilon_upper_bound:
                             best_plus_epsilon_upper_bound = epsilon_upper_bound
-    logging.info("Finding epsilon interval for perturbation... done.  Interval is %s", [best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound])
+    continuous_case_logger.info("Finding epsilon interval for perturbation... done.  Interval is %s", [best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound])
     return best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound
 
 def generate_symbolic_continuous(function, components, field=None, f=None):
@@ -272,8 +278,8 @@ def generate_symbolic_continuous(function, components, field=None, f=None):
     slopes = [ slope for interval, slope in intervals_and_slopes ]
     # Use field=False to skip nice_field_values, since slopes are vectors.
     symbolic_function = piecewise_function_from_breakpoints_and_slopes(bkpt, slopes, field=False)
-    if logging.getLogger().isEnabledFor(logging.DEBUG):
-        logging.debug("Let v in R^%s.\nThe i-th entry of v represents the slope parameter on the i-th component of %s.\nSet up the symbolic function sym: [0,1] -> R^%s, so that pert(x) = sym(x) * v.\nThe symbolic function sym is %s." % (n, components, n, symbolic_function))
+    if continuous_case_logger.isEnabledFor(logging.DEBUG):
+        continuous_case_logger.debug("Let v in R^%s.\nThe i-th entry of v represents the slope parameter on the i-th component of %s.\nSet up the symbolic function sym: [0,1] -> R^%s, so that pert(x) = sym(x) * v.\nThe symbolic function sym is %s." % (n, components, n, symbolic_function))
     return symbolic_function
 
 def generate_additivity_equations_continuous(function, symbolic, field, f=None, bkpt=None,
@@ -287,7 +293,7 @@ def generate_additivity_equations_continuous(function, symbolic, field, f=None, 
     vs = ['f', '1'] + vs
     M = matrix(field, equations)
     if reduce_system is None:
-        reduce_system = logging.getLogger().isEnabledFor(logging.DEBUG)
+        reduce_system = continuous_case_logger.isEnabledFor(logging.DEBUG)
     if not reduce_system:
         if return_vertices:
             return M, vs
@@ -296,13 +302,13 @@ def generate_additivity_equations_continuous(function, symbolic, field, f=None, 
     pivot_r =  list(M.pivot_rows())
     for i in pivot_r:
         if i == 0:
-            logging.debug("Condition pert(f) = 0 gives the equation\n%s * v = 0." % (symbolic(f)))
+            continuous_case_logger.debug("Condition pert(f) = 0 gives the equation\n%s * v = 0." % (symbolic(f)))
         elif i == 1:
-            logging.debug("Condition pert(1) = 0 gives the equation\n%s * v = 0." % (symbolic(1)))
+            continuous_case_logger.debug("Condition pert(1) = 0 gives the equation\n%s * v = 0." % (symbolic(1)))
         else:
             (x, y, z, xeps, yeps, zeps) = vs[i]
             eqn = equations[i]
-            logging.debug("Condition pert(%s) + pert(%s) = pert(%s) gives the equation\n%s * v = 0." % (x, y, z, eqn))
+            continuous_case_logger.debug("Condition pert(%s) + pert(%s) = pert(%s) gives the equation\n%s * v = 0." % (x, y, z, eqn))
     M = M[pivot_r]
     if return_vertices:
         vs = [ vs[i] for i in pivot_r ]

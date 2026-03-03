@@ -13,6 +13,10 @@ from sage.rings.rational_field import QQ
 from .intervals import *
 from . import FastLinearFunction
 from cutgeneratingfunctionology.spam.parametric_real_field_element import is_parametric_element
+import logging
+
+fast_piecewise_logger = logging.getLogger("cutgeneratingfunctionology.igp.past_piecewises")
+fast_piecewise_logger.setLevel(logging.INFO)
 
 class PiecewiseLinearFunction_1d (ModuleElement):
     r"""
@@ -192,7 +196,7 @@ class PiecewiseLinearFunction_1d (ModuleElement):
                 values_at_end_points[-1] = right_value
         if periodic_extension and limits_at_end_points != []:
             #if values_at_end_points[0] != values_at_end_points[-1]:
-            #    logging.warning("Function is actually not periodically extendable.")
+            #    fast_piecewise_logger.warning("Function is actually not periodically extendable.")
             #    periodic_extension = False
             #else:
                 limits_at_end_points[0][-1] = limits_at_end_points[-1][-1]
@@ -1106,7 +1110,7 @@ class PiecewiseLinearFunction_1d (ModuleElement):
             import six
         is_rational, _ = is_all_QQ(flatten(data))
         if not is_rational:
-            logging.warning("For functions with non-rational data, cannot guarantee a stable SHA-1 hash.")
+            fast_piecewise_logger.warning("For functions with non-rational data, cannot guarantee a stable SHA-1 hash.")
         stable_str = six.b(str(data))
         return sha1(stable_str).hexdigest()
 

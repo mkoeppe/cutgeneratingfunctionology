@@ -22,6 +22,10 @@ from cutgeneratingfunctionology.spam.basic_semialgebraic_groebner_basis import B
 from cutgeneratingfunctionology.spam.polyhedral_complex import PolyhedralComplex
 from cutgeneratingfunctionology.shared.EvaluationExceptions import FactorUndetermined
 from .parametric_family import Classcall, ParametricFamily_base, ParametricFamily
+import logging
+
+parametric_logger = logging.getLogger("cutgeneratingfunctionology.igp.parametric")
+parametric_logger.setLevel(logging.INFO)
 
 debug_new_factors = False
 debug_cell_exceptions = False
@@ -264,10 +268,10 @@ class ParametricRealField(Field):
         if allow_coercion_to_float:
             RDF.register_coercion(sage.structure.coerce_maps.CallableConvertMap(self, RDF, lambda x: RDF(x.val()), parent_as_first_arg=False))
             RR.register_coercion(sage.structure.coerce_maps.CallableConvertMap(self, RR, lambda x: RR(x.val()), parent_as_first_arg=False))
-        logging.info("Initialized {}".format(self))
+        parametric_logger.info("Initialized {}".format(self))
 
     def __copy__(self):
-        logging.warning("copy(%s) is invoked" % self)
+        parametric_logger.warning("copy(%s) is invoked" % self)
         Kcopy = self.__class__(self._values, self._names, allow_coercion_to_float=self.allow_coercion_to_float, mutable_values=self._mutable_values, allow_refinement=self._allow_refinement, big_cells=self._big_cells, base_ring=self._sym_field.base_ring())
         Kcopy._eq.update(self._eq)
         Kcopy._lt.update(self._lt)
@@ -369,7 +373,7 @@ class ParametricRealField(Field):
         if any(x is None for x in new_values):
             if all(x is None for x in new_values):
                 return True
-            logging.warning("Consistency checking not implemented if some test point coordinates are None")
+            parametric_logger.warning("Consistency checking not implemented if some test point coordinates are None")
             return True
         ### Check that values satisfy all constraints.
         return new_values in self._bsa
@@ -509,7 +513,7 @@ class ParametricRealField(Field):
     @contextmanager
     def temporary_assumptions(self, case_id=None):
         if case_id is not None:
-            logging.info("Entering case {}.".format(case_id))
+            parametric_logger.info("Entering case {}.".format(case_id))
         save_eq = self._eq
         self._eq = copy(save_eq)
         save_lt = self._lt
@@ -529,7 +533,7 @@ class ParametricRealField(Field):
             self._factor_bsa = save_factor_bsa
             self._bsa = save_bsa
             if case_id is not None:
-                logging.info("Finished case {}.".format(case_id))
+                parametric_logger.info("Finished case {}.".format(case_id))
 
     def get_eq(self):
         return self._eq
@@ -939,7 +943,7 @@ class ParametricRealField(Field):
                 if len(all_factors) > 1:
                     raise ParametricRealFieldRefinementError("{} == 0 has several new factors: {}".format(comparison, all_factors))
                 self.record_factor(all_factors[0], op)
-            logging.debug("New element in %s._eq: %s" % (repr(self), comparison))
+            parametric_logger.debug("New element in %s._eq: %s" % (repr(self), comparison))
             self._eq.add(comparison)
         elif op == operator.lt:
             lt_factors = []
@@ -1005,7 +1009,7 @@ class ParametricRealField(Field):
                     except FactorUndetermined:
                         # break the cell ? raise NotImplementedError()?
                         self.record_factor(new_fac, operator.lt)
-            logging.debug("New element in %s._lt: %s" % (repr(self), comparison))
+            parametric_logger.debug("New element in %s._lt: %s" % (repr(self), comparison))
             self._lt.add(comparison)
         elif op == operator.le:
             lt_factors = []
@@ -1091,7 +1095,7 @@ class ParametricRealField(Field):
                             self.record_factor(undecided_eq[0], operator.le)
                         for new_fac in undecided_eq[1::]:
                             self.record_factor(-new_fac, operator.le)
-            logging.debug("New element in %s._le: %s" % (repr(self), comparison))
+            parametric_logger.debug("New element in %s._le: %s" % (repr(self), comparison))
             self._le.add(comparison)
         else:
             raise NotImplementedError("Not implemented operator: {}".format(op))
@@ -1118,7 +1122,7 @@ class ParametricRealField(Field):
                 raise ParametricRealFieldFrozenError("Cannot prove that constraint is implied: {} ".format(formatted_constraint))
             self._bsa.add_polynomial_constraint(fac, op)
             self._factor_bsa.add_polynomial_constraint(fac, op)
-            logging.info("New constraint: {}".format(formatted_constraint))
+            parametric_logger.info("New constraint: {}".format(formatted_constraint))
             if debug_new_factors:
                 import pdb
                 pdb.set_trace()
@@ -2125,7 +2129,7 @@ class SemialgebraicComplex(SageObject):
                 num_failings += 1
             else:
                 return var_value
-        logging.warning("The complex has %s cells. Cannot find one more uncovered point by shooting %s random points" % (len(self.components), max_failings))
+        parametric_logger.warning("The complex has %s cells. Cannot find one more uncovered point by shooting %s random points" % (len(self.components), max_failings))
         return None
 
     def find_uncovered_point_mathematica(self, formal_closure=False):
@@ -2216,8 +2220,8 @@ class SemialgebraicComplex(SageObject):
                                          find_region_type=self.find_region_type, bddbsa=bddbsa, polynomial_map=polynomial_map)
 
         new_num_eq = len(list(new_component.bsa.eq_poly()))
-        if new_num_eq > num_eq:
-            logging.warning("The cell around %s defined by %s has more equations than boundary %s" % (new_component.var_value, new_component.bsa, bddbsa))
+        if  new_num_eq > num_eq:
+            parametric_logger.warning("The cell around %s defined by %s has more equations than boundary %s" %(new_component.var_value, new_component.bsa, bddbsa))
             #import pdb; pdb.set_trace()
             # bsa is lower dimensional as it has more equations than bddbsa,
             # so we try to perturb the testpoint to obtain a
@@ -2468,11 +2472,11 @@ class SemialgebraicComplex(SageObject):
             else: # assume that check_completion is an integer.
                 uncovered_pt = self.find_uncovered_random_point(max_failings=max_failings)
             if uncovered_pt is not None:
-                logging.warning("After bfs, the complex has uncovered point %s." % (uncovered_pt,))
-                self.bfs_completion(var_value=uncovered_pt,
-                                    flip_ineq_step=flip_ineq_step,
-                                    check_completion=check_completion,
-                                    wall_crossing_method=wall_crossing_method,
+                parametric_logger.warning("After bfs, the complex has uncovered point %s." % (uncovered_pt,))
+                self.bfs_completion(var_value=uncovered_pt, \
+                                    flip_ineq_step=flip_ineq_step, \
+                                    check_completion=check_completion, \
+                                    wall_crossing_method=wall_crossing_method, \
                                     goto_lower_dim=goto_lower_dim)
 
     def is_complete(self, formal_closure=False):
@@ -2858,7 +2862,7 @@ def find_region_type_igp_extreme_big_cells(K, h):
     assert is_minimal
     generator = generate_perturbations(h, full_certificates=False)
     for perb in generator:
-        logging.warning("Function is not extreme but f/2 and (1+f)/2 are covered.")
+        parametric_logger.warning("Function is not extreme but f/2 and (1+f)/2 are covered.")
         return False
     return True
 

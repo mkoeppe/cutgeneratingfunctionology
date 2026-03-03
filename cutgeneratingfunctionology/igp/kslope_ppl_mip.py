@@ -23,6 +23,10 @@ import numpy
 from sage.numerical.mip import MixedIntegerLinearProgram, MIPVariable, MIPSolverException
 import sage.numerical.backends.glpk_backend as backend
 from six.moves import range
+import logging
+
+kslope_ppl_mip_logger = logging.getLogger("cutgeneratingfunctionology.igp.kslope_ppl_mip")
+kslope_ppl_mip_logger.setLevel(logging.INFO)
 
 poly_is_included = Poly_Con_Relation.is_included()
 
@@ -866,7 +870,7 @@ def search_kslope_example(k_slopes, q, f, mode='combined'):
             for values in generate_vertex_values(k_slopes, q, result_polytope, v_set):
                 yield values
     if not v_set:
-        logging.info("Example function not found. Please try again.")
+        kslope_ppl_mip_logger.info("Example function not found. Please try again.")
 
 import time
 
@@ -1442,19 +1446,19 @@ def time_to_find_first_extreme(k, q, f, mode='combined'):
 def times_in_naive_search(k, q, f):
     n_sol = 0
     h_list = []
-    logging.info( "Naive search for extreme funtions with q = %s, f = %s, k_slopes >= %s" % (q, f, k))
+    kslope_ppl_mip_logger.info( "Naive search for extreme funtions with q = %s, f = %s, k_slopes >= %s" % (q, f, k))
     time_start = os.times()
     for h in search_kslope_example(k, q, f, mode='naive'):
         n_sol += 1
         if n_sol == 1:
             time_end = os.times()
             t = sum([time_end[i]-time_start[i] for i in range(4)])
-            logging.info("Time to first k-slope = %s" % t)
+            kslope_ppl_mip_logger.info("Time to first k-slope = %s" % t)
         h_list.append(h)
     time_end = os.times()
     t = sum([time_end[i]-time_start[i] for i in range(4)])
-    logging.info("Total time of naive search = %s" % t)
-    logging.info("Numer of k-slope functions = %s" % n_sol)
+    kslope_ppl_mip_logger.info("Total time of naive search = %s" % t)
+    kslope_ppl_mip_logger.info("Numer of k-slope functions = %s" % n_sol)
     return h_list
 
 

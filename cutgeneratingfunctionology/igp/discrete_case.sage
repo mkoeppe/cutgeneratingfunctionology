@@ -1,3 +1,8 @@
+import logging
+
+discrete_case_logger =  logging.getLogger("cutgeneratingfunctionology.igp.discrete_case")
+discrete_case_logger.setLevel(logging.INFO)
+
 def generate_additive_faces_discrete(fn):
     """
     EXAMPLES::
@@ -10,7 +15,7 @@ def generate_additive_faces_discrete(fn):
         sage: len(generate_additive_faces_discrete(fn))
         61
     """
-    logging.info("Computing maximal additive faces...")
+    discrete_case_logger.info("Computing maximal additive faces...")
     faces = []
     additive_vertices = set()
     for (x, y, z, xeps, yeps, zeps) in generate_additive_vertices(fn):
@@ -20,5 +25,5 @@ def generate_additive_faces_discrete(fn):
     for (x, y) in additive_vertices:
         face = Face(([x], [y], [x+y]))
         faces.append(face)
-    logging.info("Computing maximal additive faces... done")
+    discrete_case_logger.info("Computing maximal additive faces... done")
     return faces

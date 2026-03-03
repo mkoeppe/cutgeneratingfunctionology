@@ -12,6 +12,10 @@ from functools import reduce
 from six.moves import input
 from itertools import chain
 from bisect import bisect_left
+import logging
+
+functions_logger = logging.getLogger("cutgeneratingfunctionology.igp.functions")
+functions_logger.setLevel(logging.INFO)
 
 
 def unique_list(iterator):
@@ -308,7 +312,7 @@ class Face:
         self.minimal_triple = minimal_triple = (i, j, k)
         #self._warned_about_non_minimal_triple = False
         #if is_known_to_be_minimal and not triples_equal(minimal_triple, triple) and not self._warned_about_non_minimal_triple:
-        #    logging.warning("Provided triple was not minimal: %s reduces to %s" % (triple, minimal_triple))
+        #    functions_logger.warning("Provided triple was not minimal: %s reduces to %s" % (triple, minimal_triple))
         #    self._warned_about_non_minimal_triple = True
             # FIXME: Check why (i,j,k) != (i,j,k+1) can happen.
 
@@ -985,7 +989,7 @@ def generate_covered_components(function):
         completion.num_rounds += 1
     completion.is_complete = True
     #function._completion = completion
-    logging.info("Completion finished.  Found %d covered components."
+    functions_logger.info("Completion finished.  Found %d covered components."
                  % len(completion.covered_components))
     return completion.covered_components
 
@@ -1220,16 +1224,16 @@ def subadditivity_test(fn, full_certificates=True):
     """
     result = True
     for (x, y, z, xeps, yeps, zeps) in generate_nonsubadditive_vertices(fn, reduced=True):
-        logging.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
+        functions_logger.info("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
         if not full_certificates:
-            logging.info("Thus pi is not subadditive.")
+            functions_logger.info("Thus pi is not subadditive.")
             return False
         else:
             result = False
     if result:
-        logging.info("pi is subadditive.")
+        functions_logger.info("pi is subadditive.")
     else:
-        logging.info("Thus pi is not subadditive.")
+        functions_logger.info("Thus pi is not subadditive.")
     return result
 
 def symmetric_test(fn, f, full_certificates=True):
@@ -1238,24 +1242,24 @@ def symmetric_test(fn, f, full_certificates=True):
     """
     result = True
     if fn(f) != 1:
-        logging.info('pi(f) is not equal to 1.')
+        functions_logger.info('pi(f) is not equal to 1.')
         if not full_certificates:
-            logging.info('pi is not symmetric.')
+            functions_logger.info('pi is not symmetric.')
             return False
         else:
             result = False
     result = True
     for (x, y, xeps, yeps) in generate_nonsymmetric_vertices(fn, f):
-        logging.info("pi(%s%s) + pi(%s%s) is not equal to 1" % (x, print_sign(xeps), y, print_sign(yeps)))
+        functions_logger.info("pi(%s%s) + pi(%s%s) is not equal to 1" % (x, print_sign(xeps), y, print_sign(yeps)))
         if not full_certificates:
-            logging.info('pi is not symmetric.')
+            functions_logger.info('pi is not symmetric.')
             return False
         else:
             result = False
     if result:
-        logging.info('pi is symmetric.')
+        functions_logger.info('pi is symmetric.')
     else:
-        logging.info('Thus pi is not symmetric.')
+        functions_logger.info('Thus pi is not symmetric.')
     return result
 
 def find_f(fn, no_error_if_not_minimal_anyway=False):
@@ -1268,13 +1272,13 @@ def find_f(fn, no_error_if_not_minimal_anyway=False):
     for x in fn.end_points():
         if fn(x) > 1 or fn(x) < 0: 
             if no_error_if_not_minimal_anyway:
-                logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
+                functions_logger.info('pi is not minimal because it does not stay in the range of [0, 1].')
                 return None
             raise ValueError("The given function does not stay in the range of [0, 1], so cannot determine f.  Provide parameter f to minimality_test or extremality_test.")
     for x in fn.end_points():
         if fn(x) == 1:
             if not f is None:
-                logging.info("The given function has more than one breakpoint where the function takes the value 1; using f = %s.  Provide parameter f to minimality_test or extremality_test if you want a different f." % f)
+                functions_logger.info("The given function has more than one breakpoint where the function takes the value 1; using f = %s.  Provide parameter f to minimality_test or extremality_test if you want a different f." % f)
                 return f
             else:
                 f = x
@@ -1282,7 +1286,7 @@ def find_f(fn, no_error_if_not_minimal_anyway=False):
         fn._f = f
         return f
     if no_error_if_not_minimal_anyway:
-        logging.info('pi is not minimal because it has no breakpoint where the function takes value 1.')
+        functions_logger.info('pi is not minimal because it has no breakpoint where the function takes value 1.')
         return None
     raise ValueError("The given function has no breakpoint where the function takes value 1, so cannot determine f.  Provide parameter f to minimality_test or extremality_test.")
 
@@ -1307,38 +1311,38 @@ def minimality_test(fn, show_plots=False, f=None, full_certificates=True):
     """
     for x in fn.values_at_end_points():
         if (x < 0) or (x > 1):
-            logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
+            functions_logger.info('pi is not minimal because it does not stay in the range of [0, 1].')
             return False
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
         if f is None:
             return False
     if fn(0) != 0:
-        logging.info('pi is NOT minimal because pi(0) is not equal to 0.')
+        functions_logger.info('pi is NOT minimal because pi(0) is not equal to 0.')
         return False
-    logging.info('pi(0) = 0')
+    functions_logger.info('pi(0) = 0')
     bkpt = fn.end_points()
     if not fn.is_continuous():
         limits = fn.limits_at_end_points()
         for x in limits:
             if not ((x[-1] is None or 0 <= x[-1] <=1) and (x[1] is None or 0 <= x[1] <=1)):
-                logging.info('pi is not minimal because it does not stay in the range of [0, 1].')
+                functions_logger.info('pi is not minimal because it does not stay in the range of [0, 1].')
                 return False
     if subadditivity_test(fn, full_certificates=full_certificates) and \
        symmetric_test(fn, f, full_certificates=full_certificates):
-        logging.info('Thus pi is minimal.')
+        functions_logger.info('Thus pi is minimal.')
         is_minimal = True
     else:
-        logging.info('Thus pi is NOT minimal.')
+        functions_logger.info('Thus pi is NOT minimal.')
         if not full_certificates:
             return False
         else:
             is_minimal = False
     if show_plots:
-        logging.info("Plotting 2d diagram...")
+        functions_logger.info("Plotting 2d diagram...")
         show_plot(plot_2d_diagram(fn, known_minimal=is_minimal, f=f),
                   show_plots, tag='2d_diagram', object=fn)
-        logging.info("Plotting 2d diagram... done")
+        functions_logger.info("Plotting 2d diagram... done")
     return is_minimal
 
 # Global variable to control repr of FastPiecewise.
@@ -1456,7 +1460,7 @@ def nice_field_values(symb_values, field=None):
         field = default_field
     is_rational, field_values = is_all_QQ(symb_values)
     if is_rational:
-        logging.info("Rational case.")
+        functions_logger.info("Rational case.")
         return field_values
     is_realnumberfield, field_values = is_all_the_same_real_number_field(symb_values)
     if is_realnumberfield:
@@ -1486,12 +1490,12 @@ def nice_field_values(symb_values, field=None):
                     emb._symbolic = symb
             # Transform given data
             field_values = embedded_field_values
-            logging.info("Coerced into real number field: %s" % embedded_field)
+            functions_logger.info("Coerced into real number field: %s" % embedded_field)
         except ValueError:
-            logging.info("Coercion to a real number field failed, keeping it symbolic")
+            functions_logger.info("Coercion to a real number field failed, keeping it symbolic")
             pass
         except TypeError:
-            logging.info("Coercion to a real number field failed, keeping it symbolic")
+            functions_logger.info("Coercion to a real number field failed, keeping it symbolic")
             pass
     return field_values
 
@@ -1532,7 +1536,7 @@ def piecewise_function_from_breakpoints_slopes_and_values(bkpt, slopes, values, 
         if bkpt[i] > bkpt[i+1]:
             raise ValueError("Breakpoints are not sorted in increasing order.")
         elif bkpt[i] == bkpt[i+1]:  #hasattr(field, '_big_cells') and field._big_cells, should be off-record
-            logging.warning("Degenerate interval occurs at breakpoint %s" % bkpt[i])
+            functions_logger.warning("Degenerate interval occurs at breakpoint %s" % bkpt[i])
             if values[i] != values[i+1]:
                 raise ValueError("Degeneration leads to a discontinuous function.")
         else:
@@ -1865,12 +1869,12 @@ def plot_walk(walk_dict, color="black", ymin=0, ymax=1, **kwds):
 def generate_all_components(fn, show_plots=False):
     fdms, covered_components = generate_directed_move_composition_completion(fn, show_plots=show_plots)
     if logging.getLogger().isEnabledFor(logging.DEBUG):
-        logging.debug("The covered components are %s." % (covered_components))
+        functions_logger.debug("The covered components are %s." % (covered_components))
     uncovered_intervals = generate_uncovered_intervals(fn)
     if uncovered_intervals:
         uncovered_components = generate_uncovered_components(fn, show_plots=show_plots)
         if logging.getLogger().isEnabledFor(logging.DEBUG):
-            logging.debug("The uncovered components are %s." % (uncovered_components))
+            functions_logger.debug("The uncovered components are %s." % (uncovered_components))
         components = covered_components + uncovered_components
     else:
         components = copy(covered_components)
@@ -2136,14 +2140,14 @@ def plot_perturbation_diagram(fn, perturbation=None, xmin=0, xmax=1):
 def check_perturbation(fn, perturb, show_plots=False, show_plot_tag='perturbation', xmin=0, xmax=1, **show_kwds):
     epsilon_interval = find_epsilon_interval(fn, perturb)
     epsilon = min(abs(epsilon_interval[0]), abs(epsilon_interval[1]))
-    #logging.info("Epsilon for constructed perturbation: %s" % epsilon)
+    #functions_logger.info("Epsilon for constructed perturbation: %s" % epsilon)
     if show_plots:
-        logging.info("Plotting perturbation...")
+        functions_logger.info("Plotting perturbation...")
         p = plot_perturbation_diagram(fn, perturb, xmin=xmin, xmax=xmax)
         show_plot(p, show_plots, tag=show_plot_tag, object=fn, **show_kwds)
-        logging.info("Plotting perturbation... done")
+        functions_logger.info("Plotting perturbation... done")
     assert epsilon > 0, "Epsilon should be positive, something is wrong"
-    #logging.info("Thus the function is not extreme.")  ## Now printed by caller.
+    #functions_logger.info("Thus the function is not extreme.")  ## Now printed by caller.
 
 def generate_perturbations_finite_dimensional(function, show_plots=False, f=None, full_certificates=True):
     ## FIXME: Perhaps we want an oversampling parameter as in generate_perturbations_simple??
@@ -2160,19 +2164,19 @@ def generate_perturbations_finite_dimensional(function, show_plots=False, f=None
     bkpt = merge_bkpt(function.end_points(), symbolic.end_points())
     equation_matrix = generate_additivity_equations(function, symbolic, field, f=f, bkpt=bkpt)
     if logging.getLogger().isEnabledFor(logging.DEBUG):
-        logging.debug("Solve the linear system of equations:\n%s * v = 0." % (equation_matrix))
+        functions_logger.debug("Solve the linear system of equations:\n%s * v = 0." % (equation_matrix))
     slope_jump_vects = equation_matrix.right_kernel().basis()
-    logging.info("Finite dimensional test: Solution space has dimension %s." % len(slope_jump_vects))
+    functions_logger.info("Finite dimensional test: Solution space has dimension %s." % len(slope_jump_vects))
     for basis_index in range(len(slope_jump_vects)):
         if not full_certificates:
             yield None
             return
         slope_jump = slope_jump_vects[basis_index]
-        logging.debug("The {}-th solution is\nv = {}.".format(basis_index+1, slope_jump))
+        functions_logger.debug("The {}-th solution is\nv = {}.".format(basis_index+1, slope_jump))
         perturbation = slope_jump * symbolic
         if logging.getLogger().isEnabledFor(logging.DEBUG):
-            logging.debug("The %s-th solution is\nv = %s." % (basis_index+1, slope_jump))
-            logging.debug("The corresponding perturbation function pert(x) is:\n%s." % (perturbation))
+            functions_logger.debug("The %s-th solution is\nv = %s." % (basis_index+1, slope_jump))
+            functions_logger.debug("The corresponding perturbation function pert(x) is:\n%s." % (perturbation))
         yield perturbation
 
 def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn_about_uncovered_intervals=True, 
@@ -2210,7 +2214,7 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn
     function._perturbations = []
     for index, perturbation in enumerate(generate_perturbations_finite_dimensional(function, show_plots=show_plots, f=f, full_certificates=full_certificates)):
         if not full_certificates:
-            logging.info("The function is NOT extreme.")
+            functions_logger.info("The function is NOT extreme.")
             return False
         function._perturbations.append(perturbation)
         check_perturbation(function, perturbation,
@@ -2218,17 +2222,17 @@ def finite_dimensional_extremality_test(function, show_plots=False, f=None, warn
                            legend_title="Basic perturbation %s" % (index + 1))
         if not seen_perturbation:
             seen_perturbation = True
-            logging.info("Thus the function is NOT extreme.")
+            functions_logger.info("Thus the function is NOT extreme.")
             if not show_all_perturbations:
                 break
     if not seen_perturbation:
-        logging.info("Finite dimensional extremality test did not find a perturbation.")
+        functions_logger.info("Finite dimensional extremality test did not find a perturbation.")
         uncovered_intervals = generate_uncovered_intervals(function)
         if uncovered_intervals:
             if warn_about_uncovered_intervals:
-                logging.warning("There are non-covered intervals, so this does NOT prove extremality.")
+                functions_logger.warning("There are non-covered intervals, so this does NOT prove extremality.")
         else:
-            logging.info("Thus the function is extreme.")
+            functions_logger.info("Thus the function is extreme.")
     return not seen_perturbation
 
 def generate_facet_covered_components(fn, show_plots=False):
@@ -2290,16 +2294,16 @@ def facet_test(fn, show_plots=False, known_minimal=False, known_extreme=False):
         known_minimal = True
     if not known_minimal:
         if not minimality_test(fn):
-            logging.info("Not minimal, so not a facet")
+            functions_logger.info("Not minimal, so not a facet")
             return False
     if known_extreme and fn.is_continuous():
-        logging.info("Extreme function and continuous piecewise linear, so a facet.")
+        functions_logger.info("Extreme function and continuous piecewise linear, so a facet.")
         return True
     additive_faces_sans_limits = generate_additive_faces_sans_limits(fn)
     covered_components = generate_facet_covered_components(fn)
     uncovered_intervals = uncovered_intervals_from_covered_components(covered_components)
     if uncovered_intervals:
-        logging.info("There are non-covered intervals: {}".format(uncovered_intervals))
+        functions_logger.info("There are non-covered intervals: {}".format(uncovered_intervals))
     # Finite dimensional test.  Default basis functions do not handle the case of uncovered intervals.
     symbolic = fn._facet_symbolic = generate_symbolic(fn, covered_components, basis_functions=('midpoints', 'slopes'))
     vertices = fn._facet_vertices = generate_vertices_of_additive_faces_sans_limits(fn)
@@ -2308,17 +2312,17 @@ def facet_test(fn, show_plots=False, known_minimal=False, known_extreme=False):
     fn._facet_equation_matrix = equation_matrix
     fn._facet_used_vertices = used_vertices
     if logging.getLogger().isEnabledFor(logging.DEBUG):
-        logging.debug("Solve the linear system of equations:\n%s * v = 0." % (equation_matrix))
+        functions_logger.debug("Solve the linear system of equations:\n%s * v = 0." % (equation_matrix))
     solution_basis = fn._facet_solution_basis = [ b * symbolic for b in equation_matrix.right_kernel().basis() ]
-    logging.info("Finite dimensional test (sans limits): Solution space has dimension %s." % len(solution_basis))
+    functions_logger.info("Finite dimensional test (sans limits): Solution space has dimension %s." % len(solution_basis))
     if not uncovered_intervals and not solution_basis:
-        logging.info("Minimal, and all intervals are covered (sans limits), unique solution (sans limits), so a facet.")
+        functions_logger.info("Minimal, and all intervals are covered (sans limits), unique solution (sans limits), so a facet.")
         return True
     if not known_extreme and not extremality_test(fn):
-        logging.info("Not extreme, so not a facet.")
+        functions_logger.info("Not extreme, so not a facet.")
         return False
     if fn.is_continuous():
-        logging.info("Extreme function and continuous piecewise linear, so a facet.")
+        functions_logger.info("Extreme function and continuous piecewise linear, so a facet.")
         return True
     raise NotImplementedError("facet_test does not know how to continue")
 
@@ -2454,7 +2458,7 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it=1000, phase_1=Fa
     else:
         crazy_perturbations_warning = False
     if f is None or not minimality_test(fn, show_plots=show_plots, f=f, full_certificates=full_certificates):
-        logging.info("Not minimal, thus NOT extreme.")
+        functions_logger.info("Not minimal, thus NOT extreme.")
         if not phase_1:
             return False
         else:
@@ -2463,15 +2467,15 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it=1000, phase_1=Fa
         finite_dimensional_test_first = True
     if fn.is_continuous() and number_of_slopes(fn) == 2:
         if not full_certificates:
-            logging.info("Gomory-Johnson's 2-slope theorem applies. The function is extreme.")
+            functions_logger.info("Gomory-Johnson's 2-slope theorem applies. The function is extreme.")
             return True
-        logging.info("Gomory-Johnson's 2-slope theorem applies. The function is extreme.  Continuing anyway because full_certificates=True.")
+        functions_logger.info("Gomory-Johnson's 2-slope theorem applies. The function is extreme.  Continuing anyway because full_certificates=True.")
     seen_perturbation = False
     generator = generate_perturbations(fn, show_plots=show_plots, f=f, max_num_it=max_num_it, finite_dimensional_test_first=finite_dimensional_test_first, full_certificates=full_certificates)
     fn._perturbations = []
     for index, perturbation in enumerate(generator):
         if not full_certificates:
-            logging.info("The function is NOT extreme.")
+            functions_logger.info("The function is NOT extreme.")
             return False
         fn._perturbations.append(perturbation)
         check_perturbation(fn, perturbation, show_plots=show_plots, 
@@ -2479,11 +2483,11 @@ def extremality_test(fn, show_plots = False, f=None, max_num_it=1000, phase_1=Fa
                            legend_title="Basic perturbation %s" % (index + 1))
         if not seen_perturbation:
             seen_perturbation = True
-            logging.info("Thus the function is NOT extreme.")
+            functions_logger.info("Thus the function is NOT extreme.")
             if not show_all_perturbations:
                 break
     if not seen_perturbation:
-        logging.info("Thus the function is extreme.")
+        functions_logger.info("Thus the function is extreme.")
     return not seen_perturbation
 
 def generate_perturbations(fn, show_plots=False, f=None, max_num_it=1000, finite_dimensional_test_first=False, full_certificates=True):
@@ -2500,14 +2504,14 @@ def generate_perturbations(fn, show_plots=False, f=None, max_num_it=1000, finite
             yield None
             return
         if show_plots:
-            logging.info("Plotting covered intervals...")
+            functions_logger.info("Plotting covered intervals...")
             show_plot(plot_covered_intervals(fn), show_plots, tag='covered_intervals', object=fn)
-            logging.info("Plotting covered intervals... done")
+            functions_logger.info("Plotting covered intervals... done")
         if not uncovered_intervals:
-            logging.info("All intervals are covered (or connected-to-covered). %s components." % number_of_components(fn))
+            functions_logger.info("All intervals are covered (or connected-to-covered). %s components." % number_of_components(fn))
             all = finite
         else:
-            logging.info("Uncovered intervals: %s", (uncovered_intervals,))
+            functions_logger.info("Uncovered intervals: %s", (uncovered_intervals,))
             equi = generate_perturbations_equivariant(fn, show_plots=show_plots, f=f, max_num_it=max_num_it)
             if finite_dimensional_test_first:
                 all = itertools.chain(finite, equi)
@@ -2518,7 +2522,7 @@ def generate_perturbations(fn, show_plots=False, f=None, max_num_it=1000, finite
 
 def generate_perturbations_equivariant(fn, show_plots=False, f=None, max_num_it=1000):
     if fn.is_two_sided_discontinuous():
-        logging.warning("Code for detecting perturbations using moves is EXPERIMENTAL in the two-sided discontinuous case.")
+        functions_logger.warning("Code for detecting perturbations using moves is EXPERIMENTAL in the two-sided discontinuous case.")
     generator = generate_generic_seeds_with_completion(fn, show_plots=show_plots, max_num_it=max_num_it) # may raise MaximumNumberOfIterationsReached
     #seen_perturbation = False
     for seed, stab_int, walk_list in generator:
@@ -2529,14 +2533,14 @@ def generate_perturbations_equivariant(fn, show_plots=False, f=None, max_num_it=
         perturb._stab_int = stab_int
         perturb._walk_list = walk_list
         if show_plots:
-            logging.info("Plotting completion diagram with perturbation...")
+            functions_logger.info("Plotting completion diagram with perturbation...")
             g = plot_completion_diagram(fn, perturb)        # at this point, the perturbation has not been stored yet
             show_plot(g, show_plots, tag='completion', object=fn._completion, legend_title="Completion of moves, perturbation", legend_loc="upper left")
-            logging.info("Plotting completion diagram with perturbation... done")
+            functions_logger.info("Plotting completion diagram with perturbation... done")
         #seen_perturbation = True
         yield perturb
     #if not seen_perturbation:
-    #    logging.info("Dense orbits in all non-covered intervals.")
+    #    functions_logger.info("Dense orbits in all non-covered intervals.")
 
 def plot_completion_diagram(fn, perturbation=None):
     r"""
@@ -2879,7 +2883,7 @@ def generate_lifted_functions(fn, perturbs=None, use_polyhedron=False, **kwds):
         pert_mip = perturbation_mip(fn, perturbs, **kwds)
         vertices = generate_random_mip_sol(pert_mip)
     for vertex in vertices:
-        logging.info("vertex = %s" % str(vertex))
+        functions_logger.info("vertex = %s" % str(vertex))
         perturb = perturbation_corresponding_to_vertex(perturbs, vertex)
         yield fn + perturb
 
@@ -2962,7 +2966,7 @@ def lift(fn, show_plots = False, use_all_perturbations=True, use_largest_absolut
             if not use_all_perturbations:
                 break
         if perturbed == fn:
-            logging.info("Lifting fails. Try generate_lifted_functions() via polyhedron of perturbation space.")
+            functions_logger.info("Lifting fails. Try generate_lifted_functions() via polyhedron of perturbation space.")
         return perturbed
 
 def lift_extreme_function_for_finite_group_to_infinite_group(fn, show_plots = False, show_all_lifting=True):
@@ -3005,13 +3009,13 @@ def lift_extreme_function_for_finite_group_to_infinite_group(fn, show_plots = Fa
         raise ValueError("The given function is not extreme for the finite group (1/%s)Z" % q)
     uncovered_intervals = generate_uncovered_intervals(fn)
     if show_plots:
-        logging.info("Plotting covered intervals...")
+        functions_logger.info("Plotting covered intervals...")
         show_plot(plot_covered_intervals(fn), show_plots, tag='covered_intervals', object=fn)
-        logging.info("Plotting covered intervals... done")
+        functions_logger.info("Plotting covered intervals... done")
     if not uncovered_intervals:
-        logging.info("All intervals are covered (or connected-to-covered). %s components." % number_of_components(fn))
+        functions_logger.info("All intervals are covered (or connected-to-covered). %s components." % number_of_components(fn))
         return [fn]
-    logging.info("Uncovered intervals: %s", (uncovered_intervals,))
+    functions_logger.info("Uncovered intervals: %s", (uncovered_intervals,))
     all_lifting = [fn]
     global perturbation_template_bkpts
     global perturbation_template_values
@@ -3077,7 +3081,7 @@ def lift_until_extreme(fn, show_plots = False, pause = False, covered_length=Tru
             covered_length = sum(interval_length(i) for i in covered_intervals)
             if show_plots:
                 plot_covered_intervals(next).show(title = 'covered length = %s' % covered_length)
-            logging.info("Covered length = %s" % covered_length)
+            functions_logger.info("Covered length = %s" % covered_length)
         fn = next
         next = lift(fn, show_plots=False , use_all_perturbations=use_all_perturbations, **kwds)  #show_plots=show_plots
         if pause and next != fn:
@@ -3630,7 +3634,7 @@ class DirectedMoveCompositionCompletion:
 
     def maybe_show_plot(self, current_dense_move_plot=None):
         if (self.any_change_components or self.any_change_moves) and self.show_plots:
-            logging.info("Plotting...")
+            functions_logger.info("Plotting...")
             if self.is_complete:
                 tag = 'completion'
                 title = "Completion of moves" 
@@ -3644,7 +3648,7 @@ class DirectedMoveCompositionCompletion:
             if current_dense_move_plot:
                 g += current_dense_move_plot
             show_plot(g, self.show_plots, tag, legend_title=title, legend_loc="upper left", object=self, **self._show_kwds)
-            logging.info("Plotting... done")
+            functions_logger.info("Plotting... done")
 
     def extend_components_by_moves(self):
         r"""
@@ -3684,10 +3688,10 @@ class DirectedMoveCompositionCompletion:
                 d = check_for_strip_lemma_fastpath(a, b)
                 if d:
                     if crazy_perturbations_warning:
-                        logging.warning("This function is two-sided discontinuous at the origin. Crazy perturbations might exist.")
+                        functions_logger.warning("This function is two-sided discontinuous at the origin. Crazy perturbations might exist.")
                     self.any_change_components = True
                     strip_lemma_intervals += d
-                    logging.info("New dense move from strip lemma: %s" % d)
+                    functions_logger.info("New dense move from strip lemma: %s" % d)
                     # merge components with d
                     dense_intervals, self.covered_components = merge_components_with_given_component(d, self.covered_components)
                     dense_intervals = self.extend_component_by_continuity(dense_intervals)
@@ -3729,7 +3733,7 @@ class DirectedMoveCompositionCompletion:
         self.move_dict = new_move_dict
 
     def complete_one_round(self):
-        logging.info("Completing %d functional directed moves and %d covered components..." % (len(self.move_dict), len(self.covered_components)))
+        functions_logger.info("Completing %d functional directed moves and %d covered components..." % (len(self.move_dict), len(self.covered_components)))
         if self.any_change_components:
             self.extend_components_by_moves()
         current_dense_move_plot = self.extend_components_by_strip_lemma()
@@ -3785,10 +3789,10 @@ class DirectedMoveCompositionCompletion:
             if error_if_max_num_rounds_exceeded:
                 raise MaximumNumberOfIterationsReached("Reached %d rounds of the completion procedure, found %d directed moves and %d covered components, stopping." % (self.num_rounds, len(self.move_dict), len(self.covered_components)))
             else:
-                logging.info("Reached %d rounds of the completion procedure, found %d directed moves and %d covered components, stopping." % (self.num_rounds, len(self.move_dict), len(self.covered_components)))
+                functions_logger.info("Reached %d rounds of the completion procedure, found %d directed moves and %d covered components, stopping." % (self.num_rounds, len(self.move_dict), len(self.covered_components)))
         else:
             self.is_complete = True
-            logging.info("Completion finished.  Found %d directed moves and %d covered components."
+            functions_logger.info("Completion finished.  Found %d directed moves and %d covered components."
                          % (len(self.move_dict), len(self.covered_components)))
 
 
@@ -3917,7 +3921,7 @@ def generate_covered_components_strategically(fn, show_plots=False, additive_fac
             if logging.getLogger().isEnabledFor(logging.DEBUG):
                 if hasattr(fn, "_faces_used"):
                     fn._faces_used.append(face)
-                logging.debug("Step %s: Consider the 2d additive %s.\n%s is directly covered." % (step, face, component))
+                functions_logger.debug("Step %s: Consider the 2d additive %s.\n%s is directly covered." % (step, face, component))
             if show_plots:
                 if fn.is_continuous():
                     g += face.plot(rgbcolor='red', fill_color='red')
@@ -3928,7 +3932,7 @@ def generate_covered_components_strategically(fn, show_plots=False, additive_fac
             new_component, remaining_components = merge_components_with_given_component(component, covered_components)
             if new_component != component:
                 if logging.getLogger().isEnabledFor(logging.DEBUG):
-                    logging.debug("We obtain a new covered component %s, with overlapping components merged in." % (new_component))
+                    functions_logger.debug("We obtain a new covered component %s, with overlapping components merged in." % (new_component))
                 if show_plots:
                     show_plot(g, show_plots, tag="{}a".format(step), object=fn, show_legend=False, xmin=-0.3, xmax=1.02, ymin=-0.02, ymax=1.3)
             covered_components = remaining_components + [new_component]
@@ -3939,7 +3943,7 @@ def generate_covered_components_strategically(fn, show_plots=False, additive_fac
             if hasattr(fn, "_faces_used"):
                 fn._faces_used.append(edge)
             if logging.getLogger().isEnabledFor(logging.DEBUG):
-                logging.debug("Step %s: Consider the 1d additive %s." % (step, edge))
+                functions_logger.debug("Step %s: Consider the 1d additive %s." % (step, edge))
             fdm = edge.functional_directed_move()
             sym_fdm = [fdm]
             if fdm.sign() == 1:
@@ -3953,14 +3957,14 @@ def generate_covered_components_strategically(fn, show_plots=False, additive_fac
                     newly_covered = union_of_coho_intervals_minus_union_of_coho_intervals(moved_intervals, covered_components)
                     if newly_covered:
                         if logging.getLogger().isEnabledFor(logging.DEBUG):
-                            logging.debug("%s is indirectly covered." % (newly_covered))
+                            functions_logger.debug("%s is indirectly covered." % (newly_covered))
                         if show_plots:
                             g += plot_covered_components_at_borders(fn, covered_components=[newly_covered])
                         component = union_of_coho_intervals_minus_union_of_coho_intervals(moved_intervals + [overlapped_ints] + [component], [])
                 if component:
                     new_component, remaining_components = merge_components_with_given_component(component, covered_components)
                     if new_component != component and logging.getLogger().isEnabledFor(logging.DEBUG):
-                       logging.debug("We obtain a new covered component %s, with overlapping components merged in." % (new_component))
+                       functions_logger.debug("We obtain a new covered component %s, with overlapping components merged in." % (new_component))
                     covered_components = remaining_components + [new_component]
             if show_plots:
                 g += edge.plot(rgbcolor='red')
@@ -3980,7 +3984,7 @@ def generate_covered_components_strategically(fn, show_plots=False, additive_fac
             if hasattr(fn, "_faces_used"):
                 fn._faces_used.add(face)
             if logging.getLogger().isEnabledFor(logging.DEBUG):
-                logging.debug("Step %s: By merging components that overlap with projections of the 2d additive %s, we obtain a larger covered component %s" % (step, face, new_component))
+                functions_logger.debug("Step %s: By merging components that overlap with projections of the 2d additive %s, we obtain a larger covered component %s" % (step, face, new_component))
             covered_components = remaining_components + [new_component]
 
     for edge in edges:
@@ -4005,7 +4009,7 @@ def generate_covered_components_strategically(fn, show_plots=False, additive_fac
                     if hasattr(fn, "_faces_used"):
                         fn._faces_used.add(edge)
                     if logging.getLogger().isEnabledFor(logging.DEBUG):
-                        logging.debug("Step %s: By merging components that are connected by the 1d additive %s, we obtain a larger covered component %s." % (step, edge, new_component))
+                        functions_logger.debug("Step %s: By merging components that are connected by the 1d additive %s, we obtain a larger covered component %s." % (step, edge, new_component))
                     covered_components = remaining_components + [new_component]
     if additive_faces is None: # Don't cache if computation is done with provided list of faces
 
@@ -4148,7 +4152,7 @@ def find_decomposition_into_stability_intervals_with_completion(fn, show_plots=F
                 walk_dict[moved_seed] = [walk_sign, None, None] 
             stability_orbit = (list(orbit), walk_dict, None)
             fn._stability_orbits.append(stability_orbit)
-    logging.info("Total: %s stability orbits, lengths: %s" % (len(fn._stability_orbits), \
+    functions_logger.info("Total: %s stability orbits, lengths: %s" % (len(fn._stability_orbits), \
                     [ ("%s+" if to_do else "%s") % len(shifted_stability_intervals) \
                       for (shifted_stability_intervals, walk_dict, to_do) in fn._stability_orbits ]))
 
