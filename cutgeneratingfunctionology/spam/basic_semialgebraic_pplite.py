@@ -1,4 +1,4 @@
-from cutgeneratingfunctionology.spam.basic_semialgebraic import BasicSemialgebraicSet_polyhedral
+from cutgeneratingfunctionology.spam.basic_semialgebraic import *
 
 from pplite import Variable as pplite_Var, Constraint as pplite_Con, Linear_Expression as pplite_Lin_Expr, Affine_Expression as pplite_Aff_expr, NNC_Polyhedron as pplite_NNC_Polyhedron, PPliteGenerator, Polyhedron_Constraint_Rel, Polyhedron_Generator_Rel
 
