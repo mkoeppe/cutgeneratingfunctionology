@@ -9,7 +9,7 @@ import logging
 minimal_function_cache_logger = logging.getLogger("cutgeneratingfunctionology.igp.minimal_function_cache")
 minimal_function_cache_logger.setLevel(logging.INFO)
 
-### Note to future reader, from yours truely. ###
+### Note to future reader: ###
 ### bkpt is assumed to be a breakpoint sequence of length n>= 2. 
 ### Breakpoint sequence are sorted lists of real numbers in [0,1). 
 ### A breakpoint sequences should always have 0 as an element.
@@ -19,6 +19,7 @@ minimal_function_cache_logger.setLevel(logging.INFO)
 # global defaults for logging from portions of igp; change to log different parts of igp.
 log_paramateric_real_field = False
 log_pw_functions = False
+
 
 class RepElemGenFailure(Exception):
     pass
@@ -51,7 +52,7 @@ def nnc_poly_from_bkpt_sequence(bkpt, backend=None):
         logging.getLogger("cutgeneratingfunctionology.igp.parametric").setLevel(logging.ERROR)
     for i in range(0,n):
         coord_names.append('lambda'+str(i))
-    K = ParametricRealField(names=coord_names, values = vals, mutable_values=True, big_cells=True)
+    K = ParametricRealField(names=coord_names, values = vals, mutable_values=True, big_cells=True, default_backend=backend)
     K.gens()[0] == 0
     for i in range(n-1):
         K.gens()[i] < K.gens()[i+1]
@@ -109,6 +110,8 @@ def add_breakpoints_and_find_equiv_classes(bkpt_poly):
     model_bound_bkpts = [0]*k
     model_bound_bkpts[k-1] = 1
     # 0 < lambda_k <1
+    # Using ppl and pplite type bsas have the same signature, so this should work regardless of backend.
+    # this will fail if the BSA attached does not have these methods. 
     B_cap_N_b.add_linear_constraint(model_bound_bkpts, -1, operator.lt) # model bounds
     B_cap_N_b.add_linear_constraint(model_bound_bkpts, 0, operator.gt) # model bounds 
     bkpt_order = [0]*k
@@ -259,7 +262,7 @@ def value_nnc_polyhedron_value_cords(bkpt, f_index, backend =None):
     val = [None]*(n)
     for i in range(n):
         coord_names.append('gamma'+str(i))
-    K = ParametricRealField(names=coord_names, values = val, mutable_values=True, big_cells=True, allow_refinement=False)
+    K = ParametricRealField(names=coord_names, values = val, mutable_values=True, big_cells=True, allow_refinement=False, default_backend=backend)
     K.gens()[0] == 0
     for i in range(1, n):
         K.gens()[i] <=1
@@ -278,7 +281,7 @@ def value_nnc_polyhedron_value_cords(bkpt, f_index, backend =None):
         logging.getLogger("cutgeneratingfunctionology.igp.functions").setLevel(pw_logging_level)
     return K._bsa
 
-def value_nnc_polyhedron(bkpt, f_index):
+def value_nnc_polyhedron(bkpt, f_index, backend=None):
     """
     For a given breakpoints seqeunce and f index, write the value polyhedron as a basic semialgebraic set in the full space of parameters.
     
@@ -294,8 +297,11 @@ def value_nnc_polyhedron(bkpt, f_index):
 
     sage: from cutgeneratingfunctionology.igp import * 
     sage: logging.disable(logging.INFO) # suppress logging for tests
-    sage: value_nnc_polyhedron([0,4/5], 1) # gmic with f=4/5
+    sage: value_nnc_polyhedron([0,4/5], 1) # gmic with f=4/5, a trivial value polyhedron
     BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {x3-1==0, x2==0, 5*x1-4==0, x0==0}, names=[x0, x1, x2, x3]), polynomial_map=[lambda0, lambda1, gamma0, gamma1])
+    sage: P =  value_nnc_polyhedron([0,2/15,2/3, 4/5], 3) #  A non trivial value polyhedron.
+    sage: P.upstairs()._polyhedron
+    A 1-dimensional polyhedron in QQ^8 defined as the convex hull of 2 points
     """
     n = len(bkpt)
     if not log_paramateric_real_field:
@@ -314,7 +320,7 @@ def value_nnc_polyhedron(bkpt, f_index):
         coord_names.append('lambda'+str(i))
     for i in range(n):
         coord_names.append('gamma'+str(i))
-    K = ParametricRealField(names=coord_names, values = vals, mutable_values=True, big_cells=True, allow_refinement=False)
+    K = ParametricRealField(names=coord_names, values = vals, mutable_values=True, big_cells=True, allow_refinement=False, default_backend=backend)
     # breakpoint parameters are the mesured breakpoint values. 
     for i in range(n):
         K.gens()[i] == bkpt[i]
@@ -338,7 +344,7 @@ def value_nnc_polyhedron(bkpt, f_index):
     return K._bsa
 
 
-def bsa_of_rep_element(bkpt, vals):
+def bsa_of_rep_element(bkpt, vals, backend=None):
     """
     Given pi_(bkpt, vals) is {minimal, not minimal}, find BSA subset of R^(2n) such that (bkpt, vals) in BSA and for all p
     in BSA, pi_p is {minimal, not minimal}.
@@ -367,7 +373,7 @@ def bsa_of_rep_element(bkpt, vals):
         coord_names.append('lambda'+str(i))
     for i in range(n):
         coord_names.append('gamma'+str(i))
-    K = ParametricRealField(names=coord_names, values = bkpt+vals, big_cells=True)
+    K = ParametricRealField(names=coord_names, values = bkpt+vals, big_cells=True, default_backend=backend)
     h = piecewise_function_from_breakpoints_and_values(K.gens()[0:n] + [1], K.gens()[n:2*n] + [0], merge=False)
     minimality_test(h)
     if not log_paramateric_real_field:
@@ -405,7 +411,7 @@ def find_minimal_function_reps_from_bkpts(bkpts, prove_minimality=True, backend=
     for bkpt in bkpts:
         n = len(bkpt)
         for f_index in range(1, n):
-            poly_bsa = value_nnc_polyhedron_value_cords(list(bkpt), f_index)
+            poly_bsa = value_nnc_polyhedron_value_cords(list(bkpt), f_index, backend)
             gammas = poly_bsa.polynomial_map()[0].parent().gens()
             try:
                 test_point = poly_bsa.upstairs().find_point()
@@ -464,7 +470,7 @@ class BreakpointComplexClassContainer:
         if "load_rep_elem_data" in kwrds.keys():
             if kwrds[load_rep_elem_data] is None:
                 minimal_function_cache_logger.info("Generating representative elements. This might take a while.")
-                self._data = make_rep_bkpts_with_len_n(self._n)
+                self._data = make_rep_bkpts_with_len_n(self._n, self._backend)
             else:
                 file_names = kwrds["load_bkpt_data"].split(",")
                 self._data = []
@@ -479,7 +485,7 @@ class BreakpointComplexClassContainer:
                             self._data = make_rep_bkpts_with_len_n(n, k, self._data)
         else:
             minimal_function_cache_logger.info("Generating representative elements. This might take a while.")
-            self._data = make_rep_bkpts_with_len_n(self._n)
+            self._data = make_rep_bkpts_with_len_n(self._n, self._backend)
 
     def __repr__(self):
         return f"Container for the space breakpoint sequences of length {self._n} under equivlance of polyhedral complexes."
