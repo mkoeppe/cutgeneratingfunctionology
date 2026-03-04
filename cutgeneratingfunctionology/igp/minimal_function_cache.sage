@@ -4,6 +4,7 @@ from cutgeneratingfunctionology.igp import *
 import csv
 import os
 from cutgeneratingfunctionology.spam.basic_semialgebraic import EmptyBSA
+from cutgeneratingfunctionology.spam.basic_semialgebraic_pplite import BasicSemialgebraicSet_polyhedral_pplite_NNC_Polyhedron
 import logging
 
 minimal_function_cache_logger = logging.getLogger("cutgeneratingfunctionology.igp.minimal_function_cache")
@@ -202,7 +203,7 @@ def make_rep_bkpts_with_len_n(n, k=1, bkpts=None, backend=None):
         minimal_function_cache_logger.info(f"Breakpoints of length {n} have been generated. ")
         return new_bkpts
     else:
-        minimal_function_cache_logger.info(f"Breakpoitns of lenght {k} have been generated. Now generating breakpoints of length{k+1}")
+        minimal_function_cache_logger.info(f"Breakpoints of lenght {k} have been generated. Now generating breakpoints of length {k+1}.")
         return make_rep_bkpts_with_len_n(n, k, new_bkpts)
 
 
@@ -463,14 +464,13 @@ class BreakpointComplexClassContainer:
         self._n = n
         assert(self._n >= 2)
         if "backend" in kwrds.keys():
-            if kwrds[backend] == "pplite":
-                self._backend = "pplite"
-            else:
-                self._backend = None
+            self._backend = kwrds["backend"]
+        else:
+            self._backend = None
         if "load_rep_elem_data" in kwrds.keys():
             if kwrds[load_rep_elem_data] is None:
                 minimal_function_cache_logger.info("Generating representative elements. This might take a while.")
-                self._data = make_rep_bkpts_with_len_n(self._n, self._backend)
+                self._data = make_rep_bkpts_with_len_n(self._n, backend = self._backend)
             else:
                 file_names = kwrds["load_bkpt_data"].split(",")
                 self._data = []
@@ -485,7 +485,7 @@ class BreakpointComplexClassContainer:
                             self._data = make_rep_bkpts_with_len_n(n, k, self._data)
         else:
             minimal_function_cache_logger.info("Generating representative elements. This might take a while.")
-            self._data = make_rep_bkpts_with_len_n(self._n, self._backend)
+            self._data = make_rep_bkpts_with_len_n(self._n,  backend = self._backend)
 
     def __repr__(self):
         return f"Container for the space breakpoint sequences of length {self._n} under equivlance of polyhedral complexes."
@@ -612,10 +612,9 @@ class PiMinContContainer:
         self._n = n
         assert(self._n >= 2)
         if "backend" in kwrds.keys():
-            if kwrds[backend] == "pplite":
-                self._backend = "pplite"
-            else:
-                self._backend = None
+            self._backend = kwrds["backend"]
+        else:
+            self._backend = None
         if "load_bkpt_data" in kwrds.keys() and "load_rep_elem_data" not in kwrds.keys():
             file_names = kwrds["load_bkpt_data"].split(",")
             bkpts = []
@@ -624,7 +623,7 @@ class PiMinContContainer:
                     file_reader = csv.reader(csvfile)
                     for row in file_reader:
                         bkpts.append([eval(preparse(data)) for data in row])
-            self._data = find_minimal_function_reps_from_bkpts(bkpts)
+            self._data = find_minimal_function_reps_from_bkpts(bkpts, backend = self._backend)
         elif "load_bkpt_data" not in kwrds.keys() and "load_rep_elem_data" in kwrds.keys():
             file_names = kwrds["load_rep_elem_data"].strip(" ").split(",")
             self._data = []
@@ -637,7 +636,7 @@ class PiMinContContainer:
             minimal_function_cache_logger.info("Generating representative elements. This might take a while.")
             bkpts = make_rep_bkpts_with_len_n(self._n)
             minimal_function_cache_logger.info("Finished generating elements.")
-            self._data = find_minimal_function_reps_from_bkpts(bkpts)
+            self._data = find_minimal_function_reps_from_bkpts(bkpts, backend = self._backend)
 
     def __repr__(self):
         return "Space of minimal functions with at most {} breakpoints parameterized by breakpoints and values using semialgebraic sets.".format(self._n)
