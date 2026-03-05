@@ -204,7 +204,7 @@ def make_rep_bkpts_with_len_n(n, k=1, bkpts=None, backend=None):
         return new_bkpts
     else:
         minimal_function_cache_logger.info(f"Breakpoints of lenght {k} have been generated. Now generating breakpoints of length {k+1}.")
-        return make_rep_bkpts_with_len_n(n, k, new_bkpts)
+        return make_rep_bkpts_with_len_n(n, k, new_bkpts, backend)
 
 
 def generate_assumed_symmetric_vertices_continuous(fn, f, bkpt):
@@ -485,7 +485,7 @@ class BreakpointComplexClassContainer:
                             self._data = make_rep_bkpts_with_len_n(n, k, self._data)
         else:
             minimal_function_cache_logger.info("Generating representative elements. This might take a while.")
-            self._data = make_rep_bkpts_with_len_n(self._n,  backend = self._backend)
+            self._data = make_rep_bkpts_with_len_n(self._n,  backend=self._backend)
 
     def __repr__(self):
         return f"Container for the space breakpoint sequences of length {self._n} under equivlance of polyhedral complexes."
@@ -496,7 +496,7 @@ class BreakpointComplexClassContainer:
 
     def get_nnc_poly_from_bkpt(self):
         for bkpt in self._data:
-            yield nnc_poly_from_bkpt_sequence(bkpt)
+            yield nnc_poly_from_bkpt_sequence(bkpt, backend=self._backend)
 
     def num_rep_elems(self):
         return len(self._data)
@@ -524,7 +524,7 @@ class BreakpointComplexClassContainer:
                     bkpt_contained_in_cell = True
                     break
             if not contained_in_cell:
-                cells_found.append(nnc_poly_from_bkpt_sequence(bkpt))
+                cells_found.append(nnc_poly_from_bkpt_sequence(bkpt, backend=self._backend))
         new_data = []
         for cell in cells_found:
             new_data.append(cell.find_point())
@@ -634,9 +634,9 @@ class PiMinContContainer:
                         self._data.append([eval(preparse(data)) for data in row])
         else:
             minimal_function_cache_logger.info("Generating representative elements. This might take a while.")
-            bkpts = make_rep_bkpts_with_len_n(self._n)
+            bkpts = make_rep_bkpts_with_len_n(self._n, backend=self._backend)
             minimal_function_cache_logger.info("Finished generating elements.")
-            self._data = find_minimal_function_reps_from_bkpts(bkpts, backend = self._backend)
+            self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
 
     def __repr__(self):
         return "Space of minimal functions with at most {} breakpoints parameterized by breakpoints and values using semialgebraic sets.".format(self._n)
@@ -644,7 +644,7 @@ class PiMinContContainer:
     def get_semialgebraic_sets(self):
         """Iterator for semialgebraic set description"""
         for b, v in self._data:
-            yield bsa_of_rep_element(list(b), list(v))
+            yield bsa_of_rep_element(list(b), list(v), backend=self._backend)
 
     def get_rep_elems(self):
         """Iterator for representative elements."""
@@ -698,6 +698,5 @@ class PiMinContContainer:
                     break
             out_file.close()
             output_file = file_name_base[:-1]+"{}".format(file_number+1)+".csv"
-    ### TODO: Add method to make loaded objects the same as generated objects if they repersent the same space.
 
-### Plotting Utilties ###
+    
