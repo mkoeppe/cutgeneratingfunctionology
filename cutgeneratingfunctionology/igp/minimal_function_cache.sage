@@ -186,7 +186,11 @@ def make_rep_bkpts_with_len_n(n, k=1, bkpts=None, backend=None):
     sage: len(bkpts_rep_with_len_4)
     329
     """
-    # Look into using a directed tree as an underlying data structure for generating elements.
+    # Matthias suggested looking at a directed tree. 
+    # An alternative approach would be to look into using a (graded) lattice as a data strcture.
+    # We have bkpt \leq bkpt' if and only if dim(NNC(bkpt)) \leq dim(NNC(bkpt')) 
+    # and embed(NNC(bkpt), dim(NNC(bkpt')) \leq NNC(bkpt') in the poset of NNC polyhedra.
+    # This might speed up/less the load of verifying unquiness of cells which is the time bounding task here.
     new_bkpts = []
     if n < 2:
         raise ValueError("n>=2")
