@@ -7,8 +7,8 @@ from cutgeneratingfunctionology.spam.basic_semialgebraic import EmptyBSA
 from cutgeneratingfunctionology.spam.basic_semialgebraic_pplite import BasicSemialgebraicSet_polyhedral_pplite_NNC_Polyhedron
 import logging
 
-minimal_function_cache_logger = logging.getLogger("cutgeneratingfunctionology.igp.minimal_function_cache")
-minimal_function_cache_logger.setLevel(logging.INFO)
+minimal_funciton_cell_description_logger = logging.getLogger("cutgeneratingfunctionology.igp.minimal_funciton_cell_description")
+minimal_funciton_cell_description_logger.setLevel(logging.INFO)
 
 ### Note to future reader: ###
 ### bkpt is assumed to be a breakpoint sequence of length n>= 2. 
@@ -204,10 +204,10 @@ def make_rep_bkpts_with_len_n(n, k=1, bkpts=None, backend=None):
     k += 1
 
     if k == n:
-        minimal_function_cache_logger.info(f"Breakpoints of length {n} have been generated. ")
+        minimal_funciton_cell_description_logger.info(f"Breakpoints of length {n} have been generated. ")
         return new_bkpts
     else:
-        minimal_function_cache_logger.info(f"Breakpoints of lenght {k} have been generated. Now generating breakpoints of length {k+1}.")
+        minimal_funciton_cell_description_logger.info(f"Breakpoints of lenght {k} have been generated. Now generating breakpoints of length {k+1}.")
         return make_rep_bkpts_with_len_n(n, k, new_bkpts, backend)
 
 
@@ -464,32 +464,54 @@ class BreakpointComplexClassContainer:
     
     
     """
-    def __init__(self, n, **kwrds):
+    def __init__(self, n, backend=None, manually_load_breakpoint_cache=False, **loading_kwrds):
         self._n = n
         assert(self._n >= 2)
-        if "backend" in kwrds.keys():
-            self._backend = kwrds["backend"]
+        self._backend = backend
+        if not manually_load_breakpoint_cache:
+            try:
+                # Load the minimal function cache.
+                from cacheUtils.utils import cache_loader, cache_info
+            except ImportError:
+                if self._n > 4:
+                    minimal_funciton_cell_description_logger.warning(f"This may take a while. Try installing the minimalfunctioncache.")
+                self._data = make_rep_bkpts_with_len_n(self._n, backend=self._backend)
+            try:
+                self._data = cache_loader(self._n, "breakpoints") # cache loader throws a value error if a cache for n is not found.
+                except ValueError:
+                    minimal_funciton_cell_description_logger.info(f"The cache for {n} breakpoints has not been generated or could not be found.")
+                    minimal_funciton_cell_description_logger.info("Generating representative breakpoints.")
+                    k =  max([ i for i in cache_info["avail_bkpts"] if i < self._n])
+                    if k is None:
+                        raise ValueError
+                    prev_gen_bkpts = self._data = cache_loader(self._n, "breakpoints")
+                    if self._n > 4:
+                        minimal_funciton_cell_description_logger.warning(f"This may take a while.")
+                    self._data = make_rep_bkpts_with_len_n(self._n, k, prev_gen_bkpts, backend=self._backend)           
+                minimal_funciton_cell_description_logger.info("Finished generating breakpoints.")
+        elif manually_load_breakpoint_cache:
+            # this is for generating the cache and advanced use. 
+            try:
+                if loading_kwrds.keys("breakpoints_or_rep_elems").strip(" ").lower() == "breakpoints":
+                    bkpts = []
+                    with open(loading_kwrds.keys("path_to_file_or_file_name_in_cwd")) as csvfile:
+                        file_reader = csv.reader(csvfile)
+                        for row in file_reader:
+                            bkpts.append([QQ(data) for data in row])
+                     self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
+            except KeyError:
+                if loading_kwrds.keys("breakpoints_or_rep_elems").strip(" ").lower() == "rep elems":
+                    self._data = []
+                    with open(loading_kwrds.keys("path_to_file_or_file_name_in_cwd")) as csvfile:
+                        file_reader = csv.reader(csvfile)
+                        for row in file_reader:
+                            self._data.append([QQ(data) for data in row])
+                else:
+                    raise ValueError("No valid inputs provded. Maybe check your spelling?")
+            except KeyError:
+                raise ValueError("No valid inputs provded. Maybe check your spelling?")
         else:
-            self._backend = None
-        if "load_rep_elem_data" in kwrds.keys():
-            if kwrds[load_rep_elem_data] is None:
-                minimal_function_cache_logger.info("Generating representative elements. This might take a while.")
-                self._data = make_rep_bkpts_with_len_n(self._n, backend = self._backend)
-            else:
-                file_names = kwrds["load_bkpt_data"].split(",")
-                self._data = []
-                for file_name in file_names:
-                    file = open(file_name, "r")
-                    self._data += [eval(preparse(data)) for data in list(csv.reader(file))]
-                    file.close()
-                if "gen_elems_from_data" in kwrds.keys():
-                    if kwrds[gen_elems_from_data] == True:
-                        k = len(self._data[0])
-                        if k < n:
-                            self._data = make_rep_bkpts_with_len_n(n, k, self._data)
-        else:
-            minimal_function_cache_logger.info("Generating representative elements. This might take a while.")
-            self._data = make_rep_bkpts_with_len_n(self._n,  backend=self._backend)
+            raise ValueError("No elements have been loaded. Check inputs")
 
     def __repr__(self):
         return f"Container for the space breakpoint sequences of length {self._n} under equivlance of polyhedral complexes."
@@ -506,7 +528,7 @@ class BreakpointComplexClassContainer:
         return len(self._data)
 
     # def add_one_bkpt_to_all(self):
-        # minimal_function_cache_logger.info("Generating representative elements. This might take a while.")
+        # minimal_funciton_cell_description_logger.info("Generating representative elements. This might take a while.")
         # self._n = n+1
         # self._data = make_bkpts_with_len_n(self._n, self._n-1, self._data)
         
@@ -608,42 +630,42 @@ class PiMinContContainer:
     
     Written data can be reused ::
     
-    sage: PiMin_2_loaded_data = PiMinContContainer(2, manually_load_function_cache=True, load_files="Pi_Min_2.csv", data_type="rep elems") # not tested
+    sage: PiMin_2_loaded_data = PiMinContContainer(2, manually_load_function_cache=True, path_to_file_or_file_name_in_cwd="Pi_Min_2.csv", breakpoints_or_rep_elems="rep elems") # not tested
     sage: len([rep_elem for rep_elem in PiMin_2_loaded_data.get_rep_elems()])  # not tested
     3
     """
     def __init__(self, n, backend=None, manually_load_function_cache=False, **loading_kwrds):
         self._n = n
         assert(self._n >= 2)
-        if "backend" in kwrds.keys():
-            self._backend = kwrds["backend"]
-        else:
-            self._backend = None
+        self._backend = backend
         if not manually_load_function_cache:
             try:
                 # Load the minimal function cache.
                 from cacheUtils.utils import cache_loader
             except ImportError:
                 if self._n > 4:
-                    minimal_function_cache_logger.warning(f"This may take a while. Try installing the minimalfunctioncache.")
+                    minimal_funciton_cell_description_logger.warning(f"This may take a while. Try installing the minimalfunctioncache.")
                 bkpts = make_rep_bkpts_with_len_n(self._n, backend=self._backend)
-                minimal_function_cache_logger.info("Finished generating breakpoints.")
-                minimal_function_cache_logger.info("Computing repersentative elements.")
+                minimal_funciton_cell_description_logger.info("Finished generating breakpoints.")
+                minimal_funciton_cell_description_logger.info("Computing repersentative elements.")
                 self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
             try:
-                self._data = cache_loader(self._n, "rep elems")
+                self._data = cache_loader(self._n, "rep elems") # cache loader throws a value error if a cache for n is not found.
                 except ValueError:
                     try:
-                        bkpts = cache_loader(n, "breakpoints")
+                        bkpts =  (n, "breakpoints")
                     except ValueError:
-                        minimal_function_cache_logger.info(f"The cache for {n} breakpoints has not been generated or could not be found.")
-                        minimal_function_cache_logger.info("Generating representative breakpoints.")
-                        if n> 4:
-                            
-
-            minimal_function_cache_logger.info("PiMin container, Reportin' for duty.")
+                        minimal_funciton_cell_description_logger.info(f"The cache for {n} breakpoints has not been generated or could not be found.")
+                        minimal_funciton_cell_description_logger.info("Generating representative breakpoints.")
+                        if self._n > 4:
+                            minimal_funciton_cell_description_logger.warning(f"This may take a while.")
+                        bkpts = BreakpointComplexClassContainer(self._n, backend=self._backend)
+                minimal_funciton_cell_description_logger.info("Finished generating breakpoints.")
+                minimal_funciton_cell_description_logger.info("Computing repersentative elements.")
+                self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend) 
+            minimal_funciton_cell_description_logger.info("PiMin container, Reportin' for duty.")
         elif manually_load_function_cache:
-            # this is for generating 
+            # this is for generating the cache and advanced use. 
             try:
                 if loading_kwrds.keys("breakpoints_or_rep_elems").strip(" ").lower() == "breakpoints":
                     bkpts = []
@@ -652,30 +674,25 @@ class PiMinContContainer:
                         for row in file_reader:
                             bkpts.append([QQ(data) for data in row])
                      self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
-            except OSError:
+            except KeyError:
+                if loading_kwrds.keys("breakpoints_or_rep_elems").strip(" ").lower() == "rep elems":
+                    self._data = []
                     with open(loading_kwrds.keys("path_to_file_or_file_name_in_cwd")) as csvfile:
                         file_reader = csv.reader(csvfile)
                         for row in file_reader:
-                            bkpts.append([QQ(data) for data in row])
-                     self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
-                    if loading_kwrds.keys("breakpoints_or_rep_elems").strip(" ").lower() == "rep_elems":
-                        self._data = []
-                        with open(loading_kwrds.keys("path_to_file_or_file_name_in_cwd")) as csvfile:
-                            file_reader = csv.reader(csvfile)
-                            for row in file_reader:
-                                self._data.append([QQ(data) for data in row])
+                            self._data.append([QQ(data) for data in row])
+                else:
+                    raise ValueError("No valid inputs provded. Maybe check your spelling?")
             except KeyError:
                 raise ValueError("No valid inputs provded. Maybe check your spelling?")
-
         else:
-            raise ValueError("manually_load_function_cache is a python bool")
-
+            raise ValueError("No elements have been loaded. Check inputs")
 
     def __repr__(self):
         return "Space of minimal functions with at most {} breakpoints parameterized by breakpoints and values using semialgebraic sets.".format(self._n)
 
     def get_semialgebraic_sets(self):
-        """Iterator for semialgebraic set description"""
+        """Iterator for semialgebraic set description."""
         for b, v in self._data:
             yield bsa_of_rep_element(list(b), list(v), backend=self._backend)
 
@@ -731,5 +748,3 @@ class PiMinContContainer:
                     break
             out_file.close()
             output_file = file_name_base[:-1]+"{}".format(file_number+1)+".csv"
-
-    def _load_file_or_dir()
