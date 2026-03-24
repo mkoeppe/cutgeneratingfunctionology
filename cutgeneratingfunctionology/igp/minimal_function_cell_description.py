@@ -1,11 +1,9 @@
-from copy import deepcopy
-from itertools import pairwise
 from cutgeneratingfunctionology.igp import *
-import csv
-import os
 from cutgeneratingfunctionology.spam.basic_semialgebraic import EmptyBSA
 from cutgeneratingfunctionology.spam.basic_semialgebraic_pplite import BasicSemialgebraicSet_polyhedral_pplite_NNC_Polyhedron
+import csv
 import logging
+import os
 
 minimal_funciton_cell_description_logger = logging.getLogger("cutgeneratingfunctionology.igp.minimal_funciton_cell_description")
 minimal_funciton_cell_description_logger.setLevel(logging.INFO)
