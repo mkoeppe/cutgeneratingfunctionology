@@ -187,7 +187,7 @@ This method uses the modularized distributions from https://github.com/passagema
     git clone https://github.com/mkoeppe/cutgeneratingfunctionology.git
     cd cutgeneratingfunctionology
 
-- (Optional:) Create a virtual environment
+- (Optional:) Create a virtual environment::
 
     python3 -m venv venv-cgf
     . venv-cgf/bin/activate
