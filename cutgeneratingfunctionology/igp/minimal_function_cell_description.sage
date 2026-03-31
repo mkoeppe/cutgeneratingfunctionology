@@ -582,7 +582,8 @@ class BreakpointComplexClassContainer:
             num_files = len(self._data)//max_rows + 1
             file_name_base = file_name_base + "_part_0"
         if max_rows is None:
-            max_rows = 0
+            max_rows = len(self._data)
+            num_files = 1
         output_file = file_name_base +".csv"
         for file_number in range(num_files):
             out_file = open(output_file, "w")
@@ -674,17 +675,17 @@ class PiMinContContainer:
         elif manually_load_function_cache:
             # this is for generating the cache and advanced use. 
             try:
-                if loading_kwrds.keys("breakpoints_or_rep_elems").strip(" ").lower() == "breakpoints":
+                if loading_kwrds["breakpoints_or_rep_elems"].strip(" ").lower() == "breakpoints":
                     bkpts = []
-                    with open(loading_kwrds.keys("path_to_file_or_file_name_in_cwd")) as csvfile:
+                    with open(loading_kwrds["path_to_file_or_file_name_in_cwd"]) as csvfile:
                         file_reader = csv.reader(csvfile)
                         for row in file_reader:
                             bkpts.append([QQ(data) for data in row])
                     self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
             except KeyError:
-                if loading_kwrds.keys("breakpoints_or_rep_elems").strip(" ").lower() == "rep elems":
+                if loading_kwrds["breakpoints_or_rep_elems"].strip(" ").lower() == "rep elems":
                     self._data = []
-                    with open(loading_kwrds.keys("path_to_file_or_file_name_in_cwd")) as csvfile:
+                    with open(loading_kwrds["path_to_file_or_file_name_in_cwd"]) as csvfile:
                         file_reader = csv.reader(csvfile)
                         for row in file_reader:
                             self._data.append([QQ(data) for data in row])
