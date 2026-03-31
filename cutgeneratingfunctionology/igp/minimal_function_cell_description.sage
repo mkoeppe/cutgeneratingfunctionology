@@ -111,12 +111,18 @@ def add_breakpoints_and_find_equiv_classes(bkpt_poly):
     # 0 < lambda_k <1
     # Using ppl and pplite type bsas have the same signature, so this should work regardless of backend.
     # this will fail if the BSA attached does not have these methods. 
-    B_cap_N_b.add_linear_constraint(model_bound_bkpts, -1, operator.lt) # model bounds
-    B_cap_N_b.add_linear_constraint(model_bound_bkpts, 0, operator.gt) # model bounds 
+    # Ask Matthias about this; in some sense; I don't want to have to write QQ for field everytime I need to have a mathemeatically meaningful number; so a .sage makes sense
+    # but in terms of integeration/repository goals it makes more sense to write this as a .py file as to not create tech debt.
+    # Also, we should note that since we are writing this pythontically; the QQ for add linear constraint is 
+    # necessary since we mean the field elements as input.
+    # If this were a .sage file; coheasion would happen automatically. But it isn't; so we should be explict, when elements should be
+    # converted to sage types. (Sage types == "mathemamatically accurate")
+    B_cap_N_b.add_linear_constraint(model_bound_bkpts, QQ(-1), operator.lt) # model bounds
+    B_cap_N_b.add_linear_constraint(model_bound_bkpts, QQ(0), operator.gt) # model bounds 
     bkpt_order = [0]*k
     bkpt_order[k-2] = 1
     bkpt_order[k-1] = -1
-    B_cap_N_b.add_linear_constraint(bkpt_order, 0, operator.lt) # order on bkpts
+    B_cap_N_b.add_linear_constraint(bkpt_order, QQ(0), operator.lt) # order on bkpts
     rep_elems = []
     for j in range(k-1):
         for i in range(k):
@@ -131,21 +137,21 @@ def add_breakpoints_and_find_equiv_classes(bkpt_poly):
                             lhs_i = [0]*k
                             lhs_i[k-1] = -2
                             lhs_i[i] = 1
-                            B_cap_N_b_copy.add_linear_constraint(lhs_i, interval_w, interval_op)
+                            B_cap_N_b_copy.add_linear_constraint(lhs_i, QQ(interval_w), interval_op)
                             lhs_i_plus_1 = [0]*k
                             lhs_i_plus_1[k-1] = -2
                             if i < k-1:
                                 lhs_i_plus_1[i+1] = 1            
-                                B_cap_N_b_copy.add_linear_constraint(lhs_i_plus_1, interval_w, operator.gt)
+                                B_cap_N_b_copy.add_linear_constraint(lhs_i_plus_1, QQ(interval_w), operator.gt)
                             else:
-                                B_cap_N_b_copy.add_linear_constraint(lhs_i_plus_1, interval_w + 1, operator.gt)
+                                B_cap_N_b_copy.add_linear_constraint(lhs_i_plus_1, QQ(interval_w + 1), operator.gt)
                             if not B_cap_N_b_copy.is_empty():
                                 # does the line x+y equiv lambda_k mod 1 lie on/above/below (lambda_j,lambda_j)?
                                 # modeled by  2lambda_j op lambda_k + w
                                 lhs_j = [0]*k
                                 lhs_j[j] = 2
                                 lhs_j[k-1] = -1
-                                B_cap_N_b_copy.add_linear_constraint(lhs_j, -line_w, line_op)
+                                B_cap_N_b_copy.add_linear_constraint(lhs_j, QQ(-line_w), line_op)
                                 try:
                                     rep_elem = B_cap_N_b_copy.find_point()
                                     rep_elems.append(tuple(rep_elem))
@@ -197,7 +203,7 @@ def make_rep_bkpts_with_len_n(n, k=1, bkpts=None, backend=None):
     if k == 1 and bkpts is None:
         bkpts=[[0]]
     for bkpt in bkpts:
-        new_bkpts += add_breakpoints_and_find_equiv_classes(nnc_poly_from_bkpt_sequence(bkpt).upstairs())
+        new_bkpts += add_breakpoints_and_find_equiv_classes(nnc_poly_from_bkpt_sequence(bkpt, backend=backend).upstairs())
     new_bkpts = unique_list(new_bkpts)
     k += 1
 
@@ -469,23 +475,28 @@ class BreakpointComplexClassContainer:
         if not manually_load_breakpoint_cache:
             try:
                 # Load the minimal function cache.
-                from cacheUtils.utils import cache_loader, cache_info
-            except ImportError:
-                if self._n > 4:
-                    minimal_funciton_cell_description_logger.warning(f"This may take a while. Try installing the minimalfunctioncache.")
-                self._data = make_rep_bkpts_with_len_n(self._n, backend=self._backend)
-            try:
-                self._data = cache_loader(self._n, "breakpoints") # cache loader throws a value error if a cache for n is not found.
+                from minimalFunctionCache.utils import minimal_function_cache_info, minimal_function_cache_loader
+                cache_info = minimal_function_cache_info()
+                try:
+                    self._data = minimal_function_cache_loader(self._n, "breakpoints") # minimal_function_cache_loader throws a value error if a cache for n is not found.
                 except ValueError:
                     minimal_funciton_cell_description_logger.info(f"The cache for {n} breakpoints has not been generated or could not be found.")
                     minimal_funciton_cell_description_logger.info("Generating representative breakpoints.")
-                    k =  max([ i for i in cache_info["avail_bkpts"] if i < self._n])
-                    if k is None:
-                        raise ValueError
-                    prev_gen_bkpts = self._data = cache_loader(self._n, "breakpoints")
-                    if self._n > 4:
-                        minimal_funciton_cell_description_logger.warning(f"This may take a while.")
-                    self._data = make_rep_bkpts_with_len_n(self._n, k, prev_gen_bkpts, backend=self._backend)           
+                    avail_bkpts = [ i for i in cache_info["avail_bkpts"] if i < self._n]
+                    if len(avail_bkpts) > 0:
+                        k = max(avail_bkpts)
+                        prev_gen_bkpts = self._data = minimal_function_cache_loader(k, "breakpoints")
+                        if self._n > 4:
+                            minimal_funciton_cell_description_logger.warning(f"This may take a while.")
+                        self._data = make_rep_bkpts_with_len_n(self._n, k, prev_gen_bkpts, backend=self._backend)
+                    else:
+                        if self._n > 4:
+                            minimal_funciton_cell_description_logger.warning(f"This may take a while.")
+                        self._data = make_rep_bkpts_with_len_n(self._n, backend=self._backend)
+            except ImportError:
+                if self._n > 4:
+                    minimal_funciton_cell_description_logger.warning(f"This may take a while. Try installing the minimalfunctioncache.")
+                self._data = make_rep_bkpts_with_len_n(self._n, backend=self._backend)       
                 minimal_funciton_cell_description_logger.info("Finished generating breakpoints.")
         elif manually_load_breakpoint_cache:
             # this is for generating the cache and advanced use. 
@@ -496,7 +507,7 @@ class BreakpointComplexClassContainer:
                         file_reader = csv.reader(csvfile)
                         for row in file_reader:
                             bkpts.append([QQ(data) for data in row])
-                     self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
+                    self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
             except KeyError:
                 if loading_kwrds.keys("breakpoints_or_rep_elems").strip(" ").lower() == "rep elems":
                     self._data = []
@@ -639,7 +650,19 @@ class PiMinContContainer:
         if not manually_load_function_cache:
             try:
                 # Load the minimal function cache.
-                from cacheUtils.utils import cache_loader
+                from minimalFunctionCache.utils import minimal_function_cache_loader
+                try:
+                    self._data = minimal_function_cache_loader(self._n, "rep elems")
+                # cache loader throws a value error if a cache for n is not found.
+                except ValueError:
+                    minimal_funciton_cell_description_logger.info(f"The cache for {n} breakpoints has not been generated or could not be found.")
+                    minimal_funciton_cell_description_logger.info("Finding or generating representative breakpoints.")
+                    bkpts = BreakpointComplexClassContainer(self._n, backend=self._backend).get_rep_elems()
+                    if self._n > 4:
+                        minimal_funciton_cell_description_logger.warning(f"This may take a while.")
+                    minimal_funciton_cell_description_logger.info("Finished generating breakpoints.")
+                    minimal_funciton_cell_description_logger.info("Computing repersentative elements.")
+                    self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)                    
             except ImportError:
                 if self._n > 4:
                     minimal_funciton_cell_description_logger.warning(f"This may take a while. Try installing the minimalfunctioncache.")
@@ -647,20 +670,6 @@ class PiMinContContainer:
                 minimal_funciton_cell_description_logger.info("Finished generating breakpoints.")
                 minimal_funciton_cell_description_logger.info("Computing repersentative elements.")
                 self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
-            try:
-                self._data = cache_loader(self._n, "rep elems") # cache loader throws a value error if a cache for n is not found.
-                except ValueError:
-                    try:
-                        bkpts =  (n, "breakpoints")
-                    except ValueError:
-                        minimal_funciton_cell_description_logger.info(f"The cache for {n} breakpoints has not been generated or could not be found.")
-                        minimal_funciton_cell_description_logger.info("Generating representative breakpoints.")
-                        if self._n > 4:
-                            minimal_funciton_cell_description_logger.warning(f"This may take a while.")
-                        bkpts = BreakpointComplexClassContainer(self._n, backend=self._backend)
-                minimal_funciton_cell_description_logger.info("Finished generating breakpoints.")
-                minimal_funciton_cell_description_logger.info("Computing repersentative elements.")
-                self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend) 
             minimal_funciton_cell_description_logger.info("PiMin container, Reportin' for duty.")
         elif manually_load_function_cache:
             # this is for generating the cache and advanced use. 
@@ -671,7 +680,7 @@ class PiMinContContainer:
                         file_reader = csv.reader(csvfile)
                         for row in file_reader:
                             bkpts.append([QQ(data) for data in row])
-                     self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
+                    self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
             except KeyError:
                 if loading_kwrds.keys("breakpoints_or_rep_elems").strip(" ").lower() == "rep elems":
                     self._data = []
