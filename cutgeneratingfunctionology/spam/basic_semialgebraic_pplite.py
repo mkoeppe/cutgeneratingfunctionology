@@ -205,6 +205,8 @@ class BasicSemialgebraicSet_polyhedral_pplite_NNC_Polyhedron(BasicSemialgebraicS
                     if g.is_point() or g.is_closure_point()]
         rays = [to_vector(g, self._polyhedron.space_dimension()) for g in self._polyhedron.generators()
                     if g.is_ray()]
+        if self.is_empty():
+            raise EmptyBSA("The underlying bsa is empty set.")
         if points:
             p = sum(points) / len(points)
             if rays:

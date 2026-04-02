@@ -109,14 +109,7 @@ def add_breakpoints_and_find_equiv_classes(bkpt_poly):
     model_bound_bkpts = [0]*k
     model_bound_bkpts[k-1] = 1
     # 0 < lambda_k <1
-    # Using ppl and pplite type bsas have the same signature, so this should work regardless of backend.
-    # this will fail if the BSA attached does not have these methods. 
-    # Ask Matthias about this; in some sense; I don't want to have to write QQ for field everytime I need to have a mathemeatically meaningful number; so a .sage makes sense
-    # but in terms of integeration/repository goals it makes more sense to write this as a .py file as to not create tech debt.
-    # Also, we should note that since we are writing this pythontically; the QQ for add linear constraint is 
-    # necessary since we mean the field elements as input.
-    # If this were a .sage file; coheasion would happen automatically. But it isn't; so we should be explict, when elements should be
-    # converted to sage types. (Sage types == "mathemamatically accurate")
+    # we assume the bsa is "polyhedra"
     B_cap_N_b.add_linear_constraint(model_bound_bkpts, QQ(-1), operator.lt) # model bounds
     B_cap_N_b.add_linear_constraint(model_bound_bkpts, QQ(0), operator.gt) # model bounds 
     bkpt_order = [0]*k
@@ -366,8 +359,11 @@ def bsa_of_rep_element(bkpt, vals, backend=None):
     OUTPUT: A basic semialgebraic set.
     
     EXAMPLES::
-    
-    
+
+    sage: from cutgeneratingfunctionology.igp import * 
+    sage: logging.disable(logging.INFO) # suppress logging for tests
+    sage: bsa_of_rep_element([0,4/5], [0,1]) # bsa for GMIC
+    BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {x5-1==0, x4==0, x0==0, 2*x3-1>0, -2*x1+x2-x3+1>=0, -x3+1>0}, names=[x0, x1, x2, x3, x4, x5]), polynomial_map=[gamma0, lambda1^2*gamma0, lambda1*gamma0, lambda1, lambda0, gamma1])
     """
     n = len(bkpt)
     if not log_paramateric_real_field:
@@ -465,8 +461,6 @@ class BreakpointComplexClassContainer:
     
     sage: all([isinstance(cell, BasicSemialgebraicSet_base) for cell in bkpt_of_len_2.get_nnc_poly_from_bkpt()])
     True
-    
-    
     """
     def __init__(self, n, backend=None, manually_load_breakpoint_cache=False, **loading_kwrds):
         self._n = n
@@ -501,17 +495,17 @@ class BreakpointComplexClassContainer:
         elif manually_load_breakpoint_cache:
             # this is for generating the cache and advanced use. 
             try:
-                if loading_kwrds.keys("breakpoints_or_rep_elems").strip(" ").lower() == "breakpoints":
+                if loading_kwrds["breakpoints_or_rep_elems"].strip(" ").lower() == "breakpoints":
                     bkpts = []
-                    with open(loading_kwrds.keys("path_to_file_or_file_name_in_cwd")) as csvfile:
+                    with open(loading_kwrds["path_to_file_or_file_name_in_cwd"]) as csvfile:
                         file_reader = csv.reader(csvfile)
                         for row in file_reader:
                             bkpts.append([QQ(data) for data in row])
                     self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
             except KeyError:
-                if loading_kwrds.keys("breakpoints_or_rep_elems").strip(" ").lower() == "rep elems":
+                if loading_kwrds["breakpoints_or_rep_elems"].strip(" ").lower() == "rep elems":
                     self._data = []
-                    with open(loading_kwrds.keys("path_to_file_or_file_name_in_cwd")) as csvfile:
+                    with open(loading_kwrds["path_to_file_or_file_name_in_cwd"]) as csvfile:
                         file_reader = csv.reader(csvfile)
                         for row in file_reader:
                             self._data.append([QQ(data) for data in row])
@@ -536,11 +530,6 @@ class BreakpointComplexClassContainer:
     def num_rep_elems(self):
         return len(self._data)
 
-    # def add_one_bkpt_to_all(self):
-        # minimal_funciton_cell_description_logger.info("Generating representative elements. This might take a while.")
-        # self._n = n+1
-        # self._data = make_bkpts_with_len_n(self._n, self._n-1, self._data)
-        
     def covers_space(self):
         ### TODO: This method should prove that container is correct.
         raise NotImplementedError
@@ -582,7 +571,8 @@ class BreakpointComplexClassContainer:
             num_files = len(self._data)//max_rows + 1
             file_name_base = file_name_base + "_part_0"
         if max_rows is None:
-            max_rows = 0
+            max_rows = len(self._data)
+            num_files = 1
         output_file = file_name_base +".csv"
         for file_number in range(num_files):
             out_file = open(output_file, "w")
@@ -674,17 +664,17 @@ class PiMinContContainer:
         elif manually_load_function_cache:
             # this is for generating the cache and advanced use. 
             try:
-                if loading_kwrds.keys("breakpoints_or_rep_elems").strip(" ").lower() == "breakpoints":
+                if loading_kwrds["breakpoints_or_rep_elems"].strip(" ").lower() == "breakpoints":
                     bkpts = []
-                    with open(loading_kwrds.keys("path_to_file_or_file_name_in_cwd")) as csvfile:
+                    with open(loading_kwrds["path_to_file_or_file_name_in_cwd"]) as csvfile:
                         file_reader = csv.reader(csvfile)
                         for row in file_reader:
                             bkpts.append([QQ(data) for data in row])
                     self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
             except KeyError:
-                if loading_kwrds.keys("breakpoints_or_rep_elems").strip(" ").lower() == "rep elems":
+                if loading_kwrds["breakpoints_or_rep_elems"].strip(" ").lower() == "rep elems":
                     self._data = []
-                    with open(loading_kwrds.keys("path_to_file_or_file_name_in_cwd")) as csvfile:
+                    with open(loading_kwrds["path_to_file_or_file_name_in_cwd"]) as csvfile:
                         file_reader = csv.reader(csvfile)
                         for row in file_reader:
                             self._data.append([QQ(data) for data in row])
