@@ -1,4 +1,9 @@
 from six.moves import range
+import logging
+
+crazy_perturbation_logger = logging.getLogger("cutgeneratingfunctionology.igp.crazy_perturbation")
+crazy_perturbation_logger.setLevel(logging.INFO)
+
 # Reminder: need coerce all input to common RNF.
 
 class CrazyPiece:
@@ -8,9 +13,9 @@ class CrazyPiece:
         # assume that generators QQ linearly independent
         self.generators = generators
         if not is_QQ_linearly_independent(*generators):
-            logging.warning("Generators are not linearly independent over Q.")
+            crazy_perturbation_logger.warning("Generators are not linearly independent over Q.")
         if len(generators) < 2:
-            logging.warning("The group is not dense.")
+            crazy_perturbation_logger.warning("The group is not dense.")
         self.hermite_form_generators = find_hermite_form_generators(generators)
         # cosets is a list of (coset_repr, shift),
         # assume coset_repr represent distinct cosets;
@@ -19,11 +24,11 @@ class CrazyPiece:
         for i in range(len(cosets)):
             (r, s) = cosets[i]
             if s == 0:
-                logging.warning("Have shift = 0.")
+                crazy_perturbation_logger.warning("Have shift = 0.")
             for j in range(i):
                 rr = cosets[j][0]
                 if is_in_ZZ_span(r-rr, generators):
-                    logging.warning("Not unique coset representative.")
+                    crazy_perturbation_logger.warning("Not unique coset representative.")
 
     def __call__(self, x):
         x = fractional(x)
@@ -359,7 +364,7 @@ def check_move_on_crazy_pieces(xxx_todo_changeme, cp1, cp2):
         #compare if the groups on cp1 and cp2 are the same
         # TODO: set up these subgroups in a high-level way in Sage, and compare.
         if not cp1.hermite_form_generators == cp2.hermite_form_generators:
-            logging.warning("Different groups. Open question.")
+            crazy_perturbation_logger.warning("Different groups. Open question.")
             return False
         if move_sign == 1:
             return (all((s == cp2(r + move_dist)) for (r, s) in cp1.cosets) \
@@ -473,21 +478,21 @@ def minimality_test_randomized(fn, orig_function=None, testpoint_function=None, 
             if orig_function is not None:
                 delta_orig = delta_pi(orig_function, x, y)
         if delta < 0:
-            logging.warning("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
+            crazy_perturbation_logger.warning("pi(%s%s) + pi(%s%s) - pi(%s%s) < 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
             return False
         if 0 < delta and (x + y == f or x + y == 1 + f) and zeps == 0:
             # Symmetry violated
-            logging.warning("pi(%s%s) + pi(%s%s) - pi(%s%s) != 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
+            crazy_perturbation_logger.warning("pi(%s%s) + pi(%s%s) - pi(%s%s) != 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
             return False
         if 0 < delta and orig_function is not None:
             if delta_orig == 0:
-                logging.warning("Lost additivity: pi(%s%s) + pi(%s%s) - pi(%s%s) > 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
+                crazy_perturbation_logger.warning("Lost additivity: pi(%s%s) + pi(%s%s) - pi(%s%s) > 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
                 if lost_additivity_is_error:
                     return False
         if 0 == delta and orig_function is not None:
             if delta_orig != 0:
-                logging.info("New additivity: pi(%s%s) + pi(%s%s) - pi(%s%s) = 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
+                crazy_perturbation_logger.info("New additivity: pi(%s%s) + pi(%s%s) - pi(%s%s) = 0" % (x, print_sign(xeps), y, print_sign(yeps), z, print_sign(zeps)))
         if 0 < delta < smallest_delta:
             smallest_delta = delta
-            logging.info("After {} tries, smallest Delta pi now: {}".format(num_it, delta))
+            crazy_perturbation_logger.info("After {} tries, smallest Delta pi now: {}".format(num_it, delta))
     return True

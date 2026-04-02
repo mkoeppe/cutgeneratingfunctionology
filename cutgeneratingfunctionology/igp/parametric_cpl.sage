@@ -1,4 +1,8 @@
 from six.moves import range
+import logging
+
+parametric_cpl_logger =  logging.getLogger("cutgeneratingfunctionology.igp.parametric_cpl")
+parametric_cpl_logger.setLevel(logging.INFO)
 
 from .parametric_family import ParametricFamily_base
 
@@ -402,7 +406,7 @@ def cpl_regions_with_thetas_and_components(n=3, cpleq=True, keep_extreme_only=Fa
         regions = cpl_regions_from_arrangement_of_bkpts(n, cpleq, flip_ineq_step, False, wall_crossing_method, goto_lower_dim) # Remark: check_completion=False for arr_complex.
     for i in range(len(regions)):
         r = regions[i]
-        logging.warning("Cell %s with test point %s." %(i, r.var_value)) # using warning for progress reporting only
+        parametric_cpl_logger.warning("Cell %s with test point %s." %(i, r.var_value)) # using warning for progress reporting only
         r.thetas = {}
         thetas_of_r = generate_thetas_of_region(r)
         for theta in thetas_of_r:

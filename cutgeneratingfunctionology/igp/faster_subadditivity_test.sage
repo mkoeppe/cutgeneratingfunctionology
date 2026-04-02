@@ -4,6 +4,10 @@ import queue as queue
 import itertools
 import numpy as np
 import gc
+import logging
+
+faster_subaddivity_test_logger = logging.getLogger("cutgeneratingfunctionology.igp.faster_subadditivity_test")
+faster_subaddivity_test_logger.setLevel(logging.INFO)
 
 class SubadditivityTestTreeNode(object):
 
@@ -774,9 +778,9 @@ class SubadditivityTestTree:
                         covered_components = remaining_components + [new_component]
                         if logging.getLogger().isEnabledFor(logging.DEBUG):
                             if new_component == component:
-                                logging.debug("Step %s: Consider the 2d additive %s.\n%s is directly covered." % (step, Face(current_node.projections, vertices=current_node.vertices, is_known_to_be_minimal=True), component))
+                                faster_subaddivity_test_logger.debug("Step %s: Consider the 2d additive %s.\n%s is directly covered." % (step, Face(current_node.projections, vertices=current_node.vertices, is_known_to_be_minimal=True), component))
                             else:
-                                logging.debug("Step %s: By merging components that overlap with projections of the 2d additive %s, we obtain a larger covered component %s" % (step, Face(current_node.projections, vertices=current_node.vertices, is_known_to_be_minimal=True), new_component))
+                                faster_subaddivity_test_logger.debug("Step %s: By merging components that overlap with projections of the 2d additive %s, we obtain a larger covered component %s" % (step, Face(current_node.projections, vertices=current_node.vertices, is_known_to_be_minimal=True), new_component))
                             step += 1
         for edge in additive_edges:
             fdm = edge.functional_directed_move()
@@ -797,10 +801,10 @@ class SubadditivityTestTree:
                             if len(remaining_components) == len(covered_components)-1:
                                 # only extend one component
                                 newly_covered = union_of_coho_intervals_minus_union_of_coho_intervals([new_component], covered_components)
-                                logging.debug("Step %s: %s is indirectly covered." % (step, newly_covered))
+                                faster_subaddivity_test_logger.debug("Step %s: %s is indirectly covered." % (step, newly_covered))
                             else:
                                 # extend and merge
-                                logging.debug("Step %s: By merging components that are connected by the 1d additive %s, we obtain a larger covered component %s" % (step, edge, new_component))
+                                faster_subaddivity_test_logger.debug("Step %s: By merging components that are connected by the 1d additive %s, we obtain a larger covered component %s" % (step, edge, new_component))
                             step += 1
                         covered_components = remaining_components + [new_component]
         self.covered_components = covered_components

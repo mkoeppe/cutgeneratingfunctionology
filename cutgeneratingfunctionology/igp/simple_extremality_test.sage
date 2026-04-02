@@ -1,4 +1,9 @@
 from six.moves import range
+import logging
+
+simple_extremality_test_logger = logging.getLogger("cutgeneratingfunctionology.igp.simple_extremality_test")
+simple_extremality_test_logger.setLevel(logging.INFO)
+
 def generate_perturbations_simple(fn, show_plots=False, f=None, oversampling=3, order=None, full_certificates=True):
     r"""
     Generate (with "yield") perturbations for ``simple_finite_dimensional_extremality_test``. 
@@ -97,7 +102,7 @@ def generate_perturbations_simple(fn, show_plots=False, f=None, oversampling=3, 
     # Maybe, should use the fact that equations is a sparse matrix.
     # Or compute rank instead?  extreme iff equations.rank() == grid_nb
     solutions = equations.right_kernel().basis()
-    logging.info("Solution space has dimension %s" % len(solutions))
+    simple_extremality_test_logger.info("Solution space has dimension %s" % len(solutions))
     # FIXME: cache data up to here.
     for sol_index in range(len(solutions)):
         if not full_certificates:
@@ -164,16 +169,16 @@ def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, ove
     if f is None:
         f = find_f(fn, no_error_if_not_minimal_anyway=True)
     if not minimality_test(fn, show_plots=show_plots, f=f):
-        logging.info("Not minimal, thus NOT extreme.")
+        simple_extremality_test_logger.info("Not minimal, thus NOT extreme.")
         return False
     if not full_certificates and fn.is_continuous() and number_of_slopes(fn) == 2:
-        logging.info("Gomory-Johnson's 2-slope theorem applies. The function is extreme.")
+        simple_extremality_test_logger.info("Gomory-Johnson's 2-slope theorem applies. The function is extreme.")
         return True
     seen_perturbation = False
     fn._perturbations = []
     for index, perturbation in enumerate(generate_perturbations_simple(fn, show_plots=show_plots, f=f, oversampling=oversampling, order=order, full_certificates=full_certificates)):
         if not full_certificates:
-            logging.info("The function is NOT extreme.")
+            simple_extremality_test_logger.info("The function is NOT extreme.")
             return False
         fn._perturbations.append(perturbation)
         check_perturbation(fn, perturbation,
@@ -181,13 +186,13 @@ def simple_finite_dimensional_extremality_test(fn, show_plots=False, f=None, ove
                            legend_title="Basic perturbation %s" % (index + 1))
         if not seen_perturbation:
             seen_perturbation = True
-            logging.info("Thus the function is NOT extreme.")
+            simple_extremality_test_logger.info("Thus the function is NOT extreme.")
             if not show_all_perturbations:
                 break
 
     if not seen_perturbation:
         if fn.is_discrete():
-            logging.info("Thus the function is extreme.")
+            simple_extremality_test_logger.info("Thus the function is extreme.")
         elif oversampling is not None and oversampling >= 3 and order is None and fn.is_continuous():
-            logging.info("Because oversampling >= 3, this means that the function is extreme.")
+            simple_extremality_test_logger.info("Because oversampling >= 3, this means that the function is extreme.")
     return not seen_perturbation

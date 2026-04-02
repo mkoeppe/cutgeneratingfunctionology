@@ -1,4 +1,9 @@
 from six.moves import range
+import logging
+
+extreme_functions_mlr_cpl3_logger =  logging.getLogger("cutgeneratingfunctionology.igp.extreme_functions_mlr_cpl3")
+extreme_functions_mlr_cpl3_logger.setLevel(logging.INFO)
+
 def cpl3_function(r0, z1, o1, o2):
     r"""
     Construct a CPL3= function.
@@ -30,7 +35,7 @@ def cpl3_function(r0, z1, o1, o2):
     if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)) or (bool(z1 == (1-r0)/4) & bool(o1 + o2 != 1/2)):
         raise ValueError("Bad parameters. Unable to construct the function.")
     if not (bool(0 <= o1) & bool(0 <= o2) & bool(o1+o2 <= 1/2)):
-        logging.info("Conditions for a CPL-3 function are NOT satisfied.")
+        extreme_functions_mlr_cpl3_logger.info("Conditions for a CPL-3 function are NOT satisfied.")
 
     if z1 < (1-r0)/4:
         bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
@@ -151,9 +156,9 @@ def mlr_cpl3_a_2_slope(r0=3/13, z1=3/26, field=None, conditioncheck=True):
         if not bool(0 < r0 < 1):
             raise ValueError("Bad parameters. Unable to construct the function.")
         if not bool(0 <= z1 < 1):
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
         else:
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
 
     bkpt = [0, r0, 1]
     slopes = [1/r0, 1/(r0-1)]
@@ -213,9 +218,9 @@ def mlr_cpl3_b_3_slope(r0=3/26, z1=1/13, field=None, conditioncheck=True):
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
             raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(3*r0 + 8*z1 <= 1)):
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
         else:
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
 
     if z1 < (1-r0)/4:
         bkpt = [0, r0, r0+2*z1, 1-2*z1, 1]
@@ -275,9 +280,9 @@ def mlr_cpl3_c_3_slope(r0=5/24, z1=1/12, field=None, conditioncheck=True):
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
             raise ValueError("Bad parameters. Unable to construct the function.")
         if not bool(3*r0 + 4*z1 <= 1):
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
         else:
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
 
     bkpt = [0, r0, r0+z1, 1-z1, 1]
     slopes = [1/r0, (z1-1)/(z1*(1+r0)), 1/(1+r0), (z1-1)/(z1*(1+r0))]
@@ -339,9 +344,9 @@ def mlr_cpl3_d_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
             raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 == 2*z1) & bool(r0+8*z1 <= 1)):
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
         else:
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
 
     if z1 < (1-r0)/4:
         bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
@@ -405,9 +410,9 @@ def mlr_cpl3_f_2_or_3_slope(r0=1/6, z1=None, field=None, conditioncheck=True):
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
             raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 <= z1) & bool(r0+5*z1 == 1)):
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
         else:
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
 
     if z1 < (1-r0)/4:
         bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
@@ -469,9 +474,9 @@ def mlr_cpl3_g_3_slope(r0=1/12, z1=None, field=None, conditioncheck=True):
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
             raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 < z1) & bool(2*r0 + 4*z1 == 1)):
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
         else:
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
     if z1 < (1-r0)/4:
         bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
         slopes = [1/r0, 3/(3*r0-1), (1-3*z1)/(z1*(1-3*r0)), 3/(3*r0-1), (1-3*z1)/(z1*(1-3*r0)), 3/(3*r0-1)]
@@ -528,9 +533,9 @@ def mlr_cpl3_h_2_slope(r0=1/4, z1=1/6, field=None, conditioncheck=True):
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
             raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 + 4*z1 <= 1 < 2*r0 + 4*z1)):
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
         else:
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
     if z1 < (1-r0)/4:
         bkpt = [0, r0, r0+2*z1, 1-2*z1, 1]
         slopes = [1/r0, (4*z1-1)/(4*r0*z1), 1/r0, (4*z1-1)/(4*r0*z1)]
@@ -585,9 +590,9 @@ def mlr_cpl3_k_2_slope(r0=7/27, z1=4/27, field=None, conditioncheck=True):
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
             raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 <= 2*z1) & bool(r0+5*z1==1)):
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
         else:
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
     if z1 < (1-r0)/4:
         bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
         slopes = [1/r0, (3*z1-1)/(3*z1*r0), 1/r0, (2-3*r0-12*z1)/(3*r0*(1-r0-4*z1)), 1/r0, (3*z1-1)/(3*z1*r0)]
@@ -652,9 +657,9 @@ def mlr_cpl3_l_2_slope(r0=8/25, z1=None, field=None, conditioncheck=True):
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
             raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 == 2*z1) & bool(6*z1<=1<7*z1)):
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
         else:
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
     if z1 < (1-r0)/4:
         bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
         slopes = [1/r0, 2/(2*r0-1), (1-4*z1)/(2*z1-4*z1*r0), 2/(2*r0-1), (1-4*z1)/(2*z1-4*z1*r0), 2/(2*r0-1)]
@@ -717,9 +722,9 @@ def mlr_cpl3_n_3_slope(r0=9/25, z1=2/25, field=None, conditioncheck=True):
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
             raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 > 2*z1) & bool(r0+8*z1<=1)):
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
         else:
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
 
     if z1 < (1-r0)/4:
         bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
@@ -781,9 +786,9 @@ def mlr_cpl3_o_2_slope(r0=3/8, z1=None, field=None, conditioncheck=True):
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
             raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 >= 2*z1) & bool(2*r0+2*z1==1)):
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
         else:
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
     if z1 < (1-r0)/4:
         bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
         slopes = [1/r0, 2/(2*r0-1), (4*z1-4*z1*r0-1+2*r0)/(2*r0*z1*(1-2*r0)), 1/r0, (4*z1-4*z1*r0-1+2*r0)/(2*r0*z1*(1-2*r0)), 2/(2*r0-1)]
@@ -848,9 +853,9 @@ def mlr_cpl3_p_2_slope(r0=5/12, z1=None, field=None, conditioncheck=True):
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
             raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 > 2*z1) & bool(2*r0+2*z1==1)):
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
         else:
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
     if z1 < (1-r0)/4:
         bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
         slopes = [1/r0, 2/(2*r0-1), 1/r0, (-r0+2*r0^2-2*z1+8*z1*r0)/(r0*(1-2*r0)*(1-r0-4*z1)), 1/r0, 2/(2*r0-1)]
@@ -910,9 +915,9 @@ def mlr_cpl3_q_2_slope(r0=5/12, z1=3/24, field=None, conditioncheck=True):
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
             raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 > 2*z1) & bool(r0+4*z1 <= 1 < r0+5*z1)):
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
         else:
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
     if z1 < (1-r0)/4:
         bkpt = [0, r0, r0+z1, r0+2*z1, 1-2*z1, 1-z1, 1]
         slopes = [1/r0,(r0+2*z1)/(r0*(-1+r0+2*z1)), 1/r0, (r0+2*z1)/(r0*(-1+r0+2*z1)), 1/r0, (r0+2*z1)/(r0*(-1+r0+2*z1))]
@@ -963,9 +968,9 @@ def mlr_cpl3_r_2_slope(r0=3/7, z1=1/7, field=None, conditioncheck=True):
         if not (bool(0 < r0 < 1) & bool(0 < z1 <= (1-r0)/4)):
             raise ValueError("Bad parameters. Unable to construct the function.")
         if not (bool(r0 > 2*z1) & bool(r0+4*z1<=1<=2*r0+2*z1)):
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
         else:
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
 
     bkpt = [0, r0, r0+z1, 1-z1, 1]
     slopes = [1/r0, (2*z1-1)/(2*r0*z1), 1/r0, (2*z1-1)/(2*r0*z1)]
@@ -976,10 +981,10 @@ def cpl3_0(f=3/5, z1=1/25, z2=1/125, field=None, conditioncheck=True):
     claimed_parameter_attribute = None
     if conditioncheck:
         if all(bool(l < 0) for l in [-z2, -z1, -f, f + 2*z1 + 2*z2 - 1]):
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
             claimed_parameter_attribute = 'extreme'
         else:
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
             claimed_parameter_attribute = 'not_extreme'
     theta = ((-z1)/(f - 1), (-z2)/(f - 1))
     h = cpl_n_group_function(3,False)(f, (z1,z2), theta, field=field)
@@ -992,10 +997,10 @@ def cpl3_1(f=291403/720000, z1=114649/720000, z2=8501/144000, field=None, condit
     claimed_parameter_attribute = None
     if conditioncheck:
         if all(bool(l < 0) for l in [-z2, -f + 2*z2, -f - 3*z1 - 2*z2 + 1, f + 2*z1 + 2*z2 - 1]):
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
             claimed_parameter_attribute = 'extreme'
         else:
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
             claimed_parameter_attribute = 'not_extreme'
     theta = ((-z1)/(f + 2*z2 - 1), 0)
     h = cpl_n_group_function(3,False)(f, (z1,z2), theta, field=field)
@@ -1007,10 +1012,10 @@ def cpl3_2(f=8011/24000, z1=1969/48000, z2=401/1920, field=None, conditioncheck=
     claimed_parameter_attribute = None
     if conditioncheck:
         if all(bool(l < 0) for l in [-z1, -2*f - 2*z1 - 2*z2 + 1, f + 2*z1 + 2*z2 - 1, 2*f + 3*z1 + z2 - 1]):
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
             claimed_parameter_attribute = 'extreme'
         else:
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
             claimed_parameter_attribute = 'not_extreme'
     theta = ((f + 3/2*z1 + z2 - 1/2)/(2*f + 3*z1 + 3*z2 - 1), \
              z2/(4*f + 6*z1 + 6*z2 - 2))
@@ -1023,10 +1028,10 @@ def cpl3_3(f=9469/66000, z1=2869/66000, z2=24709/66000, field=None, conditionche
     claimed_parameter_attribute = None
     if conditioncheck:
         if all(bool(l < 0) for l in [-f, -f - 3*z1 - 2*z2 + 1, f + 2*z1 + 2*z2 - 1, 2*f + 2*z1 - z2]):
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
             claimed_parameter_attribute = 'extreme'
         else:
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
             claimed_parameter_attribute = 'not_extreme'
     theta = ((-f*z1 - z1^2)/(f^2 + f*z1 + 2*f*z2 - f - z1), \
              (-z1*z2)/(f^2 + f*z1 + 2*f*z2 - f - z1))
@@ -1059,10 +1064,10 @@ def cpl3_4(f=8497/126000, z1=499/42000, z2=27863/126000, field=None, conditionch
     claimed_parameter_attribute = None
     if conditioncheck:
         if all(bool(l < 0) for l in [-z1, -f, f + 4*z1 + 4*z2 - 1, 2*f + 2*z1 - z2]):
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
             claimed_parameter_attribute = 'extreme'
         else:
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
             claimed_parameter_attribute = 'not_extreme'
     theta = ((-f*z1 - z1^2 - f*z2 - z1*z2)/(f^2 + f*z1 + f*z2 - f - z1 - z2), \
              (-z1*z2 - z2^2)/(f^2 + f*z1 + f*z2 - f - z1 - z2))
@@ -1075,10 +1080,10 @@ def cpl3_5(f=3/5, z1=1/25, z2=1/125, field=None, conditioncheck=True):
     claimed_parameter_attribute = None
     if conditioncheck:
         if all(bool(l < 0) for l in [-z2, -z1, -2*f - 2*z1 + 1, f + 2*z1 + 2*z2 - 1]):
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
             claimed_parameter_attribute = 'extreme'
         else:
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
             claimed_parameter_attribute = 'not_extreme'
     theta = (1/2, 0)
     h = cpl_n_group_function(3,False)(f, (z1,z2), theta, field=field)
@@ -1090,10 +1095,10 @@ def cpl3_6(f=1/2000, z1=499/4000, z2=1/4, field=None, conditioncheck=True):
     claimed_parameter_attribute = None
     if conditioncheck:
         if all(bool(l < 0) for l in [-z2, -z1, -f, f + 2*z1 + 2*z2 - 1, 3*f + 4*z1 - 1]):
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
             claimed_parameter_attribute = 'extreme'
         else:
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
             claimed_parameter_attribute = 'not_extreme'
     theta = ((f + z1)/(f + 1), z2/(f + 1))
     h = cpl_n_group_function(3,False)(f, (z1,z2), theta, field=field)
@@ -1105,10 +1110,10 @@ def cpl3_7(f=3/5, z1=1/25, z2=1/125, field=None, conditioncheck=True):
     claimed_parameter_attribute = None
     if conditioncheck:
         if all(bool(l < 0) for l in [-z2, -z1, -2*f - 2*z1 - 2*z2 + 1, f + 2*z1 + 2*z2 - 1]):
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
             claimed_parameter_attribute = 'extreme'
         else:
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
             claimed_parameter_attribute = 'not_extreme'
     theta = (z1/(2*z1 + 2*z2), z2/(2*z1 + 2*z2))
     h = cpl_n_group_function(3,False)(f, (z1,z2), theta, field=field)
@@ -1120,10 +1125,10 @@ def cpl3_8(f=3/5, z1=1/25, z2=1/125, field=None, conditioncheck=True):
     claimed_parameter_attribute = None
     if conditioncheck:
         if all(bool(l < 0) for l in [-z2, -z1, -f + 2*z2, f + 4*z1 + 4*z2 - 1]):
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
             claimed_parameter_attribute = 'extreme'
         else:
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
             claimed_parameter_attribute = 'not_extreme'
     theta = ((-z1 - z2)/(f - 1), 0)
     h = cpl_n_group_function(3,False)(f, (z1,z2), theta, field=field)
@@ -1135,10 +1140,10 @@ def cpl3_9(f=20489/330000, z1=61603/660000, z2=72581/660000, field=None, conditi
     claimed_parameter_attribute = None
     if conditioncheck:
         if all(bool(l < 0) for l in [-z2, -z1, -f, 3*f + 4*z1 + 4*z2 - 1]):
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
             claimed_parameter_attribute = 'extreme'
         else:
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
             claimed_parameter_attribute = 'not_extreme'
     theta = ((f*z1 + z1^2 + z1*z2)/(f*z1 + f*z2 + z1 + z2), \
              (f*z2 + z1*z2 + z2^2)/(f*z1 + f*z2 + z1 + z2))
@@ -1155,10 +1160,10 @@ def cpl3_10(f=14/33, z1=17/264, z2=None, field=None, conditioncheck=True):
     claimed_parameter_attribute = None
     if conditioncheck:
         if bool(-f + 2*z2 == 0) and all(bool(l < 0) for l in [2*f + 2*z1 - 1, -2*f - 3*z1 + 1, -f]):
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
             claimed_parameter_attribute = 'extreme'
         else:
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
             claimed_parameter_attribute = 'not_extreme'
     theta = ((-z1)/(2*f - 1), 0)
     h = cpl_n_group_function(3,False)(f, (z1,z2), theta, field=field)
@@ -1172,10 +1177,10 @@ def cpl3_11(f=73/160, z1=None, z2=27/160, field=None, conditioncheck=True):
     claimed_parameter_attribute = None
     if conditioncheck:
         if bool(-2*f - 2*z1 + 1 == 0) and all(bool(l < 0) for l in [-f + 2*z2, 2*f - 1, -z2]):
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
             claimed_parameter_attribute = 'extreme'
         else:
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
             claimed_parameter_attribute = 'not_extreme'
     theta = (1/2, 0)
     h = cpl_n_group_function(3,False)(f, (z1,z2), theta, field=field)
@@ -1189,10 +1194,10 @@ def cpl3_12(f=5/42, z1=61/336, z2=None, field=None, conditioncheck=True):
     claimed_parameter_attribute = None
     if conditioncheck:
         if bool(-2*f - 3*z1 - z2 + 1 == 0) and all(bool(l < 0) for l in [-f, -3*f - 4*z1 + 1, 3*f + 3*z1 - 1]):
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
             claimed_parameter_attribute = 'extreme'
         else:
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
             claimed_parameter_attribute = 'not_extreme'
     theta = (2*z1/(9*z1 + 3*z2 - 1), (3*z1 + 3*z2 - 1)/(9*z1 + 3*z2 - 1))
     h = cpl_n_group_function(3,False)(f, (z1,z2), theta, field=field)
@@ -1207,10 +1212,10 @@ def cpl3_13(f=1/14, z1=5/28, z2=None, field=None, conditioncheck=True):
     claimed_parameter_attribute = None
     if conditioncheck:
         if bool(-f + 2*z2 == 0) and all(bool(l < 0) for l in [-f, 3*f + 4*z1 - 1, -z1]):
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
             claimed_parameter_attribute = 'extreme'
         else:
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
             claimed_parameter_attribute = 'not_extreme'
     theta = ((-f - 2*z1)/(2*f - 2), 0)
     h = cpl_n_group_function(3,False)(f, (z1,z2), theta, field=field)
@@ -1224,10 +1229,10 @@ def cpl3_14(f=1/24, z1=9/40, z2=None, field=None, conditioncheck=True):
     claimed_parameter_attribute = None
     if conditioncheck:
         if bool(-f - 3*z1 - 2*z2 + 1 == 0) and all(bool(l < 0) for l in [-f, -3*f - 5*z1 + 1, 3*f + 3*z1 - 1]):
-            logging.info("Conditions for extremality are satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are satisfied.")
             claimed_parameter_attribute = 'extreme'
         else:
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_mlr_cpl3_logger.info("Conditions for extremality are NOT satisfied.")
             claimed_parameter_attribute = 'not_extreme'
     theta = (z1/(9*z1 + 6*z2 - 2), (3*z1 + 3*z2 - 1)/(9*z1 + 6*z2 - 2))
     h = cpl_n_group_function(3,False)(f, (z1,z2), theta, field=field)

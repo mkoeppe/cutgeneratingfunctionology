@@ -1,4 +1,9 @@
 from six.moves import range
+import logging
+
+vertex_enumeration_logger = logging.getLogger("cutgeneratingfunctionology.igp.vertex_enumeration")
+vertex_enumeration_logger.setLevel(logging.INFO)
+
 def vertex_enumeration(polytope, exp_dim=-1, vetime=False):
     r"""
     Returns the vertices of the polytope.
@@ -66,9 +71,9 @@ def vertex_enumeration(polytope, exp_dim=-1, vetime=False):
                 extreme_points = polytope.minimized_generators()
     if vetime:
         et = os.times(); 
-        logging.info("user=%s, sys=%s, child user=%s, child sys=%s" %(et[0]-st[0], et[1]-st[1], et[2]-st[2], et[3]-st[3]))
+        vertex_enumeration_logger.info("user=%s, sys=%s, child user=%s, child sys=%s" %(et[0]-st[0], et[1]-st[1], et[2]-st[2], et[3]-st[3]))
         t = sum([et[i]-st[i] for i in range(4)]);
-        logging.info("Vertex enumeration time = %s" % t)
+        vertex_enumeration_logger.info("Vertex enumeration time = %s" % t)
     return extreme_points
 
 #output_dir = "./"

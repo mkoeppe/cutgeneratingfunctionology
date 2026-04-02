@@ -1,5 +1,10 @@
 from six.moves import range
 from six.moves import zip
+import logging
+
+discontinuous_case_logger =  logging.getLogger("cutgeneratingfunctionology.igp.discontinuous_case")
+discontinuous_case_logger.setLevel(logging.INFO)
+
 ########## Code for Discontinuous Case ###########
 
 nonzero_eps = { (-1,-1,-1), (-1, 1,-1), (-1, 1, 1), (-1, 1, 0), (-1, 0,-1), ( 1,-1,-1), \
@@ -385,12 +390,12 @@ def generate_symbolic_general(function, components, field=None, f=None, basis_fu
         assert j == 2 * num_jumps
         pieces.append([singleton_interval(bkpt[m]), FastLinearFunction(zeros, current_value)])
         if logging.getLogger().isEnabledFor(logging.DEBUG):
-            logging.debug("Let v in R^%s.\nThe i-th entry of v represents the slope parameter on the i-th component of %s if i<=%s, or the function value jump parameter at breakpoint if i>%s. (The symmetry condition is considered so as to reduce the number of jump parameters).\n" % (n + num_jumps, components, n, n))
+            discontinuous_case_logger.debug("Let v in R^%s.\nThe i-th entry of v represents the slope parameter on the i-th component of %s if i<=%s, or the function value jump parameter at breakpoint if i>%s. (The symmetry condition is considered so as to reduce the number of jump parameters).\n" % (n + num_jumps, components, n, n))
 
     symbolic_function = FastPiecewise(pieces, merge=True)
     symbolic_function.basis = basis
     if logging.getLogger().isEnabledFor(logging.DEBUG):
-        logging.debug("Set up the symbolic function sym: [0,1] -> R^%s, so that pert(x) = sym(x) * v.\nThe symbolic function sym is %s." % (dimension, symbolic_function))
+        discontinuous_case_logger.debug("Set up the symbolic function sym: [0,1] -> R^%s, so that pert(x) = sym(x) * v.\nThe symbolic function sym is %s." % (dimension, symbolic_function))
     return symbolic_function
 
 def generate_additivity_equations_general(function, symbolic, field, f=None, bkpt=None,
@@ -428,15 +433,15 @@ def generate_additivity_equations_general(function, symbolic, field, f=None, bkp
     pivot_r =  list(M.pivot_rows())
     for i in pivot_r:
         if vs[i] == 'f':
-            logging.debug("Condition pert(f) = 0 gives the equation\n%s * v = 0." % (symbolic(f)))
+            discontinuous_case_logger.debug("Condition pert(f) = 0 gives the equation\n%s * v = 0." % (symbolic(f)))
         elif vs[i] == '1':
-            logging.debug("Condition pert(1) = 0 gives the equation\n%s * v = 0." % (symbolic(field(1))))
+            discontinuous_case_logger.debug("Condition pert(1) = 0 gives the equation\n%s * v = 0." % (symbolic(field(1))))
         else:
             (x, y, z, xeps, yeps, zeps) = vs[i]
             if hasattr(function, "_vertices_used"):
                 function._vertices_used.append(vs[i])
             eqn = equations[i]
-            logging.debug("Condition pert(%s%s) + pert(%s%s) = pert(%s%s) gives the equation\n%s * v = 0." % (x, print_sign(xeps),  y, print_sign(yeps), z, print_sign(zeps), eqn))
+            discontinuous_case_logger.debug("Condition pert(%s%s) + pert(%s%s) = pert(%s%s) gives the equation\n%s * v = 0." % (x, print_sign(xeps),  y, print_sign(yeps), z, print_sign(zeps), eqn))
     M = M[pivot_r]
     if return_vertices:
         vs = [ vs[i] for i in pivot_r ]
@@ -451,7 +456,7 @@ def find_epsilon_interval_general(fn, perturb):
 
     If one of the epsilons is 0, the function bails out early and returns 0, 0.
     """
-    logging.info("Finding epsilon interval for perturbation...")
+    discontinuous_case_logger.info("Finding epsilon interval for perturbation...")
     fn_bkpt = fn.end_points()
     perturb_bkpt = perturb.end_points()
     bkpt = merge_bkpt(fn_bkpt,perturb_bkpt)
@@ -486,7 +491,7 @@ def find_epsilon_interval_general(fn, perturb):
                 if delta_perturb != 0:
                     delta_fn = fn_x[xeps] + fn_y[yeps] - fn_z[zeps]
                     if delta_fn == 0:
-                        logging.info("Zero epsilon encountered for x = %s%s, y = %s%s, z=%s%s" % (bkpt[i], print_sign(xeps), \
+                        discontinuous_case_logger.info("Zero epsilon encountered for x = %s%s, y = %s%s, z=%s%s" % (bkpt[i], print_sign(xeps), \
                                 bkpt[j], print_sign(yeps), z, print_sign(zeps)) )
                         return 0, 0 # See docstring
                     epsilon_upper_bound = delta_fn / abs(delta_perturb)
@@ -528,7 +533,7 @@ def find_epsilon_interval_general(fn, perturb):
                 if delta_perturb != 0:
                     delta_fn = fn_x[xeps] + fn_y[yeps] - fn_z[zeps]
                     if delta_fn == 0:
-                        logging.info("Zero epsilon encountered for x = %s, y = %s" % (bkpt[i], y) )
+                        discontinuous_case_logger.info("Zero epsilon encountered for x = %s, y = %s" % (bkpt[i], y) )
                         return 0, 0 # See docstring
                     epsilon_upper_bound = delta_fn / abs(delta_perturb)
                     if delta_perturb > 0:
@@ -537,7 +542,7 @@ def find_epsilon_interval_general(fn, perturb):
                     else:
                         if epsilon_upper_bound < best_plus_epsilon_upper_bound:
                             best_plus_epsilon_upper_bound = epsilon_upper_bound
-    logging.info("Finding epsilon interval for perturbation... done.  Interval is %s", [best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound])
+    discontinuous_case_logger.info("Finding epsilon interval for perturbation... done.  Interval is %s", [best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound])
     return best_minus_epsilon_lower_bound, best_plus_epsilon_upper_bound
 
 def delta_pi_general(fn, x, y, xyz_eps=(0, 0, 0)):
@@ -691,7 +696,7 @@ def generate_additive_faces_general(function):
     """
     Implementation of ``generate_additive_faces`` for discontinuous piecewise linear functions.
     """
-    logging.info("Computing additive faces...")
+    discontinuous_case_logger.info("Computing additive faces...")
     bkpt = function.end_points()
     bkpt2 = bkpt[:-1] + [ x+1 for x in bkpt ]
     n = len(bkpt) - 1
@@ -744,5 +749,5 @@ def generate_additive_faces_general(function):
             face = Face(([y], [x], [x+y]))
             faces.append(face)
 
-    logging.info("Computing additive faces... done")
+    discontinuous_case_logger.info("Computing additive faces... done")
     return faces

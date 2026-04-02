@@ -1,4 +1,9 @@
 from six.moves import range
+import logging
+
+crazy_perturbation_examples_logger =  logging.getLogger("cutgeneratingfunctionology.igp.crazy_perturbation_examples")
+crazy_perturbation_examples_logger.setLevel(logging.INFO)
+
 def kzh_discontinuous_bhk_irrational(f=4/5, d1=3/5, d2=5/40, a0=19/100, delta_ratio=sqrt(2)/3, bb=1/1000, c2=0, y1=1/10, y2=1/50, field=None):
     r"""
     EXAMPLES::
@@ -494,20 +499,20 @@ def kzh_minimal_has_only_crazy_perturbation_1_check_subadditivity_slacks(paramet
 
     """
     h = kzh_minimal_has_only_crazy_perturbation_1(parametric=parametric)
-    logging.debug("s = {}".format(h.s))
+    crazy_perturbation_examples_logger.debug("s = {}".format(h.s))
     for F in generate_faces_with_projections_intersecting(h, h.special_intervals,
                                                           halfopen_cover_only=True):
         n_F = number_of_projections_intersecting(F, h.special_intervals)
         assert n_F > 0
         if n_F:
-            logging.debug("{} n_F = {}".format(F, n_F))
+            crazy_perturbation_examples_logger.debug("{} n_F = {}".format(F, n_F))
             deltas = sorted(set( delta_pi_of_face(h, vertex[0], vertex[1], F)
                                  for vertex in F.vertices ))
             if deltas == [0]:
-                logging.debug("... additive face")
+                crazy_perturbation_examples_logger.debug("... additive face")
             else:
-                logging.debug("... Delta pi values {}".format(deltas))
+                crazy_perturbation_examples_logger.debug("... Delta pi values {}".format(deltas))
                 assert deltas[0] >= n_F * h.s
                 if deltas[0] == n_F * h.s:
-                    logging.debug("... tight")
+                    crazy_perturbation_examples_logger.debug("... tight")
                     assert len(deltas) > 1  # strict for at least one vertex

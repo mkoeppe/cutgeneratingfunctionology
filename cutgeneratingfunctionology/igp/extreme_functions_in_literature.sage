@@ -3,6 +3,11 @@ from six.moves import range
 from .fast_piecewise import PiecewiseLinearFunction_1d
 from .parametric_family import ParametricFamily
 
+import logging
+
+extreme_functions_in_literature_logger=  logging.getLogger("cutgeneratingfunctionology.igp.extreme_functions_in_literature_logger")
+extreme_functions_in_literature_logger.setLevel(logging.INFO)
+
 class ParametricFamily_gmic(ParametricFamily):
 
     r"""
@@ -107,10 +112,10 @@ class ParametricFamily_gj_2_slope(ParametricFamily):
         claimed_parameter_attribute = None
         if conditioncheck:
             if not (bool(lambda_1 <= 1)):
-                logging.info("Conditions for extremality are NOT satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied.")
                 claimed_parameter_attribute = 'constructible'
             else:
-                logging.info("Conditions for extremality are satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are satisfied.")
                 claimed_parameter_attribute = 'extreme'
         bkpts = [0, (f - lambda_1*(1 - f))/2, (f + lambda_1*(1 - f))/2, f, 1]
         values = [0, (1 + lambda_1)/2, (1 - lambda_1)/2, 1, 0]
@@ -168,10 +173,10 @@ class ParametricFamily_gj_2_slope_repeat(ParametricFamily):
         claimed_parameter_attribute = None
         if conditioncheck:
             if not (bool(m >= (s_positive - s_positive*s_negative*f) / (s_positive - s_negative)) & bool(n >= (- s_negative + s_positive*s_negative*(f - 1)) / (s_positive - s_negative))):
-                logging.info("Conditions for extremality are NOT satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied.")
                 claimed_parameter_attribute = 'constructible'
             else:
-                logging.info("Conditions for extremality are satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are satisfied.")
                 claimed_parameter_attribute = 'extreme'
         len1_positive = (1 - s_negative*f) / (s_positive - s_negative) / m
         len1_negative = (f - m*len1_positive) / (m - 1)
@@ -424,10 +429,10 @@ class ParametricFamily_gj_forward_3_slope(ParametricFamily):
         if conditioncheck:
             # note the discrepancy with the published literature
             if not (bool(0 <= lambda_1 <= 1/2) & bool(0 <= lambda_2 <= 1)):
-                logging.info("Conditions for extremality are NOT satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied.")
                 claimed_parameter_attribute = 'constructible'
             else:
-                logging.info("Conditions for extremality are satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are satisfied.")
                 claimed_parameter_attribute = 'extreme'
         bkpts = [0, a1, a, f - a, f - a1, f, 1]
         values = [0, (lambda_1 + lambda_2)/2, lambda_1 / 2, 1 - lambda_1 / 2, 1 - (lambda_1 + lambda_2)/2, 1, 0]
@@ -507,10 +512,10 @@ class ParametricFamily_drlm_backward_3_slope(ParametricFamily):
         if conditioncheck:
             #if not ((f in QQ) & (bkpt in QQ) & bool(0 < f < bkpt < ((1 + f)/4) < 1)):
             if not bool(0 < f < bkpt <= ((1 + f)/4) < 1):
-                logging.info("Conditions for extremality are NOT satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied.")
                 claimed_parameter_attribute = 'constructible'
             else:
-                logging.info("Conditions for extremality are satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are satisfied.")
                 claimed_parameter_attribute = 'extreme'
         bkpts = [0, f, bkpt, 1 + f - bkpt, 1]
         # values = [0, 1, bkpt/(1 + f), (1 + f - bkpt)/(1 + f),0]
@@ -641,10 +646,10 @@ class ParametricFamily_drlm_2_slope_limit(ParametricFamily):
         claimed_parameter_attribute = None
         if conditioncheck:
             if not bool(m*(1 - f) <= d*f):
-                logging.info("Conditions for extremality are NOT satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied.")
                 claimed_parameter_attribute = 'constructible'
             else:
-                logging.info("Conditions for extremality are satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are satisfied.")
                 claimed_parameter_attribute = 'extreme'
         s = (m + d)/((d + 1)*f - (m - 1)*(1 - f))
         delta_2 = (s - s*f + 1)/(d + 1)
@@ -716,10 +721,10 @@ class ParametricFamily_drlm_3_slope_limit(ParametricFamily):
         claimed_parameter_attribute = None
         if conditioncheck:
             if not bool(0 < f < 1/3):
-                logging.info("Conditions for extremality are NOT satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied.")
                 claimed_parameter_attribute = 'constructible'
             else:
-                logging.info("Conditions for extremality are satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are satisfied.")
                 claimed_parameter_attribute = 'extreme'
         f = nice_field_values([f], field)[0]
         field = f.parent()
@@ -820,11 +825,11 @@ class ParametricFamily_bccz_counterexample(ParametricFamily):
                     z = z / q
                     n += 1
                 if n == maxiter:
-                    logging.warning("Reaching max number of iterations, return approximate psi(%s)" %r)
+                    extreme_functions_in_literature_logger.warning("Reaching max number of iterations, return approximate psi(%s)" %r)
                 return (y_left + y_right)/2 - (r - (x_left + x_right)/2) / (1 - f)
             else:
                 raise ValueError("outside domain")
-        logging.warning("This function is not piecewise linear; code for handling this function is not implemented.")
+        extreme_functions_in_literature_logger.warning("This function is not piecewise linear; code for handling this function is not implemented.")
         return evaluate_psi_at_r
 
 bccz_counterexample = ParametricFamily_bccz_counterexample()
@@ -925,7 +930,7 @@ class ParametricFamily_psi_n_in_bccz_counterexample_construction(ParametricFamil
         n = len(e)
         if n == 0:
             if conditioncheck:
-                logging.info("Conditions for extremality are satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are satisfied.")
                 claimed_parameter_attribute = 'extreme'
             h = piecewise_function_from_breakpoints_and_values([0,f,1], [0,1,0])
             h._claimed_parameter_attribute = claimed_parameter_attribute
@@ -946,10 +951,10 @@ class ParametricFamily_psi_n_in_bccz_counterexample_construction(ParametricFamil
                 t = False
         if conditioncheck:
             if t:
-                logging.info("Conditions for extremality are satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are satisfied.")
                 claimed_parameter_attribute = 'extreme'
             else:
-                logging.info("Conditions for extremality are NOT satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied.")
                 claimed_parameter_attribute = 'constructible'
         interval_lengths =  interval_length_n_step_mir(n + 1, 1, a, b)
         nb_interval = len(interval_lengths)
@@ -1054,14 +1059,14 @@ class ParametricFamily_bhk_irrational(ParametricFamily):
                 and all(bool(deltai > 0) for deltai in delta) and bool(d1 + d2 < f) and (sum(delta) < f/2 - d2/4 - 3*a0/2) ):
             raise ValueError("Bad parameters. Unable to construct the function.")
         if len(delta) < 2:
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied.")
         elif len(delta) == 2:
             if is_QQ_linearly_independent(*delta) and  2*delta[0] + delta[1] < d2 / 2:
-                logging.info("Conditions for extremality are satisfied if it is a minimal function.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are satisfied if it is a minimal function.")
             else:
-                logging.info("Conditions for extremality are NOT satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied.")
         else:
-            logging.info("len(delta) >= 3, Conditions for extremality are unknown.")
+            extreme_functions_in_literature_logger.info("len(delta) >= 3, Conditions for extremality are unknown.")
         d3 = f - d1 - d2
         c2 = 0
         c3 = -1/(1-f)
@@ -1182,18 +1187,18 @@ class ParametricFamily_bhk_slant_irrational(ParametricFamily):
         c2_min = -1 / (1 - f) # since c2 >= c3
         c2_max = (1 - d1 - d2) / (d1 + d2) / (1 - f) # since c2 <= c1
         if bool(a0 < a0_min):
-            logging.info("Conditions for extremality are NOT satisfied. Minimality requires a0 >= %s" % a0_min)
+            extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied. Minimality requires a0 >= %s" % a0_min)
         elif not bool(c2_min <= c2 <= c2_max):
-            logging.info("Conditions for extremality are NOT satisfied. Need %s < c2 < %s" % (c2_min, c2_max))
+            extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied. Need %s < c2 < %s" % (c2_min, c2_max))
         elif len(delta) < 2:
-            logging.info("Conditions for extremality are NOT satisfied.")
+            extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied.")
         elif len(delta) == 2:
             if is_QQ_linearly_independent(*delta) and  2*delta[0] + delta[1] < d2 / 2:
-                logging.info("Conditions for extremality are satisfied if it is a minimal function.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are satisfied if it is a minimal function.")
             else:
-                logging.info("Conditions for extremality are NOT satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied.")
         else:
-            logging.info("len(delta) >= 3, Conditions for extremality are unknown.")
+            extreme_functions_in_literature_logger.info("len(delta) >= 3, Conditions for extremality are unknown.")
 
         zigzag_lengths = []
         zigzag_slopes = []
@@ -1381,9 +1386,9 @@ class ParametricFamily_chen_4_slope(ParametricFamily):
                 else:
                     claimed_parameter_attribute = 'constructible'
             if claimed_parameter_attribute == 'extreme':
-                logging.info("Conditions for extremality are satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are satisfied.")
             else:
-                logging.info("Conditions for extremality are NOT satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied.")
         slopes = [s_pos, s_neg, 1/f, s_neg, s_pos, s_neg, s_pos, 1/(f-1), s_pos, s_neg]
         aa = lam1 * (1 - s_neg * f) / 2 / (s_pos - s_neg)
         a = lam1 * f / 2
@@ -1427,9 +1432,9 @@ class ParametricFamily_chen_4_slope_reworded(ParametricFamily):
                 else:
                     claimed_parameter_attribute = 'constructible'
             if claimed_parameter_attribute == 'extreme':
-                logging.info("Conditions for extremality are satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are satisfied.")
             else:
-                logging.info("Conditions for extremality are NOT satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied.")
         slopes = [s_pos, s_neg, 1/f, s_neg, s_pos, s_neg, s_pos, 1/(f-1), s_pos, s_neg]
         values = [0, v, a/f, 1-a/f, 1-v, 1, 1-w, 1-(1-c)/(1-f), (1-c)/(1-f), w, 0]
         b = f - a
@@ -1653,10 +1658,10 @@ class ParametricFamily_bcdsp_arbitrary_slope(ParametricFamily):
         claimed_parameter_attribute = None
         if conditioncheck:
             if not bool(0 < f <= 1/2):
-                logging.info("Conditions for extremality are NOT satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied.")
                 claimed_parameter_attribute = 'constructible'
             else:
-                logging.info("Conditions for extremality are satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are satisfied.")
                 claimed_parameter_attribute = 'extreme'
         f = nice_field_values([f], field)[0]
         field = f.parent()
@@ -1895,10 +1900,10 @@ class ParametricFamily_kzh_3_slope_param_extreme_1(ParametricFamily):
         claimed_parameter_attribute = None
         if conditioncheck:
             if not bool(0 <= a and  0 <= b <= f and 3*f+4*a-b-1 <= 0):
-                logging.info("Conditions for extremality are NOT satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied.")
                 claimed_parameter_attribute = 'constructible'
             else:
-                logging.info("Conditions for extremality are satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are satisfied.")
                 claimed_parameter_attribute = 'extreme'
         v = (f*f+f*a-3*f*b-3*a*b+b)/(f*f+f-3*f*b)
         bkpts = [0, f, f+a, (1+f-b)/2, (1+f+b)/2, 1-a, 1]
@@ -1948,10 +1953,10 @@ class ParametricFamily_kzh_3_slope_param_extreme_2(ParametricFamily):
         claimed_parameter_attribute = None
         if conditioncheck:
             if not bool(2*b - a <= f <= a + b and f <= (1+a-b)/2):
-                logging.info("Conditions for extremality are NOT satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied.")
                 claimed_parameter_attribute = 'constructible'
             else:
-                logging.info("Conditions for extremality are satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are satisfied.")
                 claimed_parameter_attribute = 'extreme'
         v = (f*(f-a+b-2)-a*b+2*a)/(f+b-1)/f/4;
         bkpts = [0, (f-a)/4, (f-a)/2, (f+a)/2, f-(f-a)/4, f, \
@@ -2002,10 +2007,10 @@ class ParametricFamily_kzh_4_slope_param_extreme_1(ParametricFamily):
         if conditioncheck:
             if not bool(b > 0 and -3*f + 2*a + 3*b + 1 < 0 and  f - 2*a < 0 \
                         and  2*f - a - 3*b - 1 < 0 and  3*f - a - 2 < 0):
-                logging.info("Conditions for extremality are NOT satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are NOT satisfied.")
                 claimed_parameter_attribute = 'constructible'
             else:
-                logging.info("Conditions for extremality are satisfied.")
+                extreme_functions_in_literature_logger.info("Conditions for extremality are satisfied.")
                 claimed_parameter_attribute = 'extreme'
         bkpts = [0, b, (f-a)/2, (f+a)/2, f-b, f,\
                  (1+f-b)/2-c, (1+f-b)/2, (1+f+b)/2, (1+f+b)/2+c, 1]
