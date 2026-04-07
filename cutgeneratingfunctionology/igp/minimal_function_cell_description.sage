@@ -29,7 +29,7 @@ def nnc_poly_from_bkpt_sequence(bkpt, backend=None):
     Defines an NNC polyhedron P such that for all b in P the delta complex of b is isomoprhic to the delta complex of bkpt.
     
     INPUT:
-    - ``bkpt`` - sorted list of length 2 or more of sage type in the interval [0,1). 
+    - ``bkpt`` - sorted list of length 1 or more of sage type in the interval [0,1). 
     - ```backend`` - ``None``, ``str(pplite)`` 
     
     OUTPUT: class::``BasicSemialgebraicSet_veronese``
@@ -41,7 +41,6 @@ def nnc_poly_from_bkpt_sequence(bkpt, backend=None):
     BasicSemialgebraicSet_veronese(BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(Constraint_System {x0==0, -x1+1>0, 2*x1-1>0}, names=[x0, x1]), polynomial_map=[lambda0, lambda1])
     """
     n = len(bkpt)
-    # assert(n >= 2)
     coord_names = []
     bkpt_vals = bkpt
     vals = bkpt_vals[0:n]
@@ -81,9 +80,8 @@ def nnc_poly_from_bkpt_sequence(bkpt, backend=None):
         logging.getLogger("cutgeneratingfunctionology.igp.parametric").setLevel(parametric_logging_level)
     return K._bsa
 
-
 def add_breakpoints_and_find_equiv_classes(bkpt_poly):
-    """
+    r"""
     Takes dim k-1 breakpoint NNC polyhedron (as a :class:`BasicSemialgebraicSet_base`), adds a dimension,
     and finds all possible representive elements for equivlance classes of polyhedral complexes. 
     
@@ -97,7 +95,6 @@ def add_breakpoints_and_find_equiv_classes(bkpt_poly):
     sage: logging.disable(logging.INFO) # suppress logging for tests
     sage: add_breakpoints_and_find_equiv_classes(nnc_poly_from_bkpt_sequence([0,4/5]).upstairs())
     [(0, 9/14, 83/112), (0, 13/20, 33/40), (0, 9/14, 101/112), (0, 7/10, 17/20)]
-    
     """
     # BSAs are highly mutable, work only with copies.
     B_cap_N_b = copy(bkpt_poly)
@@ -109,7 +106,7 @@ def add_breakpoints_and_find_equiv_classes(bkpt_poly):
     model_bound_bkpts = [0]*k
     model_bound_bkpts[k-1] = 1
     # 0 < lambda_k <1
-    # we assume the bsa is "polyhedra"
+    # we assume the bsa is "polyhedra type"
     B_cap_N_b.add_linear_constraint(model_bound_bkpts, QQ(-1), operator.lt) # model bounds
     B_cap_N_b.add_linear_constraint(model_bound_bkpts, QQ(0), operator.gt) # model bounds 
     bkpt_order = [0]*k
@@ -152,7 +149,6 @@ def add_breakpoints_and_find_equiv_classes(bkpt_poly):
                                     pass
     return unique_list(rep_elems)
 
-
 def make_rep_bkpts_with_len_n(n, k=1, bkpts=None, backend=None):
     r"""
     Produce representative elements of every isomorphism class of breakpoints complexes for breakpoint sequences of length n.
@@ -183,7 +179,7 @@ def make_rep_bkpts_with_len_n(n, k=1, bkpts=None, backend=None):
     sage: len(bkpts_rep_with_len_4)
     329
     """
-    # Matthias suggested looking at a directed tree. 
+    # Matthias has suggested looking at a directed tree. 
     # An alternative approach would be to look into using a (graded) lattice as a data strcture.
     # We have bkpt \leq bkpt' if and only if dim(NNC(bkpt)) \leq dim(NNC(bkpt')) 
     # and embed(NNC(bkpt), dim(NNC(bkpt')) \leq NNC(bkpt') in the poset of NNC polyhedra.
@@ -199,21 +195,19 @@ def make_rep_bkpts_with_len_n(n, k=1, bkpts=None, backend=None):
         new_bkpts += add_breakpoints_and_find_equiv_classes(nnc_poly_from_bkpt_sequence(bkpt, backend=backend).upstairs())
     new_bkpts = unique_list(new_bkpts)
     k += 1
-
     if k == n:
-        minimal_funciton_cell_description_logger.info(f"Breakpoints of length {n} have been generated. ")
+        minimal_funciton_cell_description_logger.info(f"Breakpoints of length {n} have been generated.")
         return new_bkpts
     else:
         minimal_funciton_cell_description_logger.info(f"Breakpoints of lenght {k} have been generated. Now generating breakpoints of length {k+1}.")
         return make_rep_bkpts_with_len_n(n, k, new_bkpts, backend)
-
 
 def generate_assumed_symmetric_vertices_continuous(fn, f, bkpt):
     """
     Silently assumes the symmetry condition holds for all vertices (x,y) in bkpt's breakpoints complex
     such that x+y equiv f.
     
-    See fun:``generate_symmetric_vertices_continuous``.
+    See function::``generate_symmetric_vertices_continuous``.
     """
     for i in range(len(bkpt)):
         x = bkpt[i]
@@ -226,9 +220,8 @@ def generate_assumed_symmetric_vertices_continuous(fn, f, bkpt):
         fn(x) + fn(y) == 1
         yield (x, y, 0, 0)
 
-
-def value_nnc_polyhedron_value_cords(bkpt, f_index, backend =None):
-    """
+def value_nnc_polyhedron_value_cords(bkpt, f_index, backend=None):
+    r"""
     For a given breakpoints seqeunce and f index, write the value polyhedron as a basic semialgebraic set in only the value parameters.
     
     INPUT:
@@ -248,6 +241,7 @@ def value_nnc_polyhedron_value_cords(bkpt, f_index, backend =None):
     """
     # this saves a slight amount of overhead when detemrining points for the value polyhedron since the assumed
     # minimality test does not have to entierly go though parametric real field.
+    # This is useful in application.
     n = len(bkpt)
     if not log_paramateric_real_field:
         parametric_logging_level = logging.getLogger("cutgeneratingfunctionology.igp.parametric").getEffectiveLevel()
@@ -264,7 +258,7 @@ def value_nnc_polyhedron_value_cords(bkpt, f_index, backend =None):
     val = [None]*(n)
     for i in range(n):
         coord_names.append('gamma'+str(i))
-    K = ParametricRealField(names=coord_names, values = val, mutable_values=True, big_cells=True, allow_refinement=False, default_backend=backend)
+    K = ParametricRealField(names=coord_names, values=val, mutable_values=True, big_cells=True, allow_refinement=False, default_backend=backend)
     K.gens()[0] == 0
     for i in range(1, n):
         K.gens()[i] <=1
@@ -284,7 +278,7 @@ def value_nnc_polyhedron_value_cords(bkpt, f_index, backend =None):
     return K._bsa
 
 def value_nnc_polyhedron(bkpt, f_index, backend=None):
-    """
+    r"""
     For a given breakpoints seqeunce and f index, write the value polyhedron as a basic semialgebraic set in the full space of parameters.
     
     INPUTS:
@@ -326,7 +320,7 @@ def value_nnc_polyhedron(bkpt, f_index, backend=None):
     # breakpoint parameters are the mesured breakpoint values. 
     for i in range(n):
         K.gens()[i] == bkpt[i]
-    # necessary conditions on value parameters
+    # Necessary conditions on value parameters.
     K.gens()[n] == 0 
     for i in range(1, n):
         K.gens()[i+n] <=1
@@ -345,9 +339,8 @@ def value_nnc_polyhedron(bkpt, f_index, backend=None):
         logging.getLogger("cutgeneratingfunctionology.igp.functions").setLevel(pw_logging_level)
     return K._bsa
 
-
 def bsa_of_rep_element(bkpt, vals, backend=None):
-    """
+    r"""
     Given pi_(bkpt, vals) is {minimal, not minimal}, find BSA subset of R^(2n) such that (bkpt, vals) in BSA and for all p
     in BSA, pi_p is {minimal, not minimal}.
 
@@ -389,7 +382,7 @@ def bsa_of_rep_element(bkpt, vals, backend=None):
 
 
 def find_minimal_function_reps_from_bkpts(bkpts, prove_minimality=True, backend=None):
-    """
+    r"""
     Finds representative elements of minimal functions from a given breakpoint sequence.
     
     INPUT:
@@ -434,17 +427,24 @@ def find_minimal_function_reps_from_bkpts(bkpts, prove_minimality=True, backend=
         logging.getLogger("cutgeneratingfunctionology.igp.functions").setLevel(pw_logging_level)
     return rep_elems
 
-
 class BreakpointComplexClassContainer:
     """
     A container for the family of breakpoint complexes for peicewise linear functions
     with at most n breakpoints.
     
-    The container assumes that loaded data is correct and performs no checking
-    that the loaded data represnts the full space. 
-    
-    This class contains ways to read/write data for use with minimal function generation.
-    
+    The container will attempt to load from the minimalFunctionCache module or will generate
+    data if the minimalFunctionCache is not available.
+
+    Loading files generated from the container's `write_data()` method is supported. 
+    When manually loading data, it is assume that all loaded data is correct
+    for the initalized number of breakpoints.
+
+    Initalization - 
+    n - integer 2 or larger.
+    backend - (optional) `None` or `str(pplite)`
+    manually_load_breakpoint_cache - (optional) bool
+    loading_kwrds - folder_or_file, path_to_file_or_folder
+
     EXAMPLES::
 
     sage: from cutgeneratingfunctionology.igp import * 
@@ -461,6 +461,12 @@ class BreakpointComplexClassContainer:
     
     sage: all([isinstance(cell, BasicSemialgebraicSet_base) for cell in bkpt_of_len_2.get_nnc_poly_from_bkpt()])
     True
+
+    (Advanced use) Data can be written and reused::
+    
+    sage: bkpt_of_len_2.write_data() # not tested
+    sage: bkpt_of_len_2_loaded = BreakpointComplexClassContainer(2, manually_load_breakpoint_cache=True, folder_or_file="file", path_to_file_or_folder="bkpts_of_len_2.csv") # not tested
+    
     """
     def __init__(self, n, backend=None, manually_load_breakpoint_cache=False, **loading_kwrds):
         self._n = n
@@ -471,8 +477,9 @@ class BreakpointComplexClassContainer:
                 # Load the minimal function cache.
                 from minimalFunctionCache.utils import minimal_function_cache_info, minimal_function_cache_loader
                 cache_info = minimal_function_cache_info()
+                # minimal_function_cache_loader throws a value error if a cache for n is not found.
                 try:
-                    self._data = minimal_function_cache_loader(self._n, "breakpoints") # minimal_function_cache_loader throws a value error if a cache for n is not found.
+                    self._data = minimal_function_cache_loader(self._n, "breakpoints")
                 except ValueError:
                     minimal_funciton_cell_description_logger.info(f"The cache for {n} breakpoints has not been generated or could not be found.")
                     minimal_funciton_cell_description_logger.info("Generating representative breakpoints.")
@@ -492,25 +499,27 @@ class BreakpointComplexClassContainer:
                     minimal_funciton_cell_description_logger.warning(f"This may take a while. Try installing the minimalfunctioncache.")
                 self._data = make_rep_bkpts_with_len_n(self._n, backend=self._backend)       
                 minimal_funciton_cell_description_logger.info("Finished generating breakpoints.")
+        # For generating the cache and advanced use.
         elif manually_load_breakpoint_cache:
-            # this is for generating the cache and advanced use. 
             try:
-                if loading_kwrds["breakpoints_or_rep_elems"].strip(" ").lower() == "breakpoints":
-                    bkpts = []
-                    with open(loading_kwrds["path_to_file_or_file_name_in_cwd"]) as csvfile:
-                        file_reader = csv.reader(csvfile)
-                        for row in file_reader:
-                            bkpts.append([QQ(data) for data in row])
-                    self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
-            except KeyError:
-                if loading_kwrds["breakpoints_or_rep_elems"].strip(" ").lower() == "rep elems":
+                if loading_kwrds["folder_or_file"].strip(" ").lower() == "folder":
                     self._data = []
-                    with open(loading_kwrds["path_to_file_or_file_name_in_cwd"]) as csvfile:
+                    path = loading_kwrds["path_to_file_or_folder"].string(" ").lower()
+                    import os
+                    files_in_folder = os.listdir(path)
+                    for file in files_in_folder:
+                        with open(file) as csvfile:
+                            file_reader = csv.reader(csvfile)
+                            for row in file_reader:
+                                self._data.append([QQ(data) for data in row])
+                elif loading_kwrds["folder_or_file"].strip(" ").lower() == "file":
+                    self._data = []
+                    with open(loading_kwrds["path_to_file_or_folder"]) as csvfile:
                         file_reader = csv.reader(csvfile)
                         for row in file_reader:
                             self._data.append([QQ(data) for data in row])
                 else:
-                    raise ValueError("No valid inputs provded. Maybe check your spelling?")
+                    raise ValueError("check spelling of folder or file.")
             except KeyError:
                 raise ValueError("No valid inputs provded. Maybe check your spelling?")
         else:
@@ -520,25 +529,44 @@ class BreakpointComplexClassContainer:
         return f"Container for the space breakpoint sequences of length {self._n} under equivlance of polyhedral complexes."
 
     def get_rep_elems(self):
+        """
+        Iterator yielding a breakpint sequence.
+        """
         for bkpt in self._data:
             yield bkpt
 
     def get_nnc_poly_from_bkpt(self):
+        """
+        Iterator yielding a cell such that all elements in the cell corrospond to 2d polyhedral complexes of the same combinatorial type.
+        """
         for bkpt in self._data:
             yield nnc_poly_from_bkpt_sequence(bkpt, backend=self._backend)
 
     def num_rep_elems(self):
+        """
+        Number of repersentative elements.
+        """
         return len(self._data)
 
+    def n(self):
+        """
+        The length of breakpoint sequences.
+        """
+        return self._n
+
     def covers_space(self):
-        ### TODO: This method should prove that container is correct.
+        """
+        Not Impemented. Future use is intented to be a proof of correctness that all breakpoint sequences are covered.
+        """
+        ### TODO: Impl.
         raise NotImplementedError
 
     def refine_space(self):
-        """Ensures that repersentative elements are unique and contained in a single cell. """
+        """
+        Not Impemented. Future use is to prove that the current cell description for breakpoints is, with respect to inclusion, minimal or in the case that it is not minimal, find a minimal description.
+        """
         raise NotImplementedError
-        ### TODO: Test this. I think I need to write  a containment method for the BSA 
-        ### or pick the up the underlying polyhedron in the BSA. 
+        ### TODO: Add a contaimenet checking method to BSA classes and finish impl.
         self._data =  unique_list(self._data)
         cells_found = []
         for bkpt in self._data:
@@ -565,7 +593,7 @@ class BreakpointComplexClassContainer:
         if output_file_name_style is None:
             file_name_base = "bkpts_of_len_{}".format(self._n)
         else:
-            file_name_base =output_file_name_style
+            file_name_base = output_file_name_style
         if max_rows is not None:
             assert(max_rows >= 1)
             num_files = len(self._data)//max_rows + 1
@@ -591,14 +619,17 @@ class PiMinContContainer:
     A container for the space of continuous piecewise linear minimal functions with at
     most n breakpoints paramaterized by breakpoints and values using semialgebraic sets.
     
-    The container assumes that loaded data is correct and performs no checking.
+    The container will attempt to load from the `minimalFunctionCache module` or will generate
+    data if the minimalFunctionCache is not available.
     
+    Loading files generated from the container's `write_data()` method is supported. 
+    When manually loading data, it is assume that all loaded data is correct
+    for the initalized number of breakpoints.
+
     INPUTS:
     - n, an integer
-    keywords:
     - backend, None or str(pplite)
-    - load_bkpt_data, .csv file(s) of list of tuples of breakpoitns
-    - load_rep_elem_data, .csv file(s) of list of tuples of representative elements of the space of minimal functions
+    - loading_kwrds
 
     EXAMPLES::
 
@@ -627,9 +658,9 @@ class PiMinContContainer:
     
     sage: PiMin_2.write_data() # not tested
     
-    Written data can be reused ::
+    Written data can be reused.::
     
-    sage: PiMin_2_loaded_data = PiMinContContainer(2, manually_load_function_cache=True, path_to_file_or_file_name_in_cwd="Pi_Min_2.csv", breakpoints_or_rep_elems="rep elems") # not tested
+    sage: PiMin_2_loaded_data = PiMinContContainer(2, manually_load_function_cache=True, folder_or_file="file", path_to_file_or_folder="Pi_Min_2.csv", breakpoints_or_rep_elems="rep_elems") # not tested
     sage: len([rep_elem for rep_elem in PiMin_2_loaded_data.get_rep_elems()])  # not tested
     3
     """
@@ -655,31 +686,47 @@ class PiMinContContainer:
                     self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)                    
             except ImportError:
                 if self._n > 4:
-                    minimal_funciton_cell_description_logger.warning(f"This may take a while. Try installing the minimalfunctioncache.")
+                    minimal_funciton_cell_description_logger.warning(f"This may take a while. Try installing the minimalFunctionCache.")
                 bkpts = make_rep_bkpts_with_len_n(self._n, backend=self._backend)
                 minimal_funciton_cell_description_logger.info("Finished generating breakpoints.")
                 minimal_funciton_cell_description_logger.info("Computing repersentative elements.")
                 self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
             minimal_funciton_cell_description_logger.info("PiMin container, Reportin' for duty.")
         elif manually_load_function_cache:
-            # this is for generating the cache and advanced use. 
+            # this is for generating the cache and advanced use.
+            minimal_funciton_cell_description_logger.info("loading files...")
             try:
                 if loading_kwrds["breakpoints_or_rep_elems"].strip(" ").lower() == "breakpoints":
-                    bkpts = []
-                    with open(loading_kwrds["path_to_file_or_file_name_in_cwd"]) as csvfile:
-                        file_reader = csv.reader(csvfile)
-                        for row in file_reader:
-                            bkpts.append([QQ(data) for data in row])
+                    bkpts = BreakpointComplexClassContainer(self._n, backend=self._backend, manually_load_breakpoint_cache=True, file_or_folder=loading_kwrds["file_or_folder"], path_to_file_or_folder=loading_kwrds["path_to_file_or_folder"]).get_rep_elems()
+                    if self._n > 4:
+                        minimal_funciton_cell_description_logger.warning("This may take a while. Try installing the minimalFunctionCache.")
                     self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
-            except KeyError:
-                if loading_kwrds["breakpoints_or_rep_elems"].strip(" ").lower() == "rep elems":
-                    self._data = []
-                    with open(loading_kwrds["path_to_file_or_file_name_in_cwd"]) as csvfile:
-                        file_reader = csv.reader(csvfile)
-                        for row in file_reader:
-                            self._data.append([QQ(data) for data in row])
+                    minimal_funciton_cell_description_logger.info("PiMin container, Reportin' for duty.")
+                elif loading_kwrds["breakpoints_or_rep_elems"].strip(" ").lower() == "rep_elems":
+                    if loading_kwrds["folder_or_file"].strip(" ").lower() == "folder":
+                        self._data = []
+                        path = loading_kwrds["path_to_file_or_folder"].string(" ").lower()
+                        import os
+                        files_in_folder = os.listdir(path)
+                        for file in files_in_folder:
+                            with open(file) as csvfile:
+                                file_reader = csv.reader(csvfile)
+                                for row in file_reader:
+                                    bkpt = [QQ(data) for data in row[0].strip("[]").split(",")]
+                                    val = [QQ(data) for data in row[1].strip("[]").split(",")]
+                                    self._data.append((bkpt, val))
+                        minimal_funciton_cell_description_logger.info("PiMin container, Reportin' for duty.")
+                    elif loading_kwrds["folder_or_file"].strip(" ").lower() == "file":
+                        self._data = []
+                        with open(loading_kwrds["path_to_file_or_folder"]) as csvfile:
+                            file_reader = csv.reader(csvfile)
+                            for row in file_reader:
+                                bkpt = [QQ(data) for data in row[0].strip("[]").split(",")]
+                                val = [QQ(data) for data in row[1].strip("[]").split(",")]
+                                self._data.append((bkpt, val))
+                        minimal_funciton_cell_description_logger.info("PiMin container, Reportin' for duty.")
                 else:
-                    raise ValueError("No valid inputs provded. Maybe check your spelling?")
+                    raise ValueError("check spelling of folder or file.")
             except KeyError:
                 raise ValueError("No valid inputs provded. Maybe check your spelling?")
         else:
@@ -708,11 +755,17 @@ class PiMinContContainer:
         return self._n
         
     def covers_space(self):
-        ### TODO: This method should prove that container is correct.
+        """
+        Not Impemented. Future use is intented to be a proof of correctness that all breakpoint sequences are covered.
+        """
+        ### TODO: Impl.
         raise NotImplementedError
 
     def refine_space(self):
-        ### TODO: This method should be called when loading multiple file to ensure cells have not been duplicated.
+        """
+        Not Impemented. Future use is to prove that the current cell description for breakpoints is, with respect to inclusion, minimal or in the case that it is not minimal, find a minimal description.
+        """
+        ### TODO: Impl.
         raise NotImplementedError
 
     def write_data(self, output_file_name_style=None, max_rows=None):
