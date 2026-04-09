@@ -504,11 +504,11 @@ class BreakpointComplexClassContainer:
             try:
                 if loading_kwrds["folder_or_file"].strip(" ").lower() == "folder":
                     self._data = []
-                    path = loading_kwrds["path_to_file_or_folder"].string(" ").lower()
+                    path = loading_kwrds["path_to_file_or_folder"]
                     import os
                     files_in_folder = os.listdir(path)
                     for file in files_in_folder:
-                        with open(file) as csvfile:
+                        with open(os.path.join(path, file)) as csvfile:
                             file_reader = csv.reader(csvfile)
                             for row in file_reader:
                                 self._data.append([QQ(data) for data in row])
@@ -705,11 +705,11 @@ class PiMinContContainer:
                 elif loading_kwrds["breakpoints_or_rep_elems"].strip(" ").lower() == "rep_elems":
                     if loading_kwrds["folder_or_file"].strip(" ").lower() == "folder":
                         self._data = []
-                        path = loading_kwrds["path_to_file_or_folder"].string(" ").lower()
+                        path = loading_kwrds["path_to_file_or_folder"]
                         import os
                         files_in_folder = os.listdir(path)
                         for file in files_in_folder:
-                            with open(file) as csvfile:
+                            with open(os.path.join(path, file)) as csvfile:
                                 file_reader = csv.reader(csvfile)
                                 for row in file_reader:
                                     bkpt = [QQ(data) for data in row[0].strip("[]").split(",")]
