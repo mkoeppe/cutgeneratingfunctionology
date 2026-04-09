@@ -187,7 +187,10 @@ def make_rep_bkpts_with_len_n(n, k=1, bkpts=None, backend=None):
     new_bkpts = []
     if n < 2:
         raise ValueError("n>=2")
-    if k == n:
+    if k == n and bkpts is not None:
+        minimal_funciton_cell_description_logger.warning(f"Inital imputs suggest that the bkpts provided are already correct. Returning the inital bkpts.")
+        return bkpts
+    if k == n and bkpts is None:
         raise ValueError("k<n")
     if k == 1 and bkpts is None:
         bkpts=[[0]]
@@ -443,7 +446,7 @@ class BreakpointComplexClassContainer:
     n - integer 2 or larger.
     backend - (optional) `None` or `str(pplite)`
     manually_load_breakpoint_cache - (optional) bool
-    loading_kwrds - folder_or_file, path_to_file_or_folder
+    loading_kwrds - file_or_folder, path_to_file_or_folder
 
     EXAMPLES::
 
@@ -465,7 +468,7 @@ class BreakpointComplexClassContainer:
     (Advanced use) Data can be written and reused::
     
     sage: bkpt_of_len_2.write_data() # not tested
-    sage: bkpt_of_len_2_loaded = BreakpointComplexClassContainer(2, manually_load_breakpoint_cache=True, folder_or_file="file", path_to_file_or_folder="bkpts_of_len_2.csv") # not tested
+    sage: bkpt_of_len_2_loaded = BreakpointComplexClassContainer(2, manually_load_breakpoint_cache=True, file_or_folder="file", path_to_file_or_folder="bkpts_of_len_2.csv") # not tested
     
     """
     def __init__(self, n, backend=None, manually_load_breakpoint_cache=False, **loading_kwrds):
@@ -502,8 +505,8 @@ class BreakpointComplexClassContainer:
         # For generating the cache and advanced use.
         elif manually_load_breakpoint_cache:
             try:
-                if loading_kwrds["folder_or_file"].strip(" ").lower() == "folder":
-                    self._data = []
+                if loading_kwrds["file_or_folder"].strip(" ").lower() == "folder":
+                    loaded_data = []
                     path = loading_kwrds["path_to_file_or_folder"]
                     import os
                     files_in_folder = os.listdir(path)
@@ -511,13 +514,17 @@ class BreakpointComplexClassContainer:
                         with open(os.path.join(path, file)) as csvfile:
                             file_reader = csv.reader(csvfile)
                             for row in file_reader:
-                                self._data.append([QQ(data) for data in row])
-                elif loading_kwrds["folder_or_file"].strip(" ").lower() == "file":
-                    self._data = []
+                                loaded_data.append([QQ(data) for data in row])
+                    k = len(loaded_data[0]) # assume all the data is correct and of teh same lenght.
+                    self._data = make_rep_bkpts_with_len_n(self._n, k, loaded_data, backend=self._backend)
+                elif loading_kwrds["file_or_folder"].strip(" ").lower() == "file":
+                    loaded_data = []
                     with open(loading_kwrds["path_to_file_or_folder"]) as csvfile:
                         file_reader = csv.reader(csvfile)
                         for row in file_reader:
-                            self._data.append([QQ(data) for data in row])
+                            loaded_data.append([QQ(data) for data in row])
+                    k = len(loaded_data[0]) # assume all the data is correct and of teh same lenght.
+                    self._data = make_rep_bkpts_with_len_n(self._n, k, loaded_data, backend=self._backend)
                 else:
                     raise ValueError("check spelling of folder or file.")
             except KeyError:
@@ -557,8 +564,7 @@ class BreakpointComplexClassContainer:
     def covers_space(self):
         """
         Not Impemented. Future use is intented to be a proof of correctness that all breakpoint sequences are covered.
-        """
-        ### TODO: Impl.
+        """        ### TODO: Impl.
         raise NotImplementedError
 
     def refine_space(self):
@@ -660,7 +666,7 @@ class PiMinContContainer:
     
     Written data can be reused.::
     
-    sage: PiMin_2_loaded_data = PiMinContContainer(2, manually_load_function_cache=True, folder_or_file="file", path_to_file_or_folder="Pi_Min_2.csv", breakpoints_or_rep_elems="rep_elems") # not tested
+    sage: PiMin_2_loaded_data = PiMinContContainer(2, manually_load_function_cache=True, file_or_folder="file", path_to_file_or_folder="Pi_Min_2.csv", breakpoints_or_rep_elems="rep_elems") # not tested
     sage: len([rep_elem for rep_elem in PiMin_2_loaded_data.get_rep_elems()])  # not tested
     3
     """
@@ -703,7 +709,7 @@ class PiMinContContainer:
                     self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
                     minimal_funciton_cell_description_logger.info("PiMin container, Reportin' for duty.")
                 elif loading_kwrds["breakpoints_or_rep_elems"].strip(" ").lower() == "rep_elems":
-                    if loading_kwrds["folder_or_file"].strip(" ").lower() == "folder":
+                    if loading_kwrds["file_or_folder"].strip(" ").lower() == "folder":
                         self._data = []
                         path = loading_kwrds["path_to_file_or_folder"]
                         import os
@@ -716,7 +722,7 @@ class PiMinContContainer:
                                     val = [QQ(data) for data in row[1].strip("[]").split(",")]
                                     self._data.append((bkpt, val))
                         minimal_funciton_cell_description_logger.info("PiMin container, Reportin' for duty.")
-                    elif loading_kwrds["folder_or_file"].strip(" ").lower() == "file":
+                    elif loading_kwrds["file_or_folder"].strip(" ").lower() == "file":
                         self._data = []
                         with open(loading_kwrds["path_to_file_or_folder"]) as csvfile:
                             file_reader = csv.reader(csvfile)
