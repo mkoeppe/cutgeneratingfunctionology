@@ -679,7 +679,7 @@ class PiMinContContainer:
                 # Load the minimal function cache.
                 from minimalFunctionCache.utils import minimal_function_cache_loader
                 try:
-                    self._data = minimal_function_cache_loader(self._n, "rep elems")
+                    self._data = minimal_function_cache_loader(self._n, "rep_elems")
                 # cache loader throws a value error if a cache for n is not found.
                 except ValueError:
                     minimal_funciton_cell_description_logger.info(f"The cache for {n} breakpoints has not been generated or could not be found.")
