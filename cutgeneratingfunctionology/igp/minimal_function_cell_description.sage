@@ -6,7 +6,7 @@ import logging
 import os
 
 minimal_funciton_cell_description_logger = logging.getLogger("cutgeneratingfunctionology.igp.minimal_funciton_cell_description")
-minimal_funciton_cell_description_logger.setLevel(logging.INFO)
+minimal_funciton_cell_description_logger.setLevel(logging.DEBUG)
 
 ### Note to future reader: ###
 ### bkpt is assumed to be a breakpoint sequence of length n>= 2.
@@ -336,7 +336,7 @@ def value_nnc_polyhedron(bkpt, f_index, backend=None):
         vert
     for vert in generate_assumed_symmetric_vertices_continuous(h, K.gens()[f_index], [0] + K.gens()[0:n] + [1]):
         vert
-    if not log_paramateric_real_field
+    if not log_paramateric_real_field:
         logging.getLogger("cutgeneratingfunctionology.igp.parametric").setLevel(parametric_logging_level)
     if not log_pw_functions:
         logging.getLogger("cutgeneratingfunctionology.igp.functions").setLevel(pw_logging_level)
@@ -802,3 +802,77 @@ class PiMinContContainer:
                     break
             out_file.close()
             output_file = file_name_base[:-1]+"{}".format(file_number+1)+".csv"
+
+
+def plot_2_d_polyhedral_complex(bkpt, highlight_index=-1, highlight_color='blue', **kwds):
+    r"""
+    Returns a plot of 2-d polyehdral complex of the breakpoint sequence of length n, Complex Delta P_bkpt.
+    Lines generated from a partiuclar breakpoint can be highlighted.
+    Assumes that the breakpoint sequence is correct and ``highlight_index`` is between 0 and ``len(bkpt)-1``, inclusive.
+
+    EXAMPLES::
+    sage: from cutgeneratingfunctiology.igp import *
+    sage: plot_2_d_polyhedral_complex([0, 4/5]) # not tested
+
+    A breakpoint can be highlighted::
+    sage: plot_2_d_polyhedral_complex([0, 1/2, 4/5], highlight_index=1) # not tested
+
+    An the color changed::
+    sage: plot_2_d_polyhedral_complex([0, 4/5], highlight_index=1, highlight_color='green') # not tested
+    """
+    bkpt_ext = bkpt + [1]
+    x = var('x')
+    p = Graphics()
+    n = len(bkpt)
+    if highlight_index is None:
+        highlight_index = -1
+    for i in range(1,n+1):
+        if i == highlight_index:
+            p += line([(0,  bkpt_ext[i]), (bkpt_ext[i], 0)], color=highlight_color, linestyle='dashed')
+        else:
+            p += line([(0,  bkpt_ext[i]), (bkpt_ext[i], 0)], color='grey')
+    for i in range(1,n):
+        if i == highlight_index: 
+            p += line([(bkpt_ext[i], 1), (1, bkpt_ext[i])], color=highlight_color, linestyle='dashed')
+        else:
+            p += line([(bkpt_ext[i], 1), (1, bkpt_ext[i])], color='grey')
+    for i in range(n+1):
+        if i == highlight_index:
+            p += plot(bkpt_ext[i], (0, 1),  color=highlight_color, linestyle='dashed')
+        else:
+            p += plot(bkpt_ext[i], (0, 1), color='grey')
+    y=var('y')
+    for i in range(n):
+        if i == highlight_index:
+            p += parametric_plot((bkpt_ext[i],y), (y,0,1), color=highlight_color, linestyle='dashed')
+        else:
+            p += parametric_plot((bkpt_ext[i],y), (y,0,1), color='grey')
+    p += line([(1,0), (1,1)], color='grey')
+    return p
+
+def plot_2_d_polyhedral_complex_and_descendants(bkpt, max_row_length=5, max_number_additional_diagrams=15, **kwds):
+    r"""
+    Returns a plot of 2-d polyehdral complex of the breakpoint sequence of length n, Complex Delta P_bkpt 
+    together with plots of  Complex :math:`Delta P_{bkpt \cup \lambda^*}` where Complex Delta P_bkpt is a
+    subcomplex of :math:`Delta P_{bkpt \cup \lambda^*}`.
+
+    EXAMPLES::
+    sage: from cutgeneratingfunctiology.igp import *
+    sage: plot_2_d_polyhedral_complex_and_descendants([0, 1/2]) # not tested
+    """
+    n =  len(bkpt)
+    n_plus_one_breakpoints = unique_list(make_rep_bkpts_with_len_n(n+1, k=n, bkpts=[bkpt]))
+    number_of_new_diagrams = len(n_plus_one_breakpoints)
+    m = max_row_length
+    i = 0
+    plots = []
+    while i < max_number_additional_diagrams and i < number_of_new_diagrams:
+        plots.append((plot_2_d_polyhedral_complex(list(n_plus_one_breakpoints[i]), n, **kwds), (i%m , int(i/m) ,.75,.75)))
+        i += 1
+    if i < m:
+        plots.append((plot_2_d_polyhedral_complex(bkpt), (int(i/2), -1,.75,.75)))
+    else:
+        plots.append((plot_2_d_polyhedral_complex(bkpt), (int(m/2), -1 ,.75,.75)))
+    return multi_graphics(plots)
+
+
