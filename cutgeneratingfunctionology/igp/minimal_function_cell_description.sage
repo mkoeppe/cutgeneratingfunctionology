@@ -687,7 +687,7 @@ class PiMinContContainer:
                         minimal_funciton_cell_description_logger.warning(f"This may take a while.")
                     minimal_funciton_cell_description_logger.info("Finished generating breakpoints.")
                     minimal_funciton_cell_description_logger.info("Computing repersentative elements.")
-                    self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend) 
+                    self._data = find_minimal_function_reps_from_bkpts(bkpts, backend=self._backend)
             except ImportError:
                 if self._n > 4:
                     minimal_funciton_cell_description_logger.warning(f"This may take a while. Try installing the minimalFunctionCache.")
@@ -832,7 +832,7 @@ def plot_2_d_polyhedral_complex(bkpt, highlight_index=-1, highlight_color='blue'
         else:
             p += line([(0,  bkpt_ext[i]), (bkpt_ext[i], 0)], color='grey')
     for i in range(1,n):
-        if i == highlight_index: 
+        if i == highlight_index:
             p += line([(bkpt_ext[i], 1), (1, bkpt_ext[i])], color=highlight_color, linestyle='dashed')
         else:
             p += line([(bkpt_ext[i], 1), (1, bkpt_ext[i])], color='grey')
@@ -841,7 +841,7 @@ def plot_2_d_polyhedral_complex(bkpt, highlight_index=-1, highlight_color='blue'
             p += plot(bkpt_ext[i], (0, 1),  color=highlight_color, linestyle='dashed')
         else:
             p += plot(bkpt_ext[i], (0, 1), color='grey')
-    y=var('y')
+    y = var('y')
     for i in range(n):
         if i == highlight_index:
             p += parametric_plot((bkpt_ext[i],y), (y,0,1), color=highlight_color, linestyle='dashed')
@@ -852,7 +852,7 @@ def plot_2_d_polyhedral_complex(bkpt, highlight_index=-1, highlight_color='blue'
 
 def plot_2_d_polyhedral_complex_and_descendants(bkpt, max_row_length=5, max_number_additional_diagrams=15, **kwds):
     r"""
-    Returns a plot of 2-d polyehdral complex of the breakpoint sequence of length n, Complex Delta P_bkpt 
+    Returns a plot of 2-d polyehdral complex of the breakpoint sequence of length n, Complex Delta P_bkpt
     together with plots of  Complex :math:`Delta P_{bkpt \cup \lambda^*}` where Complex Delta P_bkpt is a
     subcomplex of :math:`Delta P_{bkpt \cup \lambda^*}`.
 
@@ -860,19 +860,18 @@ def plot_2_d_polyhedral_complex_and_descendants(bkpt, max_row_length=5, max_numb
     sage: from cutgeneratingfunctiology.igp import *
     sage: plot_2_d_polyhedral_complex_and_descendants([0, 1/2]) # not tested
     """
-    n =  len(bkpt)
+    n = len(bkpt)
     n_plus_one_breakpoints = unique_list(make_rep_bkpts_with_len_n(n+1, k=n, bkpts=[bkpt]))
     number_of_new_diagrams = len(n_plus_one_breakpoints)
     m = max_row_length
     i = 0
     plots = []
     while i < max_number_additional_diagrams and i < number_of_new_diagrams:
-        plots.append((plot_2_d_polyhedral_complex(list(n_plus_one_breakpoints[i]), n, **kwds), (i%m , int(i/m) ,.75,.75)))
+        plots.append((plot_2_d_polyhedral_complex(list(n_plus_one_breakpoints[i]), n, **kwds), (i % m , int(i/m) ,.75,.75)))
         i += 1
     if i < m:
         plots.append((plot_2_d_polyhedral_complex(bkpt), (int(i/2), -1,.75,.75)))
     else:
         plots.append((plot_2_d_polyhedral_complex(bkpt), (int(m/2), -1 ,.75,.75)))
     return multi_graphics(plots)
-
 
