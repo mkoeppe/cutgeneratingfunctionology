@@ -35,6 +35,9 @@ from sage.numerical.mip import MixedIntegerLinearProgram, MIPVariable, MIPSolver
 from sage.structure.sage_object import SageObject
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
+class EmptyBSA(Exception):
+    pass
+
 def _bsa_class(bsa_class):
     r"""
     Translate a class nickname to a class.
@@ -1070,8 +1073,8 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
     # override the abstract methods
     def find_point(self):
         r"""
-        Find a point in ``self``.
-        
+            Find a point in ``self``.
+            
         EXAMPLES::
         
             sage: from cutgeneratingfunctionology.spam.basic_semialgebraic import *
@@ -1081,6 +1084,12 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
             sage: P.add_linear_constraint([2,3],-6,operator.lt)
             sage: P.find_point()
             (11/10, 11/15)
+            sage: P = BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(1)
+            sage: P.add_linear_constraint([1],0,operator.ge)
+            sage: P.add_linear_constraint([1],-1,operator.lt)
+            sage: P.find_point()
+            EmptyBSA
+            
         """
         def to_point(g):
             den = g.divisor()
@@ -1091,6 +1100,8 @@ class BasicSemialgebraicSet_polyhedral_ppl_NNC_Polyhedron(BasicSemialgebraicSet_
                    if g.is_point() or g.is_closure_point() ]
         rays = [ to_vector(g) for g in self._polyhedron.generators()
                  if g.is_ray() ]
+        if self.is_empty():
+            raise EmptyBSA("The underlying bsa is empty set.")
         if points:
             p = sum(points) / len(points)
             if rays:

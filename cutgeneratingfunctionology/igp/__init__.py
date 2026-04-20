@@ -76,9 +76,9 @@ igp_load(igp_dir + "lifting_project.sage")
 igp_load(igp_dir + "plot_options.sage")
 igp_load(igp_dir + "faster_subadditivity_test.sage")
 igp_load(igp_dir + "faster_subadditivity_test_discontinuous.sage")
+igp_load(igp_dir + "minimal_function_cell_description.sage")
 
 from . import extreme_functions, procedures
-
 try:
     igp_load(igp_dir + "config.sage")
 except IOError:
