@@ -6,7 +6,7 @@ import logging
 import os
 
 minimal_funciton_cell_description_logger = logging.getLogger("cutgeneratingfunctionology.igp.minimal_funciton_cell_description")
-minimal_funciton_cell_description_logger.setLevel(logging.DEBUG)
+minimal_funciton_cell_description_logger.setLevel(logging.INFO)
 
 ### Note to future reader: ###
 ### bkpt is assumed to be a breakpoint sequence of length n>= 2.
@@ -15,16 +15,11 @@ minimal_funciton_cell_description_logger.setLevel(logging.DEBUG)
 ### This is never strictly enforced in this file and it is assumed that
 ### the user is always provided a breakpoint sequence.
 
-# global defaults for logging from portions of igp; change to log different parts of igp.
-log_paramateric_real_field = False
-log_pw_functions = False
-
-
 class RepElemGenFailure(Exception):
     pass
 
 
-def nnc_poly_from_bkpt_sequence(bkpt, backend=None):
+def nnc_poly_from_bkpt_sequence(bkpt, backend=None, log_paramateric_real_field = False,log_pw_functions = False):
     r"""
     Defines an NNC polyhedron P such that for all b in P the delta complex of b is isomoprhic to the delta complex of bkpt.
 
@@ -223,7 +218,7 @@ def generate_assumed_symmetric_vertices_continuous(fn, f, bkpt):
         fn(x) + fn(y) == 1
         yield (x, y, 0, 0)
 
-def value_nnc_polyhedron_value_cords(bkpt, f_index, backend=None):
+def value_nnc_polyhedron_value_cords(bkpt, f_index, backend=None, log_paramateric_real_field = False, log_pw_functions = False):
     r"""
     For a given breakpoints sequence and f index, write the value polyhedron as a basic semialgebraic set in only the value parameters.
 
@@ -280,7 +275,7 @@ def value_nnc_polyhedron_value_cords(bkpt, f_index, backend=None):
         logging.getLogger("cutgeneratingfunctionology.igp.functions").setLevel(pw_logging_level)
     return K._bsa
 
-def value_nnc_polyhedron(bkpt, f_index, backend=None):
+def value_nnc_polyhedron(bkpt, f_index, backend=None, log_paramateric_real_field = False,log_pw_functions = False):
     r"""
     For a given breakpoints sequence and f index, write the value polyhedron as a basic semialgebraic set in the full space of parameters.
 
@@ -342,7 +337,7 @@ def value_nnc_polyhedron(bkpt, f_index, backend=None):
         logging.getLogger("cutgeneratingfunctionology.igp.functions").setLevel(pw_logging_level)
     return K._bsa
 
-def bsa_of_rep_element(bkpt, vals, backend=None):
+def bsa_of_rep_element(bkpt, vals, backend=None, log_paramateric_real_field = False,log_pw_functions = False):
     r"""
     Given pi_(bkpt, vals) is {minimal, not minimal}, find BSA subset of R^(2n) such that (bkpt, vals) in BSA and for all p
     in BSA, pi_p is {minimal, not minimal}.
