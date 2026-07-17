@@ -4,3 +4,4 @@ sphinx
 sphinxcontrib-bibtex
 sphinxcontrib-websupport
 pynormaliz
+pplitepy
