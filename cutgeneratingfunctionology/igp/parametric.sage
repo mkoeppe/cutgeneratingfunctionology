@@ -19,7 +19,7 @@ from cutgeneratingfunctionology.spam.basic_semialgebraic import *
 from cutgeneratingfunctionology.spam.basic_semialgebraic_local import BasicSemialgebraicSet_local
 from cutgeneratingfunctionology.spam.semialgebraic_mathematica import BasicSemialgebraicSet_mathematica, from_mathematica
 from cutgeneratingfunctionology.spam.basic_semialgebraic_groebner_basis import BasicSemialgebraicSet_groebner_basis
-from cutgeneratingfunctionology.spam.polyhedral_complex import PolyhedralComplex
+from sage.geometry.polyhedral_complex import PolyhedralComplex
 from .parametric_family import Classcall, ParametricFamily_base, ParametricFamily
 import logging
 
